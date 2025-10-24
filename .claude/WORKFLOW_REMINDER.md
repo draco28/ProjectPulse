@@ -32,6 +32,7 @@
 ```
 
 **Commands:**
+
 ```bash
 # Start session
 python .claude/devhub_orchestrator.py
@@ -69,6 +70,7 @@ python .claude/devhub_orchestrator.py
 ```
 
 **Quick Debug:**
+
 ```bash
 # For simple bugs
 "Debug why [specific issue]"
@@ -105,6 +107,7 @@ python .claude/devhub_orchestrator.py
 ```
 
 **TDD Workflow:**
+
 ```
 "Use TDD to implement [feature]"
 → RED: Write failing test
@@ -167,6 +170,7 @@ python .claude/devhub_orchestrator.py
 ```
 
 **Pre-Commit Check:**
+
 ```
 "Is this ready to commit?"
 → Uses: verification-before-completion skill
@@ -283,6 +287,7 @@ python .claude/devhub_orchestrator.py
 ## 🛠️ Common Commands
 
 ### Orchestrator Commands
+
 ```bash
 help         # Show help
 agents       # List agents
@@ -294,6 +299,7 @@ exit         # Quit orchestrator
 ```
 
 ### Direct Routing (Claude Code)
+
 ```
 "Use devhub-architect to..."      # Architecture
 "Use devhub-fullstack to..."       # Implementation
@@ -326,6 +332,7 @@ Before every commit, verify:
 ```
 
 **Quick check:**
+
 ```
 "Is this ready to commit?"
 → Runs verification-before-completion checklist
@@ -336,6 +343,7 @@ Before every commit, verify:
 ## 🎯 Session Management
 
 ### Starting Sessions
+
 ```bash
 # New session
 python .claude/devhub_orchestrator.py
@@ -345,6 +353,7 @@ python .claude/devhub_orchestrator.py
 ```
 
 ### Continuing Sessions
+
 ```bash
 # Resume existing
 python .claude/devhub_orchestrator.py
@@ -356,6 +365,7 @@ python .claude/devhub_orchestrator.py
 ```
 
 ### Workflow Continuation
+
 ```bash
 # Next logical step
 "continue"
@@ -370,6 +380,7 @@ python .claude/devhub_orchestrator.py
 ## 🔍 Debugging Tips
 
 ### Systematic Approach
+
 ```
 1. Reproduce: Document exact steps
 2. Isolate: Narrow to layer (UI/API/DB)
@@ -380,6 +391,7 @@ python .claude/devhub_orchestrator.py
 ```
 
 ### By Symptom
+
 ```
 UI not rendering → Check React DevTools, hydration
 API errors → Check Network tab, status codes
@@ -393,6 +405,7 @@ Tests fail → Check test output, expectations
 ## 📚 Documentation References
 
 **Quick Links:**
+
 - Architecture: [docs/01-ARCHITECTURE.md](../docs/01-ARCHITECTURE.md)
 - Database: [docs/02-DATABASE-SCHEMA.md](../docs/02-DATABASE-SCHEMA.md)
 - MCP Spec: [docs/03-MCP-SPECIFICATION.md](../docs/03-MCP-SPECIFICATION.md)
@@ -404,13 +417,13 @@ Tests fail → Check test output, expectations
 
 ## 🎨 Agent Colors (Visual Reference)
 
-| Agent | Color | Use Case |
-|-------|-------|----------|
-| devhub-architect | 🔵 Blue | Design, architecture |
-| devhub-fullstack | 🟢 Green | Implementation, coding |
-| devhub-testing | 🟣 Purple | Tests, QA |
-| devhub-auditor | 🔴 Red | Review, quality |
-| devhub-mcp-specialist | 🔷 Cyan | MCP tools |
+| Agent                 | Color     | Use Case               |
+| --------------------- | --------- | ---------------------- |
+| devhub-architect      | 🔵 Blue   | Design, architecture   |
+| devhub-fullstack      | 🟢 Green  | Implementation, coding |
+| devhub-testing        | 🟣 Purple | Tests, QA              |
+| devhub-auditor        | 🔴 Red    | Review, quality        |
+| devhub-mcp-specialist | 🔷 Cyan   | MCP tools              |
 
 ---
 
@@ -445,6 +458,7 @@ Tests fail → Check test output, expectations
 ## ⚡ Quick Patterns
 
 ### New API Endpoint
+
 ```
 1. "Design POST /api/[resource]"
 2. "continue" → Implement
@@ -453,6 +467,7 @@ Tests fail → Check test output, expectations
 ```
 
 ### New React Component
+
 ```
 1. "Design [Component] with props [X, Y]"
 2. "Use TDD to implement [Component]"
@@ -460,6 +475,7 @@ Tests fail → Check test output, expectations
 ```
 
 ### Bug Fix
+
 ```
 1. "Debug: [symptom]"
 2. "Implement the fix"
@@ -468,6 +484,7 @@ Tests fail → Check test output, expectations
 ```
 
 ### Database Change
+
 ```
 1. "Design schema for [feature]"
 2. "Create Prisma migration"
