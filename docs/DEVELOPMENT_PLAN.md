@@ -27,16 +27,16 @@
 
 All development MUST align with these non-negotiable rules from [AGENTS.md](../AGENTS.md):
 
-| Rule ID | Rule | Compliance Strategy |
-|---------|------|---------------------|
-| **[R-DOC-001]** | Documentation Authority | All implementations follow [docs/](.) architecture. Verify against docs before completing any task. |
-| **[R-DATA-001]** | Data-Driven Development | Use database tables or configuration. No hardcoded values in code. |
-| **[R-TS-001]** | Type Safety | Strict TypeScript, **zero** `any` types allowed. Use Zod for runtime validation. |
-| **[R-NEXT-001]** | Server Components First | Default to React Server Components. Only use Client Components when needed (interactivity). |
-| **[R-SEC-001]** | Prisma Parameterized | **No raw SQL strings**. Use Prisma parameterized queries or `$queryRaw` with template literals. |
-| **[R-TEST-001]** | Testing Required | 80%+ coverage for all new code. Tests written **before** marking complete. |
-| **[R-MCP-001]** | MCP Pattern | MCP Server → Next.js API → Prisma. MCP never accesses database directly. |
-| **[R-PRIVACY-001]** | Local-First | All data stored locally (PostgreSQL + files). No cloud dependencies. |
+| Rule ID             | Rule                    | Compliance Strategy                                                                                 |
+| ------------------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
+| **[R-DOC-001]**     | Documentation Authority | All implementations follow [docs/](.) architecture. Verify against docs before completing any task. |
+| **[R-DATA-001]**    | Data-Driven Development | Use database tables or configuration. No hardcoded values in code.                                  |
+| **[R-TS-001]**      | Type Safety             | Strict TypeScript, **zero** `any` types allowed. Use Zod for runtime validation.                    |
+| **[R-NEXT-001]**    | Server Components First | Default to React Server Components. Only use Client Components when needed (interactivity).         |
+| **[R-SEC-001]**     | Prisma Parameterized    | **No raw SQL strings**. Use Prisma parameterized queries or `$queryRaw` with template literals.     |
+| **[R-TEST-001]**    | Testing Required        | 80%+ coverage for all new code. Tests written **before** marking complete.                          |
+| **[R-MCP-001]**     | MCP Pattern             | MCP Server → Next.js API → Prisma. MCP never accesses database directly.                            |
+| **[R-PRIVACY-001]** | Local-First             | All data stored locally (PostgreSQL + files). No cloud dependencies.                                |
 
 **Verification:** Before completing ANY task, run through [skills/validation/verification-before-completion.md](.claude/skills/validation/verification-before-completion.md) checklist.
 
@@ -52,8 +52,8 @@ All development MUST align with these non-negotiable rules from [AGENTS.md](../A
 4. **[03-MCP-SPECIFICATION.md](03-MCP-SPECIFICATION.md)** - MCP tools/resources/prompts (60 pages)
 5. **[04-UI-ARCHITECTURE.md](04-UI-ARCHITECTURE.md)** - UI design system & components ⭐ **NEW!**
 6. **[WORKFLOW_ARCHITECTURE.md](WORKFLOW_ARCHITECTURE.md)** - 3-track development workflow ⭐ **NEW!**
-7. **[05-IMPLEMENTATION-GUIDE.md](05-IMPLEMENTATION-GUIDE.md)** - Week-by-week implementation *(Not yet read)*
-8. **[06-AGENT-PERSONAS.md](06-AGENT-PERSONAS.md)** - Agent persona system *(Not yet read)*
+7. **[05-IMPLEMENTATION-GUIDE.md](05-IMPLEMENTATION-GUIDE.md)** - Week-by-week implementation _(Not yet read)_
+8. **[06-AGENT-PERSONAS.md](06-AGENT-PERSONAS.md)** - Agent persona system _(Not yet read)_
 9. **[07-QUICK-START.md](07-QUICK-START.md)** - 30-minute setup guide
 
 ### Supporting Documentation
@@ -65,18 +65,18 @@ All development MUST align with these non-negotiable rules from [AGENTS.md](../A
 
 ### When to Reference Each
 
-| Question | Reference Document |
-|----------|-------------------|
-| "How do I structure this feature?" | [01-ARCHITECTURE.md](01-ARCHITECTURE.md) |
-| "What's the database schema for X?" | [02-DATABASE-SCHEMA.md](02-DATABASE-SCHEMA.md) |
-| "How do I add an MCP tool?" | [03-MCP-SPECIFICATION.md](03-MCP-SPECIFICATION.md) |
-| "What UI components are available?" | [04-UI-ARCHITECTURE.md](04-UI-ARCHITECTURE.md) |
-| "Should I work on backend or frontend first?" | [WORKFLOW_ARCHITECTURE.md](WORKFLOW_ARCHITECTURE.md) |
-| "What should I build this week?" | [05-IMPLEMENTATION-GUIDE.md](05-IMPLEMENTATION-GUIDE.md) |
-| "How do agent personas work?" | [06-AGENT-PERSONAS.md](06-AGENT-PERSONAS.md) |
-| "How do I set up Docker?" | [07-QUICK-START.md](07-QUICK-START.md) |
-| "What design system/colors should I use?" | [../mockups/DESIGN_DIRECTION.md](../mockups/DESIGN_DIRECTION.md) |
-| "What features are in each mockup?" | [../mockups/MOCKUPS_COMPLETE.md](../mockups/MOCKUPS_COMPLETE.md) |
+| Question                                      | Reference Document                                               |
+| --------------------------------------------- | ---------------------------------------------------------------- |
+| "How do I structure this feature?"            | [01-ARCHITECTURE.md](01-ARCHITECTURE.md)                         |
+| "What's the database schema for X?"           | [02-DATABASE-SCHEMA.md](02-DATABASE-SCHEMA.md)                   |
+| "How do I add an MCP tool?"                   | [03-MCP-SPECIFICATION.md](03-MCP-SPECIFICATION.md)               |
+| "What UI components are available?"           | [04-UI-ARCHITECTURE.md](04-UI-ARCHITECTURE.md)                   |
+| "Should I work on backend or frontend first?" | [WORKFLOW_ARCHITECTURE.md](WORKFLOW_ARCHITECTURE.md)             |
+| "What should I build this week?"              | [05-IMPLEMENTATION-GUIDE.md](05-IMPLEMENTATION-GUIDE.md)         |
+| "How do agent personas work?"                 | [06-AGENT-PERSONAS.md](06-AGENT-PERSONAS.md)                     |
+| "How do I set up Docker?"                     | [07-QUICK-START.md](07-QUICK-START.md)                           |
+| "What design system/colors should I use?"     | [../mockups/DESIGN_DIRECTION.md](../mockups/DESIGN_DIRECTION.md) |
+| "What features are in each mockup?"           | [../mockups/MOCKUPS_COMPLETE.md](../mockups/MOCKUPS_COMPLETE.md) |
 
 ---
 
@@ -86,34 +86,39 @@ All development MUST align with these non-negotiable rules from [AGENTS.md](../A
 
 Located in `.claude/agents/`, invoked via orchestrator or direct reference:
 
-| Agent | Responsibility | When to Use |
-|-------|---------------|-------------|
-| **devhub-architect** | Architecture & design decisions | "Design database schema", "Structure MCP tools", "Choose architecture pattern" |
-| **devhub-fullstack** | Implementation & coding | "Implement API endpoint", "Create React component", "Write Prisma migration" |
-| **devhub-testing** | Testing & QA | "Write tests for X", "Add E2E test", "Create regression test" |
-| **devhub-auditor** | Code review & quality | "Review this code", "Check security", "Audit performance" |
-| **devhub-mcp-specialist** | MCP integration | "Design MCP tool", "Implement MCP resource", "Create MCP prompt" |
+| Agent                     | Responsibility                  | When to Use                                                                    |
+| ------------------------- | ------------------------------- | ------------------------------------------------------------------------------ |
+| **devhub-architect**      | Architecture & design decisions | "Design database schema", "Structure MCP tools", "Choose architecture pattern" |
+| **devhub-fullstack**      | Implementation & coding         | "Implement API endpoint", "Create React component", "Write Prisma migration"   |
+| **devhub-testing**        | Testing & QA                    | "Write tests for X", "Add E2E test", "Create regression test"                  |
+| **devhub-auditor**        | Code review & quality           | "Review this code", "Check security", "Audit performance"                      |
+| **devhub-mcp-specialist** | MCP integration                 | "Design MCP tool", "Implement MCP resource", "Create MCP prompt"               |
 
 ### Available Skills
 
 Located in `.claude/skills/`, referenced during workflows:
 
 #### Debugging (2 skills)
+
 - **systematic-debugging-web.md** - Next.js/React/API debugging
 - **root-cause-tracing-fullstack.md** - Complex multi-layer bugs
 
 #### Testing (2 skills)
+
 - **test-driven-development-web.md** - TDD workflow (RED → GREEN → REFACTOR)
 - **api-testing-patterns.md** - API route testing patterns
 
 #### Validation (2 skills)
+
 - **verification-before-completion.md** - 12-point pre-commit checklist ⭐
 - **defense-in-depth-web.md** - 7 layers of validation
 
 #### Architecture (1 skill)
+
 - **api-design-patterns.md** - REST API design patterns
 
 #### Documentation (1 skill)
+
 - **changelog-generator.md** - Release notes generation
 
 ### Using the Orchestrator
@@ -146,6 +151,7 @@ python devhub_orchestrator.py
 ```
 
 **Orchestrator Commands:**
+
 - `help` - Show available commands
 - `agents` - List available agents
 - `skills` - Show available skills
@@ -156,14 +162,14 @@ python devhub_orchestrator.py
 
 ### Agent + Skill Mapping
 
-| Development Stage | Primary Agent | Skills to Use |
-|-------------------|--------------|---------------|
-| **Planning** | devhub-architect | api-design-patterns.md, defense-in-depth-web.md |
-| **Implementation** | devhub-fullstack | test-driven-development-web.md, systematic-debugging-web.md |
-| **Testing** | devhub-testing | test-driven-development-web.md, api-testing-patterns.md |
-| **Debugging** | devhub-fullstack | systematic-debugging-web.md, root-cause-tracing-fullstack.md |
-| **Review** | devhub-auditor | verification-before-completion.md, defense-in-depth-web.md |
-| **MCP Integration** | devhub-mcp-specialist | api-design-patterns.md, test-driven-development-web.md |
+| Development Stage   | Primary Agent         | Skills to Use                                                |
+| ------------------- | --------------------- | ------------------------------------------------------------ |
+| **Planning**        | devhub-architect      | api-design-patterns.md, defense-in-depth-web.md              |
+| **Implementation**  | devhub-fullstack      | test-driven-development-web.md, systematic-debugging-web.md  |
+| **Testing**         | devhub-testing        | test-driven-development-web.md, api-testing-patterns.md      |
+| **Debugging**       | devhub-fullstack      | systematic-debugging-web.md, root-cause-tracing-fullstack.md |
+| **Review**          | devhub-auditor        | verification-before-completion.md, defense-in-depth-web.md   |
+| **MCP Integration** | devhub-mcp-specialist | api-design-patterns.md, test-driven-development-web.md       |
 
 ---
 
@@ -216,6 +222,7 @@ From [docs/00-INDEX.md](00-INDEX.md):
 ### Overview
 
 Based on Cursor's architecture review ([docs/Executive Architecture Review — Moksha.md](Executive Architecture Review — Moksha.md)), we identified:
+
 - **2 Golden Rule violations** ([R-DATA-001], security)
 - **1 critical security vulnerability** (command injection via unsafe exec)
 - **Documentation inconsistencies** (broken references, misleading descriptions)
@@ -231,26 +238,21 @@ These MUST be fixed before starting implementation to avoid technical debt.
 **Problem:** Hardcoded search weights violate [R-DATA-001] "Data-Driven Development"
 
 **Solution:**
+
 1. ✅ Added `Setting` model to Prisma schema (docs/02-DATABASE-SCHEMA.md)
 2. Create `lib/settings.ts` utility:
+
    ```typescript
    import { prisma } from './prisma';
 
-   export async function getSetting<T>(
-     key: string,
-     defaultValue: T
-   ): Promise<T> {
+   export async function getSetting<T>(key: string, defaultValue: T): Promise<T> {
      const setting = await prisma.setting.findUnique({
        where: { key },
      });
      return setting ? (setting.value as T) : defaultValue;
    }
 
-   export async function setSetting(
-     key: string,
-     value: any,
-     category: string
-   ): Promise<void> {
+   export async function setSetting(key: string, value: any, category: string): Promise<void> {
      await prisma.setting.upsert({
        where: { key },
        update: { value, updatedAt: new Date() },
@@ -268,7 +270,9 @@ These MUST be fixed before starting implementation to avoid technical debt.
 **Problem:** Unsafe `exec()` usage allows command injection
 
 **Solution:**
+
 1. Create `lib/process-executor.ts` with secure `spawn()`:
+
    ```typescript
    import { spawn } from 'child_process';
 
@@ -290,9 +294,7 @@ These MUST be fixed before starting implementation to avoid technical debt.
      }
 
      // 2. Validate args (no shell metacharacters)
-     const argsValid = args.every(arg =>
-       !/[;&|`$(){}[\]<>]/.test(arg)
-     );
+     const argsValid = args.every((arg) => !/[;&|`$(){}[\]<>]/.test(arg));
      if (!argsValid) {
        throw new Error('Invalid characters in arguments');
      }
@@ -358,6 +360,7 @@ These MUST be fixed before starting implementation to avoid technical debt.
 **Agent:** devhub-fullstack
 
 **Solution:** Create `apps/web/app/api/_lib/validation.ts`:
+
 ```typescript
 import { z } from 'zod';
 
@@ -389,11 +392,7 @@ export interface ApiError {
   code?: string;
 }
 
-export function createErrorResponse(
-  error: string,
-  status: number,
-  details?: any
-): Response {
+export function createErrorResponse(error: string, status: number, details?: any): Response {
   return Response.json({ error, details } as ApiError, { status });
 }
 ```
@@ -403,6 +402,7 @@ export function createErrorResponse(
 **Agent:** devhub-auditor
 
 ✅ **Completed:**
+
 - docs/01-ARCHITECTURE.md - Fixed hardcoded weights, unsafe exec, Docker wording
 - docs/02-DATABASE-SCHEMA.md - Added Setting model
 - docs/03-MCP-SPECIFICATION.md - Renamed file
@@ -412,22 +412,26 @@ export function createErrorResponse(
 **MUST PASS before Week 1:**
 
 **Golden Rules Compliance:**
+
 - ✅ [R-DATA-001]: No hardcoded values (settings in database)
 - ✅ [R-SEC-001]: No command injection (spawn with validation)
 - ✅ [R-DOC-001]: All docs accurate and consistent
 
 **Security Audit:**
+
 - ✅ No unsafe `exec()` usage
 - ✅ Input validation on all process execution
 - ✅ Allowlists for commands
 - ✅ Timeouts and output limits
 
 **Documentation:**
+
 - ✅ All cross-references work
 - ✅ No misleading descriptions
 - ✅ Examples match actual implementation
 
 **Code Quality:**
+
 - ✅ All new utilities have TypeScript types
 - ✅ Error handling implemented
 - ✅ No `any` types
@@ -489,6 +493,7 @@ grep "03-MCP-" docs/*.md
    - `package.json` - Workspace root with pnpm scripts
    - `pnpm-workspace.yaml` - Define workspace packages
    - `.env.example` - Template for environment variables (committed to git)
+
      ```env
      # Database
      DATABASE_URL="postgresql://moksha:password@localhost:5432/moksha_devhub"
@@ -502,6 +507,7 @@ grep "03-MCP-" docs/*.md
      # Optional: MCP Server
      MCP_SERVER_ENABLED="true"
      ```
+
    - `.env` - Actual environment variables (copy from .env.example, gitignored)
    - `.gitignore` - Exclude node_modules, .env, build artifacts
    - `docker-compose.yml` - PostgreSQL + Next.js web containers
@@ -525,6 +531,7 @@ grep "03-MCP-" docs/*.md
    ```
 
 **Quality Gate:**
+
 - ✅ PostgreSQL container running (`docker ps`)
 - ✅ Extensions installed (`\dx` in psql)
 - ✅ Database accessible (`psql` connection works)
@@ -534,25 +541,162 @@ grep "03-MCP-" docs/*.md
 
 ---
 
-### Day 2: Next.js Application Bootstrap
+### Day 2: Next.js Application Bootstrap ✅ COMPLETE
 
+**Status:** 🟢 Complete - October 24, 2025
+**Completion Document:** [WEEK_1_DAY_2_COMPLETION.md](../WEEK_1_DAY_2_COMPLETION.md)
+**Git Commit:** `761165a` - "feat: Bootstrap Next.js application - Week 1 Day 2 COMPLETE"
 **Agent:** devhub-fullstack
 **Skills:** api-design-patterns.md, defense-in-depth-web.md
 
-#### Tasks
+---
+
+#### What Was Completed
+
+✅ **Next.js Application Initialized**
+
+- Created complete Next.js 14.1.0 application structure
+- Configured App Router with TypeScript
+- Integrated Tailwind CSS with custom theme system
+
+✅ **Development Environment Setup**
+
+- Installed all dependencies (679 packages in 23.6s)
+- Configured ESLint, Prettier, PostCSS
+- Set up Jest for unit testing
+- Set up Playwright for E2E testing
+
+✅ **Database Integration**
+
+- Copied Prisma schema to apps/web/prisma/
+- Generated Prisma Client v5.22.0
+- Created initial database migration: `20251024132759_init`
+- Created UserPreferences table with theme persistence
+- Verified PostgreSQL connection successful
+
+✅ **Multi-Theme System Integrated** ⭐ NEW
+
+- 4 complete themes: Desert Stone (default), Neon Vibes, Earthy, Dark Neumorphic Coral
+- Theme-specific CSS with unique visual treatments:
+  - Desert Stone: Floating neumorphic popout effects
+  - Neon Vibes: Neon glows with pulse animations
+  - Earthy: Muted tones, subtle effects
+  - Dark Neumorphic Coral: Boxy raised effects, hexagon backgrounds
+- ThemeProvider React Context for global theme state
+- ThemeSwitcher component with dropdown UI and visual previews
+- localStorage + database dual persistence
+- Fixed bug: Removed early return in ThemeProvider (!mounted issue)
+
+✅ **Application Running**
+
+- Development server verified on http://localhost:3000
+- Page compiles in 2.8s (553 modules)
+- Hot reload working (345-350ms)
+- Demo page created (temporary - will be replaced in Day 3-4)
+- No critical console errors
+
+---
+
+#### Files Created (15 new files)
+
+**Configuration Files:**
+
+- apps/web/package.json - 679 dependencies
+- apps/web/next.config.js - React Strict Mode, Server Actions, security headers
+- apps/web/tsconfig.json - Strict TypeScript with path aliases
+- apps/web/.eslintrc.json - Next.js + TypeScript + React + Prettier
+- apps/web/.prettierrc - Code formatting with Tailwind plugin
+- apps/web/postcss.config.js - Tailwind + Autoprefixer
+- apps/web/jest.config.js - Unit testing setup
+- apps/web/jest.setup.js - Testing Library integration
+- apps/web/playwright.config.ts - E2E testing (5 browsers)
+- apps/web/.gitignore - Comprehensive ignore patterns
+- apps/web/.env - Database URL for Prisma CLI
+- apps/web/.env.local - Database URL for Next.js runtime
+
+**Database:**
+
+- apps/web/prisma/schema.prisma - UserPreferences model
+
+**Application Files:**
+
+- apps/web/app/layout.tsx - Root layout with ThemeProvider wrapper
+- apps/web/app/page.tsx - Temporary demo homepage
+
+**Screenshots:**
+
+- .playwright-mcp/week1-day2-desert-theme.png
+- .playwright-mcp/week1-day2-neon-theme.png
+
+---
+
+#### Statistics
+
+- **Files created:** 15 new files
+- **Dependencies installed:** 679 packages
+- **Database tables:** 1 (user_preferences)
+- **Themes implemented:** 4 (Desert, Neon, Earthy, Coral)
+- **Implementation time:** ~2 hours
+- **Disk space:** ~500MB (node_modules)
+
+---
+
+#### Issues Resolved
+
+1. **Database Authentication Failed**
+   - Error: `Authentication failed against database server`
+   - Cause: Incorrect password in `.env` file
+   - Fix: Updated DATABASE_URL with correct password from root `.env`
+
+2. **Prisma Environment Variable Not Found**
+   - Error: `Environment variable not found: DATABASE_URL`
+   - Cause: `.env` file didn't exist in `apps/web/`
+   - Fix: Created `.env` file with DATABASE_URL
+
+3. **ThemeProvider Context Error**
+   - Error: `useTheme must be used within ThemeProvider`
+   - Cause: ThemeProvider returned children without context when `!mounted`
+   - Fix: Removed early return, always wrap children with ThemeContext.Provider
+
+---
+
+#### Quality Gate Passed
+
+✅ Development server starts in 2.3s
+✅ Page compiles successfully (553 modules)
+✅ Hot reload works (345-350ms)
+✅ Theme system loads correctly
+✅ All 4 themes switch successfully
+✅ Database connection verified
+✅ Prisma Client generated successfully
+✅ No TypeScript errors
+✅ No critical console errors
+
+---
+
+#### Next Step
+
+**Day 3-4:** Replace demo page with real Dashboard from `01-dashboard-neon.html` supporting all 4 themes
+
+---
+
+#### Original Tasks (for reference)
 
 1. **Create apps/web/ directory**
+
    ```bash
    cd apps/web
    pnpm create next-app@latest . --typescript --tailwind --app --no-src-dir --import-alias "@/*"
    ```
+
    - ✅ TypeScript: Yes
    - ✅ ESLint: Yes
    - ✅ Tailwind CSS: Yes
    - ✅ App Router: Yes
-   - ✅ Import alias: @/*
+   - ✅ Import alias: @/\*
 
 2. **Install core dependencies**
+
    ```bash
    # ORM & Database
    pnpm add @prisma/client
@@ -576,6 +720,7 @@ grep "03-MCP-" docs/*.md
 3. **Configure testing frameworks** ⭐
 
    a. **Create `jest.config.ts`** ([R-TEST-001] - Unit & Integration tests):
+
    ```typescript
    import type { Config } from 'jest';
    import nextJest from 'next/jest';
@@ -613,11 +758,13 @@ grep "03-MCP-" docs/*.md
    ```
 
    b. **Create `jest.setup.ts`**:
+
    ```typescript
    import '@testing-library/jest-dom';
    ```
 
    c. **Create `playwright.config.ts`** ([R-TEST-001] - E2E tests):
+
    ```typescript
    import { defineConfig, devices } from '@playwright/test';
 
@@ -647,6 +794,7 @@ grep "03-MCP-" docs/*.md
    ```
 
    d. **Update `package.json` scripts**:
+
    ```json
    {
      "scripts": {
@@ -660,6 +808,7 @@ grep "03-MCP-" docs/*.md
    ```
 
 4. **Create project structure**
+
    ```
    apps/web/
    ├── app/                      # App Router
@@ -685,29 +834,23 @@ grep "03-MCP-" docs/*.md
        └── migrations/
    ```
 
-4. **Create Day 0 implementation files** ⭐
+5. **Create Day 0 implementation files** ⭐
 
    **From Day 0 remediation - these fix Golden Rule violations:**
 
    a. **Create `lib/settings.ts`** (fixes [R-DATA-001]):
+
    ```typescript
    import { prisma } from './prisma';
 
-   export async function getSetting<T>(
-     key: string,
-     defaultValue: T
-   ): Promise<T> {
+   export async function getSetting<T>(key: string, defaultValue: T): Promise<T> {
      const setting = await prisma.setting.findUnique({
        where: { key },
      });
      return setting ? (setting.value as T) : defaultValue;
    }
 
-   export async function setSetting(
-     key: string,
-     value: any,
-     category: string
-   ): Promise<void> {
+   export async function setSetting(key: string, value: any, category: string): Promise<void> {
      await prisma.setting.upsert({
        where: { key },
        update: { value, updatedAt: new Date() },
@@ -717,6 +860,7 @@ grep "03-MCP-" docs/*.md
    ```
 
    b. **Create `lib/process-executor.ts`** (fixes security vulnerability):
+
    ```typescript
    import { spawn } from 'child_process';
 
@@ -738,9 +882,7 @@ grep "03-MCP-" docs/*.md
      }
 
      // 2. Validate args (no shell metacharacters)
-     const argsValid = args.every(arg =>
-       !/[;&|`$(){}[\]<>]/.test(arg)
-     );
+     const argsValid = args.every((arg) => !/[;&|`$(){}[\]<>]/.test(arg));
      if (!argsValid) {
        throw new Error('Invalid characters in arguments');
      }
@@ -789,6 +931,7 @@ grep "03-MCP-" docs/*.md
    ```
 
    c. **Create `app/api/_lib/validation.ts`** (centralized validation):
+
    ```typescript
    import { z } from 'zod';
 
@@ -820,16 +963,12 @@ grep "03-MCP-" docs/*.md
      code?: string;
    }
 
-   export function createErrorResponse(
-     error: string,
-     status: number,
-     details?: any
-   ): Response {
+   export function createErrorResponse(error: string, status: number, details?: any): Response {
      return Response.json({ error, details } as ApiError, { status });
    }
    ```
 
-5. **Create Dockerfile for production**
+6. **Create Dockerfile for production**
    ```dockerfile
    FROM node:20-alpine
    WORKDIR /app
@@ -845,6 +984,7 @@ grep "03-MCP-" docs/*.md
    ```
 
 **Quality Gate:**
+
 - ✅ Next.js builds successfully (`pnpm build`)
 - ✅ No TypeScript errors (`pnpm type-check`)
 - ✅ All dependencies installed
@@ -862,6 +1002,7 @@ grep "03-MCP-" docs/*.md
 #### Tasks
 
 1. **Setup Prisma**
+
    ```bash
    cd apps/web
    pnpm prisma init
@@ -878,6 +1019,7 @@ grep "03-MCP-" docs/*.md
      - Relations correct
 
 3. **Create initial migration**
+
    ```bash
    # Ensure DATABASE_URL in .env points to Docker PostgreSQL
    pnpm prisma migrate dev --name init
@@ -892,6 +1034,7 @@ grep "03-MCP-" docs/*.md
 
 4. **Create seed data**
    - Create `prisma/seed.ts`:
+
      ```typescript
      import { PrismaClient } from '@prisma/client';
 
@@ -931,6 +1074,7 @@ grep "03-MCP-" docs/*.md
          await prisma.$disconnect();
        });
      ```
+
    - Add to `package.json`:
      ```json
      {
@@ -946,6 +1090,7 @@ grep "03-MCP-" docs/*.md
 
 5. **Create Prisma singleton client**
    - Create `lib/prisma.ts`:
+
      ```typescript
      import { PrismaClient } from '@prisma/client';
 
@@ -956,15 +1101,17 @@ grep "03-MCP-" docs/*.md
      export const prisma =
        globalForPrisma.prisma ??
        new PrismaClient({
-         log: process.env.NODE_ENV === 'production'
-           ? ['error'] // Production: Only log errors for performance
-           : ['query', 'error', 'warn'], // Development: Verbose logging
+         log:
+           process.env.NODE_ENV === 'production'
+             ? ['error'] // Production: Only log errors for performance
+             : ['query', 'error', 'warn'], // Development: Verbose logging
        });
 
      if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
      ```
 
 **Quality Gate:**
+
 - ✅ Prisma migration runs successfully
 - ✅ All tables created (`\dt` shows all models)
 - ✅ Seed data inserted successfully
@@ -972,6 +1119,7 @@ grep "03-MCP-" docs/*.md
 - ✅ Can query database (`prisma.issue.findMany()` works)
 
 **Testing Checkpoint:**
+
 ```bash
 # Test database connection
 cd apps/web
@@ -994,6 +1142,7 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
 #### Tasks
 
 1. **Install fonts**
+
    ```bash
    cd apps/web
    pnpm add @fontsource/inter @fontsource/jetbrains-mono
@@ -1002,6 +1151,7 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
 2. **Configure Tailwind with neon theme**
 
    Update `tailwind.config.ts`:
+
    ```typescript
    import type { Config } from 'tailwindcss';
 
@@ -1050,19 +1200,19 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
          },
          animation: {
            'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-           'heartbeat': 'heartbeat 2s ease-in-out infinite',
-           'breathing': 'breathing 3s ease-in-out infinite',
+           heartbeat: 'heartbeat 2s ease-in-out infinite',
+           breathing: 'breathing 3s ease-in-out infinite',
          },
          keyframes: {
            'pulse-glow': {
              '0%, 100%': { opacity: '1' },
              '50%': { opacity: '0.6' },
            },
-           'heartbeat': {
+           heartbeat: {
              '0%, 100%': { transform: 'scale(1)', opacity: '1' },
              '50%': { transform: 'scale(1.1)', opacity: '0.8' },
            },
-           'breathing': {
+           breathing: {
              '0%, 100%': { boxShadow: '0 0 20px rgba(255, 0, 128, 0.4)' },
              '50%': { boxShadow: '0 0 30px rgba(255, 0, 128, 0.8)' },
            },
@@ -1078,6 +1228,7 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
 3. **Update global CSS**
 
    Update `app/globals.css`:
+
    ```css
    @import '@fontsource/inter/400.css';
    @import '@fontsource/inter/500.css';
@@ -1096,18 +1247,19 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
        @apply bg-background-darkest text-text-primary font-sans;
      }
 
-     code, pre {
+     code,
+     pre {
        @apply font-mono;
      }
    }
 
    @layer utilities {
      .gradient-pink-orange {
-       background: linear-gradient(135deg, #FF0080 0%, #FF4D6D 50%, #FF8C42 100%);
+       background: linear-gradient(135deg, #ff0080 0%, #ff4d6d 50%, #ff8c42 100%);
      }
 
      .gradient-purple-pink {
-       background: linear-gradient(135deg, #B721FF 0%, #FF0080 100%);
+       background: linear-gradient(135deg, #b721ff 0%, #ff0080 100%);
      }
 
      .card-hover {
@@ -1143,6 +1295,7 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
    ```
 
 4. **Install shadcn/ui and create base components**
+
    ```bash
    npx shadcn-ui@latest init
    # Select: TypeScript, Tailwind CSS, use src directory=No, import alias=@/*
@@ -1157,15 +1310,18 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
 5. **Customize shadcn components with neon theme**
 
    Edit `components/ui/button.tsx` to add neon variants:
+
    ```typescript
    const buttonVariants = cva(
-     "inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-300",
+     'inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-300',
      {
        variants: {
          variant: {
-           default: "gradient-pink-orange text-white hover:shadow-glow-pink",
-           secondary: "bg-transparent border-2 border-neon-pink text-neon-pink hover:bg-neon-pink/10 hover:shadow-glow-pink",
-           ghost: "bg-transparent text-text-secondary hover:text-neon-pink hover:bg-background-medium",
+           default: 'gradient-pink-orange text-white hover:shadow-glow-pink',
+           secondary:
+             'bg-transparent border-2 border-neon-pink text-neon-pink hover:bg-neon-pink/10 hover:shadow-glow-pink',
+           ghost:
+             'bg-transparent text-text-secondary hover:text-neon-pink hover:bg-background-medium',
            // ... keep other shadcn variants
          },
          // ... rest of the variants
@@ -1177,6 +1333,7 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
 6. **Create UI showcase page** (for testing)
 
    Create `app/(dashboard)/ui-showcase/page.tsx`:
+
    ```typescript
    import { Button } from '@/components/ui/button';
    import { Card } from '@/components/ui/card';
@@ -1238,6 +1395,7 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
    - Check contrast ratios with WebAIM tool
 
 **Quality Gate:**
+
 - ✅ Tailwind compiles successfully
 - ✅ Fonts load correctly (check Network tab)
 - ✅ All base components render
@@ -1250,9 +1408,701 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
 
 ---
 
+### Days 3-4: Real Dashboard Implementation (8-13 hours) 🟡 IN PROGRESS
+
+**Agent:** devhub-fullstack (UI specialist)
+**Reference Documents:**
+
+- [mockups/01-dashboard-neon.html](../mockups/01-dashboard-neon.html) - Structure reference ⭐
+- [mockups/dashboard-desert-stone-neumorphic.html](../mockups/dashboard-desert-stone-neumorphic.html) - Desert theme
+- [mockups/dashboard-dark-neumorphic-coral.html](../mockups/dashboard-dark-neumorphic-coral.html) - Coral theme
+- [mockups/DESIGN_DIRECTION.md](../mockups/DESIGN_DIRECTION.md) - Design tokens
+- [04-UI-ARCHITECTURE.md](04-UI-ARCHITECTURE.md) - UI architecture
+
+**Skills:** None (component building)
+
+**Status:** 🟡 In Progress - Awaiting execution
+
+---
+
+#### Overview
+
+Replace the temporary demo page (from Day 2) with the **real Dashboard** from `01-dashboard-neon.html`, supporting all 4 themes with their unique visual treatments:
+
+**Dashboard Structure (from mockups):**
+
+- **Sidebar Navigation:** Logo with pulse animation, menu items (Dashboard, Issues, Knowledge, Wiki, Security, Agent Personas, Settings), theme switcher, user profile
+- **Header:** Search bar with ⌘K indicator, notifications with pulse dot, theme toggle
+- **Welcome Banner:** Gradient hero with "Welcome back" message + "Create New Issue" CTA
+- **Stats Grid:** 4 stat cards showing: Open Issues (12), Knowledge Items (47), Security Findings (15), Completed (28)
+- **Two-Column Layout:**
+  - **Left (2/3):** Recent Issues list with issue cards (priority badges, category tags, pulse indicators, timestamps)
+  - **Right (1/3):** Quick Actions widget (3 buttons) + Agent Personas widget (active agents with status)
+
+**Theme Visual Treatments:**
+
+- **Desert Stone:** Floating neumorphic popout (`.neu-float-desert`) - soft shadows (12px/24px), glassmorphism, float animations
+- **Neon Vibes:** Neon glows (`.glow-pink`, `.glow-purple`) - pulse animations, vibrant effects, neon text shadows
+- **Earthy:** Similar structure to Neon but muted color tones, subtle glows
+- **Dark Neumorphic Coral:** Boxy raised effects (`.neu-raised`) - hard shadows (8px/16px), hexagon background decorations, coral gradient accents
+
+---
+
+#### Implementation Strategy: Bottom-Up Approach
+
+We'll build from base components up to the complete page, ensuring reusability and type safety.
+
+---
+
+##### **Phase 1: shadcn/ui Foundation & Theme Effects** (~3 hours)
+
+**Tasks:**
+
+1. **Install shadcn/ui CLI**
+
+   ```bash
+   cd apps/web
+   pnpm dlx shadcn-ui@latest init
+   ```
+
+   **Configuration:**
+   - Style: Default
+   - Base color: Slate
+   - CSS variables: Yes
+   - TypeScript: Yes
+   - Import alias: @/components
+
+2. **Install core components**
+
+   ```bash
+   npx shadcn-ui@latest add button card badge input avatar separator
+   ```
+
+3. **Update Tailwind config** - Map all theme CSS variables
+
+   **Edit `tailwind.config.ts`:**
+
+   ```typescript
+   extend: {
+     colors: {
+       background: {
+         darkest: 'var(--color-bg-darkest)',
+         dark: 'var(--color-bg-dark)',
+         medium: 'var(--color-bg-medium)',
+         light: 'var(--color-bg-light)',
+       },
+       accent: {
+         primary: 'var(--color-accent-primary)',
+         secondary: 'var(--color-accent-secondary)',
+         tertiary: 'var(--color-accent-tertiary)',
+       },
+       text: {
+         primary: 'var(--color-text-primary)',
+         secondary: 'var(--color-text-secondary)',
+         tertiary: 'var(--color-text-tertiary)',
+         muted: 'var(--color-text-muted)',
+       },
+       success: 'var(--color-success)',
+       warning: 'var(--color-warning)',
+       error: 'var(--color-error)',
+       info: 'var(--color-info)',
+     },
+     boxShadow: {
+       'neu-float': 'var(--shadow-neu-float)',
+       'neu-inset': 'var(--shadow-neu-inset)',
+       'glow-primary': 'var(--glow-primary)',
+       'glow-secondary': 'var(--glow-secondary)',
+       'glow-pulse-start': 'var(--glow-pulse-start)',
+       'glow-pulse-end': 'var(--glow-pulse-end)',
+     },
+     animation: {
+       'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+       'heartbeat': 'heartbeat 2s ease-in-out infinite',
+       'breathing': 'breathing 3s ease-in-out infinite',
+     },
+   }
+   ```
+
+4. **Add theme-specific effects to `app/globals.css`**
+
+   ```css
+   @layer utilities {
+     /* Desert Stone - Floating Neumorphic */
+     .neu-float {
+       box-shadow: var(--shadow-neu-float);
+       transition: all 0.3s ease;
+     }
+
+     .neu-float:hover {
+       transform: translateY(-4px);
+       box-shadow:
+         16px 16px 32px rgba(164, 141, 120, 0.35),
+         -16px -16px 32px rgba(255, 255, 255, 1);
+     }
+
+     /* Neon Vibes - Glow Effects */
+     .glow-primary {
+       box-shadow: var(--glow-primary);
+     }
+
+     .glow-primary-hover:hover {
+       box-shadow: var(--glow-secondary);
+       transform: translateY(-2px);
+     }
+
+     /* Coral - Raised Neumorphic */
+     .neu-raised {
+       background: linear-gradient(145deg, #2a2a2a, #242424);
+       box-shadow:
+         8px 8px 16px rgba(0, 0, 0, 0.6),
+         -8px -8px 16px rgba(60, 60, 60, 0.1);
+     }
+
+     .neu-raised:hover {
+       box-shadow:
+         12px 12px 24px rgba(0, 0, 0, 0.7),
+         -12px -12px 24px rgba(60, 60, 60, 0.15);
+     }
+
+     /* Pulse animations */
+     @keyframes pulse-glow {
+       0%,
+       100% {
+         box-shadow: var(--glow-pulse-start);
+       }
+       50% {
+         box-shadow: var(--glow-pulse-end);
+       }
+     }
+
+     @keyframes heartbeat {
+       0%,
+       100% {
+         transform: scale(1);
+       }
+       50% {
+         transform: scale(1.05);
+       }
+     }
+
+     /* Pulse indicator component */
+     .pulse-indicator {
+       position: relative;
+       width: 10px;
+       height: 10px;
+     }
+
+     .pulse-dot {
+       position: absolute;
+       width: 100%;
+       height: 100%;
+       background: var(--color-accent-primary);
+       border-radius: 50%;
+       animation: heartbeat 2s infinite;
+     }
+
+     .pulse-ring {
+       position: absolute;
+       width: 100%;
+       height: 100%;
+       border: 2px solid var(--color-accent-primary);
+       border-radius: 50%;
+       animation: ripple-pulse 2s infinite;
+     }
+
+     @keyframes ripple-pulse {
+       0% {
+         transform: scale(1);
+         opacity: 1;
+       }
+       100% {
+         transform: scale(1.5);
+         opacity: 0;
+       }
+     }
+
+     /* Gradient backgrounds */
+     .gradient-primary {
+       background: var(--gradient-primary);
+     }
+
+     .gradient-text {
+       background: var(--gradient-primary);
+       -webkit-background-clip: text;
+       -webkit-text-fill-color: transparent;
+       background-clip: text;
+     }
+   }
+   ```
+
+**Deliverables:**
+
+- ✅ `components/ui/` directory with shadcn components
+- ✅ Updated Tailwind config with theme variables
+- ✅ Theme-specific effect classes in globals.css
+
+---
+
+##### **Phase 2: Layout Components** (~2 hours)
+
+**Tasks:**
+
+1. **Create Sidebar Component** (`components/Sidebar.tsx`)
+
+   **File:** `components/Sidebar.tsx`
+
+   ```typescript
+   'use client';
+
+   import { Home, ListTodo, Lightbulb, Book, Shield, Users, Settings } from 'lucide-react';
+   import { Badge } from '@/components/ui/badge';
+   import { Separator } from '@/components/ui/separator';
+   import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+   import { ThemeSwitcher } from './ThemeSwitcher';
+
+   const navigationItems = [
+     { icon: Home, label: 'Dashboard', href: '/dashboard', active: true, pulse: true },
+     { icon: ListTodo, label: 'Issues', href: '/issues', badge: 12 },
+     { icon: Lightbulb, label: 'Knowledge', href: '/knowledge' },
+     { icon: Book, label: 'Wiki', href: '/wiki' },
+     { icon: Shield, label: 'Security', href: '/security', badge: 3, badgeVariant: 'warning' as const },
+     { icon: Users, label: 'Agent Personas', href: '/agents' },
+   ];
+
+   export function Sidebar() {
+     return (
+       <aside className="w-64 bg-background-dark border-r border-background-light flex flex-col">
+         {/* Logo */}
+         <div className="p-6 border-b border-background-light">
+           <div className="flex items-center gap-3">
+             <div className="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center heartbeat">
+               <Heart className="text-white w-5 h-5" />
+             </div>
+             <div>
+               <h1 className="text-xl font-bold text-text-primary">ProjectPulse</h1>
+               <p className="text-xs text-text-muted">v1.0.0</p>
+             </div>
+           </div>
+         </div>
+
+         {/* Navigation */}
+         <nav className="flex-1 p-4 space-y-1">
+           {navigationItems.map((item) => (
+             <NavItem key={item.href} {...item} />
+           ))}
+           <Separator className="my-4" />
+           <NavItem icon={Settings} label="Settings" href="/settings" />
+         </nav>
+
+         {/* Theme Switcher */}
+         <div className="p-4 border-t border-background-light">
+           <ThemeSwitcher />
+         </div>
+
+         {/* User Profile */}
+         <div className="p-4 border-t border-background-light">
+           <div className="flex items-center gap-3">
+             <Avatar className="gradient-primary">
+               <AvatarFallback className="text-white font-semibold">MD</AvatarFallback>
+             </Avatar>
+             <div className="flex-1">
+               <p className="text-sm font-medium text-text-primary">Moksha Dev</p>
+               <p className="text-xs text-text-muted">Developer</p>
+             </div>
+           </div>
+         </div>
+       </aside>
+     );
+   }
+
+   function NavItem({ icon: Icon, label, href, active, badge, badgeVariant, pulse }: NavItemProps) {
+     return (
+       <a
+         href={href}
+         className={cn(
+           "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
+           active
+             ? "bg-accent-primary/10 border-l-3 border-accent-primary text-text-primary"
+             : "text-text-tertiary hover:bg-background-medium hover:text-text-primary"
+         )}
+       >
+         <Icon className="w-5 h-5" />
+         <span className="flex-1">{label}</span>
+         {badge && (
+           <Badge variant={badgeVariant || 'default'} className="ml-auto">
+             {badge}
+           </Badge>
+         )}
+         {pulse && (
+           <div className="pulse-indicator ml-auto">
+             <div className="pulse-dot" />
+             <div className="pulse-ring" />
+           </div>
+         )}
+       </a>
+     );
+   }
+   ```
+
+2. **Create Header Component** (`components/Header.tsx`)
+
+   **File:** `components/Header.tsx`
+
+   ```typescript
+   'use client';
+
+   import { Search, Bell } from 'lucide-react';
+   import { Input } from '@/components/ui/input';
+
+   export function Header() {
+     return (
+       <header className="bg-background-dark border-b border-background-light px-8 py-4">
+         <div className="flex items-center justify-between">
+           {/* Search */}
+           <div className="flex-1 max-w-2xl relative">
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" />
+             <Input
+               placeholder="Search or press ⌘K..."
+               className="pl-11 pr-16 bg-background-medium border-background-light focus:border-accent-cyan focus:ring-accent-cyan"
+             />
+             <kbd className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-muted bg-background-light px-2 py-1 rounded font-mono">
+               ⌘K
+             </kbd>
+           </div>
+
+           {/* Actions */}
+           <div className="flex items-center gap-4 ml-6">
+             <button className="relative p-2 text-text-tertiary hover:text-accent-primary transition-colors">
+               <Bell className="w-5 h-5" />
+               <span className="absolute top-1 right-1 w-2 h-2 bg-accent-primary rounded-full animate-pulse-glow" />
+             </button>
+           </div>
+         </div>
+       </header>
+     );
+   }
+   ```
+
+3. **Create Dashboard Layout** (`app/dashboard/layout.tsx`)
+
+   **File:** `app/dashboard/layout.tsx`
+
+   ```typescript
+   import { Sidebar } from '@/components/Sidebar';
+   import { Header } from '@/components/Header';
+
+   export default function DashboardLayout({
+     children
+   }: {
+     children: React.ReactNode
+   }) {
+     return (
+       <div className="flex h-screen overflow-hidden">
+         <Sidebar />
+         <div className="flex-1 flex flex-col overflow-hidden">
+           <Header />
+           <main className="flex-1 overflow-auto bg-background-darkest p-8">
+             {children}
+           </main>
+         </div>
+       </div>
+     );
+   }
+   ```
+
+**Deliverables:**
+
+- ✅ Sidebar with navigation, theme switcher, user profile
+- ✅ Header with search bar and notifications
+- ✅ Reusable dashboard layout wrapper
+
+---
+
+##### **Phase 3: Dashboard-Specific Components** (~4 hours)
+
+**Tasks:**
+
+1. **WelcomeBanner Component** (`components/dashboard/WelcomeBanner.tsx`)
+2. **StatCard Component** (`components/dashboard/StatCard.tsx`)
+3. **IssueCard Component** (`components/dashboard/IssueCard.tsx`)
+4. **QuickActionsWidget Component** (`components/dashboard/QuickActionsWidget.tsx`)
+5. **AgentPersonasWidget Component** (`components/dashboard/AgentPersonasWidget.tsx`)
+
+(Detailed implementations with TypeScript interfaces, theme-aware styling, hover effects)
+
+**Deliverables:**
+
+- ✅ 5 reusable, theme-aware dashboard components
+- ✅ TypeScript interfaces for all props
+- ✅ Hover/glow effects that adapt to themes
+
+---
+
+##### **Phase 4: Dashboard Page Integration** (~2 hours)
+
+**Tasks:**
+
+1. **Create Mock Data** (`lib/mock-data.ts`)
+   - Mock dashboard stats
+   - Mock issues list (5 issues with all fields)
+   - Mock active agents
+
+2. **Create Dashboard Page** (`app/dashboard/page.tsx`)
+   - Use Server Component
+   - Compose all Phase 3 components
+   - Pass mock data as props
+
+3. **Update Root Page** (`app/page.tsx`)
+   - Add redirect to `/dashboard`
+
+**Deliverables:**
+
+- ✅ Functional dashboard page matching mockup structure
+- ✅ Mock data flowing through components
+- ✅ Responsive layout (mobile, tablet, desktop)
+
+---
+
+##### **Phase 5: Multi-Theme Testing & Polish** (~2 hours)
+
+**Tasks:**
+
+1. **Test All 4 Themes**
+   - Desert Stone: Verify floating neumorphic shadows, glassmorphism
+   - Neon Vibes: Verify neon glows, pulse animations
+   - Earthy: Verify muted palette, subtle effects
+   - Dark Coral: Verify boxy raised shadows, hexagon backgrounds
+
+2. **Create E2E Test** (`tests/e2e/dashboard.spec.ts`)
+   - Test theme switching
+   - Test navigation
+   - Test responsive layout
+   - Test visual effects
+
+3. **Fix Issues**
+   - Theme-specific bugs
+   - Responsive issues
+   - Visual polish
+
+4. **Take Screenshots**
+   - One per theme for documentation
+
+**Deliverables:**
+
+- ✅ All themes working correctly
+- ✅ E2E test passing
+- ✅ 4 screenshots (one per theme)
+
+---
+
+#### Files Structure
+
+```
+components/
+├── Sidebar.tsx                # Sidebar with navigation
+├── Header.tsx                 # Header with search
+├── ThemeSwitcher.tsx          # Already exists from Day 2
+├── ui/                        # shadcn components
+│   ├── button.tsx
+│   ├── card.tsx
+│   ├── badge.tsx
+│   ├── input.tsx
+│   ├── avatar.tsx
+│   └── separator.tsx
+└── dashboard/
+    ├── WelcomeBanner.tsx
+    ├── StatCard.tsx
+    ├── IssueCard.tsx
+    ├── QuickActionsWidget.tsx
+    └── AgentPersonasWidget.tsx
+
+app/
+├── dashboard/
+│   ├── layout.tsx             # Dashboard layout wrapper
+│   └── page.tsx               # Dashboard page
+├── page.tsx                   # Redirect to /dashboard
+├── layout.tsx                 # Root layout (already exists)
+└── globals.css                # Updated with theme effects
+
+lib/
+└── mock-data.ts               # Mock dashboard data
+
+tests/e2e/
+└── dashboard.spec.ts          # E2E tests
+```
+
+---
+
+#### Timeline
+
+| Phase                              | Time         | Status                     |
+| ---------------------------------- | ------------ | -------------------------- |
+| Phase 1: shadcn/ui + Theme Effects | ~3 hours     | Pending                    |
+| Phase 2: Layout Components         | ~2 hours     | Pending                    |
+| Phase 3: Dashboard Components      | ~4 hours     | Pending                    |
+| Phase 4: Page Integration          | ~2 hours     | Pending                    |
+| Phase 5: Testing & Polish          | ~2 hours     | Pending                    |
+| **Total**                          | **13 hours** | Can spread across Days 3-4 |
+
+**Recommended Split:**
+
+- **Day 3:** Phases 1-3 (~9 hours) - Foundation + Components
+- **Day 4:** Phases 4-5 (~4 hours) - Integration + Testing
+
+---
+
+#### Success Criteria
+
+Before marking Days 3-4 complete, verify:
+
+✅ **Structure:**
+
+- Dashboard matches `01-dashboard-neon.html` layout exactly
+- Sidebar, header, welcome banner, stats, issues list, widgets all present
+- Responsive design works (mobile collapses sidebar, stacks cards)
+
+✅ **Themes:**
+
+- All 4 themes switch successfully
+- Desert Stone shows floating neumorphic effects
+- Neon Vibes shows glow animations
+- Earthy shows muted palette
+- Dark Coral shows boxy raised effects + hexagons
+
+✅ **Components:**
+
+- All components are reusable and type-safe
+- No TypeScript errors or `any` types
+- Props properly typed with interfaces
+
+✅ **Visual Effects:**
+
+- Pulse indicators animate on active elements
+- Hover glows work on cards/buttons
+- Theme-specific shadows apply correctly
+- Animations respect `prefers-reduced-motion`
+
+✅ **Data:**
+
+- Mock data displays correctly
+- All stat cards show numbers
+- Issue list shows 5 issues with badges
+- Agent widgets show active agents
+
+✅ **Testing:**
+
+- E2E test passes
+- No console errors
+- Screenshots captured for all 4 themes
+
+---
+
+#### Quality Gate
+
+**Verification Commands:**
+
+```bash
+# 1. Type check
+pnpm type-check
+# ✅ No TypeScript errors
+
+# 2. Run dev server
+pnpm dev
+# ✅ Opens http://localhost:3000/dashboard
+
+# 3. Test all themes
+# Manually switch between Desert, Neon, Earthy, Coral
+# ✅ All visual effects render correctly
+
+# 4. Run E2E tests
+pnpm test:e2e
+# ✅ Dashboard test passes
+
+# 5. Check responsive
+# Test mobile (375px), tablet (768px), desktop (1280px)
+# ✅ Layout adapts correctly
+```
+
+**Verification Checklist:**
+
+- [ ] Sidebar navigation renders with all 7 menu items
+- [ ] Header search bar displays with ⌘K indicator
+- [ ] Welcome banner shows gradient background + CTA button
+- [ ] All 4 stat cards display with correct icons and numbers
+- [ ] Issue list shows 5 issues with priority badges
+- [ ] Quick Actions widget shows 3 buttons
+- [ ] Agent Personas widget shows active agents with pulse
+- [ ] ThemeSwitcher dropdown opens and works
+- [ ] All 4 themes apply their unique visual treatments
+- [ ] Hover effects (glows, shadows) work correctly
+- [ ] Pulse animations run smoothly
+- [ ] No console errors or warnings
+- [ ] TypeScript compiles without errors
+- [ ] E2E test passes
+- [ ] Responsive layout works on all breakpoints
+
+---
+
+#### After Completion
+
+**Next Steps:**
+
+- Week 2: Build Issues Page (Kanban board from `02-issues-neon.html`)
+- Follow same bottom-up component approach
+- Reuse Sidebar, Header, layout components
+- Add drag-and-drop functionality
+
+**Git Commit Message Template:**
+
+```
+feat: Implement real Dashboard with multi-theme support - Days 3-4 COMPLETE
+
+🏠 DASHBOARD IMPLEMENTATION - COMPLETE
+
+Replaced temporary demo page with real Dashboard matching 01-dashboard-neon.html
+structure, supporting all 4 themes with unique visual treatments.
+
+📊 COMPONENTS CREATED:
+- Sidebar with navigation, theme switcher, user profile
+- Header with search bar and notifications
+- WelcomeBanner with gradient hero
+- StatCard for metrics display
+- IssueCard for recent issues list
+- QuickActionsWidget with 3 action buttons
+- AgentPersonasWidget showing active agents
+
+🎨 THEMES INTEGRATED:
+1. Desert Stone - Floating neumorphic effects
+2. Neon Vibes - Neon glows with pulse animations
+3. Earthy - Muted tones, subtle effects
+4. Dark Coral - Boxy raised shadows + hexagons
+
+✅ VERIFICATION:
+- All themes tested and working
+- E2E tests passing
+- No TypeScript errors
+- Responsive design verified
+- Screenshots captured
+
+📈 STATISTICS:
+- Components created: 10 new files
+- Lines of code: ~1200 lines
+- Themes verified: 4/4 working
+- E2E tests: Passing
+
+🚀 NEXT: Week 2 - Issues Page (Kanban board)
+```
+
+---
+
+**Documentation Reference:** [mockups/01-dashboard-neon.html](../mockups/01-dashboard-neon.html), [04-UI-ARCHITECTURE.md](04-UI-ARCHITECTURE.md)
+
+---
+
 ### Week 1 End: Success Criteria
 
 **Backend:**
+
 - ✅ Docker Compose running PostgreSQL + Next.js
 - ✅ PostgreSQL has pgvector + pg_trgm extensions
 - ✅ Prisma schema matches [02-DATABASE-SCHEMA.md](02-DATABASE-SCHEMA.md)
@@ -1260,6 +2110,7 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
 - ✅ Prisma client generates without errors
 
 **Frontend:**
+
 - ✅ Design system implemented (neon colors, fonts, animations)
 - ✅ Tailwind configured with custom theme
 - ✅ Base components created (Button, Card, Input, Badge)
@@ -1267,6 +2118,7 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
 - ✅ Colors match mockups exactly
 
 **General:**
+
 - ✅ Next.js app accessible at `http://localhost:3000`
 - ✅ All Golden Rules [R-DOC-001] through [R-PRIVACY-001] verified
 - ✅ No TypeScript errors
@@ -1293,6 +2145,7 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
 #### 1. Issue CRUD API Routes
 
 **File Structure:**
+
 ```
 apps/web/app/api/issues/
 ├── route.ts                 # GET (list), POST (create)
@@ -1308,6 +2161,7 @@ apps/web/app/api/issues/
 ##### POST /api/issues (Create Issue)
 
 **Implementation:**
+
 ```typescript
 // app/api/issues/route.ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -1346,15 +2200,13 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('Error creating issue:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 ```
 
 **Test (TDD - Write First):**
+
 ```typescript
 // app/api/issues/route.test.ts
 import { POST } from './route';
@@ -1394,6 +2246,7 @@ describe('POST /api/issues', () => {
 ```
 
 **Quality Gate:**
+
 - ✅ Test written first (RED phase)
 - ✅ Implementation makes test pass (GREEN phase)
 - ✅ Code refactored for quality (REFACTOR phase)
@@ -1404,6 +2257,7 @@ describe('POST /api/issues', () => {
 ##### GET /api/issues (List Issues with Filtering)
 
 **Implementation:**
+
 ```typescript
 // app/api/issues/route.ts (add to same file)
 const listIssuesSchema = z.object({
@@ -1481,10 +2335,7 @@ const createCommentSchema = z.object({
   content: z.string().min(1),
 });
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const issueId = parseInt(params.id, 10);
     const body = await request.json();
@@ -1503,10 +2354,7 @@ export async function POST(
   }
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const issueId = parseInt(params.id, 10);
 
   const comments = await prisma.comment.findMany({
@@ -1552,10 +2400,7 @@ function sanitizeFilename(filename: string): string {
     .substring(0, 255);
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const issueId = parseInt(params.id, 10);
     const formData = await request.formData();
@@ -1635,6 +2480,7 @@ export async function POST(
 **Mockup Reference:** [mockups/01-dashboard-neon.html](../mockups/01-dashboard-neon.html)
 
 **Features:**
+
 - Stats cards (4 columns): Total Issues, Agents Active, KB Articles, Security Score
 - Quick actions grid (3x3): Create Issue, Review Code, Scan Security, etc.
 - Activity timeline (recent events)
@@ -1642,6 +2488,7 @@ export async function POST(
 - Pulse indicators on real-time metrics
 
 **Components Needed:**
+
 ```
 components/dashboard/
 ├── StatsCard.tsx              # Metric display with pulse
@@ -1651,6 +2498,7 @@ components/dashboard/
 ```
 
 **Implementation Example:**
+
 ```typescript
 // app/(dashboard)/page.tsx
 import { prisma } from '@/lib/prisma';
@@ -1720,6 +2568,7 @@ export default async function DashboardPage() {
 **Mockup Reference:** [mockups/02-issues-neon.html](../mockups/02-issues-neon.html)
 
 **Features:**
+
 - 3-column Kanban board: To Do, In Progress, Done
 - Drag-and-drop functionality (using `@dnd-kit/core`)
 - Priority color coding (Critical=red, High=yellow, Medium=cyan, Low=purple)
@@ -1728,6 +2577,7 @@ export default async function DashboardPage() {
 - Quick filters and inline issue creation
 
 **Components Needed:**
+
 ```
 components/issues/
 ├── KanbanBoard.tsx            # Client Component (drag-and-drop)
@@ -1738,6 +2588,7 @@ components/issues/
 ```
 
 **Implementation Example:**
+
 ```typescript
 // app/(dashboard)/issues/page.tsx
 import { prisma } from '@/lib/prisma';
@@ -1793,6 +2644,7 @@ export default async function IssuesPage({
 ```
 
 **IssueCard Component (with neon styling):**
+
 ```typescript
 // components/issues/IssueCard.tsx
 'use client';
@@ -1842,6 +2694,7 @@ export function IssueCard({ id, title, priority, status, commentsCount }: IssueC
 **Mockup Reference:** [mockups/07-command-palette-neon.html](../mockups/07-command-palette-neon.html)
 
 **Features:**
+
 - Triggered by ⌘K (Mac) or Ctrl+K (Windows/Linux)
 - Search-driven interface with fuzzy matching
 - Grouped commands (Quick Actions, Agents, Navigation, Settings)
@@ -1849,11 +2702,13 @@ export function IssueCard({ id, title, priority, status, commentsCount }: IssueC
 - Keyboard shortcut badges
 
 **Dependencies:**
+
 ```bash
 pnpm add cmdk  # Command palette library
 ```
 
 **Implementation:**
+
 ```typescript
 // components/CommandPalette.tsx
 'use client';
@@ -1940,6 +2795,7 @@ export function CommandPalette() {
 ```
 
 **Quality Gate (UI Pages):**
+
 - ✅ Dashboard displays correct stats
 - ✅ Kanban board shows issues in correct columns
 - ✅ Drag-and-drop updates issue status via API
@@ -1957,6 +2813,7 @@ export function CommandPalette() {
 **Skills:** test-driven-development-web.md, api-testing-patterns.md
 
 **Required Tests:**
+
 1. ✅ API route tests (all CRUD operations)
 2. ✅ Comment creation/listing tests
 3. ✅ File upload tests
@@ -1966,6 +2823,7 @@ export function CommandPalette() {
 **Coverage Target:** 80%+ for all new code
 
 **Run Tests:**
+
 ```bash
 pnpm test                    # Unit tests
 pnpm test:coverage           # Coverage report
@@ -1978,6 +2836,7 @@ pnpm test:e2e               # E2E tests (Playwright)
 **Skill:** verification-before-completion.md
 
 **12-Point Checklist:**
+
 1. ✅ **Code Quality:** No `any` types, proper error handling
 2. ✅ **Build:** `pnpm build` succeeds
 3. ✅ **Testing:** 80%+ coverage, all tests pass
@@ -2015,6 +2874,7 @@ pnpm test:e2e               # E2E tests (Playwright)
 **Agent:** devhub-fullstack
 
 **Add to Prisma schema:**
+
 ```prisma
 model Issue {
   // ... existing fields
@@ -2025,6 +2885,7 @@ model Issue {
 ```
 
 **Create migration:**
+
 ```sql
 -- Add search_vector column
 ALTER TABLE "Issue"
@@ -2038,6 +2899,7 @@ CREATE INDEX idx_issues_search ON "Issue" USING GIN(search_vector);
 ```
 
 **Implement search API:**
+
 ```typescript
 // app/api/search/route.ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -2070,6 +2932,7 @@ export async function GET(request: NextRequest) {
 **Agent:** devhub-fullstack
 
 **Setup embeddings:**
+
 ```typescript
 // lib/embeddings.ts
 import { pipeline } from '@xenova/transformers';
@@ -2079,10 +2942,7 @@ let embedder: any = null;
 export async function generateEmbedding(text: string): Promise<number[]> {
   if (!embedder) {
     // [R-PRIVACY-001] Local embeddings (no API calls)
-    embedder = await pipeline(
-      'feature-extraction',
-      'Xenova/all-MiniLM-L6-v2'
-    );
+    embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
   }
 
   const output = await embedder(text, {
@@ -2095,14 +2955,13 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 ```
 
 **Add embeddings on issue creation:**
+
 ```typescript
 // app/api/issues/route.ts (modify POST)
 export async function POST(request: NextRequest) {
   // ... validation
 
-  const embedding = await generateEmbedding(
-    `${validated.title} ${validated.description || ''}`
-  );
+  const embedding = await generateEmbedding(`${validated.title} ${validated.description || ''}`);
 
   const issue = await prisma.issue.create({
     data: {
@@ -2116,6 +2975,7 @@ export async function POST(request: NextRequest) {
 ```
 
 **Semantic search endpoint:**
+
 ```typescript
 // lib/search.ts
 import { getSetting } from './settings';
@@ -2211,6 +3071,7 @@ function mergeResults(
 **Skill:** api-testing-patterns.md
 
 **Tests:**
+
 1. ✅ Full-text search finds exact keywords
 2. ✅ Semantic search finds similar concepts
 3. ✅ Hybrid search ranks results correctly
@@ -2226,6 +3087,7 @@ function mergeResults(
 **Goal:** Claude Code can create/search issues via MCP
 
 **📁 MCP Server Naming Convention:**
+
 - `apps/mcp-docker/` - Docker management MCP server (already exists, created pre-MVP)
 - `apps/mcp-server/` - DevHub main MCP server (created this week for issue/search tools)
 
@@ -2247,6 +3109,7 @@ Both servers follow the same MCP SDK patterns but serve different purposes.
 **Agent:** devhub-mcp-specialist
 
 **File Structure:**
+
 ```
 apps/mcp-server/
 ├── src/
@@ -2260,6 +3123,7 @@ apps/mcp-server/
 ```
 
 **Setup:**
+
 ```bash
 cd apps/mcp-server
 pnpm init
@@ -2268,6 +3132,7 @@ pnpm add -D typescript @types/node tsx
 ```
 
 **package.json:**
+
 ```json
 {
   "name": "@moksha-devhub/mcp-server",
@@ -2287,14 +3152,12 @@ pnpm add -D typescript @types/node tsx
 **Skill:** api-design-patterns.md
 
 **Main Server:**
+
 ```typescript
 // apps/mcp-server/src/index.ts
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import axios from 'axios';
 
 const API_URL = process.env.API_URL || 'http://localhost:3000/api';
@@ -2439,10 +3302,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'add_comment': {
-        const response = await axios.post(
-          `${API_URL}/issues/${args.issueId}/comments`,
-          { content: args.content }
-        );
+        const response = await axios.post(`${API_URL}/issues/${args.issueId}/comments`, {
+          content: args.content,
+        });
 
         return {
           content: [
@@ -2516,6 +3378,7 @@ export { server };
 **Skill:** api-testing-patterns.md
 
 **Manual Test in Claude Code:**
+
 ```
 User: "Create an issue titled 'Test MCP Integration' with priority high"
 Claude: [Uses create_issue tool]
@@ -2527,6 +3390,7 @@ Expected: 🔍 Search results for "combat system": [list of issues]
 ```
 
 **Automated Test:**
+
 ```typescript
 // apps/mcp-server/src/__tests__/tools.test.ts
 import { server } from '../index.js';
@@ -2552,10 +3416,7 @@ describe('MCP Tools', () => {
     };
 
     // Call the actual request handler (imported from index.ts)
-    const result = await server.handleRequest(
-      CallToolRequestSchema,
-      request
-    );
+    const result = await server.handleRequest(CallToolRequestSchema, request);
 
     expect(mockPost).toHaveBeenCalledWith(
       expect.stringContaining('/api/issues'),
@@ -2572,6 +3433,7 @@ describe('MCP Tools', () => {
 **Skill:** verification-before-completion.md
 
 **Integration Tests:**
+
 1. ✅ MCP server starts without errors
 2. ✅ Claude Code can list MCP tools
 3. ✅ create_issue tool creates issue (visible in UI)
@@ -2589,12 +3451,12 @@ describe('MCP Tools', () => {
 
 ### Test Types
 
-| Type | Tool | Coverage Target | When |
-|------|------|----------------|------|
-| **Unit** | Jest | 80%+ | Every function |
-| **Integration** | Jest + Prisma | 80%+ | API routes |
-| **E2E** | Playwright | Critical paths | User flows |
-| **MCP** | Manual + Jest | 100% tools | MCP features |
+| Type            | Tool          | Coverage Target | When           |
+| --------------- | ------------- | --------------- | -------------- |
+| **Unit**        | Jest          | 80%+            | Every function |
+| **Integration** | Jest + Prisma | 80%+            | API routes     |
+| **E2E**         | Playwright    | Critical paths  | User flows     |
+| **MCP**         | Manual + Jest | 100% tools      | MCP features   |
 
 ### Testing Skills
 
@@ -2622,11 +3484,13 @@ apps/web/
 ### Coverage Requirements
 
 **Per Golden Rule [R-TEST-001]:**
+
 - ✅ 80%+ line coverage
 - ✅ 80%+ branch coverage
 - ✅ 100% critical path coverage (issue creation, search)
 
 **Run Coverage:**
+
 ```bash
 pnpm test:coverage
 # Opens: coverage/lcov-report/index.html
@@ -2647,6 +3511,7 @@ pnpm test:coverage
 ### Build Gate
 
 **Commands:**
+
 ```bash
 pnpm lint          # ESLint check
 pnpm type-check    # TypeScript check
@@ -2654,6 +3519,7 @@ pnpm build         # Next.js build
 ```
 
 **Pass Criteria:**
+
 - ✅ Zero linting errors
 - ✅ Zero TypeScript errors
 - ✅ Build completes successfully
@@ -2662,6 +3528,7 @@ pnpm build         # Next.js build
 ### Test Gate
 
 **Commands:**
+
 ```bash
 pnpm test                    # All tests
 pnpm test:coverage           # Coverage report
@@ -2669,6 +3536,7 @@ pnpm test:e2e               # E2E tests
 ```
 
 **Pass Criteria:**
+
 - ✅ All tests pass
 - ✅ 80%+ code coverage
 - ✅ No skipped tests
@@ -2679,6 +3547,7 @@ pnpm test:e2e               # E2E tests
 **Skill:** defense-in-depth-web.md
 
 **Checklist:**
+
 1. ✅ No SQL injection (Prisma parameterized queries only)
 2. ✅ No XSS (React escapes by default, verify)
 3. ✅ Input validation (Zod schemas on all API routes)
@@ -2691,6 +3560,7 @@ pnpm test:e2e               # E2E tests
 **Skill:** verification-before-completion.md
 
 **Checklist:**
+
 1. ✅ Follows [01-ARCHITECTURE.md](01-ARCHITECTURE.md) patterns
 2. ✅ Data-driven (no hardcoded values)
 3. ✅ Proper module placement (lib/, components/, app/)
@@ -2711,6 +3581,7 @@ pnpm test:e2e               # E2E tests
 **Current Phase:** ✅ Week 1 Day 1 Complete → 🔄 Week 1 Day 2 Starting
 
 **Completed:**
+
 - ✅ All documentation reviewed (docs/00-INDEX.md through docs/07-QUICK-START.md)
 - ✅ Agent system configured (.claude/ agents + skills)
 - ✅ Docker MCP server exists (apps/mcp-docker/)
@@ -2729,9 +3600,11 @@ pnpm test:e2e               # E2E tests
   - ✅ All quality gates passed
 
 **In Progress:**
+
 - 🔄 None (ready to start Week 1 Day 2)
 
 **Blocked:**
+
 - ❌ None
 
 ### Next Conversation Starter
@@ -2741,6 +3614,7 @@ pnpm test:e2e               # E2E tests
 > "I'm continuing Moksha DevHub development. Last progress: [check Current Phase above].
 >
 > Please review `docs/DEVELOPMENT_PLAN.md` and tell me:
+>
 > 1. What was the last completed task?
 > 2. What's the next task to start?
 > 3. Which agent should I use?
@@ -2761,18 +3635,22 @@ pnpm test:e2e               # E2E tests
 **Last Skill:** skill-name.md
 
 **Completed This Session:**
+
 - [ ] Task 1
 - [ ] Task 2
 
 **Next Steps:**
+
 1. Next immediate task
 2. Agent to use
 3. Expected output
 
 **Open Issues:**
+
 - Any blockers or technical debt
 
 **Files Modified:**
+
 - path/to/file1.ts
 - path/to/file2.tsx
 ```
@@ -2792,6 +3670,7 @@ Use these to mark progress in this file:
 **Update this section at end of each week:**
 
 #### Week 1: Foundation Setup
+
 - **Status:** 🔄 In Progress (Day 1/3 Complete)
 - **Completed:**
   - ✅ Day 1: Monorepo & Docker Configuration (2025-10-24)
@@ -2805,21 +3684,24 @@ Use these to mark progress in this file:
   - Initialize Next.js with TypeScript, Tailwind, App Router
   - Install dependencies (Prisma, React, testing frameworks)
   - Configure Jest and Playwright
-  - Create Day 0 implementation files (lib/settings.ts, lib/process-executor.ts, app/api/_lib/validation.ts)
+  - Create Day 0 implementation files (lib/settings.ts, lib/process-executor.ts, app/api/\_lib/validation.ts)
   - Create Dockerfile
   - Quality Gate: Next.js builds successfully
 
 #### Week 2: Issue Tracker
+
 - **Status:** 📝 Planned
 - **Completed:** -
 - **Next:** Week 1 must complete first
 
 #### Week 3: Search
+
 - **Status:** 📝 Planned
 - **Completed:** -
 - **Next:** Week 2 must complete first
 
 #### Week 4: MCP
+
 - **Status:** 📝 Planned
 - **Completed:** -
 - **Next:** Week 3 must complete first
@@ -2833,6 +3715,7 @@ Use these to mark progress in this file:
 **Agent:** devhub-fullstack + devhub-mcp-specialist
 
 **Features:**
+
 - Knowledge Base CRUD (rich text with TipTap)
 - Tag system and categorization
 - Semantic search for code patterns
@@ -2849,6 +3732,7 @@ Use these to mark progress in this file:
 **Agent:** devhub-fullstack + devhub-auditor
 
 **Features:**
+
 - Hierarchical documentation wiki
 - Markdown editor with page linking
 - SoT (Source of Truth) rules management
@@ -2862,6 +3746,7 @@ Use these to mark progress in this file:
 **Agent:** devhub-fullstack
 
 **Features:**
+
 - Auto-link commits to issues (Fix #42)
 - Commit timeline view
 - Milestone management
@@ -2875,6 +3760,7 @@ Use these to mark progress in this file:
 **Agent:** devhub-fullstack
 
 **Features:**
+
 - Time tracking per issue
 - Dependency graphs
 - Daily digests
@@ -2921,18 +3807,18 @@ python devhub_orchestrator.py  # Start agent orchestrator
 
 ### File Locations
 
-| Item | Path |
-|------|------|
-| **This Plan** | `docs/DEVELOPMENT_PLAN.md` |
-| **Architecture** | `docs/01-ARCHITECTURE.md` |
-| **Database Schema** | `docs/02-DATABASE-SCHEMA.md` |
-| **MCP Spec** | `docs/03-MCP-SPECIFICATION.md` |
-| **Agent Rules** | `AGENTS.md` |
-| **Skills Catalog** | `.claude/SKILLS_INDEX.md` |
-| **Agents** | `.claude/agents/*.md` |
-| **Skills** | `.claude/skills/**/*.md` |
-| **Prisma Schema** | `apps/web/prisma/schema.prisma` |
-| **MCP Server** | `apps/mcp-server/src/index.ts` |
+| Item                | Path                            |
+| ------------------- | ------------------------------- |
+| **This Plan**       | `docs/DEVELOPMENT_PLAN.md`      |
+| **Architecture**    | `docs/01-ARCHITECTURE.md`       |
+| **Database Schema** | `docs/02-DATABASE-SCHEMA.md`    |
+| **MCP Spec**        | `docs/03-MCP-SPECIFICATION.md`  |
+| **Agent Rules**     | `AGENTS.md`                     |
+| **Skills Catalog**  | `.claude/SKILLS_INDEX.md`       |
+| **Agents**          | `.claude/agents/*.md`           |
+| **Skills**          | `.claude/skills/**/*.md`        |
+| **Prisma Schema**   | `apps/web/prisma/schema.prisma` |
+| **MCP Server**      | `apps/mcp-server/src/index.ts`  |
 
 ### Agent Quick Reference
 
@@ -2970,6 +3856,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 **When can you mark MVP done?**
 
 ### Functional Requirements
+
 - ✅ Can create/read/update/delete issues via web UI
 - ✅ Comments work on issues
 - ✅ File attachments upload and display
@@ -2981,6 +3868,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - ✅ Helper scripts can auto-create issues (future)
 
 ### Technical Requirements
+
 - ✅ All Golden Rules [R-DOC-001] through [R-PRIVACY-001] followed
 - ✅ 80%+ test coverage
 - ✅ Zero TypeScript errors
@@ -2990,6 +3878,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - ✅ Accessible from Mac Mini on LAN
 
 ### User Experience
+
 - ✅ Dark mode enabled
 - ✅ Responsive layout works
 - ✅ Issue creation flow smooth (<10 clicks)
@@ -2997,6 +3886,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - ✅ Basic accessibility (WCAG 2.1 AA)
 
 ### Documentation
+
 - ✅ README.md exists with setup instructions
 - ✅ API routes documented
 - ✅ Environment variables documented
@@ -3007,6 +3897,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 ## 🎯 Final Notes
 
 **This development plan is:**
+
 - ✅ Aligned with all 8 documentation files
 - ✅ Follows all 8 Golden Rules from AGENTS.md
 - ✅ Integrates agent system (.claude/ agents + skills)
@@ -3016,6 +3907,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - ✅ Ready to execute starting Week 1 Day 1
 
 **Remember:**
+
 1. Use agents for every phase (architect → fullstack → testing → auditor)
 2. Reference skills for workflows (TDD, debugging, verification)
 3. Verify against documentation before marking complete
@@ -3041,6 +3933,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 **Skills Applied:** defense-in-depth-web.md
 
 **Completed This Session:**
+
 - ✅ Architecture review with security recommendations
 - ✅ Created package.json (root workspace)
 - ✅ Created pnpm-workspace.yaml
@@ -3055,11 +3948,13 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - ✅ All Week 1 Day 1 quality gates passed
 
 **Next Steps:**
+
 1. Start Week 1 Day 2 - Next.js Application Bootstrap
 2. Agent to use: devhub-fullstack
 3. Expected output: Working Next.js application with TypeScript, testing frameworks configured
 
 **Files Created:**
+
 - package.json
 - pnpm-workspace.yaml
 - .env.example
@@ -3069,6 +3964,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - scripts/init-db.sql
 
 **Key Decisions:**
+
 - Used pgvector/pgvector:pg16 image instead of postgres:16-alpine (includes pgvector pre-installed)
 - Removed obsolete `version: '3.8'` from docker-compose.yml
 - Added resource limits (CPU/memory) for security
@@ -3087,6 +3983,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 **Skills Applied:** git-workflow, version-control
 
 **Completed This Session:**
+
 - ✅ **Project Rename:** Moksha DevHub → ProjectPulse
   - Renamed across 10+ files (package.json, .env, docker-compose.yml, init-db.sql, etc.)
   - Updated Docker resources (containers, networks, volumes)
@@ -3117,11 +4014,13 @@ python devhub_orchestrator.py  # Start agent orchestrator
   - Repository path: F:\Web_Projects\AI_HUB
 
 **Next Steps:**
+
 1. **Restart Claude Desktop** to activate Git MCP server
 2. Test Git MCP tools connectivity
 3. Start Week 1 Day 2 - Next.js Application Bootstrap
 
 **Files Created:**
+
 - .gitattributes
 - .gitignore
 - .prettierrc
@@ -3131,6 +4030,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - claude_desktop_config.json.backup
 
 **Files Modified:**
+
 - package.json (renamed, added Husky/lint-staged)
 - .env.example (renamed Moksha → ProjectPulse)
 - .env (renamed Moksha → ProjectPulse)
@@ -3140,6 +4040,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - claude_desktop_config.json (added git MCP server)
 
 **Key Decisions:**
+
 - Project renamed to "ProjectPulse" for better market positioning
 - Used @cyanheads/git-mcp-server (most comprehensive Git MCP implementation)
 - Configured line endings to LF for cross-platform compatibility
@@ -3147,6 +4048,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - Created product-focused README separate from development docs
 
 **Issues Resolved:**
+
 1. pgvector extension missing → Switched to pgvector/pgvector:pg16 image
 2. "nul" file created accidentally → Removed with rm -f nul
 3. Pre-commit hook failing (eslint not installed) → Used --no-verify for initial commit
@@ -3164,6 +4066,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 **Skills Applied:** mcp-integration, troubleshooting
 
 **Completed This Session:**
+
 - ✅ **MCP Configuration Discovery**
   - Identified Git MCP server misconfiguration in Claude Code VSCode extension
   - Located configuration in C:\Users\prave\.claude.json
@@ -3178,33 +4081,38 @@ python devhub_orchestrator.py  # Start agent orchestrator
   - Applied changes to both project entries in .claude.json
 - ✅ **Verification**
   - Reloaded VSCode window to activate new configuration
-  - Tested mcp__git__git_status - Working ✅
-  - Tested mcp__git__git_log - Working ✅
+  - Tested mcp**git**git_status - Working ✅
+  - Tested mcp**git**git_log - Working ✅
   - Confirmed full Git MCP tools connectivity
 
 **Next Steps:**
+
 1. Start Week 1 Day 2 - Next.js Application Bootstrap
 2. Agent to use: devhub-fullstack
 3. Expected output: Working Next.js application with TypeScript, testing frameworks configured
 
 **Files Modified:**
+
 - C:\Users\prave\.claude.json (Git + PostgreSQL MCP configuration)
 
 **Key Decisions:**
+
 - Used official Python-based mcp-server-git (not @cyanheads/git-mcp-server)
 - Maintained separate configuration for Claude Desktop vs Claude Code VSCode
 - Verified PostgreSQL MCP now points to correct projectpulse_db
 
 **Issues Resolved:**
+
 1. Git MCP server not connected → Installed Python package and fixed configuration
 2. Wrong npm package (@modelcontextprotocol/server-git doesn't exist) → Used python -m mcp_server_git
 3. PostgreSQL still using old moksha credentials → Updated to projectpulse credentials
 
 **MCP Tools Now Available:**
-- ✅ Git MCP (mcp__git__*) - 12+ Git operations
-- ✅ PostgreSQL MCP (mcp__postgres__*) - Database queries
-- ✅ Filesystem MCP (mcp__filesystem__*) - File operations
-- ✅ Memory MCP (mcp__memory__*) - Knowledge graph
+
+- ✅ Git MCP (mcp**git**\*) - 12+ Git operations
+- ✅ PostgreSQL MCP (mcp**postgres**\*) - Database queries
+- ✅ Filesystem MCP (mcp**filesystem**\*) - File operations
+- ✅ Memory MCP (mcp**memory**\*) - Knowledge graph
 - ✅ Sequential Thinking MCP - Complex reasoning
 - ✅ Playwright MCP - E2E testing
 - ✅ Docker DevHub MCP - Container management
@@ -3221,6 +4129,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 **Skills Applied:** design-system-integration, workflow-architecture
 
 **Completed This Session:**
+
 - ✅ **UI Design System Discovery**
   - Reviewed 7 complete neon mockups created in Claude Desktop
   - Analyzed comprehensive design documentation (60+ pages)
@@ -3242,7 +4151,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
   - Created docs/WORKFLOW_ARCHITECTURE.md (200+ lines)
     - 3-track workflow specification
     - Decision tree for track selection
-    - Git branch strategy (api/*, ui/*, feature/*)
+    - Git branch strategy (api/_, ui/_, feature/\*)
     - Testing strategy (API, Component, E2E)
     - Page-by-page coordination examples
     - Quality gates for each track
@@ -3266,16 +4175,19 @@ python devhub_orchestrator.py  # Start agent orchestrator
   - Linked to new documentation files
 
 **Next Steps:**
+
 1. Start Week 1 Day 2 - Next.js Application Bootstrap
 2. Start Week 1 Day 3 (Parallel) - Design System Setup
 3. Agent to use: devhub-fullstack (both tracks)
 4. Expected output: Working Next.js app + Design system configured
 
 **Files Created:**
+
 - docs/04-UI-ARCHITECTURE.md
 - docs/WORKFLOW_ARCHITECTURE.md
 
 **Files Modified:**
+
 - docs/DEVELOPMENT_PLAN.md (multiple sections)
   - Documentation cross-reference (added 04-UI-ARCHITECTURE.md, WORKFLOW_ARCHITECTURE.md, mockups/)
   - Reference table (added 3 new UI-related questions)
@@ -3285,6 +4197,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - mockups/README.md (integration status section)
 
 **Key Decisions:**
+
 - **Hybrid Workflow:** Backend first, frontend parallel from Day 3
 - **Neon Design System:** Hot pink (#FF0080) as primary brand color
 - **Component Strategy:** shadcn/ui as base, customized with neon theme
@@ -3294,6 +4207,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - **Fonts:** Inter (UI), JetBrains Mono (code/monospace)
 
 **Design System Details:**
+
 - 7 Neon Mockups: Dashboard, Issues (Kanban), Command Palette, Knowledge Base, Wiki, Agent Personas, Security Dashboard
 - 4 Background Layers: #0A0118 (darkest) → #2A1548 (light)
 - 5 Neon Accent Colors: Pink, Magenta, Purple, Blue, Cyan
@@ -3301,6 +4215,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - 6 Component Types: Button (3 variants), Card, Input, Badge, PulseIndicator, Glow effects
 
 **Issues Resolved:**
+
 1. UI mockups not integrated into development plan → Created 04-UI-ARCHITECTURE.md linking design to implementation
 2. Frontend vs backend workflow unclear → Created WORKFLOW_ARCHITECTURE.md with 3-track system
 3. No design system documentation → Enhanced Week 1 Day 3 with complete setup guide
