@@ -39,10 +39,7 @@ export async function PATCH(request: NextRequest) {
 
     // Database error or other errors
     console.error('Preferences API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -50,7 +47,7 @@ export async function PATCH(request: NextRequest) {
  * GET /api/preferences
  * Get user preferences
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // TODO: Get userId from session when auth is implemented
     const userId = 1;
@@ -63,9 +60,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(preferences || { theme: 'desert' });
   } catch (error) {
     console.error('Preferences API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

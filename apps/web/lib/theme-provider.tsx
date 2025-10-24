@@ -52,7 +52,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeId>('desert');
   const [mounted, setMounted] = useState(false);
 
-  const currentTheme = themes.find((t) => t.id === theme) || themes[0];
+  const getCurrentTheme = (): Theme => {
+    const found = themes.find((t) => t.id === theme);
+    // themes[0] always exists (we have 4 themes defined), so this is safe
+    return found ?? themes[0]!;
+  };
+
+  const currentTheme = getCurrentTheme();
 
   // Load theme from localStorage on mount
   useEffect(() => {

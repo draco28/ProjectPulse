@@ -5,7 +5,7 @@
  * Features floating hexagons and bubble effects
  */
 
-[data-theme="coral"] {
+:root[data-theme="coral"] {
   /* ========================================================================
      BACKGROUND LAYERS
      ======================================================================== */

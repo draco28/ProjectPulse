@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  darkMode: 'class', // Enable dark mode via class strategy
+  darkMode: ['class', 'class'], // Enable dark mode via class strategy
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -10,39 +10,70 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Background layers (4 levels for depth)
         background: {
           darkest: 'var(--color-bg-darkest)',
           dark: 'var(--color-bg-dark)',
           medium: 'var(--color-bg-medium)',
           light: 'var(--color-bg-light)',
+          DEFAULT: 'hsl(var(--background))',
         },
-        // Accent colors (brand colors, theme-dependent)
         accent: {
           primary: 'var(--color-accent-primary)',
           secondary: 'var(--color-accent-secondary)',
           tertiary: 'var(--color-accent-tertiary)',
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
         },
-        // Text colors (4 levels for hierarchy)
         text: {
           primary: 'var(--color-text-primary)',
           secondary: 'var(--color-text-secondary)',
           tertiary: 'var(--color-text-tertiary)',
           muted: 'var(--color-text-muted)',
         },
-        // Semantic colors (theme-dependent)
-        semantic: {
-          success: 'var(--color-success)',
-          warning: 'var(--color-warning)',
-          error: 'var(--color-error)',
-          info: 'var(--color-info)',
-        },
-        // Priority colors (for issue tracker)
+        success: 'var(--color-success)',
+        warning: 'var(--color-warning)',
+        error: 'var(--color-error)',
+        info: 'var(--color-info)',
         priority: {
           critical: 'var(--color-priority-critical)',
           high: 'var(--color-priority-high)',
           medium: 'var(--color-priority-medium)',
           low: 'var(--color-priority-low)',
+        },
+        foreground: 'hsl(var(--foreground))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        chart: {
+          '1': 'hsl(var(--chart-1))',
+          '2': 'hsl(var(--chart-2))',
+          '3': 'hsl(var(--chart-3))',
+          '4': 'hsl(var(--chart-4))',
+          '5': 'hsl(var(--chart-5))',
         },
       },
       fontFamily: {
@@ -50,16 +81,13 @@ const config: Config = {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {
-        // Neumorphic shadows (theme-dependent)
         'neu-float': 'var(--shadow-neu-float)',
         'neu-inset': 'var(--shadow-neu-inset)',
         'neu-dark': 'var(--shadow-neu-dark)',
-        // Glow effects (theme-dependent)
         'glow-primary': 'var(--glow-primary)',
         'glow-secondary': 'var(--glow-secondary)',
         'glow-tertiary': 'var(--glow-tertiary)',
-        // Regular shadow
-        'regular': 'var(--shadow-regular)',
+        regular: 'var(--shadow-regular)',
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
@@ -68,42 +96,73 @@ const config: Config = {
       },
       animation: {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-        'heartbeat': 'heartbeat 2s ease-in-out infinite',
-        'breathing': 'breathing 3s ease-in-out infinite',
-        'float': 'float 6s ease-in-out infinite',
+        heartbeat: 'heartbeat 2s ease-in-out infinite',
+        breathing: 'breathing 3s ease-in-out infinite',
+        float: 'float 6s ease-in-out infinite',
         'float-hex': 'float-hex 8s ease-in-out infinite',
         'float-bubble': 'float-bubble 6s ease-in-out infinite',
       },
       keyframes: {
         'pulse-glow': {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.6' },
+          '0%, 100%': {
+            opacity: '1',
+          },
+          '50%': {
+            opacity: '0.6',
+          },
         },
-        'heartbeat': {
-          '0%, 100%': { transform: 'scale(1)' },
-          '50%': { transform: 'scale(1.08)' },
+        heartbeat: {
+          '0%, 100%': {
+            transform: 'scale(1)',
+          },
+          '50%': {
+            transform: 'scale(1.08)',
+          },
         },
-        'breathing': {
-          '0%, 100%': { boxShadow: 'var(--glow-primary)' },
-          '50%': { boxShadow: 'var(--glow-secondary)' },
+        breathing: {
+          '0%, 100%': {
+            boxShadow: 'var(--glow-primary)',
+          },
+          '50%': {
+            boxShadow: 'var(--glow-secondary)',
+          },
         },
-        'float': {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(8px)' },
+        float: {
+          '0%, 100%': {
+            transform: 'translateY(0px)',
+          },
+          '50%': {
+            transform: 'translateY(8px)',
+          },
         },
         'float-hex': {
-          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
-          '33%': { transform: 'translateY(-20px) rotate(5deg)' },
-          '66%': { transform: 'translateY(-10px) rotate(-5deg)' },
+          '0%, 100%': {
+            transform: 'translateY(0px) rotate(0deg)',
+          },
+          '33%': {
+            transform: 'translateY(-20px) rotate(5deg)',
+          },
+          '66%': {
+            transform: 'translateY(-10px) rotate(-5deg)',
+          },
         },
         'float-bubble': {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-15px)' },
+          '0%, 100%': {
+            transform: 'translateY(0px)',
+          },
+          '50%': {
+            transform: 'translateY(-15px)',
+          },
         },
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss-animate')],
 };
 
 export default config;
