@@ -1,0 +1,47 @@
+// Prisma schema for ProjectPulse
+// Database: PostgreSQL 16
+// NOTE: This is a minimal schema for theme system support
+// Full schema will be implemented in Week 1 Day 2
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USER PREFERENCES (for theme system and future UI preferences)
+// ============================================================================
+
+model UserPreferences {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @unique  // Optional: will be linked to User model when auth is added
+
+  // Theme preferences
+  theme     String   @default("desert")  // "desert", "neon", "earthy", "coral"
+
+  // UI preferences (future)
+  sidebarCollapsed  Boolean  @default(false)
+  compactMode       Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([theme])
+  @@map("user_preferences")
+}
+
+// ============================================================================
+// FUTURE MODELS (will be added in Week 1 Day 2)
+// ============================================================================
+
+// model User { ... }
+// model Issue { ... }
+// model Comment { ... }
+// model KnowledgeItem { ... }
+// etc.
