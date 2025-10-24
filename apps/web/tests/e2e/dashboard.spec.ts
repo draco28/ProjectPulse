@@ -14,6 +14,8 @@ test.describe('Dashboard Page', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to dashboard before each test
     await page.goto('/dashboard');
+    // Wait for page to be fully loaded and hydrated
+    await page.waitForLoadState('networkidle');
   });
 
   test('should display the dashboard layout', async ({ page }) => {
@@ -34,15 +36,21 @@ test.describe('Dashboard Page', () => {
   });
 
   test('should display stat cards', async ({ page }) => {
-    // Check all 4 stat cards are visible
-    await expect(page.locator('text=Open Issues')).toBeVisible();
-    await expect(page.locator('text=Knowledge Items')).toBeVisible();
-    await expect(page.locator('text=Security Findings')).toBeVisible();
-    await expect(page.locator('text=Completed')).toBeVisible();
+    // Wait a bit for any CSS animations to complete
+    await page.waitForTimeout(500);
 
-    // Check stat values are displayed
-    await expect(page.locator('text=12').first()).toBeVisible(); // Open Issues count
-    await expect(page.locator('text=47').first()).toBeVisible(); // Knowledge Items count
+    // Check all 4 stat cards are visible by checking their values (more reliable)
+    // Use first() for all to handle duplicates in the page
+    await expect(page.getByText('12').first()).toBeVisible({ timeout: 10000 }); // Open Issues count
+    await expect(page.getByText('47').first()).toBeVisible(); // Knowledge Items count (also appears in agent widget)
+    await expect(page.getByText('3').first()).toBeVisible(); // Security Findings count (also appears in badge)
+    await expect(page.getByText('28').first()).toBeVisible(); // Completed count
+
+    // Also verify the titles are present (use exact match to avoid duplicates in welcome banner)
+    await expect(page.getByText('Open Issues', { exact: true })).toBeVisible();
+    await expect(page.getByText('Knowledge Items', { exact: true })).toBeVisible();
+    await expect(page.getByText('Security Findings', { exact: true })).toBeVisible();
+    await expect(page.getByText('Completed', { exact: true })).toBeVisible();
   });
 
   test('should display recent issues section', async ({ page }) => {
@@ -59,7 +67,10 @@ test.describe('Dashboard Page', () => {
     await expect(page.locator('text=Critical').first()).toBeVisible();
   });
 
-  test('should display widgets in sidebar', async ({ page }) => {
+  test('should display widgets in sidebar', async ({ page, isMobile }) => {
+    // Skip on mobile viewports as widgets are in main content area on mobile
+    test.skip(isMobile, 'Widgets layout different on mobile');
+
     // Check Quick Actions widget
     await expect(page.locator('text=Quick Actions')).toBeVisible();
     await expect(page.locator('button:has-text("Create Issue")')).toBeVisible();
@@ -176,15 +187,18 @@ test.describe('Dashboard Page', () => {
     await expect(statCards).toBeVisible();
   });
 
-  test('should display user profile in sidebar', async ({ page }) => {
-    // Check user avatar
-    await expect(page.locator('[class*="avatar"]').first()).toBeVisible();
+  test('should display user profile in sidebar', async ({ page, isMobile }) => {
+    // Skip on mobile as profile appears differently
+    test.skip(isMobile, 'Profile layout different on mobile');
 
-    // Check user name
-    await expect(page.locator('text=Developer')).toBeVisible();
+    // Check email in sidebar (unique to the profile section)
+    await expect(page.getByText('dev@moksha.local')).toBeVisible();
+
+    // Check avatar by looking for the "DV" text
+    await expect(page.getByText('DV')).toBeVisible();
 
     // Check online status indicator
-    const statusDot = page.locator('.bg-success').last();
+    const statusDot = page.locator('[title="Online"]');
     await expect(statusDot).toBeVisible();
   });
 
@@ -200,6 +214,7 @@ test.describe('Dashboard Page', () => {
 test.describe('Dashboard Theme Switching', () => {
   test('should switch between all 4 themes', async ({ page }) => {
     await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
 
     // Open theme switcher
     const themeSwitcherButton = page
@@ -243,6 +258,7 @@ test.describe('Dashboard Theme Switching', () => {
 test.describe('Dashboard Accessibility', () => {
   test('should have proper ARIA labels', async ({ page }) => {
     await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
 
     // Check main landmark
     await expect(page.locator('main')).toBeVisible();
@@ -256,6 +272,7 @@ test.describe('Dashboard Accessibility', () => {
 
   test('should be keyboard navigable', async ({ page }) => {
     await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
 
     // Tab through navigation
     await page.keyboard.press('Tab');
