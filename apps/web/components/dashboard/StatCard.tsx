@@ -1,5 +1,5 @@
 /**
- * StatCard Component
+ * StatCard Component - Server Component
  *
  * Displays a single metric with:
  * - Icon
@@ -7,7 +7,6 @@
  * - Value
  * - Optional trend indicator
  */
-'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { LucideIcon } from 'lucide-react';

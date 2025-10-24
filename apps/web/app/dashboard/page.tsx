@@ -1,14 +1,13 @@
 /**
- * Dashboard Page
+ * Dashboard Page - Server Component
  *
- * Main dashboard with:
- * - Welcome banner
- * - Stats grid (4 cards)
- * - Two-column layout:
- *   - Left: Recent issues
- *   - Right: Quick actions + Agent personas
+ * Fetches real data from PostgreSQL via Prisma:
+ * - Issue statistics
+ * - Recent issues
+ * - Knowledge base count
+ * - Security findings
+ * - Active agent personas
  */
-'use client';
 
 import { WelcomeBanner } from '@/components/dashboard/WelcomeBanner';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -16,9 +15,80 @@ import { IssueCard } from '@/components/dashboard/IssueCard';
 import { QuickActionsWidget } from '@/components/dashboard/QuickActionsWidget';
 import { AgentPersonasWidget } from '@/components/dashboard/AgentPersonasWidget';
 import { ListTodo, Lightbulb, Shield, CheckCircle2 } from 'lucide-react';
-import { mockIssues, mockStats, mockAgents } from '@/lib/mock-data';
+import { PrismaClient } from '@prisma/client';
 
-export default function DashboardPage() {
+const prisma = new PrismaClient();
+
+async function getDashboardData() {
+  // Fetch all data in parallel for performance
+  const [
+    openIssuesCount,
+    inProgressIssuesCount,
+    closedIssuesCount,
+    knowledgeItemsCount,
+    securityFindingsCount,
+    recentIssues,
+    activeAgents,
+  ] = await Promise.all([
+    prisma.issue.count({ where: { status: 'open' } }),
+    prisma.issue.count({ where: { status: 'in-progress' } }),
+    prisma.issue.count({ where: { status: 'closed' } }),
+    prisma.knowledgeItem.count(),
+    prisma.securityFinding.count({ where: { status: 'open' } }),
+    prisma.issue.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        labels: true,
+        _count: {
+          select: { comments: true },
+        },
+      },
+    }),
+    prisma.agentPersona.findMany({
+      where: { isBuiltIn: true },
+      orderBy: { name: 'asc' },
+    }),
+  ]);
+
+  return {
+    stats: {
+      openIssues: openIssuesCount + inProgressIssuesCount,
+      knowledgeItems: knowledgeItemsCount,
+      securityFindings: securityFindingsCount,
+      completed: closedIssuesCount,
+    },
+    recentIssues: recentIssues.map((issue) => ({
+      id: issue.id.toString(),
+      title: issue.title,
+      description: issue.description || 'No description provided',
+      priority: issue.priority as 'critical' | 'high' | 'medium' | 'low',
+      category: issue.module || 'General',
+      isActive: issue.status === 'in-progress',
+      createdAt: new Date(issue.createdAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    })),
+    agents: activeAgents.map((agent, index) => {
+      const colors = ['#00D4FF', '#FF0055', '#FFD600', '#00FF88'];
+      return {
+        id: agent.id.toString(),
+        name: agent.name,
+        description: agent.description || '',
+        status: 'active' as const,
+        lastActivity: 'Active now',
+        avatar: agent.name.slice(0, 2).toUpperCase(),
+        color: colors[index % colors.length] || '#00D4FF',
+      };
+    }),
+  };
+}
+
+export default async function DashboardPage() {
+  const data = await getDashboardData();
+
   return (
     <div className="space-y-6 p-6">
       {/* Welcome Banner */}
@@ -28,28 +98,28 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Open Issues"
-          value={mockStats.openIssues.value}
+          value={data.stats.openIssues}
           icon={ListTodo}
-          trend={mockStats.openIssues.trend}
+          trend={{ value: 12, label: 'from last week' }}
         />
         <StatCard
           title="Knowledge Items"
-          value={mockStats.knowledgeItems.value}
+          value={data.stats.knowledgeItems}
           icon={Lightbulb}
-          trend={mockStats.knowledgeItems.trend}
+          trend={{ value: 8, label: 'from last month' }}
         />
         <StatCard
           title="Security Findings"
-          value={mockStats.securityFindings.value}
+          value={data.stats.securityFindings}
           icon={Shield}
-          trend={mockStats.securityFindings.trend}
+          trend={{ value: -15, label: 'from last week' }}
           iconClassName="bg-error/10"
         />
         <StatCard
           title="Completed"
-          value={mockStats.completed.value}
+          value={data.stats.completed}
           icon={CheckCircle2}
-          trend={mockStats.completed.trend}
+          trend={{ value: 23, label: 'from last week' }}
           iconClassName="bg-success/10"
         />
       </div>
@@ -66,7 +136,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="space-y-3">
-            {mockIssues.map((issue) => (
+            {data.recentIssues.map((issue) => (
               <IssueCard key={issue.id} issue={issue} />
             ))}
           </div>
@@ -78,7 +148,7 @@ export default function DashboardPage() {
           <QuickActionsWidget />
 
           {/* Agent Personas */}
-          <AgentPersonasWidget agents={mockAgents} />
+          <AgentPersonasWidget agents={data.agents} />
         </div>
       </div>
     </div>

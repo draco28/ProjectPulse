@@ -1,7 +1,6 @@
-// Prisma schema for ProjectPulse
+// Prisma schema for Moksha DevHub
 // Database: PostgreSQL 16
-// NOTE: This is a minimal schema for theme system support
-// Full schema will be implemented in Week 1 Day 2
+// Features: JSONB, Full-text search, Vector embeddings
 
 generator client {
   provider = "prisma-client-js"
@@ -37,11 +36,396 @@ model UserPreferences {
 }
 
 // ============================================================================
-// FUTURE MODELS (will be added in Week 1 Day 2)
+// CORE ENTITIES: PROJECT & ISSUES
 // ============================================================================
 
-// model User { ... }
-// model Issue { ... }
-// model Comment { ... }
-// model KnowledgeItem { ... }
-// etc.
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?  @db.Text
+  repository  String?  // Git repository URL
+
+  issues      Issue[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+}
+
+model Issue {
+  id            Int       @id @default(autoincrement())
+
+  // Core fields
+  title         String
+  description   String?   @db.Text
+  status        String    @default("open")
+  priority      String    @default("medium")
+  module        String?   // Combat, Core, UI, Systems, World, Creatures
+  assignee      String?
+
+  // Custom fields (flexible schema)
+  customFields  Json?     @db.JsonB
+
+  // Full-text search (will be populated by triggers)
+  searchVector  String?   @db.Text  // Using Text as placeholder for tsvector
+
+  // Relationships
+  projectId     Int
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  labels        Label[]
+  comments      Comment[]
+  attachments   Attachment[]
+  linkedFiles   LinkedFile[]
+  linkedCommits LinkedCommit[]
+
+  // Knowledge & Wiki links
+  linkedKnowledge KnowledgeLink[] @relation("IssueKnowledge")
+  linkedWikiPages WikiPageLink[]  @relation("IssueWiki")
+
+  // Security findings
+  securityFinding SecurityFinding?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  closedAt      DateTime?
+
+  @@index([status])
+  @@index([priority])
+  @@index([module])
+  @@index([projectId])
+  @@index([assignee])
+  @@index([createdAt(sort: Desc)])
+}
+
+model Label {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  color     String   @default("#808080")
+
+  issues    Issue[]
+
+  createdAt DateTime @default(now())
+
+  @@index([name])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  author    String?
+
+  issueId   Int
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([issueId])
+  @@index([createdAt(sort: Desc)])
+}
+
+model Attachment {
+  id          Int      @id @default(autoincrement())
+  filename    String
+  filepath    String
+  mimetype    String
+  size        Int      // bytes
+
+  issueId     Int
+  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  uploadedAt  DateTime @default(now())
+
+  @@index([issueId])
+}
+
+model LinkedFile {
+  id          Int      @id @default(autoincrement())
+  filePath    String   // Relative path from project root
+  lineNumber  Int?
+
+  issueId     Int
+  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([issueId, filePath])
+  @@index([filePath])
+}
+
+model LinkedCommit {
+  id          Int      @id @default(autoincrement())
+  commitHash  String   // Git commit hash
+  commitMessage String?
+  commitDate  DateTime?
+
+  issueId     Int
+  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([issueId, commitHash])
+  @@index([commitHash])
+}
+
+// ============================================================================
+// KNOWLEDGE BASE
+// ============================================================================
+
+model KnowledgeItem {
+  id          Int       @id @default(autoincrement())
+
+  title       String
+  content     String    @db.Text
+  category    String?
+
+  // Tags (array)
+  tags        String[]
+
+  // Full-text search (will be populated by triggers)
+  searchVector String?   @db.Text  // Using Text as placeholder for tsvector
+
+  // Links to issues
+  linkedIssues KnowledgeLink[] @relation("KnowledgeIssue")
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([category])
+  @@index([createdAt(sort: Desc)])
+}
+
+model KnowledgeLink {
+  id              Int             @id @default(autoincrement())
+
+  knowledgeItemId Int
+  knowledgeItem   KnowledgeItem   @relation("KnowledgeIssue", fields: [knowledgeItemId], references: [id], onDelete: Cascade)
+
+  issueId         Int
+  issue           Issue           @relation("IssueKnowledge", fields: [issueId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime        @default(now())
+
+  @@unique([knowledgeItemId, issueId])
+  @@index([knowledgeItemId])
+  @@index([issueId])
+}
+
+// ============================================================================
+// DOCUMENTATION WIKI
+// ============================================================================
+
+model WikiPage {
+  id            Int       @id @default(autoincrement())
+
+  title         String
+  content       String    @db.Text
+
+  // Hierarchical structure
+  parentId      Int?
+  parent        WikiPage? @relation("PageHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children      WikiPage[] @relation("PageHierarchy")
+
+  // URL path (e.g., /rules/combat/fsm-authority)
+  path          String    @unique
+  orderIndex    Int       @default(0)
+
+  // Full-text search (will be populated by triggers)
+  searchVector  String?   @db.Text  // Using Text as placeholder for tsvector
+
+  // Links
+  outgoingLinks PageLink[] @relation("SourcePage")
+  incomingLinks PageLink[] @relation("TargetPage")
+
+  // Issue links
+  linkedIssues  WikiPageLink[] @relation("WikiIssue")
+
+  // Version history (simplified - Phase 3)
+  version       Int       @default(1)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([path])
+  @@index([parentId])
+  @@index([orderIndex])
+}
+
+model PageLink {
+  id            Int       @id @default(autoincrement())
+
+  sourcePageId  Int
+  sourcePage    WikiPage  @relation("SourcePage", fields: [sourcePageId], references: [id], onDelete: Cascade)
+
+  targetPageId  Int
+  targetPage    WikiPage  @relation("TargetPage", fields: [targetPageId], references: [id], onDelete: Cascade)
+
+  linkType      String?   // 'reference', 'related', 'example'
+
+  createdAt     DateTime  @default(now())
+
+  @@unique([sourcePageId, targetPageId])
+  @@index([sourcePageId])
+  @@index([targetPageId])
+}
+
+model WikiPageLink {
+  id          Int       @id @default(autoincrement())
+
+  wikiPageId  Int
+  wikiPage    WikiPage  @relation("WikiIssue", fields: [wikiPageId], references: [id], onDelete: Cascade)
+
+  issueId     Int
+  issue       Issue     @relation("IssueWiki", fields: [issueId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+
+  @@unique([wikiPageId, issueId])
+  @@index([wikiPageId])
+  @@index([issueId])
+}
+
+// ============================================================================
+// SECURITY DASHBOARD
+// ============================================================================
+
+model SecurityFinding {
+  id            Int       @id @default(autoincrement())
+
+  // Semgrep data
+  ruleId        String
+  severity      String    // ERROR, WARNING, INFO
+  message       String    @db.Text
+  filePath      String
+  lineNumber    Int
+  codeSnippet   String?   @db.Text
+
+  // Status
+  status        String    @default("open")  // open, false_positive, fixed
+
+  // Optional link to issue
+  issueId       Int?      @unique
+  issue         Issue?    @relation(fields: [issueId], references: [id], onDelete: SetNull)
+
+  // Metadata
+  scanDate      DateTime  @default(now())
+  fixedAt       DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([ruleId])
+  @@index([severity])
+  @@index([status])
+  @@index([filePath])
+  @@index([scanDate(sort: Desc)])
+}
+
+// ============================================================================
+// SYSTEM CONFIGURATION
+// ============================================================================
+
+model Setting {
+  key       String   @id
+  value     Json     @db.JsonB
+  category  String   // 'search', 'security', 'features', 'mcp'
+  description String? @db.Text
+
+  updatedAt DateTime @updatedAt
+  updatedBy String?  // Track who changed it (future: user system)
+
+  @@index([category])
+}
+
+// ============================================================================
+// AGENT PERSONAS
+// ============================================================================
+
+model AgentPersona {
+  id              Int       @id @default(autoincrement())
+
+  name            String    @unique
+  slug            String    @unique  // For slash commands: /code-reviewer
+  icon            String?   // Emoji or icon name
+  description     String?   @db.Text
+
+  // System prompt
+  systemPrompt    String    @db.Text
+
+  // Skills/capabilities
+  skills          String[]  // e.g., ["debugging", "security", "architecture"]
+
+  // MCP tools this persona can use
+  tools           String[]  // e.g., ["create_issue", "search_knowledge"]
+
+  // Rules/guidelines
+  rules           String[]  // e.g., ["Always cite SoT rules", "Suggest tests"]
+
+  // Auto-activation
+  autoActivate    Boolean   @default(false)
+  activationConditions Json? @db.JsonB  // { filePatterns: ["*.cpp"], keywords: ["review"] }
+
+  // Template usage
+  templateId      Int?
+  template        PromptTemplate? @relation(fields: [templateId], references: [id])
+
+  // Usage tracking
+  sessions        AgentSession[]
+
+  // Built-in vs custom
+  isBuiltIn       Boolean   @default(false)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([isBuiltIn])
+}
+
+model PromptTemplate {
+  id              Int       @id @default(autoincrement())
+
+  name            String    @unique
+  description     String?   @db.Text
+
+  // Template content (can have variables)
+  content         String    @db.Text
+
+  // Variables used in template
+  variables       String[]  // e.g., ["module", "context", "rules"]
+
+  // Category
+  category        String?   // "code-review", "debugging", "documentation"
+
+  // Usage
+  personas        AgentPersona[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([category])
+}
+
+model AgentSession {
+  id              Int       @id @default(autoincrement())
+
+  personaId       Int
+  persona         AgentPersona @relation(fields: [personaId], references: [id], onDelete: Cascade)
+
+  // Session metadata
+  activatedBy     String?   // How it was activated: "slash_command", "auto", "cmd_k"
+  context         Json?     @db.JsonB  // Context at activation time
+
+  // Metrics
+  duration        Int?      // seconds
+  toolCalls       Int       @default(0)
+  issuesCreated   Int       @default(0)
+
+  startedAt       DateTime  @default(now())
+  endedAt         DateTime?
+
+  @@index([personaId])
+  @@index([startedAt(sort: Desc)])
+}
