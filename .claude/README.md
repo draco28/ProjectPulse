@@ -92,6 +92,7 @@ python devhub_orchestrator.py
 ## Usage Examples
 
 ### Architecture Decision
+
 ```
 You: "How should I structure the MCP tools?"
 → Routes to: devhub-mcp-specialist
@@ -99,6 +100,7 @@ You: "How should I structure the MCP tools?"
 ```
 
 ### Implementation
+
 ```
 You: "Implement the POST /api/issues endpoint"
 → Routes to: devhub-fullstack
@@ -106,6 +108,7 @@ You: "Implement the POST /api/issues endpoint"
 ```
 
 ### Testing
+
 ```
 You: "Write tests for the search API"
 → Routes to: devhub-testing
@@ -113,6 +116,7 @@ You: "Write tests for the search API"
 ```
 
 ### Code Review
+
 ```
 You: "Review this for security issues"
 → Routes to: devhub-auditor
@@ -122,17 +126,20 @@ You: "Review this for security issues"
 ## Workflow Patterns
 
 ### Feature Development
+
 1. **Architect** - Design feature
 2. **Fullstack** - Implement
 3. **Testing** - Add tests
 4. **Auditor** - Review quality
 
 ### Bug Fixing
+
 1. **Fullstack** - Fix bug
 2. **Testing** - Add regression test
 3. **Auditor** - Verify fix
 
 ### MCP Tool Creation
+
 1. **MCP Specialist** - Design tool
 2. **Fullstack** - Implement
 3. **Testing** - Test tool
@@ -140,6 +147,7 @@ You: "Review this for security issues"
 ## Session Management
 
 Sessions track your development progress:
+
 - Objective
 - Agent handoffs
 - Files modified
@@ -153,6 +161,7 @@ Sessions are automatically saved and can be resumed.
 ### settings.local.json
 
 Defines permissions:
+
 - **Allow:** Read all, Write to apps/packages/docs
 - **Deny:** node_modules, build artifacts, .env
 - **Ask:** Destructive operations (git push, docker down)
@@ -160,6 +169,7 @@ Defines permissions:
 ### Skills
 
 Skills are referenced by agents and provide structured methodologies:
+
 - Each skill has clear "when to use" guidance
 - Step-by-step workflows
 - DevHub-specific examples
@@ -168,6 +178,7 @@ Skills are referenced by agents and provide structured methodologies:
 ## MCP Integration
 
 Recommended MCP tools:
+
 - **PostgreSQL MCP** - Database queries
 - **Docker MCP** - Container management
 - **GitHub MCP** - Issue/PR management (optional)
@@ -202,22 +213,26 @@ python devhub_orchestrator.py   # Test full system
 ## Troubleshooting
 
 ### Agents Not Found
+
 - Check `.claude/agents/` directory exists
 - Verify markdown frontmatter format
 - Run `python agent_integration.py` to test
 
 ### Routing Issues
+
 - Check dispatcher keywords match your request
 - Use more specific language
 - View routing decision with `verbose_routing: true`
 
 ### Session Errors
+
 - Delete `.claude/state/current_session.json`
 - Restart orchestrator
 
 ## Integration with Claude Code
 
 This system is designed to work alongside Claude Code:
+
 1. Use orchestrator for complex workflows
 2. Use Claude Code for implementation
 3. Skills provide structured guidance
@@ -230,6 +245,7 @@ System inspired by Moksha game project agent setup, adapted for full-stack web d
 ## Version
 
 **v1.0** - Initial release
+
 - 5 agents
 - 8 skills
 - Full orchestration system
@@ -239,5 +255,6 @@ System inspired by Moksha game project agent setup, adapted for full-stack web d
 ---
 
 For more information, see parent directory documentation:
+
 - `../AGENTS.md` - Agent rules and workflows
 - `../CLAUDE.md` - Claude Code integration guide

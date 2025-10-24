@@ -9,30 +9,36 @@ This document catalogs all specialized skills available for DevHub development. 
 ### 🐛 Debugging (2 skills)
 
 #### 1. Systematic Debugging (Web)
+
 **File:** `.claude/skills/debugging/systematic-debugging-web.md`
 
 **When to use:**
+
 - Investigating Next.js/React/API bugs
 - Debugging database queries (Prisma)
 - Resolving hydration mismatches
 - Troubleshooting Server/Client component issues
 
 **Key techniques:**
+
 - Layer isolation (Frontend → API → Database)
 - Browser DevTools usage
 - Prisma query logging
 - Docker debugging
 
 #### 2. Root Cause Tracing (Fullstack)
+
 **File:** `.claude/skills/debugging/root-cause-tracing-fullstack.md`
 
 **When to use:**
+
 - Bug symptom appears far from source
 - Need to trace data through full stack
 - Multiple layers interacting incorrectly
 - Systematic debugging narrowed scope
 
 **Key techniques:**
+
 - Backward tracing (UI → API → DB)
 - Binary search approach
 - Layer-by-layer verification
@@ -43,29 +49,35 @@ This document catalogs all specialized skills available for DevHub development. 
 ### 🧪 Testing (2 skills)
 
 #### 3. Test-Driven Development (Web)
+
 **File:** `.claude/skills/testing/test-driven-development-web.md`
 
 **When to use:**
+
 - Implementing new features
 - Fixing bugs that need regression tests
 - Refactoring existing code
 - Adding data-driven content validation
 
 **Key workflow:**
+
 - 🔴 RED: Write failing test
 - 🟢 GREEN: Make it pass
 - 🔵 REFACTOR: Improve code
 
 #### 4. API Testing Patterns
+
 **File:** `.claude/skills/testing/api-testing-patterns.md`
 
 **When to use:**
+
 - Testing Next.js API routes
 - Testing Server Actions
 - Validating request/response formats
 - Database integration testing
 
 **Patterns covered:**
+
 - Query parameter testing
 - Validation error testing
 - File upload testing
@@ -76,15 +88,18 @@ This document catalogs all specialized skills available for DevHub development. 
 ### ✅ Validation (2 skills)
 
 #### 5. Verification Before Completion
+
 **File:** `.claude/skills/validation/verification-before-completion.md`
 
 **When to use:**
+
 - Before marking any task complete
 - Before creating commits
 - Before requesting code review
 - Pre-deployment checklist
 
 **12-point checklist:**
+
 1. Code quality
 2. Build verification
 3. Testing
@@ -99,15 +114,18 @@ This document catalogs all specialized skills available for DevHub development. 
 12. User experience
 
 #### 6. Defense in Depth (Web)
+
 **File:** `.claude/skills/validation/defense-in-depth-web.md`
 
 **When to use:**
+
 - Always (systemic practice)
 - Planning features
 - Implementing security
 - Validating quality gates
 
 **7 layers:**
+
 1. TypeScript (design time)
 2. Zod validation (runtime)
 3. Database constraints (storage)
@@ -121,15 +139,18 @@ This document catalogs all specialized skills available for DevHub development. 
 ### 🏗️ Architecture (1 skill)
 
 #### 7. API Design Patterns
+
 **File:** `.claude/skills/architecture/api-design-patterns.md`
 
 **When to use:**
+
 - Designing new API routes
 - Implementing REST endpoints
 - Planning Server Actions
 - API refactoring
 
 **Patterns covered:**
+
 - RESTful resource naming
 - Pagination & filtering
 - Error response formats
@@ -141,15 +162,18 @@ This document catalogs all specialized skills available for DevHub development. 
 ### 📚 Documentation (1 skill)
 
 #### 8. Changelog Generator
+
 **File:** `.claude/skills/documentation/changelog-generator.md`
 
 **When to use:**
+
 - Preparing releases
 - Creating release notes
 - Documenting feature milestones
 - Publishing update summaries
 
 **Formats:**
+
 - Keep a Changelog standard
 - Conventional commits parsing
 - User-facing vs technical
@@ -157,28 +181,54 @@ This document catalogs all specialized skills available for DevHub development. 
 
 ---
 
+### 🌿 Git Collaboration (1 skill)
+
+#### 9. Git Workflow Best Practices
+
+**File:** `.claude/skills/git-collaboration/git-workflow-best-practices.md`
+
+**When to use:**
+
+- Planning branching strategy for features
+- Deciding which branch type to use (api/_, ui/_, feature/\*)
+- Writing commit messages
+- Creating pull requests
+- Collaborating with team
+- Learning professional Git workflows
+
+**Key concepts:**
+
+- 3-track branching strategy (api/_, ui/_, feature/\*)
+- Commit message conventions
+- PR workflow and review process
+- Pre-commit checklists
+- Merge strategies
+
+---
+
 ## Skill Usage Matrix
 
 ### By Agent
 
-| Agent | Primary Skills | Secondary Skills |
-|-------|---------------|------------------|
-| **devhub-architect** | API Design Patterns | Defense in Depth |
-| **devhub-fullstack** | TDD, Systematic Debugging | Root Cause Tracing, API Testing |
-| **devhub-testing** | TDD, API Testing Patterns | Systematic Debugging |
-| **devhub-auditor** | Verification Before Completion, Defense in Depth | All skills (review) |
-| **devhub-mcp-specialist** | API Design Patterns | TDD, Verification |
+| Agent                     | Primary Skills                                   | Secondary Skills                |
+| ------------------------- | ------------------------------------------------ | ------------------------------- |
+| **devhub-architect**      | API Design Patterns                              | Defense in Depth                |
+| **devhub-fullstack**      | TDD, Systematic Debugging                        | Root Cause Tracing, API Testing |
+| **devhub-testing**        | TDD, API Testing Patterns                        | Systematic Debugging            |
+| **devhub-auditor**        | Verification Before Completion, Defense in Depth | All skills (review)             |
+| **devhub-mcp-specialist** | API Design Patterns                              | TDD, Verification               |
 
 ### By Workflow Stage
 
-| Stage | Skills to Use |
-|-------|--------------|
-| **Planning** | API Design Patterns, Defense in Depth (prevention) |
-| **Implementation** | TDD, Systematic Debugging |
-| **Testing** | TDD, API Testing Patterns |
-| **Debugging** | Systematic Debugging, Root Cause Tracing |
-| **Review** | Verification Before Completion, Defense in Depth |
-| **Release** | Changelog Generator, Verification Before Completion |
+| Stage              | Skills to Use                                                    |
+| ------------------ | ---------------------------------------------------------------- |
+| **Planning**       | API Design Patterns, Defense in Depth (prevention), Git Workflow |
+| **Implementation** | TDD, Systematic Debugging, Git Workflow                          |
+| **Testing**        | TDD, API Testing Patterns                                        |
+| **Debugging**      | Systematic Debugging, Root Cause Tracing                         |
+| **Review**         | Verification Before Completion, Defense in Depth                 |
+| **Release**        | Changelog Generator, Verification Before Completion              |
+| **Branching**      | Git Workflow Best Practices                                      |
 
 ---
 
@@ -206,6 +256,14 @@ This document catalogs all specialized skills available for DevHub development. 
 → Use **Changelog Generator**
 → Run **Verification Before Completion**
 
+**"Which branch should I use?"**
+→ Use **Git Workflow Best Practices**
+→ Check the 3-track strategy (api/_, ui/_, feature/\*)
+
+**"How to write a good commit message?"**
+→ Use **Git Workflow Best Practices**
+→ Follow conventional commits format
+
 ---
 
 ## Adding New Skills
@@ -213,11 +271,13 @@ This document catalogs all specialized skills available for DevHub development. 
 To add a new skill:
 
 1. Create markdown file in appropriate category:
+
    ```bash
    .claude/skills/<category>/<skill-name>.md
    ```
 
 2. Use standard frontmatter:
+
    ```yaml
    ---
    name: Skill Name (DevHub <Tech>)
@@ -242,13 +302,14 @@ To add a new skill:
 
 ## Skill Statistics
 
-- **Total Skills:** 8
-- **Categories:** 5
+- **Total Skills:** 9
+- **Categories:** 6
 - **Debugging:** 2
 - **Testing:** 2
 - **Validation:** 2
 - **Architecture:** 1
 - **Documentation:** 1
+- **Git Collaboration:** 1
 
 ## Skill Versioning
 
@@ -256,5 +317,5 @@ All skills are currently at **version 1.0**. As patterns evolve or new technique
 
 ---
 
-**Last Updated:** January 23, 2025
-**Total Coverage:** All workflow stages covered
+**Last Updated:** October 24, 2025
+**Total Coverage:** All workflow stages covered + Git collaboration

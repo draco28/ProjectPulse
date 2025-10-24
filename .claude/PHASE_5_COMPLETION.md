@@ -19,11 +19,13 @@ Successfully integrated and configured 7 MCP tools to enhance Claude Code capabi
 **Package:** `@modelcontextprotocol/server-postgres`
 
 **Installation:**
+
 - Added to [.vscode/settings.json](.vscode/settings.json:32-39)
 - Connection string: `postgresql://moksha:moksha_dev_password_2025@localhost:5432/moksha_devhub`
 - Configured to run via npx
 
 **Capabilities:**
+
 - Direct database querying
 - Schema inspection
 - Migration verification
@@ -39,6 +41,7 @@ Successfully integrated and configured 7 MCP tools to enhance Claude Code capabi
 **Location:** [apps/mcp-docker/](apps/mcp-docker/)
 
 **Created Files:**
+
 - [apps/mcp-docker/package.json](apps/mcp-docker/package.json) - Package configuration
 - [apps/mcp-docker/tsconfig.json](apps/mcp-docker/tsconfig.json) - TypeScript config
 - [apps/mcp-docker/src/index.ts](apps/mcp-docker/src/index.ts) - Main MCP server (260 lines)
@@ -46,11 +49,13 @@ Successfully integrated and configured 7 MCP tools to enhance Claude Code capabi
 - [apps/mcp-docker/dist/index.js](apps/mcp-docker/dist/index.js) - Compiled output
 
 **Installation:**
+
 - Dependencies installed via npm
 - Built successfully with TypeScript compiler
 - Added to [.vscode/settings.json](.vscode/settings.json:40-43)
 
 **Capabilities - 6 Docker Tools:**
+
 1. `docker_status` - View all container statuses
 2. `docker_logs` - View container logs (configurable tail)
 3. `docker_restart` - Restart specific containers
@@ -65,9 +70,11 @@ Successfully integrated and configured 7 MCP tools to enhance Claude Code capabi
 ### ✅ 3. Documentation
 
 **Created:**
+
 - [.claude/MCP_USAGE_GUIDE.md](.claude/MCP_USAGE_GUIDE.md) - Comprehensive usage guide (500+ lines)
 
 **Contents:**
+
 - Tool-by-tool usage examples
 - Common query patterns
 - Workflow integration examples
@@ -81,15 +88,15 @@ Successfully integrated and configured 7 MCP tools to enhance Claude Code capabi
 
 ### Now Active (7 Tools)
 
-| Tool | Type | Purpose | Status |
-|------|------|---------|--------|
-| byterover-mcp | Knowledge | Memory/pattern storage | ✅ Pre-existing |
-| filesystem | File Ops | Workspace file operations | ✅ Pre-existing |
-| sequential-thinking | Reasoning | Complex problem solving | ✅ Pre-existing |
-| git | VCS | Version control | ✅ Pre-existing |
-| playwright | Testing | E2E test automation | ✅ Pre-existing |
-| **postgres** | Database | **PostgreSQL queries** | ✅ **NEW - Phase 5** |
-| **docker-devhub** | DevOps | **Container management** | ✅ **NEW - Phase 5** |
+| Tool                | Type      | Purpose                   | Status               |
+| ------------------- | --------- | ------------------------- | -------------------- |
+| byterover-mcp       | Knowledge | Memory/pattern storage    | ✅ Pre-existing      |
+| filesystem          | File Ops  | Workspace file operations | ✅ Pre-existing      |
+| sequential-thinking | Reasoning | Complex problem solving   | ✅ Pre-existing      |
+| git                 | VCS       | Version control           | ✅ Pre-existing      |
+| playwright          | Testing   | E2E test automation       | ✅ Pre-existing      |
+| **postgres**        | Database  | **PostgreSQL queries**    | ✅ **NEW - Phase 5** |
+| **docker-devhub**   | DevOps    | **Container management**  | ✅ **NEW - Phase 5** |
 
 ---
 
@@ -98,6 +105,7 @@ Successfully integrated and configured 7 MCP tools to enhance Claude Code capabi
 ### 1. [.vscode/settings.json](.vscode/settings.json)
 
 **Added:**
+
 ```json
 "postgres": {
   "command": "npx",
@@ -145,12 +153,14 @@ You: "Show Docker resource usage"
 **IMPORTANT:** MCP tools require VS Code reload to activate.
 
 ### Steps:
+
 1. Save all open files
 2. Press `Ctrl+Shift+P` (Windows) or `Cmd+Shift+P` (Mac)
 3. Type "Developer: Reload Window"
 4. Press Enter
 
 ### Verify:
+
 ```
 You: "What MCP tools are available?"
 ```
@@ -187,6 +197,7 @@ After VS Code reload, test each new tool:
 **Symptom:** "Cannot connect to database"
 
 **Solution:**
+
 1. Ensure database is running: `docker ps`
 2. If not running: `docker-compose up -d`
 3. Verify connection: `docker exec -it moksha-db psql -U moksha -d moksha_devhub`
@@ -196,6 +207,7 @@ After VS Code reload, test each new tool:
 **Symptom:** "Tool not found"
 
 **Solution:**
+
 1. Check `apps/mcp-docker/dist/index.js` exists
 2. If missing: `cd apps/mcp-docker && npm run build`
 3. Reload VS Code window
@@ -205,6 +217,7 @@ After VS Code reload, test each new tool:
 ## Benefits Achieved
 
 ### Development Velocity
+
 - **Direct database queries** - No need for Prisma Studio or psql CLI
 - **Container management** - Manage Docker from Claude Code
 - **Faster debugging** - Query DB and check logs instantly
@@ -213,6 +226,7 @@ After VS Code reload, test each new tool:
 ### Example Workflow (Before vs After)
 
 **Before Phase 5:**
+
 ```
 1. Switch to terminal
 2. Run docker ps
@@ -224,6 +238,7 @@ After VS Code reload, test each new tool:
 ```
 
 **After Phase 5:**
+
 ```
 You: "Show moksha-db logs and check if migration succeeded"
 → Instant results in Claude Code
@@ -256,12 +271,14 @@ F:\\Web_Projects\\AI_HUB/
 ## Next Steps (Phase 6+)
 
 ### Immediate (User Action Required)
+
 1. **Reload VS Code** to activate MCP tools
 2. **Test PostgreSQL MCP** with sample queries
 3. **Test Docker MCP** with container commands
 4. **Start Docker containers** if not running: `docker-compose up -d`
 
 ### Future Enhancements (Optional)
+
 1. Add GitHub MCP Server (if using GitHub)
 2. Add Puppeteer MCP Server (visual testing)
 3. Create custom DevHub MCP tools:
@@ -289,6 +306,7 @@ Phase 5 is considered successful when:
 **Phase 5: MCP Tools Integration** successfully added 2 powerful MCP tools (PostgreSQL and Docker) to the existing 5 tools, bringing the total to **7 active MCP tools** for Moksha DevHub development.
 
 These tools significantly enhance Claude Code's capabilities for:
+
 - Database management and querying
 - Docker container operations
 - Development workflow automation

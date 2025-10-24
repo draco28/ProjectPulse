@@ -16,11 +16,13 @@
 **IMPORTANT:** You must FULLY CLOSE VS Code, not just reload!
 
 **Windows:**
+
 - Click File → Exit (or Alt+F4)
 - OR Right-click VS Code in taskbar → Close window
 - Make sure VS Code is NOT running in the background
 
 **Verify closed:**
+
 - Open Task Manager (Ctrl+Shift+Esc)
 - Check "Processes" tab
 - Ensure no "Code.exe" or "Visual Studio Code" process is running
@@ -34,15 +36,18 @@
 ### 3. Check MCP Status
 
 **Method 1: Ask Claude**
+
 ```
 You: "What MCP tools are available?"
 ```
 
 **Method 2: Check Status Bar**
+
 - Look at bottom left of VS Code
 - Should show MCP server status icons
 
 **Method 3: Command Palette**
+
 - Press `Ctrl+Shift+P`
 - Type "MCP"
 - Look for MCP-related commands
@@ -57,6 +62,7 @@ The MCP configuration is path-specific. Check what path VS Code is using:
 4. OR check File → Preferences → Settings → check title bar for path
 
 The path shown should match one of:
+
 - `F:\Web_Projects\AI_HUB`
 - `f:\Web_Projects\AI_HUB`
 
@@ -69,6 +75,7 @@ The path shown should match one of:
 **Symptoms:** MCP servers don't appear after "reload"
 
 **Solution:**
+
 - Don't use "Reload Window" (Ctrl+R)
 - Don't use "Reload Developer Window"
 - Must fully EXIT VS Code (Alt+F4)
@@ -79,6 +86,7 @@ The path shown should match one of:
 **Symptoms:** MCP tools work in other project, not AI_HUB
 
 **Solution:**
+
 1. Check current folder in VS Code title bar
 2. Ensure it shows `AI_HUB` not just subfolder
 3. Close VS Code
@@ -89,6 +97,7 @@ The path shown should match one of:
 **Symptoms:** postgres MCP fails to connect
 
 **Solution:**
+
 ```bash
 # Check if containers are running
 docker ps
@@ -105,6 +114,7 @@ docker exec -it moksha-db psql -U moksha -d moksha_devhub
 **Symptoms:** MCP servers fail to start
 
 **Solution:**
+
 ```bash
 # Check Node version
 node --version
@@ -121,6 +131,7 @@ npx --version
 **Symptoms:** Claude Code extension not showing
 
 **Solution:**
+
 1. Press `Ctrl+Shift+X` (Extensions)
 2. Search "Claude Code"
 3. Ensure it's installed and enabled
@@ -172,6 +183,7 @@ python -c "import json; data = json.load(open(r'C:\Users\prave\.claude.json', en
 ```
 
 Expected output:
+
 ```
 AI_HUB paths found:
   F:\Web_Projects\AI_HUB
@@ -249,6 +261,7 @@ If still not working, provide:
    - Check VS Code title bar or footer
 
 4. **Configuration check output:**
+
    ```bash
    python -c "import json; data = json.load(open(r'C:\Users\prave\.claude.json', encoding='utf-8')); print([k for k in data['projects'].keys() if 'AI_HUB' in k])"
    ```
