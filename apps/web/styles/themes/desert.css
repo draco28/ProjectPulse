@@ -1,0 +1,98 @@
+/**
+ * Desert Stone Neumorphic Theme - Light Mode
+ *
+ * Soft neumorphic shadows with warm sandy tones
+ * Perfect for professional, calm work environments
+ */
+
+[data-theme="desert"] {
+  /* ========================================================================
+     BACKGROUND LAYERS
+     ======================================================================== */
+  --color-bg-darkest: #FAF9F6;  /* Feather - lightest base */
+  --color-bg-dark: #F4F1EA;     /* Mist */
+  --color-bg-medium: #E6DAC8;   /* Oat */
+  --color-bg-light: #CBB9A4;    /* Sandstone */
+
+  /* ========================================================================
+     ACCENT COLORS
+     ======================================================================== */
+  --color-accent-primary: #A48D78;   /* Desert */
+  --color-accent-secondary: #8B7766; /* Desert Dark */
+  --color-accent-tertiary: #6B5D52;  /* Desert Deep */
+
+  /* ========================================================================
+     TEXT COLORS
+     ======================================================================== */
+  --color-text-primary: #6B5D52;   /* Desert Deep - dark on light */
+  --color-text-secondary: #8B7766; /* Desert Dark */
+  --color-text-tertiary: #A48D78;  /* Desert */
+  --color-text-muted: #CBB9A4;     /* Sandstone */
+
+  /* ========================================================================
+     SEMANTIC COLORS
+     ======================================================================== */
+  --color-success: #9BA785;   /* Sage green */
+  --color-warning: #B8956A;   /* Bronze */
+  --color-error: #C17B5C;     /* Terracotta */
+  --color-info: #8B7766;      /* Desert Dark */
+
+  /* ========================================================================
+     PRIORITY COLORS (for issue tracker)
+     ======================================================================== */
+  --color-priority-critical: #C17B5C;  /* Terracotta */
+  --color-priority-high: #B8956A;      /* Bronze */
+  --color-priority-medium: #9BA785;    /* Sage */
+  --color-priority-low: #CBB9A4;       /* Sandstone */
+
+  /* ========================================================================
+     NEUMORPHIC SHADOWS
+     ======================================================================== */
+  /* Floating/Raised effect - cards that pop out */
+  --shadow-neu-float:
+    12px 12px 24px rgba(164, 141, 120, 0.25),
+    -12px -12px 24px rgba(255, 255, 255, 0.9),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.5);
+
+  /* Pressed/Inset effect - input fields, pressed buttons */
+  --shadow-neu-inset:
+    inset 4px 4px 8px rgba(164, 141, 120, 0.3),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.9);
+
+  /* Dark card variant - for emphasis */
+  --shadow-neu-dark:
+    10px 10px 20px rgba(107, 93, 82, 0.4),
+    -10px -10px 20px rgba(203, 185, 164, 0.3),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.1);
+
+  /* Regular shadow - fallback */
+  --shadow-regular: 0 8px 32px 0 rgba(164, 141, 120, 0.2);
+
+  /* ========================================================================
+     GLOW EFFECTS
+     ======================================================================== */
+  --glow-primary: 0 0 20px rgba(164, 141, 120, 0.4);
+  --glow-secondary: 0 0 40px rgba(164, 141, 120, 0.8);
+  --glow-tertiary: 0 0 10px rgba(164, 141, 120, 0.2);
+
+  /* ========================================================================
+     GRADIENTS
+     ======================================================================== */
+  --gradient-primary: linear-gradient(135deg, #A48D78 0%, #8B7766 100%);
+  --gradient-secondary: linear-gradient(135deg, #CBB9A4 0%, #E6DAC8 100%);
+  --gradient-background: linear-gradient(135deg, #FAF9F6 0%, #F4F1EA 50%, #E6DAC8 100%);
+
+  /* Icon gradients */
+  --gradient-icon-clay: linear-gradient(135deg, #A48D78 0%, #8B7766 100%);
+  --gradient-icon-sand: linear-gradient(135deg, #CBB9A4 0%, #E6DAC8 100%);
+  --gradient-icon-terracotta: linear-gradient(135deg, #C17B5C 0%, #A48D78 100%);
+  --gradient-icon-bronze: linear-gradient(135deg, #B8956A 0%, #8B7766 100%);
+  --gradient-icon-sage: linear-gradient(135deg, #9BA785 0%, #8B9775 100%);
+
+  /* ========================================================================
+     BORDERS
+     ======================================================================== */
+  --border-subtle: 1px solid rgba(203, 185, 164, 0.3);
+  --border-medium: 1px solid rgba(164, 141, 120, 0.4);
+  --border-strong: 1px solid #A48D78;
+}

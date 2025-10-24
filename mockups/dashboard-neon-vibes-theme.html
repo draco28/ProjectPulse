@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Dashboard (Neon Vibes Theme)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#091221',
+                        royalBlue: '#0236a5',
+                        hotPink: '#fe0369',
+                        cyan: '#0585c6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background: #091221;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .neon-gradient {
+            background: linear-gradient(135deg, #0236a5 0%, #fe0369 50%, #0585c6 100%);
+        }
+        
+        .glow-pink {
+            box-shadow: 0 0 20px rgba(254, 3, 105, 0.4);
+        }
+        
+        .glow-pink-hover:hover {
+            box-shadow: 0 0 30px rgba(254, 3, 105, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        .glow-blue {
+            box-shadow: 0 0 20px rgba(5, 133, 198, 0.4);
+        }
+        
+        .neon-border {
+            border: 1px solid rgba(254, 3, 105, 0.3);
+        }
+        
+        .neon-border:hover {
+            border-color: #fe0369;
+        }
+        
+        .sidebar-active {
+            background: rgba(254, 3, 105, 0.15);
+            border-left: 3px solid #fe0369;
+        }
+        
+        @keyframes pulse-glow-neon {
+            0%, 100% { 
+                box-shadow: 0 0 15px rgba(254, 3, 105, 0.5);
+            }
+            50% { 
+                box-shadow: 0 0 30px rgba(254, 3, 105, 0.8);
+            }
+        }
+        
+        .pulse-animate-neon {
+            animation: pulse-glow-neon 2s infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .heartbeat {
+            animation: heartbeat 2s infinite;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        .pulse-indicator {
+            position: relative;
+            width: 10px;
+            height: 10px;
+        }
+        
+        .pulse-dot {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #fe0369;
+            border-radius: 50%;
+        }
+        
+        .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #fe0369;
+            border-radius: 50%;
+            animation: ripple 2s infinite;
+        }
+        
+        .card-hover {
+            transition: all 0.2s;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            border-color: #fe0369 !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #091221;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #0236a5;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #fe0369;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 flex flex-col" style="background-color: #0d1929; border-right: 1px solid #0236a5;">
+            <!-- Logo -->
+            <div class="p-6" style="border-bottom: 1px solid #0236a5;">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 neon-gradient rounded-lg flex items-center justify-center heartbeat">
+                        <i class="fas fa-heartbeat text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">ProjectPulse</h1>
+                        <p class="text-xs" style="color: #0585c6;">v1.0.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-1">
+                <a href="#" class="sidebar-active flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-white">
+                    <i class="fas fa-home w-5"></i>
+                    <span>Dashboard</span>
+                    <div class="ml-auto pulse-indicator">
+                        <div class="pulse-dot"></div>
+                        <div class="pulse-ring"></div>
+                    </div>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-royalBlue/20" style="color: #8fa8c4;">
+                    <i class="fas fa-tasks w-5"></i>
+                    <span>Issues</span>
+                    <span class="ml-auto text-xs px-2 py-1 rounded-full font-semibold" style="background-color: #fe0369; color: #ffffff;">12</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-royalBlue/20" style="color: #8fa8c4;">
+                    <i class="fas fa-lightbulb w-5"></i>
+                    <span>Knowledge</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-royalBlue/20" style="color: #8fa8c4;">
+                    <i class="fas fa-book w-5"></i>
+                    <span>Wiki</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-royalBlue/20" style="color: #8fa8c4;">
+                    <i class="fas fa-shield-alt w-5"></i>
+                    <span>Security</span>
+                    <span class="ml-auto text-xs px-2 py-1 rounded-full font-semibold" style="background-color: #0585c6; color: #ffffff;">3</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-royalBlue/20" style="color: #8fa8c4;">
+                    <i class="fas fa-users w-5"></i>
+                    <span>Agent Personas</span>
+                </a>
+
+                <div class="pt-4 mt-4" style="border-top: 1px solid #0236a5;">
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-royalBlue/20" style="color: #8fa8c4;">
+                        <i class="fas fa-cog w-5"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Footer -->
+            <div class="p-4" style="border-top: 1px solid #0236a5;">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 neon-gradient rounded-full"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-white">Moksha Dev</p>
+                        <p class="text-xs" style="color: #0585c6;">Developer</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="px-8 py-4" style="background-color: #0d1929; border-bottom: 1px solid #0236a5;">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 max-w-2xl">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2" style="color: #0585c6;"></i>
+                            <input 
+                                type="text" 
+                                placeholder="Search or press Cmd+K..." 
+                                class="w-full rounded-lg pl-11 pr-4 py-2.5 text-white focus:outline-none transition-all"
+                                style="background-color: #162436; border: 2px solid #0236a5;"
+                            >
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded font-mono" style="color: #ffffff; background-color: #0236a5;">⌘K</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 ml-6">
+                        <button class="relative p-2 transition-colors" style="color: #8fa8c4;">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute top-1 right-1 w-2 h-2 rounded-full pulse-animate-neon" style="background-color: #fe0369;"></span>
+                        </button>
+                        <button class="p-2 transition-colors" style="color: #8fa8c4;">
+                            <i class="fas fa-moon text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-auto p-8" style="background-color: #091221;">
+                <!-- Welcome Banner -->
+                <div class="neon-gradient rounded-2xl p-8 mb-8 relative overflow-hidden glow-pink">
+                    <div class="relative z-10">
+                        <h2 class="text-4xl font-bold text-white mb-2">Welcome back, Developer! 👋</h2>
+                        <p class="text-white/90 mb-4 text-lg">Here's your project pulse for Moksha Mythic Clash</p>
+                        <button class="bg-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105" style="color: #091221;">
+                            <i class="fas fa-plus mr-2"></i>Create New Issue
+                        </button>
+                    </div>
+                    <div class="absolute right-0 top-0 w-64 h-64 bg-white opacity-10 rounded-full -mr-32 -mt-32"></div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Stat Card 1 -->
+                    <div class="rounded-xl p-6 neon-border card-hover transition-all glow-pink-hover" style="background-color: #0d1929;">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: rgba(254, 3, 105, 0.2);">
+                                <i class="fas fa-tasks text-xl" style="color: #fe0369;"></i>
+                            </div>
+                            <span class="text-green-400 text-sm font-semibold">+2 today</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1">12</h3>
+                        <p class="text-sm" style="color: #0585c6;">Open Issues</p>
+                    </div>
+
+                    <!-- Stat Card 2 -->
+                    <div class="rounded-xl p-6 neon-border card-hover transition-all glow-pink-hover" style="background-color: #0d1929;">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: rgba(2, 54, 165, 0.2);">
+                                <i class="fas fa-lightbulb text-xl" style="color: #0236a5;"></i>
+                            </div>
+                            <span class="text-sm font-semibold" style="color: #0585c6;">85% coverage</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1">47</h3>
+                        <p class="text-sm" style="color: #0585c6;">Knowledge Items</p>
+                    </div>
+
+                    <!-- Stat Card 3 -->
+                    <div class="rounded-xl p-6 neon-border card-hover transition-all glow-pink-hover" style="background-color: #0d1929;">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: rgba(234, 179, 8, 0.2);">
+                                <i class="fas fa-shield-alt text-yellow-400 text-xl"></i>
+                            </div>
+                            <span class="text-yellow-400 text-sm font-semibold">3 new</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1">15</h3>
+                        <p class="text-sm" style="color: #0585c6;">Security Findings</p>
+                    </div>
+
+                    <!-- Stat Card 4 -->
+                    <div class="rounded-xl p-6 neon-border card-hover transition-all glow-pink-hover" style="background-color: #0d1929;">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: rgba(34, 197, 94, 0.2);">
+                                <i class="fas fa-check-circle text-green-400 text-xl"></i>
+                            </div>
+                            <span class="text-green-400 text-sm font-semibold">+5 this week</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1">28</h3>
+                        <p class="text-sm" style="color: #0585c6;">Completed</p>
+                    </div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Recent Issues -->
+                    <div class="lg:col-span-2">
+                        <div class="rounded-xl neon-border" style="background-color: #0d1929;">
+                            <div class="p-6" style="border-bottom: 1px solid #0236a5;">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xl font-bold text-white">Recent Issues</h3>
+                                    <a href="#" class="text-sm font-semibold" style="color: #fe0369;">View all →</a>
+                                </div>
+                            </div>
+                            <div style="border-top: 1px solid rgba(2, 54, 165, 0.2);">
+                                <!-- Issue Item -->
+                                <div class="p-6 cursor-pointer transition-colors" style="border-bottom: 1px solid rgba(2, 54, 165, 0.2);">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background-color: rgba(239, 68, 68, 0.2);">
+                                            <i class="fas fa-bug text-red-400"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                                <span class="font-mono text-sm" style="color: #0585c6;">#42</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(239, 68, 68, 0.2); color: #FCA5A5; border-color: rgba(239, 68, 68, 0.3);">Critical</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(254, 3, 105, 0.2); color: #fe0369; border-color: rgba(254, 3, 105, 0.3);">Combat</span>
+                                                <div class="pulse-indicator ml-1">
+                                                    <div class="pulse-dot"></div>
+                                                    <div class="pulse-ring"></div>
+                                                </div>
+                                            </div>
+                                            <h4 class="font-semibold mb-1 text-white">FSM Authority not properly replicated in combat</h4>
+                                            <p class="text-sm" style="color: #8fa8c4;">Combat state machine desync between client and server...</p>
+                                            <div class="flex items-center gap-4 mt-3 text-xs" style="color: #8fa8c4;">
+                                                <span><i class="fas fa-clock mr-1"></i>2 hours ago</span>
+                                                <span><i class="fas fa-comment mr-1"></i>3 comments</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Issue Item 2 -->
+                                <div class="p-6 cursor-pointer transition-colors" style="border-bottom: 1px solid rgba(2, 54, 165, 0.2);">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background-color: rgba(251, 146, 60, 0.2);">
+                                            <i class="fas fa-exclamation-triangle text-orange-400"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="font-mono text-sm" style="color: #0585c6;">#41</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(251, 146, 60, 0.2); color: #FED7AA; border-color: rgba(251, 146, 60, 0.3);">High</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(2, 54, 165, 0.2); color: #6B9BD1; border-color: rgba(2, 54, 165, 0.3);">Animation</span>
+                                            </div>
+                                            <h4 class="font-semibold mb-1 text-white">Animation montage not playing on clients</h4>
+                                            <p class="text-sm" style="color: #8fa8c4;">Special attack animations only visible on server...</p>
+                                            <div class="flex items-center gap-4 mt-3 text-xs" style="color: #8fa8c4;">
+                                                <span><i class="fas fa-clock mr-1"></i>5 hours ago</span>
+                                                <span><i class="fas fa-comment mr-1"></i>1 comment</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Issue Item 3 -->
+                                <div class="p-6 cursor-pointer transition-colors">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background-color: rgba(34, 197, 94, 0.2);">
+                                            <i class="fas fa-check text-green-400"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="font-mono text-sm" style="color: #0585c6;">#40</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(5, 133, 198, 0.2); color: #0585c6; border-color: rgba(5, 133, 198, 0.3);">Medium</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(34, 197, 94, 0.2); color: #86EFAC; border-color: rgba(34, 197, 94, 0.3);">Core</span>
+                                            </div>
+                                            <h4 class="font-semibold mb-1 line-through opacity-60 text-white">Implement health regeneration system</h4>
+                                            <p class="text-sm opacity-60" style="color: #8fa8c4;">Add passive health regen with combat cooldown...</p>
+                                            <div class="flex items-center gap-4 mt-3 text-xs" style="color: #8fa8c4;">
+                                                <span><i class="fas fa-check mr-1 text-green-400"></i>Completed</span>
+                                                <span><i class="fas fa-clock mr-1"></i>1 day ago</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Widgets -->
+                    <div class="space-y-6">
+                        <!-- Quick Actions -->
+                        <div class="rounded-xl neon-border p-6" style="background-color: #0d1929;">
+                            <h3 class="text-lg font-bold text-white mb-4">Quick Actions</h3>
+                            <div class="space-y-2">
+                                <button class="w-full neon-gradient text-white px-4 py-2.5 rounded-lg transition-all transform hover:scale-105 glow-pink-hover flex items-center justify-center gap-2 font-semibold">
+                                    <i class="fas fa-plus"></i>
+                                    <span>New Issue</span>
+                                </button>
+                                <button class="w-full px-4 py-2.5 rounded-lg transition-colors text-white flex items-center justify-center gap-2" style="background-color: #162436;">
+                                    <i class="fas fa-book"></i>
+                                    <span>Add Knowledge</span>
+                                </button>
+                                <button class="w-full px-4 py-2.5 rounded-lg transition-colors text-white flex items-center justify-center gap-2" style="background-color: #162436;">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <span>Run Security Scan</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Active Personas -->
+                        <div class="rounded-xl neon-border p-6" style="background-color: #0d1929;">
+                            <h3 class="text-lg font-bold text-white mb-4">Agent Personas</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3 p-3 rounded-lg border glow-blue" style="background-color: rgba(5, 133, 198, 0.15); border-color: rgba(5, 133, 198, 0.3);">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style="background-color: #0585c6; color: #ffffff;">
+                                        🔍
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold text-white">Code Reviewer</p>
+                                        <p class="text-xs" style="color: #0585c6;">Active</p>
+                                    </div>
+                                    <div class="pulse-indicator">
+                                        <div class="pulse-dot"></div>
+                                        <div class="pulse-ring"></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all" style="background-color: rgba(22, 36, 54, 0.5); border-color: rgba(2, 54, 165, 0.2);">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm" style="background-color: #0236a5; color: #ffffff;">
+                                        🐛
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold text-white">Bug Hunter</p>
+                                        <p class="text-xs" style="color: #8fa8c4;">Available</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all" style="background-color: rgba(22, 36, 54, 0.5); border-color: rgba(2, 54, 165, 0.2);">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm" style="background-color: #0236a5; color: #ffffff;">
+                                        🏗️
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold text-white">Feature Architect</p>
+                                        <p class="text-xs" style="color: #8fa8c4;">Available</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="w-full mt-4 text-sm font-semibold" style="color: #fe0369;">Manage personas →</button>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="rounded-xl neon-border p-6" style="background-color: #0d1929;">
+                            <h3 class="text-lg font-bold text-white mb-4">Recent Activity</h3>
+                            <div class="space-y-4">
+                                <div class="flex gap-3">
+                                    <div class="w-2 h-2 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                                    <div>
+                                        <p class="text-sm text-white">Issue #42 created</p>
+                                        <p class="text-xs" style="color: #8fa8c4;">2 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style="background-color: #0585c6;"></div>
+                                    <div>
+                                        <p class="text-sm text-white">Knowledge item updated</p>
+                                        <p class="text-xs" style="color: #8fa8c4;">3 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style="background-color: #fe0369;"></div>
+                                    <div>
+                                        <p class="text-sm text-white">Security scan completed</p>
+                                        <p class="text-xs" style="color: #8fa8c4;">5 hours ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

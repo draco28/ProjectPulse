@@ -1,0 +1,85 @@
+/**
+ * Neon Vibes Theme - Dark Mode
+ *
+ * Vibrant neon glows with electric colors
+ * Perfect for energetic, futuristic interfaces
+ */
+
+[data-theme="neon"] {
+  /* ========================================================================
+     BACKGROUND LAYERS
+     ======================================================================== */
+  --color-bg-darkest: #091221;   /* Midnight */
+  --color-bg-dark: #0d1929;      /* Sidebar */
+  --color-bg-medium: #14203a;    /* Cards */
+  --color-bg-light: #1a2a4a;     /* Hover state */
+
+  /* ========================================================================
+     ACCENT COLORS
+     ======================================================================== */
+  --color-accent-primary: #fe0369;   /* Hot Pink */
+  --color-accent-secondary: #0236a5; /* Royal Blue */
+  --color-accent-tertiary: #0585c6;  /* Cyan */
+
+  /* ========================================================================
+     TEXT COLORS
+     ======================================================================== */
+  --color-text-primary: #ffffff;   /* Pure white */
+  --color-text-secondary: #8fa8c4; /* Light blue-gray */
+  --color-text-tertiary: #6a8cb8;  /* Medium blue-gray */
+  --color-text-muted: #4a6c9c;     /* Dark blue-gray */
+
+  /* ========================================================================
+     SEMANTIC COLORS
+     ======================================================================== */
+  --color-success: #00e676;   /* Bright green */
+  --color-warning: #ffea00;   /* Bright yellow */
+  --color-error: #ff1744;     /* Bright red */
+  --color-info: #0585c6;      /* Cyan */
+
+  /* ========================================================================
+     PRIORITY COLORS (for issue tracker)
+     ======================================================================== */
+  --color-priority-critical: #fe0369;  /* Hot Pink */
+  --color-priority-high: #ffea00;      /* Bright Yellow */
+  --color-priority-medium: #0585c6;    /* Cyan */
+  --color-priority-low: #8fa8c4;       /* Light blue-gray */
+
+  /* ========================================================================
+     SHADOWS
+     ======================================================================== */
+  --shadow-neu-float: 0 8px 20px rgba(0, 0, 0, 0.4);  /* Standard dark shadow */
+  --shadow-neu-inset: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-neu-dark: 0 12px 30px rgba(0, 0, 0, 0.6);
+  --shadow-regular: 0 8px 20px rgba(0, 0, 0, 0.4);
+
+  /* ========================================================================
+     NEON GLOW EFFECTS
+     ======================================================================== */
+  --glow-primary: 0 0 20px rgba(254, 3, 105, 0.4);
+  --glow-secondary: 0 0 30px rgba(254, 3, 105, 0.6);
+  --glow-tertiary: 0 0 20px rgba(5, 133, 198, 0.4);
+  --glow-blue: 0 0 20px rgba(2, 54, 165, 0.4);
+  --glow-cyan: 0 0 20px rgba(5, 133, 198, 0.4);
+
+  /* Pulse glow animation (for active elements) */
+  --glow-pulse-start: 0 0 15px rgba(254, 3, 105, 0.5);
+  --glow-pulse-end: 0 0 30px rgba(254, 3, 105, 0.8);
+
+  /* ========================================================================
+     GRADIENTS
+     ======================================================================== */
+  --gradient-primary: linear-gradient(135deg, #0236a5 0%, #fe0369 50%, #0585c6 100%);
+  --gradient-secondary: linear-gradient(135deg, #fe0369 0%, #0236a5 100%);
+  --gradient-background: #091221; /* Solid background for neon theme */
+  --gradient-icon-neon: linear-gradient(135deg, #fe0369 0%, #0585c6 100%);
+
+  /* ========================================================================
+     BORDERS
+     ======================================================================== */
+  --border-subtle: 1px solid rgba(254, 3, 105, 0.1);
+  --border-medium: 1px solid rgba(254, 3, 105, 0.3);
+  --border-strong: 1px solid #fe0369;
+  --border-blue: 1px solid #0236a5;
+  --border-cyan: 1px solid #0585c6;
+}

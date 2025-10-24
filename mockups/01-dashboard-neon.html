@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Dashboard (Neon)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: {
+                            darkest: '#0A0118',
+                            dark: '#150828',
+                            medium: '#1F0D3A',
+                            light: '#2A1548',
+                        },
+                        neon: {
+                            pink: '#FF0080',
+                            magenta: '#E91E63',
+                            purple: '#B721FF',
+                            blue: '#21D4FD',
+                            cyan: '#00F5FF',
+                        },
+                        text: {
+                            primary: '#FFFFFF',
+                            secondary: '#E0B3FF',
+                            tertiary: '#9D7FB8',
+                            muted: '#6B5B7A',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background: #0A0118;
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .pulse-gradient {
+            background: linear-gradient(135deg, #FF0080 0%, #FF4D6D 50%, #FF8C42 100%);
+        }
+        
+        .glow-pink {
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.4);
+        }
+        
+        .glow-pink-hover:hover {
+            box-shadow: 0 0 30px rgba(255, 0, 128, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        .glow-purple {
+            box-shadow: 0 0 20px rgba(183, 33, 255, 0.4);
+        }
+        
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .neon-border {
+            border: 1px solid rgba(255, 0, 128, 0.3);
+        }
+        
+        .neon-border:hover {
+            border-color: #FF0080;
+        }
+        
+        .sidebar-active {
+            background: rgba(255, 0, 128, 0.1);
+            border-left: 3px solid #FF0080;
+        }
+        
+        .neon-text {
+            color: #FF0080;
+            text-shadow: 0 0 10px rgba(255, 0, 128, 0.8);
+        }
+        
+        /* Pulse animation */
+        @keyframes pulse-glow {
+            0%, 100% { 
+                box-shadow: 0 0 10px rgba(255, 0, 128, 0.5);
+            }
+            50% { 
+                box-shadow: 0 0 30px rgba(255, 0, 128, 0.8);
+            }
+        }
+        
+        .pulse-animate {
+            animation: pulse-glow 2s infinite;
+        }
+        
+        /* Heartbeat animation */
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .heartbeat {
+            animation: heartbeat 2s infinite;
+        }
+        
+        /* Ripple pulse */
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        .pulse-indicator {
+            position: relative;
+            width: 10px;
+            height: 10px;
+        }
+        
+        .pulse-dot {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #FF0080;
+            border-radius: 50%;
+        }
+        
+        .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #FF0080;
+            border-radius: 50%;
+            animation: ripple 2s infinite;
+        }
+        
+        .card-hover {
+            transition: all 0.2s;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            border-color: #FF0080 !important;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Main Container -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-background-dark border-r border-background-light flex flex-col">
+            <!-- Logo -->
+            <div class="p-6 border-b border-background-light">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 pulse-gradient rounded-lg flex items-center justify-center heartbeat">
+                        <i class="fas fa-heartbeat text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">ProjectPulse</h1>
+                        <p class="text-xs text-text-muted">v1.0.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-1">
+                <a href="#" class="sidebar-active flex items-center gap-3 px-4 py-3 rounded-lg text-white transition-all">
+                    <i class="fas fa-home w-5"></i>
+                    <span>Dashboard</span>
+                    <div class="ml-auto pulse-indicator">
+                        <div class="pulse-dot"></div>
+                        <div class="pulse-ring"></div>
+                    </div>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                    <i class="fas fa-tasks w-5"></i>
+                    <span>Issues</span>
+                    <span class="ml-auto bg-neon-pink text-white text-xs px-2 py-1 rounded-full font-semibold">12</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                    <i class="fas fa-lightbulb w-5"></i>
+                    <span>Knowledge</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                    <i class="fas fa-book w-5"></i>
+                    <span>Wiki</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                    <i class="fas fa-shield-alt w-5"></i>
+                    <span>Security</span>
+                    <span class="ml-auto bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-semibold">3</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                    <i class="fas fa-users w-5"></i>
+                    <span>Agent Personas</span>
+                </a>
+
+                <div class="pt-4 mt-4 border-t border-background-light">
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                        <i class="fas fa-cog w-5"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-background-light">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 pulse-gradient rounded-full"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-white">Moksha Dev</p>
+                        <p class="text-xs text-text-muted">Developer</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-background-dark border-b border-background-light px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 max-w-2xl">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"></i>
+                            <input 
+                                type="text" 
+                                placeholder="Search or press Cmd+K..." 
+                                class="w-full bg-background-medium border-2 border-background-light rounded-lg pl-11 pr-4 py-2.5 text-text-primary focus:outline-none focus:border-neon-cyan transition-all"
+                                style="box-shadow: none;"
+                                onfocus="this.style.boxShadow='0 0 20px rgba(0, 245, 255, 0.3)'"
+                                onblur="this.style.boxShadow='none'"
+                            >
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-muted bg-background-light px-2 py-1 rounded font-mono">⌘K</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 ml-6">
+                        <button class="relative p-2 text-text-tertiary hover:text-neon-pink transition-colors">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-neon-pink rounded-full pulse-animate"></span>
+                        </button>
+                        <button class="p-2 text-text-tertiary hover:text-neon-pink transition-colors">
+                            <i class="fas fa-moon text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-auto bg-background-darkest p-8">
+                <!-- Welcome Banner -->
+                <div class="pulse-gradient rounded-2xl p-8 mb-8 relative overflow-hidden glow-pink">
+                    <div class="relative z-10">
+                        <h2 class="text-4xl font-bold text-white mb-2">Welcome back, Developer! 👋</h2>
+                        <p class="text-white/90 mb-4 text-lg">Here's your project pulse for Moksha Mythic Clash</p>
+                        <button class="bg-white text-neon-pink px-6 py-3 rounded-lg font-semibold hover:bg-white/90 transition-all transform hover:scale-105">
+                            <i class="fas fa-plus mr-2"></i>Create New Issue
+                        </button>
+                    </div>
+                    <div class="absolute right-0 top-0 w-64 h-64 bg-white opacity-10 rounded-full -mr-32 -mt-32"></div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Stat Card 1 -->
+                    <div class="bg-background-medium rounded-xl p-6 neon-border card-hover transition-all glow-pink-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-neon-pink/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-tasks text-neon-pink text-xl"></i>
+                            </div>
+                            <span class="text-green-400 text-sm font-semibold">+2 today</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1">12</h3>
+                        <p class="text-text-tertiary text-sm">Open Issues</p>
+                    </div>
+
+                    <!-- Stat Card 2 -->
+                    <div class="bg-background-medium rounded-xl p-6 neon-border card-hover transition-all glow-pink-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-neon-purple/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-lightbulb text-neon-purple text-xl"></i>
+                            </div>
+                            <span class="text-neon-cyan text-sm font-semibold">85% coverage</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1">47</h3>
+                        <p class="text-text-tertiary text-sm">Knowledge Items</p>
+                    </div>
+
+                    <!-- Stat Card 3 -->
+                    <div class="bg-background-medium rounded-xl p-6 neon-border card-hover transition-all glow-pink-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-yellow-400/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-shield-alt text-yellow-400 text-xl"></i>
+                            </div>
+                            <span class="text-yellow-400 text-sm font-semibold">3 new</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1">15</h3>
+                        <p class="text-text-tertiary text-sm">Security Findings</p>
+                    </div>
+
+                    <!-- Stat Card 4 -->
+                    <div class="bg-background-medium rounded-xl p-6 neon-border card-hover transition-all glow-pink-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-400 text-xl"></i>
+                            </div>
+                            <span class="text-green-400 text-sm font-semibold">+5 this week</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1">28</h3>
+                        <p class="text-text-tertiary text-sm">Completed</p>
+                    </div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Recent Issues -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-background-medium rounded-xl neon-border">
+                            <div class="p-6 border-b border-background-light">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xl font-bold text-white">Recent Issues</h3>
+                                    <a href="#" class="text-neon-pink hover:text-neon-magenta text-sm font-semibold">View all →</a>
+                                </div>
+                            </div>
+                            <div class="divide-y divide-background-light">
+                                <!-- Issue Item -->
+                                <div class="p-6 hover:bg-background-light cursor-pointer transition-colors">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-bug text-red-400"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                                <span class="text-text-muted font-mono text-sm">#42</span>
+                                                <span class="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded-full border border-red-500/30">Critical</span>
+                                                <span class="bg-neon-pink/20 text-neon-pink text-xs px-2 py-1 rounded-full border border-neon-pink/30">Combat</span>
+                                                <div class="pulse-indicator ml-1">
+                                                    <div class="pulse-dot"></div>
+                                                    <div class="pulse-ring"></div>
+                                                </div>
+                                            </div>
+                                            <h4 class="text-white font-semibold mb-1">FSM Authority not properly replicated in combat</h4>
+                                            <p class="text-text-tertiary text-sm">Combat state machine desync between client and server...</p>
+                                            <div class="flex items-center gap-4 mt-3 text-xs text-text-muted">
+                                                <span><i class="fas fa-clock mr-1"></i>2 hours ago</span>
+                                                <span><i class="fas fa-comment mr-1"></i>3 comments</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Issue Item 2 -->
+                                <div class="p-6 hover:bg-background-light cursor-pointer transition-colors">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="text-text-muted font-mono text-sm">#41</span>
+                                                <span class="bg-yellow-400/20 text-yellow-400 text-xs px-2 py-1 rounded-full border border-yellow-400/30">High</span>
+                                                <span class="bg-neon-purple/20 text-neon-purple text-xs px-2 py-1 rounded-full border border-neon-purple/30">Animation</span>
+                                            </div>
+                                            <h4 class="text-white font-semibold mb-1">Animation montage not playing on clients</h4>
+                                            <p class="text-text-tertiary text-sm">Special attack animations only visible on server...</p>
+                                            <div class="flex items-center gap-4 mt-3 text-xs text-text-muted">
+                                                <span><i class="fas fa-clock mr-1"></i>5 hours ago</span>
+                                                <span><i class="fas fa-comment mr-1"></i>1 comment</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Issue Item 3 -->
+                                <div class="p-6 hover:bg-background-light cursor-pointer transition-colors">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 bg-green-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-check text-green-400"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="text-text-muted font-mono text-sm">#40</span>
+                                                <span class="bg-neon-cyan/20 text-neon-cyan text-xs px-2 py-1 rounded-full border border-neon-cyan/30">Medium</span>
+                                                <span class="bg-green-400/20 text-green-400 text-xs px-2 py-1 rounded-full border border-green-400/30">Core</span>
+                                            </div>
+                                            <h4 class="text-white font-semibold mb-1 line-through opacity-60">Implement health regeneration system</h4>
+                                            <p class="text-text-tertiary text-sm opacity-60">Add passive health regen with combat cooldown...</p>
+                                            <div class="flex items-center gap-4 mt-3 text-xs text-text-muted">
+                                                <span><i class="fas fa-check mr-1 text-green-400"></i>Completed</span>
+                                                <span><i class="fas fa-clock mr-1"></i>1 day ago</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Widgets -->
+                    <div class="space-y-6">
+                        <!-- Quick Actions -->
+                        <div class="bg-background-medium rounded-xl neon-border p-6">
+                            <h3 class="text-lg font-bold text-white mb-4">Quick Actions</h3>
+                            <div class="space-y-2">
+                                <button class="w-full pulse-gradient text-white px-4 py-2.5 rounded-lg transition-all transform hover:scale-105 glow-pink-hover flex items-center justify-center gap-2 font-semibold">
+                                    <i class="fas fa-plus"></i>
+                                    <span>New Issue</span>
+                                </button>
+                                <button class="w-full bg-background-light hover:bg-background-light/70 text-white px-4 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <i class="fas fa-book"></i>
+                                    <span>Add Knowledge</span>
+                                </button>
+                                <button class="w-full bg-background-light hover:bg-background-light/70 text-white px-4 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <span>Run Security Scan</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Active Personas -->
+                        <div class="bg-background-medium rounded-xl neon-border p-6">
+                            <h3 class="text-lg font-bold text-white mb-4">Agent Personas</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3 p-3 bg-neon-cyan/10 rounded-lg border border-neon-cyan/30 glow-cyan">
+                                    <div class="w-8 h-8 bg-neon-cyan rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                        🔍
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-white text-sm font-semibold">Code Reviewer</p>
+                                        <p class="text-text-muted text-xs">Active</p>
+                                    </div>
+                                    <div class="pulse-indicator">
+                                        <div class="pulse-dot" style="background: #00F5FF;"></div>
+                                        <div class="pulse-ring" style="border-color: #00F5FF;"></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 bg-background-light/50 rounded-lg border border-background-light hover:border-neon-purple/30 cursor-pointer transition-all">
+                                    <div class="w-8 h-8 bg-neon-purple rounded-full flex items-center justify-center text-white text-sm">
+                                        🐛
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-white text-sm font-semibold">Bug Hunter</p>
+                                        <p class="text-text-muted text-xs">Available</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 bg-background-light/50 rounded-lg border border-background-light hover:border-neon-purple/30 cursor-pointer transition-all">
+                                    <div class="w-8 h-8 bg-neon-purple rounded-full flex items-center justify-center text-white text-sm">
+                                        🏗️
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-white text-sm font-semibold">Feature Architect</p>
+                                        <p class="text-text-muted text-xs">Available</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="w-full mt-4 text-neon-pink hover:text-neon-magenta text-sm font-semibold">Manage personas →</button>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="bg-background-medium rounded-xl neon-border p-6">
+                            <h3 class="text-lg font-bold text-white mb-4">Recent Activity</h3>
+                            <div class="space-y-4">
+                                <div class="flex gap-3">
+                                    <div class="w-2 h-2 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                                    <div>
+                                        <p class="text-white text-sm">Issue #42 created</p>
+                                        <p class="text-text-muted text-xs">2 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-2 h-2 bg-neon-cyan rounded-full mt-1.5 flex-shrink-0"></div>
+                                    <div>
+                                        <p class="text-white text-sm">Knowledge item updated</p>
+                                        <p class="text-text-muted text-xs">3 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-2 h-2 bg-yellow-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                                    <div>
+                                        <p class="text-white text-sm">Security scan completed</p>
+                                        <p class="text-text-muted text-xs">5 hours ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

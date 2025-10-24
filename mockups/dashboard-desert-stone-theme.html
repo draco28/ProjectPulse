@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Dashboard (Desert Stone Theme)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        desert: '#A48D78',
+                        sandstone: '#CBB9A4',
+                        oat: '#E6DAC8',
+                        mist: '#F4F1EA',
+                        feather: '#FAF9F6',
+                        desertDark: '#8B7766',
+                        desertDeep: '#6B5D52',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background: #FAF9F6;
+            color: #6B5D52;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .desert-gradient {
+            background: linear-gradient(135deg, #A48D78 0%, #CBB9A4 50%, #E6DAC8 100%);
+        }
+        
+        .glow-desert {
+            box-shadow: 0 0 20px rgba(164, 141, 120, 0.2);
+        }
+        
+        .glow-desert-hover:hover {
+            box-shadow: 0 0 30px rgba(164, 141, 120, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .desert-border {
+            border: 1px solid rgba(203, 185, 164, 0.4);
+        }
+        
+        .desert-border:hover {
+            border-color: #A48D78;
+        }
+        
+        .sidebar-active {
+            background: rgba(164, 141, 120, 0.15);
+            border-left: 3px solid #A48D78;
+        }
+        
+        @keyframes pulse-glow-desert {
+            0%, 100% { 
+                box-shadow: 0 0 10px rgba(164, 141, 120, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 25px rgba(164, 141, 120, 0.6);
+            }
+        }
+        
+        .pulse-animate-desert {
+            animation: pulse-glow-desert 2s infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .heartbeat {
+            animation: heartbeat 2s infinite;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        .pulse-indicator {
+            position: relative;
+            width: 10px;
+            height: 10px;
+        }
+        
+        .pulse-dot {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #A48D78;
+            border-radius: 50%;
+        }
+        
+        .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #A48D78;
+            border-radius: 50%;
+            animation: ripple 2s infinite;
+        }
+        
+        .card-hover {
+            transition: all 0.2s;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            border-color: #A48D78 !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #FAF9F6;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #CBB9A4;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #A48D78;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 flex flex-col" style="background-color: #F4F1EA; border-right: 1px solid #E6DAC8;">
+            <!-- Logo -->
+            <div class="p-6" style="border-bottom: 1px solid #E6DAC8;">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 desert-gradient rounded-lg flex items-center justify-center heartbeat">
+                        <i class="fas fa-heartbeat text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold" style="color: #6B5D52;">ProjectPulse</h1>
+                        <p class="text-xs" style="color: #A48D78;">v1.0.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-1">
+                <a href="#" class="sidebar-active flex items-center gap-3 px-4 py-3 rounded-lg transition-all" style="color: #6B5D52;">
+                    <i class="fas fa-home w-5"></i>
+                    <span>Dashboard</span>
+                    <div class="ml-auto pulse-indicator">
+                        <div class="pulse-dot"></div>
+                        <div class="pulse-ring"></div>
+                    </div>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-desert/10" style="color: #8B7766;">
+                    <i class="fas fa-tasks w-5"></i>
+                    <span>Issues</span>
+                    <span class="ml-auto text-xs px-2 py-1 rounded-full font-semibold" style="background-color: #A48D78; color: #FAF9F6;">12</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-desert/10" style="color: #8B7766;">
+                    <i class="fas fa-lightbulb w-5"></i>
+                    <span>Knowledge</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-desert/10" style="color: #8B7766;">
+                    <i class="fas fa-book w-5"></i>
+                    <span>Wiki</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-desert/10" style="color: #8B7766;">
+                    <i class="fas fa-shield-alt w-5"></i>
+                    <span>Security</span>
+                    <span class="ml-auto bg-amber-600 text-white text-xs px-2 py-1 rounded-full font-semibold">3</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-desert/10" style="color: #8B7766;">
+                    <i class="fas fa-users w-5"></i>
+                    <span>Agent Personas</span>
+                </a>
+
+                <div class="pt-4 mt-4" style="border-top: 1px solid #E6DAC8;">
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-desert/10" style="color: #8B7766;">
+                        <i class="fas fa-cog w-5"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Footer -->
+            <div class="p-4" style="border-top: 1px solid #E6DAC8;">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 desert-gradient rounded-full"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium" style="color: #6B5D52;">Moksha Dev</p>
+                        <p class="text-xs" style="color: #A48D78;">Developer</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="px-8 py-4" style="background-color: #F4F1EA; border-bottom: 1px solid #E6DAC8;">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 max-w-2xl">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2" style="color: #A48D78;"></i>
+                            <input 
+                                type="text" 
+                                placeholder="Search or press Cmd+K..." 
+                                class="w-full rounded-lg pl-11 pr-4 py-2.5 focus:outline-none transition-all"
+                                style="background-color: #FAF9F6; border: 2px solid #E6DAC8; color: #6B5D52;"
+                            >
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded font-mono" style="color: #A48D78; background-color: #E6DAC8;">⌘K</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 ml-6">
+                        <button class="relative p-2 transition-colors" style="color: #A48D78;">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute top-1 right-1 w-2 h-2 rounded-full pulse-animate-desert" style="background-color: #A48D78;"></span>
+                        </button>
+                        <button class="p-2 transition-colors" style="color: #A48D78;">
+                            <i class="fas fa-moon text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-auto p-8" style="background-color: #FAF9F6;">
+                <!-- Welcome Banner -->
+                <div class="desert-gradient rounded-2xl p-8 mb-8 relative overflow-hidden glow-desert">
+                    <div class="relative z-10">
+                        <h2 class="text-4xl font-bold text-white mb-2">Welcome back, Developer! 👋</h2>
+                        <p class="text-white/90 mb-4 text-lg">Here's your project pulse for Moksha Mythic Clash</p>
+                        <button class="px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105" style="background-color: #FAF9F6; color: #6B5D52;">
+                            <i class="fas fa-plus mr-2"></i>Create New Issue
+                        </button>
+                    </div>
+                    <div class="absolute right-0 top-0 w-64 h-64 bg-white opacity-10 rounded-full -mr-32 -mt-32"></div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Stat Card 1 -->
+                    <div class="rounded-xl p-6 desert-border card-hover transition-all glow-desert-hover" style="background-color: #F4F1EA;">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: rgba(164, 141, 120, 0.2);">
+                                <i class="fas fa-tasks text-xl" style="color: #A48D78;"></i>
+                            </div>
+                            <span class="text-green-600 text-sm font-semibold">+2 today</span>
+                        </div>
+                        <h3 class="text-3xl font-bold mb-1" style="color: #6B5D52;">12</h3>
+                        <p class="text-sm" style="color: #A48D78;">Open Issues</p>
+                    </div>
+
+                    <!-- Stat Card 2 -->
+                    <div class="rounded-xl p-6 desert-border card-hover transition-all glow-desert-hover" style="background-color: #F4F1EA;">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: rgba(203, 185, 164, 0.3);">
+                                <i class="fas fa-lightbulb text-xl" style="color: #8B7766;"></i>
+                            </div>
+                            <span class="text-sm font-semibold" style="color: #A48D78;">85% coverage</span>
+                        </div>
+                        <h3 class="text-3xl font-bold mb-1" style="color: #6B5D52;">47</h3>
+                        <p class="text-sm" style="color: #A48D78;">Knowledge Items</p>
+                    </div>
+
+                    <!-- Stat Card 3 -->
+                    <div class="rounded-xl p-6 desert-border card-hover transition-all glow-desert-hover" style="background-color: #F4F1EA;">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: rgba(217, 119, 6, 0.15);">
+                                <i class="fas fa-shield-alt text-amber-600 text-xl"></i>
+                            </div>
+                            <span class="text-amber-600 text-sm font-semibold">3 new</span>
+                        </div>
+                        <h3 class="text-3xl font-bold mb-1" style="color: #6B5D52;">15</h3>
+                        <p class="text-sm" style="color: #A48D78;">Security Findings</p>
+                    </div>
+
+                    <!-- Stat Card 4 -->
+                    <div class="rounded-xl p-6 desert-border card-hover transition-all glow-desert-hover" style="background-color: #F4F1EA;">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: rgba(34, 197, 94, 0.15);">
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                            </div>
+                            <span class="text-green-600 text-sm font-semibold">+5 this week</span>
+                        </div>
+                        <h3 class="text-3xl font-bold mb-1" style="color: #6B5D52;">28</h3>
+                        <p class="text-sm" style="color: #A48D78;">Completed</p>
+                    </div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Recent Issues -->
+                    <div class="lg:col-span-2">
+                        <div class="rounded-xl desert-border" style="background-color: #F4F1EA;">
+                            <div class="p-6" style="border-bottom: 1px solid #E6DAC8;">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xl font-bold" style="color: #6B5D52;">Recent Issues</h3>
+                                    <a href="#" class="text-sm font-semibold" style="color: #A48D78;">View all →</a>
+                                </div>
+                            </div>
+                            <div style="border-top: 1px solid #E6DAC8;">
+                                <!-- Issue Item -->
+                                <div class="p-6 cursor-pointer transition-colors" style="border-bottom: 1px solid #E6DAC8;">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background-color: rgba(220, 38, 38, 0.15);">
+                                            <i class="fas fa-bug text-red-600"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                                <span class="font-mono text-sm" style="color: #A48D78;">#42</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(220, 38, 38, 0.1); color: #DC2626; border-color: rgba(220, 38, 38, 0.2);">Critical</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(164, 141, 120, 0.15); color: #A48D78; border-color: rgba(164, 141, 120, 0.3);">Combat</span>
+                                                <div class="pulse-indicator ml-1">
+                                                    <div class="pulse-dot"></div>
+                                                    <div class="pulse-ring"></div>
+                                                </div>
+                                            </div>
+                                            <h4 class="font-semibold mb-1" style="color: #6B5D52;">FSM Authority not properly replicated in combat</h4>
+                                            <p class="text-sm" style="color: #A48D78;">Combat state machine desync between client and server...</p>
+                                            <div class="flex items-center gap-4 mt-3 text-xs" style="color: #A48D78;">
+                                                <span><i class="fas fa-clock mr-1"></i>2 hours ago</span>
+                                                <span><i class="fas fa-comment mr-1"></i>3 comments</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Issue Item 2 -->
+                                <div class="p-6 cursor-pointer transition-colors" style="border-bottom: 1px solid #E6DAC8;">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background-color: rgba(217, 119, 6, 0.15);">
+                                            <i class="fas fa-exclamation-triangle text-amber-600"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="font-mono text-sm" style="color: #A48D78;">#41</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(217, 119, 6, 0.1); color: #D97706; border-color: rgba(217, 119, 6, 0.2);">High</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(164, 141, 120, 0.15); color: #A48D78; border-color: rgba(164, 141, 120, 0.3);">Animation</span>
+                                            </div>
+                                            <h4 class="font-semibold mb-1" style="color: #6B5D52;">Animation montage not playing on clients</h4>
+                                            <p class="text-sm" style="color: #A48D78;">Special attack animations only visible on server...</p>
+                                            <div class="flex items-center gap-4 mt-3 text-xs" style="color: #A48D78;">
+                                                <span><i class="fas fa-clock mr-1"></i>5 hours ago</span>
+                                                <span><i class="fas fa-comment mr-1"></i>1 comment</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Issue Item 3 -->
+                                <div class="p-6 cursor-pointer transition-colors">
+                                    <div class="flex items-start gap-4">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background-color: rgba(34, 197, 94, 0.15);">
+                                            <i class="fas fa-check text-green-600"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="font-mono text-sm" style="color: #A48D78;">#40</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(164, 141, 120, 0.15); color: #A48D78; border-color: rgba(164, 141, 120, 0.3);">Medium</span>
+                                                <span class="text-xs px-2 py-1 rounded-full border" style="background-color: rgba(34, 197, 94, 0.1); color: #16A34A; border-color: rgba(34, 197, 94, 0.2);">Core</span>
+                                            </div>
+                                            <h4 class="font-semibold mb-1 line-through opacity-60" style="color: #6B5D52;">Implement health regeneration system</h4>
+                                            <p class="text-sm opacity-60" style="color: #A48D78;">Add passive health regen with combat cooldown...</p>
+                                            <div class="flex items-center gap-4 mt-3 text-xs" style="color: #A48D78;">
+                                                <span><i class="fas fa-check mr-1 text-green-600"></i>Completed</span>
+                                                <span><i class="fas fa-clock mr-1"></i>1 day ago</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Widgets -->
+                    <div class="space-y-6">
+                        <!-- Quick Actions -->
+                        <div class="rounded-xl desert-border p-6" style="background-color: #F4F1EA;">
+                            <h3 class="text-lg font-bold mb-4" style="color: #6B5D52;">Quick Actions</h3>
+                            <div class="space-y-2">
+                                <button class="w-full desert-gradient text-white px-4 py-2.5 rounded-lg transition-all transform hover:scale-105 glow-desert-hover flex items-center justify-center gap-2 font-semibold">
+                                    <i class="fas fa-plus"></i>
+                                    <span>New Issue</span>
+                                </button>
+                                <button class="w-full px-4 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2" style="background-color: #E6DAC8; color: #6B5D52;">
+                                    <i class="fas fa-book"></i>
+                                    <span>Add Knowledge</span>
+                                </button>
+                                <button class="w-full px-4 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2" style="background-color: #E6DAC8; color: #6B5D52;">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <span>Run Security Scan</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Active Personas -->
+                        <div class="rounded-xl desert-border p-6" style="background-color: #F4F1EA;">
+                            <h3 class="text-lg font-bold mb-4" style="color: #6B5D52;">Agent Personas</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3 p-3 rounded-lg border glow-desert" style="background-color: rgba(164, 141, 120, 0.12); border-color: rgba(164, 141, 120, 0.3);">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style="background-color: #A48D78; color: #FAF9F6;">
+                                        🔍
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold" style="color: #6B5D52;">Code Reviewer</p>
+                                        <p class="text-xs" style="color: #A48D78;">Active</p>
+                                    </div>
+                                    <div class="pulse-indicator">
+                                        <div class="pulse-dot"></div>
+                                        <div class="pulse-ring"></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all" style="background-color: rgba(230, 218, 200, 0.3); border-color: #E6DAC8;">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm" style="background-color: #CBB9A4; color: #6B5D52;">
+                                        🐛
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold" style="color: #6B5D52;">Bug Hunter</p>
+                                        <p class="text-xs" style="color: #A48D78;">Available</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all" style="background-color: rgba(230, 218, 200, 0.3); border-color: #E6DAC8;">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm" style="background-color: #CBB9A4; color: #6B5D52;">
+                                        🏗️
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold" style="color: #6B5D52;">Feature Architect</p>
+                                        <p class="text-xs" style="color: #A48D78;">Available</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="w-full mt-4 text-sm font-semibold" style="color: #A48D78;">Manage personas →</button>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="rounded-xl desert-border p-6" style="background-color: #F4F1EA;">
+                            <h3 class="text-lg font-bold mb-4" style="color: #6B5D52;">Recent Activity</h3>
+                            <div class="space-y-4">
+                                <div class="flex gap-3">
+                                    <div class="w-2 h-2 bg-green-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                                    <div>
+                                        <p class="text-sm" style="color: #6B5D52;">Issue #42 created</p>
+                                        <p class="text-xs" style="color: #A48D78;">2 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style="background-color: #A48D78;"></div>
+                                    <div>
+                                        <p class="text-sm" style="color: #6B5D52;">Knowledge item updated</p>
+                                        <p class="text-xs" style="color: #A48D78;">3 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-2 h-2 bg-amber-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                                    <div>
+                                        <p class="text-sm" style="color: #6B5D52;">Security scan completed</p>
+                                        <p class="text-xs" style="color: #A48D78;">5 hours ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

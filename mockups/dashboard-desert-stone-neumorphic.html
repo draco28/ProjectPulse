@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Dashboard (Desert Stone Neumorphic)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        desert: '#A48D78',
+                        sandstone: '#CBB9A4',
+                        oat: '#E6DAC8',
+                        mist: '#F4F1EA',
+                        feather: '#FAF9F6',
+                        desertDark: '#8B7766',
+                        desertDeep: '#6B5D52',
+                        accent: '#A48D78',
+                        accentLight: '#CBB9A4',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background: linear-gradient(135deg, #FAF9F6 0%, #F4F1EA 50%, #E6DAC8 100%);
+            color: #6B5D52;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        /* Desert Neumorphic Shadows - Pop Out Effect */
+        .neu-float-desert {
+            background: rgba(250, 249, 246, 0.85);
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                12px 12px 24px rgba(164, 141, 120, 0.25),
+                -12px -12px 24px rgba(255, 255, 255, 0.9),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(203, 185, 164, 0.3);
+        }
+        
+        .neu-float-desert:hover {
+            box-shadow: 
+                16px 16px 32px rgba(164, 141, 120, 0.35),
+                -16px -16px 32px rgba(255, 255, 255, 1),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.6);
+            transform: translateY(-4px);
+        }
+        
+        /* Dark Desert Card Neumorphic */
+        .neu-dark-desert {
+            background: linear-gradient(135deg, #A48D78 0%, #8B7766 100%);
+            box-shadow: 
+                10px 10px 20px rgba(107, 93, 82, 0.4),
+                -10px -10px 20px rgba(203, 185, 164, 0.3),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.1);
+        }
+        
+        .neu-dark-desert:hover {
+            box-shadow: 
+                14px 14px 28px rgba(107, 93, 82, 0.5),
+                -14px -14px 28px rgba(203, 185, 164, 0.4),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.15);
+            transform: translateY(-4px);
+        }
+        
+        /* Pressed/Inset Effect - Desert */
+        .neu-inset-desert {
+            box-shadow: 
+                inset 4px 4px 8px rgba(164, 141, 120, 0.3),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.9);
+            background: rgba(244, 241, 234, 0.6);
+        }
+        
+        /* Glassmorphism - Desert */
+        .glass-desert {
+            background: rgba(250, 249, 246, 0.4);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(203, 185, 164, 0.4);
+            box-shadow: 
+                0 8px 32px 0 rgba(164, 141, 120, 0.2),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Smooth Transitions */
+        .smooth-transition {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        /* Fluid Card Animation - Bounces down to avoid overlap */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(8px); }
+        }
+        
+        .float-animate {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* Gradient Text - Desert */
+        .gradient-text-desert {
+            background: linear-gradient(135deg, #A48D78 0%, #CBB9A4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Icon Gradient Backgrounds - Desert Palette */
+        .icon-gradient-clay {
+            background: linear-gradient(135deg, #A48D78 0%, #8B7766 100%);
+        }
+        
+        .icon-gradient-sand {
+            background: linear-gradient(135deg, #CBB9A4 0%, #E6DAC8 100%);
+        }
+        
+        .icon-gradient-terracotta {
+            background: linear-gradient(135deg, #C17B5C 0%, #A48D78 100%);
+        }
+        
+        .icon-gradient-bronze {
+            background: linear-gradient(135deg, #B8956A 0%, #8B7766 100%);
+        }
+        
+        .icon-gradient-sage {
+            background: linear-gradient(135deg, #9BA785 0%, #8B9775 100%);
+        }
+        
+        /* Pulse Glow - Desert */
+        @keyframes pulse-glow-desert {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(164, 141, 120, 0.4);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(164, 141, 120, 0.8);
+            }
+        }
+        
+        .pulse-glow-desert {
+            animation: pulse-glow-desert 2s ease-in-out infinite;
+        }
+        
+        /* Custom Scrollbar - Desert */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(244, 241, 234, 0.5);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #A48D78 0%, #CBB9A4 100%);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #8B7766 0%, #A48D78 100%);
+        }
+
+        /* Heartbeat animation */
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+        
+        .heartbeat {
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 p-4 flex flex-col gap-4">
+            <!-- Logo Card -->
+            <div class="neu-float-desert rounded-3xl p-6 smooth-transition">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl icon-gradient-clay flex items-center justify-center shadow-lg heartbeat">
+                        <i class="fas fa-heartbeat text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-desertDeep">ProjectPulse</h1>
+                        <p class="text-xs text-desert">v1.0.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 flex flex-col gap-2">
+                <a href="#" class="neu-dark-desert rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition text-white">
+                    <i class="fas fa-home w-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                    <div class="ml-auto w-2 h-2 rounded-full bg-white pulse-glow-desert"></div>
+                </a>
+                <a href="#" class="neu-float-desert rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition hover:shadow-xl text-desertDeep">
+                    <i class="fas fa-tasks w-5"></i>
+                    <span class="font-medium">Issues</span>
+                    <span class="ml-auto text-xs px-2.5 py-1 rounded-full font-semibold bg-desert text-white shadow-md">12</span>
+                </a>
+                <a href="#" class="neu-float-desert rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition hover:shadow-xl text-desertDeep">
+                    <i class="fas fa-lightbulb w-5"></i>
+                    <span class="font-medium">Knowledge</span>
+                </a>
+                <a href="#" class="neu-float-desert rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition hover:shadow-xl text-desertDeep">
+                    <i class="fas fa-book w-5"></i>
+                    <span class="font-medium">Wiki</span>
+                </a>
+                <a href="#" class="neu-float-desert rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition hover:shadow-xl text-desertDeep">
+                    <i class="fas fa-shield-alt w-5"></i>
+                    <span class="font-medium">Security</span>
+                    <span class="ml-auto text-xs px-2.5 py-1 rounded-full font-semibold bg-red-400 text-white shadow-md">3</span>
+                </a>
+                <a href="#" class="neu-float-desert rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition hover:shadow-xl text-desertDeep">
+                    <i class="fas fa-users w-5"></i>
+                    <span class="font-medium">Personas</span>
+                </a>
+
+                <div class="mt-auto">
+                    <a href="#" class="neu-float-desert rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition hover:shadow-xl text-desertDeep">
+                        <i class="fas fa-cog w-5"></i>
+                        <span class="font-medium">Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="neu-float-desert rounded-3xl p-4 smooth-transition hover:shadow-xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl icon-gradient-terracotta shadow-lg"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-desertDeep">Moksha Dev</p>
+                        <p class="text-xs text-desert">Developer</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden p-4 gap-4">
+            <!-- Header -->
+            <header class="neu-float-desert rounded-3xl px-8 py-4 smooth-transition">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 max-w-2xl">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-desert/60"></i>
+                            <input 
+                                type="text" 
+                                placeholder="Search or press Cmd+K..." 
+                                class="w-full neu-inset-desert rounded-2xl pl-11 pr-20 py-3 text-desertDeep focus:outline-none smooth-transition"
+                            >
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs px-3 py-1.5 rounded-xl font-mono font-semibold neu-float-desert text-desert">⌘K</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 ml-6">
+                        <button class="relative w-12 h-12 neu-float-desert rounded-2xl flex items-center justify-center smooth-transition hover:shadow-xl text-desertDeep">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-400 rounded-full pulse-glow-desert"></span>
+                        </button>
+                        <button class="w-12 h-12 neu-float-desert rounded-2xl flex items-center justify-center smooth-transition hover:shadow-xl text-desertDeep">
+                            <i class="fas fa-sun text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-auto">
+                <div class="space-y-4">
+                    <!-- Welcome Banner -->
+                    <div class="neu-dark-desert rounded-3xl p-8 relative overflow-hidden smooth-transition hover:shadow-2xl float-animate">
+                        <div class="relative z-10">
+                            <h2 class="text-4xl font-bold text-white mb-2">Welcome back! 👋</h2>
+                            <p class="text-white/90 mb-6 text-lg">Here's your project pulse for Moksha Mythic Clash</p>
+                            <button class="neu-float-desert px-8 py-3 rounded-2xl font-semibold smooth-transition hover:shadow-xl text-desertDeep flex items-center gap-2">
+                                <i class="fas fa-plus"></i>
+                                <span>Create New Issue</span>
+                            </button>
+                        </div>
+                        <div class="absolute right-0 top-0 w-96 h-96 bg-gradient-to-br from-white/20 to-oat/20 rounded-full -mr-48 -mt-48 blur-3xl"></div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Stat Card 1 -->
+                        <div class="neu-float-desert rounded-3xl p-6 smooth-transition hover:shadow-2xl">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-14 h-14 rounded-2xl icon-gradient-clay flex items-center justify-center shadow-lg">
+                                    <i class="fas fa-tasks text-white text-xl"></i>
+                                </div>
+                                <span class="text-green-500 text-sm font-semibold">+2</span>
+                            </div>
+                            <h3 class="text-4xl font-bold text-desertDeep mb-1">12</h3>
+                            <p class="text-sm text-desert font-medium">Open Issues</p>
+                        </div>
+
+                        <!-- Stat Card 2 -->
+                        <div class="neu-float-desert rounded-3xl p-6 smooth-transition hover:shadow-2xl">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-14 h-14 rounded-2xl icon-gradient-sage flex items-center justify-center shadow-lg">
+                                    <i class="fas fa-lightbulb text-white text-xl"></i>
+                                </div>
+                                <span class="text-desert text-sm font-semibold">85%</span>
+                            </div>
+                            <h3 class="text-4xl font-bold text-desertDeep mb-1">47</h3>
+                            <p class="text-sm text-desert font-medium">Knowledge Items</p>
+                        </div>
+
+                        <!-- Stat Card 3 -->
+                        <div class="neu-float-desert rounded-3xl p-6 smooth-transition hover:shadow-2xl">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-14 h-14 rounded-2xl icon-gradient-terracotta flex items-center justify-center shadow-lg">
+                                    <i class="fas fa-shield-alt text-white text-xl"></i>
+                                </div>
+                                <span class="text-red-500 text-sm font-semibold">3</span>
+                            </div>
+                            <h3 class="text-4xl font-bold text-desertDeep mb-1">15</h3>
+                            <p class="text-sm text-desert font-medium">Security Findings</p>
+                        </div>
+
+                        <!-- Stat Card 4 -->
+                        <div class="neu-float-desert rounded-3xl p-6 smooth-transition hover:shadow-2xl">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-14 h-14 rounded-2xl icon-gradient-bronze flex items-center justify-center shadow-lg">
+                                    <i class="fas fa-check-circle text-white text-xl"></i>
+                                </div>
+                                <span class="text-green-500 text-sm font-semibold">+5</span>
+                            </div>
+                            <h3 class="text-4xl font-bold text-desertDeep mb-1">28</h3>
+                            <p class="text-sm text-desert font-medium">Completed</p>
+                        </div>
+                    </div>
+
+                    <!-- Two Column Layout -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <!-- Recent Issues -->
+                        <div class="lg:col-span-2">
+                            <div class="neu-float-desert rounded-3xl smooth-transition hover:shadow-2xl">
+                                <div class="p-6 border-b border-desert/10">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-xl font-bold text-desertDeep">Recent Issues</h3>
+                                        <a href="#" class="text-sm font-semibold text-desert hover:text-desertDark smooth-transition">View all →</a>
+                                    </div>
+                                </div>
+                                <div class="p-6 space-y-4">
+                                    <!-- Issue Item -->
+                                    <div class="glass-desert rounded-2xl p-5 smooth-transition hover:shadow-lg cursor-pointer">
+                                        <div class="flex items-start gap-4">
+                                            <div class="w-12 h-12 rounded-xl icon-gradient-terracotta flex items-center justify-center flex-shrink-0 shadow-lg">
+                                                <i class="fas fa-bug text-white"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                                    <span class="font-mono text-sm text-desert">#42</span>
+                                                    <span class="text-xs px-3 py-1 rounded-full font-semibold bg-red-400 text-white shadow-md">Critical</span>
+                                                    <span class="text-xs px-3 py-1 rounded-full font-semibold bg-desert text-white shadow-md">Combat</span>
+                                                </div>
+                                                <h4 class="font-semibold mb-1 text-desertDeep">FSM Authority not properly replicated</h4>
+                                                <p class="text-sm text-desert">Combat state machine desync...</p>
+                                                <div class="flex items-center gap-4 mt-3 text-xs text-desert">
+                                                    <span><i class="fas fa-clock mr-1"></i>2h ago</span>
+                                                    <span><i class="fas fa-comment mr-1"></i>3</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Issue Item 2 -->
+                                    <div class="glass-desert rounded-2xl p-5 smooth-transition hover:shadow-lg cursor-pointer">
+                                        <div class="flex items-start gap-4">
+                                            <div class="w-12 h-12 rounded-xl icon-gradient-bronze flex items-center justify-center flex-shrink-0 shadow-lg">
+                                                <i class="fas fa-exclamation-triangle text-white"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <span class="font-mono text-sm text-desert">#41</span>
+                                                    <span class="text-xs px-3 py-1 rounded-full font-semibold bg-orange-400 text-white shadow-md">High</span>
+                                                    <span class="text-xs px-3 py-1 rounded-full font-semibold bg-desert text-white shadow-md">Animation</span>
+                                                </div>
+                                                <h4 class="font-semibold mb-1 text-desertDeep">Animation montage issues</h4>
+                                                <p class="text-sm text-desert">Animations not playing on clients...</p>
+                                                <div class="flex items-center gap-4 mt-3 text-xs text-desert">
+                                                    <span><i class="fas fa-clock mr-1"></i>5h ago</span>
+                                                    <span><i class="fas fa-comment mr-1"></i>1</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Issue Item 3 -->
+                                    <div class="glass-desert rounded-2xl p-5 smooth-transition hover:shadow-lg cursor-pointer opacity-60">
+                                        <div class="flex items-start gap-4">
+                                            <div class="w-12 h-12 rounded-xl icon-gradient-sage flex items-center justify-center flex-shrink-0 shadow-lg">
+                                                <i class="fas fa-check text-white"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <span class="font-mono text-sm text-desert">#40</span>
+                                                    <span class="text-xs px-3 py-1 rounded-full font-semibold bg-green-400 text-white shadow-md">Completed</span>
+                                                </div>
+                                                <h4 class="font-semibold mb-1 text-desertDeep line-through">Health regeneration system</h4>
+                                                <p class="text-sm text-desert">Passive health regen implemented...</p>
+                                                <div class="flex items-center gap-4 mt-3 text-xs text-desert">
+                                                    <span><i class="fas fa-check mr-1 text-green-500"></i>Done</span>
+                                                    <span><i class="fas fa-clock mr-1"></i>1d ago</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar Widgets -->
+                        <div class="space-y-4">
+                            <!-- Quick Actions -->
+                            <div class="neu-float-desert rounded-3xl p-6 smooth-transition hover:shadow-2xl">
+                                <h3 class="text-lg font-bold text-desertDeep mb-4">Quick Actions</h3>
+                                <div class="space-y-3">
+                                    <button class="w-full neu-dark-desert px-5 py-3 rounded-2xl transition-all hover:shadow-xl text-white font-semibold flex items-center justify-center gap-2 smooth-transition">
+                                        <i class="fas fa-plus"></i>
+                                        <span>New Issue</span>
+                                    </button>
+                                    <button class="w-full neu-float-desert px-5 py-3 rounded-2xl transition-all hover:shadow-xl text-desertDeep font-semibold flex items-center justify-center gap-2 smooth-transition">
+                                        <i class="fas fa-book"></i>
+                                        <span>Add Knowledge</span>
+                                    </button>
+                                    <button class="w-full neu-float-desert px-5 py-3 rounded-2xl transition-all hover:shadow-xl text-desertDeep font-semibold flex items-center justify-center gap-2 smooth-transition">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <span>Security Scan</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Active Personas -->
+                            <div class="neu-float-desert rounded-3xl p-6 smooth-transition hover:shadow-2xl">
+                                <h3 class="text-lg font-bold text-desertDeep mb-4">Agent Personas</h3>
+                                <div class="space-y-3">
+                                    <div class="glass-desert rounded-2xl p-4 flex items-center gap-3 smooth-transition hover:shadow-lg">
+                                        <div class="w-10 h-10 rounded-xl icon-gradient-clay flex items-center justify-center text-white text-lg shadow-lg">
+                                            🔍
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-semibold text-desertDeep">Code Reviewer</p>
+                                            <p class="text-xs text-desert">Active</p>
+                                        </div>
+                                        <div class="w-2 h-2 rounded-full bg-green-400 pulse-glow-desert"></div>
+                                    </div>
+                                    <div class="glass-desert rounded-2xl p-4 flex items-center gap-3 smooth-transition hover:shadow-lg cursor-pointer">
+                                        <div class="w-10 h-10 rounded-xl icon-gradient-terracotta flex items-center justify-center text-white text-lg shadow-lg">
+                                            🐛
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-semibold text-desertDeep">Bug Hunter</p>
+                                            <p class="text-xs text-desert">Available</p>
+                                        </div>
+                                    </div>
+                                    <div class="glass-desert rounded-2xl p-4 flex items-center gap-3 smooth-transition hover:shadow-lg cursor-pointer">
+                                        <div class="w-10 h-10 rounded-xl icon-gradient-sage flex items-center justify-center text-white text-lg shadow-lg">
+                                            🏗️
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-semibold text-desertDeep">Architect</p>
+                                            <p class="text-xs text-desert">Available</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Activity -->
+                            <div class="neu-float-desert rounded-3xl p-6 smooth-transition hover:shadow-2xl">
+                                <h3 class="text-lg font-bold text-desertDeep mb-4">Activity</h3>
+                                <div class="space-y-4">
+                                    <div class="flex gap-3">
+                                        <div class="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
+                                        <div>
+                                            <p class="text-sm font-medium text-desertDeep">Issue #42 created</p>
+                                            <p class="text-xs text-desert">2 hours ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <div class="w-2 h-2 bg-desert rounded-full mt-2 flex-shrink-0"></div>
+                                        <div>
+                                            <p class="text-sm font-medium text-desertDeep">Knowledge updated</p>
+                                            <p class="text-xs text-desert">3 hours ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <div class="w-2 h-2 bg-orange-400 rounded-full mt-2 flex-shrink-0"></div>
+                                        <div>
+                                            <p class="text-sm font-medium text-desertDeep">Security scan done</p>
+                                            <p class="text-xs text-desert">5 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

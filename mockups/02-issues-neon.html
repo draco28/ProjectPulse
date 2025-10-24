@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Issues (Neon)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: {
+                            darkest: '#0A0118',
+                            dark: '#150828',
+                            medium: '#1F0D3A',
+                            light: '#2A1548',
+                        },
+                        neon: {
+                            pink: '#FF0080',
+                            magenta: '#E91E63',
+                            purple: '#B721FF',
+                            blue: '#21D4FD',
+                            cyan: '#00F5FF',
+                        },
+                        text: {
+                            primary: '#FFFFFF',
+                            secondary: '#E0B3FF',
+                            tertiary: '#9D7FB8',
+                            muted: '#6B5B7A',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background: #0A0118;
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+        }
+        .pulse-gradient {
+            background: linear-gradient(135deg, #FF0080 0%, #FF4D6D 50%, #FF8C42 100%);
+        }
+        .neon-border {
+            border: 1px solid rgba(255, 0, 128, 0.3);
+        }
+        .neon-border:hover {
+            border-color: #FF0080;
+        }
+        .sidebar-active {
+            background: rgba(255, 0, 128, 0.1);
+            border-left: 3px solid #FF0080;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 0, 128, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(255, 0, 128, 0.8); }
+        }
+        .pulse-animate {
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .heartbeat {
+            animation: heartbeat 2s infinite;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-background-dark border-r border-background-light flex flex-col">
+            <div class="p-6 border-b border-background-light">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 pulse-gradient rounded-lg flex items-center justify-center heartbeat">
+                        <i class="fas fa-heartbeat text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">ProjectPulse</h1>
+                        <p class="text-xs text-text-muted">v1.0.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-1">
+                <a href="01-dashboard-neon.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                    <i class="fas fa-home w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="sidebar-active flex items-center gap-3 px-4 py-3 rounded-lg text-white transition-all">
+                    <i class="fas fa-tasks w-5"></i>
+                    <span>Issues</span>
+                    <span class="ml-auto bg-neon-pink text-white text-xs px-2 py-1 rounded-full font-semibold pulse-animate">12</span>
+                </a>
+                <a href="03-knowledge-neon.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                    <i class="fas fa-lightbulb w-5"></i>
+                    <span>Knowledge</span>
+                </a>
+                <a href="04-wiki-neon.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                    <i class="fas fa-book w-5"></i>
+                    <span>Wiki</span>
+                </a>
+                <a href="05-security-neon.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                    <i class="fas fa-shield-alt w-5"></i>
+                    <span>Security</span>
+                    <span class="ml-auto bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-semibold">3</span>
+                </a>
+                <a href="06-personas-neon.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-text-tertiary hover:bg-background-medium hover:text-white transition-all">
+                    <i class="fas fa-users w-5"></i>
+                    <span>Agent Personas</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-background-dark border-b border-background-light px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Issues</h2>
+                        <p class="text-text-tertiary text-sm">Track and manage project issues</p>
+                    </div>
+                    <button class="pulse-gradient text-white px-6 py-2.5 rounded-lg transition-all transform hover:scale-105 flex items-center gap-2 font-semibold shadow-[0_0_20px_rgba(255,0,128,0.4)]">
+                        <i class="fas fa-plus"></i>
+                        <span>New Issue</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="flex-1 overflow-auto bg-background-darkest">
+                <div class="flex h-full">
+                    <!-- Filters Sidebar -->
+                    <div class="w-64 bg-background-dark border-r border-background-light p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-sm font-semibold text-text-secondary uppercase">Filters</h3>
+                            <button class="text-neon-pink text-xs hover:text-neon-magenta">Clear</button>
+                        </div>
+                        
+                        <!-- Status Filter -->
+                        <div class="mb-6">
+                            <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
+                                <i class="fas fa-circle-notch text-neon-cyan text-sm"></i>
+                                Status
+                            </h4>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" checked class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span>Open</span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">12</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span>In Progress</span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">5</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span>Closed</span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">28</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Priority Filter -->
+                        <div class="mb-6">
+                            <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
+                                <i class="fas fa-exclamation-circle text-neon-pink text-sm"></i>
+                                Priority
+                            </h4>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                                        Critical
+                                    </span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">2</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                                        High
+                                    </span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">4</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-neon-cyan rounded-full"></span>
+                                        Medium
+                                    </span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">5</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-text-tertiary rounded-full"></span>
+                                        Low
+                                    </span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">1</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Module Filter -->
+                        <div class="mb-6">
+                            <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
+                                <i class="fas fa-cube text-neon-purple text-sm"></i>
+                                Module
+                            </h4>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span>Combat</span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">6</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span>Animation</span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">3</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span>Core</span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">2</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-text-secondary hover:text-white cursor-pointer group">
+                                    <input type="checkbox" class="rounded border-background-light bg-background-medium checked:bg-neon-pink">
+                                    <span>UI</span>
+                                    <span class="ml-auto text-text-muted text-sm group-hover:text-neon-pink">1</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Issues List -->
+                    <div class="flex-1 p-8">
+                        <!-- Search & Sort Bar -->
+                        <div class="mb-6 flex items-center gap-4">
+                            <div class="flex-1 relative">
+                                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="Search issues..." 
+                                    class="w-full bg-background-medium border-2 border-background-light rounded-lg pl-11 pr-4 py-2.5 text-text-primary focus:outline-none focus:border-neon-cyan transition-all"
+                                    onfocus="this.style.boxShadow='0 0 20px rgba(0, 245, 255, 0.3)'"
+                                    onblur="this.style.boxShadow='none'"
+                                >
+                            </div>
+                            <select class="bg-background-medium border-2 border-background-light rounded-lg px-4 py-2.5 text-text-primary focus:outline-none focus:border-neon-cyan">
+                                <option>Sort: Newest</option>
+                                <option>Sort: Oldest</option>
+                                <option>Sort: Priority</option>
+                                <option>Sort: Updated</option>
+                            </select>
+                            <div class="flex gap-2">
+                                <button class="p-2.5 bg-neon-pink text-white rounded-lg shadow-[0_0_20px_rgba(255,0,128,0.4)]">
+                                    <i class="fas fa-th-list"></i>
+                                </button>
+                                <button class="p-2.5 bg-background-medium text-text-tertiary rounded-lg hover:bg-background-light hover:text-white transition-colors">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Issues List -->
+                        <div class="space-y-3">
+                            <!-- Issue Card 1 -->
+                            <div class="bg-background-medium neon-border rounded-xl p-6 hover:border-neon-pink transition-all cursor-pointer hover:shadow-[0_0_20px_rgba(255,0,128,0.2)]">
+                                <div class="flex items-start gap-4">
+                                    <input type="checkbox" class="mt-1 rounded border-background-light bg-background-light checked:bg-neon-pink">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="text-text-muted font-mono text-sm">#42</span>
+                                                <span class="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded-full font-semibold border border-red-500/30">Critical</span>
+                                                <span class="bg-neon-pink/20 text-neon-pink text-xs px-2 py-1 rounded-full border border-neon-pink/30">Combat</span>
+                                                <span class="bg-green-400/20 text-green-400 text-xs px-2 py-1 rounded-full border border-green-400/30">Open</span>
+                                            </div>
+                                            <button class="text-text-muted hover:text-neon-pink transition-colors">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                        <h3 class="text-white font-semibold text-lg mb-2">FSM Authority not properly replicated in combat</h3>
+                                        <p class="text-text-tertiary text-sm mb-4">Combat state machine experiencing desynchronization between client and server during rapid state transitions...</p>
+                                        <div class="flex items-center gap-6 text-sm text-text-muted">
+                                            <span><i class="fas fa-user mr-2"></i>Moksha Dev</span>
+                                            <span><i class="fas fa-clock mr-2"></i>2 hours ago</span>
+                                            <span><i class="fas fa-comment mr-2"></i>3 comments</span>
+                                            <span><i class="fas fa-paperclip mr-2"></i>2 files</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Issue Card 2 -->
+                            <div class="bg-background-medium neon-border rounded-xl p-6 hover:border-neon-pink transition-all cursor-pointer hover:shadow-[0_0_20px_rgba(255,0,128,0.2)]">
+                                <div class="flex items-start gap-4">
+                                    <input type="checkbox" class="mt-1 rounded border-background-light bg-background-light checked:bg-neon-pink">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="text-text-muted font-mono text-sm">#41</span>
+                                                <span class="bg-yellow-400/20 text-yellow-400 text-xs px-2 py-1 rounded-full font-semibold border border-yellow-400/30">High</span>
+                                                <span class="bg-neon-purple/20 text-neon-purple text-xs px-2 py-1 rounded-full border border-neon-purple/30">Animation</span>
+                                                <span class="bg-yellow-400/20 text-yellow-400 text-xs px-2 py-1 rounded-full border border-yellow-400/30">In Progress</span>
+                                            </div>
+                                            <button class="text-text-muted hover:text-neon-pink transition-colors">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                        <h3 class="text-white font-semibold text-lg mb-2">Animation montage not playing on clients</h3>
+                                        <p class="text-text-tertiary text-sm mb-4">Special attack animations are only visible on the server. Need to implement proper multicast...</p>
+                                        <div class="flex items-center gap-6 text-sm text-text-muted">
+                                            <span><i class="fas fa-user mr-2"></i>Moksha Dev</span>
+                                            <span><i class="fas fa-clock mr-2"></i>5 hours ago</span>
+                                            <span><i class="fas fa-comment mr-2"></i>1 comment</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Issue Card 3 -->
+                            <div class="bg-background-medium neon-border rounded-xl p-6 hover:border-neon-pink transition-all cursor-pointer hover:shadow-[0_0_20px_rgba(255,0,128,0.2)] opacity-70">
+                                <div class="flex items-start gap-4">
+                                    <input type="checkbox" class="mt-1 rounded border-background-light bg-background-light checked:bg-neon-pink">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="text-text-muted font-mono text-sm">#40</span>
+                                                <span class="bg-neon-cyan/20 text-neon-cyan text-xs px-2 py-1 rounded-full font-semibold border border-neon-cyan/30">Medium</span>
+                                                <span class="bg-green-400/20 text-green-400 text-xs px-2 py-1 rounded-full border border-green-400/30">Core</span>
+                                                <span class="bg-text-tertiary/20 text-text-tertiary text-xs px-2 py-1 rounded-full border border-text-tertiary/30">Closed</span>
+                                            </div>
+                                            <button class="text-text-muted hover:text-neon-pink transition-colors">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                        <h3 class="text-white font-semibold text-lg mb-2 line-through">Implement health regeneration system</h3>
+                                        <p class="text-text-tertiary text-sm mb-4">Added passive health regeneration with combat cooldown...</p>
+                                        <div class="flex items-center gap-6 text-sm text-text-muted">
+                                            <span><i class="fas fa-check-circle text-green-400 mr-2"></i>Completed</span>
+                                            <span><i class="fas fa-clock mr-2"></i>1 day ago</span>
+                                            <span><i class="fas fa-comment mr-2"></i>4 comments</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Issue Card 4 -->
+                            <div class="bg-background-medium neon-border rounded-xl p-6 hover:border-neon-pink transition-all cursor-pointer hover:shadow-[0_0_20px_rgba(255,0,128,0.2)]">
+                                <div class="flex items-start gap-4">
+                                    <input type="checkbox" class="mt-1 rounded border-background-light bg-background-light checked:bg-neon-pink">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="text-text-muted font-mono text-sm">#39</span>
+                                                <span class="bg-text-tertiary/20 text-text-tertiary text-xs px-2 py-1 rounded-full font-semibold border border-text-tertiary/30">Low</span>
+                                                <span class="bg-pink-400/20 text-pink-400 text-xs px-2 py-1 rounded-full border border-pink-400/30">UI</span>
+                                                <span class="bg-green-400/20 text-green-400 text-xs px-2 py-1 rounded-full border border-green-400/30">Open</span>
+                                            </div>
+                                            <button class="text-text-muted hover:text-neon-pink transition-colors">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                        <h3 class="text-white font-semibold text-lg mb-2">Add keybinding customization to settings menu</h3>
+                                        <p class="text-text-tertiary text-sm mb-4">Players should be able to customize keybindings. Need to implement UI and save/load system...</p>
+                                        <div class="flex items-center gap-6 text-sm text-text-muted">
+                                            <span><i class="fas fa-user mr-2"></i>Moksha Dev</span>
+                                            <span><i class="fas fa-clock mr-2"></i>3 days ago</span>
+                                            <span><i class="fas fa-comment mr-2"></i>0 comments</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="mt-8 flex items-center justify-between">
+                            <p class="text-text-tertiary text-sm">Showing 4 of 12 issues</p>
+                            <div class="flex gap-2">
+                                <button class="px-4 py-2 bg-background-medium text-text-tertiary rounded-lg hover:bg-background-light hover:text-white transition-colors">
+                                    Previous
+                                </button>
+                                <button class="px-4 py-2 bg-neon-pink text-white rounded-lg shadow-[0_0_20px_rgba(255,0,128,0.4)]">1</button>
+                                <button class="px-4 py-2 bg-background-medium text-text-tertiary rounded-lg hover:bg-background-light hover:text-white transition-colors">2</button>
+                                <button class="px-4 py-2 bg-background-medium text-text-tertiary rounded-lg hover:bg-background-light hover:text-white transition-colors">3</button>
+                                <button class="px-4 py-2 bg-background-medium text-text-tertiary rounded-lg hover:bg-background-light hover:text-white transition-colors">
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

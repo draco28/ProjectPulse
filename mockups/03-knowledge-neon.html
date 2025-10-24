@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Knowledge Base (Neon)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: {
+                            darkest: '#0A0118',
+                            dark: '#150828',
+                            medium: '#1F0D3A',
+                            light: '#2A1548',
+                        },
+                        neon: {
+                            pink: '#FF0080',
+                            purple: '#B721FF',
+                            cyan: '#00F5FF',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background: #0A0118;
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+        }
+        .pulse-gradient {
+            background: linear-gradient(135deg, #FF0080 0%, #FF4D6D 50%, #FF8C42 100%);
+        }
+        .sidebar-active {
+            background: rgba(255, 0, 128, 0.1);
+            border-left: 3px solid #FF0080;
+        }
+        .knowledge-card {
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 0, 128, 0.3);
+        }
+        .knowledge-card:hover {
+            transform: translateY(-4px);
+            border-color: #FF0080;
+            box-shadow: 0 0 30px rgba(255, 0, 128, 0.3);
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .heartbeat {
+            animation: heartbeat 2s infinite;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-[#150828] border-r border-[#2A1548] flex flex-col">
+            <div class="p-6 border-b border-[#2A1548]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 pulse-gradient rounded-lg flex items-center justify-center heartbeat">
+                        <i class="fas fa-heartbeat text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">ProjectPulse</h1>
+                        <p class="text-xs text-[#6B5B7A]">v1.0.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-1">
+                <a href="01-dashboard-neon.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#9D7FB8] hover:bg-[#1F0D3A] hover:text-white transition-all">
+                    <i class="fas fa-home w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="02-issues-neon.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#9D7FB8] hover:bg-[#1F0D3A] hover:text-white transition-all">
+                    <i class="fas fa-tasks w-5"></i>
+                    <span>Issues</span>
+                </a>
+                <a href="#" class="sidebar-active flex items-center gap-3 px-4 py-3 rounded-lg text-white transition-all">
+                    <i class="fas fa-lightbulb w-5"></i>
+                    <span>Knowledge</span>
+                </a>
+                <a href="04-wiki-neon.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#9D7FB8] hover:bg-[#1F0D3A] hover:text-white transition-all">
+                    <i class="fas fa-book w-5"></i>
+                    <span>Wiki</span>
+                </a>
+                <a href="05-security-neon.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#9D7FB8] hover:bg-[#1F0D3A] hover:text-white transition-all">
+                    <i class="fas fa-shield-alt w-5"></i>
+                    <span>Security</span>
+                </a>
+                <a href="06-personas-neon.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#9D7FB8] hover:bg-[#1F0D3A] hover:text-white transition-all">
+                    <i class="fas fa-users w-5"></i>
+                    <span>Agent Personas</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-[#150828] border-b border-[#2A1548] px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Knowledge Base</h2>
+                        <p class="text-[#9D7FB8] text-sm">47 items • Hybrid search enabled</p>
+                    </div>
+                    <button class="pulse-gradient text-white px-6 py-2.5 rounded-lg transition-all transform hover:scale-105 flex items-center gap-2 font-semibold shadow-[0_0_20px_rgba(255,0,128,0.4)]">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Knowledge</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="flex-1 overflow-auto bg-[#0A0118] p-8">
+                <!-- Search Bar with Mode Toggle -->
+                <div class="mb-8">
+                    <div class="max-w-3xl mx-auto">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-[#9D7FB8] text-lg"></i>
+                            <input 
+                                type="text" 
+                                placeholder="Search knowledge base... (Try: 'FSM state machine patterns')" 
+                                class="w-full bg-[#1F0D3A] border-2 border-[#2A1548] focus:border-[#00F5FF] rounded-xl pl-14 pr-4 py-4 text-white text-lg focus:outline-none transition-colors"
+                                onfocus="this.style.boxShadow='0 0 30px rgba(0, 245, 255, 0.3)'"
+                                onblur="this.style.boxShadow='none'"
+                            >
+                        </div>
+                        <div class="mt-4 flex items-center justify-between">
+                            <div class="flex gap-2">
+                                <button class="px-4 py-2 bg-[#FF0080] text-white text-sm rounded-lg shadow-[0_0_20px_rgba(255,0,128,0.4)] font-semibold">
+                                    <i class="fas fa-brain mr-2"></i>Hybrid Search
+                                </button>
+                                <button class="px-4 py-2 bg-[#1F0D3A] text-[#9D7FB8] hover:text-white text-sm rounded-lg transition-colors border border-[#2A1548]">
+                                    <i class="fas fa-font mr-2"></i>Full-Text Only
+                                </button>
+                                <button class="px-4 py-2 bg-[#1F0D3A] text-[#9D7FB8] hover:text-white text-sm rounded-lg transition-colors border border-[#2A1548]">
+                                    <i class="fas fa-magic mr-2"></i>Semantic Only
+                                </button>
+                            </div>
+                            <div class="text-sm text-[#9D7FB8]">
+                                <i class="fas fa-info-circle mr-2 text-[#00F5FF]"></i>
+                                <span>Hybrid: 60% keywords + 40% meaning</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tags Filter -->
+                <div class="mb-6 flex items-center gap-2 flex-wrap max-w-3xl mx-auto">
+                    <span class="text-[#9D7FB8] text-sm">Popular tags:</span>
+                    <button class="px-3 py-1 bg-[#FF0080]/20 text-[#FF0080] rounded-full text-sm hover:bg-[#FF0080]/30 transition-colors border border-[#FF0080]/30 font-semibold">
+                        FSM
+                    </button>
+                    <button class="px-3 py-1 bg-[#B721FF]/20 text-[#B721FF] rounded-full text-sm hover:bg-[#B721FF]/30 transition-colors border border-[#B721FF]/30 font-semibold">
+                        Animation
+                    </button>
+                    <button class="px-3 py-1 bg-green-400/20 text-green-400 rounded-full text-sm hover:bg-green-400/30 transition-colors border border-green-400/30 font-semibold">
+                        Networking
+                    </button>
+                    <button class="px-3 py-1 bg-yellow-400/20 text-yellow-400 rounded-full text-sm hover:bg-yellow-400/30 transition-colors border border-yellow-400/30 font-semibold">
+                        Combat
+                    </button>
+                    <button class="px-3 py-1 bg-pink-400/20 text-pink-400 rounded-full text-sm hover:bg-pink-400/30 transition-colors border border-pink-400/30 font-semibold">
+                        Best Practices
+                    </button>
+                </div>
+
+                <!-- Knowledge Grid -->
+                <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Knowledge Card 1 -->
+                    <div class="knowledge-card bg-[#1F0D3A] rounded-xl p-6 cursor-pointer">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-[#FF0080]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-project-diagram text-[#FF0080] text-xl"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-[#00F5FF] font-mono bg-[#00F5FF]/10 px-2 py-1 rounded-full border border-[#00F5FF]/30">
+                                    <i class="fas fa-chart-line mr-1"></i>95%
+                                </span>
+                            </div>
+                        </div>
+                        <h3 class="text-white font-semibold text-lg mb-2">FSM Authority Pattern</h3>
+                        <p class="text-[#9D7FB8] text-sm mb-4">Complete guide to implementing server-authoritative finite state machines in multiplayer games. Covers replication, validation...</p>
+                        <div class="flex items-center gap-2 flex-wrap mb-4">
+                            <span class="px-2 py-1 bg-[#FF0080]/20 text-[#FF0080] text-xs rounded-full border border-[#FF0080]/30">FSM</span>
+                            <span class="px-2 py-1 bg-green-400/20 text-green-400 text-xs rounded-full border border-green-400/30">Networking</span>
+                            <span class="px-2 py-1 bg-pink-400/20 text-pink-400 text-xs rounded-full border border-pink-400/30">Best Practices</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-[#6B5B7A]">
+                            <span><i class="fas fa-clock mr-1"></i>Updated 2 days ago</span>
+                            <span><i class="fas fa-eye mr-1"></i>24 views</span>
+                        </div>
+                    </div>
+
+                    <!-- Knowledge Card 2 -->
+                    <div class="knowledge-card bg-[#1F0D3A] rounded-xl p-6 cursor-pointer">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-[#B721FF]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-running text-[#B721FF] text-xl"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-[#00F5FF] font-mono bg-[#00F5FF]/10 px-2 py-1 rounded-full border border-[#00F5FF]/30">
+                                    <i class="fas fa-chart-line mr-1"></i>89%
+                                </span>
+                            </div>
+                        </div>
+                        <h3 class="text-white font-semibold text-lg mb-2">Animation Montage Replication</h3>
+                        <p class="text-[#9D7FB8] text-sm mb-4">Step-by-step guide for properly replicating animation montages across network. Includes multicast RPC patterns...</p>
+                        <div class="flex items-center gap-2 flex-wrap mb-4">
+                            <span class="px-2 py-1 bg-[#B721FF]/20 text-[#B721FF] text-xs rounded-full border border-[#B721FF]/30">Animation</span>
+                            <span class="px-2 py-1 bg-green-400/20 text-green-400 text-xs rounded-full border border-green-400/30">Networking</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-[#6B5B7A]">
+                            <span><i class="fas fa-clock mr-1"></i>Updated 1 week ago</span>
+                            <span><i class="fas fa-eye mr-1"></i>18 views</span>
+                        </div>
+                    </div>
+
+                    <!-- Knowledge Card 3 -->
+                    <div class="knowledge-card bg-[#1F0D3A] rounded-xl p-6 cursor-pointer">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-fist-raised text-yellow-400 text-xl"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-[#00F5FF] font-mono bg-[#00F5FF]/10 px-2 py-1 rounded-full border border-[#00F5FF]/30">
+                                    <i class="fas fa-chart-line mr-1"></i>87%
+                                </span>
+                            </div>
+                        </div>
+                        <h3 class="text-white font-semibold text-lg mb-2">Combat System Architecture</h3>
+                        <p class="text-[#9D7FB8] text-sm mb-4">High-level architecture for the combat system including damage calculation, hit detection, ability system integration...</p>
+                        <div class="flex items-center gap-2 flex-wrap mb-4">
+                            <span class="px-2 py-1 bg-yellow-400/20 text-yellow-400 text-xs rounded-full border border-yellow-400/30">Combat</span>
+                            <span class="px-2 py-1 bg-[#FF0080]/20 text-[#FF0080] text-xs rounded-full border border-[#FF0080]/30">Architecture</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-[#6B5B7A]">
+                            <span><i class="fas fa-clock mr-1"></i>Updated 3 days ago</span>
+                            <span><i class="fas fa-eye mr-1"></i>42 views</span>
+                        </div>
+                    </div>
+
+                    <!-- Knowledge Card 4 -->
+                    <div class="knowledge-card bg-[#1F0D3A] rounded-xl p-6 cursor-pointer">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-code text-green-400 text-xl"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-[#00F5FF] font-mono bg-[#00F5FF]/10 px-2 py-1 rounded-full border border-[#00F5FF]/30">
+                                    <i class="fas fa-chart-line mr-1"></i>82%
+                                </span>
+                            </div>
+                        </div>
+                        <h3 class="text-white font-semibold text-lg mb-2">Gameplay Ability System Primer</h3>
+                        <p class="text-[#9D7FB8] text-sm mb-4">Introduction to Unreal's Gameplay Ability System (GAS) with examples for implementing abilities, effects, attributes...</p>
+                        <div class="flex items-center gap-2 flex-wrap mb-4">
+                            <span class="px-2 py-1 bg-green-400/20 text-green-400 text-xs rounded-full border border-green-400/30">GAS</span>
+                            <span class="px-2 py-1 bg-pink-400/20 text-pink-400 text-xs rounded-full border border-pink-400/30">Tutorial</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-[#6B5B7A]">
+                            <span><i class="fas fa-clock mr-1"></i>Updated 1 month ago</span>
+                            <span><i class="fas fa-eye mr-1"></i>67 views</span>
+                        </div>
+                    </div>
+
+                    <!-- Knowledge Card 5 -->
+                    <div class="knowledge-card bg-[#1F0D3A] rounded-xl p-6 cursor-pointer">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-bug text-red-400 text-xl"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-[#00F5FF] font-mono bg-[#00F5FF]/10 px-2 py-1 rounded-full border border-[#00F5FF]/30">
+                                    <i class="fas fa-chart-line mr-1"></i>79%
+                                </span>
+                            </div>
+                        </div>
+                        <h3 class="text-white font-semibold text-lg mb-2">Common Networking Bugs</h3>
+                        <p class="text-[#9D7FB8] text-sm mb-4">Collection of common multiplayer bugs and their solutions. Includes desync issues, client prediction failures...</p>
+                        <div class="flex items-center gap-2 flex-wrap mb-4">
+                            <span class="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full border border-red-500/30">Debugging</span>
+                            <span class="px-2 py-1 bg-green-400/20 text-green-400 text-xs rounded-full border border-green-400/30">Networking</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-[#6B5B7A]">
+                            <span><i class="fas fa-clock mr-1"></i>Updated 5 days ago</span>
+                            <span><i class="fas fa-eye mr-1"></i>31 views</span>
+                        </div>
+                    </div>
+
+                    <!-- Knowledge Card 6 -->
+                    <div class="knowledge-card bg-[#1F0D3A] rounded-xl p-6 cursor-pointer">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-[#00F5FF]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-shield-alt text-[#00F5FF] text-xl"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-[#00F5FF] font-mono bg-[#00F5FF]/10 px-2 py-1 rounded-full border border-[#00F5FF]/30">
+                                    <i class="fas fa-chart-line mr-1"></i>76%
+                                </span>
+                            </div>
+                        </div>
+                        <h3 class="text-white font-semibold text-lg mb-2">Security Best Practices</h3>
+                        <p class="text-[#9D7FB8] text-sm mb-4">Essential security practices for multiplayer games including input validation, cheat prevention, server authority...</p>
+                        <div class="flex items-center gap-2 flex-wrap mb-4">
+                            <span class="px-2 py-1 bg-[#00F5FF]/20 text-[#00F5FF] text-xs rounded-full border border-[#00F5FF]/30">Security</span>
+                            <span class="px-2 py-1 bg-pink-400/20 text-pink-400 text-xs rounded-full border border-pink-400/30">Best Practices</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-[#6B5B7A]">
+                            <span><i class="fas fa-clock mr-1"></i>Updated 2 weeks ago</span>
+                            <span><i class="fas fa-eye mr-1"></i>15 views</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="mt-8 flex items-center justify-center">
+                    <div class="flex gap-2">
+                        <button class="px-4 py-2 bg-[#1F0D3A] text-[#9D7FB8] rounded-lg hover:bg-[#2A1548] hover:text-white transition-colors border border-[#2A1548]">
+                            Previous
+                        </button>
+                        <button class="px-4 py-2 bg-[#FF0080] text-white rounded-lg shadow-[0_0_20px_rgba(255,0,128,0.4)]">1</button>
+                        <button class="px-4 py-2 bg-[#1F0D3A] text-[#9D7FB8] rounded-lg hover:bg-[#2A1548] hover:text-white transition-colors border border-[#2A1548]">2</button>
+                        <button class="px-4 py-2 bg-[#1F0D3A] text-[#9D7FB8] rounded-lg hover:bg-[#2A1548] hover:text-white transition-colors border border-[#2A1548]">3</button>
+                        <button class="px-4 py-2 bg-[#1F0D3A] text-[#9D7FB8] rounded-lg hover:bg-[#2A1548] hover:text-white transition-colors border border-[#2A1548]">
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki - ProjectPulse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0A0118 0%, #1a0b2e 100%);
+            min-height: 100vh;
+        }
+
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Neon glow effects */
+        .glow-pink {
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.3);
+        }
+
+        .glow-purple {
+            box-shadow: 0 0 20px rgba(183, 33, 255, 0.3);
+        }
+
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+        }
+
+        /* Pulse animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Hover effects */
+        .wiki-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(183, 33, 255, 0.2);
+        }
+
+        .wiki-card:hover {
+            border-color: rgba(255, 0, 128, 0.5);
+            box-shadow: 0 0 30px rgba(255, 0, 128, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255, 0, 128, 0.1);
+            border-left: 3px solid #FF0080;
+            padding-left: 1rem;
+        }
+
+        .sidebar-item.active {
+            background: rgba(255, 0, 128, 0.15);
+            border-left: 3px solid #FF0080;
+            padding-left: 1rem;
+        }
+
+        /* Code block styling */
+        .code-block {
+            background: rgba(42, 21, 72, 0.5);
+            border: 1px solid rgba(183, 33, 255, 0.3);
+            border-radius: 8px;
+        }
+
+        /* Search bar glow */
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+            border-color: #00F5FF;
+        }
+
+        /* Tag styling */
+        .tag {
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            box-shadow: 0 0 10px rgba(183, 33, 255, 0.5);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Header -->
+    <header class="border-b border-[#2A1548] bg-[#0A0118]/95 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-[#FF0080] to-[#FF7B00] rounded-lg flex items-center justify-center glow-pink">
+                            <i class="fas fa-heartbeat text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold bg-gradient-to-r from-[#FF0080] to-[#FF7B00] bg-clip-text text-transparent">
+                                ProjectPulse
+                            </h1>
+                            <p class="text-xs text-[#9D7FB8]">Documentation Hub</p>
+                        </div>
+                    </div>
+
+                    <nav class="flex items-center gap-1 ml-8">
+                        <a href="01-dashboard-neon.html" class="px-4 py-2 rounded-lg text-[#9D7FB8] hover:text-white hover:bg-[#2A1548] transition-all">
+                            <i class="fas fa-home mr-2"></i>Dashboard
+                        </a>
+                        <a href="02-issues-neon.html" class="px-4 py-2 rounded-lg text-[#9D7FB8] hover:text-white hover:bg-[#2A1548] transition-all">
+                            <i class="fas fa-tasks mr-2"></i>Issues
+                        </a>
+                        <a href="03-knowledge-neon.html" class="px-4 py-2 rounded-lg text-[#9D7FB8] hover:text-white hover:bg-[#2A1548] transition-all">
+                            <i class="fas fa-lightbulb mr-2"></i>Knowledge
+                        </a>
+                        <a href="04-wiki-neon.html" class="px-4 py-2 rounded-lg bg-[#2A1548] text-white border border-[#FF0080]/30">
+                            <i class="fas fa-book mr-2"></i>Wiki
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button class="px-3 py-2 bg-[#2A1548] hover:bg-[#3D2060] rounded-lg transition-all text-sm text-[#9D7FB8] hover:text-white">
+                        <i class="fas fa-keyboard mr-2"></i>
+                        <kbd class="code-font text-xs">⌘K</kbd>
+                    </button>
+                    <div class="w-10 h-10 bg-gradient-to-br from-[#B721FF] to-[#FF0080] rounded-lg flex items-center justify-center text-sm font-bold cursor-pointer glow-purple">
+                        SK
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex max-w-7xl mx-auto px-6 py-8 gap-8">
+        <!-- Sidebar -->
+        <aside class="w-64 flex-shrink-0">
+            <div class="sticky top-24">
+                <!-- Search -->
+                <div class="mb-6">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#9D7FB8]"></i>
+                        <input 
+                            type="text" 
+                            placeholder="Search wiki..." 
+                            class="search-input w-full pl-10 pr-4 py-2.5 bg-[#2A1548] border border-[#2A1548] rounded-lg text-white placeholder-[#9D7FB8] text-sm transition-all"
+                        >
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="space-y-1">
+                    <h3 class="text-xs font-semibold text-[#E0B3FF] uppercase px-3 py-2">Getting Started</h3>
+                    <a href="#" class="sidebar-item active block px-3 py-2.5 text-sm text-white rounded-lg">
+                        <i class="fas fa-rocket mr-2 text-[#FF0080]"></i>Quick Start Guide
+                    </a>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-download mr-2"></i>Installation
+                    </a>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-cog mr-2"></i>Configuration
+                    </a>
+
+                    <h3 class="text-xs font-semibold text-[#E0B3FF] uppercase px-3 py-2 mt-6">Core Concepts</h3>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-robot mr-2"></i>Agent System
+                    </a>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-brain mr-2"></i>Knowledge Base
+                    </a>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-project-diagram mr-2"></i>Workflows
+                    </a>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-plug mr-2"></i>Integrations
+                    </a>
+
+                    <h3 class="text-xs font-semibold text-[#E0B3FF] uppercase px-3 py-2 mt-6">API Reference</h3>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-code mr-2"></i>REST API
+                    </a>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-bolt mr-2"></i>Webhooks
+                    </a>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-key mr-2"></i>Authentication
+                    </a>
+
+                    <h3 class="text-xs font-semibold text-[#E0B3FF] uppercase px-3 py-2 mt-6">Guides</h3>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-shield-alt mr-2"></i>Security Best Practices
+                    </a>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Performance Optimization
+                    </a>
+                    <a href="#" class="sidebar-item block px-3 py-2.5 text-sm text-[#9D7FB8] rounded-lg">
+                        <i class="fas fa-question-circle mr-2"></i>Troubleshooting
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1">
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-2 text-sm text-[#9D7FB8] mb-6">
+                <a href="#" class="hover:text-white transition-colors">Wiki</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="#" class="hover:text-white transition-colors">Getting Started</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-white">Quick Start Guide</span>
+            </div>
+
+            <!-- Article Header -->
+            <div class="mb-8">
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <h1 class="text-4xl font-bold mb-3">Quick Start Guide</h1>
+                        <p class="text-lg text-[#9D7FB8]">Get up and running with ProjectPulse in under 5 minutes</p>
+                    </div>
+                    <button class="px-4 py-2 bg-[#2A1548] hover:bg-[#3D2060] rounded-lg transition-all text-sm">
+                        <i class="fas fa-edit mr-2"></i>Edit Page
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 text-sm text-[#9D7FB8]">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-gradient-to-br from-[#B721FF] to-[#FF0080] rounded-full"></div>
+                        <span>Updated by Sarah Kim</span>
+                    </div>
+                    <span>•</span>
+                    <span>Last updated 2 hours ago</span>
+                    <span>•</span>
+                    <span><i class="fas fa-eye mr-1"></i>1,234 views</span>
+                </div>
+
+                <div class="flex items-center gap-2 mt-4">
+                    <span class="tag px-3 py-1 bg-[#FF0080]/20 text-[#FF0080] rounded-full text-xs font-medium border border-[#FF0080]/30 cursor-pointer">
+                        Getting Started
+                    </span>
+                    <span class="tag px-3 py-1 bg-[#B721FF]/20 text-[#B721FF] rounded-full text-xs font-medium border border-[#B721FF]/30 cursor-pointer">
+                        Tutorial
+                    </span>
+                    <span class="tag px-3 py-1 bg-[#00F5FF]/20 text-[#00F5FF] rounded-full text-xs font-medium border border-[#00F5FF]/30 cursor-pointer">
+                        5 min read
+                    </span>
+                </div>
+            </div>
+
+            <!-- Table of Contents -->
+            <div class="wiki-card bg-[#150828] rounded-xl p-6 mb-8">
+                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <i class="fas fa-list text-[#00F5FF]"></i>
+                    On This Page
+                </h3>
+                <nav class="space-y-2 text-sm">
+                    <a href="#installation" class="block text-[#9D7FB8] hover:text-[#FF0080] transition-colors">1. Installation</a>
+                    <a href="#setup" class="block text-[#9D7FB8] hover:text-[#FF0080] transition-colors pl-4">1.1 Create Project</a>
+                    <a href="#config" class="block text-[#9D7FB8] hover:text-[#FF0080] transition-colors pl-4">1.2 Configure Settings</a>
+                    <a href="#agents" class="block text-[#9D7FB8] hover:text-[#FF0080] transition-colors">2. Setting Up Agents</a>
+                    <a href="#first-issue" class="block text-[#9D7FB8] hover:text-[#FF0080] transition-colors">3. Creating Your First Issue</a>
+                    <a href="#next-steps" class="block text-[#9D7FB8] hover:text-[#FF0080] transition-colors">4. Next Steps</a>
+                </nav>
+            </div>
+
+            <!-- Article Content -->
+            <article class="prose prose-invert max-w-none">
+                <!-- Installation Section -->
+                <section id="installation" class="mb-12">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                        <span class="w-10 h-10 bg-[#FF0080]/20 rounded-lg flex items-center justify-center text-[#FF0080] border border-[#FF0080]/30">1</span>
+                        Installation
+                    </h2>
+                    
+                    <p class="text-[#C4B5D4] mb-6 leading-relaxed">
+                        ProjectPulse can be installed via npm, yarn, or pnpm. We recommend using the latest LTS version of Node.js (v18 or higher).
+                    </p>
+
+                    <div class="code-block p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[#E0B3FF] text-sm font-medium">Terminal</span>
+                            <button class="px-3 py-1 bg-[#2A1548] hover:bg-[#3D2060] rounded text-xs transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copy
+                            </button>
+                        </div>
+                        <pre class="code-font text-sm text-[#00F5FF]"><code># Using npm
+npm install -g projectpulse
+
+# Using yarn
+yarn global add projectpulse
+
+# Using pnpm
+pnpm add -g projectpulse</code></pre>
+                    </div>
+
+                    <div class="bg-[#00F5FF]/10 border border-[#00F5FF]/30 rounded-lg p-4 mb-6">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-[#00F5FF] mt-1"></i>
+                            <div>
+                                <p class="text-sm font-medium text-[#00F5FF] mb-1">Pro Tip</p>
+                                <p class="text-sm text-[#C4B5D4]">Install ProjectPulse globally for easier access to CLI commands from any directory.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 id="setup" class="text-xl font-semibold mb-4 mt-8">1.1 Create a New Project</h3>
+                    
+                    <p class="text-[#C4B5D4] mb-4 leading-relaxed">
+                        Once installed, you can create a new project using the init command:
+                    </p>
+
+                    <div class="code-block p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[#E0B3FF] text-sm font-medium">Terminal</span>
+                            <button class="px-3 py-1 bg-[#2A1548] hover:bg-[#3D2060] rounded text-xs transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copy
+                            </button>
+                        </div>
+                        <pre class="code-font text-sm text-[#00F5FF]"><code>projectpulse init my-awesome-project
+cd my-awesome-project</code></pre>
+                    </div>
+
+                    <h3 id="config" class="text-xl font-semibold mb-4 mt-8">1.2 Configure Settings</h3>
+                    
+                    <p class="text-[#C4B5D4] mb-4 leading-relaxed">
+                        Edit the <code class="code-font px-2 py-1 bg-[#2A1548] rounded text-[#FF0080]">pulse.config.json</code> file to customize your project settings:
+                    </p>
+
+                    <div class="code-block p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[#E0B3FF] text-sm font-medium">pulse.config.json</span>
+                            <button class="px-3 py-1 bg-[#2A1548] hover:bg-[#3D2060] rounded text-xs transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copy
+                            </button>
+                        </div>
+                        <pre class="code-font text-sm text-[#C4B5D4]"><code>{
+  "project": {
+    "name": "My Awesome Project",
+    "version": "1.0.0"
+  },
+  "agents": {
+    "enabled": true,
+    "defaultPersona": "code-reviewer"
+  },
+  "integrations": {
+    "github": true,
+    "slack": false
+  }
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Agents Section -->
+                <section id="agents" class="mb-12">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                        <span class="w-10 h-10 bg-[#B721FF]/20 rounded-lg flex items-center justify-center text-[#B721FF] border border-[#B721FF]/30">2</span>
+                        Setting Up Agents
+                    </h2>
+                    
+                    <p class="text-[#C4B5D4] mb-6 leading-relaxed">
+                        ProjectPulse agents are AI-powered assistants that help automate various tasks. Let's activate your first agent:
+                    </p>
+
+                    <div class="code-block p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[#E0B3FF] text-sm font-medium">Terminal</span>
+                            <button class="px-3 py-1 bg-[#2A1548] hover:bg-[#3D2060] rounded text-xs transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copy
+                            </button>
+                        </div>
+                        <pre class="code-font text-sm text-[#00F5FF]"><code>projectpulse agent activate code-reviewer</code></pre>
+                    </div>
+
+                    <p class="text-[#C4B5D4] mb-4 leading-relaxed">
+                        Available agent personas:
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="wiki-card bg-[#150828] rounded-lg p-4">
+                            <div class="w-12 h-12 bg-[#00F5FF]/20 rounded-lg flex items-center justify-center text-2xl mb-3">🔍</div>
+                            <h4 class="font-semibold mb-2">Code Reviewer</h4>
+                            <p class="text-sm text-[#9D7FB8]">Reviews code for best practices, bugs, and improvements</p>
+                        </div>
+                        <div class="wiki-card bg-[#150828] rounded-lg p-4">
+                            <div class="w-12 h-12 bg-[#B721FF]/20 rounded-lg flex items-center justify-center text-2xl mb-3">🐛</div>
+                            <h4 class="font-semibold mb-2">Bug Hunter</h4>
+                            <p class="text-sm text-[#9D7FB8]">Systematically finds and diagnoses bugs in your codebase</p>
+                        </div>
+                        <div class="wiki-card bg-[#150828] rounded-lg p-4">
+                            <div class="w-12 h-12 bg-[#B721FF]/20 rounded-lg flex items-center justify-center text-2xl mb-3">🏗️</div>
+                            <h4 class="font-semibold mb-2">Feature Architect</h4>
+                            <p class="text-sm text-[#9D7FB8]">Designs new features and system architecture</p>
+                        </div>
+                        <div class="wiki-card bg-[#150828] rounded-lg p-4">
+                            <div class="w-12 h-12 bg-yellow-400/20 rounded-lg flex items-center justify-center text-2xl mb-3">🛡️</div>
+                            <h4 class="font-semibold mb-2">Security Auditor</h4>
+                            <p class="text-sm text-[#9D7FB8]">Audits code for security vulnerabilities</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- First Issue Section -->
+                <section id="first-issue" class="mb-12">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                        <span class="w-10 h-10 bg-[#00F5FF]/20 rounded-lg flex items-center justify-center text-[#00F5FF] border border-[#00F5FF]/30">3</span>
+                        Creating Your First Issue
+                    </h2>
+                    
+                    <p class="text-[#C4B5D4] mb-6 leading-relaxed">
+                        Issues are the core of ProjectPulse. They represent tasks, bugs, or features that need attention.
+                    </p>
+
+                    <div class="code-block p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[#E0B3FF] text-sm font-medium">Terminal</span>
+                            <button class="px-3 py-1 bg-[#2A1548] hover:bg-[#3D2060] rounded text-xs transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copy
+                            </button>
+                        </div>
+                        <pre class="code-font text-sm text-[#00F5FF]"><code>projectpulse issue create \
+  --title "Fix login form validation" \
+  --priority high \
+  --agent code-reviewer</code></pre>
+                    </div>
+
+                    <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-6">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-green-400 mt-1"></i>
+                            <div>
+                                <p class="text-sm font-medium text-green-400 mb-1">Success!</p>
+                                <p class="text-sm text-[#C4B5D4]">Your first issue has been created. The Code Reviewer agent will automatically analyze it.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Next Steps Section -->
+                <section id="next-steps" class="mb-12">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                        <span class="w-10 h-10 bg-green-400/20 rounded-lg flex items-center justify-center text-green-400 border border-green-400/30">4</span>
+                        Next Steps
+                    </h2>
+                    
+                    <p class="text-[#C4B5D4] mb-6 leading-relaxed">
+                        Now that you have ProjectPulse set up, here are some recommended next steps:
+                    </p>
+
+                    <div class="space-y-4">
+                        <div class="wiki-card bg-[#150828] rounded-lg p-6">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 bg-[#FF0080]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-brain text-[#FF0080] text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold mb-2">Build Your Knowledge Base</h3>
+                                    <p class="text-sm text-[#9D7FB8] mb-3">Add documentation and context to help agents understand your project better.</p>
+                                    <a href="#" class="text-sm text-[#FF0080] hover:underline">
+                                        Read Knowledge Base Guide →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wiki-card bg-[#150828] rounded-lg p-6">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 bg-[#B721FF]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-project-diagram text-[#B721FF] text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold mb-2">Create Workflows</h3>
+                                    <p class="text-sm text-[#9D7FB8] mb-3">Automate repetitive tasks with custom workflows.</p>
+                                    <a href="#" class="text-sm text-[#B721FF] hover:underline">
+                                        Learn About Workflows →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wiki-card bg-[#150828] rounded-lg p-6">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 bg-[#00F5FF]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-plug text-[#00F5FF] text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold mb-2">Connect Integrations</h3>
+                                    <p class="text-sm text-[#9D7FB8] mb-3">Integrate with GitHub, Slack, Jira, and more.</p>
+                                    <a href="#" class="text-sm text-[#00F5FF] hover:underline">
+                                        View Available Integrations →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </article>
+
+            <!-- Footer Navigation -->
+            <div class="flex items-center justify-between pt-8 border-t border-[#2A1548] mt-12">
+                <a href="#" class="flex items-center gap-2 text-[#9D7FB8] hover:text-white transition-colors">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Previous: Installation</span>
+                </a>
+                <a href="#" class="flex items-center gap-2 text-[#9D7FB8] hover:text-white transition-colors">
+                    <span>Next: Configuration</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Related Articles -->
+            <div class="mt-12">
+                <h3 class="text-xl font-bold mb-6">Related Articles</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    <a href="#" class="wiki-card bg-[#150828] rounded-lg p-4 block">
+                        <div class="text-[#FF0080] mb-2">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2 text-sm">Configuration Reference</h4>
+                        <p class="text-xs text-[#9D7FB8]">Complete configuration options</p>
+                    </a>
+                    <a href="#" class="wiki-card bg-[#150828] rounded-lg p-4 block">
+                        <div class="text-[#B721FF] mb-2">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2 text-sm">Agent System Deep Dive</h4>
+                        <p class="text-xs text-[#9D7FB8]">Understanding AI agents</p>
+                    </a>
+                    <a href="#" class="wiki-card bg-[#150828] rounded-lg p-4 block">
+                        <div class="text-[#00F5FF] mb-2">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2 text-sm">API Reference</h4>
+                        <p class="text-xs text-[#9D7FB8]">REST API documentation</p>
+                    </a>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar - Page Info -->
+        <aside class="w-64 flex-shrink-0">
+            <div class="sticky top-24 space-y-6">
+                <!-- Contributors -->
+                <div class="wiki-card bg-[#150828] rounded-lg p-4">
+                    <h3 class="text-sm font-semibold mb-4">Contributors</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-[#B721FF] to-[#FF0080] rounded-full"></div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Sarah Kim</p>
+                                <p class="text-xs text-[#9D7FB8]">12 edits</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-[#00F5FF] to-[#B721FF] rounded-full"></div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Alex Chen</p>
+                                <p class="text-xs text-[#9D7FB8]">8 edits</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-[#FF0080] to-[#FF7B00] rounded-full"></div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Jordan Lee</p>
+                                <p class="text-xs text-[#9D7FB8]">5 edits</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page Stats -->
+                <div class="wiki-card bg-[#150828] rounded-lg p-4">
+                    <h3 class="text-sm font-semibold mb-4">Page Stats</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#9D7FB8]">Views</span>
+                            <span class="font-medium">1,234</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#9D7FB8]">Revisions</span>
+                            <span class="font-medium">25</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#9D7FB8]">Created</span>
+                            <span class="font-medium">Jan 15</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#9D7FB8]">Last update</span>
+                            <span class="font-medium">2h ago</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Helpful? -->
+                <div class="wiki-card bg-[#150828] rounded-lg p-4">
+                    <h3 class="text-sm font-semibold mb-4">Was this helpful?</h3>
+                    <div class="flex gap-2">
+                        <button class="flex-1 px-4 py-2 bg-[#2A1548] hover:bg-green-500/20 hover:border-green-500/30 border border-[#2A1548] rounded-lg transition-all text-sm">
+                            <i class="fas fa-thumbs-up mr-2"></i>Yes
+                        </button>
+                        <button class="flex-1 px-4 py-2 bg-[#2A1548] hover:bg-red-500/20 hover:border-red-500/30 border border-[#2A1548] rounded-lg transition-all text-sm">
+                            <i class="fas fa-thumbs-down mr-2"></i>No
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Help -->
+                <div class="wiki-card bg-[#150828] rounded-lg p-4">
+                    <h3 class="text-sm font-semibold mb-3">Need Help?</h3>
+                    <a href="#" class="block text-sm text-[#FF0080] hover:underline mb-2">
+                        <i class="fas fa-question-circle mr-2"></i>Ask the Community
+                    </a>
+                    <a href="#" class="block text-sm text-[#B721FF] hover:underline mb-2">
+                        <i class="fas fa-bug mr-2"></i>Report an Issue
+                    </a>
+                    <a href="#" class="block text-sm text-[#00F5FF] hover:underline">
+                        <i class="fas fa-edit mr-2"></i>Suggest an Edit
+                    </a>
+                </div>
+            </div>
+        </aside>
+    </div>
+</body>
+</html>

@@ -1,15 +1,16 @@
 # 04 - UI Architecture & Design System
 
-**Version:** 1.0
+**Version:** 2.0
 **Last Updated:** 2025-10-24
 **Status:** Ready for Implementation
-**Design System:** Neon Brights (Cyberpunk Aesthetic)
+**Design System:** Multi-Theme System (4 Themes: Desert Stone, Neon Vibes, Earthy, Dark Neumorphic Coral)
 
 ---
 
 ## 📋 Quick Navigation
 
 - [Design System Reference](#design-system-reference)
+- [Theme System](#theme-system) ⭐ **NEW!**
 - [Tailwind Configuration](#tailwind-configuration)
 - [Component Library Roadmap](#component-library-roadmap)
 - [Page Implementation Guide](#page-implementation-guide)
@@ -50,6 +51,223 @@ All design specifications, mockups, and visual references are located in the [`m
 5. `mockups/05-security-neon.html` - Security dashboard
 6. `mockups/06-agent-personas-neon.html` - Agent management
 7. `mockups/07-command-palette-neon.html` - ⌘K command interface
+
+---
+
+## 🎨 Theme System
+
+ProjectPulse supports **4 distinct themes** with seamless switching and automatic persistence.
+
+### Available Themes
+
+| Theme | Mode | Primary Colors | Style | Best For |
+|-------|------|----------------|-------|----------|
+| **Desert Stone** (default) ⭐ | Light | Warm sandy browns, neutrals | Soft neumorphic | Professional, calm work |
+| **Neon Vibes** | Dark | Hot pink, royal blue, cyan | Vibrant neon glows | Energetic, bold interface |
+| **Earthy** | Dark | Olive, bone, smoky blacks | Minimal, muted | Grounded, minimal design |
+| **Dark Neumorphic Coral** | Dark | Coral, slate grays | Geometric, modern | Sophisticated, playful |
+
+### Theme Architecture
+
+**How it works:**
+1. **CSS Custom Properties** - All colors defined as `--color-*` variables
+2. **Data Attributes** - Theme applied via `<html data-theme="desert">`
+3. **Tailwind Classes** - Use semantic names (e.g., `bg-background-darkest`)
+4. **React Context** - `ThemeProvider` manages state
+5. **Persistence** - localStorage + database (optional)
+
+**File Structure:**
+```
+apps/web/
+├── lib/
+│   ├── themes/
+│   │   └── definitions.ts          # TypeScript theme definitions
+│   └── theme-provider.tsx          # React context provider
+├── styles/
+│   └── themes/
+│       ├── desert.css              # Desert Stone theme
+│       ├── neon.css                # Neon Vibes theme
+│       ├── earthy.css              # Earthy theme
+│       └── coral.css               # Dark Neumorphic Coral theme
+├── components/
+│   ├── ThemeSwitcher.tsx           # UI for switching themes
+│   └── ThemePreview.tsx            # Visual theme previews
+└── app/
+    ├── layout.tsx                  # Wraps app with ThemeProvider
+    └── api/
+        └── preferences/
+            └── route.ts            # API for theme persistence
+```
+
+### Using Themes in Components
+
+**Automatic theme adaptation:**
+```typescript
+import { useTheme } from '@/lib/theme-provider';
+
+export function MyComponent() {
+  const { theme, currentTheme, setTheme } = useTheme();
+
+  return (
+    <div className="bg-background-medium text-text-primary">
+      {/* Colors automatically adapt to current theme */}
+      <h1 className="text-accent-primary">Current theme: {currentTheme.name}</h1>
+
+      {/* Access theme metadata */}
+      {currentTheme.mode === 'dark' && <MoonIcon />}
+    </div>
+  );
+}
+```
+
+**Theme-specific styling:**
+```typescript
+// Conditional rendering based on theme
+{theme === 'desert' && <NeumorphicCard />}
+{theme === 'neon' && <NeonGlowCard />}
+
+// Or use data attribute in CSS
+/* Custom styles for specific themes */
+[data-theme="coral"] .special-card {
+  background: var(--gradient-card);
+  box-shadow: var(--shadow-hexagon);
+}
+```
+
+### Theme Switching
+
+**User Interface:**
+- Theme switcher located in sidebar (always visible)
+- Shows theme name, description, and visual preview
+- Instant switching with smooth transitions
+
+**Programmatic switching:**
+```typescript
+import { useTheme } from '@/lib/theme-provider';
+
+const { setTheme } = useTheme();
+
+// Switch to a different theme
+setTheme('neon');  // 'desert' | 'neon' | 'earthy' | 'coral'
+```
+
+### Theme Persistence
+
+**localStorage (Client-side):**
+- Theme choice saved automatically
+- Persists across browser sessions
+- No authentication required
+
+**Database (Server-side):**
+- Optional sync via `/api/preferences`
+- Persists across devices
+- Requires user authentication (future)
+
+**Preference priority:**
+1. User selection (via ThemeSwitcher)
+2. localStorage value
+3. Database value (if authenticated)
+4. Default (Desert Stone)
+
+### Creating Custom Themes
+
+**Step 1: Define colors** (`apps/web/lib/themes/definitions.ts`)
+```typescript
+const myTheme: ThemeDefinition = {
+  id: 'mytheme',
+  name: 'My Custom Theme',
+  description: 'Custom theme description',
+  mode: 'dark', // or 'light'
+  colors: {
+    bg: { darkest: '#...', dark: '#...', medium: '#...', light: '#...' },
+    accent: { primary: '#...', secondary: '#...', tertiary: '#...' },
+    text: { primary: '#...', secondary: '#...', tertiary: '#...', muted: '#...' },
+    // ... semantic and priority colors
+  },
+  effects: { /* shadows, glows, gradients */ }
+};
+```
+
+**Step 2: Create CSS file** (`apps/web/styles/themes/mytheme.css`)
+```css
+[data-theme="mytheme"] {
+  --color-bg-darkest: #...;
+  --color-bg-dark: #...;
+  /* ... all CSS variables */
+}
+```
+
+**Step 3: Import in globals.css**
+```css
+@import '../styles/themes/mytheme.css';
+```
+
+**Step 4: Add to ThemeProvider**
+```typescript
+// In lib/theme-provider.tsx
+const themes = [
+  // ... existing themes
+  { id: 'mytheme', name: 'My Custom Theme', description: '...', mode: 'dark' }
+];
+```
+
+### Theme Guidelines
+
+**Color Variables (Required):**
+- 4 background layers: `--color-bg-{darkest,dark,medium,light}`
+- 3 accent colors: `--color-accent-{primary,secondary,tertiary}`
+- 4 text colors: `--color-text-{primary,secondary,tertiary,muted}`
+- 4 semantic colors: `--color-{success,warning,error,info}`
+- 4 priority colors: `--color-priority-{critical,high,medium,low}`
+
+**Shadow Variables (Theme-specific):**
+- Neumorphic: `--shadow-neu-{float,inset,dark}` (for Desert/Coral)
+- Glow: `--glow-{primary,secondary,tertiary}` (all themes)
+- Regular: `--shadow-regular` (fallback)
+
+**Gradient Variables:**
+- `--gradient-primary` - Main gradient (buttons, accents)
+- `--gradient-secondary` - Secondary gradient
+- `--gradient-background` - Body background
+
+### Accessibility Considerations
+
+**Contrast Requirements:**
+- Desert Stone (light): 7:1+ contrast (WCAG AAA)
+- Dark themes: 7:1+ contrast for text on dark backgrounds
+- All interactive elements: 4.5:1+ minimum
+
+**Testing:**
+```bash
+# Use WebAIM Contrast Checker
+https://webaim.org/resources/contrastchecker/
+
+# For each theme, verify:
+# - Text on background (primary, secondary, tertiary)
+# - Buttons (all variants)
+# - Links and interactive elements
+# - Priority badges
+```
+
+**Dark Mode Handling:**
+- Tailwind `dark:` classes apply automatically for dark themes
+- Desert Stone (light mode): `dark:` classes are NOT applied
+- Neon, Earthy, Coral (dark modes): `dark:` classes ARE applied
+
+### Theme Testing Checklist
+
+Before adding a new theme:
+- [ ] All 30+ CSS variables defined
+- [ ] Contrast ratios meet WCAG AA (4.5:1+)
+- [ ] Preview component created
+- [ ] Tested with all major components (Button, Card, Input, Badge)
+- [ ] Tested on Dashboard, Issues, Knowledge Base pages
+- [ ] Neumorphic shadows work (if applicable)
+- [ ] Glow effects work (if applicable)
+- [ ] Animations adapt correctly
+- [ ] No flash of unstyled content (FOUC)
+- [ ] localStorage persistence works
+- [ ] Database sync works (if enabled)
 
 ---
 

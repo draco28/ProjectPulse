@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Command Palette (Neon)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: {
+                            darkest: '#0A0118',
+                            dark: '#150828',
+                            medium: '#1F0D3A',
+                            light: '#2A1548',
+                        },
+                        neon: {
+                            pink: '#FF0080',
+                            purple: '#B721FF',
+                            cyan: '#00F5FF',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background: #0A0118;
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+        }
+        .command-item:hover, .command-item.selected {
+            background: rgba(255, 0, 128, 0.15);
+            border-left: 3px solid #FF0080;
+        }
+        .backdrop {
+            backdrop-filter: blur(12px);
+            background: rgba(10, 1, 24, 0.85);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Backdrop -->
+    <div class="backdrop fixed inset-0 z-40"></div>
+
+    <!-- Command Palette -->
+    <div class="fixed inset-0 z-50 flex items-start justify-center pt-32 px-4">
+        <div class="w-full max-w-2xl bg-[#1F0D3A] border-2 border-[#FF0080]/30 rounded-2xl shadow-[0_0_60px_rgba(255,0,128,0.4)] overflow-hidden">
+            <!-- Search Input -->
+            <div class="p-6 border-b border-[#2A1548]">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-search text-[#FF0080] text-xl"></i>
+                    <input 
+                        type="text" 
+                        placeholder="Type a command or search..." 
+                        class="flex-1 bg-transparent text-white text-xl focus:outline-none placeholder-[#9D7FB8]"
+                        autofocus
+                        value=""
+                    >
+                    <kbd class="px-3 py-1.5 text-xs bg-[#2A1548] text-[#9D7FB8] rounded font-mono border border-[#2A1548]">ESC</kbd>
+                </div>
+            </div>
+
+            <!-- Command List -->
+            <div class="max-h-96 overflow-y-auto">
+                <!-- Quick Actions Group -->
+                <div class="p-4">
+                    <div class="text-xs font-semibold text-[#E0B3FF] uppercase px-3 py-2 flex items-center gap-2">
+                        <i class="fas fa-bolt text-[#FF0080]"></i>
+                        Quick Actions
+                    </div>
+                    <div class="space-y-1">
+                        <div class="command-item selected flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <div class="w-10 h-10 bg-[#FF0080]/20 rounded-lg flex items-center justify-center border border-[#FF0080]/30">
+                                <i class="fas fa-plus text-[#FF0080]"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Create New Issue</p>
+                                <p class="text-[#9D7FB8] text-sm">Open issue creation form</p>
+                            </div>
+                            <kbd class="px-2 py-1 text-xs bg-[#2A1548] text-[#9D7FB8] rounded font-mono">⌘N</kbd>
+                        </div>
+
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <div class="w-10 h-10 bg-[#B721FF]/20 rounded-lg flex items-center justify-center border border-[#B721FF]/30">
+                                <i class="fas fa-lightbulb text-[#B721FF]"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Add Knowledge Item</p>
+                                <p class="text-[#9D7FB8] text-sm">Save information to knowledge base</p>
+                            </div>
+                        </div>
+
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <div class="w-10 h-10 bg-green-400/20 rounded-lg flex items-center justify-center border border-green-400/30">
+                                <i class="fas fa-book text-green-400"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Create Wiki Page</p>
+                                <p class="text-[#9D7FB8] text-sm">Start a new documentation page</p>
+                            </div>
+                        </div>
+
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <div class="w-10 h-10 bg-yellow-400/20 rounded-lg flex items-center justify-center border border-yellow-400/30">
+                                <i class="fas fa-shield-alt text-yellow-400"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Run Security Scan</p>
+                                <p class="text-[#9D7FB8] text-sm">Scan project with Semgrep</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Personas Group -->
+                <div class="p-4 border-t border-[#2A1548]">
+                    <div class="text-xs font-semibold text-[#E0B3FF] uppercase px-3 py-2 flex items-center gap-2">
+                        <i class="fas fa-robot text-[#B721FF]"></i>
+                        Agent Personas
+                    </div>
+                    <div class="space-y-1">
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <div class="w-10 h-10 bg-[#00F5FF] rounded-lg flex items-center justify-center text-lg shadow-[0_0_20px_rgba(0,245,255,0.3)]">
+                                🔍
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Activate Code Reviewer</p>
+                                <p class="text-[#9D7FB8] text-sm">Review code for best practices and bugs</p>
+                            </div>
+                            <span class="text-xs bg-[#00F5FF]/20 text-[#00F5FF] px-2 py-1 rounded-full border border-[#00F5FF]/30">Active</span>
+                        </div>
+
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <div class="w-10 h-10 bg-[#B721FF] rounded-lg flex items-center justify-center text-lg shadow-[0_0_20px_rgba(183,33,255,0.3)]">
+                                🐛
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Activate Bug Hunter</p>
+                                <p class="text-[#9D7FB8] text-sm">Find and diagnose bugs systematically</p>
+                            </div>
+                        </div>
+
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <div class="w-10 h-10 bg-[#B721FF] rounded-lg flex items-center justify-center text-lg shadow-[0_0_20px_rgba(183,33,255,0.3)]">
+                                🏗️
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Activate Feature Architect</p>
+                                <p class="text-[#9D7FB8] text-sm">Design new features and architecture</p>
+                            </div>
+                        </div>
+
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <div class="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center text-lg shadow-[0_0_20px_rgba(255,214,0,0.3)]">
+                                🛡️
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Activate Security Auditor</p>
+                                <p class="text-[#9D7FB8] text-sm">Audit code for security vulnerabilities</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Group -->
+                <div class="p-4 border-t border-[#2A1548]">
+                    <div class="text-xs font-semibold text-[#E0B3FF] uppercase px-3 py-2 flex items-center gap-2">
+                        <i class="fas fa-compass text-[#00F5FF]"></i>
+                        Navigation
+                    </div>
+                    <div class="space-y-1">
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <i class="fas fa-home text-[#9D7FB8] w-10 text-center text-lg"></i>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Go to Dashboard</p>
+                            </div>
+                            <kbd class="px-2 py-1 text-xs bg-[#2A1548] text-[#9D7FB8] rounded font-mono">⌘D</kbd>
+                        </div>
+
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <i class="fas fa-tasks text-[#9D7FB8] w-10 text-center text-lg"></i>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Go to Issues</p>
+                            </div>
+                            <kbd class="px-2 py-1 text-xs bg-[#2A1548] text-[#9D7FB8] rounded font-mono">⌘I</kbd>
+                        </div>
+
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <i class="fas fa-lightbulb text-[#9D7FB8] w-10 text-center text-lg"></i>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Go to Knowledge Base</p>
+                            </div>
+                            <kbd class="px-2 py-1 text-xs bg-[#2A1548] text-[#9D7FB8] rounded font-mono">⌘K</kbd>
+                        </div>
+
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <i class="fas fa-book text-[#9D7FB8] w-10 text-center text-lg"></i>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Go to Wiki</p>
+                            </div>
+                            <kbd class="px-2 py-1 text-xs bg-[#2A1548] text-[#9D7FB8] rounded font-mono">⌘W</kbd>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Group -->
+                <div class="p-4 border-t border-[#2A1548]">
+                    <div class="text-xs font-semibold text-[#E0B3FF] uppercase px-3 py-2 flex items-center gap-2">
+                        <i class="fas fa-sliders-h text-[#FF0080]"></i>
+                        Settings
+                    </div>
+                    <div class="space-y-1">
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <i class="fas fa-moon text-[#9D7FB8] w-10 text-center text-lg"></i>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Toggle Theme</p>
+                            </div>
+                            <span class="text-xs text-[#9D7FB8]">Dark</span>
+                        </div>
+
+                        <div class="command-item flex items-center gap-4 px-3 py-3 rounded-lg cursor-pointer transition-all">
+                            <i class="fas fa-cog text-[#9D7FB8] w-10 text-center text-lg"></i>
+                            <div class="flex-1">
+                                <p class="text-white font-semibold">Open Settings</p>
+                            </div>
+                            <kbd class="px-2 py-1 text-xs bg-[#2A1548] text-[#9D7FB8] rounded font-mono">⌘,</kbd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-[#2A1548] bg-[#150828]">
+                <div class="flex items-center justify-between text-xs text-[#9D7FB8]">
+                    <div class="flex items-center gap-4">
+                        <span><kbd class="px-1.5 py-0.5 bg-[#2A1548] rounded font-mono">↑</kbd><kbd class="px-1.5 py-0.5 bg-[#2A1548] rounded ml-1 font-mono">↓</kbd> to navigate</span>
+                        <span><kbd class="px-1.5 py-0.5 bg-[#2A1548] rounded font-mono">↵</kbd> to select</span>
+                        <span><kbd class="px-1.5 py-0.5 bg-[#2A1548] rounded font-mono">ESC</kbd> to close</span>
+                    </div>
+                    <span class="text-[#E0B3FF]">Type to search...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Keyboard navigation
+        let selectedIndex = 0;
+        const items = document.querySelectorAll('.command-item');
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                items[selectedIndex].classList.remove('selected');
+                selectedIndex = (selectedIndex + 1) % items.length;
+                items[selectedIndex].classList.add('selected');
+                items[selectedIndex].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                items[selectedIndex].classList.remove('selected');
+                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                items[selectedIndex].classList.add('selected');
+                items[selectedIndex].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'Enter') {
+                alert('Would execute: ' + items[selectedIndex].querySelector('p').textContent);
+            } else if (e.key === 'Escape') {
+                window.close();
+            }
+        });
+
+        // Click selection
+        items.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                items[selectedIndex].classList.remove('selected');
+                selectedIndex = index;
+                item.classList.add('selected');
+                alert('Would execute: ' + item.querySelector('p').textContent);
+            });
+        });
+    </script>
+</body>
+</html>

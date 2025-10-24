@@ -1,0 +1,77 @@
+/**
+ * Earthy Theme - Dark Mode
+ *
+ * Muted earth tones with natural, grounded aesthetic
+ * Perfect for minimal, professional interfaces
+ */
+
+[data-theme="earthy"] {
+  /* ========================================================================
+     BACKGROUND LAYERS
+     ======================================================================== */
+  --color-bg-darkest: #11120D;   /* Smoky */
+  --color-bg-dark: #1A1B15;      /* Sidebar (slightly lighter) */
+  --color-bg-medium: #26271F;    /* Cards */
+  --color-bg-light: #3E3D35;     /* Olive Dark (hover) */
+
+  /* ========================================================================
+     ACCENT COLORS
+     ======================================================================== */
+  --color-accent-primary: #D8CFBC;   /* Bone */
+  --color-accent-secondary: #6B6A5D; /* Olive Light */
+  --color-accent-tertiary: #565449;  /* Olive */
+
+  /* ========================================================================
+     TEXT COLORS
+     ======================================================================== */
+  --color-text-primary: #FFFBF4;   /* Floral (brightest) */
+  --color-text-secondary: #D8CFBC; /* Bone */
+  --color-text-tertiary: #6B6A5D;  /* Olive Light */
+  --color-text-muted: #565449;     /* Olive */
+
+  /* ========================================================================
+     SEMANTIC COLORS
+     ======================================================================== */
+  --color-success: #8B9775;   /* Sage green */
+  --color-warning: #B8956A;   /* Bronze */
+  --color-error: #C17B5C;     /* Terracotta */
+  --color-info: #6B6A5D;      /* Olive Light */
+
+  /* ========================================================================
+     PRIORITY COLORS (for issue tracker)
+     ======================================================================== */
+  --color-priority-critical: #C17B5C;  /* Terracotta */
+  --color-priority-high: #B8956A;      /* Bronze */
+  --color-priority-medium: #8B9775;    /* Sage */
+  --color-priority-low: #6B6A5D;       /* Olive Light */
+
+  /* ========================================================================
+     SHADOWS
+     ======================================================================== */
+  --shadow-neu-float: 0 8px 20px rgba(0, 0, 0, 0.4);
+  --shadow-neu-inset: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-neu-dark: 0 12px 30px rgba(0, 0, 0, 0.6);
+  --shadow-regular: 0 8px 20px rgba(0, 0, 0, 0.4);
+
+  /* ========================================================================
+     SUBTLE GLOW EFFECTS
+     ======================================================================== */
+  --glow-primary: 0 0 10px rgba(216, 207, 188, 0.3);
+  --glow-secondary: 0 0 25px rgba(216, 207, 188, 0.5);
+  --glow-tertiary: 0 0 5px rgba(216, 207, 188, 0.2);
+
+  /* ========================================================================
+     GRADIENTS
+     ======================================================================== */
+  --gradient-primary: linear-gradient(135deg, #565449 0%, #6B6A5D 50%, #D8CFBC 100%);
+  --gradient-secondary: linear-gradient(135deg, #D8CFBC 0%, #FFFBF4 100%);
+  --gradient-background: #11120D; /* Solid dark background */
+  --gradient-icon-earth: linear-gradient(135deg, #6B6A5D 0%, #D8CFBC 100%);
+
+  /* ========================================================================
+     BORDERS
+     ======================================================================== */
+  --border-subtle: 1px solid rgba(86, 84, 73, 0.2);
+  --border-medium: 1px solid rgba(86, 84, 73, 0.3);
+  --border-strong: 1px solid #565449;
+}

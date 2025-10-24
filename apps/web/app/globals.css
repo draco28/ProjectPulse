@@ -1,0 +1,259 @@
+/**
+ * ProjectPulse Global Styles
+ *
+ * Imports fonts, themes, and Tailwind layers
+ */
+
+/* ============================================================================
+   FONT IMPORTS
+   ========================================================================== */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/600.css';
+
+/* ============================================================================
+   THEME IMPORTS
+   ========================================================================== */
+@import '../styles/themes/desert.css';
+@import '../styles/themes/neon.css';
+@import '../styles/themes/earthy.css';
+@import '../styles/themes/coral.css';
+
+/* ============================================================================
+   TAILWIND LAYERS
+   ========================================================================== */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   BASE STYLES
+   ========================================================================== */
+@layer base {
+  /* Default theme variables (Desert Stone - Light Mode) */
+  :root {
+    /* Backgrounds */
+    --color-bg-darkest: #FAF9F6;
+    --color-bg-dark: #F4F1EA;
+    --color-bg-medium: #E6DAC8;
+    --color-bg-light: #CBB9A4;
+
+    /* Accents */
+    --color-accent-primary: #A48D78;
+    --color-accent-secondary: #8B7766;
+    --color-accent-tertiary: #6B5D52;
+
+    /* Text */
+    --color-text-primary: #6B5D52;
+    --color-text-secondary: #8B7766;
+    --color-text-tertiary: #A48D78;
+    --color-text-muted: #CBB9A4;
+
+    /* Semantic */
+    --color-success: #9BA785;
+    --color-warning: #B8956A;
+    --color-error: #C17B5C;
+    --color-info: #8B7766;
+
+    /* Priority */
+    --color-priority-critical: #C17B5C;
+    --color-priority-high: #B8956A;
+    --color-priority-medium: #9BA785;
+    --color-priority-low: #CBB9A4;
+
+    /* Shadows */
+    --shadow-neu-float: 12px 12px 24px rgba(164, 141, 120, 0.25), -12px -12px 24px rgba(255, 255, 255, 0.9), inset 2px 2px 4px rgba(255, 255, 255, 0.5);
+    --shadow-neu-inset: inset 4px 4px 8px rgba(164, 141, 120, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.9);
+    --shadow-neu-dark: 10px 10px 20px rgba(107, 93, 82, 0.4), -10px -10px 20px rgba(203, 185, 164, 0.3), inset 2px 2px 4px rgba(255, 255, 255, 0.1);
+    --shadow-regular: 0 8px 32px 0 rgba(164, 141, 120, 0.2);
+
+    /* Glows */
+    --glow-primary: 0 0 20px rgba(164, 141, 120, 0.4);
+    --glow-secondary: 0 0 40px rgba(164, 141, 120, 0.8);
+    --glow-tertiary: 0 0 10px rgba(164, 141, 120, 0.2);
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #A48D78 0%, #8B7766 100%);
+    --gradient-secondary: linear-gradient(135deg, #CBB9A4 0%, #E6DAC8 100%);
+    --gradient-background: linear-gradient(135deg, #FAF9F6 0%, #F4F1EA 50%, #E6DAC8 100%);
+
+    /* Borders */
+    --border-subtle: 1px solid rgba(203, 185, 164, 0.3);
+    --border-medium: 1px solid rgba(164, 141, 120, 0.4);
+    --border-strong: 1px solid #A48D78;
+  }
+
+  /* Body styles */
+  body {
+    @apply font-sans antialiased;
+    background: var(--gradient-background);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+  }
+
+  /* Code and pre elements */
+  code,
+  pre {
+    @apply font-mono;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Focus visible outline */
+  *:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* ============================================================================
+   COMPONENT LAYER
+   ========================================================================== */
+@layer components {
+  /* Neumorphic utilities */
+  .neu-float {
+    box-shadow: var(--shadow-neu-float);
+  }
+
+  .neu-float:hover {
+    transform: translateY(-4px);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .neu-inset {
+    box-shadow: var(--shadow-neu-inset);
+  }
+
+  .neu-dark {
+    box-shadow: var(--shadow-neu-dark);
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+
+  .card-hover:hover {
+    @apply -translate-y-1;
+    box-shadow: var(--glow-primary);
+  }
+
+  /* Neon border utilities */
+  .neon-border {
+    border: var(--border-medium);
+  }
+
+  .neon-border:hover {
+    border: var(--border-strong);
+  }
+
+  /* Smooth transitions */
+  .smooth-transition {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Glass effect (for coral theme) */
+  .glass-effect {
+    background: rgba(42, 42, 42, 0.4);
+    backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* ============================================================================
+   UTILITY LAYER
+   ========================================================================== */
+@layer utilities {
+  /* Gradient text */
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Pulse indicator (for real-time activity) */
+  .pulse-indicator {
+    @apply relative;
+    width: 10px;
+    height: 10px;
+  }
+
+  .pulse-dot {
+    @apply absolute w-full h-full rounded-full;
+    background: var(--color-accent-primary);
+  }
+
+  .pulse-ring {
+    @apply absolute w-full h-full rounded-full;
+    border: 2px solid var(--color-accent-primary);
+    animation: ripple 2s infinite;
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Hexagon shape (for coral theme) */
+  .hexagon-shape {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+}
+
+/* ============================================================================
+   CUSTOM SCROLLBAR
+   ========================================================================== */
+
+/* Works in Chrome, Edge, and Safari */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-dark);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gradient-primary);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-primary);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent-primary) var(--color-bg-dark);
+}
