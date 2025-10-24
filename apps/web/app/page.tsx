@@ -8,16 +8,14 @@ export default function HomePage() {
         <header className="mb-12">
           <h1 className="gradient-text mb-2 text-5xl font-bold">ProjectPulse</h1>
           <p className="text-xl text-text-secondary">
-            Your Project's Heartbeat - AI-Powered Development Hub
+            Your Project&apos;s Heartbeat - AI-Powered Development Hub
           </p>
         </header>
 
         {/* Theme Switcher Demo */}
         <section className="mb-12">
           <div className="rounded-xl bg-background-dark p-6 shadow-neu-float">
-            <h2 className="mb-4 text-2xl font-semibold text-text-primary">
-              🎨 Theme System Demo
-            </h2>
+            <h2 className="mb-4 text-2xl font-semibold text-text-primary">🎨 Theme System Demo</h2>
             <p className="mb-6 text-text-secondary">
               Try switching between different themes using the switcher below. Each theme has its
               own unique color palette and visual effects!

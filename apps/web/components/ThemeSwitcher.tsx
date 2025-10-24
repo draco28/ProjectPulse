@@ -39,7 +39,7 @@ export function ThemeSwitcher() {
       {/* Trigger Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-background-light text-text-primary"
+        className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-text-primary transition-all hover:bg-background-light"
       >
         {/* Palette Icon */}
         <svg
@@ -76,26 +76,26 @@ export function ThemeSwitcher() {
       {/* Dropdown */}
       {open && (
         <div
-          className="absolute bottom-full left-0 right-0 mb-2 p-3 rounded-xl shadow-neu-float bg-background-dark border neon-border z-50"
+          className="neon-border absolute bottom-full left-0 right-0 z-50 mb-2 rounded-xl border bg-background-dark p-3 shadow-neu-float"
           style={{ minWidth: '320px' }}
         >
           <div className="space-y-3">
-            <div className="text-sm font-semibold text-text-primary px-2">Choose Theme</div>
+            <div className="px-2 text-sm font-semibold text-text-primary">Choose Theme</div>
 
-            <div className="grid grid-cols-1 gap-2 max-h-96 overflow-y-auto">
+            <div className="grid max-h-96 grid-cols-1 gap-2 overflow-y-auto">
               {themes.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => {
-                    setTheme(t.id as any);
+                    setTheme(t.id);
                     setOpen(false);
                   }}
                   className={`
-                    group relative p-3 rounded-lg border-2 transition-all text-left
+                    group relative rounded-lg border-2 p-3 text-left transition-all
                     ${
                       theme === t.id
-                        ? 'border-accent-primary bg-accent-primary/10'
-                        : 'border-background-light hover:border-accent-primary/50 hover:bg-background-medium'
+                        ? 'bg-accent-primary/10 border-accent-primary'
+                        : 'hover:border-accent-primary/50 border-background-light hover:bg-background-medium'
                     }
                   `}
                 >
@@ -103,15 +103,15 @@ export function ThemeSwitcher() {
                     {/* Theme Info */}
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="font-semibold text-sm text-text-primary">{t.name}</div>
+                        <div className="text-sm font-semibold text-text-primary">{t.name}</div>
                         <div className="text-xs text-text-muted">{t.description}</div>
-                        <div className="text-xs text-text-tertiary mt-1">
+                        <div className="mt-1 text-xs text-text-tertiary">
                           {t.mode === 'light' ? '☀️ Light Mode' : '🌙 Dark Mode'}
                         </div>
                       </div>
                       {theme === t.id && (
                         <svg
-                          className="h-5 w-5 text-accent-primary flex-shrink-0"
+                          className="h-5 w-5 flex-shrink-0 text-accent-primary"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
