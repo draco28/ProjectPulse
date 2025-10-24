@@ -181,6 +181,31 @@ This document catalogs all specialized skills available for DevHub development. 
 
 ---
 
+### 🌿 Git Collaboration (1 skill)
+
+#### 9. Git Workflow Best Practices
+
+**File:** `.claude/skills/git-collaboration/git-workflow-best-practices.md`
+
+**When to use:**
+
+- Planning branching strategy for features
+- Deciding which branch type to use (api/_, ui/_, feature/\*)
+- Writing commit messages
+- Creating pull requests
+- Collaborating with team
+- Learning professional Git workflows
+
+**Key concepts:**
+
+- 3-track branching strategy (api/_, ui/_, feature/\*)
+- Commit message conventions
+- PR workflow and review process
+- Pre-commit checklists
+- Merge strategies
+
+---
+
 ## Skill Usage Matrix
 
 ### By Agent
@@ -195,14 +220,15 @@ This document catalogs all specialized skills available for DevHub development. 
 
 ### By Workflow Stage
 
-| Stage              | Skills to Use                                       |
-| ------------------ | --------------------------------------------------- |
-| **Planning**       | API Design Patterns, Defense in Depth (prevention)  |
-| **Implementation** | TDD, Systematic Debugging                           |
-| **Testing**        | TDD, API Testing Patterns                           |
-| **Debugging**      | Systematic Debugging, Root Cause Tracing            |
-| **Review**         | Verification Before Completion, Defense in Depth    |
-| **Release**        | Changelog Generator, Verification Before Completion |
+| Stage              | Skills to Use                                                    |
+| ------------------ | ---------------------------------------------------------------- |
+| **Planning**       | API Design Patterns, Defense in Depth (prevention), Git Workflow |
+| **Implementation** | TDD, Systematic Debugging, Git Workflow                          |
+| **Testing**        | TDD, API Testing Patterns                                        |
+| **Debugging**      | Systematic Debugging, Root Cause Tracing                         |
+| **Review**         | Verification Before Completion, Defense in Depth                 |
+| **Release**        | Changelog Generator, Verification Before Completion              |
+| **Branching**      | Git Workflow Best Practices                                      |
 
 ---
 
@@ -229,6 +255,14 @@ This document catalogs all specialized skills available for DevHub development. 
 **"Preparing a release..."**
 → Use **Changelog Generator**
 → Run **Verification Before Completion**
+
+**"Which branch should I use?"**
+→ Use **Git Workflow Best Practices**
+→ Check the 3-track strategy (api/_, ui/_, feature/\*)
+
+**"How to write a good commit message?"**
+→ Use **Git Workflow Best Practices**
+→ Follow conventional commits format
 
 ---
 
@@ -268,13 +302,14 @@ To add a new skill:
 
 ## Skill Statistics
 
-- **Total Skills:** 8
-- **Categories:** 5
+- **Total Skills:** 9
+- **Categories:** 6
 - **Debugging:** 2
 - **Testing:** 2
 - **Validation:** 2
 - **Architecture:** 1
 - **Documentation:** 1
+- **Git Collaboration:** 1
 
 ## Skill Versioning
 
@@ -282,5 +317,5 @@ All skills are currently at **version 1.0**. As patterns evolve or new technique
 
 ---
 
-**Last Updated:** January 23, 2025
-**Total Coverage:** All workflow stages covered
+**Last Updated:** October 24, 2025
+**Total Coverage:** All workflow stages covered + Git collaboration
