@@ -716,4 +716,69 @@ git stash                     # Save changes temporarily
 
 ---
 
+## Context Preservation After Commits
+
+**⚠️ IMPORTANT:** To prevent context loss between Claude Code sessions, update these files after EVERY phase completion:
+
+### After Completing a Phase/Feature
+
+1. **Create Completion Document**
+
+   ```bash
+   # Use the template
+   cp COMPLETION_TEMPLATE.md WEEK_X_DAY_Y_COMPLETION.md
+   # Fill in all sections
+   ```
+
+2. **Update STATUS.md** (1-page snapshot)
+   - Update "Last Completed" section
+   - Update "Current Phase" section
+   - Update "Git Status" section
+   - Update "Overall Progress" section
+
+3. **Update DEVELOPMENT_PLAN.md Header**
+   - Update "CURRENT STATUS" section at the very top
+   - Change "Last Completed" to your phase
+   - Change "Current Phase" to next phase
+   - Update "Next Immediate Task"
+
+4. **Commit All Context Files**
+   ```bash
+   git add STATUS.md docs/DEVELOPMENT_PLAN.md WEEK_X_DAY_Y_COMPLETION.md
+   git commit -m "docs: Update status after [phase name] completion"
+   git push origin your-branch
+   ```
+
+### Why This Matters
+
+**Without these updates:**
+
+- ❌ Next session starts with NO context
+- ❌ Claude doesn't know what was completed
+- ❌ 10-20 minutes wasted rebuilding context
+- ❌ Risk of redoing work or missing steps
+
+**With these updates:**
+
+- ✅ Next session starts in < 2 minutes
+- ✅ Claude knows exactly where you left off
+- ✅ Zero context loss
+- ✅ Clear continuation path
+
+### Quick Checklist
+
+After every completion, verify:
+
+- [ ] Completion document created (from COMPLETION_TEMPLATE.md)
+- [ ] STATUS.md updated with new current phase
+- [ ] DEVELOPMENT_PLAN.md "CURRENT STATUS" section updated
+- [ ] All 3 files committed to Git
+- [ ] Pushed to GitHub
+
+**Takes 5 minutes, saves hours later!**
+
+---
+
 **Remember:** Good Git hygiene = Easier collaboration, better code reviews, and cleaner history. Take the extra 30 seconds to write a good commit message - your future self will thank you!
+
+**And:** Keep STATUS.md updated after every completion - your next Claude Code session will thank you!
