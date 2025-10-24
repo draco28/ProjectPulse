@@ -141,8 +141,8 @@ test.describe('Dashboard Page', () => {
   });
 
   test('should show hover effects on cards', async ({ page }) => {
-    // Get first issue card
-    const issueCard = page.locator('[class*="card-hover"]').first();
+    // Get first issue card with neu-float class
+    const issueCard = page.locator('[class*="neu-float"]').first();
     await expect(issueCard).toBeVisible();
 
     // Hover over card

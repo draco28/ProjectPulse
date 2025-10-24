@@ -8,7 +8,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '@/lib/theme-provider';
-import { Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Theme icons mapping
