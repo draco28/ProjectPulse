@@ -1,0 +1,239 @@
+# ============================================================================
+# ProjectPulse - Docker Compose Configuration
+# ============================================================================
+# Services: PostgreSQL + Next.js Web Application
+# Network: projectpulse-network (bridge, isolated)
+# Volumes: postgres_data (persistent database storage)
+# ============================================================================
+
+services:
+  # ==========================================================================
+  # PostgreSQL Database Service
+  # ==========================================================================
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: projectpulse-db
+    restart: unless-stopped
+
+    # Environment Variables (from .env file)
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-projectpulse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-projectpulse_db}
+      POSTGRES_MAX_CONNECTIONS: ${POSTGRES_MAX_CONNECTIONS:-100}
+      # Timezone
+      TZ: UTC
+      PGTZ: UTC
+
+    # Port Mapping
+    # Restricted to localhost only for security (127.0.0.1:5432)
+    # This allows Prisma CLI to access database from host
+    # For production: Remove port mapping (web container accesses via network)
+    ports:
+      - "127.0.0.1:5432:5432"
+
+    # Persistent Volume
+    volumes:
+      # Database data (persistent across container restarts)
+      - postgres_data:/var/lib/postgresql/data
+
+      # Initialization script (runs on first start)
+      # Creates extensions: vector, pg_trgm, uuid-ossp
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    # Health Check
+    # Ensures PostgreSQL is ready before starting dependent services
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-projectpulse} -d ${POSTGRES_DB:-projectpulse_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    # Resource Limits
+    # Prevents resource exhaustion attacks or runaway queries
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+
+    # Network
+    networks:
+      - projectpulse-network
+
+    # Security Options
+    # Drop unnecessary capabilities for defense in depth
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+
+  # ==========================================================================
+  # Next.js Web Application Service
+  # ==========================================================================
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      # Build arguments
+      args:
+        NODE_ENV: ${NODE_ENV:-development}
+
+    container_name: projectpulse-web
+    restart: unless-stopped
+
+    # Port Mapping
+    # Exposes Next.js dev server on localhost:3000
+    ports:
+      - "3000:3000"
+
+    # Environment Variables
+    environment:
+      # Database connection (internal Docker network)
+      DATABASE_URL: ${DATABASE_URL}
+
+      # Next.js configuration
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      PORT: ${PORT:-3000}
+
+      # MCP Server
+      MCP_SERVER_ENABLED: ${MCP_SERVER_ENABLED:-true}
+      MCP_API_URL: ${MCP_API_URL:-http://web:3000/api}
+
+      # File uploads
+      UPLOAD_MAX_SIZE_MB: ${UPLOAD_MAX_SIZE_MB:-10}
+      UPLOAD_ALLOWED_TYPES: ${UPLOAD_ALLOWED_TYPES}
+      UPLOADS_DIR: ${UPLOADS_DIR:-./uploads}
+
+      # Moksha project path
+      MOKSHA_PROJECT_ROOT: ${MOKSHA_PROJECT_ROOT}
+
+      # Security
+      ALLOWED_COMMANDS: ${ALLOWED_COMMANDS:-git,pnpm,npm,node,docker,python}
+      PROCESS_TIMEOUT: ${PROCESS_TIMEOUT:-60000}
+      PROCESS_MAX_OUTPUT_SIZE: ${PROCESS_MAX_OUTPUT_SIZE:-1048576}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      LOG_JSON: ${LOG_JSON:-false}
+
+      # Telemetry
+      NEXT_TELEMETRY_DISABLED: ${NEXT_TELEMETRY_DISABLED:-1}
+
+    # Volumes
+    volumes:
+      # Source code (for development hot-reload)
+      # For production: Remove this and use built image only
+      - ./apps/web:/app:cached
+
+      # Node modules (prevent host/container conflicts)
+      - /app/node_modules
+      - /app/.next
+
+      # Uploads directory (persistent user file storage)
+      - ./uploads:/app/uploads
+
+    # Depends On
+    # Wait for PostgreSQL to be healthy before starting
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    # Health Check
+    # Verifies Next.js app is responding and database is accessible
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Resource Limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+    # Network
+    networks:
+      - projectpulse-network
+
+    # Development: Enable stdin/tty for debugging
+    stdin_open: true
+    tty: true
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+networks:
+  projectpulse-network:
+    driver: bridge
+    name: projectpulse-network
+    # Internal network for container-to-container communication
+    # Web and PostgreSQL can communicate without exposing to host
+
+# ============================================================================
+# VOLUMES
+# ============================================================================
+volumes:
+  postgres_data:
+    driver: local
+    name: projectpulse_postgres_data
+    # Persistent storage for PostgreSQL database
+    # Data survives container restarts and rebuilds
+    #
+    # BACKUP COMMAND:
+    # docker exec projectpulse-db pg_dump -U projectpulse projectpulse_db | gzip > backup_$(date +%Y%m%d).sql.gz
+    #
+    # RESTORE COMMAND:
+    # gunzip < backup_20250124.sql.gz | docker exec -i projectpulse-db psql -U projectpulse projectpulse_db
+
+# ============================================================================
+# USAGE INSTRUCTIONS
+# ============================================================================
+#
+# Start all services:
+#   docker-compose up -d
+#
+# View logs:
+#   docker-compose logs -f
+#   docker-compose logs -f web      # Web app only
+#   docker-compose logs -f postgres # Database only
+#
+# Check status:
+#   docker-compose ps
+#
+# Restart services:
+#   docker-compose restart
+#   docker-compose restart web      # Web app only
+#
+# Stop all services:
+#   docker-compose down
+#
+# Stop and remove volumes (CAUTION: Deletes all data):
+#   docker-compose down -v
+#
+# Rebuild containers:
+#   docker-compose up -d --build
+#
+# Execute commands in container:
+#   docker-compose exec postgres psql -U projectpulse projectpulse_db
+#   docker-compose exec web pnpm prisma studio
+#
+# View resource usage:
+#   docker stats projectpulse-db projectpulse-web
+#
+# ============================================================================

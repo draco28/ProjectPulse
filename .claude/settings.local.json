@@ -1,0 +1,70 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/**)",
+      "Write(apps/**)",
+      "Write(packages/**)",
+      "Write(.claude/**)",
+      "Write(docs/**)",
+      "Write(scripts/**)",
+      "Write(.gitignore)",
+      "Write(README.md)",
+      "Write(package.json)",
+      "Write(pnpm-workspace.yaml)",
+      "Write(docker-compose.yml)",
+      "Write(.env.example)",
+      "Edit(apps/**)",
+      "Edit(packages/**)",
+      "Edit(.claude/**)",
+      "Edit(docs/**)",
+      "Edit(scripts/**)",
+      "Bash(pnpm:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(docker:*)",
+      "Bash(docker-compose:*)",
+      "Bash(git:*)",
+      "Bash(python:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(pwd:*)",
+      "Bash(cd:*)",
+      "WebFetch(domain:docs.claude.com)",
+      "WebFetch(domain:nextjs.org)",
+      "WebFetch(domain:prisma.io)",
+      "WebFetch(domain:postgresql.org)",
+      "WebFetch(domain:react.dev)",
+      "WebFetch(domain:tailwindcss.com)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:npmjs.com)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Write(node_modules/**)",
+      "Write(.next/**)",
+      "Write(dist/**)",
+      "Write(build/**)",
+      "Write(.env)",
+      "Write(.env.local)",
+      "Write(uploads/**)",
+      "Bash(rm -rf *)",
+      "Bash(format *)",
+      "Bash(del *)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(prisma migrate reset:*)",
+      "Bash(pnpm remove:*)"
+    ]
+  },
+  "settings": {
+    "project_name": "Moksha DevHub (AI_HUB)",
+    "default_agent": "devhub-architect",
+    "auto_save_session": true,
+    "verbose_routing": true
+  }
+}

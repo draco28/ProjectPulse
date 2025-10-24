@@ -1,0 +1,17 @@
+# pnpm Workspace Configuration
+# Defines packages in this monorepo
+
+packages:
+  # Main Next.js web application
+  - 'apps/web'
+
+  # MCP Server for DevHub tools (issue management, search, etc.)
+  - 'apps/mcp-server'
+
+  # Docker MCP Server (already exists for Docker management)
+  - 'apps/mcp-docker'
+
+  # Future packages (placeholder for Phase 2+)
+  # - 'packages/shared-types'
+  # - 'packages/ui-components'
+  # - 'packages/database-client'

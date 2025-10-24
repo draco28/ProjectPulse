@@ -1,0 +1,71 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+.next/
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output
+*.lcov
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Database
+postgres_data/
+*.db
+*.sqlite
+
+# Uploads and temporary files
+uploads/
+temp/
+tmp/
+*.tmp
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Python cache (for orchestrator)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# State files (but keep structure)
+.claude/state/*.json
+
+# Lock files (too large)
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Docker
+.dockerignore
+
+# Git
+.git/

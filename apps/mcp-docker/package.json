@@ -1,0 +1,22 @@
+{
+  "name": "@devhub/mcp-docker",
+  "version": "1.0.0",
+  "description": "Custom MCP server for Docker container management in DevHub",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "keywords": ["mcp", "docker", "devhub"],
+  "author": "Moksha DevHub",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

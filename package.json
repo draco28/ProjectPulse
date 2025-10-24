@@ -1,0 +1,78 @@
+{
+  "name": "projectpulse",
+  "version": "1.0.0",
+  "description": "ProjectPulse - Intelligent development hub with AI-powered issue tracking, semantic search, and Claude Code integration",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "start": "pnpm --filter web start",
+    "lint": "pnpm --filter web lint",
+    "type-check": "pnpm --filter web type-check",
+    "test": "pnpm --filter web test",
+    "test:watch": "pnpm --filter web test:watch",
+    "test:coverage": "pnpm --filter web test:coverage",
+    "test:e2e": "pnpm --filter web test:e2e",
+    "test:e2e:ui": "pnpm --filter web test:e2e:ui",
+    "prisma": "pnpm --filter web prisma",
+    "prisma:studio": "pnpm --filter web prisma studio",
+    "prisma:generate": "pnpm --filter web prisma generate",
+    "prisma:migrate": "pnpm --filter web prisma migrate dev",
+    "prisma:seed": "pnpm --filter web prisma db seed",
+    "db:push": "pnpm --filter web prisma db push",
+    "db:reset": "pnpm --filter web prisma migrate reset",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:logs:web": "docker-compose logs -f web",
+    "docker:logs:db": "docker-compose logs -f postgres",
+    "docker:restart": "docker-compose restart",
+    "docker:ps": "docker-compose ps",
+    "docker:clean": "docker-compose down -v --remove-orphans",
+    "mcp:dev": "pnpm --filter mcp-server dev",
+    "mcp:build": "pnpm --filter mcp-server build",
+    "mcp:start": "pnpm --filter mcp-server start",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "pnpm --filter web clean && rm -rf node_modules",
+    "clean:all": "pnpm -r exec rm -rf node_modules && rm -rf node_modules",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged"
+  },
+  "keywords": [
+    "projectpulse",
+    "devhub",
+    "issue-tracker",
+    "knowledge-base",
+    "mcp-server",
+    "semantic-search",
+    "ai-powered",
+    "claude-code"
+  ],
+  "author": "draco28 <praveensingh2897@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.6.2",
+    "typescript": "^5.3.3"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx,js,jsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "**/*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "**/*.prisma": [
+      "prettier --write"
+    ]
+  },
+  "packageManager": "pnpm@8.15.0"
+}
