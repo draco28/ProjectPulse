@@ -54,7 +54,7 @@ export function IssueCard({ issue }: IssueCardProps) {
   const priorityInfo = priorityConfig[issue.priority];
 
   return (
-    <Card className="card-hover group cursor-pointer">
+    <Card className="neu-float smooth-transition group cursor-pointer">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           {/* Pulse indicator for active issues */}

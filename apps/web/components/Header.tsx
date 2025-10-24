@@ -4,30 +4,16 @@
  * Top header bar with:
  * - Search bar with ⌘K indicator
  * - Notifications with pulse indicator
- * - Quick theme toggle
+ * - Theme switcher
  */
 'use client';
 
-import { Search, Bell, Moon, Sun } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@/lib/theme-provider';
+import { CompactThemeSwitcher } from './CompactThemeSwitcher';
 
 export function Header() {
-  const { currentTheme, setTheme } = useTheme();
-  const isDark = currentTheme.mode === 'dark';
-
-  // Quick toggle between light and dark themes
-  const handleQuickToggle = () => {
-    if (isDark) {
-      // Switch to Desert (light mode)
-      setTheme('desert');
-    } else {
-      // Switch to Neon (dark mode)
-      setTheme('neon');
-    }
-  };
-
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-background-light bg-background-dark px-6">
       {/* Search Bar */}
@@ -59,20 +45,8 @@ export function Header() {
           </div>
         </Button>
 
-        {/* Quick Theme Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleQuickToggle}
-          className="hover:bg-background-light"
-          title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-        >
-          {isDark ? (
-            <Sun className="h-5 w-5 text-warning transition-transform duration-300 hover:rotate-180" />
-          ) : (
-            <Moon className="h-5 w-5 text-accent-primary transition-transform duration-300 hover:-rotate-12" />
-          )}
-        </Button>
+        {/* Theme Switcher */}
+        <CompactThemeSwitcher />
       </div>
     </header>
   );

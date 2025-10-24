@@ -29,7 +29,7 @@ export function StatCard({ title, value, icon: Icon, trend, iconClassName }: Sta
   const trendNegative = trend && trend.value < 0;
 
   return (
-    <Card className="card-hover">
+    <Card className="neu-float smooth-transition">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
