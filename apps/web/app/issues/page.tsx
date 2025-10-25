@@ -8,7 +8,6 @@
 import { Metadata } from 'next';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
-import { Header } from '@/components/Header';
 import { FilterSidebar } from '@/components/issues/FilterSidebar';
 import { SearchSortBar } from '@/components/issues/SearchSortBar';
 import { IssueListCard } from '@/components/issues/IssueListCard';
