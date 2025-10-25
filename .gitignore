@@ -175,10 +175,12 @@ apps/mcp-docker/dist/
 # ============================================================================
 # CLAUDE CODE / AI ASSISTANTS
 # ============================================================================
-# Keep .claude/ directory (agents, skills, orchestrator)
-# But ignore state files
+# Keep .claude/ directory (agents, skills)
+# But ignore temporary analysis files and session state
 .claude/state/current_session.json
 .claude/state/history/*.json
+.claude/gemini-analysis/*.md
+!.claude/gemini-analysis/.gitkeep
 
 # ============================================================================
 # SECURITY & SENSITIVE DATA

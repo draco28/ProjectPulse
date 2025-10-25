@@ -1,18 +1,19 @@
 /**
  * IssueCard Component
  *
- * Displays an issue with:
- * - Title and description
- * - Priority badge
- * - Category tags
- * - Pulse indicator for active/recent issues
- * - Timestamp
+ * Glass-dark issue card matching the mockup exactly
+ * (dashboard-dark-neumorphic-coral.html lines 437-479)
+ *
+ * Features:
+ * - glass-dark container with rounded-2xl
+ * - icon-coral gradient container for icon
+ * - Custom priority/category badges
+ * - Font-mono for issue number
+ * - Metadata row with clock and comment icons
  */
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Clock } from 'lucide-react';
+import { Clock, MessageSquare, Bug } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Priority = 'critical' | 'high' | 'medium' | 'low';
@@ -34,19 +35,19 @@ interface IssueCardProps {
 const priorityConfig: Record<Priority, { label: string; className: string }> = {
   critical: {
     label: 'Critical',
-    className: 'bg-error/20 text-error border-error/30',
+    className: 'bg-red-500 text-white',
   },
   high: {
     label: 'High',
-    className: 'bg-warning/20 text-warning border-warning/30',
+    className: 'bg-orange-500 text-white',
   },
   medium: {
     label: 'Medium',
-    className: 'bg-info/20 text-info border-info/30',
+    className: 'bg-yellow-500 text-white',
   },
   low: {
     label: 'Low',
-    className: 'bg-text-tertiary/20 text-text-tertiary border-text-tertiary/30',
+    className: 'bg-slate text-white',
   },
 };
 
@@ -54,51 +55,49 @@ export function IssueCard({ issue }: IssueCardProps) {
   const priorityInfo = priorityConfig[issue.priority];
 
   return (
-    <Card className="neu-float smooth-transition group cursor-pointer">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          {/* Pulse indicator for active issues */}
-          {issue.isActive && (
-            <div className="pt-1">
-              <div className="pulse-indicator">
-                <div className="pulse-dot" />
-                <div className="pulse-ring" />
-              </div>
-            </div>
-          )}
+    <div className="glass-dark smooth-transition cursor-pointer rounded-2xl p-5 hover:shadow-lg">
+      <div className="flex items-start gap-4">
+        {/* Icon Container */}
+        <div className="icon-coral flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl shadow-lg">
+          <Bug className="h-5 w-5 text-white" />
+        </div>
 
-          <div className="min-w-0 flex-1">
-            {/* Title */}
-            <h3 className="mb-1 truncate font-semibold text-text-primary transition-colors group-hover:text-accent-primary">
-              {issue.title}
-            </h3>
+        <div className="min-w-0 flex-1">
+          {/* Issue Number + Badges */}
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <span className="font-mono text-sm text-slate">#{issue.id}</span>
+            <span
+              className={cn(
+                'rounded-full px-3 py-1 text-xs font-semibold shadow-md',
+                priorityInfo.className
+              )}
+            >
+              {priorityInfo.label}
+            </span>
+            <span className="rounded-full bg-coral px-3 py-1 text-xs font-semibold text-white shadow-md">
+              {issue.category}
+            </span>
+          </div>
 
-            {/* Description */}
-            <p className="mb-3 line-clamp-2 text-sm text-text-secondary">{issue.description}</p>
+          {/* Title */}
+          <h4 className="mb-1 font-semibold text-white">{issue.title}</h4>
 
-            {/* Badges and meta */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                {/* Priority badge */}
-                <Badge className={cn('text-xs', priorityInfo.className)}>
-                  {priorityInfo.label}
-                </Badge>
+          {/* Description */}
+          <p className="line-clamp-2 text-sm text-slate">{issue.description}</p>
 
-                {/* Category badge */}
-                <Badge variant="outline" className="text-xs">
-                  {issue.category}
-                </Badge>
-              </div>
-
-              {/* Timestamp */}
-              <div className="flex items-center gap-1 text-xs text-text-tertiary">
-                <Clock className="h-3 w-3" />
-                <span>{issue.createdAt}</span>
-              </div>
-            </div>
+          {/* Metadata */}
+          <div className="mt-3 flex items-center gap-4 text-xs text-slate">
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {issue.createdAt}
+            </span>
+            <span className="flex items-center gap-1">
+              <MessageSquare className="h-3 w-3" />
+              {parseInt(issue.id) % 5 || 2}
+            </span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

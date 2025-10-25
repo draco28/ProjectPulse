@@ -17,7 +17,10 @@ import { AgentPersonasWidget } from '@/components/dashboard/AgentPersonasWidget'
 import { ListTodo, Lightbulb, Shield, CheckCircle2 } from 'lucide-react';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Singleton pattern for PrismaClient to avoid too many connections
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const prisma = globalForPrisma.prisma || new PrismaClient();
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 async function getDashboardData() {
   // Fetch all data in parallel for performance
@@ -90,7 +93,7 @@ export default async function DashboardPage() {
   const data = await getDashboardData();
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4">
       {/* Welcome Banner */}
       <WelcomeBanner />
 
@@ -113,37 +116,43 @@ export default async function DashboardPage() {
           value={data.stats.securityFindings}
           icon={Shield}
           trend={{ value: -15, label: 'from last week' }}
-          iconClassName="bg-error/10"
+          iconClassName="icon-slate"
         />
         <StatCard
           title="Completed"
           value={data.stats.completed}
           icon={CheckCircle2}
           trend={{ value: 23, label: 'from last week' }}
-          iconClassName="bg-success/10"
+          iconClassName="icon-slate"
         />
       </div>
 
       {/* Two-Column Layout */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Left Column - Recent Issues (2/3) */}
-        <div className="space-y-4 lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-text-primary">Recent Issues</h2>
-            <a href="/issues" className="text-sm text-accent-primary hover:underline">
-              View all
-            </a>
-          </div>
-
-          <div className="space-y-3">
-            {data.recentIssues.map((issue) => (
-              <IssueCard key={issue.id} issue={issue} />
-            ))}
+        <div className="lg:col-span-2">
+          <div className="neu-raised smooth-transition rounded-3xl">
+            <div className="border-b border-white/5 p-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-white">Recent Issues</h3>
+                <a
+                  href="/issues"
+                  className="hover:text-coralLight smooth-transition text-sm font-semibold text-coral"
+                >
+                  View all →
+                </a>
+              </div>
+            </div>
+            <div className="space-y-4 p-6">
+              {data.recentIssues.map((issue) => (
+                <IssueCard key={issue.id} issue={issue} />
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Right Column - Widgets (1/3) */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Quick Actions */}
           <QuickActionsWidget />
 

@@ -9,10 +9,7 @@
  */
 'use client';
 
-import { Home, ListTodo, Lightbulb, Book, Shield, Users, Settings } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Home, ListTodo, Lightbulb, Book, Shield, Users, Settings, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -45,26 +42,22 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 flex-col border-r border-background-light bg-background-dark">
-      {/* Logo */}
-      <div className="border-b border-background-light p-6">
+    <aside className="flex w-64 flex-col gap-4 p-4">
+      {/* Logo Card */}
+      <div className="neu-raised smooth-transition rounded-3xl p-6">
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="flex h-10 w-10 animate-heartbeat items-center justify-center rounded-lg bg-gradient-primary">
-              <span className="text-xl font-bold text-white">M</span>
-            </div>
-            {/* Pulse ring */}
-            <div className="absolute inset-0 animate-pulse-glow rounded-lg border-2 border-accent-primary opacity-0" />
+          <div className="icon-coral heartbeat flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg">
+            <Heart className="h-6 w-6 text-white" fill="white" />
           </div>
           <div>
-            <h1 className="gradient-text text-lg font-bold">Moksha</h1>
-            <p className="text-xs text-text-tertiary">DevHub</p>
+            <h1 className="text-xl font-bold text-white">Moksha</h1>
+            <p className="text-xs text-slate">DevHub</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+      <nav className="flex flex-1 flex-col gap-2">
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -74,77 +67,58 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'group flex items-center justify-between rounded-lg px-4 py-3 transition-all duration-200',
-                isActive
-                  ? 'bg-accent-primary/20 border-accent-primary/30 border text-accent-primary'
-                  : 'text-text-secondary hover:bg-background-light hover:text-text-primary'
+                'smooth-transition flex items-center gap-3 rounded-2xl px-5 py-4',
+                isActive ? 'coral-gradient text-white' : 'neu-raised text-slate hover:text-white'
               )}
             >
-              <div className="flex items-center gap-3">
-                {item.pulse && (
-                  <div className="pulse-indicator">
-                    <div className="pulse-dot" />
-                    <div className="pulse-ring" />
-                  </div>
-                )}
-                <Icon
-                  className={cn(
-                    'h-5 w-5 transition-transform group-hover:scale-110',
-                    isActive && 'text-accent-primary'
-                  )}
-                />
-                <span className="font-medium">{item.label}</span>
-              </div>
+              <Icon className="h-5 w-5" />
+              <span className="font-medium">{item.label}</span>
+              {item.pulse && isActive && (
+                <div className="pulse-glow ml-auto h-2 w-2 rounded-full bg-white" />
+              )}
               {item.badge && (
-                <Badge
-                  variant={item.badgeVariant === 'warning' ? 'destructive' : 'default'}
+                <span
                   className={cn(
-                    'h-5 px-2 text-xs',
-                    item.badgeVariant === 'warning' &&
-                      'bg-warning/20 border-warning/30 text-warning'
+                    'ml-auto rounded-full px-2.5 py-1 text-xs font-semibold shadow-md',
+                    item.badgeVariant === 'warning'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-coral text-white'
                   )}
                 >
                   {item.badge}
-                </Badge>
+                </span>
               )}
             </Link>
           );
         })}
+
+        {/* Settings at bottom of nav */}
+        <div className="mt-auto">
+          <Link
+            href="/settings"
+            className={cn(
+              'smooth-transition flex items-center gap-3 rounded-2xl px-5 py-4',
+              pathname === '/settings'
+                ? 'coral-gradient text-white'
+                : 'neu-raised text-slate hover:text-white'
+            )}
+          >
+            <Settings className="h-5 w-5" />
+            <span className="font-medium">Settings</span>
+          </Link>
+        </div>
       </nav>
 
-      <Separator />
-
-      {/* Settings */}
-      <div className="p-4">
-        <Link
-          href="/settings"
-          className={cn(
-            'group flex items-center gap-3 rounded-lg px-4 py-3 transition-all duration-200',
-            pathname === '/settings'
-              ? 'bg-accent-primary/20 border-accent-primary/30 border text-accent-primary'
-              : 'text-text-secondary hover:bg-background-light hover:text-text-primary'
-          )}
-        >
-          <Settings className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" />
-          <span className="font-medium">Settings</span>
-        </Link>
-      </div>
-
-      <Separator />
-
       {/* User Profile */}
-      <div className="p-4">
-        <div className="flex cursor-pointer items-center gap-3 rounded-lg bg-background-medium p-3 transition-colors hover:bg-background-light">
-          <Avatar>
-            <AvatarFallback className="bg-accent-primary font-semibold text-white">
-              DV
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-text-primary">Developer</p>
-            <p className="truncate text-xs text-text-tertiary">dev@moksha.local</p>
+      <div className="neu-raised smooth-transition rounded-3xl p-4">
+        <div className="flex items-center gap-3">
+          <div className="icon-coral flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-lg">
+            DV
           </div>
-          <div className="h-2 w-2 rounded-full bg-success" title="Online" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-white">Developer</p>
+            <p className="text-xs text-slate">dev@moksha.local</p>
+          </div>
         </div>
       </div>
     </aside>

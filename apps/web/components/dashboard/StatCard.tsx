@@ -1,14 +1,16 @@
 /**
- * StatCard Component - Server Component
+ * StatCard Component
  *
- * Displays a single metric with:
- * - Icon
- * - Title
- * - Value
- * - Optional trend indicator
+ * Neumorphic stat card matching the mockup exactly
+ * (dashboard-dark-neumorphic-coral.html lines 376-421)
+ *
+ * Features:
+ * - neu-raised container with rounded-3xl
+ * - icon-coral gradient container for icon
+ * - Large text-4xl value
+ * - Trend indicator with color
  */
 
-import { Card, CardContent } from '@/components/ui/card';
 import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,30 +30,32 @@ export function StatCard({ title, value, icon: Icon, trend, iconClassName }: Sta
   const trendNegative = trend && trend.value < 0;
 
   return (
-    <Card className="neu-float smooth-transition">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="mb-1 text-sm font-medium text-text-secondary">{title}</p>
-            <p className="text-3xl font-bold text-text-primary">{value}</p>
-            {trend && (
-              <p
-                className={cn(
-                  'mt-2 text-xs',
-                  trendPositive && 'text-success',
-                  trendNegative && 'text-error',
-                  !trendPositive && !trendNegative && 'text-text-tertiary'
-                )}
-              >
-                {trendPositive && '↑'} {trendNegative && '↓'} {Math.abs(trend.value)}% {trend.label}
-              </p>
-            )}
-          </div>
-          <div className={cn('bg-accent-primary/10 rounded-lg p-3', iconClassName)}>
-            <Icon className="h-6 w-6 text-accent-primary" />
-          </div>
+    <div className="neu-raised smooth-transition rounded-3xl p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <div
+          className={cn(
+            'flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg',
+            iconClassName || 'icon-coral'
+          )}
+        >
+          <Icon className="h-5 w-5 text-white" />
         </div>
-      </CardContent>
-    </Card>
+        {trend && (
+          <span
+            className={cn(
+              'text-sm font-semibold',
+              trendPositive && 'text-green-400',
+              trendNegative && 'text-red-400',
+              !trendPositive && !trendNegative && 'text-slate'
+            )}
+          >
+            {trendPositive && '+'}
+            {trend.value}
+          </span>
+        )}
+      </div>
+      <h3 className="mb-1 text-4xl font-bold text-white">{value}</h3>
+      <p className="text-sm font-medium text-slate">{title}</p>
+    </div>
   );
 }
