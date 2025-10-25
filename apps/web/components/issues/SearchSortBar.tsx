@@ -8,7 +8,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, List, Grid } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchSortBarProps {
@@ -63,13 +62,13 @@ export function SearchSortBar({ searchParams }: SearchSortBarProps) {
       <div className="flex items-center gap-4">
         {/* Search Input */}
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate" />
+          <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate"></i>
           <input
             type="text"
             placeholder="Search issues..."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            className="neu-pressed smooth-transition w-full rounded-2xl py-3 pl-11 pr-4 text-white focus:outline-none"
+            className="neu-pressed smooth-transition w-full rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none"
           />
         </div>
 
@@ -90,12 +89,12 @@ export function SearchSortBar({ searchParams }: SearchSortBarProps) {
         <div className="flex gap-2">
           {/* List View (Active) */}
           <button className="coral-gradient smooth-transition flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg">
-            <List className="h-5 w-5" />
+            <i className="fas fa-th-list"></i>
           </button>
 
           {/* Grid View (Inactive - Future Feature) */}
           <button className="neu-raised smooth-transition flex h-12 w-12 items-center justify-center rounded-2xl text-slate hover:text-white">
-            <Grid className="h-5 w-5" />
+            <i className="fas fa-th"></i>
           </button>
         </div>
       </div>
