@@ -154,6 +154,7 @@ $RECYCLE.BIN/
 *.pid
 *.seed
 *.pid.lock
+nul
 
 # ============================================================================
 # LOGS
@@ -181,6 +182,26 @@ apps/mcp-docker/dist/
 .claude/state/history/*.json
 .claude/gemini-analysis/*.md
 !.claude/gemini-analysis/.gitkeep
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Duplicate directories (artifacts)
+.claude/.claude/
+.playwright-mcp/.playwright-mcp/
+
+# Playwright screenshots (testing artifacts)
+.playwright-mcp/*.png
+
+# Gemini integration (experimental)
+.gemini/
+.geminiignore
+GEMINI.md
+Gemini*.md
+analyze-with-gemini.*
+.claude/SETUP_COMPLETE.md
+SIMPLE_GEMINI_WORKFLOW.md
 
 # ============================================================================
 # SECURITY & SENSITIVE DATA
