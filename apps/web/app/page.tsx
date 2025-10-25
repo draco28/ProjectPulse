@@ -1,5 +1,3 @@
-import { ThemeSwitcher } from '@/components/ThemeSwitcher';
-
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-background-darkest p-8">
@@ -11,20 +9,6 @@ export default function HomePage() {
             Your Project&apos;s Heartbeat - AI-Powered Development Hub
           </p>
         </header>
-
-        {/* Theme Switcher Demo */}
-        <section className="mb-12">
-          <div className="rounded-xl bg-background-dark p-6 shadow-neu-float">
-            <h2 className="mb-4 text-2xl font-semibold text-text-primary">🎨 Theme System Demo</h2>
-            <p className="mb-6 text-text-secondary">
-              Try switching between different themes using the switcher below. Each theme has its
-              own unique color palette and visual effects!
-            </p>
-            <div className="max-w-md">
-              <ThemeSwitcher />
-            </div>
-          </div>
-        </section>
 
         {/* Feature Cards */}
         <section className="grid gap-6 md:grid-cols-3">
@@ -98,7 +82,7 @@ export default function HomePage() {
             <div className="pulse-dot"></div>
             <div className="pulse-ring"></div>
           </div>
-          <span className="text-sm">Week 1 Day 2 Complete - Theme System Ready</span>
+          <span className="text-sm">Week 1.5 - Coral Theme Transformation In Progress</span>
         </footer>
       </div>
     </main>

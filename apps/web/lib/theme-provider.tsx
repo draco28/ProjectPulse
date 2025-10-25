@@ -2,118 +2,64 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-type ThemeId = 'desert' | 'neon' | 'earthy' | 'coral';
-type ThemeMode = 'light' | 'dark';
+/**
+ * Static Coral Theme Provider
+ *
+ * This provider locks the application to the Dark Neumorphic Coral theme.
+ * Multi-theme switching has been removed for MVP - dynamic themes will be
+ * added post-MVP.
+ *
+ * The provider ensures:
+ * - data-theme="coral" is set on <html>
+ * - "dark" class is added for Tailwind dark mode
+ * - Consistent theme state across the app
+ */
 
 interface Theme {
-  id: ThemeId;
+  id: 'coral';
   name: string;
   description: string;
-  mode: ThemeMode;
+  mode: 'dark';
   emoji: string;
 }
 
 interface ThemeContextType {
-  theme: ThemeId;
-  currentTheme: Theme;
-  themes: Theme[];
-  setTheme: (theme: ThemeId) => void;
+  theme: Theme;
 }
 
-const themes: Theme[] = [
-  {
-    id: 'desert',
-    name: 'Desert Stone',
-    description: 'Soft neumorphic light theme',
-    mode: 'light',
-    emoji: '🏜️',
-  },
-  {
-    id: 'neon',
-    name: 'Neon Vibes',
-    description: 'Vibrant neon dark theme',
-    mode: 'dark',
-    emoji: '⚡',
-  },
-  {
-    id: 'earthy',
-    name: 'Earthy',
-    description: 'Muted earth tones',
-    mode: 'dark',
-    emoji: '🌿',
-  },
-  {
-    id: 'coral',
-    name: 'Dark Neumorphic Coral',
-    description: 'Modern dark with coral accent',
-    mode: 'dark',
-    emoji: '🪸',
-  },
-];
+const coralTheme: Theme = {
+  id: 'coral',
+  name: 'Dark Neumorphic Coral',
+  description: 'Modern dark with coral accent',
+  mode: 'dark',
+  emoji: '🪸',
+};
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeId>('coral');
   const [mounted, setMounted] = useState(false);
 
-  const getCurrentTheme = (): Theme => {
-    const found = themes.find((t) => t.id === theme);
-    // Fallback to coral theme (index 3) if theme not found
-    return found ?? themes[3]!;
-  };
-
-  const currentTheme = getCurrentTheme();
-
-  // Load theme from localStorage on mount
+  // Set mounted state after first render
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem('theme') as ThemeId;
-    if (saved && themes.some((t) => t.id === saved)) {
-      setThemeState(saved);
-    } else {
-      // Set coral as default if no saved preference
-      setThemeState('coral');
-    }
   }, []);
 
-  // Apply theme to HTML element + dark mode class
+  // Apply coral theme to HTML element on mount
   useEffect(() => {
     if (!mounted) return;
 
     const html = document.documentElement;
 
-    // Set theme data attribute
-    html.setAttribute('data-theme', theme);
+    // Set theme data attribute to coral
+    html.setAttribute('data-theme', 'coral');
 
-    // Set dark/light class for Tailwind
-    if (currentTheme.mode === 'dark') {
-      html.classList.add('dark');
-    } else {
-      html.classList.remove('dark');
-    }
-
-    // Save to localStorage
-    localStorage.setItem('theme', theme);
-  }, [theme, currentTheme.mode, mounted]);
-
-  const setTheme = async (newTheme: ThemeId) => {
-    setThemeState(newTheme);
-
-    // Sync to database (optional, can fail silently)
-    try {
-      await fetch('/api/preferences', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ theme: newTheme }),
-      });
-    } catch (error) {
-      console.warn('Failed to sync theme to server:', error);
-    }
-  };
+    // Always add dark class for Tailwind dark mode
+    html.classList.add('dark');
+  }, [mounted]);
 
   return (
-    <ThemeContext.Provider value={{ theme, currentTheme, themes, setTheme }}>
+    <ThemeContext.Provider value={{ theme: coralTheme }}>
       {children}
     </ThemeContext.Provider>
   );

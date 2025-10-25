@@ -13,7 +13,6 @@ import { Home, ListTodo, Lightbulb, Book, Shield, Users, Settings } from 'lucide
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ThemeSwitcher } from './ThemeSwitcher';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -129,13 +128,6 @@ export function Sidebar() {
           <Settings className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" />
           <span className="font-medium">Settings</span>
         </Link>
-      </div>
-
-      <Separator />
-
-      {/* Theme Switcher */}
-      <div className="p-4">
-        <ThemeSwitcher />
       </div>
 
       <Separator />
