@@ -52,8 +52,8 @@ const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
 };
 
 export function IssueListCard({ issue }: IssueListCardProps) {
-  const priorityInfo = PRIORITY_CONFIG[issue.priority];
-  const statusInfo = STATUS_CONFIG[issue.status];
+  const priorityInfo = PRIORITY_CONFIG[issue.priority] || PRIORITY_CONFIG.low;
+  const statusInfo = STATUS_CONFIG[issue.status] || { label: issue.status, className: 'neu-pressed text-slate' };
   const isClosed = issue.status === 'closed';
 
   // Format time ago
