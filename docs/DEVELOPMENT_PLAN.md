@@ -12,19 +12,23 @@
 **⚠️ CRITICAL DESIGN DECISION - READ THIS FIRST**
 
 ### Default Theme: Dark Neumorphic Coral
+
 - **Selected Theme:** `dark-neumorphic-coral` (Coral theme - #FF8B6A)
 - **Mockup Reference:** `mockups/Default theme/` (7 complete HTML mockups)
 - **Theme System:** `theme/` directory (comprehensive CSS + Tailwind config)
 - **Rationale:** Consistent visual identity across all pages
 
 ### MVP Theme Strategy
+
 - **MVP Scope:** Single fixed theme (Dark Neumorphic Coral)
 - **Dynamic Theme Switching:** Post-MVP feature (deferred)
 - **Current State:** 4 themes exist but NOT used (desert, neon, earthy, coral)
 - **Action Required:** Remove multi-theme system, lock to Coral theme
 
 ### Implementation Requirements
+
 **EVERY new UI component MUST:**
+
 1. Match mockup designs exactly (pixel-perfect adherence)
 2. Use theme colors from `theme/theme.css`
 3. Follow neumorphic design patterns
@@ -32,6 +36,7 @@
 5. Verify against `mockups/Default theme/MOCKUPS_INDEX.md`
 
 ### Available Resources
+
 - **Theme Documentation:**
   - `theme/THEME_GUIDE.md` - Complete design system guide
   - `theme/COMPONENTS_REFERENCE.md` - 50+ ready-to-use components
@@ -49,6 +54,7 @@
   - 07-command-palette-dark-neumorphic-coral.html
 
 ### Development Workflow
+
 ```
 1. Reference mockup → 2. Copy component from COMPONENTS_REFERENCE.md → 3. Adapt to React/Next.js → 4. Verify against mockup
 ```
@@ -59,50 +65,58 @@
 
 ## 🚨 CURRENT STATUS (Updated After Each Completion)
 
-**Last Completed:** Week 1 Day 5 - Database Schema & Seeding ✅
-**Completion Date:** October 25, 2025
-**Completion Doc:** [../WEEK_1_DAY_5_COMPLETION.md](../WEEK_1_DAY_5_COMPLETION.md)
-**Git Commit:** `86df51d` - "feat(database): Implement full Prisma schema and database seeding"
+**Last Completed:** Week 1.5 Phase 1 - Theme Foundation Removal ✅
+**Completion Date:** October 25, 2025, 4:45 PM
+**Completion Doc:** [../WEEK_1_5_PHASE_1_COMPLETION.md](../WEEK_1_5_PHASE_1_COMPLETION.md)
+**Git Commit:** `1798af3` - "refactor(theme): Complete Phase 1 - Remove multi-theme system, lock to Coral theme"
 
-**Current Phase:** Week 1.5 - UI Theme Transformation 🎨 (NEW PRIORITY)
-**Status:** READY TO START (Foundation complete, database seeded!)
-**Duration:** 8 days (4 phases)
-**Agent Needed:** devhub-architect (planning) → devhub-fullstack (implementation) → devhub-auditor (review)
-**Skills Needed:** None (use theme documentation instead)
-**Reference:** **[UI_TRANSFORMATION_PLAN.md](UI_TRANSFORMATION_PLAN.md)** ⭐ DETAILED PLAN
+**Current Phase:** Week 1.5 Phase 2 - Component Library (Days 1-2) 🎨
+**Status:** READY TO START (Phase 1 complete - Coral theme locked in!)
+**Duration:** 2 days
+**Agent Needed:** devhub-fullstack
+**Skills Needed:** None (follow UI_TRANSFORMATION_PLAN.md)
+**Reference:** **[UI_TRANSFORMATION_PLAN.md](UI_TRANSFORMATION_PLAN.md)** ⭐ lines 250-420
 
-**Week 1 Summary:** ✅ 100% Complete
+**Week 1.5 Phase 1 Summary:** ✅ COMPLETE (2 hours)
 
-- Docker + PostgreSQL setup ✓
-- Next.js 14 + 4 themes ✓
-- Complete Dashboard UI ✓
-- Full database schema (17 models) ✓
-- Database seeding with realistic data ✓
-- Dashboard integrated with real PostgreSQL data ✓
+- ✅ Multi-theme system removed (ThemeSwitcher, CompactThemeSwitcher, ThemePreview deleted)
+- ✅ Theme provider simplified to static Coral (75 lines, down from 129)
+- ✅ Global CSS updated with complete Coral theme (845 lines)
+- ✅ FloatingBackground component created (hexagons + bubbles)
+- ✅ Tailwind config extended with neumorphic utilities
+- ✅ Dev server compiles successfully with Coral theme
 
-**⚠️ CRITICAL DECISION - UI Theme Transformation**
+**Phase 2 Tasks (Current):**
 
-**Decision Made:** Transform UI to **Dark Neumorphic Coral** theme BEFORE Week 2 features
+**Day 1: Core UI Components**
 
-**Rationale:**
-- Single fixed theme for MVP (dynamic themes deferred post-MVP)
-- All 7 mockups ready in `mockups/Default theme/`
-- Complete theme system created by Claude Desktop (theme/ directory)
-- UI components need coral theme before building new features
+1. Transform Sidebar component with neumorphic styling
+2. Transform Header component with glass effect
+3. Create StatCard component (from mockup)
+4. Create Button component with coral gradient
 
-**Immediate Next Steps:**
-1. ✅ Read [UI_TRANSFORMATION_PLAN.md](UI_TRANSFORMATION_PLAN.md) (comprehensive 4-phase plan)
-2. 🔄 Execute Phase 1: Remove multi-theme system (1 day)
-3. 🔄 Execute Phase 2: Create component library (2 days)
-4. 🔄 Execute Phase 3: Transform all 7 pages (4 days)
-5. 🔄 Execute Phase 4: Responsive & Polish (1 day)
-6. ✅ Then proceed to Week 2 features with coral theme in place
+**Day 2: Interactive Components**
+
+1. Create Badge component (multiple color variants)
+2. Create IssueCard component
+3. Create FilterBar component
+4. Integration testing
+
+**Component Templates Available:**
+
+- [theme/COMPONENTS_REFERENCE.md](../theme/COMPONENTS_REFERENCE.md) - Copy-paste snippets
+- [mockups/Default theme/MOCKUPS_INDEX.md](../mockups/Default theme/MOCKUPS_INDEX.md) - Design reference
+
+**Remaining Phases:**
+
+- ⏳ Phase 3: Transform 7 pages (4 days)
+- ⏳ Phase 4: Responsive & Polish (1 day)
 
 **Git Status:**
 
-- Current Branch: `data/database-seeding` (database implementation)
-- Master: Merged `ui/dashboard-layout`, ready to merge `data/database-seeding`
-- Next Branch: TBD based on Week 2 Day 1 feature choice
+- Current Branch: `ui/theme-foundation` (Phase 1 complete)
+- Master: All Week 1 work merged
+- Next: Continue on `ui/theme-foundation` for Phase 2-4, then merge to master
 
 ---
 
@@ -2250,6 +2264,7 @@ structure, supporting all 4 themes with unique visual treatments.
 ### Overview & Rationale
 
 **Why Now:**
+
 1. ✅ Week 1 foundation complete (Docker, database, Next.js running)
 2. ✅ Claude Desktop created complete theme system (theme/ directory)
 3. ✅ 7 pixel-perfect mockups ready (mockups/Default theme/)
@@ -2257,12 +2272,14 @@ structure, supporting all 4 themes with unique visual treatments.
 5. ⚠️ Building Week 2 features on wrong theme = double work
 
 **Decision:**
+
 - **MVP Theme:** Single fixed Dark Neumorphic Coral (#FF8B6A)
 - **Dynamic Themes:** Post-MVP feature (deferred)
 - **Current State:** 4 themes exist → Remove, lock to Coral
 - **Target:** Match mockups exactly, pixel-perfect
 
 **Resources Available:**
+
 - **Theme Documentation:** 6 files in `theme/` (16KB CSS, guides, component library)
 - **Mockups:** 7 complete HTML pages in `mockups/Default theme/`
 - **Component Reference:** 50+ copy-paste components in `theme/COMPONENTS_REFERENCE.md`
@@ -2279,6 +2296,7 @@ structure, supporting all 4 themes with unique visual treatments.
 **Reference:** [UI_TRANSFORMATION_PLAN.md](UI_TRANSFORMATION_PLAN.md) - Phase 1
 
 **Tasks:**
+
 1. **Remove Multi-Theme System**
    - ❌ Delete `components/ThemeSwitcher.tsx`
    - ❌ Delete `components/CompactThemeSwitcher.tsx`
@@ -2299,6 +2317,7 @@ structure, supporting all 4 themes with unique visual treatments.
    - 📝 Add animation keyframes
 
 **Deliverables:**
+
 - ✅ Theme switching code removed
 - ✅ Single Coral theme locked in
 - ✅ CSS variables defined
@@ -2306,6 +2325,7 @@ structure, supporting all 4 themes with unique visual treatments.
 - ✅ No compilation errors
 
 **Verification:**
+
 ```bash
 pnpm build     # Should compile successfully
 pnpm dev       # Should run with Coral theme
@@ -2325,6 +2345,7 @@ pnpm dev       # Should run with Coral theme
 **Day 2: Layout & Base Components**
 
 **Tasks:**
+
 1. **FloatingBackground Component**
    - Create `components/ui/FloatingBackground.tsx`
    - Copy hexagon + bubble animations from mockup
@@ -2356,6 +2377,7 @@ pnpm dev       # Should run with Coral theme
 **Day 3: Display Components**
 
 **Tasks:**
+
 1. **StatCard Component**
    - Create `components/dashboard/StatCard.tsx`
    - Icon container with gradient background
@@ -2380,6 +2402,7 @@ pnpm dev       # Should run with Coral theme
    - Icon + text layout
 
 **Deliverables:**
+
 - ✅ 10+ reusable components created
 - ✅ All components use coral theme
 - ✅ All components match mockup styles
@@ -2387,6 +2410,7 @@ pnpm dev       # Should run with Coral theme
 - ✅ No `any` types
 
 **Verification:**
+
 ```bash
 pnpm build     # Should compile successfully
 pnpm test      # Component tests pass
@@ -2407,6 +2431,7 @@ pnpm test      # Component tests pass
 **Mockup:** `mockups/Default theme/01-dashboard-dark-neumorphic-coral.html`
 
 **Tasks:**
+
 1. Add FloatingBackground to layout
 2. Transform WelcomeBanner (coral gradient)
 3. Update stats grid (4 columns, coral icons)
@@ -2419,6 +2444,7 @@ pnpm test      # Component tests pass
 **Mockup:** `mockups/Default theme/02-issues-dark-neumorphic-coral.html`
 
 **Tasks:**
+
 1. Create filter sidebar (neu-raised cards)
 2. Transform issue list items
 3. Add multi-badge layout
@@ -2430,12 +2456,14 @@ pnpm test      # Component tests pass
 **Mockups:** `03-knowledge`, `04-wiki`
 
 **Tasks (Knowledge):**
+
 1. Create article cards
 2. Add tag badges system
 3. Transform category filters
 4. Add featured content section
 
 **Tasks (Wiki):**
+
 1. Create TOC sidebar
 2. Add breadcrumb navigation
 3. Transform content sections
@@ -2445,24 +2473,28 @@ pnpm test      # Component tests pass
 **Mockups:** `05-security`, `06-agent-personas`
 
 **Tasks (Security):**
+
 1. Create security score display
 2. Add vulnerability cards (severity badges)
 3. Transform scan timeline
 4. Add risk assessment grid
 
 **Tasks (Personas):**
+
 1. Create feature toggle cards
 2. Add toggle switch component
 3. Transform metrics grid
 4. Update agent activity feed
 
 **Deliverables:**
+
 - ✅ All 7 pages match mockups ≥95%
 - ✅ Responsive design (mobile, tablet, desktop)
 - ✅ All interactions work correctly
 - ✅ No visual regressions
 
 **Verification:**
+
 ```bash
 # Visual regression testing
 pnpm test:e2e  # Playwright E2E tests
@@ -2486,6 +2518,7 @@ pnpm test:e2e  # Playwright E2E tests
 **Reference:** [UI_TRANSFORMATION_PLAN.md](UI_TRANSFORMATION_PLAN.md) - Phase 4
 
 **Tasks:**
+
 1. **Responsive Testing**
    - Mobile (320px, 375px, 428px)
    - Tablet (768px, 1024px)
@@ -2515,6 +2548,7 @@ pnpm test:e2e  # Playwright E2E tests
    - ✅ Component tests ≥80% coverage
 
 **Deliverables:**
+
 - ✅ Pixel-perfect UI matching mockups
 - ✅ Responsive on all devices
 - ✅ Accessible (WCAG AA)
@@ -2522,6 +2556,7 @@ pnpm test:e2e  # Playwright E2E tests
 - ✅ Production-ready
 
 **Verification:**
+
 ```bash
 # Run full test suite
 pnpm test:all
@@ -2541,6 +2576,7 @@ pnpm axe
 ### Success Criteria (End of Week 1.5)
 
 **Visual Accuracy:**
+
 - [ ] Dashboard matches `01-dashboard-dark-neumorphic-coral.html` ≥ 95%
 - [ ] Issues matches `02-issues-dark-neumorphic-coral.html` ≥ 95%
 - [ ] Knowledge matches `03-knowledge-dark-neumorphic-coral.html` ≥ 95%
@@ -2550,6 +2586,7 @@ pnpm axe
 - [ ] Command palette matches `07-command-palette-dark-neumorphic-coral.html` ≥ 95%
 
 **Code Quality:**
+
 - [ ] Zero TypeScript `any` types in all components
 - [ ] All components have proper TypeScript interfaces
 - [ ] Component tests ≥80% coverage
@@ -2557,12 +2594,14 @@ pnpm axe
 - [ ] ESLint passes with zero warnings
 
 **Performance:**
+
 - [ ] First Contentful Paint < 1.5s
 - [ ] Time to Interactive < 3s
 - [ ] Cumulative Layout Shift < 0.1
 - [ ] Lighthouse Performance score ≥90
 
 **Accessibility:**
+
 - [ ] WCAG 2.1 AA compliant
 - [ ] Keyboard navigation works on all pages
 - [ ] Screen reader compatible
@@ -2570,11 +2609,13 @@ pnpm axe
 - [ ] Focus indicators visible and clear
 
 **Responsive:**
+
 - [ ] Mobile (375px) - All pages work correctly
 - [ ] Tablet (768px) - Layout adapts properly
 - [ ] Desktop (1280px+) - Matches mockups exactly
 
 **Documentation:**
+
 - [ ] Component usage documented
 - [ ] Theme variables documented
 - [ ] Migration notes added to CHANGELOG.md
@@ -2584,6 +2625,7 @@ pnpm axe
 ### Git Workflow
 
 **Branches:**
+
 ```
 master
   └── data/database-seeding (current)
@@ -2594,6 +2636,7 @@ master
 ```
 
 **Merge Strategy:**
+
 1. Complete Phase 1 → Merge `ui/theme-foundation` to `data/database-seeding`
 2. Complete Phase 2 → Merge `ui/component-library` to `data/database-seeding`
 3. Complete Phase 3 → Merge `ui/page-transformation` to `data/database-seeding`
@@ -2605,6 +2648,7 @@ master
 ### Quality Gates (Must Pass Before Week 2)
 
 **Golden Rules Compliance:**
+
 - ✅ [R-DOC-001] Documentation Authority - UI matches mockups exactly
 - ✅ [R-TS-001] Type Safety - Zero `any` types
 - ✅ [R-NEXT-001] Server Components First - RSC by default
@@ -2614,6 +2658,7 @@ master
 **Skill:** verification-before-completion.md
 
 **Checklist:**
+
 1. ✅ **Theme:** Single Coral theme locked, no theme switching code
 2. ✅ **CSS:** All neumorphic classes defined in globals.css
 3. ✅ **Tailwind:** Colors match `theme/tailwind.config.js`
@@ -2632,12 +2677,14 @@ master
 ### Resources & References
 
 **Primary Documents:**
+
 1. **[UI_TRANSFORMATION_PLAN.md](UI_TRANSFORMATION_PLAN.md)** - Comprehensive transformation guide (50 pages)
 2. **[theme/THEME_GUIDE.md](../theme/THEME_GUIDE.md)** - Design system guide
 3. **[theme/COMPONENTS_REFERENCE.md](../theme/COMPONENTS_REFERENCE.md)** - 50+ copy-paste components
 4. **[theme/QUICK_REFERENCE.md](../theme/QUICK_REFERENCE.md)** - Quick lookup cheat sheet
 
 **Mockup Files:**
+
 - `mockups/Default theme/MOCKUPS_INDEX.md` - Index with feature matrix
 - `mockups/Default theme/01-dashboard-dark-neumorphic-coral.html`
 - `mockups/Default theme/02-issues-dark-neumorphic-coral.html`
@@ -2648,6 +2695,7 @@ master
 - `mockups/Default theme/07-command-palette-dark-neumorphic-coral.html`
 
 **Theme System:**
+
 - `theme/theme.css` - All CSS definitions (2000+ lines)
 - `theme/tailwind.config.js` - Tailwind configuration
 - `theme/README.md` - Theme system overview
@@ -2666,6 +2714,7 @@ master
 ### After Completion
 
 **Next Steps:**
+
 1. ✅ Mark Week 1.5 as complete
 2. ✅ Update STATUS.md with completion date
 3. ✅ Create WEEK_1_5_COMPLETION.md document
@@ -2673,6 +2722,7 @@ master
 5. ✅ **Proceed to Week 2** with coral theme foundation in place
 
 **Week 2 Prerequisites Met:**
+
 - ✅ Single fixed theme (Coral) established
 - ✅ Component library ready for feature development
 - ✅ All pages match mockup design system
