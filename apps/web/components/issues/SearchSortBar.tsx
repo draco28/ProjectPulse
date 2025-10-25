@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -24,6 +24,7 @@ const SORT_OPTIONS = [
 export function SearchSortBar({ searchParams }: SearchSortBarProps) {
   const router = useRouter();
   const currentSearchParams = useSearchParams();
+  const isFirstRender = useRef(true);
 
   // Local state for search input (for immediate feedback)
   const [searchValue, setSearchValue] = useState(searchParams.search || '');
@@ -33,6 +34,12 @@ export function SearchSortBar({ searchParams }: SearchSortBarProps) {
 
   // Update URL when debounced search changes
   useEffect(() => {
+    // Skip on initial mount
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     const params = new URLSearchParams(currentSearchParams?.toString());
 
     if (debouncedSearch) {
@@ -45,7 +52,8 @@ export function SearchSortBar({ searchParams }: SearchSortBarProps) {
     params.delete('page');
 
     router.push(`/issues?${params.toString()}`);
-  }, [debouncedSearch, currentSearchParams, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
 
   const handleSortChange = (sortValue: string) => {
     const params = new URLSearchParams(currentSearchParams?.toString());
@@ -68,7 +76,7 @@ export function SearchSortBar({ searchParams }: SearchSortBarProps) {
             placeholder="Search issues..."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            className="neu-pressed smooth-transition w-full rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none"
+            className="neu-pressed smooth-transition w-full rounded-2xl py-3 pl-11 pr-4 text-white focus:outline-none"
           />
         </div>
 
