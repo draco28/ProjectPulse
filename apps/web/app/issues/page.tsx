@@ -13,7 +13,6 @@ import { FilterSidebar } from '@/components/issues/FilterSidebar';
 import { SearchSortBar } from '@/components/issues/SearchSortBar';
 import { IssueListCard } from '@/components/issues/IssueListCard';
 import { Pagination } from '@/components/issues/Pagination';
-import { Plus } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 
 export const metadata: Metadata = {
@@ -150,7 +149,9 @@ async function getFilterCounts() {
       priorityCounts.map((p: { priority: string; _count: number }) => [p.priority, p._count])
     ),
     module: Object.fromEntries(
-      moduleCounts.filter((m: { module: string | null; _count: number }) => m.module).map((m: { module: string | null; _count: number }) => [m.module!, m._count])
+      moduleCounts
+        .filter((m: { module: string | null; _count: number }) => m.module)
+        .map((m: { module: string | null; _count: number }) => [m.module!, m._count])
     ),
   };
 }
@@ -168,33 +169,32 @@ export default async function IssuesPage({
     <>
       <FloatingBackground />
 
-      <div className="content-wrapper flex min-h-screen">
+      <div className="content-wrapper flex h-screen overflow-hidden">
         <Sidebar />
 
-        <main className="flex-1 overflow-auto p-8">
-          <Header />
-
-          {/* Page Header */}
-          <header className="neu-raised smooth-transition mb-6 rounded-3xl px-8 py-5">
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
+          {/* Header */}
+          <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="mb-1 text-3xl font-bold text-white">Issues</h2>
                 <p className="text-sm text-slate">Track and manage project issues</p>
               </div>
               <button className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
-                <Plus className="h-5 w-5" />
-                New Issue
+                <i className="fas fa-plus"></i>
+                <span>New Issue</span>
               </button>
             </div>
           </header>
 
-          {/* Content Area */}
-          <div className="flex gap-6">
-            {/* Filter Sidebar */}
+          {/* Page Content */}
+          <main className="flex flex-1 gap-4 overflow-hidden">
+            {/* Filters Sidebar */}
             <FilterSidebar counts={filterCounts} searchParams={params} />
 
             {/* Issues List */}
-            <div className="flex flex-1 flex-col gap-4">
+            <div className="flex flex-1 flex-col gap-4 overflow-auto">
               {/* Search & Sort */}
               <SearchSortBar searchParams={params} />
 
@@ -203,9 +203,7 @@ export default async function IssuesPage({
                 {issues.length === 0 ? (
                   <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
                     <p className="text-lg font-semibold text-white">No issues found</p>
-                    <p className="text-sm text-slate">
-                      Try adjusting your filters or search term
-                    </p>
+                    <p className="text-sm text-slate">Try adjusting your filters or search term</p>
                   </div>
                 ) : (
                   issues.map((issue) => (
@@ -239,8 +237,8 @@ export default async function IssuesPage({
                 />
               )}
             </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
     </>
   );

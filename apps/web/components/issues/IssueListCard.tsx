@@ -16,7 +16,6 @@
  */
 'use client';
 
-import { User, Clock, MessageSquare, Paperclip, MoreVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -53,7 +52,10 @@ const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
 
 export function IssueListCard({ issue }: IssueListCardProps) {
   const priorityInfo = PRIORITY_CONFIG[issue.priority] || PRIORITY_CONFIG.low;
-  const statusInfo = STATUS_CONFIG[issue.status] || { label: issue.status, className: 'neu-pressed text-slate' };
+  const statusInfo = STATUS_CONFIG[issue.status] || {
+    label: issue.status,
+    className: 'neu-pressed text-slate',
+  };
   const isClosed = issue.status === 'closed';
 
   // Format time ago
@@ -76,9 +78,7 @@ export function IssueListCard({ issue }: IssueListCardProps) {
           <div className="mb-3 flex items-start justify-between">
             <div className="flex flex-wrap items-center gap-2">
               {/* Issue Number */}
-              <span className="font-mono text-sm font-semibold text-slate">
-                #{issue.id}
-              </span>
+              <span className="font-mono text-sm font-semibold text-slate">#{issue.id}</span>
 
               {/* Priority Badge */}
               <span
@@ -97,10 +97,7 @@ export function IssueListCard({ issue }: IssueListCardProps) {
 
               {/* Status Badge */}
               <span
-                className={cn(
-                  'rounded-full px-3 py-1 text-xs font-semibold',
-                  statusInfo.className
-                )}
+                className={cn('rounded-full px-3 py-1 text-xs font-semibold', statusInfo.className)}
               >
                 {statusInfo.label}
               </span>
@@ -108,17 +105,12 @@ export function IssueListCard({ issue }: IssueListCardProps) {
 
             {/* Menu Button */}
             <button className="smooth-transition text-slate hover:text-coral">
-              <MoreVertical className="h-5 w-5" />
+              <i className="fas fa-ellipsis-v"></i>
             </button>
           </div>
 
           {/* Title */}
-          <h3
-            className={cn(
-              'mb-2 text-lg font-bold text-white',
-              isClosed && 'line-through'
-            )}
-          >
+          <h3 className={cn('mb-2 text-lg font-bold text-white', isClosed && 'line-through')}>
             {issue.title}
           </h3>
 
@@ -131,26 +123,26 @@ export function IssueListCard({ issue }: IssueListCardProps) {
           <div className="flex items-center gap-6 text-sm text-slate">
             {/* Author */}
             <span className="flex items-center gap-2">
-              <User className="h-4 w-4" />
+              <i className="fas fa-user"></i>
               {issue.assignee}
             </span>
 
             {/* Time */}
             <span className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+              <i className="fas fa-clock"></i>
               {timeAgo}
             </span>
 
             {/* Comments */}
             <span className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
+              <i className="fas fa-comment"></i>
               {issue.commentsCount} {issue.commentsCount === 1 ? 'comment' : 'comments'}
             </span>
 
             {/* Attachments */}
             {issue.attachmentsCount > 0 && (
               <span className="flex items-center gap-2">
-                <Paperclip className="h-4 w-4" />
+                <i className="fas fa-paperclip"></i>
                 {issue.attachmentsCount} {issue.attachmentsCount === 1 ? 'file' : 'files'}
               </span>
             )}

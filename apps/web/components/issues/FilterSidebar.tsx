@@ -7,7 +7,6 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CircleDot, AlertCircle, Box } from 'lucide-react';
 
 interface FilterCounts {
   status: Record<string, number>;
@@ -90,17 +89,15 @@ export function FilterSidebar({ counts, searchParams }: FilterSidebarProps) {
     currentStatus.length > 0 || currentPriority.length > 0 || currentModule.length > 0;
 
   return (
-    <div className="w-72 flex-shrink-0">
+    <div className="flex w-72 flex-col gap-4 overflow-auto">
       <div className="neu-raised smooth-transition rounded-3xl p-6">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">
-            Filters
-          </h3>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-white">Filters</h3>
           {hasActiveFilters && (
             <button
               onClick={clearAllFilters}
-              className="smooth-transition text-xs font-semibold text-coral hover:text-coralLight"
+              className="smooth-transition hover:text-coralLight text-xs font-semibold text-coral"
             >
               Clear All
             </button>
@@ -110,7 +107,7 @@ export function FilterSidebar({ counts, searchParams }: FilterSidebarProps) {
         {/* Status Filter */}
         <div className="mb-6">
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <CircleDot className="h-4 w-4 text-coral" />
+            <i className="fas fa-circle-notch text-sm text-coral"></i>
             Status
           </h4>
           <div className="space-y-3">
@@ -126,9 +123,7 @@ export function FilterSidebar({ counts, searchParams }: FilterSidebarProps) {
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={(e) =>
-                      updateFilter('status', option.value, e.target.checked)
-                    }
+                    onChange={(e) => updateFilter('status', option.value, e.target.checked)}
                   />
                   <span className="flex-1">{option.label}</span>
                   <span
@@ -149,7 +144,7 @@ export function FilterSidebar({ counts, searchParams }: FilterSidebarProps) {
         {/* Priority Filter */}
         <div className="mb-6">
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <AlertCircle className="h-4 w-4 text-coral" />
+            <i className="fas fa-exclamation-circle text-sm text-coral"></i>
             Priority
           </h4>
           <div className="space-y-3">
@@ -165,9 +160,7 @@ export function FilterSidebar({ counts, searchParams }: FilterSidebarProps) {
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={(e) =>
-                      updateFilter('priority', option.value, e.target.checked)
-                    }
+                    onChange={(e) => updateFilter('priority', option.value, e.target.checked)}
                   />
                   <span className="flex flex-1 items-center gap-2">
                     <span className={`h-2 w-2 rounded-full ${option.dotColor}`} />
@@ -191,7 +184,7 @@ export function FilterSidebar({ counts, searchParams }: FilterSidebarProps) {
         {/* Module Filter */}
         <div>
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <Box className="h-4 w-4 text-coral" />
+            <i className="fas fa-cube text-sm text-coral"></i>
             Module
           </h4>
           <div className="space-y-3">
@@ -207,9 +200,7 @@ export function FilterSidebar({ counts, searchParams }: FilterSidebarProps) {
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={(e) =>
-                      updateFilter('module', option.value, e.target.checked)
-                    }
+                    onChange={(e) => updateFilter('module', option.value, e.target.checked)}
                   />
                   <span className="flex-1">{option.label}</span>
                   <span className="neu-pressed rounded-full px-2.5 py-1 text-xs font-semibold text-slate">

@@ -8,6 +8,38 @@ This guide explains how to use Claude Code for Moksha DevHub development, with o
 
 ## 🚨 GOLDEN RULES - Claude Code Must Follow
 
+### Port Configuration (CRITICAL - CHECK FIRST!)
+
+**ALWAYS verify dev server port BEFORE making code changes!**
+
+**Before ANY web development work:**
+
+```bash
+# 1. Start dev server
+pnpm dev
+
+# 2. READ the output - MUST show port 3000:
+# ✅ CORRECT: "ready started server on 0.0.0.0:3000"
+# ❌ WRONG: "ready started server on 0.0.0.0:3002"
+
+# 3. If wrong port, FIX CONFIG FIRST (don't touch code):
+grep -r "PORT" .env.local .env next.config.js
+# Remove PORT=3002 or fix next.config.js
+
+# 4. Verify localhost:3000 loads correctly
+```
+
+**If localhost:3000 shows default Next.js page:**
+
+- ❌ DON'T assume code is broken
+- ✅ CHECK which port dev server is running on
+- ✅ Fix port configuration if needed
+- ✅ Only investigate code if port is correct
+
+**See:** [.claude/CRITICAL_MISTAKES.md](.claude/CRITICAL_MISTAKES.md) for complete prevention guide
+
+---
+
 ### Git Workflow (CRITICAL)
 
 **NEVER work directly on master branch!**
