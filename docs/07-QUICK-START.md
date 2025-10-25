@@ -10,6 +10,7 @@
 Before starting, ensure you have:
 
 ### Required
+
 - [ ] **Windows 11 PC** (primary development machine)
 - [ ] **Docker Desktop** with WSL2 enabled
 - [ ] **Node.js 20+** installed
@@ -19,6 +20,7 @@ Before starting, ensure you have:
 - [ ] **14 hours/week** available for development
 
 ### Optional
+
 - [ ] **Mac Mini** (for LAN access testing)
 - [ ] **Claude Code** installed
 - [ ] **VS Code** or preferred IDE
@@ -48,6 +50,7 @@ docker-compose --version
 ```
 
 **Troubleshooting:**
+
 ```powershell
 # If Docker won't start:
 wsl --install
@@ -84,12 +87,14 @@ mkdir apps\web, apps\mcp-server
 #### 3.1 Create Root Files
 
 **pnpm-workspace.yaml**
+
 ```yaml
 packages:
   - 'apps/*'
 ```
 
 **package.json**
+
 ```json
 {
   "name": "moksha-devhub",
@@ -110,6 +115,7 @@ packages:
 ```
 
 **.gitignore**
+
 ```
 node_modules/
 .env
@@ -125,6 +131,7 @@ uploads/*
 ```
 
 **.env**
+
 ```env
 # Database
 POSTGRES_USER=moksha
@@ -143,6 +150,7 @@ OPENAI_API_KEY=
 ```
 
 **docker-compose.yml**
+
 ```yaml
 version: '3.8'
 
@@ -155,12 +163,12 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -176,7 +184,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -236,6 +244,7 @@ pnpm prisma generate
 #### 4.2 Create Dockerfile
 
 **apps/web/Dockerfile**
+
 ```dockerfile
 FROM node:20-alpine
 
@@ -270,6 +279,7 @@ CMD ["pnpm", "start"]
 ### Step 5: Create Initial Database Script (2 minutes)
 
 **scripts/init-db.sql**
+
 ```sql
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -301,6 +311,7 @@ docker-compose logs postgres
 ```
 
 **Verify PostgreSQL:**
+
 ```powershell
 # Connect to PostgreSQL
 docker exec -it moksha-db psql -U moksha -d moksha_devhub
@@ -358,6 +369,7 @@ start http://localhost:3000
 ```
 
 **You should see:**
+
 - ✅ Moksha DevHub homepage
 - ✅ Sidebar with navigation
 - ✅ Issue list (empty or with seed data)
@@ -438,6 +450,7 @@ pnpm add -D typescript @types/node tsx
 ### Step 2: Configure MCP Server
 
 **apps/mcp-server/package.json**
+
 ```json
 {
   "name": "@moksha-devhub/mcp-server",
@@ -452,6 +465,7 @@ pnpm add -D typescript @types/node tsx
 ```
 
 **apps/mcp-server/src/index.ts**
+
 ```typescript
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -482,7 +496,7 @@ server.setRequestHandler('tools/call', async (request) => {
       priority: request.params.arguments.priority || 'medium',
       module: request.params.arguments.module,
     });
-    
+
     return {
       content: [
         {
@@ -492,7 +506,7 @@ server.setRequestHandler('tools/call', async (request) => {
       ],
     };
   }
-  
+
   throw new Error('Unknown tool');
 });
 
@@ -505,24 +519,39 @@ console.error('MCP server running on stdio');
 
 ### Step 3: Configure Claude Code
 
-Edit MCP configuration:
+⚠️ **Important:** This uses Claude Code (VS Code Extension), NOT Claude Desktop.
 
-**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`  
-**Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+Edit Claude Code MCP configuration:
+
+**Windows:** `C:\Users\<username>\.claude.json`
+**Mac/Linux:** `~/.claude.json`
+
+**Configuration Structure (project-scoped):**
 
 ```json
 {
-  "mcpServers": {
-    "moksha-devhub": {
-      "command": "node",
-      "args": ["F:\\moksha-devhub\\apps\\mcp-server\\dist\\index.js"],
-      "env": {
-        "DATABASE_URL": "postgresql://moksha:moksha_dev_password_2025@localhost:5432/moksha_devhub"
+  "projects": {
+    "F:\\Web_Projects\\AI_HUB": {
+      "mcpServers": {
+        "moksha-devhub": {
+          "type": "stdio",
+          "command": "node",
+          "args": ["F:\\Web_Projects\\AI_HUB\\apps\\mcp-server\\dist\\index.js"],
+          "env": {
+            "DATABASE_URL": "postgresql://moksha:moksha_dev_password_2025@localhost:5432/moksha_devhub"
+          }
+        }
       }
     }
   }
 }
 ```
+
+**Note:** Claude Code requires:
+
+- Project-specific configuration under `projects[path]`
+- `"type": "stdio"` field
+- Absolute paths (not relative)
 
 ### Step 4: Test MCP
 
@@ -612,12 +641,14 @@ ipconfig
 After setup, verify:
 
 ### Database
+
 - [ ] PostgreSQL running (`docker ps`)
 - [ ] Can connect to database (`docker exec -it moksha-db psql -U moksha -d moksha_devhub`)
 - [ ] Tables created (`\dt` in psql)
 - [ ] Extensions enabled (`\dx` in psql)
 
 ### Web Application
+
 - [ ] Web container running (`docker ps`)
 - [ ] Accessible at `http://localhost:3000`
 - [ ] Can create issues
@@ -626,10 +657,12 @@ After setup, verify:
 - [ ] Can upload attachments
 
 ### LAN Access (if applicable)
+
 - [ ] Accessible from Mac Mini at `http://192.168.x.x:3000`
 - [ ] All features work from Mac Mini
 
 ### MCP (if set up)
+
 - [ ] MCP server runs without errors
 - [ ] Claude Code can call MCP tools
 - [ ] Issues created via MCP appear in UI
@@ -706,6 +739,7 @@ You now have:
 ## 📞 Getting Help
 
 If stuck:
+
 1. Check **troubleshooting section** above
 2. Review **02-DATABASE-SCHEMA.md** for database issues
 3. Review **01-ARCHITECTURE.md** for architecture questions

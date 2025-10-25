@@ -1,5 +1,20 @@
 # MCP Tools Recommendations for Moksha DevHub
 
+## ⚠️ Important: Claude Code vs Claude Desktop
+
+**This project uses Claude Code (VS Code Extension), NOT Claude Desktop.**
+
+| Aspect               | Claude Desktop                                | Claude Code (VS Code)                            |
+| -------------------- | --------------------------------------------- | ------------------------------------------------ |
+| **Config File**      | `%APPDATA%\Claude\claude_desktop_config.json` | `C:\Users\<username>\.claude.json`               |
+| **Config Structure** | Global `mcpServers` object                    | Project-scoped under `projects[path].mcpServers` |
+| **Required Fields**  | `command`, `args`                             | `type`, `command`, `args`, `env`                 |
+| **Scope**            | All projects                                  | Per-project configuration                        |
+
+**All MCP configuration in this document refers to Claude Code, not Claude Desktop.**
+
+---
+
 ## Current MCP Tools
 
 You currently have these MCP tools installed:
@@ -9,57 +24,52 @@ You currently have these MCP tools installed:
 - ✅ **sequential-thinking** - Complex reasoning
 - ✅ **git** - Version control
 - ✅ **playwright** - E2E testing
+- ✅ **postgres** - PostgreSQL database queries
+- ✅ **docker-devhub** - Docker container management
+- ✅ **gitkraken** - Enhanced Git operations
 
 ## Recommended Additional Tools
 
-### 🔥 High Priority (Install These)
+### 🔥 High Priority (Already Installed ✅)
 
-#### 1. PostgreSQL MCP Server
+#### 1. PostgreSQL MCP Server ✅
 
 **Package:** `@modelcontextprotocol/server-postgres`
 
-**Why:**
+**Status:** ✅ Installed and configured
+
+**Benefits:**
 
 - Direct PostgreSQL query execution
 - Schema inspection without Prisma Studio
 - Query performance analysis
 - Migration verification
 
-**Installation:**
+#### 2. Docker MCP Server ✅
 
-```bash
-claude mcp add @modelcontextprotocol/server-postgres
-```
+**Package:** Custom MCP Server
 
-**Configuration:**
+**Status:** ✅ Installed and configured at `apps/mcp-docker`
 
-```json
-{
-  "mcpServers": {
-    "postgres": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "postgresql://moksha:password@localhost:5432/moksha_devhub"
-      ]
-    }
-  }
-}
-```
-
-#### 2. Docker MCP Server
-
-**Package:** Custom or community Docker MCP
-
-**Why:**
+**Benefits:**
 
 - Manage Docker containers from Claude Code
 - View logs (`docker logs moksha-db`)
 - Restart services
 - Health checks
 
-**Note:** May need to create custom MCP server for Docker
+#### 3. GitKraken MCP ✅
+
+**Package:** GitKraken CLI MCP
+
+**Status:** ✅ Installed and configured
+
+**Benefits:**
+
+- Enhanced Git operations
+- Pull request management
+- Issue tracking integration
+- Repository insights
 
 ---
 
@@ -194,29 +204,35 @@ server.tool(
 ### 1. Add PostgreSQL MCP Server
 
 ```bash
-# Install
-claude mcp add @modelcontextprotocol/server-postgres
-
-# Or manually edit config
-# Location: %APPDATA%\Claude\claude_desktop_config.json (Windows)
+# Manually edit Claude Code config
+# Location (Windows): C:\Users\<username>\.claude.json
+# Location (Mac/Linux): ~/.claude.json
 ```
 
-**Config:**
+**Config Structure (Claude Code uses project-scoped configuration):**
 
 ```json
 {
-  "mcpServers": {
-    "postgres": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "postgresql://moksha:moksha_dev_password_2025@localhost:5432/moksha_devhub"
-      ]
+  "projects": {
+    "F:\\Web_Projects\\AI_HUB": {
+      "mcpServers": {
+        "postgres": {
+          "type": "stdio",
+          "command": "npx",
+          "args": [
+            "-y",
+            "@modelcontextprotocol/server-postgres",
+            "postgresql://moksha:moksha_dev_password_2025@localhost:5432/moksha_devhub"
+          ],
+          "env": {}
+        }
+      }
     }
   }
 }
 ```
+
+**Note:** Claude Code requires `"type": "stdio"` and `"env": {}` fields. Configuration is project-specific, not global.
 
 ### 2. Create Custom Docker MCP Server
 
@@ -255,14 +271,20 @@ const transport = new StdioServerTransport();
 await server.connect(transport);
 ```
 
-**Add to config:**
+**Add to Claude Code config (C:\Users\<username>\.claude.json):**
 
 ```json
 {
-  "mcpServers": {
-    "docker-devhub": {
-      "command": "node",
-      "args": ["F:\\Web_Projects\\AI_HUB\\apps\\mcp-docker\\dist\\index.js"]
+  "projects": {
+    "F:\\Web_Projects\\AI_HUB": {
+      "mcpServers": {
+        "docker-devhub": {
+          "type": "stdio",
+          "command": "node",
+          "args": ["F:\\Web_Projects\\AI_HUB\\apps\\mcp-docker\\dist\\index.js"],
+          "env": {}
+        }
+      }
     }
   }
 }
@@ -295,9 +317,11 @@ In Claude Code:
 
 ### MCP Tool Not Found
 
-1. Check `claude_desktop_config.json` syntax
-2. Restart Claude Desktop
-3. Check MCP server logs
+1. Check `C:\Users\<username>\.claude.json` syntax (Claude Code config)
+2. Ensure MCP server is in the correct project path (e.g., `F:\Web_Projects\AI_HUB`)
+3. Verify `"type": "stdio"` and `"env": {}` fields are present
+4. Fully close and reopen VS Code (not just reload)
+5. Check MCP server logs in VS Code Output panel
 
 ### Connection Errors
 
@@ -340,11 +364,14 @@ In Claude Code:
 
 ## Next Steps
 
-1. **Now:** Install PostgreSQL MCP Server
-2. **Week 1:** Build custom Docker MCP Server
-3. **Week 2-3:** Add GitHub/Puppeteer if needed
-4. **Ongoing:** Add custom DevHub-specific tools
+1. ✅ **Completed:** PostgreSQL MCP Server installed
+2. ✅ **Completed:** Custom Docker MCP Server built and configured
+3. ✅ **Completed:** GitKraken MCP installed and configured
+4. **Week 2-3:** Consider GitHub/Puppeteer if needed
+5. **Ongoing:** Add custom DevHub-specific tools as requirements emerge
 
 ---
 
-**Last Updated:** January 23, 2025
+**Last Updated:** October 25, 2025
+**Config Type:** Claude Code (VS Code Extension)
+**Config File:** `C:\Users\prave\.claude.json`

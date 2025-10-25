@@ -21,6 +21,7 @@
 **Reference:** Choose from Week 2 options below
 
 **Week 1 Summary:** ✅ 100% Complete
+
 - Docker + PostgreSQL setup ✓
 - Next.js 14 + 4 themes ✓
 - Complete Dashboard UI ✓
@@ -3397,24 +3398,35 @@ export { server };
 
 **Agent:** devhub-mcp-specialist
 
+⚠️ **Important:** This uses Claude Code (VS Code Extension), NOT Claude Desktop.
+
 **Edit Claude Code MCP config:**
 
-**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-**Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows:** `C:\Users\<username>\.claude.json`
+**Mac/Linux:** `~/.claude.json`
+
+**Configuration Structure (project-scoped):**
 
 ```json
 {
-  "mcpServers": {
-    "moksha-devhub": {
-      "command": "node",
-      "args": ["F:\\Web_Projects\\AI_HUB\\apps\\mcp-server\\dist\\index.js"],
-      "env": {
-        "API_URL": "http://localhost:3000/api"
+  "projects": {
+    "F:\\Web_Projects\\AI_HUB": {
+      "mcpServers": {
+        "moksha-devhub": {
+          "type": "stdio",
+          "command": "node",
+          "args": ["F:\\Web_Projects\\AI_HUB\\apps\\mcp-server\\dist\\index.js"],
+          "env": {
+            "API_URL": "http://localhost:3000/api"
+          }
+        }
       }
     }
   }
 }
 ```
+
+**Note:** Claude Code requires project-specific configuration under `projects[path]` with `"type": "stdio"` field.
 
 #### 4. Test MCP Integration
 
@@ -4071,7 +4083,6 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - .prettierignore
 - .husky/pre-commit
 - README.md (product showcase)
-- claude_desktop_config.json.backup
 
 **Files Modified:**
 
@@ -4081,7 +4092,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 - docker-compose.yml (renamed all resources)
 - scripts/init-db.sql (renamed banner)
 - docs/DEVELOPMENT_PLAN.md (progress tracking)
-- claude_desktop_config.json (added git MCP server)
+- C:\Users\prave\.claude.json (added git MCP server for Claude Code)
 
 **Key Decisions:**
 
