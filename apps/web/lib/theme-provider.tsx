@@ -10,6 +10,7 @@ interface Theme {
   name: string;
   description: string;
   mode: ThemeMode;
+  emoji: string;
 }
 
 interface ThemeContextType {
@@ -25,37 +26,41 @@ const themes: Theme[] = [
     name: 'Desert Stone',
     description: 'Soft neumorphic light theme',
     mode: 'light',
+    emoji: '🏜️',
   },
   {
     id: 'neon',
     name: 'Neon Vibes',
     description: 'Vibrant neon dark theme',
     mode: 'dark',
+    emoji: '⚡',
   },
   {
     id: 'earthy',
     name: 'Earthy',
     description: 'Muted earth tones',
     mode: 'dark',
+    emoji: '🌿',
   },
   {
     id: 'coral',
     name: 'Dark Neumorphic Coral',
     description: 'Modern dark with coral accent',
     mode: 'dark',
+    emoji: '🪸',
   },
 ];
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeId>('desert');
+  const [theme, setThemeState] = useState<ThemeId>('coral');
   const [mounted, setMounted] = useState(false);
 
   const getCurrentTheme = (): Theme => {
     const found = themes.find((t) => t.id === theme);
-    // themes[0] always exists (we have 4 themes defined), so this is safe
-    return found ?? themes[0]!;
+    // Fallback to coral theme (index 3) if theme not found
+    return found ?? themes[3]!;
   };
 
   const currentTheme = getCurrentTheme();
@@ -66,6 +71,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('theme') as ThemeId;
     if (saved && themes.some((t) => t.id === saved)) {
       setThemeState(saved);
+    } else {
+      // Set coral as default if no saved preference
+      setThemeState('coral');
     }
   }, []);
 
