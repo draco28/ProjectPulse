@@ -18,6 +18,10 @@
 4. [WORKFLOW_ARCHITECTURE.md](../docs/WORKFLOW_ARCHITECTURE.md) - Branching strategy
 5. **This file** (.agent/README.md) - For task-specific context
 
+**User Workflow Reference:**
+
+- [WORKFLOW_PROMPTS.md](WORKFLOW_PROMPTS.md) - **Essential**: All prompts needed for daily work, optional features, and troubleshooting
+
 ---
 
 ## 🎯 Finding What You Need
