@@ -124,30 +124,40 @@ _Note: User will provide mockup file for issue detail page_
    - **Components**: DocumentCard, CategoryPills, SearchBar (Server + Client)
    - **Prisma queries**: Full-text search with `tsvector`, category filtering
    - **Testing**: React Testing Library for filters; Playwright E2E for search → open document
+   - **Research:** `explore-codebase` for DocumentCard patterns, `analyze-architecture` for full-text search flow
+   - **Experts:** `next-js-expert` (Server Components for search), `database-expert` (tsvector optimization)
 
 2. **Wiki page** (mockup: 04-wiki-dark-neumorphic-coral.html)
    - **API Endpoints**: `GET /api/wiki/[slug]`, `GET /api/wiki/[slug]/related`
    - **Components**: WikiSidebar, TableOfContents, CodeBlock, Callout (Server + Client)
    - **Prisma queries**: Wiki article with relations, related articles algorithm
    - **Testing**: Playwright E2E for TOC navigation and related articles
+   - **Research:** `explore-codebase` for WikiSidebar/TOC patterns, `analyze-architecture` for related articles algorithm
+   - **Experts:** `react-expert` (TOC component architecture), `next-js-expert` (dynamic routes)
 
 3. **Security page** (mockup: 05-security-dark-neumorphic-coral.html)
    - **API Endpoints**: `GET /api/security/score`, `GET /api/security/vulnerabilities`, `GET /api/security/scanners`
    - **Components**: SecurityScoreMeter, VulnerabilityCard, ScannerStatus
    - **Prisma queries**: Security scan results with aggregations
    - **Testing**: Playwright E2E for run scan → verify list
+   - **Research:** `explore-codebase` for SecurityStatus/VulnerabilityCard patterns, `analyze-architecture` for score aggregation
+   - **Experts:** `database-expert` (aggregation queries), `react-expert` (dashboard components)
 
 4. **Agent Personas page** (mockup: 06-agent-personas-dark-neumorphic-coral.html)
    - **API Endpoints**: `GET /api/agents`, `POST /api/agents/[id]/activate`, `POST /api/agents/[id]/deactivate`
    - **Components**: AgentCard, AgentDetail, ToggleSwitch (Server + Client)
    - **Server Actions**: Agent activation/deactivation with status updates
    - **Testing**: Playwright E2E for toggle agent and verify status
+   - **Research:** `explore-codebase` for AgentCard patterns, `analyze-architecture` for activation state management
+   - **Experts:** `next-js-expert` (Server Actions for mutations), `react-expert` (toggle component state)
 
 5. **Command Palette** (mockup: 07-command-palette-dark-neumorphic-coral.html)
    - **Client Component**: Full keyboard navigation (Cmd+K shortcut)
    - **Search algorithm**: Fuzzy search across all entities (issues, docs, agents)
    - **Components**: CommandPalette, CommandItem, CommandGroup
    - **Testing**: React Testing Library for keyboard navigation
+   - **Research:** `explore-codebase` for keyboard navigation patterns, `analyze-architecture` for fuzzy search implementation
+   - **Experts:** `react-expert` (keyboard event handling), `next-js-expert` (client-side search optimization)
 
 **Research:**
 

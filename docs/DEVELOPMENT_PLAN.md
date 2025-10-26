@@ -148,15 +148,15 @@
 
 **Tasks**:
 
-1. **Knowledge Base**: **GET /api/knowledge** + **GET /api/search** (full-text with `tsvector`); Components: DocumentCard, SearchBar; **Playwright E2E**
-   - Dependencies: SearchIndex table, full-text search functions
-2. **Wiki**: **GET /api/wiki/[slug]** + related articles; Components: WikiSidebar, TableOfContents; **Playwright E2E** for TOC navigation
-   - Dependencies: WikiPage relations, related articles algorithm
-3. **Security**: **GET /api/security/score** + vulnerabilities; Components: SecurityScoreMeter, VulnerabilityCard; **Playwright E2E**
-   - Dependencies: SecurityVulnerability and SecurityScan models, aggregation queries
-4. **Agent Personas**: **GET /api/agents**, **POST /api/agents/[id]/activate**; **Server Actions** for toggling; **Playwright E2E**
-   - Dependencies: AgentPersona model, activation state management
-5. **Command Palette**: **Client Component** with keyboard navigation (Cmd+K); Fuzzy search across entities; **React Testing Library**
+1. **Knowledge Base**: **GET /api/knowledge** + **GET /api/search** (full-text with `tsvector`); Prisma models: `KnowledgeArticle`, `KnowledgeCategory`; Components: DocumentCard, SearchBar; **Playwright E2E**
+   - Dependencies: `SearchIndex` table, full-text search functions, `KnowledgeArticle.category` relation
+2. **Wiki**: **GET /api/wiki/[slug]** + related articles; Prisma model: `WikiPage` with `relatedPages[]`, `author` relations; Components: WikiSidebar, TableOfContents; **Playwright E2E** for TOC navigation
+   - Dependencies: `WikiPage` relations (self-referential `relatedPages`), related articles algorithm
+3. **Security**: **GET /api/security/score** + vulnerabilities; Prisma models: `SecurityVulnerability`, `SecurityScan` with `severity`, `status` enums; Components: SecurityScoreMeter, VulnerabilityCard; **Playwright E2E**
+   - Dependencies: `SecurityVulnerability` and `SecurityScan` models, aggregation queries for score calculation
+4. **Agent Personas**: **GET /api/agents**, **POST /api/agents/[id]/activate**; Prisma model: `AgentPersona` with `isActive: Boolean`, `capabilities: String[]`; **Server Actions** for toggling; **Playwright E2E**
+   - Dependencies: `AgentPersona` model, activation state management with optimistic updates
+5. **Command Palette**: **Client Component** with keyboard navigation (Cmd+K); Fuzzy search across entities (uses `Issue`, `KnowledgeArticle`, `WikiPage`, `AgentPersona`); **React Testing Library**
    - Dependencies: All entity APIs complete (Issues, Knowledge, Wiki, Security, Agents)
 6. **Integration testing** with **Playwright MCP tool** for end-to-end workflows
    - Dependencies: All 5 pages complete and navigable
