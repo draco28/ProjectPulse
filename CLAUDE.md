@@ -59,34 +59,37 @@ WORKFLOW_ARCHITECTURE.md, .agent/README.md and continue"
 ### What I Do AUTOMATICALLY (Without You Asking)
 
 **Step 1: Parse Current Phase**
+
 - Read STATUS.md → Extract current phase (e.g., "Phase 3.1: Issue Management API")
 - Read DEVELOPMENT_PLAN.md → Understand phase requirements
 
 **Step 2: Auto-Load Skills Based on Keywords**
 
-| Phase Contains | Skills I Load | Token Cost |
-|----------------|---------------|------------|
-| "API", "endpoint", "route" | [api-patterns](.claude/skills/moksha-devhub/api-patterns.md) | 220 tokens |
-| "Component", "UI", "page" | [component-patterns](.claude/skills/moksha-devhub/component-patterns.md) | 280 tokens |
-| "Database", "Prisma", "query" | [database-patterns](.claude/skills/moksha-devhub/database-patterns.md) | 200 tokens |
-| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/moksha-devhub/testing-patterns.md) | 240 tokens |
-| Any git operation | [git-workflow](.claude/skills/workflows/git-workflow.md) | 180 tokens |
+| Phase Contains                | Skills I Load                                                            | Token Cost |
+| ----------------------------- | ------------------------------------------------------------------------ | ---------- |
+| "API", "endpoint", "route"    | [api-patterns](.claude/skills/moksha-devhub/api-patterns.md)             | 220 tokens |
+| "Component", "UI", "page"     | [component-patterns](.claude/skills/moksha-devhub/component-patterns.md) | 280 tokens |
+| "Database", "Prisma", "query" | [database-patterns](.claude/skills/moksha-devhub/database-patterns.md)   | 200 tokens |
+| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/moksha-devhub/testing-patterns.md)     | 240 tokens |
+| Any git operation             | [git-workflow](.claude/skills/workflows/git-workflow.md)                 | 180 tokens |
 
 **Step 3: Auto-Read .agent/ Docs (NOT Full Docs)**
 
-| Phase Type | Instead of Reading | I Read | Savings |
-|------------|-------------------|--------|---------|
-| API Development | `docs/01-ARCHITECTURE.md` (50K) | [.agent/system/api-catalog.md](.agent/system/api-catalog.md) | 95% |
-| Database Work | `prisma/schema.prisma` + comments | [.agent/system/database-schema.md](.agent/system/database-schema.md) | 92% |
-| UI Components | `docs/02-COMPONENTS.md` (30K) | [.agent/system/component-patterns.md](.agent/system/component-patterns.md) | 88% |
-| Any Work | Full troubleshooting docs | [.agent/sops/](.agent/sops/) | 90% |
+| Phase Type      | Instead of Reading                | I Read                                                                     | Savings |
+| --------------- | --------------------------------- | -------------------------------------------------------------------------- | ------- |
+| API Development | `docs/01-ARCHITECTURE.md` (50K)   | [.agent/system/api-catalog.md](.agent/system/api-catalog.md)               | 95%     |
+| Database Work   | `prisma/schema.prisma` + comments | [.agent/system/database-schema.md](.agent/system/database-schema.md)       | 92%     |
+| UI Components   | `docs/02-COMPONENTS.md` (30K)     | [.agent/system/component-patterns.md](.agent/system/component-patterns.md) | 88%     |
+| Any Work        | Full troubleshooting docs         | [.agent/sops/](.agent/sops/)                                               | 90%     |
 
 **Step 4: Implement Following Patterns**
+
 - Use loaded skills as reference
 - Follow established patterns from .agent/ docs
 - Ask clarifying questions if phase is ambiguous
 
 **Step 5: After Completion (AUTO-INVOKE SUB-AGENTS)**
+
 - Invoke [synthesize-docs](.claude/agents/synthesize-docs.md) sub-agent → Generate SOP
 - Update STATUS.md
 - Commit with proper message
@@ -95,19 +98,19 @@ WORKFLOW_ARCHITECTURE.md, .agent/README.md and continue"
 
 **During Research** (Keep Main Thread Clean):
 
-| You Say / Phase Needs | I Auto-Invoke | Returns |
-|------------------------|---------------|---------|
-| "How does [feature] work?" | [analyze-architecture](.claude/agents/analyze-architecture.md) | 2-5K token summary |
-| "Find all instances of X" | [explore-codebase](.claude/agents/explore-codebase.md) | 2-5K token summary |
+| You Say / Phase Needs                      | I Auto-Invoke                                                  | Returns               |
+| ------------------------------------------ | -------------------------------------------------------------- | --------------------- |
+| "How does [feature] work?"                 | [analyze-architecture](.claude/agents/analyze-architecture.md) | 2-5K token summary    |
+| "Find all instances of X"                  | [explore-codebase](.claude/agents/explore-codebase.md)         | 2-5K token summary    |
 | Phase requires understanding existing code | [analyze-architecture](.claude/agents/analyze-architecture.md) | Architecture insights |
 
 **After Feature Completion** (Automatic):
 
-| Trigger | I Auto-Invoke | Output |
-|---------|---------------|--------|
-| Feature implementation done | [synthesize-docs](.claude/agents/synthesize-docs.md) | SOP in .agent/sops/ |
-| New patterns established | [synthesize-docs](.claude/agents/synthesize-docs.md) | Updated skills |
-| System architecture changed | [map-system](.claude/agents/map-system.md) | Refreshed .agent/system/ docs |
+| Trigger                     | I Auto-Invoke                                        | Output                        |
+| --------------------------- | ---------------------------------------------------- | ----------------------------- |
+| Feature implementation done | [synthesize-docs](.claude/agents/synthesize-docs.md) | SOP in .agent/sops/           |
+| New patterns established    | [synthesize-docs](.claude/agents/synthesize-docs.md) | Updated skills                |
+| System architecture changed | [map-system](.claude/agents/map-system.md)           | Refreshed .agent/system/ docs |
 
 **You'll see me say**: "Analyzing architecture... invoking analyze-architecture sub-agent" or "Feature complete, generating SOP..."
 
@@ -146,13 +149,17 @@ Me: *reads STATUS.md*
 **This is the file-based context management pattern from transcript_agent_work.md**
 
 ### At Session Start
+
 I will automatically:
+
 1. **Create** `.agent/task/current-session-[YYYYMMDD-HHMM].md`
 2. **Document**: Current phase, goals, requirements from STATUS.md
 3. **Update** this file throughout the session as I work
 
 ### When Invoking Sub-Agents
+
 I will automatically:
+
 1. **Pass context file**: "Read `.agent/task/current-session.md` first"
 2. **Wait for report**: Sub-agent creates research/analysis report
 3. **Read the report**: Load `.agent/task/[agent]-[topic]-[timestamp].md`
@@ -160,6 +167,7 @@ I will automatically:
 5. **Update context**: Add what I implemented to current-session.md
 
 ### File Structure
+
 ```
 .agent/task/
 ├── current-session-20251026-1430.md         ← Main context file (I create/update)
@@ -169,6 +177,7 @@ I will automatically:
 ```
 
 ### Why This Works
+
 - **Sub-agents have full context**: They read current-session.md first
 - **Reports are persistent**: I can read them anytime, even after context compaction
 - **No information loss**: Everything is saved to files, not just in messages
@@ -226,13 +235,72 @@ Implementing POST /api/issues following these patterns..."
 2. **[DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md)** - Detailed plan
 3. **This file** (CLAUDE.md) - Integration guide
 4. **[WORKFLOW_ARCHITECTURE.md](docs/WORKFLOW_ARCHITECTURE.md)** - Workflow
-5. **[.agent/README.md](.agent/README.md)** - Task-specific context
+5. **[.agent/README.md](.agent/README.md)** - Documentation index
 
 **Then I automatically load skills/.agent/ docs based on phase keywords.**
 
+### Memory Bank System (NEW)
+
+**Structured context files for efficient knowledge retrieval:**
+
+**Core Memory Bank Files** (.agent/):
+
+1. **[project-brief.md](.agent/project-brief.md)** - WHAT we're building and WHY
+   - Core requirements, goals, success criteria
+   - User personas, target audience
+   - Quality standards, constraints
+   - Current status and milestones
+
+2. **[system-patterns.md](.agent/system-patterns.md)** - HOW we build
+   - Architecture patterns (Server/Client Components)
+   - Database patterns (Prisma queries, optimization)
+   - API patterns (endpoints, validation, error handling)
+   - Styling patterns (Tailwind, neumorphic design)
+   - Testing patterns (Jest, RTL, Playwright)
+
+3. **[tech-context.md](.agent/tech-context.md)** - Technical stack
+   - Dependencies (Next.js, Prisma, Zod, etc.)
+   - Environment setup, configuration
+   - Constraints and limitations
+   - Browser support, performance targets
+   - Troubleshooting common issues
+
+4. **[active-context.md](.agent/active-context.md)** - Current focus
+   - What we're working on RIGHT NOW
+   - Recent changes and commits
+   - Remaining tasks for current phase
+   - Blockers and waiting items
+
+5. **[progress.md](.agent/progress.md)** - Progress tracking
+   - What's done, what's left
+   - Metrics (velocity, quality gates)
+   - Risk assessment
+   - Lessons learned
+
+**When to Read Which File:**
+
+```
+Need project requirements?          → project-brief.md
+Need architectural patterns?        → system-patterns.md
+Need tech stack details?            → tech-context.md
+Need current task context?          → active-context.md
+Need progress overview?             → progress.md
+```
+
+**Memory Bank Benefits:**
+
+- 🎯 **Targeted Loading**: Read only what you need (vs loading everything)
+- 🔄 **Auto-Updates**: Sub-agents maintain these files automatically
+- 💾 **Token Efficient**: ~3-5K tokens per file vs 30K+ for full context
+- 📊 **Structured**: Consistent format makes information easy to find
+
 ### Finding Information
 
-**Looking for technical details?** → [.agent/README.md](.agent/README.md)
+**Looking for requirements?** → [.agent/project-brief.md](.agent/project-brief.md)
+**Looking for patterns?** → [.agent/system-patterns.md](.agent/system-patterns.md)
+**Looking for tech details?** → [.agent/tech-context.md](.agent/tech-context.md)
+**Looking for current work?** → [.agent/active-context.md](.agent/active-context.md)
+**Looking for progress?** → [.agent/progress.md](.agent/progress.md)
 **Looking for procedures?** → [.agent/sops/](.agent/sops/)
 **Looking for system docs?** → [.agent/system/](.agent/system/)
 
@@ -291,6 +359,7 @@ Implementing POST /api/issues following these patterns..."
 **[next-js-expert](.claude/agents/next-js-expert.md)** - Next.js 14 App Router specialist
 
 **When I invoke**:
+
 - Page/route structure design questions
 - Server vs Client Component decisions
 - Data fetching strategy planning
@@ -298,6 +367,7 @@ Implementing POST /api/issues following these patterns..."
 - Server Actions vs API routes decisions
 
 **What it provides**:
+
 - Detailed implementation plans with Next.js patterns
 - File structure recommendations
 - Code examples following App Router conventions
@@ -308,6 +378,7 @@ Implementing POST /api/issues following these patterns..."
 **[prisma-expert](.claude/agents/prisma-expert.md)** - Database design and Prisma ORM specialist
 
 **When I invoke**:
+
 - Database schema design
 - Migration strategy planning
 - Query optimization
@@ -315,6 +386,7 @@ Implementing POST /api/issues following these patterns..."
 - PostgreSQL-specific features (pgvector, tsvector, JSONB)
 
 **What it provides**:
+
 - Complete Prisma schema designs
 - Migration plans with SQL review
 - Optimized query patterns
@@ -325,6 +397,7 @@ Implementing POST /api/issues following these patterns..."
 **[react-expert](.claude/agents/react-expert.md)** - React 18+ patterns and optimization specialist
 
 **When I invoke**:
+
 - Component architecture design
 - Custom hooks planning
 - Performance optimization (memo, useCallback, useMemo)
@@ -332,6 +405,7 @@ Implementing POST /api/issues following these patterns..."
 - Complex UI pattern implementation
 
 **What it provides**:
+
 - Component architecture plans
 - Custom hook implementations
 - Performance optimization strategies
@@ -355,6 +429,7 @@ Me: "This needs Next.js routing + React optimization expertise.
 ```
 
 **Key Difference from Research Agents**:
+
 - **Research agents** (explore-codebase, analyze-architecture): Scan existing code, return findings
 - **Expert agents** (next-js-expert, prisma-expert, react-expert): Design new implementations, return plans
 

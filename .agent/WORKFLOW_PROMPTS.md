@@ -109,7 +109,168 @@ Continue with next task
 
 ---
 
-## 2. Optional Enhancements (Power User Features)
+## 2. Test-Driven Development (TDD) - ALL Tasks
+
+**CRITICAL**: TDD workflow applies to **ALL implementation tasks** (not just complex ones).
+
+### TDD Workflow (Automatic)
+
+When you say: "Implement X feature"
+
+**I automatically follow TDD:**
+
+1. **🔴 RED Phase** - Write failing test first
+
+   ```
+   You: "Implement POST /api/issues endpoint"
+   Me: "Starting TDD workflow...
+
+       Step 1: Writing failing test first..."
+       [Creates __tests__/api/issues.test.ts]
+       [Runs test: FAILS ✗]
+   ```
+
+2. **🟢 GREEN Phase** - Write minimal code to pass
+
+   ```
+   Me: "Step 2: Implementing minimal code..."
+       [Creates app/api/issues/route.ts]
+       [Runs test: PASSES ✓]
+   ```
+
+3. **🔵 REFACTOR Phase** - Improve code quality
+   ```
+   Me: "Step 3: Refactoring for quality..."
+       [Extracts validation schema]
+       [Improves error handling]
+       [Runs test: STILL PASSES ✓]
+   ```
+
+**Repeat for edge cases and error handling.**
+
+### Why TDD for ALL Tasks
+
+1. **Prevents bugs**: Catches issues before code review
+2. **Better design**: Forces clean API design
+3. **Confidence**: Refactor freely with test safety net
+4. **Documentation**: Tests serve as executable docs
+5. **Dependency clarity**: Tests reveal missing dependencies early
+
+### TDD Examples
+
+**API Endpoint:**
+
+```typescript
+// Test first (🔴 RED)
+expect(response.status).toBe(201);
+expect(data.title).toBe('Test Issue');
+
+// Then implement (🟢 GREEN)
+export async function POST(request) {
+  const issue = await prisma.issue.create(...);
+  return NextResponse.json({ data: issue }, { status: 201 });
+}
+
+// Then refactor (🔵 REFACTOR)
+// - Extract validation
+// - Add error handling
+// - Optimize query
+```
+
+**React Component:**
+
+```typescript
+// Test first (🔴 RED)
+render(<IssueCard issue={mockIssue} />);
+expect(screen.getByText('Test Issue')).toBeInTheDocument();
+
+// Then implement (🟢 GREEN)
+export function IssueCard({ issue }) {
+  return <div>{issue.title}</div>;
+}
+
+// Then refactor (🔵 REFACTOR)
+// - Add neumorphic styling
+// - Improve accessibility
+// - Extract sub-components
+```
+
+**See**: [.claude/skills/moksha-devhub/testing-patterns.md](.claude/skills/moksha-devhub/testing-patterns.md) for full examples
+
+---
+
+## 3. Dependency Mapping (Automatic)
+
+**All tasks in DEVELOPMENT_PLAN.md now include dependency mapping.**
+
+### What Dependency Mapping Prevents
+
+❌ **Without Dependencies:**
+
+```
+Task: Implement comment system
+Problem: Issue model doesn't exist yet → fails
+```
+
+✅ **With Dependencies:**
+
+```
+Task: Implement comment system
+Dependencies:
+  - Issue model created
+  - IssueComment model in schema
+  - Database seeded with comments
+Result: Implementation succeeds!
+```
+
+### How I Use Dependencies
+
+**When you say:** "Implement X feature"
+
+**I automatically:**
+
+1. Check dependencies in DEVELOPMENT_PLAN.md
+2. Verify all dependencies exist
+3. Warn if dependency missing:
+
+   ```
+   Me: "⚠️ Dependency check failed:
+       - IssueComment model not in Prisma schema
+
+       Options:
+       1. Create IssueComment model first
+       2. Proceed without comments (limited functionality)
+
+       Which would you like?"
+   ```
+
+### Dependency Examples
+
+**From DEVELOPMENT_PLAN.md:**
+
+```markdown
+**Day 4: Issue Detail Page**
+
+Dependencies:
+
+- Day 3 complete (Issues List page exists)
+- Prisma schema with IssueComment model
+- Database seeded with comment records
+- Issue detail mockup provided
+- Server Actions pattern established
+- Zod validation utilities available
+
+Tasks:
+
+1. Transform Issue Detail page...
+2. Create comment system...
+```
+
+**I check each dependency before starting implementation.**
+
+---
+
+## 4. Optional Enhancements (Power User Features)
 
 These are **optional** - only use if you want extra documentation or pattern capture.
 

@@ -4,6 +4,8 @@
 
 **🎉 Token Optimization Complete**: Phase 5 delivered 74-83% token reduction through skills system. See [.claude/skills/moksha-devhub/](../.claude/skills/moksha-devhub/) for token-efficient patterns.
 
+**🆕 Memory Bank System**: Structured context files for efficient knowledge retrieval. See [Memory Bank](#-memory-bank-system-new) section below.
+
 ---
 
 ## 📚 Documentation Map
@@ -16,15 +18,79 @@
 2. [DEVELOPMENT_PLAN.md](../docs/DEVELOPMENT_PLAN.md) - Detailed plan
 3. [CLAUDE.md](../CLAUDE.md) - Integration guide
 4. [WORKFLOW_ARCHITECTURE.md](../docs/WORKFLOW_ARCHITECTURE.md) - Branching strategy
-5. **This file** (.agent/README.md) - For task-specific context
+5. **This file** (.agent/README.md) - Documentation index
 
 **User Workflow Reference:**
 
-- [WORKFLOW_PROMPTS.md](WORKFLOW_PROMPTS.md) - **Essential**: All prompts needed for daily work, optional features, and troubleshooting
+- [WORKFLOW_PROMPTS.md](WORKFLOW_PROMPTS.md) - **Essential**: All prompts, TDD workflow, dependency mapping
 
 **Documentation Quality Assurance:**
 
-- [gemini/documentation-audit-prompt.md](gemini/documentation-audit-prompt.md) - Comprehensive Gemini prompt for auditing documentation workflow automation compatibility
+- [gemini/documentation-audit-prompt.md](gemini/documentation-audit-prompt.md) - Comprehensive Gemini prompt for auditing documentation
+
+---
+
+## 🧠 Memory Bank System (NEW)
+
+**Structured context files for efficient knowledge retrieval:**
+
+### Core Memory Bank Files
+
+**Five specialized files replace scattered documentation:**
+
+1. **[project-brief.md](project-brief.md)** - WHAT we're building and WHY
+   - Core requirements, goals, success criteria
+   - User personas, target audience
+   - Quality standards, constraints
+   - Current status and milestones
+   - **Read when**: Need project requirements or goals
+
+2. **[system-patterns.md](system-patterns.md)** - HOW we build
+   - Architecture patterns (Server/Client Components)
+   - Database patterns (Prisma queries, optimization)
+   - API patterns (endpoints, validation, error handling)
+   - Styling patterns (Tailwind, neumorphic design)
+   - Testing patterns (Jest, RTL, Playwright, TDD)
+   - **Read when**: Need implementation patterns or conventions
+
+3. **[tech-context.md](tech-context.md)** - Technical stack
+   - Dependencies (Next.js, Prisma, Zod, etc.)
+   - Environment setup, configuration
+   - Constraints and limitations
+   - Browser support, performance targets
+   - Troubleshooting common issues
+   - **Read when**: Need tech stack details or setup info
+
+4. **[active-context.md](active-context.md)** - Current focus
+   - What we're working on RIGHT NOW
+   - Recent changes and commits
+   - Remaining tasks for current phase
+   - Blockers and waiting items
+   - **Read when**: Need current task context (read EVERY session start)
+
+5. **[progress.md](progress.md)** - Progress tracking
+   - What's done, what's left
+   - Metrics (velocity, quality gates)
+   - Risk assessment
+   - Lessons learned
+   - **Read when**: Need progress overview or metrics
+
+### Memory Bank Benefits
+
+- 🎯 **Targeted Loading**: Read only what you need (3-5K tokens per file vs 30K+ for full context)
+- 🔄 **Auto-Updates**: Sub-agents maintain these files automatically
+- 💾 **Token Efficient**: Saves 75-85% tokens compared to loading everything
+- 📊 **Structured**: Consistent format makes information easy to find
+
+### Quick Lookup
+
+```
+Need requirements?          → project-brief.md
+Need patterns?             → system-patterns.md
+Need tech details?         → tech-context.md
+Need current work?         → active-context.md (READ EVERY SESSION)
+Need progress?             → progress.md
+```
 
 ---
 

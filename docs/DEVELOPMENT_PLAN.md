@@ -94,7 +94,17 @@
 
 **Phase 3 Tasks (Current):**
 
-**Day 3: Issues List Page** (React Server Components + Prisma + Playwright)
+**Day 3: Issues List Page** (React Server Components + Prisma + Playwright) ✅ COMPLETE
+
+**Dependencies**:
+
+- Phase 2 complete (dashboard components transformed)
+- Database seeded with Issue records
+- Prisma schema with Issue model
+- shadcn/ui components available
+- Neumorphic theme styles in globals.css
+
+**Tasks**:
 
 1. Transform Issues List page layout using **Server Components**
 2. Create FilterBar **Client Component** with neumorphic styling and URL state management
@@ -103,6 +113,17 @@
 5. **Playwright E2E test** for filtering, search, and pagination workflow
 
 **Day 4: Issue Detail Page** (React Server/Client + Prisma + Server Actions)
+
+**Dependencies**:
+
+- Day 3 complete (Issues List page exists with navigation)
+- Prisma schema with IssueComment, IssueHistory, IssueAttachment models
+- Database seeded with related records
+- Issue detail mockup file (waiting from user)
+- Server Actions pattern established
+- Zod validation utilities available
+
+**Tasks**:
 
 1. Transform Issue Detail page layout as **Server Component** with **Prisma queries** (relations: comments, attachments, history)
 2. Create comment system UI with **Client Components** (CommentList, CommentForm) and optimistic updates
@@ -113,12 +134,29 @@
 
 **Days 5-6: Remaining Pages** (React Server Components + API Endpoints)
 
+**Dependencies**:
+
+- Days 3-4 complete (Issues pages fully functional)
+- Prisma schema with KnowledgeArticle, WikiPage, SecurityVulnerability, AgentPersona models
+- Database seeded with all entity types
+- API route patterns established
+- Full-text search implementation (pg_trgm)
+- Command Palette mockup provided
+
+**Tasks**:
+
 1. **Knowledge Base**: **GET /api/knowledge** + **GET /api/search** (full-text with `tsvector`); Components: DocumentCard, SearchBar; **Playwright E2E**
+   - Dependencies: SearchIndex table, full-text search functions
 2. **Wiki**: **GET /api/wiki/[slug]** + related articles; Components: WikiSidebar, TableOfContents; **Playwright E2E** for TOC navigation
+   - Dependencies: WikiPage relations, related articles algorithm
 3. **Security**: **GET /api/security/score** + vulnerabilities; Components: SecurityScoreMeter, VulnerabilityCard; **Playwright E2E**
+   - Dependencies: SecurityVulnerability and SecurityScan models, aggregation queries
 4. **Agent Personas**: **GET /api/agents**, **POST /api/agents/[id]/activate**; **Server Actions** for toggling; **Playwright E2E**
+   - Dependencies: AgentPersona model, activation state management
 5. **Command Palette**: **Client Component** with keyboard navigation (Cmd+K); Fuzzy search across entities; **React Testing Library**
+   - Dependencies: All entity APIs complete (Issues, Knowledge, Wiki, Security, Agents)
 6. **Integration testing** with **Playwright MCP tool** for end-to-end workflows
+   - Dependencies: All 5 pages complete and navigable
 
 **Component Templates Available:**
 
