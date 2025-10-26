@@ -282,29 +282,93 @@ Implementing POST /api/issues following these patterns..."
 
 ---
 
-## Specialized Agents (From .claude/agents/)
+## Specialized Expert Agents (Tech-Specific)
 
-### Architecture & Design
+**Available for deep technical guidance - I'll invoke automatically when needed.**
 
-**devhub-architect** - System design, schema design, architecture decisions
+### Next.js Expert
 
-### Implementation
+**[next-js-expert](.claude/agents/next-js-expert.md)** - Next.js 14 App Router specialist
 
-**devhub-fullstack** - API routes, React components, Prisma queries
+**When I invoke**:
+- Page/route structure design questions
+- Server vs Client Component decisions
+- Data fetching strategy planning
+- Caching and performance optimization
+- Server Actions vs API routes decisions
 
-### Testing
+**What it provides**:
+- Detailed implementation plans with Next.js patterns
+- File structure recommendations
+- Code examples following App Router conventions
+- Performance optimization strategies
 
-**devhub-testing** - Unit tests, E2E tests, test coverage
+### Prisma Expert
 
-### Code Quality
+**[prisma-expert](.claude/agents/prisma-expert.md)** - Database design and Prisma ORM specialist
 
-**devhub-auditor** - Security, performance, accessibility review
+**When I invoke**:
+- Database schema design
+- Migration strategy planning
+- Query optimization
+- Relation patterns (one-to-many, many-to-many, self-referential)
+- PostgreSQL-specific features (pgvector, tsvector, JSONB)
 
-### MCP Integration
+**What it provides**:
+- Complete Prisma schema designs
+- Migration plans with SQL review
+- Optimized query patterns
+- Index recommendations
 
-**devhub-mcp-specialist** - MCP tools, resources, prompts
+### React Expert
 
-**Note**: These are invoked via the orchestrator system (not currently used in your workflow)
+**[react-expert](.claude/agents/react-expert.md)** - React 18+ patterns and optimization specialist
+
+**When I invoke**:
+- Component architecture design
+- Custom hooks planning
+- Performance optimization (memo, useCallback, useMemo)
+- State management decisions
+- Complex UI pattern implementation
+
+**What it provides**:
+- Component architecture plans
+- Custom hook implementations
+- Performance optimization strategies
+- TypeScript type patterns
+
+### How These Work
+
+**You don't request these explicitly** - I invoke them automatically when the phase requires deep technical expertise:
+
+```
+Phase: "Design issues page with real-time updates"
+
+Me: "This needs Next.js routing + React optimization expertise.
+     Invoking next-js-expert for page structure...
+     [Expert creates implementation plan]
+
+     Invoking react-expert for real-time updates pattern...
+     [Expert creates component architecture]
+
+     Reading both plans and implementing..."
+```
+
+**Key Difference from Research Agents**:
+- **Research agents** (explore-codebase, analyze-architecture): Scan existing code, return findings
+- **Expert agents** (next-js-expert, prisma-expert, react-expert): Design new implementations, return plans
+
+---
+
+## Legacy Specialized Agents (Orchestrator-Based - Not Used)
+
+The following agents exist but are **NOT used** in your current workflow:
+
+- devhub-architect - Architecture decisions (use next-js-expert/prisma-expert/react-expert instead)
+- devhub-fullstack - Full-stack implementation (I do implementation directly)
+- devhub-testing - Test creation (use testing-patterns skill instead)
+- devhub-auditor - Code review (manual review preferred)
+- devhub-mcp-specialist - MCP integration (as needed)
 
 ---
 
