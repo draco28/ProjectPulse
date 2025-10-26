@@ -62,8 +62,16 @@
 **Phase:** Week 1.5 Phase 3 - Page Transformation (Days 3-6)
 **Status:** 🟡 IN PROGRESS - Day 3 Complete, Day 4 Next
 **Agent:** devhub-fullstack
-**Skills:** None (follow UI_TRANSFORMATION_PLAN.md)
-**Reference:** [docs/UI_TRANSFORMATION_PLAN.md](docs/UI_TRANSFORMATION_PLAN.md) lines 420-800
+**Skills Expected:**
+
+- `component-patterns` (React Server/Client Components, hooks, composition)
+- `database-patterns` (Prisma queries, relations, select/include optimization)
+- `testing-patterns` (React Testing Library, Playwright E2E)
+- `api-patterns` (Zod validation, Server Actions, error handling)
+  **Experts/Sub-Agents:**
+- `react-expert` (component architecture), `next-js-expert` (App Router, Server Actions)
+- `explore-codebase` (find existing patterns), `analyze-architecture` (trace data flows)
+  **Reference:** [docs/UI_TRANSFORMATION_PLAN.md](docs/UI_TRANSFORMATION_PLAN.md) lines 420-800
 
 **Day 3 Complete!** 🎉
 
@@ -75,22 +83,71 @@
 
 **Phase 3 Remaining Tasks (Days 4-6):**
 
-**Day 4: Issue Detail Page** (NEXT - Waiting for mockup)
+**Day 4: Issue Detail Page** (React Server Components + Client Components + Prisma)
 
-*Note: User will provide mockup file for issue detail page*
+_Note: User will provide mockup file for issue detail page_
 
-1. Transform Issue Detail page layout
-2. Create comment system UI
-3. Add timeline/activity feed
-4. Implement status change controls
+**Implementation Requirements:**
 
-**Days 5-6: Remaining Pages**
+1. **Server Component** for Issue Detail page layout - fetch issue data with **Prisma query** (select/include optimization for comments, attachments, history relations)
+2. **Client Components** for comment system UI - CommentList + CommentForm with optimistic updates
+3. **Prisma query** for timeline/activity feed - fetch issue history with user relations
+4. **Server Actions** for status change controls - implement with **Zod validation** for status transitions
+5. **Playwright E2E test** for complete workflow - open issue → add comment → change status
 
-1. Transform Knowledge Base page (mockup: 03-knowledge-dark-neumorphic-coral.html)
-2. Transform Wiki page (mockup: 04-wiki-dark-neumorphic-coral.html)
-3. Transform Security page (mockup: 05-security-dark-neumorphic-coral.html)
-4. Transform Agent Personas page (mockup: 06-agent-personas-dark-neumorphic-coral.html)
-5. Command Palette (mockup: 07-command-palette-dark-neumorphic-coral.html)
+**Research Needed:**
+
+- `explore-codebase`: Find existing comment/timeline patterns in codebase
+- `analyze-architecture`: Trace Issue → Comments → Status data flow (UI → API → DB)
+
+**Expected Skills Auto-Load:** `component-patterns`, `database-patterns`, `api-patterns`, `testing-patterns`
+**Expected Experts:** `react-expert` (component architecture), `next-js-expert` (Server Actions vs API routes)
+
+**Deliverables:**
+
+- `app/issues/[id]/page.tsx` (Server Component)
+- `components/issues/CommentList.tsx`, `CommentForm.tsx` (Client Components)
+- `app/api/issues/[id]/status/route.ts` (Server Action or API endpoint)
+- `tests/e2e/issue-detail.spec.ts` (Playwright E2E test)
+
+**Acceptance Criteria:**
+
+- Status update reflects immediately (optimistic UI) and reconciles on server response
+- Comments list updates in place after submission
+- Zod validation errors shown inline
+- Playwright flow passes: open issue → add comment → change status
+
+**Days 5-6: Remaining Pages** (React Server Components + API Endpoints + Playwright)
+
+1. **Knowledge Base page** (mockup: 03-knowledge-dark-neumorphic-coral.html)
+   - **API Endpoints**: `GET /api/knowledge` (list + filters), `GET /api/search?q=...` (full-text search)
+   - **Components**: DocumentCard, CategoryPills, SearchBar (Server + Client)
+   - **Prisma queries**: Full-text search with `tsvector`, category filtering
+   - **Testing**: React Testing Library for filters; Playwright E2E for search → open document
+
+2. **Wiki page** (mockup: 04-wiki-dark-neumorphic-coral.html)
+   - **API Endpoints**: `GET /api/wiki/[slug]`, `GET /api/wiki/[slug]/related`
+   - **Components**: WikiSidebar, TableOfContents, CodeBlock, Callout (Server + Client)
+   - **Prisma queries**: Wiki article with relations, related articles algorithm
+   - **Testing**: Playwright E2E for TOC navigation and related articles
+
+3. **Security page** (mockup: 05-security-dark-neumorphic-coral.html)
+   - **API Endpoints**: `GET /api/security/score`, `GET /api/security/vulnerabilities`, `GET /api/security/scanners`
+   - **Components**: SecurityScoreMeter, VulnerabilityCard, ScannerStatus
+   - **Prisma queries**: Security scan results with aggregations
+   - **Testing**: Playwright E2E for run scan → verify list
+
+4. **Agent Personas page** (mockup: 06-agent-personas-dark-neumorphic-coral.html)
+   - **API Endpoints**: `GET /api/agents`, `POST /api/agents/[id]/activate`, `POST /api/agents/[id]/deactivate`
+   - **Components**: AgentCard, AgentDetail, ToggleSwitch (Server + Client)
+   - **Server Actions**: Agent activation/deactivation with status updates
+   - **Testing**: Playwright E2E for toggle agent and verify status
+
+5. **Command Palette** (mockup: 07-command-palette-dark-neumorphic-coral.html)
+   - **Client Component**: Full keyboard navigation (Cmd+K shortcut)
+   - **Search algorithm**: Fuzzy search across all entities (issues, docs, agents)
+   - **Components**: CommandPalette, CommandItem, CommandGroup
+   - **Testing**: React Testing Library for keyboard navigation
 
 **Mockup References:**
 

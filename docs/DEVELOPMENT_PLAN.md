@@ -74,7 +74,8 @@
 **Status:** READY TO START (Phase 2 complete - Dashboard transformed!)
 **Duration:** 4 days
 **Agent Needed:** devhub-fullstack
-**Skills Needed:** None (follow UI_TRANSFORMATION_PLAN.md)
+**Skills Expected:** component-patterns, database-patterns, api-patterns, testing-patterns
+**Experts/Sub-Agents:** react-expert, next-js-expert, explore-codebase, analyze-architecture
 **Reference:** **[UI_TRANSFORMATION_PLAN.md](UI_TRANSFORMATION_PLAN.md)** ⭐ lines 420-800
 
 **Week 1.5 Phase 2 Summary:** ✅ COMPLETE (~3 hours, ahead of 2-day estimate)
@@ -93,26 +94,31 @@
 
 **Phase 3 Tasks (Current):**
 
-**Day 3: Issues List Page**
+**Day 3: Issues List Page** (React Server Components + Prisma + Playwright)
 
-1. Transform Issues List page layout
-2. Create FilterBar component with neumorphic styling
-3. Transform issue list items to glass-dark cards
-4. Add sorting and filtering functionality
+1. Transform Issues List page layout using **Server Components**
+2. Create FilterBar **Client Component** with neumorphic styling and URL state management
+3. Transform issue list items to glass-dark cards with **Prisma queries** (pagination, filtering)
+4. Add sorting and filtering functionality with **debounced search** (useDebounce hook)
+5. **Playwright E2E test** for filtering, search, and pagination workflow
 
-**Day 4: Issue Detail Page**
+**Day 4: Issue Detail Page** (React Server/Client + Prisma + Server Actions)
 
-1. Transform Issue Detail page layout
-2. Create comment system UI
-3. Add timeline/activity feed
-4. Implement status change controls
+1. Transform Issue Detail page layout as **Server Component** with **Prisma queries** (relations: comments, attachments, history)
+2. Create comment system UI with **Client Components** (CommentList, CommentForm) and optimistic updates
+3. Add timeline/activity feed using **Prisma query** for issue history
+4. Implement status change controls with **Server Actions** and **Zod validation**
+5. **Playwright E2E test** for complete workflow: open issue → add comment → change status
+6. **Research**: `explore-codebase` to find existing comment patterns; `analyze-architecture` to trace data flow
 
-**Days 5-6: Remaining Pages**
+**Days 5-6: Remaining Pages** (React Server Components + API Endpoints)
 
-1. Transform Knowledge Base page
-2. Create IssueCard component
-3. Create FilterBar component
-4. Integration testing
+1. **Knowledge Base**: **GET /api/knowledge** + **GET /api/search** (full-text with `tsvector`); Components: DocumentCard, SearchBar; **Playwright E2E**
+2. **Wiki**: **GET /api/wiki/[slug]** + related articles; Components: WikiSidebar, TableOfContents; **Playwright E2E** for TOC navigation
+3. **Security**: **GET /api/security/score** + vulnerabilities; Components: SecurityScoreMeter, VulnerabilityCard; **Playwright E2E**
+4. **Agent Personas**: **GET /api/agents**, **POST /api/agents/[id]/activate**; **Server Actions** for toggling; **Playwright E2E**
+5. **Command Palette**: **Client Component** with keyboard navigation (Cmd+K); Fuzzy search across entities; **React Testing Library**
+6. **Integration testing** with **Playwright MCP tool** for end-to-end workflows
 
 **Component Templates Available:**
 
