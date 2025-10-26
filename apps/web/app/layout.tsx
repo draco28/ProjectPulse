@@ -16,6 +16,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
+        {/* React Grab - Point and click UI elements for AI editing (dev only) */}
+        {process.env.NODE_ENV === 'development' && (
+          <script src="https://unpkg.com/react-grab@latest/dist/react-grab.js" defer />
+        )}
       </head>
       <body>
         <ThemeProvider>{children}</ThemeProvider>
