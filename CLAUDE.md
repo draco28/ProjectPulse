@@ -45,7 +45,101 @@ git checkout -b feature/your-feature
 
 ---
 
-## Documentation System
+## Session Start Pattern (AUTOMATIC BEHAVIOR)
+
+### How You Start Sessions
+
+You typically say:
+
+```
+"Read STATUS.md, DEVELOPMENT_PLAN.md, CLAUDE.md,
+WORKFLOW_ARCHITECTURE.md, .agent/README.md and continue"
+```
+
+### What I Do AUTOMATICALLY (Without You Asking)
+
+**Step 1: Parse Current Phase**
+- Read STATUS.md → Extract current phase (e.g., "Phase 3.1: Issue Management API")
+- Read DEVELOPMENT_PLAN.md → Understand phase requirements
+
+**Step 2: Auto-Load Skills Based on Keywords**
+
+| Phase Contains | Skills I Load | Token Cost |
+|----------------|---------------|------------|
+| "API", "endpoint", "route" | [api-patterns](.claude/skills/moksha-devhub/api-patterns.md) | 220 tokens |
+| "Component", "UI", "page" | [component-patterns](.claude/skills/moksha-devhub/component-patterns.md) | 280 tokens |
+| "Database", "Prisma", "query" | [database-patterns](.claude/skills/moksha-devhub/database-patterns.md) | 200 tokens |
+| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/moksha-devhub/testing-patterns.md) | 240 tokens |
+| Any git operation | [git-workflow](.claude/skills/workflows/git-workflow.md) | 180 tokens |
+
+**Step 3: Auto-Read .agent/ Docs (NOT Full Docs)**
+
+| Phase Type | Instead of Reading | I Read | Savings |
+|------------|-------------------|--------|---------|
+| API Development | `docs/01-ARCHITECTURE.md` (50K) | [.agent/system/api-catalog.md](.agent/system/api-catalog.md) | 95% |
+| Database Work | `prisma/schema.prisma` + comments | [.agent/system/database-schema.md](.agent/system/database-schema.md) | 92% |
+| UI Components | `docs/02-COMPONENTS.md` (30K) | [.agent/system/component-patterns.md](.agent/system/component-patterns.md) | 88% |
+| Any Work | Full troubleshooting docs | [.agent/sops/](.agent/sops/) | 90% |
+
+**Step 4: Implement Following Patterns**
+- Use loaded skills as reference
+- Follow established patterns from .agent/ docs
+- Ask clarifying questions if phase is ambiguous
+
+**Step 5: After Completion (AUTO-INVOKE SUB-AGENTS)**
+- Invoke [synthesize-docs](.claude/agents/synthesize-docs.md) sub-agent → Generate SOP
+- Update STATUS.md
+- Commit with proper message
+
+### When I Auto-Invoke Sub-Agents
+
+**During Research** (Keep Main Thread Clean):
+
+| You Say / Phase Needs | I Auto-Invoke | Returns |
+|------------------------|---------------|---------|
+| "How does [feature] work?" | [analyze-architecture](.claude/agents/analyze-architecture.md) | 2-5K token summary |
+| "Find all instances of X" | [explore-codebase](.claude/agents/explore-codebase.md) | 2-5K token summary |
+| Phase requires understanding existing code | [analyze-architecture](.claude/agents/analyze-architecture.md) | Architecture insights |
+
+**After Feature Completion** (Automatic):
+
+| Trigger | I Auto-Invoke | Output |
+|---------|---------------|--------|
+| Feature implementation done | [synthesize-docs](.claude/agents/synthesize-docs.md) | SOP in .agent/sops/ |
+| New patterns established | [synthesize-docs](.claude/agents/synthesize-docs.md) | Updated skills |
+| System architecture changed | [map-system](.claude/agents/map-system.md) | Refreshed .agent/system/ docs |
+
+**You'll see me say**: "Analyzing architecture... invoking analyze-architecture sub-agent" or "Feature complete, generating SOP..."
+
+### Example Session Flow
+
+```
+You: "Read STATUS.md, DEVELOPMENT_PLAN.md and continue"
+
+Me: *reads STATUS.md*
+    "Current phase: Phase 3.1 - Issue Management API"
+
+    *auto-loads api-patterns skill* (220 tokens)
+    *auto-loads database-patterns skill* (200 tokens)
+    *auto-reads .agent/system/api-catalog.md* (2.4K tokens)
+    *auto-reads .agent/system/database-schema.md* (2.8K tokens)
+
+    "I'll implement POST /api/issues endpoint following our API patterns..."
+
+    *implements endpoint*
+
+    "Implementation complete. Auto-invoking synthesize-docs sub-agent
+    to generate SOP for API endpoint creation..."
+
+    *sub-agent returns SOP*
+
+    "SOP saved to .agent/sops/api-endpoint-creation.md
+    Updating STATUS.md and committing..."
+```
+
+**Total tokens: ~6K** (vs 50K+ without this system)
+
+### Documentation System
 
 ### Session Start - Read in Order
 
@@ -54,6 +148,8 @@ git checkout -b feature/your-feature
 3. **This file** (CLAUDE.md) - Integration guide
 4. **[WORKFLOW_ARCHITECTURE.md](docs/WORKFLOW_ARCHITECTURE.md)** - Workflow
 5. **[.agent/README.md](.agent/README.md)** - Task-specific context
+
+**Then I automatically load skills/.agent/ docs based on phase keywords.**
 
 ### Finding Information
 
