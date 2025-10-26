@@ -206,7 +206,7 @@ SIMPLE_GEMINI_WORKFLOW.md
 # Keep .agent/gemini/ instruction files, but ignore audit outputs
 !.agent/gemini/
 !.agent/gemini/*.md
-.agent/gemini/documentation-audit-*.md
+.agent/gemini/documentation-audit-202*.md
 
 # ============================================================================
 # SECURITY & SENSITIVE DATA
