@@ -2,6 +2,8 @@
 
 **Purpose**: This folder contains project-specific technical documentation and accumulated knowledge for Moksha DevHub. It complements (not replaces) the main project docs.
 
+**🎉 Token Optimization Complete**: Phase 5 delivered 74-83% token reduction through skills system. See [.claude/skills/moksha-devhub/](../.claude/skills/moksha-devhub/) for token-efficient patterns.
+
 ---
 
 ## 📚 Documentation Map

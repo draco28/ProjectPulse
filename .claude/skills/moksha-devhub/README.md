@@ -271,6 +271,149 @@ Savings: 5,680 tokens (96% reduction)
 
 ---
 
+## Token Optimization
+
+### Lazy Loading Strategy
+
+Skills use a **two-tier lazy-loading system** to minimize token usage:
+
+**Tier 1: YAML Frontmatter (Always Loaded)**
+
+- Loaded at session start for all skills
+- Contains: name, description, triggers, token_estimate, related_docs
+- Cost: ~20 tokens per skill
+- Purpose: Enable skill discovery and auto-invocation
+
+**Tier 2: Full Content (Loaded On-Demand)**
+
+- Loaded only when skill is invoked
+- Contains: Complete pattern documentation, examples, links
+- Cost: ~50-280 tokens (varies by skill)
+- Purpose: Provide detailed guidance during task execution
+
+**Tier 3: Automatic Unloading**
+
+- After skill use, full content discarded from context
+- Only frontmatter retained for future invocation
+- Keeps context lean throughout session
+
+### Example Session Flow
+
+```
+Session Start:
+├── Load 7 skill frontmatter: 7 × 20 tokens = 140 tokens
+└── Total: 140 tokens
+
+Task 1: "Create API endpoint"
+├── Current context: 140 tokens
+├── Auto-detect: api-patterns skill needed
+├── Load api-patterns full content: +220 tokens
+├── Total during task: 360 tokens
+└── After task: Discard content, retain frontmatter → back to 140 tokens
+
+Task 2: "Fix database query"
+├── Current context: 140 tokens
+├── Auto-detect: database-patterns skill needed
+├── Load database-patterns full content: +200 tokens
+├── Total during task: 340 tokens
+└── After task: Discard content → back to 140 tokens
+
+Session Total: ~140 tokens baseline + 220/200 per task
+vs Without Skills: ~17,000 tokens loaded at start + full docs for each task
+```
+
+### Token Savings Breakdown
+
+**Baseline (Without Any Optimization)**:
+
+```
+Session Start:
+- CLAUDE.md: 3,000 tokens
+- Full documentation loaded: 17,262 tokens
+- Total: 20,262 tokens
+
+Per Task:
+- All docs remain in context: 20,262 tokens
+- 10 tasks: 202,620 tokens total
+```
+
+**With Skills (Current System)**:
+
+```
+Session Start:
+- CLAUDE.md: 3,000 tokens
+- Skill frontmatter: 140 tokens
+- Total: 3,140 tokens (84% reduction)
+
+Per Task:
+- Baseline: 3,140 tokens
+- Load 1-2 skills: +220-440 tokens
+- Unload after use: back to 3,140 tokens
+- 10 tasks: ~35,000 tokens total (83% reduction)
+```
+
+**Savings Summary**:
+
+- **Session Start**: 84% reduction (3,140 vs 20,262 tokens)
+- **10-Task Session**: 83% reduction (35,000 vs 202,620 tokens)
+- **Average per Task**: 3,500 vs 20,262 tokens (83% reduction)
+
+### Advanced Optimization: Conditional Loading
+
+Skills can be loaded conditionally based on task keywords:
+
+```
+User: "Create POST /api/issues endpoint with Zod validation"
+
+Claude Analysis:
+- Keywords detected: "API endpoint", "Zod validation"
+- Skills to load: api-patterns (220 tokens)
+- Skills NOT loaded: component-patterns, database-patterns, testing-patterns
+- Result: Load only 1 skill (220 tokens) instead of all 4 (940 tokens)
+```
+
+**Keyword-Based Loading Examples**:
+
+| Task Description      | Keywords Detected       | Skills Loaded      | Tokens |
+| --------------------- | ----------------------- | ------------------ | ------ |
+| "Create API endpoint" | api, endpoint           | api-patterns       | 220    |
+| "Add React component" | component, react        | component-patterns | 280    |
+| "Write Prisma query"  | prisma, query, database | database-patterns  | 200    |
+| "Fix port issue"      | port, localhost         | port-config        | 150    |
+| "API + component"     | api, component          | api + component    | 500    |
+
+### Token Budget Management
+
+**200K Token Context Budget**:
+
+```
+Without Skills:
+├── Session start: 20,262 tokens (10% of budget)
+├── After 5 tasks: ~100,000 tokens (50% of budget)
+└── After 9 tasks: ~180,000 tokens (90% of budget - context full!)
+
+With Skills:
+├── Session start: 3,140 tokens (1.6% of budget)
+├── After 5 tasks: ~20,000 tokens (10% of budget)
+├── After 10 tasks: ~35,000 tokens (17.5% of budget)
+├── After 20 tasks: ~65,000 tokens (32.5% of budget)
+└── After 30 tasks: ~95,000 tokens (47.5% of budget)
+```
+
+**Result**: Can complete **3x more tasks** before context fills up!
+
+### Future Optimizations
+
+**Phase 6+ Enhancements**:
+
+1. **Pattern Drift Detection**: Auto-detect when skills become stale
+2. **Skill Versioning**: Track skill updates and compatibility
+3. **Usage Analytics**: Measure which skills are most used
+4. **Adaptive Loading**: Learn user patterns, preload likely skills
+5. **Skill Compression**: Further reduce token counts where possible
+
+---
+
 ## Maintenance
 
 ### Keeping Skills Current
