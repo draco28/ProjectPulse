@@ -1,8 +1,9 @@
 # Moksha DevHub Skills
 
 **Created**: 2025-10-26
+**Updated**: 2025-10-26 (Phase 4: Added troubleshooting skills)
 **Purpose**: Token-efficient codebase patterns and conventions
-**Token Cost**: ~1,100 tokens (all 5 skills) vs ~14,000 tokens (full docs)
+**Token Cost**: ~1,430 tokens (all 7 skills) vs ~17,262 tokens (full docs)
 **Savings**: 92% token reduction
 
 ---
@@ -102,6 +103,41 @@
 
 ---
 
+## Troubleshooting Skills
+
+### [../troubleshooting/port-config.md](../troubleshooting/port-config.md)
+
+**When**: Dev server issues, port configuration problems
+**Triggers**: "port 3000", "port 3002", "localhost not working", "default next page"
+**Covers**:
+
+- Port configuration troubleshooting
+- Quick fix: Remove PORT from .env.local
+- Kill node processes
+- Verify dev server port
+- Prevention checklist
+
+**Token Cost**: ~150 tokens (vs 3,262 in full port-troubleshooting.md)
+
+---
+
+### [../troubleshooting/database-connection.md](../troubleshooting/database-connection.md)
+
+**When**: Database connection errors, Prisma issues
+**Triggers**: "prisma error", "database connection", "ECONNREFUSED", "connection timeout"
+**Covers**:
+
+- Database not running (Docker)
+- DATABASE_URL configuration
+- Prisma client generation
+- Connection string format
+- Migration issues
+- Quick diagnostics
+
+**Token Cost**: ~180 tokens (vs detailed troubleshooting docs)
+
+---
+
 ## Usage
 
 ### Automatic Invocation
@@ -128,7 +164,7 @@ You: "Show me the git workflow"
 
 ### When Skills Are Loaded
 
-1. **Session Start**: Only skill descriptions loaded (~500 tokens for all 5)
+1. **Session Start**: Only skill descriptions loaded (~700 tokens for all 7)
 2. **When Invoked**: Full skill content loaded temporarily
 3. **After Use**: Content discarded, description remains
 4. **Result**: Continuous low token usage
@@ -204,11 +240,11 @@ Total:                  16,900 tokens
 
 ```
 CLAUDE.md:               3,000 tokens
-Skill descriptions:      1,100 tokens (all 5 skills)
+Skill descriptions:      1,430 tokens (all 7 skills)
 --------------------------------
-Total:                   4,100 tokens
+Total:                   4,430 tokens
 
-Savings: 12,800 tokens (76% reduction)
+Savings: 12,470 tokens (74% reduction)
 ```
 
 ### Per-Task Comparison
@@ -343,7 +379,7 @@ See [Full Guide](../../.agent/path) for details.
 ```
 1. Read STATUS.md
 2. Read DEVELOPMENT_PLAN.md
-   + Skills descriptions loaded (1,100 tokens)
+   + Skills descriptions loaded (1,430 tokens)
 3. Complete feature
    + Skills auto-invoked as needed
    + Full skill content loaded temporarily
@@ -398,23 +434,35 @@ See [Full Guide](../../.agent/path) for details.
 - ✅ Documented usage and benefits
 - ✅ Integrated with existing workflow
 
-### Phase 2 (Upcoming)
+### Phase 2 (Complete)
 
-- Add auto-skill generation via `/update-doc skill`
-- Enhance sub-agents to create skills
-- Implement lazy-loading optimization
+- ✅ Auto-skill generation via `/update-doc skill`
+- ✅ Enhanced sub-agents to create skills
+- ✅ Pattern detection in explore-codebase
 
-### Phase 3 (Future)
+### Phase 3 (Complete)
 
-- Convert critical SOPs to skills
-- Pattern drift detection
-- Skill versioning
+- ✅ Auto-skill generation system
+- ✅ Skill vs SOP distinction
+- ✅ Test scenarios created
+
+### Phase 4 (Complete)
+
+- ✅ Troubleshooting skills (port-config, database-connection)
+- ✅ Git workflow skill verified
+- ✅ Skill index updated
+
+### Phase 5 (Upcoming)
+
+- Token optimization metrics
+- Lazy-loading implementation
 - Usage analytics
+- Pattern drift detection
 
 ---
 
-**Status**: Phase 1 Complete
+**Status**: Phase 4 Complete (7 skills total)
 **Total Token Savings**: 92% reduction in pattern/convention loading
-**Next**: Auto-skill generation (Phase 2)
+**Next**: Token optimization & metrics (Phase 5)
 
 🚀 **Skills are ready to use!** Just chat naturally, and they'll work automatically.
