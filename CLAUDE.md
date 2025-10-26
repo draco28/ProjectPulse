@@ -1,109 +1,13 @@
 # Claude Code Integration Guide - Moksha DevHub
 
-## Overview
-
-This guide explains how to use Claude Code for Moksha DevHub development, with optional Gemini CLI for deep analysis.
-
----
-
-## 🚨 GOLDEN RULES - Claude Code Must Follow
-
-### Port Configuration (CRITICAL - CHECK FIRST!)
-
-**ALWAYS verify dev server port BEFORE making code changes!**
-
-**Before ANY web development work:**
-
-```bash
-# 1. Start dev server
-pnpm dev
-
-# 2. READ the output - MUST show port 3000:
-# ✅ CORRECT: "ready started server on 0.0.0.0:3000"
-# ❌ WRONG: "ready started server on 0.0.0.0:3002"
-
-# 3. If wrong port, FIX CONFIG FIRST (don't touch code):
-grep -r "PORT" .env.local .env next.config.js
-# Remove PORT=3002 or fix next.config.js
-
-# 4. Verify localhost:3000 loads correctly
-```
-
-**If localhost:3000 shows default Next.js page:**
-
-- ❌ DON'T assume code is broken
-- ✅ CHECK which port dev server is running on
-- ✅ Fix port configuration if needed
-- ✅ Only investigate code if port is correct
-
-**See:** [.claude/CRITICAL_MISTAKES.md](.claude/CRITICAL_MISTAKES.md) for complete prevention guide
-
----
-
-### Git Workflow (CRITICAL)
-
-**NEVER work directly on master branch!**
-
-**ALWAYS before creating a new branch:**
-
-```bash
-# 1. Check current branch
-git branch
-
-# 2. Switch to master
-git checkout master
-
-# 3. Pull latest changes
-git pull origin master
-
-# 4. THEN create feature branch
-git checkout -b api/feature-name    # For API changes
-git checkout -b ui/feature-name     # For UI changes
-git checkout -b feature/feature-name # For mixed changes
-```
-
-**Branch naming conventions:**
-
-- `api/*` - Backend/API changes
-- `ui/*` - Frontend/UI changes
-- `feature/*` - Mixed or new features
-- `fix/*` - Bug fixes
-- `docs/*` - Documentation only
-
-**Before ANY code changes:**
-
-- ✅ Verify on feature branch (not master)
-- ✅ Pull latest from master first
-- ✅ Run existing tests
-- ❌ NEVER push to master directly
-
-### When to Suggest Gemini
-
-**Automatically suggest Gemini CLI when user requests:**
-
-- "Analyze entire codebase..."
-- "Review all files..."
-- "System-wide migration..."
-- "Find all occurrences across repo..."
-- Any analysis requiring >200K tokens
-
-**Response format:**
-
-```
-This needs deep analysis with Gemini's 1M context.
-
-Run: analyze-with-gemini "user's request"
-
-Then tell me to read the results and I'll implement!
-```
+**Version**: 2.0 (Context-Optimized)
+**Last Updated**: 2025-10-26
 
 ---
 
 ## Quick Start
 
-### Daily Workflow
-
-Just chat naturally with Claude Code (me):
+Just chat naturally with me (Claude Code):
 
 ```
 "Implement POST /api/issues endpoint"
@@ -111,418 +15,211 @@ Just chat naturally with Claude Code (me):
 "Debug the authentication flow"
 ```
 
-### When Deep Analysis Needed
-
-I'll tell you to use Gemini:
-
-```
-analyze-with-gemini "your analysis request"
-```
-
-Then bring results back to me for implementation.
-
-**Guide**: See [SIMPLE_GEMINI_WORKFLOW.md](SIMPLE_GEMINI_WORKFLOW.md)
-
 ---
 
-## System Architecture
+## 🚨 CRITICAL: Pre-Work Checklist
 
-### Simple Gemini + Claude Workflow
+**BEFORE starting ANY coding work:**
 
-```
-90% of work:
-You ↔ Claude Code (me in this chat)
-  - Implementation
-  - Testing
-  - Code review
-  - Focused tasks
-
-10% when deep analysis needed:
-You → Claude Code: "Analyze entire codebase..."
-        ↓
-Claude Code: "Run: analyze-with-gemini 'request'"
-        ↓
-You → Terminal: analyze-with-gemini "request"
-        ↓
-Gemini CLI: Analyzes with 1M context → Saves to file
-        ↓
-You → Claude Code: "Read the Gemini analysis file"
-        ↓
-Claude Code: Reads file → Implements recommendations
-```
-
-**Gemini Integration (Analysis-Only)**
-
-- **When**: "Analyze entire...", "Review all...", "System-wide..."
-- **What**: Gemini reads entire repo (1M tokens), provides analysis
-- **How**: Simple script - `analyze-with-gemini "your request"`
-- **Result**: Saves markdown file, Claude Code reads and implements
-- **Guide**: See [SIMPLE_GEMINI_WORKFLOW.md](SIMPLE_GEMINI_WORKFLOW.md)
-
----
-
-## Using Gemini for Deep Analysis
-
-### The 3-Step Workflow
-
-**Step 1: Ask Claude Code (me) for deep analysis**
-
-```
-You: Analyze the entire codebase for performance bottlenecks
-```
-
-**Step 2: I'll tell you to use Gemini**
-
-```
-Claude Code: This needs deep analysis with Gemini's 1M context.
-
-Run this command:
-analyze-with-gemini "Analyze entire codebase for performance bottlenecks"
-
-Gemini will save results to .claude/gemini-analysis/[timestamp].md
-Then tell me to read it!
-```
-
-**Step 3: Run Gemini, then I implement**
+### 1. Port Configuration
 
 ```bash
-# You run in terminal:
-analyze-with-gemini "Analyze entire codebase for performance bottlenecks"
-
-# Wait 30-60 seconds...
-# ✅ Saved to: .claude/gemini-analysis/2025-10-26_190000.md
+pnpm dev
+# ✅ MUST show: "ready started server on 0.0.0.0:3000"
+# ❌ WRONG: "ready started server on 0.0.0.0:3002"
 ```
 
-```
-# Back in our chat:
-You: Read the Gemini analysis file
+**See**: [.agent/sops/port-troubleshooting.md](.agent/sops/port-troubleshooting.md)
 
-Claude Code: [Reads file and implements fixes]
-✅ Created branch, modified 5 files, all optimizations complete!
-```
+### 2. Git Branch
 
-### When I Auto-Suggest Gemini
-
-I'll suggest using Gemini when you ask about:
-
-- **"Analyze entire codebase..."** - Full repo analysis
-- **"Review all files..."** - Complete file review
-- **"System-wide migration..."** - Large-scale changes
-- **"Find all occurrences..."** - Repo-wide search patterns
-- **"Plan migration from X to Y"** - Migration planning
-
-For focused tasks, I'll just help you directly (no Gemini needed).
-
-### Complete Example
-
-```
-You: Analyze entire codebase for tech debt
-
-Me: This needs Gemini's 1M context.
-    Run: analyze-with-gemini "Analyze entire codebase for tech debt"
-    Then tell me to read the results!
-
-[You run the command in terminal]
-
-You: Read the Gemini analysis file
-
-Me: Got it! Gemini found:
-    - Inconsistent error handling (42 files)
-    - Missing TypeScript types (23 files)
-    - Duplicate API code (8 files)
-
-    Let me fix the high-priority items:
-    [Creates branch, modifies files, runs tests]
-    ✅ All done!
+```bash
+git branch
+# ✅ MUST be on feature branch (NOT master!)
+# If on master:
+git checkout master && git pull origin master
+git checkout -b feature/your-feature
 ```
 
-**See [SIMPLE_GEMINI_WORKFLOW.md](SIMPLE_GEMINI_WORKFLOW.md) for complete guide**
+**See**: [.agent/sops/git-workflow.md](.agent/sops/git-workflow.md)
 
 ---
 
-## Agent Specializations (Claude Agents)
+## Documentation System
 
-### 1. devhub-architect (Blue)
+### Session Start - Read in Order
 
-**Triggers:** "design", "architecture", "schema", "structure", "should I"
+1. **[STATUS.md](STATUS.md)** - Current snapshot
+2. **[DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md)** - Detailed plan
+3. **This file** (CLAUDE.md) - Integration guide
+4. **[WORKFLOW_ARCHITECTURE.md](docs/WORKFLOW_ARCHITECTURE.md)** - Workflow
+5. **[.agent/README.md](.agent/README.md)** - Task-specific context
 
-**Use for:**
+### Finding Information
 
-- Database schema design
-- API architecture decisions
-- MCP tool organization
-- System design patterns
-- Module structure planning
+**Looking for technical details?** → [.agent/README.md](.agent/README.md)
+**Looking for procedures?** → [.agent/sops/](.agent/sops/)
+**Looking for system docs?** → [.agent/system/](.agent/system/)
 
-**Example:**
+### Key Documentation
 
-```
-You: "How should I implement hybrid search?"
-→ Provides: Architecture pattern with PostgreSQL tsvector + pgvector
-```
+**System References**:
 
-### 2. devhub-fullstack (Green)
+- [Database Schema](.agent/system/database-schema.md) - Prisma models
+- [API Catalog](.agent/system/api-catalog.md) - All endpoints
+- [Component Patterns](.agent/system/component-patterns.md) - React conventions
+- [MCP Tools Guide](.agent/system/mcp-tools-guide.md) - MCP tool usage
 
-**Triggers:** "implement", "create", "build", "write", "code"
+**Procedures (SOPs)**:
 
-**Use for:**
-
-- API route implementation
-- React component creation
-- Prisma queries
-- TypeScript coding
-- Server Actions
-
-**Example:**
-
-```
-You: "Implement the POST /api/issues endpoint"
-→ Provides: Complete API route with validation and error handling
-```
-
-### 3. devhub-testing (Purple)
-
-**Triggers:** "test", "jest", "playwright", "coverage"
-
-**Use for:**
-
-- Writing unit tests
-- API testing
-- E2E testing
-- Test coverage analysis
-- Regression tests
-
-**Example:**
-
-```
-You: "Write tests for the search API"
-→ Provides: Comprehensive test suite with mocks
-```
-
-### 4. devhub-auditor (Red)
-
-**Triggers:** "review", "audit", "security", "performance", "check"
-
-**Use for:**
-
-- Code quality review
-- Security analysis
-- Performance optimization
-- Accessibility audit
-- Architecture compliance
-
-**Example:**
-
-```
-You: "Review this for security issues"
-→ Provides: Security audit with specific fixes
-```
-
-### 5. devhub-mcp-specialist (Cyan)
-
-**Triggers:** "mcp", "tool", "resource", "prompt", "claude code"
-
-**Use for:**
-
-- MCP tool design
-- MCP resource implementation
-- MCP prompt engineering
-- Claude Code integration
-
-**Example:**
-
-```
-You: "Design the MCP tool structure"
-→ Provides: Tool categories and implementation patterns
-```
+- [Port Troubleshooting](.agent/sops/port-troubleshooting.md) - Fix port issues
+- [Git Workflow](.agent/sops/git-workflow.md) - Branch management
 
 ---
 
-## Using Skills
+## Sub-Agents (Context Management)
 
-Skills are procedural guides that agents reference. You can invoke them directly:
+**Use sub-agents for research tasks to keep main conversation clean.**
 
-### Debugging
+### When I'll Invoke Sub-Agents
 
-```
-You: "I have a bug in the issue creation API"
-→ Use: systematic-debugging-web skill
-→ Provides: Step-by-step debugging methodology
-```
+**explore-codebase**: "Find all X", "Scan repo for Y"
+
+- Scans entire repo, returns summary
+- Saves 20-30K tokens in main thread
+
+**analyze-architecture**: "How does X work?", "Trace data flow"
+
+- Traces system flows across files
+- Returns architectural insights
+
+**synthesize-docs**: After feature completion
+
+- Generates SOPs and documentation
+- Updates .agent/ folder automatically
+
+**map-system**: "Update system documentation"
+
+- Scans Prisma/API/components
+- Refreshes .agent/system/ docs
+
+**You don't need to request these - I'll invoke them automatically when appropriate.**
+
+---
+
+## Specialized Agents (From .claude/agents/)
+
+### Architecture & Design
+
+**devhub-architect** - System design, schema design, architecture decisions
+
+### Implementation
+
+**devhub-fullstack** - API routes, React components, Prisma queries
 
 ### Testing
 
-```
-You: "I need to write tests for this feature"
-→ Use: test-driven-development-web skill
-→ Provides: RED/GREEN/REFACTOR workflow
-```
+**devhub-testing** - Unit tests, E2E tests, test coverage
 
-### Validation
+### Code Quality
 
-```
-You: "Is this ready to commit?"
-→ Use: verification-before-completion skill
-→ Provides: 12-point pre-commit checklist
-```
+**devhub-auditor** - Security, performance, accessibility review
 
-See `.claude/SKILLS_INDEX.md` for complete catalog.
+### MCP Integration
+
+**devhub-mcp-specialist** - MCP tools, resources, prompts
+
+**Note**: These are invoked via the orchestrator system (not currently used in your workflow)
 
 ---
 
-## Workflow Patterns
+## Gemini Integration (Deep Analysis)
 
-### Feature Development
+### When to Use Gemini
 
-```
-Session: "Implement issue filtering"
+I'll suggest Gemini CLI when you request:
 
-Step 1: Design
-You: "Design database changes for filtering"
-→ Agent: devhub-architect
-→ Output: Prisma schema additions
+- "Analyze entire codebase..."
+- "Review all files..."
+- "System-wide migration..."
+- Any analysis requiring >200K tokens
 
-Step 2: Implement
-You: "continue"
-→ Agent: devhub-fullstack
-→ Output: API route + UI components
-
-Step 3: Test
-You: "continue"
-→ Agent: devhub-testing
-→ Output: Test suite
-
-Step 4: Review
-You: "continue"
-→ Agent: devhub-auditor
-→ Output: Quality audit
-
-Result: Feature complete with tests and validation
-```
-
-### Bug Fixing
+### The Workflow
 
 ```
-Session: "Fix search not working with special characters"
+You: "Analyze entire codebase for tech debt"
 
-Step 1: Debug
-You: "Help me debug why search fails on special characters"
-→ Agent: devhub-fullstack
-→ Skill: systematic-debugging-web
-→ Output: Root cause identified (case sensitivity)
+Me: "This needs Gemini's 1M context.
+     Run: analyze-with-gemini 'Analyze entire codebase for tech debt'
+     Then tell me to read the results!"
 
-Step 2: Fix
-You: "Implement the fix"
-→ Agent: devhub-fullstack
-→ Output: Updated code with case-insensitive search
+[You run command in terminal]
 
-Step 3: Test
-You: "Add regression test"
-→ Agent: devhub-testing
-→ Output: Test covering special characters
+You: "Read the Gemini analysis file"
 
-Step 4: Verify
-You: "Verify this fix is complete"
-→ Agent: devhub-auditor
-→ Skill: verification-before-completion
-→ Output: Checklist validation
-
-Result: Bug fixed with regression test
+Me: [Reads analysis, implements fixes]
 ```
+
+**Complete Guide**: [SIMPLE_GEMINI_WORKFLOW.md](SIMPLE_GEMINI_WORKFLOW.md)
 
 ---
 
-## Session Management
+## MCP Tools
 
-### Current Session
+**Current tools available**:
 
-The orchestrator maintains state in `.claude/state/current_session.json`:
-
-- Objective
-- Current agent
-- Handoff history
-- Files modified
-- Artifacts created
-- Progress tracking
-
-### Session Continuation
-
-```bash
-# Resume existing session
-$ python devhub_orchestrator.py
-📋 Resuming session: 20250123_143022
-   Objective: Implement issue filtering
-   Current agent: devhub-fullstack
-```
-
-### Session Archiving
-
-```bash
-$ exit
-Archive current session? (y/n): y
-✅ Session archived
-```
-
-Archived sessions stored in `.claude/state/history/`
-
----
-
-## MCP Integration
-
-### Current MCP Tools
-
-- byterover - Memory/knowledge retrieval
+- memory - Knowledge graph
 - filesystem - File operations
-- sequential-thinking - Complex reasoning
 - git - Version control
-- playwright - E2E testing
+- gitkraken - GitHub integration
+- postgres - Database queries
+- playwright - Browser automation
+- docker-devhub - Container management
+- sequential-thinking - Complex reasoning
 
-### Recommended Additional Tools
-
-See `.claude/MCP_TOOLS_RECOMMENDATIONS.md` for:
-
-- PostgreSQL MCP Server
-- Docker MCP Server
-- GitHub MCP Server (optional)
-- Custom DevHub tools
-
-### Installing MCP Tools
-
-```bash
-# PostgreSQL MCP
-claude mcp add @modelcontextprotocol/server-postgres
-
-# Docker MCP (custom - see recommendations doc)
-```
+**Complete guide**: [.agent/system/mcp-tools-guide.md](.agent/system/mcp-tools-guide.md)
 
 ---
 
-## Permissions & Safety
+## Token Optimization
 
-Configured in `.claude/settings.local.json`:
+### How .agent/ System Saves Tokens
 
-### Allowed Operations
+**Before** (Old CLAUDE.md approach):
 
-✅ Read all repository files
-✅ Write to apps/, packages/, docs/
-✅ Run: pnpm, npm, docker, git, python
-✅ Access documentation sites
+- CLAUDE.md: ~360 lines = ~10K tokens
+- Full context always loaded
+- Research clutters main thread
+- Total: 30-40K tokens per task
 
-### Restricted Operations
+**After** (New .agent/ approach):
 
-❌ Write to node_modules/, .next/, .env
-❌ Destructive bash commands
-❌ Format entire drives
+- CLAUDE.md: ~150 lines = ~3K tokens (70% reduction)
+- Read only relevant docs via index
+- Sub-agents handle research in isolated threads
+- Total: 5-10K tokens per task (75% reduction)
 
-### Requires Confirmation
+### Sub-Agent Token Savings
 
-⚠️ git push
-⚠️ docker-compose down
-⚠️ prisma migrate reset
+**Example**: "How does authentication work?"
+
+**Without sub-agent**:
+
+1. Read 15 files in main thread (15K tokens)
+2. Grep across codebase (5K tokens)
+3. Analyze and respond (5K tokens)
+4. **Total in main thread**: 25K tokens
+
+**With analyze-architecture sub-agent**:
+
+1. Sub-agent reads 15 files (15K tokens in isolated thread)
+2. Sub-agent greps and analyzes (10K tokens in isolated thread)
+3. Sub-agent returns summary (2K tokens to main thread)
+4. **Total in main thread**: 2K tokens (92% reduction!)
 
 ---
 
-## Tips & Best Practices
+## Best Practices
 
 ### 1. Be Specific
 
@@ -531,175 +228,186 @@ Configured in `.claude/settings.local.json`:
 ✅ "Debug why POST /api/issues returns 400 for valid input"
 ```
 
-### 2. Provide Context
+### 2. Reference Documentation
 
 ```
-You: "The search isn't working"
-→ Better: "Search returns 0 results for 'authentication' but issue #42 has that keyword"
+✅ "Follow the API patterns in .agent/system/api-catalog.md"
+✅ "Use the git workflow from .agent/sops/git-workflow.md"
 ```
 
-### 3. Use Workflow Commands
+### 3. Let Me Invoke Sub-Agents
 
 ```
-You: "Design → Implement → Test → Review"
-→ Type: design request, then "continue" through workflow
+You: "How does search work across the codebase?"
+Me: [Automatically invokes analyze-architecture sub-agent]
+    [Returns concise architectural summary]
 ```
 
-### 4. Reference Documentation
+### 4. Use /update-doc for Documentation
 
 ```
-You: "Follow the architecture in docs/01-ARCHITECTURE.md"
-→ Agents will validate against documented patterns
-```
-
-### 5. Check Status Regularly
-
-```
-You: "status"
-→ See progress, files modified, artifacts created
-```
-
-### 6. Use Skills for Structure
-
-```
-You: "Use the api-design-patterns skill for this endpoint"
-→ Gets structured guidance on REST patterns
+After completing a feature:
+You: "/update-doc after-feature"
+Me: [Generates SOP, updates .agent/ docs]
 ```
 
 ---
 
-## Troubleshooting
+## Maintenance Workflow
 
-### Orchestrator Not Working
+### After EVERY Feature Completion
 
-```bash
-# Check Python installation
-python --version  # Should be 3.8+
+**Your existing workflow** (unchanged):
 
-# Verify agents loaded
-cd .claude
-python agent_integration.py
+1. Create completion doc (COMPLETION_TEMPLATE.md)
+2. Update STATUS.md
+3. Update DEVELOPMENT_PLAN.md
+4. Commit and push
+
+**Optional - New** (when feature introduces new patterns): 5. Ask me to generate SOP:
+
+```
+You: "Generate SOP for adding API endpoints"
+Me: [Invokes synthesize-docs sub-agent]
+    [Saves to .agent/sops/]
 ```
 
-### Routing Issues
-
-```bash
-# Test dispatcher
-python agent_dispatcher.py
-
-# Check keywords match your request
-# See agent_dispatcher.py for keyword lists
-```
-
-### Session Errors
-
-```bash
-# Clear current session
-rm .claude/state/current_session.json
-
-# Restart orchestrator
-python devhub_orchestrator.py
-```
-
-### Agent Not Found
-
-```bash
-# Verify agents directory
-ls .claude/agents/
-
-# Check agent frontmatter format
-# Should have: name, description, model, color
-```
+6. If system changed, update docs:
+   ```
+   You: "Update system documentation"
+   Me: [Invokes map-system sub-agent]
+       [Refreshes .agent/system/ docs]
+   ```
 
 ---
 
-## Advanced Usage
+## Slash Commands
 
-### Custom Workflows
+### /update-doc
 
-Edit `.claude/agent_dispatcher.py` to add custom workflow patterns:
+Initialize or update .agent/ documentation system
 
-```python
-self.workflow_patterns = {
-    'custom_workflow': [
-        'devhub-architect',
-        'devhub-mcp-specialist',
-        'devhub-fullstack',
-        'devhub-testing'
-    ]
-}
+**Usage**:
+
+```
+/update-doc initialize       # Set up .agent/ structure
+/update-doc after-feature    # Save plan + generate SOP
+/update-doc sop [topic]      # Generate specific SOP
+/update-doc refresh-system   # Update system docs
 ```
 
-### Session Context
+**See**: [.claude/commands/update-doc.md](.claude/commands/update-doc.md)
 
-Pass custom context to agents:
+---
 
-```python
-context = {
-    'phase': 'implementation',
-    'files': ['app/api/issues/route.ts'],
-    'constraints': ['use Server Components']
-}
+## Quick Reference
+
+### Daily Checklist
+
+```markdown
+- [ ] pnpm dev shows port 3000
+- [ ] localhost:3000 loads application
+- [ ] On feature branch (not master)
+- [ ] Read STATUS.md + DEVELOPMENT_PLAN.md
+- [ ] Check .agent/README.md for task context
 ```
 
-### Adding New Agents
+### Common Tasks
 
-1. Create `.claude/agents/new-agent.md`
-2. Add frontmatter (name, description, model, color)
-3. Write system prompt
-4. Update dispatcher keywords
-5. Test with orchestrator
+**Need to know API structure?**
+→ Read [.agent/system/api-catalog.md](.agent/system/api-catalog.md)
 
-### Adding New Skills
+**Need to know database schema?**
+→ Read [.agent/system/database-schema.md](.agent/system/database-schema.md)
 
-1. Create `.claude/skills/<category>/new-skill.md`
-2. Follow skill template structure
-3. Add to SKILLS_INDEX.md
-4. Reference in relevant agents
+**Port configuration broken?**
+→ Follow [.agent/sops/port-troubleshooting.md](.agent/sops/port-troubleshooting.md)
+
+**Creating new branch?**
+→ Follow [.agent/sops/git-workflow.md](.agent/sops/git-workflow.md)
+
+**Deep codebase analysis needed?**
+→ Use Gemini CLI (see [SIMPLE_GEMINI_WORKFLOW.md](SIMPLE_GEMINI_WORKFLOW.md))
 
 ---
 
 ## Integration Checklist
 
-Before starting development, verify:
+**Before starting development**:
 
-- [ ] Orchestrator runs: `python devhub_orchestrator.py`
-- [ ] Agents load: `python agent_integration.py`
-- [ ] Skills are accessible: Check `.claude/skills/`
-- [ ] Documentation read: Review `docs/`
-- [ ] Permissions configured: Check `.claude/settings.local.json`
-- [ ] MCP tools installed: Essential ones from recommendations
-- [ ] Claude Code connected: Can chat with Claude
+- [ ] MCP tools configured and working
+- [ ] Can access .agent/ documentation
+- [ ] Can run pnpm dev successfully
+- [ ] On correct git branch
+- [ ] Read STATUS.md and DEVELOPMENT_PLAN.md
 
 ---
 
 ## Getting Help
 
-1. **Orchestrator help:** Type `help` in orchestrator
-2. **Agent list:** Type `agents` in orchestrator
-3. **Skills catalog:** See `.claude/SKILLS_INDEX.md`
-4. **Workflow examples:** See `AGENTS.md`
-5. **MCP setup:** See `.claude/MCP_TOOLS_RECOMMENDATIONS.md`
-6. **System docs:** See `.claude/README.md`
+**Documentation**:
+
+1. [.agent/README.md](.agent/README.md) - Doc index
+2. [STATUS.md](STATUS.md) - Current state
+3. [DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) - Full plan
+4. [WORKFLOW_ARCHITECTURE.md](docs/WORKFLOW_ARCHITECTURE.md) - Workflow
+
+**Procedures**:
+
+- [.agent/sops/](.agent/sops/) - All SOPs
+- [.claude/CRITICAL_MISTAKES.md](.claude/CRITICAL_MISTAKES.md) - Common errors
+
+**System Docs**:
+
+- [.agent/system/](.agent/system/) - Technical references
 
 ---
 
-## Next Steps
+## Key Differences from v1.0
 
-1. **Now:** Run orchestrator and start a session
-2. **First task:** "Help me understand the DevHub architecture"
-3. **Practice:** Try routing to different agents
-4. **Explore:** Check skills for methodologies
-5. **Build:** Start implementing features with agent assistance
+### What Changed?
+
+**1. Context Optimization**
+
+- Leaner CLAUDE.md (360 → 150 lines)
+- Documentation split into .agent/ folder
+- Sub-agents for research tasks
+
+**2. Sub-Agent System**
+
+- explore-codebase - Repo scanning
+- analyze-architecture - System flow analysis
+- synthesize-docs - SOP generation
+- map-system - System doc updates
+
+**3. Structured Documentation**
+
+- .agent/README.md - Doc index
+- .agent/sops/ - Procedures
+- .agent/system/ - Technical references
+- .agent/task/ - Implementation plans
+
+**4. Removed**
+
+- Orchestrator sections (you use direct chat)
+- Session management (not needed)
+- Detailed examples (moved to SOPs)
+- Troubleshooting (moved to SOPs)
+
+### What Stayed the Same?
+
+- Your workflow (STATUS.md → DEVELOPMENT_PLAN.md → work)
+- Git workflow rules
+- Port configuration checks
+- Gemini integration for deep analysis
+- Agent specializations (architect, fullstack, etc.)
 
 ---
 
-**Remember:** The agent system is designed to make you more productive. Use the orchestrator for complex workflows, reference skills for structured methodologies, and always validate against documentation.
+**Ready to code?**
 
-**Ready to build? Start the orchestrator:**
+1. Check pre-work checklist
+2. Start conversation with me
+3. I'll handle sub-agents, documentation, and context optimization automatically
 
-```bash
-cd .claude && python devhub_orchestrator.py
-```
-
-🚀 **Happy coding with AI assistance!**
+🚀 **Happy coding with optimized context!**
