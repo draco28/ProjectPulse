@@ -203,6 +203,11 @@ analyze-with-gemini.*
 .claude/SETUP_COMPLETE.md
 SIMPLE_GEMINI_WORKFLOW.md
 
+# Keep .agent/gemini/ instruction files, but ignore audit outputs
+!.agent/gemini/
+!.agent/gemini/*.md
+.agent/gemini/documentation-audit-*.md
+
 # ============================================================================
 # SECURITY & SENSITIVE DATA
 # ============================================================================
