@@ -22,6 +22,10 @@
 
 - [WORKFLOW_PROMPTS.md](WORKFLOW_PROMPTS.md) - **Essential**: All prompts needed for daily work, optional features, and troubleshooting
 
+**Documentation Quality Assurance:**
+
+- [gemini/documentation-audit-prompt.md](gemini/documentation-audit-prompt.md) - Comprehensive Gemini prompt for auditing documentation workflow automation compatibility
+
 ---
 
 ## 🎯 Finding What You Need
