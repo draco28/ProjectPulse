@@ -149,6 +149,20 @@ _Note: User will provide mockup file for issue detail page_
    - **Components**: CommandPalette, CommandItem, CommandGroup
    - **Testing**: React Testing Library for keyboard navigation
 
+**Research Needed:**
+
+- `explore-codebase`: Find existing patterns for DocumentCard, WikiSidebar, SecurityStatus, AgentCard
+- `analyze-architecture`: Trace data flows for search/wiki/security endpoints
+
+**Expected Experts:**
+
+- `react-expert` (component architecture decisions for complex pages)
+- `next-js-expert` (Server Actions vs API routes, caching, data fetching strategy)
+
+**Expected Skills Auto-Load:** `component-patterns`, `database-patterns`, `api-patterns`, `testing-patterns`
+
+**MCP Tools:** Use `Playwright MCP tool` for E2E verification across Knowledge, Wiki, Security, Agents pages
+
 **Mockup References:**
 
 - ✅ [mockups/Default theme/02-issues-dark-neumorphic-coral.html](mockups/Default theme/02-issues-dark-neumorphic-coral.html) - COMPLETE

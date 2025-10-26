@@ -126,6 +126,8 @@ const issues = await prisma.issue.findMany({
 
 **Full-Text Search** (PostgreSQL tsvector):
 
+> **Security Note ([R-SEC-001])**: Always use Prisma template-literal parameterization. Never string-concatenate SQL. The `${query}` syntax below is safe because Prisma automatically escapes parameters.
+
 ```typescript
 const results = await prisma.$queryRaw`
   SELECT * FROM "Issue"

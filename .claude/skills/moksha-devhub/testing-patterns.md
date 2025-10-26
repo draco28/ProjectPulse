@@ -487,6 +487,6 @@ it('has no accessibility violations', async () => {
 
 ---
 
-**Token Cost**: ~240 tokens (vs ~2,000+ in full guide)
+**Token Cost**: ~320 tokens (vs ~2,000+ in full guide)
 **Coverage**: 85% of common testing scenarios
 **When to Use Full Docs**: Complex mocking, integration tests, CI setup
