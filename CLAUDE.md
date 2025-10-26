@@ -139,6 +139,85 @@ Me: *reads STATUS.md*
 
 **Total tokens: ~6K** (vs 50K+ without this system)
 
+---
+
+## Context File Workflow (AUTOMATIC)
+
+**This is the file-based context management pattern from transcript_agent_work.md**
+
+### At Session Start
+I will automatically:
+1. **Create** `.agent/task/current-session-[YYYYMMDD-HHMM].md`
+2. **Document**: Current phase, goals, requirements from STATUS.md
+3. **Update** this file throughout the session as I work
+
+### When Invoking Sub-Agents
+I will automatically:
+1. **Pass context file**: "Read `.agent/task/current-session.md` first"
+2. **Wait for report**: Sub-agent creates research/analysis report
+3. **Read the report**: Load `.agent/task/[agent]-[topic]-[timestamp].md`
+4. **Use report for implementation**: Follow the plan/recommendations
+5. **Update context**: Add what I implemented to current-session.md
+
+### File Structure
+```
+.agent/task/
+├── current-session-20251026-1430.md         ← Main context file (I create/update)
+├── explore-api-patterns-20251026-1445.md    ← Sub-agent research report
+├── architecture-search-20251026-1502.md     ← Sub-agent analysis
+└── synthesize-sop-20251026-1530.md          ← Sub-agent documentation
+```
+
+### Why This Works
+- **Sub-agents have full context**: They read current-session.md first
+- **Reports are persistent**: I can read them anytime, even after context compaction
+- **No information loss**: Everything is saved to files, not just in messages
+- **Parent agent stays informed**: current-session.md tracks entire session progress
+
+### Example Flow with Context Files
+
+```
+Session Start:
+1. I create: .agent/task/current-session-20251026-1430.md
+2. Content: "Phase 3.1: Issue Management API - implementing POST /api/issues"
+
+Need Architecture Understanding:
+3. I invoke: analyze-architecture sub-agent
+4. I tell it: "Read .agent/task/current-session-20251026-1430.md first"
+5. Sub-agent reads context, analyzes, creates:
+   .agent/task/architecture-issues-20251026-1445.md
+6. Sub-agent returns: "Analysis complete. Read the report at [file path]"
+7. I read the report file
+8. I use report to guide implementation
+
+Implementation Complete:
+9. I update: .agent/task/current-session-20251026-1430.md
+   Add: "Implemented POST /api/issues following patterns from architecture report"
+10. I invoke: synthesize-docs sub-agent
+11. Sub-agent reads context, creates SOP
+12. I commit everything
+```
+
+### What You'll See
+
+When I invoke sub-agents, you'll see messages like:
+
+```
+"Invoking analyze-architecture sub-agent to trace data flow...
+Passing context file: .agent/task/current-session-20251026-1430.md
+
+[Sub-agent works in isolated thread]
+
+Sub-agent complete. Reading report: .agent/task/architecture-issues-20251026-1445.md
+
+Key insights from report:
+- Current API routes use Zod validation
+- Response format: { data, error }
+- Follow pattern from /api/preferences
+
+Implementing POST /api/issues following these patterns..."
+```
+
 ### Documentation System
 
 ### Session Start - Read in Order
