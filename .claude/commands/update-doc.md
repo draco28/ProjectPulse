@@ -55,6 +55,26 @@ You are tasked with managing the `.agent/` documentation system based on the use
 5. Update `.agent/README.md` index
 6. Confirm completion
 
+### skill [topic]
+
+**When**: User wants to create a token-efficient skill from patterns
+**What to do**:
+
+1. Invoke synthesize-docs sub-agent in skill generation mode with topic
+2. Sub-agent analyzes recent implementations for the topic
+3. Identifies 3-5 consistent patterns and conventions
+4. Generates token-efficient skill file (50-280 tokens)
+5. Save to `.claude/skills/moksha-devhub/[topic-name].skill.md`
+6. Update `.claude/skills/moksha-devhub/README.md` index
+7. Report token savings (skill tokens vs full doc tokens)
+8. Confirm completion
+
+**Example topics**:
+
+- "api-validation" - Creates skill for Zod validation patterns
+- "form-handling" - Creates skill for react-hook-form patterns
+- "database-queries" - Creates skill for Prisma query patterns
+
 ### refresh-system
 
 **When**: Database schema, API routes, or components changed significantly
@@ -299,6 +319,37 @@ You: I'll refresh all system documentation.
 - .agent/system/component-patterns.md (updated: React patterns)
 
 Last updated: 2025-10-26
+```
+
+### Example 5: Generate Skill
+
+```
+User: /update-doc skill "api-validation"
+
+You: I'll generate a token-efficient skill for API validation patterns.
+
+[Invokes synthesize-docs sub-agent in skill mode]
+[Sub-agent analyzes recent API implementations]
+[Identifies Zod validation patterns]
+[Generates token-efficient skill file]
+[Saves to .claude/skills/moksha-devhub/api-validation.skill.md]
+[Updates .claude/skills/moksha-devhub/README.md]
+
+✅ Skill created:
+- .claude/skills/moksha-devhub/api-validation.skill.md (220 tokens)
+
+Covers:
+- Zod schema definition pattern
+- Validation in route handlers
+- Error response format
+- Common validation patterns
+
+Token Savings:
+- Skill: 220 tokens
+- Full SOP: 3,000 tokens
+- Savings: 93% (2,780 tokens saved)
+
+Links to: .agent/sops/adding-api-endpoint.md for full details
 ```
 
 ## Integration with Workflow
