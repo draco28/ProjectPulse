@@ -149,12 +149,12 @@ _Note: User will provide mockup file for issue detail page_
    - **Components**: CommandPalette, CommandItem, CommandGroup
    - **Testing**: React Testing Library for keyboard navigation
 
-**Research Needed:**
+**Research:**
 
 - `explore-codebase`: Find existing patterns for DocumentCard, WikiSidebar, SecurityStatus, AgentCard
 - `analyze-architecture`: Trace data flows for search/wiki/security endpoints
 
-**Expected Experts:**
+**Experts:**
 
 - `react-expert` (component architecture decisions for complex pages)
 - `next-js-expert` (Server Actions vs API routes, caching, data fetching strategy)

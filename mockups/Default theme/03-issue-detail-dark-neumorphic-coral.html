@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue #42 - ProjectPulse (Dark Neumorphic Coral)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#1A1A1A',
+                        darkLighter: '#242424',
+                        darkCard: '#2A2A2A',
+                        coral: '#FF8B6A',
+                        coralLight: '#FFB299',
+                        coralDark: '#E67759',
+                        slate: '#8B8B8B',
+                        slateLight: '#A5A5A5',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background: #1A1A1A;
+            color: #E5E5E5;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Floating Hexagons Background */
+        .hexagon-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .hexagon {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(42, 42, 42, 0.8) 0%, rgba(26, 26, 26, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .hex-1 {
+            width: 150px;
+            height: 173px;
+            top: 10%;
+            left: 5%;
+            animation: float-hex 8s ease-in-out infinite;
+        }
+        
+        .hex-2 {
+            width: 100px;
+            height: 115px;
+            top: 60%;
+            left: 8%;
+            animation: float-hex 10s ease-in-out infinite 2s;
+        }
+        
+        .hex-3 {
+            width: 120px;
+            height: 138px;
+            top: 30%;
+            left: 15%;
+            animation: float-hex 12s ease-in-out infinite 4s;
+        }
+        
+        @keyframes float-hex {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(5deg); }
+            66% { transform: translateY(-10px) rotate(-5deg); }
+        }
+        
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Dark Neumorphic - Raised Effect */
+        .neu-raised {
+            background: linear-gradient(145deg, #2A2A2A, #242424);
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.6),
+                -8px -8px 16px rgba(60, 60, 60, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .neu-raised:hover {
+            box-shadow: 
+                12px 12px 24px rgba(0, 0, 0, 0.7),
+                -12px -12px 24px rgba(60, 60, 60, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        /* Dark Neumorphic - Pressed Effect */
+        .neu-pressed {
+            background: #1F1F1F;
+            box-shadow: 
+                inset 4px 4px 8px rgba(0, 0, 0, 0.5),
+                inset -2px -2px 6px rgba(60, 60, 60, 0.1);
+        }
+        
+        /* Coral Gradient Button */
+        .coral-gradient {
+            background: linear-gradient(135deg, #FF8B6A 0%, #E67759 100%);
+            box-shadow: 
+                0 8px 20px rgba(255, 139, 106, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .coral-gradient:hover {
+            box-shadow: 
+                0 12px 30px rgba(255, 139, 106, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        /* Glass Effect - Dark */
+        .glass-dark {
+            background: rgba(42, 42, 42, 0.4);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Floating Bubbles */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(42, 42, 42, 0.6) 0%, rgba(36, 36, 36, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .bubble-1 {
+            width: 60px;
+            height: 60px;
+            top: 15%;
+            right: 10%;
+            animation: float-bubble 6s ease-in-out infinite;
+        }
+        
+        .bubble-2 {
+            width: 40px;
+            height: 40px;
+            top: 45%;
+            right: 15%;
+            animation: float-bubble 8s ease-in-out infinite 1s;
+        }
+        
+        .bubble-coral {
+            background: linear-gradient(135deg, #FF8B6A 0%, #E67759 100%);
+            box-shadow: 
+                0 10px 30px rgba(255, 139, 106, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        @keyframes float-bubble {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        /* Smooth Transitions */
+        .smooth-transition {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        /* Glow Effect */
+        .glow-coral {
+            box-shadow: 0 0 30px rgba(255, 139, 106, 0.4);
+        }
+        
+        @keyframes pulse-glow-coral {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(255, 139, 106, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(255, 139, 106, 0.6);
+            }
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow-coral 2s ease-in-out infinite;
+        }
+        
+        /* Heartbeat */
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+        
+        .heartbeat {
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1A1A1A;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #FF8B6A 0%, #E67759 100%);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #FFB299 0%, #FF8B6A 100%);
+        }
+        
+        /* Icon Gradients */
+        .icon-coral {
+            background: linear-gradient(135deg, #FF8B6A 0%, #E67759 100%);
+        }
+        
+        .icon-slate {
+            background: linear-gradient(135deg, #3A3A3A 0%, #2A2A2A 100%);
+        }
+
+        /* Comment hover */
+        .comment-item {
+            transition: all 0.3s ease;
+        }
+
+        .comment-item:hover {
+            background: rgba(255, 139, 106, 0.05);
+        }
+
+        /* Code blocks */
+        pre {
+            background: #1F1F1F;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: #E5E5E5;
+        }
+
+        /* Attachments */
+        .attachment-item {
+            transition: all 0.3s ease;
+        }
+
+        .attachment-item:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Floating Hexagons Background -->
+    <div class="hexagon-bg">
+        <div class="hexagon hex-1"></div>
+        <div class="hexagon hex-2"></div>
+        <div class="hexagon hex-3"></div>
+        <div class="bubble bubble-1"></div>
+        <div class="bubble bubble-2 bubble-coral"></div>
+    </div>
+
+    <div class="content-wrapper flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 p-4 flex flex-col gap-4">
+            <!-- Logo Card -->
+            <div class="neu-raised rounded-3xl p-6 smooth-transition">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl icon-coral flex items-center justify-center shadow-lg heartbeat">
+                        <i class="fas fa-heartbeat text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">ProjectPulse</h1>
+                        <p class="text-xs text-slate">v1.0.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 flex flex-col gap-2">
+                <a href="#" class="neu-raised rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition text-slate hover:text-white">
+                    <i class="fas fa-home w-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="#" class="coral-gradient rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition text-white">
+                    <i class="fas fa-tasks w-5"></i>
+                    <span class="font-medium">Issues</span>
+                    <div class="ml-auto w-2 h-2 rounded-full bg-white pulse-glow"></div>
+                </a>
+                <a href="#" class="neu-raised rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition text-slate hover:text-white">
+                    <i class="fas fa-lightbulb w-5"></i>
+                    <span class="font-medium">Knowledge</span>
+                </a>
+                <a href="#" class="neu-raised rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition text-slate hover:text-white">
+                    <i class="fas fa-book w-5"></i>
+                    <span class="font-medium">Wiki</span>
+                </a>
+                <a href="#" class="neu-raised rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition text-slate hover:text-white">
+                    <i class="fas fa-shield-alt w-5"></i>
+                    <span class="font-medium">Security</span>
+                    <span class="ml-auto text-xs px-2.5 py-1 rounded-full font-semibold bg-red-500 text-white shadow-md">3</span>
+                </a>
+                <a href="#" class="neu-raised rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition text-slate hover:text-white">
+                    <i class="fas fa-users w-5"></i>
+                    <span class="font-medium">Personas</span>
+                </a>
+
+                <div class="mt-auto">
+                    <a href="#" class="neu-raised rounded-2xl px-5 py-4 flex items-center gap-3 smooth-transition text-slate hover:text-white">
+                        <i class="fas fa-cog w-5"></i>
+                        <span class="font-medium">Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="neu-raised rounded-3xl p-4 smooth-transition">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl icon-coral shadow-lg"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-white">Moksha Dev</p>
+                        <p class="text-xs text-slate">Developer</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden p-4 gap-4">
+            <!-- Header with Breadcrumb -->
+            <header class="neu-raised rounded-3xl px-8 py-5 smooth-transition">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3 text-sm">
+                        <a href="#" class="text-slate hover:text-coral smooth-transition">Issues</a>
+                        <i class="fas fa-chevron-right text-slate text-xs"></i>
+                        <span class="text-white font-medium">#42 FSM Authority Issue</span>
+                    </div>
+                    <button class="text-slate hover:text-white smooth-transition">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-slate font-mono text-lg font-semibold">#42</span>
+                            <span class="text-xs px-3 py-1 rounded-full font-semibold bg-red-500 text-white shadow-md">Critical</span>
+                            <span class="text-xs px-3 py-1 rounded-full font-semibold bg-coral text-white shadow-md">Combat</span>
+                            <span class="text-xs px-3 py-1 rounded-full font-semibold bg-green-500 text-white shadow-md">Open</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-2">FSM Authority not properly replicated in combat</h2>
+                        <div class="flex items-center gap-6 text-sm text-slate">
+                            <span class="flex items-center gap-2">
+                                <i class="fas fa-user"></i>
+                                <span>Opened by <strong class="text-white">Moksha Dev</strong></span>
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <i class="fas fa-clock"></i>2 hours ago
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <i class="fas fa-edit"></i>Updated 30 minutes ago
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="px-4 py-2 neu-raised text-white rounded-2xl text-sm smooth-transition">
+                            <i class="fas fa-pencil-alt mr-2"></i>Edit
+                        </button>
+                        <button class="px-4 py-2 coral-gradient text-white rounded-2xl text-sm smooth-transition shadow-lg">
+                            <i class="fas fa-check mr-2"></i>Close Issue
+                        </button>
+                        <button class="w-10 h-10 neu-raised rounded-2xl flex items-center justify-center text-slate hover:text-white smooth-transition">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-hidden flex gap-4">
+                <!-- Main Content Area -->
+                <div class="flex-1 overflow-auto space-y-4">
+                    <!-- Description Section -->
+                    <div class="neu-raised rounded-3xl p-6 smooth-transition">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fas fa-align-left text-coral"></i>
+                                Description
+                            </h3>
+                            <button class="text-slate hover:text-coral smooth-transition text-sm">
+                                <i class="fas fa-edit mr-2"></i>Edit
+                            </button>
+                        </div>
+                        <div class="text-slate text-sm leading-relaxed space-y-3">
+                            <p>
+                                Combat state machine experiencing desynchronization between client and server during rapid state transitions. 
+                                The FSM authority is not being properly replicated, causing clients to show incorrect combat states.
+                            </p>
+                            <p>
+                                <strong class="text-white">Steps to Reproduce:</strong>
+                            </p>
+                            <ol class="list-decimal list-inside space-y-1 ml-4">
+                                <li>Start combat with multiple enemies</li>
+                                <li>Perform rapid state transitions (attack → dodge → attack)</li>
+                                <li>Observe client-side state differs from server</li>
+                            </ol>
+                            <p>
+                                <strong class="text-white">Expected Behavior:</strong><br>
+                                FSM state should be synchronized across all clients immediately upon state change on the server.
+                            </p>
+                            <p>
+                                <strong class="text-white">Actual Behavior:</strong><br>
+                                Clients show stale states for 100-300ms, causing animation and gameplay desync.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Code/Logs Section -->
+                    <div class="neu-raised rounded-3xl p-6 smooth-transition">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fas fa-code text-coral"></i>
+                                Relevant Code
+                            </h3>
+                        </div>
+                        <div class="neu-pressed rounded-2xl p-4">
+                            <pre class="text-sm"><code>// CombatStateComponent.cpp
+void UCombatStateComponent::ServerSetState(ECombatState NewState)
+{
+    if (HasAuthority())
+    {
+        CurrentState = NewState;
+        // Missing replication trigger here!
+        OnStateChanged.Broadcast(NewState);
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Attachments Section -->
+                    <div class="neu-raised rounded-3xl p-6 smooth-transition">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fas fa-paperclip text-coral"></i>
+                                Attachments <span class="text-sm text-slate font-normal">(2)</span>
+                            </h3>
+                            <button class="text-coral hover:text-coralLight smooth-transition text-sm font-semibold">
+                                <i class="fas fa-plus mr-2"></i>Add File
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="attachment-item neu-pressed rounded-2xl p-4 smooth-transition cursor-pointer">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-file-video text-blue-400 text-xl"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-white font-medium text-sm truncate">combat_desync_recording.mp4</p>
+                                        <p class="text-slate text-xs">2.4 MB • Video</p>
+                                        <p class="text-slate text-xs">Uploaded 2 hours ago</p>
+                                    </div>
+                                    <button class="text-slate hover:text-coral smooth-transition">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="attachment-item neu-pressed rounded-2xl p-4 smooth-transition cursor-pointer">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-file-image text-purple-400 text-xl"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-white font-medium text-sm truncate">state_diagram.png</p>
+                                        <p class="text-slate text-xs">856 KB • Image</p>
+                                        <p class="text-slate text-xs">Uploaded 1 hour ago</p>
+                                    </div>
+                                    <button class="text-slate hover:text-coral smooth-transition">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity/Comments Section -->
+                    <div class="neu-raised rounded-3xl p-6 smooth-transition">
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-comments text-coral"></i>
+                            Activity <span class="text-sm text-slate font-normal">(3 comments)</span>
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <!-- Comment 1 -->
+                            <div class="comment-item flex gap-4 p-4 neu-pressed rounded-2xl smooth-transition">
+                                <div class="w-10 h-10 rounded-xl icon-coral flex-shrink-0"></div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div>
+                                            <span class="text-white font-semibold text-sm">John Smith</span>
+                                            <span class="text-slate text-xs ml-2">1 hour ago</span>
+                                        </div>
+                                        <button class="text-slate hover:text-coral smooth-transition text-sm">
+                                            <i class="fas fa-reply mr-1"></i>Reply
+                                        </button>
+                                    </div>
+                                    <p class="text-slate text-sm leading-relaxed">
+                                        I can reproduce this consistently. The issue seems to be that the <code class="bg-[#1A1A1A] px-2 py-0.5 rounded text-coral text-xs">OnRep_CurrentState</code> 
+                                        function is not being called on clients. We need to add a <code class="bg-[#1A1A1A] px-2 py-0.5 rounded text-coral text-xs">UPROPERTY(ReplicatedUsing)</code> to trigger replication.
+                                    </p>
+                                    <div class="flex items-center gap-4 mt-3 text-xs">
+                                        <button class="text-slate hover:text-coral smooth-transition">
+                                            <i class="fas fa-thumbs-up mr-1"></i>2
+                                        </button>
+                                        <button class="text-slate hover:text-coral smooth-transition">
+                                            <i class="fas fa-edit mr-1"></i>Edit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Comment 2 -->
+                            <div class="comment-item flex gap-4 p-4 neu-pressed rounded-2xl smooth-transition">
+                                <div class="w-10 h-10 rounded-xl icon-slate flex-shrink-0"></div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div>
+                                            <span class="text-white font-semibold text-sm">Sarah Johnson</span>
+                                            <span class="text-slate text-xs ml-2">45 minutes ago</span>
+                                        </div>
+                                        <button class="text-slate hover:text-coral smooth-transition text-sm">
+                                            <i class="fas fa-reply mr-1"></i>Reply
+                                        </button>
+                                    </div>
+                                    <p class="text-slate text-sm leading-relaxed">
+                                        Good catch! I'll create a PR with the fix. Also adding proper RPC calls for critical state changes.
+                                    </p>
+                                    <div class="flex items-center gap-4 mt-3 text-xs">
+                                        <button class="text-slate hover:text-coral smooth-transition">
+                                            <i class="fas fa-thumbs-up mr-1"></i>5
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Activity -->
+                            <div class="flex gap-4 p-4 rounded-2xl border border-[#2A2A2A]">
+                                <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-code-branch text-green-400"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm">
+                                        <span class="text-white font-semibold">Sarah Johnson</span>
+                                        <span class="text-slate"> created PR </span>
+                                        <a href="#" class="text-coral hover:text-coralLight smooth-transition font-semibold">#127</a>
+                                        <span class="text-slate"> to fix this issue</span>
+                                    </p>
+                                    <span class="text-slate text-xs">30 minutes ago</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add Comment Form -->
+                        <div class="mt-6 pt-6 border-t border-[#2A2A2A]">
+                            <div class="flex gap-4">
+                                <div class="w-10 h-10 rounded-xl icon-coral flex-shrink-0"></div>
+                                <div class="flex-1">
+                                    <textarea 
+                                        rows="3" 
+                                        placeholder="Add a comment..." 
+                                        class="w-full neu-pressed rounded-2xl px-4 py-3 text-white focus:outline-none smooth-transition resize-none mb-3"
+                                    ></textarea>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <button class="text-slate hover:text-white smooth-transition text-sm">
+                                                <i class="fas fa-bold"></i>
+                                            </button>
+                                            <button class="text-slate hover:text-white smooth-transition text-sm">
+                                                <i class="fas fa-italic"></i>
+                                            </button>
+                                            <button class="text-slate hover:text-white smooth-transition text-sm">
+                                                <i class="fas fa-code"></i>
+                                            </button>
+                                            <button class="text-slate hover:text-white smooth-transition text-sm">
+                                                <i class="fas fa-link"></i>
+                                            </button>
+                                            <button class="text-slate hover:text-white smooth-transition text-sm">
+                                                <i class="fas fa-paperclip"></i>
+                                            </button>
+                                        </div>
+                                        <button class="px-4 py-2 coral-gradient text-white rounded-2xl text-sm smooth-transition shadow-lg">
+                                            <i class="fas fa-paper-plane mr-2"></i>Comment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar - Details -->
+                <div class="w-80 overflow-auto space-y-4">
+                    <!-- Quick Actions -->
+                    <div class="neu-raised rounded-3xl p-6 smooth-transition">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Quick Actions</h3>
+                        <div class="space-y-2">
+                            <button class="w-full px-4 py-2 neu-raised text-white rounded-2xl text-sm smooth-transition hover:text-white flex items-center gap-2">
+                                <i class="fas fa-eye w-5"></i>
+                                <span>Watch Issue</span>
+                            </button>
+                            <button class="w-full px-4 py-2 neu-raised text-white rounded-2xl text-sm smooth-transition hover:text-white flex items-center gap-2">
+                                <i class="fas fa-link w-5"></i>
+                                <span>Copy Link</span>
+                            </button>
+                            <button class="w-full px-4 py-2 neu-raised text-white rounded-2xl text-sm smooth-transition hover:text-white flex items-center gap-2">
+                                <i class="fas fa-code-branch w-5"></i>
+                                <span>Create Branch</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Issue Details -->
+                    <div class="neu-raised rounded-3xl p-6 smooth-transition">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Details</h3>
+                        <div class="space-y-4">
+                            <!-- Assignee -->
+                            <div>
+                                <label class="text-xs text-slate uppercase tracking-wider block mb-2">Assignee</label>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-xl icon-coral flex-shrink-0"></div>
+                                    <span class="text-white text-sm font-medium">Moksha Dev</span>
+                                </div>
+                            </div>
+
+                            <!-- Labels -->
+                            <div>
+                                <label class="text-xs text-slate uppercase tracking-wider block mb-2">Labels</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="text-xs px-3 py-1 rounded-full font-semibold neu-pressed text-slate">bug</span>
+                                    <span class="text-xs px-3 py-1 rounded-full font-semibold neu-pressed text-slate">networking</span>
+                                    <span class="text-xs px-3 py-1 rounded-full font-semibold neu-pressed text-slate">replication</span>
+                                </div>
+                            </div>
+
+                            <!-- Priority -->
+                            <div>
+                                <label class="text-xs text-slate uppercase tracking-wider block mb-2">Priority</label>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                                    <span class="text-white text-sm">Critical</span>
+                                </div>
+                            </div>
+
+                            <!-- Module -->
+                            <div>
+                                <label class="text-xs text-slate uppercase tracking-wider block mb-2">Module</label>
+                                <span class="text-white text-sm">Combat System</span>
+                            </div>
+
+                            <!-- Milestone -->
+                            <div>
+                                <label class="text-xs text-slate uppercase tracking-wider block mb-2">Milestone</label>
+                                <span class="text-white text-sm">v1.2.0 - Combat Polish</span>
+                            </div>
+
+                            <!-- Due Date -->
+                            <div>
+                                <label class="text-xs text-slate uppercase tracking-wider block mb-2">Due Date</label>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-calendar text-coral"></i>
+                                    <span class="text-white text-sm">Nov 15, 2024</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Watchers -->
+                    <div class="neu-raised rounded-3xl p-6 smooth-transition">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">
+                            Watchers <span class="text-slate font-normal">(4)</span>
+                        </h3>
+                        <div class="flex -space-x-2">
+                            <div class="w-10 h-10 rounded-xl icon-coral border-2 border-[#2A2A2A]"></div>
+                            <div class="w-10 h-10 rounded-xl icon-slate border-2 border-[#2A2A2A]"></div>
+                            <div class="w-10 h-10 rounded-xl icon-coral border-2 border-[#2A2A2A]"></div>
+                            <div class="w-10 h-10 rounded-xl icon-slate border-2 border-[#2A2A2A] flex items-center justify-center">
+                                <span class="text-slate text-xs font-bold">+1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Issues -->
+                    <div class="neu-raised rounded-3xl p-6 smooth-transition">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Related Issues</h3>
+                        <div class="space-y-3">
+                            <a href="#" class="block neu-pressed rounded-2xl p-3 smooth-transition hover:bg-coral/5">
+                                <div class="flex items-start gap-2">
+                                    <i class="fas fa-link text-coral text-sm mt-0.5"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-white text-sm font-medium truncate">#38 Animation sync issues</p>
+                                        <p class="text-slate text-xs">Related to combat</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a href="#" class="block neu-pressed rounded-2xl p-3 smooth-transition hover:bg-coral/5">
+                                <div class="flex items-start gap-2">
+                                    <i class="fas fa-code-branch text-green-400 text-sm mt-0.5"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-white text-sm font-medium truncate">#127 Fix FSM replication</p>
+                                        <p class="text-slate text-xs">Pull Request</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

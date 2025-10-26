@@ -137,11 +137,10 @@
 **Dependencies**:
 
 - Days 3-4 complete (Issues pages fully functional)
-- Prisma schema with all models:
-  - **KnowledgeArticle** with relations (category: KnowledgeCategory, tags: string[])
-  - **WikiPage** with relations (relatedPages: WikiPage[], author: User)
-  - **SecurityVulnerability** and **SecurityScan** with severity/status enums
-  - **AgentPersona** with isActive: boolean, capabilities: string[]
+- Knowledge Base: Prisma `KnowledgeArticle` with relations (category, tags)
+- Wiki: Prisma `WikiPage` with relations (related, author)
+- Security: Prisma `SecurityVulnerability`, `SecurityScan`
+- Agent Personas: Prisma `AgentPersona`
 - Database seeded with all entity types
 - API route patterns established
 - Full-text search implementation (pg_trgm)

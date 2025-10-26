@@ -360,12 +360,12 @@ E2E Tests Passing:        91/91
 
 #### Coverage by Suite (Current)
 
-| Suite      | Coverage               | Status |
-| ---------- | ---------------------- | ------ |
-| API        | ~90%                   | ✅     |
-| Utilities  | ~85%                   | ✅     |
-| Components | ~70%                   | ⚠️     |
-| E2E        | Critical paths covered | ✅     |
+| Suite      | Coverage               |
+| ---------- | ---------------------- |
+| API        | ~90%                   |
+| Utilities  | ~85%                   |
+| Components | ~70%                   |
+| E2E        | Critical paths covered |
 
 ### Performance
 
