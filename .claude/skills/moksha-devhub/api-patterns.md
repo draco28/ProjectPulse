@@ -40,19 +40,19 @@ export async function POST(request: NextRequest) {
     });
 
     // Success response
-    return NextResponse.json({ data: result }, { status: 201 });
+    return NextResponse.json({ data: result, error: null }, { status: 201 });
   } catch (error) {
     // Validation error
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { data: null, error: 'Validation failed', details: error.errors },
         { status: 400 }
       );
     }
 
     // Server error
     console.error('API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ data: null, error: 'Internal server error' }, { status: 500 });
   }
 }
 ```
@@ -72,9 +72,17 @@ export async function POST(request: NextRequest) {
 
 **Response Format**:
 
-- Success: `{ data: T }` or `{ data: T[], pagination: {...} }`
-- Error: `{ error: string, details?: any }`
+**ALWAYS use this envelope pattern:**
+
+```typescript
+{ data: T | null, error: string | null }
+```
+
+- Success: `{ data: T, error: null }` or `{ data: T[], error: null, pagination?: {...} }`
+- Error: `{ data: null, error: string, details?: any }`
 - Status codes: 200 OK, 201 Created, 400 Bad Request, 404 Not Found, 500 Error
+
+**Why:** Consistent response structure makes client code predictable and type-safe.
 
 **Database**:
 
@@ -105,6 +113,7 @@ const data = hasMore ? items.slice(0, -1) : items;
 
 return NextResponse.json({
   data,
+  error: null,
   nextCursor: hasMore ? data[data.length - 1].id : null,
   hasMore,
 });
@@ -125,7 +134,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ data: items });
+  return NextResponse.json({ data: items, error: null });
 }
 ```
 
@@ -139,10 +148,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   });
 
   if (!item) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ data: null, error: 'Not found' }, { status: 404 });
   }
 
-  return NextResponse.json({ data: item });
+  return NextResponse.json({ data: item, error: null });
 }
 ```
 

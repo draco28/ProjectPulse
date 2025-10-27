@@ -322,3 +322,7 @@ pnpm build        # Success
 ---
 
 **This file contains what's actively being worked on RIGHT NOW. Update after every significant change.**
+
+---
+
+Last reviewed: 2025-10-27

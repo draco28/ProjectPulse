@@ -4,6 +4,10 @@
 **Created**: [YYYY-MM-DD HH:MM]
 **Last Updated**: [YYYY-MM-DD HH:MM]
 
+**🔄 Sync Reminder**: Update this file whenever TodoWrite tool is used to keep progress persistent.
+
+---
+
 ## ✅ Completed ([X]/[Total] - [%]%)
 
 - [x] [Task description] ([HH:MM completion time])

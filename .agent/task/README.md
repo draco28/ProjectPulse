@@ -2,6 +2,12 @@
 
 This directory contains session-specific context files for progress tracking.
 
+**Quick Links:**
+
+- **Templates**: `.agent/task/templates/` (current-session-template.md, current-todos-template.md)
+- **Examples**: `.agent/examples/persistence-examples.md`
+- **Rules**: `.agent/workflows/persistence-rules.md`
+
 ## File Types
 
 ### Active Files (Current Session)
@@ -71,6 +77,8 @@ If context lost or session interrupted:
 2. Update current-todos.md whenever TodoWrite changes
 3. Update files after every major step
 4. Archive old files on phase completion
+
+**Important:** Sub-agents NEVER update `current-session.md`. Only the parent agent updates it after reading sub-agent reports.
 
 ### For Users (Manual)
 

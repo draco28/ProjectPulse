@@ -555,3 +555,5 @@ export async function POST(request: NextRequest) {
 **Last Updated:** 2025-10-26
 **API Status:** Minimal (Preferences only)
 **Next Update:** Week 1 Day 3 (Issues API implementation)
+
+**See also**: [STATUS.md](../../STATUS.md) for current project status

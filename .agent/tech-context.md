@@ -579,3 +579,7 @@ pnpm update
 ---
 
 **This file documents technical stack, dependencies, and environment setup.**
+
+---
+
+Last reviewed: 2025-10-27

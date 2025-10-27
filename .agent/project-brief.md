@@ -231,3 +231,7 @@ Build a comprehensive developer hub that integrates issue tracking, knowledge ma
 ---
 
 **This file defines WHAT we're building and WHY. See system-patterns.md for HOW.**
+
+---
+
+Last reviewed: 2025-10-27

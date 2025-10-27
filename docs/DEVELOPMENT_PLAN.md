@@ -98,11 +98,12 @@
 
 **Dependencies**:
 
-- Phase 2 complete (dashboard components transformed)
-- Database seeded with Issue records
-- Prisma schema with Issue model
-- shadcn/ui components available
-- Neumorphic theme styles in globals.css
+- Database: Prisma Issue model exists and migrated with all required fields (title, description, status, priority, module)
+- Database: Seed script includes sample Issue records (minimum 10 issues with varied statuses/priorities)
+- UI: Dashboard components complete from Phase 2 (Sidebar, Header, StatCard navigation working)
+- Patterns: shadcn/ui components installed and available (Card, Badge, Button, Input)
+- Patterns: Neumorphic theme styles defined in globals.css (glass-dark, hover effects, coral accents)
+- Skills: component-patterns, database-patterns, api-patterns, testing-patterns
 
 **Tasks**:
 
@@ -116,12 +117,12 @@
 
 **Dependencies**:
 
-- Day 3 complete (Issues List page exists with navigation)
-- Prisma schema with IssueComment, IssueHistory, IssueAttachment models
-- Database seeded with related records
-- Issue detail mockup file (waiting from user)
-- Server Actions pattern established
-- Zod validation utilities available
+- Database: Prisma models Issue, IssueComment, IssueHistory, IssueAttachment exist and migrated with relations
+- Database: Seed script includes sample comments and history records (minimum 5 comments per issue, 10 history events)
+- API: GET /api/issues/[id], POST /api/issues/[id]/comments documented or stubbed
+- UI: Existing IssueList page complete from Day 3 (navigates to detail page)
+- Patterns: Server Actions pattern established with Zod validation utilities
+- Skills: component-patterns, database-patterns, api-patterns, testing-patterns
 
 **Tasks**:
 
@@ -136,30 +137,28 @@
 
 **Dependencies**:
 
-- Days 3-4 complete (Issues pages fully functional)
-- Knowledge Base: Prisma `KnowledgeArticle` with relations (category, tags)
-- Wiki: Prisma `WikiPage` with relations (related, author)
-- Security: Prisma `SecurityVulnerability`, `SecurityScan`
-- Agent Personas: Prisma `AgentPersona`
-- Database seeded with all entity types
-- API route patterns established
-- Full-text search implementation (pg_trgm)
-- Command Palette mockup provided
+- Database: Prisma models KnowledgeArticle, KnowledgeCategory, WikiPage, SecurityVulnerability, SecurityScan, AgentPersona exist and migrated
+- Database: Seed script includes sample data for all entities (minimum 10 articles, 5 wiki pages, 10 vulnerabilities, 5 agent personas)
+- Database: Full-text search implementation with pg_trgm extension and GIN indexes configured
+- API: Issue management API routes complete from Days 3-4 (GET/POST/PATCH/DELETE patterns established)
+- UI: Issues List and Detail pages complete and functional (navigation patterns established)
+- Patterns: API route patterns with Zod validation and error handling established
+- Skills: component-patterns, database-patterns, api-patterns, testing-patterns
 
 **Tasks**:
 
 1. **Knowledge Base**: **GET /api/knowledge** + **GET /api/search** (full-text with `tsvector`); Prisma models: `KnowledgeArticle`, `KnowledgeCategory`; Components: DocumentCard, SearchBar; **Playwright E2E**
-   - Dependencies: `SearchIndex` table, full-text search functions, `KnowledgeArticle.category` relation
+   - Dependencies: Database SearchIndex table with tsvector column, full-text search GIN indexes, KnowledgeArticle.category relation configured, API pattern from Issues routes, UI card components from dashboard
 2. **Wiki**: **GET /api/wiki/[slug]** + related articles; Prisma model: `WikiPage` with `relatedPages[]`, `author` relations; Components: WikiSidebar, TableOfContents; **Playwright E2E** for TOC navigation
-   - Dependencies: `WikiPage` relations (self-referential `relatedPages`), related articles algorithm
+   - Dependencies: WikiPage model with self-referential relatedPages many-to-many relation, author foreign key, related articles recommendation algorithm, navigation components, markdown rendering library
 3. **Security**: **GET /api/security/score** + vulnerabilities; Prisma models: `SecurityVulnerability`, `SecurityScan` with `severity`, `status` enums; Components: SecurityScoreMeter, VulnerabilityCard; **Playwright E2E**
-   - Dependencies: `SecurityVulnerability` and `SecurityScan` models, aggregation queries for score calculation
+   - Dependencies: SecurityVulnerability and SecurityScan models with severity/status enums, aggregation query patterns for score calculation, visualization components (meter/gauge), badge components for severity levels
 4. **Agent Personas**: **GET /api/agents**, **POST /api/agents/[id]/activate**; Prisma model: `AgentPersona` with `isActive: Boolean`, `capabilities: String[]`; **Server Actions** for toggling; **Playwright E2E**
-   - Dependencies: `AgentPersona` model, activation state management with optimistic updates
+   - Dependencies: AgentPersona model with isActive boolean and capabilities array, Server Actions pattern with optimistic updates, toggle UI components, activation state management patterns, persona card components
 5. **Command Palette**: **Client Component** with keyboard navigation (Cmd+K); Fuzzy search across entities (uses `Issue`, `KnowledgeArticle`, `WikiPage`, `AgentPersona`); **React Testing Library**
-   - Dependencies: All entity APIs complete (Issues, Knowledge, Wiki, Security, Agents)
+   - Dependencies: All entity APIs complete (GET /api/issues, /api/knowledge, /api/wiki, /api/security, /api/agents), fuzzy search library (fuse.js), keyboard shortcut hooks, modal/dialog components, search result rendering components
 6. **Integration testing** with **Playwright MCP tool** for end-to-end workflows
-   - Dependencies: All 5 pages complete and navigable
+   - Dependencies: All 5 pages deployed and navigable (Issues, Knowledge, Wiki, Security, Agent Personas), Playwright MCP tool configured, E2E test patterns established from previous pages, Docker containers running (web + db)
 
 **Component Templates Available:**
 
@@ -200,6 +199,30 @@
 - [Testing Strategy](#-testing-strategy)
 - [Quality Gates](#-quality-gates)
 - [Continuation Guide](#-continuation-guide)
+
+---
+
+## 📋 Dependency Completeness Checklist
+
+**Before starting ANY task, verify all dependencies meet these standards:**
+
+### Required Dependency Categories (≥5 items total)
+
+- **Database:** Specific Prisma models, migrations, relations, seed data requirements
+- **API:** Endpoint routes, response formats, validation schemas documented or implemented
+- **UI:** Component dependencies, navigation patterns, pages that must exist
+- **Patterns:** Established patterns (Server Actions, Zod validation, error handling, etc.)
+- **Skills:** Relevant skills that will auto-load (component-patterns, database-patterns, api-patterns, testing-patterns)
+
+### Verification Questions
+
+1. ✅ Are database models migrated and seeded with test data?
+2. ✅ Are API endpoints documented with request/response contracts?
+3. ✅ Are prerequisite UI components complete and navigable?
+4. ✅ Are coding patterns established and documented?
+5. ✅ Are ≥3 skill-triggering keywords present in task description?
+
+**See:** Normalized dependency examples in Days 3-6 below for reference format.
 
 ---
 

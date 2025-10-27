@@ -317,6 +317,42 @@ To ensure no progress is ever lost, I use three levels of progress tracking:
 2. Full STATUS.md update
 3. Optional Memory MCP update with phase summary
 
+### Automatic Pre-Compaction Save (NEW)
+
+**Proactive save when approaching context limit**:
+
+**When token usage ≥ 160K (80% of 200K)**:
+
+1. Silent auto-save triggers (one-time per session)
+2. Brief notification: "💾 Auto-save at 160K tokens (80%)..."
+3. Updates ALL progress files:
+   - `current-session-[timestamp].md` - Latest progress
+   - `current-todos.md` - Task completion status
+   - `STATUS.md` - Checkpoint with current date
+4. Confirmation: "✅ Progress saved. Manual compaction recommended."
+
+**Why this helps**:
+
+- Saves progress before auto-compaction (typically ~200K)
+- Leaves 40K token buffer for you to review
+- You can manually trigger compaction
+- All progress safely persisted
+
+**Token cost**: ~450 tokens (minimal impact)
+
+**Token Counter Quick Reference**:
+
+- Current usage shown in system warnings: "Token usage: X/200000"
+- 160K = 80% (auto-save trigger)
+- 200K = 100% (auto-compaction trigger)
+- Monitor after each tool use
+
+**Recommendation after auto-save**:
+
+- Review progress
+- Manually compact context OR
+- Start new session for next major task
+
 ### Recovery Workflow
 
 **If context compacts or session interrupted**:

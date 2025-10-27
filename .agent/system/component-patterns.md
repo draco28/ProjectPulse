@@ -648,3 +648,5 @@ export default function Loading() {
 **Last Updated:** 2025-10-26
 **Component Status:** Theme system only
 **Next Update:** Week 1 Day 3 (Issue components)
+
+**See also**: [STATUS.md](../../STATUS.md) for current project status

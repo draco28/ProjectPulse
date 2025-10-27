@@ -744,3 +744,5 @@ cat ~/.config/claude-code/logs/mcp-servers.log
 **Last Updated:** 2025-10-26
 **MCP Status:** Core tools configured
 **Next:** Custom DevHub MCP server (Week 2+)
+
+**See also**: [STATUS.md](../../STATUS.md) for current project status

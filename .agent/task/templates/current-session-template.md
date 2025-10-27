@@ -4,6 +4,13 @@
 **Started**: [HH:MM]
 **Last Updated**: [HH:MM]
 
+---
+
+**💾 Recovery Quick Steps**:
+If context lost: Read STATUS.md → Read this file → Read current-todos.md → Continue from "In Progress" task
+
+---
+
 ## Progress This Session
 
 - ✅ [HH:MM] - [Completed action]

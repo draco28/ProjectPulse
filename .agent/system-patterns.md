@@ -643,3 +643,7 @@ export type IssueWithRelations = Issue & {
 ---
 
 **This file documents HOW we build. See project-brief.md for WHAT and WHY.**
+
+---
+
+Last reviewed: 2025-10-27

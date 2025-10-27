@@ -27,19 +27,19 @@ export async function PATCH(request: NextRequest) {
       create: { userId, theme },
     });
 
-    return NextResponse.json(preferences);
+    return NextResponse.json({ data: preferences, error: null });
   } catch (error) {
     // Validation error
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid theme value', details: error.errors },
+        { data: null, error: 'Invalid theme value', details: error.errors },
         { status: 400 }
       );
     }
 
     // Database error or other errors
     console.error('Preferences API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ data: null, error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -57,9 +57,12 @@ export async function GET(_request: NextRequest) {
     });
 
     // Return preferences or default
-    return NextResponse.json(preferences || { theme: 'desert' });
+    return NextResponse.json({
+      data: preferences || { theme: 'desert' },
+      error: null,
+    });
   } catch (error) {
     console.error('Preferences API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ data: null, error: 'Internal server error' }, { status: 500 });
   }
 }

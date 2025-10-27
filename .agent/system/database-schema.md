@@ -371,3 +371,5 @@ type UserPrefsWithRelations = Prisma.UserPreferencesGetPayload<{
 **Last Updated:** 2025-10-26
 **Schema Status:** Minimal (Theme system only)
 **Next Update:** Week 1 Day 2 (Full schema implementation)
+
+**See also**: [STATUS.md](../../STATUS.md) for current project status
