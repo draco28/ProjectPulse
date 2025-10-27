@@ -222,6 +222,55 @@ export function IssueCard({ issue }) {
 - Optional Memory MCP with insights
 - Token cost: ~1000 tokens
 
+### Automatic Pre-Compaction Save (NEW)
+
+**When token usage ≥ 160K (80% of 200K limit)**:
+
+**I automatically**:
+
+1. **Check threshold** after each tool use
+   - Monitor token usage from system warnings
+   - Compare against 160K threshold
+   - Check if auto-save already triggered this session
+
+2. **Trigger auto-save** (one-time per session):
+
+   ```
+   IF token_usage >= 160000 AND auto_save_triggered == false:
+       trigger_auto_save()
+       set auto_save_triggered = true
+   ```
+
+3. **Execute save sequence**:
+   - Brief notification: "💾 Auto-save at 160K tokens (80%)..."
+   - Update `current-session-[timestamp].md` with latest progress
+   - Update `current-todos.md` with task completion status
+   - Update `STATUS.md` with checkpoint (Last Task Completed, Last Checkpoint date)
+   - Add metadata to session file: "**Auto-Save**: Triggered at 160K tokens (YYYY-MM-DD HH:MM)"
+   - Confirmation: "✅ Progress saved. Manual compaction recommended."
+
+4. **Token cost**: ~450 tokens total
+
+**Why this helps**:
+
+- Saves progress before auto-compaction (typically ~200K)
+- Leaves 40K token buffer for manual action
+- User can review and decide: manually compact OR start new session
+- All progress safely persisted
+
+**What you'll see**:
+
+```
+💾 Auto-save at 160K tokens (80%)... ✅ Progress saved. Manual compaction recommended.
+```
+
+**After auto-save**:
+
+- You should review progress
+- Manually trigger context compaction OR
+- Start new session for next major task
+- Avoid continuing past 180K (auto-compaction risk)
+
 ### If You Need to Resume
 
 **After context compaction**:

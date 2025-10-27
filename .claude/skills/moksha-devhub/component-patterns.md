@@ -11,12 +11,15 @@ triggers:
     'ui component',
   ]
 token_estimate: 280
-last_updated: 2025-10-26
+last_updated: 2025-10-27
 related_docs:
+  - ./ui-generation-workflow.md
   - ../../.agent/system/component-patterns.md
 ---
 
 # Moksha Component Patterns
+
+> **💡 New**: For creating new pages/components, consider using the [4-step UI generation workflow](./ui-generation-workflow.md) for faster iteration and better quality. Start with ASCII wireframes, apply theme, define animations, then implement.
 
 ## Default: Server Components
 
@@ -263,6 +266,14 @@ export function IssueCard({ issue }: { issue: Issue }) {
 - Error boundaries
 - Loading states
 - Testing approaches
+
+**UI Generation Workflow**: [ui-generation-workflow.md](./ui-generation-workflow.md)
+
+- 4-step process (Layout → Theme → Animation → Implementation)
+- ASCII wireframes for fast iteration
+- Theme application and styling
+- Animation definitions
+- Token-efficient UI development (75% savings)
 
 ---
 
