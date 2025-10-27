@@ -100,7 +100,9 @@ Need progress?             → progress.md
 
 - [api-catalog.md](system/api-catalog.md) - All API endpoints
 - [database-schema.md](system/database-schema.md) - Prisma schema summary
-- [adding-api-endpoint.md](sops/adding-api-endpoint.md) - SOP for new endpoints
+- [api-route-creation.md](sops/api-route-creation.md) - Standard API route pattern (Zod + {data, error})
+- [type-serialization.md](sops/type-serialization.md) - Converting Prisma types for client
+- [server-component-data-fetching.md](sops/server-component-data-fetching.md) - Optimized Prisma queries
 
 ### Working on UI/Components?
 
@@ -149,6 +151,9 @@ Step-by-step guides for common operations and troubleshooting.
 - [git-workflow.md](sops/git-workflow.md) - Branching and commit guidelines
 - [adding-api-endpoint.md](sops/adding-api-endpoint.md) - Create new API routes
 - [database-migrations.md](sops/database-migrations.md) - Schema change workflow
+- [api-route-creation.md](sops/api-route-creation.md) - Standard API route pattern with Zod validation and {data, error} format
+- [type-serialization.md](sops/type-serialization.md) - Converting Prisma types to JSON-serializable client props
+- [server-component-data-fetching.md](sops/server-component-data-fetching.md) - Optimized Prisma queries for Server Components
 
 ---
 

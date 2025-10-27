@@ -1,8 +1,8 @@
 # API Endpoint Catalog
 
-**Last Updated**: 2025-10-26
+**Last Updated**: 2025-10-28
 **Base URL**: `http://localhost:3000/api`
-**Status**: Minimal API (Theme preferences only - full API pending Week 1 Day 3)
+**Status**: Theme system + Issue management (Phase 3 Day 4 complete)
 
 ---
 
@@ -13,9 +13,13 @@
 - [GET /api/preferences/:userId](#get-apipreferencesuserid) - Get user preferences
 - [PUT /api/preferences/:userId](#put-apipreferencesuserid) - Update user preferences
 
+### Issue Management
+
+- [POST /api/issues/[id]/comments](#post-apiissuesidcomments) - Add comment to issue
+- [PATCH /api/issues/[id]/status](#patch-apiissuesidstatus) - Update issue status
+
 ### Future Endpoints (Planned)
 
-- Issues API (Week 1 Day 3)
 - Search API (Week 1 Day 4)
 - Knowledge Base API (Week 2)
 - Authentication API (Week 2)
@@ -172,6 +176,224 @@ Content-Type: application/json
 
 **Source**: (To be implemented)
 **Authentication**: None (to be added with auth system)
+
+---
+
+### Issue Management
+
+#### POST /api/issues/[id]/comments
+
+**Description**: Create a new comment on an issue
+
+**Path Parameters**:
+
+- `id` (string) - Issue ID
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```json
+{
+  "content": "string (1-10000 chars)",
+  "author": "string (optional)"
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/issues/42/comments HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "content": "This is a comment with `inline code` formatting",
+  "author": "Moksha Dev"
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "data": {
+    "id": 123,
+    "content": "This is a comment with `inline code` formatting",
+    "author": "Moksha Dev",
+    "issueId": 42,
+    "createdAt": "2025-10-28T12:00:00Z",
+    "updatedAt": "2025-10-28T12:00:00Z"
+  },
+  "error": null
+}
+```
+
+**Validation**:
+
+- `content`: Required, 1-10,000 characters
+- `author`: Optional (defaults to "Anonymous" if omitted)
+- Content is trimmed before storage
+
+**Error Responses**:
+
+`400 Bad Request` - Invalid issue ID or validation error
+
+```json
+{
+  "data": null,
+  "error": "Invalid comment data",
+  "details": [
+    {
+      "code": "too_small",
+      "minimum": 1,
+      "path": ["content"],
+      "message": "Comment cannot be empty"
+    }
+  ]
+}
+```
+
+`404 Not Found` - Issue not found
+
+```json
+{
+  "data": null,
+  "error": "Issue not found"
+}
+```
+
+`500 Internal Server Error` - Database error
+
+```json
+{
+  "data": null,
+  "error": "Failed to create comment"
+}
+```
+
+**Side Effects**:
+
+- Revalidates `/issues/:id` page cache (Next.js ISR)
+
+**Source**: `apps/web/app/api/issues/[id]/comments/route.ts`
+**Validation**: `apps/web/lib/validations/issue.ts` (CommentSchema)
+**Authentication**: None (to be added)
+
+---
+
+#### PATCH /api/issues/[id]/status
+
+**Description**: Update the status of an issue
+
+**Path Parameters**:
+
+- `id` (string) - Issue ID
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```json
+{
+  "status": "open" | "in_progress" | "closed"
+}
+```
+
+**Request Example**:
+
+```http
+PATCH /api/issues/42/status HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "status": "closed"
+}
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "data": {
+    "id": 42,
+    "title": "Animation sync issues in combat",
+    "status": "closed",
+    "priority": "high",
+    "module": "Combat",
+    "assignee": "Moksha Dev",
+    "createdAt": "2025-10-26T10:00:00Z",
+    "updatedAt": "2025-10-28T12:00:00Z",
+    "closedAt": "2025-10-28T12:00:00Z",
+    "_count": {
+      "comments": 5,
+      "attachments": 2
+    }
+  },
+  "error": null
+}
+```
+
+**Validation**:
+
+- `status`: Required, must be one of: "open", "in_progress", "closed"
+
+**Error Responses**:
+
+`400 Bad Request` - Invalid issue ID or status value
+
+```json
+{
+  "data": null,
+  "error": "Invalid status value",
+  "details": [
+    {
+      "code": "invalid_enum_value",
+      "options": ["open", "in_progress", "closed"],
+      "path": ["status"],
+      "message": "Status must be one of: open, in_progress, closed"
+    }
+  ]
+}
+```
+
+`404 Not Found` - Issue not found
+
+```json
+{
+  "data": null,
+  "error": "Issue not found"
+}
+```
+
+`500 Internal Server Error` - Database error
+
+```json
+{
+  "data": null,
+  "error": "Failed to update issue status"
+}
+```
+
+**Side Effects**:
+
+- Sets `closedAt` timestamp when status changes to "closed"
+- Clears `closedAt` timestamp when status changes from "closed" to another status
+- Revalidates `/issues` page cache
+- Revalidates `/issues/:id` page cache
+
+**Source**: `apps/web/app/api/issues/[id]/status/route.ts`
+**Validation**: `apps/web/lib/validations/issue.ts` (StatusUpdateSchema)
+**Authentication**: None (to be added)
 
 ---
 
@@ -552,8 +774,8 @@ export async function POST(request: NextRequest) {
 
 ---
 
-**Last Updated:** 2025-10-26
-**API Status:** Minimal (Preferences only)
-**Next Update:** Week 1 Day 3 (Issues API implementation)
+**Last Updated:** 2025-10-28
+**API Status:** Theme system + Issue management (comments, status updates)
+**Next Update:** Phase 3 Day 5+ (Additional issue endpoints)
 
 **See also**: [STATUS.md](../../STATUS.md) for current project status

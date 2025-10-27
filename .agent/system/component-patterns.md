@@ -1,9 +1,9 @@
 # Component Patterns & Conventions
 
-**Last Updated**: 2025-10-26
+**Last Updated**: 2025-10-28
 **Framework**: Next.js 14 (App Router) + React 18
 **UI Library**: shadcn/ui + Tailwind CSS
-**Status**: Theme system implemented - full component library pending
+**Status**: Theme system + Issue detail components (Phase 3 Day 4 complete)
 
 ---
 
@@ -49,11 +49,18 @@ lib/
 
 ### Current Components
 
-**Theme System** (Week 1 Day 1):
+**Theme System** (Phase 3 Day 1):
 
 - `components/theme/ThemeProvider.tsx` - Client component, theme context
 - `components/theme/ThemeSelector.tsx` - Theme switcher UI
 - `components/ui/*` - shadcn/ui components (Button, Card, etc.)
+
+**Issue Management** (Phase 3 Day 4):
+
+- `components/issues/detail/CommentList.tsx` - Display issue comments
+- `components/issues/detail/CommentForm.tsx` - Create new comments with form handling
+- `components/issues/detail/AttachmentList.tsx` - Display file attachments with download
+- `components/issues/detail/IssueDetailSidebar.tsx` - Issue metadata and quick actions
 
 ---
 
@@ -359,6 +366,402 @@ export function IssueCard({ issue }: Props) {
 
 ---
 
+### 6. Comment List Pattern (Client Component with Data Display)
+
+**Location**: `components/issues/detail/CommentList.tsx`
+**Type**: Client Component
+**Responsibility**: Display comments with formatted content and timestamps
+
+**Key Features**:
+
+- Client-side rendering for dynamic content
+- Date formatting with `date-fns`
+- Inline code formatting support
+- Empty state handling
+- Nested component structure (CommentItem, CommentContent)
+
+```typescript
+"use client";
+
+import { formatDistanceToNow } from 'date-fns';
+import type { CommentProps } from '@/types/issue';
+
+interface CommentListProps {
+  issueId: string;
+  initialComments: CommentProps[];
+}
+
+export function CommentList({ issueId, initialComments }: CommentListProps) {
+  if (initialComments.length === 0) {
+    return (
+      <div className="neu-pressed rounded-2xl p-8 text-center">
+        <i className="fas fa-comments mb-3 text-4xl text-slate"></i>
+        <p className="text-slate">No comments yet. Be the first to comment!</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {initialComments.map((comment) => (
+        <CommentItem key={comment.id} comment={comment} />
+      ))}
+    </div>
+  );
+}
+
+function CommentItem({ comment }: { comment: CommentProps }) {
+  const commentDate = new Date(comment.createdAt);
+  const isUpdated = comment.updatedAt !== comment.createdAt;
+
+  return (
+    <div className="neu-pressed flex gap-4 rounded-2xl p-4">
+      {/* Avatar, content, actions */}
+    </div>
+  );
+}
+```
+
+**Pattern Notes**:
+
+- Uses `CommentItem` as nested component (co-located, not exported)
+- Handles empty state with icon and message
+- Type-safe with imported types
+- Accessibility: Semantic HTML structure
+
+---
+
+### 7. Form Component with API Integration Pattern
+
+**Location**: `components/issues/detail/CommentForm.tsx`
+**Type**: Client Component
+**Responsibility**: Form handling, validation, API submission
+
+**Key Features**:
+
+- Client-side validation before API call
+- Loading states during submission
+- Error handling and display
+- Optimistic UI with `router.refresh()`
+- Character counter for large text
+- Disabled state management
+
+```typescript
+"use client";
+
+import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import type { ApiResponse } from '@/types/issue';
+
+interface CommentFormProps {
+  issueId: string;
+}
+
+export function CommentForm({ issueId }: CommentFormProps) {
+  const router = useRouter();
+  const [content, setContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+
+    // Client-side validation
+    if (!content.trim()) {
+      setError('Comment cannot be empty');
+      return;
+    }
+
+    if (content.length > 10000) {
+      setError('Comment cannot exceed 10,000 characters');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch(`/api/issues/${issueId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: content.trim(),
+          author: 'Moksha Dev', // TODO: Get from auth session
+        }),
+      });
+
+      const result: ApiResponse<unknown> = await res.json();
+
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      // Success - clear form and refresh page
+      setContent('');
+      router.refresh(); // Re-fetch Server Component data
+    } catch (err) {
+      console.error('Comment submission error:', err);
+      setError('Failed to add comment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex gap-4">
+      <textarea
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        disabled={isSubmitting}
+        data-testid="comment-textarea"
+      />
+
+      {error && <p className="text-red-400">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={isSubmitting || !content.trim()}
+        data-testid="submit-comment"
+      >
+        {isSubmitting ? 'Posting...' : 'Comment'}
+      </button>
+    </form>
+  );
+}
+```
+
+**Pattern Notes**:
+
+- Uses `router.refresh()` for Server Component data re-fetch (no manual state sync)
+- Three-stage error handling: client validation, API response, network errors
+- Disabled button during submission + empty content
+- Data-testid attributes for testing
+- Typed API responses
+
+---
+
+### 8. Display List with Type Mapping Pattern
+
+**Location**: `components/issues/detail/AttachmentList.tsx`
+**Type**: Client Component
+**Responsibility**: Display attachments with file-type-specific icons and metadata
+
+**Key Features**:
+
+- MIME type to icon/color mapping
+- File size formatting helper
+- Conditional rendering (hide if empty)
+- Download button handler (placeholder)
+- Helper functions for type detection
+
+```typescript
+"use client";
+
+import { formatDistanceToNow } from 'date-fns';
+import type { AttachmentProps } from '@/types/issue';
+
+interface AttachmentListProps {
+  attachments: AttachmentProps[];
+}
+
+export function AttachmentList({ attachments }: AttachmentListProps) {
+  if (attachments.length === 0) {
+    return null; // Hide section if no attachments
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {attachments.map((attachment) => (
+        <AttachmentItem key={attachment.id} attachment={attachment} />
+      ))}
+    </div>
+  );
+}
+
+function AttachmentItem({ attachment }: { attachment: AttachmentProps }) {
+  const { icon, color } = getFileTypeIcon(attachment.mimetype);
+  const formattedSize = formatFileSize(attachment.size);
+  const uploadedAgo = formatDistanceToNow(new Date(attachment.uploadedAt), {
+    addSuffix: true,
+  });
+
+  return (
+    <div className="neu-pressed cursor-pointer rounded-2xl p-4">
+      <div className="flex items-start gap-3">
+        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${color}`}>
+          <i className={`${icon} text-xl`}></i>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-white">{attachment.filename}</p>
+          <p className="text-xs text-slate">{formattedSize} • {getFileType(attachment.mimetype)}</p>
+          <p className="text-xs text-slate">Uploaded {uploadedAgo}</p>
+        </div>
+        <button onClick={() => handleDownload(attachment)}>
+          <i className="fas fa-download"></i>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Helper: Map MIME types to FontAwesome icons and colors
+function getFileTypeIcon(mimetype: string): { icon: string; color: string } {
+  if (mimetype.startsWith('image/')) {
+    return { icon: 'fas fa-file-image', color: 'bg-purple-500/20 text-purple-400' };
+  }
+  if (mimetype === 'application/pdf') {
+    return { icon: 'fas fa-file-pdf', color: 'bg-red-500/20 text-red-400' };
+  }
+  // ... more type mappings
+  return { icon: 'fas fa-file', color: 'bg-slate/20 text-slate' };
+}
+
+// Helper: Format bytes to human-readable size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+}
+```
+
+**Pattern Notes**:
+
+- Helper functions defined in same file (not exported)
+- Comprehensive MIME type mapping (images, videos, documents, archives)
+- Grid layout for visual consistency
+- Truncate long filenames with `title` tooltip
+- Empty state returns `null` (hides section)
+
+---
+
+### 9. Sidebar Detail Component Pattern
+
+**Location**: `components/issues/detail/IssueDetailSidebar.tsx`
+**Type**: Client Component
+**Responsibility**: Display metadata, quick actions, related content
+
+**Key Features**:
+
+- Structured metadata display (assignee, labels, priority, dates)
+- Quick action buttons with click handlers
+- Priority color mapping helper
+- Placeholder data for future features (watchers, related issues)
+- Utility function for clipboard operations
+
+```typescript
+"use client";
+
+import type { LabelProps } from '@/types/issue';
+
+interface IssueDetailSidebarProps {
+  issueId: string;
+  assignee: string | null;
+  labels: LabelProps[];
+  priority: string;
+  module: string | null;
+  status: string;
+}
+
+export function IssueDetailSidebar({
+  issueId,
+  assignee,
+  labels,
+  priority,
+  module,
+  status,
+}: IssueDetailSidebarProps) {
+  return (
+    <div className="w-80 space-y-4 overflow-auto">
+      {/* Quick Actions */}
+      <div className="neu-raised rounded-3xl p-6">
+        <h3 className="mb-4 text-sm font-bold uppercase">Quick Actions</h3>
+        <div className="space-y-2">
+          <button className="neu-raised w-full">
+            <i className="fas fa-eye w-5"></i>
+            <span>Watch Issue</span>
+          </button>
+          <button onClick={() => copyToClipboard(window.location.href)}>
+            <i className="fas fa-link w-5"></i>
+            <span>Copy Link</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Issue Details */}
+      <div className="neu-raised rounded-3xl p-6">
+        <h3 className="mb-4 text-sm font-bold uppercase">Details</h3>
+
+        {/* Assignee */}
+        <div>
+          <label className="mb-2 block text-xs uppercase">Assignee</label>
+          <span className="text-sm font-medium">{assignee || 'Unassigned'}</span>
+        </div>
+
+        {/* Labels */}
+        {labels.length > 0 && (
+          <div>
+            <label className="mb-2 block text-xs uppercase">Labels</label>
+            <div className="flex flex-wrap gap-2">
+              {labels.map((label) => (
+                <span
+                  key={label.id}
+                  className="neu-pressed rounded-full px-3 py-1 text-xs"
+                  style={{ borderLeft: `3px solid ${label.color}` }}
+                >
+                  {label.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Priority with color indicator */}
+        <div>
+          <label className="mb-2 block text-xs uppercase">Priority</label>
+          <div className="flex items-center gap-2">
+            <span className={`h-2 w-2 rounded-full ${getPriorityColor(priority)}`}></span>
+            <span className="text-sm">{priority.charAt(0).toUpperCase() + priority.slice(1)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Helper: Map priority to Tailwind color classes
+function getPriorityColor(priority: string): string {
+  const colors: Record<string, string> = {
+    critical: 'bg-red-500',
+    high: 'bg-orange-500',
+    medium: 'bg-yellow-500',
+    low: 'bg-blue-500',
+  };
+  return colors[priority] || colors.medium;
+}
+
+// Helper: Copy to clipboard with Promise handling
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text).then(
+    () => console.log('Copied to clipboard:', text),
+    (err) => console.error('Failed to copy:', err)
+  );
+}
+```
+
+**Pattern Notes**:
+
+- Fixed width sidebar (`w-80`)
+- Nested sections with `neu-raised` neumorphic cards
+- Conditional rendering for optional fields (labels, module)
+- Color-coded priority indicator
+- Helper functions for mapping and utilities
+- Placeholder sections for future features (watchers, related issues)
+
+---
+
 ## Styling Patterns
 
 ### Tailwind CSS
@@ -645,8 +1048,8 @@ export default function Loading() {
 
 ---
 
-**Last Updated:** 2025-10-26
-**Component Status:** Theme system only
-**Next Update:** Week 1 Day 3 (Issue components)
+**Last Updated:** 2025-10-28
+**Component Status:** Theme system + Issue detail components (CommentList, CommentForm, AttachmentList, IssueDetailSidebar)
+**Next Update:** Phase 3 Day 5+ (Additional issue components)
 
 **See also**: [STATUS.md](../../STATUS.md) for current project status
