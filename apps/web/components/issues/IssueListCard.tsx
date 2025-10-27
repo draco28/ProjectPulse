@@ -18,6 +18,7 @@
 
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import Link from 'next/link';
 
 type Priority = 'critical' | 'high' | 'medium' | 'low';
 type Status = 'open' | 'in_progress' | 'closed';
@@ -110,9 +111,11 @@ export function IssueListCard({ issue }: IssueListCardProps) {
           </div>
 
           {/* Title */}
-          <h3 className={cn('mb-2 text-lg font-bold text-white', isClosed && 'line-through')}>
-            {issue.title}
-          </h3>
+          <Link href={`/issues/${issue.id}`} className="smooth-transition block hover:text-coral">
+            <h3 className={cn('mb-2 text-lg font-bold text-white', isClosed && 'line-through')}>
+              {issue.title}
+            </h3>
+          </Link>
 
           {/* Description */}
           <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-slate">
