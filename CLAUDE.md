@@ -65,13 +65,16 @@ WORKFLOW_ARCHITECTURE.md, .agent/README.md and continue"
 
 **Step 2: Auto-Load Skills Based on Keywords**
 
-| Phase Contains                | Skills I Load                                                            | Token Cost |
-| ----------------------------- | ------------------------------------------------------------------------ | ---------- |
-| "API", "endpoint", "route"    | [api-patterns](.claude/skills/moksha-devhub/api-patterns.md)             | 220 tokens |
-| "Component", "UI", "page"     | [component-patterns](.claude/skills/moksha-devhub/component-patterns.md) | 280 tokens |
-| "Database", "Prisma", "query" | [database-patterns](.claude/skills/moksha-devhub/database-patterns.md)   | 200 tokens |
-| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/moksha-devhub/testing-patterns.md)     | 240 tokens |
-| Any git operation             | [git-workflow](.claude/skills/workflows/git-workflow.md)                 | 180 tokens |
+| Phase Contains                | Skills I Load                                                                    | Token Cost |
+| ----------------------------- | -------------------------------------------------------------------------------- | ---------- |
+| "API", "endpoint", "route"    | [api-patterns](.claude/skills/moksha-devhub/api-patterns.md)                     | 220 tokens |
+| "Component", "UI", "page"     | [component-patterns](.claude/skills/moksha-devhub/component-patterns.md)         | 280 tokens |
+| "UI", "page", "design"        | [ui-generation-workflow](.claude/skills/moksha-devhub/ui-generation-workflow.md) | 320 tokens |
+| "layout", "wireframe"         | [ascii-wireframes](.claude/skills/moksha-devhub/ascii-wireframes.md)             | 200 tokens |
+| "animation", "interaction"    | [animation-patterns](.claude/skills/moksha-devhub/animation-patterns.md)         | 180 tokens |
+| "Database", "Prisma", "query" | [database-patterns](.claude/skills/moksha-devhub/database-patterns.md)           | 200 tokens |
+| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/moksha-devhub/testing-patterns.md)             | 240 tokens |
+| Any git operation             | [git-workflow](.claude/skills/workflows/git-workflow.md)                         | 180 tokens |
 
 **Step 3: Auto-Read .agent/ Docs (NOT Full Docs)**
 
@@ -226,6 +229,117 @@ Key insights from report:
 
 Implementing POST /api/issues following these patterns..."
 ```
+
+---
+
+## 3-Tier Persistence Strategy (AUTOMATIC)
+
+**NEW: Comprehensive progress tracking that survives context compaction and session interruptions**
+
+To ensure no progress is ever lost, I use three levels of progress tracking:
+
+### Tier 1: Real-Time Tracking (Every Major Step)
+
+**Files I manage automatically**:
+
+- `.agent/task/current-session-[timestamp].md` - What I'm doing RIGHT NOW
+- `.agent/task/current-todos.md` - Complete task list with progress
+
+**I update these**:
+
+- After completing any significant action (file created, test passed, component done)
+- When invoking sub-agents (note report location)
+- When blocked or encountering issues
+
+**Token cost**: ~100-200 tokens per update
+**Purpose**: Survive context compaction within active session
+
+### Tier 2: Checkpoints (After Significant Milestones)
+
+**File I update**:
+
+- `STATUS.md` - Add "Last Task Completed" entry with timestamp
+
+**I update when**:
+
+- Component fully implemented and tested
+- API endpoint working with tests
+- Feature sub-section complete
+- Before committing to git
+
+**Token cost**: ~300-500 tokens per update
+**Purpose**: Track partial phase progress, survive session interruptions
+
+### Tier 3: Knowledge Capture (Strategic, Infrequent)
+
+**Tool I use**:
+
+- Memory MCP - For patterns, decisions, architectural insights
+
+**I update for**:
+
+- Important architectural decisions made
+- New patterns discovered (for future skill generation)
+- Phase completion summaries
+- Solutions to recurring problems
+
+**Token cost**: ~800-1000 tokens per operation
+**Purpose**: Long-term knowledge retention across sessions
+
+### Automatic Workflow
+
+**When starting session**:
+
+1. Create `current-session-[timestamp].md`
+2. Check if `current-todos.md` exists (resuming previous work?)
+3. If yes → Read todos and continue
+4. If no → Create new todos from DEVELOPMENT_PLAN.md
+
+**When creating TodoWrite**:
+
+1. Create UI todo list (visible to you)
+2. Save identical list to `current-todos.md` (persistent)
+
+**After each task**:
+
+1. Update `current-session.md` with progress note
+2. Update `current-todos.md` (mark complete, update percentage)
+3. Update TodoWrite UI
+
+**After significant milestone**:
+
+1. Update STATUS.md with checkpoint
+2. Commit to git if appropriate
+
+**After phase completion**:
+
+1. Archive `current-todos.md` → `archive/phase-X-day-Y-todos-COMPLETE.md`
+2. Full STATUS.md update
+3. Optional Memory MCP update with phase summary
+
+### Recovery Workflow
+
+**If context compacts or session interrupted**:
+
+```
+Step 1: Read STATUS.md
+→ "Phase 3 Day 4, 60% complete, last: CommentForm component"
+
+Step 2: Find latest .agent/task/current-session-[timestamp].md
+→ "Was implementing CommentList at 16:45"
+
+Step 3: Read .agent/task/current-todos.md
+→ "5/20 tasks done, CommentList in progress, 14 pending"
+
+Step 4: Resume
+→ "I see we're implementing CommentList. Let me continue from line 45..."
+```
+
+**No progress is lost!** ✅
+
+**Token overhead**: ~3-5K tokens per phase (2.5% of budget) for complete progress safety
+
+---
 
 ### Documentation System
 
@@ -725,3 +839,17 @@ Initialize or update .agent/ documentation system
 3. I'll handle sub-agents, documentation, and context optimization automatically
 
 🚀 **Happy coding with optimized context!**
+
+## UI & Frontend Design (SuperDesign)
+
+**For standalone HTML/design prototypes**, the SuperDesign workflow is available.
+
+**Complete Guide**: [.claude/skills/moksha-devhub/superdesign-ui-generator.md](.claude/skills/moksha-devhub/superdesign-ui-generator.md)
+
+**When to use**: When asked to "design UI prototype", "create HTML mockup", or specifically "use SuperDesign workflow"
+
+**Output**: Standalone HTML files in `.superdesign/design_iterations/` folder
+
+**Note**: For React components in Moksha DevHub, use [ui-generation-workflow.md](.claude/skills/moksha-devhub/ui-generation-workflow.md) instead.
+
+---

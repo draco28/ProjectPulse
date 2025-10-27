@@ -199,6 +199,71 @@ export function IssueCard({ issue }) {
 
 ---
 
+## 2.5: Progress Persistence (Automatic)
+
+**This is 100% automatic - no prompts needed!**
+
+### What I Track Automatically
+
+**Every major step (Tier 1)**:
+
+- Update `current-session.md` with what I just did
+- Update `current-todos.md` with task status
+- Token cost: ~200 tokens
+
+**Every milestone (Tier 2)**:
+
+- Update STATUS.md with checkpoint
+- Commit to git
+- Token cost: ~500 tokens
+
+**Every phase (Tier 3)**:
+
+- Optional Memory MCP with insights
+- Token cost: ~1000 tokens
+
+### If You Need to Resume
+
+**After context compaction**:
+
+```
+You: "Read current-session file and continue"
+Me: [Reads latest session + todos]
+    [Continues from last in-progress task]
+```
+
+**After closing Claude**:
+
+```
+You: "Read STATUS.md, DEVELOPMENT_PLAN.md and continue"
+Me: [Reads STATUS.md checkpoint]
+    [Reads current-session file]
+    [Reads current-todos.md]
+    [Resumes from exactly where we left off]
+```
+
+**Token cost for recovery**: ~1,500 tokens (vs losing all progress!)
+
+### Why This Matters
+
+**Problem we solved**:
+
+- Long sessions hit context limits → progress lost
+- Session interrupted → forget what was in progress
+- TodoWrite list lost on compaction → don't know what's left
+
+**Solution**:
+
+- **Tier 1**: Real-time files survive compaction
+- **Tier 2**: STATUS.md checkpoints survive interruptions
+- **Tier 3**: Memory MCP captures long-term knowledge
+
+**Result**: Never lose progress, ever! ✅
+
+**See**: [CLAUDE.md](../CLAUDE.md#3-tier-persistence-strategy-automatic) for complete workflow
+
+---
+
 ## 3. Dependency Mapping (Automatic)
 
 **All tasks in DEVELOPMENT_PLAN.md now include dependency mapping.**
