@@ -45,123 +45,131 @@ git checkout -b feature/your-feature
 
 ---
 
-## Session Start Pattern (AUTOMATIC BEHAVIOR)
+## 🚨 CRITICAL: Mandatory Session Protocol
 
-### How You Start Sessions
+**EVERY session MUST start with the mandatory protocol.**
 
-You typically say:
+**Why this exists:** I read instructions but don't follow them unless explicitly prompted with confirmations.
 
-```
-"Read STATUS.md, DEVELOPMENT_PLAN.md, CLAUDE.md,
-WORKFLOW_ARCHITECTURE.md, .agent/README.md and continue"
-```
+**How it works:**
 
-### What I Do AUTOMATICALLY (Without You Asking)
+1. You copy-paste a starter prompt at session start
+2. I must complete all 5 protocol steps
+3. I must confirm each step explicitly
+4. Missing confirmation = workflow violation (you call me out)
 
-**Step 1: Parse Current Phase**
-
-- Read STATUS.md → Extract current phase (e.g., "Phase 3.1: Issue Management API")
-- Read DEVELOPMENT_PLAN.md → Understand phase requirements
-
-**Step 2: Auto-Load Skills Based on Keywords**
-
-| Phase Contains                | Skills I Load                                                                    | Token Cost |
-| ----------------------------- | -------------------------------------------------------------------------------- | ---------- |
-| "API", "endpoint", "route"    | [api-patterns](.claude/skills/moksha-devhub/api-patterns.md)                     | 220 tokens |
-| "Component", "UI", "page"     | [component-patterns](.claude/skills/moksha-devhub/component-patterns.md)         | 280 tokens |
-| "UI", "page", "design"        | [ui-generation-workflow](.claude/skills/moksha-devhub/ui-generation-workflow.md) | 320 tokens |
-| "layout", "wireframe"         | [ascii-wireframes](.claude/skills/moksha-devhub/ascii-wireframes.md)             | 200 tokens |
-| "animation", "interaction"    | [animation-patterns](.claude/skills/moksha-devhub/animation-patterns.md)         | 180 tokens |
-| "Database", "Prisma", "query" | [database-patterns](.claude/skills/moksha-devhub/database-patterns.md)           | 200 tokens |
-| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/moksha-devhub/testing-patterns.md)             | 240 tokens |
-| Any git operation             | [git-workflow](.claude/skills/workflows/git-workflow.md)                         | 180 tokens |
-
-**Step 3: Auto-Read .agent/ Docs (NOT Full Docs)**
-
-| Phase Type      | Instead of Reading                | I Read                                                                     | Savings |
-| --------------- | --------------------------------- | -------------------------------------------------------------------------- | ------- |
-| API Development | `docs/01-ARCHITECTURE.md` (50K)   | [.agent/system/api-catalog.md](.agent/system/api-catalog.md)               | 95%     |
-| Database Work   | `prisma/schema.prisma` + comments | [.agent/system/database-schema.md](.agent/system/database-schema.md)       | 92%     |
-| UI Components   | `docs/02-COMPONENTS.md` (30K)     | [.agent/system/component-patterns.md](.agent/system/component-patterns.md) | 88%     |
-| Any Work        | Full troubleshooting docs         | [.agent/sops/](.agent/sops/)                                               | 90%     |
-
-**Step 4: Implement Following Patterns**
-
-- Use loaded skills as reference
-- Follow established patterns from .agent/ docs
-- Ask clarifying questions if phase is ambiguous
-
-**Step 5: After Completion (AUTO-INVOKE SUB-AGENTS)**
-
-- Invoke [synthesize-docs](.claude/agents/synthesize-docs.md) sub-agent → Generate SOP
-- Update STATUS.md
-- Commit with proper message
-
-### When I Auto-Invoke Sub-Agents
-
-**During Research** (Keep Main Thread Clean):
-
-| You Say / Phase Needs                      | I Auto-Invoke                                                  | Returns               |
-| ------------------------------------------ | -------------------------------------------------------------- | --------------------- |
-| "How does [feature] work?"                 | [analyze-architecture](.claude/agents/analyze-architecture.md) | 2-5K token summary    |
-| "Find all instances of X"                  | [explore-codebase](.claude/agents/explore-codebase.md)         | 2-5K token summary    |
-| Phase requires understanding existing code | [analyze-architecture](.claude/agents/analyze-architecture.md) | Architecture insights |
-
-**After Feature Completion** (Automatic):
-
-| Trigger                     | I Auto-Invoke                                        | Output                        |
-| --------------------------- | ---------------------------------------------------- | ----------------------------- |
-| Feature implementation done | [synthesize-docs](.claude/agents/synthesize-docs.md) | SOP in .agent/sops/           |
-| New patterns established    | [synthesize-docs](.claude/agents/synthesize-docs.md) | Updated skills                |
-| System architecture changed | [map-system](.claude/agents/map-system.md)           | Refreshed .agent/system/ docs |
-
-**You'll see me say**: "Analyzing architecture... invoking analyze-architecture sub-agent" or "Feature complete, generating SOP..."
-
-### Example Session Flow
-
-```
-You: "Read STATUS.md, DEVELOPMENT_PLAN.md and continue"
-
-Me: *reads STATUS.md*
-    "Current phase: Phase 3.1 - Issue Management API"
-
-    *auto-loads api-patterns skill* (220 tokens)
-    *auto-loads database-patterns skill* (200 tokens)
-    *auto-reads .agent/system/api-catalog.md* (2.4K tokens)
-    *auto-reads .agent/system/database-schema.md* (2.8K tokens)
-
-    "I'll implement POST /api/issues endpoint following our API patterns..."
-
-    *implements endpoint*
-
-    "Implementation complete. Auto-invoking synthesize-docs sub-agent
-    to generate SOP for API endpoint creation..."
-
-    *sub-agent returns SOP*
-
-    "SOP saved to .agent/sops/api-endpoint-creation.md
-    Updating STATUS.md and committing..."
-```
-
-**Total tokens: ~6K** (vs 50K+ without this system)
+**📋 Full Protocol:** [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md)
+**🚀 Quick Start Guide:** [SESSION_START_QUICK_GUIDE.md](SESSION_START_QUICK_GUIDE.md)
 
 ---
 
-## Context File Workflow (AUTOMATIC)
+## Session Start Pattern (REQUIRED PROTOCOL)
 
-**This is the file-based context management pattern from transcript_agent_work.md**
+### Starter Prompt (Copy-Paste This)
 
-### At Session Start
+At the start of **EVERY** session, copy-paste this:
 
-I will automatically:
+```
+MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
+
+Current phase: [copy from STATUS.md]
+Requirements: [copy from DEVELOPMENT_PLAN.md]
+
+ENFORCE:
+- ✅ Step 1: Initialize session
+- ✅ Step 2: Save plan BEFORE code
+- ✅ Step 3: Consult experts
+- ✅ Step 4: Checkpoints every 15K tokens
+- ✅ Step 5: Post-completion workflow
+
+Confirm each step explicitly. If you skip ANY step, I will stop you.
+
+Proceed with [phase name].
+```
+
+### What I Must Do (Per Protocol)
+
+**STEP 1: INITIALIZATION**
+
+- Read STATUS.md and DEVELOPMENT_PLAN.md
+- Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
+- **Confirm:** "✅ STEP 1 COMPLETE: Session initialized at [timestamp]"
+
+**STEP 2: PLAN CREATION**
+
+- Create implementation plan (use ExitPlanMode if needed)
+- Get your approval
+- **IMMEDIATELY save** to `.agent/task/current-plan.md`
+- Create `.agent/task/current-todos.md`
+- **Confirm:** "✅ STEP 2 COMPLETE: Plan saved to current-plan.md, todos saved to current-todos.md"
+
+**STEP 3: EXPERT CONSULTATION**
+
+- Invoke `react-expert` for component architecture decisions
+- Invoke `next-js-expert` for Server/Client component and data fetching decisions
+- Invoke `prisma-expert` for database schema and query optimization
+- **Confirm:** "✅ STEP 3 COMPLETE: Consulted [expert-name] for [decision-topic]"
+
+**STEP 4: PROGRESS CHECKPOINTS**
+
+- At 15K, 30K, 45K, 60K, 75K, 90K tokens: Update session and todos files
+- **Confirm:** "✅ CHECKPOINT at [X]K tokens: Progress saved"
+
+**STEP 5: POST-COMPLETION**
+
+- Create COMPLETION\_[PHASE].md
+- Update STATUS.md and DEVELOPMENT_PLAN.md
+- Invoke synthesize-docs (if new patterns)
+- Invoke map-system (if architecture changed)
+- Commit documentation, then code
+- **Confirm:** "✅ STEP 5 COMPLETE: All documentation updated and committed"
+
+### Skills and Context Loading
+
+Based on phase keywords, I load relevant skills:
+
+| Phase Contains                | Skills to Load                                                           |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| "API", "endpoint", "route"    | [api-patterns](.claude/skills/moksha-devhub/api-patterns.md)             |
+| "Component", "UI", "page"     | [component-patterns](.claude/skills/moksha-devhub/component-patterns.md) |
+| "Database", "Prisma", "query" | [database-patterns](.claude/skills/moksha-devhub/database-patterns.md)   |
+| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/moksha-devhub/testing-patterns.md)     |
+
+### Sub-Agent Invocations
+
+**Research Agents** (during planning):
+
+- `explore-codebase` - Find existing patterns
+- `analyze-architecture` - Trace data flows
+
+**Expert Agents** (before implementing) - **REQUIRED per Step 3**:
+
+- `react-expert` - Component architecture
+- `next-js-expert` - Server/Client decisions
+- `prisma-expert` - Database design
+
+**Documentation Agents** (after completion) - **REQUIRED per Step 5**:
+
+- `synthesize-docs` - Generate SOPs
+- `map-system` - Update system docs
+
+---
+
+## Context File Workflow (REQUIRED PER PROTOCOL)
+
+**File-based context management - REQUIRED by Steps 1, 2, and 4**
+
+### At Session Start (STEP 1)
+
+Per protocol Step 1, I am REQUIRED to:
 
 1. **Create** `.agent/task/current-session-[YYYYMMDD-HHMM].md`
 2. **Document**: Current phase, goals, requirements from STATUS.md
-3. **Update** this file throughout the session as I work
+3. **Update** this file at every checkpoint (Step 4)
 
-### When Invoking Sub-Agents
+### When Invoking Sub-Agents (STEP 3)
 
-I will automatically:
+Per protocol Step 3, I am REQUIRED to:
 
 1. **Pass context file**: "Read `.agent/task/current-session.md` first"
 2. **Wait for report**: Sub-agent creates research/analysis report
@@ -232,21 +240,22 @@ Implementing POST /api/issues following these patterns..."
 
 ---
 
-## 3-Tier Persistence Strategy (AUTOMATIC)
+## 3-Tier Persistence Strategy (REQUIRED PER PROTOCOL)
 
-**NEW: Comprehensive progress tracking that survives context compaction and session interruptions**
+**Comprehensive progress tracking - REQUIRED by Steps 1, 2, and 4**
 
-To ensure no progress is ever lost, I use three levels of progress tracking:
+To ensure no progress is ever lost, the protocol requires three levels of progress tracking:
 
 ### Tier 1: Real-Time Tracking (Every Major Step)
 
-**Files I manage automatically**:
+**Files I must create per protocol Steps 1 & 2**:
 
-- `.agent/task/current-session-[timestamp].md` - What I'm doing RIGHT NOW
-- `.agent/task/current-todos.md` - Complete task list with progress
+- `.agent/task/current-session-[timestamp].md` - What I'm doing RIGHT NOW (Step 1)
+- `.agent/task/current-todos.md` - Complete task list with progress (Step 2)
 
-**I update these**:
+**I must update these per protocol Step 4**:
 
+- At every 15K token checkpoint (Step 4)
 - After completing any significant action (file created, test passed, component done)
 - When invoking sub-agents (note report location)
 - When blocked or encountering issues
@@ -286,36 +295,41 @@ To ensure no progress is ever lost, I use three levels of progress tracking:
 **Token cost**: ~800-1000 tokens per operation
 **Purpose**: Long-term knowledge retention across sessions
 
-### Automatic Workflow
+### Required Workflow per Protocol
 
-**When starting session**:
+**When starting session (STEP 1)**:
 
-1. Create `current-session-[timestamp].md`
+1. Create `current-session-[timestamp].md` (REQUIRED)
 2. Check if `current-todos.md` exists (resuming previous work?)
 3. If yes → Read todos and continue
-4. If no → Create new todos from DEVELOPMENT_PLAN.md
+4. If no → Create new todos from DEVELOPMENT_PLAN.md (STEP 2)
 
-**When creating TodoWrite**:
+**When creating plan (STEP 2)**:
 
-1. Create UI todo list (visible to you)
-2. Save identical list to `current-todos.md` (persistent)
+1. Create UI todo list with TodoWrite (visible to you)
+2. Save identical list to `current-todos.md` (persistent - REQUIRED)
+3. Save plan to `current-plan.md` (REQUIRED)
 
-**After each task**:
+**At each checkpoint (STEP 4 - every 15K tokens)**:
 
-1. Update `current-session.md` with progress note
-2. Update `current-todos.md` (mark complete, update percentage)
-3. Update TodoWrite UI
+1. Update `current-session.md` with progress note (REQUIRED)
+2. Update `current-todos.md` (mark complete, update percentage - REQUIRED)
+3. Update TodoWrite UI (REQUIRED)
+4. Output checkpoint confirmation (REQUIRED)
 
 **After significant milestone**:
 
 1. Update STATUS.md with checkpoint
 2. Commit to git if appropriate
 
-**After phase completion**:
+**After phase completion (STEP 5)**:
 
-1. Archive `current-todos.md` → `archive/phase-X-day-Y-todos-COMPLETE.md`
-2. Full STATUS.md update
-3. Optional Memory MCP update with phase summary
+1. Create COMPLETION\_[PHASE].md (REQUIRED)
+2. Update STATUS.md and DEVELOPMENT_PLAN.md (REQUIRED)
+3. Invoke synthesize-docs and map-system sub-agents (REQUIRED if patterns created or architecture changed)
+4. Commit documentation, then code (REQUIRED)
+5. Archive `current-todos.md` → `archive/phase-X-day-Y-todos-COMPLETE.md`
+6. Optional Memory MCP update with phase summary
 
 ### Manual Save Guidance
 
@@ -532,13 +546,13 @@ Need progress overview?             → progress.md
 - Scans Prisma/API/components
 - Refreshes .agent/system/ docs
 
-**You don't need to request these - I'll invoke them automatically when appropriate.**
+**You don't need to request these explicitly - I must invoke them per protocol Step 3 (experts) or Step 5 (documentation).**
 
 ---
 
 ## Specialized Expert Agents (Tech-Specific)
 
-**Available for deep technical guidance - I'll invoke automatically when needed.**
+**Available for deep technical guidance - I must invoke per protocol Step 3 before making technical decisions.**
 
 ### Next.js Expert
 
@@ -599,7 +613,7 @@ Need progress overview?             → progress.md
 
 ### How These Work
 
-**You don't request these explicitly** - I invoke them automatically when the phase requires deep technical expertise:
+**You don't request these explicitly** - I must invoke per protocol Step 3 when the phase requires deep technical expertise:
 
 ```
 Phase: "Design issues page with real-time updates"

@@ -1,108 +1,167 @@
-# Current Implementation Plan
+# Implementation Plan: Mandatory Session Protocol System
 
-**Created**: 2025-10-27 (Post-audit fixes)
-**Status**: Implementing
-**Phase**: Documentation fixes for persistence system
-
-## Plan Overview
-
-Fix two critical documentation vs implementation gaps discovered during context compaction:
-
-1. Remove auto-save at 160K promise (feature doesn't exist)
-2. Add plan-saving workflow using single reusable file
-
-## Implementation Steps
-
-### Phase 1: Remove Auto-Save at 160K Promise (7 files)
-
-1. Update `.agent/workflows/persistence-rules.md` - Remove automatic language
-2. Update `CLAUDE.md` - Replace automatic section with manual guidance
-3. Update `.agent/examples/persistence-examples.md` - Example 8 becomes manual
-4. Update `.agent/testing/persistence-test-scenarios.md` - Scenario 13 updated
-5. Update `.agent/testing/persistence-validation-checklist.md` - Validation criteria
-6. Update `STATUS.md` - Keep warning, clarify manual saves
-7. Verify `.agent/task/current-session-20251027-audit.md` - Already updated
-
-### Phase 2: Add Plan-Saving Workflow (9 files + 1 new)
-
-8. Create `.agent/task/templates/current-plan-template.md` - Template file
-9. Update `CLAUDE.md` - Add "Plan Mode Workflow" section with required behavior
-10. Update `.agent/task/README.md` - Add current-plan.md to active files
-11. Update `.agent/workflows/persistence-rules.md` - Add plan-saving to Tier 1
-12. Update `.agent/examples/persistence-examples.md` - Add Example 9
-13. Update `.agent/testing/persistence-test-scenarios.md` - Add Scenario 14
-14. Update `.claude/agents/next-js-expert.md` - Note about current-plan.md
-15. Update `.claude/agents/react-expert.md` - Note about current-plan.md
-16. Update `.claude/agents/prisma-expert.md` - Note about current-plan.md
-
-### Phase 3: Add Manual Save Guidance
-
-17. Update `.agent/scripts/session-management.md` - Manual save triggers
-
-### Phase 4: Update Session Tracking
-
-18. Update `.agent/task/current-session-20251027-audit.md` - Final notes
-19. Update `STATUS.md` - New checkpoint
-
-### Phase 5: Commit Changes
-
-20. Stage all 17 modified files + 1 new file
-21. Create comprehensive commit message
-22. Commit changes
-
-## Dependencies
-
-- Read access to all documentation files
-- Write access to documentation files
-- Git for committing changes
-- Understanding of current persistence system
-
-## Success Criteria
-
-✅ No mention of "automatic save at 160K" in documentation
-✅ All references changed to "manual save at 140-150K"
-✅ current-plan.md template created
-✅ CLAUDE.md has required plan-saving behavior
-✅ All examples/scenarios updated to match reality
-✅ Comprehensive commit created
-✅ Documentation now matches actual system capabilities
-
-## Progress
-
-- [x] Plan created and approved
-- [x] Plan saved to current-plan.md (practicing new workflow!)
-- [x] Phase 1: Auto-save fixes (2/7 files) - IN PROGRESS
-  - [x] persistence-rules.md - Complete
-  - [x] CLAUDE.md - Complete
-  - [ ] persistence-examples.md - Pending
-  - [ ] persistence-test-scenarios.md - Pending
-  - [ ] persistence-validation-checklist.md - Pending
-  - [ ] STATUS.md - Pending
-  - [ ] current-session file - Pending
-- [ ] Phase 2: Plan-saving workflow (0/9 files)
-- [ ] Phase 3: Manual save guidance (0/1 file)
-- [ ] Phase 4: Session tracking (0/2 files)
-- [ ] Phase 5: Commit (0/1 commit)
-
-**Token Usage**: 117K/200K (58%) - Safe, continuing
-**Manual Save at**: ~140-150K tokens
+**Created:** 2025-10-28 15:00
+**Phase:** Documentation/Workflow Improvement
+**Estimated Completion:** 3 files, ~400 lines total
 
 ---
 
-**Note**: This file will be reused for future plans. Current plan archived when implementation complete.
+## Overview
 
-**Final Update**: 2025-10-27 21:20
+Create an enforcement mechanism that replaces optional "AUTOMATIC" claims with mandatory, user-visible confirmations for all workflow steps.
 
-## ✅ IMPLEMENTATION COMPLETE
+**Problem:** CLAUDE.md claims automatic behavior that doesn't happen. Need user-enforceable protocol.
 
-All phases complete:
+**Solution:** Mandatory protocol with explicit step-by-step confirmations.
 
-- [x] Phase 1: Auto-save fixes (7/7 files) - COMPLETE
-- [x] Phase 2: Plan-saving workflow (9/9 files) - COMPLETE
-- [x] Phase 3: Manual save guidance (1/1 file) - COMPLETE
-- [x] Phase 4: Session tracking (2/2 files) - COMPLETE
-- [x] Phase 5: Ready to commit (18 files total)
+---
 
-**Token Usage**: 79K/200K (39.5%) - Safe throughout implementation
+## Deliverables
 
-**Documentation now accurate**: All false auto-save promises removed, manual save guidance added, plan-saving workflow documented.
+### 1. `.agent/MANDATORY_SESSION_PROTOCOL.md` (~200 lines)
+
+**Purpose:** Single source of truth for mandatory workflow protocol
+
+**Structure:**
+
+- Header: "MANDATORY SESSION PROTOCOL - NO EXCEPTIONS"
+- Copy-paste starter block for users
+- 5 main steps with checkboxes and confirmation formats:
+  - STEP 1: INITIALIZATION (create session file, read STATUS/PLAN)
+  - STEP 2: PLAN CREATION (save plan.md, save todos.md)
+  - STEP 3: EXPERT CONSULTATION (invoke react/next/prisma experts)
+  - STEP 4: PROGRESS CHECKPOINTS (every 15K tokens)
+  - STEP 5: POST-COMPLETION (update docs, invoke sub-agents, commit)
+- Violation policy: "If I skip ANY step, you MUST stop me"
+
+**Key Features:**
+
+- Checkbox format for visual tracking
+- Explicit confirmation text: "✅ STEP X COMPLETE: [description]"
+- Token counter reminder
+- Clear enforcement policy
+
+---
+
+### 2. Updated `CLAUDE.md` (~50 lines changed)
+
+**Changes Required:**
+
+**A. Replace "Session Start Pattern (AUTOMATIC BEHAVIOR)" section:**
+
+- Remove: Claims about automatic behavior
+- Add: Reference to MANDATORY_SESSION_PROTOCOL.md
+- Add: Starter prompt format with enforcement checklist
+- Add: "I must confirm each step" language
+
+**B. Replace "Context File Workflow (AUTOMATIC)":**
+
+- Change: "I will automatically" → "I am REQUIRED to per protocol"
+
+**C. Replace "3-Tier Persistence Strategy (AUTOMATIC)":**
+
+- Change: "Files I manage automatically" → "Files I must create per protocol Step 1"
+- Keep: Manual save guidance (accurate)
+- Update: "Automatic Workflow" → "Required Workflow per Protocol"
+
+**D. Update Sub-Agent sections:**
+
+- Change: "I'll invoke automatically" → "I must invoke per protocol Step 3"
+
+**E. Add new section after Pre-Work Checklist:**
+
+```markdown
+## 🚨 CRITICAL: Mandatory Session Protocol
+
+**EVERY session MUST start with the protocol**
+
+1. Read .agent/MANDATORY_SESSION_PROTOCOL.md
+2. Complete all 5 steps with explicit confirmations
+3. Watch for missing confirmations (= violations)
+
+**Why this exists:** I read instructions but don't follow them unless explicitly prompted.
+```
+
+---
+
+### 3. `SESSION_START_QUICK_GUIDE.md` (~150 lines, new file)
+
+**Purpose:** User-facing quick reference with copy-paste starter prompt
+
+**Sections:**
+
+1. **Copy This Prompt** - Full starter prompt with enforcement checklist
+2. **Watch for Confirmations** - List of expected "✅ STEP X COMPLETE" messages
+3. **If I Skip a Step** - How to call out violations
+4. **Verify Completion** - Checklist of files to verify after "done"
+5. **Example Session Flow** - Complete example with all confirmations
+6. **Troubleshooting** - Common issues (missing confirmations, missing checkpoints)
+
+---
+
+## Implementation Steps
+
+1. **Create** `.agent/MANDATORY_SESSION_PROTOCOL.md`
+   - Write full protocol with all 5 steps
+   - Include explicit confirmation formats
+   - Add violation policy
+
+2. **Update** `CLAUDE.md`
+   - Remove "AUTOMATIC" sections (lines 48-147, 150-232, 235-413)
+   - Replace with "MANDATORY PROTOCOL" references
+   - Add new critical section
+   - Update sub-agent language
+
+3. **Create** `SESSION_START_QUICK_GUIDE.md`
+   - Write copy-paste starter prompt
+   - Add confirmation checklist
+   - Include example session flow
+   - Add troubleshooting section
+
+---
+
+## Success Criteria
+
+✅ MANDATORY_SESSION_PROTOCOL.md created with all 5 steps
+✅ CLAUDE.md updated - no more false "AUTOMATIC" claims
+✅ SESSION_START_QUICK_GUIDE.md created with starter prompt
+✅ All files use consistent confirmation format
+✅ Protocol is user-enforceable (missing confirmations = visible violations)
+
+---
+
+## Expected Outcome
+
+**User experience:**
+
+1. Copy-paste starter prompt at session start
+2. See explicit confirmations for each step
+3. Immediately know if I skip something (missing confirmation)
+4. Can enforce compliance by calling out missing steps
+
+**My behavior:**
+
+- Can't ignore steps (they're in the prompt I'm responding to)
+- Must confirm explicitly (visible to user)
+- Checkpoints become part of implementation flow
+- Post-completion workflow becomes mandatory final step
+
+---
+
+## Dependencies
+
+- `.agent/task/` directory must exist (for session files)
+- Current CLAUDE.md structure understood
+- new_workflow_plan.md as reference
+
+---
+
+## Notes
+
+This plan creates the enforcement mechanism to prevent the workflow violations that occurred in the previous session:
+
+1. Plan not saved after approval
+2. Todos not persisted
+3. Zero progress checkpoints (103K tokens used)
+4. Expert agents ignored
+5. Post-completion workflow skipped
