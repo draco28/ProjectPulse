@@ -23,8 +23,8 @@ At the start of **EVERY** session, copy-paste this into Claude Code:
 ```
 MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
 
-Current phase: [copy from STATUS.md]
-Requirements: [copy from DEVELOPMENT_PLAN.md]
+Current phase: [Week 1.5 Phase 3 - Page Transformation (Days 3-6)]
+Requirements: [check from Week 1.5 in DEVELOPMENT_PLAN.md]
 
 ENFORCE:
 - ✅ Step 1: Initialize session
@@ -35,7 +35,7 @@ ENFORCE:
 
 Confirm each step explicitly. If you skip ANY step, I will stop you.
 
-Proceed with [phase name].
+Proceed with [Week 1.5 Phase 3 - Page Transformation (Days 3-6)].
 ```
 
 **How to fill in:**

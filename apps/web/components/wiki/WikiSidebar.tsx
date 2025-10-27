@@ -1,0 +1,53 @@
+'use client';
+
+import Link from 'next/link';
+import { TableOfContents } from './TableOfContents';
+
+interface TOCItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
+interface RelatedPage {
+  id: number;
+  title: string;
+  path: string;
+}
+
+interface WikiSidebarProps {
+  tocItems: TOCItem[];
+  relatedPages: RelatedPage[];
+}
+
+export function WikiSidebar({ tocItems, relatedPages }: WikiSidebarProps) {
+  return (
+    <aside className="w-64 flex-shrink-0 space-y-4">
+      {/* Table of Contents */}
+      <div className="neu-raised smooth-transition sticky top-4 rounded-3xl p-6">
+        <TableOfContents items={tocItems} />
+      </div>
+
+      {/* Related Articles */}
+      {relatedPages.length > 0 && (
+        <div className="neu-raised smooth-transition rounded-3xl p-6">
+          <h3 className="mb-4 text-sm font-semibold uppercase text-slate">
+            Related Articles
+          </h3>
+          <div className="space-y-3">
+            {relatedPages.map((page) => (
+              <Link
+                key={page.id}
+                href={`/wiki${page.path}`}
+                className="smooth-transition block text-sm text-slate hover:text-coral"
+              >
+                <i className="fas fa-arrow-right mr-2"></i>
+                {page.title}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </aside>
+  );
+}
