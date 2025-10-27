@@ -147,13 +147,35 @@ Step-by-step guides for common operations and troubleshooting.
 
 **Available:**
 
+**Troubleshooting:**
+
 - [port-troubleshooting.md](sops/port-troubleshooting.md) - Fix port configuration issues
 - [git-workflow.md](sops/git-workflow.md) - Branching and commit guidelines
+
+**API Development:**
+
 - [adding-api-endpoint.md](sops/adding-api-endpoint.md) - Create new API routes
-- [database-migrations.md](sops/database-migrations.md) - Schema change workflow
 - [api-route-creation.md](sops/api-route-creation.md) - Standard API route pattern with Zod validation and {data, error} format
-- [type-serialization.md](sops/type-serialization.md) - Converting Prisma types to JSON-serializable client props
+- [api-route-pagination-pattern.md](sops/api-route-pagination-pattern.md) - Consistent pagination with metadata (page, limit, total, hasMore)
+
+**Database:**
+
+- [database-migrations.md](sops/database-migrations.md) - Schema change workflow
 - [server-component-data-fetching.md](sops/server-component-data-fetching.md) - Optimized Prisma queries for Server Components
+
+**React Patterns:**
+
+- [implementing-use-reducer-state-machines.md](sops/implementing-use-reducer-state-machines.md) - Complex state management with useReducer (10-action state machine)
+- [implementing-use-optimistic-updates.md](sops/implementing-use-optimistic-updates.md) - Instant UI feedback during Server Actions
+- [implementing-intersection-observer-hooks.md](sops/implementing-intersection-observer-hooks.md) - Battery-efficient scroll detection for TOC scroll spy
+
+**Next.js Patterns:**
+
+- [next-js-isr-pattern.md](sops/next-js-isr-pattern.md) - Incremental Static Regeneration with revalidation
+
+**Type Safety:**
+
+- [type-serialization.md](sops/type-serialization.md) - Converting Prisma types to JSON-serializable client props
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Last Updated**: 2025-10-28
 **Base URL**: `http://localhost:3000/api`
-**Status**: Theme system + Issue management (Phase 3 Day 4 complete)
+**Status**: Full CRUD + Search + Multi-entity system (Phase 3 Days 5-6 complete)
 
 ---
 
@@ -18,11 +18,26 @@
 - [POST /api/issues/[id]/comments](#post-apiissuesidcomments) - Add comment to issue
 - [PATCH /api/issues/[id]/status](#patch-apiissuesidstatus) - Update issue status
 
+### Knowledge Base
+
+- [GET /api/knowledge](#get-apiknowledge) - List knowledge base articles with pagination and filtering
+
+### Wiki Pages
+
+- [GET /api/wiki/:slug](#get-apiwikislug) - Fetch wiki page by slug with related pages
+
+### Security Dashboard
+
+- [GET /api/security/score](#get-apisecurityscore) - Calculate security score from findings
+- [GET /api/security/vulnerabilities](#get-apisecurityvulnerabilities) - List security findings with filters
+
+### Global Search
+
+- [GET /api/search](#get-apisearch) - Unified search across all entities
+
 ### Future Endpoints (Planned)
 
-- Search API (Week 1 Day 4)
-- Knowledge Base API (Week 2)
-- Authentication API (Week 2)
+- Authentication API (Phase 4)
 
 ---
 
@@ -393,6 +408,435 @@ Content-Type: application/json
 
 **Source**: `apps/web/app/api/issues/[id]/status/route.ts`
 **Validation**: `apps/web/lib/validations/issue.ts` (StatusUpdateSchema)
+**Authentication**: None (to be added)
+
+---
+
+### Knowledge Base
+
+#### GET /api/knowledge
+
+**Description**: Fetch knowledge base articles with optional filtering and pagination
+
+**Query Parameters**:
+
+- `search` (optional): Search in title and content (case-insensitive)
+- `tag` (optional): Filter by tag
+- `sort` (optional): Sort order - `newest` (default) or `updated`
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 20, max: 50)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+GET /api/knowledge?search=FSM&tag=architecture&sort=newest&page=1&limit=20 HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "articles": [
+      {
+        "id": 1,
+        "title": "Finite State Machine Patterns in React",
+        "content": "Full article content...",
+        "excerpt": "Finite State Machine (FSM) patterns provide a robust way to manage complex component state...",
+        "tags": ["architecture", "react", "patterns"],
+        "createdAt": "2025-10-26T10:00:00Z",
+        "updatedAt": "2025-10-28T14:00:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 42,
+      "totalPages": 3,
+      "hasMore": true
+    }
+  }
+}
+```
+
+**Search Behavior**:
+
+- Case-insensitive search in `title` and `content` fields
+- Multiple tags can be filtered with multiple `tag` parameters
+- Excerpt is auto-generated (first 150 characters)
+
+**Error Responses**:
+
+`500 Internal Server Error` - Database error
+
+```json
+{
+  "success": false,
+  "error": "Failed to fetch knowledge articles"
+}
+```
+
+**Source**: `apps/web/app/api/knowledge/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+### Wiki Pages
+
+#### GET /api/wiki/:slug
+
+**Description**: Fetch a wiki page by its path/slug, including related pages
+
+**Path Parameters**:
+
+- `slug` (string) - Wiki page slug (e.g., "getting-started")
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+GET /api/wiki/getting-started HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "page": {
+      "id": 1,
+      "title": "Getting Started with Moksha DevHub",
+      "content": "# Welcome to Moksha DevHub\n\nThis guide will help you...",
+      "path": "/getting-started",
+      "category": "Guides",
+      "author": "Moksha Dev",
+      "createdAt": "2025-10-26T10:00:00Z",
+      "updatedAt": "2025-10-28T14:00:00Z"
+    },
+    "relatedPages": [
+      {
+        "id": 2,
+        "title": "Installation Guide",
+        "path": "/installation",
+        "category": "Guides"
+      },
+      {
+        "id": 3,
+        "title": "Configuration",
+        "path": "/configuration",
+        "category": "Setup"
+      }
+    ]
+  }
+}
+```
+
+**Path Normalization**:
+
+- Slugs are normalized to start with `/` (e.g., `getting-started` → `/getting-started`)
+- Related pages use `PageLink` junction table
+
+**Error Responses**:
+
+`404 Not Found` - Wiki page not found
+
+```json
+{
+  "success": false,
+  "error": "Wiki page not found"
+}
+```
+
+`500 Internal Server Error` - Database error
+
+```json
+{
+  "success": false,
+  "error": "Failed to fetch wiki page"
+}
+```
+
+**Source**: `apps/web/app/api/wiki/[slug]/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+### Security Dashboard
+
+#### GET /api/security/score
+
+**Description**: Calculate security score based on open findings with weighted penalties
+
+**Query Parameters**: None
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+GET /api/security/score HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "score": 78,
+    "breakdown": {
+      "critical": 1,
+      "medium": 3,
+      "low": 5
+    },
+    "trend": 0,
+    "lastUpdated": "2025-10-28T14:30:00Z"
+  }
+}
+```
+
+**Score Calculation**:
+
+- Formula: `score = max(0, 100 - totalPenalty)`
+- Penalties:
+  - `ERROR` (Critical): -10 points
+  - `WARNING` (Medium): -4 points
+  - `INFO` (Low): -1 point
+- Example: 1 ERROR + 3 WARNING + 5 INFO = 10 + 12 + 5 = 27 penalty → Score = 73
+
+**Trend Field**:
+
+- Positive = improving (fewer vulnerabilities)
+- Negative = worsening (more vulnerabilities)
+- Currently returns `0` (future feature)
+
+**Error Responses**:
+
+`500 Internal Server Error` - Database error
+
+```json
+{
+  "success": false,
+  "error": "Failed to calculate security score"
+}
+```
+
+**Source**: `apps/web/app/api/security/score/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### GET /api/security/vulnerabilities
+
+**Description**: Fetch security findings with filtering and pagination
+
+**Query Parameters**:
+
+- `severity` (optional): Filter by severity - `ERROR`, `WARNING`, or `INFO`
+- `status` (optional): Filter by status - `open`, `fixed`, or `false_positive`
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 20, max: 50)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+GET /api/security/vulnerabilities?severity=ERROR&status=open&page=1&limit=20 HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "findings": [
+      {
+        "id": 1,
+        "ruleId": "sql-injection",
+        "severity": "ERROR",
+        "message": "Potential SQL injection vulnerability detected",
+        "filePath": "apps/web/lib/db.ts",
+        "lineNumber": 45,
+        "codeSnippet": "const query = `SELECT * FROM users WHERE id = ${userId}`",
+        "status": "open",
+        "scanDate": "2025-10-28T14:00:00Z",
+        "issue": {
+          "id": 42,
+          "title": "Fix SQL injection in user lookup"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 8,
+      "totalPages": 1,
+      "hasMore": false
+    }
+  }
+}
+```
+
+**Sort Order**:
+
+- Primary: `severity` (ERROR first, then WARNING, then INFO)
+- Secondary: `scanDate` (most recent first within each severity)
+
+**Linked Issues**:
+
+- `issue` field is `null` if no linked issue exists
+- Use to navigate to related issue for tracking remediation
+
+**Error Responses**:
+
+`500 Internal Server Error` - Database error
+
+```json
+{
+  "success": false,
+  "error": "Failed to fetch vulnerabilities"
+}
+```
+
+**Source**: `apps/web/app/api/security/vulnerabilities/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+### Global Search
+
+#### GET /api/search
+
+**Description**: Unified search across all entities (Issues, Knowledge, Wiki, Agents) - powers Command Palette
+
+**Query Parameters**:
+
+- `q` (required): Search query string
+- `type` (optional): Entity type filter - `all` (default), `issues`, `knowledge`, `wiki`, or `agents`
+- `limit` (optional): Max results per entity type (default: 5, max: 10)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+GET /api/search?q=authentication&type=all&limit=5 HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "id": 42,
+        "type": "issue",
+        "title": "Fix authentication bug in login flow",
+        "description": "Users can't log in after password reset...",
+        "url": "/issues/42",
+        "icon": "fa-bug",
+        "metadata": "open • high Priority"
+      },
+      {
+        "id": 5,
+        "type": "knowledge",
+        "title": "Authentication Best Practices",
+        "description": "This article covers secure authentication patterns...",
+        "url": "/knowledge",
+        "icon": "fa-book",
+        "metadata": "Security, Auth"
+      },
+      {
+        "id": 12,
+        "type": "wiki",
+        "title": "Authentication Setup Guide",
+        "description": "Learn how to configure authentication in Moksha DevHub...",
+        "url": "/wiki/auth-setup",
+        "icon": "fa-file-alt",
+        "metadata": "Documentation"
+      },
+      {
+        "id": 3,
+        "type": "agent",
+        "title": "Security Expert",
+        "description": "Specialized agent for authentication and security reviews",
+        "url": "/agents",
+        "icon": "fa-robot",
+        "metadata": "Active"
+      }
+    ],
+    "total": 4,
+    "query": "authentication"
+  }
+}
+```
+
+**Search Behavior**:
+
+- Case-insensitive search in `title` and `description`/`content` fields
+- Returns max `limit` results per entity type (e.g., 5 issues + 5 articles + 5 wiki pages + 5 agents)
+- Relevance sorting: Exact title matches first, then partial matches
+- Empty query returns empty results (no error)
+
+**Entity Icons**:
+
+- `issue`: `fa-bug`
+- `knowledge`: `fa-book`
+- `wiki`: `fa-file-alt`
+- `agent`: `fa-robot`
+
+**Use Cases**:
+
+- Command Palette (Cmd+K) search
+- Global header search
+- Related content suggestions
+
+**Error Responses**:
+
+`500 Internal Server Error` - Database error
+
+```json
+{
+  "success": false,
+  "error": "Search failed"
+}
+```
+
+**Source**: `apps/web/app/api/search/route.ts`
 **Authentication**: None (to be added)
 
 ---
@@ -775,7 +1219,8 @@ export async function POST(request: NextRequest) {
 ---
 
 **Last Updated:** 2025-10-28
-**API Status:** Theme system + Issue management (comments, status updates)
-**Next Update:** Phase 3 Day 5+ (Additional issue endpoints)
+**API Status:** Full CRUD + Search + Multi-entity system (Phase 3 Days 5-6 complete)
+**Total Endpoints:** 8 active (2 theme, 2 issue, 1 knowledge, 1 wiki, 2 security, 1 search)
+**Next Update:** Phase 4 (Authentication)
 
 **See also**: [STATUS.md](../../STATUS.md) for current project status

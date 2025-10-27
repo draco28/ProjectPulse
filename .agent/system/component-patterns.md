@@ -3,7 +3,7 @@
 **Last Updated**: 2025-10-28
 **Framework**: Next.js 14 (App Router) + React 18
 **UI Library**: shadcn/ui + Tailwind CSS
-**Status**: Theme system + Issue detail components (Phase 3 Day 4 complete)
+**Status**: Full component library + Advanced patterns (Phase 3 Days 5-6 complete)
 
 ---
 
@@ -13,6 +13,7 @@
 - [Naming Conventions](#naming-conventions)
 - [Server vs Client Components](#server-vs-client-components)
 - [Component Patterns](#component-patterns)
+- [Advanced React Patterns](#advanced-react-patterns)
 - [Styling Patterns](#styling-patterns)
 - [State Management](#state-management)
 - [Best Practices](#best-practices)
@@ -61,6 +62,32 @@ lib/
 - `components/issues/detail/CommentForm.tsx` - Create new comments with form handling
 - `components/issues/detail/AttachmentList.tsx` - Display file attachments with download
 - `components/issues/detail/IssueDetailSidebar.tsx` - Issue metadata and quick actions
+
+**Knowledge Base** (Phase 3 Days 5-6):
+
+- `components/knowledge/ArticleCard.tsx` - Memoized article card with relevance scores
+- `components/knowledge/TagFilter.tsx` - URL state-based tag filtering
+- `components/knowledge/SearchBar.tsx` - Debounced search input with mode toggle
+
+**Wiki** (Phase 3 Days 5-6):
+
+- `components/wiki/WikiSidebar.tsx` - Related pages navigation
+- `components/wiki/TableOfContents.tsx` - IntersectionObserver scroll spy
+- `components/wiki/WikiContent.tsx` - ReactMarkdown with syntax highlighting
+
+**Security** (Phase 3 Days 5-6):
+
+- `components/security/SecurityScoreMeter.tsx` - Animated SVG circle meter
+- `components/security/VulnerabilityCard.tsx` - Severity-coded vulnerability display
+- `components/security/VulnerabilityFilter.tsx` - Multi-dimension filtering
+
+**Agent Personas** (Phase 3 Days 5-6):
+
+- `components/agents/AgentCard.tsx` - useOptimistic toggle with Server Actions
+
+**Global Components** (Phase 3 Days 5-6):
+
+- `components/CommandPalette.tsx` - useReducer state machine with keyboard shortcuts
 
 ---
 
@@ -762,6 +789,604 @@ function copyToClipboard(text: string) {
 
 ---
 
+## Advanced React Patterns
+
+### 10. Command Palette with useReducer State Machine
+
+**Location**: `components/CommandPalette.tsx`
+**Type**: Client Component
+**Responsibility**: Global keyboard-driven search with state machine pattern
+
+**Key Features**:
+
+- useReducer for complex state management (10 actions)
+- Global keyboard shortcut (Cmd+K / Ctrl+K)
+- Arrow key navigation with selectedIndex
+- Debounced search (300ms)
+- Entity type filtering
+- Backdrop and modal UI
+
+**Pattern: useReducer State Machine**
+
+```typescript
+"use client";
+
+import { useReducer, useEffect, useCallback } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
+
+// State interface
+interface CommandState {
+  isOpen: boolean;
+  query: string;
+  results: SearchResult[];
+  selectedIndex: number;
+  isLoading: boolean;
+  entityType: 'all' | 'issues' | 'knowledge' | 'wiki' | 'agents';
+}
+
+// Action types (10 total)
+type CommandAction =
+  | { type: 'OPEN' }
+  | { type: 'CLOSE' }
+  | { type: 'SET_QUERY'; payload: string }
+  | { type: 'SET_RESULTS'; payload: SearchResult[] }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'MOVE_UP' }
+  | { type: 'MOVE_DOWN' }
+  | { type: 'SET_ENTITY_TYPE'; payload: CommandState['entityType'] }
+  | { type: 'RESET' };
+
+// Reducer (single source of truth)
+function commandReducer(state: CommandState, action: CommandAction): CommandState {
+  switch (action.type) {
+    case 'OPEN':
+      return { ...state, isOpen: true };
+    case 'CLOSE':
+      return { ...state, isOpen: false, query: '', results: [], selectedIndex: 0 };
+    case 'SET_QUERY':
+      return { ...state, query: action.payload, selectedIndex: 0 };
+    case 'MOVE_UP':
+      return {
+        ...state,
+        selectedIndex: state.selectedIndex > 0 ? state.selectedIndex - 1 : state.results.length - 1,
+      };
+    case 'MOVE_DOWN':
+      return {
+        ...state,
+        selectedIndex: state.selectedIndex < state.results.length - 1 ? state.selectedIndex + 1 : 0,
+      };
+    // ... more actions
+    default:
+      return state;
+  }
+}
+
+export function CommandPalette() {
+  const [state, dispatch] = useReducer(commandReducer, initialState);
+  const debouncedQuery = useDebounce(state.query, 300);
+
+  // Global keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        dispatch({ type: 'OPEN' });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Keyboard navigation
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    switch (e.key) {
+      case 'ArrowDown':
+        dispatch({ type: 'MOVE_DOWN' });
+        break;
+      case 'ArrowUp':
+        dispatch({ type: 'MOVE_UP' });
+        break;
+      case 'Enter':
+        // Navigate to selected result
+        break;
+      case 'Escape':
+        dispatch({ type: 'CLOSE' });
+        break;
+    }
+  };
+
+  return (
+    // ... UI with backdrop, input, filters, results
+  );
+}
+```
+
+**When to Use This Pattern**:
+
+- Complex state with multiple interdependent values
+- State transitions that depend on previous state
+- Need predictable state updates
+- Easier debugging (single reducer function)
+- Better than 10+ useState hooks
+
+**Benefits**:
+
+- Single source of truth for all state
+- Type-safe actions with discriminated unions
+- Easier to test (pure reducer function)
+- Clear state transitions
+- Scalable for complex UIs
+
+**Source**: `components/CommandPalette.tsx` (287 lines)
+
+---
+
+### 11. useOptimistic for Instant UI Feedback
+
+**Location**: `components/agents/AgentCard.tsx`
+**Type**: Client Component
+**Responsibility**: Agent status toggle with optimistic updates
+
+**Key Features**:
+
+- useOptimistic for instant UI updates
+- useTransition for async Server Actions
+- Automatic rollback on error
+- Loading overlay during mutation
+- Toggle switch animation
+
+**Pattern: useOptimistic + Server Actions**
+
+```typescript
+"use client";
+
+import { useOptimistic, useTransition } from 'react';
+import { toggleAgentStatus } from '@/app/agents/actions';
+
+interface AgentCardProps {
+  agent: {
+    id: number;
+    name: string;
+    isActive: boolean;
+    // ... other fields
+  };
+}
+
+export function AgentCard({ agent }: AgentCardProps) {
+  const [isPending, startTransition] = useTransition();
+
+  // useOptimistic: Instant UI feedback before server responds
+  const [optimisticAgent, setOptimisticAgent] = useOptimistic(
+    agent,
+    (state, newStatus: boolean) => ({ ...state, isActive: newStatus })
+  );
+
+  const handleToggle = () => {
+    startTransition(async () => {
+      // 1. Optimistic update (instant UI change)
+      setOptimisticAgent(!optimisticAgent.isActive);
+
+      // 2. Server Action (runs in background)
+      const result = await toggleAgentStatus(agent.id, agent.isActive);
+
+      if (!result.success) {
+        // 3. Automatic rollback on error
+        console.error('Failed to toggle agent:', result.error);
+        // useOptimistic will revert to original state
+      }
+      // 4. On success, Server Component re-renders with fresh data
+    });
+  };
+
+  return (
+    <div className={optimisticAgent.isActive ? 'ring-2 ring-coral' : ''}>
+      {/* Toggle Switch */}
+      <button
+        onClick={handleToggle}
+        disabled={isPending}
+        className={optimisticAgent.isActive ? 'bg-coral' : 'bg-black/20'}
+      >
+        <div className={optimisticAgent.isActive ? 'left-5' : 'left-0.5'} />
+      </button>
+
+      {/* Loading Overlay */}
+      {isPending && (
+        <div className="absolute inset-0 bg-black/10">
+          <i className="fas fa-spinner fa-spin" />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+**When to Use This Pattern**:
+
+- Toggle switches, checkboxes, status updates
+- Any mutation where instant feedback improves UX
+- Server Actions that take time (network latency)
+- Non-critical updates (can tolerate brief inconsistency)
+
+**Benefits**:
+
+- Instant UI feedback (no spinner wait)
+- Automatic rollback on error
+- Works seamlessly with Server Components
+- Less boilerplate than manual optimistic updates
+
+**Don't Use When**:
+
+- Critical data (financial transactions)
+- Complex validations needed before mutation
+- Multi-step workflows
+
+**Source**: `components/agents/AgentCard.tsx` (149 lines)
+
+---
+
+### 12. IntersectionObserver for Scroll Spy
+
+**Location**: `components/wiki/TableOfContents.tsx` + `hooks/useScrollSpy.ts`
+**Type**: Client Component + Custom Hook
+**Responsibility**: Battery-efficient scroll detection for TOC highlighting
+
+**Key Features**:
+
+- IntersectionObserver API (no scroll listeners)
+- Battery-efficient (browser-optimized)
+- Configurable root margin and threshold
+- Smooth scroll navigation
+- Nested heading indentation
+
+**Pattern: IntersectionObserver Hook**
+
+```typescript
+// hooks/useScrollSpy.ts
+"use client";
+
+import { useEffect, useState } from 'react';
+
+interface UseScrollSpyOptions {
+  rootMargin?: string;
+  threshold?: number;
+}
+
+export function useScrollSpy(
+  headingIds: string[],
+  options: UseScrollSpyOptions = {}
+) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: options.rootMargin || '-20% 0px -80% 0px',
+        threshold: options.threshold || 0,
+      }
+    );
+
+    // Observe all headings
+    headingIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [headingIds, options.rootMargin, options.threshold]);
+
+  return activeId;
+}
+
+// components/wiki/TableOfContents.tsx
+"use client";
+
+import { useScrollSpy } from '@/hooks/useScrollSpy';
+
+export function TableOfContents({ items }: { items: TOCItem[] }) {
+  const headingIds = items.map((item) => item.id);
+  const activeId = useScrollSpy(headingIds, {
+    rootMargin: '-20% 0px -80% 0px', // Trigger when heading in top 20-80% of viewport
+  });
+
+  const scrollToHeading = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
+
+  return (
+    <nav>
+      {items.map((item) => (
+        <button
+          key={item.id}
+          onClick={() => scrollToHeading(item.id)}
+          className={activeId === item.id ? 'text-coral' : 'text-slate'}
+        >
+          {item.text}
+        </button>
+      ))}
+    </nav>
+  );
+}
+```
+
+**When to Use This Pattern**:
+
+- Scroll spy for TOC highlighting
+- Lazy loading images
+- Infinite scroll pagination
+- Element visibility tracking
+- Animations on scroll
+
+**Benefits**:
+
+- Better performance (no scroll listeners)
+- Battery-efficient (browser-optimized)
+- Runs in rendering thread (not main thread)
+- Configurable visibility detection
+- Modern browser API
+
+**Why Not Scroll Listeners**:
+
+❌ **Old approach** (scroll event):
+
+```typescript
+// ❌ Bad: Fires on every scroll (performance cost)
+useEffect(() => {
+  const handleScroll = () => {
+    // Check all heading positions (expensive)
+  };
+  window.addEventListener('scroll', handleScroll);
+}, []);
+```
+
+✅ **New approach** (IntersectionObserver):
+
+```typescript
+// ✅ Good: Browser-optimized, only fires when needed
+const observer = new IntersectionObserver(callback, options);
+```
+
+**Source**: `components/wiki/TableOfContents.tsx` (65 lines), `hooks/useScrollSpy.ts` (47 lines)
+
+---
+
+### 13. Animated SVG Meter Pattern
+
+**Location**: `components/security/SecurityScoreMeter.tsx`
+**Type**: Client Component
+**Responsibility**: Animated circular progress meter
+
+**Key Features**:
+
+- SVG circle with strokeDashoffset animation
+- Color-coded by score threshold
+- CSS transition animation (1 second)
+- Configurable radius and stroke width
+- Delayed animation on mount
+
+**Pattern: SVG Circle Animation**
+
+```typescript
+"use client";
+
+import { useEffect, useState } from 'react';
+
+export function SecurityScoreMeter({ score }: { score: number }) {
+  const [animatedScore, setAnimatedScore] = useState(0);
+
+  // Animate score on mount
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimatedScore(score), 100);
+    return () => clearTimeout(timer);
+  }, [score]);
+
+  // Circle math
+  const radius = 80;
+  const strokeWidth = 12;
+  const normalizedRadius = radius - strokeWidth / 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (animatedScore / 100) * circumference;
+
+  // Color by score
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return '#10b981'; // green
+    if (score >= 60) return '#f59e0b'; // amber
+    return '#ef4444'; // red
+  };
+
+  return (
+    <div style={{ width: radius * 2, height: radius * 2 }}>
+      <svg className="transform -rotate-90">
+        {/* Background circle */}
+        <circle
+          stroke="rgba(255, 255, 255, 0.1)"
+          fill="transparent"
+          strokeWidth={strokeWidth}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+
+        {/* Progress circle (animated) */}
+        <circle
+          stroke={getScoreColor(animatedScore)}
+          fill="transparent"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          style={{
+            strokeDashoffset,
+            transition: 'stroke-dashoffset 1s ease-in-out', // CSS animation
+          }}
+          strokeLinecap="round"
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+      </svg>
+
+      {/* Score text (centered absolutely) */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span style={{ color: getScoreColor(animatedScore) }}>
+          {animatedScore}
+        </span>
+      </div>
+    </div>
+  );
+}
+```
+
+**When to Use This Pattern**:
+
+- Progress indicators (security score, health meter)
+- Loading spinners (circular)
+- Percentage visualizations
+- Battery/status indicators
+
+**Benefits**:
+
+- Smooth CSS transition animation
+- Configurable colors and thresholds
+- Lightweight (no animation libraries)
+- Accessible (text score always visible)
+
+**Math Explained**:
+
+- `circumference = 2πr` (circle perimeter)
+- `strokeDashoffset` controls how much of circle is visible
+- Animating `strokeDashoffset` from `circumference` to `0` draws circle
+
+**Source**: `components/security/SecurityScoreMeter.tsx` (88 lines)
+
+---
+
+### 14. Debounced Search Input Pattern
+
+**Location**: `components/knowledge/SearchBar.tsx` + `hooks/useDebounce.ts`
+**Type**: Client Component + Custom Hook
+**Responsibility**: Debounced search with URL state sync
+
+**Key Features**:
+
+- Debounced input (300ms delay)
+- URL state management
+- Search mode toggle (visual only for now)
+- Pagination reset on search
+- Real-time query parameter updates
+
+**Pattern: Debounced Search with URL State**
+
+```typescript
+"use client";
+
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useDebounce } from '@/hooks/useDebounce';
+
+export function SearchBar({ initialSearch = '' }: { initialSearch?: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [searchMode, setSearchMode] = useState('hybrid');
+
+  // Debounce search query (300ms delay)
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
+  // Update URL when debounced search changes
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams?.toString());
+
+    if (debouncedSearch) {
+      params.set('search', debouncedSearch);
+    } else {
+      params.delete('search');
+    }
+
+    // Reset to page 1 when search changes
+    params.delete('page');
+
+    router.push(`/knowledge?${params.toString()}`);
+  }, [debouncedSearch, router, searchParams]);
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="Search knowledge base..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+
+      {/* Search mode toggle */}
+      <button onClick={() => setSearchMode('hybrid')}>Hybrid</button>
+      <button onClick={() => setSearchMode('fulltext')}>Full-Text</button>
+      <button onClick={() => setSearchMode('semantic')}>Semantic</button>
+    </div>
+  );
+}
+
+// hooks/useDebounce.ts
+import { useEffect, useState } from 'react';
+
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+```
+
+**When to Use This Pattern**:
+
+- Search inputs (prevent excessive API calls)
+- Autocomplete/typeahead
+- Filter inputs
+- Any input that triggers expensive operations
+
+**Benefits**:
+
+- Reduces API calls (only after user stops typing)
+- Better UX (no lag during typing)
+- Server-side search with URL state
+- Shareable URLs with search query
+
+**Debounce Timing**:
+
+- `300ms` - Good for search (balance between responsiveness and API load)
+- `150ms` - Fast autocomplete
+- `500ms` - Heavy operations (complex filters)
+
+**Source**: `components/knowledge/SearchBar.tsx` (105 lines), `hooks/useDebounce.ts` (existing)
+
+---
+
+### Pattern Comparison Table
+
+| Pattern                    | When to Use                                          | Complexity | Performance |
+| -------------------------- | ---------------------------------------------------- | ---------- | ----------- |
+| useReducer State Machine   | Complex state with 5+ interdependent values          | High       | Excellent   |
+| useOptimistic              | Instant feedback for mutations (toggles, checkboxes) | Low        | Excellent   |
+| IntersectionObserver       | Scroll spy, lazy loading, visibility detection       | Medium     | Excellent   |
+| Animated SVG               | Progress indicators, circular meters                 | Low        | Good        |
+| Debounced Search           | Search inputs, autocomplete, filters                 | Low        | Excellent   |
+| Comment List (Pattern 6)   | Display lists with formatting                        | Low        | Good        |
+| Form with API (Pattern 7)  | Forms with validation and API submission             | Medium     | Good        |
+| Sidebar Detail (Pattern 9) | Metadata display with actions                        | Low        | Good        |
+
+---
+
 ## Styling Patterns
 
 ### Tailwind CSS
@@ -1049,7 +1674,9 @@ export default function Loading() {
 ---
 
 **Last Updated:** 2025-10-28
-**Component Status:** Theme system + Issue detail components (CommentList, CommentForm, AttachmentList, IssueDetailSidebar)
-**Next Update:** Phase 3 Day 5+ (Additional issue components)
+**Component Status:** Full component library with advanced patterns (Phase 3 Days 5-6 complete)
+**Total Patterns Documented:** 14 patterns (6 basic + 5 advanced + 3 existing)
+**Key Patterns:** useReducer state machine, useOptimistic, IntersectionObserver, debounced search, SVG animations
+**Next Update:** Phase 4 (Authentication components)
 
 **See also**: [STATUS.md](../../STATUS.md) for current project status
