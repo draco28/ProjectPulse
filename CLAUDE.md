@@ -317,41 +317,77 @@ To ensure no progress is ever lost, I use three levels of progress tracking:
 2. Full STATUS.md update
 3. Optional Memory MCP update with phase summary
 
-### Automatic Pre-Compaction Save (NEW)
+### Manual Save Guidance
 
-**Proactive save when approaching context limit**:
+**⚠️ CRITICAL: There is NO automatic save - you must save manually**
 
-**When token usage ≥ 160K (80% of 200K)**:
+**When to save progress:**
 
-1. Silent auto-save triggers (one-time per session)
-2. Brief notification: "💾 Auto-save at 160K tokens (80%)..."
-3. Updates ALL progress files:
-   - `current-session-[timestamp].md` - Latest progress
-   - `current-todos.md` - Task completion status
-   - `STATUS.md` - Checkpoint with current date
-4. Confirmation: "✅ Progress saved. Manual compaction recommended."
+1. **Before reaching 150K tokens** (75% of limit)
+   - Monitor system warnings: "Token usage: X/200000"
+   - Save when you see 140-150K range
 
-**Why this helps**:
+2. **After significant milestones:**
+   - Component fully implemented
+   - API endpoint working
+   - Feature section complete
 
-- Saves progress before auto-compaction (typically ~200K)
-- Leaves 40K token buffer for you to review
-- You can manually trigger compaction
-- All progress safely persisted
+3. **Before risky operations:**
+   - Large refactorings
+   - Multi-file changes
+   - Long debugging sessions
 
-**Token cost**: ~450 tokens (minimal impact)
+**How to save manually:**
+
+1. Update `current-session-[timestamp].md` with latest progress
+2. Update `current-todos.md` with task statuses
+3. Update `STATUS.md` at major checkpoints
+4. Brief note: "💾 Progress saved at [X]K tokens"
 
 **Token Counter Quick Reference**:
 
 - Current usage shown in system warnings: "Token usage: X/200000"
-- 160K = 80% (auto-save trigger)
-- 200K = 100% (auto-compaction trigger)
-- Monitor after each tool use
+- 140-150K = ⚠️ Warning (save soon)
+- 150-180K = 🟡 Caution (save frequently)
+- 180K+ = 🔴 Danger (save immediately)
+- ~200K = 💥 Auto-compaction imminent
 
-**Recommendation after auto-save**:
+**After manual save**:
 
-- Review progress
-- Manually compact context OR
-- Start new session for next major task
+- Continue working (you have buffer remaining)
+- Or manually compact context if approaching limits
+- Or start new session for next major task
+
+### Plan Mode Workflow
+
+**⚠️ REQUIRED: Always save plans after user approval**
+
+When you create a plan in plan mode and user approves with ExitPlanMode:
+
+1. **IMMEDIATELY save plan** to `.agent/task/current-plan.md`
+   - Single reusable file (overwrites previous plan)
+   - Include: overview, steps, dependencies, success criteria
+
+2. **Update session file**: Note that plan was saved
+
+3. **Proceed with implementation** using the saved plan
+
+**Why this matters**:
+
+- Plans in conversation history are LOST during context compaction
+- Saved plan survives compaction and session interruptions
+- You can always reference `.agent/task/current-plan.md`
+
+**File location**: `.agent/task/current-plan.md` (single file, not timestamped)
+
+**Example workflow**:
+
+```
+User: "Create a plan for implementing search feature"
+You: [Create plan, call ExitPlanMode]
+User: [Approves plan]
+You: [Save to current-plan.md, update session file, begin implementation]
+```
 
 ### Recovery Workflow
 

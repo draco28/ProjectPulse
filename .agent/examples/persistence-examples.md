@@ -15,7 +15,7 @@
 5. [Example 5: Recovery After Session Interruption](#example-5-recovery-after-session-interruption)
 6. [Example 6: Phase Completion with Memory MCP](#example-6-phase-completion-with-memory-mcp)
 7. [Example 7: Multiple Sub-Agent Workflow](#example-7-multiple-sub-agent-workflow)
-8. [Example 8: Auto-Save at 80% Context](#example-8-auto-save-at-80-context)
+8. [Example 8: Manual Save Before Compaction Risk](#example-8-manual-save-before-compaction-risk)
 
 ---
 
@@ -1180,11 +1180,11 @@ _Final session file_:
 
 ---
 
-## Example 8: Auto-Save at 80% Context
+## Example 8: Manual Save Before Compaction Risk
 
 ### Scenario
 
-Long session approaching context limit, auto-save triggers proactively
+Long session approaching context limit, manual save triggered proactively
 
 ### Timeline
 
@@ -1216,28 +1216,28 @@ Token usage: 80K/200K (40%)
 
 ---
 
-**16:45 - Approaching Threshold (155K tokens)**
+**16:45 - Warning: Approaching Limit (148K tokens)**
 
 ```markdown
 _Completed semantic search_
 _Implementing hybrid result merger_
 _Writing extensive tests_
 
-Token usage: 155K/200K (77.5%)
-⚠️ Approaching 160K threshold
-✅ Still below auto-save trigger
+Token usage: 148K/200K (74%)
+⚠️ Warning: Approaching 150K threshold - should save soon
 ```
 
 ---
 
-**17:00 - Auto-Save Triggers! (160K tokens)**
+**17:00 - Manual Save Decision (148K tokens)**
 
 Me (Claude):
 
 ```markdown
-_Token monitoring detects threshold crossed_
+_Recognizes token warning_
+_Decides to save proactively before continuing tests_
 
-💾 Auto-save at 160K tokens (80%)...
+💾 Manual save at 148K tokens (74%)...
 
 _Updates current-session-20251027-1400.md_:
 
@@ -1251,7 +1251,7 @@ _Updates current-session-20251027-1400.md_:
 - ✅ 16:30 - Implemented search API endpoint
 - 🔄 17:00 - IN PROGRESS: Writing integration tests for search
 
-**Auto-Save**: Triggered at 160K tokens (2025-10-27 17:00)
+**Manual Save**: Saved at 148K tokens (2025-10-27 17:00)
 
 _Updates current-todos.md_:
 
@@ -1286,7 +1286,7 @@ auto_save_triggered = true
 
 ---
 
-**17:05 - After Auto-Save (160.5K tokens)**
+**17:05 - After Manual Save (148.5K tokens)**
 
 You (user): "Should I manually compact context now?"
 
@@ -1298,38 +1298,39 @@ _Reviews situation_
 **Current state**:
 
 - All progress saved in files
-- 39.5K token buffer remaining
-- Can continue or compact
+- 51.5K token buffer remaining (25.75%)
+- Can continue safely
 
 **Options**:
 
-**Option 1: Continue working** (if task almost done)
+**Option 1: Continue working** (recommended)
 
-- You have ~35-40K tokens left
-- Can probably finish integration tests
+- You have ~50K tokens left
+- Can definitely finish integration tests
+- Manual save gives safety net
 - Then manually compact
 
-**Option 2: Manual compaction** (if more work ahead)
+**Option 2: Manual compaction** (if very long work ahead)
 
 - Good time to compact with fresh saves
 - Start clean session with 0 tokens
 - Continue from current-todos.md
 
 **Recommendation**:
-Since integration tests are in progress and should complete soon,
-I suggest continuing. We'll finish tests, then manually compact for next task.
+Since we saved at 148K (74%), we have plenty of buffer remaining.
+Continue with tests, they should complete well before 180K danger zone.
 ```
 
 ---
 
-**17:30 - Tests Complete (175K tokens)**
+**17:30 - Tests Complete (170K tokens)**
 
 ```markdown
 _Completes integration tests_
 
-Token usage: 175K/200K (87.5%)
-✅ No auto-save re-trigger (flag = true)
-⚠️ Approaching danger zone (180K+)
+Token usage: 170K/200K (85%)
+✅ Manual save at 148K provided safety net
+⚠️ Still safe - approaching 180K threshold
 
 _Updates session and todos files manually_:
 
@@ -1366,12 +1367,12 @@ _After compaction_:
 3. Read current-todos.md → 70% complete, 3 tasks pending
 4. Ready to start next task with fresh context
 
-**Auto-save worked perfectly**:
+**Manual save worked perfectly**:
 
-- Triggered at exactly 160K (80%)
+- Saved proactively at 148K (74%)
 - All files updated
-- One-time trigger (no re-trigger at 175K)
-- User had time to review and compact manually
+- Agent recognized token warning and saved
+- User had ample time to review and compact manually
 - Zero information loss
 ```
 
@@ -1379,18 +1380,18 @@ _After compaction_:
 
 ### Key Points Demonstrated
 
-**Auto-Save Behavior**:
+**Manual Save Behavior**:
 
-- ✅ Triggered at exactly 160K tokens (80%)
-- ✅ Silent operation with brief notification
+- ✅ Saved at 148K tokens (74%) when warning appeared
+- ✅ Agent monitored token usage and acted proactively
 - ✅ Updated all 3 files (session, todos, STATUS.md)
-- ✅ One-time trigger per session
-- ✅ No re-trigger at 165K, 170K, 175K
-- ✅ 40K token buffer after save
+- ✅ Brief notification to user
+- ✅ 52K token buffer after save (26% remaining)
+- ✅ More than enough to complete tests safely
 
 **User Benefits**:
 
-- Had time to review progress
+- Had ample time to review progress (52K buffer)
 - Could decide: continue or compact
 - Chose to finish current task first
 - Manually compacted at good stopping point
@@ -1398,17 +1399,17 @@ _After compaction_:
 
 **Token Efficiency**:
 
-- Auto-save cost: ~450 tokens
+- Manual save cost: ~450 tokens
 - Percentage of budget: 0.225%
-- Buffer after save: 40K tokens
-- More than enough to finish task
+- Buffer after save: 52K tokens
+- More than enough to finish task safely
 
 **Files Created**:
 
 ```
 .agent/task/current-session-20251027-1400.md
   - Complete timeline
-  - Auto-save metadata at line showing when triggered
+  - Manual save metadata at line showing when saved
 
 .agent/task/current-todos.md
   - 70% complete
@@ -1429,14 +1430,14 @@ After manual compaction, complete recovery in < 2 minutes using saved files.
 ```
 14:00 - Start:        5K tokens (2.5%)
 15:30 - Progress:    80K tokens (40%)
-16:45 - Warning:    155K tokens (77.5%)
-17:00 - AUTO-SAVE:  160K tokens (80%) ← Trigger!
-17:05 - After save: 160.5K tokens (80.25%)
-17:30 - Tests done: 175K tokens (87.5%)
+16:45 - Warning:    148K tokens (74%)
+17:00 - MANUAL SAVE: 148K tokens (74%) ← Proactive save!
+17:05 - After save: 148.5K tokens (74.25%)
+17:30 - Tests done: 170K tokens (85%)
 17:35 - Compact:    Manual compaction triggered
 ```
 
-**Result**: Auto-save prevented potential information loss, gave user control over compaction timing, and demonstrated perfect one-time trigger behavior.
+**Result**: Manual save at 148K prevented information loss, gave user control over compaction timing, and left sufficient buffer (52K tokens) to complete work safely.
 
 ---
 
@@ -1451,7 +1452,7 @@ After manual compaction, complete recovery in < 2 minutes using saved files.
 | 5       | Session interruption | Session + Todos                       | 0          | ✅ 1 min |
 | 6       | Phase completion     | Session + Todos + STATUS + Memory MCP | 0          | N/A      |
 | 7       | Multiple sub-agents  | Session + Todos + 3 Reports           | 3          | N/A      |
-| 8       | Auto-save at 80%     | Session + Todos + STATUS              | 0          | ✅ 2 min |
+| 8       | Manual save at 74%   | Session + Todos + STATUS              | 0          | ✅ 2 min |
 
 ---
 
@@ -1464,6 +1465,7 @@ After manual compaction, complete recovery in < 2 minutes using saved files.
 5. **Memory MCP is strategic**: Used only at phase completion for long-term knowledge
 6. **Todos always show status**: Current progress percentage always visible
 7. **Session files show timeline**: Complete history of session work
+8. **Manual saves are critical**: No automatic save - must monitor tokens and save at 140-150K proactively
 
 ---
 

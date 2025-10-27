@@ -164,9 +164,9 @@ mcp__memory__read_graph();
 
 ---
 
-## ✅ Auto-Save Validation (NEW)
+## ✅ Manual Save Validation
 
-**Verify automatic pre-compaction save feature:**
+**Verify manual save behavior before approaching context limit:**
 
 ### Threshold Monitoring
 
@@ -174,27 +174,27 @@ mcp__memory__read_graph();
 
 - [ ] I monitor token usage after each tool use
 - [ ] I can see system warnings: "Token usage: X/200000"
-- [ ] I know when approaching 160K threshold
+- [ ] I know when approaching 140-150K threshold (70-75%)
 
-### Auto-Save Trigger Test
+### Manual Save Trigger Test
 
 **Simulate high token usage (optional weekly test):**
 
 1. [ ] Note current token usage
-2. [ ] Work until approaching 160K tokens
-3. [ ] Watch for auto-save trigger at ≥ 160K
-4. [ ] Verify brief notification: "💾 Auto-save at 160K tokens (80%)..."
-5. [ ] Verify confirmation: "✅ Progress saved. Manual compaction recommended."
+2. [ ] Work until approaching 145K tokens (72.5%)
+3. [ ] Watch for proactive manual save at 140-150K range
+4. [ ] Verify brief notification: "💾 Manual save at [X]K tokens (##%)..."
+5. [ ] Verify agent makes conscious decision to save
 
 ### File Updates Verification
 
-**After auto-save triggers, verify:**
+**After manual save, verify:**
 
 - [ ] `current-session-[timestamp].md` updated:
 
   ```bash
-  grep "Auto-Save" .agent/task/current-session-*.md
-  # Should show: "**Auto-Save**: Triggered at 160K tokens (YYYY-MM-DD HH:MM)"
+  grep "Manual Save" .agent/task/current-session-*.md
+  # Should show: "**Manual Save**: Saved at [X]K tokens (YYYY-MM-DD HH:MM)"
   ```
 
 - [ ] `current-todos.md` updated:
@@ -210,58 +210,55 @@ mcp__memory__read_graph();
   # Should show today's date
   ```
 
-### One-Time Trigger Verification
+### Proactive Save Pattern
 
-**Verify no re-trigger:**
+**Verify proactive behavior:**
 
-- [ ] Auto-save triggered at 160K
-- [ ] Continued work past 160K
-- [ ] No second auto-save trigger at 170K
-- [ ] No third auto-save trigger at 180K
-- [ ] Session flag prevents multiple triggers
+- [ ] Agent saves between 140-150K tokens (70-75%)
+- [ ] Agent continues work after save
+- [ ] No automatic triggers (all saves are conscious decisions)
+- [ ] Agent monitors token warnings proactively
 
 ### Token Cost Check
 
-**After auto-save:**
+**After manual save:**
 
-- [ ] Token usage increased by ~450 tokens
-- [ ] Remaining buffer ≥ 35K tokens
+- [ ] Token usage increased by ~400-500 tokens
+- [ ] Remaining buffer ≥ 50K tokens
 - [ ] Total cost acceptable
 
 ### Manual Compaction Flow
 
-**After auto-save triggers:**
+**After manual save:**
 
 - [ ] Progress files all up to date
-- [ ] Can manually trigger context compaction
+- [ ] Can manually trigger context compaction when ready
 - [ ] Recovery from compaction works correctly
-- [ ] Uses auto-saved state
+- [ ] Uses manually saved state
 
-**See also**: `.agent/examples/persistence-examples.md` → Example 8 for auto-save timeline.
+**See also**: `.agent/examples/persistence-examples.md` → Example 8 for manual save timeline.
 
 ### What to Look For
 
 **✅ Working correctly when:**
 
 ```
-Token usage: 159K/200K → No auto-save yet
-Token usage: 160K/200K → 💾 Auto-save at 160K tokens (80%)...
-                        ✅ Progress saved. Manual compaction recommended.
-Token usage: 165K/200K → No re-trigger (already saved)
-Token usage: 175K/200K → No re-trigger (flag set)
+Token usage: 140K/200K → Agent recognizes warning zone
+Token usage: 145K/200K → 💾 Manual save at 145K tokens (72.5%)...
+                        Agent updates all files
+Token usage: 148K/200K → Continues work safely
+Token usage: 170K/200K → May save again if milestone reached
 ```
 
 **❌ Problems to fix:**
 
 ```
-Token usage: 165K/200K → No auto-save message (MISSED TRIGGER)
-Token usage: 170K/200K → Second auto-save message (RE-TRIGGERED!)
-Token usage: 162K/200K → Auto-save but files not updated (INCOMPLETE)
+Token usage: 165K/200K → No manual save yet (FORGOT TO SAVE)
+Token usage: 148K/200K → Claim of "auto-save" (WRONG - should be manual)
+Token usage: 145K/200K → Save but files not updated (INCOMPLETE)
 ```
 
-**Frequency**: Test when naturally approaching 160K, or weekly simulation
-
----
+## **Frequency**: Test when naturally approaching 140-150K, or weekly simulation
 
 ## ✅ File Health Check
 

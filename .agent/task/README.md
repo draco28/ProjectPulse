@@ -4,7 +4,7 @@ This directory contains session-specific context files for progress tracking.
 
 **Quick Links:**
 
-- **Templates**: `.agent/task/templates/` (current-session-template.md, current-todos-template.md)
+- **Templates**: `.agent/task/templates/` (current-session-template.md, current-todos-template.md, current-plan-template.md)
 - **Examples**: `.agent/examples/persistence-examples.md`
 - **Rules**: `.agent/workflows/persistence-rules.md`
 
@@ -15,6 +15,7 @@ This directory contains session-specific context files for progress tracking.
 - `current-session-[YYYYMMDD-HHMM].md` - Real-time session progress
 - `current-todos.md` - Persistent todo list for current phase
 - `current-implementation-[date].md` - Multi-phase implementation tracking
+- `current-plan.md` - **Single reusable file for approved implementation plans**
 
 ### Sub-Agent Reports
 
@@ -63,6 +64,7 @@ If context lost or session interrupted:
 │   ├── phase-X-day-Y-todos-COMPLETE.md
 │   └── session-YYYYMMDD-HHMM-COMPLETE.md
 ├── current-session-YYYYMMDD-HHMM.md (active)
+├── current-plan.md (active, single reusable file)
 ├── current-todos.md (active)
 ├── current-implementation-YYYYMMDD.md (if multi-phase work)
 ├── implementation-plan-[topic]-YYYYMMDD.md (if planned work)
@@ -73,7 +75,6 @@ If context lost or session interrupted:
 
 ### For Claude Code (Automated)
 
-1. Create current-session file at session start
 2. Update current-todos.md whenever TodoWrite changes
 3. Update files after every major step
 4. Archive old files on phase completion

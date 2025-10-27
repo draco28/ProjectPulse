@@ -24,44 +24,64 @@
 
 ---
 
-## ⚠️ Automatic Pre-Compaction Save
+## ⚠️ Manual Save Guidance
 
-**NEW: Proactive save when approaching context limit**
+**IMPORTANT: No automatic save - you must save manually**
 
-### Trigger Conditions
+### Manual Save Triggers
 
-**When token usage reaches 160K (80% of 200K limit):**
+**⚠️ IMPORTANT: There is NO automatic save**
 
-- Auto-save triggers ONCE per session
-- Updates session file, todos file, AND STATUS.md
-- Silent operation with brief notification
-- Prevents information loss before auto-compaction
+You must manually monitor token usage and save progress proactively. Watch for system warnings showing token count.
 
 ### Token Usage Monitoring
 
-| Usage    | Status       | Action                           |
-| -------- | ------------ | -------------------------------- |
-| < 140K   | ✅ Safe      | Normal updates (every 15-30 min) |
-| 140-160K | ⚠️ Warning   | Approaching threshold            |
-| ≥ 160K   | 🚨 AUTO-SAVE | Trigger automatic save           |
-| > 180K   | 🔴 Danger    | Manual compaction recommended    |
+| Usage    | Status      | Action                                 |
+| -------- | ----------- | -------------------------------------- |
+| < 140K   | ✅ Safe     | Normal updates (every 15-30 min)       |
+| 140-150K | ⚠️ Warning  | **MANUALLY SAVE** before continuing    |
+| 150-180K | 🟡 Caution  | Save frequently, compaction risk       |
+| > 180K   | 🔴 Danger   | Save immediately, compact context soon |
+| ~200K    | 💥 Critical | Auto-compaction imminent               |
 
-### Auto-Save Sequence
+### When to Manually Save
 
-When 160K threshold reached:
+**Required save triggers:**
 
-1. **Brief notification**:
+1. **Before reaching 150K tokens** (75% of limit)
+   - Check token usage after major steps
+   - Look for system warnings: "Token usage: X/200000"
 
-   ```
-   💾 Auto-save at 160K tokens (80%)...
-   ```
+2. **Before risky operations:**
+   - Large refactorings
+   - Multi-file changes
+   - Complex debugging sessions
+
+3. **After significant milestones:**
+   - Component fully implemented
+   - API endpoint working with tests
+   - Feature sub-section complete
+
+4. **Before long research/analysis:**
+   - Invoking sub-agents for deep analysis
+   - Exploring large codebases
+   - Reading many files
+
+### Manual Save Sequence
+
+**When you need to save progress:**
+
+1. **Check current state:**
+   - What's been completed?
+   - What's currently in progress?
+   - What's pending?
 
 2. **Update session file** (`.agent/task/current-session-[timestamp].md`):
-   - Add latest progress entry
+   - Add latest progress entries
    - Mark current in-progress task
-   - Add auto-save metadata:
+   - Add save metadata:
      ```markdown
-     **Auto-Save**: Triggered at 160K tokens (YYYY-MM-DD HH:MM)
+     **Manual Save**: [YYYY-MM-DD HH:MM] at [X]K tokens
      ```
 
 3. **Update todos file** (`.agent/task/current-todos.md`):
@@ -69,69 +89,59 @@ When 160K threshold reached:
    - Mark completed tasks
    - Update progress statistics
 
-4. **Update STATUS.md checkpoint**:
+4. **Update STATUS.md** (if major milestone):
    - Update "Last Task Completed" field
    - Update "Last Checkpoint" with current date
 
-5. **Set session flag** (prevents re-trigger):
-   - Internal flag: `auto_save_triggered = true`
-   - Note: Conceptual per-session flag; prevents duplicate triggers within one session
-   - Only triggers once per session
-
-6. **Brief confirmation**:
+5. **Brief self-note:**
    ```
-   ✅ Progress saved. Manual compaction recommended.
+   💾 Progress saved at [X]K tokens. Continuing...
    ```
 
 ### Why This Matters
 
-**Problem**: Auto-compaction at ~200K can interrupt work unexpectedly
+**Problem**: Context compaction at ~200K can interrupt work without warning
 
-**Solution**: Save at 160K (80%), leaving 40K token buffer:
+**Solution**: Save proactively at 140-150K (70-75%), leaving buffer:
 
-- User can review progress
-- User can manually trigger compaction
-- User can decide to continue or start new session
+- 50K tokens remaining for continued work
+- Time to review progress before compaction
+- Can manually trigger compaction when ready
 - All progress safely persisted
 
 ### Token Cost
 
 - Session file update: ~150 tokens
 - Todos file update: ~100 tokens
-- STATUS.md update: ~200 tokens
-- **Total**: ~450 tokens
-- **Buffer after save**: 40K tokens (20% remaining)
+- STATUS.md update: ~200 tokens (if needed)
+- **Total**: ~250-450 tokens per manual save
+- **Acceptable overhead**: 0.1-0.2% of context per save
 
-### One-Time Per Session
+### Monitoring Token Usage
 
-Auto-save triggers **only once** when threshold first crossed:
+**System provides warnings:**
 
 ```
-Session start: 0 tokens
-... work continues ...
-150K tokens: ✅ Safe, normal operation
-160K tokens: 🚨 AUTO-SAVE TRIGGERED
-... auto-save completes ...
-170K tokens: ✅ No re-trigger (flag set)
-180K tokens: ✅ No re-trigger, but danger zone
+Token usage: 140500/200000; 59500 remaining
 ```
 
-**After auto-save**:
+**When you see this:**
 
-- User should manually compact context
-- Or start new session for next major task
-- Continuing past 180K risks auto-compaction
+- **< 140K**: Continue normal work
+- **140-150K**: Save progress soon
+- **150K+**: Save immediately
 
-### Example Auto-Save Message
+### Example Manual Save Message
 
 ```markdown
-💾 Auto-save at 160K tokens (80%)...
+💾 Manual save at 148K tokens (74%)...
 
-_Updates current-session-20251027-1430.md_
-_Updates current-todos.md_
-_Updates STATUS.md_
+_Updated current-session-20251027-1430.md_
+_Updated current-todos.md_
+_Updated STATUS.md checkpoint_
 
-✅ Progress saved. Manual compaction recommended.
+✅ Progress saved. 52K tokens remaining (26%).
+Continuing with implementation...
 ```
 
 ---
@@ -234,6 +244,23 @@ Examples:
 2. Document phase, goals, requirements from STATUS.md
 3. Create/update `.agent/task/current-todos.md`
 ```
+
+### After Plan Approval (Plan Mode)
+
+**⚠️ REQUIRED: Always save plans after user approves with ExitPlanMode**
+
+```markdown
+1. User approves plan with ExitPlanMode
+2. **IMMEDIATELY save plan** to `.agent/task/current-plan.md`
+   - Overwrites previous plan (single file, reused)
+   - Includes: overview, steps, dependencies, success criteria
+3. Update current-session.md: "Plan saved, implementing [feature]"
+4. Proceed with implementation from saved plan
+```
+
+**Why**: Plans in conversation history are lost during context compaction. Saving to file ensures plan survives.
+
+**File**: `.agent/task/current-plan.md` (single reusable file, not timestamped)
 
 ### When Invoking Sub-Agent
 

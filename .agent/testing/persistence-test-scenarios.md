@@ -35,7 +35,8 @@
 10. [Scenario 10: Documentation Agent (synthesize-docs)](#scenario-10-documentation-agent-synthesize-docs)
 11. [Scenario 11: System Mapping Agent (map-system)](#scenario-11-system-mapping-agent-map-system)
 12. [Scenario 12: Full Phase Completion](#scenario-12-full-phase-completion)
-13. [Scenario 13: Auto-Save Before Context Compaction](#scenario-13-auto-save-before-context-compaction)
+13. [Scenario 13: Manual Save Before Compaction Risk](#scenario-13-manual-save-before-compaction-risk)
+14. [Scenario 14: Plan Mode with Persistence](#scenario-14-plan-mode-with-persistence)
 
 ---
 
@@ -418,55 +419,55 @@ mcp__memory__read_graph();
 
 ---
 
-### Scenario 13: Auto-Save Before Context Compaction
+### Scenario 13: Manual Save Before Compaction Risk
 
-**Purpose**: Verify automatic save triggers at 80% context threshold (160K tokens)
+**Purpose**: Verify agent monitors tokens and saves manually at 140-150K (70-75%)
 
 **Simulation Steps**:
 
 1. Start session with normal work
 2. Monitor token usage progression
-3. Simulate reaching 160K tokens (80% threshold)
-4. Verify auto-save triggers automatically
-5. Verify one-time trigger (no re-trigger)
-6. Verify all files updated (session, todos, STATUS.md)
-7. Verify brief notification shown
-8. Continue work after auto-save
-9. Simulate reaching 180K tokens
-10. Verify no re-trigger of auto-save
-11. Test manual compaction after auto-save
-12. Verify recovery works with auto-saved state
+3. Simulate reaching 145K tokens (72.5% threshold)
+4. Verify agent recognizes warning and saves manually
+5. Verify all files updated (session, todos, STATUS.md)
+6. Verify brief notification shown
+7. Continue work after manual save
+8. Simulate reaching 175K tokens
+9. Verify no automatic save (manual only)
+10. Test manual compaction after save
+11. Verify recovery works with manually-saved state
 
 **Expected Results**:
 
-- [x] Auto-save triggers exactly at 160K tokens
-- [x] Brief notification: "💾 Auto-save at 160K tokens (80%)..."
+- [x] Agent monitors token usage via system warnings
+- [x] Agent saves proactively at 140-150K tokens (70-75%)
+- [x] Brief notification: "💾 Manual save at [X]K tokens (##%)..."
 - [x] Session file updated with latest progress
-- [x] Session file includes metadata: "**Auto-Save**: Triggered at 160K tokens (YYYY-MM-DD HH:MM)"
+- [x] Session file includes metadata: "**Manual Save**: [YYYY-MM-DD HH:MM] at [X]K tokens"
 - [x] Todos file updated with task statuses and percentages
-- [x] STATUS.md updated with "Last Task Completed" and "Last Checkpoint"
-- [x] Confirmation shown: "✅ Progress saved. Manual compaction recommended."
-- [x] Auto-save triggers ONLY ONCE per session
-- [x] No re-trigger when passing 170K, 180K, etc.
-- [x] Token cost ~450 tokens total
-- [x] 40K token buffer remains after save
+- [x] STATUS.md updated at major milestones (if applicable)
+- [x] Confirmation shown: "✅ Progress saved. ##K tokens remaining (##%)."
+- [x] NO automatic save at any threshold
+- [x] Agent must manually trigger save by recognizing token warnings
+- [x] Token cost ~250-450 tokens total
+- [x] 50K+ token buffer remains after save
 - [x] Manual compaction works correctly
-- [x] Recovery after compaction uses auto-saved state
+- [x] Recovery after compaction uses manually-saved state
 
 **Files to Check**:
 
-- `.agent/task/current-session-[timestamp].md` (has auto-save metadata)
-- `.agent/task/current-todos.md` (updated at 160K)
-- `STATUS.md` (checkpoint updated at 160K)
-- Token usage warnings in console
+- `.agent/task/current-session-[timestamp].md` (has manual save metadata)
+- `.agent/task/current-todos.md` (updated at save time)
+- `STATUS.md` (checkpoint updated if major milestone)
+- Token usage warnings in console output
 
 **Test Commands**:
 
 ```bash
-# Check session file has auto-save metadata
-grep "Auto-Save" .agent/task/current-session-*.md
+# Check session file has manual save metadata
+grep "Manual Save" .agent/task/current-session-*.md
 
-# Verify STATUS.md checkpoint updated
+# Verify STATUS.md checkpoint updated (if milestone)
 grep "Last Checkpoint" STATUS.md
 
 # Check todos file recent update time
@@ -476,26 +477,110 @@ ls -l .agent/task/current-todos.md
 **Failure Detection**:
 
 ```bash
-# Auto-save NOT triggered at 160K
-# Token usage: 165K/200K - No auto-save message seen
+# Agent did NOT save at 140-150K
+# Token usage: 165K/200K - No manual save performed
 
-# Auto-save triggered multiple times
-# Token usage: 170K/200K - Second auto-save message (WRONG!)
+# Agent waited too long
+# Token usage: 180K/200K - Saved too late (risky!)
 
 # Files not updated
 git diff .agent/task/current-session-*.md
-# Should show auto-save metadata addition
+# Should show manual save metadata addition
 ```
 
 **Success Criteria**:
 
-- Auto-save triggers at exactly 160K tokens (±1K tolerance)
-- Triggers one time only per session
-- All 3 files updated (session, todos, STATUS.md)
-- Silent operation with only brief notification
-- Token cost ~450 tokens
-- Manual compaction recommended in message
+- Agent saves proactively at 140-150K tokens
+- Agent recognizes token usage warnings
+- All 3 files updated (session, todos, optional STATUS.md)
+- Brief notification with token count and percentage
+- Token cost ~250-450 tokens
+- 50K+ buffer remaining for safe continued work
+- Manual compaction recommended if needed
 - User can safely continue or compact
+
+---
+
+### Scenario 14: Plan Mode with Persistence
+
+**Purpose**: Verify agent saves plans to current-plan.md after ExitPlanMode approval
+
+**Simulation Steps**:
+
+1. User requests plan creation: "Create a plan for [feature]"
+2. Agent creates detailed plan
+3. Agent calls ExitPlanMode with plan
+4. User approves plan
+5. **VERIFY: Agent immediately saves to `.agent/task/current-plan.md`**
+6. **VERIFY: Agent updates session file noting plan saved**
+7. Agent proceeds with implementation
+8. Simulate context compaction mid-implementation
+9. Verify plan survives in current-plan.md
+10. Verify agent can reference plan file to continue
+
+**Expected Results**:
+
+- [x] Agent creates plan in plan mode
+- [x] Agent shows plan to user with ExitPlanMode
+- [x] User approves plan
+- [x] **Agent IMMEDIATELY saves plan to `.agent/task/current-plan.md`**
+- [x] Plan file contains: overview, steps, dependencies, success criteria
+- [x] Session file updated with "Plan saved, implementing [feature]"
+- [x] Plan file persists across context compaction
+- [x] Agent can read and reference plan file during implementation
+- [x] Single file reused (overwrites previous plan)
+- [x] No timestamped plan files created by main agent
+
+**Files to Check**:
+
+- `.agent/task/current-plan.md` (exists and has current plan)
+- `.agent/task/current-session-[timestamp].md` (mentions plan saved)
+- NO `.agent/task/plan-[topic]-[timestamp].md` files (main agent uses single file)
+
+**Test Commands**:
+
+```bash
+# Verify current-plan.md exists
+ls -l .agent/task/current-plan.md
+
+# Check plan content structure
+grep "## Implementation Steps" .agent/task/current-plan.md
+
+# Verify session file mentions plan
+grep "Plan saved" .agent/task/current-session-*.md
+
+# Verify no timestamped plan files from main agent
+ls .agent/task/plan-*.md 2>/dev/null
+# Should return "No such file" (sub-agents may create timestamped files, main agent doesn't)
+```
+
+**Failure Detection**:
+
+```bash
+# Plan not saved after approval
+ls .agent/task/current-plan.md
+# File doesn't exist or has old plan
+
+# Session file not updated
+grep "Plan saved" .agent/task/current-session-*.md
+# No matches found
+
+# Multiple plan files created (wrong approach)
+ls .agent/task/plan-*.md
+# Shows multiple timestamped files (should use single current-plan.md)
+```
+
+**Success Criteria**:
+
+- Plan saved immediately after ExitPlanMode approval
+- Saved to `.agent/task/current-plan.md` (single reusable file)
+- Plan survives context compaction
+- Agent can reference plan during implementation
+- Session file documents plan-saving
+- No clutter from multiple timestamped plan files (from main agent)
+- Implementation proceeds using saved plan
+
+**Note**: Sub-agents (expert agents) may create timestamped plan files for their specialized work. This scenario tests the main agent's plan-saving behavior.
 
 ---
 

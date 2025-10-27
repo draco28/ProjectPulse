@@ -424,6 +424,8 @@ git checkout --theirs .agent/task/current-session-20251027-0830-alt.md
 
 ---
 
+## ⚠️ Manual Save Guidance**CRITICAL: No automatic saves - manual monitoring required**### When to Manually Save Progress**Token thresholds**:- **140-150K tokens (70-75%)**: ⚠️ **WARNING** - Save soon- **150-180K tokens (75-90%)**: 🟡 **CAUTION** - Save frequently- **180K+ tokens (90%+)**: 🔴 **DANGER** - Save immediately- **~200K tokens**: 💥 **CRITICAL** - Auto-compaction imminent**Save triggers**:1. **Before reaching 150K tokens** - Check after major steps2. **After significant milestones** - Component complete, tests passing3. **Before risky operations** - Large refactorings, multi-file changes4. **Before long operations** - Complex debugging, extensive analysis**Manual save procedure**:1. Monitor token warnings: "Token usage: X/200000"2. When approaching 140-150K, decide to save3. Update all three files: - current-session-[timestamp].md (add progress note) - current-todos.md (mark completed tasks) - STATUS.md (add checkpoint if milestone)4. Brief notification to user5. Continue work with token buffer**Why manual vs automatic**:- Allows conscious decision-making about save timing- Aligns saves with natural work boundaries- Prevents mid-task saves that might lose context- Provides 50K+ token buffer after save---
+
 ## 🔐 Best Practices
 
 ### 1. **Always Create New Session File at Session Start**
