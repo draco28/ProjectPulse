@@ -69,9 +69,6 @@
     ],
     "**/*.{json,md,yml,yaml}": [
       "prettier --write"
-    ],
-    "**/*.prisma": [
-      "prettier --write"
     ]
   },
   "packageManager": "pnpm@8.15.0"
