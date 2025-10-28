@@ -1,9 +1,64 @@
 # Moksha DevHub - Development Plan
 
-**Version:** 1.3
-**Last Updated:** 2025-10-28 (Phase 3 Days 5-6 Complete - Five Pages Implemented)
+**Version:** 1.4
+**Last Updated:** 2025-10-28 (Audit fixes applied - Status conflicts resolved, theme contradictions marked)
 **Status:** Active Development - Phase 3 Testing & QA
 **Project Root:** `F:\Web_Projects\AI_HUB`
+
+---
+
+## 📝 DOCUMENT MAINTENANCE PROTOCOL
+
+**⚠️ CRITICAL: Follow this protocol to prevent contradictions and keep documentation in sync**
+
+### Update These 3 Files Together
+
+**ALWAYS update these files as a unit after EVERY completion:**
+
+1. **[STATUS.md](../STATUS.md)** - THE single source of truth for current progress
+   - Update "Last Completed" section
+   - Update "Current Phase" section
+   - Update "Git Status" if branch changed
+
+2. **This file (DEVELOPMENT_PLAN.md) - [🚨 CURRENT STATUS](#-current-status-updated-after-each-completion) section**
+   - Update header (Last Completed, Current Phase, Progress percentage)
+   - Keep in perfect sync with STATUS.md
+
+3. **Completion Documents** - Create `COMPLETION_[PHASE].md` for every milestone
+   - Example: COMPLETION_PHASE3_DAYS_5_6_FIVE_PAGES.md
+   - Use as historical reference
+
+### DO NOT
+
+- ❌ Create new "Current Status" sections (use the one at top only)
+- ❌ Leave outdated status markers (🔴 NOT STARTED when work is complete)
+- ❌ Mix completed work with future plans in the same section
+- ❌ Add contradictory information (check existing content first)
+- ❌ Reference deprecated mockups or removed features without marking as "SUPERSEDED"
+
+### Marking Superseded Content
+
+When a plan or implementation is replaced:
+
+```markdown
+**⚠️ SUPERSEDED:** This section was replaced by [New Approach](#link-to-new-section)
+**Status:** ✅ COMPLETED via [alternative method]
+**For current implementation, see:** [correct section](#link)
+```
+
+### Weekly Audit Checklist
+
+Run this check before committing major changes:
+
+- [ ] STATUS.md and DEVELOPMENT_PLAN.md CURRENT STATUS match exactly
+- [ ] No conflicting status declarations exist (search for "NOT STARTED", "In Progress")
+- [ ] All completed phases marked with ✅ and completion doc linked
+- [ ] Superseded content clearly marked with ⚠️ warnings
+- [ ] All mockup/theme references are current (Coral theme only for MVP)
+
+**Audit History:**
+
+- 2025-10-28: Gemini audit revealed status conflicts, theme contradictions, unrealistic timelines → Fixed
 
 ---
 
@@ -264,7 +319,8 @@ All development MUST align with these non-negotiable rules from [AGENTS.md](../A
 - **[../AGENTS.md](../AGENTS.md)** - Agent system rules and workflow
 - **[../CLAUDE.md](../CLAUDE.md)** - Claude Code integration guide
 - **[../.claude/SKILLS_INDEX.md](../.claude/SKILLS_INDEX.md)** - Available skills catalog
-- **[../mockups/](../mockups/)** - Complete design system (7 neon mockups) ⭐ **NEW!**
+- **[../mockups/Default theme/](../mockups/Default theme/)** - Complete design system (7 Coral theme mockups) ⭐
+- **[../theme/](../theme/)** - Coral theme implementation (CSS, Tailwind config, component reference)
 
 ### When to Reference Each
 
@@ -779,18 +835,17 @@ grep "03-MCP-" docs/*.md
 - Created UserPreferences table with theme persistence
 - Verified PostgreSQL connection successful
 
-✅ **Multi-Theme System Integrated** ⭐ NEW
+✅ **Multi-Theme System Integrated** ⚠️ **SUPERSEDED - Removed in Week 1.5 Phase 1**
 
-- 4 complete themes: Desert Stone (default), Neon Vibes, Earthy, Dark Neumorphic Coral
-- Theme-specific CSS with unique visual treatments:
-  - Desert Stone: Floating neumorphic popout effects
-  - Neon Vibes: Neon glows with pulse animations
-  - Earthy: Muted tones, subtle effects
-  - Dark Neumorphic Coral: Boxy raised effects, hexagon backgrounds
-- ThemeProvider React Context for global theme state
-- ThemeSwitcher component with dropdown UI and visual previews
+**Note:** This multi-theme implementation was later removed and replaced with a single fixed Coral theme during Week 1.5 Phase 1 (Theme Foundation Removal). See [Week 1.5: UI Theme Transformation](#week-15-ui-theme-transformation-8-days---prerequisite-for-week-2) below for the current theme strategy.
+
+**Historical Implementation (for reference only):**
+
+- 4 complete themes were implemented: Desert Stone (default), Neon Vibes, Earthy, Dark Neumorphic Coral
+- Theme-specific CSS with unique visual treatments
+- ThemeProvider React Context + ThemeSwitcher component
 - localStorage + database dual persistence
-- Fixed bug: Removed early return in ThemeProvider (!mounted issue)
+- **Decision:** Multi-theme system deemed out of scope for MVP, removed in favor of single Coral theme
 
 ✅ **Application Running**
 
@@ -879,9 +934,11 @@ grep "03-MCP-" docs/*.md
 
 ---
 
-#### Next Step
+#### Next Step (Historical - COMPLETED)
 
-**Day 3-4:** Replace demo page with real Dashboard from `01-dashboard-neon.html` supporting all 4 themes
+**Day 3-4 (ORIGINAL PLAN):** Replace demo page with real Dashboard from `01-dashboard-neon.html` supporting all 4 themes
+
+**⚠️ NOTE:** This plan was later superseded by Week 1.5 UI Transformation, which implemented the Dashboard using the **Dark Neumorphic Coral theme only** from `mockups/Default theme/01-dashboard-dark-neumorphic-coral.html`. Multi-theme support was removed in Week 1.5 Phase 1.
 
 ---
 
@@ -1039,139 +1096,14 @@ grep "03-MCP-" docs/*.md
        └── migrations/
    ```
 
-5. **Create Day 0 implementation files** ⭐
+5. **Day 0 implementation files (already exist)** ✅
 
-   **From Day 0 remediation - these fix Golden Rule violations:**
+   **Note:** The following files were created during Day 0 remediation (see [Day 0: Pre-MVP Architecture Remediation](#day-0-pre-mvp-architecture-remediation-blocking) section):
+   - ✅ `lib/settings.ts` - Database-backed configuration (fixes [R-DATA-001])
+   - ✅ `lib/process-executor.ts` - Secure command execution with validation
+   - ✅ `app/api/_lib/validation.ts` - Centralized Zod schemas and error handling
 
-   a. **Create `lib/settings.ts`** (fixes [R-DATA-001]):
-
-   ```typescript
-   import { prisma } from './prisma';
-
-   export async function getSetting<T>(key: string, defaultValue: T): Promise<T> {
-     const setting = await prisma.setting.findUnique({
-       where: { key },
-     });
-     return setting ? (setting.value as T) : defaultValue;
-   }
-
-   export async function setSetting(key: string, value: any, category: string): Promise<void> {
-     await prisma.setting.upsert({
-       where: { key },
-       update: { value, updatedAt: new Date() },
-       create: { key, value, category },
-     });
-   }
-   ```
-
-   b. **Create `lib/process-executor.ts`** (fixes security vulnerability):
-
-   ```typescript
-   import { spawn } from 'child_process';
-
-   interface ExecutionOptions {
-     allowedCommands: string[];
-     timeout?: number;
-     maxOutputSize?: number;
-     env?: NodeJS.ProcessEnv;
-   }
-
-   export async function executeSecurely(
-     command: string,
-     args: string[],
-     options: ExecutionOptions
-   ): Promise<{ stdout: string; stderr: string }> {
-     // 1. Validate command against allowlist
-     if (!options.allowedCommands.includes(command)) {
-       throw new Error(`Command not allowed: ${command}`);
-     }
-
-     // 2. Validate args (no shell metacharacters)
-     const argsValid = args.every((arg) => !/[;&|`$(){}[\]<>]/.test(arg));
-     if (!argsValid) {
-       throw new Error('Invalid characters in arguments');
-     }
-
-     // 3. Use spawn with shell:false (prevents command injection)
-     const child = spawn(command, args, {
-       shell: false,
-       timeout: options.timeout || 60000,
-       env: options.env,
-     });
-
-     // 4. Capture output with size limits
-     let stdout = '';
-     let stderr = '';
-     const maxSize = options.maxOutputSize || 1024 * 1024;
-
-     child.stdout.on('data', (data) => {
-       stdout += data;
-       if (stdout.length > maxSize) {
-         child.kill();
-         throw new Error('Output size limit exceeded');
-       }
-     });
-
-     child.stderr.on('data', (data) => {
-       stderr += data;
-       if (stderr.length > maxSize) {
-         child.kill();
-         throw new Error('Error output size limit exceeded');
-       }
-     });
-
-     // 5. Promise-based execution
-     return new Promise((resolve, reject) => {
-       child.on('close', (code) => {
-         if (code === 0) {
-           resolve({ stdout, stderr });
-         } else {
-           reject(new Error(`Command exited with code ${code}`));
-         }
-       });
-
-       child.on('error', reject);
-     });
-   }
-   ```
-
-   c. **Create `app/api/_lib/validation.ts`** (centralized validation):
-
-   ```typescript
-   import { z } from 'zod';
-
-   // Shared schemas (reuse across API, UI, MCP)
-   export const issueSchema = z.object({
-     projectId: z.number().int().positive(),
-     title: z.string().min(1).max(500),
-     description: z.string().optional(),
-     status: z.enum(['open', 'in_progress', 'done', 'closed']).default('open'),
-     priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
-     module: z.string().optional(),
-     customFields: z.record(z.unknown()).optional(),
-   });
-
-   export const commentSchema = z.object({
-     content: z.string().min(1),
-   });
-
-   export const searchSchema = z.object({
-     query: z.string().min(1),
-     type: z.enum(['fulltext', 'semantic', 'hybrid']).default('hybrid'),
-     limit: z.number().int().min(1).max(100).default(20),
-   });
-
-   // Standard error response
-   export interface ApiError {
-     error: string;
-     details?: any;
-     code?: string;
-   }
-
-   export function createErrorResponse(error: string, status: number, details?: any): Response {
-     return Response.json({ error, details } as ApiError, { status });
-   }
-   ```
+   **These files already exist - no action needed for Day 2.**
 
 6. **Create Dockerfile for production**
    ```dockerfile
@@ -1613,20 +1545,34 @@ pnpm tsx -e "import { prisma } from './lib/prisma'; prisma.issue.findMany().then
 
 ---
 
-### Days 3-4: Real Dashboard Implementation (8-13 hours) 🟡 IN PROGRESS
+### Days 3-4: Real Dashboard Implementation (8-13 hours) ⚠️ **SUPERSEDED**
 
-**Agent:** devhub-fullstack (UI specialist)
-**Reference Documents:**
+**⚠️ CRITICAL: This entire section was SUPERSEDED by [Week 1.5: UI Theme Transformation](#week-15-ui-theme-transformation-8-days---prerequisite-for-week-2)**
 
-- [mockups/01-dashboard-neon.html](../mockups/01-dashboard-neon.html) - Structure reference ⭐
-- [mockups/dashboard-desert-stone-neumorphic.html](../mockups/dashboard-desert-stone-neumorphic.html) - Desert theme
-- [mockups/dashboard-dark-neumorphic-coral.html](../mockups/dashboard-dark-neumorphic-coral.html) - Coral theme
-- [mockups/DESIGN_DIRECTION.md](../mockups/DESIGN_DIRECTION.md) - Design tokens
-- [04-UI-ARCHITECTURE.md](04-UI-ARCHITECTURE.md) - UI architecture
+**Status:** ✅ COMPLETED via Week 1.5 (October 25-28, 2025) using **Coral theme only**
 
-**Skills:** None (component building)
+**What Actually Happened:**
 
-**Status:** 🟡 In Progress - Awaiting execution
+- Week 1 Day 2 implemented multi-theme system (Desert, Neon, Earthy, Coral)
+- This Days 3-4 plan was written to support all 4 themes
+- **DECISION CHANGE:** Multi-theme deemed out of scope for MVP
+- Week 1.5 removed multi-theme, locked to **Dark Neumorphic Coral** only
+- Dashboard was re-implemented following `mockups/Default theme/01-dashboard-dark-neumorphic-coral.html`
+
+**For current implementation, see:** [Week 1.5 Phase 2 & 3](#week-15-ui-theme-transformation-8-days---prerequisite-for-week-2)
+
+---
+
+### Days 3-4 ORIGINAL PLAN (Historical Reference Only)
+
+**Original Agent:** devhub-fullstack (UI specialist)
+**Original Reference Documents:**
+
+- [mockups/01-dashboard-neon.html](../mockups/01-dashboard-neon.html) - Structure reference (⚠️ deprecated)
+- [mockups/dashboard-desert-stone-neumorphic.html](../mockups/dashboard-desert-stone-neumorphic.html) - Desert theme (⚠️ removed)
+- [mockups/dashboard-dark-neumorphic-coral.html](../mockups/dashboard-dark-neumorphic-coral.html) - Coral theme (✅ USED in Week 1.5)
+
+**Original Status:** 🟡 In Progress - Awaiting execution (CANCELLED in favor of Week 1.5 approach)
 
 ---
 
@@ -2336,10 +2282,16 @@ structure, supporting all 4 themes with unique visual treatments.
 
 **🎨 Goal:** Transform entire UI to Dark Neumorphic Coral theme matching pixel-perfect mockups
 
-**Status:** 🔴 NOT STARTED (Week 1 Complete, ready to begin)
-**Duration:** 8 days (4 phases)
-**Priority:** BLOCKING - Must complete before Week 2 features
-**Detailed Plan:** **[UI_TRANSFORMATION_PLAN.md](UI_TRANSFORMATION_PLAN.md)** ⭐ READ THIS FIRST
+**Status:** 🟡 IN PROGRESS - Phases 1-3 COMPLETE, Phase 4 (Testing & QA) NEXT ✅
+**Completed Phases:**
+
+- ✅ Phase 1: Theme Foundation Removal (Day 1) - COMPLETE
+- ✅ Phase 2: Component Library Transformation (Days 2-3) - COMPLETE
+- ✅ Phase 3: Page Transformation (Days 4-7) - COMPLETE (5 pages + 6 API routes)
+- 🔄 Phase 4: Testing & QA - CURRENT (see CURRENT STATUS section above for details)
+  **Duration:** 8 days (4 phases)
+  **Priority:** BLOCKING - Must complete before Week 2 features
+  **Detailed Plan:** **[UI_TRANSFORMATION_PLAN.md](UI_TRANSFORMATION_PLAN.md)** ⭐ READ THIS FIRST
 
 ---
 
@@ -3156,7 +3108,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
 **Agent:** devhub-fullstack (UI specialist)
 **Skill:** test-driven-development-web.md
-**Reference:** [mockups/01-dashboard-neon.html](../mockups/01-dashboard-neon.html), [mockups/02-issues-neon.html](../mockups/02-issues-neon.html), [mockups/07-command-palette-neon.html](../mockups/07-command-palette-neon.html), [04-UI-ARCHITECTURE.md](04-UI-ARCHITECTURE.md)
+**Reference:** [mockups/Default theme/01-dashboard-dark-neumorphic-coral.html](../mockups/Default theme/01-dashboard-dark-neumorphic-coral.html), [mockups/Default theme/02-issues-dark-neumorphic-coral.html](../mockups/Default theme/02-issues-dark-neumorphic-coral.html), [mockups/Default theme/07-command-palette-dark-neumorphic-coral.html](../mockups/Default theme/07-command-palette-dark-neumorphic-coral.html), [04-UI-ARCHITECTURE.md](04-UI-ARCHITECTURE.md)
 
 **Note:** UI pages can be built **in parallel** with API development using mock data initially, then connected to APIs when ready (see [WORKFLOW_ARCHITECTURE.md](WORKFLOW_ARCHITECTURE.md) for coordination strategy).
 
@@ -3165,7 +3117,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 ##### 4a. Dashboard Page
 
 **File:** `app/(dashboard)/page.tsx`
-**Mockup Reference:** [mockups/01-dashboard-neon.html](../mockups/01-dashboard-neon.html)
+**Mockup Reference:** [mockups/Default theme/01-dashboard-dark-neumorphic-coral.html](../mockups/Default theme/01-dashboard-dark-neumorphic-coral.html)
+**Note:** ✅ IMPLEMENTED in Week 1.5 Phase 2-3
 
 **Features:**
 
@@ -3253,7 +3206,8 @@ export default async function DashboardPage() {
 ##### 4b. Issues Page (Kanban Board)
 
 **File:** `app/(dashboard)/issues/page.tsx`
-**Mockup Reference:** [mockups/02-issues-neon.html](../mockups/02-issues-neon.html)
+**Mockup Reference:** [mockups/Default theme/02-issues-dark-neumorphic-coral.html](../mockups/Default theme/02-issues-dark-neumorphic-coral.html)
+**Note:** ✅ IMPLEMENTED in Week 1.5 Phase 3 (Issues List page with filtering and search)
 
 **Features:**
 
@@ -3379,7 +3333,8 @@ export function IssueCard({ id, title, priority, status, commentsCount }: IssueC
 ##### 4c. Command Palette (⌘K)
 
 **File:** `components/CommandPalette.tsx` (Global Component)
-**Mockup Reference:** [mockups/07-command-palette-neon.html](../mockups/07-command-palette-neon.html)
+**Mockup Reference:** [mockups/Default theme/07-command-palette-dark-neumorphic-coral.html](../mockups/Default theme/07-command-palette-dark-neumorphic-coral.html)
+**Note:** ✅ IMPLEMENTED in Week 1.5 Phase 3 Days 5-6 (Command Palette with Cmd+K, useReducer state machine)
 
 **Features:**
 
@@ -4271,139 +4226,40 @@ pnpm test:e2e               # E2E tests
 
 ## 📍 Continuation Guide
 
-**Purpose:** Enable seamless continuation across conversations
+**⚠️ NOTE: For current project status, see the [🚨 CURRENT STATUS](#-current-status-updated-after-each-completion) section at the top of this document.**
 
-### Current Progress Tracking
+**Purpose:** This section provides guidance for seamless continuation across conversations.
 
-**Last Updated:** 2025-10-24 (13:05 IST)
+### For New Sessions - Start Here
 
-**Current Phase:** ✅ Week 1 Day 1 Complete → 🔄 Week 1 Day 2 Starting
+**ALWAYS check these 3 files IN ORDER:**
 
-**Completed:**
+1. **[STATUS.md](../STATUS.md)** - THE source of truth for current progress
+2. **[🚨 CURRENT STATUS](#-current-status-updated-after-each-completion)** section (top of this file) - Detailed current phase context
+3. **This DEVELOPMENT_PLAN.md** - Full development roadmap
 
-- ✅ All documentation reviewed (docs/00-INDEX.md through docs/07-QUICK-START.md)
-- ✅ Agent system configured (.claude/ agents + skills)
-- ✅ Docker MCP server exists (apps/mcp-docker/)
-- ✅ Development plan created (this file)
-- ✅ **Week 1 Day 1: Monorepo & Docker Configuration**
-  - ✅ Created package.json (root workspace with pnpm scripts)
-  - ✅ Created pnpm-workspace.yaml (monorepo configuration)
-  - ✅ Created .env.example (environment template)
-  - ✅ Created .env (actual configuration with secure password)
-  - ✅ Created .gitignore (comprehensive ignore rules)
-  - ✅ Created docker-compose.yml (PostgreSQL with pgvector)
-  - ✅ Created scripts/init-db.sql (extension setup)
-  - ✅ PostgreSQL container running healthy
-  - ✅ Extensions installed: vector (0.8.1), pg_trgm (1.6), uuid-ossp (1.1)
-  - ✅ Database accessible and verified
-  - ✅ All quality gates passed
+### Next Conversation Starter Template
 
-**In Progress:**
+**If starting a fresh conversation, use this:**
 
-- 🔄 None (ready to start Week 1 Day 2)
-
-**Blocked:**
-
-- ❌ None
-
-### Next Conversation Starter
-
-**If starting fresh conversation, use this:**
-
-> "I'm continuing Moksha DevHub development. Last progress: [check Current Phase above].
+> "I'm continuing Moksha DevHub development.
 >
-> Please review `docs/DEVELOPMENT_PLAN.md` and tell me:
+> Please:
 >
-> 1. What was the last completed task?
-> 2. What's the next task to start?
-> 3. Which agent should I use?
-> 4. Which skills apply?
->
-> Reference [R-DOC-001] through [R-PRIVACY-001] from AGENTS.md."
+> 1. Read STATUS.md to see current progress
+> 2. Read CURRENT STATUS section in docs/DEVELOPMENT_PLAN.md
+> 3. Tell me what's the next task and which agent/skills to use
+> 4. Reference [R-DOC-001] through [R-PRIVACY-001] from AGENTS.md if applicable"
 
-### Agent Handoff Notes
+### Progress Markers Legend
 
-**Use this format when ending a session:**
-
-```markdown
-## Session End Summary
-
-**Date:** YYYY-MM-DD
-**Phase:** Week X, Day Y
-**Last Agent:** devhub-[agent-name]
-**Last Skill:** skill-name.md
-
-**Completed This Session:**
-
-- [ ] Task 1
-- [ ] Task 2
-
-**Next Steps:**
-
-1. Next immediate task
-2. Agent to use
-3. Expected output
-
-**Open Issues:**
-
-- Any blockers or technical debt
-
-**Files Modified:**
-
-- path/to/file1.ts
-- path/to/file2.tsx
-```
-
-### Progress Markers
-
-Use these to mark progress in this file:
+Use these throughout this document:
 
 - ✅ **Completed** - Task fully done, tests pass, quality gate passed
 - 🔄 **In Progress** - Currently working on
 - ⏸️ **Paused** - Started but temporarily blocked
-- ❌ **Blocked** - Cannot proceed until X is resolved
+- ❌ **Blocked** - Cannot proceed until dependency resolved
 - 📝 **Planned** - Not started yet
-
-### Weekly Progress Updates
-
-**Update this section at end of each week:**
-
-#### Week 1: Foundation Setup
-
-- **Status:** 🔄 In Progress (Day 1/3 Complete)
-- **Completed:**
-  - ✅ Day 1: Monorepo & Docker Configuration (2025-10-24)
-    - Docker Compose with PostgreSQL 16 + pgvector
-    - Workspace configuration (pnpm)
-    - Environment setup (.env, .gitignore)
-    - Extensions: vector (0.8.1), pg_trgm (1.6), uuid-ossp (1.1)
-    - Health checks passing, database verified
-- **Next:** Day 2 - Next.js Application Bootstrap
-  - Create apps/web/ directory structure
-  - Initialize Next.js with TypeScript, Tailwind, App Router
-  - Install dependencies (Prisma, React, testing frameworks)
-  - Configure Jest and Playwright
-  - Create Day 0 implementation files (lib/settings.ts, lib/process-executor.ts, app/api/\_lib/validation.ts)
-  - Create Dockerfile
-  - Quality Gate: Next.js builds successfully
-
-#### Week 2: Issue Tracker
-
-- **Status:** 📝 Planned
-- **Completed:** -
-- **Next:** Week 1 must complete first
-
-#### Week 3: Search
-
-- **Status:** 📝 Planned
-- **Completed:** -
-- **Next:** Week 2 must complete first
-
-#### Week 4: MCP
-
-- **Status:** 📝 Planned
-- **Completed:** -
-- **Next:** Week 3 must complete first
 
 ---
 
