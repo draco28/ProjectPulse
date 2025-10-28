@@ -1,8 +1,8 @@
 # Quick Start for Every Session
 
-**Version:** 1.0
-**Created:** 2025-10-28
-**Purpose:** User guide for enforcing mandatory session protocol
+**Version:** 2.0
+**Last Updated:** 2025-10-28
+**Purpose:** User guide for enforcing mandatory session protocol with token budget management
 
 ---
 
@@ -30,7 +30,7 @@ ENFORCE:
 - ✅ Step 1: Initialize session
 - ✅ Step 2: Save plan BEFORE code
 - ✅ Step 3: Consult experts
-- ✅ Step 4: Checkpoints every 15K tokens
+- ✅ Step 4: Checkpoints every 15K tokens (STOP at 150K for wrap-up decision)
 - ✅ Step 5: Post-completion workflow
 
 Confirm each step explicitly. If you skip ANY step, I will stop you.
@@ -97,7 +97,65 @@ Current progress: [X]/[Y] tasks complete ([Z]%)
 Next checkpoint: [X+15]K tokens
 ```
 
-**Expected at:** 15K, 30K, 45K, 60K, 75K, 90K, 105K, 120K, 135K, 150K tokens
+**Expected at:**
+
+- 15K, 30K, 45K, 60K, 75K, 90K, 105K, 120K, 135K tokens (progress checkpoints)
+- 150K tokens (⚠️ **CRITICAL** - wrap-up decision required)
+
+**At 150K tokens, I must provide wrap-up options:**
+
+```
+⚠️ Context budget at 75% (150K/200K used). Auto-compaction risk at 160K.
+
+Options:
+A) Complete current task (estimate: X tokens) and wrap up
+B) Stop here, document progress, commit for next session
+
+Which option?
+```
+
+#### ⚠️ Step 4b: Context Budget Management (Auto-Compaction Prevention)
+
+**Problem:** Terminal sessions auto-compact at ~160K tokens with lossy compression (brief summaries lose architectural decisions, patterns, file locations).
+
+**Solution:** Explicit wrap-up decision at 150K tokens (75% of budget).
+
+**Required Checkpoint at 150K tokens:**
+
+```
+⚠️ CONTEXT BUDGET WARNING at 150K tokens (75% used)
+
+Auto-compaction risk: ~10K tokens until lossy compression begins.
+
+Current task: [name of current task]
+Estimated completion: [X]K tokens
+
+Options:
+A) Complete current task in ~[X]K tokens, then wrap up (total: ~[150+X]K)
+B) Stop here, document progress, commit for next session
+
+Recommendation: [A/B based on estimate]
+
+Which option do you choose?
+```
+
+**You must respond with "A" or "B"** - I cannot continue without your decision.
+
+**If you choose A:** I complete the current task, then execute Step 5 (post-completion workflow).
+
+**If you choose B:** I immediately:
+
+1. Update current-session.md with progress
+2. Update current-todos.md with task status
+3. Commit all progress
+4. Provide handoff summary for next session
+
+**Why this matters:**
+
+- Auto-compaction at 160K+ loses context (brief summaries only)
+- Session files preserve context across compaction
+- Clean stopping points prevent mid-task interruption
+- 150K gives 40K token buffer for cleanup (docs, commits, sub-agents)
 
 #### ✅ Step 5: Post-Completion
 
@@ -278,7 +336,53 @@ Current progress: 7/12 tasks complete (58%)
 Next checkpoint: 45K tokens
 
 
-[Completes implementation...]
+[Continues implementation...]
+
+✅ CHECKPOINT at 45K tokens: Progress saved
+
+Completed since last checkpoint:
+- Filter component complete
+- Pagination working
+- 2 more tests passing
+
+Current progress: 10/12 tasks complete (83%)
+Next checkpoint: 60K tokens
+
+
+[Completes final tests...]
+
+✅ CHECKPOINT at 150K tokens: Progress saved
+
+Completed since last checkpoint:
+- Final 2 E2E tests complete
+- All quality gates passing
+
+Current progress: 12/12 tasks complete (100%)
+
+⚠️ CONTEXT BUDGET WARNING at 150K tokens (75% used)
+
+Auto-compaction risk: ~10K tokens until lossy compression begins.
+
+Current task: Phase 3 Day 5 complete
+Estimated Step 5 completion: 15K tokens (docs + commits + sub-agents)
+
+Options:
+A) Complete Step 5 post-completion workflow in ~15K tokens (total: ~165K)
+B) Stop here, document progress, commit for next session
+
+Recommendation: A (well within budget, clean phase completion)
+
+Which option do you choose?
+```
+
+### You Choose: "A"
+
+```
+Proceeding with Option A - completing Step 5 post-completion workflow.
+
+Estimated token usage: 150K current + 15K Step 5 = 165K total (82.5% of budget)
+
+[Executes Step 5...]
 ```
 
 ### 6. I Complete with Step 5 Confirmation
@@ -356,6 +460,30 @@ If files are missing:
 
 ---
 
+### Q: You reached 150K tokens but didn't ask for wrap-up decision
+
+**A:** I violated Step 4b (context budget management). Stop me:
+
+> "You're at 150K tokens. Provide wrap-up options A/B as required by Step 4b. Do NOT continue without my decision."
+
+---
+
+### Q: You're at 175K tokens and still coding
+
+**A:** I ignored the 150K checkpoint. Stop me immediately:
+
+> "You exceeded 150K without wrap-up decision. Stop ALL implementation. Update session/todos files and commit RIGHT NOW."
+
+---
+
+### Q: You said "just a bit more" at 165K tokens
+
+**A:** I'm risking auto-compaction. Hard stop:
+
+> "No. Auto-compaction risk at 160K+. Complete Step 5 post-completion workflow RIGHT NOW or stop and commit."
+
+---
+
 ## Common Violations
 
 ### Violation 1: Plan Not Saved After Approval
@@ -415,6 +543,20 @@ If files are missing:
 **Fix:** Stop me and demand:
 
 > "Complete the full Step 5 post-completion workflow from the protocol before claiming done."
+
+---
+
+### Violation 6: Ignored Context Budget Warning at 150K
+
+**Symptom:** I'm at 165K+ tokens, never asked for wrap-up decision at 150K
+
+**What should happen:** At 150K, I must present Options A/B and wait for your decision
+
+**Fix:** Stop me and demand:
+
+> "You ignored the 150K checkpoint. Provide wrap-up options A/B RIGHT NOW. Do not continue implementation without my decision."
+
+**Critical:** This prevents lossy auto-compaction that loses architectural context.
 
 ---
 
