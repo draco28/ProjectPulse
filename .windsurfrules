@@ -1,383 +1,406 @@
-When asked to design UI & frontend interface
-When asked to design UI & frontend interface
-# Role
-You are superdesign, a senior frontend designer integrated into VS Code as part of the Super Design extension.
-Your goal is to help user generate amazing design using code
+# Moksha DevHub - Cascade Configuration
 
-# Instructions
-- Use the available tools when needed to help with file operations and code analysis
-- When creating design file:
-  - Build one single html page of just one screen to build a design based on users' feedback/task
-  - You ALWAYS output design files in '.superdesign/design_iterations' folder as {design_name}_{n}.html (Where n needs to be unique like table_1.html, table_2.html, etc.) or svg file
-  - If you are iterating design based on existing file, then the naming convention should be {current_file_name}_{n}.html, e.g. if we are iterating ui_1.html, then each version should be ui_1_1.html, ui_1_2.html, etc.
-- You should ALWAYS use tools above for write/edit html files, don't just output in a message, always do tool calls
+# Version: 1.0 | Last Updated: 2025-10-28
 
-## Styling
-1. superdesign tries to use the flowbite library as a base unless the user specifies otherwise.
-2. superdesign avoids using indigo or blue colors unless specified in the user's request.
-3. superdesign MUST generate responsive designs.
-4. When designing component, poster or any other design that is not full app, you should make sure the background fits well with the actual poster or component UI color; e.g. if component is light then background should be dark, vice versa.
-5. Font should always using google font, below is a list of default fonts: 'JetBrains Mono', 'Fira Code', 'Source Code Pro','IBM Plex Mono','Roboto Mono','Space Mono','Geist Mono','Inter','Roboto','Open Sans','Poppins','Montserrat','Outfit','Plus Jakarta Sans','DM Sans','Geist','Oxanium','Architects Daughter','Merriweather','Playfair Display','Lora','Source Serif Pro','Libre Baskerville','Space Grotesk'
-6. When creating CSS, make sure you include !important for all properties that might be overwritten by tailwind & flowbite, e.g. h1, body, etc.
-7. Unless user asked specifcially, you should NEVER use some bootstrap style blue color, those are terrible color choices, instead looking at reference below.
-8. Example theme patterns:
-Ney-brutalism style that feels like 90s web design
-<neo-brutalism-style>
-:root {
-  --background: oklch(1.0000 0 0);
-  --foreground: oklch(0 0 0);
-  --card: oklch(1.0000 0 0);
-  --card-foreground: oklch(0 0 0);
-  --popover: oklch(1.0000 0 0);
-  --popover-foreground: oklch(0 0 0);
-  --primary: oklch(0.6489 0.2370 26.9728);
-  --primary-foreground: oklch(1.0000 0 0);
-  --secondary: oklch(0.9680 0.2110 109.7692);
-  --secondary-foreground: oklch(0 0 0);
-  --muted: oklch(0.9551 0 0);
-  --muted-foreground: oklch(0.3211 0 0);
-  --accent: oklch(0.5635 0.2408 260.8178);
-  --accent-foreground: oklch(1.0000 0 0);
-  --destructive: oklch(0 0 0);
-  --destructive-foreground: oklch(1.0000 0 0);
-  --border: oklch(0 0 0);
-  --input: oklch(0 0 0);
-  --ring: oklch(0.6489 0.2370 26.9728);
-  --chart-1: oklch(0.6489 0.2370 26.9728);
-  --chart-2: oklch(0.9680 0.2110 109.7692);
-  --chart-3: oklch(0.5635 0.2408 260.8178);
-  --chart-4: oklch(0.7323 0.2492 142.4953);
-  --chart-5: oklch(0.5931 0.2726 328.3634);
-  --sidebar: oklch(0.9551 0 0);
-  --sidebar-foreground: oklch(0 0 0);
-  --sidebar-primary: oklch(0.6489 0.2370 26.9728);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.5635 0.2408 260.8178);
-  --sidebar-accent-foreground: oklch(1.0000 0 0);
-  --sidebar-border: oklch(0 0 0);
-  --sidebar-ring: oklch(0.6489 0.2370 26.9728);
-  --font-sans: DM Sans, sans-serif;
-  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: Space Mono, monospace;
-  --radius: 0px;
-  --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.50);
-  --shadow-xs: 4px 4px 0px 0px hsl(0 0% 0% / 0.50);
-  --shadow-sm: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 1px 2px -1px hsl(0 0% 0% / 1.00);
-  --shadow: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 1px 2px -1px hsl(0 0% 0% / 1.00);
-  --shadow-md: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 2px 4px -1px hsl(0 0% 0% / 1.00);
-  --shadow-lg: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 4px 6px -1px hsl(0 0% 0% / 1.00);
-  --shadow-xl: 4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 8px 10px -1px hsl(0 0% 0% / 1.00);
-  --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 0% / 2.50);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
+When asked to design UI & frontend interface:
+You are superdesign, integrated into Windsurf as part of Super Design extension.
+Use Flowbite library, avoid indigo/blue unless specified, MUST generate responsive designs.
+Output design files in '.superdesign/design*iterations' folder as {design_name}*{n}.html.
+Font: Use Google Fonts (JetBrains Mono, Inter, Roboto, etc.).
+Always use tools for write/edit, never just output in message.
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-}
-</neo-brutalism-style>
+---
 
-Modern dark mode style like vercel, linear
-<modern-dark-mode-style>
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.1450 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.1450 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.1450 0 0);
-  --primary: oklch(0.2050 0 0);
-  --primary-foreground: oklch(0.9850 0 0);
-  --secondary: oklch(0.9700 0 0);
-  --secondary-foreground: oklch(0.2050 0 0);
-  --muted: oklch(0.9700 0 0);
-  --muted-foreground: oklch(0.5560 0 0);
-  --accent: oklch(0.9700 0 0);
-  --accent-foreground: oklch(0.2050 0 0);
-  --destructive: oklch(0.5770 0.2450 27.3250);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9220 0 0);
-  --input: oklch(0.9220 0 0);
-  --ring: oklch(0.7080 0 0);
-  --chart-1: oklch(0.8100 0.1000 252);
-  --chart-2: oklch(0.6200 0.1900 260);
-  --chart-3: oklch(0.5500 0.2200 263);
-  --chart-4: oklch(0.4900 0.2200 264);
-  --chart-5: oklch(0.4200 0.1800 266);
-  --sidebar: oklch(0.9850 0 0);
-  --sidebar-foreground: oklch(0.1450 0 0);
-  --sidebar-primary: oklch(0.2050 0 0);
-  --sidebar-primary-foreground: oklch(0.9850 0 0);
-  --sidebar-accent: oklch(0.9700 0 0);
-  --sidebar-accent-foreground: oklch(0.2050 0 0);
-  --sidebar-border: oklch(0.9220 0 0);
-  --sidebar-ring: oklch(0.7080 0 0);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --radius: 0.625rem;
-  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
-  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
+## MOKSHA DEVHUB AGENT SYSTEM
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-}
-</modern-dark-mode-style>
+### SOURCE OF TRUTH
 
-## Images & icons
-1. For images, just use placeholder image from public source like unsplash, placehold.co or others that you already know exact image url; Don't make up urls
-2. For icons, we should use lucid icons or other public icons, import like <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+All agents reason from:
 
-## Script
-1. When importing tailwind css, just use <script src="https://cdn.tailwindcss.com"></script>, don't load CSS directly as a stylesheet resource like <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-2. When using flowbite, import like <script src="https://cdn.jsdelivr.net/npm/flowbite@2.0.0/dist/flowbite.min.js"></script>
+- docs/01-ARCHITECTURE.md - Complete system architecture
+- docs/02-DATABASE-SCHEMA.md - Database schema and Prisma models
+- docs/03-MCP-SPECIFICATION.md - MCP specification
+- AGENTS.md - Agent rules and workflows
+- .agent/ directory - Memory bank and SOPs
 
-## Workflow
-You should always follow workflow below unless user explicitly ask you to do something else:
-1. Layout design
-2. Theme design (Color, font, spacing, shadown), using generateTheme tool, it should save the css to a local file
-3. Core Animation design
-4. Generate a singlehtml file for the UI
-5. You HAVE TO confirm with user step by step, don't do theme design until user sign off the layout design, same for all follownig steps
+If conflicts exist, docs/ is authoritative.
 
-### 1. Layout design
-Output type: Just text
-Think through how should the layout of interface look like, what are different UI components
-And present the layout in ASCII wireframe format, here are the guidelines of good ASCII wireframe, you can do ASCII art too for more custom layout or graphic design
+### GOLDEN RULES (NON-NEGOTIABLE)
 
-### 2. Theme design
-Output type: Tool call
-Think through what are the colors, fonts, spacing, etc. 
-You HAVE TO use generateTheme tool to generate the theme, do NOT just output XML type text for tool-call, that is not allowed
+1. **[R-DOC-001] Documentation Authority:** All implementations align with docs/ architecture
+2. **[R-DATA-001] Data-Driven Development:** No hardcoded values; use database or config
+3. **[R-TS-001] Type Safety:** Strict TypeScript, no `any` types
+4. **[R-NEXT-001] Server Components First:** Use React Server Components by default
+5. **[R-SEC-001] Prisma Parameterized:** No raw SQL string interpolation (SQL injection prevention)
+6. **[R-TEST-001] Testing Required:** All features must have tests (80%+ coverage)
+7. **[R-MCP-001] MCP Pattern:** MCP server calls Next.js API (not direct database)
+8. **[R-PRIVACY-001] Local-First:** All data stored locally, no cloud dependencies
 
-### 3. Animation design
-Output type: Just text
-Think through what are the animations, transitions, etc. 
+### MANDATORY SESSION PROTOCOL
 
-### 4. Generate html file for each UI component and then combine them together to form a single html file
-Output type: Tool call
-Generate html file for each UI component and then combine them together to form a single html file
-Make sure to reference the theme css file you created in step 2, and add custom ones that doesn't exist yet in html file
-You HAVE TO use write tool to generate the html file, do NOT just output XML type text for tool-call, that is not allowed
+Every session MUST follow this 6-step protocol:
 
-<example>
-<user>design an AI chat UI</user>
+**STEP 1: INITIALIZATION (Before any code)**
 
-<assistant>
-Let's think through the layout design for an AI chat UI. Here are the key components and layout considerations:
+- Read STATUS.md and DEVELOPMENT_PLAN.md
+- Create .agent/task/current-session-[YYYYMMDD-HHMM].md
+- Load relevant context from .agent/ memory bank
+- Check current branch: `git branch --show-current`
+- Ensure on master/main: If not, switch to master first
+- Pull latest changes: `git pull origin master`
+- CONFIRM: "✅ STEP 1 COMPLETE: Session initialized at [timestamp], on master branch"
 
-## Core UI Components
+**STEP 1.5: BRANCH CREATION (MANDATORY - Before plan)**
 
-**Header Area**
-- Settings/menu button (Top left)
-- Chat title/AI name (Top left)
-- Conversation controls (new chat, clear, etc.) (Top right)
+- Determine branch type: api/_, ui/_, or feature/\*
+- Create feature branch: `git checkout -b [type]/[description]`
+- Verify branch created: `git branch --show-current`
+- CONFIRM: "✅ STEP 1.5 COMPLETE: Created branch [branch-name]"
+- CRITICAL: Do NOT proceed to Step 2 until branch is created!
 
-**Main Chat Area**
-- Message container (scrollable) (Full width & height)
-- User messages (typically right-aligned)
-- AI messages (typically left-aligned)
-- Message timestamps (Small subtle text at the bottom of each message, aligned to the right/left depending on the message)
+**STEP 2: PLAN CREATION (Before implementation)**
 
-**Input Area**
-- Text input field (Full width left)
-- Send button (Embed within the input field,Bottom right side of the screen)
-- Additional controls (attach files, voice input, etc.) (Embed within the input field, Bottom left)
-- Character/token counter (optional) (Embed within the input field, top right corner, small text)
+- Create implementation plan
+- Get user approval
+- Verify on feature branch: `git branch --show-current`
+- IMMEDIATELY save to .agent/task/current-plan.md
+- Create .agent/task/current-todos.md
+- Optional: Commit plan files if user approves
+- CONFIRM: "✅ STEP 2 COMPLETE: Plan saved to current-plan.md on branch [branch-name], todos saved to current-todos.md"
 
+**STEP 3: EXPERT CONSULTATION (For technical decisions)**
 
-## Layout Structure Options
+- Invoke react-expert for component architecture
+- Invoke next-js-expert for Server/Client decisions
+- Invoke prisma-expert for database design
+- Read agent template from memory + apply structured prompt
+- Save plan to .agent/task/[expert]-[topic]-[timestamp].md
+- Ensure still on feature branch
+- Optional: Commit consultations
+- CONFIRM: "✅ STEP 3 COMPLETE: Consulted [expert] for [topic] on branch [branch-name]"
 
-┌─────────────────────────────────────┐
-│ ☰          HEADER BAR            + │
-├─────────────────────────────────────┤
-│                                     │
-│ ┌─────────────────────────────┐     │
-│ │     AI Message Bubble       │     │
-│ └─────────────────────────────┘     │
-│                                     │
-│     ┌─────────────────────────────┐ │
-│     │     User Message Bubble     │ │
-│     └─────────────────────────────┘ │
-│                                     │
-│ ┌─────────────────────────────┐     │
-│ │     AI Message Bubble       │     │
-│ └─────────────────────────────┘     │
-│                                     │
-│              [CHAT AREA]            │
-│                                     │
-├─────────────────────────────────────┤
-│ [Text Input Field]           [Send] │
-└─────────────────────────────────────┘
+**STEP 4: PROGRESS CHECKPOINTS (Every 15K tokens)**
 
-When hamburger (☰) is clicked, sidebar slides out:
-┌──────────────┬─────────────────────────────────────┐
-│   SIDEBAR    │ ☰           HEADER BAR           + │
-│ ┌──────────┐ ├─────────────────────────────────────┤
-│ │ Chat 1   │ │                                     │
-│ │ Chat 2   │ │ ┌─────────────────────────────┐     │
-│ │ Chat 3   │ │ │     AI Message Bubble       │     │
-│ │ + New    │ │ └─────────────────────────────┘     │
-│ └──────────┘ │                                     │
-│              │     ┌─────────────────────────────┐ │
-│              │     │     User Message Bubble     │ │
-│              │     └─────────────────────────────┘ │
-│              │                                     │
-│              │ ┌─────────────────────────────┐     │
-│              │ │     AI Message Bubble       │     │
-│              │ └─────────────────────────────┘     │
-│              │                                     │
-│              │              [CHAT AREA]            │
-│              │                                     │
-│              ├─────────────────────────────────────┤
-│              │ [Text Input Field]           [Send] │
-└──────────────┘─────────────────────────────────────┘
+- At 15K, 30K, 45K, 60K, 75K, 90K tokens
+- Update .agent/task/current-session.md
+- Update .agent/task/current-todos.md
+- Verify still on feature branch
+- Optional: Commit checkpoint files
+- CONFIRM: "✅ CHECKPOINT at [X]K tokens: Progress saved on branch [branch-name]"
 
-Would you like to go ahead with this layout & UI interaction or needs any modification?
-</assistant>
+**STEP 5: POST-COMPLETION (Before final commit)**
 
-<user>
-They looks good
-</user>
+- Create COMPLETION\_[PHASE].md
+- Update STATUS.md and DEVELOPMENT_PLAN.md
+- Invoke synthesize-docs if new patterns created
+- Invoke map-system if architecture changed
 
-<assistant>
-Great, next let's design the color & font theme,
+**CRITICAL - Commit order:**
 
-generateTheme(theme_name='Vercel techy style', reasoning_reference='Reference classic shadcn style that has ...', cssFilePath='.superdesign/design_iterations/theme_1.css', cssSheet=':root {
-  --background: oklch(1.0000 0 0);
-  --foreground: oklch(0.1448 0 0);
-  --card: oklch(1.0000 0 0);
-  --card-foreground: oklch(0.1448 0 0);
-  --popover: oklch(1.0000 0 0);
-  --popover-foreground: oklch(0.1448 0 0);
-  --primary: oklch(0.5555 0 0);
-  --primary-foreground: oklch(0.9851 0 0);
-  --secondary: oklch(0.9702 0 0);
-  --secondary-foreground: oklch(0.2046 0 0);
-  --muted: oklch(0.9702 0 0);
-  --muted-foreground: oklch(0.5486 0 0);
-  --accent: oklch(0.9702 0 0);
-  --accent-foreground: oklch(0.2046 0 0);
-  --destructive: oklch(0.5830 0.2387 28.4765);
-  --destructive-foreground: oklch(0.9702 0 0);
-  --border: oklch(0.9219 0 0);
-  --input: oklch(0.9219 0 0);
-  --ring: oklch(0.7090 0 0);
-  --chart-1: oklch(0.5555 0 0);
-  --chart-2: oklch(0.5555 0 0);
-  --chart-3: oklch(0.5555 0 0);
-  --chart-4: oklch(0.5555 0 0);
-  --chart-5: oklch(0.5555 0 0);
-  --sidebar: oklch(0.9851 0 0);
-  --sidebar-foreground: oklch(0.1448 0 0);
-  --sidebar-primary: oklch(0.2046 0 0);
-  --sidebar-primary-foreground: oklch(0.9851 0 0);
-  --sidebar-accent: oklch(0.9702 0 0);
-  --sidebar-accent-foreground: oklch(0.2046 0 0);
-  --sidebar-border: oklch(0.9219 0 0);
-  --sidebar-ring: oklch(0.7090 0 0);
-  --font-sans: Geist Mono, monospace;
-  --font-serif: Geist Mono, monospace;
-  --font-mono: Geist Mono, monospace;
-  --radius: 0rem;
-  --shadow-2xs: 0px 1px 0px 0px hsl(0 0% 0% / 0.00);
-  --shadow-xs: 0px 1px 0px 0px hsl(0 0% 0% / 0.00);
-  --shadow-sm: 0px 1px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
-  --shadow: 0px 1px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
-  --shadow-md: 0px 1px 0px 0px hsl(0 0% 0% / 0.00), 0px 2px 4px -1px hsl(0 0% 0% / 0.00);
-  --shadow-lg: 0px 1px 0px 0px hsl(0 0% 0% / 0.00), 0px 4px 6px -1px hsl(0 0% 0% / 0.00);
-  --shadow-xl: 0px 1px 0px 0px hsl(0 0% 0% / 0.00), 0px 8px 10px -1px hsl(0 0% 0% / 0.00);
-  --shadow-2xl: 0px 1px 0px 0px hsl(0 0% 0% / 0.00);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
-}')
+1. Documentation commit FIRST:
+   - Stage: docs/, STATUS.md, DEVELOPMENT*PLAN.md, COMPLETION*\*.md, .agent/
+   - Commit: `git commit -m "docs: complete [phase] - [description]"`
+2. Code commit SECOND:
+   - Stage: apps/, packages/, prisma/, _.config._
+   - Commit: `git commit -m "feat: implement [feature]"`
 
+- CONFIRM: "✅ STEP 5 COMPLETE: All documentation updated and committed (docs first, code second) on branch [branch-name]"
 
-<user>
-I like the vintage style
-</user>
+**STEP 6: MERGE & CLEANUP (MANDATORY - Before ending session)**
 
-<assistant>
-Great, next let's design the animation:
+- Run quality gates (ALL must pass):
+  - `pnpm lint` - Must pass
+  - `pnpm type-check` - Must pass
+  - `pnpm build` - Must pass
+  - `pnpm test` - Must pass (80%+ coverage)
+- Switch to master: `git checkout master`
+- Pull latest: `git pull origin master`
+- Merge feature branch: `git merge --no-ff [branch-name]`
+- Optional: Push to remote: `git push origin master`
+- Optional: Delete feature branch: `git branch -d [branch-name]`
+- CONFIRM: "✅ STEP 6 COMPLETE: Branch [branch-name] merged to master, quality gates passed"
 
-# CHAT UI ANIMATIONS - MICRO-SYNTAX
+### TDD WORKFLOW (MANDATORY FOR ALL TASKS)
 
-## Core Message Flow
-userMsg: 400ms ease-out [Y+20→0, X+10→0, S0.9→1]
-aiMsg: 600ms bounce [Y+15→0, S0.95→1] +200ms
-typing: 1400ms ∞ [Y±8, α0.4→1] stagger+200ms
-status: 300ms ease-out [α0.6→1, S1→1.05→1]
+Every feature implementation MUST follow Test-Driven Development:
 
-## Interface Transitions  
-sidebar: 350ms ease-out [X-280→0, α0→1]
-overlay: 300ms [α0→1, blur0→4px]
-input: 200ms [S1→1.01, shadow+ring] focus
-input: 150ms [S1.01→1, shadow-ring] blur
+1. **🔴 RED Phase:** Write failing test first
+2. **🟢 GREEN Phase:** Write minimal code to pass test
+3. **🔵 REFACTOR Phase:** Improve code quality while keeping tests passing
 
-## Button Interactions
-sendBtn: 150ms [S1→0.95→1, R±2°] press
-sendBtn: 200ms [S1→1.05, shadow↗] hover
-ripple: 400ms [S0→2, α1→0]
+This applies to:
 
-## Loading States
-chatLoad: 500ms ease-out [Y+40→0, α0→1]
-skeleton: 2000ms ∞ [bg: muted↔accent]
-spinner: 1000ms ∞ linear [R360°]
+- API endpoints
+- React components
+- Database queries
+- Utility functions
+- ALL implementation tasks
 
-## Micro Interactions
-msgHover: 200ms [Y0→-2, shadow↗]
-msgSelect: 200ms [bg→accent, S1→1.02]
-error: 400ms [X±5] shake
-success: 600ms bounce [S0→1.2→1, R360°]
+### ARCHITECTURE PATTERNS
 
-## Scroll & Navigation
-autoScroll: 400ms smooth
-scrollHint: 800ms ∞×3 [Y±5]
+**Component Architecture:**
 
-This animation system creates a cohesive, responsive feel throughout the chat interface. Each animation has specific timing and easing to feel natural and purposeful. Would you like me to adjust any of these animations or add additional ones?
+- Default: Server Components (no "use client")
+- Use Client Components only for: interactivity, hooks, browser APIs, event listeners
+- Hybrid pattern: Server page → Client interactive components
 
-</assistant>
+**Database Patterns:**
 
-<user>
-This looks great, lets do it
-</user>
+- Prisma for ALL database access
+- Use select/include for optimization (only fetch needed fields)
+- Parameterized queries only (no string interpolation)
+- Connection pooling: PrismaClient singleton pattern
 
-<assistant>
-Great, I will generate the html file for each UI component and then combine them together to form a single html file
+**API Patterns:**
 
-write(file_path='.superdesign/design_iterations/chat_ui.css', content='...')
-write(file_path='.superdesign/design_iterations/chat_ui.html', content='...')
+- Zod validation for all inputs
+- Standard response format: { data: T } | { error: string }
+- Error handling: try-catch with proper HTTP status codes
+- Pagination pattern: { page, limit, total, hasMore, data }
 
-I've created the html design, please reveiw and let me know if you need any changes
+**Testing Patterns:**
 
-</example>
+- Jest for unit tests
+- React Testing Library for components
+- Playwright (via MCP) for E2E tests
+- 80%+ coverage required
 
-IMPORTANT RULES:
-1. You MUST use tools call below for any action like generateTheme, write, edit, etc. You are NOT allowed to just output text like 'Called tool: write with arguments: ...' or <tool-call>...</tool-call>; MUST USE TOOL CALL (This is very important!!)
-2. You MUST confirm the layout, and then theme style, and then animation
-3. You MUST use .superdesign/design_iterations folder to save the design files, do NOT save to other folders
-4. You MUST create follow the workflow above
+### GIT WORKFLOW (3-TRACK STRATEGY)
 
-# Available Tools
-- **read**: Read file contents within the workspace (supports text files, images, with line range options)
-- **write**: Write content to files in the workspace (creates parent directories automatically)
-- **edit**: Replace text within files using exact string matching (requires precise text matching including whitespace and indentation)
-- **multiedit**: Perform multiple find-and-replace operations on a single file in sequence (each edit applied to result of previous edit)
-- **glob**: Find files and directories matching glob patterns (e.g., "*.js", "src/**/*.ts") - efficient for locating files by name or path structure
-- **grep**: Search for text patterns within file contents using regular expressions (can filter by file types and paths)
-- **ls**: List directory contents with optional filtering, sorting, and detailed information (shows files and subdirectories)
-- **bash**: Execute shell/bash commands within the workspace (secure execution with timeouts and output capture)
-- **generateTheme**: Generate a theme for the design
+**Branch naming:**
 
-When calling tools, you MUST use the actual tool call, do NOT just output text like 'Called tool: write with arguments: ...' or <tool-call>...</tool-call>, this won't actually call the tool. (This is very important to my life, please follow)
+- `api/*` - Backend/API development
+- `ui/*` - Frontend/UI development
+- `feature/*` - Full-stack features
+
+**Commit format:**
+
+- feat: New feature
+- fix: Bug fix
+- refactor: Code refactoring
+- test: Add tests
+- docs: Documentation update
+
+**Commit order:**
+
+1. Documentation commit FIRST
+2. Code commit SECOND
+
+### QUALITY GATES
+
+Before marking any task complete:
+
+- ✅ TypeScript: No errors, no `any` types
+- ✅ Linting: pnpm lint passes
+- ✅ Build: pnpm build succeeds
+- ✅ Tests: pnpm test passes (80%+ coverage)
+- ✅ Security: No SQL injection, no XSS vulnerabilities
+- ✅ Documentation: Updated STATUS.md, DEVELOPMENT_PLAN.md
+
+### SKILLS AUTO-LOADING
+
+Based on phase keywords, automatically load relevant skills:
+
+**Keywords → Skills mapping:**
+
+- "API", "endpoint", "route" → .claude/skills/moksha-devhub/api-patterns.md
+- "Component", "UI", "page" → .claude/skills/moksha-devhub/component-patterns.md
+- "Database", "Prisma", "query" → .claude/skills/moksha-devhub/database-patterns.md
+- "Test", "testing" → .claude/skills/moksha-devhub/testing-patterns.md
+- "Port", "3000" → .claude/skills/moksha-devhub/port-config.md
+- "Git", "branch", "commit" → .claude/skills/moksha-devhub/git-workflow.md
+
+Load skill by reading full file content when keywords detected.
+
+### AGENT SIMULATION
+
+When specialized expertise needed, use agent templates from memory:
+
+**Implementation Agents:**
+
+- devhub-architect: "Design the X system"
+- devhub-fullstack: "Implement X feature"
+- devhub-testing: "Write tests for X"
+- devhub-auditor: "Review X for quality"
+- devhub-mcp-specialist: "Design MCP tool for X"
+
+**Expert Agents (REQUIRED for Step 3):**
+
+- react-expert: "Design component for X"
+- next-js-expert: "Server/Client decision for X"
+- prisma-expert: "Design schema for X"
+
+**Research Agents:**
+
+- explore-codebase: "Find all X patterns"
+- analyze-architecture: "How does X work?"
+- synthesize-docs: "Generate SOP for X"
+- map-system: "Update system docs"
+
+**How to invoke:**
+
+1. Retrieve agent template from memory system
+2. Apply structured prompt with current context
+3. Save output to .agent/task/[agent]-[topic]-[timestamp].md
+4. Return confirmation with summary
+
+### MEMORY BANK STRUCTURE
+
+**Core context files (.agent/):**
+
+- project-brief.md - WHAT & WHY (requirements, goals)
+- system-patterns.md - HOW we build (architecture patterns)
+- tech-context.md - Tech stack and setup
+- active-context.md - Current focus (READ EVERY SESSION)
+- progress.md - Progress tracking and metrics
+
+**Task tracking (.agent/task/):**
+
+- current-session-[timestamp].md - Real-time session tracking
+- current-plan.md - Approved implementation plan
+- current-todos.md - Task list with progress
+- [agent]-[topic]-[timestamp].md - Agent consultation reports
+
+**System docs (.agent/system/):**
+
+- api-catalog.md - All API endpoints
+- database-schema.md - Prisma schema summary
+- component-patterns.md - React conventions
+- mcp-tools-guide.md - MCP usage examples
+
+**SOPs (.agent/sops/):**
+
+- api-route-creation.md - Standard API pattern
+- server-component-data-fetching.md - Prisma optimization
+- port-troubleshooting.md - Port configuration fixes
+- git-workflow.md - Branch management
+- [Plus 11 more procedures]
+
+### TOKEN OPTIMIZATION STRATEGY
+
+**Target: 70%+ reduction (from 21K baseline to ~6K)**
+
+**Optimization techniques:**
+
+1. Load skill frontmatter only (20 tokens per skill)
+2. Read full skill content only when keyword matches
+3. Use memory retrieval instead of file reading when possible
+4. Agent consultations in isolated analysis (don't pollute main context)
+5. Checkpoint updates minimal (200 tokens per checkpoint)
+
+**Token budget tracking:**
+
+- Monitor token usage continuously
+- Checkpoints at 15K intervals
+- Warning at 140-150K tokens (approaching 200K limit)
+
+### FILE PERMISSIONS
+
+**Allow:**
+
+- Read: All files
+- Write: apps/, packages/, docs/, .agent/, .cascade/
+- Bash: pnpm, npm, docker, git, python
+
+**Deny:**
+
+- Write: node_modules/, .next/, dist/, .env
+- Destructive: Commands that delete data
+
+**Ask first:**
+
+- git push
+- docker-compose down
+- prisma migrate reset
+- pnpm remove
+
+### DEBUGGING WORKFLOW
+
+When bugs encountered:
+
+1. Use systematic-debugging-web skill (layer isolation)
+2. If complex, use root-cause-tracing-fullstack skill
+3. Add regression test
+4. Verify fix with testing
+
+### COMPLETION CRITERIA
+
+Feature complete when:
+
+- ✅ All Golden Rules followed
+- ✅ All protocol steps completed
+- ✅ Quality gates passed
+- ✅ Tests achieve 80%+ coverage
+- ✅ Code reviewed (auditor patterns applied)
+- ✅ Documentation updated
+- ✅ Commits clean (docs first, code second)
+
+---
+
+## HOW TO USE
+
+**Session start:**
+
+```
+User: "Start session for Phase 3 Day 5"
+Cascade: [Follows Step 1 protocol automatically]
+```
+
+**During work:**
+
+```
+User: "Implement POST /api/issues"
+Cascade: [TDD workflow: Red → Green → Refactor]
+```
+
+**Need expertise:**
+
+```
+User: "Need component architecture advice"
+Cascade: [Invokes react-expert template from memory]
+```
+
+**Session end:**
+
+```
+User: "Complete this phase"
+Cascade: [Follows Step 5 protocol: docs → commits]
+```
+
+---
+
+## ENFORCEMENT
+
+**Missing protocol confirmations = VIOLATION**
+
+User must stop work and enforce:
+
+- "You skipped Step 2. Save the plan RIGHT NOW."
+- "Where's the Step 3 confirmation? Consult expert NOW."
+- "You're at 50K tokens with ZERO checkpoints. Update files NOW."
+
+Protocol is MANDATORY, not optional.
+
+---
+
+**This configuration ensures Cascade follows the same workflow quality as Claude Code.**
+
+```
+
+---
+
+## Usage Notes
+
+1. **Save this content** to `.windsurfrules` file in project root
+2. **Restart Windsurf** to load new rules
+3. **Test** by starting a session with protocol
+4. **Validate** that confirmations appear for each step
+
+The rules system will automatically enforce:
+- Golden Rules compliance
+- Mandatory protocol steps
+- TDD workflow
+- Quality gates
+- Token optimization
+- Documentation requirements
+```
