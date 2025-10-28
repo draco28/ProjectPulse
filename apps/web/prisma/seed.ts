@@ -44,7 +44,8 @@ async function main() {
   const project = await prisma.project.create({
     data: {
       name: 'Moksha DevHub',
-      description: 'Unified development hub with issue tracking, knowledge base, and AI agent personas',
+      description:
+        'Unified development hub with issue tracking, knowledge base, and AI agent personas',
       repository: 'https://github.com/draco28/ProjectPulse',
     },
   });
@@ -74,7 +75,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Implement hybrid search with PostgreSQL tsvector + pgvector',
-        description: 'Add full-text search using tsvector and semantic search using pgvector embeddings for knowledge base articles.',
+        description:
+          'Add full-text search using tsvector and semantic search using pgvector embeddings for knowledge base articles.',
         status: 'open',
         priority: 'high',
         module: 'Search',
@@ -87,7 +89,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Add authentication with NextAuth.js',
-        description: 'Implement user authentication and authorization using NextAuth.js with GitHub OAuth provider.',
+        description:
+          'Implement user authentication and authorization using NextAuth.js with GitHub OAuth provider.',
         status: 'open',
         priority: 'critical',
         module: 'Auth',
@@ -100,7 +103,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Dashboard theme switching not working correctly',
-        description: 'Theme CSS variables not applying when switching between Desert, Neon, Earthy, and Coral themes.',
+        description:
+          'Theme CSS variables not applying when switching between Desert, Neon, Earthy, and Coral themes.',
         status: 'in-progress',
         priority: 'high',
         module: 'UI',
@@ -113,7 +117,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Optimize database queries for issue list page',
-        description: 'Issue list page loading slowly with 100+ issues. Need to add pagination and optimize N+1 queries.',
+        description:
+          'Issue list page loading slowly with 100+ issues. Need to add pagination and optimize N+1 queries.',
         status: 'open',
         priority: 'medium',
         module: 'Performance',
@@ -125,7 +130,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Add API documentation with OpenAPI/Swagger',
-        description: 'Document all API endpoints using OpenAPI 3.0 specification and generate interactive Swagger UI.',
+        description:
+          'Document all API endpoints using OpenAPI 3.0 specification and generate interactive Swagger UI.',
         status: 'open',
         priority: 'low',
         module: 'Documentation',
@@ -138,7 +144,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Setup Docker PostgreSQL container with pgvector',
-        description: 'Configure PostgreSQL 16 container with pgvector extension for semantic search capabilities.',
+        description:
+          'Configure PostgreSQL 16 container with pgvector extension for semantic search capabilities.',
         status: 'closed',
         priority: 'high',
         module: 'Infrastructure',
@@ -164,7 +171,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Build Dashboard UI with shadcn/ui components',
-        description: 'Implement Dashboard layout with Sidebar, Header, WelcomeBanner, StatCards, and IssueCards.',
+        description:
+          'Implement Dashboard layout with Sidebar, Header, WelcomeBanner, StatCards, and IssueCards.',
         status: 'closed',
         priority: 'critical',
         module: 'UI',
@@ -186,21 +194,24 @@ async function main() {
   await Promise.all([
     prisma.comment.create({
       data: {
-        content: 'I can help with the tsvector implementation. We should use weighted search with title having higher weight than content.',
+        content:
+          'I can help with the tsvector implementation. We should use weighted search with title having higher weight than content.',
         author: 'Claude',
         issueId: issues[0].id,
       },
     }),
     prisma.comment.create({
       data: {
-        content: 'Updated CSS specificity from `[data-theme="X"]` to `:root[data-theme="X"]` which fixed the issue!',
+        content:
+          'Updated CSS specificity from `[data-theme="X"]` to `:root[data-theme="X"]` which fixed the issue!',
         author: 'Developer',
         issueId: issues[2].id,
       },
     }),
     prisma.comment.create({
       data: {
-        content: 'Should we use server-side pagination or cursor-based pagination for infinite scroll?',
+        content:
+          'Should we use server-side pagination or cursor-based pagination for infinite scroll?',
         author: 'Developer',
         issueId: issues[3].id,
       },
@@ -342,6 +353,109 @@ issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
   console.log(`✓ Created ${knowledgeItems.length} knowledge base items\n`);
 
   // ========================================================================
+  // WIKI PAGES
+  // ========================================================================
+  console.log('📖 Creating wiki pages...');
+
+  const wikiPages = await Promise.all([
+    prisma.wikiPage.create({
+      data: {
+        title: 'Getting Started',
+        path: '/getting-started',
+        content: `# Getting Started
+
+Welcome to Moksha DevHub! This guide will help you set up and start using the platform.
+
+## Introduction
+
+Moksha DevHub is a unified development hub that combines issue tracking, knowledge management, wiki documentation, and AI agent assistance in one platform.
+
+## Installation
+
+### Prerequisites
+
+- Node.js 20+
+- PostgreSQL 16
+- pnpm 8+
+
+### Setup Steps
+
+1. Clone the repository
+2. Install dependencies: \`pnpm install\`
+3. Set up environment variables
+4. Run database migrations: \`pnpm prisma migrate dev\`
+5. Seed the database: \`pnpm prisma db seed\`
+
+## Usage
+
+### Dashboard
+
+The dashboard provides an overview of:
+- Open issues and their status
+- Recent knowledge base articles
+- Active AI agents
+- Security findings
+
+### Navigation
+
+Use the sidebar to navigate between:
+- Issues
+- Knowledge Base
+- Wiki
+- Security
+- Agent Personas
+
+Press \`Cmd+K\` (or \`Ctrl+K\`) to open the command palette for quick navigation.`,
+      },
+    }),
+
+    prisma.wikiPage.create({
+      data: {
+        title: 'Configuration',
+        path: '/configuration',
+        content: `# Configuration
+
+Learn how to configure Moksha DevHub for your team.
+
+## Environment Variables
+
+Create a \`.env\` file with the following variables:
+
+\`\`\`bash
+DATABASE_URL="postgresql://user:password@localhost:5432/devhub"
+NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+\`\`\`
+
+## Database Setup
+
+The application uses PostgreSQL with the pgvector extension for semantic search.
+
+### Enable Extensions
+
+\`\`\`sql
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+\`\`\`
+
+## Theme Customization
+
+The Coral neumorphic theme is the default. CSS variables can be customized in \`globals.css\`.`,
+      },
+    }),
+  ]);
+
+  // Create wiki page links (related pages)
+  await prisma.pageLink.create({
+    data: {
+      sourcePageId: wikiPages[0].id, // Getting Started
+      targetPageId: wikiPages[1].id, // Configuration
+    },
+  });
+
+  console.log(`✓ Created ${wikiPages.length} wiki pages\n`);
+
+  // ========================================================================
   // SECURITY FINDINGS
   // ========================================================================
   console.log('🔒 Creating security findings...');
@@ -351,7 +465,8 @@ issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
       data: {
         ruleId: 'javascript.express.security.audit.express-check-csrf-before-method-override',
         severity: 'WARNING',
-        message: 'Detected use of method-override middleware before CSRF protection. This can allow attackers to bypass CSRF protection.',
+        message:
+          'Detected use of method-override middleware before CSRF protection. This can allow attackers to bypass CSRF protection.',
         filePath: 'apps/web/app/api/issues/route.ts',
         lineNumber: 42,
         codeSnippet: 'app.use(methodOverride());',
@@ -398,7 +513,8 @@ issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
         name: 'Code Reviewer',
         slug: 'code-reviewer',
         icon: '🔍',
-        description: 'Expert code reviewer focusing on best practices, security, and maintainability',
+        description:
+          'Expert code reviewer focusing on best practices, security, and maintainability',
         systemPrompt: `You are an expert code reviewer with deep knowledge of:
 - Software architecture and design patterns
 - Security vulnerabilities and mitigations
@@ -521,6 +637,7 @@ Format:
   console.log(`   - Issues: ${issues.length} (5 open, 3 closed)`);
   console.log(`   - Labels: ${labels.length}`);
   console.log(`   - Knowledge Items: ${knowledgeItems.length}`);
+  console.log(`   - Wiki Pages: ${wikiPages.length}`);
   console.log(`   - Security Findings: ${securityFindings.length} (2 open, 1 false positive)`);
   console.log(`   - Agent Personas: ${personas.length}`);
   console.log(`   - Comments: 3`);

@@ -1,84 +1,97 @@
-# Implementation Plan: Phase 3 Days 5-6 - Remaining Pages
+# Implementation Plan — Phase 3 Testing & QA
 
-**Created:** 2025-10-28 16:00
-**Phase:** Week 1.5 Phase 3 Days 5-6
-**Duration:** 2 days (~9 hours estimated)
+Created: 2025-10-28 18:54 (UTC+05:30)
+Branch: feature/phase3-testing-qa
+Status: APPROVED
+Duration: ~4–5 hours
 
 ---
 
 ## Overview
 
-Implement 5 complete pages with full-stack integration: Knowledge Base, Wiki, Security, Agent Personas, and Command Palette.
+Add comprehensive automated tests and quality verification for the five newly implemented pages and supporting APIs. Use Playwright for E2E flows and Jest + React Testing Library (RTL) for component behavior (Command Palette). Ensure pixel/behavior parity with Coral mockups and pass all quality gates.
 
 ---
 
-## Implementation Tasks (29 total)
+## Deliverables
 
-### Knowledge Base (Tasks 1-8)
+- apps/web/tests/e2e/knowledge.spec.ts
+- apps/web/tests/e2e/wiki.spec.ts
+- apps/web/tests/e2e/security.spec.ts
+- apps/web/tests/e2e/agents.spec.ts
+- apps/web/components/**tests**/CommandPalette.test.tsx
+- COMPLETION_PHASE3_TESTING_QA.md (root)
 
-1. Server Component `app/knowledge/page.tsx`
-2. API route `app/api/knowledge/route.ts`
-3. API route `app/api/search/route.ts`
-4. Component `components/knowledge/ArticleCard.tsx`
-5. Component `components/knowledge/CategoryFilter.tsx`
-6. Component `components/knowledge/SearchBar.tsx`
-7. E2E test `tests/e2e/knowledge.spec.ts`
-8. Verify pixel-perfect match
+---
 
-### Wiki (Tasks 9-15)
+## Implementation Steps
 
-9. Server Component `app/wiki/[slug]/page.tsx`
-10. API route `app/api/wiki/[slug]/route.ts`
-11. Component `components/wiki/WikiSidebar.tsx`
-12. Component `components/wiki/TableOfContents.tsx`
-13. Component `components/wiki/CodeBlock.tsx`
-14. E2E test `tests/e2e/wiki.spec.ts`
-15. Verify pixel-perfect match
+1. E2E Test Scaffolding
 
-### Security (Tasks 16-21)
+- Confirm Playwright config (apps/web/playwright.config.ts: testDir ./tests/e2e, baseURL http://localhost:3000, webServer pnpm dev).
+- Reuse selector strategy from existing tests (prefer semantic locators; add data-testid only when necessary).
 
-16. Server Component `app/security/page.tsx`
-17. API route `app/api/security/score/route.ts`
-18. API route `app/api/security/vulnerabilities/route.ts`
-19. Component `components/security/SecurityScoreMeter.tsx`
-20. Component `components/security/VulnerabilityCard.tsx`
-21. E2E test `tests/e2e/security.spec.ts`
+2. Knowledge Base E2E (knowledge.spec.ts)
 
-### Agent Personas (Tasks 22-25)
+- Load /knowledge → search → tag/category filters → open article → verify content sections.
+- Assert URL state updates for filters (search params) when applicable.
 
-22. Server Component `app/agents/page.tsx`
-23. Server Actions `app/agents/actions.ts`
-24. Component `components/agents/AgentCard.tsx`
-25. E2E test `tests/e2e/agents.spec.ts`
+3. Wiki E2E (wiki.spec.ts)
 
-### Command Palette (Tasks 26-29)
+- Load /wiki/[slug] → TOC highlights as sections intersect → related links visible → navigate related.
+- Verify ISR/real-time bits by awaiting content stabilization instead of fixed timeouts.
 
-26. Component `components/CommandPalette.tsx`
-27. Keyboard navigation implementation
-28. Entity search integration
-29. Unit tests `tests/unit/CommandPalette.test.tsx`
+4. Security E2E (security.spec.ts)
+
+- Load /security → verify score meter + breakdown → list vulnerabilities → filter by severity/status.
+
+5. Agents E2E (agents.spec.ts)
+
+- Load /agents → toggle persona active state (optimistic UI) → verify final state persists.
+
+6. Command Palette Unit/Component Tests (CommandPalette.test.tsx)
+
+- Open via Ctrl/Cmd+K → keyboard navigation (ArrowUp/Down, Enter) → search filter → close on Escape.
+- Use RTL with jest-environment-jsdom and @testing-library/user-event.
+
+7. Pixel/Behavior Verification
+
+- Compare rendered UI states against Coral mockups for the pages (visual cues, headers, key components).
+
+8. Quality Gates & Docs
+
+- Run pnpm type-check, lint, test, build.
+- Create COMPLETION_PHASE3_TESTING_QA.md.
+- Update STATUS.md and docs/DEVELOPMENT_PLAN.md headers per maintenance protocol.
+
+---
+
+## Test Data & Stability
+
+- Assume seeded data for KnowledgeArticle, WikiPage, SecurityVulnerability, AgentPersona.
+- Prefer robust waits (toBeVisible, networkidle) and state assertions over fixed timeouts.
+- Add data-testid attributes only when CSS/text locators are too brittle.
+
+---
+
+## Coverage & Metrics
+
+- ≥80% coverage for new test code.
+- Ensure critical paths (search, filters, TOC navigation, persona toggle, command palette keyboarding) are covered.
 
 ---
 
 ## Token Checkpoints
 
-| Checkpoint | Tasks | Progress |
-| ---------- | ----- | -------- |
-| 90K        | 1-8   | 30%      |
-| 105K       | 9-15  | 50%      |
-| 120K       | 16-21 | 70%      |
-| 135K       | 22-25 | 85%      |
-| 150K       | 26-29 | 100%     |
+- 15K: Knowledge + Wiki E2E skeletons pass basic assertions.
+- 30K: Security + Agents E2E stable; Command Palette unit tests green.
+- 45K: Pixel/behavior verification complete; quality gates green.
 
 ---
 
 ## Success Criteria
 
-✅ All 5 pages pixel-perfect to mockups
-✅ Full database integration
-✅ E2E tests passing
-✅ Quality gates passing
-
----
-
-**Timeline:** ~9 hours | **Token Budget:** ~110K tokens
+- All added tests pass reliably on local runs (non-flaky).
+- Build and lint/type-check pass.
+- Acceptance criteria from STATUS.md satisfied for each page.
+- Documentation updated and completion doc created prior to code commit.

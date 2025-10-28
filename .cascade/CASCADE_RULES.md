@@ -1,3 +1,14 @@
+# Cascade Rules Configuration
+
+**Purpose:** Complete .windsurfrules file content for Moksha DevHub
+
+---
+
+## .windsurfrules File
+
+**Location:** `f:\Web_Projects\AI_HUB\.windsurfrules`
+
+```markdown
 # Moksha DevHub - Cascade Configuration
 
 # Version: 1.0 | Last Updated: 2025-10-28
@@ -38,35 +49,22 @@ If conflicts exist, docs/ is authoritative.
 
 ### MANDATORY SESSION PROTOCOL
 
-Every session MUST follow this 6-step protocol:
+Every session MUST follow this 5-step protocol:
 
 **STEP 1: INITIALIZATION (Before any code)**
 
 - Read STATUS.md and DEVELOPMENT_PLAN.md
 - Create .agent/task/current-session-[YYYYMMDD-HHMM].md
 - Load relevant context from .agent/ memory bank
-- Check current branch: `git branch --show-current`
-- Ensure on master/main: If not, switch to master first
-- Pull latest changes: `git pull origin master`
-- CONFIRM: "✅ STEP 1 COMPLETE: Session initialized at [timestamp], on master branch"
-
-**STEP 1.5: BRANCH CREATION (MANDATORY - Before plan)**
-
-- Determine branch type: api/_, ui/_, or feature/\*
-- Create feature branch: `git checkout -b [type]/[description]`
-- Verify branch created: `git branch --show-current`
-- CONFIRM: "✅ STEP 1.5 COMPLETE: Created branch [branch-name]"
-- CRITICAL: Do NOT proceed to Step 2 until branch is created!
+- CONFIRM: "✅ STEP 1 COMPLETE: Session initialized at [timestamp]"
 
 **STEP 2: PLAN CREATION (Before implementation)**
 
 - Create implementation plan
 - Get user approval
-- Verify on feature branch: `git branch --show-current`
 - IMMEDIATELY save to .agent/task/current-plan.md
 - Create .agent/task/current-todos.md
-- Optional: Commit plan files if user approves
-- CONFIRM: "✅ STEP 2 COMPLETE: Plan saved to current-plan.md on branch [branch-name], todos saved to current-todos.md"
+- CONFIRM: "✅ STEP 2 COMPLETE: Plan saved to current-plan.md, todos saved to current-todos.md"
 
 **STEP 3: EXPERT CONSULTATION (For technical decisions)**
 
@@ -75,18 +73,14 @@ Every session MUST follow this 6-step protocol:
 - Invoke prisma-expert for database design
 - Read agent template from memory + apply structured prompt
 - Save plan to .agent/task/[expert]-[topic]-[timestamp].md
-- Ensure still on feature branch
-- Optional: Commit consultations
-- CONFIRM: "✅ STEP 3 COMPLETE: Consulted [expert] for [topic] on branch [branch-name]"
+- CONFIRM: "✅ STEP 3 COMPLETE: Consulted [expert] for [topic]"
 
 **STEP 4: PROGRESS CHECKPOINTS (Every 15K tokens)**
 
 - At 15K, 30K, 45K, 60K, 75K, 90K tokens
 - Update .agent/task/current-session.md
 - Update .agent/task/current-todos.md
-- Verify still on feature branch
-- Optional: Commit checkpoint files
-- CONFIRM: "✅ CHECKPOINT at [X]K tokens: Progress saved on branch [branch-name]"
+- CONFIRM: "✅ CHECKPOINT at [X]K tokens: Progress saved"
 
 **STEP 5: POST-COMPLETION (Before final commit)**
 
@@ -94,31 +88,8 @@ Every session MUST follow this 6-step protocol:
 - Update STATUS.md and DEVELOPMENT_PLAN.md
 - Invoke synthesize-docs if new patterns created
 - Invoke map-system if architecture changed
-
-**CRITICAL - Commit order:**
-
-1. Documentation commit FIRST:
-   - Stage: docs/, STATUS.md, DEVELOPMENT*PLAN.md, COMPLETION*\*.md, .agent/
-   - Commit: `git commit -m "docs: complete [phase] - [description]"`
-2. Code commit SECOND:
-   - Stage: apps/, packages/, prisma/, _.config._
-   - Commit: `git commit -m "feat: implement [feature]"`
-
-- CONFIRM: "✅ STEP 5 COMPLETE: All documentation updated and committed (docs first, code second) on branch [branch-name]"
-
-**STEP 6: MERGE & CLEANUP (MANDATORY - Before ending session)**
-
-- Run quality gates (ALL must pass):
-  - `pnpm lint` - Must pass
-  - `pnpm type-check` - Must pass
-  - `pnpm build` - Must pass
-  - `pnpm test` - Must pass (80%+ coverage)
-- Switch to master: `git checkout master`
-- Pull latest: `git pull origin master`
-- Merge feature branch: `git merge --no-ff [branch-name]`
-- Optional: Push to remote: `git push origin master`
-- Optional: Delete feature branch: `git branch -d [branch-name]`
-- CONFIRM: "✅ STEP 6 COMPLETE: Branch [branch-name] merged to master, quality gates passed"
+- Commit documentation first, then code
+- CONFIRM: "✅ STEP 5 COMPLETE: All documentation updated and committed"
 
 ### TDD WORKFLOW (MANDATORY FOR ALL TASKS)
 
@@ -340,31 +311,35 @@ Feature complete when:
 ## HOW TO USE
 
 **Session start:**
-
 ```
+
 User: "Start session for Phase 3 Day 5"
 Cascade: [Follows Step 1 protocol automatically]
+
 ```
 
 **During work:**
-
 ```
+
 User: "Implement POST /api/issues"
 Cascade: [TDD workflow: Red → Green → Refactor]
+
 ```
 
 **Need expertise:**
-
 ```
+
 User: "Need component architecture advice"
 Cascade: [Invokes react-expert template from memory]
+
 ```
 
 **Session end:**
-
 ```
+
 User: "Complete this phase"
 Cascade: [Follows Step 5 protocol: docs → commits]
+
 ```
 
 ---
@@ -374,7 +349,6 @@ Cascade: [Follows Step 5 protocol: docs → commits]
 **Missing protocol confirmations = VIOLATION**
 
 User must stop work and enforce:
-
 - "You skipped Step 2. Save the plan RIGHT NOW."
 - "Where's the Step 3 confirmation? Consult expert NOW."
 - "You're at 50K tokens with ZERO checkpoints. Update files NOW."
@@ -384,7 +358,6 @@ Protocol is MANDATORY, not optional.
 ---
 
 **This configuration ensures Cascade follows the same workflow quality as Claude Code.**
-
 ```
 
 ---
@@ -397,10 +370,10 @@ Protocol is MANDATORY, not optional.
 4. **Validate** that confirmations appear for each step
 
 The rules system will automatically enforce:
+
 - Golden Rules compliance
 - Mandatory protocol steps
 - TDD workflow
 - Quality gates
 - Token optimization
 - Documentation requirements
-```

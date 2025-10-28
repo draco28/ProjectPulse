@@ -1,8 +1,6 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 interface TOCItem {
   id: string;
@@ -49,22 +47,18 @@ export function WikiContent({ content, tocItems }: WikiContentProps) {
                 </h3>
               );
             },
-            // Code blocks with syntax highlighting
+            // Code blocks (simple styling for now)
             code({ node, inline, className, children, ...props }) {
-              const match = /language-(\w+)/.exec(className || '');
-              return !inline && match ? (
-                <SyntaxHighlighter
-                  style={vscDarkPlus}
-                  language={match[1]}
-                  PreTag="div"
-                  {...props}
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
-              ) : (
-                <code className={className} {...props}>
+              return inline ? (
+                <code className="rounded bg-slate-800 px-1.5 py-0.5 text-sm text-coral" {...props}>
                   {children}
                 </code>
+              ) : (
+                <pre className="overflow-x-auto rounded-lg bg-slate-900 p-4">
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                </pre>
               );
             },
             // Links
