@@ -1,6 +1,6 @@
 'use server';
 
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
 export async function toggleAgentStatus(agentId: number, currentStatus: boolean) {
@@ -39,12 +39,53 @@ export async function createAgent(data: {
   personality?: string;
 }) {
   try {
+    // Generate base slug from name: "Code Reviewer" → "code-reviewer"
+    const baseSlug = data.name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .trim();
+
+    // Handle slug collisions by appending -2, -3, etc.
+    let slug = baseSlug;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    while (attempts < maxAttempts) {
+      // Check if slug already exists
+      const existing = await prisma.agentPersona.findUnique({
+        where: { slug },
+        select: { id: true },
+      });
+
+      if (!existing) {
+        // Slug is available, break out of loop
+        break;
+      }
+
+      // Slug is taken, try next suffix
+      attempts++;
+      slug = `${baseSlug}-${attempts + 1}`;
+    }
+
+    if (attempts >= maxAttempts) {
+      return {
+        success: false,
+        error: 'Unable to generate unique slug. Please try a different name.',
+      };
+    }
+
     const agent = await prisma.agentPersona.create({
       data: {
         name: data.name,
+        slug: slug,
         description: data.description,
+        systemPrompt: `You are ${data.name}. ${data.description}`, // Default system prompt
         expertise: data.expertise,
         personality: data.personality,
+        skills: [], // Empty by default, can be configured later
+        tools: [], // Empty by default, can be configured later
+        rules: [], // Empty by default, can be configured later
         isActive: false, // New agents start inactive
       },
     });

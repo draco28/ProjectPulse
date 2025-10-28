@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/wiki/:slug
@@ -10,10 +10,7 @@ import { prisma } from '@/lib/db';
  * Path params:
  * - slug: The wiki page path (e.g., 'getting-started')
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const slug = params.slug;
 
@@ -29,13 +26,12 @@ export async function GET(
         content: true,
         path: true,
         category: true,
-        author: true,
         createdAt: true,
         updatedAt: true,
-        // Related pages via PageLink junction table
-        relatedFrom: {
+        // Related pages via outgoing links
+        outgoingLinks: {
           select: {
-            to: {
+            targetPage: {
               select: {
                 id: true,
                 title: true,
@@ -49,21 +45,14 @@ export async function GET(
     });
 
     if (!page) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Wiki page not found',
-        },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Wiki page not found' }, { status: 404 });
     }
 
-    // Extract related pages from junction table
-    const relatedPages = page.relatedFrom.map((link) => link.to);
+    // Extract related pages from outgoing links
+    const relatedPages = page.outgoingLinks.map((link) => link.targetPage);
 
     // Return page with related pages
     return NextResponse.json({
-      success: true,
       data: {
         page: {
           id: page.id,
@@ -71,7 +60,6 @@ export async function GET(
           content: page.content,
           path: page.path,
           category: page.category,
-          author: page.author,
           createdAt: page.createdAt,
           updatedAt: page.updatedAt,
         },
@@ -80,12 +68,6 @@ export async function GET(
     });
   } catch (error) {
     console.error('Failed to fetch wiki page:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch wiki page',
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch wiki page' }, { status: 500 });
   }
 }

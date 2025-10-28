@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { Sidebar } from '@/components/Sidebar';
-import { FloatingBackground } from '@/components/ui/FloatingBackground';
+import { FloatingBackground } from '@/components/FloatingBackground';
 import { ArticleCard } from '@/components/knowledge/ArticleCard';
 import { TagFilter } from '@/components/knowledge/TagFilter';
 import { SearchBar } from '@/components/knowledge/SearchBar';
@@ -53,8 +53,8 @@ async function getKnowledgeArticles(searchParams: PageProps['searchParams']) {
       sort === 'newest'
         ? { createdAt: 'desc' }
         : sort === 'updated'
-        ? { updatedAt: 'desc' }
-        : { createdAt: 'desc' },
+          ? { updatedAt: 'desc' }
+          : { createdAt: 'desc' },
     take: 50, // Limit for performance
   });
 
@@ -63,9 +63,7 @@ async function getKnowledgeArticles(searchParams: PageProps['searchParams']) {
     select: { tags: true },
   });
 
-  const allTags = Array.from(
-    new Set(allArticles.flatMap((article) => article.tags))
-  ).sort();
+  const allTags = Array.from(new Set(allArticles.flatMap((article) => article.tags))).sort();
 
   return {
     articles: articles.map((article) => ({
@@ -83,12 +81,8 @@ async function getKnowledgeArticles(searchParams: PageProps['searchParams']) {
   };
 }
 
-export default async function KnowledgeBasePage({
-  searchParams,
-}: PageProps) {
-  const { articles, allTags, totalCount } = await getKnowledgeArticles(
-    searchParams
-  );
+export default async function KnowledgeBasePage({ searchParams }: PageProps) {
+  const { articles, allTags, totalCount } = await getKnowledgeArticles(searchParams);
 
   const { search = '', tag } = searchParams;
 
@@ -103,12 +97,8 @@ export default async function KnowledgeBasePage({
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="mb-1 text-3xl font-bold text-white">
-                  Knowledge Base
-                </h2>
-                <p className="text-sm text-slate">
-                  {totalCount} items • Hybrid search enabled
-                </p>
+                <h2 className="mb-1 text-3xl font-bold text-white">Knowledge Base</h2>
+                <p className="text-sm text-slate">{totalCount} items • Hybrid search enabled</p>
               </div>
               <button className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
                 <i className="fas fa-plus"></i>
@@ -136,12 +126,8 @@ export default async function KnowledgeBasePage({
               ) : (
                 <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
                   <i className="fas fa-search mb-4 text-5xl text-slate"></i>
-                  <h3 className="mb-2 text-xl font-bold text-white">
-                    No articles found
-                  </h3>
-                  <p className="text-slate">
-                    Try adjusting your search or filters
-                  </p>
+                  <h3 className="mb-2 text-xl font-bold text-white">No articles found</h3>
+                  <p className="text-slate">Try adjusting your search or filters</p>
                 </div>
               )}
             </div>

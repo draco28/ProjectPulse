@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 
 /**
  * GET /api/security/vulnerabilities
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 50);
 
     // Build where clause
-    const where: any = {};
+    const where: Prisma.SecurityFindingWhereInput = {};
 
     if (severity) {
       where.severity = severity;
@@ -70,7 +71,6 @@ export async function GET(request: NextRequest) {
     const hasMore = page < totalPages;
 
     return NextResponse.json({
-      success: true,
       data: {
         findings,
         pagination: {
@@ -84,12 +84,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to fetch vulnerabilities:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch vulnerabilities',
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch vulnerabilities' }, { status: 500 });
   }
 }

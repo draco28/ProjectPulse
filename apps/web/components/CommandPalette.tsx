@@ -1,6 +1,6 @@
 'use client';
 
-import { useReducer, useEffect, useCallback, useRef } from 'react';
+import { useReducer, useEffect, useCallback, useRef, KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -84,7 +84,7 @@ export function CommandPalette() {
 
   // Global keyboard shortcut: Cmd+K / Ctrl+K
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         dispatch({ type: 'OPEN' });
@@ -120,7 +120,7 @@ export function CommandPalette() {
         const mockResults: SearchResult[] = [
           {
             id: 1,
-            type: 'issue',
+            type: 'issue' as const,
             title: `Issue matching "${query}"`,
             description: 'Fix authentication bug in login flow',
             url: '/issues/1',
@@ -129,7 +129,7 @@ export function CommandPalette() {
           },
           {
             id: 2,
-            type: 'knowledge',
+            type: 'knowledge' as const,
             title: `Knowledge article about "${query}"`,
             description: 'Best practices for API design',
             url: '/knowledge',
@@ -138,7 +138,7 @@ export function CommandPalette() {
           },
           {
             id: 3,
-            type: 'wiki',
+            type: 'wiki' as const,
             title: `Wiki page: ${query}`,
             description: 'Technical documentation for the feature',
             url: '/wiki/getting-started',
@@ -147,7 +147,7 @@ export function CommandPalette() {
           },
           {
             id: 4,
-            type: 'agent',
+            type: 'agent' as const,
             title: `Agent: ${query} Expert`,
             description: 'Specialized agent for this domain',
             url: '/agents',
@@ -191,8 +191,9 @@ export function CommandPalette() {
         break;
       case 'Enter':
         e.preventDefault();
-        if (state.results[state.selectedIndex]) {
-          router.push(state.results[state.selectedIndex].url);
+        const selectedResult = state.results[state.selectedIndex];
+        if (selectedResult) {
+          router.push(selectedResult.url);
           dispatch({ type: 'CLOSE' });
         }
         break;
@@ -252,9 +253,7 @@ export function CommandPalette() {
               onChange={(e) => dispatch({ type: 'SET_QUERY', payload: e.target.value })}
               className="flex-1 bg-transparent text-lg text-white placeholder-slate outline-none"
             />
-            {state.isLoading && (
-              <i className="fas fa-spinner fa-spin text-coral"></i>
-            )}
+            {state.isLoading && <i className="fas fa-spinner fa-spin text-coral"></i>}
             <kbd className="rounded bg-black/20 px-2 py-1 text-xs text-slate">ESC</kbd>
           </div>
 
@@ -296,17 +295,11 @@ export function CommandPalette() {
                     <div className="flex-1">
                       <h4 className="mb-1 font-semibold text-white">{result.title}</h4>
                       {result.description && (
-                        <p className="mb-1 text-sm text-slate line-clamp-1">
-                          {result.description}
-                        </p>
+                        <p className="mb-1 line-clamp-1 text-sm text-slate">{result.description}</p>
                       )}
-                      {result.metadata && (
-                        <p className="text-xs text-slate">{result.metadata}</p>
-                      )}
+                      {result.metadata && <p className="text-xs text-slate">{result.metadata}</p>}
                     </div>
-                    <kbd className="rounded bg-black/20 px-2 py-1 text-xs text-slate">
-                      ↵
-                    </kbd>
+                    <kbd className="rounded bg-black/20 px-2 py-1 text-xs text-slate">↵</kbd>
                   </button>
                 ))}
               </div>

@@ -7,7 +7,7 @@ interface AgentCardProps {
   agent: {
     id: number;
     name: string;
-    description: string;
+    description: string | null;
     expertise: string[];
     isActive: boolean;
     personality: string | null;
@@ -62,16 +62,10 @@ export function AgentCard({ agent }: AgentCardProps) {
       <div className="mb-4 flex items-center justify-between">
         <div
           className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
-            isActive
-              ? 'bg-green-500/10 text-green-500'
-              : 'bg-slate/10 text-slate'
+            isActive ? 'bg-green-500/10 text-green-500' : 'bg-slate/10 text-slate'
           }`}
         >
-          <div
-            className={`h-2 w-2 rounded-full ${
-              isActive ? 'bg-green-500' : 'bg-slate'
-            }`}
-          ></div>
+          <div className={`h-2 w-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-slate'}`}></div>
           {isActive ? 'Active' : 'Inactive'}
         </div>
 
@@ -95,18 +89,14 @@ export function AgentCard({ agent }: AgentCardProps) {
       <div className="mb-4 flex items-start gap-4">
         {/* Icon */}
         <div className="neu-raised flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl">
-          <i
-            className={`fab ${getAgentIcon(optimisticAgent.expertise)} text-2xl text-coral`}
-          ></i>
+          <i className={`fab ${getAgentIcon(optimisticAgent.expertise)} text-2xl text-coral`}></i>
         </div>
 
         {/* Name and Description */}
         <div className="flex-1">
-          <h3 className="mb-1 text-lg font-bold text-white">
-            {optimisticAgent.name}
-          </h3>
-          <p className="text-sm text-slate line-clamp-2">
-            {optimisticAgent.description}
+          <h3 className="mb-1 text-lg font-bold text-white">{optimisticAgent.name}</h3>
+          <p className="line-clamp-2 text-sm text-slate">
+            {optimisticAgent.description ?? 'No description provided'}
           </p>
         </div>
       </div>
@@ -114,9 +104,7 @@ export function AgentCard({ agent }: AgentCardProps) {
       {/* Personality */}
       {optimisticAgent.personality && (
         <div className="mb-4 rounded-2xl bg-black/20 p-3">
-          <p className="text-xs italic text-slate">
-            &quot;{optimisticAgent.personality}&quot;
-          </p>
+          <p className="text-xs italic text-slate">&quot;{optimisticAgent.personality}&quot;</p>
         </div>
       )}
 
