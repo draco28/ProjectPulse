@@ -237,6 +237,8 @@ export function CommandPalette() {
 
       {/* Command Palette */}
       <div
+        role="dialog"
+        aria-label="Command Palette"
         className="fixed left-1/2 top-1/4 z-50 w-full max-w-2xl -translate-x-1/2 transform"
         onKeyDown={handleKeyDown}
       >
@@ -252,9 +254,7 @@ export function CommandPalette() {
               onChange={(e) => dispatch({ type: 'SET_QUERY', payload: e.target.value })}
               className="flex-1 bg-transparent text-lg text-white placeholder-slate outline-none"
             />
-            {state.isLoading && (
-              <i className="fas fa-spinner fa-spin text-coral"></i>
-            )}
+            {state.isLoading && <i className="fas fa-spinner fa-spin text-coral"></i>}
             <kbd className="rounded bg-black/20 px-2 py-1 text-xs text-slate">ESC</kbd>
           </div>
 
@@ -296,17 +296,11 @@ export function CommandPalette() {
                     <div className="flex-1">
                       <h4 className="mb-1 font-semibold text-white">{result.title}</h4>
                       {result.description && (
-                        <p className="mb-1 text-sm text-slate line-clamp-1">
-                          {result.description}
-                        </p>
+                        <p className="mb-1 line-clamp-1 text-sm text-slate">{result.description}</p>
                       )}
-                      {result.metadata && (
-                        <p className="text-xs text-slate">{result.metadata}</p>
-                      )}
+                      {result.metadata && <p className="text-xs text-slate">{result.metadata}</p>}
                     </div>
-                    <kbd className="rounded bg-black/20 px-2 py-1 text-xs text-slate">
-                      ↵
-                    </kbd>
+                    <kbd className="rounded bg-black/20 px-2 py-1 text-xs text-slate">↵</kbd>
                   </button>
                 ))}
               </div>

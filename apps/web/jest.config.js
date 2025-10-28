@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const nextJest = require('next/jest');
 
 const createJestConfig = nextJest({
@@ -29,27 +30,32 @@ const customJestConfig = {
     '!**/coverage/**',
   ],
 
-  // Test patterns
-  testMatch: [
-    '**/__tests__/**/*.[jt]s?(x)',
-    '**/?(*.)+(spec|test).[jt]s?(x)',
+  // Test patterns (exclude E2E tests which run via Playwright)
+  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.next/',
+    '/tests/e2e/', // Exclude Playwright E2E tests from Jest
   ],
 
   // Transform
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['@swc/jest', {
-      jsc: {
-        parser: {
-          syntax: 'typescript',
-          tsx: true,
-        },
-        transform: {
-          react: {
-            runtime: 'automatic',
+    '^.+\\.(js|jsx|ts|tsx)$': [
+      '@swc/jest',
+      {
+        jsc: {
+          parser: {
+            syntax: 'typescript',
+            tsx: true,
+          },
+          transform: {
+            react: {
+              runtime: 'automatic',
+            },
           },
         },
       },
-    }],
+    ],
   },
 };
 
