@@ -439,3 +439,49 @@ model AgentSession {
   @@index([personaId])
   @@index([startedAt(sort: Desc)])
 }
+
+// ============================================================================
+// PHASE 4: DYNAMIC FILTER OPTIONS
+// ============================================================================
+
+model IssueStatusOption {
+  id         Int      @id @default(autoincrement())
+  value      String   @unique
+  label      String
+  order      Int      @default(0)
+  colorClass String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([value])
+  @@index([order])
+  @@map("issue_status_options")
+}
+
+model IssuePriorityOption {
+  id              Int      @id @default(autoincrement())
+  value           String   @unique
+  label           String
+  order           Int      @default(0)
+  dotColorClass   String?
+  badgeColorClass String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([value])
+  @@index([order])
+  @@map("issue_priority_options")
+}
+
+model IssueModuleOption {
+  id        Int      @id @default(autoincrement())
+  value     String   @unique
+  label     String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([value])
+  @@index([order])
+  @@map("issue_module_options")
+}

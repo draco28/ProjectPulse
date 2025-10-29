@@ -38,6 +38,90 @@ async function main() {
   console.log('✓ Cleanup complete\n');
 
   // ========================================================================
+  // FILTER OPTIONS (Phase 4: Dynamic Filters)
+  // ========================================================================
+  console.log('🎯 Seeding filter options...');
+
+  // STATUS OPTIONS
+  const statusOptions = [
+    { value: 'open', label: 'Open', order: 0, colorClass: 'text-blue-600' },
+    { value: 'in_progress', label: 'In Progress', order: 1, colorClass: 'text-yellow-600' },
+    { value: 'closed', label: 'Closed', order: 2, colorClass: 'text-green-600' },
+  ];
+
+  for (const option of statusOptions) {
+    await prisma.issueStatusOption.upsert({
+      where: { value: option.value },
+      update: { label: option.label, order: option.order, colorClass: option.colorClass },
+      create: option,
+    });
+  }
+  console.log(`✓ Seeded ${statusOptions.length} status options`);
+
+  // PRIORITY OPTIONS
+  const priorityOptions = [
+    {
+      value: 'critical',
+      label: 'Critical',
+      order: 0,
+      dotColorClass: 'bg-red-600',
+      badgeColorClass: 'bg-red-100 text-red-800',
+    },
+    {
+      value: 'high',
+      label: 'High',
+      order: 1,
+      dotColorClass: 'bg-orange-600',
+      badgeColorClass: 'bg-orange-100 text-orange-800',
+    },
+    {
+      value: 'medium',
+      label: 'Medium',
+      order: 2,
+      dotColorClass: 'bg-yellow-600',
+      badgeColorClass: 'bg-yellow-100 text-yellow-800',
+    },
+    {
+      value: 'low',
+      label: 'Low',
+      order: 3,
+      dotColorClass: 'bg-gray-600',
+      badgeColorClass: 'bg-gray-100 text-gray-800',
+    },
+  ];
+
+  for (const option of priorityOptions) {
+    await prisma.issuePriorityOption.upsert({
+      where: { value: option.value },
+      update: {
+        label: option.label,
+        order: option.order,
+        dotColorClass: option.dotColorClass,
+        badgeColorClass: option.badgeColorClass,
+      },
+      create: option,
+    });
+  }
+  console.log(`✓ Seeded ${priorityOptions.length} priority options`);
+
+  // MODULE OPTIONS
+  const moduleOptions = [
+    { value: 'combat', label: 'Combat', order: 0 },
+    { value: 'animation', label: 'Animation', order: 1 },
+    { value: 'core', label: 'Core', order: 2 },
+    { value: 'ui', label: 'UI', order: 3 },
+  ];
+
+  for (const option of moduleOptions) {
+    await prisma.issueModuleOption.upsert({
+      where: { value: option.value },
+      update: { label: option.label, order: option.order },
+      create: option,
+    });
+  }
+  console.log(`✓ Seeded ${moduleOptions.length} module options\n`);
+
+  // ========================================================================
   // PROJECTS
   // ========================================================================
   console.log('📦 Creating projects...');
