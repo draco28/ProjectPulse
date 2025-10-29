@@ -1,281 +1,434 @@
-# Implementation Plan — Phase 3 Testing & QA
+# Phase 4 Plan — Dynamic Issue Filters (DB-backed)
 
-**Created**: 2025-10-29 14:45
-**Branch**: feature/phase3-testing-qa
-**Status**: APPROVED ✅
-**Duration**: ~4–5 hours
+**Phase**: Week 15 Phase 4
+**Branch**: `feature/phase4-dynamic-filters`
+**Created**: 2025-10-29 17:09
+**Source**: GPT-generated plan, approved by user
 
 ---
 
-## Overview
+## Objectives
 
-Add comprehensive automated tests and quality verification for the five newly implemented pages (Knowledge, Wiki, Security, Agents) and supporting component (Command Palette). Use Playwright for E2E flows covering critical user paths and Jest + React Testing Library (RTL) for component behavior testing. Ensure pixel/behavior parity with Coral mockups and pass all quality gates.
+1. Replace hardcoded filter options in FilterSidebar with DB-driven options
+2. Provide a typed API for filter options
+3. Preserve count badges derived from actual Issue data
+4. Maintain strict TypeScript, Server Components first, API contracts consistent
+5. Achieve tests ≥80% coverage
+
+**Aligns with**: R-DATA-001, R-TS-001, R-NEXT-001, R-SEC-001, R-TEST-001
+
+---
+
+## Scope
+
+**Target**: Issues List page and FilterSidebar component
+
+**Filter Types**:
+
+- Status (required)
+- Priority (required)
+- Module (required)
+- Labels (optional for v1 - returned by API but not rendered unless time permits)
 
 ---
 
 ## Deliverables
 
-- `apps/web/tests/e2e/knowledge.spec.ts`
-- `apps/web/tests/e2e/wiki.spec.ts`
-- `apps/web/tests/e2e/security.spec.ts`
-- `apps/web/tests/e2e/agents.spec.ts`
-- `apps/web/components/__tests__/CommandPalette.test.tsx`
-- `COMPLETION_PHASE3_TESTING_QA.md` (root)
+1. **Prisma**: Models + migration + seed for option tables
+2. **API**: GET /api/settings/filters (Zod-validated)
+3. **UI**: Refactor FilterSidebar to consume dynamic options
+4. **Types**: `apps/web/types/filters.ts`
+5. **Tests**: Unit (API), Component (FilterSidebar), E2E (/issues filters)
+6. **Docs**:
+   - `docs/02-DATABASE-SCHEMA.md`
+   - `STATUS.md`
+   - `DEVELOPMENT_PLAN.md`
+7. **Completion**: `docs/COMPLETION_phase4_dynamic_filters.md`
+
+---
+
+## Data Model (Prisma)
+
+### New Tables
+
+#### IssueStatusOption
+
+```prisma
+model IssueStatusOption {
+  id         Int     @id @default(autoincrement())
+  value      String  @unique
+  label      String
+  order      Int     @default(0)
+  colorClass String?
+}
+```
+
+**Seed defaults**:
+
+- `open` (label: "Open", colorClass: "text-blue-600")
+- `in_progress` (label: "In Progress", colorClass: "text-yellow-600")
+- `closed` (label: "Closed", colorClass: "text-green-600")
+
+#### IssuePriorityOption
+
+```prisma
+model IssuePriorityOption {
+  id              Int     @id @default(autoincrement())
+  value           String  @unique
+  label           String
+  order           Int     @default(0)
+  dotColorClass   String?
+  badgeColorClass String?
+}
+```
+
+**Seed defaults**:
+
+- `critical` (label: "Critical", dotColorClass: "bg-red-600", badgeColorClass: "bg-red-100 text-red-800")
+- `high` (label: "High", dotColorClass: "bg-orange-600", badgeColorClass: "bg-orange-100 text-orange-800")
+- `medium` (label: "Medium", dotColorClass: "bg-yellow-600", badgeColorClass: "bg-yellow-100 text-yellow-800")
+- `low` (label: "Low", dotColorClass: "bg-gray-600", badgeColorClass: "bg-gray-100 text-gray-800")
+
+#### IssueModuleOption
+
+```prisma
+model IssueModuleOption {
+  id    Int    @id @default(autoincrement())
+  value String @unique
+  label String
+  order Int    @default(0)
+}
+```
+
+**Seed defaults**:
+
+- `combat` (label: "Combat")
+- `animation` (label: "Animation")
+- `core` (label: "Core")
+- `ui` (label: "UI")
+
+### Migration
+
+**Name**: `phase4_dynamic_filter_options`
+
+**Commands**:
+
+```bash
+pnpm prisma migrate dev --name phase4_dynamic_filter_options
+pnpm prisma generate
+```
+
+---
+
+## API — GET /api/settings/filters
+
+**Location**: `apps/web/app/api/settings/filters/route.ts`
+
+### Response Contract
+
+**Success** (200):
+
+```typescript
+{
+  data: {
+    status: StatusOption[],
+    priority: PriorityOption[],
+    modules: ModuleOption[],
+    labels: { id: string; name: string; color: string }[]
+  }
+}
+```
+
+**Error** (500):
+
+```typescript
+{
+  error: string;
+}
+```
+
+### Behavior
+
+1. **Zod Validation**: Validate output shape using Zod schema
+2. **Database Queries**:
+   - `prisma.issueStatusOption.findMany({ orderBy: { order: 'asc' } })`
+   - `prisma.issuePriorityOption.findMany({ orderBy: { order: 'asc' } })`
+   - `prisma.issueModuleOption.findMany({ orderBy: { order: 'asc' } })`
+   - `prisma.label.findMany({ orderBy: { name: 'asc' } })`
+3. **Mapping**: Map DB fields to DTO fields (include color classes)
+4. **Caching**: `revalidate: 3600` (1 hour) or `force-cache`
+   - Add tag revalidation later for admin edits
+
+---
+
+## Types
+
+**File**: `apps/web/types/filters.ts`
+
+### Type Definitions
+
+```typescript
+export interface StatusOption {
+  value: string;
+  label: string;
+  colorClass?: string;
+}
+
+export interface PriorityOption {
+  value: string;
+  label: string;
+  dotColorClass?: string;
+  badgeColorClass?: string;
+}
+
+export interface ModuleOption {
+  value: string;
+  label: string;
+}
+
+export interface FiltersDTO {
+  status: StatusOption[];
+  priority: PriorityOption[];
+  modules: ModuleOption[];
+  labels: { id: string; name: string; color: string }[];
+}
+```
+
+---
+
+## UI — FilterSidebar Refactor
+
+**File**: `apps/web/components/issues/FilterSidebar.tsx`
+
+### Changes
+
+1. **Props**: Accept `options: FiltersDTO` prop (except labels if out-of-scope)
+2. **Replace Hardcoded Arrays**: Use dynamic options from props
+3. **Preserve**:
+   - Count badges (existing shape)
+   - Color classes (bind from options)
+   - URL param behavior (status, priority, module as CSV)
+
+### Parent Component
+
+**File**: `apps/web/app/issues/page.tsx`
+
+**As Server Component**:
+
+1. Fetch filter options (via Prisma helper or API fetch)
+2. Compute counts for each option value:
+   - `prisma.issue.count({ where: { status: value } })`
+   - `prisma.issue.count({ where: { priority: value } })`
+   - `prisma.issue.count({ where: { module: value } })`
+3. Pass `{ counts, options, searchParams }` to FilterSidebar
+4. Keep current URL param behavior (CSV format)
+
+---
+
+## Validation
+
+1. **Zod Schema**: For API response DTO
+2. **Strict TypeScript**: No `any` types
+3. **Type Safety**: All components and API routes strictly typed
+
+---
+
+## Tests (TDD)
+
+### Unit Tests (Jest)
+
+**File**: `apps/web/app/api/settings/filters/__tests__/route.test.ts`
+
+**Test Cases**:
+
+1. API returns seeded options in correct order
+2. API maps color classes correctly
+3. API returns `{ error }` with 500 status on Prisma failure (mock error)
+
+### Component Tests (RTL)
+
+**File**: `apps/web/components/issues/__tests__/FilterSidebar.test.tsx`
+
+**Test Cases**:
+
+1. FilterSidebar renders dynamic options with counts
+2. Checking/unchecking filter updates URL params (status/priority/module)
+3. Color classes applied correctly from options
+4. "Clear All" resets all filters
+
+### E2E Tests (Playwright)
+
+**File**: `apps/web/e2e/issues-filters.spec.ts`
+
+**Test Cases**:
+
+1. `/issues`: Applying filters updates results and URL
+2. "Clear All" resets URL params and results
+3. Multiple filters combined (status + priority + module)
+4. Count badges reflect actual issue counts
+
+**Target Coverage**: ≥80% for new/changed code
+
+---
+
+## Performance & Caching
+
+1. **Cache Options**: 1 hour (stable, infrequently changing)
+2. **Count Queries**: Compute per-request
+   - Use `Promise.all` to batch count queries (avoid serialized queries)
+3. **Future Optimization**: Consider `groupBy`-based count optimization (follow-up)
+
+---
+
+## Risks & Mitigations
+
+### Risk 1: Options/Issue Value Mismatch
+
+**Scenario**: Issue has value not in options (e.g., "archived")
+**Mitigation**: Union into counts under that value, display as "Unknown/Other" (low priority, optional)
+
+### Risk 2: Visual Regressions (Color Classes)
+
+**Scenario**: Seed values don't match current UI classes
+**Mitigation**: Assert presence of classes in component tests, verify seed values match UI exactly
+
+### Risk 3: Query Overhead
+
+**Scenario**: Too many count queries slow down page load
+**Mitigation**: Use `Promise.all` to parallelize, limit options set, optimize later if needed
+
+---
+
+## Protocol (Steps 1–5)
+
+### ✅ Step 1.5: Branch Setup
+
+**Status**: COMPLETE
+**Branch**: `feature/phase4-dynamic-filters` created and ready
+
+### 🔄 Step 2: Plan Creation
+
+**Status**: IN PROGRESS
+**Actions**:
+
+- Save this plan to `.agent/task/current-plan.md`
+- Create `.agent/task/current-todos.md`
+- Create TodoWrite UI
+
+### ⏳ Step 3: Expert Consultation
+
+**Required**:
+
+- `prisma-expert`: Schema design + count strategy
+- `next-js-expert`: Server vs Client components + caching
+- `react-expert`: FilterSidebar props + URL state management
+
+**Output**: Expert notes saved to `.agent/task/[expert]-dynamic-filters-[timestamp].md`
+
+### ⏳ Step 4: Progress Checkpoints
+
+**Checkpoints**: At 15K, 30K, 45K, 60K, 75K, 90K tokens
+**Actions**: Update session file and todos
+
+### ⏳ Step 5: Post-Completion
+
+**Actions**:
+
+1. Update docs first (docs/02-DATABASE-SCHEMA.md, STATUS.md, DEVELOPMENT_PLAN.md)
+2. Create COMPLETION_phase4_dynamic_filters.md
+3. Invoke synthesize-docs (if new patterns)
+4. Invoke map-system (if architecture changed)
+5. Commit documentation, then code
+6. Run quality gates (lint, type-check, build, test)
+
+---
+
+## Acceptance Criteria
+
+- [ ] No hardcoded filter options in UI
+- [ ] API and UI strictly typed with Zod-validated response
+- [ ] Issues page remains Server Component
+- [ ] FilterSidebar is Client Component
+- [ ] API contracts respected: `{ data }` on success, `{ error }` + status on failure
+- [ ] Tests ≥80% coverage for new code
+- [ ] All quality gates pass (TypeScript, ESLint, build, tests)
+- [ ] Documentation updated and committed first
 
 ---
 
 ## Implementation Steps
 
-### Step 0: Pre-Implementation Checks ✅
+### 1. Database Layer
 
-#### 0.1: Verify Development Environment
+1. Create Prisma models (IssueStatusOption, IssuePriorityOption, IssueModuleOption)
+2. Generate migration: `pnpm prisma migrate dev --name phase4_dynamic_filter_options`
+3. Create seed data with color classes matching current UI
+4. Run seed: `pnpm prisma db seed`
+5. Generate Prisma client: `pnpm prisma generate`
 
-- [ ] Run `pnpm dev` and confirm server starts on port 3000
-  - ✅ MUST show: "ready started server on 0.0.0.0:3000"
-  - ❌ WRONG: "ready started server on 0.0.0.0:3002"
-  - If wrong port: Follow [.agent/sops/port-troubleshooting.md](.agent/sops/port-troubleshooting.md)
-- [ ] Verify localhost:3000 loads application successfully
-- [ ] Test that all 5 pages are accessible and render without errors
+### 2. Types Layer
 
-#### 0.2: Git Branch Confirmation
+1. Create `apps/web/types/filters.ts`
+2. Define StatusOption, PriorityOption, ModuleOption, FiltersDTO interfaces
+3. Create Zod schemas for validation
 
-- [ ] Run `git branch` to verify current branch
-- [ ] ✅ REQUIRED: Must be on `feature/phase3-testing-qa` (NOT master)
-- [ ] If on master:
-  ```bash
-  git checkout master && git pull origin master
-  git checkout feature/phase3-testing-qa
-  ```
-- [ ] **Confirm branch switch**: Run `git branch` again and verify active branch
-- [ ] Output confirmation: "✅ On branch: feature/phase3-testing-qa"
+### 3. API Layer
 
-### Step 1: E2E Test Scaffolding
+1. Create `apps/web/app/api/settings/filters/route.ts`
+2. Implement GET handler with Zod validation
+3. Query all option tables with orderBy
+4. Map DB fields to DTO
+5. Add caching (revalidate: 3600)
+6. Handle errors with `{ error }` response
 
-- [ ] Verify Playwright config at `apps/web/playwright.config.ts`:
-  - testDir: `./tests/e2e`
-  - baseURL: `http://localhost:3000`
-  - webServer: `pnpm dev`
-- [ ] Review existing E2E pattern from `apps/web/tests/e2e/dashboard.spec.ts`:
-  - Semantic locators preferred (text, role, accessible labels)
-  - Add `data-testid` only when CSS/text locators are brittle
-  - Use `waitForLoadState('networkidle')` for page stability
-  - Use `toBeVisible()` for element assertions
+### 4. UI Layer
 
-### Steps 2-6: Create Test Files
+1. Update FilterSidebar.tsx to accept `options` prop
+2. Replace hardcoded arrays with dynamic options
+3. Bind color classes from options
+4. Update issues/page.tsx to fetch options
+5. Compute counts using `prisma.issue.count`
+6. Pass options and counts to FilterSidebar
 
-_[Detailed test specifications follow in sections below]_
+### 5. Testing Layer
 
-### Step 7: Pixel/Behavior Verification
+1. Write unit tests for API route
+2. Write component tests for FilterSidebar
+3. Write E2E tests for /issues filters
+4. Verify ≥80% coverage
+5. All tests must pass
 
-**Manual Verification Against Coral Mockups:**
+### 6. Documentation Layer
 
-_[Detailed verification checklist follows below]_
+1. Update docs/02-DATABASE-SCHEMA.md with new models
+2. Update STATUS.md with Phase 4 progress
+3. Update DEVELOPMENT_PLAN.md with completion
+4. Create COMPLETION_phase4_dynamic_filters.md
 
-### Step 8: Manual Testing Checklist
+### 7. Quality Gates
 
-**End-to-End User Flows:**
-
-_[Detailed user flows follow below]_
-
-### Step 9: Quality Gates & Documentation
-
-#### 9.1: Run Quality Checks
-
-- [ ] `pnpm type-check` → Must pass with 0 errors
-- [ ] `pnpm lint` → Must pass with 0 errors (auto-fix if possible)
-- [ ] `pnpm test` → All Jest unit tests pass
-- [ ] `pnpm test:e2e` → All Playwright E2E tests pass
-- [ ] `pnpm build` → Production build succeeds
-
-#### 9.2: Create Completion Documentation
-
-- [ ] Create `COMPLETION_PHASE3_TESTING_QA.md` using completion template
-  - Document: All tests created, coverage achieved, quality gate results
-  - Include: Test file paths, critical paths covered, manual testing results
-  - Note: Any flaky tests or areas needing improvement
-
-#### 9.3: Update Project Documentation
-
-- [ ] Update `STATUS.md`:
-  - Move "Phase 3 Testing & QA" to "Last Completed" section
-  - Update "Current Phase" to next phase (if applicable)
-  - Update completion timestamp
-
-- [ ] Update `docs/DEVELOPMENT_PLAN.md`:
-  - Mark Phase 3 Testing & QA with ✅
-  - Update "CURRENT STATUS" header section
-
-#### 9.4: System Documentation Update ✅ (NEW)
-
-- [ ] Invoke `map-system` sub-agent to update system docs
-  - Updates `.agent/system/testing-patterns.md` (if new patterns introduced)
-  - Updates `.agent/system/component-patterns.md` (if test utilities created)
-  - Save report to `.agent/task/map-system-phase3-[timestamp].md`
-  - Read report and verify accuracy
-
-#### 9.5: Git Commits (Two-Stage Commit)
-
-**Documentation Commit (FIRST):**
-
-```bash
-git add .agent/ STATUS.md docs/DEVELOPMENT_PLAN.md COMPLETION_PHASE3_TESTING_QA.md
-git commit -m "$(cat <<'EOF'
-docs: complete Phase 3 Testing & QA documentation
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-EOF
-)"
-```
-
-**Code Commit (SECOND):**
-
-```bash
-git add apps/web/tests/e2e/ apps/web/components/__tests__/CommandPalette.test.tsx
-git commit -m "$(cat <<'EOF'
-test: add comprehensive E2E and unit tests for Phase 3 pages
-
-- E2E tests for Knowledge, Wiki, Security, Agents pages
-- Unit tests for CommandPalette component
-- 80% coverage of 13 critical user paths
-- All quality gates passing
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-EOF
-)"
-```
+1. TypeScript: 0 errors
+2. ESLint: 0 warnings
+3. Unit tests: All passing
+4. E2E tests: All passing
+5. Production build: Successful
 
 ---
 
-## Step 3: Expert Consultation ✅ (WAIVED)
+## Recommended Commit Sequence
 
-**Status:** WAIVED for Phase 3
-
-**Rationale:**
-This phase involves testing existing features that have already been implemented and reviewed. No new architecture, component patterns, or database schemas are being introduced. Testing patterns follow established conventions from existing test files.
-
-**Approach:**
-Follow existing test patterns from:
-
-- **E2E Pattern:** `apps/web/tests/e2e/dashboard.spec.ts` (Playwright best practices)
-  - Semantic locators (text, role, accessible queries)
-  - `waitForLoadState('networkidle')` for stability
-  - `toBeVisible()` assertions for reliability
-  - Test organization with `test.describe()` blocks
-
-- **Unit Pattern:** `apps/web/components/wiki/__tests__/CodeBlock.test.tsx` (Jest/RTL best practices)
-  - React Testing Library queries (`screen`, `getByText`, `getByRole`)
-  - `@testing-library/user-event` for interactions
-  - Mock setup in `jest.setup.js`
-  - Component prop testing and edge cases
-
-**✅ STEP 3 WAIVED: Expert consultation not required for testing phase. Following established test patterns from dashboard.spec.ts (E2E) and CodeBlock.test.tsx (unit tests).**
+1. `docs: add Phase 4 plan reference placeholders` (optional)
+2. `feat(prisma): add filter option models, migration, seed`
+3. `feat(api): settings/filters endpoint`
+4. `feat(ui): dynamic FilterSidebar + issues page integration`
+5. `test: add unit, RTL, E2E for dynamic filters`
+6. `docs: update docs/02, STATUS, DEVELOPMENT_PLAN`
+7. `chore: finalize and run gates`
 
 ---
 
-## Coverage Target: 80% of Critical User Paths ✅ (CLARIFIED)
+## Summary
 
-### Critical Paths to Test (13 total)
-
-**Knowledge Page (3 paths):**
-
-1. Search functionality (enter query → see filtered results)
-2. Tag filter (select tag → see filtered articles)
-3. Category filter (select category → see filtered articles)
-
-**Wiki Page (3 paths):** 4. TOC intersection highlighting (scroll → TOC updates) 5. Related links navigation (click link → navigate to related page) 6. ISR rendering (page loads → markdown renders correctly)
-
-**Security Page (2 paths):** 7. Score meter animation (page loads → meter animates to score) 8. Severity filter (select severity → see filtered vulnerabilities)
-
-**Agents Page (2 paths):** 9. Toggle active state (click toggle → optimistic UI → persist) 10. Optimistic UI rollback (API fails → state reverts)
-
-**CommandPalette (3 paths):** 11. Open via Cmd+K/Ctrl+K (keypress → palette opens) 12. Search filter (type query → see debounced results) 13. Keyboard navigation (ArrowUp/Down → Enter → navigate)
-
-**Success Criteria:** ≥11/13 critical paths have automated E2E or unit tests (84% coverage target achieved)
-
----
-
-## Test Data & Stability
-
-**Assumptions:**
-
-- Seeded data exists for:
-  - `KnowledgeItem` (articles, tags, categories)
-  - `WikiPage` (pages, TOC data, related links)
-  - `SecurityFinding` (vulnerabilities, severity levels, statuses)
-  - `AgentPersona` (agents, expertise, active states)
-
-**Stability Best Practices:**
-
-- Prefer robust waits: `toBeVisible()`, `waitForLoadState('networkidle')`
-- Avoid fixed timeouts unless absolutely necessary (animations only)
-- Use state assertions over timing assumptions
-- Add `data-testid` attributes only when CSS/text locators are brittle
-- Test real-time features by awaiting network/state changes
-
----
-
-## Token Checkpoints
-
-- **15K tokens:** Knowledge + Wiki E2E skeletons pass basic assertions
-- **30K tokens:** Security + Agents E2E stable; Command Palette unit tests green
-- **45K tokens:** Pixel/behavior verification complete; quality gates green
-- **60K tokens:** Documentation complete, ready for final commit
-
----
-
-## Success Criteria
-
-### Automated Testing
-
-- [ ] All 5 test files created and passing reliably (non-flaky)
-- [ ] ≥11/13 critical user paths covered by automated tests (84%+)
-- [ ] Tests follow established patterns from existing test files
-- [ ] Edge cases and error states tested appropriately
-
-### Quality Gates
-
-- [ ] `pnpm type-check` passes with 0 errors
-- [ ] `pnpm lint` passes with 0 errors
-- [ ] `pnpm test` (Jest) passes all unit tests
-- [ ] `pnpm test:e2e` (Playwright) passes all E2E tests
-- [ ] `pnpm build` succeeds without errors
-
-### Pixel/Behavior Verification ✅ (DETAILED)
-
-- [ ] All 5 pages match Coral mockups visually
-- [ ] Neumorphic styling applied consistently
-- [ ] Hover/focus states work as designed
-- [ ] Responsive layouts verified at 3+ breakpoints
-
-### Manual Testing ✅ (DETAILED)
-
-- [ ] All 5 end-to-end user flows tested manually and working
-- [ ] Browser compatibility verified (Chrome, Firefox minimum)
-- [ ] Mobile responsiveness verified
-
-### Documentation
-
-- [ ] `COMPLETION_PHASE3_TESTING_QA.md` created with full details
-- [ ] `STATUS.md` and `DEVELOPMENT_PLAN.md` updated
-- [ ] System documentation updated via `map-system` sub-agent ✅ (NEW)
-- [ ] Documentation committed BEFORE code commit
-
----
-
-**Plan Status:** APPROVED ✅
-**Estimated Duration:** 4-5 hours
-**Token Budget:** 60K tokens (30% of limit)
-
----
-
-## 5 Key Improvements Incorporated
-
-✅ **1. Step 3 Justification:** Explicit waiver with rationale (testing-only phase, no new architecture)
-✅ **2. Step 5 Complete:** Added Step 9.4 - map-system sub-agent invocation requirement
-✅ **3. Coverage Defined:** 13 critical paths listed explicitly, 80% = ≥11 paths (84%)
-✅ **4. Verification Detailed:** Added detailed pixel + manual testing checklists (see full plan for specifics)
-✅ **5. Branch Enforced:** Explicit Step 0.2 git checkout with verification required
+**Plan Status**: Ready for implementation
+**Next Action**: Create todos and invoke expert sub-agents
+**Protocol Step**: Moving to Step 2 completion (todos) → Step 3 (experts) → Implementation
