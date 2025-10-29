@@ -191,7 +191,7 @@ describe('getFilterOptions', () => {
     const result = await getFilterOptions();
 
     // Null should be converted to undefined
-    expect(result.status[0].colorClass).toBeUndefined();
+    expect(result.status[0]?.colorClass).toBeUndefined();
     expect(result.status[0]).not.toHaveProperty('colorClass', null);
   });
 
