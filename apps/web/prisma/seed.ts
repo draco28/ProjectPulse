@@ -353,6 +353,109 @@ issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
   console.log(`✓ Created ${knowledgeItems.length} knowledge base items\n`);
 
   // ========================================================================
+  // WIKI PAGES
+  // ========================================================================
+  console.log('📖 Creating wiki pages...');
+
+  const wikiPages = await Promise.all([
+    prisma.wikiPage.create({
+      data: {
+        title: 'Getting Started',
+        path: '/getting-started',
+        content: `# Getting Started
+
+Welcome to Moksha DevHub! This guide will help you set up and start using the platform.
+
+## Introduction
+
+Moksha DevHub is a unified development hub that combines issue tracking, knowledge management, wiki documentation, and AI agent assistance in one platform.
+
+## Installation
+
+### Prerequisites
+
+- Node.js 20+
+- PostgreSQL 16
+- pnpm 8+
+
+### Setup Steps
+
+1. Clone the repository
+2. Install dependencies: \`pnpm install\`
+3. Set up environment variables
+4. Run database migrations: \`pnpm prisma migrate dev\`
+5. Seed the database: \`pnpm prisma db seed\`
+
+## Usage
+
+### Dashboard
+
+The dashboard provides an overview of:
+- Open issues and their status
+- Recent knowledge base articles
+- Active AI agents
+- Security findings
+
+### Navigation
+
+Use the sidebar to navigate between:
+- Issues
+- Knowledge Base
+- Wiki
+- Security
+- Agent Personas
+
+Press \`Cmd+K\` (or \`Ctrl+K\`) to open the command palette for quick navigation.`,
+      },
+    }),
+
+    prisma.wikiPage.create({
+      data: {
+        title: 'Configuration',
+        path: '/configuration',
+        content: `# Configuration
+
+Learn how to configure Moksha DevHub for your team.
+
+## Environment Variables
+
+Create a \`.env\` file with the following variables:
+
+\`\`\`bash
+DATABASE_URL="postgresql://user:password@localhost:5432/devhub"
+NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+\`\`\`
+
+## Database Setup
+
+The application uses PostgreSQL with the pgvector extension for semantic search.
+
+### Enable Extensions
+
+\`\`\`sql
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+\`\`\`
+
+## Theme Customization
+
+The Coral neumorphic theme is the default. CSS variables can be customized in \`globals.css\`.`,
+      },
+    }),
+  ]);
+
+  // Create wiki page links (related pages)
+  await prisma.pageLink.create({
+    data: {
+      sourcePageId: wikiPages[0].id, // Getting Started
+      targetPageId: wikiPages[1].id, // Configuration
+    },
+  });
+
+  console.log(`✓ Created ${wikiPages.length} wiki pages\n`);
+
+  // ========================================================================
   // SECURITY FINDINGS
   // ========================================================================
   console.log('🔒 Creating security findings...');
@@ -546,6 +649,7 @@ Format:
   console.log(`   - Issues: ${issues.length} (5 open, 3 closed)`);
   console.log(`   - Labels: ${labels.length}`);
   console.log(`   - Knowledge Items: ${knowledgeItems.length}`);
+  console.log(`   - Wiki Pages: ${wikiPages.length}`);
   console.log(`   - Security Findings: ${securityFindings.length} (2 open, 1 false positive)`);
   console.log(`   - Agent Personas: ${personas.length}`);
   console.log(`   - Comments: 3`);

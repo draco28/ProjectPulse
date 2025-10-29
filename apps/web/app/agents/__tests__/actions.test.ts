@@ -31,8 +31,8 @@ describe('createAgent Server Action', () => {
   });
 
   it('creates agent with generated slug from name', async () => {
-    mockPrisma.agentPersona.findUnique.mockResolvedValue(null); // Slug available
-    mockPrisma.agentPersona.create.mockResolvedValue({
+    (mockPrisma.agentPersona.findUnique as jest.Mock).mockResolvedValue(null); // Slug available
+    (mockPrisma.agentPersona.create as jest.Mock).mockResolvedValue({
       id: 1,
       name: 'Code Reviewer',
       slug: 'code-reviewer',
@@ -71,12 +71,12 @@ describe('createAgent Server Action', () => {
 
   it('handles slug collision by appending -2', async () => {
     // First slug is taken
-    mockPrisma.agentPersona.findUnique
+    (mockPrisma.agentPersona.findUnique as jest.Mock)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .mockResolvedValueOnce({ id: 1 } as any) // Slug 'code-reviewer' taken
       .mockResolvedValueOnce(null); // Slug 'code-reviewer-2' available
 
-    mockPrisma.agentPersona.create.mockResolvedValue({
+    (mockPrisma.agentPersona.create as jest.Mock).mockResolvedValue({
       id: 2,
       name: 'Code Reviewer',
       slug: 'code-reviewer-2',
@@ -113,7 +113,7 @@ describe('createAgent Server Action', () => {
 
   it('handles multiple slug collisions', async () => {
     // First 3 slugs are taken
-    mockPrisma.agentPersona.findUnique
+    (mockPrisma.agentPersona.findUnique as jest.Mock)
       /* eslint-disable @typescript-eslint/no-explicit-any */
       .mockResolvedValueOnce({ id: 1 } as any) // 'test-agent' taken
       .mockResolvedValueOnce({ id: 2 } as any) // 'test-agent-2' taken
@@ -121,7 +121,7 @@ describe('createAgent Server Action', () => {
       /* eslint-enable @typescript-eslint/no-explicit-any */
       .mockResolvedValueOnce(null); // 'test-agent-4' available
 
-    mockPrisma.agentPersona.create.mockResolvedValue({
+    (mockPrisma.agentPersona.create as jest.Mock).mockResolvedValue({
       id: 4,
       name: 'Test Agent',
       slug: 'test-agent-4',
@@ -159,7 +159,7 @@ describe('createAgent Server Action', () => {
   it('returns error after max attempts (10)', async () => {
     // All 11 slugs are taken (base + 10 attempts)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockPrisma.agentPersona.findUnique.mockResolvedValue({ id: 1 } as any);
+    (mockPrisma.agentPersona.findUnique as jest.Mock).mockResolvedValue({ id: 1 } as any);
 
     const result = await createAgent({
       name: 'Popular Agent',
@@ -173,8 +173,8 @@ describe('createAgent Server Action', () => {
   });
 
   it('sanitizes slug correctly', async () => {
-    mockPrisma.agentPersona.findUnique.mockResolvedValue(null);
-    mockPrisma.agentPersona.create.mockResolvedValue({
+    (mockPrisma.agentPersona.findUnique as jest.Mock).mockResolvedValue(null);
+    (mockPrisma.agentPersona.create as jest.Mock).mockResolvedValue({
       id: 1,
       name: 'Code & Review!',
       slug: 'code-review',
@@ -210,8 +210,8 @@ describe('createAgent Server Action', () => {
   });
 
   it('includes all required Prisma fields', async () => {
-    mockPrisma.agentPersona.findUnique.mockResolvedValue(null);
-    mockPrisma.agentPersona.create.mockResolvedValue({
+    (mockPrisma.agentPersona.findUnique as jest.Mock).mockResolvedValue(null);
+    (mockPrisma.agentPersona.create as jest.Mock).mockResolvedValue({
       id: 1,
       name: 'Full Agent',
       slug: 'full-agent',

@@ -238,6 +238,8 @@ export function CommandPalette() {
 
       {/* Command Palette */}
       <div
+        role="dialog"
+        aria-label="Command Palette"
         className="fixed left-1/2 top-1/4 z-50 w-full max-w-2xl -translate-x-1/2 transform"
         onKeyDown={handleKeyDown}
       >

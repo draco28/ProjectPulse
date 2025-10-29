@@ -23,7 +23,7 @@ At the start of **EVERY** session, copy-paste this into Claude Code:
 ```
 MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
 
-Current phase: [Week 1.5 Phase 3 - Page Transformation (Days 3-6)]
+Current phase: [Week 1.5 Phase 3 - Testing & QA]
 Requirements: [check from Week 1.5 in DEVELOPMENT_PLAN.md]
 
 ENFORCE:
@@ -35,7 +35,7 @@ ENFORCE:
 
 Confirm each step explicitly. If you skip ANY step, I will stop you.
 
-Proceed with [Week 1.5 Phase 3 - Page Transformation (Days 3-6)].
+Proceed with [Week 1.5 Phase 3 - Testing & QA].
 ```
 
 **How to fill in:**
