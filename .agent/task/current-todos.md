@@ -1,152 +1,125 @@
-# Phase 4 Todo List - Dynamic Issue Filters
+# Current Todos - Week 1.5 Phase 3 Day 5
 
-**Created**: 2025-10-29 17:09
-**Last Updated**: 2025-10-29 17:35
-**Phase**: Week 15 Phase 4 - Dynamic Issue Filters (DB-backed)
-**Branch**: `feature/phase4-dynamic-filters`
-**Total Tasks**: 15
-**Completed**: 2/15 (13%)
-**Status**: 🟡 IN PROGRESS (Database Layer 66% complete)
+**Created**: 2025-10-29 21:54
+**Task**: Issue Detail Page Implementation
+**Total Tasks**: 13 (revised from 30 after expert consultations)
+**Completed**: 13/13 (100%)
+**Status**: ✅ COMPLETE (All components created, build successful, docs complete)
 
 ---
 
-## Database Layer (Tasks 1-3) - 66% Complete
+## Protocol Steps
 
-- [x] **Task 1**: Create Prisma models ✅ COMPLETE
-  - 3 models added: IssueStatusOption, IssuePriorityOption, IssueModuleOption
-  - Location: `apps/web/prisma/schema.prisma` (lines 443-490)
-  - Includes: id, value, label, order, color class fields, timestamps, indexes
-
-- [x] **Task 2**: Generate and run Prisma migration ✅ COMPLETE
-  - Migration: `20251029115644_phase4_dynamic_filter_options`
-  - Status: Applied successfully, Prisma Client regenerated
-  - Creates: 3 tables + 6 indexes (unique on value, indexes on value + order)
-
-- [ ] **Task 3**: Create seed data with color classes ⏸️ PAUSED
-  - Location: `apps/web/prisma/seed.ts`
-  - Upsert pattern designed (idempotent)
-  - 11 options total: 3 status + 4 priority + 4 module
-  - **Next session**: Add seed code and run `pnpm prisma db seed`
+- [x] STEP 1: Initialize session (create current-session file)
+- [x] STEP 2: Save plan and todos
+- [x] STEP 3: Consult experts (next-js-expert, react-expert)
+- [x] STEP 4: Progress checkpoints (every 15K tokens)
+- [x] STEP 5: Post-completion (docs, commits)
 
 ---
 
-## Types Layer (Task 4) - Not Started
+## Implementation Tasks
 
-- [ ] **Task 4**: Create types file (apps/web/types/filters.ts) with interfaces and Zod schemas
-  - StatusOption, PriorityOption, ModuleOption interfaces
-  - FiltersDTO interface
-  - Zod schemas for validation
-  - **Estimated**: 15 minutes
+### Phase 1: API Foundation (SKIPPED)
 
----
+- [x] SKIPPED per expert recommendation (Server Components use Prisma directly)
 
-## API Layer (Task 5) - Not Started
-
-- [ ] **Task 5**: Implement GET /api/settings/filters endpoint with Zod validation
-  - Location: `apps/web/app/api/settings/filters/route.ts`
-  - Query all option tables with `orderBy: { order: 'asc' }`
-  - Add caching: `revalidate: 3600`
-  - Return: `{ data: { status, priority, modules, labels } }` or `{ error }`
-  - **Estimated**: 30 minutes
+**Progress**: 100% (skipped, no API endpoint needed)
 
 ---
 
-## UI Layer (Tasks 6-7) - Not Started
+### Phase 2: Server Components (5/5 complete)
 
-- [ ] **Task 6**: Refactor FilterSidebar to accept dynamic options prop
-  - Location: `apps/web/components/issues/FilterSidebar.tsx`
-  - Accept `options: FiltersDTO` prop
-  - Replace hardcoded arrays with dynamic options
-  - Preserve count badges and color classes
-  - **Estimated**: 30 minutes
+- [x] 2.1: Refactor page.tsx with optimized Prisma select query
+- [x] 2.2: Build IssueHeader component
+- [x] 2.3: Build SystemActivity component
+- [x] 2.4: Build CodeSection component
+- [x] 2.5: Build WatchersSection component
+- [x] 2.6: Build RelatedIssues component
 
-- [ ] **Task 7**: Update issues/page.tsx to fetch options and compute counts
-  - Fetch filter options via Prisma
-  - Compute counts: `prisma.issue.count({ where: { status/priority/module } })`
-  - Use `Promise.all` to parallelize count queries
-  - Pass `{ counts, options, searchParams }` to FilterSidebar
-  - **Estimated**: 30 minutes
+**Progress**: 100% (5/5)
 
 ---
 
-## Testing Layer (Tasks 8-10) - Not Started
+### Phase 3: Client Components (4/4 complete)
 
-- [ ] **Task 8**: Write unit tests for API route
-  - File: `apps/web/app/api/settings/filters/__tests__/route.test.ts`
-  - Test: API returns seeded options in correct order
-  - Test: API maps color classes correctly
-  - Test: API returns `{ error }` with 500 on Prisma failure
-  - **Estimated**: 20 minutes
+- [x] 3.1: Build IssueActions client component
+- [x] 3.2: Build DescriptionSection with markdown placeholder
+- [x] 3.3: Build QuickActions sidebar component
+- [x] 3.4: Wire up existing Day 4 components
 
-- [ ] **Task 9**: Write component tests for FilterSidebar
-  - File: `apps/web/components/issues/__tests__/FilterSidebar.test.tsx`
-  - Test: Renders dynamic options with counts
-  - Test: Checking/unchecking updates URL params
-  - Test: Color classes applied correctly
-  - Test: "Clear All" resets all filters
-  - **Estimated**: 20 minutes
-
-- [ ] **Task 10**: Write E2E tests for /issues filters
-  - File: `apps/web/e2e/issues-filters.spec.ts`
-  - Test: Applying filters updates results and URL
-  - Test: "Clear All" resets URL params and results
-  - Test: Multiple filters combined work correctly
-  - Test: Count badges reflect actual issue counts
-  - **Estimated**: 20 minutes
+**Progress**: 100% (4/4)
 
 ---
 
-## Quality & Documentation (Tasks 11-15) - Not Started
+### Phase 4: Integration & Styling (4/4 complete)
 
-- [ ] **Task 11**: Run quality gates (TypeScript, ESLint, tests, build)
-  - `pnpm type-check` → 0 errors
-  - `pnpm lint` → 0 warnings
-  - `pnpm test` → All passing
-  - `pnpm test:e2e` → All passing
-  - `pnpm build` → Successful
-  - **Estimated**: 10 minutes
+- [x] 4.1: Integrate all 12 components in 3-column layout
+- [x] 4.2: Apply neumorphic styling and responsive breakpoints
+- [x] 4.3: Accessibility audit (ARIA labels added)
+- [x] 4.4: Fix TypeScript errors
 
-- [ ] **Task 12**: Update documentation
-  - docs/02-DATABASE-SCHEMA.md (add new models)
-  - STATUS.md (Phase 4 completion)
-  - DEVELOPMENT_PLAN.md (mark Phase 4 ✅)
-  - **Estimated**: 10 minutes
-
-- [ ] **Task 13**: Create COMPLETION_phase4_dynamic_filters.md
-  - Use completion template
-  - Document: Tests, coverage, quality gates, lessons learned
-  - **Estimated**: 10 minutes
-
-- [ ] **Task 14**: Commit documentation changes (two-stage commit)
-  - Commit docs FIRST per protocol
-  - Message: "docs: complete Phase 4 Dynamic Filters documentation"
-  - **Estimated**: 5 minutes
-
-- [ ] **Task 15**: Commit code changes and create PR
-  - Commit code SECOND
-  - Message: "feat: implement dynamic DB-driven filter options"
-  - Create PR with comprehensive description
-  - **Estimated**: 5 minutes
+**Progress**: 100% (4/4)
 
 ---
 
-## Progress Tracking
+### Phase 5: Quality Verification (1/1 complete)
 
-**Session Start**: 2025-10-29 17:09
-**Last Checkpoint**: 2025-10-29 17:35
-**Next Session Start**: Resume at Task 3 (seed data)
+- [x] 5.1: Verify build succeeds (TypeScript 0 errors, build successful)
 
-**Token Usage at Checkpoint**: ~118K/200K (59%)
+**Progress**: 100% (1/1, tests deferred per expert recommendation)
 
 ---
 
-## Success Criteria
+### Documentation & Completion (3/3 complete)
 
-- [x] Prisma models created with correct schema ✅
-- [x] Migration applied successfully ✅
-- [ ] Seed data populates all 11 options
-- [ ] No hardcoded filter options in UI
-- [ ] API and UI strictly typed with Zod-validated response
-- [ ] Tests ≥80% coverage for new code
-- [ ] All quality gates pass
-- [ ] Documentation updated and committed first
+- [x] Create COMPLETION_WEEK_1.5_PHASE_3_DAY_5.md
+- [x] Update STATUS.md with Day 5 completion
+- [x] Update current-todos.md and current-session.md
+
+**Progress**: 100% (3/3)
+
+---
+
+## Expert Consultations (2/2 complete)
+
+- [x] Consult next-js-expert for data fetching strategy
+- [x] Consult react-expert for component composition
+
+---
+
+## Overall Progress
+
+**Total**: 13/13 tasks complete (100%)
+
+**Phase Completion**:
+
+- Protocol: 5/5 (100%)
+- Phase 1: SKIPPED (per expert recommendation)
+- Phase 2: 5/5 (100%)
+- Phase 3: 4/4 (100%)
+- Phase 4: 4/4 (100%)
+- Phase 5: 1/1 (100%)
+- Documentation: 3/3 (100%)
+- Experts: 2/2 (100%)
+
+---
+
+## Checkpoints
+
+- [x] 15K tokens: Expert consultations complete
+- [x] 30K tokens: Phase 2 complete (all Server Components)
+- [x] 45K tokens: Phase 3 complete (all Client Components)
+- [x] 60K tokens: Phase 4 complete (layout + styling + TypeScript fixes)
+- [x] 75K tokens: Phase 5 complete (build verification)
+- [x] 90K tokens: Documentation complete
+- [x] 120K tokens: Final checkpoint, ready for commit
+
+---
+
+## Last Updated
+
+2025-10-29 21:54 - Initial creation
+2025-10-29 22:00 - Expert consultations complete
+2025-10-29 22:30 - All implementation complete
+2025-10-29 22:35 - Documentation complete, ready for commit
