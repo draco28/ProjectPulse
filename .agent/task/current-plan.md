@@ -1,434 +1,276 @@
-# Phase 4 Plan — Dynamic Issue Filters (DB-backed)
+# Current Implementation Plan - Week 1.5 Phase 3 Day 5
 
-**Phase**: Week 15 Phase 4
-**Branch**: `feature/phase4-dynamic-filters`
-**Created**: 2025-10-29 17:09
-**Source**: GPT-generated plan, approved by user
-
----
-
-## Objectives
-
-1. Replace hardcoded filter options in FilterSidebar with DB-driven options
-2. Provide a typed API for filter options
-3. Preserve count badges derived from actual Issue data
-4. Maintain strict TypeScript, Server Components first, API contracts consistent
-5. Achieve tests ≥80% coverage
-
-**Aligns with**: R-DATA-001, R-TS-001, R-NEXT-001, R-SEC-001, R-TEST-001
+**Created**: 2025-10-29 21:54
+**Task**: Issue Detail Page Implementation
+**Estimated Duration**: 6-8 hours
 
 ---
 
-## Scope
+## Overview
 
-**Target**: Issues List page and FilterSidebar component
+Transform the Issue Detail page using the neumorphic coral theme mockup, implementing a full-featured issue view with comments, attachments, status management, and related content.
 
-**Filter Types**:
-
-- Status (required)
-- Priority (required)
-- Module (required)
-- Labels (optional for v1 - returned by API but not rendered unless time permits)
+**Scope**: Create dynamic route `app/issues/[id]/page.tsx` with 12 components (7 new, 5 existing from Day 4).
 
 ---
 
-## Deliverables
+## Phase Breakdown
 
-1. **Prisma**: Models + migration + seed for option tables
-2. **API**: GET /api/settings/filters (Zod-validated)
-3. **UI**: Refactor FilterSidebar to consume dynamic options
-4. **Types**: `apps/web/types/filters.ts`
-5. **Tests**: Unit (API), Component (FilterSidebar), E2E (/issues filters)
-6. **Docs**:
-   - `docs/02-DATABASE-SCHEMA.md`
-   - `STATUS.md`
-   - `DEVELOPMENT_PLAN.md`
-7. **Completion**: `docs/COMPLETION_phase4_dynamic_filters.md`
+### Phase 1: API Foundation (30 min)
 
----
+**Goal**: Create GET /api/issues/[id] endpoint with full relation support
 
-## Data Model (Prisma)
+**Tasks**:
 
-### New Tables
+1. Create `app/api/issues/[id]/route.ts` - GET endpoint
+2. Add Zod schema for issue detail response validation
+3. Implement Prisma query with optimized includes:
+   - comments (with author)
+   - attachments
+   - labels
+   - project
+   - assignedTo
+   - linkedCommits
+4. Error handling (404 for not found, 400 for invalid ID, 500 for server errors)
+5. Unit tests: Success response, 404, 400, relation includes
 
-#### IssueStatusOption
+**Success Criteria**:
 
-```prisma
-model IssueStatusOption {
-  id         Int     @id @default(autoincrement())
-  value      String  @unique
-  label      String
-  order      Int     @default(0)
-  colorClass String?
-}
-```
-
-**Seed defaults**:
-
-- `open` (label: "Open", colorClass: "text-blue-600")
-- `in_progress` (label: "In Progress", colorClass: "text-yellow-600")
-- `closed` (label: "Closed", colorClass: "text-green-600")
-
-#### IssuePriorityOption
-
-```prisma
-model IssuePriorityOption {
-  id              Int     @id @default(autoincrement())
-  value           String  @unique
-  label           String
-  order           Int     @default(0)
-  dotColorClass   String?
-  badgeColorClass String?
-}
-```
-
-**Seed defaults**:
-
-- `critical` (label: "Critical", dotColorClass: "bg-red-600", badgeColorClass: "bg-red-100 text-red-800")
-- `high` (label: "High", dotColorClass: "bg-orange-600", badgeColorClass: "bg-orange-100 text-orange-800")
-- `medium` (label: "Medium", dotColorClass: "bg-yellow-600", badgeColorClass: "bg-yellow-100 text-yellow-800")
-- `low` (label: "Low", dotColorClass: "bg-gray-600", badgeColorClass: "bg-gray-100 text-gray-800")
-
-#### IssueModuleOption
-
-```prisma
-model IssueModuleOption {
-  id    Int    @id @default(autoincrement())
-  value String @unique
-  label String
-  order Int    @default(0)
-}
-```
-
-**Seed defaults**:
-
-- `combat` (label: "Combat")
-- `animation` (label: "Animation")
-- `core` (label: "Core")
-- `ui` (label: "UI")
-
-### Migration
-
-**Name**: `phase4_dynamic_filter_options`
-
-**Commands**:
-
-```bash
-pnpm prisma migrate dev --name phase4_dynamic_filter_options
-pnpm prisma generate
-```
+- ✅ GET /api/issues/42 returns full issue with relations
+- ✅ All tests passing
+- ✅ TypeScript 0 errors
 
 ---
 
-## API — GET /api/settings/filters
+### Phase 2: Server Component Layout (60 min)
 
-**Location**: `apps/web/app/api/settings/filters/route.ts`
+**Goal**: Build main page layout with 6 server components
 
-### Response Contract
+**Tasks**:
 
-**Success** (200):
+1. Create `app/issues/[id]/page.tsx` - Main Server Component
+2. Fetch issue data with parallel queries (issue + breadcrumb data)
+3. Build **IssueHeader** component:
+   - Issue number badge
+   - Title (h2)
+   - Status/Priority/Module badges
+   - Assignee display
+   - Timestamps (created, updated, closed)
+4. Build **SystemActivity** component:
+   - Timeline of PR links, status changes, commits
+   - Activity type icons and formatting
+5. Build **CodeSection** component:
+   - Syntax highlighting for code blocks
+   - Copy button (Client Component child)
+6. Build **WatchersSection** component:
+   - Avatar stack display
+7. Build **RelatedIssues** component:
+   - Linked issues list with type badges
 
-```typescript
-{
-  data: {
-    status: StatusOption[],
-    priority: PriorityOption[],
-    modules: ModuleOption[],
-    labels: { id: string; name: string; color: string }[]
-  }
-}
-```
+**Success Criteria**:
 
-**Error** (500):
-
-```typescript
-{
-  error: string;
-}
-```
-
-### Behavior
-
-1. **Zod Validation**: Validate output shape using Zod schema
-2. **Database Queries**:
-   - `prisma.issueStatusOption.findMany({ orderBy: { order: 'asc' } })`
-   - `prisma.issuePriorityOption.findMany({ orderBy: { order: 'asc' } })`
-   - `prisma.issueModuleOption.findMany({ orderBy: { order: 'asc' } })`
-   - `prisma.label.findMany({ orderBy: { name: 'asc' } })`
-3. **Mapping**: Map DB fields to DTO fields (include color classes)
-4. **Caching**: `revalidate: 3600` (1 hour) or `force-cache`
-   - Add tag revalidation later for admin edits
+- ✅ Page loads at `/issues/42`
+- ✅ All server components render with Prisma data
+- ✅ No client-side JavaScript for static sections
 
 ---
 
-## Types
+### Phase 3: Client Components & Interactivity (45 min)
 
-**File**: `apps/web/types/filters.ts`
+**Goal**: Add interactive features and wire up existing components
 
-### Type Definitions
+**Tasks**:
 
-```typescript
-export interface StatusOption {
-  value: string;
-  label: string;
-  colorClass?: string;
-}
+1. Build **IssueActions** component:
+   - Status change buttons (Open → In Progress → Closed)
+   - Calls PATCH /api/issues/[id]/status
+   - Loading states during API calls
+   - Success/error toasts
+2. Build **DescriptionSection** component:
+   - Markdown rendering with react-markdown
+   - Edit mode toggle (future enhancement placeholder)
+3. Build **QuickActions** component:
+   - Watch button (toggle state)
+   - Copy Link button (clipboard API)
+   - Create Branch button (navigation)
+4. Wire up existing Day 4 components:
+   - Import CommentList, CommentForm
+   - Import AttachmentList
+   - Import IssueDetailSidebar
 
-export interface PriorityOption {
-  value: string;
-  label: string;
-  dotColorClass?: string;
-  badgeColorClass?: string;
-}
+**Success Criteria**:
 
-export interface ModuleOption {
-  value: string;
-  label: string;
-}
-
-export interface FiltersDTO {
-  status: StatusOption[];
-  priority: PriorityOption[];
-  modules: ModuleOption[];
-  labels: { id: string; name: string; color: string }[];
-}
-```
+- ✅ Status changes work with optimistic UI updates
+- ✅ Comments submit and display immediately
+- ✅ Copy link copies current URL to clipboard
+- ✅ All interactive features functional
 
 ---
 
-## UI — FilterSidebar Refactor
+### Phase 4: Integration & Styling (30 min)
 
-**File**: `apps/web/components/issues/FilterSidebar.tsx`
+**Goal**: Polish layout, styling, and accessibility
 
-### Changes
+**Tasks**:
 
-1. **Props**: Accept `options: FiltersDTO` prop (except labels if out-of-scope)
-2. **Replace Hardcoded Arrays**: Use dynamic options from props
-3. **Preserve**:
-   - Count badges (existing shape)
-   - Color classes (bind from options)
-   - URL param behavior (status, priority, module as CSV)
+1. Integrate all 12 components into 3-column layout:
+   - Left sidebar: Breadcrumb + QuickActions + WatchersSection
+   - Main content: IssueHeader + IssueActions + DescriptionSection + CodeSection + CommentList + CommentForm
+   - Right sidebar: IssueDetailSidebar + RelatedIssues
+2. Apply neumorphic design tokens:
+   - `.neu-raised` for cards
+   - `.neu-pressed` for inset sections
+   - `.coral-gradient` for primary buttons
+   - `.smooth-transition` for hover states
+3. Responsive breakpoints:
+   - Mobile: Single column, collapsible sidebars
+   - Tablet: 2 columns (main + right sidebar)
+   - Desktop: 3 columns (full layout)
+4. Accessibility audit:
+   - ARIA labels for all interactive elements
+   - Keyboard navigation (Tab, Enter, Escape)
+   - Screen reader announcements for status changes
+   - Focus management for modal dialogs
 
-### Parent Component
+**Success Criteria**:
 
-**File**: `apps/web/app/issues/page.tsx`
-
-**As Server Component**:
-
-1. Fetch filter options (via Prisma helper or API fetch)
-2. Compute counts for each option value:
-   - `prisma.issue.count({ where: { status: value } })`
-   - `prisma.issue.count({ where: { priority: value } })`
-   - `prisma.issue.count({ where: { module: value } })`
-3. Pass `{ counts, options, searchParams }` to FilterSidebar
-4. Keep current URL param behavior (CSV format)
-
----
-
-## Validation
-
-1. **Zod Schema**: For API response DTO
-2. **Strict TypeScript**: No `any` types
-3. **Type Safety**: All components and API routes strictly typed
+- ✅ Matches mockup design pixel-perfect
+- ✅ Responsive on 375px mobile, 768px tablet, 1440px desktop
+- ✅ WCAG 2.1 AA compliance verified
 
 ---
 
-## Tests (TDD)
+### Phase 5: Testing (60 min)
 
-### Unit Tests (Jest)
+**Goal**: Achieve ≥80% coverage with comprehensive tests
 
-**File**: `apps/web/app/api/settings/filters/__tests__/route.test.ts`
+**Tasks**:
 
-**Test Cases**:
+1. **Unit tests** (`__tests__/api/issues/[id]/route.test.ts`):
+   - GET success (200 with full issue data)
+   - GET not found (404 for non-existent issue)
+   - GET invalid ID (400 for malformed ID)
+   - Prisma includes all relations
+2. **Component tests** (React Testing Library):
+   - IssueHeader: Renders badges, title, metadata
+   - SystemActivity: Formats activity types correctly
+   - IssueActions: Calls API on status change, shows loading state
+3. **E2E test** (Playwright):
+   - Navigate to issue
+   - Add comment
+   - Change status
+   - Verify UI updates
+4. Run quality gates:
+   - `pnpm lint`
+   - `pnpm type-check`
+   - `pnpm build`
+   - `pnpm test`
+5. Verify coverage targets:
+   - API routes: ≥90%
+   - Components: ≥75%
+   - Overall new code: ≥80%
 
-1. API returns seeded options in correct order
-2. API maps color classes correctly
-3. API returns `{ error }` with 500 status on Prisma failure (mock error)
+**Success Criteria**:
 
-### Component Tests (RTL)
-
-**File**: `apps/web/components/issues/__tests__/FilterSidebar.test.tsx`
-
-**Test Cases**:
-
-1. FilterSidebar renders dynamic options with counts
-2. Checking/unchecking filter updates URL params (status/priority/module)
-3. Color classes applied correctly from options
-4. "Clear All" resets all filters
-
-### E2E Tests (Playwright)
-
-**File**: `apps/web/e2e/issues-filters.spec.ts`
-
-**Test Cases**:
-
-1. `/issues`: Applying filters updates results and URL
-2. "Clear All" resets URL params and results
-3. Multiple filters combined (status + priority + module)
-4. Count badges reflect actual issue counts
-
-**Target Coverage**: ≥80% for new/changed code
-
----
-
-## Performance & Caching
-
-1. **Cache Options**: 1 hour (stable, infrequently changing)
-2. **Count Queries**: Compute per-request
-   - Use `Promise.all` to batch count queries (avoid serialized queries)
-3. **Future Optimization**: Consider `groupBy`-based count optimization (follow-up)
+- ✅ 52+ tests passing (unit + component + E2E)
+- ✅ All gates green
+- ✅ Coverage targets met
 
 ---
 
-## Risks & Mitigations
+## Component Architecture
 
-### Risk 1: Options/Issue Value Mismatch
+### Server Components (6)
 
-**Scenario**: Issue has value not in options (e.g., "archived")
-**Mitigation**: Union into counts under that value, display as "Unknown/Other" (low priority, optional)
+1. `page.tsx` - Main layout with data fetching
+2. `IssueHeader` - Static display
+3. `SystemActivity` - Timeline rendering
+4. `CodeSection` - Syntax highlighting
+5. `WatchersSection` - Avatar stack
+6. `RelatedIssues` - Linked issues list
 
-### Risk 2: Visual Regressions (Color Classes)
+### Client Components (6)
 
-**Scenario**: Seed values don't match current UI classes
-**Mitigation**: Assert presence of classes in component tests, verify seed values match UI exactly
-
-### Risk 3: Query Overhead
-
-**Scenario**: Too many count queries slow down page load
-**Mitigation**: Use `Promise.all` to parallelize, limit options set, optimize later if needed
-
----
-
-## Protocol (Steps 1–5)
-
-### ✅ Step 1.5: Branch Setup
-
-**Status**: COMPLETE
-**Branch**: `feature/phase4-dynamic-filters` created and ready
-
-### 🔄 Step 2: Plan Creation
-
-**Status**: IN PROGRESS
-**Actions**:
-
-- Save this plan to `.agent/task/current-plan.md`
-- Create `.agent/task/current-todos.md`
-- Create TodoWrite UI
-
-### ⏳ Step 3: Expert Consultation
-
-**Required**:
-
-- `prisma-expert`: Schema design + count strategy
-- `next-js-expert`: Server vs Client components + caching
-- `react-expert`: FilterSidebar props + URL state management
-
-**Output**: Expert notes saved to `.agent/task/[expert]-dynamic-filters-[timestamp].md`
-
-### ⏳ Step 4: Progress Checkpoints
-
-**Checkpoints**: At 15K, 30K, 45K, 60K, 75K, 90K tokens
-**Actions**: Update session file and todos
-
-### ⏳ Step 5: Post-Completion
-
-**Actions**:
-
-1. Update docs first (docs/02-DATABASE-SCHEMA.md, STATUS.md, DEVELOPMENT_PLAN.md)
-2. Create COMPLETION_phase4_dynamic_filters.md
-3. Invoke synthesize-docs (if new patterns)
-4. Invoke map-system (if architecture changed)
-5. Commit documentation, then code
-6. Run quality gates (lint, type-check, build, test)
+1. `IssueActions` - Status change buttons
+2. `DescriptionSection` - Markdown rendering
+3. `QuickActions` - Interactive sidebar
+4. `CommentList` (existing Day 4)
+5. `CommentForm` (existing Day 4)
+6. `AttachmentList` (existing Day 4)
 
 ---
 
-## Acceptance Criteria
+## Dependencies
 
-- [ ] No hardcoded filter options in UI
-- [ ] API and UI strictly typed with Zod-validated response
-- [ ] Issues page remains Server Component
-- [ ] FilterSidebar is Client Component
-- [ ] API contracts respected: `{ data }` on success, `{ error }` + status on failure
-- [ ] Tests ≥80% coverage for new code
-- [ ] All quality gates pass (TypeScript, ESLint, build, tests)
-- [ ] Documentation updated and committed first
+**✅ All prerequisites met**:
 
----
+- Database schema complete (no migrations needed)
+- 2 API endpoints exist (POST comments, PATCH status)
+- 5 components exist (from Day 4)
+- Mockup available
+- Testing patterns documented
+- Component patterns documented
 
-## Implementation Steps
-
-### 1. Database Layer
-
-1. Create Prisma models (IssueStatusOption, IssuePriorityOption, IssueModuleOption)
-2. Generate migration: `pnpm prisma migrate dev --name phase4_dynamic_filter_options`
-3. Create seed data with color classes matching current UI
-4. Run seed: `pnpm prisma db seed`
-5. Generate Prisma client: `pnpm prisma generate`
-
-### 2. Types Layer
-
-1. Create `apps/web/types/filters.ts`
-2. Define StatusOption, PriorityOption, ModuleOption, FiltersDTO interfaces
-3. Create Zod schemas for validation
-
-### 3. API Layer
-
-1. Create `apps/web/app/api/settings/filters/route.ts`
-2. Implement GET handler with Zod validation
-3. Query all option tables with orderBy
-4. Map DB fields to DTO
-5. Add caching (revalidate: 3600)
-6. Handle errors with `{ error }` response
-
-### 4. UI Layer
-
-1. Update FilterSidebar.tsx to accept `options` prop
-2. Replace hardcoded arrays with dynamic options
-3. Bind color classes from options
-4. Update issues/page.tsx to fetch options
-5. Compute counts using `prisma.issue.count`
-6. Pass options and counts to FilterSidebar
-
-### 5. Testing Layer
-
-1. Write unit tests for API route
-2. Write component tests for FilterSidebar
-3. Write E2E tests for /issues filters
-4. Verify ≥80% coverage
-5. All tests must pass
-
-### 6. Documentation Layer
-
-1. Update docs/02-DATABASE-SCHEMA.md with new models
-2. Update STATUS.md with Phase 4 progress
-3. Update DEVELOPMENT_PLAN.md with completion
-4. Create COMPLETION_phase4_dynamic_filters.md
-
-### 7. Quality Gates
-
-1. TypeScript: 0 errors
-2. ESLint: 0 warnings
-3. Unit tests: All passing
-4. E2E tests: All passing
-5. Production build: Successful
+**No blockers identified.**
 
 ---
 
-## Recommended Commit Sequence
+## Expert Consultation Required
 
-1. `docs: add Phase 4 plan reference placeholders` (optional)
-2. `feat(prisma): add filter option models, migration, seed`
-3. `feat(api): settings/filters endpoint`
-4. `feat(ui): dynamic FilterSidebar + issues page integration`
-5. `test: add unit, RTL, E2E for dynamic filters`
-6. `docs: update docs/02, STATUS, DEVELOPMENT_PLAN`
-7. `chore: finalize and run gates`
+**Before Phase 1 implementation**:
+
+1. **next-js-expert** - Data fetching strategy:
+   - Question: "For issue detail page with comments, attachments, and activity timeline, should I use Server Component with direct Prisma query, or Client Component with API fetch? What's the optimal data loading pattern for nested relations?"
+
+2. **react-expert** - Component composition:
+   - Question: "With 12 components (6 server, 6 client) in 3-column layout, what's the best composition strategy to avoid prop drilling while maintaining type safety?"
 
 ---
 
-## Summary
+## Timeline
 
-**Plan Status**: Ready for implementation
-**Next Action**: Create todos and invoke expert sub-agents
-**Protocol Step**: Moving to Step 2 completion (todos) → Step 3 (experts) → Implementation
+| Phase      | Duration  | Cumulative    |
+| ---------- | --------- | ------------- |
+| Phase 1    | 30 min    | 0.5 hours     |
+| Phase 2    | 60 min    | 1.5 hours     |
+| Phase 3    | 45 min    | 2.25 hours    |
+| Phase 4    | 30 min    | 2.75 hours    |
+| Phase 5    | 60 min    | 3.75 hours    |
+| **Buffer** | 3-4 hours | **6-8 hours** |
+
+---
+
+## Success Criteria
+
+**Functional**:
+
+- ✅ Issue detail page loads at `/issues/[id]`
+- ✅ All issue data displayed
+- ✅ Status changes work
+- ✅ Comments can be added
+- ✅ Attachments viewable
+
+**Quality**:
+
+- ✅ TypeScript: 0 errors
+- ✅ ESLint: 0 errors
+- ✅ Tests: ≥80% coverage
+- ✅ Build: Successful
+- ✅ Accessibility: WCAG 2.1 AA
+
+**Design**:
+
+- ✅ Matches mockup
+- ✅ Responsive
+- ✅ Smooth animations
+- ✅ Consistent with Dashboard
+
+---
+
+## Post-Completion (Protocol Step 5)
+
+1. Create `COMPLETION_WEEK_1.5_PHASE_3_DAY_5.md`
+2. Update `STATUS.md` (mark Day 5 complete)
+3. Update `DEVELOPMENT_PLAN.md`
+4. Update `.agent/active-context.md`
+5. Docs-first commit, then code commit
