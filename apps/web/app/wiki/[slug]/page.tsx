@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { Sidebar } from '@/components/Sidebar';
-import { FloatingBackground } from '@/components/ui/FloatingBackground';
+import { FloatingBackground } from '@/components/FloatingBackground';
 import { WikiSidebar } from '@/components/wiki/WikiSidebar';
 import { WikiContent } from '@/components/wiki/WikiContent';
 
@@ -27,16 +27,16 @@ function extractHeadings(markdown: string): TOCItem[] {
 
   for (const line of lines) {
     const match = line.match(/^(#{1,6})\s+(.+)$/);
-    if (match) {
-      const level = match[1].length; // Number of # characters
-      const text = match[2].trim();
-      const id = text
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-');
+    if (!match || !match[1] || !match[2]) continue; // Skip lines that aren't headings
 
-      headings.push({ id, text, level });
-    }
+    const level = match[1].length; // Number of # characters
+    const text = match[2].trim();
+    const id = text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-');
+
+    headings.push({ id, text, level });
   }
 
   return headings;
@@ -115,24 +115,18 @@ export default async function WikiPage({ params }: PageProps) {
 
         <div className="content-wrapper flex flex-1 gap-4 overflow-hidden p-4">
           {/* Wiki Sidebar (TOC + Related Articles) */}
-          <WikiSidebar
-            tocItems={page.tocItems}
-            relatedPages={page.relatedPages}
-          />
+          <WikiSidebar tocItems={page.tocItems} relatedPages={page.relatedPages} />
 
           {/* Main Content */}
           <main className="flex-1 overflow-auto">
             <div className="space-y-6">
               {/* Header */}
               <header className="neu-raised smooth-transition rounded-3xl px-8 py-6">
-                <h1 className="mb-2 text-4xl font-bold text-white">
-                  {page.title}
-                </h1>
+                <h1 className="mb-2 text-4xl font-bold text-white">{page.title}</h1>
                 <div className="flex items-center gap-4 text-sm text-slate">
                   <span>
                     <i className="fas fa-clock mr-2"></i>
-                    Last updated:{' '}
-                    {new Date(page.updatedAt).toLocaleDateString()}
+                    Last updated: {new Date(page.updatedAt).toLocaleDateString()}
                   </span>
                   <span>
                     <i className="fas fa-link mr-2"></i>
@@ -142,10 +136,7 @@ export default async function WikiPage({ params }: PageProps) {
               </header>
 
               {/* Wiki Content with Markdown Rendering */}
-              <WikiContent
-                content={page.content}
-                tocItems={page.tocItems}
-              />
+              <WikiContent content={page.content} tocItems={page.tocItems} />
             </div>
           </main>
         </div>

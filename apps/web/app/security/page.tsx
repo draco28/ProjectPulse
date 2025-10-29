@@ -1,6 +1,7 @@
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { Sidebar } from '@/components/Sidebar';
-import { FloatingBackground } from '@/components/ui/FloatingBackground';
+import { FloatingBackground } from '@/components/FloatingBackground';
 import { SecurityScoreMeter } from '@/components/security/SecurityScoreMeter';
 import { VulnerabilityCard } from '@/components/security/VulnerabilityCard';
 import { VulnerabilityFilter } from '@/components/security/VulnerabilityFilter';
@@ -58,7 +59,7 @@ async function getVulnerabilityStats() {
 async function getSecurityFindings(searchParams: PageProps['searchParams']) {
   const { severity, status = 'open' } = searchParams;
 
-  const where: any = {};
+  const where: Prisma.SecurityFindingWhereInput = {};
 
   if (severity) {
     where.severity = severity;
@@ -96,6 +97,8 @@ async function getSecurityFindings(searchParams: PageProps['searchParams']) {
 
   return findings.map((finding) => ({
     ...finding,
+    // Ensure severity is the expected union type for VulnerabilityCard props
+    severity: finding.severity as 'ERROR' | 'WARNING' | 'INFO',
     scanDate: finding.scanDate.toISOString(),
   }));
 }
@@ -119,12 +122,10 @@ export default async function SecurityPage({ searchParams }: PageProps) {
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="mb-1 text-3xl font-bold text-white">
-                  Security Dashboard
-                </h2>
+                <h2 className="mb-1 text-3xl font-bold text-white">Security Dashboard</h2>
                 <p className="text-sm text-slate">
-                  {findings.length} vulnerabilities •{' '}
-                  {stats.critical + stats.high + stats.medium} need attention
+                  {findings.length} vulnerabilities • {stats.critical + stats.high + stats.medium}{' '}
+                  need attention
                 </p>
               </div>
               <button className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
@@ -142,31 +143,22 @@ export default async function SecurityPage({ searchParams }: PageProps) {
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                   {/* Score Meter */}
                   <div className="flex items-center justify-center">
-                    <SecurityScoreMeter
-                      score={securityScore}
-                      label="Security Score"
-                    />
+                    <SecurityScoreMeter score={securityScore} label="Security Score" />
                   </div>
 
                   {/* Stats Breakdown */}
                   <div className="flex flex-col justify-center space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-slate">Critical (ERROR)</span>
-                      <span className="text-2xl font-bold text-red-500">
-                        {stats.critical}
-                      </span>
+                      <span className="text-2xl font-bold text-red-500">{stats.critical}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate">Medium (WARNING)</span>
-                      <span className="text-2xl font-bold text-orange-500">
-                        {stats.medium}
-                      </span>
+                      <span className="text-2xl font-bold text-orange-500">{stats.medium}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate">Low (INFO)</span>
-                      <span className="text-2xl font-bold text-blue-500">
-                        {stats.low}
-                      </span>
+                      <span className="text-2xl font-bold text-blue-500">{stats.low}</span>
                     </div>
                   </div>
                 </div>
@@ -188,12 +180,8 @@ export default async function SecurityPage({ searchParams }: PageProps) {
               ) : (
                 <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
                   <i className="fas fa-shield-alt mb-4 text-5xl text-green-500"></i>
-                  <h3 className="mb-2 text-xl font-bold text-white">
-                    All Clear!
-                  </h3>
-                  <p className="text-slate">
-                    No vulnerabilities found matching your filters
-                  </p>
+                  <h3 className="mb-2 text-xl font-bold text-white">All Clear!</h3>
+                  <p className="text-slate">No vulnerabilities found matching your filters</p>
                 </div>
               )}
             </div>

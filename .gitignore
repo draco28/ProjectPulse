@@ -77,6 +77,10 @@ next-env.d.ts
 # Prisma client is generated, don't commit
 # (but DO commit migrations/ folder)
 
+# Prisma schema backups
+*.prisma.backup
+*.prisma.bak
+
 # ============================================================================
 # UPLOADS & USER DATA
 # ============================================================================

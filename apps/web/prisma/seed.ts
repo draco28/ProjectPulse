@@ -44,7 +44,8 @@ async function main() {
   const project = await prisma.project.create({
     data: {
       name: 'Moksha DevHub',
-      description: 'Unified development hub with issue tracking, knowledge base, and AI agent personas',
+      description:
+        'Unified development hub with issue tracking, knowledge base, and AI agent personas',
       repository: 'https://github.com/draco28/ProjectPulse',
     },
   });
@@ -74,7 +75,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Implement hybrid search with PostgreSQL tsvector + pgvector',
-        description: 'Add full-text search using tsvector and semantic search using pgvector embeddings for knowledge base articles.',
+        description:
+          'Add full-text search using tsvector and semantic search using pgvector embeddings for knowledge base articles.',
         status: 'open',
         priority: 'high',
         module: 'Search',
@@ -87,7 +89,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Add authentication with NextAuth.js',
-        description: 'Implement user authentication and authorization using NextAuth.js with GitHub OAuth provider.',
+        description:
+          'Implement user authentication and authorization using NextAuth.js with GitHub OAuth provider.',
         status: 'open',
         priority: 'critical',
         module: 'Auth',
@@ -100,7 +103,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Dashboard theme switching not working correctly',
-        description: 'Theme CSS variables not applying when switching between Desert, Neon, Earthy, and Coral themes.',
+        description:
+          'Theme CSS variables not applying when switching between Desert, Neon, Earthy, and Coral themes.',
         status: 'in-progress',
         priority: 'high',
         module: 'UI',
@@ -113,7 +117,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Optimize database queries for issue list page',
-        description: 'Issue list page loading slowly with 100+ issues. Need to add pagination and optimize N+1 queries.',
+        description:
+          'Issue list page loading slowly with 100+ issues. Need to add pagination and optimize N+1 queries.',
         status: 'open',
         priority: 'medium',
         module: 'Performance',
@@ -125,7 +130,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Add API documentation with OpenAPI/Swagger',
-        description: 'Document all API endpoints using OpenAPI 3.0 specification and generate interactive Swagger UI.',
+        description:
+          'Document all API endpoints using OpenAPI 3.0 specification and generate interactive Swagger UI.',
         status: 'open',
         priority: 'low',
         module: 'Documentation',
@@ -138,7 +144,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Setup Docker PostgreSQL container with pgvector',
-        description: 'Configure PostgreSQL 16 container with pgvector extension for semantic search capabilities.',
+        description:
+          'Configure PostgreSQL 16 container with pgvector extension for semantic search capabilities.',
         status: 'closed',
         priority: 'high',
         module: 'Infrastructure',
@@ -164,7 +171,8 @@ async function main() {
     prisma.issue.create({
       data: {
         title: 'Build Dashboard UI with shadcn/ui components',
-        description: 'Implement Dashboard layout with Sidebar, Header, WelcomeBanner, StatCards, and IssueCards.',
+        description:
+          'Implement Dashboard layout with Sidebar, Header, WelcomeBanner, StatCards, and IssueCards.',
         status: 'closed',
         priority: 'critical',
         module: 'UI',
@@ -186,21 +194,24 @@ async function main() {
   await Promise.all([
     prisma.comment.create({
       data: {
-        content: 'I can help with the tsvector implementation. We should use weighted search with title having higher weight than content.',
+        content:
+          'I can help with the tsvector implementation. We should use weighted search with title having higher weight than content.',
         author: 'Claude',
         issueId: issues[0].id,
       },
     }),
     prisma.comment.create({
       data: {
-        content: 'Updated CSS specificity from `[data-theme="X"]` to `:root[data-theme="X"]` which fixed the issue!',
+        content:
+          'Updated CSS specificity from `[data-theme="X"]` to `:root[data-theme="X"]` which fixed the issue!',
         author: 'Developer',
         issueId: issues[2].id,
       },
     }),
     prisma.comment.create({
       data: {
-        content: 'Should we use server-side pagination or cursor-based pagination for infinite scroll?',
+        content:
+          'Should we use server-side pagination or cursor-based pagination for infinite scroll?',
         author: 'Developer',
         issueId: issues[3].id,
       },
@@ -351,7 +362,8 @@ issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
       data: {
         ruleId: 'javascript.express.security.audit.express-check-csrf-before-method-override',
         severity: 'WARNING',
-        message: 'Detected use of method-override middleware before CSRF protection. This can allow attackers to bypass CSRF protection.',
+        message:
+          'Detected use of method-override middleware before CSRF protection. This can allow attackers to bypass CSRF protection.',
         filePath: 'apps/web/app/api/issues/route.ts',
         lineNumber: 42,
         codeSnippet: 'app.use(methodOverride());',
@@ -398,7 +410,8 @@ issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
         name: 'Code Reviewer',
         slug: 'code-reviewer',
         icon: '🔍',
-        description: 'Expert code reviewer focusing on best practices, security, and maintainability',
+        description:
+          'Expert code reviewer focusing on best practices, security, and maintainability',
         systemPrompt: `You are an expert code reviewer with deep knowledge of:
 - Software architecture and design patterns
 - Security vulnerabilities and mitigations
@@ -415,6 +428,10 @@ When reviewing code:
         tools: ['create_issue', 'search_knowledge'],
         rules: ['Always cite security best practices', 'Suggest specific improvements'],
         isBuiltIn: true,
+        isActive: true,
+        expertise: ['TypeScript', 'React', 'Security', 'Performance'],
+        personality:
+          'Thorough and detail-oriented, focuses on security and best practices. Provides actionable feedback with code examples.',
       },
     }),
 
@@ -437,6 +454,10 @@ When reviewing code:
         tools: ['search_knowledge', 'create_issue'],
         rules: ['Use divide-and-conquer approach', 'Always suggest regression tests'],
         isBuiltIn: true,
+        isActive: true,
+        expertise: ['Node.js', 'Testing', 'Debugging', 'System Analysis'],
+        personality:
+          'Methodical and patient, uses systematic approaches to isolate problems. Explains reasoning clearly.',
       },
     }),
 
@@ -463,6 +484,10 @@ Format:
         tools: ['create_wiki_page', 'search_knowledge'],
         rules: ['Always include code examples', 'Use active voice'],
         isBuiltIn: true,
+        isActive: true,
+        expertise: ['Technical Writing', 'Markdown', 'API Documentation', 'Architecture'],
+        personality:
+          'Clear and concise communicator, emphasizes practical examples and step-by-step guides. Friendly and approachable.',
       },
     }),
   ]);
