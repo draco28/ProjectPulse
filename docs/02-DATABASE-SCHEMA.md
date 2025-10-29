@@ -1,7 +1,7 @@
 # 02 - Moksha DevHub: Complete Database Schema
 
-**Version:** 1.0 Final  
-**Last Updated:** October 23, 2025  
+**Version:** 1.1 - Week 15 Extensions  
+**Last Updated:** October 29, 2025  
 **Status:** Production Ready ✅
 
 ---
@@ -84,18 +84,18 @@ model Project {
   name        String   @unique
   description String?  @db.Text
   repository  String?  // Git repository URL
-  
+
   issues      Issue[]
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   @@index([name])
 }
 
 model Issue {
   id            Int       @id @default(autoincrement())
-  
+
   // Core fields
   title         String
   description   String?   @db.Text
@@ -103,7 +103,7 @@ model Issue {
   priority      String    @default("medium")
   module        String?   // Combat, Core, UI, Systems, World, Creatures
   assignee      String?
-  
+
   // Custom fields (flexible schema)
   customFields  Json?     @db.JsonB
 
@@ -116,31 +116,31 @@ model Issue {
   // Relationships
   projectId     Int
   project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+
   labels        Label[]
   comments      Comment[]
   attachments   Attachment[]
   linkedFiles   LinkedFile[]
   linkedCommits LinkedCommit[]
-  
+
   // Knowledge & Wiki links
   linkedKnowledge KnowledgeLink[] @relation("IssueKnowledge")
   linkedWikiPages WikiPageLink[]  @relation("IssueWiki")
-  
+
   // Security findings
   securityFinding SecurityFinding?
-  
+
   // Time tracking (Phase 4)
   timeEntries   TimeEntry[]
-  
+
   // Milestones (Phase 4)
   milestoneId   Int?
   milestone     Milestone?  @relation(fields: [milestoneId], references: [id])
-  
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   closedAt      DateTime?
-  
+
   @@index([status])
   @@index([priority])
   @@index([module])
@@ -148,10 +148,10 @@ model Issue {
   @@index([assignee])
   @@index([createdAt(sort: Desc)])
   @@index([milestoneId])
-  
+
   // JSONB indexes for custom fields
   @@index([customFields], type: Gin)
-  
+
   // Full-text search index
   @@index([searchVector], type: Gin)
 
@@ -163,11 +163,11 @@ model Label {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   color     String   @default("#808080")
-  
+
   issues    Issue[]
-  
+
   createdAt DateTime @default(now())
-  
+
   @@index([name])
 }
 
@@ -175,13 +175,13 @@ model Comment {
   id        Int      @id @default(autoincrement())
   content   String   @db.Text
   author    String?
-  
+
   issueId   Int
   issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([issueId])
   @@index([createdAt(sort: Desc)])
 }
@@ -192,12 +192,12 @@ model Attachment {
   filepath    String
   mimetype    String
   size        Int      // bytes
-  
+
   issueId     Int
   issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  
+
   uploadedAt  DateTime @default(now())
-  
+
   @@index([issueId])
 }
 
@@ -205,12 +205,12 @@ model LinkedFile {
   id          Int      @id @default(autoincrement())
   filePath    String   // Relative path from project root
   lineNumber  Int?
-  
+
   issueId     Int
   issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  
+
   createdAt   DateTime @default(now())
-  
+
   @@unique([issueId, filePath])
   @@index([filePath])
 }
@@ -220,12 +220,12 @@ model LinkedCommit {
   commitHash  String   // Git commit hash
   commitMessage String?
   commitDate  DateTime?
-  
+
   issueId     Int
   issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  
+
   createdAt   DateTime @default(now())
-  
+
   @@unique([issueId, commitHash])
   @@index([commitHash])
 }
@@ -236,45 +236,45 @@ model LinkedCommit {
 
 model KnowledgeItem {
   id          Int       @id @default(autoincrement())
-  
+
   title       String
   content     String    @db.Text
   category    String?
-  
+
   // Tags (array)
   tags        String[]
-  
+
   // Semantic search embedding
   embedding   Unsupported("vector(384)")?  // all-MiniLM-L6-v2 dimensions
-  
+
   // Full-text search
   searchVector Unsupported("tsvector")?
-  
+
   // Links to issues/wiki
   linkedIssues KnowledgeLink[] @relation("KnowledgeIssue")
-  
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  
+
   @@index([category])
   @@index([tags], type: Gin)
   @@index([searchVector], type: Gin)
-  
+
   // Vector similarity search index (HNSW)
   @@index([embedding], type: Hnsw, ops: VectorCosineOps)
 }
 
 model KnowledgeLink {
   id              Int             @id @default(autoincrement())
-  
+
   knowledgeItemId Int
   knowledgeItem   KnowledgeItem   @relation("KnowledgeIssue", fields: [knowledgeItemId], references: [id], onDelete: Cascade)
-  
+
   issueId         Int
   issue           Issue           @relation("IssueKnowledge", fields: [issueId], references: [id], onDelete: Cascade)
-  
+
   createdAt       DateTime        @default(now())
-  
+
   @@unique([knowledgeItemId, issueId])
   @@index([knowledgeItemId])
   @@index([issueId])
@@ -286,35 +286,38 @@ model KnowledgeLink {
 
 model WikiPage {
   id            Int       @id @default(autoincrement())
-  
+
   title         String
   content       String    @db.Text
-  
+
+  // Week 15 Extended Fields
+  category      String?   // Category for organization (e.g., "Rules", "Combat", "Systems")
+
   // Hierarchical structure
   parentId      Int?
   parent        WikiPage? @relation("PageHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   children      WikiPage[] @relation("PageHierarchy")
-  
+
   // URL path (e.g., /rules/combat/fsm-authority)
   path          String    @unique
   orderIndex    Int       @default(0)
-  
+
   // Full-text search
   searchVector  Unsupported("tsvector")?
-  
+
   // Links
   outgoingLinks PageLink[] @relation("SourcePage")
   incomingLinks PageLink[] @relation("TargetPage")
-  
+
   // Issue links
   linkedIssues  WikiPageLink[] @relation("WikiIssue")
-  
+
   // Version history (simplified - Phase 3)
   version       Int       @default(1)
-  
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   @@index([path])
   @@index([parentId])
   @@index([orderIndex])
@@ -323,17 +326,17 @@ model WikiPage {
 
 model PageLink {
   id            Int       @id @default(autoincrement())
-  
+
   sourcePageId  Int
   sourcePage    WikiPage  @relation("SourcePage", fields: [sourcePageId], references: [id], onDelete: Cascade)
-  
+
   targetPageId  Int
   targetPage    WikiPage  @relation("TargetPage", fields: [targetPageId], references: [id], onDelete: Cascade)
-  
+
   linkType      String?   // 'reference', 'related', 'example'
-  
+
   createdAt     DateTime  @default(now())
-  
+
   @@unique([sourcePageId, targetPageId])
   @@index([sourcePageId])
   @@index([targetPageId])
@@ -341,15 +344,15 @@ model PageLink {
 
 model WikiPageLink {
   id          Int       @id @default(autoincrement())
-  
+
   wikiPageId  Int
   wikiPage    WikiPage  @relation("WikiIssue", fields: [wikiPageId], references: [id], onDelete: Cascade)
-  
+
   issueId     Int
   issue       Issue     @relation("IssueWiki", fields: [issueId], references: [id], onDelete: Cascade)
-  
+
   createdAt   DateTime  @default(now())
-  
+
   @@unique([wikiPageId, issueId])
   @@index([wikiPageId])
   @@index([issueId])
@@ -361,7 +364,7 @@ model WikiPageLink {
 
 model SecurityFinding {
   id            Int       @id @default(autoincrement())
-  
+
   // Semgrep data
   ruleId        String
   severity      String    // ERROR, WARNING, INFO
@@ -369,21 +372,21 @@ model SecurityFinding {
   filePath      String
   lineNumber    Int
   codeSnippet   String?   @db.Text
-  
+
   // Status
   status        String    @default("open")  // open, false_positive, fixed
-  
+
   // Optional link to issue
   issueId       Int?      @unique
   issue         Issue?    @relation(fields: [issueId], references: [id], onDelete: SetNull)
-  
+
   // Metadata
   scanDate      DateTime  @default(now())
   fixedAt       DateTime?
-  
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   @@index([ruleId])
   @@index([severity])
   @@index([status])
@@ -413,87 +416,92 @@ model Setting {
 
 model AgentPersona {
   id              Int       @id @default(autoincrement())
-  
+
   name            String    @unique
   slug            String    @unique  // For slash commands: /code-reviewer
   icon            String?   // Emoji or icon name
   description     String?   @db.Text
-  
+
+  // Week 15 Extended Fields
+  isActive        Boolean   @default(false)  // Active/inactive status
+  expertise       String[]  // Areas of expertise
+  personality     String?   @db.Text  // Personality traits
+
   // System prompt
   systemPrompt    String    @db.Text
-  
+
   // Skills/capabilities
   skills          String[]  // e.g., ["debugging", "security", "architecture"]
-  
+
   // MCP tools this persona can use
   tools           String[]  // e.g., ["create_issue", "search_knowledge"]
-  
+
   // Rules/guidelines
   rules           String[]  // e.g., ["Always cite SoT rules", "Suggest tests"]
-  
+
   // Auto-activation
   autoActivate    Boolean   @default(false)
   activationConditions Json? @db.JsonB  // { filePatterns: ["*.cpp"], keywords: ["review"] }
-  
+
   // Template usage
   templateId      Int?
   template        PromptTemplate? @relation(fields: [templateId], references: [id])
-  
+
   // Usage tracking
   sessions        AgentSession[]
-  
+
   // Built-in vs custom
   isBuiltIn       Boolean   @default(false)
-  
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  
+
   @@index([slug])
   @@index([isBuiltIn])
 }
 
 model PromptTemplate {
   id              Int       @id @default(autoincrement())
-  
+
   name            String    @unique
   description     String?   @db.Text
-  
+
   // Template content (can have variables)
   content         String    @db.Text
-  
+
   // Variables used in template
   variables       String[]  // e.g., ["module", "context", "rules"]
-  
+
   // Category
   category        String?   // "code-review", "debugging", "documentation"
-  
+
   // Usage
   personas        AgentPersona[]
-  
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  
+
   @@index([category])
 }
 
 model AgentSession {
   id              Int       @id @default(autoincrement())
-  
+
   personaId       Int
   persona         AgentPersona @relation(fields: [personaId], references: [id], onDelete: Cascade)
-  
+
   // Session metadata
   activatedBy     String?   // How it was activated: "slash_command", "auto", "cmd_k"
   context         Json?     @db.JsonB  // Context at activation time
-  
+
   // Metrics
   duration        Int?      // seconds
   toolCalls       Int       @default(0)
   issuesCreated   Int       @default(0)
-  
+
   startedAt       DateTime  @default(now())
   endedAt         DateTime?
-  
+
   @@index([personaId])
   @@index([startedAt(sort: Desc)])
 }
@@ -504,67 +512,67 @@ model AgentSession {
 
 model Milestone {
   id          Int       @id @default(autoincrement())
-  
+
   title       String
   description String?   @db.Text
-  
+
   // Dates
   startDate   DateTime?
   dueDate     DateTime?
   completedAt DateTime?
-  
+
   // Status
   status      String    @default("planned")  // planned, active, completed
-  
+
   // Issues
   issues      Issue[]
-  
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  
+
   @@index([status])
   @@index([dueDate])
 }
 
 model TimeEntry {
   id          Int       @id @default(autoincrement())
-  
+
   issueId     Int
   issue       Issue     @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  
+
   duration    Int       // minutes
   note        String?   @db.Text
-  
+
   startedAt   DateTime
   endedAt     DateTime
-  
+
   createdAt   DateTime  @default(now())
-  
+
   @@index([issueId])
   @@index([startedAt(sort: Desc)])
 }
 
 model ADR {
   id            Int       @id @default(autoincrement())
-  
+
   title         String
   content       String    @db.Text
-  
+
   // Status
   status        String    @default("proposed")  // proposed, accepted, deprecated, superseded
-  
+
   // Superseded by
   supersededById Int?
   supersededBy   ADR?     @relation("ADRSuperseded", fields: [supersededById], references: [id])
   supersedes     ADR[]    @relation("ADRSuperseded")
-  
+
   // Dates
   proposedDate  DateTime  @default(now())
   decidedDate   DateTime?
-  
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   @@index([status])
   @@index([decidedDate(sort: Desc)])
 }
@@ -613,7 +621,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ALTER TABLE "Issue"
 ADD COLUMN search_vector tsvector
 GENERATED ALWAYS AS (
-  to_tsvector('english', 
+  to_tsvector('english',
     title || ' ' || COALESCE(description, '')
   )
 ) STORED;
@@ -790,7 +798,7 @@ ADD COLUMN embedding vector(384);
 -- Create indexes
 CREATE INDEX idx_issues_search ON "Issue" USING GIN(search_vector);
 CREATE INDEX idx_knowledge_search ON "KnowledgeItem" USING GIN(search_vector);
-CREATE INDEX idx_knowledge_embedding ON "KnowledgeItem" 
+CREATE INDEX idx_knowledge_embedding ON "KnowledgeItem"
 USING hnsw (embedding vector_cosine_ops);
 ```
 
@@ -915,10 +923,7 @@ Always cite specific rules when suggesting changes.`,
         estimatedHours: 2,
       },
       labels: {
-        connect: [
-          { name: 'bug' },
-          { name: 'combat' },
-        ],
+        connect: [{ name: 'bug' }, { name: 'combat' }],
       },
     },
   });
@@ -962,6 +967,7 @@ DATABASE_URL="postgresql://moksha:password@localhost:5432/moksha_devhub?schema=p
 ```
 
 **Security Notes:**
+
 - Use strong passwords
 - Don't commit .env to git
 - PostgreSQL only accessible from localhost (Docker internal network)
@@ -1009,6 +1015,7 @@ CREATE INDEX idx_issues_custom_epic ON "Issue" ((custom_fields->>'epic'));
 ### Query Performance Tips
 
 1. **Use Prisma's include wisely**
+
    ```typescript
    // Good: Only include what you need
    const issues = await prisma.issue.findMany({
@@ -1017,12 +1024,12 @@ CREATE INDEX idx_issues_custom_epic ON "Issue" ((custom_fields->>'epic'));
        _count: { select: { comments: true } },
      },
    });
-   
+
    // Bad: Including everything
    const issues = await prisma.issue.findMany({
      include: {
        labels: true,
-       comments: true,  // Could be thousands!
+       comments: true, // Could be thousands!
        attachments: true,
        linkedFiles: true,
        // ...
@@ -1031,6 +1038,7 @@ CREATE INDEX idx_issues_custom_epic ON "Issue" ((custom_fields->>'epic'));
    ```
 
 2. **Paginate large result sets**
+
    ```typescript
    const issues = await prisma.issue.findMany({
      take: 20,
@@ -1073,20 +1081,16 @@ test('issue with labels and comments', async () => {
   const project = await prisma.project.create({
     data: { name: 'Test Project' },
   });
-  
+
   const issue = await prisma.issue.create({
     data: {
       title: 'Test Issue',
       projectId: project.id,
       labels: {
-        create: [
-          { name: 'test-label', color: '#ff0000' },
-        ],
+        create: [{ name: 'test-label', color: '#ff0000' }],
       },
       comments: {
-        create: [
-          { content: 'Test comment', author: 'Tester' },
-        ],
+        create: [{ content: 'Test comment', author: 'Tester' }],
       },
     },
     include: {
@@ -1094,7 +1098,7 @@ test('issue with labels and comments', async () => {
       comments: true,
     },
   });
-  
+
   expect(issue.labels).toHaveLength(1);
   expect(issue.comments).toHaveLength(1);
 });
@@ -1111,12 +1115,12 @@ test('full-text search finds issues', async () => {
       projectId: 1,
     },
   });
-  
+
   const results = await prisma.$queryRaw`
     SELECT * FROM "Issue"
     WHERE search_vector @@ plainto_tsquery('english', 'fsm authority');
   `;
-  
+
   expect(results).toHaveLength(1);
 });
 ```
@@ -1173,25 +1177,25 @@ pnpm prisma migrate dev --name add_new_index
 
 ### MVP (Phase 1)
 
-| Table | Rows | Size |
-|-------|------|------|
-| Issues | 1,000 | ~5 MB |
-| Comments | 5,000 | ~10 MB |
-| Attachments | 500 | ~50 MB (files) |
-| Labels | 50 | ~10 KB |
-| **Total** | | **~65 MB** |
+| Table       | Rows  | Size           |
+| ----------- | ----- | -------------- |
+| Issues      | 1,000 | ~5 MB          |
+| Comments    | 5,000 | ~10 MB         |
+| Attachments | 500   | ~50 MB (files) |
+| Labels      | 50    | ~10 KB         |
+| **Total**   |       | **~65 MB**     |
 
 ### Full System (1 year)
 
-| Table | Rows | Size |
-|-------|------|------|
-| Issues | 5,000 | ~25 MB |
-| Comments | 25,000 | ~50 MB |
-| Attachments | 2,500 | ~250 MB |
-| Knowledge | 500 | ~5 MB + embeddings (~1 MB) |
-| Wiki Pages | 200 | ~5 MB |
-| Security Findings | 1,000 | ~10 MB |
-| **Total** | | **~346 MB** |
+| Table             | Rows   | Size                       |
+| ----------------- | ------ | -------------------------- |
+| Issues            | 5,000  | ~25 MB                     |
+| Comments          | 25,000 | ~50 MB                     |
+| Attachments       | 2,500  | ~250 MB                    |
+| Knowledge         | 500    | ~5 MB + embeddings (~1 MB) |
+| Wiki Pages        | 200    | ~5 MB                      |
+| Security Findings | 1,000  | ~10 MB                     |
+| **Total**         |        | **~346 MB**                |
 
 **Embeddings:** Each vector (384 dims) = ~1.5 KB, so 1000 items = ~1.5 MB
 
@@ -1200,6 +1204,7 @@ pnpm prisma migrate dev --name add_new_index
 ## 📚 Next Documents
 
 Continue to:
+
 - **03-MCP-SPECIFICATION.md** - All MCP tools/resources/prompts
 - **04-UI-ARCHITECTURE.md** - Design system & components
 - **05-IMPLEMENTATION-GUIDE.md** - Week-by-week guide

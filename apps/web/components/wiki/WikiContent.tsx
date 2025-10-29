@@ -1,6 +1,7 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
+import { CodeBlock } from './CodeBlock';
 
 interface TOCItem {
   id: string;
@@ -47,19 +48,24 @@ export function WikiContent({ content, tocItems }: WikiContentProps) {
                 </h3>
               );
             },
-            // Code blocks (simple styling for now)
-            code({ node, inline, className, children, ...props }) {
-              return inline ? (
-                <code className="rounded bg-slate-800 px-1.5 py-0.5 text-sm text-coral" {...props}>
-                  {children}
-                </code>
-              ) : (
-                <pre className="overflow-x-auto rounded-lg bg-slate-900 p-4">
+            // Code blocks with syntax highlighting
+            code({ className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || '');
+
+              // Inline code (no language class)
+              if (!match || !match[1]) {
+                return (
                   <code className={className} {...props}>
                     {children}
                   </code>
-                </pre>
-              );
+                );
+              }
+
+              // Code block with syntax highlighting
+              const language = match[1];
+              const code = String(children).replace(/\n$/, '');
+
+              return <CodeBlock language={language} code={code} />;
             },
             // Links
             a: ({ href, children, ...props }) => (

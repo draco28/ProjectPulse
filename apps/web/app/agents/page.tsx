@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { Sidebar } from '@/components/Sidebar';
-import { FloatingBackground } from '@/components/ui/FloatingBackground';
+import { FloatingBackground } from '@/components/FloatingBackground';
 import { AgentCard } from '@/components/agents/AgentCard';
 
 export const dynamic = 'force-dynamic'; // Real-time agent status
@@ -47,9 +47,7 @@ export default async function AgentsPage() {
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="mb-1 text-3xl font-bold text-white">
-                  Agent Personas
-                </h2>
+                <h2 className="mb-1 text-3xl font-bold text-white">Agent Personas</h2>
                 <p className="text-sm text-slate">
                   {stats.active} active • {stats.total} total agents
                 </p>
@@ -69,9 +67,7 @@ export default async function AgentsPage() {
                 <div className="flex items-start gap-4">
                   <i className="fas fa-info-circle text-2xl text-blue-500"></i>
                   <div>
-                    <h3 className="mb-1 font-semibold text-white">
-                      What are Agent Personas?
-                    </h3>
+                    <h3 className="mb-1 font-semibold text-white">What are Agent Personas?</h3>
                     <p className="text-sm text-slate">
                       Agent Personas are specialized AI assistants with unique expertise and
                       personalities. Toggle agents on/off to customize your DevHub experience.
@@ -92,12 +88,8 @@ export default async function AgentsPage() {
               ) : (
                 <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
                   <i className="fas fa-robot mb-4 text-5xl text-slate"></i>
-                  <h3 className="mb-2 text-xl font-bold text-white">
-                    No Agents Found
-                  </h3>
-                  <p className="mb-4 text-slate">
-                    Create your first agent to get started
-                  </p>
+                  <h3 className="mb-2 text-xl font-bold text-white">No Agents Found</h3>
+                  <p className="mb-4 text-slate">Create your first agent to get started</p>
                   <button className="coral-gradient smooth-transition rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
                     <i className="fas fa-plus mr-2"></i>
                     Create Agent

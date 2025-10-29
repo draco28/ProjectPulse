@@ -30,13 +30,11 @@ const customJestConfig = {
     '!**/coverage/**',
   ],
 
-  // Test patterns (exclude E2E tests which run via Playwright)
+  // Test patterns
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/.next/',
-    '/tests/e2e/', // Exclude Playwright E2E tests from Jest
-  ],
+
+  // Exclude E2E tests (run separately with Playwright)
+  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/tests/e2e/'],
 
   // Transform
   transform: {

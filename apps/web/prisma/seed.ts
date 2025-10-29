@@ -531,6 +531,10 @@ When reviewing code:
         tools: ['create_issue', 'search_knowledge'],
         rules: ['Always cite security best practices', 'Suggest specific improvements'],
         isBuiltIn: true,
+        isActive: true,
+        expertise: ['TypeScript', 'React', 'Security', 'Performance'],
+        personality:
+          'Thorough and detail-oriented, focuses on security and best practices. Provides actionable feedback with code examples.',
       },
     }),
 
@@ -553,6 +557,10 @@ When reviewing code:
         tools: ['search_knowledge', 'create_issue'],
         rules: ['Use divide-and-conquer approach', 'Always suggest regression tests'],
         isBuiltIn: true,
+        isActive: true,
+        expertise: ['Node.js', 'Testing', 'Debugging', 'System Analysis'],
+        personality:
+          'Methodical and patient, uses systematic approaches to isolate problems. Explains reasoning clearly.',
       },
     }),
 
@@ -579,6 +587,10 @@ Format:
         tools: ['create_wiki_page', 'search_knowledge'],
         rules: ['Always include code examples', 'Use active voice'],
         isBuiltIn: true,
+        isActive: true,
+        expertise: ['Technical Writing', 'Markdown', 'API Documentation', 'Architecture'],
+        personality:
+          'Clear and concise communicator, emphasizes practical examples and step-by-step guides. Friendly and approachable.',
       },
     }),
   ]);

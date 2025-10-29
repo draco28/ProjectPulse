@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
+
+// Search result type for unified search
+interface SearchResult {
+  id: number;
+  type: 'issue' | 'knowledge' | 'wiki' | 'agent';
+  title: string;
+  description?: string;
+  url: string;
+  icon: string;
+  metadata?: string;
+}
 
 /**
  * GET /api/search
@@ -21,7 +32,6 @@ export async function GET(request: NextRequest) {
 
     if (!query.trim()) {
       return NextResponse.json({
-        success: true,
         data: {
           results: [],
           total: 0,
@@ -30,7 +40,7 @@ export async function GET(request: NextRequest) {
     }
 
     const searchTerm = query.trim();
-    const results: any[] = [];
+    const results: SearchResult[] = [];
 
     // Search Issues
     if (type === 'all' || type === 'issues') {
@@ -151,7 +161,7 @@ export async function GET(request: NextRequest) {
           id: agent.id,
           type: 'agent' as const,
           title: agent.name,
-          description: agent.description,
+          description: agent.description ?? undefined,
           url: `/agents`,
           icon: 'fa-robot',
           metadata: agent.isActive ? 'Active' : 'Inactive',
@@ -169,7 +179,6 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({
-      success: true,
       data: {
         results: sortedResults,
         total: sortedResults.length,
@@ -178,12 +187,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Search failed:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Search failed',
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Search failed' }, { status: 500 });
   }
 }

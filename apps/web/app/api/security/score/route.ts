@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/security/score
@@ -13,7 +13,7 @@ import { prisma } from '@/lib/db';
  * - breakdown: Count by severity
  * - trend: Score change over time (future feature)
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Fetch all open findings with severity counts
     const findings = await prisma.securityFinding.findMany({
@@ -29,8 +29,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Calculate total penalty
-    const totalPenalty =
-      stats.critical * 10 + stats.medium * 4 + stats.low * 1;
+    const totalPenalty = stats.critical * 10 + stats.medium * 4 + stats.low * 1;
 
     // Calculate score (0-100)
     const score = Math.max(0, 100 - totalPenalty);
@@ -39,7 +38,6 @@ export async function GET(request: NextRequest) {
     const trend = 0; // Positive = improving, negative = worsening
 
     return NextResponse.json({
-      success: true,
       data: {
         score: Math.round(score),
         breakdown: stats,
@@ -49,12 +47,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to calculate security score:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to calculate security score',
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to calculate security score' }, { status: 500 });
   }
 }
