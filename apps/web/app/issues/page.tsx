@@ -13,6 +13,7 @@ import { SearchSortBar } from '@/components/issues/SearchSortBar';
 import { IssueListCard } from '@/components/issues/IssueListCard';
 import { Pagination } from '@/components/issues/Pagination';
 import { prisma } from '@/lib/prisma';
+import { getFilterOptions } from '@/lib/filters';
 
 export const metadata: Metadata = {
   title: 'Issues | ProjectPulse',
@@ -161,8 +162,8 @@ export default async function IssuesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  const [{ issues, totalCount, currentPage, totalPages, perPage }, filterCounts] =
-    await Promise.all([getIssues(params), getFilterCounts()]);
+  const [{ issues, totalCount, currentPage, totalPages, perPage }, filterCounts, filterOptions] =
+    await Promise.all([getIssues(params), getFilterCounts(), getFilterOptions()]);
 
   return (
     <>
@@ -190,7 +191,7 @@ export default async function IssuesPage({
           {/* Page Content */}
           <main className="flex flex-1 gap-4 overflow-hidden">
             {/* Filters Sidebar */}
-            <FilterSidebar counts={filterCounts} searchParams={params} />
+            <FilterSidebar options={filterOptions} counts={filterCounts} searchParams={params} />
 
             {/* Issues List */}
             <div className="flex flex-1 flex-col gap-4 overflow-auto">
