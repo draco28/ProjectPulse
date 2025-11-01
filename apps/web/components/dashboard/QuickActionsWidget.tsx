@@ -18,16 +18,25 @@ export function QuickActionsWidget() {
     <div className="neu-raised smooth-transition rounded-3xl p-6">
       <h3 className="mb-4 text-lg font-bold text-white">Quick Actions</h3>
       <div className="space-y-3">
-        <button className="coral-gradient smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-white">
-          <Plus className="h-5 w-5" />
+        <button
+          className="coral-gradient smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-white"
+          aria-label="Create new issue"
+        >
+          <Plus className="h-5 w-5" aria-hidden="true" />
           <span>New Issue</span>
         </button>
-        <button className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-slate hover:text-white">
-          <Book className="h-5 w-5" />
+        <button
+          className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-slate hover:text-white"
+          aria-label="Add knowledge base item"
+        >
+          <Book className="h-5 w-5" aria-hidden="true" />
           <span>Add Knowledge</span>
         </button>
-        <button className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-slate hover:text-white">
-          <Shield className="h-5 w-5" />
+        <button
+          className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-slate hover:text-white"
+          aria-label="Run security scan"
+        >
+          <Shield className="h-5 w-5" aria-hidden="true" />
           <span>Security Scan</span>
         </button>
       </div>

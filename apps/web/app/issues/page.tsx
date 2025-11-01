@@ -6,9 +6,10 @@
  */
 
 import { Metadata } from 'next';
+import { Plus } from 'lucide-react';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
-import { FilterSidebar } from '@/components/issues/FilterSidebar';
+import { IssuesPageClient } from '@/components/issues/IssuesPageClient';
 import { SearchSortBar } from '@/components/issues/SearchSortBar';
 import { IssueListCard } from '@/components/issues/IssueListCard';
 import { Pagination } from '@/components/issues/Pagination';
@@ -181,8 +182,11 @@ export default async function IssuesPage({
                 <h2 className="mb-1 text-3xl font-bold text-white">Issues</h2>
                 <p className="text-sm text-slate">Track and manage project issues</p>
               </div>
-              <button className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
-                <i className="fas fa-plus"></i>
+              <button
+                className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"
+                aria-label="Create new issue"
+              >
+                <Plus className="h-5 w-5" aria-hidden="true" />
                 <span>New Issue</span>
               </button>
             </div>
@@ -190,8 +194,8 @@ export default async function IssuesPage({
 
           {/* Page Content */}
           <main className="flex flex-1 gap-4 overflow-hidden">
-            {/* Filters Sidebar */}
-            <FilterSidebar options={filterOptions} counts={filterCounts} searchParams={params} />
+            {/* Filters Sidebar (Desktop) + FAB + Mobile Drawer */}
+            <IssuesPageClient options={filterOptions} counts={filterCounts} searchParams={params} />
 
             {/* Issues List */}
             <div className="flex flex-1 flex-col gap-4 overflow-auto">

@@ -1,7 +1,19 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
-import { CodeBlock } from './CodeBlock';
+import dynamic from 'next/dynamic';
+
+// Lazy load CodeBlock (~300KB with syntax highlighter)
+// Only loads when markdown contains code blocks
+const CodeBlock = dynamic(() => import('./CodeBlock').then((mod) => ({ default: mod.CodeBlock })), {
+  loading: () => (
+    <div className="neu-pressed animate-pulse rounded-2xl p-4">
+      <div className="h-4 w-3/4 rounded bg-slate/20"></div>
+      <div className="mt-2 h-4 w-1/2 rounded bg-slate/20"></div>
+    </div>
+  ),
+  ssr: false, // Code highlighting only needed client-side
+});
 
 interface TOCItem {
   id: string;

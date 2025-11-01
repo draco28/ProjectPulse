@@ -3,11 +3,23 @@
  *
  * Filter panel for issues list with dynamic DB-driven options
  * Reference: mockups/Default theme/02-issues-dark-neumorphic-coral.html lines 384-489
+ *
+ * Features:
+ * - Desktop: Static sidebar (always visible)
+ * - Mobile: Bottom sheet drawer (slide-up animation)
+ * - Touch-friendly close button and drag handle
+ * - Focus trap when drawer is open
+ * - Body scroll lock on mobile
  */
 'use client';
 
 import { useFilterParams } from '@/hooks/useFilterParams';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { FiltersDTO } from '@/types/filters';
+import { X, RefreshCw, AlertCircle, Box } from 'lucide-react';
+import { useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 interface FilterCounts {
   status: Record<string, number>;
@@ -19,15 +31,44 @@ interface FilterSidebarProps {
   options: FiltersDTO; // Dynamic filter options from database
   counts: FilterCounts;
   searchParams: Record<string, string | undefined>;
+  // Mobile drawer props (optional - desktop mode if not provided)
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export function FilterSidebar({ options, counts, searchParams }: FilterSidebarProps) {
+export function FilterSidebar({
+  options,
+  counts,
+  searchParams,
+  isOpen = true,
+  onClose,
+}: FilterSidebarProps) {
   // Use custom hook for filter state management
   const { currentFilters, isActive, updateFilter, clearAllFilters, hasActiveFilters } =
     useFilterParams(searchParams);
 
-  return (
-    <div className="flex w-72 flex-col gap-4 overflow-auto">
+  // Mobile drawer functionality
+  const isMobileDrawer = onClose !== undefined;
+  const drawerRef = useFocusTrap(isMobileDrawer && isOpen);
+  useBodyScrollLock(isMobileDrawer && isOpen);
+
+  // Close drawer on Escape key (mobile only)
+  useEffect(() => {
+    if (!isMobileDrawer || !isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose?.();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isMobileDrawer, isOpen, onClose]);
+
+  // Render filter content (shared between desktop and mobile)
+  const filterContent = (
+    <>
       <div className="neu-raised smooth-transition rounded-3xl p-6">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
@@ -45,7 +86,7 @@ export function FilterSidebar({ options, counts, searchParams }: FilterSidebarPr
         {/* Status Filter */}
         <div className="mb-6">
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <i className="fas fa-circle-notch text-sm text-coral"></i>
+            <RefreshCw className="h-4 w-4 text-coral" aria-hidden="true" />
             Status
           </h4>
           <div className="space-y-3">
@@ -82,7 +123,7 @@ export function FilterSidebar({ options, counts, searchParams }: FilterSidebarPr
         {/* Priority Filter */}
         <div className="mb-6">
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <i className="fas fa-exclamation-circle text-sm text-coral"></i>
+            <AlertCircle className="h-4 w-4 text-coral" aria-hidden="true" />
             Priority
           </h4>
           <div className="space-y-3">
@@ -124,7 +165,7 @@ export function FilterSidebar({ options, counts, searchParams }: FilterSidebarPr
         {/* Module Filter */}
         <div>
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <i className="fas fa-cube text-sm text-coral"></i>
+            <Box className="h-4 w-4 text-coral" aria-hidden="true" />
             Module
           </h4>
           <div className="space-y-3">
@@ -152,6 +193,52 @@ export function FilterSidebar({ options, counts, searchParams }: FilterSidebarPr
           </div>
         </div>
       </div>
-    </div>
+    </>
+  );
+
+  // Desktop mode: always visible sidebar
+  if (!isMobileDrawer) {
+    return <div className="hidden w-72 flex-col gap-4 overflow-auto lg:flex">{filterContent}</div>;
+  }
+
+  // Mobile mode: bottom sheet drawer
+  return (
+    <>
+      {/* Overlay - Only renders when drawer is open */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Bottom Sheet Drawer */}
+      <aside
+        ref={drawerRef}
+        className={cn(
+          'fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col gap-4 overflow-auto rounded-t-3xl bg-background p-6 transition-transform duration-300 lg:hidden',
+          isOpen ? 'translate-y-0' : 'translate-y-full'
+        )}
+        aria-label="Filters drawer"
+        role="dialog"
+        aria-modal="true"
+      >
+        {/* Drag Handle */}
+        <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-slate opacity-50" />
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="neu-raised smooth-transition absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl text-slate hover:text-white"
+          aria-label="Close filters"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Filter Content */}
+        {filterContent}
+      </aside>
+    </>
   );
 }

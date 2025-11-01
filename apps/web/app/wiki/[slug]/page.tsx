@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { Clock, Link } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { WikiSidebar } from '@/components/wiki/WikiSidebar';
@@ -124,12 +125,12 @@ export default async function WikiPage({ params }: PageProps) {
               <header className="neu-raised smooth-transition rounded-3xl px-8 py-6">
                 <h1 className="mb-2 text-4xl font-bold text-white">{page.title}</h1>
                 <div className="flex items-center gap-4 text-sm text-slate">
-                  <span>
-                    <i className="fas fa-clock mr-2"></i>
+                  <span className="flex items-center">
+                    <Clock className="mr-2 h-4 w-4" aria-hidden="true" />
                     Last updated: {new Date(page.updatedAt).toLocaleDateString()}
                   </span>
-                  <span>
-                    <i className="fas fa-link mr-2"></i>
+                  <span className="flex items-center">
+                    <Link className="mr-2 h-4 w-4" aria-hidden="true" />
                     {page.path}
                   </span>
                 </div>

@@ -19,6 +19,7 @@
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
+import { MoreVertical, User, Clock, MessageSquare, Paperclip } from 'lucide-react';
 
 type Priority = 'critical' | 'high' | 'medium' | 'low';
 type Status = 'open' | 'in_progress' | 'closed';
@@ -105,8 +106,11 @@ export function IssueListCard({ issue }: IssueListCardProps) {
             </div>
 
             {/* Menu Button */}
-            <button className="smooth-transition text-slate hover:text-coral">
-              <i className="fas fa-ellipsis-v"></i>
+            <button
+              className="smooth-transition text-slate hover:text-coral"
+              aria-label="More options"
+            >
+              <MoreVertical className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
 
@@ -126,26 +130,26 @@ export function IssueListCard({ issue }: IssueListCardProps) {
           <div className="flex items-center gap-6 text-sm text-slate">
             {/* Author */}
             <span className="flex items-center gap-2">
-              <i className="fas fa-user"></i>
+              <User className="h-4 w-4" aria-hidden="true" />
               {issue.assignee}
             </span>
 
             {/* Time */}
             <span className="flex items-center gap-2">
-              <i className="fas fa-clock"></i>
+              <Clock className="h-4 w-4" aria-hidden="true" />
               {timeAgo}
             </span>
 
             {/* Comments */}
             <span className="flex items-center gap-2">
-              <i className="fas fa-comment"></i>
+              <MessageSquare className="h-4 w-4" aria-hidden="true" />
               {issue.commentsCount} {issue.commentsCount === 1 ? 'comment' : 'comments'}
             </span>
 
             {/* Attachments */}
             {issue.attachmentsCount > 0 && (
               <span className="flex items-center gap-2">
-                <i className="fas fa-paperclip"></i>
+                <Paperclip className="h-4 w-4" aria-hidden="true" />
                 {issue.attachmentsCount} {issue.attachmentsCount === 1 ? 'file' : 'files'}
               </span>
             )}

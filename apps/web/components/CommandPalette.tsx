@@ -2,7 +2,21 @@
 
 import { useReducer, useEffect, useCallback, useRef, KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { Search, Loader2, Keyboard, Bug, Book, FileText, Bot, LucideIcon } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+
+// Icon Mapper for dynamic rendering
+const ICON_MAP: Record<string, LucideIcon> = {
+  search: Search,
+  bug: Bug,
+  book: Book,
+  'file-text': FileText,
+  robot: Bot,
+};
+
+function getIcon(iconName: string): LucideIcon {
+  return ICON_MAP[iconName] || Search; // Default to Search if not found
+}
 
 // Command Palette State
 interface CommandState {
@@ -124,7 +138,7 @@ export function CommandPalette() {
             title: `Issue matching "${query}"`,
             description: 'Fix authentication bug in login flow',
             url: '/issues/1',
-            icon: 'fa-bug',
+            icon: 'bug',
             metadata: 'Open • High Priority',
           },
           {
@@ -133,7 +147,7 @@ export function CommandPalette() {
             title: `Knowledge article about "${query}"`,
             description: 'Best practices for API design',
             url: '/knowledge',
-            icon: 'fa-book',
+            icon: 'book',
             metadata: 'API • Design Patterns',
           },
           {
@@ -142,7 +156,7 @@ export function CommandPalette() {
             title: `Wiki page: ${query}`,
             description: 'Technical documentation for the feature',
             url: '/wiki/getting-started',
-            icon: 'fa-file-alt',
+            icon: 'file-text',
             metadata: 'Documentation',
           },
           {
@@ -151,7 +165,7 @@ export function CommandPalette() {
             title: `Agent: ${query} Expert`,
             description: 'Specialized agent for this domain',
             url: '/agents',
-            icon: 'fa-robot',
+            icon: 'robot',
             metadata: 'Active',
           },
         ].filter((result) => {
@@ -210,11 +224,11 @@ export function CommandPalette() {
   };
 
   const entityTypes = [
-    { value: 'all' as const, label: 'All', icon: 'fa-search' },
-    { value: 'issues' as const, label: 'Issues', icon: 'fa-bug' },
-    { value: 'knowledge' as const, label: 'Knowledge', icon: 'fa-book' },
-    { value: 'wiki' as const, label: 'Wiki', icon: 'fa-file-alt' },
-    { value: 'agents' as const, label: 'Agents', icon: 'fa-robot' },
+    { value: 'all' as const, label: 'All', icon: 'search' },
+    { value: 'issues' as const, label: 'Issues', icon: 'bug' },
+    { value: 'knowledge' as const, label: 'Knowledge', icon: 'book' },
+    { value: 'wiki' as const, label: 'Wiki', icon: 'file-text' },
+    { value: 'agents' as const, label: 'Agents', icon: 'robot' },
   ];
 
   if (!state.isOpen) {
@@ -222,8 +236,9 @@ export function CommandPalette() {
       <button
         onClick={() => dispatch({ type: 'OPEN' })}
         className="neu-raised smooth-transition fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg hover:scale-105"
+        aria-label="Open command palette"
       >
-        <i className="fas fa-search text-xl"></i>
+        <Search className="h-6 w-6" aria-hidden="true" />
       </button>
     );
   }
@@ -246,7 +261,7 @@ export function CommandPalette() {
         <div className="neu-raised smooth-transition mx-4 overflow-hidden rounded-3xl">
           {/* Search Input */}
           <div className="flex items-center gap-4 border-b border-white/5 p-6">
-            <i className="fas fa-search text-xl text-slate"></i>
+            <Search className="h-6 w-6 text-slate" aria-hidden="true" />
             <input
               ref={inputRef}
               type="text"
@@ -255,64 +270,74 @@ export function CommandPalette() {
               onChange={(e) => dispatch({ type: 'SET_QUERY', payload: e.target.value })}
               className="flex-1 bg-transparent text-lg text-white placeholder-slate outline-none"
             />
-            {state.isLoading && <i className="fas fa-spinner fa-spin text-coral"></i>}
+            {state.isLoading && (
+              <Loader2 className="h-5 w-5 animate-spin text-coral" aria-hidden="true" />
+            )}
             <kbd className="rounded bg-black/20 px-2 py-1 text-xs text-slate">ESC</kbd>
           </div>
 
           {/* Entity Type Filter */}
           <div className="flex gap-2 border-b border-white/5 p-4">
-            {entityTypes.map((type) => (
-              <button
-                key={type.value}
-                onClick={() => dispatch({ type: 'SET_ENTITY_TYPE', payload: type.value })}
-                className={`smooth-transition flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${
-                  state.entityType === type.value
-                    ? 'coral-gradient text-white'
-                    : 'bg-black/20 text-slate hover:bg-black/30'
-                }`}
-              >
-                <i className={`fas ${type.icon}`}></i>
-                {type.label}
-              </button>
-            ))}
+            {entityTypes.map((type) => {
+              const IconComponent = getIcon(type.icon);
+              return (
+                <button
+                  key={type.value}
+                  onClick={() => dispatch({ type: 'SET_ENTITY_TYPE', payload: type.value })}
+                  className={`smooth-transition flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${
+                    state.entityType === type.value
+                      ? 'coral-gradient text-white'
+                      : 'bg-black/20 text-slate hover:bg-black/30'
+                  }`}
+                >
+                  <IconComponent className="h-4 w-4" aria-hidden="true" />
+                  {type.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Results */}
           <div className="max-h-96 overflow-y-auto">
             {state.results.length > 0 ? (
               <div className="p-2">
-                {state.results.map((result, index) => (
-                  <button
-                    key={`${result.type}-${result.id}`}
-                    onClick={() => handleResultClick(result.url)}
-                    className={`smooth-transition mb-2 flex w-full items-start gap-4 rounded-2xl p-4 text-left ${
-                      index === state.selectedIndex
-                        ? 'bg-coral/10 ring-2 ring-coral/50'
-                        : 'bg-black/20 hover:bg-black/30'
-                    }`}
-                  >
-                    <div className="neu-raised flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl">
-                      <i className={`fas ${result.icon} text-coral`}></i>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="mb-1 font-semibold text-white">{result.title}</h4>
-                      {result.description && (
-                        <p className="mb-1 line-clamp-1 text-sm text-slate">{result.description}</p>
-                      )}
-                      {result.metadata && <p className="text-xs text-slate">{result.metadata}</p>}
-                    </div>
-                    <kbd className="rounded bg-black/20 px-2 py-1 text-xs text-slate">↵</kbd>
-                  </button>
-                ))}
+                {state.results.map((result, index) => {
+                  const ResultIcon = getIcon(result.icon);
+                  return (
+                    <button
+                      key={`${result.type}-${result.id}`}
+                      onClick={() => handleResultClick(result.url)}
+                      className={`smooth-transition mb-2 flex w-full items-start gap-4 rounded-2xl p-4 text-left ${
+                        index === state.selectedIndex
+                          ? 'bg-coral/10 ring-2 ring-coral/50'
+                          : 'bg-black/20 hover:bg-black/30'
+                      }`}
+                    >
+                      <div className="neu-raised flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl">
+                        <ResultIcon className="h-5 w-5 text-coral" aria-hidden="true" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="mb-1 font-semibold text-white">{result.title}</h4>
+                        {result.description && (
+                          <p className="mb-1 line-clamp-1 text-sm text-slate">
+                            {result.description}
+                          </p>
+                        )}
+                        {result.metadata && <p className="text-xs text-slate">{result.metadata}</p>}
+                      </div>
+                      <kbd className="rounded bg-black/20 px-2 py-1 text-xs text-slate">↵</kbd>
+                    </button>
+                  );
+                })}
               </div>
             ) : state.query && !state.isLoading ? (
               <div className="p-12 text-center">
-                <i className="fas fa-search mb-4 text-4xl text-slate"></i>
+                <Search className="mb-4 h-12 w-12 text-slate" aria-hidden="true" />
                 <p className="text-slate">No results found for &quot;{state.query}&quot;</p>
               </div>
             ) : (
               <div className="p-12 text-center">
-                <i className="fas fa-keyboard mb-4 text-4xl text-slate"></i>
+                <Keyboard className="mb-4 h-12 w-12 text-slate" aria-hidden="true" />
                 <p className="mb-2 text-sm text-slate">
                   Start typing to search across all entities
                 </p>

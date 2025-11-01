@@ -25,6 +25,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { RotateCw, Play, Check, MoreVertical } from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -67,14 +68,13 @@ function getStatusButtonText(current: StatusOption): string {
 }
 
 /**
- * Get button icon for status transition
+ * Get button icon component for status transition
  */
-function getStatusButtonIcon(current: StatusOption): string {
-  const nextStatus = getNextStatus(current);
-  const icons: Record<StatusOption, string> = {
-    open: 'fa-redo',
-    in_progress: 'fa-play',
-    closed: 'fa-check',
+function getStatusButtonIcon(nextStatus: StatusOption) {
+  const icons = {
+    open: RotateCw,
+    in_progress: Play,
+    closed: Check,
   };
   return icons[nextStatus];
 }
@@ -132,13 +132,18 @@ export function IssueActions({ issueId, currentStatus }: IssueActionsProps) {
       <button
         onClick={handleStatusChange}
         disabled={isUpdating}
-        className="coral-gradient smooth-transition rounded-2xl px-4 py-2 text-sm text-white shadow-lg hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-4 py-2 text-sm text-white shadow-lg hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         aria-label={`${getStatusButtonText(optimisticStatus)} issue`}
       >
-        <i
-          className={`fas ${getStatusButtonIcon(optimisticStatus)} mr-2 ${isUpdating ? 'fa-spin' : ''}`}
-          aria-hidden="true"
-        ></i>
+        {(() => {
+          const IconComponent = getStatusButtonIcon(getNextStatus(optimisticStatus));
+          return (
+            <IconComponent
+              className={`h-4 w-4 ${isUpdating ? 'animate-spin' : ''}`}
+              aria-hidden="true"
+            />
+          );
+        })()}
         {isUpdating ? 'Updating...' : getStatusButtonText(optimisticStatus)}
       </button>
 
@@ -148,7 +153,7 @@ export function IssueActions({ issueId, currentStatus }: IssueActionsProps) {
         aria-label="More options"
         disabled={isUpdating}
       >
-        <i className="fas fa-ellipsis-v" aria-hidden="true"></i>
+        <MoreVertical className="h-5 w-5" aria-hidden="true" />
       </button>
     </div>
   );

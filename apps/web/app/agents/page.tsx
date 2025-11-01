@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { Plus, Info, Bot } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { AgentCard } from '@/components/agents/AgentCard';
@@ -52,8 +53,11 @@ export default async function AgentsPage() {
                   {stats.active} active • {stats.total} total agents
                 </p>
               </div>
-              <button className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
-                <i className="fas fa-plus"></i>
+              <button
+                className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"
+                aria-label="Create new agent"
+              >
+                <Plus className="h-5 w-5" aria-hidden="true" />
                 <span>New Agent</span>
               </button>
             </div>
@@ -65,7 +69,7 @@ export default async function AgentsPage() {
               {/* Info Banner */}
               <div className="neu-raised smooth-transition rounded-3xl bg-blue-500/10 p-6">
                 <div className="flex items-start gap-4">
-                  <i className="fas fa-info-circle text-2xl text-blue-500"></i>
+                  <Info className="h-6 w-6 text-blue-500" aria-hidden="true" />
                   <div>
                     <h3 className="mb-1 font-semibold text-white">What are Agent Personas?</h3>
                     <p className="text-sm text-slate">
@@ -87,11 +91,11 @@ export default async function AgentsPage() {
                 </div>
               ) : (
                 <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
-                  <i className="fas fa-robot mb-4 text-5xl text-slate"></i>
+                  <Bot className="mb-4 h-16 w-16 text-slate" aria-hidden="true" />
                   <h3 className="mb-2 text-xl font-bold text-white">No Agents Found</h3>
                   <p className="mb-4 text-slate">Create your first agent to get started</p>
                   <button className="coral-gradient smooth-transition rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
-                    <i className="fas fa-plus mr-2"></i>
+                    <Plus className="mr-2 h-5 w-5" aria-hidden="true" />
                     Create Agent
                   </button>
                 </div>

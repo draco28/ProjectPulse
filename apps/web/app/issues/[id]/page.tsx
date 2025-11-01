@@ -14,6 +14,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { Paperclip, Plus, MessageSquare } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { serializeIssueDetail } from '@/types/issue';
 import { FloatingBackground } from '@/components/FloatingBackground';
@@ -216,20 +217,30 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
             updatedAt={serializedIssue.updatedAt}
           />
 
-          {/* 3-Column Responsive Grid Layout (per react-expert recommendation) */}
+          {/* 3-Column Responsive Grid Layout
+           * Mobile (< 1024px): Stacks vertically with optimized order:
+           *   1. Main content (order-1) - Issue description, comments
+           *   2. Right sidebar (order-2) - Issue metadata, system activity
+           *   3. Left sidebar (order-3) - Quick actions, watchers
+           * Desktop (≥ 1024px): 3-column layout (2-7-3 grid)
+           */}
           <main className="grid flex-1 grid-cols-1 gap-4 overflow-hidden lg:grid-cols-12">
             {/* ============================================ */}
             {/* LEFT SIDEBAR (lg:col-span-2)                */}
+            {/* Mobile: order-3 (appears last)              */}
+            {/* Desktop: Natural order (left column)        */}
             {/* ============================================ */}
-            <aside className="space-y-4 overflow-auto lg:col-span-2">
+            <aside className="order-3 space-y-4 overflow-auto lg:order-none lg:col-span-2">
               <QuickActions issueId={serializedIssue.id} issueTitle={issue.title} />
               <WatchersSection issueId={serializedIssue.id} />
             </aside>
 
             {/* ============================================ */}
             {/* MAIN CONTENT (lg:col-span-7)                */}
+            {/* Mobile: order-1 (appears first)             */}
+            {/* Desktop: Natural order (center column)      */}
             {/* ============================================ */}
-            <div className="space-y-4 overflow-auto lg:col-span-7">
+            <div className="order-1 space-y-4 overflow-auto lg:order-none lg:col-span-7">
               {/* Action Buttons */}
               <div className="flex items-center justify-end">
                 <IssueActions
@@ -251,14 +262,17 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
                 <div className="neu-raised smooth-transition rounded-3xl p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="flex items-center gap-2 text-lg font-bold text-white">
-                      <i className="fas fa-paperclip text-coral" aria-hidden="true"></i>
+                      <Paperclip className="h-5 w-5 text-coral" aria-hidden="true" />
                       Attachments{' '}
                       <span className="text-sm font-normal text-slate">
                         ({issue.attachments.length})
                       </span>
                     </h3>
-                    <button className="smooth-transition hover:text-coralLight text-sm font-semibold text-coral">
-                      <i className="fas fa-plus mr-2" aria-hidden="true"></i>
+                    <button
+                      className="smooth-transition hover:text-coralLight text-sm font-semibold text-coral"
+                      aria-label="Add file attachment"
+                    >
+                      <Plus className="mr-2 h-5 w-5" aria-hidden="true" />
                       Add File
                     </button>
                   </div>
@@ -269,7 +283,7 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
               {/* Activity/Comments Section */}
               <div className="neu-raised smooth-transition rounded-3xl p-6">
                 <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-white">
-                  <i className="fas fa-comments text-coral" aria-hidden="true"></i>
+                  <MessageSquare className="h-5 w-5 text-coral" aria-hidden="true" />
                   Activity{' '}
                   <span className="text-sm font-normal text-slate">
                     ({issue.comments.length} comments)
@@ -290,8 +304,10 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
 
             {/* ============================================ */}
             {/* RIGHT SIDEBAR (lg:col-span-3)               */}
+            {/* Mobile: order-2 (appears second)            */}
+            {/* Desktop: Natural order (right column)       */}
             {/* ============================================ */}
-            <aside className="space-y-4 overflow-auto lg:col-span-3">
+            <aside className="order-2 space-y-4 overflow-auto lg:order-none lg:col-span-3">
               <IssueDetailSidebar
                 issueId={serializedIssue.id}
                 assignee={serializedIssue.assignee}

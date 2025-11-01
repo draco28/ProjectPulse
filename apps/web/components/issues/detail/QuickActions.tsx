@@ -25,6 +25,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Zap, Link, Check, Pin, Eye, Share2, Printer, Lightbulb } from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -70,7 +71,7 @@ export function QuickActions({ issueId, issueTitle }: QuickActionsProps) {
   return (
     <div className="neu-raised smooth-transition rounded-3xl p-6">
       <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-white">
-        <i className="fas fa-bolt text-coral" aria-hidden="true"></i>
+        <Zap className="h-5 w-5 text-coral" aria-hidden="true" />
         Quick Actions
       </h3>
 
@@ -82,10 +83,11 @@ export function QuickActions({ issueId, issueTitle }: QuickActionsProps) {
           className="neu-pressed smooth-transition flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm text-slate hover:text-white"
           aria-label="Copy issue link"
         >
-          <i
-            className={`fas ${copiedLink ? 'fa-check text-green-500' : 'fa-link text-coral'}`}
-            aria-hidden="true"
-          ></i>
+          {copiedLink ? (
+            <Check className="h-5 w-5 text-green-500" aria-hidden="true" />
+          ) : (
+            <Link className="h-5 w-5 text-coral" aria-hidden="true" />
+          )}
           <span>{copiedLink ? 'Link Copied!' : 'Copy Link'}</span>
         </button>
 
@@ -95,7 +97,7 @@ export function QuickActions({ issueId, issueTitle }: QuickActionsProps) {
           aria-label="Pin issue"
           disabled
         >
-          <i className="fas fa-thumbtack text-coral" aria-hidden="true"></i>
+          <Pin className="h-5 w-5 text-coral" aria-hidden="true" />
           <span>Pin Issue</span>
         </button>
 
@@ -105,7 +107,7 @@ export function QuickActions({ issueId, issueTitle }: QuickActionsProps) {
           aria-label="Watch issue"
           disabled
         >
-          <i className="fas fa-eye text-coral" aria-hidden="true"></i>
+          <Eye className="h-5 w-5 text-coral" aria-hidden="true" />
           <span>Watch Issue</span>
         </button>
 
@@ -115,7 +117,7 @@ export function QuickActions({ issueId, issueTitle }: QuickActionsProps) {
           aria-label="Share issue"
           disabled
         >
-          <i className="fas fa-share-alt text-coral" aria-hidden="true"></i>
+          <Share2 className="h-5 w-5 text-coral" aria-hidden="true" />
           <span>Share</span>
         </button>
 
@@ -125,15 +127,15 @@ export function QuickActions({ issueId, issueTitle }: QuickActionsProps) {
           className="neu-pressed smooth-transition flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm text-slate hover:text-white"
           aria-label="Print issue"
         >
-          <i className="fas fa-print text-coral" aria-hidden="true"></i>
+          <Printer className="h-5 w-5 text-coral" aria-hidden="true" />
           <span>Print</span>
         </button>
       </div>
 
       {/* Future Enhancement Note */}
       <div className="mt-4 rounded-2xl border border-dashed border-[#2A2A2A] p-3 text-center">
-        <p className="text-xs text-slate">
-          <i className="fas fa-lightbulb mr-2 text-coral" aria-hidden="true"></i>
+        <p className="flex items-center justify-center gap-2 text-xs text-slate">
+          <Lightbulb className="h-4 w-4 text-coral" aria-hidden="true" />
           More quick actions coming soon
         </p>
       </div>

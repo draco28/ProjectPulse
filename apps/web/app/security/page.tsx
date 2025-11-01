@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { Shield } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { SecurityScoreMeter } from '@/components/security/SecurityScoreMeter';
@@ -128,8 +129,11 @@ export default async function SecurityPage({ searchParams }: PageProps) {
                   need attention
                 </p>
               </div>
-              <button className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
-                <i className="fas fa-shield-alt"></i>
+              <button
+                className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"
+                aria-label="Run security scan"
+              >
+                <Shield className="h-5 w-5" aria-hidden="true" />
                 <span>Run Scan</span>
               </button>
             </div>
@@ -179,7 +183,7 @@ export default async function SecurityPage({ searchParams }: PageProps) {
                 </div>
               ) : (
                 <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
-                  <i className="fas fa-shield-alt mb-4 text-5xl text-green-500"></i>
+                  <Shield className="mb-4 h-16 w-16 text-green-500" aria-hidden="true" />
                   <h3 className="mb-2 text-xl font-bold text-white">All Clear!</h3>
                   <p className="text-slate">No vulnerabilities found matching your filters</p>
                 </div>
