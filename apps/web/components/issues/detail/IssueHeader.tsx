@@ -24,6 +24,16 @@
 
 import Link from 'next/link';
 import { format } from 'date-fns';
+import {
+  ChevronRight,
+  X,
+  User,
+  Clock,
+  FileEdit,
+  PencilLine,
+  Check,
+  MoreVertical,
+} from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -118,7 +128,7 @@ export function IssueHeader({
           <Link href="/issues" className="smooth-transition text-slate hover:text-coral">
             Issues
           </Link>
-          <i className="fas fa-chevron-right text-xs text-slate" aria-hidden="true"></i>
+          <ChevronRight className="h-3 w-3 text-slate" aria-hidden="true" />
           <span className="font-medium text-white">
             #{id} {title}
           </span>
@@ -128,7 +138,7 @@ export function IssueHeader({
           className="smooth-transition text-slate hover:text-white"
           aria-label="Close issue detail"
         >
-          <i className="fas fa-times text-xl" aria-hidden="true"></i>
+          <X className="h-6 w-6" aria-hidden="true" />
         </Link>
       </div>
 
@@ -170,17 +180,17 @@ export function IssueHeader({
           {/* Metadata Row */}
           <div className="flex items-center gap-6 text-sm text-slate">
             <span className="flex items-center gap-2">
-              <i className="fas fa-user" aria-hidden="true"></i>
+              <User className="h-4 w-4" aria-hidden="true" />
               <span>
                 Opened by <strong className="text-white">{assignee || 'Unassigned'}</strong>
               </span>
             </span>
             <span className="flex items-center gap-2">
-              <i className="fas fa-clock" aria-hidden="true"></i>
+              <Clock className="h-4 w-4" aria-hidden="true" />
               <time dateTime={createdAt}>{format(new Date(createdAt), 'MMM d, yyyy')}</time>
             </span>
             <span className="flex items-center gap-2">
-              <i className="fas fa-edit" aria-hidden="true"></i>
+              <FileEdit className="h-4 w-4" aria-hidden="true" />
               Updated <time dateTime={updatedAt}>{format(new Date(updatedAt), 'MMM d, yyyy')}</time>
             </span>
           </div>
@@ -189,18 +199,18 @@ export function IssueHeader({
         {/* Right: Action Buttons */}
         <div className="flex items-center gap-2">
           <button
-            className="smooth-transition neu-raised rounded-2xl px-4 py-2 text-sm text-white hover:text-coral"
+            className="smooth-transition neu-raised flex items-center gap-2 rounded-2xl px-4 py-2 text-sm text-white hover:text-coral"
             aria-label="Edit issue"
           >
-            <i className="fas fa-pencil-alt mr-2" aria-hidden="true"></i>
+            <PencilLine className="h-4 w-4" aria-hidden="true" />
             Edit
           </button>
 
           <button
-            className="coral-gradient smooth-transition rounded-2xl px-4 py-2 text-sm text-white shadow-lg hover:opacity-90"
+            className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-4 py-2 text-sm text-white shadow-lg hover:opacity-90"
             aria-label="Close issue"
           >
-            <i className="fas fa-check mr-2" aria-hidden="true"></i>
+            <Check className="h-4 w-4" aria-hidden="true" />
             Close Issue
           </button>
 
@@ -208,7 +218,7 @@ export function IssueHeader({
             className="neu-raised smooth-transition flex h-10 w-10 items-center justify-center rounded-2xl text-slate hover:text-white"
             aria-label="More options"
           >
-            <i className="fas fa-ellipsis-v" aria-hidden="true"></i>
+            <MoreVertical className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
       </div>

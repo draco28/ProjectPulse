@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { Plus, Search } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
@@ -100,8 +101,11 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
                 <h2 className="mb-1 text-3xl font-bold text-white">Knowledge Base</h2>
                 <p className="text-sm text-slate">{totalCount} items • Hybrid search enabled</p>
               </div>
-              <button className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
-                <i className="fas fa-plus"></i>
+              <button
+                className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"
+                aria-label="Add knowledge base item"
+              >
+                <Plus className="h-5 w-5" aria-hidden="true" />
                 <span>Add Knowledge</span>
               </button>
             </div>
@@ -125,7 +129,7 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
                 </div>
               ) : (
                 <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
-                  <i className="fas fa-search mb-4 text-5xl text-slate"></i>
+                  <Search className="mb-4 h-16 w-16 text-slate" aria-hidden="true" />
                   <h3 className="mb-2 text-xl font-bold text-white">No articles found</h3>
                   <p className="text-slate">Try adjusting your search or filters</p>
                 </div>

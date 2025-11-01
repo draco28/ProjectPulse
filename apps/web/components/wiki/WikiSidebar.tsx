@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { TableOfContents } from './TableOfContents';
 
 interface TOCItem {
@@ -31,17 +32,15 @@ export function WikiSidebar({ tocItems, relatedPages }: WikiSidebarProps) {
       {/* Related Articles */}
       {relatedPages.length > 0 && (
         <div className="neu-raised smooth-transition rounded-3xl p-6">
-          <h3 className="mb-4 text-sm font-semibold uppercase text-slate">
-            Related Articles
-          </h3>
+          <h3 className="mb-4 text-sm font-semibold uppercase text-slate">Related Articles</h3>
           <div className="space-y-3">
             {relatedPages.map((page) => (
               <Link
                 key={page.id}
                 href={`/wiki${page.path}`}
-                className="smooth-transition block text-sm text-slate hover:text-coral"
+                className="smooth-transition flex items-center gap-2 text-sm text-slate hover:text-coral"
               >
-                <i className="fas fa-arrow-right mr-2"></i>
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 {page.title}
               </Link>
             ))}

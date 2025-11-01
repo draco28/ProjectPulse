@@ -1,6 +1,15 @@
 'use client';
 
 import { useOptimistic, useTransition } from 'react';
+import {
+  Server,
+  Database,
+  FlaskConical,
+  PaintBucket,
+  Bot,
+  Loader2,
+  LucideIcon,
+} from 'lucide-react';
 import { toggleAgentStatus } from '@/app/agents/actions';
 
 interface AgentCardProps {
@@ -40,13 +49,13 @@ export function AgentCard({ agent }: AgentCardProps) {
   };
 
   // Agent icon based on expertise
-  const getAgentIcon = (expertise: string[]) => {
-    if (expertise.includes('frontend') || expertise.includes('react')) return 'fa-react';
-    if (expertise.includes('backend') || expertise.includes('api')) return 'fa-server';
-    if (expertise.includes('database') || expertise.includes('prisma')) return 'fa-database';
-    if (expertise.includes('testing')) return 'fa-flask';
-    if (expertise.includes('design') || expertise.includes('ui')) return 'fa-paint-brush';
-    return 'fa-robot';
+  const getAgentIcon = (expertise: string[]): LucideIcon => {
+    if (expertise.includes('frontend') || expertise.includes('react')) return Bot;
+    if (expertise.includes('backend') || expertise.includes('api')) return Server;
+    if (expertise.includes('database') || expertise.includes('prisma')) return Database;
+    if (expertise.includes('testing')) return FlaskConical;
+    if (expertise.includes('design') || expertise.includes('ui')) return PaintBucket;
+    return Bot;
   };
 
   // Color theme based on status
@@ -89,7 +98,10 @@ export function AgentCard({ agent }: AgentCardProps) {
       <div className="mb-4 flex items-start gap-4">
         {/* Icon */}
         <div className="neu-raised flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl">
-          <i className={`fab ${getAgentIcon(optimisticAgent.expertise)} text-2xl text-coral`}></i>
+          {(() => {
+            const AgentIcon = getAgentIcon(optimisticAgent.expertise);
+            return <AgentIcon className="h-7 w-7 text-coral" aria-hidden="true" />;
+          })()}
         </div>
 
         {/* Name and Description */}
@@ -128,7 +140,7 @@ export function AgentCard({ agent }: AgentCardProps) {
       {/* Loading Overlay */}
       {isPending && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-sm">
-          <i className="fas fa-spinner fa-spin text-2xl text-coral"></i>
+          <Loader2 className="h-8 w-8 animate-spin text-coral" aria-hidden="true" />
         </div>
       )}
     </div>

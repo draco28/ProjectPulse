@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TagFilterProps {
@@ -60,9 +61,9 @@ export function TagFilter({ allTags, selectedTag }: TagFilterProps) {
         {selectedTag && (
           <button
             onClick={handleClearFilters}
-            className="smooth-transition neu-raised ml-2 rounded-full px-3 py-1.5 text-sm font-semibold text-slate hover:text-white"
+            className="smooth-transition neu-raised ml-2 flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-slate hover:text-white"
           >
-            <i className="fas fa-times mr-1"></i>
+            <X className="h-4 w-4" aria-hidden="true" />
             Clear
           </button>
         )}

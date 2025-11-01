@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Search, List, Grid3x3 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchSortBarProps {
@@ -70,7 +71,10 @@ export function SearchSortBar({ searchParams }: SearchSortBarProps) {
       <div className="flex items-center gap-4">
         {/* Search Input */}
         <div className="relative flex-1">
-          <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate"></i>
+          <Search
+            className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate"
+            aria-hidden="true"
+          />
           <input
             type="text"
             placeholder="Search issues..."
@@ -96,13 +100,22 @@ export function SearchSortBar({ searchParams }: SearchSortBarProps) {
         {/* View Toggles */}
         <div className="flex gap-2">
           {/* List View (Active) */}
-          <button className="coral-gradient smooth-transition flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg">
-            <i className="fas fa-th-list"></i>
+          <button
+            className="coral-gradient smooth-transition flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg"
+            aria-label="List view"
+            aria-pressed="true"
+          >
+            <List className="h-5 w-5" aria-hidden="true" />
           </button>
 
           {/* Grid View (Inactive - Future Feature) */}
-          <button className="neu-raised smooth-transition flex h-12 w-12 items-center justify-center rounded-2xl text-slate hover:text-white">
-            <i className="fas fa-th"></i>
+          <button
+            className="neu-raised smooth-transition flex h-12 w-12 items-center justify-center rounded-2xl text-slate hover:text-white"
+            aria-label="Grid view"
+            aria-pressed="false"
+            disabled
+          >
+            <Grid3x3 className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
       </div>
