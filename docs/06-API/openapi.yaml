@@ -1,0 +1,2592 @@
+openapi: 3.1.0
+
+info:
+  title: Moksha DevHub MCP API
+  version: 2.0.0
+  description: |
+    **Moksha DevHub MCP API Specification**
+
+    Complete API specification for the Moksha DevHub Model Context Protocol (MCP) server. This API exposes 42 tools across 9 functional categories, enabling AI agents to manage software development workflows with 95% automation.
+
+    **Architecture:** Agent-First (95% MCP automation, 5% UI monitoring)
+    **Primary Users:** AI Agents (Claude Code, Cursor AI, Codex)
+    **Secondary Users:** Solo/small team developers (monitoring, overrides)
+
+    **Key Features:**
+    - 42 MCP tools organized into 9 categories
+    - Complete CRUD operations for all entities
+    - Token-optimized responses (92% reduction for skills, 88% for knowledge)
+    - Autonomy levels (0-4) for security control
+    - Full audit trail via AgentAction logging
+
+    **Standards:**
+    - OpenAPI 3.1.0
+    - JSON Schema for validation
+    - RESTful principles
+    - MCP stdio transport
+
+    **Related Documentation:**
+    - [AgentOps Plan](../05-AgentOps-Plan.md) - Complete tool catalog with workflows
+    - [SRS](../02-SRS.md) - Functional requirements (FR-001 to FR-125)
+    - [Architecture](../03-Architecture.md) - System design and data flows
+    - [Data Model](../04-Data-and-Model-Spec.md) - Database schema
+
+  contact:
+    name: Moksha DevHub Team
+    email: team@moksha-devhub.dev
+    url: https://moksha-devhub.dev
+
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: stdio://moksha-devhub
+    description: MCP Server (stdio transport)
+    variables:
+      protocol:
+        default: stdio
+        description: Model Context Protocol via stdio transport
+
+security:
+  - autonomyLevel: []
+
+tags:
+  - name: Sprint Tracking
+    description: |
+      5-level hierarchy tracking (Phase → Week → Day → Task → Session).
+      Create, update, query progress with auto-rollup and markdown sync.
+      **Tools:** 7 | **FRs:** FR-001 to FR-025
+
+  - name: Workflow Orchestration
+    description: |
+      5-step mandatory protocol enforcement: Initialize → Plan → Consult → Checkpoint → Complete.
+      Ensures workflow consistency, traceability, and compliance.
+      **Tools:** 5 | **FRs:** FR-026 to FR-050
+
+  - name: Issues Management
+    description: |
+      Issue tracking with bulk creation, auto-tagging, deduplication, and relationship management.
+      Supports priorities (P0-P3), statuses (OPEN → IN_PROGRESS → REVIEW → CLOSED).
+      **Tools:** 5 | **FRs:** FR-051 to FR-070
+
+  - name: Knowledge Graph
+    description: |
+      Hybrid search (semantic + full-text + graph traversal) with 88% token reduction.
+      Store facts, decisions, patterns, solutions with auto-linking and versioning.
+      **Tools:** 5 | **FRs:** FR-071 to FR-090
+
+  - name: Skills System
+    description: |
+      Lazy-loaded framework documentation with 92% token reduction.
+      Load only needed skills on-demand, auto-unload after use.
+      **Tools:** 4 | **FRs:** FR-091 to FR-105
+
+  - name: Wiki Documentation
+    description: |
+      Auto-generate wiki pages from code (JSDoc, docstrings) with cross-linking.
+      Manual wiki creation, full-text search, versioning.
+      **Tools:** 5 | **FRs:** FR-106 to FR-115
+
+  - name: Project Health
+    description: |
+      Automated health scanning (Semgrep, ESLint, Lighthouse, axe-core).
+      Track security, quality, performance, accessibility, technical debt.
+      **Tools:** 4 | **FRs:** FR-116 to FR-120
+
+  - name: Agent Personas
+    description: |
+      Project-specific agent personas with custom system prompts, tools, autonomy levels.
+      Activate personas for specialized tasks.
+      **Tools:** 4 | **FRs:** FR-121 to FR-125
+
+  - name: Dashboard Metrics
+    description: |
+      Real-time metrics, timeline, burndown charts for monitoring.
+      Cached data with 5-minute TTL.
+      **Tools:** 3 | **Cross-cutting**
+
+paths:
+  /sprint/phase/create:
+    post:
+      operationId: sprint.phase.create
+      summary: Create new phase
+      description: |
+        Create new phase with title, start date, goals, duration (weeks).
+        Auto-creates weeks based on duration (e.g., 8 weeks → creates Week 1 to Week 8).
+
+        **Requirements:** FR-001, FR-002, FR-003
+      tags:
+        - Sprint Tracking
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - startDate
+                - duration
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  description: 'Phase name (e.g., "Phase A: MVP Core Features")'
+                  example: 'Phase A: MVP Core Features'
+                startDate:
+                  type: string
+                  format: date
+                  description: Phase start date (ISO 8601)
+                  example: '2025-01-01'
+                goals:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  description: Phase goals (1-10 goals)
+                  example:
+                    ['Implement sprint tracking', 'Build issue tracker', 'Create knowledge graph']
+                duration:
+                  type: integer
+                  minimum: 1
+                  maximum: 52
+                  description: Phase duration in weeks
+                  example: 8
+      responses:
+        '200':
+          description: Phase created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phaseId:
+                    type: integer
+                    example: 1
+                  status:
+                    type: string
+                    enum: [PLANNED, IN_PROGRESS, COMPLETED]
+                    example: 'PLANNED'
+                  weeksCount:
+                    type: integer
+                    example: 8
+                  weeks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        weekId:
+                          type: integer
+                        weekNumber:
+                          type: integer
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/AuthorizationError'
+        '500':
+          $ref: '#/components/responses/SystemError'
+
+  /sprint/week/create:
+    post:
+      operationId: sprint.week.create
+      summary: Create week within phase
+      description: |
+        Create week within phase. Week number auto-incremented.
+        Creates 5 days (Mon-Fri) automatically.
+
+        **Requirements:** FR-004, FR-005
+      tags:
+        - Sprint Tracking
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phaseId
+                - goals
+              properties:
+                phaseId:
+                  type: integer
+                  description: Parent phase ID
+                  example: 1
+                goals:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  description: Weekly goals
+                  example: ['Complete database schema', 'Implement API routes']
+      responses:
+        '200':
+          description: Week created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  weekId:
+                    type: integer
+                    example: 1
+                  weekNumber:
+                    type: integer
+                    example: 1
+                  daysCount:
+                    type: integer
+                    example: 5
+                  days:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        dayId:
+                          type: integer
+                        dayNumber:
+                          type: integer
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /sprint/day/start:
+    post:
+      operationId: sprint.day.start
+      summary: Start day (auto-creates if not exists)
+      description: |
+        Start new day within week. Auto-creates if doesn't exist.
+        Updates status to IN_PROGRESS, triggers markdown sync.
+
+        **Requirements:** FR-006, FR-007
+      tags:
+        - Sprint Tracking
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - weekId
+                - dayNumber
+              properties:
+                weekId:
+                  type: integer
+                  description: Parent week ID
+                  example: 1
+                dayNumber:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  description: Day number (1=Mon, 5=Fri)
+                  example: 3
+      responses:
+        '200':
+          description: Day started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dayId:
+                    type: integer
+                    example: 3
+                  status:
+                    type: string
+                    enum: [PLANNED, IN_PROGRESS, COMPLETED]
+                    example: 'IN_PROGRESS'
+                  tasksCount:
+                    type: integer
+                    description: Existing tasks for this day
+                    example: 5
+
+  /sprint/task/create:
+    post:
+      operationId: sprint.task.create
+      summary: Create task within day
+      description: |
+        Create task with title, description, estimated hours.
+        Can create sub-tasks via parentTaskId.
+
+        **Requirements:** FR-008, FR-009, FR-010
+      tags:
+        - Sprint Tracking
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - dayId
+                - title
+              properties:
+                dayId:
+                  type: integer
+                  example: 3
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  example: 'Implement POST /api/issues endpoint'
+                description:
+                  type: string
+                  maxLength: 5000
+                  example: 'Create API route with Zod validation, Prisma query, error handling'
+                estimatedHours:
+                  type: number
+                  minimum: 0.25
+                  maximum: 40
+                  example: 4.0
+                parentTaskId:
+                  type: integer
+                  description: For sub-tasks
+                  example: null
+      responses:
+        '200':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskId:
+                    type: integer
+                    example: 42
+                  status:
+                    type: string
+                    enum: [TODO, IN_PROGRESS, DONE, BLOCKED]
+                    example: 'TODO'
+                  path:
+                    type: string
+                    description: Full hierarchy path
+                    example: 'Phase A > Week 1 > Day 3 > Task: Implement POST /api/issues endpoint'
+
+  /sprint/session/start:
+    post:
+      operationId: sprint.session.start
+      summary: Start work session
+      description: |
+        Start work session for task. Creates context file:
+        `.agent/task/current-session-[YYYYMMDD-HHMM].md`
+
+        Logs session start in AgentAction table, updates task status to IN_PROGRESS.
+
+        **Requirements:** FR-011, FR-012
+      tags:
+        - Sprint Tracking
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - taskId
+                - sessionType
+              properties:
+                taskId:
+                  type: integer
+                  example: 42
+                sessionType:
+                  type: string
+                  enum: [PLANNING, IMPLEMENTATION, DEBUGGING, TESTING, DOCUMENTATION]
+                  example: 'IMPLEMENTATION'
+      responses:
+        '200':
+          description: Session started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: integer
+                    example: 123
+                  startedAt:
+                    type: string
+                    format: date-time
+                    example: '2025-11-02T14:30:00Z'
+                  contextFile:
+                    type: string
+                    description: Auto-created context file
+                    example: '.agent/task/current-session-20251102-1430.md'
+
+  /sprint/progress/rollup:
+    get:
+      operationId: sprint.progress.rollup
+      summary: Calculate progress roll-up
+      description: |
+        Calculate progress roll-up from sessions → tasks → days → weeks → phase.
+        Returns hierarchical progress breakdown.
+
+        **Algorithm:**
+        - Session progress: (elapsed / estimated) × 100
+        - Task progress: Average of session progress
+        - Day progress: Average of task progress
+        - Week progress: Average of day progress
+        - Phase progress: Average of week progress
+
+        **Requirements:** FR-013, FR-014
+      tags:
+        - Sprint Tracking
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: phaseId
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Progress roll-up calculated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phase:
+                    type: object
+                    properties:
+                      progress:
+                        type: integer
+                        example: 65
+                      status:
+                        type: string
+                        example: 'IN_PROGRESS'
+                  weeks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        weekNumber:
+                          type: integer
+                        progress:
+                          type: integer
+                        status:
+                          type: string
+                  days:
+                    type: array
+                    items:
+                      type: object
+                  tasks:
+                    type: array
+                    items:
+                      type: object
+
+  /sprint/query:
+    post:
+      operationId: sprint.query
+      summary: Query sprint tracking data
+      description: |
+        Query sprint data with filters: phase, week, day, status, date range.
+        Returns matching entities with full hierarchy context.
+
+        **Requirements:** FR-015
+      tags:
+        - Sprint Tracking
+      security:
+        - autonomyLevel: [0]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phaseId:
+                  type: integer
+                weekId:
+                  type: integer
+                dayId:
+                  type: integer
+                status:
+                  type: string
+                  enum: [PLANNED, IN_PROGRESS, COMPLETED, BLOCKED]
+                dateRange:
+                  type: object
+                  properties:
+                    start:
+                      type: string
+                      format: date
+                    end:
+                      type: string
+                      format: date
+      responses:
+        '200':
+          description: Query results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phases:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Phase'
+                  weeks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Week'
+                  days:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Day'
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Session'
+
+  /workflow/start:
+    post:
+      operationId: workflow.start
+      summary: Initialize workflow (Step 1)
+      description: |
+        **5-Step Protocol - Step 1: Initialize Session**
+
+        Create workflow record, context file, log action.
+        Required before proceeding to Step 2 (Plan).
+
+        **Requirements:** FR-026, FR-027
+      tags:
+        - Workflow Orchestration
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - phase
+                - goals
+              properties:
+                sessionId:
+                  type: integer
+                  description: From sprint.session.start
+                  example: 123
+                phase:
+                  type: string
+                  example: 'Phase A Week 1 Day 3'
+                goals:
+                  type: array
+                  items:
+                    type: string
+                  example: ['Implement issue management API']
+      responses:
+        '200':
+          description: Workflow initialized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workflowId:
+                    type: integer
+                    example: 456
+                  currentStep:
+                    type: integer
+                    example: 1
+                  stepStatus:
+                    type: string
+                    enum: [PENDING, IN_PROGRESS, COMPLETED]
+                    example: 'PENDING'
+                  contextFile:
+                    type: string
+                    example: '.agent/task/current-session-20251102-1430.md'
+
+  /workflow/savePlan:
+    post:
+      operationId: workflow.savePlan
+      summary: Save implementation plan (Step 2)
+      description: |
+        **5-Step Protocol - Step 2: Create & Save Plan**
+
+        Save plan to `.agent/task/current-plan.md` and todos to `.agent/task/current-todos.md`.
+        Required before proceeding to Step 3 (Consult Experts).
+
+        **Requirements:** FR-028, FR-029
+      tags:
+        - Workflow Orchestration
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - workflowId
+                - plan
+                - todos
+              properties:
+                workflowId:
+                  type: integer
+                  example: 456
+                plan:
+                  type: string
+                  description: Markdown implementation plan
+                  example: |
+                    # Implementation Plan: Issue Management API
+
+                    ## Steps
+                    1. Create Prisma schema
+                    2. Implement POST /api/issues
+                    3. Add validation with Zod
+                    4. Write tests
+                todos:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - content
+                      - status
+                      - activeForm
+                    properties:
+                      content:
+                        type: string
+                        example: 'Create Prisma schema'
+                      status:
+                        type: string
+                        enum: [pending, in_progress, completed]
+                        example: 'pending'
+                      activeForm:
+                        type: string
+                        example: 'Creating Prisma schema'
+      responses:
+        '200':
+          description: Plan saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  planFile:
+                    type: string
+                    example: '.agent/task/current-plan.md'
+                  todosFile:
+                    type: string
+                    example: '.agent/task/current-todos.md'
+                  step2Complete:
+                    type: boolean
+                    example: true
+
+  /workflow/consultExpert:
+    post:
+      operationId: workflow.consultExpert
+      summary: Invoke expert sub-agent (Step 3)
+      description: |
+        **5-Step Protocol - Step 3: Consult Experts**
+
+        Invoke expert sub-agent (react-expert, next-js-expert, prisma-expert).
+        Expert reads context file, creates report, returns recommendations.
+
+        **Requirements:** FR-030, FR-031
+      tags:
+        - Workflow Orchestration
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - workflowId
+                - expertType
+                - topic
+              properties:
+                workflowId:
+                  type: integer
+                  example: 456
+                expertType:
+                  type: string
+                  enum: [react-expert, next-js-expert, prisma-expert]
+                  example: 'prisma-expert'
+                topic:
+                  type: string
+                  example: 'Database schema for Issue with comments and labels'
+                context:
+                  type: string
+                  description: Additional context for expert
+                  example: |
+                    Requirements:
+                    - Issues can have comments (one-to-many)
+                    - Issues can have labels (many-to-many)
+                    - Full-text search on title + description
+      responses:
+        '200':
+          description: Expert consulted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  expertReportFile:
+                    type: string
+                    example: '.agent/task/prisma-expert-issue-schema-20251102-1500.md'
+                  recommendations:
+                    type: string
+                    example: 'Use many-to-many relation for labels, add tsvector for full-text search'
+                  step3Complete:
+                    type: boolean
+                    example: true
+
+  /workflow/checkpoint:
+    post:
+      operationId: workflow.checkpoint
+      summary: Save progress checkpoint (Step 4)
+      description: |
+        **5-Step Protocol - Step 4: Progress Checkpoints**
+
+        Save checkpoint at 15K token intervals. Updates session file, todos file.
+        Required at 15K, 30K, 45K, 60K, 75K, 90K tokens.
+
+        **Requirements:** FR-032, FR-033
+      tags:
+        - Workflow Orchestration
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - workflowId
+                - tokenCount
+                - progress
+              properties:
+                workflowId:
+                  type: integer
+                  example: 456
+                tokenCount:
+                  type: integer
+                  minimum: 0
+                  maximum: 200000
+                  example: 45000
+                progress:
+                  type: string
+                  description: Summary of work done since last checkpoint
+                  example: 'Created IssueList component, implemented filtering and sorting'
+      responses:
+        '200':
+          description: Checkpoint saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  checkpointId:
+                    type: integer
+                    example: 7
+                  sessionFileUpdated:
+                    type: boolean
+                    example: true
+                  todosFileUpdated:
+                    type: boolean
+                    example: true
+
+  /workflow/complete:
+    post:
+      operationId: workflow.complete
+      summary: Complete workflow (Step 5)
+      description: |
+        **5-Step Protocol - Step 5: Post-Completion**
+
+        Create completion file, update STATUS.md and DEVELOPMENT_PLAN.md.
+        Optionally invoke synthesize-docs and map-system sub-agents.
+
+        **Requirements:** FR-034, FR-035
+      tags:
+        - Workflow Orchestration
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - workflowId
+                - completionSummary
+              properties:
+                workflowId:
+                  type: integer
+                  example: 456
+                completionSummary:
+                  type: string
+                  example: 'Issue management API complete with 8 endpoints'
+                invokeDocAgents:
+                  type: boolean
+                  description: Invoke synthesize-docs + map-system if true
+                  example: true
+      responses:
+        '200':
+          description: Workflow completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  completionFile:
+                    type: string
+                    example: 'COMPLETION_PHASE_A.md'
+                  statusUpdated:
+                    type: boolean
+                    example: true
+                  planUpdated:
+                    type: boolean
+                    example: true
+                  step5Complete:
+                    type: boolean
+                    example: true
+
+  /issues/create:
+    post:
+      operationId: issues.create
+      summary: Create single issue
+      description: |
+        Create issue with auto-tagging from title + description keywords.
+        Extracts CVE IDs, matches against label dictionary.
+
+        **Requirements:** FR-051
+      tags:
+        - Issues Management
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - priority
+                - createdBy
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  example: 'Fix authentication bypass vulnerability'
+                description:
+                  type: string
+                  maxLength: 50000
+                  example: 'User can bypass authentication by modifying JWT token'
+                priority:
+                  type: string
+                  enum: [P0, P1, P2, P3]
+                  example: 'P0'
+                status:
+                  type: string
+                  enum: [OPEN, IN_PROGRESS, REVIEW, CLOSED]
+                  default: 'OPEN'
+                labels:
+                  type: array
+                  items:
+                    type: string
+                  example: ['security', 'authentication']
+                createdBy:
+                  type: string
+                  enum: [agent, human]
+                  example: 'agent'
+      responses:
+        '200':
+          description: Issue created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  issueId:
+                    type: integer
+                    example: 123
+                  autoTags:
+                    type: array
+                    items:
+                      type: string
+                    description: Auto-detected labels
+                    example: ['security', 'authentication', 'P0']
+
+  /issues/bulkCreate:
+    post:
+      operationId: issues.bulkCreate
+      summary: Create multiple issues (10-50 at once)
+      description: |
+        Bulk create issues from security scans, audits, etc.
+        Deduplicates by title similarity (Levenshtein distance < 10).
+        Auto-links related issues.
+
+        **Performance:** <500ms for 15 issues
+        **Requirements:** FR-052
+      tags:
+        - Issues Management
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - issues
+              properties:
+                issues:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items:
+                    type: object
+                    required:
+                      - title
+                      - priority
+                    properties:
+                      title:
+                        type: string
+                      description:
+                        type: string
+                      priority:
+                        type: string
+                        enum: [P0, P1, P2, P3]
+                      labels:
+                        type: array
+                        items:
+                          type: string
+      responses:
+        '200':
+          description: Bulk creation complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    type: integer
+                    description: Count of created issues
+                    example: 12
+                  duplicates:
+                    type: integer
+                    description: Count of duplicates skipped
+                    example: 3
+                  linked:
+                    type: integer
+                    description: Count of auto-linked relationships
+                    example: 8
+                  issues:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        issueId:
+                          type: integer
+                        title:
+                          type: string
+
+  /issues/update:
+    patch:
+      operationId: issues.update
+      summary: Update issue fields
+      description: |
+        Update issue status, priority, description, labels.
+        Enforces status transition validation (OPEN → IN_PROGRESS → REVIEW → CLOSED).
+
+        **Requirements:** FR-053
+      tags:
+        - Issues Management
+      security:
+        - autonomyLevel: [1]
+      parameters:
+        - name: issueId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [OPEN, IN_PROGRESS, REVIEW, CLOSED]
+                priority:
+                  type: string
+                  enum: [P0, P1, P2, P3]
+                description:
+                  type: string
+                  maxLength: 50000
+                labels:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Issue updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: boolean
+                    example: true
+                  auditTrail:
+                    type: string
+                    description: Audit record reference
+                    example: 'AgentAction-789'
+
+  /issues/query:
+    post:
+      operationId: issues.query
+      summary: Search issues with filters
+      description: |
+        Full-text search with filters, pagination, sorting.
+        PostgreSQL tsvector for fast text search.
+
+        **Performance:** <100ms for 10,000 issues
+        **Requirements:** FR-054
+      tags:
+        - Issues Management
+      security:
+        - autonomyLevel: [0]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filters:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      enum: [OPEN, IN_PROGRESS, REVIEW, CLOSED]
+                    priority:
+                      type: string
+                      enum: [P0, P1, P2, P3]
+                    labels:
+                      type: array
+                      items:
+                        type: string
+                    createdBy:
+                      type: string
+                      enum: [agent, human]
+                    dateRange:
+                      type: object
+                      properties:
+                        start:
+                          type: string
+                          format: date
+                        end:
+                          type: string
+                          format: date
+                    search:
+                      type: string
+                      description: Full-text search query
+                pagination:
+                  type: object
+                  properties:
+                    page:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                    limit:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 10
+                sort:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                      enum: [createdAt, updatedAt, priority, status]
+                    order:
+                      type: string
+                      enum: [asc, desc]
+      responses:
+        '200':
+          description: Query results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  issues:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Issue'
+                  total:
+                    type: integer
+                    description: Total count for pagination
+                  aggregations:
+                    type: object
+                    properties:
+                      statusCounts:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      priorityCounts:
+                        type: object
+                        additionalProperties:
+                          type: integer
+
+  /issues/link:
+    post:
+      operationId: issues.link
+      summary: Create relationship between issues
+      description: |
+        Link issues with relationship types: blocks, related, duplicate.
+        Validates against circular "blocks" dependencies.
+
+        **Requirements:** FR-055
+      tags:
+        - Issues Management
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - issueId
+                - relatedId
+                - type
+              properties:
+                issueId:
+                  type: integer
+                  example: 123
+                relatedId:
+                  type: integer
+                  example: 124
+                type:
+                  type: string
+                  enum: [blocks, related, duplicate]
+                  example: 'blocks'
+      responses:
+        '200':
+          description: Relationship created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  relationId:
+                    type: integer
+                    example: 789
+                  circular:
+                    type: boolean
+                    description: Error if true (circular dependency)
+                    example: false
+
+components:
+  securitySchemes:
+    autonomyLevel:
+      type: apiKey
+      in: header
+      name: X-Autonomy-Level
+      description: |
+        Autonomy level for agent operations (0-4):
+        - **Level 0 (Read-Only):** Read data, list resources
+        - **Level 1 (Safe Writes):** Create issues, update status
+        - **Level 2 (Approval Required):** Delete issues, modify schema
+        - **Level 3 (Infrastructure):** Deploy, modify production
+        - **Level 4 (Full Autonomy):** All operations (future)
+
+  schemas:
+    Phase:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+        status:
+          type: string
+          enum: [PLANNED, IN_PROGRESS, COMPLETED]
+        progress:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        estimatedHours:
+          type: number
+        actualHours:
+          type: number
+
+    Week:
+      type: object
+      properties:
+        id:
+          type: integer
+        phaseId:
+          type: integer
+        weekNumber:
+          type: integer
+        status:
+          type: string
+          enum: [PLANNED, IN_PROGRESS, COMPLETED]
+        progress:
+          type: number
+
+    Day:
+      type: object
+      properties:
+        id:
+          type: integer
+        weekId:
+          type: integer
+        dayNumber:
+          type: integer
+        status:
+          type: string
+          enum: [PLANNED, IN_PROGRESS, COMPLETED]
+        progress:
+          type: number
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        dayId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [TODO, IN_PROGRESS, DONE, BLOCKED]
+        progress:
+          type: number
+        estimatedHours:
+          type: number
+        actualHours:
+          type: number
+        parentTaskId:
+          type: integer
+          nullable: true
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: integer
+        taskId:
+          type: integer
+        timestamp:
+          type: string
+          pattern: '^\d{8}-\d{4}$'
+          example: '20251102-1430'
+        sessionType:
+          type: string
+          enum: [PLANNING, IMPLEMENTATION, DEBUGGING, TESTING, DOCUMENTATION]
+        notes:
+          type: string
+        tokenUsage:
+          type: integer
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    Issue:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [P0, P1, P2, P3]
+        status:
+          type: string
+          enum: [OPEN, IN_PROGRESS, REVIEW, CLOSED]
+        labels:
+          type: array
+          items:
+            type: string
+        createdBy:
+          type: string
+          enum: [agent, human]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - code
+      properties:
+        error:
+          type: string
+          description: Error category
+          enum:
+            - VALIDATION_ERROR
+            - AUTHORIZATION_ERROR
+            - RESOURCE_NOT_FOUND
+            - WORKFLOW_VIOLATION
+            - DATABASE_ERROR
+        message:
+          type: string
+          description: Human-readable error message
+        code:
+          type: integer
+          description: HTTP status code
+        field:
+          type: string
+          description: Invalid field (for validation errors)
+        details:
+          type: object
+          description: Additional error context
+
+  responses:
+    ValidationError:
+      description: Validation error (invalid input)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: 'VALIDATION_ERROR'
+            message: 'Title must be ≤ 500 characters (got 600)'
+            code: 400
+            field: 'title'
+
+    AuthorizationError:
+      description: Authorization error (autonomy level insufficient)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: 'AUTHORIZATION_ERROR'
+            message: 'Level 2 approval required for delete operations'
+            code: 403
+            requiredLevel: 2
+            currentLevel: 1
+
+    ResourceNotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: 'RESOURCE_NOT_FOUND'
+            message: 'Issue #999 not found'
+            code: 404
+
+    SystemError:
+      description: System error (database, crashes)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: 'DATABASE_ERROR'
+            message: 'Connection to PostgreSQL lost'
+            code: 500
+            retryable: true
+            retryAfter: 5
+
+  # =============================================================================
+  # KNOWLEDGE GRAPH TOOLS (5 tools) - FR-071 to FR-090
+  # =============================================================================
+
+  /knowledge/create:
+    post:
+      operationId: knowledge.create
+      summary: Create knowledge item
+      description: |
+        Create knowledge item with auto-linking via semantic similarity.
+        Generates embedding (OpenAI text-embedding-3-small, 384 dimensions).
+
+        **Requirements:** FR-071, FR-072
+      tags:
+        - Knowledge Graph
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content, type]
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                content:
+                  type: string
+                  maxLength: 50000
+                type:
+                  type: string
+                  enum: [fact, decision, pattern, solution, learning]
+                tags:
+                  type: array
+                  items:
+                    type: string
+                relatedItems:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: Knowledge item created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  itemId:
+                    type: integer
+                  embedding:
+                    type: array
+                    items:
+                      type: number
+                    description: 384-dim vector
+                  relationships:
+                    type: integer
+                    description: Count of auto-linked relationships
+
+  /knowledge/query:
+    post:
+      operationId: knowledge.query
+      summary: Hybrid search (semantic + full-text + graph)
+      description: |
+        88% token reduction (1,200 tokens vs 10,000+).
+        Algorithm: Semantic (pgvector) + Full-text (tsvector) + 2-hop traversal.
+
+        **Requirements:** FR-073, FR-074, FR-075
+      tags:
+        - Knowledge Graph
+      security:
+        - autonomyLevel: [0]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query:
+                  type: string
+                  description: Natural language query
+                filters:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [fact, decision, pattern, solution, learning]
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                    dateRange:
+                      type: object
+                searchMode:
+                  type: string
+                  enum: [semantic, fulltext, hybrid]
+                  default: hybrid
+                graphDepth:
+                  type: integer
+                  minimum: 1
+                  maximum: 2
+                  default: 2
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+                  default: 10
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        itemId:
+                          type: integer
+                        title:
+                          type: string
+                        content:
+                          type: string
+                        score:
+                          type: number
+                          description: Relevance score 0-1
+                        path:
+                          type: array
+                          items:
+                            type: string
+                          description: Graph path from query to item
+                  tokenCost:
+                    type: integer
+                    description: Estimated tokens loaded
+
+  /knowledge/update:
+    patch:
+      operationId: knowledge.update
+      summary: Update knowledge item (creates version)
+      description: |
+        Creates new version, preserves history in KnowledgeItemVersion table.
+        Regenerates embedding for updated content.
+
+        **Requirements:** FR-076
+      tags:
+        - Knowledge Graph
+      security:
+        - autonomyLevel: [1]
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [updates, reason]
+              properties:
+                updates:
+                  type: object
+                  properties:
+                    content:
+                      type: string
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Knowledge item updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  versionId:
+                    type: integer
+                  previousVersion:
+                    type: integer
+
+  /knowledge/link:
+    post:
+      operationId: knowledge.link
+      summary: Create relationship between knowledge items
+      description: |
+        Explicit relationships: related, contradicts, extends, supersedes.
+
+        **Requirements:** FR-077
+      tags:
+        - Knowledge Graph
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fromId, toId, type]
+              properties:
+                fromId:
+                  type: integer
+                toId:
+                  type: integer
+                type:
+                  type: string
+                  enum: [related, contradicts, extends, supersedes]
+      responses:
+        '200':
+          description: Relationship created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  relationId:
+                    type: integer
+
+  # =============================================================================
+  # SKILLS SYSTEM TOOLS (4 tools) - FR-091 to FR-105
+  # =============================================================================
+
+  /skills/list:
+    get:
+      operationId: skills.list
+      summary: List available skills (frontmatter only)
+      description: |
+        92% token reduction: Load only frontmatter (50-80 tokens per skill).
+        Full content loaded on-demand via skills.load.
+
+        **Requirements:** FR-091
+      tags:
+        - Skills System
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [framework, testing, workflow, troubleshooting]
+      responses:
+        '200':
+          description: Skills list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skills:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        skillId:
+                          type: integer
+                        name:
+                          type: string
+                        category:
+                          type: string
+                        summary:
+                          type: string
+                          description: 50-80 tokens
+
+  /skills/load:
+    get:
+      operationId: skills.load
+      summary: Load skill content (lazy-loaded)
+      description: |
+        Load 180-200 token content on-demand. Auto-unload after use.
+        Token efficiency: 220 tokens (frontmatter + content) vs 2,500 (full docs).
+
+        **Requirements:** FR-092, FR-093
+      tags:
+        - Skills System
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: skillName
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 'react-hooks'
+      responses:
+        '200':
+          description: Skill loaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skill:
+                    type: object
+                    properties:
+                      skillId:
+                        type: integer
+                      name:
+                        type: string
+                      content:
+                        type: string
+                        description: 180-200 tokens
+                      examples:
+                        type: array
+                        items:
+                          type: string
+                      usageCount:
+                        type: integer
+
+  /skills/search:
+    get:
+      operationId: skills.search
+      summary: Search skills by keyword
+      description: |
+        Search skills by keywords in name, summary, content.
+
+        **Requirements:** FR-094
+      tags:
+        - Skills System
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 'useState'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skills:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        skillId:
+                          type: integer
+                        name:
+                          type: string
+                        summary:
+                          type: string
+                        relevanceScore:
+                          type: number
+
+  /skills/create:
+    post:
+      operationId: skills.create
+      summary: Create new skill
+      description: |
+        Agent or human creates new skill with category, summary, content.
+
+        **Requirements:** FR-095
+      tags:
+        - Skills System
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, category, summary, content]
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                  enum: [framework, testing, workflow, troubleshooting]
+                summary:
+                  type: string
+                  minLength: 50
+                  maxLength: 300
+                  description: 50-80 tokens
+                content:
+                  type: string
+                  minLength: 100
+                  maxLength: 10000
+                  description: 180-200 tokens
+                examples:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Skill created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skillId:
+                    type: integer
+
+  # =============================================================================
+  # WIKI DOCUMENTATION TOOLS (5 tools) - FR-106 to FR-115
+  # =============================================================================
+
+  /wiki/create:
+    post:
+      operationId: wiki.create
+      summary: Create wiki page manually
+      description: |
+        Create wiki page with title, markdown content, optional parent for hierarchy.
+
+        **Requirements:** FR-106
+      tags:
+        - Wiki Documentation
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content]
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                content:
+                  type: string
+                  description: Markdown content
+                parent:
+                  type: integer
+                  description: Parent page ID for hierarchy
+      responses:
+        '200':
+          description: Wiki page created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pageId:
+                    type: integer
+                  path:
+                    type: string
+                    example: '/docs/architecture/mcp-server'
+
+  /wiki/autoGenerate:
+    post:
+      operationId: wiki.autoGenerate
+      summary: Auto-generate wiki from code
+      description: |
+        Parse JSDoc (TypeScript) or docstrings (Python), generate markdown docs.
+        Auto-link related functions/classes.
+
+        **Requirements:** FR-107
+      tags:
+        - Wiki Documentation
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sourceFiles, targetFolder]
+              properties:
+                sourceFiles:
+                  type: array
+                  items:
+                    type: string
+                  description: File paths to scan
+                targetFolder:
+                  type: string
+                  example: '/docs/api/'
+      responses:
+        '200':
+          description: Auto-generation complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagesCreated:
+                    type: integer
+                  pagesUpdated:
+                    type: integer
+                  crossLinks:
+                    type: integer
+                    description: Auto-detected cross-references
+
+  /wiki/update:
+    patch:
+      operationId: wiki.update
+      summary: Update wiki page (creates version)
+      description: |
+        Update wiki page content, creates new version for history.
+
+        **Requirements:** FR-108
+      tags:
+        - Wiki Documentation
+      security:
+        - autonomyLevel: [1]
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content, reason]
+              properties:
+                content:
+                  type: string
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Wiki page updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  versionId:
+                    type: integer
+
+  /wiki/query:
+    get:
+      operationId: wiki.query
+      summary: Search wiki pages
+      description: |
+        Full-text search across wiki pages with optional parent filter.
+
+        **Requirements:** FR-109
+      tags:
+        - Wiki Documentation
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: parent
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pages:
+                    type: array
+                    items:
+                      type: object
+
+  /wiki/link:
+    post:
+      operationId: wiki.link
+      summary: Create cross-reference between pages
+      description: |
+        Link wiki pages with relationship types: related, child, prerequisite.
+
+        **Requirements:** FR-110
+      tags:
+        - Wiki Documentation
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fromId, toId, linkType]
+              properties:
+                fromId:
+                  type: integer
+                toId:
+                  type: integer
+                linkType:
+                  type: string
+                  enum: [related, child, prerequisite]
+      responses:
+        '200':
+          description: Link created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  linkId:
+                    type: integer
+
+  # =============================================================================
+  # PROJECT HEALTH TOOLS (4 tools) - FR-116 to FR-120
+  # =============================================================================
+
+  /health/scan:
+    post:
+      operationId: health.scan
+      summary: Run automated health scanners
+      description: |
+        Run Semgrep, ESLint, Lighthouse, axe-core scanners.
+        Returns categorized findings with severity levels.
+
+        **Requirements:** FR-116
+      tags:
+        - Project Health
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [scanners]
+              properties:
+                scanners:
+                  type: array
+                  items:
+                    type: string
+                    enum: [semgrep, eslint, lighthouse, axe-core]
+                target:
+                  type: string
+                  description: File or folder to scan
+                  default: 'entire project'
+      responses:
+        '200':
+          description: Scan complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reportId:
+                    type: integer
+                  findings:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        category:
+                          type: string
+                          enum: [security, quality, performance, accessibility, debt]
+                        severity:
+                          type: string
+                          enum: [critical, high, medium, low]
+                        message:
+                          type: string
+                        file:
+                          type: string
+                        line:
+                          type: integer
+                  score:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                    description: Overall health score
+
+  /health/findings:
+    get:
+      operationId: health.findings
+      summary: Query health findings with filters
+      description: |
+        Query findings by category, severity, status.
+
+        **Requirements:** FR-117
+      tags:
+        - Project Health
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [security, quality, performance, accessibility, debt]
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, medium, low]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, fixed, ignored]
+      responses:
+        '200':
+          description: Findings list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  findings:
+                    type: array
+                    items:
+                      type: object
+                  aggregations:
+                    type: object
+                    properties:
+                      categoryCounts:
+                        type: object
+                      severityCounts:
+                        type: object
+
+  /health/score:
+    get:
+      operationId: health.score
+      summary: Calculate overall health score
+      description: |
+        Health score algorithm:
+        - Security: 100 - (criticals × 20) - (highs × 5) - (mediums × 1)
+        - Quality: Similar formula
+        - Performance: Lighthouse score
+        - Accessibility: axe-core score
+        - Debt: (clean files / total files) × 100
+
+        **Requirements:** FR-118
+      tags:
+        - Project Health
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: reportId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Health score
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  score:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                  breakdown:
+                    type: object
+                    properties:
+                      security:
+                        type: integer
+                      quality:
+                        type: integer
+                      performance:
+                        type: integer
+                      accessibility:
+                        type: integer
+                      debt:
+                        type: integer
+
+  /health/remediate:
+    patch:
+      operationId: health.remediate
+      summary: Track remediation status
+      description: |
+        Mark finding as fixed or ignored with reason.
+
+        **Requirements:** FR-119
+      tags:
+        - Project Health
+      security:
+        - autonomyLevel: [1]
+      parameters:
+        - name: findingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [fixed, ignored]
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Remediation tracked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: boolean
+
+  # =============================================================================
+  # AGENT PERSONAS TOOLS (4 tools) - FR-121 to FR-125
+  # =============================================================================
+
+  /personas/create:
+    post:
+      operationId: personas.create
+      summary: Create agent persona
+      description: |
+        Create project-specific persona with system prompt, tools, autonomy level.
+
+        **Requirements:** FR-121
+      tags:
+        - Agent Personas
+      security:
+        - autonomyLevel: [2]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, systemPrompt, tools, triggers, autonomyLevel]
+              properties:
+                name:
+                  type: string
+                  example: 'API Debugger'
+                systemPrompt:
+                  type: string
+                  description: System prompt for persona
+                tools:
+                  type: array
+                  items:
+                    type: string
+                  description: MCP tools allowed for this persona
+                triggers:
+                  type: array
+                  items:
+                    type: string
+                  description: Keywords that activate persona
+                autonomyLevel:
+                  type: integer
+                  minimum: 0
+                  maximum: 4
+                  description: '0=read-only, 4=full autonomy'
+      responses:
+        '200':
+          description: Persona created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  personaId:
+                    type: integer
+
+  /personas/list:
+    get:
+      operationId: personas.list
+      summary: List available personas
+      description: |
+        List personas with optional active filter.
+
+        **Requirements:** FR-122
+      tags:
+        - Agent Personas
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Personas list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  personas:
+                    type: array
+                    items:
+                      type: object
+
+  /personas/activate:
+    post:
+      operationId: personas.activate
+      summary: Activate persona for session
+      description: |
+        Activate persona, returns system prompt and available tools.
+
+        **Requirements:** FR-123
+      tags:
+        - Agent Personas
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [personaId, sessionId]
+              properties:
+                personaId:
+                  type: integer
+                sessionId:
+                  type: integer
+      responses:
+        '200':
+          description: Persona activated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activationId:
+                    type: integer
+                  systemPrompt:
+                    type: string
+                  tools:
+                    type: array
+                    items:
+                      type: string
+
+  /personas/deactivate:
+    post:
+      operationId: personas.deactivate
+      summary: Deactivate persona
+      description: |
+        Deactivate persona activation.
+
+        **Requirements:** FR-124
+      tags:
+        - Agent Personas
+      security:
+        - autonomyLevel: [1]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [activationId]
+              properties:
+                activationId:
+                  type: integer
+      responses:
+        '200':
+          description: Persona deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deactivated:
+                    type: boolean
+
+  # =============================================================================
+  # DASHBOARD METRICS TOOLS (3 tools) - Cross-cutting
+  # =============================================================================
+
+  /dashboard/metrics:
+    get:
+      operationId: dashboard.metrics
+      summary: Get dashboard metrics
+      description: |
+        Real-time metrics with 5-minute cache TTL.
+        Progress, issues, health, velocity.
+
+        **Requirements:** FR-125
+      tags:
+        - Dashboard Metrics
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: phaseId
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dashboard metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  progress:
+                    type: object
+                    properties:
+                      phase:
+                        type: integer
+                      currentWeek:
+                        type: integer
+                      currentDay:
+                        type: integer
+                  issues:
+                    type: object
+                    properties:
+                      open:
+                        type: integer
+                      inProgress:
+                        type: integer
+                      review:
+                        type: integer
+                      closed:
+                        type: integer
+                  health:
+                    type: object
+                    properties:
+                      score:
+                        type: integer
+                      security:
+                        type: integer
+                      quality:
+                        type: integer
+                  velocity:
+                    type: object
+                    properties:
+                      tasksPerDay:
+                        type: number
+                      tokenEfficiency:
+                        type: integer
+
+  /dashboard/timeline:
+    get:
+      operationId: dashboard.timeline
+      summary: Get activity timeline
+      description: |
+        Activity timeline with event types: task, issue, knowledge, health.
+
+        **Requirements:** FR-125
+      tags:
+        - Dashboard Metrics
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Timeline events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: string
+                          format: date-time
+                        type:
+                          type: string
+                          enum: [task, issue, knowledge, health]
+                        action:
+                          type: string
+                        details:
+                          type: object
+
+  /dashboard/burndown:
+    get:
+      operationId: dashboard.burndown
+      summary: Get burndown chart data
+      description: |
+        Burndown chart: ideal vs actual remaining work.
+
+        **Requirements:** FR-125
+      tags:
+        - Dashboard Metrics
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: phaseId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Burndown data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ideal:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        day:
+                          type: integer
+                        remaining:
+                          type: number
+                  actual:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        day:
+                          type: integer
+                        remaining:
+                          type: number
