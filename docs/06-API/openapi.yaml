@@ -6,7 +6,7 @@ info:
   description: |
     **Moksha DevHub MCP API Specification**
 
-    Complete API specification for the Moksha DevHub Model Context Protocol (MCP) server. This API exposes 42 tools across 9 functional categories, enabling AI agents to manage software development workflows with 95% automation.
+    Complete API specification for the Moksha DevHub Model Context Protocol (MCP) server. This API exposes 41 tools across 9 functional categories, enabling AI agents to manage software development workflows with 95% automation.
 
     **Architecture:** Agent-First (95% MCP automation, 5% UI monitoring)
     **Primary Users:** AI Agents (Claude Code, Cursor AI, Codex)

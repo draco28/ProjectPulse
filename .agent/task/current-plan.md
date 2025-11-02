@@ -1,276 +1,301 @@
-# Current Implementation Plan - Week 1.5 Phase 3 Day 5
+# Week 1.75 - Phase 4 Completion Implementation Plan
 
-**Created**: 2025-10-29 21:54
-**Task**: Issue Detail Page Implementation
-**Estimated Duration**: 6-8 hours
+**Created**: 2025-11-01 14:45
+**Phase**: Week 1.75 - Phase 4 Completion
+**Estimated Duration**: 3-7 hours
 
 ---
 
 ## Overview
 
-Transform the Issue Detail page using the neumorphic coral theme mockup, implementing a full-featured issue view with comments, attachments, status management, and related content.
-
-**Scope**: Create dynamic route `app/issues/[id]/page.tsx` with 12 components (7 new, 5 existing from Day 4).
-
----
-
-## Phase Breakdown
-
-### Phase 1: API Foundation (30 min)
-
-**Goal**: Create GET /api/issues/[id] endpoint with full relation support
-
-**Tasks**:
-
-1. Create `app/api/issues/[id]/route.ts` - GET endpoint
-2. Add Zod schema for issue detail response validation
-3. Implement Prisma query with optimized includes:
-   - comments (with author)
-   - attachments
-   - labels
-   - project
-   - assignedTo
-   - linkedCommits
-4. Error handling (404 for not found, 400 for invalid ID, 500 for server errors)
-5. Unit tests: Success response, 404, 400, relation includes
-
-**Success Criteria**:
-
-- ✅ GET /api/issues/42 returns full issue with relations
-- ✅ All tests passing
-- ✅ TypeScript 0 errors
-
----
-
-### Phase 2: Server Component Layout (60 min)
-
-**Goal**: Build main page layout with 6 server components
-
-**Tasks**:
-
-1. Create `app/issues/[id]/page.tsx` - Main Server Component
-2. Fetch issue data with parallel queries (issue + breadcrumb data)
-3. Build **IssueHeader** component:
-   - Issue number badge
-   - Title (h2)
-   - Status/Priority/Module badges
-   - Assignee display
-   - Timestamps (created, updated, closed)
-4. Build **SystemActivity** component:
-   - Timeline of PR links, status changes, commits
-   - Activity type icons and formatting
-5. Build **CodeSection** component:
-   - Syntax highlighting for code blocks
-   - Copy button (Client Component child)
-6. Build **WatchersSection** component:
-   - Avatar stack display
-7. Build **RelatedIssues** component:
-   - Linked issues list with type badges
-
-**Success Criteria**:
-
-- ✅ Page loads at `/issues/42`
-- ✅ All server components render with Prisma data
-- ✅ No client-side JavaScript for static sections
-
----
-
-### Phase 3: Client Components & Interactivity (45 min)
-
-**Goal**: Add interactive features and wire up existing components
-
-**Tasks**:
-
-1. Build **IssueActions** component:
-   - Status change buttons (Open → In Progress → Closed)
-   - Calls PATCH /api/issues/[id]/status
-   - Loading states during API calls
-   - Success/error toasts
-2. Build **DescriptionSection** component:
-   - Markdown rendering with react-markdown
-   - Edit mode toggle (future enhancement placeholder)
-3. Build **QuickActions** component:
-   - Watch button (toggle state)
-   - Copy Link button (clipboard API)
-   - Create Branch button (navigation)
-4. Wire up existing Day 4 components:
-   - Import CommentList, CommentForm
-   - Import AttachmentList
-   - Import IssueDetailSidebar
-
-**Success Criteria**:
-
-- ✅ Status changes work with optimistic UI updates
-- ✅ Comments submit and display immediately
-- ✅ Copy link copies current URL to clipboard
-- ✅ All interactive features functional
-
----
-
-### Phase 4: Integration & Styling (30 min)
-
-**Goal**: Polish layout, styling, and accessibility
-
-**Tasks**:
-
-1. Integrate all 12 components into 3-column layout:
-   - Left sidebar: Breadcrumb + QuickActions + WatchersSection
-   - Main content: IssueHeader + IssueActions + DescriptionSection + CodeSection + CommentList + CommentForm
-   - Right sidebar: IssueDetailSidebar + RelatedIssues
-2. Apply neumorphic design tokens:
-   - `.neu-raised` for cards
-   - `.neu-pressed` for inset sections
-   - `.coral-gradient` for primary buttons
-   - `.smooth-transition` for hover states
-3. Responsive breakpoints:
-   - Mobile: Single column, collapsible sidebars
-   - Tablet: 2 columns (main + right sidebar)
-   - Desktop: 3 columns (full layout)
-4. Accessibility audit:
-   - ARIA labels for all interactive elements
-   - Keyboard navigation (Tab, Enter, Escape)
-   - Screen reader announcements for status changes
-   - Focus management for modal dialogs
-
-**Success Criteria**:
-
-- ✅ Matches mockup design pixel-perfect
-- ✅ Responsive on 375px mobile, 768px tablet, 1440px desktop
-- ✅ WCAG 2.1 AA compliance verified
-
----
-
-### Phase 5: Testing (60 min)
-
-**Goal**: Achieve ≥80% coverage with comprehensive tests
-
-**Tasks**:
-
-1. **Unit tests** (`__tests__/api/issues/[id]/route.test.ts`):
-   - GET success (200 with full issue data)
-   - GET not found (404 for non-existent issue)
-   - GET invalid ID (400 for malformed ID)
-   - Prisma includes all relations
-2. **Component tests** (React Testing Library):
-   - IssueHeader: Renders badges, title, metadata
-   - SystemActivity: Formats activity types correctly
-   - IssueActions: Calls API on status change, shows loading state
-3. **E2E test** (Playwright):
-   - Navigate to issue
-   - Add comment
-   - Change status
-   - Verify UI updates
-4. Run quality gates:
-   - `pnpm lint`
-   - `pnpm type-check`
-   - `pnpm build`
-   - `pnpm test`
-5. Verify coverage targets:
-   - API routes: ≥90%
-   - Components: ≥75%
-   - Overall new code: ≥80%
-
-**Success Criteria**:
-
-- ✅ 52+ tests passing (unit + component + E2E)
-- ✅ All gates green
-- ✅ Coverage targets met
-
----
-
-## Component Architecture
-
-### Server Components (6)
-
-1. `page.tsx` - Main layout with data fetching
-2. `IssueHeader` - Static display
-3. `SystemActivity` - Timeline rendering
-4. `CodeSection` - Syntax highlighting
-5. `WatchersSection` - Avatar stack
-6. `RelatedIssues` - Linked issues list
-
-### Client Components (6)
-
-1. `IssueActions` - Status change buttons
-2. `DescriptionSection` - Markdown rendering
-3. `QuickActions` - Interactive sidebar
-4. `CommentList` (existing Day 4)
-5. `CommentForm` (existing Day 4)
-6. `AttachmentList` (existing Day 4)
-
----
-
-## Dependencies
-
-**✅ All prerequisites met**:
-
-- Database schema complete (no migrations needed)
-- 2 API endpoints exist (POST comments, PATCH status)
-- 5 components exist (from Day 4)
-- Mockup available
-- Testing patterns documented
-- Component patterns documented
-
-**No blockers identified.**
-
----
-
-## Expert Consultation Required
-
-**Before Phase 1 implementation**:
-
-1. **next-js-expert** - Data fetching strategy:
-   - Question: "For issue detail page with comments, attachments, and activity timeline, should I use Server Component with direct Prisma query, or Client Component with API fetch? What's the optimal data loading pattern for nested relations?"
-
-2. **react-expert** - Component composition:
-   - Question: "With 12 components (6 server, 6 client) in 3-column layout, what's the best composition strategy to avoid prop drilling while maintaining type safety?"
-
----
-
-## Timeline
-
-| Phase      | Duration  | Cumulative    |
-| ---------- | --------- | ------------- |
-| Phase 1    | 30 min    | 0.5 hours     |
-| Phase 2    | 60 min    | 1.5 hours     |
-| Phase 3    | 45 min    | 2.25 hours    |
-| Phase 4    | 30 min    | 2.75 hours    |
-| Phase 5    | 60 min    | 3.75 hours    |
-| **Buffer** | 3-4 hours | **6-8 hours** |
+Complete all deferred tasks from Week 1.5 Phase 4 before starting Week 2 (Issue Tracker Core). Focus on polish, performance optimization, and quality gates.
 
 ---
 
 ## Success Criteria
 
-**Functional**:
-
-- ✅ Issue detail page loads at `/issues/[id]`
-- ✅ All issue data displayed
-- ✅ Status changes work
-- ✅ Comments can be added
-- ✅ Attachments viewable
-
-**Quality**:
-
-- ✅ TypeScript: 0 errors
-- ✅ ESLint: 0 errors
-- ✅ Tests: ≥80% coverage
-- ✅ Build: Successful
-- ✅ Accessibility: WCAG 2.1 AA
-
-**Design**:
-
-- ✅ Matches mockup
-- ✅ Responsive
-- ✅ Smooth animations
-- ✅ Consistent with Dashboard
+- ✅ 0 TypeScript errors
+- ✅ 0 lint warnings (currently 11)
+- ✅ Font Awesome completely removed (30 files migrated to Lucide)
+- ✅ Font Awesome CDN link removed from layout.tsx
+- ✅ Bundle size reduced by ~60KB
+- ✅ Bundle analyzer configured and baseline documented
+- ✅ Accessibility: 0 axe-core violations (WCAG 2.1 AA)
+- ✅ Performance: ≥90 Lighthouse score on all pages
 
 ---
 
-## Post-Completion (Protocol Step 5)
+## Phase 1: Font Awesome → Lucide Migration (2-3 hours)
 
-1. Create `COMPLETION_WEEK_1.5_PHASE_3_DAY_5.md`
-2. Update `STATUS.md` (mark Day 5 complete)
-3. Update `DEVELOPMENT_PLAN.md`
-4. Update `.agent/active-context.md`
-5. Docs-first commit, then code commit
+**Goal**: Replace all Font Awesome icons with Lucide React components
+
+### Strategy
+
+1. Start with High Priority files (most visible to users)
+2. Test type-check after every 5 files
+3. Verify visually in browser after each migration
+4. Remove CDN link only after ALL migrations complete
+
+### Migration Pattern
+
+```tsx
+// BEFORE (Font Awesome)
+<i className="fas fa-plus"></i>;
+
+// AFTER (Lucide)
+import { Plus } from 'lucide-react';
+<Plus className="h-5 w-5" aria-hidden="true" />;
+```
+
+### Icon Mapping Reference
+
+See: `.agent/task/font-awesome-to-lucide-migration.md` for complete mapping table
+
+### File Priority
+
+**High Priority (8 files)** - Start here:
+
+1. ✅ components/issues/SearchSortBar.tsx - Search, view toggles
+2. ⏳ app/issues/page.tsx - New Issue button
+3. ⏳ app/issues/[id]/page.tsx - Attachments, comments sections
+4. ⏳ components/issues/detail/QuickActions.tsx - Action buttons
+5. ⏳ components/issues/detail/IssueActions.tsx - Status change buttons
+6. ⏳ components/issues/detail/IssueHeader.tsx - Header icons
+7. ⏳ components/dashboard/QuickActionsWidget.tsx - Dashboard actions
+8. ⏳ components/issues/FilterSidebar.tsx - Filter icons
+
+**Medium Priority (14 files)**:
+
+- components/issues/detail/DescriptionSection.tsx
+- components/issues/detail/CodeSection.tsx
+- components/issues/detail/SystemActivity.tsx
+- components/issues/detail/WatchersSection.tsx
+- components/issues/detail/RelatedIssues.tsx
+- components/issues/detail/IssueDetailSidebar.tsx
+- components/issues/detail/CommentList.tsx
+- components/issues/detail/CommentForm.tsx
+- components/issues/IssueListCard.tsx
+- app/knowledge/page.tsx
+- app/agents/page.tsx
+- app/security/page.tsx
+- app/wiki/[slug]/page.tsx
+- app/wiki/[slug]/not-found.tsx
+
+**Low Priority (8 files)**:
+
+- components/CommandPalette.tsx
+- components/agents/AgentCard.tsx
+- components/knowledge/SearchBar.tsx
+- components/knowledge/ArticleCard.tsx
+- components/knowledge/TagFilter.tsx
+- components/security/VulnerabilityCard.tsx
+- components/security/VulnerabilityFilter.tsx
+- components/wiki/WikiSidebar.tsx
+
+### Testing Checkpoints
+
+- After 5 files: `pnpm type-check`
+- After 10 files: `pnpm type-check` + visual browser test
+- After 20 files: `pnpm type-check` + full page review
+- After all files: `pnpm type-check` + `pnpm lint`
+
+---
+
+## Phase 2: Quality Gates (1-2 hours)
+
+### 2.1 Fix Lint Warnings (15 minutes)
+
+**Current State**: 11 unused variable warnings
+
+**Fix Pattern**:
+
+```tsx
+// Before
+const issueId = parseInt(id, 10);
+
+// After (if truly unused)
+const _issueId = parseInt(id, 10);
+```
+
+**Files to Check**:
+
+- Run `pnpm lint` to see all warnings
+- Fix each by prefixing with underscore or removing if truly unused
+- Re-run `pnpm lint` to verify 0 warnings
+
+### 2.2 Bundle Analyzer Setup (30 minutes)
+
+**Steps**:
+
+1. Install: `pnpm add -D @next/bundle-analyzer`
+2. Create `next.config.analyzer.js`:
+
+```js
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+module.exports = withBundleAnalyzer({
+  // ... existing config
+});
+```
+
+3. Add script to package.json: `"analyze": "ANALYZE=true pnpm build"`
+4. Run analysis: `pnpm analyze`
+5. Document findings in session file
+
+**Expected Findings**:
+
+- Identify largest chunks
+- Confirm CodeBlock lazy loading working
+- Confirm Font Awesome removed
+- Identify additional optimization opportunities
+
+### 2.3 Accessibility Audit (1 hour)
+
+**Tool**: axe-core via Playwright
+
+**Implementation**:
+
+1. Create test file: `e2e/accessibility.spec.ts`
+2. Add axe-core integration
+3. Test pages: Dashboard, Issues List, Issue Detail
+4. Fix any violations found
+5. Target: 0 violations (WCAG 2.1 AA)
+
+**Test Pattern**:
+
+```typescript
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+
+test('Dashboard accessibility', async ({ page }) => {
+  await page.goto('http://localhost:3000/dashboard');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+```
+
+### 2.4 Lighthouse Audit (30 minutes)
+
+**Pages to Test**:
+
+- Dashboard (`/dashboard`)
+- Issues List (`/issues`)
+- Issue Detail (`/issues/1`)
+
+**Metrics Target**: ≥90 for all
+
+- Performance
+- Accessibility
+- Best Practices
+- SEO
+
+**Documentation**:
+
+- Screenshot baseline scores
+- Document in session file
+- Note any recommendations
+
+---
+
+## Phase 3: Documentation & Completion (30 minutes)
+
+### 3.1 Create Completion Report
+
+**File**: `docs/COMPLETION_WEEK_1.75.md`
+
+**Template**: Follow `docs/COMPLETION_WEEK_1.5_PHASE_4.md` structure
+
+**Sections**:
+
+- Executive Summary
+- Deliverables Completed
+- Files Modified (summary table)
+- Technical Decisions & Patterns
+- Metrics & Impact (before/after)
+- Known Issues & Future Work
+- Sign-Off
+
+### 3.2 Update Project Documentation
+
+**STATUS.md**:
+
+- Update last completed phase
+- Update last task completed
+- Update next steps
+
+**DEVELOPMENT_PLAN.md**:
+
+- Mark Week 1.75 complete
+- Add completion date
+- Note that Week 2 prerequisites satisfied
+
+### 3.3 Git Commit
+
+**Workflow**:
+
+1. Stage changes: `git add .`
+2. Commit with message:
+
+```
+docs: complete Week 1.75 - Phase 4 finalization
+
+- Migrate 30 files from Font Awesome to Lucide React
+- Fix 11 lint warnings (unused variables)
+- Configure bundle analyzer
+- Run accessibility audit (0 violations)
+- Run Lighthouse audit (≥90 all metrics)
+- Bundle size reduced by ~60KB
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+3. Verify: `git status`
+
+---
+
+## Dependencies
+
+**None** - All tasks can proceed independently
+
+---
+
+## Risks & Mitigations
+
+**Risk 1**: Icon visual differences after migration
+
+- **Mitigation**: Visual review after each file, adjust sizing if needed
+
+**Risk 2**: Breaking changes in component functionality
+
+- **Mitigation**: Test after every 5 files, maintain type-check passing
+
+**Risk 3**: Build failure with database requirement
+
+- **Mitigation**: Use `pnpm type-check` + `pnpm lint` instead of full build
+
+---
+
+## Token Budget
+
+**Estimated Token Usage**:
+
+- Font Awesome migration: ~40-60K tokens (30 files × 2K avg)
+- Quality gates: ~15-20K tokens
+- Documentation: ~10-15K tokens
+- **Total Estimated**: 65-95K tokens
+- **Budget Available**: 200K tokens
+- **Safety Margin**: ✅ Comfortable (2-3x buffer)
+
+---
+
+## Next Steps After Week 1.75
+
+**Week 2: Issue Tracker Core**
+
+- Per DEVELOPMENT_PLAN.md lines 2815+
+- Prerequisites: ✅ All satisfied after Week 1.75 completion
+- Focus: CRUD APIs for issues, comments, attachments

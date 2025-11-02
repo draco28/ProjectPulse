@@ -83,8 +83,8 @@ Moksha DevHub is an agent-first project management platform designed for AI agen
 
 ### Guides & Migration
 
-15. **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Documentation Migration
-    - Old → New mapping, quick starts, FAQs
+15. **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Documentation Migration Guide
+    - Old → New file mapping, 3 reading paths, navigation FAQs, quick start guides
 
 ### Archive
 

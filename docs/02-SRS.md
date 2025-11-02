@@ -15,7 +15,7 @@ This System Requirements Specification (SRS) defines the complete functional and
 **Related Documents:**
 
 - [01-PRD.md](01-PRD.md) - Product Requirements Document
-- [03-System-Architecture.md](03-System-Architecture.md) - Architecture Design
+- [03-Architecture.md](03-Architecture.md) - Architecture Design
 - [12-Backlog.md](12-Backlog.md) - User Stories (125 stories mapped to these FRs)
 
 ---
@@ -4088,7 +4088,7 @@ score = max(0, min(100, score)) // Clamp to 0-100
 
 **Next Documents:**
 
-- [03-System-Architecture.md](03-System-Architecture.md) - Architecture design
+- [03-Architecture.md](03-Architecture.md) - Architecture design
 - [04-Data-and-Model-Spec.md](04-Data-and-Model-Spec.md) - Database schema
 - [12-Backlog.md](12-Backlog.md) - User stories (US-001 to US-130)
 

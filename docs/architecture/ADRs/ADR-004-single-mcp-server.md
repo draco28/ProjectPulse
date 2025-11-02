@@ -27,7 +27,7 @@ Need to expose 42 MCP tools across 8 core features.
 
 **Options:**
 
-- **Option A:** Single MCP server exposing all 42 tools
+- **Option A:** Single MCP server exposing all 41 tools
 - **Option B:** 8 separate MCP servers (one per feature)
 - **Option C:** Monorepo with multiple MCP servers
 
@@ -35,7 +35,7 @@ Need to expose 42 MCP tools across 8 core features.
 
 ## Decision
 
-**Implement a single MCP server (`moksha-devhub`) exposing all 42 tools.**
+**Implement a single MCP server (`moksha-devhub`) exposing all 41 tools.**
 
 **Configuration (Claude Code example):**
 
@@ -53,7 +53,7 @@ Need to expose 42 MCP tools across 8 core features.
 
 **Result:**
 
-- One installation → All 42 tools available
+- One installation → All 41 tools available
 - Works with any MCP-compatible agent (Claude Code, Codex, Cursor AI, Cascade)
 
 ## Consequences
@@ -69,7 +69,7 @@ Need to expose 42 MCP tools across 8 core features.
 ### Negative
 
 - **Monolithic:** Single server failure affects all tools (mitigated by quick restart)
-- **Namespace pollution:** 42 tools in flat namespace (mitigated by prefix: `sprint.`, `workflow.`, `issues.`)
+- **Namespace pollution:** 41 tools in flat namespace (mitigated by prefix: `sprint.`, `workflow.`, `issues.`)
 - **Large bundle:** All tools loaded at startup (~5MB, acceptable for local)
 
 ### Neutral
@@ -87,7 +87,7 @@ Need to expose 42 MCP tools across 8 core features.
    - Rejected: Shared code duplication, complex build process, deployment overhead
 
 3. **Plugin Architecture:**
-   - Rejected: Over-engineering for 42 tools, added complexity, no immediate benefit
+   - Rejected: Over-engineering for 41 tools, added complexity, no immediate benefit
 
 ## References
 

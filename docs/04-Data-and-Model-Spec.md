@@ -3301,7 +3301,7 @@ DATABASE_URL="postgresql://app_user:secure_password@localhost:5432/moksha_devhub
 
 1. **05-AgentOps-Plan.md** (6 hours, 500 lines)
    - Agent workflow orchestration
-   - MCP tool catalog (42 tools)
+   - MCP tool catalog (41 tools)
    - Context management strategies
    - Checkpoint workflow
 

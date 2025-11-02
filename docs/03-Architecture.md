@@ -59,7 +59,7 @@ C4Context
     Person(developer, "Solo Developer", "Human monitoring and manual operations<br/>Secondary User (5% interaction)")
 
     System_Boundary(devhub, "Moksha DevHub") {
-        System(mcp_server, "MCP Server", "42 tools across 8 features<br/>stdio transport")
+        System(mcp_server, "MCP Server", "41 tools across 8 features<br/>stdio transport")
         System(web_app, "Next.js Web App", "Monitoring dashboard + Manual CRUD<br/>React Server Components")
         SystemDb(database, "PostgreSQL", "Single source of truth<br/>Prisma ORM")
     }
@@ -69,7 +69,7 @@ C4Context
     System_Ext(docker, "Docker", "PostgreSQL container<br/>Development environment")
     System_Ext(embedding_api, "Embedding API", "OpenAI text-embedding-3-small<br/>Optional: local embeddings")
 
-    Rel(agent, mcp_server, "Executes workflows via MCP", "stdio, 42 tools")
+    Rel(agent, mcp_server, "Executes workflows via MCP", "stdio, 41 tools")
     Rel(developer, web_app, "Monitors progress, manual CRUD", "HTTPS")
 
     Rel(mcp_server, database, "CRUD operations", "Prisma queries")
@@ -108,7 +108,7 @@ C4Context
 **Characteristics:**
 
 - **Type:** Any MCP-compatible agent (Claude Code, Cursor AI, Codex, Cascade)
-- **Interface:** MCP stdio transport, 42 tools
+- **Interface:** MCP stdio transport, 41 tools
 - **Behavior:** Autonomous workflow execution, stateless operation
 - **Context:** Reads markdown files (STATUS.md, DEVELOPMENT_PLAN.md, .agent/task/)
 - **State Persistence:** All progress saved to database (survives context compaction)
@@ -254,7 +254,7 @@ C4Container
 
     Container_Ext(filesystem, "File System", "Markdown files (.agent/, STATUS.md)")
 
-    Rel(agent, mcp_server, "MCP stdio", "42 tools")
+    Rel(agent, mcp_server, "MCP stdio", "41 tools")
     Rel(developer, web_app, "HTTPS", "React UI")
 
     Rel(mcp_server, database, "Prisma Client", "CRUD operations")
@@ -1629,7 +1629,7 @@ sequenceDiagram
 **Key Data Flows:**
 
 1. **Agent → File System:** Read STATUS.md, DEVELOPMENT_PLAN.md for context
-2. **Agent → MCP Server:** Execute MCP tools (42 tools)
+2. **Agent → MCP Server:** Execute MCP tools (41 tools)
 3. **MCP Server → Database:** CRUD operations (Prisma Client)
 4. **Database → File System:** Auto-generate markdown (post-transaction hooks)
 5. **Agent → Git:** Commit changes (not via MCP, direct shell commands)
@@ -2686,7 +2686,7 @@ All architecture decisions are documented in **Architecture Decision Records (AD
 | [ADR-001](architecture/ADRs/ADR-001-agent-first-architecture.md)    | Agent-first architecture    | AI agents are primary users (95%)      | UI designed for monitoring, not primary interface |
 | [ADR-002](architecture/ADRs/ADR-002-database-as-source-of-truth.md) | Database as source of truth | Markdown files auto-generated          | Eliminates sync issues, single source of truth    |
 | [ADR-003](architecture/ADRs/ADR-003-hybrid-knowledge-graph.md)      | Hybrid knowledge search     | Semantic + full-text + graph traversal | 88% token reduction vs full graph                 |
-| [ADR-004](architecture/ADRs/ADR-004-single-mcp-server.md)           | Single MCP server           | 42 tools in one server                 | Simplicity, universal agent access                |
+| [ADR-004](architecture/ADRs/ADR-004-single-mcp-server.md)           | Single MCP server           | 41 tools in one server                 | Simplicity, universal agent access                |
 | [ADR-005](architecture/ADRs/ADR-005-five-level-hierarchy.md)        | 5-level hierarchy           | Phase → Week → Day → Task → Session    | Sufficient granularity for solo developer         |
 
 ### 10.2 Trade-Offs
@@ -2787,7 +2787,7 @@ All architecture decisions are documented in **Architecture Decision Records (AD
 
 **Moksha DevHub** is an agent-first project management platform with a unique architecture optimized for AI agents:
 
-1. **Primary Interface:** MCP tools (42 tools, stdio transport)
+1. **Primary Interface:** MCP tools (41 tools, stdio transport)
 2. **Secondary Interface:** Next.js web UI (monitoring and manual CRUD)
 3. **Single Source of Truth:** PostgreSQL database (markdown auto-generated)
 4. **Token Efficiency:** 92% reduction for skills, 88% for knowledge queries

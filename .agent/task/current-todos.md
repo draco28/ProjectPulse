@@ -1,125 +1,212 @@
-# Current Todos - Week 1.5 Phase 3 Day 5
+# Phase 4 Todo List - Responsive Design & Polish
 
-**Created**: 2025-10-29 21:54
-**Task**: Issue Detail Page Implementation
-**Total Tasks**: 13 (revised from 30 after expert consultations)
-**Completed**: 13/13 (100%)
-**Status**: ✅ COMPLETE (All components created, build successful, docs complete)
+**Created:** 2025-11-01 16:15
+**Phase:** Week 1.5 Phase 4 (Day 8)
+**Total Tasks:** 79
+**Progress:** 0/79 (0%)
 
 ---
 
 ## Protocol Steps
 
-- [x] STEP 1: Initialize session (create current-session file)
-- [x] STEP 2: Save plan and todos
-- [x] STEP 3: Consult experts (next-js-expert, react-expert)
-- [x] STEP 4: Progress checkpoints (every 15K tokens)
-- [x] STEP 5: Post-completion (docs, commits)
+- [ ] STEP 1: Initialize session (create current-session file)
+- [ ] STEP 2: Save plan and todos
+- [ ] STEP 3: Consult experts (react-expert, next-js-expert)
+- [ ] STEP 4: Progress checkpoints (every 15K tokens)
+- [ ] STEP 5: Post-completion (docs, commits)
 
 ---
 
-## Implementation Tasks
+## TASK 1: Responsive Design (4-6 hours)
 
-### Phase 1: API Foundation (SKIPPED)
+### Sidebar Component
 
-- [x] SKIPPED per expert recommendation (Server Components use Prisma directly)
+- [ ] 1. Add mobile menu state (useState for isOpen)
+- [ ] 2. Create hamburger button component
+- [ ] 3. Add `hidden md:flex` classes to sidebar
+- [ ] 4. Implement slide-in animation with Tailwind
+- [ ] 5. Add overlay backdrop (z-index, onClick close)
+- [ ] 6. Test at 320px, 768px, 1024px
 
-**Progress**: 100% (skipped, no API endpoint needed)
+### Header Component
 
----
+- [ ] 7. Collapse search bar to icon on mobile
+- [ ] 8. Create mobile search modal component
+- [ ] 9. Add responsive padding (`px-4 md:px-8`)
+- [ ] 10. Test search modal functionality
 
-### Phase 2: Server Components (5/5 complete)
+### FilterSidebar Component
 
-- [x] 2.1: Refactor page.tsx with optimized Prisma select query
-- [x] 2.2: Build IssueHeader component
-- [x] 2.3: Build SystemActivity component
-- [x] 2.4: Build CodeSection component
-- [x] 2.5: Build WatchersSection component
-- [x] 2.6: Build RelatedIssues component
+- [ ] 11. Convert to drawer component on mobile
+- [ ] 12. Add bottom sheet animation
+- [ ] 13. Implement backdrop overlay
+- [ ] 14. Add close button (touch-friendly)
 
-**Progress**: 100% (5/5)
+### Page Layouts
 
----
+- [ ] 15. Issue detail: Stack 3-column layout on mobile
+- [ ] 16. Dashboard: Update widget grid to `lg:grid-cols-3`
+- [ ] 17. Dashboard: Reduce hexagons on mobile (performance)
 
-### Phase 3: Client Components (4/4 complete)
+### Layout Updates
 
-- [x] 3.1: Build IssueActions client component
-- [x] 3.2: Build DescriptionSection with markdown placeholder
-- [x] 3.3: Build QuickActions sidebar component
-- [x] 3.4: Wire up existing Day 4 components
+- [ ] 18. Add skip-to-content link to layout.tsx
+- [ ] 19. Verify responsive viewport meta tag
 
-**Progress**: 100% (4/4)
-
----
-
-### Phase 4: Integration & Styling (4/4 complete)
-
-- [x] 4.1: Integrate all 12 components in 3-column layout
-- [x] 4.2: Apply neumorphic styling and responsive breakpoints
-- [x] 4.3: Accessibility audit (ARIA labels added)
-- [x] 4.4: Fix TypeScript errors
-
-**Progress**: 100% (4/4)
+**Checkpoint: Test all responsive breakpoints**
 
 ---
 
-### Phase 5: Quality Verification (1/1 complete)
+## TASK 2: Accessibility Audit (3-4 hours)
 
-- [x] 5.1: Verify build succeeds (TypeScript 0 errors, build successful)
+### ARIA Labels
 
-**Progress**: 100% (1/1, tests deferred per expert recommendation)
+- [ ] 20. Add aria-label to Header icon buttons
+- [ ] 21. Add aria-label to Sidebar navigation items
+- [ ] 22. Add aria-label to IssueActions buttons
+- [ ] 23. Add aria-label to QuickActions buttons
 
----
+### Keyboard Navigation
 
-### Documentation & Completion (3/3 complete)
+- [ ] 24. Add focus trap to CommandPalette
+- [ ] 25. Verify Tab order across all pages
+- [ ] 26. Add keyboard handlers (Enter, Space, Escape)
 
-- [x] Create COMPLETION_WEEK_1.5_PHASE_3_DAY_5.md
-- [x] Update STATUS.md with Day 5 completion
-- [x] Update current-todos.md and current-session.md
+### Focus Indicators
 
-**Progress**: 100% (3/3)
+- [ ] 27. Update globals.css with :focus-visible styles
+- [ ] 28. Custom focus styles for neumorphic buttons
 
----
+### FilterSidebar Accessibility
 
-## Expert Consultations (2/2 complete)
+- [ ] 29. Add visible labels to checkboxes
+- [ ] 30. Add aria-expanded to collapsible sections
+- [ ] 31. Add aria-controls linking sections
 
-- [x] Consult next-js-expert for data fetching strategy
-- [x] Consult react-expert for component composition
+### Validation
 
----
+- [ ] 32. Run axe-core DevTools scan
+- [ ] 33. Fix all violations
+- [ ] 34. Test with keyboard only (no mouse)
+- [ ] 35. Test with screen reader (NVDA)
 
-## Overall Progress
-
-**Total**: 13/13 tasks complete (100%)
-
-**Phase Completion**:
-
-- Protocol: 5/5 (100%)
-- Phase 1: SKIPPED (per expert recommendation)
-- Phase 2: 5/5 (100%)
-- Phase 3: 4/4 (100%)
-- Phase 4: 4/4 (100%)
-- Phase 5: 1/1 (100%)
-- Documentation: 3/3 (100%)
-- Experts: 2/2 (100%)
+**Checkpoint: axe-core reports 0 violations**
 
 ---
 
-## Checkpoints
+## TASK 3: Performance Optimization (3-4 hours)
 
-- [x] 15K tokens: Expert consultations complete
-- [x] 30K tokens: Phase 2 complete (all Server Components)
-- [x] 45K tokens: Phase 3 complete (all Client Components)
-- [x] 60K tokens: Phase 4 complete (layout + styling + TypeScript fixes)
-- [x] 75K tokens: Phase 5 complete (build verification)
-- [x] 90K tokens: Documentation complete
-- [x] 120K tokens: Final checkpoint, ready for commit
+### Bundle Analysis
+
+- [ ] 36. Install @next/bundle-analyzer
+- [ ] 37. Configure in next.config.js
+- [ ] 38. Run bundle analysis
+- [ ] 39. Identify largest chunks
+
+### Lazy Loading
+
+- [ ] 40. CodeBlock: Dynamic import react-syntax-highlighter
+- [ ] 41. CommandPalette: Lazy load on Cmd+K
+- [ ] 42. TipTap editor: Dynamic imports
+
+### Icon Migration
+
+- [ ] 43. Remove Font Awesome CDN from layout.tsx
+- [ ] 44. Replace FA icons with Lucide (Header)
+- [ ] 45. Replace FA icons with Lucide (Sidebar)
+- [ ] 46. Replace FA icons with Lucide (other components)
+
+### Component Optimization
+
+- [ ] 47. Identify static components for Server Component conversion
+- [ ] 48. Convert eligible components (target: 60% client)
+
+### Motion Preferences
+
+- [ ] 49. Add @media (prefers-reduced-motion) to globals.css
+- [ ] 50. Disable animations for motion-sensitive users
+
+### Performance Testing
+
+- [ ] 51. Run Lighthouse audit
+- [ ] 52. Verify Performance ≥90
+- [ ] 53. Verify Accessibility ≥90
+- [ ] 54. Check bundle size reduction
+
+**Checkpoint: Lighthouse scores ≥90**
 
 ---
 
-## Last Updated
+## TASK 4: Cross-Browser Testing (2-3 hours)
 
-2025-10-29 21:54 - Initial creation
-2025-10-29 22:00 - Expert consultations complete
-2025-10-29 22:30 - All implementation complete
-2025-10-29 22:35 - Documentation complete, ready for commit
+### Automated Testing
+
+- [ ] 55. Run E2E tests on Chromium
+- [ ] 56. Run E2E tests on Firefox
+- [ ] 57. Run E2E tests on WebKit (Safari)
+- [ ] 58. Run E2E tests on Mobile Chrome
+- [ ] 59. Run E2E tests on Mobile Safari
+
+### Manual Testing
+
+- [ ] 60. Chrome: Test all pages and features
+- [ ] 61. Firefox: Test grid layouts and shadows
+- [ ] 62. Safari: Test backdrop-blur and CSS features
+- [ ] 63. Edge: Full regression test
+
+### Visual Verification
+
+- [ ] 64. Verify neumorphic shadows render correctly
+- [ ] 65. Check custom animations smoothness
+- [ ] 66. Test touch interactions on mobile
+
+**Checkpoint: All browser tests passing**
+
+---
+
+## POST-COMPLETION (Step 5)
+
+### Documentation
+
+- [ ] 67. Create COMPLETION_WEEK_1.5_PHASE_4.md
+- [ ] 68. Update STATUS.md "Last Completed" section
+- [ ] 69. Update DEVELOPMENT_PLAN.md "Current Status"
+
+### Sub-Agent Invocations
+
+- [ ] 70. Invoke synthesize-docs (if new patterns created)
+- [ ] 71. Invoke map-system (update component-patterns.md)
+
+### Git Commits
+
+- [ ] 72. Stage documentation: .agent/ STATUS.md docs/
+- [ ] 73. Commit docs: "docs: Update documentation after Phase 4"
+- [ ] 74. Stage code files
+- [ ] 75. Commit code: "feat: Phase 4 responsive design & polish"
+
+### Quality Gates
+
+- [ ] 76. pnpm type-check (0 errors)
+- [ ] 77. pnpm lint (0 warnings)
+- [ ] 78. pnpm build (success)
+- [ ] 79. pnpm test (all passing)
+
+---
+
+## Progress Summary
+
+**Completed:** 0/79 tasks (0%)
+
+**Token Checkpoints:**
+
+- Next: 75K tokens
+- Then: 90K, 105K, 120K, 135K, 150K
+
+**Current Session:** 20251101-1615
+**Session File:** .agent/task/current-session-20251101-1615.md
+**Plan File:** .agent/task/current-plan.md
+
+---
+
+**Last Updated:** 2025-11-01 16:15
+**Next Update:** At 75K tokens checkpoint

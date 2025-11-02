@@ -73,7 +73,7 @@ At the start of **EVERY** session, copy-paste this:
 MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
 
 Current phase: [copy from STATUS.md]
-Requirements: [copy from DEVELOPMENT_PLAN.md]
+Requirements: [copy from docs/13-Project-Plan.md]
 
 ENFORCE:
 - ✅ Step 1: Initialize session
@@ -91,7 +91,7 @@ Proceed with [phase name].
 
 **STEP 1: INITIALIZATION**
 
-- Read STATUS.md and DEVELOPMENT_PLAN.md
+- Read STATUS.md and docs/13-Project-Plan.md
 - Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
 - **Confirm:** "✅ STEP 1 COMPLETE: Session initialized at [timestamp]"
 
@@ -118,7 +118,7 @@ Proceed with [phase name].
 **STEP 5: POST-COMPLETION**
 
 - Create COMPLETION\_[PHASE].md
-- Update STATUS.md and DEVELOPMENT_PLAN.md
+- Update STATUS.md and docs/13-Project-Plan.md
 - Invoke synthesize-docs (if new patterns)
 - Invoke map-system (if architecture changed)
 - Commit documentation, then code
@@ -302,7 +302,7 @@ To ensure no progress is ever lost, the protocol requires three levels of progre
 1. Create `current-session-[timestamp].md` (REQUIRED)
 2. Check if `current-todos.md` exists (resuming previous work?)
 3. If yes → Read todos and continue
-4. If no → Create new todos from DEVELOPMENT_PLAN.md (STEP 2)
+4. If no → Create new todos from docs/13-Project-Plan.md (STEP 2)
 
 **When creating plan (STEP 2)**:
 
@@ -325,7 +325,7 @@ To ensure no progress is ever lost, the protocol requires three levels of progre
 **After phase completion (STEP 5)**:
 
 1. Create COMPLETION\_[PHASE].md (REQUIRED)
-2. Update STATUS.md and DEVELOPMENT_PLAN.md (REQUIRED)
+2. Update STATUS.md and docs/13-Project-Plan.md (REQUIRED)
 3. Invoke synthesize-docs and map-system sub-agents (REQUIRED if patterns created or architecture changed)
 4. Commit documentation, then code (REQUIRED)
 5. Archive `current-todos.md` → `archive/phase-X-day-Y-todos-COMPLETE.md`
@@ -432,10 +432,10 @@ Step 4: Resume
 ### Session Start - Read in Order
 
 1. **[STATUS.md](STATUS.md)** - Current snapshot
-2. **[DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md)** - Detailed plan
-3. **This file** (CLAUDE.md) - Integration guide
-4. **[WORKFLOW_ARCHITECTURE.md](docs/WORKFLOW_ARCHITECTURE.md)** - Workflow
-5. **[.agent/README.md](.agent/README.md)** - Documentation index
+2. **[docs/13-Project-Plan.md](docs/13-Project-Plan.md)** - Implementation roadmap
+3. **[docs/README.md](docs/README.md)** - Complete documentation index
+4. **This file** (CLAUDE.md) - Integration guide
+5. **[.agent/README.md](.agent/README.md)** - Agent documentation
 
 **Then I automatically load skills/.agent/ docs based on phase keywords.**
 
@@ -496,7 +496,14 @@ Need progress overview?             → progress.md
 
 ### Finding Information
 
-**Looking for requirements?** → [.agent/project-brief.md](.agent/project-brief.md)
+**Project Documentation (Main):**
+**Looking for requirements?** → [docs/01-PRD.md](docs/01-PRD.md) or [docs/02-SRS.md](docs/02-SRS.md)
+**Looking for architecture?** → [docs/03-Architecture.md](docs/03-Architecture.md)
+**Looking for API spec?** → [docs/06-API/openapi.yaml](docs/06-API/openapi.yaml)
+**Looking for project plan?** → [docs/13-Project-Plan.md](docs/13-Project-Plan.md)
+**Looking for all docs?** → [docs/README.md](docs/README.md)
+
+**Agent Context (.agent/):**
 **Looking for patterns?** → [.agent/system-patterns.md](.agent/system-patterns.md)
 **Looking for tech details?** → [.agent/tech-context.md](.agent/tech-context.md)
 **Looking for current work?** → [.agent/active-context.md](.agent/active-context.md)
@@ -775,7 +782,7 @@ Me: [Generates SOP, updates .agent/ docs]
 
 1. Create completion doc (COMPLETION_TEMPLATE.md)
 2. Update STATUS.md
-3. Update DEVELOPMENT_PLAN.md
+3. Update docs/13-Project-Plan.md
 4. Commit and push
 
 **Optional - New** (when feature introduces new patterns): 5. Ask me to generate SOP:
@@ -822,7 +829,7 @@ Initialize or update .agent/ documentation system
 - [ ] pnpm dev shows port 3000
 - [ ] localhost:3000 loads application
 - [ ] On feature branch (not master)
-- [ ] Read STATUS.md + DEVELOPMENT_PLAN.md
+- [ ] Read STATUS.md + docs/13-Project-Plan.md
 - [ ] Check .agent/README.md for task context
 ```
 
@@ -861,10 +868,10 @@ Initialize or update .agent/ documentation system
 
 **Documentation**:
 
-1. [.agent/README.md](.agent/README.md) - Doc index
+1. [.agent/README.md](.agent/README.md) - Agent documentation index
 2. [STATUS.md](STATUS.md) - Current state
-3. [DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) - Full plan
-4. [WORKFLOW_ARCHITECTURE.md](docs/WORKFLOW_ARCHITECTURE.md) - Workflow
+3. [docs/13-Project-Plan.md](docs/13-Project-Plan.md) - Implementation roadmap
+4. [docs/README.md](docs/README.md) - Complete documentation index
 
 **Procedures**:
 
@@ -910,7 +917,7 @@ Initialize or update .agent/ documentation system
 
 ### What Stayed the Same?
 
-- Your workflow (STATUS.md → DEVELOPMENT_PLAN.md → work)
+- Your workflow (STATUS.md → docs/13-Project-Plan.md → work)
 - Git workflow rules
 - Port configuration checks
 - Gemini integration for deep analysis

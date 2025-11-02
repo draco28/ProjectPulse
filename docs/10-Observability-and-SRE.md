@@ -26,7 +26,7 @@ Moksha DevHub's observability strategy prioritizes **agent workflow visibility**
 
 1. **Token Budget Tracking**: Real-time monitoring of token consumption against 200K limit
 2. **Protocol Compliance**: Automated tracking of 5-step mandatory session protocol (target: >95% compliance)
-3. **MCP Tool Performance**: Per-tool metrics across 42 tools in 8 categories
+3. **MCP Tool Performance**: Per-tool metrics across 41 tools in 8 categories
 4. **Context Persistence**: Monitoring checkpoint creation at 15K token intervals
 
 ### Local Deployment Context
@@ -2257,7 +2257,7 @@ docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "moksha-"
 
 ### 10.8.1 MCP Tool Call Tracking
 
-**42 tools across 8 categories** require comprehensive tracking.
+**41 tools across 8 categories** require comprehensive tracking.
 
 #### Tool Categories
 

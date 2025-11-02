@@ -19,7 +19,7 @@ Moksha DevHub is an **agent-first project management platform** designed to enab
 
 **Primary Users:** AI Agents (95% of interactions)
 
-- Execute workflows via MCP tools (42 tools across 8 features)
+- Execute workflows via MCP tools (41 tools across 8 features)
 - Persistent state tracking enables context-free operation
 - Complete workflow execution without human intervention
 - Token-efficient context retrieval (92% reduction for skills, 88% for knowledge)
@@ -66,7 +66,7 @@ Moksha DevHub is an **agent-first project management platform** designed to enab
 - **Agent Type:** Any MCP-compatible agent (Claude Code, Cursor AI, Codex, Cascade)
 - **Skill Level:** Adaptive - learns system patterns over time
 - **Motivation:** VERY HIGH - uses app for "every bit of things required" in development workflow
-- **Integration:** MCP (Model Context Protocol) - stdio transport, 42 tools
+- **Integration:** MCP (Model Context Protocol) - stdio transport, 41 tools
 
 **Primary Goal:** Execute complete project workflows via MCP with persistent state tracking
 
