@@ -200,3 +200,52 @@ Complete plan saved to: `.agent/task/documentation-restructure-plan-20251102.md`
 - **33 Non-Functional Requirements** documented (NFR-001 to NFR-033)
 - **Complete Traceability:** Every FR mapped to PRD → Architecture → Tests → Backlog
 - **Progress:** Phase 2 Foundation - 3/6 documents complete (50%%)
+
+---
+
+## 🔄 Resume Instructions for Next Session
+
+**Copy-paste this into your next conversation:**
+
+```
+Resume documentation restructuring from session 20251102-2100.
+
+Current Status:
+- Branch: feature/docs-industry-grade-restructure
+- Progress: Phase 2 Foundation - 3/6 documents complete (50%)
+- Commits: 5 commits (archive + README + PRD + checkpoint + SRS)
+- Token budget used in previous session: 113K/200K (56.5%)
+
+Completed:
+✅ Phase 1: Archive (100%)
+✅ docs/README.md (204 lines)
+✅ docs/01-PRD.md (671 lines, 192% of target)
+✅ docs/02-SRS.md (3,656 lines, 305% of target - COMPREHENSIVE!)
+
+NEXT TASK: Create architecture/ADRs/ folder with 5 ADRs
+- ADR-001: Agent-First Architecture Decision
+- ADR-002: Database as Source of Truth
+- ADR-003: Workflow State Machine Design
+- ADR-004: Hybrid Search Strategy (RAG + Knowledge Graph)
+- ADR-005: Security and Autonomy Levels
+- Target: 395 lines total (5 ADRs × ~80 lines each)
+- Effort: 4 hours
+
+Instructions:
+1. Read session file: .agent/task/current-session-20251102-2100.md
+2. Read plan: .agent/task/documentation-restructure-plan-20251102.md (lines 562-692 for ADR templates)
+3. Reference: docs/01-PRD.md (for decisions context)
+4. Reference: docs/02-SRS.md (for technical details)
+
+Create all 5 ADRs following industry-grade ADR template (Context, Decision, Consequences, Alternatives).
+```
+
+**Session Summary:**
+
+- **Duration:** ~1.5 hours
+- **Documents Created:** 3 (README, PRD, SRS)
+- **Lines Written:** 4,531 lines total
+- **Requirements Documented:** 125 FRs + 33 NFRs
+- **Token Efficiency:** 56.5% of budget used for 50% of Phase 2
+
+**Next Milestone:** Complete Phase 2 Foundation (3 documents remaining: ADRs, Architecture, Data Model)
