@@ -453,7 +453,7 @@ Based on this analysis, if you need to:
 
 ## Project-Specific Knowledge
 
-**Moksha DevHub Architectural Patterns**:
+**ProjectPulse Architectural Patterns**:
 
 1. **Server Components First**: Default to React Server Components, use Client Components only for interactivity
 2. **API Routes for External Access**: MCP server calls API routes (not Server Actions)

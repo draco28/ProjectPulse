@@ -1,8 +1,8 @@
-# Executive Architecture Review — Moksha DevHub
+# Executive Architecture Review — ProjectPulse
 
 ## Executive Summary
 
-Moksha DevHub’s documentation presents a coherent, local-first platform built on Next.js 14 + PostgreSQL + Prisma with MCP-based automation and hybrid search. The core architectural choices are sound and align with your Golden Rules (SoT in docs/, MCP→API pattern, type safety, local-first). To move confidently from “production-ready docs” to an implementation with strong guardrails, tighten security for LAN exposure, formalize validation and testing gates, parameterize search/config, and harden helper-process execution. Minor inconsistencies in docs and a few operational gaps (CI, backups policy, observability) should be addressed early.
+ProjectPulse’s documentation presents a coherent, local-first platform built on Next.js 14 + PostgreSQL + Prisma with MCP-based automation and hybrid search. The core architectural choices are sound and align with your Golden Rules (SoT in docs/, MCP→API pattern, type safety, local-first). To move confidently from “production-ready docs” to an implementation with strong guardrails, tighten security for LAN exposure, formalize validation and testing gates, parameterize search/config, and harden helper-process execution. Minor inconsistencies in docs and a few operational gaps (CI, backups policy, observability) should be addressed early.
 
 ## Strengths
 

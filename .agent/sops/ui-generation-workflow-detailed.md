@@ -6,9 +6,9 @@
 
 **Related Files**:
 
-- [.claude/skills/moksha-devhub/ui-generation-workflow.md](../../.claude/skills/moksha-devhub/ui-generation-workflow.md) - Compact skill file
-- [.claude/skills/moksha-devhub/ascii-wireframes.md](../../.claude/skills/moksha-devhub/ascii-wireframes.md) - Wireframe library
-- [.claude/skills/moksha-devhub/animation-patterns.md](../../.claude/skills/moksha-devhub/animation-patterns.md) - Animation patterns
+- [.claude/skills/projectpulse/ui-generation-workflow.md](../../.claude/skills/projectpulse/ui-generation-workflow.md) - Compact skill file
+- [.claude/skills/projectpulse/ascii-wireframes.md](../../.claude/skills/projectpulse/ascii-wireframes.md) - Wireframe library
+- [.claude/skills/projectpulse/animation-patterns.md](../../.claude/skills/projectpulse/animation-patterns.md) - Animation patterns
 
 ---
 
@@ -22,7 +22,7 @@
 6. [Best Practices](#best-practices)
 7. [Anti-Patterns](#anti-patterns)
 8. [Troubleshooting](#troubleshooting)
-9. [Integration with Moksha DevHub](#integration-with-moksha-devhub)
+9. [Integration with ProjectPulse](#integration-with-projectpulse)
 10. [Real Examples](#real-examples)
 
 ---
@@ -820,7 +820,7 @@ color: #ff8b6a; /* Hard-coded */
 
 ---
 
-## Integration with Moksha DevHub
+## Integration with ProjectPulse
 
 ### How This Workflow Fits Our Project
 
@@ -832,7 +832,7 @@ color: #ff8b6a; /* Hard-coded */
    - Mockups showing target visual style
 
 2. **Component Patterns** (Next.js conventions)
-   - `.claude/skills/moksha-devhub/component-patterns.md`
+   - `.claude/skills/projectpulse/component-patterns.md`
    - Server/Client Component guidelines
    - TypeScript typing standards
 
@@ -1039,4 +1039,4 @@ The 4-step UI generation workflow transforms how we build UI:
 
 ---
 
-**Ready to use?** Start with [.claude/skills/moksha-devhub/ui-generation-workflow.md](../../.claude/skills/moksha-devhub/ui-generation-workflow.md) for quick reference, or use this guide for deep dives.
+**Ready to use?** Start with [.claude/skills/projectpulse/ui-generation-workflow.md](../../.claude/skills/projectpulse/ui-generation-workflow.md) for quick reference, or use this guide for deep dives.

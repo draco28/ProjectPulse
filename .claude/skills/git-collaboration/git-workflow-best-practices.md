@@ -1,16 +1,16 @@
 ---
 name: Git Workflow Best Practices (DevHub)
-description: Professional Git branching strategy, commit conventions, and collaboration workflow for Moksha DevHub
+description: Professional Git branching strategy, commit conventions, and collaboration workflow for ProjectPulse
 category: git-collaboration
 version: 1.0
-project: Moksha DevHub (AI_HUB)
+project: ProjectPulse (AI_HUB)
 ---
 
 # Git Workflow Best Practices
 
 ## Overview
 
-This skill provides comprehensive Git workflow guidance for the Moksha DevHub project, including branching strategies, commit conventions, and collaboration patterns used by senior developers.
+This skill provides comprehensive Git workflow guidance for the ProjectPulse project, including branching strategies, commit conventions, and collaboration patterns used by senior developers.
 
 ## Core Principles
 

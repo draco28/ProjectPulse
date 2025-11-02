@@ -195,7 +195,7 @@ export function IssueCard({ issue }) {
 // - Extract sub-components
 ```
 
-**See**: [.claude/skills/moksha-devhub/testing-patterns.md](.claude/skills/moksha-devhub/testing-patterns.md) for full examples
+**See**: [.claude/skills/projectpulse/testing-patterns.md](.claude/skills/projectpulse/testing-patterns.md) for full examples
 
 ---
 
@@ -437,7 +437,7 @@ Claude: [Analyzes your webhook implementation]
 2. Analyzes 5-10 recent implementations of [topic]
 3. Extracts 3-5 consistent patterns
 4. Invokes `synthesize-docs` to create skill
-5. Saves skill to `.claude/skills/moksha-devhub/[topic].md` (50-280 tokens)
+5. Saves skill to `.claude/skills/projectpulse/[topic].md` (50-280 tokens)
 6. Updates skill index
 
 **Result:** Token-efficient skill (90-95% smaller than SOP)
@@ -1236,7 +1236,7 @@ Read .agent/task/current-session-[timestamp].md and continue
 - [CLAUDE.md](../CLAUDE.md) - Integration guide
 - [WORKFLOW_ENHANCEMENT_SUMMARY.md](WORKFLOW_ENHANCEMENT_SUMMARY.md) - System architecture
 - [SIMPLE_GEMINI_WORKFLOW.md](../SIMPLE_GEMINI_WORKFLOW.md) - Gemini integration
-- [.claude/skills/moksha-devhub/README.md](../.claude/skills/moksha-devhub/README.md) - Skills catalog
+- [.claude/skills/projectpulse/README.md](../.claude/skills/projectpulse/README.md) - Skills catalog
 
 ---
 

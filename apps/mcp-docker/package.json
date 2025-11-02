@@ -9,8 +9,12 @@
     "dev": "tsc --watch",
     "start": "node dist/index.js"
   },
-  "keywords": ["mcp", "docker", "devhub"],
-  "author": "Moksha DevHub",
+  "keywords": [
+    "mcp",
+    "docker",
+    "devhub"
+  ],
+  "author": "ProjectPulse",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"

@@ -31,7 +31,7 @@
 
 ### 1.1 Purpose
 
-This Product Backlog defines all user stories for the Moksha DevHub project, organized into 8 epics corresponding to the MVP features defined in [01-PRD.md](01-PRD.md). Each of the 125 user stories maps 1:1 to a Functional Requirement (FR-001 to FR-125) documented in [02-SRS.md](02-SRS.md).
+This Product Backlog defines all user stories for the ProjectPulse project, organized into 8 epics corresponding to the MVP features defined in [01-PRD.md](01-PRD.md). Each of the 125 user stories maps 1:1 to a Functional Requirement (FR-001 to FR-125) documented in [02-SRS.md](02-SRS.md).
 
 **Key Objectives:**
 

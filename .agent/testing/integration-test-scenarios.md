@@ -402,13 +402,13 @@ Validate auto-skill generation from codebase patterns.
 ✅ Sub-agent reads pattern report
 ✅ Sub-agent creates token-efficient skill (<280 tokens)
 ✅ Sub-agent includes: pattern description, steps, example, links
-✅ Sub-agent saves to .claude/skills/moksha-devhub/api-validation.skill.md
+✅ Sub-agent saves to .claude/skills/projectpulse/api-validation.skill.md
 ```
 
 **Step 3: Update Index**
 
 ```
-✅ Update .claude/skills/moksha-devhub/README.md
+✅ Update .claude/skills/projectpulse/README.md
 ✅ Add new skill to appropriate category
 ✅ Document token count and savings
 ✅ Calculate: skill tokens vs full doc tokens
@@ -457,7 +457,7 @@ Validate skill refresh mechanism detects outdated patterns.
 **Step 1: Read Current Skill**
 
 ```
-✅ Read .claude/skills/moksha-devhub/api-patterns.md
+✅ Read .claude/skills/projectpulse/api-patterns.md
 ✅ Extract patterns mentioned in skill
 ✅ Note: Skill mentions "fetch()" for API calls
 ```

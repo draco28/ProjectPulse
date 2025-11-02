@@ -1,6 +1,6 @@
 # Cascade Integration - Executive Summary
 
-**Project:** Moksha DevHub  
+**Project:** ProjectPulse  
 **Prepared for:** Migration from Claude Code to Windsurf Cascade  
 **Date:** 2025-10-28  
 **Status:** ✅ Planning Complete - Ready for Implementation

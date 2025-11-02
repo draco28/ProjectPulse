@@ -2,7 +2,7 @@
 
 **Purpose**: Measure token usage across different optimization strategies
 **Created**: 2025-10-26
-**For**: Moksha DevHub Skills System
+**For**: ProjectPulse Skills System
 
 ---
 

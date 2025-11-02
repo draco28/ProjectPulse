@@ -26,7 +26,7 @@
   },
   "outputStyle": "Explanatory",
   "settings": {
-    "project_name": "Moksha DevHub (AI_HUB)",
+    "project_name": "ProjectPulse (AI_HUB)",
     "default_agent": "devhub-architect",
     "auto_save_session": true,
     "verbose_routing": true

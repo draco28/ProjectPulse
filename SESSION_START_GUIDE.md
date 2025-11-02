@@ -1,4 +1,4 @@
-# New Session Start Guide - Moksha DevHub
+# New Session Start Guide - ProjectPulse
 
 **Purpose:** This is your starting point for EVERY new Claude Code conversation to avoid context loss.
 
@@ -12,7 +12,7 @@
 
 ```
 Read SESSION_START_GUIDE.md and STATUS.md to get up to speed.
-Then continue with Moksha DevHub development from where we left off.
+Then continue with ProjectPulse development from where we left off.
 ```
 
 **Option 2: Start Specific Task**
@@ -434,4 +434,4 @@ Explicitly specify: "Use devhub-[agent-name] agent to..."
 
 **🚀 Ready to start? Just say:**
 
-> "Read SESSION_START_GUIDE.md and STATUS.md, then continue with Moksha DevHub."
+> "Read SESSION_START_GUIDE.md and STATUS.md, then continue with ProjectPulse."

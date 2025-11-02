@@ -525,7 +525,7 @@ Every document has **copy-paste ready** content - no guesswork needed
 
 **Created:** 2025-10-28  
 **By:** Cascade AI (Windsurf IDE)  
-**For:** Moksha DevHub Cascade Integration  
+**For:** ProjectPulse Cascade Integration  
 **Status:** ✅ Planning complete - Implementation ready
 
 ---

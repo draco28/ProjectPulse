@@ -1,4 +1,4 @@
-# Cascade Integration Plan for Moksha DevHub
+# Cascade Integration Plan for ProjectPulse
 
 **Version:** 1.0  
 **Date:** 2025-10-28  
@@ -48,7 +48,7 @@ Replace Claude Code with Windsurf Cascade while maintaining sophisticated agent 
 
 ### 2. Skills System (24 Skills = 74% Token Reduction)
 
-**Categories:** Debugging (2), Testing (2), Validation (2), Architecture (1), Documentation (1), Git (1), Moksha DevHub (15)
+**Categories:** Debugging (2), Testing (2), Validation (2), Architecture (1), Documentation (1), Git (1), ProjectPulse (15)
 
 **Auto-loading:** Based on keywords in phase description
 

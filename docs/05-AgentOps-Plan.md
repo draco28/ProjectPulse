@@ -37,7 +37,7 @@
 
 ### 1.1 Purpose
 
-The **AgentOps Plan** defines the operational framework for AI agent workflows in Moksha DevHub. This document ensures:
+The **AgentOps Plan** defines the operational framework for AI agent workflows in ProjectPulse. This document ensures:
 
 - **Consistency:** All agents follow standardized 5-step protocol
 - **Traceability:** Every action is logged and traceable
@@ -53,7 +53,7 @@ The **AgentOps Plan** defines the operational framework for AI agent workflows i
 
 ### 1.2 Agent-First Philosophy
 
-Moksha DevHub is built **agent-first** (not UI-first):
+ProjectPulse is built **agent-first** (not UI-first):
 
 - **Primary User:** AI Agent (95% of interactions)
 - **Secondary User:** Human Developer (5% oversight)
@@ -85,7 +85,7 @@ See [ADR-001: Agent-First Architecture](architecture/ADRs/ADR-001-agent-first-ar
 
 ### 2.1 Overview
 
-Moksha DevHub provides **42 MCP tools** across **8 functional categories**:
+ProjectPulse provides **42 MCP tools** across **8 functional categories**:
 
 1. **Sprint/Phase Tracking** (7 tools) - FR-001 to FR-025
 2. **Workflow Orchestration** (5 tools) - FR-026 to FR-050
@@ -1743,7 +1743,7 @@ stateDiagram-v2
 
 ### 4.1 Overview
 
-Moksha DevHub uses **multi-layered context management** to minimize token usage while maximizing agent knowledge:
+ProjectPulse uses **multi-layered context management** to minimize token usage while maximizing agent knowledge:
 
 1. **Memory Bank Files** (.agent/) - Structured context (~3-5K tokens per file)
 2. **Skills** - Lazy-loaded framework docs (~220 tokens per skill vs 2,500)
@@ -1984,7 +1984,7 @@ Checkpoints prevent work loss during:
 
 ### 6.1 Overview
 
-Moksha DevHub uses **sub-agents** to keep main conversation clean and minimize token usage:
+ProjectPulse uses **sub-agents** to keep main conversation clean and minimize token usage:
 
 **Research Agents** (during planning):
 
@@ -2281,7 +2281,7 @@ Process for creating 10-50 issues from automated scan results.
 
 ### 7.1 Error Categories
 
-Moksha DevHub handles **4 categories** of errors:
+ProjectPulse handles **4 categories** of errors:
 
 1. **Validation Errors** (400) - Invalid input (title too long, invalid status)
 2. **Authorization Errors** (403) - Autonomy level insufficient
@@ -2453,7 +2453,7 @@ await mcp.call('issues.create', { title: "Test", priority: "P0" });
 
 ### 8.1 Overview
 
-Moksha DevHub achieves **85-92% token reduction** through:
+ProjectPulse achieves **85-92% token reduction** through:
 
 1. **Skills:** 92% reduction (220 tokens vs 2,500)
 2. **Knowledge:** 88% reduction (1,200 tokens vs 10,000)

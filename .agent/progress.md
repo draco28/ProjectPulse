@@ -1,6 +1,6 @@
 # Progress Tracker
 
-**Project**: Moksha DevHub
+**Project**: ProjectPulse
 **Last Updated**: 2025-10-29
 **Overall Completion**: ~33% (Week 1.5 Day 4 of 8 / 8 weeks total)
 

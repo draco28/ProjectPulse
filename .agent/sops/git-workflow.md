@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Standard Git workflow for Moksha DevHub to prevent common mistakes, maintain clean history, and ensure code quality through proper branching strategy.
+Standard Git workflow for ProjectPulse to prevent common mistakes, maintain clean history, and ensure code quality through proper branching strategy.
 
 ## When to Use
 

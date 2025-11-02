@@ -1,6 +1,6 @@
 ---
 name: moksha-animation-patterns
-description: Animation patterns and keyframe definitions for Moksha DevHub Dark Neumorphic Coral theme. Use for Step 3 of ui-generation-workflow to define micro-interactions before implementation.
+description: Animation patterns and keyframe definitions for ProjectPulse Dark Neumorphic Coral theme. Use for Step 3 of ui-generation-workflow to define micro-interactions before implementation.
 triggers: ['animation', 'interaction', 'transition', 'micro-interaction']
 token_estimate: 180
 last_updated: 2025-10-27

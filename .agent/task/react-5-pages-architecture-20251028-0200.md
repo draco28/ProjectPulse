@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This plan provides React 18+ component architecture for 5 complex pages in Moksha DevHub, following established patterns from the Issues pages while introducing new patterns for TOC scroll spy, keyboard navigation, and optimistic UI updates.
+This plan provides React 18+ component architecture for 5 complex pages in ProjectPulse, following established patterns from the Issues pages while introducing new patterns for TOC scroll spy, keyboard navigation, and optimistic UI updates.
 
 **Key Architectural Decisions**:
 

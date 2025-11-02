@@ -1,6 +1,6 @@
 # Industry-Grade Documentation Restructuring Plan
 
-**Project:** Moksha DevHub - Agent-First Architecture
+**Project:** ProjectPulse - Agent-First Architecture
 **Created:** 2025-11-02
 **Status:** Approved - Ready for Execution
 **Estimated Effort:** 60 hours across 3 weeks
@@ -60,8 +60,8 @@ docs/
     └── ui-first-phase/
         ├── README.md
         ├── DEVELOPMENT_PLAN_v1.5_ARCHIVED.md
-        ├── PLANNING_PHASES_moksha-devhub-agent-first.md
-        ├── IMPLEMENTATION_ROADMAP_moksha-devhub.md
+        ├── PLANNING_PHASES_projectpulse-agent-first.md
+        ├── IMPLEMENTATION_ROADMAP_projectpulse.md
         └── COMPLETION_*.md
 ```
 
@@ -162,8 +162,8 @@ docs/
 
    ```bash
    # Move planning documents from root
-   git mv PLANNING_PHASES_moksha-devhub-agent-first.md docs/archive/ui-first-phase/
-   git mv IMPLEMENTATION_ROADMAP_moksha-devhub.md docs/archive/ui-first-phase/
+   git mv PLANNING_PHASES_projectpulse-agent-first.md docs/archive/ui-first-phase/
+   git mv IMPLEMENTATION_ROADMAP_projectpulse.md docs/archive/ui-first-phase/
 
    # Copy DEVELOPMENT_PLAN.md (don't delete yet - will be replaced)
    cp docs/DEVELOPMENT_PLAN.md docs/archive/ui-first-phase/DEVELOPMENT_PLAN_v1.5_ARCHIVED.md
@@ -195,7 +195,7 @@ docs/
 **Content:**
 
 ```markdown
-# Moksha DevHub Documentation
+# ProjectPulse Documentation
 
 **Architecture:** Agent-First Project Management Platform
 **Version:** 2.0.0
@@ -205,7 +205,7 @@ docs/
 
 ## Overview
 
-Moksha DevHub is an agent-first project management platform designed for AI agents (Claude Code, Cursor AI, Codex) to manage software development workflows with 95% automation via MCP (Model Context Protocol).
+ProjectPulse is an agent-first project management platform designed for AI agents (Claude Code, Cursor AI, Codex) to manage software development workflows with 95% automation via MCP (Model Context Protocol).
 
 **Primary Users:** AI Agents (95% interaction via MCP)
 **Secondary Users:** Solo/small team developers (5% monitoring via UI)
@@ -745,8 +745,8 @@ Planning session (2025-11-02) revealed opportunities for comprehensive agent aut
 
 ## References
 
-- Planning session: PLANNING_PHASES_moksha-devhub-agent-first.md (archived)
-- Implementation roadmap: IMPLEMENTATION_ROADMAP_moksha-devhub.md (archived)
+- Planning session: PLANNING_PHASES_projectpulse-agent-first.md (archived)
+- Implementation roadmap: IMPLEMENTATION_ROADMAP_projectpulse.md (archived)
 - Week 1.5 completion: docs/archive/ui-first-phase/
 - Product vision: docs/01-PRD.md
 
@@ -1015,16 +1015,16 @@ Need to expose 42 MCP tools across 8 core features.
 
 ## Decision
 
-**Implement a single MCP server (`moksha-devhub`) exposing all 42 tools.**
+**Implement a single MCP server (`projectpulse`) exposing all 42 tools.**
 
 **Configuration (Claude Code example):**
 
 ```json
 {
   "mcpServers": {
-    "moksha-devhub": {
+    "projectpulse": {
       "command": "node",
-      "args": ["path/to/moksha-devhub-mcp/build/index.js"],
+      "args": ["path/to/projectpulse-mcp/build/index.js"],
       "env": { "DATABASE_URL": "postgresql://..." }
     }
   }

@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2025-11-02
-**Decision Makers:** Moksha DevHub Development Team
+**Decision Makers:** ProjectPulse Development Team
 **Consulted:** Planning session analysis
 
 ---
@@ -35,16 +35,16 @@ Need to expose 42 MCP tools across 8 core features.
 
 ## Decision
 
-**Implement a single MCP server (`moksha-devhub`) exposing all 41 tools.**
+**Implement a single MCP server (`projectpulse`) exposing all 41 tools.**
 
 **Configuration (Claude Code example):**
 
 ```json
 {
   "mcpServers": {
-    "moksha-devhub": {
+    "projectpulse": {
       "command": "node",
-      "args": ["path/to/moksha-devhub-mcp/build/index.js"],
+      "args": ["path/to/projectpulse-mcp/build/index.js"],
       "env": { "DATABASE_URL": "postgresql://..." }
     }
   }

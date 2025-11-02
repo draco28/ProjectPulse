@@ -1,6 +1,6 @@
 ---
 name: moksha-database-patterns
-description: Prisma ORM patterns for Moksha DevHub using PostgreSQL 16. Use when querying database, creating migrations, or working with models and relations.
+description: Prisma ORM patterns for ProjectPulse using PostgreSQL 16. Use when querying database, creating migrations, or working with models and relations.
 triggers:
   ['prisma', 'database query', 'schema', 'migration', 'findMany', 'create', 'update', 'delete']
 token_estimate: 200

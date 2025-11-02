@@ -21,8 +21,8 @@ Verify that Claude can generate a skill file when explicitly requested via slash
    - Sub-agent analyzes recent API implementations
    - Sub-agent identifies Zod validation patterns
    - Sub-agent creates token-efficient skill file (50-280 tokens)
-   - Claude saves to `.claude/skills/moksha-devhub/api-validation.skill.md`
-   - Claude updates `.claude/skills/moksha-devhub/README.md`
+   - Claude saves to `.claude/skills/projectpulse/api-validation.skill.md`
+   - Claude updates `.claude/skills/projectpulse/README.md`
    - Claude reports token savings
 
 ### Success Criteria
@@ -200,7 +200,7 @@ Found 3 consistent patterns across 8 API routes.
 Claude: "Skill generation complete!
 
          Created:
-         - .claude/skills/moksha-devhub/api-validation.skill.md (220 tokens)
+         - .claude/skills/projectpulse/api-validation.skill.md (220 tokens)
 
          Token Savings:
          - Skill: 220 tokens
@@ -271,7 +271,7 @@ Verify that the skill index (README.md) is properly maintained.
 ### Steps
 
 1. Generate multiple skills via `/update-doc skill [topic]`
-2. Check that each skill is added to `.claude/skills/moksha-devhub/README.md`
+2. Check that each skill is added to `.claude/skills/projectpulse/README.md`
 3. Verify categorization and token counts
 
 ### Success Criteria
@@ -286,7 +286,7 @@ Verify that the skill index (README.md) is properly maintained.
 ### Expected Index Structure
 
 ```markdown
-# Moksha DevHub Skills
+# ProjectPulse Skills
 
 Quick reference patterns for common tasks. Each skill is token-efficient (50-280 tokens) and links to comprehensive documentation.
 
@@ -344,7 +344,7 @@ Verify that Claude knows when to use skills vs full SOPs.
 
 ### Success Criteria
 
-- ✅ Claude checks `.claude/skills/moksha-devhub/` at session start
+- ✅ Claude checks `.claude/skills/projectpulse/` at session start
 - ✅ Loads skills matching current phase keywords
 - ✅ Uses skill for quick reference during implementation
 - ✅ Falls back to full SOP when skill doesn't exist
@@ -360,7 +360,7 @@ STATUS.md shows: Phase 3.2 - Implement POST /api/issues endpoint
 
 Claude: [Parses STATUS.md]
         [Keywords detected: "API endpoint"]
-        [Checks .claude/skills/moksha-devhub/]
+        [Checks .claude/skills/projectpulse/]
         [Finds: api-validation.skill.md, api-error-handling.skill.md]
         [Loads both skills: 220 + 180 = 400 tokens]
 
@@ -378,7 +378,7 @@ Scenario B: No skill exists
 User: "Implement database migration for new agent_personas table"
 
 Claude: [Keywords detected: "database migration"]
-        [Checks .claude/skills/moksha-devhub/]
+        [Checks .claude/skills/projectpulse/]
         [No matching skill found]
         [Falls back to full SOP]
         [Reads .agent/sops/database-migrations.md (3,200 tokens)]

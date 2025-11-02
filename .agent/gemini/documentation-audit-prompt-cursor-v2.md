@@ -1,14 +1,14 @@
 # Documentation Audit Prompt for Cursor AI - v2.0 (Post-Option B)
 
 **Date**: 2025-10-26
-**Purpose**: Comprehensive audit of Moksha DevHub documentation for workflow automation compatibility after implementing Memory Bank + TDD + Dependency Mapping (Option B)
+**Purpose**: Comprehensive audit of ProjectPulse documentation for workflow automation compatibility after implementing Memory Bank + TDD + Dependency Mapping (Option B)
 **Auditor**: Cursor AI (GPT-4 or Claude)
 
 ---
 
 ## Instructions for Cursor AI
 
-You are auditing the Moksha DevHub project documentation to ensure it fully supports automated workflow with Claude Code. This audit checks the **NEW Memory Bank system, TDD workflow, and Dependency Mapping** implemented in Option B.
+You are auditing the ProjectPulse project documentation to ensure it fully supports automated workflow with Claude Code. This audit checks the **NEW Memory Bank system, TDD workflow, and Dependency Mapping** implemented in Option B.
 
 **Your Task:**
 
@@ -216,7 +216,7 @@ Tasks:
 
 ### Skills Catalog (7 Skills)
 
-**Location**: `.claude/skills/moksha-devhub/`
+**Location**: `.claude/skills/projectpulse/`
 
 1. **component-patterns** (220 tokens)
    - Triggers: "React component", "Server Component", "Client Component", "useState", "useEffect"
@@ -268,7 +268,7 @@ Tasks:
 
 ✅ **PASS Criteria:**
 
-- All 7 skills exist in .claude/skills/moksha-devhub/
+- All 7 skills exist in .claude/skills/projectpulse/
 - Each skill has valid YAML frontmatter
 - testing-patterns.md includes TDD section (320 tokens)
 - STATUS.md current phase has 5+ skill triggers
@@ -424,16 +424,16 @@ Tasks:
 
 ### Skills (MUST REVIEW)
 
-11. **.claude/skills/moksha-devhub/testing-patterns.md**
+11. **.claude/skills/projectpulse/testing-patterns.md**
     - **CRITICAL**: TDD section exists and complete
     - "For ALL tasks" statement present
     - TDD workflow (RED → GREEN → REFACTOR)
     - TDD examples for API and components
     - Token estimate: 320 tokens (was 240)
 
-12. **.claude/skills/moksha-devhub/component-patterns.md**
-13. **.claude/skills/moksha-devhub/database-patterns.md**
-14. **.claude/skills/moksha-devhub/api-patterns.md**
+12. **.claude/skills/projectpulse/component-patterns.md**
+13. **.claude/skills/projectpulse/database-patterns.md**
+14. **.claude/skills/projectpulse/api-patterns.md**
 
 ### System Docs (REVIEW IF CHANGED)
 
@@ -938,7 +938,7 @@ Check documentation links:
 **Check these files exist and are complete!**
 
 **2. TDD for ALL Tasks** - Updated TODAY:
-- .claude/skills/moksha-devhub/testing-patterns.md
+- .claude/skills/projectpulse/testing-patterns.md
   * Should have TDD section at top
   * Should say "For ALL tasks" not "for complex tasks"
   * Should have token_estimate: 320 (not 240)

@@ -1,6 +1,6 @@
 # System Architecture
 
-**Project:** Moksha DevHub
+**Project:** ProjectPulse
 **Version:** 2.0.0 (Agent-First Architecture)
 **Created:** 2025-11-02
 **Status:** Active
@@ -10,7 +10,7 @@
 
 ## Document Purpose
 
-This document describes the complete system architecture of Moksha DevHub, an agent-first project management platform. The architecture is designed to support AI agents as primary users (95% interaction via MCP) with humans as secondary users (5% monitoring via UI).
+This document describes the complete system architecture of ProjectPulse, an agent-first project management platform. The architecture is designed to support AI agents as primary users (95% interaction via MCP) with humans as secondary users (5% monitoring via UI).
 
 **Architecture Principles:**
 
@@ -49,16 +49,16 @@ This document describes the complete system architecture of Moksha DevHub, an ag
 
 ### 1.1 System Context Diagram
 
-The system context shows Moksha DevHub's position in the development ecosystem and its primary interactions with external actors.
+The system context shows ProjectPulse's position in the development ecosystem and its primary interactions with external actors.
 
 ```mermaid
 C4Context
-    title System Context - Moksha DevHub (Agent-First Project Management)
+    title System Context - ProjectPulse (Agent-First Project Management)
 
     Person(agent, "AI Agent", "Claude Code, Cursor AI, Codex, Cascade<br/>Primary User (95% interaction)")
     Person(developer, "Solo Developer", "Human monitoring and manual operations<br/>Secondary User (5% interaction)")
 
-    System_Boundary(devhub, "Moksha DevHub") {
+    System_Boundary(devhub, "ProjectPulse") {
         System(mcp_server, "MCP Server", "41 tools across 8 features<br/>stdio transport")
         System(web_app, "Next.js Web App", "Monitoring dashboard + Manual CRUD<br/>React Server Components")
         SystemDb(database, "PostgreSQL", "Single source of truth<br/>Prisma ORM")
@@ -239,12 +239,12 @@ The container architecture shows the three main runtime containers and their int
 
 ```mermaid
 C4Container
-    title Container Architecture - Moksha DevHub
+    title Container Architecture - ProjectPulse
 
     Person(agent, "AI Agent", "Primary user (95%)")
     Person(developer, "Developer", "Secondary user (5%)")
 
-    Container_Boundary(devhub, "Moksha DevHub") {
+    Container_Boundary(devhub, "ProjectPulse") {
         Container(mcp_server, "MCP Server", "Node.js, TypeScript", "42 MCP tools<br/>stdio transport<br/>Zod validation")
 
         Container(web_app, "Next.js App", "React 18, Next.js 14 App Router", "Server Components<br/>Client Components<br/>shadcn/ui")
@@ -1896,7 +1896,7 @@ sequenceDiagram
 
 ### 5.1 Local Development Architecture
 
-**Moksha DevHub is designed for local-first development ($0 budget constraint):**
+**ProjectPulse is designed for local-first development ($0 budget constraint):**
 
 ```mermaid
 C4Deployment
@@ -2354,7 +2354,7 @@ async function trackTokenUsage(operation: string, tokenCost: number) {
 // claude_desktop_config.json
 {
   "mcpServers": {
-    "moksha-devhub": {
+    "projectpulse": {
       "command": "node",
       "args": ["F:/Web_Projects/AI_HUB/mcp-server/build/index.js"],
       "env": {
@@ -2785,7 +2785,7 @@ All architecture decisions are documented in **Architecture Decision Records (AD
 
 ### 12.1 Architecture Summary
 
-**Moksha DevHub** is an agent-first project management platform with a unique architecture optimized for AI agents:
+**ProjectPulse** is an agent-first project management platform with a unique architecture optimized for AI agents:
 
 1. **Primary Interface:** MCP tools (41 tools, stdio transport)
 2. **Secondary Interface:** Next.js web UI (monitoring and manual CRUD)

@@ -1,5 +1,6 @@
 # COMPLETE IMPLEMENTATION GUIDE
-## Moksha DevHub - Final Documentation
+
+## ProjectPulse - Final Documentation
 
 **This document consolidates:** MCP Specification, Implementation Guide, UI Architecture, and Agent Personas  
 **Version:** 1.0 Final  
@@ -23,6 +24,7 @@
 ### Issue Management Tools
 
 #### 1. create_issue
+
 **Purpose:** Create a new issue
 
 ```typescript
@@ -34,8 +36,8 @@
     properties: {
       title: { type: "string", description: "Issue title" },
       description: { type: "string", description: "Detailed description (Markdown)" },
-      priority: { 
-        type: "string", 
+      priority: {
+        type: "string",
         enum: ["low", "medium", "high", "critical"],
         default: "medium"
       },
@@ -53,6 +55,7 @@
 ```
 
 **Implementation:**
+
 ```typescript
 // MCP Server
 async function createIssue(args) {
@@ -64,16 +67,15 @@ async function createIssue(args) {
     labels: args.labels || [],
     customFields: args.customFields || {},
   });
-  
+
   return {
-    content: [
-      { type: 'text', text: `Created issue #${response.data.id}: ${response.data.title}` }
-    ]
+    content: [{ type: 'text', text: `Created issue #${response.data.id}: ${response.data.title}` }],
   };
 }
 ```
 
 #### 2. search_issues
+
 ```typescript
 {
   name: "search_issues",
@@ -91,6 +93,7 @@ async function createIssue(args) {
 ```
 
 #### 3. update_issue
+
 ```typescript
 {
   name: "update_issue",
@@ -109,6 +112,7 @@ async function createIssue(args) {
 ```
 
 #### 4. add_comment
+
 ```typescript
 {
   name: "add_comment",
@@ -124,6 +128,7 @@ async function createIssue(args) {
 ```
 
 #### 5. link_issue_to_files
+
 ```typescript
 {
   name: "link_issue_to_files",
@@ -139,6 +144,7 @@ async function createIssue(args) {
 ```
 
 #### 6. link_issue_to_commit
+
 ```typescript
 {
   name: "link_issue_to_commit",
@@ -156,6 +162,7 @@ async function createIssue(args) {
 ### Knowledge Base Tools
 
 #### 7. store_knowledge
+
 ```typescript
 {
   name: "store_knowledge",
@@ -173,6 +180,7 @@ async function createIssue(args) {
 ```
 
 #### 8. search_knowledge
+
 ```typescript
 {
   name: "search_knowledge",
@@ -190,6 +198,7 @@ async function createIssue(args) {
 ```
 
 #### 9. retrieve_knowledge
+
 ```typescript
 {
   name: "retrieve_knowledge",
@@ -205,6 +214,7 @@ async function createIssue(args) {
 ### Wiki Tools
 
 #### 10. create_wiki_page
+
 ```typescript
 {
   name: "create_wiki_page",
@@ -221,6 +231,7 @@ async function createIssue(args) {
 ```
 
 #### 11. read_wiki_page
+
 ```typescript
 {
   name: "read_wiki_page",
@@ -234,6 +245,7 @@ async function createIssue(args) {
 ```
 
 #### 12. search_wiki
+
 ```typescript
 {
   name: "search_wiki",
@@ -248,6 +260,7 @@ async function createIssue(args) {
 ```
 
 #### 13. query_sot_rules
+
 ```typescript
 {
   name: "query_sot_rules",
@@ -264,6 +277,7 @@ async function createIssue(args) {
 ### Security Tools
 
 #### 14. run_security_scan
+
 ```typescript
 {
   name: "run_security_scan",
@@ -278,6 +292,7 @@ async function createIssue(args) {
 ```
 
 #### 15. get_security_findings
+
 ```typescript
 {
   name: "get_security_findings",
@@ -294,6 +309,7 @@ async function createIssue(args) {
 ### Helper Script Tools
 
 #### 16. execute_helper_script
+
 ```typescript
 {
   name: "execute_helper_script",
@@ -301,7 +317,7 @@ async function createIssue(args) {
     properties: {
       scriptPath: { type: "string" },
       args: { type: "array", items: { type: "string" } },
-      tier: { 
+      tier: {
         type: "string",
         enum: ["read_only", "create_issues", "direct"],
         default: "read_only"
@@ -315,13 +331,14 @@ async function createIssue(args) {
 ### Search & Reports
 
 #### 17. hybrid_search
+
 ```typescript
 {
   name: "hybrid_search",
   inputSchema: {
     properties: {
       query: { type: "string" },
-      types: { 
+      types: {
         type: "array",
         items: { type: "string", enum: ["issues", "knowledge", "wiki"] },
         default: ["issues", "knowledge", "wiki"]
@@ -334,12 +351,13 @@ async function createIssue(args) {
 ```
 
 #### 18. generate_report
+
 ```typescript
 {
   name: "generate_report",
   inputSchema: {
     properties: {
-      type: { 
+      type: {
         type: "string",
         enum: ["module_health", "bug_summary", "velocity", "security"]
       },
@@ -356,6 +374,7 @@ async function createIssue(args) {
 ## 📚 MCP Resources (Context Injection)
 
 ### 1. current_project_context
+
 ```typescript
 {
   uri: "moksha://context/project",
@@ -366,6 +385,7 @@ async function createIssue(args) {
 ```
 
 **Returns:**
+
 ```
 Moksha Mythic Clash - Development Context
 
@@ -386,6 +406,7 @@ Active Modules:
 ```
 
 ### 2. recent_issues
+
 ```typescript
 {
   uri: "moksha://context/issues/recent",
@@ -395,6 +416,7 @@ Active Modules:
 ```
 
 ### 3. sot_rules_summary
+
 ```typescript
 {
   uri: "moksha://context/sot-rules",
@@ -404,6 +426,7 @@ Active Modules:
 ```
 
 ### 4. knowledge_index
+
 ```typescript
 {
   uri: "moksha://context/knowledge",
@@ -413,6 +436,7 @@ Active Modules:
 ```
 
 ### 5. security_status
+
 ```typescript
 {
   uri: "moksha://context/security",
@@ -426,6 +450,7 @@ Active Modules:
 ## 🤖 MCP Prompts (Agent Personas)
 
 ### 1. code_reviewer
+
 ```typescript
 {
   name: "code_reviewer",
@@ -438,6 +463,7 @@ Active Modules:
 ```
 
 **Prompt Template:**
+
 ```
 You are an expert code reviewer for the Moksha project.
 
@@ -472,6 +498,7 @@ RULES:
 ```
 
 ### 2. bug_hunter
+
 ```typescript
 {
   name: "bug_hunter",
@@ -484,6 +511,7 @@ RULES:
 ```
 
 ### 3. feature_architect
+
 ```typescript
 {
   name: "feature_architect",
@@ -496,6 +524,7 @@ RULES:
 ```
 
 ### 4. security_auditor
+
 ```typescript
 {
   name: "security_auditor",
@@ -508,6 +537,7 @@ RULES:
 ```
 
 ### 5. docs_writer
+
 ```typescript
 {
   name: "docs_writer",
@@ -528,9 +558,11 @@ RULES:
 ### MVP (Weeks 1-4, 60-68 hours)
 
 #### Week 1: Foundation (14 hours)
+
 **Goal:** Docker + Database + Basic API + Basic UI
 
 **Day 1 (3 hours):**
+
 - Install Docker Desktop
 - Create project structure
 - Setup docker-compose.yml
@@ -538,6 +570,7 @@ RULES:
 - Verify database connection
 
 **Day 2 (3 hours):**
+
 - Initialize Next.js app
 - Setup Prisma schema
 - Run initial migration
@@ -545,18 +578,21 @@ RULES:
 - Test API with Postman/curl
 
 **Day 3 (4 hours):**
+
 - Create app shell (sidebar + header)
 - Build issue list page
 - Implement basic filtering
 - Add dark mode toggle
 
 **Day 4 (4 hours):**
+
 - Create issue detail page
 - Build issue creation form
 - Add comment functionality
 - Test full CRUD workflow
 
 **Week 1 Deliverables:**
+
 - ✅ Docker running PostgreSQL + Next.js
 - ✅ Basic issue tracker working
 - ✅ Can create, view, edit, delete issues
@@ -566,33 +602,39 @@ RULES:
 ---
 
 #### Week 2: Core Features (14 hours)
+
 **Goal:** Attachments + Custom Fields + Labels + Filters
 
 **Day 1 (3 hours):**
+
 - Implement file upload (attachments)
 - Create attachment API endpoints
 - Add attachment UI to issue detail
 - Test file upload/download
 
 **Day 2 (3 hours):**
+
 - Build custom fields UI
 - Implement JSONB storage
 - Add custom field editor
 - Test custom field queries
 
 **Day 3 (4 hours):**
+
 - Create label management
 - Add label selector to forms
 - Implement label filtering
 - Color picker for labels
 
 **Day 4 (4 hours):**
+
 - Build advanced filters (module, priority, status)
 - Add sort options
 - Implement bulk actions
 - Polish UI
 
 **Week 2 Deliverables:**
+
 - ✅ File attachments working
 - ✅ Custom fields configurable
 - ✅ Labels with colors
@@ -601,30 +643,36 @@ RULES:
 ---
 
 #### Week 3: Search (14 hours)
+
 **Goal:** Full-text + Semantic + Hybrid Search
 
 **Day 1 (3 hours):**
+
 - Setup pgvector extension
 - Create embedding generation function
 - Test local embeddings (@xenova/transformers)
 
 **Day 2 (3 hours):**
+
 - Implement full-text search
 - Create tsvector indexes
 - Build search API endpoint
 
 **Day 3 (4 hours):**
+
 - Implement semantic search
 - Store embeddings on create/update
 - Build hybrid search merging logic
 
 **Day 4 (4 hours):**
+
 - Create global search UI
 - Add search results page
 - Implement search highlighting
 - Test search performance
 
 **Week 3 Deliverables:**
+
 - ✅ Full-text search working
 - ✅ Semantic search working
 - ✅ Hybrid search combines both
@@ -633,36 +681,43 @@ RULES:
 ---
 
 #### Week 4: MCP Integration (18-20 hours)
+
 **Goal:** Full MCP server with tools
 
 **Day 1 (4 hours):**
+
 - Setup MCP server project
 - Install @modelcontextprotocol/sdk
 - Create basic server structure
 - Test stdio transport
 
 **Day 2 (4 hours):**
+
 - Implement issue tools (create, search, update)
 - Test with Claude Code
 - Debug MCP communication
 
 **Day 3 (4 hours):**
+
 - Add knowledge & wiki tools
 - Implement context resources
 - Test resource retrieval
 
 **Day 4 (4 hours):**
+
 - Implement agent personas prompts
 - Add helper script execution (tiered)
 - Create security scan tool
 - Full integration test
 
 **Day 5 (2-4 hours):**
+
 - Polish & bug fixes
 - Documentation
 - Create demo video
 
 **Week 4 Deliverables:**
+
 - ✅ MCP server running
 - ✅ Claude Code can create issues
 - ✅ All core tools working
@@ -674,6 +729,7 @@ RULES:
 ### Phase 2: Knowledge Base + Personas (Weeks 5-8, 40 hours)
 
 #### Week 5: Knowledge Base (10 hours)
+
 - Create knowledge_items table with embeddings
 - Build knowledge CRUD API
 - Rich text editor (TipTap)
@@ -681,24 +737,28 @@ RULES:
 - Category & tag system
 
 #### Week 6: Semantic Search (10 hours)
+
 - Implement knowledge embedding generation
 - Vector search optimization
 - "Find similar" feature
 - Knowledge-issue linking
 
 #### Week 7: Agent Personas UI (10 hours)
+
 - Persona management page
 - Persona editor with system prompt
 - Auto-activation conditions
 - Usage tracking dashboard
 
 #### Week 8: MCP Resources (10 hours)
+
 - Implement all MCP resources
 - Context auto-injection
 - Recent changes resource
 - SoT rules context
 
 **Phase 2 Deliverables:**
+
 - ✅ Knowledge base with semantic search
 - ✅ Agent personas fully working
 - ✅ Context injection via resources
@@ -709,18 +769,21 @@ RULES:
 ### Phase 3: Wiki + Security (Weeks 9-12, 50 hours)
 
 #### Week 9: Wiki Foundation (12 hours)
+
 - Hierarchical wiki_pages table
 - Wiki page CRUD
 - Tree navigation sidebar
 - Markdown editor
 
 #### Week 10: Wiki Features (12 hours)
+
 - Page linking system
 - Cross-references
 - Version history (basic)
 - SoT rule templates
 
 #### Week 11: Security Dashboard (13 hours)
+
 - Semgrep integration
 - Security findings table
 - Auto-create issues from findings
@@ -728,12 +791,14 @@ RULES:
 - False positive marking
 
 #### Week 12: Reports (13 hours)
+
 - Module health report
 - Bug summary report
 - Velocity tracking
 - Security trend analysis
 
 **Phase 3 Deliverables:**
+
 - ✅ Documentation wiki
 - ✅ Security scanning
 - ✅ Reports & analytics
@@ -744,30 +809,35 @@ RULES:
 ### Phase 4: Advanced Features (Weeks 13-16, 60 hours)
 
 #### Week 13: Git Integration (15 hours)
+
 - Auto-link commits (Fix #42)
 - Commit timeline
 - Branch tracking
 - Blame view integration
 
 #### Week 14: Milestones (15 hours)
+
 - Milestone management
 - Progress tracking
 - Burndown charts
 - Sprint planning
 
 #### Week 15: Templates (15 hours)
+
 - Issue templates
 - Wiki page templates
 - Prompt templates
 - ADR templates
 
 #### Week 16: ADRs (15 hours)
+
 - Architecture Decision Records
 - ADR workflow
 - Status tracking
 - Superseded decisions
 
 **Phase 4 Deliverables:**
+
 - ✅ Git deeply integrated
 - ✅ Milestones & sprints
 - ✅ Template system
@@ -782,6 +852,7 @@ RULES:
 ### Foundation: shadcn/ui + Tailwind CSS
 
 **Colors:**
+
 ```css
 /* Dark Mode (default) */
 --background: 222.2 84% 4.9%;
@@ -797,6 +868,7 @@ RULES:
 ```
 
 ### Typography
+
 ```css
 /* Font Family */
 font-sans: Inter, system-ui, sans-serif;
@@ -814,6 +886,7 @@ text-4xl: 2.25rem;
 ```
 
 ### Spacing
+
 ```css
 /* Following 8px grid */
 0.5: 0.125rem (2px)
@@ -832,6 +905,7 @@ text-4xl: 2.25rem;
 ### Layout Components
 
 **AppShell:**
+
 ```tsx
 <AppShell>
   <Sidebar />
@@ -843,6 +917,7 @@ text-4xl: 2.25rem;
 ```
 
 **Sidebar:**
+
 ```tsx
 <Sidebar>
   <SidebarHeader />
@@ -854,6 +929,7 @@ text-4xl: 2.25rem;
 ### Data Display
 
 **IssueCard:**
+
 ```tsx
 <IssueCard
   issue={issue}
@@ -864,18 +940,15 @@ text-4xl: 2.25rem;
 ```
 
 **KnowledgeCard:**
+
 ```tsx
-<KnowledgeCard
-  item={item}
-  showTags={true}
-  showCategory={true}
-  similarity={0.85}
-/>
+<KnowledgeCard item={item} showTags={true} showCategory={true} similarity={0.85} />
 ```
 
 ### Forms
 
 **IssueForm:**
+
 ```tsx
 <IssueForm
   mode="create" // or "edit"
@@ -888,6 +961,7 @@ text-4xl: 2.25rem;
 ### Editors
 
 **RichTextEditor (TipTap):**
+
 ```tsx
 <RichTextEditor
   content={content}
@@ -896,7 +970,7 @@ text-4xl: 2.25rem;
   extensions={[
     StarterKit,
     CodeBlockLowlight,
-    Slash // For slash commands
+    Slash, // For slash commands
   ]}
 />
 ```
@@ -913,9 +987,7 @@ text-4xl: 2.25rem;
       </CommandItem>
     </CommandGroup>
     <CommandGroup heading="Personas">
-      <CommandItem onSelect={() => activatePersona('code-reviewer')}>
-        🔍 Code Reviewer
-      </CommandItem>
+      <CommandItem onSelect={() => activatePersona('code-reviewer')}>🔍 Code Reviewer</CommandItem>
     </CommandGroup>
   </CommandList>
 </CommandPalette>
@@ -926,6 +998,7 @@ text-4xl: 2.25rem;
 ## 📱 Page Layouts
 
 ### Issue List Page
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ Header: "Issues" [New Issue Button]                │
@@ -946,6 +1019,7 @@ text-4xl: 2.25rem;
 ```
 
 ### Issue Detail Page
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ #42 Fix Combat FSM Bug                [Edit] [Del]  │
@@ -993,7 +1067,7 @@ model AgentPersona {
   autoActivate      Boolean   @default(false)
   activationConditions Json?  @db.JsonB
   isBuiltIn         Boolean   @default(false)
-  
+
   sessions          AgentSession[]
   templateId        Int?
   template          PromptTemplate?
@@ -1003,6 +1077,7 @@ model AgentPersona {
 ### Default Personas
 
 #### 1. Code Reviewer 🔍
+
 ```yaml
 Slug: code-reviewer
 Skills: [security, patterns, architecture, debugging]
@@ -1014,11 +1089,12 @@ Rules:
   - Suggest concrete improvements with examples
 Auto-Activate: true
 Conditions:
-  filePatterns: ["*.cpp", "*.h"]
-  keywords: ["review", "check"]
+  filePatterns: ['*.cpp', '*.h']
+  keywords: ['review', 'check']
 ```
 
 #### 2. Bug Hunter 🐛
+
 ```yaml
 Slug: bug-hunter
 Skills: [debugging, root-cause-analysis, testing]
@@ -1031,6 +1107,7 @@ Rules:
 ```
 
 #### 3. Feature Architect 🏗️
+
 ```yaml
 Slug: feature-architect
 Skills: [architecture, system-design, data-modeling]
@@ -1043,6 +1120,7 @@ Rules:
 ```
 
 #### 4. Security Auditor 🔒
+
 ```yaml
 Slug: security-auditor
 Skills: [security, owasp, threat-modeling]
@@ -1055,6 +1133,7 @@ Rules:
 ```
 
 #### 5. Docs Writer 📝
+
 ```yaml
 Slug: docs-writer
 Skills: [technical-writing, tutorials, examples]
@@ -1071,6 +1150,7 @@ Rules:
 ## 🎯 Using Personas
 
 ### Via Slash Commands
+
 ```
 In Claude Code:
 /code-reviewer src/Combat/CombatFSM.cpp
@@ -1079,6 +1159,7 @@ Claude activates Code Reviewer persona and reviews the file
 ```
 
 ### Via Command Palette (Cmd+K)
+
 ```
 1. Press Cmd+K
 2. Type "Code Reviewer"
@@ -1088,6 +1169,7 @@ Claude activates Code Reviewer persona and reviews the file
 ```
 
 ### Auto-Activation
+
 ```
 User opens CombatFSM.cpp
 → Code Reviewer persona auto-activates (matches *.cpp pattern)
@@ -1114,6 +1196,7 @@ model AgentSession {
 ```
 
 **Analytics Dashboard:**
+
 - Most used personas
 - Average session duration
 - Tools used per persona
@@ -1125,6 +1208,7 @@ model AgentSession {
 ## ✅ Implementation Checklist
 
 ### MVP (Week 4)
+
 - [ ] Basic MCP server running
 - [ ] `create_issue` tool working
 - [ ] `search_issues` tool working
@@ -1132,6 +1216,7 @@ model AgentSession {
 - [ ] Claude Code can create issues
 
 ### Phase 2 (Week 8)
+
 - [ ] All MCP tools implemented
 - [ ] MCP resources for context
 - [ ] Agent personas database models
@@ -1143,12 +1228,14 @@ model AgentSession {
 - [ ] Usage tracking dashboard
 
 ### Phase 3 (Week 12)
+
 - [ ] Wiki tools integrated
 - [ ] Security scan tool working
 - [ ] SoT rules queryable
 - [ ] Report generation working
 
 ### Phase 4 (Week 16)
+
 - [ ] Git integration complete
 - [ ] All advanced tools working
 - [ ] Custom personas easy to create
@@ -1159,6 +1246,7 @@ model AgentSession {
 ## 🚀 Quick Reference
 
 ### Starting Development
+
 ```bash
 docker-compose up -d
 cd apps/web && pnpm dev
@@ -1166,6 +1254,7 @@ cd apps/mcp-server && pnpm dev
 ```
 
 ### Creating Issues (via MCP)
+
 ```
 In Claude Code:
 "Create an issue for the FSM authority bug in Combat module"
@@ -1174,6 +1263,7 @@ Claude uses create_issue tool automatically
 ```
 
 ### Activating Personas
+
 ```
 /code-reviewer → Reviews code
 /bug-hunter → Analyzes bugs

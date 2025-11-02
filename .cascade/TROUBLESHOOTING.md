@@ -199,7 +199,7 @@ Search for "Protocol Step" → Should retrieve 4 steps
 
 **Solution:**
 
-1. Check file exists: `.claude/skills/moksha-devhub/[skill-name].md`
+1. Check file exists: `.claude/skills/projectpulse/[skill-name].md`
 2. Verify path in Skills Index memory
 3. If missing, skill may not be created yet
 

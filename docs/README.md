@@ -1,4 +1,4 @@
-# Moksha DevHub Documentation
+# ProjectPulse Documentation
 
 **Architecture:** Agent-First Project Management Platform
 **Version:** 2.0.0
@@ -8,7 +8,7 @@
 
 ## Overview
 
-Moksha DevHub is an agent-first project management platform designed for AI agents (Claude Code, Cursor AI, Codex) to manage software development workflows with 95% automation via MCP (Model Context Protocol).
+ProjectPulse is an agent-first project management platform designed for AI agents (Claude Code, Cursor AI, Codex) to manage software development workflows with 95% automation via MCP (Model Context Protocol).
 
 **Primary Users:** AI Agents (95% interaction via MCP)
 **Secondary Users:** Solo/small team developers (5% monitoring via UI)

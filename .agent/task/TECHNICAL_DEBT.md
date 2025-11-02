@@ -1,4 +1,4 @@
-# Technical Debt - Moksha DevHub
+# Technical Debt - ProjectPulse
 
 **Last Updated**: 2025-11-01 21:00
 **Status**: 11 pre-existing ESLint warnings

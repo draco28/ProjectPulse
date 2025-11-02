@@ -2,7 +2,7 @@
 
 **Task:** Audit all project documentation files to ensure they contain sufficient detail for the automated workflow system to function properly.
 
-**Context:** The Moksha DevHub project has implemented a sophisticated workflow automation system that relies on keyword-rich task descriptions to automatically:
+**Context:** The ProjectPulse project has implemented a sophisticated workflow automation system that relies on keyword-rich task descriptions to automatically:
 
 - Load relevant skills (token-efficient patterns)
 - Invoke sub-agents for research tasks
@@ -359,7 +359,7 @@ Tasks requiring deep understanding of system flows before modification
 - Creates SOP (2-3K tokens) or skill (50-280 tokens)
 - Updates documentation indexes
 
-**Output:** `.agent/sops/[topic].md` or `.claude/skills/moksha-devhub/[topic].md`
+**Output:** `.agent/sops/[topic].md` or `.claude/skills/projectpulse/[topic].md`
 
 **When It Should Be Invoked:**
 After completing major features with reusable patterns

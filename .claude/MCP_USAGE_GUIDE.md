@@ -1,4 +1,4 @@
-# MCP Tools Usage Guide - Moksha DevHub
+# MCP Tools Usage Guide - ProjectPulse
 
 ## Overview
 

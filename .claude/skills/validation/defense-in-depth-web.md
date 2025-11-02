@@ -3,10 +3,10 @@ name: Defense in Depth (DevHub Web)
 description: Multi-layer security and quality validation across all development stages
 category: validation
 version: 1.0
-project: Moksha DevHub (AI_HUB)
+project: ProjectPulse (AI_HUB)
 ---
 
-# Defense in Depth for Moksha DevHub
+# Defense in Depth for ProjectPulse
 
 ## Overview
 
@@ -15,6 +15,7 @@ Defense in Depth applies multiple layers of validation at different stages to ca
 ## The 7 Layers of Defense
 
 ### Layer 1: TypeScript (Design Time)
+
 Catch errors before runtime with strict typing.
 
 ```typescript
@@ -34,6 +35,7 @@ processIssue({ id: 1 }); // Error: missing title and priority
 ```
 
 ### Layer 2: Zod Validation (Runtime)
+
 Validate user input at API boundaries.
 
 ```typescript
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
 ```
 
 ### Layer 3: Database Constraints (Storage)
+
 Enforce integrity at database level.
 
 ```prisma
@@ -67,6 +70,7 @@ model Issue {
 ```
 
 ### Layer 4: API Error Handling (Execution)
+
 Handle failures gracefully.
 
 ```typescript
@@ -87,6 +91,7 @@ export async function POST(request: Request) {
 ```
 
 ### Layer 5: React Error Boundaries (UI)
+
 Catch rendering errors.
 
 ```typescript
@@ -112,6 +117,7 @@ export function IssueList() {
 ```
 
 ### Layer 6: Automated Tests (Pre-Commit)
+
 Verify behavior before merging.
 
 ```typescript
@@ -129,6 +135,7 @@ describe('Issue API', () => {
 ```
 
 ### Layer 7: Monitoring & Logging (Production)
+
 Detect issues in production.
 
 ```typescript
@@ -149,6 +156,7 @@ export async function POST(request: Request) {
 ## Security Defense Layers
 
 ### Input Sanitization
+
 ```typescript
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -157,6 +165,7 @@ const cleanContent = DOMPurify.sanitize(userInput);
 ```
 
 ### SQL Injection Prevention
+
 ```typescript
 // ✅ Prisma parameterized queries
 await prisma.$queryRaw`
@@ -164,12 +173,11 @@ await prisma.$queryRaw`
 `;
 
 // ❌ NEVER use raw string interpolation
-await prisma.$queryRawUnsafe(
-  `SELECT * FROM issues WHERE title = '${userInput}'`
-);
+await prisma.$queryRawUnsafe(`SELECT * FROM issues WHERE title = '${userInput}'`);
 ```
 
 ### XSS Prevention
+
 ```typescript
 // ✅ React auto-escapes
 <div>{userContent}</div>
@@ -182,6 +190,7 @@ await prisma.$queryRawUnsafe(
 ```
 
 ### CSRF Protection
+
 ```typescript
 // Use POST for mutations (not GET)
 // Validate origin header
@@ -191,6 +200,7 @@ await prisma.$queryRawUnsafe(
 ## Performance Defense Layers
 
 ### Database Query Optimization
+
 ```typescript
 // ❌ N+1 Query Problem
 const issues = await prisma.issue.findMany();
@@ -207,6 +217,7 @@ const issues = await prisma.issue.findMany({
 ```
 
 ### Caching Strategy
+
 ```typescript
 // Server Component with revalidation
 export const revalidate = 60; // 60 seconds
@@ -218,6 +229,7 @@ export default async function IssuesPage() {
 ```
 
 ### Bundle Size Monitoring
+
 ```bash
 # Check bundle size
 npm run build -- --analyze
@@ -231,6 +243,7 @@ const RichTextEditor = dynamic(() => import('./RichTextEditor'), {
 ## Accessibility Defense Layers
 
 ### Semantic HTML
+
 ```typescript
 // ✅ Proper semantics
 <button onClick={handleClick}>Submit</button>
@@ -240,6 +253,7 @@ const RichTextEditor = dynamic(() => import('./RichTextEditor'), {
 ```
 
 ### ARIA Attributes
+
 ```typescript
 <input
   type="search"
@@ -250,6 +264,7 @@ const RichTextEditor = dynamic(() => import('./RichTextEditor'), {
 ```
 
 ### Keyboard Navigation
+
 ```typescript
 <button
   onKeyDown={(e) => {
@@ -265,6 +280,7 @@ const RichTextEditor = dynamic(() => import('./RichTextEditor'), {
 ## Success Criteria
 
 Defense in Depth is successful when:
+
 - [ ] Multiple validation layers exist for critical paths
 - [ ] Failures are caught at appropriate layers
 - [ ] Errors are logged and monitored
@@ -274,11 +290,13 @@ Defense in Depth is successful when:
 ## Integration with Agents
 
 This skill is used by:
+
 - **All agents** - As a comprehensive quality framework
 - **devhub-auditor** - To verify defense layers exist
 - **devhub-fullstack** - When implementing features
 
 Pair with:
+
 - **verification-before-completion** - Pre-commit validation
 - **systematic-debugging-web** - When defenses fail
 - **test-driven-development-web** - Testing as a defense layer

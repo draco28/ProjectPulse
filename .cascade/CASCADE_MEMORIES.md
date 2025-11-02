@@ -1,6 +1,6 @@
 # Cascade Memories Configuration
 
-**Purpose:** Define all 30 memories for Moksha DevHub workflow integration
+**Purpose:** Define all 30 memories for ProjectPulse workflow integration
 
 ---
 
@@ -148,15 +148,15 @@ Total: 30 memories across 5 categories
 
 **Title:** Skills Index - Keyword to File Mapping  
 **Content:**  
-API keywords → .claude/skills/moksha-devhub/api-patterns.md  
-Component keywords → .claude/skills/moksha-devhub/component-patterns.md  
-Database keywords → .claude/skills/moksha-devhub/database-patterns.md  
-Testing keywords → .claude/skills/moksha-devhub/testing-patterns.md  
-Port keywords → .claude/skills/moksha-devhub/port-config.md  
-Git keywords → .claude/skills/moksha-devhub/git-workflow.md  
-Animation keywords → .claude/skills/moksha-devhub/animation-patterns.md  
-UI keywords → .claude/skills/moksha-devhub/ui-generation-workflow.md  
-SuperDesign keywords → .claude/skills/moksha-devhub/superdesign-ui-generator.md  
+API keywords → .claude/skills/projectpulse/api-patterns.md  
+Component keywords → .claude/skills/projectpulse/component-patterns.md  
+Database keywords → .claude/skills/projectpulse/database-patterns.md  
+Testing keywords → .claude/skills/projectpulse/testing-patterns.md  
+Port keywords → .claude/skills/projectpulse/port-config.md  
+Git keywords → .claude/skills/projectpulse/git-workflow.md  
+Animation keywords → .claude/skills/projectpulse/animation-patterns.md  
+UI keywords → .claude/skills/projectpulse/ui-generation-workflow.md  
+SuperDesign keywords → .claude/skills/projectpulse/superdesign-ui-generator.md  
 Debugging keywords → .claude/skills/debugging/systematic-debugging-web.md  
 TDD keywords → .claude/skills/testing/test-driven-development-web.md  
 Validation keywords → .claude/skills/validation/verification-before-completion.md  
@@ -169,31 +169,31 @@ Defense keywords → .claude/skills/validation/defense-in-depth-web.md
 
 ### 22. Project Brief
 
-**Title:** Moksha DevHub - Project Brief  
+**Title:** ProjectPulse - Project Brief  
 **Content:** WHAT: Full-stack web app for managing dev tasks, issues, knowledge, wiki, security scans. WHY: Streamline dev workflow with AI integration. STACK: Next.js 14, PostgreSQL 16, Prisma, TypeScript. GOALS: Local-first, type-safe, tested, MCP-integrated. STATUS: Week 1.5 Phase 3 (UI transformation). Current: 37.5% complete.  
 **Tags:** project_context, brief, requirements, goals
 
 ### 23. System Patterns
 
-**Title:** Moksha DevHub - System Architecture Patterns  
+**Title:** ProjectPulse - System Architecture Patterns  
 **Content:** Server Components default. Prisma for all DB access with select/include optimization. API format: {data: T} or {error: string}. Zod validation. PrismaClient singleton. Pagination: {page, limit, total, hasMore, data}. Neumorphic Coral theme (locked). Git: 3-track strategy (api/_, ui/_, feature/\*).  
 **Tags:** project_context, patterns, architecture, conventions
 
 ### 24. Tech Context
 
-**Title:** Moksha DevHub - Technology Stack  
+**Title:** ProjectPulse - Technology Stack  
 **Content:** Next.js 14.1.0 (App Router), React 18.2.0, TypeScript 5.x strict, PostgreSQL 16 + pgvector, Prisma 5.9.0, Tailwind 3.4.1, shadcn/ui, Jest, RTL, Playwright. Docker Compose for local dev. pnpm package manager. Port 3000 required. Node 18+.  
 **Tags:** project_context, tech_stack, dependencies, setup
 
 ### 25. Active Context
 
-**Title:** Moksha DevHub - Active Context (Current Phase)  
+**Title:** ProjectPulse - Active Context (Current Phase)  
 **Content:** PHASE: Week 1.5 Phase 3 Day 4 - Issue Detail Page. NEXT TASK: Implement issue detail page with Server Components, comment system, timeline, status controls. WAITING: Mockup from user. COMPLETED: Dashboard (100%), Issues List (100%). REMAINING: 5 pages (Knowledge, Wiki, Security, Personas, Command Palette). Update this after each phase completion.  
 **Tags:** project_context, active, current_phase, wip
 
 ### 26. Progress Tracking
 
-**Title:** Moksha DevHub - Progress and Metrics  
+**Title:** ProjectPulse - Progress and Metrics  
 **Content:** Week 1: 100% complete (5 days, ~17 hours). Week 1.5: 37.5% complete (3/8 days). Velocity: 57% faster than estimated. Quality: 0 TS errors, 0 lint warnings, 91/91 E2E tests passing. Coverage: ~60% (target 80%). Token optimization: 74% reduction via skills. Next milestone: Complete Phase 3 (5 pages).  
 **Tags:** project_context, progress, metrics, velocity
 

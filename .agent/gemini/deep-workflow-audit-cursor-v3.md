@@ -1,7 +1,7 @@
 # Deep Agent Workflow Audit - v3.0 (Post-Persistence Implementation)
 
 **Date**: 2025-10-27
-**Purpose**: Comprehensive audit of Moksha DevHub documentation, configs, and code patterns after implementing 3-Tier Persistence Strategy + Auto-Save Enhancement
+**Purpose**: Comprehensive audit of ProjectPulse documentation, configs, and code patterns after implementing 3-Tier Persistence Strategy + Auto-Save Enhancement
 **Auditor**: Cursor AI (GPT-4, Claude, or Gemini)
 **Version**: 3.0 - Covers EVERYTHING (docs, configs, code patterns, integration)
 
@@ -333,7 +333,7 @@ TDD is now **MANDATORY for ALL tasks** (not optional, not just complex tasks).
 
 ### File to Check
 
-`.claude/skills/moksha-devhub/testing-patterns.md`
+`.claude/skills/projectpulse/testing-patterns.md`
 
 **Must have:**
 
@@ -477,7 +477,7 @@ Day 4: **Issue Detail Page** (**React Server Components** + **Client Components*
 
 ### Areas to Validate
 
-**1. API Patterns** (.claude/skills/moksha-devhub/api-patterns.md vs actual code)
+**1. API Patterns** (.claude/skills/projectpulse/api-patterns.md vs actual code)
 
 Check if actual API routes match documented patterns:
 
@@ -492,7 +492,7 @@ Check if actual API routes match documented patterns:
 - Check: Grep all `app/api/*/route.ts` for `z.object` or Zod usage
 - If found: ✅ PASS | If missing: ❌ FAIL
 
-**2. Component Patterns** (.claude/skills/moksha-devhub/component-patterns.md vs actual code)
+**2. Component Patterns** (.claude/skills/projectpulse/component-patterns.md vs actual code)
 
 Check if actual React components match patterns:
 
@@ -507,7 +507,7 @@ Check if actual React components match patterns:
 - Check: Grep `components/` for `useState` without `"use client"`
 - If found: ❌ FAIL | If clean: ✅ PASS
 
-**3. Database Patterns** (.claude/skills/moksha-devhub/database-patterns.md vs Prisma usage)
+**3. Database Patterns** (.claude/skills/projectpulse/database-patterns.md vs Prisma usage)
 
 Check if Prisma queries match patterns:
 
@@ -593,7 +593,7 @@ Check all agent prompts:
 - prisma-expert.md
 - next-js-expert.md
 
-**3. .claude/skills/moksha-devhub/\*.md**
+**3. .claude/skills/projectpulse/\*.md**
 
 Check all skill files:
 
@@ -779,18 +779,18 @@ git status --short
 - agents/prisma-expert.md
 - agents/next-js-expert.md
 
-**Skills (Moksha DevHub):**
+**Skills (ProjectPulse):**
 
-- skills/moksha-devhub/README.md
-- skills/moksha-devhub/api-patterns.md
-- skills/moksha-devhub/component-patterns.md
-- skills/moksha-devhub/database-patterns.md
-- skills/moksha-devhub/testing-patterns.md
-- skills/moksha-devhub/git-workflow.md
-- skills/moksha-devhub/ui-generation-workflow.md
-- skills/moksha-devhub/ascii-wireframes.md
-- skills/moksha-devhub/animation-patterns.md
-- skills/moksha-devhub/superdesign-ui-generator.md
+- skills/projectpulse/README.md
+- skills/projectpulse/api-patterns.md
+- skills/projectpulse/component-patterns.md
+- skills/projectpulse/database-patterns.md
+- skills/projectpulse/testing-patterns.md
+- skills/projectpulse/git-workflow.md
+- skills/projectpulse/ui-generation-workflow.md
+- skills/projectpulse/ascii-wireframes.md
+- skills/projectpulse/animation-patterns.md
+- skills/projectpulse/superdesign-ui-generator.md
 
 **Other:**
 
@@ -1070,7 +1070,7 @@ Your report MUST follow this exact format:
 
 - ✅/❌ .claude/settings.local.json (valid JSON, complete)
 - ✅/❌ .claude/agents/\*.md (12 files, all complete)
-- ✅/❌ .claude/skills/moksha-devhub/\*.md (9 files, token estimates)
+- ✅/❌ .claude/skills/projectpulse/\*.md (9 files, token estimates)
 
 **Findings**:
 

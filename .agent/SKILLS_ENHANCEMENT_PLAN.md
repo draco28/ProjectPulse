@@ -1,4 +1,4 @@
-# Skills Enhancement Plan - Moksha DevHub
+# Skills Enhancement Plan - ProjectPulse
 
 **Created**: 2025-10-26
 **Status**: Planning → Implementation
@@ -114,7 +114,7 @@ Total:                 12,000 tokens
 
 ### Phase 1: Create Codebase Skills (Week 1) - IMMEDIATE
 
-**Goal**: Create 5 foundational skills for Moksha DevHub patterns
+**Goal**: Create 5 foundational skills for ProjectPulse patterns
 
 **Skills to Create**:
 
@@ -222,7 +222,7 @@ Example:
    - Description & triggers
    - Pattern examples
    - Links to full docs
-5. Saves to `.claude/skills/moksha-devhub/`
+5. Saves to `.claude/skills/projectpulse/`
 6. Updates skill index
 
 **Benefits**:
@@ -305,12 +305,12 @@ token_estimate: 150
 
 #### Skill Index
 
-**Create**: `.claude/skills/moksha-devhub/README.md`
+**Create**: `.claude/skills/projectpulse/README.md`
 
 **Content**:
 
 ```markdown
-# Moksha DevHub Skills
+# ProjectPulse Skills
 
 ## Quick Reference
 
@@ -430,7 +430,7 @@ map-system:
 
 ### Phase 1: Create Initial Skills ✅ READY
 
-- [ ] Create `.claude/skills/moksha-devhub/` directory
+- [ ] Create `.claude/skills/projectpulse/` directory
 - [ ] Create `moksha-api-patterns.md`
 - [ ] Create `moksha-component-patterns.md`
 - [ ] Create `moksha-database-patterns.md`
@@ -526,7 +526,7 @@ map-system:
 ### Step 1: Create Directory Structure
 
 ```bash
-mkdir -p .claude/skills/moksha-devhub
+mkdir -p .claude/skills/projectpulse
 mkdir -p .claude/skills/troubleshooting
 mkdir -p .claude/skills/workflows
 ```

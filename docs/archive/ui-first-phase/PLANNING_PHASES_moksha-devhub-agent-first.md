@@ -1,6 +1,6 @@
-# Planning Phases Document - Moksha DevHub (Agent-First Architecture)
+# Planning Phases Document - ProjectPulse (Agent-First Architecture)
 
-**Project**: Moksha DevHub - Agent-First Project Management Platform
+**Project**: ProjectPulse - Agent-First Project Management Platform
 **Purpose**: Comprehensive agent-first architecture planning before implementation
 **Created**: 2025-11-02
 **Status**: ⏳ IN PROGRESS (Phase 1.2 - Core Features & Scope)
@@ -10,7 +10,7 @@
 
 ## 📋 Document Purpose
 
-This document captures architectural decisions for transforming Moksha DevHub from a developer-first tool to an **agent-first project management platform**.
+This document captures architectural decisions for transforming ProjectPulse from a developer-first tool to an **agent-first project management platform**.
 
 **Session Type**: Focused Architecture Session (Option 2)
 
@@ -1155,9 +1155,9 @@ model MarkdownFile {
 // In Claude Code config (claude_desktop_config.json)
 {
   "mcpServers": {
-    "moksha-devhub": {
+    "projectpulse": {
       "command": "node",
-      "args": ["path/to/moksha-devhub-mcp/build/index.js"],
+      "args": ["path/to/projectpulse-mcp/build/index.js"],
       "env": { "DATABASE_URL": "postgresql://..." }
     }
   }
@@ -1935,7 +1935,7 @@ async function retryOperation(operation, maxRetries = 3) {
 
 **MCP Architecture Clarification**:
 
-- Single MCP server installation (`moksha-devhub`)
+- Single MCP server installation (`projectpulse`)
 - Exposes all 42 tools automatically
 - One config entry in Claude Code → all tools available
 - Works with any MCP-compatible agent (Claude Code, Codex, Cursor AI, Cascade)
@@ -1944,7 +1944,7 @@ async function retryOperation(operation, maxRetries = 3) {
 
 **Ready to begin implementation!**
 
-**Saved Planning Document**: [PLANNING_PHASES_moksha-devhub-agent-first.md](./PLANNING_PHASES_moksha-devhub-agent-first.md)
+**Saved Planning Document**: [PLANNING_PHASES_projectpulse-agent-first.md](./PLANNING_PHASES_projectpulse-agent-first.md)
 
 **Total Pages**: 1,800+ lines of comprehensive architectural planning
 
@@ -1965,13 +1965,13 @@ async function retryOperation(operation, maxRetries = 3) {
 
 **Total Time**: ~120 minutes (extended due to architecture complexity)
 
-**Next Step**: Implementation Roadmap → **[IMPLEMENTATION_ROADMAP_moksha-devhub.md](IMPLEMENTATION_ROADMAP_moksha-devhub.md)**
+**Next Step**: Implementation Roadmap → **[IMPLEMENTATION_ROADMAP_projectpulse.md](IMPLEMENTATION_ROADMAP_projectpulse.md)**
 
 ---
 
 # Implementation Roadmap
 
-**See**: [IMPLEMENTATION_ROADMAP_moksha-devhub.md](IMPLEMENTATION_ROADMAP_moksha-devhub.md)
+**See**: [IMPLEMENTATION_ROADMAP_projectpulse.md](IMPLEMENTATION_ROADMAP_projectpulse.md)
 
 **Summary**:
 

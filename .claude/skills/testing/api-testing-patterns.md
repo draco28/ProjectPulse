@@ -3,10 +3,10 @@ name: API Testing Patterns (DevHub Web)
 description: Comprehensive patterns for testing Next.js API routes, Server Actions, and REST endpoints
 category: testing
 version: 1.0
-project: Moksha DevHub (AI_HUB)
+project: ProjectPulse (AI_HUB)
 ---
 
-# API Testing Patterns for Moksha DevHub
+# API Testing Patterns for ProjectPulse
 
 ## Overview
 
@@ -53,8 +53,8 @@ it('should filter issues by status', async () => {
   const response = await GET(request);
   const data = await response.json();
 
-  expect(data.every(issue => issue.status === 'open')).toBe(true);
-  expect(data.every(issue => issue.priority === 'high')).toBe(true);
+  expect(data.every((issue) => issue.status === 'open')).toBe(true);
+  expect(data.every((issue) => issue.priority === 'high')).toBe(true);
 });
 ```
 
@@ -117,9 +117,7 @@ it('should call Prisma with correct arguments', async () => {
 });
 
 it('should handle database errors gracefully', async () => {
-  (prisma.issue.findMany as jest.Mock).mockRejectedValue(
-    new Error('Database connection failed')
-  );
+  (prisma.issue.findMany as jest.Mock).mockRejectedValue(new Error('Database connection failed'));
 
   const request = new Request('http://localhost/api/issues');
   const response = await GET(request);
@@ -227,6 +225,7 @@ describe('GET /api/search', () => {
 ## Test Organization Patterns
 
 ### Pattern 1: Shared Setup
+
 ```typescript
 describe('Issues API', () => {
   let testIssue;
@@ -249,6 +248,7 @@ describe('Issues API', () => {
 ```
 
 ### Pattern 2: Test Suites by HTTP Method
+
 ```typescript
 describe('/api/issues', () => {
   describe('GET', () => {
@@ -272,6 +272,7 @@ describe('/api/issues', () => {
 ```
 
 ### Pattern 3: Error Scenario Testing
+
 ```typescript
 describe('Error Handling', () => {
   it('should return 400 for invalid input', () => { ... });
@@ -284,6 +285,7 @@ describe('Error Handling', () => {
 ## Integration Testing Patterns
 
 ### Full Stack Integration Test
+
 ```typescript
 describe('Issue Creation Flow (Integration)', () => {
   it('should create issue end-to-end', async () => {
@@ -301,9 +303,7 @@ describe('Issue Creation Flow (Integration)', () => {
     expect(dbIssue).not.toBeNull();
 
     // 3. Retrieve via API
-    const getResponse = await fetch(
-      `http://localhost:3000/api/issues/${created.id}`
-    );
+    const getResponse = await fetch(`http://localhost:3000/api/issues/${created.id}`);
     const retrieved = await getResponse.json();
 
     expect(retrieved.title).toBe('Integration Test');
@@ -314,6 +314,7 @@ describe('Issue Creation Flow (Integration)', () => {
 ## Success Criteria
 
 API testing is complete when:
+
 - [ ] All HTTP methods (GET, POST, PATCH, DELETE) are tested
 - [ ] Validation errors return correct status codes
 - [ ] Database errors are handled gracefully
@@ -327,11 +328,13 @@ API testing is complete when:
 ## Integration with Agents
 
 Used by:
+
 - **devhub-fullstack** - When implementing API routes
 - **devhub-testing** - As specialized API testing guidance
 - **devhub-auditor** - To verify API test coverage
 
 Pair with:
+
 - **test-driven-development-web** - TDD methodology
 - **defense-in-depth-web** - Security testing
 - **systematic-debugging-web** - When tests fail

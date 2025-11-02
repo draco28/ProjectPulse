@@ -1,4 +1,4 @@
-# MCP Tools Recommendations for Moksha DevHub
+# MCP Tools Recommendations for ProjectPulse
 
 ## ⚠️ Important: Claude Code vs Claude Desktop
 

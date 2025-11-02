@@ -64,8 +64,8 @@ You are tasked with managing the `.agent/` documentation system based on the use
 2. Sub-agent analyzes recent implementations for the topic
 3. Identifies 3-5 consistent patterns and conventions
 4. Generates token-efficient skill file (50-280 tokens)
-5. Save to `.claude/skills/moksha-devhub/[topic-name].skill.md`
-6. Update `.claude/skills/moksha-devhub/README.md` index
+5. Save to `.claude/skills/projectpulse/[topic-name].skill.md`
+6. Update `.claude/skills/projectpulse/README.md` index
 7. Report token savings (skill tokens vs full doc tokens)
 8. Confirm completion
 
@@ -332,11 +332,11 @@ You: I'll generate a token-efficient skill for API validation patterns.
 [Sub-agent analyzes recent API implementations]
 [Identifies Zod validation patterns]
 [Generates token-efficient skill file]
-[Saves to .claude/skills/moksha-devhub/api-validation.skill.md]
-[Updates .claude/skills/moksha-devhub/README.md]
+[Saves to .claude/skills/projectpulse/api-validation.skill.md]
+[Updates .claude/skills/projectpulse/README.md]
 
 ✅ Skill created:
-- .claude/skills/moksha-devhub/api-validation.skill.md (220 tokens)
+- .claude/skills/projectpulse/api-validation.skill.md (220 tokens)
 
 Covers:
 - Zod schema definition pattern

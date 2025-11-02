@@ -258,12 +258,12 @@ User or parent agent says: "Generate skill for [topic]"
    - YAML frontmatter (name, description, triggers, token_estimate)
    - Quick pattern examples (50-200 tokens)
    - Links to full .agent/ documentation
-5. Save to `.claude/skills/moksha-devhub/[topic]-patterns.md`
-6. Update `.claude/skills/moksha-devhub/README.md` index
+5. Save to `.claude/skills/projectpulse/[topic]-patterns.md`
+6. Update `.claude/skills/projectpulse/README.md` index
 
 ### Output Format
 
-"Skill created: .claude/skills/moksha-devhub/[topic]-patterns.md
+"Skill created: .claude/skills/projectpulse/[topic]-patterns.md
 Token estimate: [X] tokens (vs [Y] in full docs = [Z]% reduction)"
 ```
 
@@ -284,7 +284,7 @@ Generate a token-efficient skill from recent implementations.
 
 1. Invokes synthesize-docs sub-agent in skill mode
 2. Analyzes codebase for [topic] patterns
-3. Generates skill at .claude/skills/moksha-devhub/[topic]-patterns.md
+3. Generates skill at .claude/skills/projectpulse/[topic]-patterns.md
 4. Updates skill index
 5. Reports token savings
 
@@ -292,7 +292,7 @@ Generate a token-efficient skill from recent implementations.
 
 ```bash
 /update-doc skill api-validation
-# Creates: .claude/skills/moksha-devhub/api-validation-patterns.md
+# Creates: .claude/skills/projectpulse/api-validation-patterns.md
 # Token cost: 180 tokens (vs 2,800 in full docs = 94% reduction)
 ```
 ````
@@ -382,7 +382,7 @@ Create token-efficient skills for critical SOPs (Phase 3 from SKILLS_ENHANCEMENT
 
 #### 4.3: Update Skill Index
 
-**File**: `.claude/skills/moksha-devhub/README.md`
+**File**: `.claude/skills/projectpulse/README.md`
 
 Add troubleshooting category:
 
@@ -422,7 +422,7 @@ Implement lazy-loading and measure token savings (Phase 4 from SKILLS_ENHANCEMEN
 
 #### 5.1: Document Lazy-Loading Pattern
 
-**File**: `.claude/skills/moksha-devhub/README.md`
+**File**: `.claude/skills/projectpulse/README.md`
 
 Add section:
 
@@ -493,7 +493,7 @@ New slash command:
 **Deliverables**:
 
 - ✅ Lazy-loading documented (COMPLETE)
-  - Three-tier system explained in moksha-devhub/README.md
+  - Three-tier system explained in projectpulse/README.md
   - Session flow examples with token counts
   - Keyword-based conditional loading
   - Token budget management strategies
@@ -682,7 +682,7 @@ Final update to capture all patterns and rules for future sessions.
 - `.claude/agents/synthesize-docs.md` (add skill mode)
 - `.claude/agents/map-system.md` (add context rules)
 - `.claude/commands/update-doc.md` (add skill action)
-- `.claude/skills/moksha-devhub/README.md` (add categories, optimization docs)
+- `.claude/skills/projectpulse/README.md` (add categories, optimization docs)
 - `CLAUDE.md` (add context workflow, specialized agents)
 - `.agent/README.md` (update with new patterns)
 

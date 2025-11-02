@@ -85,7 +85,7 @@
 
 **Status:** Existing file found but cannot be modified  
 **Reason:** File access restrictions  
-**Workaround:** The existing .windsurfrules already contains SuperDesign rules. Moksha DevHub agent rules are documented in CASCADE_RULES.md but not yet appended to .windsurfrules.
+**Workaround:** The existing .windsurfrules already contains SuperDesign rules. ProjectPulse agent rules are documented in CASCADE_RULES.md but not yet appended to .windsurfrules.
 
 **Impact:** Medium - Memories provide agent templates and protocol guidance, but automatic enforcement from .windsurfrules is missing.
 

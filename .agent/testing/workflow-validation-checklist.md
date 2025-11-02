@@ -146,7 +146,7 @@ User: "/update-doc skill api-validation"
 ↓
 1. explore-codebase detects patterns
 2. synthesize-docs creates skill
-3. Skill saved to .claude/skills/moksha-devhub/
+3. Skill saved to .claude/skills/projectpulse/
 4. Index updated
 5. Token savings reported
 ```
@@ -177,7 +177,7 @@ User: "/update-doc skill api-validation"
 
 ### Skill Index
 
-- [ ] README.md in `.claude/skills/moksha-devhub/` updated
+- [ ] README.md in `.claude/skills/projectpulse/` updated
 - [ ] Troubleshooting category added
 - [ ] All 7 skills listed with token counts
 - [ ] Token savings documented (92% overall)
@@ -201,7 +201,7 @@ User: "/update-doc skill api-validation"
 
 ### Lazy-Loading Documentation
 
-- [ ] Token Optimization section in moksha-devhub/README.md
+- [ ] Token Optimization section in projectpulse/README.md
 - [ ] Three-tier system explained
 - [ ] Session flow examples provided
 - [ ] Keyword-based conditional loading documented
@@ -288,7 +288,7 @@ Documentation committed
 ### Session Start Tokens
 
 **Target**: <6,000 tokens
-**Actual**: ****\_\_\_**** tokens
+**Actual**: \***\*\_\_\_\*\*** tokens
 **Status**: [ ] Pass / [ ] Fail
 
 **Breakdown**:
@@ -304,7 +304,7 @@ Documentation committed
 
 **Task**: "Create POST /api/issues endpoint"
 **Target**: <7,000 tokens peak
-**Actual**: ****\_\_\_**** tokens
+**Actual**: \***\*\_\_\_\*\*** tokens
 **Status**: [ ] Pass / [ ] Fail
 
 **Breakdown**:
@@ -317,10 +317,10 @@ Documentation committed
 ### Multi-Task Session (10 Tasks)
 
 **Target**: <60,000 tokens cumulative
-**Actual**: ****\_\_\_**** tokens
+**Actual**: \***\*\_\_\_\*\*** tokens
 **Status**: [ ] Pass / [ ] Fail
 
-**Tasks**: ********\_\_\_\_********
+**Tasks**: **\*\*\*\***\_\_\_\_**\*\*\*\***
 **Average peak per task**: **\_** tokens
 **Token variance**: **\_** %
 **Baseline stability**: [ ] Yes / [ ] No
@@ -509,7 +509,7 @@ Actions to test:
 ```
 .claude/
 ├── agents/          ✓ (7 agents)
-├── skills/          ✓ (moksha-devhub + troubleshooting + workflows)
+├── skills/          ✓ (projectpulse + troubleshooting + workflows)
 ├── commands/        ✓ (update-doc, refresh-skills)
 └── scripts/         ✓ (measure-tokens)
 ```
@@ -632,8 +632,8 @@ Actions to test:
 
 ## Sign-Off
 
-**Tested By**: **************\_\_\_**************
-**Date**: **************\_\_\_**************
+**Tested By**: ******\*\*******\_\_\_******\*\*******
+**Date**: ******\*\*******\_\_\_******\*\*******
 **Overall Status**: [ ] **PASS** / [ ] **FAIL**
 
 **Notes**:

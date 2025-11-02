@@ -1,6 +1,6 @@
 # Cascade Rules Configuration
 
-**Purpose:** Complete .windsurfrules file content for Moksha DevHub
+**Purpose:** Complete .windsurfrules file content for ProjectPulse
 
 ---
 
@@ -9,7 +9,7 @@
 **Location:** `f:\Web_Projects\AI_HUB\.windsurfrules`
 
 ```markdown
-# Moksha DevHub - Cascade Configuration
+# ProjectPulse - Cascade Configuration
 
 # Version: 1.0 | Last Updated: 2025-10-28
 
@@ -174,12 +174,12 @@ Based on phase keywords, automatically load relevant skills:
 
 **Keywords → Skills mapping:**
 
-- "API", "endpoint", "route" → .claude/skills/moksha-devhub/api-patterns.md
-- "Component", "UI", "page" → .claude/skills/moksha-devhub/component-patterns.md
-- "Database", "Prisma", "query" → .claude/skills/moksha-devhub/database-patterns.md
-- "Test", "testing" → .claude/skills/moksha-devhub/testing-patterns.md
-- "Port", "3000" → .claude/skills/moksha-devhub/port-config.md
-- "Git", "branch", "commit" → .claude/skills/moksha-devhub/git-workflow.md
+- "API", "endpoint", "route" → .claude/skills/projectpulse/api-patterns.md
+- "Component", "UI", "page" → .claude/skills/projectpulse/component-patterns.md
+- "Database", "Prisma", "query" → .claude/skills/projectpulse/database-patterns.md
+- "Test", "testing" → .claude/skills/projectpulse/testing-patterns.md
+- "Port", "3000" → .claude/skills/projectpulse/port-config.md
+- "Git", "branch", "commit" → .claude/skills/projectpulse/git-workflow.md
 
 Load skill by reading full file content when keywords detected.
 

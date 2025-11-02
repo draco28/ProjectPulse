@@ -1,6 +1,6 @@
 ---
 name: moksha-component-patterns
-description: React component conventions for Moksha DevHub using Next.js 14 App Router, Server Components, shadcn/ui, and Tailwind CSS. Use when creating new components, deciding Server vs Client, or structuring component files.
+description: React component conventions for ProjectPulse using Next.js 14 App Router, Server Components, shadcn/ui, and Tailwind CSS. Use when creating new components, deciding Server vs Client, or structuring component files.
 triggers:
   [
     'create component',

@@ -1,6 +1,6 @@
 ---
 name: moksha-git-workflow
-description: Git branching and commit conventions for Moksha DevHub. Use when creating branches, committing code, or preparing pull requests. CRITICAL - never work on master branch.
+description: Git branching and commit conventions for ProjectPulse. Use when creating branches, committing code, or preparing pull requests. CRITICAL - never work on master branch.
 triggers: ['git', 'branch', 'commit', 'pull request', 'git workflow', 'create branch']
 token_estimate: 180
 last_updated: 2025-10-26

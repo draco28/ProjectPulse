@@ -1,8 +1,8 @@
-# Claude Code Agent System for Moksha DevHub
+# Claude Code Agent System for ProjectPulse
 
 ## Overview
 
-This directory contains the complete agent system configuration for the Moksha DevHub project, providing intelligent routing, specialized skills, and workflow orchestration for AI-assisted development.
+This directory contains the complete agent system configuration for the ProjectPulse project, providing intelligent routing, specialized skills, and workflow orchestration for AI-assisted development.
 
 ## Directory Structure
 

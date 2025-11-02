@@ -304,7 +304,7 @@ Get issue details
 ```typescript
 issues_get_detail({
   provider: 'github',
-  repository_name: 'moksha-devhub',
+  repository_name: 'projectpulse',
   repository_organization: 'myorg',
   issue_id: '123',
 });
@@ -319,7 +319,7 @@ Create a pull request
 ```typescript
 pull_request_create({
   provider: 'github',
-  repository_name: 'moksha-devhub',
+  repository_name: 'projectpulse',
   repository_organization: 'myorg',
   title: 'Add issue tracker',
   source_branch: 'feature/issues',
@@ -456,7 +456,7 @@ browser_take_screenshot({
 ## Docker DevHub
 
 **Server**: `mcp__docker-devhub`
-**When to use**: Docker container management for Moksha DevHub
+**When to use**: Docker container management for ProjectPulse
 
 ### Available Tools
 

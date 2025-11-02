@@ -1,6 +1,6 @@
 ---
 name: moksha-ui-generation-workflow
-description: 4-step flow engineering process for generating high-quality, branded UI components. Based on iterative design approach (Layout → Theme → Animation → Implementation). Use when creating new pages, components, or UI features for Moksha DevHub.
+description: 4-step flow engineering process for generating high-quality, branded UI components. Based on iterative design approach (Layout → Theme → Animation → Implementation). Use when creating new pages, components, or UI features for ProjectPulse.
 triggers:
   ['create ui', 'new page', 'design component', 'generate interface', 'build ui', 'design page']
 token_estimate: 320
@@ -228,7 +228,7 @@ Example: Agent Card (perfect) → Agent List → Agent Detail → Agent Settings
 
 ---
 
-## Integration with Moksha DevHub
+## Integration with ProjectPulse
 
 **We already have**:
 ✅ Dark Neumorphic Coral theme (complete CSS)

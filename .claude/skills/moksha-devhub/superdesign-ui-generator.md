@@ -23,7 +23,7 @@ related_docs:
 **Purpose**: Generate standalone HTML/CSS design prototypes with custom themes and animations.
 
 **When to use**: Creating design prototypes, mockups, or standalone HTML files.
-**When NOT to use**: Building React components for Moksha DevHub (use ui-generation-workflow.md instead).
+**When NOT to use**: Building React components for ProjectPulse (use ui-generation-workflow.md instead).
 
 ---
 

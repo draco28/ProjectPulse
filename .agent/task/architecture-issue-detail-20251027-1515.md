@@ -2,14 +2,14 @@
 
 **Date**: 2025-10-27 15:15
 **Analyzed By**: analyze-architecture agent
-**Project**: Moksha DevHub
+**Project**: ProjectPulse
 **Phase**: Week 1.5 Phase 3 Day 4
 
 ---
 
 ## Executive Summary
 
-This analysis traces the complete data flow for implementing an Issue Detail page in Moksha DevHub. The codebase uses **Next.js 14 App Router** with **React Server Components** as the default, **Prisma ORM** for database access, and **API Routes** for external mutations. There are **NO Server Actions** currently implemented - all mutations go through API routes with **Zod validation**.
+This analysis traces the complete data flow for implementing an Issue Detail page in ProjectPulse. The codebase uses **Next.js 14 App Router** with **React Server Components** as the default, **Prisma ORM** for database access, and **API Routes** for external mutations. There are **NO Server Actions** currently implemented - all mutations go through API routes with **Zod validation**.
 
 **Key Finding**: The pattern is **Server Components for data fetching** + **Client Components for interactivity** + **API Routes for mutations** (not Server Actions).
 
@@ -1571,4 +1571,4 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
 **Report Complete** ✅
 
-This analysis provides a complete architectural understanding for implementing the Issue Detail page following Moksha DevHub's established patterns.
+This analysis provides a complete architectural understanding for implementing the Issue Detail page following ProjectPulse's established patterns.

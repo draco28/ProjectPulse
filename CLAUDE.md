@@ -1,4 +1,4 @@
-# Claude Code Integration Guide - Moksha DevHub
+# Claude Code Integration Guide - ProjectPulse
 
 **Version**: 2.0 (Context-Optimized)
 **Last Updated**: 2025-10-26
@@ -128,12 +128,12 @@ Proceed with [phase name].
 
 Based on phase keywords, I load relevant skills:
 
-| Phase Contains                | Skills to Load                                                           |
-| ----------------------------- | ------------------------------------------------------------------------ |
-| "API", "endpoint", "route"    | [api-patterns](.claude/skills/moksha-devhub/api-patterns.md)             |
-| "Component", "UI", "page"     | [component-patterns](.claude/skills/moksha-devhub/component-patterns.md) |
-| "Database", "Prisma", "query" | [database-patterns](.claude/skills/moksha-devhub/database-patterns.md)   |
-| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/moksha-devhub/testing-patterns.md)     |
+| Phase Contains                | Skills to Load                                                          |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| "API", "endpoint", "route"    | [api-patterns](.claude/skills/projectpulse/api-patterns.md)             |
+| "Component", "UI", "page"     | [component-patterns](.claude/skills/projectpulse/component-patterns.md) |
+| "Database", "Prisma", "query" | [database-patterns](.claude/skills/projectpulse/database-patterns.md)   |
+| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/projectpulse/testing-patterns.md)     |
 
 ### Sub-Agent Invocations
 
@@ -937,12 +937,12 @@ Initialize or update .agent/ documentation system
 
 **For standalone HTML/design prototypes**, the SuperDesign workflow is available.
 
-**Complete Guide**: [.claude/skills/moksha-devhub/superdesign-ui-generator.md](.claude/skills/moksha-devhub/superdesign-ui-generator.md)
+**Complete Guide**: [.claude/skills/projectpulse/superdesign-ui-generator.md](.claude/skills/projectpulse/superdesign-ui-generator.md)
 
 **When to use**: When asked to "design UI prototype", "create HTML mockup", or specifically "use SuperDesign workflow"
 
 **Output**: Standalone HTML files in `.superdesign/design_iterations/` folder
 
-**Note**: For React components in Moksha DevHub, use [ui-generation-workflow.md](.claude/skills/moksha-devhub/ui-generation-workflow.md) instead.
+**Note**: For React components in ProjectPulse, use [ui-generation-workflow.md](.claude/skills/projectpulse/ui-generation-workflow.md) instead.
 
 ---

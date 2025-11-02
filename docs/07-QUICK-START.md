@@ -1,6 +1,6 @@
-# 07 - Moksha DevHub: Quick Start Guide
+# 07 - ProjectPulse: Quick Start Guide
 
-**Goal:** Get Moksha DevHub running in 30 minutes  
+**Goal:** Get ProjectPulse running in 30 minutes  
 **Status:** Production Ready ✅
 
 ---
@@ -69,8 +69,8 @@ wsl --update
 cd F:\  # Or wherever you keep projects
 
 # Create project directory
-mkdir moksha-devhub
-cd moksha-devhub
+mkdir projectpulse
+cd projectpulse
 
 # Initialize git
 git init
@@ -97,7 +97,7 @@ packages:
 
 ```json
 {
-  "name": "moksha-devhub",
+  "name": "projectpulse",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -370,7 +370,7 @@ start http://localhost:3000
 
 **You should see:**
 
-- ✅ Moksha DevHub homepage
+- ✅ ProjectPulse homepage
 - ✅ Sidebar with navigation
 - ✅ Issue list (empty or with seed data)
 
@@ -381,14 +381,14 @@ start http://localhost:3000
 1. **Click "New Issue"** in top right
 2. **Fill in details:**
    - Title: "Setup complete!"
-   - Description: "Successfully set up Moksha DevHub"
+   - Description: "Successfully set up ProjectPulse"
    - Priority: Medium
    - Module: Core
    - Labels: setup
 3. **Click "Create Issue"**
 4. **Verify:** Issue appears in list
 
-**Congratulations! 🎉 Moksha DevHub is running!**
+**Congratulations! 🎉 ProjectPulse is running!**
 
 ---
 
@@ -408,11 +408,11 @@ ipconfig
 
 ```powershell
 # Allow ports 3000 through firewall
-New-NetFirewallRule -DisplayName "Moksha DevHub" `
+New-NetFirewallRule -DisplayName "ProjectPulse" `
   -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow
 
 # Verify rule created
-Get-NetFirewallRule -DisplayName "Moksha DevHub"
+Get-NetFirewallRule -DisplayName "ProjectPulse"
 ```
 
 ### Step 3: Access from Mac Mini
@@ -453,7 +453,7 @@ pnpm add -D typescript @types/node tsx
 
 ```json
 {
-  "name": "@moksha-devhub/mcp-server",
+  "name": "@projectpulse/mcp-server",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -475,7 +475,7 @@ const API_URL = 'http://localhost:3000/api';
 
 const server = new Server(
   {
-    name: 'moksha-devhub',
+    name: 'projectpulse',
     version: '1.0.0',
   },
   {
@@ -533,7 +533,7 @@ Edit Claude Code MCP configuration:
   "projects": {
     "F:\\Web_Projects\\AI_HUB": {
       "mcpServers": {
-        "moksha-devhub": {
+        "projectpulse": {
           "type": "stdio",
           "command": "node",
           "args": ["F:\\Web_Projects\\AI_HUB\\apps\\mcp-server\\dist\\index.js"],
@@ -624,10 +624,10 @@ pnpm prisma migrate dev --name init
 
 ```powershell
 # On Windows, check firewall:
-Get-NetFirewallRule -DisplayName "Moksha DevHub"
+Get-NetFirewallRule -DisplayName "ProjectPulse"
 
 # If not found, create rule:
-New-NetFirewallRule -DisplayName "Moksha DevHub" `
+New-NetFirewallRule -DisplayName "ProjectPulse" `
   -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow
 
 # Verify Windows PC IP hasn't changed:
@@ -726,7 +726,7 @@ pnpm prisma db seed
 ## 🎉 Success!
 
 You now have:
-✅ Moksha DevHub running locally  
+✅ ProjectPulse running locally  
 ✅ PostgreSQL database with Prisma  
 ✅ Issue tracker with basic features  
 ✅ Accessible from Mac Mini (if configured)  

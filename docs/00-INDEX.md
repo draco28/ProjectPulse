@@ -1,4 +1,4 @@
-# ðŸ—ï¸ Moksha DevHub - Complete Documentation Package
+# ðŸ—ï¸ ProjectPulse - Complete Documentation Package
 
 **Version:** 1.0 Final  
 **Last Updated:** October 23, 2025  
@@ -8,21 +8,24 @@
 
 ## ðŸ“š Documentation Overview
 
-This comprehensive package contains **8 documents** covering every aspect of Moksha DevHub's architecture, implementation, and deployment. Total documentation: **~300 pages**.
+This comprehensive package contains **8 documents** covering every aspect of ProjectPulse's architecture, implementation, and deployment. Total documentation: **~300 pages**.
 
 ---
 
 ## ðŸ“„ Document Index
 
 ### **1ï¸âƒ£ [00-INDEX.md](./00-INDEX.md)** â­ **START HERE**
+
 **This document** - Navigation guide and reading paths
 
 ---
 
 ### **2ï¸âƒ£ [01-ARCHITECTURE.md](./01-ARCHITECTURE.md)** ðŸ“Š
+
 **Complete System Architecture** (70 pages)
 
 **What's inside:**
+
 - Technology stack finalized (Node.js, Next.js, PostgreSQL)
 - Database choice rationale (PostgreSQL vs MongoDB)
 - Architecture patterns and principles
@@ -32,11 +35,13 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 - Performance considerations
 
 **When to read:**
+
 - After this index (first read)
 - When making architectural decisions
 - Reference during implementation
 
 **Key sections:**
+
 - Why PostgreSQL (JSONB + pgvector + full-text)
 - Monorepo structure with apps/
 - MCP integration architecture
@@ -46,9 +51,11 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ---
 
 ### **3ï¸âƒ£ [02-DATABASE-SCHEMA.md](./02-DATABASE-SCHEMA.md)** ðŸ—„ï¸
+
 **Complete Database Schema** (40 pages)
 
 **What's inside:**
+
 - Complete Prisma schema (copy-paste ready)
 - All models with relationships
 - Indexes and performance optimization
@@ -57,11 +64,13 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 - Schema evolution guide
 
 **When to read:**
+
 - Day 2 of implementation
 - When adding new features
 - Database questions
 
 **Key sections:**
+
 - Issue tracker models
 - Knowledge base models
 - Wiki models
@@ -72,9 +81,11 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ---
 
 ### **4ï¸âƒ£ [03-MCP-SPECIFICATION.md](./03-MCP-SPECIFICATION.md)** ðŸ”§
+
 **MCP Tools, Resources & Prompts** (60 pages)
 
 **What's inside:**
+
 - All MCP tools with TypeScript signatures
 - MCP Resources for context injection
 - MCP Prompts for agent personas
@@ -83,11 +94,13 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 - Configuration guide
 
 **When to read:**
+
 - Week 3-4 (MCP implementation)
 - When adding new MCP tools
 - Integrating with Claude Code
 
 **Key sections:**
+
 - 25+ MCP tools defined
 - Context injection via Resources
 - Agent personas via Prompts
@@ -97,9 +110,11 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ---
 
 ### **5ï¸âƒ£ [04-UI-ARCHITECTURE.md](./04-UI-ARCHITECTURE.md)** ðŸŽ¨
+
 **UI Design System & Components** (45 pages)
 
 **What's inside:**
+
 - Complete design system (colors, typography, spacing)
 - Component library structure
 - Page layouts for all sections
@@ -109,11 +124,13 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 - Accessibility guidelines
 
 **When to read:**
+
 - Week 1 (UI foundation)
 - When building new pages
 - Styling questions
 
 **Key sections:**
+
 - shadcn/ui + Tailwind setup
 - Component hierarchy
 - App shell (sidebar + header)
@@ -124,9 +141,11 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ---
 
 ### **6ï¸âƒ£ [05-IMPLEMENTATION-GUIDE.md](./05-IMPLEMENTATION-GUIDE.md)** ðŸ“…
+
 **Week-by-Week Implementation** (50 pages)
 
 **What's inside:**
+
 - Day-by-day task breakdown
 - Complete code examples
 - Verification steps
@@ -134,11 +153,13 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 - Phase-by-phase roadmap
 
 **When to read:**
+
 - When starting implementation
 - Daily during development
 - When stuck on a task
 
 **Key sections:**
+
 - Week 1-4: MVP (60-68 hours)
 - Week 5-8: Phase 2 (Knowledge + Personas)
 - Week 9-12: Phase 3 (Wiki + Security)
@@ -147,9 +168,11 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ---
 
 ### **7ï¸âƒ£ [06-AGENT-PERSONAS.md](./06-AGENT-PERSONAS.md)** ðŸ¤–
+
 **Agent Personas Deep Dive** (35 pages)
 
 **What's inside:**
+
 - Complete persona system design
 - Default personas included (5 pre-configured)
 - Persona editor UI
@@ -158,11 +181,13 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 - Usage tracking and analytics
 
 **When to read:**
+
 - Phase 2 (Week 5-8)
 - When customizing personas
 - Understanding context injection
 
 **Key sections:**
+
 - What are agent personas?
 - Database models
 - MCP Prompts integration
@@ -173,9 +198,11 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ---
 
 ### **8ï¸âƒ£ [07-QUICK-START.md](./07-QUICK-START.md)** ðŸ
+
 **Get Running in 30 Minutes** (20 pages)
 
 **What's inside:**
+
 - Prerequisites checklist
 - Step-by-step setup
 - Copy-paste commands
@@ -183,11 +210,13 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 - First-run verification
 
 **When to read:**
+
 - Day 1, before starting
 - Quick reference during setup
 - Troubleshooting setup issues
 
 **Key sections:**
+
 - Install Docker Desktop
 - Project setup
 - First issue created
@@ -199,6 +228,7 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ## ðŸ—ºï¸ Reading Paths
 
 ### **Path 1: First-Time Read** (3-4 hours)
+
 ```
 ðŸ“– Phase 1: Understanding (2 hours)
 â”œâ”€ 00-INDEX.md (this file) ......................... 15 min
@@ -281,19 +311,21 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ## ðŸŽ¯ Key Decisions Summary
 
 ### **Technology Stack** âœ…
-| Component | Technology | Why |
-|-----------|-----------|-----|
-| Frontend + Backend | Next.js 14 (App Router + API Routes) | Unified, modern, excellent DX |
-| Database | PostgreSQL 16 | JSONB, pgvector, full-text search |
-| ORM | Prisma | Type-safe, migrations, great TS support |
-| Embeddings | @xenova/transformers (local) | Privacy, no API costs |
-| Embedding Model | all-MiniLM-L6-v2 (384 dims) | Good quality, fast, local |
-| UI Components | shadcn/ui + Tailwind CSS | Modern, customizable, accessible |
-| MCP | @modelcontextprotocol/sdk | Official SDK |
-| Deployment | Docker Compose | Simple, consistent, LAN-ready |
-| Monorepo | pnpm workspaces | Fast, efficient |
+
+| Component          | Technology                           | Why                                     |
+| ------------------ | ------------------------------------ | --------------------------------------- |
+| Frontend + Backend | Next.js 14 (App Router + API Routes) | Unified, modern, excellent DX           |
+| Database           | PostgreSQL 16                        | JSONB, pgvector, full-text search       |
+| ORM                | Prisma                               | Type-safe, migrations, great TS support |
+| Embeddings         | @xenova/transformers (local)         | Privacy, no API costs                   |
+| Embedding Model    | all-MiniLM-L6-v2 (384 dims)          | Good quality, fast, local               |
+| UI Components      | shadcn/ui + Tailwind CSS             | Modern, customizable, accessible        |
+| MCP                | @modelcontextprotocol/sdk            | Official SDK                            |
+| Deployment         | Docker Compose                       | Simple, consistent, LAN-ready           |
+| Monorepo           | pnpm workspaces                      | Fast, efficient                         |
 
 ### **Architecture Patterns** âœ…
+
 - **MCP â†’ Next.js API** (not direct Prisma)
 - **Hybrid search** (full-text + semantic)
 - **Tiered script permissions** (read-only, create-issues, direct)
@@ -305,6 +337,7 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 - **Slash commands** (/) for personas/templates
 
 ### **Privacy & Local-First** âœ…
+
 - âœ… All data stored locally (no cloud)
 - âœ… Local embeddings (no OpenAI API)
 - âœ… No authentication needed (solo use)
@@ -317,6 +350,7 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ## ðŸ“Š Feature Breakdown by Phase
 
 ### **MVP (Weeks 1-4, 60-68 hours)** âœ…
+
 ```
 âœ… Issue Tracker
    â”œâ”€ CRUD operations
@@ -347,6 +381,7 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ```
 
 ### **Phase 2 (Weeks 5-8, 40 hours)** ðŸš€
+
 ```
 âœ… Knowledge Base
    â”œâ”€ CRUD operations
@@ -378,6 +413,7 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ```
 
 ### **Phase 3 (Weeks 9-12, 50 hours)** ðŸ”’
+
 ```
 âœ… Documentation Wiki
    â”œâ”€ Hierarchical pages
@@ -403,6 +439,7 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ```
 
 ### **Phase 4 (Weeks 13-16, 60 hours)** ðŸŽ¯
+
 ```
 âœ… Git Integration
    â”œâ”€ Auto-link commits (Fix #42)
@@ -430,6 +467,7 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ```
 
 ### **Phase 5 (Weeks 17-20, 40 hours)** ðŸ“Š
+
 ```
 âœ… Analytics
    â”œâ”€ Time tracking
@@ -444,12 +482,14 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 ## ðŸ”¢ Project Stats
 
 ### **Documentation**
+
 - **Total Pages:** ~300 pages
 - **Code Examples:** 150+ complete snippets
 - **Diagrams:** 15+ architecture diagrams
 - **Commands:** 300+ copy-paste ready
 
 ### **Implementation**
+
 - **MVP:** 60-68 hours (4-5 weeks at 14 hrs/week)
 - **Phase 2:** 40 hours (3 weeks)
 - **Phase 3:** 50 hours (4 weeks)
@@ -458,6 +498,7 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 - **Total:** 250-258 hours (~18-19 weeks)
 
 ### **Features**
+
 - **MVP:** 8 major features
 - **Phase 2:** 4 major features (including agent personas)
 - **Phase 3:** 2 major features (wiki + security)
@@ -466,17 +507,20 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 - **Total:** 23 major features
 
 ### **Database**
+
 - **Models:** 15+ Prisma models
 - **Tables:** 15+ PostgreSQL tables
 - **Indexes:** 30+ optimized indexes
 - **Extensions:** 2 (pgvector, pg_trgm)
 
 ### **MCP**
+
 - **Tools:** 25+ tools
 - **Resources:** 5+ resources
 - **Prompts:** 10+ prompts (including personas)
 
 ### **UI**
+
 - **Pages:** 20+ unique pages
 - **Components:** 100+ React components
 - **Routes:** 30+ API routes
@@ -488,6 +532,7 @@ This comprehensive package contains **8 documents** covering every aspect of Mok
 Before starting, ensure you have:
 
 ### **Required**
+
 - [ ] Windows 11 PC (primary development machine)
 - [ ] Mac Mini (optional, for LAN access testing)
 - [ ] Docker Desktop installed (with WSL2)
@@ -499,6 +544,7 @@ Before starting, ensure you have:
 - [ ] ~100GB disk space for Docker images + data
 
 ### **Recommended**
+
 - [ ] Understanding of TypeScript/JavaScript
 - [ ] Basic React knowledge
 - [ ] PostgreSQL basics (helpful but not required)
@@ -506,6 +552,7 @@ Before starting, ensure you have:
 - [ ] Claude Code installed (for MCP testing)
 
 ### **Network**
+
 - [ ] Windows PC and Mac Mini on same LAN
 - [ ] No restrictive firewall blocking local ports
 - [ ] Static IP or DHCP reservation (optional but helpful)
@@ -515,6 +562,7 @@ Before starting, ensure you have:
 ## ðŸŽ¯ Success Criteria
 
 ### **End of MVP (Week 4)**
+
 âœ… Can create/view/update/delete issues via web UI  
 âœ… Comments work on issues  
 âœ… File attachments upload successfully  
@@ -524,72 +572,82 @@ Before starting, ensure you have:
 âœ… Helper scripts can auto-create issues  
 âœ… Accessible from Mac Mini on LAN  
 âœ… Dark mode works  
-âœ… Responsive on desktop  
+âœ… Responsive on desktop
 
 ### **End of Phase 2 (Week 8)**
+
 âœ… Knowledge base stores code patterns  
 âœ… Semantic search finds similar patterns  
 âœ… Agent personas activated via Cmd+K  
 âœ… Slash commands work in editors  
 âœ… Context auto-injected into Claude Code  
 âœ… 5 default personas available  
-âœ… Custom persona creation works  
+âœ… Custom persona creation works
 
 ### **End of Phase 3 (Week 12)**
+
 âœ… Wiki pages organized hierarchically  
 âœ… SoT rules documented in wiki  
 âœ… Semgrep scans find security issues  
 âœ… Security dashboard shows findings  
 âœ… Issues auto-created from Semgrep  
-âœ… False positives can be marked  
+âœ… False positives can be marked
 
 ### **End of Phase 4 (Week 16)**
+
 âœ… Git commits auto-link to issues  
 âœ… Milestones track progress  
 âœ… Templates speed up creation  
-âœ… ADRs track architecture decisions  
+âœ… ADRs track architecture decisions
 
 ### **Final Success (Week 19)**
+
 âœ… Completely replaced Linear, Byterover, Notion  
 âœ… $0/month in subscription costs  
 âœ… Deeply integrated with Moksha workflow  
 âœ… Strong portfolio piece  
 âœ… Claude Code seamlessly integrated  
-âœ… All data private and local  
+âœ… All data private and local
 
 ---
 
 ## ðŸ’¡ Tips for Success
 
 ### **1. Don't Rush**
+
 - 14 hours/week is manageable and sustainable
 - Take breaks between tasks
 - Understand code before copy-pasting
 - Ask questions when stuck
 
 ### **2. Commit Often**
+
 ```bash
 git init
 git add .
 git commit -m "Day 1: Docker + PostgreSQL setup complete"
 ```
+
 - Commit after each major milestone
 - Write descriptive commit messages
 - Use branches for experimental features
 
 ### **3. Test As You Go**
+
 - Verify each task before moving on
 - Use Postman/curl to test APIs
 - Check Docker logs frequently
 - Test LAN access from Mac Mini
 
 ### **4. Document Your Decisions**
+
 - Keep notes on customizations
 - Document why you chose X over Y
 - Update README as you build
 - Screenshot your progress
 
 ### **5. Celebrate Milestones**
+
 - End of Day 1: PostgreSQL running âœ…
 - End of Day 2: API working âœ…
 - End of Day 3: UI showing issues âœ…
@@ -597,6 +655,7 @@ git commit -m "Day 1: Docker + PostgreSQL setup complete"
 - End of Phase 1: Full MVP âœ…
 
 ### **6. Ask for Help**
+
 - Documentation is comprehensive but not perfect
 - If stuck >30 min, ask me
 - Check official docs for specific errors
@@ -607,33 +666,37 @@ git commit -m "Day 1: Docker + PostgreSQL setup complete"
 ## ðŸš¨ Common Pitfalls to Avoid
 
 ### **Technical**
+
 âŒ Don't skip reading documentation  
 âŒ Don't copy-paste without understanding  
 âŒ Don't commit .env files with secrets  
 âŒ Don't ignore TypeScript errors  
 âŒ Don't skip database migrations  
 âŒ Don't hardcode values (use env vars)  
-âŒ Don't forget to restart Docker after changes  
+âŒ Don't forget to restart Docker after changes
 
 ### **Process**
+
 âŒ Don't try to build everything at once  
 âŒ Don't skip MVP and jump to Phase 4  
 âŒ Don't customize too early (stick to plan first)  
 âŒ Don't ignore testing  
-âŒ Don't forget to backup database  
+âŒ Don't forget to backup database
 
 ### **Mindset**
+
 âŒ Don't compare to paid tools during MVP  
 âŒ Don't expect perfection on first try  
 âŒ Don't give up when stuck  
 âŒ Don't skip documentation  
-âŒ Don't forget why you're building this  
+âŒ Don't forget why you're building this
 
 ---
 
 ## ðŸ“ž Getting Help
 
 ### **When Stuck**
+
 1. Check relevant documentation file
 2. Search error message + technology name
 3. Check official docs (Docker, Prisma, Fastify, Next.js)
@@ -641,6 +704,7 @@ git commit -m "Day 1: Docker + PostgreSQL setup complete"
 5. Stack Overflow
 
 ### **Documentation Files**
+
 1. **Architecture questions** â†’ 01-ARCHITECTURE.md
 2. **Database questions** â†’ 02-DATABASE-SCHEMA.md
 3. **MCP questions** â†’ 03-MCP-SPECIFICATION.md
@@ -661,8 +725,8 @@ git commit -m "Day 1: Docker + PostgreSQL setup complete"
 4. **Install Docker Desktop** (if not already)
 5. **Create project directory:**
    ```bash
-   mkdir F:\moksha-devhub
-   cd F:\moksha-devhub
+   mkdir F:\projectpulse
+   cd F:\projectpulse
    ```
 6. **Follow 05-IMPLEMENTATION-GUIDE.md** (Week 1, Day 1)
 
@@ -671,7 +735,7 @@ git commit -m "Day 1: Docker + PostgreSQL setup complete"
 ## ðŸ“‚ File Structure
 
 ```
-moksha-devhub-FINAL/
+projectpulse-FINAL/
 â”œâ”€â”€ 00-INDEX.md                    # This file
 â”œâ”€â”€ 01-ARCHITECTURE.md             # Complete architecture
 â”œâ”€â”€ 02-DATABASE-SCHEMA.md          # Prisma schema
@@ -686,9 +750,10 @@ moksha-devhub-FINAL/
 
 ## ðŸ† What You'll Achieve
 
-By completing Moksha DevHub, you will:
+By completing ProjectPulse, you will:
 
 ### **Technical Skills**
+
 âœ… **Full-stack development** (Next.js, React, Node.js, PostgreSQL)  
 âœ… **Database design** (Prisma, migrations, relationships)  
 âœ… **Docker & containerization** (Docker Compose, multi-container apps)  
@@ -696,32 +761,36 @@ By completing Moksha DevHub, you will:
 âœ… **Search systems** (full-text + semantic search)  
 âœ… **UI/UX design** (modern design system, accessibility)  
 âœ… **System architecture** (monorepo, API design, modularity)  
-âœ… **Security** (Semgrep integration, vulnerability scanning)  
+âœ… **Security** (Semgrep integration, vulnerability scanning)
 
 ### **Portfolio Piece**
+
 âœ… **Impressive project** showing initiative and depth  
 âœ… **System design skills** demonstrated through architecture  
 âœ… **Problem-solving** (built custom solution vs buying)  
 âœ… **Full-stack capability** (frontend + backend + database + MCP)  
-âœ… **Modern tech stack** (Next.js 14, Prisma, Docker, shadcn/ui)  
+âœ… **Modern tech stack** (Next.js 14, Prisma, Docker, shadcn/ui)
 
 ### **Productivity Gains**
+
 âœ… **$0/month** vs $40+/month for paid tools  
 âœ… **Tailored workflow** exactly for Moksha development  
 âœ… **Full control** over features and customization  
 âœ… **Privacy** (all data local, no cloud)  
 âœ… **Integration** with Claude Code for AI assistance  
-âœ… **Extensibility** (easy to add features as needed)  
+âœ… **Extensibility** (easy to add features as needed)
 
 ---
 
 ## ðŸ“ˆ Project ROI
 
 ### **Time Investment**
+
 - **MVP:** 60-68 hours (4-5 weeks)
 - **Full System:** 250-258 hours (18-19 weeks)
 
 ### **Financial Savings**
+
 - **Linear:** $10/month Ã— 12 = $120/year
 - **Byterover:** $15/month Ã— 12 = $180/year
 - **Notion:** $10/month Ã— 12 = $120/year
@@ -731,11 +800,13 @@ By completing Moksha DevHub, you will:
 **Lifetime savings:** Infinite (one-time build, use forever)
 
 ### **Skill Development**
+
 - **Market value:** Full-stack + system design skills worth $10k-20k+ in salary
 - **Portfolio:** Strong signal to potential employers/clients
 - **Experience:** Real-world system design and implementation
 
 ### **Productivity**
+
 - **Custom workflow:** Exactly fit to your needs
 - **No context switching:** Everything in one place
 - **AI integration:** Claude Code deeply integrated
@@ -754,13 +825,14 @@ You now have:
 âœ… MCP integration designed  
 âœ… UI structure planned  
 âœ… Week-by-week implementation guide  
-âœ… 8 comprehensive documents  
+âœ… 8 comprehensive documents
 
 **Your next action:**
+
 ```bash
 # Let's do this! ðŸš€
-mkdir F:\moksha-devhub
-cd F:\moksha-devhub
+mkdir F:\projectpulse
+cd F:\projectpulse
 
 # Then open: 07-QUICK-START.md
 ```
@@ -770,6 +842,7 @@ cd F:\moksha-devhub
 ## ðŸ“ Document Change Log
 
 **Version 1.0 Final** - October 23, 2025
+
 - Initial comprehensive documentation package
 - All features finalized
 - All decisions made

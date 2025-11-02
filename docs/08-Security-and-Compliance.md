@@ -1,6 +1,6 @@
 # Security and Compliance
 
-**Project:** Moksha DevHub
+**Project:** ProjectPulse
 **Version:** 2.0.0 (Agent-First Architecture)
 **Created:** 2025-11-02
 **Status:** Active
@@ -10,7 +10,7 @@
 
 ## Document Purpose
 
-This document defines the complete security and compliance strategy for Moksha DevHub, an agent-first project management platform. Security considerations are critical because AI agents (Claude Code, Cursor AI, Codex) execute operations autonomously via MCP, requiring robust safeguards against unintended actions, data corruption, and unauthorized access.
+This document defines the complete security and compliance strategy for ProjectPulse, an agent-first project management platform. Security considerations are critical because AI agents (Claude Code, Cursor AI, Codex) execute operations autonomously via MCP, requiring robust safeguards against unintended actions, data corruption, and unauthorized access.
 
 **Security Philosophy:**
 
@@ -47,7 +47,7 @@ This document defines the complete security and compliance strategy for Moksha D
 
 ### 1.1 Overview
 
-Moksha DevHub uses the **STRIDE threat modeling framework** to identify and mitigate security threats:
+ProjectPulse uses the **STRIDE threat modeling framework** to identify and mitigate security threats:
 
 - **S**poofing Identity
 - **T**ampering with Data
@@ -217,7 +217,7 @@ Moksha DevHub uses the **STRIDE threat modeling framework** to identify and miti
 
 ### 2.1 Overview
 
-Moksha DevHub implements a **5-level autonomy system** (L0-L4) to control agent permissions. Agents start at **Level 0 (Read-Only)** by default and escalate permissions only as needed.
+ProjectPulse implements a **5-level autonomy system** (L0-L4) to control agent permissions. Agents start at **Level 0 (Read-Only)** by default and escalate permissions only as needed.
 
 **Design Goals:**
 
@@ -985,7 +985,7 @@ const approvals = await prisma.agentAction.findMany({
 
 ### 6.1 Overview
 
-Moksha DevHub is **local-first** (no cloud storage), which simplifies GDPR compliance. However, privacy best practices are still followed.
+ProjectPulse is **local-first** (no cloud storage), which simplifies GDPR compliance. However, privacy best practices are still followed.
 
 ### 6.2 GDPR Principles
 

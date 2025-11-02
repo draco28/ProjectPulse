@@ -10,11 +10,11 @@
 
 ### Purpose
 
-This document defines the **observability** and **site reliability engineering (SRE)** practices for Moksha DevHub, ensuring system reliability, performance visibility, and operational excellence in a local development environment.
+This document defines the **observability** and **site reliability engineering (SRE)** practices for ProjectPulse, ensuring system reliability, performance visibility, and operational excellence in a local development environment.
 
 ### Observability vs Monitoring vs Logging
 
-| Concept           | Definition                                                        | Moksha DevHub Application                                             |
+| Concept           | Definition                                                        | ProjectPulse Application                                              |
 | ----------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------- |
 | **Logging**       | Recording discrete events                                         | `AgentAction` table, Prisma query logs, application logs              |
 | **Monitoring**    | Collecting and displaying metrics over time                       | Response times, error rates, token usage trends                       |
@@ -22,7 +22,7 @@ This document defines the **observability** and **site reliability engineering (
 
 ### Agent-First Architecture Considerations
 
-Moksha DevHub's observability strategy prioritizes **agent workflow visibility**:
+ProjectPulse's observability strategy prioritizes **agent workflow visibility**:
 
 1. **Token Budget Tracking**: Real-time monitoring of token consumption against 200K limit
 2. **Protocol Compliance**: Automated tracking of 5-step mandatory session protocol (target: >95% compliance)
@@ -31,7 +31,7 @@ Moksha DevHub's observability strategy prioritizes **agent workflow visibility**
 
 ### Local Deployment Context
 
-Unlike cloud services with distributed tracing and APM tools, Moksha DevHub operates in a **single-developer, local environment**:
+Unlike cloud services with distributed tracing and APM tools, ProjectPulse operates in a **single-developer, local environment**:
 
 - **Uptime SLA**: 99.9% dependent on local machine uptime (not contractual)
 - **Observability Tools**: Lightweight, developer-friendly (no enterprise APM overhead)
@@ -300,8 +300,8 @@ console.table(slowQueries);
 
 ```bash
 # Use logrotate for log management
-# /etc/logrotate.d/moksha-devhub
-/path/to/moksha-devhub/logs/*.log {
+# /etc/logrotate.d/projectpulse
+/path/to/projectpulse/logs/*.log {
   daily
   rotate 7
   compress
@@ -2763,7 +2763,7 @@ export default function DashboardPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Moksha DevHub Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-6">ProjectPulse Dashboard</h1>
 
       <div className="grid grid-cols-3 gap-4">
         <MetricCard
@@ -2810,7 +2810,7 @@ export default function DashboardPage() {
 
 **Definition**: Targets for service reliability and performance
 
-#### Moksha DevHub SLOs
+#### ProjectPulse SLOs
 
 | Service                   | SLO                             | Measurement Window | Target           |
 | ------------------------- | ------------------------------- | ------------------ | ---------------- |

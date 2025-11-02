@@ -1,6 +1,6 @@
-# Implementation Roadmap - Moksha DevHub (Agent-First)
+# Implementation Roadmap - ProjectPulse (Agent-First)
 
-**Based on**: [PLANNING_PHASES_moksha-devhub-agent-first.md](PLANNING_PHASES_moksha-devhub-agent-first.md)
+**Based on**: [PLANNING_PHASES_projectpulse-agent-first.md](PLANNING_PHASES_projectpulse-agent-first.md)
 **Created**: 2025-11-02
 **Status**: Ready to Implement
 **Architecture**: Agent-First (95% MCP, 5% human UI)
@@ -131,7 +131,7 @@
    for file in $PROTECTED_FILES; do
      if git diff --cached --name-only | grep -q "^$file$"; then
        echo "❌ ERROR: $file is auto-generated and cannot be edited manually"
-       echo "ℹ️  Update via Moksha DevHub app instead"
+       echo "ℹ️  Update via ProjectPulse app instead"
        exit 1
      fi
    done
@@ -296,7 +296,7 @@ export async function GET(request: Request) {
    const prisma = new PrismaClient();
    const server = new Server(
      {
-       name: 'moksha-devhub',
+       name: 'projectpulse',
        version: '1.0.0',
      },
      {
@@ -671,7 +671,7 @@ export const sprintTools = {
    ```
 
 2. Migrate existing skills to database:
-   - Import from `.claude/skills/moksha-devhub/*.md`
+   - Import from `.claude/skills/projectpulse/*.md`
    - Parse YAML frontmatter
    - Store in database
    - Keep files in sync (optional)

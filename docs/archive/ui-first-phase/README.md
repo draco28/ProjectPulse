@@ -9,7 +9,7 @@
 
 ## Overview
 
-This archive preserves the initial development phase where Moksha DevHub was built with a **UI-first approach**:
+This archive preserves the initial development phase where ProjectPulse was built with a **UI-first approach**:
 
 - Manual interaction via rich, responsive user interfaces
 - 7 complete UI pages with dark neumorphic coral theme
@@ -257,8 +257,8 @@ This archive preserves the initial development phase where Moksha DevHub was bui
 
 ### Archived Documents
 
-- **PLANNING_PHASES_moksha-devhub-agent-first.md** - Agent-first architecture planning session (November 2, 2025)
-- **IMPLEMENTATION_ROADMAP_moksha-devhub.md** - 16-week implementation roadmap
+- **PLANNING_PHASES_projectpulse-agent-first.md** - Agent-first architecture planning session (November 2, 2025)
+- **IMPLEMENTATION_ROADMAP_projectpulse.md** - 16-week implementation roadmap
 - **DEVELOPMENT_PLAN_v1.5_ARCHIVED.md** - Original 2,000-line development plan (UI-first approach)
 - **COMPLETION\_\*.md** - Week 1-1.5 completion reports
 
@@ -301,7 +301,7 @@ All UI code remains in the main codebase at:
 
 ### Planning Sessions
 
-- **Planning Session (November 2, 2025):** PLANNING_PHASES_moksha-devhub-agent-first.md (this archive)
+- **Planning Session (November 2, 2025):** PLANNING_PHASES_projectpulse-agent-first.md (this archive)
 
 ---
 

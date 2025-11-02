@@ -1,6 +1,6 @@
 # Cascade Daily Workflow Guide
 
-**Purpose:** How to use Cascade for Moksha DevHub development
+**Purpose:** How to use Cascade for ProjectPulse development
 
 ---
 
@@ -316,29 +316,29 @@ Cascade detects keywords in your request and automatically loads skills:
 **Detected keywords:** "API", "endpoint"  
 **Loaded skills:**
 
-- .claude/skills/moksha-devhub/api-patterns.md
-- .claude/skills/moksha-devhub/testing-patterns.md (TDD mandatory)
+- .claude/skills/projectpulse/api-patterns.md
+- .claude/skills/projectpulse/testing-patterns.md (TDD mandatory)
 
 **Example 2:** "Create IssueCard component"
 
 **Detected keywords:** "component", "Card"  
 **Loaded skills:**
 
-- .claude/skills/moksha-devhub/component-patterns.md
-- .claude/skills/moksha-devhub/testing-patterns.md
+- .claude/skills/projectpulse/component-patterns.md
+- .claude/skills/projectpulse/testing-patterns.md
 
 **Example 3:** "Fix port 3000 configuration"
 
 **Detected keywords:** "port", "3000"  
 **Loaded skills:**
 
-- .claude/skills/moksha-devhub/port-config.md
+- .claude/skills/projectpulse/port-config.md
 
 ### Manual Skill Loading
 
 **You:** "Load api-patterns skill"
 
-**Cascade:** Reads .claude/skills/moksha-devhub/api-patterns.md
+**Cascade:** Reads .claude/skills/projectpulse/api-patterns.md
 
 ---
 
@@ -484,7 +484,7 @@ If fails: Recreate memories (see CASCADE_MEMORIES.md)
 
 ```
 Test: "Load api-patterns skill"
-Verify: .claude/skills/moksha-devhub/api-patterns.md exists
+Verify: .claude/skills/projectpulse/api-patterns.md exists
 Update: Skills Index memory if needed
 ```
 
@@ -590,4 +590,4 @@ TOKEN BUDGET:
 
 ---
 
-**You're ready to use Cascade for Moksha DevHub development!** 🚀
+**You're ready to use Cascade for ProjectPulse development!** 🚀

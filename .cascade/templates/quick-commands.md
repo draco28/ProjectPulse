@@ -1,4 +1,4 @@
-# Cascade Quick Commands - Moksha DevHub
+# Cascade Quick Commands - ProjectPulse
 
 ## Session Management
 

@@ -1,6 +1,6 @@
 # System Requirements Specification (SRS)
 
-**Project:** Moksha DevHub
+**Project:** ProjectPulse
 **Version:** 2.0.0 (Agent-First Architecture)
 **Created:** 2025-11-02
 **Status:** Active
@@ -10,7 +10,7 @@
 
 ## Document Purpose
 
-This System Requirements Specification (SRS) defines the complete functional and non-functional requirements for Moksha DevHub, an agent-first project management platform. All requirements are designed to support AI agents as the primary users (95% interaction via MCP) with humans as secondary users (5% monitoring and manual operations via UI).
+This System Requirements Specification (SRS) defines the complete functional and non-functional requirements for ProjectPulse, an agent-first project management platform. All requirements are designed to support AI agents as the primary users (95% interaction via MCP) with humans as secondary users (5% monitoring and manual operations via UI).
 
 **Related Documents:**
 

@@ -1,4 +1,4 @@
-# Workflow Quick Reference - Moksha DevHub
+# Workflow Quick Reference - ProjectPulse
 
 **Quick lookup for common development workflows in Claude Code**
 

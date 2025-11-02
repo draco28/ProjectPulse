@@ -1,4 +1,4 @@
-# Cascade Integration for Moksha DevHub
+# Cascade Integration for ProjectPulse
 
 **Status:** Ready for Implementation  
 **Version:** 1.0  

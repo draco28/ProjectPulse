@@ -1,6 +1,6 @@
-# Project Brief - Moksha DevHub
+# Project Brief - ProjectPulse
 
-**Project Name**: Moksha DevHub
+**Project Name**: ProjectPulse
 **Version**: 1.0.0
 **Last Updated**: 2025-10-26
 

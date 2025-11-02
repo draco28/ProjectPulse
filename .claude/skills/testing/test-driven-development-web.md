@@ -3,10 +3,10 @@ name: Test-Driven Development (DevHub Web)
 description: RED/GREEN/REFACTOR workflow for Next.js, React, API routes, and Prisma with comprehensive test coverage
 category: testing
 version: 1.0
-project: Moksha DevHub (AI_HUB)
+project: ProjectPulse (AI_HUB)
 ---
 
-# Test-Driven Development for Moksha DevHub
+# Test-Driven Development for ProjectPulse
 
 ## Overview
 
@@ -15,15 +15,19 @@ Test-Driven Development (TDD) ensures code quality by writing tests before imple
 ## The TDD Cycle
 
 ### 🔴 RED - Write a Failing Test
+
 Write a test that defines desired behavior. Run it - it should fail (no implementation yet).
 
 ### 🟢 GREEN - Make it Pass
+
 Write the minimum code to make the test pass. Don't worry about perfection yet.
 
 ### 🔵 REFACTOR - Improve the Code
+
 Clean up code while keeping tests passing. Optimize, remove duplication, improve readability.
 
 ### ↻ REPEAT
+
 Continue the cycle for the next feature or requirement.
 
 ## TDD Workflow for Different Layers
@@ -280,9 +284,11 @@ npm test issue-crud
 ## TDD Best Practices
 
 ### 1. Write Tests First (Always)
+
 Don't cheat! Writing tests after implementation defeats the purpose.
 
 ### 2. Test One Thing at a Time
+
 Each test should verify one specific behavior.
 
 ```typescript
@@ -301,6 +307,7 @@ it('should delete an issue', async () => { ... });
 ```
 
 ### 3. Use Descriptive Test Names
+
 Test names should describe the expected behavior.
 
 ```typescript
@@ -313,6 +320,7 @@ it('should return 400 when title is missing', () => { ... });
 ```
 
 ### 4. Follow AAA Pattern
+
 **Arrange** - Set up test data
 **Act** - Execute the function/action
 **Assert** - Verify the result
@@ -336,6 +344,7 @@ it('should update issue status', async () => {
 ```
 
 ### 5. Test Edge Cases and Errors
+
 Don't just test happy paths.
 
 ```typescript
@@ -345,11 +354,13 @@ it('should handle database errors gracefully', async () => { ... });
 ```
 
 ### 6. Keep Tests Fast
+
 - Use mocks for external dependencies
 - Use in-memory database for tests
 - Run tests in parallel when possible
 
 ### 7. Keep Tests Independent
+
 - Don't rely on test execution order
 - Clean up after each test (beforeEach/afterEach)
 - Don't share mutable state between tests
@@ -363,6 +374,7 @@ it('should handle database errors gracefully', async () => { ... });
 - **Overall**: 80%+ coverage
 
 Check coverage:
+
 ```bash
 npm test -- --coverage
 ```
@@ -370,6 +382,7 @@ npm test -- --coverage
 ## Common TDD Patterns
 
 ### Pattern 1: Test Factories
+
 ```typescript
 // __tests__/factories/issue.factory.ts
 export function createMockIssue(overrides = {}) {
@@ -388,18 +401,20 @@ const highPriorityIssue = createMockIssue({ priority: 'high' });
 ```
 
 ### Pattern 2: Test Fixtures
+
 ```typescript
 // __tests__/fixtures/issues.json
 [
-  { "id": 1, "title": "Bug in search", "priority": "high" },
-  { "id": 2, "title": "Feature request", "priority": "low" }
-]
+  { id: 1, title: 'Bug in search', priority: 'high' },
+  { id: 2, title: 'Feature request', priority: 'low' },
+];
 
 // Usage
 import issuesFixture from './fixtures/issues.json';
 ```
 
 ### Pattern 3: Custom Matchers
+
 ```typescript
 // __tests__/matchers.ts
 expect.extend({
@@ -419,11 +434,13 @@ expect(issue).toBeValidIssue();
 ## Integration with Agents
 
 This skill is used by:
+
 - **devhub-fullstack** - When implementing new features
 - **devhub-testing** - As the primary testing methodology
 - **devhub-auditor** - To verify test coverage and quality
 
 Pair this skill with:
+
 - **api-testing-patterns** - For API-specific testing strategies
 - **systematic-debugging-web** - When tests reveal bugs
 - **defense-in-depth-web** - For comprehensive quality assurance
@@ -431,6 +448,7 @@ Pair this skill with:
 ## Success Criteria
 
 TDD is successful when:
+
 - [ ] All tests are written before implementation
 - [ ] Tests are clear, focused, and maintainable
 - [ ] Test coverage meets goals (80%+)

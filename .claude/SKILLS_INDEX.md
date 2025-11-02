@@ -1,4 +1,4 @@
-# Skills Index - Moksha DevHub
+# Skills Index - ProjectPulse
 
 ## Overview
 
@@ -284,7 +284,7 @@ To add a new skill:
    description: Brief description
    category: debugging|testing|validation|architecture|documentation
    version: 1.0
-   project: Moksha DevHub (AI_HUB)
+   project: ProjectPulse (AI_HUB)
    ---
    ```
 

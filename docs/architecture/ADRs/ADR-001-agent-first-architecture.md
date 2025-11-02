@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2025-11-02
-**Decision Makers:** Moksha DevHub Development Team
+**Decision Makers:** ProjectPulse Development Team
 **Consulted:** Planning session analysis
 
 ---
@@ -72,8 +72,8 @@ Planning session (2025-11-02) revealed opportunities for comprehensive agent aut
 
 ## References
 
-- Planning session: PLANNING_PHASES_moksha-devhub-agent-first.md (archived)
-- Implementation roadmap: IMPLEMENTATION_ROADMAP_moksha-devhub.md (archived)
+- Planning session: PLANNING_PHASES_projectpulse-agent-first.md (archived)
+- Implementation roadmap: IMPLEMENTATION_ROADMAP_projectpulse.md (archived)
 - Week 1.5 completion: [docs/archive/ui-first-phase/](../../archive/ui-first-phase/)
 - Product vision: [docs/01-PRD.md](../../01-PRD.md)
 

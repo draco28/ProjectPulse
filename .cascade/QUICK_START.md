@@ -1,4 +1,4 @@
-# Cascade Quick Start Guide - Moksha DevHub
+# Cascade Quick Start Guide - ProjectPulse
 
 **Version:** 1.0  
 **Last Updated:** 2025-10-28  
@@ -8,7 +8,7 @@
 
 ## What is This?
 
-Cascade is your AI coding assistant in Windsurf IDE, now configured with the complete Moksha DevHub workflow system including:
+Cascade is your AI coding assistant in Windsurf IDE, now configured with the complete ProjectPulse workflow system including:
 
 - 8 Golden Rules for quality code
 - 12 specialized agents (architects, experts, testers)
@@ -172,4 +172,4 @@ Cascade creates these files automatically:
 
 ---
 
-**You're ready to use Cascade with the full Moksha DevHub workflow! 🚀**
+**You're ready to use Cascade with the full ProjectPulse workflow! 🚀**

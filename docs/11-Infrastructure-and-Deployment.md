@@ -10,11 +10,11 @@
 
 ### Purpose
 
-This document defines the **infrastructure architecture** and **deployment strategy** for Moksha DevHub, an agent-first project management platform designed for local-first development with a clear path to production deployment.
+This document defines the **infrastructure architecture** and **deployment strategy** for ProjectPulse, an agent-first project management platform designed for local-first development with a clear path to production deployment.
 
 ### Agent-First Infrastructure Principles
 
-Moksha DevHub's infrastructure is optimized for **AI agent workflows**:
+ProjectPulse's infrastructure is optimized for **AI agent workflows**:
 
 1. **Local-First Development**: $0 infrastructure cost, runs entirely on localhost (Docker Desktop)
 2. **Persistent State**: Database as single source of truth, enables stateless agent operation
@@ -51,7 +51,7 @@ This document covers:
 
 ### 11.2.1 Service Overview
 
-Moksha DevHub uses a **2-container architecture** for local development:
+ProjectPulse uses a **2-container architecture** for local development:
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -429,12 +429,12 @@ See [docker-compose.yml](../docker-compose.yml) for the authoritative configurat
 
 ```bash
 # Clone via HTTPS
-git clone https://github.com/yourusername/moksha-devhub.git
-cd moksha-devhub
+git clone https://github.com/yourusername/projectpulse.git
+cd projectpulse
 
 # OR clone via SSH (if SSH keys configured)
-git clone git@github.com:yourusername/moksha-devhub.git
-cd moksha-devhub
+git clone git@github.com:yourusername/projectpulse.git
+cd projectpulse
 ```
 
 #### Step 2: Configure Environment Variables
@@ -625,7 +625,7 @@ open http://localhost:3000          # macOS
 start http://localhost:3000         # Windows
 xdg-open http://localhost:3000      # Linux
 
-# Expected: See Moksha DevHub dashboard with navigation, sprint progress
+# Expected: See ProjectPulse dashboard with navigation, sprint progress
 ```
 
 **3. Test MCP Server** (If using Claude Code):
@@ -671,7 +671,7 @@ docker-compose restart postgres
 
 ### 11.4.1 .env File Structure
 
-Moksha DevHub uses a **single .env file** in the project root. This file contains all environment-specific configuration and secrets.
+ProjectPulse uses a **single .env file** in the project root. This file contains all environment-specific configuration and secrets.
 
 **File Locations**:
 
@@ -971,7 +971,7 @@ export default function RootLayout({ children }) {
 
 ### 11.5.1 Prisma Migration Workflow
 
-Moksha DevHub uses **Prisma Migrate** for database schema management.
+ProjectPulse uses **Prisma Migrate** for database schema management.
 
 #### Migration Commands
 
@@ -1276,7 +1276,7 @@ async function main() {
     data: [
       {
         name: 'Next.js 14 App Router Patterns',
-        filePath: '.claude/skills/moksha-devhub/next-js-patterns.md',
+        filePath: '.claude/skills/projectpulse/next-js-patterns.md',
         framework: 'Next.js',
         lastLoaded: new Date(),
         loadCount: 15,
@@ -1422,7 +1422,7 @@ pnpm prisma migrate deploy
 
 ### 11.6.1 GitHub Actions Workflow
 
-Moksha DevHub uses **GitHub Actions** for automated testing, building, and deployment.
+ProjectPulse uses **GitHub Actions** for automated testing, building, and deployment.
 
 #### Workflow File Location
 
@@ -1949,8 +1949,8 @@ DATABASE_URL=postgresql://user:pass@host.railway.app:5432/railway?sslmode=requir
 vercel --prod
 
 # Expected output:
-# 🔍 Inspect: https://vercel.com/yourorg/moksha-devhub/abc123
-# ✅ Production: https://moksha-devhub.vercel.app
+# 🔍 Inspect: https://vercel.com/yourorg/projectpulse/abc123
+# ✅ Production: https://projectpulse.vercel.app
 ```
 
 **5. Run Migrations on Production Database**:
@@ -1973,7 +1973,7 @@ unset DATABASE_URL
 
 ```bash
 # Test health endpoint
-curl https://moksha-devhub.vercel.app/api/health
+curl https://projectpulse.vercel.app/api/health
 
 # Expected response:
 # {
@@ -1989,7 +1989,7 @@ curl https://moksha-devhub.vercel.app/api/health
 
 ```bash
 # Add domain in Vercel dashboard
-vercel domains add moksha-devhub.com
+vercel domains add projectpulse.com
 
 # Configure DNS (Vercel provides records):
 # - CNAME: www → cname.vercel-dns.com
@@ -2001,7 +2001,7 @@ vercel domains add moksha-devhub.com
 - [ ] Health check passes (`/api/health` returns 200)
 - [ ] Database migrations applied (Prisma schema matches production DB)
 - [ ] MCP server accessible (WebSocket connection succeeds)
-- [ ] Dashboard loads (`https://moksha-devhub.vercel.app/`)
+- [ ] Dashboard loads (`https://projectpulse.vercel.app/`)
 - [ ] All environment variables configured (verify in Vercel dashboard)
 - [ ] Monitoring configured (Vercel Analytics, Sentry for error tracking)
 
@@ -2117,7 +2117,7 @@ chmod +x scripts/backup.sh
 crontab -e
 
 # Add line (daily at 2:00 AM):
-0 2 * * * cd /path/to/moksha-devhub && ./scripts/backup.sh >> ./logs/backup.log 2>&1
+0 2 * * * cd /path/to/projectpulse && ./scripts/backup.sh >> ./logs/backup.log 2>&1
 ```
 
 **Verify Cron Job**:
@@ -2352,7 +2352,7 @@ backups/
 #!/bin/bash
 
 LATEST_BACKUP=$(ls -t backups/backup_*.sql.gz | head -1)
-S3_BUCKET="s3://moksha-devhub-backups"
+S3_BUCKET="s3://projectpulse-backups"
 
 # Upload to S3
 aws s3 cp "${LATEST_BACKUP}" "${S3_BUCKET}/$(basename ${LATEST_BACKUP})"

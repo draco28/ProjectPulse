@@ -2,13 +2,13 @@
 
 **Created**: 2025-11-01 17:00
 **Type**: Component Architecture & State Management
-**Project**: Moksha DevHub - Phase 4 Responsive Design
+**Project**: ProjectPulse - Phase 4 Responsive Design
 
 ---
 
 ## Executive Summary
 
-This plan provides comprehensive React patterns for transforming Moksha DevHub's desktop-only navigation into fully mobile-responsive components. The approach prioritizes **accessibility**, **performance**, and **neumorphic design consistency** while introducing mobile-specific interactions (slide-in drawers, overlays, swipe gestures).
+This plan provides comprehensive React patterns for transforming ProjectPulse's desktop-only navigation into fully mobile-responsive components. The approach prioritizes **accessibility**, **performance**, and **neumorphic design consistency** while introducing mobile-specific interactions (slide-in drawers, overlays, swipe gestures).
 
 **Target Breakpoints:**
 
@@ -1024,7 +1024,7 @@ useEffect(() => {
 - Choreographed multi-element sequences
 - Advanced animation orchestration
 
-**For Moksha DevHub Phase 4:**
+**For ProjectPulse Phase 4:**
 
 - **Use Tailwind** - Sufficient for slide-in/fade animations
 - **Add Framer Motion later** (if user requests drag gestures)

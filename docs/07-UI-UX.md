@@ -37,7 +37,7 @@
 
 ### 1.1 Purpose
 
-Moksha DevHub is an **agent-first platform** with a dual-purpose UI:
+ProjectPulse is an **agent-first platform** with a dual-purpose UI:
 
 1. **Primary Use (95%):** Agent workflow execution via MCP (invisible to UI)
 2. **Secondary Use (5%):** Human monitoring & manual operations via visual dashboard
@@ -324,7 +324,7 @@ Agents don't interact with UI directly, but their actions are reflected in real-
 ### 3.1 Site Map
 
 ```
-Moksha DevHub
+ProjectPulse
 │
 ├── Dashboard (Home)
 │   ├── Metrics Overview

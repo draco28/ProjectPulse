@@ -3,7 +3,7 @@ name: Verification Before Completion (DevHub Web)
 description: Pre-commit quality checklist ensuring code meets all standards before marking tasks complete
 category: validation
 version: 1.0
-project: Moksha DevHub (AI_HUB)
+project: ProjectPulse (AI_HUB)
 ---
 
 # Verification Before Completion
@@ -187,6 +187,7 @@ echo "\n🎉 All checks passed! Safe to commit."
 **Never skip security, build, or test checks.**
 
 You may reasonably skip:
+
 - Cross-browser testing for internal tools
 - E2E tests for minor UI tweaks (but add them later)
 - Documentation for experimental branches
@@ -206,6 +207,7 @@ You may reasonably skip:
 ## Success Criteria
 
 Task is complete when:
+
 - [ ] All checklist items pass
 - [ ] No compromises on security or correctness
 - [ ] Code is production-ready
@@ -214,11 +216,13 @@ Task is complete when:
 ## Integration with Agents
 
 This skill is used by:
+
 - **All agents** - Before marking any task complete
 - **devhub-auditor** - As the audit checklist reference
 - **devhub-fullstack** - Before final commit
 
 Pair with:
+
 - **defense-in-depth-web** - For deeper security validation
 - **test-driven-development-web** - Ensure tests exist
 - **systematic-debugging-web** - Fix issues found during verification

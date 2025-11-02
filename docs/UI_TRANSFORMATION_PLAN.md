@@ -1,5 +1,6 @@
 # UI Transformation Plan - Dark Neumorphic Coral Theme
-## Moksha DevHub - Complete UI System Migration
+
+## ProjectPulse - Complete UI System Migration
 
 **Version:** 1.0
 **Created:** October 25, 2025
@@ -11,9 +12,11 @@
 ## 📋 Executive Summary
 
 ### Mission
+
 Transform the existing Next.js 14 application UI from its current multi-theme neumorphic design to a **single, fixed Dark Neumorphic Coral theme**, matching the pixel-perfect mockups in `mockups/Default theme/`.
 
 ### Critical Constraints
+
 1. **No Dynamic Themes** - Remove all theme switching functionality (post-MVP feature)
 2. **Pixel-Perfect Adherence** - Match mockups exactly, down to spacing and shadow values
 3. **Component Reusability** - Extract patterns from mockups into reusable React components
@@ -21,6 +24,7 @@ Transform the existing Next.js 14 application UI from its current multi-theme ne
 5. **Server Components First** - Default to RSC, client components only when necessary
 
 ### Success Criteria
+
 - ✅ All 7 pages match their corresponding mockups visually
 - ✅ Theme system simplified to single Coral theme
 - ✅ Reusable component library extracted from mockups
@@ -32,9 +36,11 @@ Transform the existing Next.js 14 application UI from its current multi-theme ne
 ## 🔍 Current State Analysis
 
 ### Existing Theme System (To Be Removed)
+
 Located in: `apps/web/lib/theme-provider.tsx`
 
 **Current Implementation:**
+
 ```typescript
 type ThemeId = 'desert' | 'neon' | 'earthy' | 'coral';  // ❌ Remove
 const themes: Theme[] = [/* 4 themes */];                // ❌ Remove
@@ -42,27 +48,31 @@ const themes: Theme[] = [/* 4 themes */];                // ❌ Remove
 ```
 
 **Current Components Using Themes:**
+
 - ❌ `components/ThemeSwitcher.tsx` - DELETE
 - ❌ `components/CompactThemeSwitcher.tsx` - DELETE
 - ❌ `components/ThemePreview.tsx` - DELETE
 - ❌ `lib/theme-provider.tsx` - REPLACE with static config
 
 ### Existing UI Components (To Be Transformed)
+
 Located in: `apps/web/components/`
 
-| Component | Current State | Target State | Action Required |
-|-----------|---------------|--------------|-----------------|
-| `Sidebar.tsx` | Desert theme, basic nav | Coral theme, neumorphic depth | Transform styles + layout |
-| `Header.tsx` | Search + notifications | Glass morphism header | Replace with mockup pattern |
-| `WelcomeBanner.tsx` | Basic gradient card | Neumorphic coral gradient | Update shadows + colors |
-| `StatCards.tsx` | Basic grid | 4-column neumorphic grid | Match mockup exactly |
-| `IssueCard.tsx` | Simple card | Neumorphic card with badges | Add priority indicators |
-| `Dashboard page.tsx` | Basic layout | Floating hexagon bg | Add background animations |
+| Component            | Current State           | Target State                  | Action Required             |
+| -------------------- | ----------------------- | ----------------------------- | --------------------------- |
+| `Sidebar.tsx`        | Desert theme, basic nav | Coral theme, neumorphic depth | Transform styles + layout   |
+| `Header.tsx`         | Search + notifications  | Glass morphism header         | Replace with mockup pattern |
+| `WelcomeBanner.tsx`  | Basic gradient card     | Neumorphic coral gradient     | Update shadows + colors     |
+| `StatCards.tsx`      | Basic grid              | 4-column neumorphic grid      | Match mockup exactly        |
+| `IssueCard.tsx`      | Simple card             | Neumorphic card with badges   | Add priority indicators     |
+| `Dashboard page.tsx` | Basic layout            | Floating hexagon bg           | Add background animations   |
 
 ### Current CSS/Tailwind Configuration
+
 Located in: `apps/web/`
 
 **Files to Update:**
+
 - `app/globals.css` - Replace with `theme/theme.css` patterns
 - `tailwind.config.ts` - Update to match `theme/tailwind.config.js`
 - Component CSS modules - Convert to Tailwind utilities
@@ -74,36 +84,25 @@ Located in: `apps/web/`
 ### Theme System Architecture
 
 #### Color Palette (from mockups)
+
 ```css
 /* Base Colors */
---dark: #1A1A1A           /* Primary background */
---dark-lighter: #242424    /* Secondary background */
---dark-card: #2A2A2A      /* Card background */
---dark-pressed: #1F1F1F   /* Pressed/inset elements */
-
-/* Coral (Primary Brand) */
---coral: #FF8B6A          /* Main coral */
---coral-light: #FFB299    /* Light coral */
---coral-dark: #E67759     /* Dark coral */
-
-/* Slate (Secondary/Text) */
---slate: #8B8B8B          /* Secondary text */
---slate-light: #A5A5A5    /* Lighter text */
---slate-dark: #6B6B6B     /* Muted text */
-
-/* Accent Colors */
---accent-green: #4ADE80   /* Success */
---accent-blue: #60A5FA    /* Info */
---accent-yellow: #FBBF24  /* Warning */
---accent-red: #EF4444     /* Error/Critical */
---accent-purple: #A78BFA  /* Special */
+--dark: #1a1a1a /* Primary background */ --dark-lighter: #242424 /* Secondary background */
+  --dark-card: #2a2a2a /* Card background */ --dark-pressed: #1f1f1f /* Pressed/inset elements */
+  /* Coral (Primary Brand) */ --coral: #ff8b6a /* Main coral */ --coral-light: #ffb299
+  /* Light coral */ --coral-dark: #e67759 /* Dark coral */ /* Slate (Secondary/Text) */
+  --slate: #8b8b8b /* Secondary text */ --slate-light: #a5a5a5 /* Lighter text */
+  --slate-dark: #6b6b6b /* Muted text */ /* Accent Colors */ --accent-green: #4ade80 /* Success */
+  --accent-blue: #60a5fa /* Info */ --accent-yellow: #fbbf24 /* Warning */ --accent-red: #ef4444
+  /* Error/Critical */ --accent-purple: #a78bfa /* Special */;
 ```
 
 #### Neumorphic Shadow Patterns
+
 ```css
 /* Raised Effect (buttons, cards) */
 .neu-raised {
-  background: linear-gradient(145deg, #2A2A2A, #242424);
+  background: linear-gradient(145deg, #2a2a2a, #242424);
   box-shadow:
     8px 8px 16px rgba(0, 0, 0, 0.6),
     -8px -8px 16px rgba(60, 60, 60, 0.1),
@@ -120,7 +119,7 @@ Located in: `apps/web/`
 
 /* Pressed Effect (inputs, insets) */
 .neu-pressed {
-  background: #1F1F1F;
+  background: #1f1f1f;
   box-shadow:
     inset 4px 4px 8px rgba(0, 0, 0, 0.5),
     inset -2px -2px 6px rgba(60, 60, 60, 0.1);
@@ -128,7 +127,7 @@ Located in: `apps/web/`
 
 /* Coral Gradient Button */
 .coral-gradient {
-  background: linear-gradient(135deg, #FF8B6A 0%, #E67759 100%);
+  background: linear-gradient(135deg, #ff8b6a 0%, #e67759 100%);
   box-shadow:
     0 8px 20px rgba(255, 139, 106, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -148,6 +147,7 @@ Located in: `apps/web/`
 #### 1. Dashboard (`01-dashboard-dark-neumorphic-coral.html`)
 
 **Layout Structure:**
+
 ```
 ┌─────────────────────────────────────────────┐
 │  Floating Hexagon Background (fixed)       │
@@ -166,6 +166,7 @@ Located in: `apps/web/`
 ```
 
 **Components Needed:**
+
 1. **Floating Background** - CSS animations with hexagons
 2. **Sidebar Navigation**
    - Logo + branding (coral heartbeat icon)
@@ -196,6 +197,7 @@ Located in: `apps/web/`
 #### 2. Issues Page (`02-issues-dark-neumorphic-coral.html`)
 
 **Unique Components:**
+
 - **Filter Sidebar**
   - Checkbox groups (neumorphic style)
   - Count indicators per filter
@@ -213,6 +215,7 @@ Located in: `apps/web/`
 #### 3. Knowledge Base (`03-knowledge-dark-neumorphic-coral.html`)
 
 **Unique Components:**
+
 - **Article Cards**
   - Large preview cards
   - Tag badges (coral + slate)
@@ -227,6 +230,7 @@ Located in: `apps/web/`
 #### 4. Wiki Page (`04-wiki-dark-neumorphic-coral.html`)
 
 **Unique Components:**
+
 - **Table of Contents Sidebar**
   - Nested list structure
   - Active section indicator (coral)
@@ -246,6 +250,7 @@ Located in: `apps/web/`
 #### 5. Security Dashboard (`05-security-dark-neumorphic-coral.html`)
 
 **Unique Components:**
+
 - **Security Score Display**
   - Large circular score (coral gradient)
   - Risk level indicator
@@ -263,6 +268,7 @@ Located in: `apps/web/`
 #### 6. Agent Personas (`06-agent-personas-dark-neumorphic-coral.html`)
 
 **Unique Components:**
+
 - **Feature Toggle Cards**
   - Large 2-column cards
   - Toggle switch (coral when active)
@@ -279,6 +285,7 @@ Located in: `apps/web/`
 #### 7. Command Palette (`07-command-palette-dark-neumorphic-coral.html`)
 
 **Unique Components:**
+
 - **Modal Overlay**
   - Blurred backdrop
   - Centered modal (glass effect)
@@ -296,36 +303,62 @@ Located in: `apps/web/`
 ### Typography System
 
 **Font Stack:**
+
 ```css
 font-family: 'Inter', system-ui, sans-serif;
 font-family: 'JetBrains Mono', monospace; /* Code blocks */
 ```
 
 **Text Sizes:**
+
 ```css
 /* Headings */
-.text-4xl { font-size: 2.25rem; }  /* H1 - Page titles */
-.text-3xl { font-size: 1.875rem; } /* H2 - Section titles */
-.text-2xl { font-size: 1.5rem; }   /* H3 - Subsection titles */
-.text-xl { font-size: 1.25rem; }   /* Large text */
+.text-4xl {
+  font-size: 2.25rem;
+} /* H1 - Page titles */
+.text-3xl {
+  font-size: 1.875rem;
+} /* H2 - Section titles */
+.text-2xl {
+  font-size: 1.5rem;
+} /* H3 - Subsection titles */
+.text-xl {
+  font-size: 1.25rem;
+} /* Large text */
 
 /* Body */
-.text-base { font-size: 1rem; }    /* Normal text */
-.text-sm { font-size: 0.875rem; }  /* Small text */
-.text-xs { font-size: 0.75rem; }   /* Tiny text, badges */
+.text-base {
+  font-size: 1rem;
+} /* Normal text */
+.text-sm {
+  font-size: 0.875rem;
+} /* Small text */
+.text-xs {
+  font-size: 0.75rem;
+} /* Tiny text, badges */
 ```
 
 **Font Weights:**
+
 ```css
-.font-bold { font-weight: 700; }   /* Headings, emphasis */
-.font-semibold { font-weight: 600; } /* Subheadings */
-.font-medium { font-weight: 500; } /* UI elements */
-.font-normal { font-weight: 400; } /* Body text */
+.font-bold {
+  font-weight: 700;
+} /* Headings, emphasis */
+.font-semibold {
+  font-weight: 600;
+} /* Subheadings */
+.font-medium {
+  font-weight: 500;
+} /* UI elements */
+.font-normal {
+  font-weight: 400;
+} /* Body text */
 ```
 
 ### Spacing System
 
 **Standard Spacing (Tailwind scale):**
+
 ```css
 gap-2  = 0.5rem  (8px)   /* Tight spacing */
 gap-3  = 0.75rem (12px)  /* Small spacing */
@@ -336,12 +369,14 @@ gap-12 = 3rem    (48px)  /* XL spacing */
 ```
 
 **Padding Patterns:**
+
 - Cards: `p-6` (24px)
 - Buttons: `px-6 py-3` (24px horizontal, 12px vertical)
 - Sidebar items: `px-4 py-3`
 - Modal: `p-8`
 
 **Border Radius:**
+
 ```css
 rounded-xl  = 0.75rem (12px)  /* Buttons, inputs */
 rounded-2xl = 1rem (16px)     /* Cards, small modals */
@@ -355,7 +390,9 @@ rounded-3xl = 1.5rem (24px)   /* Large cards, main panels */
 ### Phase 1: Foundation (Day 1)
 
 #### Step 1.1: Remove Multi-Theme System
+
 **Files to Modify:**
+
 1. Delete `apps/web/components/ThemeSwitcher.tsx`
 2. Delete `apps/web/components/CompactThemeSwitcher.tsx`
 3. Delete `apps/web/components/ThemePreview.tsx`
@@ -376,16 +413,18 @@ export const theme = {
     coralLight: '#FFB299',
     coralDark: '#E67759',
     // ... rest of colors
-  }
+  },
 } as const;
 
 export type Theme = typeof theme;
 ```
 
 #### Step 1.2: Update Global CSS
+
 **File:** `apps/web/app/globals.css`
 
 **Actions:**
+
 1. Copy all CSS variables from `theme/theme.css`
 2. Import Inter + JetBrains Mono fonts
 3. Add neumorphic class definitions
@@ -393,6 +432,7 @@ export type Theme = typeof theme;
 5. Set dark background + floating hexagons
 
 **Template:**
+
 ```css
 @tailwind base;
 @tailwind components;
@@ -420,17 +460,20 @@ export type Theme = typeof theme;
 ```
 
 #### Step 1.3: Update Tailwind Config
+
 **File:** `apps/web/tailwind.config.ts`
 
 **Actions:**
+
 1. Copy color definitions from `theme/tailwind.config.js`
 2. Add font family configurations
 3. Add custom shadows
 4. Add animation keyframes
 
 **Template:**
+
 ```typescript
-import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
   darkMode: 'class',
@@ -455,7 +498,8 @@ const config: Config = {
       },
       boxShadow: {
         'neu-raised': '8px 8px 16px rgba(0, 0, 0, 0.6), -8px -8px 16px rgba(60, 60, 60, 0.1)',
-        'neu-pressed': 'inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -2px -2px 6px rgba(60, 60, 60, 0.1)',
+        'neu-pressed':
+          'inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -2px -2px 6px rgba(60, 60, 60, 0.1)',
         'coral-glow': '0 8px 20px rgba(255, 139, 106, 0.3)',
         // ... more shadows
       },
@@ -471,13 +515,13 @@ const config: Config = {
           '66%': { transform: 'translateY(-10px) rotate(-5deg)' },
         },
         // ... more keyframes
-      }
+      },
     },
   },
   plugins: [],
-}
+};
 
-export default config
+export default config;
 ```
 
 ### Phase 2: Component Library Creation (Days 2-3)
@@ -485,12 +529,14 @@ export default config
 #### Step 2.1: Extract Base Components from Mockups
 
 **Priority Order:**
+
 1. Layout components (critical path)
 2. Interactive components (buttons, inputs)
 3. Display components (cards, badges)
 4. Complex components (modals, command palette)
 
 #### Component 1: FloatingBackground
+
 **Location:** `apps/web/components/ui/FloatingBackground.tsx`
 
 ```typescript
@@ -514,25 +560,43 @@ export function FloatingBackground() {
 ```
 
 **CSS (add to globals.css):**
+
 ```css
-.hexagon-bg { /* From mockup */ }
-.hexagon { /* From mockup */ }
-.hex-1, .hex-2, .hex-3 { /* From mockup */ }
-.bubble { /* From mockup */ }
-@keyframes float-hex { /* From mockup */ }
-@keyframes float-bubble { /* From mockup */ }
+.hexagon-bg {
+  /* From mockup */
+}
+.hexagon {
+  /* From mockup */
+}
+.hex-1,
+.hex-2,
+.hex-3 {
+  /* From mockup */
+}
+.bubble {
+  /* From mockup */
+}
+@keyframes float-hex {
+  /* From mockup */
+}
+@keyframes float-bubble {
+  /* From mockup */
+}
 ```
 
 #### Component 2: Sidebar (Transformed)
+
 **Location:** `apps/web/components/Sidebar.tsx`
 
 **Current Issues:**
+
 - Using desert theme classes
 - Missing coral active states
 - No count badges
 - Simple shadows
 
 **Transformation:**
+
 ```typescript
 'use client';
 
@@ -640,6 +704,7 @@ export function Sidebar() {
 ```
 
 #### Component 3: Header (Glass Effect)
+
 **Location:** `apps/web/components/Header.tsx`
 
 ```typescript
@@ -690,6 +755,7 @@ export function Header() {
 ```
 
 #### Component 4: StatCard
+
 **Location:** `apps/web/components/dashboard/StatCard.tsx`
 
 ```typescript
@@ -754,6 +820,7 @@ export function StatCard({
 ```
 
 #### Component 5: Button (Coral Gradient)
+
 **Location:** `apps/web/components/ui/button.tsx`
 
 ```typescript
@@ -805,6 +872,7 @@ export { Button, buttonVariants };
 ```
 
 #### Component 6: Badge
+
 **Location:** `apps/web/components/ui/badge.tsx`
 
 ```typescript
@@ -858,9 +926,11 @@ export { Badge, badgeVariants };
 ### Phase 3: Page Transformation (Days 4-7)
 
 #### Dashboard Page Transformation
+
 **File:** `apps/web/app/dashboard/page.tsx`
 
 **Current Structure:**
+
 ```typescript
 // Simplified current version
 export default async function Dashboard() {
@@ -875,6 +945,7 @@ export default async function Dashboard() {
 ```
 
 **Target Structure (from mockup):**
+
 ```typescript
 import { FloatingBackground } from '@/components/ui/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
@@ -978,6 +1049,7 @@ export default async function DashboardPage() {
 ### Phase 4: Responsive & Polish (Day 8)
 
 #### Responsive Breakpoints
+
 ```typescript
 // tailwind.config.ts - ensure these are set
 screens: {
@@ -990,18 +1062,21 @@ screens: {
 ```
 
 #### Mobile Considerations
+
 1. **Sidebar:** Convert to drawer on mobile
 2. **Stats Grid:** 1 column on mobile, 2 on tablet, 4 on desktop
 3. **Navigation:** Hamburger menu for mobile
 4. **Floating Background:** Reduce hexagons on mobile for performance
 
 #### Animation Performance
+
 ```css
 /* Use transform and opacity for animations (GPU-accelerated) */
 .smooth-transition {
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-              opacity 0.4s ease,
-              box-shadow 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.4s ease,
+    box-shadow 0.4s ease;
 }
 
 /* Reduce motion for accessibility */
@@ -1010,7 +1085,8 @@ screens: {
     transition-duration: 0.01ms;
   }
 
-  .hexagon, .bubble {
+  .hexagon,
+  .bubble {
     animation: none;
   }
 }
@@ -1021,6 +1097,7 @@ screens: {
 ## 📦 Deliverables
 
 ### Code Deliverables
+
 1. ✅ All theme switching code removed
 2. ✅ `theme-config.ts` created with static Coral theme
 3. ✅ `globals.css` updated with neumorphic classes
@@ -1031,6 +1108,7 @@ screens: {
 8. ✅ Accessibility (keyboard navigation, screen readers)
 
 ### Documentation Deliverables
+
 1. ✅ Component usage guide (how to use each component)
 2. ✅ Color palette reference (quick lookup)
 3. ✅ Spacing/typography guide
@@ -1042,6 +1120,7 @@ screens: {
 ## ⚠️ Critical Warnings
 
 ### DO NOT
+
 1. ❌ Add any theme switching functionality
 2. ❌ Create multiple theme variants
 3. ❌ Deviate from mockup designs
@@ -1051,6 +1130,7 @@ screens: {
 7. ❌ Ignore accessibility
 
 ### MUST DO
+
 1. ✅ Match mockups pixel-perfect
 2. ✅ Use Coral theme colors exclusively
 3. ✅ Follow neumorphic shadow patterns
@@ -1065,6 +1145,7 @@ screens: {
 ## 🎯 Success Metrics
 
 ### Visual Accuracy
+
 - [ ] Dashboard matches `01-dashboard-dark-neumorphic-coral.html` ≥ 95%
 - [ ] Issues page matches `02-issues-dark-neumorphic-coral.html` ≥ 95%
 - [ ] Knowledge matches `03-knowledge-dark-neumorphic-coral.html` ≥ 95%
@@ -1074,6 +1155,7 @@ screens: {
 - [ ] Command palette matches `07-command-palette-dark-neumorphic-coral.html` ≥ 95%
 
 ### Code Quality
+
 - [ ] Zero TypeScript `any` types
 - [ ] All components have proper TypeScript interfaces
 - [ ] 80%+ test coverage for UI components
@@ -1081,12 +1163,14 @@ screens: {
 - [ ] Lighthouse score ≥ 90 (Performance, Accessibility, Best Practices)
 
 ### Performance
+
 - [ ] First Contentful Paint < 1.5s
 - [ ] Time to Interactive < 3s
 - [ ] Cumulative Layout Shift < 0.1
 - [ ] No janky animations (60fps smooth)
 
 ### Accessibility
+
 - [ ] WCAG 2.1 AA compliant
 - [ ] Keyboard navigation works everywhere
 - [ ] Screen reader compatible
@@ -1097,19 +1181,20 @@ screens: {
 
 ## 📅 Timeline Estimate
 
-| Phase | Duration | Deliverable |
-|-------|----------|-------------|
-| **Phase 1: Foundation** | 1 day | Theme system removed, CSS/Tailwind updated |
-| **Phase 2: Component Library** | 2 days | 20+ reusable components created |
-| **Phase 3: Page Transformation** | 4 days | All 7 pages matching mockups |
-| **Phase 4: Polish & QA** | 1 day | Responsive, accessible, tested |
-| **Total** | **8 days** | Pixel-perfect UI matching mockups |
+| Phase                            | Duration   | Deliverable                                |
+| -------------------------------- | ---------- | ------------------------------------------ |
+| **Phase 1: Foundation**          | 1 day      | Theme system removed, CSS/Tailwind updated |
+| **Phase 2: Component Library**   | 2 days     | 20+ reusable components created            |
+| **Phase 3: Page Transformation** | 4 days     | All 7 pages matching mockups               |
+| **Phase 4: Polish & QA**         | 1 day      | Responsive, accessible, tested             |
+| **Total**                        | **8 days** | Pixel-perfect UI matching mockups          |
 
 ---
 
 ## 🔗 References
 
 ### Theme System Resources
+
 - `theme/THEME_GUIDE.md` - Complete design system
 - `theme/COMPONENTS_REFERENCE.md` - 50+ copy-paste components
 - `theme/QUICK_REFERENCE.md` - Cheat sheet
@@ -1117,6 +1202,7 @@ screens: {
 - `theme/tailwind.config.js` - Tailwind configuration
 
 ### Mockup Files
+
 - `mockups/Default theme/MOCKUPS_INDEX.md` - Index of all mockups
 - `mockups/Default theme/01-dashboard-dark-neumorphic-coral.html`
 - `mockups/Default theme/02-issues-dark-neumorphic-coral.html`
@@ -1127,6 +1213,7 @@ screens: {
 - `mockups/Default theme/07-command-palette-dark-neumorphic-coral.html`
 
 ### Architecture Docs
+
 - `docs/01-ARCHITECTURE.md` - System architecture
 - `docs/04-UI-ARCHITECTURE.md` - UI component system
 - `docs/DEVELOPMENT_PLAN.md` - Development roadmap
@@ -1151,4 +1238,4 @@ screens: {
 
 ---
 
-*This plan provides the complete roadmap for transforming the Moksha DevHub UI to match the Dark Neumorphic Coral theme mockups pixel-perfectly. Follow this plan step-by-step for successful execution.*
+_This plan provides the complete roadmap for transforming the ProjectPulse UI to match the Dark Neumorphic Coral theme mockups pixel-perfectly. Follow this plan step-by-step for successful execution._

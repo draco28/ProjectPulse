@@ -3,14 +3,15 @@ name: Systematic Debugging (DevHub Web)
 description: Methodical troubleshooting for Next.js 14, React, API routes, and PostgreSQL/Prisma
 category: debugging
 version: 1.0
-project: Moksha DevHub (AI_HUB)
+project: ProjectPulse (AI_HUB)
 ---
 
-# Systematic Debugging for Moksha DevHub
+# Systematic Debugging for ProjectPulse
 
 ## Overview
 
 This skill provides a structured approach to debugging full-stack web applications built with Next.js 14, PostgreSQL, and Prisma, with emphasis on:
+
 - Server/Client Component boundaries
 - API Route debugging
 - Database query issues (Prisma)
@@ -21,21 +22,25 @@ This skill provides a structured approach to debugging full-stack web applicatio
 ## Core Principles
 
 ### 1. **Never Guess - Always Verify**
+
 - Use `console.log` strategically (remove before commit)
 - Check browser DevTools (Network, Console, React DevTools)
 - Use Next.js built-in debugging (`DEBUG=* npm run dev`)
 - Verify database state with Prisma Studio
 
 ### 2. **Isolate the Layer**
+
 - Determine which tier is failing: Frontend (React) → API (Next.js) → Database (Prisma/PostgreSQL)
 - Check if it's a Server Component or Client Component issue
 - Verify if the problem is client-side or server-side
 
 ### 3. **Follow the Data Flow**
+
 - User Action → Event Handler → API Call/Server Action → Database Query → Response → UI Update
 - Trace each step to find where data gets corrupted or lost
 
 ### 4. **Check Common Next.js Pitfalls**
+
 - Hydration mismatches (server HTML !== client HTML)
 - Client Component trying to use server-only code
 - Missing 'use client' directive
@@ -52,6 +57,7 @@ This skill provides a structured approach to debugging full-stack web applicatio
    - Check if issue is consistent or intermittent
 
 2. **Gather Information**
+
    ```bash
    # Check Next.js logs
    npm run dev
@@ -71,30 +77,38 @@ This skill provides a structured approach to debugging full-stack web applicatio
 3. **Common Error Patterns**
 
    **Hydration Mismatch:**
+
    ```
    Error: Hydration failed because the initial UI does not match what was rendered on the server.
    ```
+
    **Cause**: Server-rendered HTML differs from client-rendered HTML
    **Fix**: Ensure server and client render the same content
 
    **Server Component Error:**
+
    ```
    Error: You're importing a component that needs useState. It only works in a Client Component but none of its parents are marked with "use client"
    ```
+
    **Cause**: Using client-side hooks in Server Component
    **Fix**: Add 'use client' at top of file
 
    **API Route Error:**
+
    ```
    Error: API resolved without sending a response
    ```
+
    **Cause**: Async handler not properly returning Response
    **Fix**: Ensure all code paths return `Response.json(...)`
 
    **Prisma Error:**
+
    ```
    Error: Invalid prisma.issue.findUnique() invocation: An operation failed because it depends on one or more records that were required but not found. Record to update not found.
    ```
+
    **Cause**: Trying to update/delete non-existent record
    **Fix**: Check if record exists before operating on it
 
@@ -202,6 +216,7 @@ export function CurrentTime() {
 ### Phase 3: Root Cause Analysis
 
 **For API Bugs:**
+
 1. Start at symptom (e.g., "Issue creation fails")
 2. Trace backward:
    - Frontend: Did the API call get made? Check Network tab
@@ -210,13 +225,16 @@ export function CurrentTime() {
    - Database: Did Prisma query succeed? Check Prisma Studio
 
 **For Database Bugs:**
+
 1. Verify schema is correct
+
    ```bash
    npx prisma studio # Visual database inspection
    npx prisma validate # Check schema syntax
    ```
 
 2. Check query logic
+
    ```typescript
    // Add logging to see generated queries
    const prisma = new PrismaClient({
@@ -227,6 +245,7 @@ export function CurrentTime() {
    ```
 
 3. Test query in PostgreSQL directly
+
    ```sql
    -- Connect to database
    docker exec -it moksha-db psql -U moksha -d moksha_devhub
@@ -242,11 +261,13 @@ export function CurrentTime() {
    ```
 
 **For Frontend Bugs:**
+
 1. Check React DevTools
    - Components tab: Inspect component props/state
    - Profiler tab: Find performance bottlenecks
 
 2. Check state management
+
    ```typescript
    'use client';
    export function IssueForm() {
@@ -262,6 +283,7 @@ export function CurrentTime() {
    ```
 
 3. Check data fetching
+
    ```typescript
    'use client';
    export function IssueList() {
@@ -279,6 +301,7 @@ export function CurrentTime() {
 ## Debugging Tools Reference
 
 ### Browser DevTools
+
 - **Console**: `console.log`, `console.error`, `console.table` for data
 - **Network**: Check API calls, status codes, response bodies
 - **React DevTools**: Inspect component tree, props, state
@@ -286,6 +309,7 @@ export function CurrentTime() {
 - **Lighthouse**: Check Core Web Vitals
 
 ### Next.js Debugging
+
 ```bash
 # Debug mode with verbose logging
 DEBUG=* npm run dev
@@ -299,6 +323,7 @@ npm run build -- --analyze
 ```
 
 ### Prisma Debugging
+
 ```bash
 # Visual database inspection
 npx prisma studio
@@ -317,6 +342,7 @@ npx prisma migrate reset
 ```
 
 ### Docker Debugging
+
 ```bash
 # Check running containers
 docker ps
@@ -335,8 +361,10 @@ docker-compose restart web
 ## Common Bug Patterns & Solutions
 
 ### 1. "Cannot read property 'X' of undefined"
+
 **Cause**: Trying to access property on null/undefined object
 **Debug**: Add null checks and optional chaining
+
 ```typescript
 // ❌ WRONG
 const title = issue.title;
@@ -346,24 +374,29 @@ const title = issue?.title ?? 'Untitled';
 ```
 
 ### 2. "Expected server HTML to contain matching..."
+
 **Cause**: Hydration mismatch
 **Solution**: Ensure server and client render identical HTML, or use `suppressHydrationWarning`
 
 ### 3. "Cannot read property 'PrismaClient' of undefined"
+
 **Cause**: Prisma Client not generated or import issue
 **Solution**: Run `npx prisma generate`
 
 ### 4. "API resolved without sending a response"
+
 **Cause**: Missing `return` statement in API route
 **Solution**: Ensure all code paths return a Response
 
 ### 5. "Module not found: Can't resolve '@/...'"
+
 **Cause**: TypeScript path alias not configured
 **Solution**: Check `tsconfig.json` has correct paths
 
 ## Success Criteria
 
 Debugging is complete when:
+
 - [ ] Bug is consistently reproducible
 - [ ] Root cause is identified (not just symptoms)
 - [ ] Fix is implemented and tested
@@ -374,11 +407,13 @@ Debugging is complete when:
 ## Integration with Agents
 
 This skill is used by:
+
 - **devhub-fullstack** - When implementing features and encountering bugs
 - **devhub-testing** - When writing tests to reproduce bugs
 - **devhub-auditor** - When reviewing code for potential issues
 
 Pair this skill with:
+
 - **root-cause-tracing-fullstack** - For complex multi-layer bugs
 - **test-driven-development-web** - To add regression tests
 - **verification-before-completion** - To prevent bugs before commit

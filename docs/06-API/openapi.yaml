@@ -1,12 +1,12 @@
 openapi: 3.1.0
 
 info:
-  title: Moksha DevHub MCP API
+  title: ProjectPulse MCP API
   version: 2.0.0
   description: |
-    **Moksha DevHub MCP API Specification**
+    **ProjectPulse MCP API Specification**
 
-    Complete API specification for the Moksha DevHub Model Context Protocol (MCP) server. This API exposes 41 tools across 9 functional categories, enabling AI agents to manage software development workflows with 95% automation.
+    Complete API specification for the ProjectPulse Model Context Protocol (MCP) server. This API exposes 41 tools across 9 functional categories, enabling AI agents to manage software development workflows with 95% automation.
 
     **Architecture:** Agent-First (95% MCP automation, 5% UI monitoring)
     **Primary Users:** AI Agents (Claude Code, Cursor AI, Codex)
@@ -32,16 +32,16 @@ info:
     - [Data Model](../04-Data-and-Model-Spec.md) - Database schema
 
   contact:
-    name: Moksha DevHub Team
-    email: team@moksha-devhub.dev
-    url: https://moksha-devhub.dev
+    name: ProjectPulse Team
+    email: team@projectpulse.dev
+    url: https://projectpulse.dev
 
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: stdio://moksha-devhub
+  - url: stdio://projectpulse
     description: MCP Server (stdio transport)
     variables:
       protocol:

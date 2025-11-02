@@ -32,7 +32,7 @@
 ### Foundation (100%)
 
 - ✅ 30 memories created and accessible
-- ✅ .windsurfrules updated with Moksha DevHub rules
+- ✅ .windsurfrules updated with ProjectPulse rules
 - ✅ Templates created (session-starter, quick-commands)
 - ✅ Memory retrieval validated (all 30 accessible)
 

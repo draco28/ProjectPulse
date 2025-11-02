@@ -50,8 +50,8 @@
 **Before (v1.5):**
 
 - Single 2,000-line `DEVELOPMENT_PLAN.md` (everything in one file)
-- `PLANNING_PHASES_moksha-devhub-agent-first.md` (1,950 lines)
-- `IMPLEMENTATION_ROADMAP_moksha-devhub.md` (1,294 lines)
+- `PLANNING_PHASES_projectpulse-agent-first.md` (1,950 lines)
+- `IMPLEMENTATION_ROADMAP_projectpulse.md` (1,294 lines)
 - `STATUS.md` (200 lines, only current status)
 - Scattered `COMPLETION_*.md` files (5 files in root)
 - No traceability system (no FR-XXX IDs)
@@ -93,11 +93,11 @@
 
 ### Planning Documents
 
-| Old Location                                     | Old Lines | New Location                                       | New Lines    | What Changed                             |
-| ------------------------------------------------ | --------- | -------------------------------------------------- | ------------ | ---------------------------------------- |
-| **PLANNING_PHASES_moksha-devhub-agent-first.md** | 1,950     | [archive/ui-first-phase/](archive/ui-first-phase/) | -            | Archived as historical reference         |
-| **PLANNING_PHASES** (key decisions)              | 200       | [architecture/ADRs/](architecture/ADRs/)           | 473 (5 ADRs) | Formal ADRs created (ADR-001 to ADR-005) |
-| **IMPLEMENTATION_ROADMAP_moksha-devhub.md**      | 1,294     | [13-Project-Plan.md](13-Project-Plan.md)           | 898          | Consolidated into project plan           |
+| Old Location                                    | Old Lines | New Location                                       | New Lines    | What Changed                             |
+| ----------------------------------------------- | --------- | -------------------------------------------------- | ------------ | ---------------------------------------- |
+| **PLANNING_PHASES_projectpulse-agent-first.md** | 1,950     | [archive/ui-first-phase/](archive/ui-first-phase/) | -            | Archived as historical reference         |
+| **PLANNING_PHASES** (key decisions)             | 200       | [architecture/ADRs/](architecture/ADRs/)           | 473 (5 ADRs) | Formal ADRs created (ADR-001 to ADR-005) |
+| **IMPLEMENTATION_ROADMAP_projectpulse.md**      | 1,294     | [13-Project-Plan.md](13-Project-Plan.md)           | 898          | Consolidated into project plan           |
 
 ### Architecture Documents
 
@@ -127,7 +127,7 @@
 | Old Location                                    | Old Lines | New Location                             | New Lines | What Changed                                                        |
 | ----------------------------------------------- | --------- | ---------------------------------------- | --------- | ------------------------------------------------------------------- |
 | **DEVELOPMENT_PLAN.md** (user stories implicit) | -         | [12-Backlog.md](12-Backlog.md)           | 703       | New: 8 epics, 125 user stories (US-001 to US-125), 426 story points |
-| **IMPLEMENTATION_ROADMAP_moksha-devhub.md**     | 1,294     | [13-Project-Plan.md](13-Project-Plan.md) | 898       | Restructured: 5 phases, 16 weeks, 8 sprints, 426 points             |
+| **IMPLEMENTATION_ROADMAP_projectpulse.md**      | 1,294     | [13-Project-Plan.md](13-Project-Plan.md) | 898       | Restructured: 5 phases, 16 weeks, 8 sprints, 426 points             |
 
 ### Completion Documents
 
@@ -391,6 +391,7 @@ OpenAPI (42 MCP Tools + REST Endpoints)
 
 - **Location:** [02-SRS.md](02-SRS.md), FR-001 to FR-025
 - **Example FR-001:**
+
   ```markdown
   **FR-001: Create 5-Level Hierarchy**
 
@@ -412,6 +413,7 @@ OpenAPI (42 MCP Tools + REST Endpoints)
 
 - **Location:** [12-Backlog.md](12-Backlog.md), EPIC-001, US-001
 - **Example US-001:**
+
   ```markdown
   **US-001: Create Hierarchy as Agent**
 
@@ -425,6 +427,7 @@ OpenAPI (42 MCP Tools + REST Endpoints)
 
 - **Location:** [09-Testing-and-QA.md](09-Testing-and-QA.md), TEST-001
 - **Example TEST-001:**
+
   ```markdown
   TEST-001: Sprint Creation API
 

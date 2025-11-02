@@ -1,6 +1,6 @@
 # Data Model & Database Specification
 
-**Project:** Moksha DevHub
+**Project:** ProjectPulse
 **Version:** 2.0.0 (Agent-First Architecture)
 **Created:** 2025-11-02
 **Status:** Active
@@ -10,7 +10,7 @@
 
 ## Document Purpose
 
-This Data Model & Database Specification defines the complete database schema for Moksha DevHub, an agent-first project management platform. All 25 tables, 8 enums, relationships, indexes, and validation rules are documented with implementation-ready Prisma schemas that can be directly copied to production.
+This Data Model & Database Specification defines the complete database schema for ProjectPulse, an agent-first project management platform. All 25 tables, 8 enums, relationships, indexes, and validation rules are documented with implementation-ready Prisma schemas that can be directly copied to production.
 
 **Related Documents:**
 
@@ -1061,7 +1061,7 @@ model Skill {
 **Field Descriptions:**
 
 - `name`: Skill name (unique, e.g., "api-patterns", "database-patterns")
-- `path`: File path to skill file (e.g., ".claude/skills/moksha-devhub/api-patterns.md")
+- `path`: File path to skill file (e.g., ".claude/skills/projectpulse/api-patterns.md")
 - `triggers`: Array of keywords that trigger auto-loading (e.g., ["API", "endpoint", "REST"])
 - `description`: Skill description (what it provides)
 - `tokenEstimate`: Estimated tokens consumed when skill is loaded (~1000-5000)
@@ -2660,7 +2660,7 @@ async function main() {
   await prisma.skill.create({
     data: {
       name: 'api-patterns',
-      path: '.claude/skills/moksha-devhub/api-patterns.md',
+      path: '.claude/skills/projectpulse/api-patterns.md',
       triggers: ['API', 'endpoint', 'REST'],
       description: 'API design patterns and best practices',
       tokenEstimate: 3500,

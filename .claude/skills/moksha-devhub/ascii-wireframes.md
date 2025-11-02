@@ -1,6 +1,6 @@
 ---
 name: moksha-ascii-wireframes
-description: ASCII wireframe templates library for Moksha DevHub using hybrid format (box-drawing + emojis). Use for Step 1 of ui-generation-workflow to rapidly iterate on layouts before implementation.
+description: ASCII wireframe templates library for ProjectPulse using hybrid format (box-drawing + emojis). Use for Step 1 of ui-generation-workflow to rapidly iterate on layouts before implementation.
 triggers: ['layout', 'wireframe', 'structure', 'design layout']
 token_estimate: 200
 last_updated: 2025-10-27
@@ -270,7 +270,7 @@ related_docs:
 │                      │                                  │
 │ ➤ General            │  ┌────────────────────────────┐  │
 │   Profile            │  │ Project Name               │  │
-│   Security           │  │ [Moksha DevHub          ]  │  │
+│   Security           │  │ [ProjectPulse          ]  │  │
 │   Notifications      │  └────────────────────────────┘  │
 │   Integrations       │                                  │
 │   Advanced           │  ┌────────────────────────────┐  │

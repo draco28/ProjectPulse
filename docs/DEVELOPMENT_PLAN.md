@@ -1,4 +1,4 @@
-# Moksha DevHub - Development Plan
+# ProjectPulse - Development Plan
 
 **Version:** 1.5
 **Last Updated:** 2025-10-30 (Week 1.5 Phase 3 COMPLETE - All 7 pages implemented)
@@ -1239,7 +1239,7 @@ grep "03-MCP-" docs/*.md
          data: {
            projectId: project.id,
            title: 'Setup DevHub successfully',
-           description: 'Initial setup of Moksha DevHub completed',
+           description: 'Initial setup of ProjectPulse completed',
            status: 'done',
            priority: 'medium',
            module: 'Core',
@@ -3825,7 +3825,7 @@ pnpm add -D typescript @types/node tsx
 
 ```json
 {
-  "name": "@moksha-devhub/mcp-server",
+  "name": "@projectpulse/mcp-server",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -3854,7 +3854,7 @@ const API_URL = process.env.API_URL || 'http://localhost:3000/api';
 
 const server = new Server(
   {
-    name: 'moksha-devhub',
+    name: 'projectpulse',
     version: '1.0.0',
   },
   {
@@ -3870,7 +3870,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: 'create_issue',
-        description: 'Create a new issue in Moksha DevHub',
+        description: 'Create a new issue in ProjectPulse',
         inputSchema: {
           type: 'object',
           properties: {
@@ -4027,7 +4027,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('Moksha DevHub MCP Server running on stdio');
+  console.error('ProjectPulse MCP Server running on stdio');
 }
 
 main().catch((error) => {
@@ -4057,7 +4057,7 @@ export { server };
   "projects": {
     "F:\\Web_Projects\\AI_HUB": {
       "mcpServers": {
-        "moksha-devhub": {
+        "projectpulse": {
           "type": "stdio",
           "command": "node",
           "args": ["F:\\Web_Projects\\AI_HUB\\apps\\mcp-server\\dist\\index.js"],
@@ -4289,7 +4289,7 @@ pnpm test:e2e               # E2E tests
 
 **If starting a fresh conversation, use this:**
 
-> "I'm continuing Moksha DevHub development.
+> "I'm continuing ProjectPulse development.
 >
 > Please:
 >
@@ -4586,7 +4586,7 @@ python devhub_orchestrator.py  # Start agent orchestrator
 
 **Completed This Session:**
 
-- ✅ **Project Rename:** Moksha DevHub → ProjectPulse
+- ✅ **Project Rename:** ProjectPulse → ProjectPulse
   - Renamed across 10+ files (package.json, .env, docker-compose.yml, init-db.sql, etc.)
   - Updated Docker resources (containers, networks, volumes)
   - Updated database names and users

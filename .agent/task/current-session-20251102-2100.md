@@ -39,8 +39,8 @@ Complete plan saved to: `.agent/task/documentation-restructure-plan-20251102.md`
 - [x] Create `docs/archive/ui-first-phase/` folder structure
 - [x] Create archive README.md (comprehensive preservation guide)
 - [x] Move files to archive:
-  - PLANNING_PHASES_moksha-devhub-agent-first.md
-  - IMPLEMENTATION_ROADMAP_moksha-devhub.md
+  - PLANNING_PHASES_projectpulse-agent-first.md
+  - IMPLEMENTATION_ROADMAP_projectpulse.md
   - Copy DEVELOPMENT_PLAN.md → DEVELOPMENT_PLAN_v1.5_ARCHIVED.md
   - Move 5 COMPLETION\_\*.md files
 - [x] Commit archive changes (commit c7817c7)
@@ -170,7 +170,7 @@ Complete plan saved to: `.agent/task/documentation-restructure-plan-20251102.md`
 
 **Source Material:**
 
-- Read archived: `docs/archive/ui-first-phase/PLANNING_PHASES_moksha-devhub-agent-first.md` (lines 400-800 for feature details)
+- Read archived: `docs/archive/ui-first-phase/PLANNING_PHASES_projectpulse-agent-first.md` (lines 400-800 for feature details)
 - Reference: `docs/01-PRD.md` (Feature overview section 4.2)
 - Follow structure from: `.agent/task/documentation-restructure-plan-20251102.md` (SRS template, lines 434-560)
 

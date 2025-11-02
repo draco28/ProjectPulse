@@ -1,4 +1,4 @@
-# Moksha DevHub Skills
+# ProjectPulse Skills
 
 **Created**: 2025-10-26
 **Updated**: 2025-10-26 (Phase 4: Added troubleshooting skills)
@@ -10,7 +10,7 @@
 
 ## What Are Skills?
 
-**Skills** are concise, token-efficient patterns that capture Moksha DevHub's coding conventions. They provide quick reference for common tasks while linking to comprehensive documentation for deep dives.
+**Skills** are concise, token-efficient patterns that capture ProjectPulse's coding conventions. They provide quick reference for common tasks while linking to comprehensive documentation for deep dives.
 
 **How They Work**:
 
@@ -441,7 +441,7 @@ With Skills:
 /update-doc skill [topic]
 → Analyzes codebase for [topic]
 → Generates/updates skill
-→ Saves to .claude/skills/moksha-devhub/
+→ Saves to .claude/skills/projectpulse/
 ```
 
 ---
@@ -552,7 +552,7 @@ See [Full Guide](../../.agent/path) for details.
 
 ### Q: Can I create custom skills?
 
-**A**: Yes! Follow the template above and place in `.claude/skills/moksha-devhub/`. Update this README to include the new skill.
+**A**: Yes! Follow the template above and place in `.claude/skills/projectpulse/`. Update this README to include the new skill.
 
 ### Q: Do skills replace .agent/ documentation?
 

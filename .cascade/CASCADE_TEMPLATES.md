@@ -1,4 +1,4 @@
-# Cascade Templates for Moksha DevHub
+# Cascade Templates for ProjectPulse
 
 **Purpose:** Session starter templates and agent invocation patterns
 
@@ -451,7 +451,7 @@ Refs: [issue numbers if any]"
 **Save this as quick reference**
 
 ```markdown
-## Cascade Quick Commands for Moksha DevHub
+## Cascade Quick Commands for ProjectPulse
 
 ### Session Management:
 "Start session for Phase X Day Y" → Initializes with protocol

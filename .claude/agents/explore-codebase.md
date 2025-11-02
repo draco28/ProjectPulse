@@ -336,7 +336,7 @@ All API endpoints use cursor-based pagination with consistent pattern. Found in 
 
 ## Project-Specific Knowledge
 
-**Moksha DevHub Structure**:
+**ProjectPulse Structure**:
 ```
 
 apps/web/ # Next.js app

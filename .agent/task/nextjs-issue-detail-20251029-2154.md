@@ -509,7 +509,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 
   return {
-    title: `${issue.title} - Moksha DevHub`,
+    title: `${issue.title} - ProjectPulse`,
     description: issue.description?.substring(0, 160) || `Issue #${params.id}`,
     openGraph: {
       title: issue.title,

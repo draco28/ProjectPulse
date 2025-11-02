@@ -596,7 +596,7 @@ You now have a fully-functional AI agent system with:
 - Quick reference guides
 - Quality gates and checklists
 
-**Ready to build Moksha DevHub with AI assistance!** 🚀
+**Ready to build ProjectPulse with AI assistance!** 🚀
 
 ---
 

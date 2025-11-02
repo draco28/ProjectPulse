@@ -1,6 +1,6 @@
 ---
 name: moksha-testing-patterns
-description: TDD-first testing for Moksha DevHub. Test-Driven Development for ALL tasks using Jest, React Testing Library, and Playwright. Write tests first, implement code, iterate until tests pass.
+description: TDD-first testing for ProjectPulse. Test-Driven Development for ALL tasks using Jest, React Testing Library, and Playwright. Write tests first, implement code, iterate until tests pass.
 triggers:
   [
     'write test',
@@ -195,7 +195,7 @@ export function IssueCard({ issue }: IssueCardProps) {
 // - Extract badge component
 ```
 
-### TDD Benefits for Moksha DevHub
+### TDD Benefits for ProjectPulse
 
 **Why TDD for ALL tasks:**
 

@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2025-11-02
-**Decision Makers:** Moksha DevHub Development Team
+**Decision Makers:** ProjectPulse Development Team
 **Consulted:** Planning session analysis
 
 ---

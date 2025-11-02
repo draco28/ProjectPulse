@@ -1,8 +1,8 @@
 # Agent Documentation Index
 
-**Purpose**: This folder contains project-specific technical documentation and accumulated knowledge for Moksha DevHub. It complements (not replaces) the main project docs.
+**Purpose**: This folder contains project-specific technical documentation and accumulated knowledge for ProjectPulse. It complements (not replaces) the main project docs.
 
-**🎉 Token Optimization Complete**: Phase 5 delivered 74-83% token reduction through skills system. See [.claude/skills/moksha-devhub/](../.claude/skills/moksha-devhub/) for token-efficient patterns.
+**🎉 Token Optimization Complete**: Phase 5 delivered 74-83% token reduction through skills system. See [.claude/skills/projectpulse/](../.claude/skills/projectpulse/) for token-efficient patterns.
 
 **🆕 Memory Bank System**: Structured context files for efficient knowledge retrieval. See [Memory Bank](#-memory-bank-system-new) section below.
 

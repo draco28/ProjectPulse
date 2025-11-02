@@ -3,10 +3,10 @@ name: API Design Patterns (DevHub Web)
 description: Best practices for designing Next.js 14 API Routes and Server Actions with REST principles
 category: architecture
 version: 1.0
-project: Moksha DevHub (AI_HUB)
+project: ProjectPulse (AI_HUB)
 ---
 
-# API Design Patterns for Moksha DevHub
+# API Design Patterns for ProjectPulse
 
 ## Overview
 
@@ -24,6 +24,7 @@ This skill provides proven patterns for designing clean, maintainable, and scala
 ## REST API Patterns
 
 ### Resource Naming
+
 ```
 ✅ Good:
 /api/issues
@@ -39,6 +40,7 @@ This skill provides proven patterns for designing clean, maintainable, and scala
 ```
 
 ### HTTP Methods
+
 ```typescript
 // GET - Retrieve data
 export async function GET(request: Request) {
@@ -54,10 +56,7 @@ export async function POST(request: Request) {
 }
 
 // PATCH - Partial update
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const data = await request.json();
   const issue = await prisma.issue.update({
     where: { id: parseInt(params.id) },
@@ -67,10 +66,7 @@ export async function PATCH(
 }
 
 // DELETE - Remove resource
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   await prisma.issue.delete({
     where: { id: parseInt(params.id) },
   });
@@ -79,6 +75,7 @@ export async function DELETE(
 ```
 
 ### Status Codes
+
 ```typescript
 // 200 OK - Successful GET/PATCH
 return Response.json(data, { status: 200 });
@@ -197,10 +194,7 @@ export async function GET(request: Request) {
 
 ```typescript
 // app/api/issues/[id]/comments/route.ts
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   const comments = await prisma.comment.findMany({
     where: { issueId: parseInt(params.id) },
     orderBy: { createdAt: 'asc' },
@@ -209,10 +203,7 @@ export async function GET(
   return Response.json(comments);
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
   const data = await request.json();
 
   const comment = await prisma.comment.create({
@@ -351,6 +342,7 @@ export async function createIssue(formData: FormData) {
 ## Success Criteria
 
 Good API design when:
+
 - [ ] URLs are RESTful and predictable
 - [ ] HTTP methods used correctly
 - [ ] Status codes are meaningful
@@ -362,11 +354,13 @@ Good API design when:
 ## Integration with Agents
 
 This skill is used by:
+
 - **devhub-architect** - When designing new APIs
 - **devhub-fullstack** - When implementing API routes
 - **devhub-auditor** - To verify API design quality
 
 Pair with:
+
 - **api-testing-patterns** - For testing APIs
 - **verification-before-completion** - Pre-commit API validation
 - **defense-in-depth-web** - For API security

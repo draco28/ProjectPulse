@@ -99,7 +99,7 @@ Apply comprehensive fixes from Cursor's audit to bring system readiness from 92%
 ### Code Pattern Fixes (2)
 
 2. `apps/web/app/api/preferences/route.ts` - API response envelope standardized
-3. `.claude/skills/moksha-devhub/api-patterns.md` - Response format pattern documented
+3. `.claude/skills/projectpulse/api-patterns.md` - Response format pattern documented
 
 ### Documentation Navigation (5)
 

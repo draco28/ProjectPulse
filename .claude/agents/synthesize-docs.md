@@ -289,7 +289,7 @@ When asked to generate a skill from patterns:
    - Example: 220 tokens (skill) vs 3,000 tokens (SOP) = 93% reduction
 
 5. **Update Skill Index**
-   - Add to `.claude/skills/moksha-devhub/README.md`
+   - Add to `.claude/skills/projectpulse/README.md`
    - Categorize appropriately (API, UI, Database, etc.)
    - Include token count and savings percentage
 
@@ -347,7 +347,7 @@ Add to the appropriate section:
 # SOP: Adding a New API Endpoint
 
 ## Purpose
-Standard procedure for creating a new API endpoint in Moksha DevHub following project conventions and best practices.
+Standard procedure for creating a new API endpoint in ProjectPulse following project conventions and best practices.
 
 ## When to Use
 - Adding new REST API endpoint for external access (e.g., MCP server)

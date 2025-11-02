@@ -1,6 +1,6 @@
 ---
 name: moksha-api-patterns
-description: Standard patterns for creating API endpoints in Moksha DevHub using Next.js 14 App Router. Use when implementing GET/POST/PUT/DELETE routes, validating requests, or querying database via Prisma.
+description: Standard patterns for creating API endpoints in ProjectPulse using Next.js 14 App Router. Use when implementing GET/POST/PUT/DELETE routes, validating requests, or querying database via Prisma.
 triggers:
   ['api endpoint', 'create route', 'api route', 'POST /api', 'GET /api', 'implement endpoint']
 token_estimate: 220

@@ -37,7 +37,7 @@ Codebase now uses: "axios for all API calls"
 1. **Scan All Skills**
 
    ```
-   For each skill in .claude/skills/moksha-devhub/:
+   For each skill in .claude/skills/projectpulse/:
    - Read skill file
    - Identify patterns described
    - Note conventions mentioned
@@ -142,7 +142,7 @@ Codebase now uses: "axios for all API calls"
 1. **Read Target Skill**
 
    ```
-   File: .claude/skills/moksha-devhub/[skill-name].md
+   File: .claude/skills/projectpulse/[skill-name].md
    Extract: Current patterns, conventions, examples
    ```
 
@@ -206,7 +206,7 @@ Codebase now uses: "axios for all API calls"
    - Added: Rate limiting pattern
    - Updated: Token count (220 → 245 tokens)
 
-   Saved: .claude/skills/moksha-devhub/api-patterns.skill.md
+   Saved: .claude/skills/projectpulse/api-patterns.skill.md
    ```
 
 ## Pattern Drift Detection Algorithm
@@ -342,7 +342,7 @@ Update skill? (y/n)
 ```
 Analyze current patterns in [topic] for skill drift detection.
 
-Skill file: .claude/skills/moksha-devhub/[skill-name].md
+Skill file: .claude/skills/projectpulse/[skill-name].md
 
 Current patterns in skill:
 1. [Pattern 1 description]

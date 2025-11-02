@@ -200,7 +200,7 @@ Create comment system UI with **Client Components** (CommentList, CommentForm) a
 ```bash
 # Verify files exist
 ls -la .agent/*.md
-ls -la .claude/skills/moksha-devhub/*.md
+ls -la .claude/skills/projectpulse/*.md
 ````
 
 If missing, Option B wasn't committed. Check:

@@ -520,8 +520,8 @@ Host: localhost:3000
   "data": {
     "page": {
       "id": 1,
-      "title": "Getting Started with Moksha DevHub",
-      "content": "# Welcome to Moksha DevHub\n\nThis guide will help you...",
+      "title": "Getting Started with ProjectPulse",
+      "content": "# Welcome to ProjectPulse\n\nThis guide will help you...",
       "path": "/getting-started",
       "category": "Guides",
       "author": "Moksha Dev",
@@ -784,7 +784,7 @@ Host: localhost:3000
         "id": 12,
         "type": "wiki",
         "title": "Authentication Setup Guide",
-        "description": "Learn how to configure authentication in Moksha DevHub...",
+        "description": "Learn how to configure authentication in ProjectPulse...",
         "url": "/wiki/auth-setup",
         "icon": "fa-file-alt",
         "metadata": "Documentation"

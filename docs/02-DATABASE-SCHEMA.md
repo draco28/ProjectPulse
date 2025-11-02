@@ -1,4 +1,4 @@
-# 02 - Moksha DevHub: Complete Database Schema
+# 02 - ProjectPulse: Complete Database Schema
 
 **Version:** 1.1 - Week 15 Extensions  
 **Last Updated:** October 29, 2025  
@@ -8,7 +8,7 @@
 
 ## 🎯 Overview
 
-This document contains the **complete** Prisma schema for Moksha DevHub, including all models, relationships, indexes, and PostgreSQL-specific features.
+This document contains the **complete** Prisma schema for ProjectPulse, including all models, relationships, indexes, and PostgreSQL-specific features.
 
 **Database:** PostgreSQL 16  
 **ORM:** Prisma 5.x  
@@ -61,7 +61,7 @@ This document contains the **complete** Prisma schema for Moksha DevHub, includi
 ### schema.prisma
 
 ```prisma
-// Prisma schema for Moksha DevHub
+// Prisma schema for ProjectPulse
 // Database: PostgreSQL 16
 // Features: JSONB, Full-text search, Vector embeddings
 

@@ -1,6 +1,6 @@
 ---
 name: moksha-git-workflow
-description: Conventional commits, feature branches, PR flow for Moksha DevHub. Use when working with git operations, creating branches, or committing changes.
+description: Conventional commits, feature branches, PR flow for ProjectPulse. Use when working with git operations, creating branches, or committing changes.
 triggers: ['git', 'branch', 'commit', 'merge', 'pull request', 'pr', 'push', 'checkout']
 token_estimate: 180
 last_updated: 2025-10-26
@@ -8,7 +8,7 @@ related_docs:
   - ../../.agent/sops/git-workflow.md
 ---
 
-# Git Workflow (Moksha DevHub)
+# Git Workflow (ProjectPulse)
 
 ## Branch Strategy
 

@@ -267,7 +267,7 @@ lsof -ti:3000 | xargs kill -9
 
 3. **Wrong Directory**
    - Verify you're in correct project directory
-   - Check `package.json` is for Moksha DevHub
+   - Check `package.json` is for ProjectPulse
 
 4. **Build Cache**
    ```bash

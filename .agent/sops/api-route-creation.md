@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Standard procedure for creating API routes in Moksha DevHub with consistent validation, error handling, and response format. Ensures all API endpoints follow project conventions and best practices.
+Standard procedure for creating API routes in ProjectPulse with consistent validation, error handling, and response format. Ensures all API endpoints follow project conventions and best practices.
 
 ## When to Use
 

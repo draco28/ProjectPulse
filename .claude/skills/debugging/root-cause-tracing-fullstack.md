@@ -3,10 +3,10 @@ name: Root Cause Tracing (DevHub Fullstack)
 description: Trace bugs backward through the full stack (UI → API → Database) to find the origin point
 category: debugging
 version: 1.0
-project: Moksha DevHub (AI_HUB)
+project: ProjectPulse (AI_HUB)
 ---
 
-# Root Cause Tracing for Moksha DevHub
+# Root Cause Tracing for ProjectPulse
 
 ## Overview
 
@@ -15,16 +15,19 @@ This skill provides a systematic approach to tracing bugs from symptom to source
 ## Core Principles
 
 ### 1. **Start at the Symptom, Work Backwards**
+
 - Don't fix symptoms, find the root cause
 - Each layer can hide the real problem
 - The bug is usually earlier in the chain than you think
 
 ### 2. **Verify Assumptions at Each Layer**
+
 - Don't assume data is correct
 - Log and inspect at every boundary
 - Database → API → Frontend (work backwards)
 
 ### 3. **Understand Data Flow**
+
 ```
 User Action → React Event Handler
             → API Call (fetch/axios)
@@ -39,6 +42,7 @@ User Action → React Event Handler
 ```
 
 ### 4. **Common Failure Points**
+
 - Data transformation errors (API <→ Frontend)
 - Query logic errors (Prisma)
 - Schema mismatches (Database)
@@ -52,6 +56,7 @@ User Action → React Event Handler
 **Example Symptom**: "Issue list shows wrong priority colors"
 
 Document exactly what you see:
+
 - Expected: High priority issues should show red badge
 - Actual: All issues show gray badge
 - Context: On `/issues` page after fresh load
@@ -59,6 +64,7 @@ Document exactly what you see:
 ### Step 2: Trace from UI Layer
 
 **Check React Component:**
+
 ```typescript
 // components/issues/IssueCard.tsx
 'use client';
@@ -84,6 +90,7 @@ export function IssueCard({ issue }: { issue: Issue }) {
 ```
 
 **Questions to ask:**
+
 - Is `issue.priority` defined?
 - Is it the expected type (string)?
 - Is it one of the expected values ('low', 'medium', 'high', 'critical')?
@@ -125,6 +132,7 @@ export function IssueList() {
 ```
 
 **Questions to ask:**
+
 - Does the API return data?
 - Is `priority` field present in the response?
 - Is the value correct?
@@ -148,7 +156,7 @@ export async function GET(request: Request) {
     console.log('🔍 [API Layer] First issue priority:', issues[0]?.priority);
 
     // Check if we're transforming the data
-    const transformed = issues.map(issue => ({
+    const transformed = issues.map((issue) => ({
       id: issue.id,
       title: issue.title,
       status: issue.status,
@@ -166,6 +174,7 @@ export async function GET(request: Request) {
 ```
 
 **Questions to ask:**
+
 - Is Prisma query returning the correct data?
 - Are we transforming/mapping the data?
 - Are we accidentally omitting fields?
@@ -190,6 +199,7 @@ const issues = await prisma.issue.findMany({
 ```
 
 **Check Prisma Schema:**
+
 ```prisma
 // prisma/schema.prisma
 model Issue {
@@ -202,6 +212,7 @@ model Issue {
 ```
 
 **Questions to ask:**
+
 - Does the `priority` field exist in the schema?
 - Is it the correct type?
 - Did we run migrations after adding it?
@@ -228,6 +239,7 @@ SELECT DISTINCT priority FROM issues;
 ```
 
 **Questions to ask:**
+
 - Does the `priority` column exist?
 - Is it the correct data type (VARCHAR)?
 - Does it have data (not NULL)?
@@ -236,11 +248,13 @@ SELECT DISTINCT priority FROM issues;
 ## Real-World Example: Tracing "Issue Search Returns Wrong Results"
 
 ### Symptom
+
 Search for "authentication bug" returns 0 results, but we know this issue exists.
 
 ### Trace Backwards:
 
 **Step 1: Check UI Search Component**
+
 ```typescript
 'use client';
 export function SearchBar() {
@@ -258,9 +272,11 @@ export function SearchBar() {
   return <input value={query} onChange={e => setQuery(e.target.value)} />;
 }
 ```
+
 ✅ Query is correct: "authentication bug"
 
 **Step 2: Check API Route**
+
 ```typescript
 // app/api/search/route.ts
 export async function GET(request: Request) {
@@ -271,10 +287,7 @@ export async function GET(request: Request) {
 
   const results = await prisma.issue.findMany({
     where: {
-      OR: [
-        { title: { contains: query } },
-        { description: { contains: query } },
-      ],
+      OR: [{ title: { contains: query } }, { description: { contains: query } }],
     },
   });
 
@@ -283,12 +296,14 @@ export async function GET(request: Request) {
   return Response.json(results);
 }
 ```
+
 ✅ Query received: "authentication bug"
 ❌ **PROBLEM FOUND**: `contains` is case-sensitive in PostgreSQL!
 
 **Root Cause**: Prisma `contains` translates to SQL `LIKE '%query%'` which is case-sensitive.
 
 **Solution**: Use case-insensitive search or full-text search
+
 ```typescript
 // Option 1: Case-insensitive contains
 where: {
@@ -309,18 +324,21 @@ where: {
 ## Common Root Causes by Layer
 
 ### UI Layer Root Causes
+
 - State not updating (useState, useEffect dependencies)
 - Wrong prop passed to component
 - Conditional rendering hiding data
 - CSS hiding elements (not actually data issue)
 
 ### API Layer Root Causes
+
 - Data transformation errors (mapping, filtering)
 - Missing fields in response
 - Incorrect HTTP status codes
 - Async issues (not awaiting promises)
 
 ### Database Layer Root Causes
+
 - Wrong query logic (WHERE clause)
 - Missing relations (include/select)
 - Schema mismatch (field doesn't exist)
@@ -328,6 +346,7 @@ where: {
 - Missing indexes (performance, not correctness)
 
 ### Data Layer Root Causes
+
 - Incorrect seed data
 - Migration not run
 - Database not in expected state
@@ -354,6 +373,7 @@ When tracing a bug, use binary search to narrow down quickly:
 ## Tracing Tools
 
 ### Console Logging Strategy
+
 ```typescript
 // Use emoji prefixes to identify layer
 console.log('🔍 [UI Layer]', ...);
@@ -370,21 +390,26 @@ console.table(issues);
 ```
 
 ### React DevTools
+
 - **Components Tab**: Check props and state
 - **Profiler Tab**: Find slow renders
 
 ### Browser Network Tab
+
 - Check request URL, headers, status code
 - Check response body
 - Check request/response timing
 
 ### Prisma Studio
+
 ```bash
 npx prisma studio
 ```
+
 Visual database inspection to verify data
 
 ### PostgreSQL CLI
+
 ```bash
 docker exec -it moksha-db psql -U moksha -d moksha_devhub
 
@@ -396,6 +421,7 @@ SELECT * FROM ...;    -- Query data
 ## Success Criteria
 
 Root cause is found when:
+
 - [ ] You can pinpoint the exact line of code causing the issue
 - [ ] You understand WHY it's wrong (not just that it is)
 - [ ] You can fix it and verify the fix works
@@ -405,11 +431,13 @@ Root cause is found when:
 ## Integration with Agents
 
 This skill is used by:
+
 - **devhub-fullstack** - When implementing features with data flow bugs
 - **devhub-testing** - To understand bugs before writing tests
 - **devhub-auditor** - To identify architectural issues causing bugs
 
 Pair this skill with:
+
 - **systematic-debugging-web** - Start with systematic approach, use this for deep tracing
 - **test-driven-development-web** - Add regression tests after finding root cause
 - **api-design-patterns** - Improve API design to prevent similar bugs

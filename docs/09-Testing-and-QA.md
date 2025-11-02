@@ -1,6 +1,6 @@
 # Testing and Quality Assurance Strategy
 
-**Project:** Moksha DevHub
+**Project:** ProjectPulse
 **Version:** 2.0.0 (Agent-First Architecture)
 **Created:** 2025-11-02
 **Status:** Active
@@ -18,7 +18,7 @@
 
 ## Document Purpose
 
-This document defines the comprehensive testing and quality assurance strategy for Moksha DevHub, an agent-first project management platform. Given that AI agents (Claude Code, Cursor AI, Codex) execute operations autonomously via MCP, rigorous testing is critical to ensure:
+This document defines the comprehensive testing and quality assurance strategy for ProjectPulse, an agent-first project management platform. Given that AI agents (Claude Code, Cursor AI, Codex) execute operations autonomously via MCP, rigorous testing is critical to ensure:
 
 - **Correctness:** All MCP tools behave as specified
 - **Reliability:** Agent workflows complete successfully >95% of the time
@@ -63,7 +63,7 @@ This document defines the comprehensive testing and quality assurance strategy f
 
 ### 1.1 Overview
 
-Moksha DevHub follows the **Test Pyramid** pattern to maximize test coverage while minimizing execution time and maintenance overhead.
+ProjectPulse follows the **Test Pyramid** pattern to maximize test coverage while minimizing execution time and maintenance overhead.
 
 ```
         /\
@@ -1485,7 +1485,7 @@ afterAll(async () => {
 
 ### 5.1 Overview
 
-Performance testing validates that Moksha DevHub meets NFR-001 to NFR-008 under realistic load conditions.
+Performance testing validates that ProjectPulse meets NFR-001 to NFR-008 under realistic load conditions.
 
 **Tools:**
 
@@ -1751,7 +1751,7 @@ jobs:
 
 ### 6.1 Overview
 
-Security testing validates that Moksha DevHub is protected against threats identified in [08-Security-and-Compliance.md](08-Security-and-Compliance.md).
+Security testing validates that ProjectPulse is protected against threats identified in [08-Security-and-Compliance.md](08-Security-and-Compliance.md).
 
 **Total Security Tests:** 92 tests
 
@@ -1894,7 +1894,7 @@ describe('Autonomy Level Enforcement', () => {
 
 ### 7.1 Overview
 
-Accessibility testing ensures Moksha DevHub UI components meet **WCAG 2.1 AA** standards.
+Accessibility testing ensures ProjectPulse UI components meet **WCAG 2.1 AA** standards.
 
 **Test Count:** 30 tests
 
@@ -2414,7 +2414,7 @@ This matrix maps Functional Requirements (FR-XXX) to test suites, ensuring compl
 
 ## Conclusion
 
-This Testing & QA Strategy provides comprehensive coverage of Moksha DevHub's functionality, performance, security, and accessibility requirements. With **700+ tests** across unit, integration, and E2E layers, **8 quality gates**, and **CI/CD automation**, this strategy ensures that AI agents can rely on Moksha DevHub for mission-critical project management workflows.
+This Testing & QA Strategy provides comprehensive coverage of ProjectPulse's functionality, performance, security, and accessibility requirements. With **700+ tests** across unit, integration, and E2E layers, **8 quality gates**, and **CI/CD automation**, this strategy ensures that AI agents can rely on ProjectPulse for mission-critical project management workflows.
 
 **Key Achievements:**
 

@@ -1,7 +1,7 @@
-# AGENTS.md — Moksha DevHub (AI_HUB)
+# AGENTS.md — ProjectPulse (AI_HUB)
 
 **Version:** 1.0
-**Project:** Moksha DevHub
+**Project:** ProjectPulse
 **Stack:** Next.js 14 + PostgreSQL 16 + Prisma + MCP
 **Agent System:** Claude Code with custom sub-agents and skills
 
@@ -66,6 +66,7 @@ F:\Web_Projects\AI_HUB/
 **Purpose:** Your primary AI coding assistant with intelligent routing
 
 **How to use:**
+
 - Use orchestrator: `python .claude/devhub_orchestrator.py`
 - Or chat directly in Claude Code
 - System automatically routes to appropriate specialist
@@ -85,21 +86,26 @@ Located in `.claude/agents/`, invoked via orchestrator:
 Located in `.claude/skills/`, referenced by agents:
 
 **Debugging:**
+
 - systematic-debugging-web.md
 - root-cause-tracing-fullstack.md
 
 **Testing:**
+
 - test-driven-development-web.md
 - api-testing-patterns.md
 
 **Validation:**
+
 - verification-before-completion.md
 - defense-in-depth-web.md
 
 **Architecture:**
+
 - api-design-patterns.md
 
 **Documentation:**
+
 - changelog-generator.md
 
 See `.claude/SKILLS_INDEX.md` for complete catalog.
@@ -111,26 +117,31 @@ See `.claude/SKILLS_INDEX.md` for complete catalog.
 ### When to Use Each Agent
 
 **devhub-architect:**
+
 - "How should I structure the MCP tools?"
 - "Design the database schema for agent personas"
 - "What's the best way to implement hybrid search?"
 
 **devhub-fullstack:**
+
 - "Implement the POST /api/issues endpoint"
 - "Create the IssueList component with filtering"
 - "Add Prisma migration for new table"
 
 **devhub-testing:**
+
 - "Write tests for the search API"
 - "Create E2E test for issue creation flow"
 - "Add regression test for this bug"
 
 **devhub-auditor:**
+
 - "Review this code for security issues"
 - "Check if this component is accessible"
 - "Audit API performance"
 
 **devhub-mcp-specialist:**
+
 - "Design the MCP tool structure"
 - "Implement MCP resource for project context"
 - "Create MCP prompt for code reviewer persona"
@@ -138,17 +149,20 @@ See `.claude/SKILLS_INDEX.md` for complete catalog.
 ### Workflow Patterns
 
 **Feature Development:**
+
 1. Architect → Design feature
 2. Fullstack → Implement
 3. Testing → Add tests
 4. Auditor → Review quality
 
 **Bug Fixing:**
+
 1. Fullstack → Fix bug
 2. Testing → Add regression test
 3. Auditor → Verify fix
 
 **MCP Tool Creation:**
+
 1. MCP Specialist → Design tool
 2. Fullstack → Implement
 3. Testing → Test tool
@@ -160,24 +174,28 @@ See `.claude/SKILLS_INDEX.md` for complete catalog.
 All work must pass these gates before completion:
 
 ### Build Gate
+
 - `pnpm lint` passes
 - `pnpm type-check` passes
 - `pnpm build` succeeds
 - No TypeScript errors
 
 ### Test Gate
+
 - `pnpm test` passes
 - 80%+ coverage for new code
 - All edge cases tested
 - No failing tests
 
 ### Security Gate
+
 - No SQL injection vulnerabilities
 - Input validated with Zod
 - No XSS vulnerabilities
 - No exposed secrets
 
 ### Architecture Gate
+
 - Follows patterns in docs/
 - Data-driven (no hardcoded values)
 - Proper module placement
@@ -190,6 +208,7 @@ See `.claude/skills/validation/verification-before-completion.md` for complete c
 ## 6) Technical Standards
 
 ### TypeScript
+
 ```typescript
 // ✅ Good: Strict typing
 interface Issue {
@@ -203,6 +222,7 @@ const issue: any = { ... };
 ```
 
 ### API Routes
+
 ```typescript
 // ✅ Good: Validation + error handling
 export async function POST(request: Request) {
@@ -221,6 +241,7 @@ export async function POST(request: Request) {
 ```
 
 ### Database Queries
+
 ```typescript
 // ✅ Good: Parameterized query
 await prisma.$queryRaw`
@@ -238,12 +259,14 @@ await prisma.$queryRawUnsafe(`
 ## 7) Orchestrator Usage
 
 ### Start Orchestrator
+
 ```bash
 cd .claude
 python devhub_orchestrator.py
 ```
 
 ### Commands
+
 - `help` - Show available commands
 - `agents` - List available agents
 - `status` - Show session status
@@ -252,6 +275,7 @@ python devhub_orchestrator.py
 - `exit` - Quit (with optional archive)
 
 ### Example Session
+
 ```
 💬 You: Design the database schema for issue filtering
 🎯 Routing to: devhub-architect
@@ -273,16 +297,19 @@ python devhub_orchestrator.py
 Configured in `.claude/settings.local.json`:
 
 **Allow:**
+
 - Read all files
 - Write to apps/, packages/, docs/, .claude/
 - Bash: pnpm, npm, docker, git, python
 
 **Deny:**
+
 - Write to node_modules/, .next/, dist/
 - Write to .env (secrets)
 - Destructive bash commands
 
 **Ask First:**
+
 - git push
 - docker-compose down
 - prisma migrate reset
@@ -312,6 +339,7 @@ When encountering bugs:
 - **Pass all gates** - Build, test, lint must pass
 
 Example:
+
 ```bash
 git commit -m "feat: add issue filtering by priority and module"
 git commit -m "fix: resolve hydration mismatch in IssueCard"
@@ -323,6 +351,7 @@ git commit -m "test: add E2E test for issue creation flow"
 ## 11) Best Practices
 
 ### Do:
+
 ✅ Use Server Components by default
 ✅ Validate all input with Zod
 ✅ Write tests before marking complete
@@ -332,6 +361,7 @@ git commit -m "test: add E2E test for issue creation flow"
 ✅ Use skills for structured workflows
 
 ### Don't:
+
 ❌ Use `any` types
 ❌ Hardcode values
 ❌ Skip testing

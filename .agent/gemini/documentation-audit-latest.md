@@ -214,7 +214,7 @@
 
 - ✅ .claude/settings.local.json (valid JSON, has permissions/settings)
 - ✅ .claude/agents/\*.md (core set present)
-- ✅ .claude/skills/moksha-devhub/\*.md (including testing-patterns with 320 tokens)
+- ✅ .claude/skills/projectpulse/\*.md (including testing-patterns with 320 tokens)
 
 **Findings**:
 
@@ -484,7 +484,7 @@ return NextResponse.json({ data: preferences || { theme: 'desert' }, error: null
 
 **Severity**: MINOR  
 **Category**: Code Pattern Validation  
-**File**: .claude/skills/moksha-devhub/api-patterns.md  
+**File**: .claude/skills/projectpulse/api-patterns.md  
 **Line**: Near response section
 
 **Current**:
@@ -698,7 +698,7 @@ Why: Mirrors AGENTS.md “Ask First” list.
 Fix #9: Add short “API response format” note
 Severity: MINOR
 Category: Code Pattern Validation
-File: .claude/skills/moksha-devhub/api-patterns.md
+File: .claude/skills/projectpulse/api-patterns.md
 Line: Near response section
 Current:
 (general guidance)

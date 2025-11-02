@@ -223,5 +223,5 @@ Before implementing, must consult:
 - **Development Plan**: docs/DEVELOPMENT_PLAN.md (lines 2815-3065)
 - **Week 1.75 Completion**: docs/COMPLETION_WEEK_1.75_PHASE_4.md
 - **Database Schema**: .agent/system/database-schema.md
-- **API Patterns**: .claude/skills/moksha-devhub/api-patterns.md
+- **API Patterns**: .claude/skills/projectpulse/api-patterns.md
 - **TDD Workflow**: test-driven-development-web.md

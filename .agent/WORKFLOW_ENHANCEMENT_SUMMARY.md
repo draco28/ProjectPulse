@@ -9,7 +9,7 @@
 
 ## Overview
 
-The Workflow Enhancement System is a comprehensive token optimization and automation framework for the Moksha DevHub project. It reduces token consumption by 74-83% through intelligent lazy-loading, file-based context management, and specialized agent orchestration.
+The Workflow Enhancement System is a comprehensive token optimization and automation framework for the ProjectPulse project. It reduces token consumption by 74-83% through intelligent lazy-loading, file-based context management, and specialized agent orchestration.
 
 ### Key Achievements
 
@@ -132,7 +132,7 @@ User: "/update-doc skill api-validation"
 1. explore-codebase detects patterns across 5-10 files
 2. Identifies 3-5 consistent patterns
 3. synthesize-docs creates skill (220 tokens)
-4. Skill saved to .claude/skills/moksha-devhub/
+4. Skill saved to .claude/skills/projectpulse/
 5. Index updated
 6. Token savings reported (93%: 220 vs 3,000 tokens)
 ```
@@ -170,7 +170,7 @@ User: "/update-doc skill api-validation"
 
 - `.claude/skills/troubleshooting/port-config.md`
 - `.claude/skills/troubleshooting/database-connection.md`
-- Updated `.claude/skills/moksha-devhub/README.md`
+- Updated `.claude/skills/projectpulse/README.md`
 
 **Validation**: [workflow-validation-checklist.md](testing/workflow-validation-checklist.md) - Phase 4 section
 
@@ -201,7 +201,7 @@ User: "/update-doc skill api-validation"
 - `.claude/scripts/measure-tokens.md`
 - `.agent/metrics/token-optimization-results.md`
 - `.claude/commands/refresh-skills.md`
-- Enhanced `.claude/skills/moksha-devhub/README.md` with optimization section
+- Enhanced `.claude/skills/projectpulse/README.md` with optimization section
 
 **Validation**: [token-validation-methodology.md](testing/token-validation-methodology.md)
 
@@ -252,7 +252,7 @@ User: "/update-doc skill api-validation"
 │   ├── prisma-expert.md        # Expert: Database schema design
 │   └── react-expert.md         # Expert: Component architecture
 ├── skills/                     # Token-efficient quick references
-│   ├── moksha-devhub/          # 5 foundational skills (1,100 tokens)
+│   ├── projectpulse/          # 5 foundational skills (1,100 tokens)
 │   │   ├── api-patterns.md
 │   │   ├── component-patterns.md
 │   │   ├── database-patterns.md
@@ -595,7 +595,7 @@ Token Usage in main thread: ~1,500 (sub-agent works in isolation)
 
 ### Skills Index
 
-- [moksha-devhub/README.md](../.claude/skills/moksha-devhub/README.md) - Skills catalog + optimization guide
+- [projectpulse/README.md](../.claude/skills/projectpulse/README.md) - Skills catalog + optimization guide
 
 ---
 

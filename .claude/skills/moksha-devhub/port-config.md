@@ -1,6 +1,6 @@
 ---
 name: moksha-port-config
-description: Fix dev server port 3000 issues for Moksha DevHub. Use when port 3002 is showing instead of 3000, or localhost not working.
+description: Fix dev server port 3000 issues for ProjectPulse. Use when port 3002 is showing instead of 3000, or localhost not working.
 triggers:
   [
     'port 3000',

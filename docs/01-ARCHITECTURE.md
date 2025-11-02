@@ -1,4 +1,4 @@
-# 01 - Moksha DevHub: Complete Architecture
+# 01 - ProjectPulse: Complete Architecture
 
 **Version:** 1.0 Final  
 **Last Updated:** October 23, 2025  
@@ -8,9 +8,10 @@
 
 ## 🎯 Executive Summary
 
-Moksha DevHub is a self-hosted, local-first development hub that replaces:
+ProjectPulse is a self-hosted, local-first development hub that replaces:
+
 - **Linear** → Issue Tracker
-- **Byterover** → Knowledge Base  
+- **Byterover** → Knowledge Base
 - **Notion** → Documentation Wiki
 - **Cloud Services** → Local PostgreSQL
 
@@ -145,6 +146,7 @@ Moksha DevHub is a self-hosted, local-first development hub that replaces:
 #### Why PostgreSQL?
 
 1. **JSONB for Flexibility**
+
    ```sql
    CREATE TABLE issues (
        id SERIAL PRIMARY KEY,
@@ -152,38 +154,40 @@ Moksha DevHub is a self-hosted, local-first development hub that replaces:
        status VARCHAR(50),
        custom_fields JSONB  -- ⭐ Flexible schema
    );
-   
+
    -- Query custom fields
-   SELECT * FROM issues 
+   SELECT * FROM issues
    WHERE custom_fields->>'epic' = 'Combat Overhaul';
    ```
 
 2. **Full-Text Search Built-in**
+
    ```sql
    -- Create tsvector index
-   ALTER TABLE issues 
+   ALTER TABLE issues
    ADD COLUMN search_vector tsvector
    GENERATED ALWAYS AS (
        to_tsvector('english', title || ' ' || COALESCE(description, ''))
    ) STORED;
-   
+
    CREATE INDEX idx_issues_search ON issues USING GIN(search_vector);
-   
+
    -- Search
-   SELECT * FROM issues 
+   SELECT * FROM issues
    WHERE search_vector @@ plainto_tsquery('english', 'fsm animation');
    ```
 
 3. **Vector Embeddings (pgvector)**
+
    ```sql
    CREATE EXTENSION vector;
-   
+
    ALTER TABLE knowledge_items
    ADD COLUMN embedding vector(384);  -- all-MiniLM-L6-v2 dimensions
-   
-   CREATE INDEX ON knowledge_items 
+
+   CREATE INDEX ON knowledge_items
    USING hnsw (embedding vector_cosine_ops);
-   
+
    -- Semantic search
    SELECT *, 1 - (embedding <=> query_embedding) as similarity
    FROM knowledge_items
@@ -303,6 +307,7 @@ Claude Code (MCP Client)
 ```
 
 **Benefits:**
+
 1. **Single Source of Truth**: All database logic in Next.js
 2. **No Duplication**: Don't replicate Prisma client setup in MCP
 3. **Easier Maintenance**: Update API once, both UI and MCP benefit
@@ -326,11 +331,9 @@ server.setRequestHandler('tools/call', async (request) => {
       description: request.params.arguments.description,
       // ...
     });
-    
+
     return {
-      content: [
-        { type: 'text', text: `Created issue #${response.data.id}` }
-      ]
+      content: [{ type: 'text', text: `Created issue #${response.data.id}` }],
     };
   }
 });
@@ -347,10 +350,7 @@ server.setRequestHandler('tools/call', async (request) => {
 
 ```typescript
 // lib/search.ts
-export async function hybridSearch(
-  query: string,
-  options: SearchOptions
-): Promise<SearchResult[]> {
+export async function hybridSearch(query: string, options: SearchOptions): Promise<SearchResult[]> {
   // 1. Full-text search (fast, keyword-based)
   const fullTextResults = await prisma.$queryRaw`
     SELECT *, 
@@ -360,7 +360,7 @@ export async function hybridSearch(
     ORDER BY rank DESC
     LIMIT 20;
   `;
-  
+
   // 2. Semantic search (slower, meaning-based)
   const queryEmbedding = await generateEmbedding(query);
   const semanticResults = await prisma.$queryRaw`
@@ -371,7 +371,7 @@ export async function hybridSearch(
     ORDER BY embedding <=> ${queryEmbedding}::vector
     LIMIT 20;
   `;
-  
+
   // 3. Get weights from settings (data-driven per [R-DATA-001])
   const fullTextWeight = await getSetting('search.fullTextWeight', 0.6);
   const semanticWeight = await getSetting('search.semanticWeight', 0.4);
@@ -388,11 +388,11 @@ export async function hybridSearch(
 
 #### When to Use Each
 
-| Search Type | Use Case | Example Query |
-|-------------|----------|---------------|
-| **Full-text** | Exact keywords, code, IDs | "FSM authority bug #42" |
-| **Semantic** | Concepts, similar patterns | "how to implement state machines" |
-| **Hybrid** | General search | "combat system animation issues" |
+| Search Type   | Use Case                   | Example Query                     |
+| ------------- | -------------------------- | --------------------------------- |
+| **Full-text** | Exact keywords, code, IDs  | "FSM authority bug #42"           |
+| **Semantic**  | Concepts, similar patterns | "how to implement state machines" |
+| **Hybrid**    | General search             | "combat system animation issues"  |
 
 ---
 
@@ -420,18 +420,15 @@ let embedder: any = null;
 export async function generateEmbedding(text: string): Promise<number[]> {
   // Lazy load model (only once)
   if (!embedder) {
-    embedder = await pipeline(
-      'feature-extraction',
-      'Xenova/all-MiniLM-L6-v2'
-    );
+    embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
   }
-  
+
   // Generate embedding
   const output = await embedder(text, {
     pooling: 'mean',
     normalize: true,
   });
-  
+
   // Convert to array
   return Array.from(output.data);
 }
@@ -448,13 +445,13 @@ const knowledgeItem = await prisma.knowledgeItem.create({
 
 #### Trade-offs
 
-| Aspect | Local (chosen) | OpenAI API |
-|--------|----------------|------------|
-| Privacy | ✅ 100% local | ❌ Sends to API |
-| Cost | ✅ $0 | ❌ $0.02/1M tokens |
-| Quality | ⚠️ Good (85%) | ✅ Best (100%) |
-| Speed | ✅ Fast | ⚠️ Network latency |
-| Dimensions | 384 | 1536 |
+| Aspect     | Local (chosen) | OpenAI API         |
+| ---------- | -------------- | ------------------ |
+| Privacy    | ✅ 100% local  | ❌ Sends to API    |
+| Cost       | ✅ $0          | ❌ $0.02/1M tokens |
+| Quality    | ⚠️ Good (85%)  | ✅ Best (100%)     |
+| Speed      | ✅ Fast        | ⚠️ Network latency |
+| Dimensions | 384            | 1536               |
 
 **Verdict:** Local wins for solo developer use case
 
@@ -478,15 +475,15 @@ services:
       POSTGRES_USER: moksha
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U moksha"]
+      test: ['CMD-SHELL', 'pg_isready -U moksha']
       interval: 10s
       timeout: 5s
       retries: 5
-  
+
   web:
     build:
       context: ./apps/web
@@ -495,7 +492,7 @@ services:
       DATABASE_URL: postgresql://moksha:${DB_PASSWORD}@postgres:5432/moksha_devhub
       NEXT_PUBLIC_APP_URL: http://localhost:3000
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -613,6 +610,7 @@ Database (agent_personas table)
 **Scope:** Solo developer, local-only use
 
 **Threats:**
+
 1. ❌ Not concerned: Multi-user attacks (no authentication)
 2. ❌ Not concerned: Network attacks (LAN only)
 3. ✅ Concerned: Code vulnerabilities in game project
@@ -626,9 +624,7 @@ Database (agent_personas table)
 // lib/security.ts
 import { executeSecurely } from './process-executor';
 
-export async function runSemgrepScan(
-  projectPath: string
-): Promise<SecurityFinding[]> {
+export async function runSemgrepScan(projectPath: string): Promise<SecurityFinding[]> {
   // Validate projectPath is within allowed directory
   const allowedRoot = process.env.MOKSHA_PROJECT_ROOT;
   if (!allowedRoot || !projectPath.startsWith(allowedRoot)) {
@@ -636,15 +632,11 @@ export async function runSemgrepScan(
   }
 
   // Run Semgrep using secure executor (fixes command injection)
-  const { stdout } = await executeSecurely(
-    'semgrep',
-    ['--config', 'auto', '--json', projectPath],
-    {
-      allowedCommands: ['semgrep'],
-      timeout: 120000, // 2 minutes
-      maxOutputSize: 10 * 1024 * 1024, // 10MB
-    }
-  );
+  const { stdout } = await executeSecurely('semgrep', ['--config', 'auto', '--json', projectPath], {
+    allowedCommands: ['semgrep'],
+    timeout: 120000, // 2 minutes
+    maxOutputSize: 10 * 1024 * 1024, // 10MB
+  });
 
   const results = JSON.parse(stdout);
 
@@ -679,9 +671,9 @@ export async function runSemgrepScan(
 ```typescript
 // lib/helpers.ts
 enum ScriptTier {
-  READ_ONLY = 'read_only',      // Can only read files
+  READ_ONLY = 'read_only', // Can only read files
   CREATE_ISSUES = 'create_issues', // Can create issues
-  DIRECT = 'direct',             // Can execute directly
+  DIRECT = 'direct', // Can execute directly
 }
 
 export async function executeHelperScript(
@@ -696,7 +688,7 @@ export async function executeHelperScript(
   }
 
   // Validate script extension
-  if (!['.py', '.js', '.ts'].some(ext => scriptPath.endsWith(ext))) {
+  if (!['.py', '.js', '.ts'].some((ext) => scriptPath.endsWith(ext))) {
     throw new Error('Invalid script type. Only .py, .js, .ts allowed');
   }
 
@@ -718,16 +710,12 @@ export async function executeHelperScript(
   const interpreter = scriptPath.endsWith('.py') ? 'python' : 'node';
 
   // Execute with secure spawn (fixes command injection)
-  const result = await executeSecurely(
-    interpreter,
-    [scriptPath, ...args],
-    {
-      allowedCommands: ['python', 'node'],
-      timeout: 60000, // 60 seconds
-      maxOutputSize: 5 * 1024 * 1024, // 5MB
-      env,
-    }
-  );
+  const result = await executeSecurely(interpreter, [scriptPath, ...args], {
+    allowedCommands: ['python', 'node'],
+    timeout: 60000, // 60 seconds
+    maxOutputSize: 5 * 1024 * 1024, // 5MB
+    env,
+  });
 
   return {
     stdout: result.stdout,
@@ -813,6 +801,7 @@ Display to user
 #### Example: Adding "Time Tracking" Feature
 
 1. **Database Schema** (add to Prisma)
+
 ```prisma
 model TimeEntry {
   id        Int      @id @default(autoincrement())
@@ -822,17 +811,18 @@ model TimeEntry {
   startedAt DateTime
   endedAt   DateTime
   note      String?
-  
+
   createdAt DateTime @default(now())
 }
 ```
 
 2. **API Route** (add to Next.js)
+
 ```typescript
 // app/api/time-entries/route.ts
 export async function POST(request: Request) {
   const body = await request.json();
-  
+
   const entry = await prisma.timeEntry.create({
     data: {
       issueId: body.issueId,
@@ -842,27 +832,28 @@ export async function POST(request: Request) {
       note: body.note,
     },
   });
-  
+
   return Response.json(entry);
 }
 ```
 
 3. **UI Component** (add to components)
+
 ```typescript
 // components/time-tracker/TimeTracker.tsx
 export function TimeTracker({ issueId }: { issueId: number }) {
   const [isTracking, setIsTracking] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
-  
+
   const startTracking = () => {
     setStartTime(new Date());
     setIsTracking(true);
   };
-  
+
   const stopTracking = async () => {
     const endTime = new Date();
     const duration = Math.floor((endTime - startTime!) / 1000 / 60);
-    
+
     await fetch('/api/time-entries', {
       method: 'POST',
       body: JSON.stringify({
@@ -872,10 +863,10 @@ export function TimeTracker({ issueId }: { issueId: number }) {
         endedAt: endTime,
       }),
     });
-    
+
     setIsTracking(false);
   };
-  
+
   return (
     <div>
       {isTracking ? (
@@ -889,6 +880,7 @@ export function TimeTracker({ issueId }: { issueId: number }) {
 ```
 
 4. **MCP Tool** (add to MCP server)
+
 ```typescript
 // mcp-server/src/tools/time-tracking.ts
 server.setRequestHandler('tools/call', async (request) => {
@@ -897,11 +889,9 @@ server.setRequestHandler('tools/call', async (request) => {
       issueId: request.params.arguments.issueId,
       startedAt: new Date().toISOString(),
     });
-    
+
     return {
-      content: [
-        { type: 'text', text: `Started tracking time for issue #${issueId}` }
-      ]
+      content: [{ type: 'text', text: `Started tracking time for issue #${issueId}` }],
     };
   }
 });
@@ -916,6 +906,7 @@ server.setRequestHandler('tools/call', async (request) => {
 **Foundation:** shadcn/ui + Tailwind CSS
 
 **Principles:**
+
 1. **Consistency**: Reuse components across sections
 2. **Accessibility**: WCAG 2.1 AA compliance
 3. **Performance**: Lazy load components, optimize images
@@ -1005,6 +996,7 @@ const navigation = [
 ### Database Optimization
 
 1. **Indexes** on frequently queried fields
+
 ```sql
 CREATE INDEX idx_issues_status ON issues(status);
 CREATE INDEX idx_issues_priority ON issues(priority);
@@ -1013,16 +1005,19 @@ CREATE INDEX idx_issues_created_at ON issues(created_at DESC);
 ```
 
 2. **Partial Indexes** for filtered queries
+
 ```sql
 CREATE INDEX idx_open_issues ON issues(created_at) WHERE status = 'open';
 ```
 
 3. **JSONB Indexes** for custom fields
+
 ```sql
 CREATE INDEX idx_issues_custom_epic ON issues ((custom_fields->>'epic'));
 ```
 
 4. **Vector Indexes** for semantic search
+
 ```sql
 CREATE INDEX ON knowledge_items USING hnsw (embedding vector_cosine_ops);
 ```
@@ -1044,7 +1039,7 @@ export const revalidate = 60; // Revalidate every 60 seconds
 export default async function IssuesPage() {
   // This data is cached and revalidated
   const issues = await prisma.issue.findMany();
-  
+
   return <IssueList issues={issues} />;
 }
 ```
@@ -1062,11 +1057,10 @@ export default async function IssuesPage() {
 import useSWR from 'swr';
 
 export function useIssues(filters?: IssueFilters) {
-  const { data, error, mutate } = useSWR(
-    ['/api/issues', filters],
-    ([url, filters]) => fetcher(url, { params: filters })
+  const { data, error, mutate } = useSWR(['/api/issues', filters], ([url, filters]) =>
+    fetcher(url, { params: filters })
   );
-  
+
   return {
     issues: data,
     isLoading: !data && !error,
@@ -1086,7 +1080,7 @@ interface UIStore {
   sidebarOpen: boolean;
   commandPaletteOpen: boolean;
   theme: 'dark' | 'light';
-  
+
   setSidebarOpen: (open: boolean) => void;
   setCommandPaletteOpen: (open: boolean) => void;
   setTheme: (theme: 'dark' | 'light') => void;
@@ -1096,7 +1090,7 @@ export const useUIStore = create<UIStore>((set) => ({
   sidebarOpen: true,
   commandPaletteOpen: false,
   theme: 'dark',
-  
+
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
   setTheme: (theme) => set({ theme }),
@@ -1127,7 +1121,7 @@ test('create issue with custom fields', async () => {
       customFields: { epic: 'Test Epic' },
     },
   });
-  
+
   expect(issue.customFields).toEqual({ epic: 'Test Epic' });
 });
 ```
@@ -1143,10 +1137,10 @@ test('POST /api/issues creates issue', async () => {
     method: 'POST',
     body: JSON.stringify({ title: 'Test Issue' }),
   });
-  
+
   const response = await POST(request);
   const data = await response.json();
-  
+
   expect(data.title).toBe('Test Issue');
 });
 ```
@@ -1164,9 +1158,9 @@ test('renders issue card', () => {
     title: 'Test Issue',
     status: 'open',
   };
-  
+
   render(<IssueCard issue={issue} />);
-  
+
   expect(screen.getByText('Test Issue')).toBeInTheDocument();
 });
 ```
@@ -1191,7 +1185,7 @@ test('create issue flow', async ({ page }) => {
 ## 📦 Monorepo Structure
 
 ```
-moksha-devhub/
+projectpulse/
 ├── apps/
 │   ├── web/                     # Next.js application
 │   │   ├── app/                 # App Router
@@ -1245,16 +1239,16 @@ moksha-devhub/
 
 ### Technology Choices Summary
 
-| Component | Technology | Why |
-|-----------|-----------|-----|
-| Frontend | Next.js 14 (App Router) | Modern, SSR, unified with backend |
-| Backend | Next.js API Routes | Simple, integrated, fewer services |
-| Database | PostgreSQL 16 | JSONB, pgvector, full-text search |
-| ORM | Prisma | Type-safe, migrations, excellent DX |
-| Embeddings | @xenova/transformers | Local, private, $0 cost |
-| UI | shadcn/ui + Tailwind | Modern, accessible, customizable |
-| MCP | @modelcontextprotocol/sdk | Official SDK, TypeScript |
-| Deployment | Docker Compose | Simple, consistent, LAN-ready |
+| Component  | Technology                | Why                                 |
+| ---------- | ------------------------- | ----------------------------------- |
+| Frontend   | Next.js 14 (App Router)   | Modern, SSR, unified with backend   |
+| Backend    | Next.js API Routes        | Simple, integrated, fewer services  |
+| Database   | PostgreSQL 16             | JSONB, pgvector, full-text search   |
+| ORM        | Prisma                    | Type-safe, migrations, excellent DX |
+| Embeddings | @xenova/transformers      | Local, private, $0 cost             |
+| UI         | shadcn/ui + Tailwind      | Modern, accessible, customizable    |
+| MCP        | @modelcontextprotocol/sdk | Official SDK, TypeScript            |
+| Deployment | Docker Compose            | Simple, consistent, LAN-ready       |
 
 ### Core Features Confirmed
 
@@ -1267,13 +1261,14 @@ moksha-devhub/
 ✅ Slash Commands (in editors)  
 ✅ Helper Script Integration  
 ✅ Hybrid Search (full-text + semantic)  
-✅ Dark/Light themes  
+✅ Dark/Light themes
 
 ---
 
 ## 📚 Next Documents
 
 Continue to:
+
 - **02-DATABASE-SCHEMA.md** - Complete Prisma schema
 - **03-MCP-SPECIFICATION.md** - All MCP tools/resources/prompts
 - **04-UI-ARCHITECTURE.md** - Design system & components
