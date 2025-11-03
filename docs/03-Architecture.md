@@ -715,7 +715,7 @@ C4Component
     }
 
     Container_Boundary(web, "Next.js App") {
-        Component(workflow_monitor, "Workflow Monitor", "React Server Components", "Active workflows<br/>Step progress<br/>Validation errors")
+        Component(workflow_page, "Workflow Page", "React Server Components", "Standalone page for workflow management<br/>Active workflows<br/>Workflow history<br/>12 predefined templates<br/>Analytics dashboard")
     }
 
     ContainerDb(db, "PostgreSQL", "Prisma ORM", "WorkflowInstance, WorkflowStep tables")
@@ -724,7 +724,7 @@ C4Component
     Rel(workflow_engine, workflow_repo, "Uses", "Data access")
     Rel(workflow_repo, db, "Queries", "Prisma Client")
 
-    Rel(workflow_monitor, db, "Fetches", "Server Components")
+    Rel(workflow_page, db, "Fetches", "Server Components")
 ```
 
 **Workflow State Machine (5-Step Protocol):**

@@ -23,19 +23,19 @@ At the start of **EVERY** session, copy-paste this into Claude Code:
 ```
 MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
 
-Current phase: [Week 1.5 Phase 3 - Testing & QA]
-Requirements: [check from Week 1.5 in DEVELOPMENT_PLAN.md]
+Current phase: [copy from STATUS.md → "Current Phase"]
+Requirements: [copy brief summary from docs/13-Project-Plan.md]
 
 ENFORCE:
 - ✅ Step 1: Initialize session
 - ✅ Step 2: Save plan BEFORE code
 - ✅ Step 3: Consult experts
-- ✅ Step 4: Checkpoints every 15K tokens (STOP at 150K for wrap-up decision)
+- ✅ Step 4: Checkpoints every 15K tokens
 - ✅ Step 5: Post-completion workflow
 
 Confirm each step explicitly. If you skip ANY step, I will stop you.
 
-Proceed with [Week 1.5 Phase 3 - Testing & QA].
+Proceed with [Sprint 1 - Database & API Foundation].
 ```
 
 **How to fill in:**

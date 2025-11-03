@@ -344,6 +344,8 @@ Project
 
 **Purpose:** Track and enforce 12+ workflows from CLAUDE.md
 
+**UI Presence:** Workflow Orchestration has a standalone top-level page in main navigation (8th page), providing monitoring interface for all 12 predefined workflows.
+
 **12 Predefined Workflows:**
 
 1. 5-Step Mandatory Protocol
