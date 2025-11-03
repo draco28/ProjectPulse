@@ -371,6 +371,7 @@
 - **Workflow Recovery:** Resume workflow after session interruption
 - **Checkpoint Creation:** Automatic checkpoints every 15K tokens
 - **Workflow Audit Trail:** WorkflowExecution table logs all executions
+- **Workflow page UI:** Monitoring interface with Active, History, Templates, Analytics; real-time updates (WebSocket), detail panel (slide-out), analytics charts (success rate, duration trend, failure breakdown)
 - **MCP Tools:** `validateWorkflowStep`, `resumeWorkflow`, `createCheckpoint`
 
 **Dependencies:** Sprint 2 (workflow foundation must exist)

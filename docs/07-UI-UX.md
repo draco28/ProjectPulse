@@ -339,6 +339,35 @@ ProjectPulse
 │   ├── Task Management
 │   └── Session History
 │
+├── Workflow
+│   ├── Active Workflows List
+│   │   ├── Current step indicator
+│   │   ├── Progress percentage (0-100%)
+│   │   ├── Validation status (✅ compliant / ⚠️ missing steps)
+│   │   └── Real-time updates (WebSocket)
+│   ├── Workflow History
+│   │   ├── Execution timeline (last 50 executions)
+│   │   ├── Success/failure rates per workflow
+│   │   └── Duration analytics (avg time per workflow)
+│   ├── Workflow Templates
+│   │   ├── 5-Step Mandatory Protocol
+│   │   ├── Session Start Workflow
+│   │   ├── Git Workflow (commit, push, PR)
+│   │   ├── Checkpoint Workflow (15K token intervals)
+│   │   ├── 3-Tier Persistence Workflow
+│   │   ├── Plan Creation Workflow
+│   │   ├── Expert Consultation Workflow
+│   │   ├── Testing Workflow
+│   │   ├── Documentation Generation Workflow
+│   │   ├── Code Review Workflow
+│   │   ├── Deployment Workflow
+│   │   └── Recovery Workflow (session interruption)
+│   └── Workflow Analytics Dashboard
+│       ├── Success rate metrics (target: >95%)
+│       ├── Average completion time per workflow
+│       ├── Failure analysis (common failure points)
+│       └── Compliance trends (protocol adherence over time)
+│
 ├── Issues
 │   ├── Issues List (sortable, filterable)
 │   ├── Issue Detail View
@@ -384,7 +413,7 @@ ProjectPulse
 
 **Navigation Hierarchy:**
 
-1. **Level 1:** Top navigation (7 main sections + Dashboard)
+1. **Level 1:** Top navigation (8 main sections + Dashboard)
 2. **Level 2:** Section-specific sidebars (filters, actions)
 3. **Level 3:** Modals/slide-outs for CRUD operations
 4. **Level 4:** Inline editing for quick updates
@@ -399,7 +428,7 @@ ProjectPulse
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ [Logo] Dashboard | Sprint | Issues | Knowledge | ... [User] │
+│ [Logo] Dashboard | Sprint | Workflow | Issues | Knowledge | ... [User] │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -477,6 +506,431 @@ Phase A: MVP Core > Week 2: Database Schema > Day 3: Prisma Models > Task 5: Iss
 - **Responsive:** On mobile, show only current level + one parent
 
 **Requirements:** FR-003 (Sprint hierarchy navigation)
+
+---
+
+---
+
+### 3.3 Workflow Page Specification
+
+#### 3.3.1 Overview
+
+**Purpose:** Monitor and manage all 12 predefined workflows for agent-first development
+
+**Primary Users:**
+
+- **Agents (95%):** Execute workflows via MCP tools, receive validation alerts
+- **Humans (5%):** Monitor workflow status, debug failures, override if needed
+
+**Key Features:**
+
+- **Real-time monitoring:** Active workflows with step-by-step progress (WebSocket-powered)
+- **Workflow templates:** 12 predefined workflows (5-step protocol, session start, git, checkpoint, etc.)
+- **Validation alerts:** Alert agent when required step skipped (banner notification)
+- **Execution history:** Last 50 workflow executions with success/failure analysis
+- **Analytics dashboard:** Success rate, average duration, failure breakdown per workflow
+- **Manual override:** Pause/resume workflows when human intervention required
+
+**Related Requirements:**
+
+- **Functional Requirements:** FR-026 to FR-050 (25 requirements for workflow orchestration)
+- **User Stories:** US-030 to US-055 (26 stories, 75 story points)
+- **Test Cases:** TEST-033 to TEST-060 (28 test cases)
+- **Epic:** EPIC-002 (Workflow Orchestration, 95 points total)
+
+---
+
+#### 3.3.2 Layout Structure
+
+**Workflow Page Sections:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ [Top Navigation Bar]                                         │
+├─────────────────────────────────────────────────────────────┤
+│ 📊 Workflow Dashboard                                        │
+│                                                              │
+│ ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│ │ Active: 2       │  │ Completed: 47   │  │ Success: 92% │ │
+│ └─────────────────┘  └─────────────────┘  └──────────────┘ │
+│                                                              │
+│ 🔄 Active Workflows (2)                                      │
+│ ┌───────────────────────────────────────────────────────┐   │
+│ │ 5-Step Protocol                      [IN_PROGRESS] 60% │   │
+│ │ Current: Step 4 - Implementation                       │   │
+│ │ ✅ Step 1: Initialize  ✅ Step 2: Plan  ✅ Step 3: Consult │   │
+│ │ 🔄 Step 4: Implementation  ⏳ Step 5: Complete           │   │
+│ │ [View Details] [Pause]                                 │   │
+│ └───────────────────────────────────────────────────────┘   │
+│                                                              │
+│ 📜 Workflow History (Last 50)                                │
+│ [Filters: Last 7 days ▼] [Status: All ▼]                    │
+│ ┌───────────────────────────────────────────────────────┐   │
+│ │ 5-Step Protocol  ✅ Success  2h 15m ago  Duration: 45m │   │
+│ │ Git Workflow     ✅ Success  3h 30m ago  Duration: 5m  │   │
+│ │ Checkpoint       ⚠️ Warning  5h ago      Duration: 2m  │   │
+│ │   └ Step 4 skipped, resumed manually                  │   │
+│ └───────────────────────────────────────────────────────┘   │
+│                                                              │
+│ 📑 Workflow Templates (12)                                   │
+│ [View All Templates]                                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Sub-Pages:**
+
+1. **Active Workflows List**
+   - Real-time status of in-progress workflows
+   - Step-by-step progress indicator (visual timeline)
+   - Current step highlighted (coral accent color)
+   - Validation status badges (✅ compliant / ⚠️ missing step)
+   - Pause/Resume/Abort buttons (manual override)
+
+2. **Workflow History**
+   - Chronological execution log (last 50 executions)
+   - Filter by date range (last 7/30/90 days, all time)
+   - Filter by status (success, warning, failed)
+   - Filter by workflow type (dropdown: all 12 workflows)
+   - Execution duration metrics (average, min, max)
+   - Failure analysis (expandable error messages)
+
+3. **Workflow Templates**
+   - List of 12 predefined workflows:
+     1. **5-Step Mandatory Protocol** (5 steps)
+     2. **Session Start Workflow** (initialization + context loading)
+     3. **Git Workflow** (add, commit, push, PR creation)
+     4. **Checkpoint Workflow** (15K token interval saves)
+     5. **3-Tier Persistence Workflow** (real-time, checkpoints, strategic)
+     6. **Plan Creation Workflow** (research, plan, approval)
+     7. **Expert Consultation Workflow** (invoke sub-agent, wait, integrate)
+     8. **Testing Workflow** (write tests, run tests, coverage check)
+     9. **Documentation Generation Workflow** (synthesize-docs, map-system)
+     10. **Code Review Workflow** (lint, type-check, test, human review)
+     11. **Deployment Workflow** (build, test, deploy to staging/prod)
+     12. **Recovery Workflow** (session interruption, resume from checkpoint)
+   - View workflow definition (step list, validation rules, dependencies)
+   - Edit workflow steps (custom workflow creation - future feature)
+   - Duplicate template (create custom variation)
+
+4. **Workflow Analytics Dashboard**
+   - **Success Rate Chart:** Bar chart per workflow (target: >95% compliance)
+   - **Execution Duration:** Line chart showing trend over time
+   - **Failure Breakdown:** Pie chart by failure type (skipped step, validation error, timeout)
+   - **Compliance Score:** % of workflows without warnings (target: >95%)
+   - **Most Used Workflows:** Top 5 by execution count
+   - **Average Duration per Workflow:** Table with min/max/avg times
+
+---
+
+#### 3.3.3 UI Components
+
+**1. Active Workflow Card**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 5-Step Mandatory Protocol           [IN_PROGRESS] 60%  │
+│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                                         │
+│ Current Step: Step 4 - Implementation (30K tokens)      │
+│ Started: 2h 15m ago  |  Estimated completion: 45m      │
+│                                                         │
+│ ✅ Step 1: Initialize (completed 2h ago)                │
+│ ✅ Step 2: Create Plan (completed 1h 50m ago)           │
+│ ✅ Step 3: Expert Consultation (completed 1h 30m ago)   │
+│ 🔄 Step 4: Implementation (in progress - 30K/60K)       │
+│ ⏳ Step 5: Post-Completion (not started)                │
+│                                                         │
+│ [View Context] [Pause Workflow] [View History]         │
+└─────────────────────────────────────────────────────────┘
+```
+
+Features:
+
+- Real-time progress bar (WebSocket-powered)
+- Step status icons: ✅ Complete, 🔄 In Progress, ⏳ Pending, ⚠️ Warning, ❌ Failed
+- Current step highlight: Coral background color on active step
+- Token counter: 15K, 30K, 45K checkpoint markers
+- Time estimates: Started time + estimated completion
+- Action buttons: View Context, Pause Workflow, View History
+
+Accessibility:
+
+- ARIA role: `role="article" aria-label="Active Workflow: 5-Step Protocol"`
+- Step list: `role="list"` with `role="listitem"` for each step
+- Keyboard navigation: Tab through steps, Enter to view context
+
+---
+
+**2. Workflow Timeline Component**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Execution Timeline                                      │
+│                                                         │
+│ ●━━━━━━━●━━━━━━━●━━━━━━━●━━━━━━━●                      │
+│ Step 1  Step 2  Step 3  Step 4  Step 5                 │
+│ 5m      15m     10m     [now]   -                      │
+│                                                         │
+│ Checkpoints: 🔖 15K (10m) 🔖 30K (25m) 🔖 45K (est 40m) │
+└─────────────────────────────────────────────────────────┘
+```
+
+Features:
+
+- Visual timeline with step markers and durations
+- Checkpoint markers at 15K, 30K, 45K tokens
+- Current position indicator with animation
+- Failure markers with tooltip details
+
+---
+
+**3. Workflow Detail Panel (Slide-out)**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ [X] Close                    Workflow: 5-Step Protocol  │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ [Overview] [Steps] [Context] [History]                 │
+│                                                         │
+│ ───────────────────── Steps ─────────────────────────  │
+│                                                         │
+│ Step 1: Initialize Session                             │
+│ ✅ Status: Complete (5 minutes)                        │
+│ └ Created .agent/task/current-session-[timestamp].md   │
+│                                                         │
+│ Step 2: Create Plan                                    │
+│ ✅ Status: Complete (15 minutes)                       │
+│ └ Saved to .agent/task/current-plan.md                 │
+│ └ Created current-todos.md                             │
+│                                                         │
+│ Step 3: Expert Consultation                            │
+│ ✅ Status: Complete (10 minutes)                       │
+│ └ Invoked: react-expert, next-js-expert                │
+│                                                         │
+│ Step 4: Implementation                                 │
+│ 🔄 Status: In Progress (30 minutes so far)             │
+│ └ Files modified: 12                                    │
+│ └ Checkpoints: 15K ✅, 30K ✅, 45K ⏳                    │
+│                                                         │
+│ Step 5: Post-Completion                                │
+│ ⏳ Status: Not Started                                 │
+│                                                         │
+│ ───────────────── Validation Rules ──────────────────  │
+│                                                         │
+│ ✅ All required steps must be completed sequentially    │
+│ ✅ Cannot skip steps 1, 2, 3, 5 (mandatory)            │
+│ ✅ Step 4 requires minimum 15K tokens (checkpoint)     │
+│ ✅ Step 5 must update STATUS.md and commit docs        │
+│                                                         │
+│ ────────────────── Recovery Options ──────────────────│
+│                                                         │
+│ • Retry failed step                                    │
+│ • Resume from last checkpoint (30K tokens)              │
+│ • Abort workflow (confirmation required)               │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+Features:
+
+- Tabs: Overview, Steps, Context, History
+- Steps: full list with status, duration, actions taken
+- Context: key-value pairs passed between steps
+- History: previous executions of this workflow type
+- Validation rules: enforced by workflow state machine
+- Recovery options: retry, resume, abort with confirmations
+
+---
+
+**4. Workflow Analytics Charts**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 📊 Workflow Analytics Dashboard                         │
+│                                                         │
+│ Success Rate by Workflow                                │
+│ ┌───────────────────────────────────────────────────┐   │
+│ │ 5-Step Protocol   ████████████████████ 92%        │   │
+│ │ Git Workflow      ███████████████████████ 98%     │   │
+│ │ Checkpoint        ██████████████████████ 95%      │   │
+│ │ Testing           ████████████████████ 90%        │   │
+│ │ Documentation     ███████████████████████ 97%     │   │
+│ └───────────────────────────────────────────────────┘   │
+│ Target: >95% ─────────────────────────────────────────  │
+│                                                         │
+│ Execution Duration Trend (Last 30 Days)                 │
+│ ┌───────────────────────────────────────────────────┐   │
+│ │     ╱╲                                            │   │
+│ │    ╱  ╲      ╱╲                                   │   │
+│ │   ╱    ╲    ╱  ╲    ╱╲                           │   │
+│ │  ╱      ╲  ╱    ╲  ╱  ╲                          │   │
+│ │ ╱        ╲╱      ╲╱    ╲                         │   │
+│ │ Week 1  Week 2  Week 3  Week 4                    │   │
+│ └───────────────────────────────────────────────────┘   │
+│ Average: 35m  |  Trend: Decreasing ↓ (15% improvement) │
+│                                                         │
+│ Failure Breakdown                                       │
+│ ┌───────────────────────────────────────────────────┐   │
+│ │     Skipped Step: 45%                             │   │
+│ │     Validation Error: 30%                         │   │
+│ │     Timeout: 15%                                  │   │
+│ │     Other: 10%                                    │   │
+│ └───────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+```
+
+Features:
+
+- Bar chart: success rate per workflow (green/yellow/red thresholds)
+- Line chart: execution duration trend (last 30 days)
+- Pie chart: failure breakdown by type
+- Key metrics: average duration, trend direction
+- Export: download charts as PNG or CSV
+
+---
+
+#### 3.3.4 Interaction Patterns
+
+1. **View Active Workflow Details**
+
+- Trigger: Click on active workflow card
+- Action: Detail panel slides in from right (400px width)
+- Animation: 300ms ease-in-out
+- Panel content: Overview, Steps, Context, History tabs
+- Close: [X] button or Esc key
+
+2. **Pause/Resume Workflow (Manual Override)**
+
+- Trigger: Click [Pause Workflow] button
+- Confirmation modal:
+
+  ```
+  ⚠️ Pause Workflow?
+
+  Pausing "5-Step Mandatory Protocol" will:
+  - Stop current step execution
+  - Save checkpoint at current token count
+  - Require manual resume to continue
+
+  [Cancel] [Pause Workflow]
+  ```
+
+- Action: Status changes to PAUSED; button toggles to Resume
+- Resume: Click [Resume Workflow] to continue
+
+3. **Retry Failed Step**
+
+- Trigger: Click [Retry] on failed step
+- Action: Re-executes failed step
+- Feedback: Toast notification on retry; status updates accordingly
+
+4. **Filter Workflow History**
+
+- Trigger: Use date range/status/workflow type filters
+- Action: History list updates; URL query params persist filters
+
+5. **View Workflow Context Data**
+
+- Trigger: Click [View Context]
+- Modal shows key-value pairs and offers Copy JSON
+
+---
+
+#### 3.3.5 Real-Time Features (WebSocket)
+
+1. **Active Workflow Step Updates**
+
+- Event: `workflow.step.complete`
+- UI: Progress bar animates; step icons update; labels change
+
+2. **Step Completion Notifications**
+
+- Toast: "✅ Step X completed (N minutes)" with deep link to details
+
+3. **Validation Alerts**
+
+- Event: `workflow.validation.error`
+- UI: Red banner with error; card shows ⚠️ badge; step icon switches to ⚠️
+- Agent: MCP tool surfaces validation error, blocking progression
+
+4. **Workflow Failure Notifications**
+
+- Event: failure/timeout
+- UI: Persistent red banner with actions [View Details] [Retry] [Abort]
+
+5. **Workflow Completion Celebration**
+
+- Event: all steps complete
+- UI: 🎉 success banner; card moves from Active to History
+
+---
+
+#### 3.3.6 User Journeys
+
+**Agent Journey (95% - Typical Execution)**
+
+```
+1. Agent: workflow.start("5-step-protocol", taskId: 456)
+2. UI: Active card appears, Step 1 highlighted 🔄
+3. Agent: workflow.completeStep(id, 1, {sessionFile: "current-session.md"})
+4. UI: Step 1 ✅; Step 2 current (40%)
+5. Agent: workflow.completeStep(id, 2, {planFile: "current-plan.md"})
+6. Agent: workflow.completeStep(id, 3, {experts: ["react-expert", "next-js-expert"]})
+7. Agent: checkpoint at 30K tokens; timeline shows 🔖
+8. Agent: workflow.completeStep(id, 4, {filesModified: 12})
+9. Agent: workflow.completeStep(id, 5, {committed: true})
+10. UI: 🎉 Success banner; card moves to History
+```
+
+**Human Journey (5% - Monitoring & Debugging)**
+
+```
+1. Human opens Workflow page; sees active workflow at 60%
+2. Opens detail panel; inspects Steps and Context
+3. Clicks Pause; resolves external blocker; clicks Resume
+4. Watches Step 4 complete; Step 5 completes; success
+```
+
+**Weekly Review Journey**
+
+```
+1. Human opens Analytics; reviews success rates and trends
+2. Drills into 5-Step Protocol; inspects last 20 executions
+3. Notes two warnings; updates agent prompts to reduce skips
+```
+
+---
+
+#### 3.3.7 Accessibility (WCAG 2.1 AA)
+
+- Keyboard navigation for cards, buttons, filters, panels
+- ARIA labels for interactive elements and live regions
+- Focus management for modals/panels
+- Color contrast meeting 4.5:1; icons accompany color cues
+
+#### 3.3.8 Performance Considerations
+
+- Initial load <2s (SSR + partial data fetch)
+- Real-time via WebSocket; 5s polling fallback with debouncing
+- Paginate history (50/page); cache analytics (1h TTL)
+
+#### 3.3.9 Acceptance Criteria
+
+- Display all 12 predefined workflows in templates list
+- Real-time active workflow status with animated progress
+- View history with filters; compute success rate per workflow
+- Validation alerts on skipped required steps
+- Pause/Resume with confirmations; context modal with Copy JSON
+- Checkpoint markers at 15K, 30K, 45K
+- WCAG 2.1 AA compliance
+
+#### 3.3.10 Related Requirements & Cross-References
+
+- FR-026..FR-050 (Workflow Orchestration)
+- US-030..US-055; TEST-033..TEST-060; EPIC-002
+- MCP tools: `workflow.start`, `workflow.completeStep`, `workflow.getActive`, `workflow.getHistory`, `workflow.pause`, `workflow.resume`
+- Related Pages: Sprint Tracking; Dashboard shows active workflow count
 
 ---
 

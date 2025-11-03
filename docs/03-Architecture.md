@@ -715,7 +715,7 @@ C4Component
     }
 
     Container_Boundary(web, "Next.js App") {
-        Component(workflow_monitor, "Workflow Monitor", "React Server Components", "Active workflows<br/>Step progress<br/>Validation errors")
+        Component(workflow_page, "Workflow Page", "React Server Components", "Standalone page for workflow management<br/>Active workflows<br/>Workflow history<br/>12 predefined templates<br/>Analytics dashboard")
     }
 
     ContainerDb(db, "PostgreSQL", "Prisma ORM", "WorkflowInstance, WorkflowStep tables")
