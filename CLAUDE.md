@@ -860,7 +860,7 @@ Initialize or update .agent/ documentation system
 - [ ] Can access .agent/ documentation
 - [ ] Can run pnpm dev successfully
 - [ ] On correct git branch
-- [ ] Read STATUS.md and DEVELOPMENT_PLAN.md
+- [ ] Read STATUS.md and docs/13-Project-Plan.md
 
 ---
 

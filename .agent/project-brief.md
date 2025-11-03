@@ -203,7 +203,7 @@ Build a comprehensive developer hub that integrates issue tracking, knowledge ma
 
 - Must follow Git workflow (feature branches)
 - Must create completion docs
-- Must update STATUS.md and DEVELOPMENT_PLAN.md
+- Must update STATUS.md; verify docs/13-Project-Plan.md and docs/12-Backlog.md
 - Must pass all quality gates before committing
 
 ---
@@ -213,12 +213,13 @@ Build a comprehensive developer hub that integrates issue tracking, knowledge ma
 **Main Docs**:
 
 - [STATUS.md](../STATUS.md) - Current snapshot
-- [DEVELOPMENT_PLAN.md](../docs/DEVELOPMENT_PLAN.md) - Full roadmap
+- [13-Project-Plan.md](../docs/13-Project-Plan.md) - Roadmap
+- [12-Backlog.md](../docs/12-Backlog.md) - User stories
 - [WORKFLOW_ARCHITECTURE.md](../docs/WORKFLOW_ARCHITECTURE.md) - Git workflow
 
 **Architecture**:
 
-- [01-ARCHITECTURE.md](../docs/01-ARCHITECTURE.md) - System design
+- [03-Architecture.md](../docs/03-Architecture.md) - System design
 - [02-DATABASE-SCHEMA.md](../docs/02-DATABASE-SCHEMA.md) - Prisma schema
 - [04-UI-ARCHITECTURE.md](../docs/04-UI-ARCHITECTURE.md) - Component structure
 

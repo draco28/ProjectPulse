@@ -60,8 +60,8 @@ todos.json # agent/user TODOs with IDs & links
 memory/ # vector store or chunked JSONL + embeddings
 checkpoints/ # metadata per checkpoint + manifest
 docs/
-PRD.md
-ARD.md
+01-PRD.md
+02-SRS.md
 UserStories.md
 SOPs.md
 agents.yaml # sub-agents, skills, tool grants, rate limits
@@ -136,16 +136,16 @@ phases:
   status: in_progress
   sprints:
   - id: P2S1
-    name: PRD/ARD
+    name: PRD/SRS
     status: in_progress
     steps:
     - id: P2S1-01
       name: PRD
       status: in_progress
       owner: praveen
-      evidence: [ "docs/PRD.md" ]
+      evidence: [ "docs/01-PRD.md" ]
     - id: P2S1-02
-      name: ARD
+      name: SRS
       status: todo
 
 todos.json
@@ -157,7 +157,7 @@ todos.json
 "scope": "P2S1-01",
 "assignee": "agent:planner",
 "status": "open",
-"links": ["docs/PRD.md#user-journeys"]
+"links": ["docs/01-PRD.md#user-journeys"]
 }
 ]
 

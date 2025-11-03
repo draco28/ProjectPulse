@@ -11,7 +11,7 @@
 ### Your Daily Workflow (90% of Time)
 
 ```
-You: "Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase"
+You: "Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase"
 Claude: [Does everything automatically]
 ```
 
@@ -19,14 +19,14 @@ Claude: [Does everything automatically]
 
 ### When You Need More
 
-| Scenario            | Prompt                                                                | Frequency                           |
-| ------------------- | --------------------------------------------------------------------- | ----------------------------------- |
-| Start session       | `Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase` | Daily                               |
-| Continue work       | `Continue`                                                            | As needed                           |
-| Troubleshooting     | (See keywords below)                                                  | Rare                                |
-| Generate SOP        | `/update-doc after-feature`                                           | After major features (optional)     |
-| Generate skill      | `/update-doc skill [topic]`                                           | When new patterns emerge (optional) |
-| Check pattern drift | `/refresh-skills`                                                     | Monthly                             |
+| Scenario            | Prompt                                                                                        | Frequency                           |
+| ------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Start session       | `Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase` | Daily                               |
+| Continue work       | `Continue`                                                                                    | As needed                           |
+| Troubleshooting     | (See keywords below)                                                                          | Rare                                |
+| Generate SOP        | `/update-doc after-feature`                                                                   | After major features (optional)     |
+| Generate skill      | `/update-doc skill [topic]`                                                                   | When new patterns emerge (optional) |
+| Check pattern drift | `/refresh-skills`                                                                             | Monthly                             |
 
 ---
 
@@ -37,13 +37,13 @@ Claude: [Does everything automatically]
 **Your Prompt:**
 
 ```
-Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase
+Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase
 ```
 
 **What Happens Automatically:**
 
 1. ✅ I read STATUS.md to identify current phase
-2. ✅ I read DEVELOPMENT_PLAN.md to understand requirements
+2. ✅ I read docs/13-Project-Plan.md (roadmap) and docs/12-Backlog.md (stories) to understand scope
 3. ✅ I create `.agent/task/current-session-[timestamp].md`
 4. ✅ I load skill frontmatter (7 skills × 20 tokens = 140 tokens)
 5. ✅ I auto-detect required skills based on phase keywords:
@@ -284,7 +284,7 @@ Me: [Reads latest session + todos]
 **After closing Claude**:
 
 ```
-You: "Read STATUS.md, DEVELOPMENT_PLAN.md and continue"
+You: "Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue"
 Me: [Reads STATUS.md checkpoint]
     [Reads current-session file]
     [Reads current-todos.md]
@@ -315,7 +315,7 @@ Me: [Reads STATUS.md checkpoint]
 
 ## 3. Dependency Mapping (Automatic)
 
-**All tasks in DEVELOPMENT_PLAN.md now include dependency mapping.**
+**Tasks in docs/13-Project-Plan.md and docs/12-Backlog.md include dependency mapping.**
 
 ### What Dependency Mapping Prevents
 
@@ -343,7 +343,7 @@ Result: Implementation succeeds!
 
 **I automatically:**
 
-1. Check dependencies in DEVELOPMENT_PLAN.md
+1. Check dependencies in docs/13-Project-Plan.md and docs/12-Backlog.md
 2. Verify all dependencies exist
 3. Warn if dependency missing:
 
@@ -360,7 +360,7 @@ Result: Implementation succeeds!
 
 ### Dependency Examples
 
-**From DEVELOPMENT_PLAN.md:**
+**From docs/13-Project-Plan.md:**
 
 ```markdown
 **Day 4: Issue Detail Page**
@@ -458,7 +458,7 @@ Claude: [Scans 7 webhook endpoints]
 
 ### Force Sub-Agent Invocation
 
-**When:** You want research before implementation (rare - usually automatic)
+**When:** You want research before implementation (rare)
 
 **Prompts:**
 
@@ -768,7 +768,7 @@ Move to next phase
 **What Happens Automatically:**
 
 1. ✅ I mark Phase 3 complete in current-session.md
-2. ✅ I read Phase 4 requirements from DEVELOPMENT_PLAN.md
+2. ✅ I read Phase 4 requirements from docs/13-Project-Plan.md and docs/12-Backlog.md
 3. ✅ I unload Phase 3 skills (if no longer needed)
 4. ✅ I load Phase 4 skills
 5. ✅ I start Phase 4 implementation
@@ -783,7 +783,7 @@ Move to next phase
 
 I automatically load skills based on keywords in:
 
-- Phase description in DEVELOPMENT_PLAN.md
+- Phase description in docs/13-Project-Plan.md and docs/12-Backlog.md
 - Your prompts
 - Current task context
 
@@ -875,14 +875,14 @@ Consider finishing this task and starting a new session.
 **Your Prompt:**
 
 ```
-Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase
+Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase
 ```
 
 **Automatic Flow:**
 
 1. Read STATUS.md: Phase = "Implement POST /api/issues endpoint"
-2. Read DEVELOPMENT_PLAN.md: Requirements, acceptance criteria
-3. Create `.agent/task/current-session-20251026-1430.md`
+2. Read docs/13-Project-Plan.md and docs/12-Backlog.md: Requirements, acceptance criteria
+3. Create `.agent/task/current-session-[timestamp].md`
 4. Detect keywords: "API endpoint" → Load `api-patterns` skill (+220 tokens)
 5. Follow skill patterns:
    - Zod validation schema
@@ -930,7 +930,7 @@ Port 3000 is showing the default Next.js page, not my app
 **Your Prompt:**
 
 ```
-Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase
+Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase
 ```
 
 **Automatic Flow:**
@@ -998,10 +998,10 @@ Today we need to:
 **Good:**
 
 ```
-Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase
+Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase
 ```
 
-**Why:** STATUS.md and DEVELOPMENT_PLAN.md already contain all tasks. No need to repeat!
+**Why:** STATUS.md and docs/13-Project-Plan.md and docs/12-Backlog.md already contain all tasks. No need to repeat!
 
 ---
 
@@ -1016,7 +1016,7 @@ Load api-patterns, database-patterns, and testing-patterns skills before we star
 **Good:**
 
 ```
-Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase
+Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase
 ```
 
 **Why:** I auto-detect and load skills based on keywords. Manual loading wastes your time!
@@ -1093,7 +1093,7 @@ The system is designed to handle 90% of workflow automatically. Your minimal pro
 - ✅ Pattern following from skills
 - ✅ Committing with proper messages
 
-**Just start with:** `Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase`
+**Just start with:** `Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase`
 
 ---
 
@@ -1160,7 +1160,7 @@ Claude Code shows token usage in status bar:
 **Session Start:**
 
 ```
-Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase
+Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase
 ```
 
 **During Work:**
@@ -1242,4 +1242,4 @@ Read .agent/task/current-session-[timestamp].md and continue
 
 **The Bottom Line:**
 
-Your workflow is ready. Just say **"Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase"** and let the system handle the rest!
+Your workflow is ready. Just say **"Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase"** and let the system handle the rest!

@@ -251,7 +251,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ### Development Setup
 
-See [DEVELOPMENT.md](docs/DEVELOPMENT_PLAN.md) for detailed development guide.
+See [docs/README.md](docs/README.md) for the documentation index and [docs/13-Project-Plan.md](docs/13-Project-Plan.md) for the roadmap.
 
 ---
 

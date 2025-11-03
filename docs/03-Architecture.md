@@ -193,16 +193,16 @@ C4Context
 ```yaml
 # docker-compose.yml
 services:
-  moksha-db:
+  projectpulse-db:
     image: postgres:15
     environment:
-      POSTGRES_USER: moksha
+      POSTGRES_USER: projectpulse
       POSTGRES_PASSWORD: devpassword
-      POSTGRES_DB: moksha_devhub
+      POSTGRES_DB: projectpulse
     ports:
       - '5432:5432'
     volumes:
-      - moksha_db_data:/var/lib/postgresql/data
+      - projectpulse_db_data:/var/lib/postgresql/data
 ```
 
 **Requirements:** FR-001 (Database setup), NFR-006 (Development environment)
@@ -940,7 +940,6 @@ C4Component
     Rel(knowledge_service, embedding_api, "Generates embeddings", "REST API")
 
     Rel(knowledge_pages, db, "Fetches", "Server Components")
-    Rel(knowledge_forms, issues_api, "Submits", "fetch API")
 ```
 
 **MCP Tools:**
@@ -1493,7 +1492,7 @@ C4Component
     ContainerDb(db, "PostgreSQL", "Prisma ORM", "Aggregate queries")
 
     Rel(dashboard_page, db, "Fetches", "Server Component queries")
-    Rel(metrics_widgets, dashboard_api, "Polls", "fetch API (5s interval)")
+    Rel(metrics_widgets, dashboard_api, "Polls", "fetch API")
     Rel(dashboard_api, db, "Queries", "Aggregate metrics")
 ```
 
@@ -1934,7 +1933,7 @@ C4Deployment
 
 ```bash
 # .env.local
-DATABASE_URL="postgresql://moksha:devpassword@localhost:5432/moksha_devhub"
+DATABASE_URL="postgresql://projectpulse:devpassword@localhost:5432/projectpulse"
 NODE_ENV="development"
 NEXT_PUBLIC_API_URL="http://localhost:3000/api"
 
@@ -1949,21 +1948,21 @@ OPENAI_API_KEY="sk-..." # or leave blank for local embeddings
 version: '3.8'
 
 services:
-  moksha-db:
+  projectpulse-db:
     image: postgres:15
-    container_name: moksha-db
+    container_name: projectpulse-db
     environment:
-      POSTGRES_USER: moksha
+      POSTGRES_USER: projectpulse
       POSTGRES_PASSWORD: devpassword
-      POSTGRES_DB: moksha_devhub
+      POSTGRES_DB: projectpulse
     ports:
       - '5432:5432'
     volumes:
-      - moksha_db_data:/var/lib/postgresql/data
+      - projectpulse_db_data:/var/lib/postgresql/data
     restart: unless-stopped
 
 volumes:
-  moksha_db_data:
+  projectpulse_db_data:
 ```
 
 **Startup Commands:**

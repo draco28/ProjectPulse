@@ -38,13 +38,14 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 **Agents:** devhub-architect → devhub-fullstack → devhub-testing → devhub-auditor
 
 **Focus:**
+
 - Database schema design (Prisma)
 - API route implementation (Next.js API Routes)
 - Business logic and data validation
 - MCP server tools and resources
 - Security and performance optimization
 
-**Document:** [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)
+**Document:** [13-Project-Plan.md](13-Project-Plan.md)
 
 **Timeline:** Weeks 1-4 (as currently planned), Week 5+ (security features)
 
@@ -53,35 +54,41 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 **Deliverables:**
 
 **Week 1:**
+
 - PostgreSQL + Prisma setup
 - Database extensions (pgvector, pg_trgm, uuid-ossp)
 - Prisma schema (Issue, Comment, Attachment, KnowledgeItem, etc.)
 - Day 0 utilities (settings, process executor, validation)
 
 **Week 2:**
+
 - POST/GET/PATCH/DELETE `/api/issues`
 - POST/GET `/api/issues/[id]/comments`
 - POST `/api/issues/[id]/attachments`
 - Prisma queries with proper validation
 
 **Week 3:**
+
 - POST/GET `/api/knowledge`
 - GET `/api/search` (hybrid: full-text + semantic)
 - POST/GET `/api/wiki/[slug]`
 - pgvector embeddings generation
 
 **Week 4:**
+
 - MCP tools: `create_issue`, `search_context`, `get_project_stats`
 - MCP resources: Project context injection
 - Agent configuration endpoints
 
 **Week 5+:**
+
 - Scanner integration (Semgrep, Snyk, GitGuardian APIs)
 - POST/GET `/api/security/vulnerabilities`
 - Security scan scheduler
 - Compliance tracking endpoints
 
 **Quality Gates:**
+
 - ✅ 80%+ test coverage (Jest + Supertest)
 - ✅ No TypeScript `any` types
 - ✅ Parameterized Prisma queries only ([R-SEC-001])
@@ -96,6 +103,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 **Agents:** devhub-fullstack (UI specialist mode) → devhub-testing
 
 **Focus:**
+
 - Design system implementation (Tailwind + shadcn/ui)
 - Component library development
 - Page layouts and routing
@@ -113,12 +121,14 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 **Deliverables:**
 
 **Week 1 Day 3:**
+
 - Tailwind config with neon colors
 - Font setup (Inter, JetBrains Mono)
 - Custom animations (pulse, glow, breathing)
 - Base components (Button, Card, Input, Badge)
 
 **Week 2:**
+
 - Dashboard layout (stats cards, activity feed)
 - Issues page (Kanban board)
 - Complex components:
@@ -128,6 +138,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
   - `CommandPalette` (⌘K interface)
 
 **Week 3:**
+
 - Knowledge Base page (document library)
 - Wiki page (documentation hub)
 - Content components:
@@ -137,14 +148,16 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
   - `Callout` (info/tip/warning boxes)
 
 **Week 4:**
+
 - Agent Personas page (management UI)
 - Agent components:
   - `AgentCard` (with breathing animation)
-  - `AgentToggle` (activate/deactivate)
+  - `AgentToggle` (activate/deactivate switch)
   - `AgentStats` (metrics display)
   - `SkillBadge` (skill tags)
 
 **Week 5+:**
+
 - Security Dashboard page
 - Security components:
   - `SecurityScoreMeter` (circular progress)
@@ -153,6 +166,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
   - `ComplianceTracker` (progress bars)
 
 **Quality Gates:**
+
 - ✅ Design system consistency (matches mockups)
 - ✅ Accessibility audit (WCAG AA, contrast ratios)
 - ✅ Responsive design verified (mobile, tablet, desktop)
@@ -167,6 +181,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 **Agents:** devhub-fullstack → devhub-testing
 
 **Focus:**
+
 - Connecting UI components to API endpoints
 - Data fetching patterns (Server Components, SWR)
 - Error handling and loading states
@@ -182,6 +197,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 **Deliverables:**
 
 **Week 2:**
+
 - Dashboard page connected to `/api/stats` and `/api/activity`
 - Issues page connected to `/api/issues` CRUD endpoints
 - Kanban drag-and-drop updating issue status via API
@@ -189,24 +205,28 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 - E2E test: Create issue → Move to In Progress → Add comment → Mark Done
 
 **Week 3:**
+
 - Knowledge Base page connected to `/api/knowledge`
 - Wiki page connected to `/api/wiki/[slug]`
 - Search bar connected to `/api/search` (hybrid search)
 - E2E test: Search "authentication" → See results from KB and Wiki
 
 **Week 4:**
+
 - Agent Personas page connected to MCP agent status
 - Agent toggles activating/deactivating agents via MCP
 - Agent stats displaying real performance metrics
 - E2E test: Activate Bug Hunter → Create issue via MCP → See in UI
 
 **Week 5+:**
+
 - Security Dashboard connected to `/api/security/*` endpoints
 - Real-time scanner status updates
 - Vulnerability list with fix/review actions
 - E2E test: Run scan → See vulnerabilities → Mark as fixed → See score update
 
 **Quality Gates:**
+
 - ✅ E2E tests pass (Playwright)
 - ✅ Full user flows tested
 - ✅ Error handling verified (try invalid inputs)
@@ -221,9 +241,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ### Week 2: Issue Tracker (Dashboard + Issues)
 
 #### Backend Track
+
 **Agent:** devhub-architect → devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Design API routes structure
    - POST `/api/issues` - Create issue
    - GET `/api/issues` - List issues (with filters)
@@ -233,6 +255,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
    - GET `/api/issues/[id]/comments` - List comments
 
 2. Implement Prisma models
+
    ```prisma
    model Issue {
      id          Int       @id @default(autoincrement())
@@ -260,9 +283,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ---
 
 #### Frontend Track (Parallel)
+
 **Agent:** devhub-fullstack (UI specialist) → devhub-testing
 
 **Tasks:**
+
 1. Create Dashboard layout
    - Stats cards (Total Issues, Agents Active, etc.)
    - Quick actions grid
@@ -285,9 +310,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ---
 
 #### Integration (After Both Complete)
+
 **Agent:** devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Connect Dashboard to API
    - Fetch stats from `/api/stats`
    - Fetch activity from `/api/activity`
@@ -303,6 +330,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
    - Navigate to issues page
 
 4. Write E2E test
+
    ```typescript
    test('Issue lifecycle', async ({ page }) => {
      // Create issue
@@ -333,9 +361,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ### Week 3: Knowledge & Documentation (Search)
 
 #### Backend Track
+
 **Agent:** devhub-architect → devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Design search API (hybrid: full-text + semantic)
    - GET `/api/search?q={query}&type=hybrid`
    - Combine PostgreSQL tsvector (full-text) + pgvector (semantic)
@@ -358,9 +388,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ---
 
 #### Frontend Track (Parallel)
+
 **Agent:** devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Create Knowledge Base page
    - Document grid (3 columns)
    - Category pills (Architecture, API, Deployment, etc.)
@@ -385,9 +417,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ---
 
 #### Integration
+
 **Agent:** devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Connect Knowledge Base to `/api/knowledge`
 2. Connect Wiki to `/api/wiki/[slug]`
 3. Connect search to `/api/search`
@@ -400,9 +434,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ### Week 4: Agent Integration (MCP + UI)
 
 #### Backend Track
+
 **Agent:** devhub-mcp-specialist → devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Design MCP tools
    - `create_issue` - Create issue from Claude Code
    - `search_context` - Search knowledge base for context
@@ -422,9 +458,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ---
 
 #### Frontend Track (Parallel)
+
 **Agent:** devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Create Agent Personas page
    - Agent portfolio overview (stats summary)
    - Agent cards (6 agents: 4 active, 2 inactive)
@@ -437,6 +475,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
    - `SkillBadge` (skill tags in agent color)
 
 **Agent Details:**
+
 1. Code Reviewer 🔍 (Cyan #00F5FF) - Active
 2. Bug Hunter 🐛 (Purple #B721FF) - Active
 3. Feature Architect 🏗️ (Purple #B721FF) - Active
@@ -449,9 +488,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ---
 
 #### Integration
+
 **Agent:** devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Connect Agent Personas page to `/api/agents`
 2. Connect toggles to activate/deactivate endpoints
 3. Connect stats to real agent performance data
@@ -464,11 +505,14 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ### Week 5+: Security Dashboard (Advanced Feature)
 
 #### Backend Track
+
 **Agent:** devhub-architect → devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Integrate scanners (Semgrep, Snyk, GitGuardian)
 2. Design vulnerability database
+
    ```prisma
    model Vulnerability {
      id          Int       @id @default(autoincrement())
@@ -497,9 +541,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ---
 
 #### Frontend Track (Parallel)
+
 **Agent:** devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Create Security Dashboard page
    - Security score meter (circular progress)
    - Vulnerability breakdown (chart)
@@ -519,9 +565,11 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ---
 
 #### Integration
+
 **Agent:** devhub-fullstack → devhub-testing
 
 **Tasks:**
+
 1. Connect Security Dashboard to security APIs
 2. Add real-time scanner status updates
 3. E2E test: Run scan → See vulnerabilities → Fix → Verify score update
@@ -535,6 +583,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ### Question 1: Does this change API contracts or database schema?
 
 **YES → Backend Track (`api/*`)**
+
 - Modifying Prisma schema
 - Adding/changing API endpoints
 - Changing request/response formats
@@ -548,6 +597,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ### Question 2: Does this change visual design, components, or styling?
 
 **YES → Frontend Track (`ui/*`)**
+
 - Adding new components
 - Modifying Tailwind config
 - Changing layouts
@@ -562,6 +612,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ### Question 3: Does this connect UI to API or test full user flows?
 
 **YES → Integration Track (`feature/*`)**
+
 - Connecting pages to API endpoints
 - Data fetching patterns
 - Error handling
@@ -578,6 +629,7 @@ ProjectPulse development uses a **hybrid workflow** with **3 parallel tracks** t
 ### Branch Naming Conventions
 
 #### Backend Branches (`api/*`)
+
 For API routes, database changes, business logic:
 
 ```bash
@@ -589,6 +641,7 @@ api/wiki-endpoints        # Wiki page endpoints
 ```
 
 #### Frontend Branches (`ui/*`)
+
 For components, styling, animations:
 
 ```bash
@@ -601,6 +654,7 @@ ui/command-palette        # ⌘K command interface
 ```
 
 #### Integration Branches (`feature/*`)
+
 For connecting UI to API, full features:
 
 ```bash
@@ -657,17 +711,16 @@ git merge main  # Get both API and UI changes
 **Coverage Target:** 80%+ for all API routes
 
 **Example:**
+
 ```typescript
 // app/api/issues/route.test.ts
 describe('POST /api/issues', () => {
   it('creates issue with valid data', async () => {
-    const response = await request(app)
-      .post('/api/issues')
-      .send({
-        projectId: 1,
-        title: 'Test Issue',
-        priority: 'high',
-      });
+    const response = await request(app).post('/api/issues').send({
+      projectId: 1,
+      title: 'Test Issue',
+      priority: 'high',
+    });
 
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('id');
@@ -684,6 +737,7 @@ describe('POST /api/issues', () => {
 ```
 
 **Run Command:**
+
 ```bash
 pnpm test:api
 ```
@@ -697,6 +751,7 @@ pnpm test:api
 **Coverage Target:** 80%+ for all components
 
 **Example:**
+
 ```typescript
 // components/issues/IssueCard.test.tsx
 describe('IssueCard', () => {
@@ -717,6 +772,7 @@ describe('IssueCard', () => {
 ```
 
 **Run Command:**
+
 ```bash
 pnpm test:components
 ```
@@ -730,6 +786,7 @@ pnpm test:components
 **Coverage:** All critical user flows
 
 **Example:**
+
 ```typescript
 // e2e/issue-lifecycle.spec.ts
 test('complete issue lifecycle', async ({ page }) => {
@@ -765,6 +822,7 @@ test('complete issue lifecycle', async ({ page }) => {
 ```
 
 **Run Command:**
+
 ```bash
 pnpm test:e2e
 ```
@@ -776,16 +834,19 @@ pnpm test:e2e
 ### Daily Async Updates
 
 **Backend Team:**
+
 - "✅ API endpoints ready for integration: POST/GET/PATCH `/api/issues`"
 - "🔄 Working on hybrid search API, ETA tomorrow"
 - "🐛 Fixed validation bug in issue creation"
 
 **Frontend Team:**
+
 - "✅ Kanban board UI complete, ready for API connection"
 - "🔄 Working on Wiki sidebar, need wiki schema details"
 - "🎨 Added pulse animations to all in-progress cards"
 
 **Integration Team:**
+
 - "✅ Dashboard connected to stats API, E2E tests passing"
 - "🔄 Connecting Kanban to CRUD endpoints"
 - "❌ E2E test failing: drag-and-drop not updating database"
@@ -795,28 +856,33 @@ pnpm test:e2e
 ### Weekly Reviews
 
 **Week 1:** Infrastructure setup complete
+
 - PostgreSQL + Prisma configured
 - Next.js app running
 - Design system implemented
 - Base components created
 
 **Week 2:** Issue Tracker feature complete
+
 - API endpoints working
 - Kanban board functional
 - E2E tests passing
 - Ready for production
 
 **Week 3:** Search feature complete
+
 - Hybrid search working
 - Knowledge Base connected
 - Wiki pages functional
 
 **Week 4:** MCP + Agent UI complete
+
 - MCP tools integrated
 - Agent management UI working
 - Agents can be activated/deactivated
 
 **Week 5+:** Security feature complete
+
 - Scanners integrated
 - Vulnerability tracking working
 - Compliance dashboard functional
@@ -828,6 +894,7 @@ pnpm test:e2e
 ### Before Merging to Main
 
 **Code Quality:**
+
 - [ ] All tests pass (80%+ coverage)
 - [ ] TypeScript compiles with no errors
 - [ ] No `any` types introduced ([R-TS-001])
@@ -835,12 +902,14 @@ pnpm test:e2e
 - [ ] Prettier formatted
 
 **Security:**
+
 - [ ] No secrets committed (.env files gitignored)
 - [ ] Input validation with Zod ([R-TS-001])
 - [ ] Parameterized queries only ([R-SEC-001])
 - [ ] Security audit passed (devhub-auditor)
 
 **Accessibility (UI only):**
+
 - [ ] Contrast ratios pass WCAG AA (7:1+)
 - [ ] Keyboard navigation works
 - [ ] Focus indicators visible
@@ -848,18 +917,21 @@ pnpm test:e2e
 - [ ] ARIA labels on icon-only buttons
 
 **Documentation:**
+
 - [ ] README.md updated (if needed)
 - [ ] DEVELOPMENT_PLAN.md updated with progress
 - [ ] API documented (if new endpoints)
 - [ ] Component usage documented (if new components)
 
 **Testing:**
+
 - [ ] Unit tests written (Jest)
 - [ ] Integration tests written (for features)
 - [ ] E2E tests passing (Playwright)
 - [ ] Manual testing completed
 
 **Review:**
+
 - [ ] PR reviewed by at least one other developer
 - [ ] All comments addressed
 - [ ] CI/CD pipeline passes (GitHub Actions)
@@ -877,6 +949,7 @@ pnpm test:e2e
 **Task:** Design API routes structure
 
 **Output:**
+
 ```typescript
 // API Design Document
 POST   /api/issues              - Create issue
@@ -920,6 +993,7 @@ GET    /api/issues/[id]/comments - List comments
 **Task:** Create Kanban layout
 
 **Output:**
+
 ```typescript
 // components/issues/KanbanBoard.tsx
 export function KanbanBoard() {
@@ -938,6 +1012,7 @@ export function KanbanBoard() {
 **Task:** Build IssueCard component
 
 **Output:**
+
 ```typescript
 // components/issues/IssueCard.tsx
 export function IssueCard({ priority, title, status }: IssueCardProps) {
@@ -975,6 +1050,7 @@ export function IssueCard({ priority, title, status }: IssueCardProps) {
 **Task:** Connect Kanban to API
 
 **Output:**
+
 ```typescript
 // app/(dashboard)/issues/page.tsx
 export default async function IssuesPage() {
@@ -997,6 +1073,7 @@ export default async function IssuesPage() {
 **Task:** Add drag-and-drop with API updates
 
 **Output:**
+
 ```typescript
 // components/issues/KanbanBoard.tsx (Client Component)
 'use client';
@@ -1039,6 +1116,7 @@ export function KanbanBoard() {
 **Task:** Final quality check
 
 **Checklist:**
+
 - ✅ All tests pass
 - ✅ No TypeScript errors
 - ✅ Accessibility verified
@@ -1056,7 +1134,7 @@ export function KanbanBoard() {
 ## 📚 Related Documentation
 
 - **UI Architecture:** [04-UI-ARCHITECTURE.md](04-UI-ARCHITECTURE.md)
-- **Backend Plan:** [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)
+- **Backend Plan:** [03-Architecture.md](03-Architecture.md)
 - **Design System:** [mockups/DESIGN_DIRECTION.md](../mockups/DESIGN_DIRECTION.md)
 - **Mockup Features:** [mockups/MOCKUPS_COMPLETE.md](../mockups/MOCKUPS_COMPLETE.md)
 

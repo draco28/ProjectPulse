@@ -80,11 +80,11 @@ When starting a new session, Claude needs this context:
 
 4. **Which Agent Needed**
    - "devhub-fullstack (UI specialist)"
-   - Found in: `docs/DEVELOPMENT_PLAN.md` at the phase section
+   - Found in: `STATUS.md` (current phase), `docs/13-Project-Plan.md` (roadmap), and `docs/12-Backlog.md` (stories)
 
 5. **Which Skills Needed**
    - "None (component building)" or "TDD, git-workflow"
-   - Found in: `docs/DEVELOPMENT_PLAN.md` at the phase section
+   - Found in: `STATUS.md` (current phase) and `docs/13-Project-Plan.md` (roadmap)
 
 6. **Git Context**
    - Current branch, uncommitted changes
@@ -104,10 +104,10 @@ Claude should read files in this order:
 - Immediate next steps
 - Git status
 
-### 2. **docs/DEVELOPMENT_PLAN.md** (focus on specific sections)
+### 2. **docs/13-Project-Plan.md** (focus on current roadmap)
 
-- Read "CURRENT STATUS" section at top
-- Read current phase section (e.g., "Days 3-4: Dashboard Implementation")
+- For current status, see `STATUS.md`
+- Read the relevant roadmap section for the current phase
 - Note agent, skills, and reference documents
 
 ### 3. **CLAUDE.md** (if needed - agent/skill usage guide)
@@ -216,7 +216,7 @@ Or let Claude automatically select based on task type.
 
 1. **Create completion document** (use COMPLETION_TEMPLATE.md)
 2. **Update STATUS.md** with new current phase
-3. **Update DEVELOPMENT_PLAN.md** "CURRENT STATUS" section
+3. **Update STATUS.md** (current phase)
 4. **Commit and push**
 5. **Merge branch** (or open PR)
 
@@ -233,12 +233,13 @@ Or let Claude automatically select based on task type.
 
 **Planning Files:**
 
-- `docs/DEVELOPMENT_PLAN.md` - Complete development plan (126KB)
+- `docs/13-Project-Plan.md` - Complete development plan (126KB)
+- `docs/12-Backlog.md` - Backlog of tasks and user stories
 - `docs/WORKFLOW_ARCHITECTURE.md` - 3-track branching strategy
 
 **Architecture Files:**
 
-- `docs/01-ARCHITECTURE.md` - System architecture
+- `docs/03-Architecture.md` - System architecture
 - `docs/02-DATABASE-SCHEMA.md` - Complete Prisma schema
 - `docs/03-MCP-SPECIFICATION.md` - MCP tools/resources/prompts
 - `docs/04-UI-ARCHITECTURE.md` - UI design system
@@ -278,7 +279,7 @@ We're on Phase 1 (shadcn/ui setup). Create ui/dashboard-layout branch and procee
 **What Claude Will Do:**
 
 1. Read STATUS.md (sees Day 2 complete, Days 3-4 in progress)
-2. Read DEVELOPMENT_PLAN.md Days 3-4 section
+2. Read `docs/13-Project-Plan.md` Days 3-4 section
 3. Note: Agent = devhub-fullstack, Skills = None
 4. Check git status
 5. Create `ui/dashboard-layout` branch
@@ -356,7 +357,7 @@ Use devhub-architect to design the approach first.
 
 - Next session will lose context
 
-✅ **DO:** Update STATUS.md, DEVELOPMENT_PLAN.md, and create completion doc
+✅ **DO:** Update STATUS.md and create completion doc
 
 - Takes 5 minutes, saves hours later
 
@@ -382,8 +383,8 @@ Use devhub-architect to design the approach first.
 **Solution:**
 
 1. Check if STATUS.md is up to date
-2. Check if DEVELOPMENT_PLAN.md "CURRENT STATUS" reflects reality
-3. Update both files, then restart session
+2. Check if STATUS.md reflects reality
+3. Update STATUS.md, then restart session
 
 ---
 
@@ -401,7 +402,7 @@ Explicitly specify: "Use devhub-[agent-name] agent to..."
 1. Verify STATUS.md exists and is recent
 2. Read SESSION_START_GUIDE.md to Claude
 3. Read STATUS.md to Claude
-4. Read specific phase from DEVELOPMENT_PLAN.md
+4. Read specific phase from `docs/13-Project-Plan.md`
 
 ---
 
@@ -412,7 +413,7 @@ Explicitly specify: "Use devhub-[agent-name] agent to..."
 1. ✅ Bookmark this file (SESSION_START_GUIDE.md)
 2. ✅ Read STATUS.md to understand current state
 3. ✅ Check git status and branch
-4. ✅ Read current phase from DEVELOPMENT_PLAN.md
+4. ✅ Read current phase from `docs/13-Project-Plan.md`
 
 **Every Session Start (1 minute):**
 
@@ -424,7 +425,7 @@ Explicitly specify: "Use devhub-[agent-name] agent to..."
 
 1. ✅ Create completion doc (use COMPLETION_TEMPLATE.md)
 2. ✅ Update STATUS.md
-3. ✅ Update DEVELOPMENT_PLAN.md "CURRENT STATUS"
+3. ✅ Update STATUS.md
 4. ✅ Git commit all changes
 5. ✅ Push to GitHub
 

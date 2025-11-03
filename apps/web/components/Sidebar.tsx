@@ -198,7 +198,7 @@ export function Sidebar() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-white">Developer</p>
-              <p className="text-xs text-slate">dev@moksha.local</p>
+              <p className="text-xs text-slate">dev@projectpulse.local</p>
             </div>
           </div>
         </div>

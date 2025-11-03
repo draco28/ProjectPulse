@@ -169,7 +169,7 @@
 
 ```bash
 # Database
-DATABASE_URL="postgresql://postgres:devhub2025@localhost:5432/moksha_devhub"
+DATABASE_URL="postgresql://projectpulse:devpassword@localhost:5432/projectpulse"
 
 # App
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
@@ -380,9 +380,9 @@ pnpm start  # Production server
 **Volumes**: `postgres_data:/var/lib/postgresql/data`
 **Env**:
 
-- POSTGRES_USER=postgres
-- POSTGRES_PASSWORD=devhub2025
-- POSTGRES_DB=moksha_devhub
+- POSTGRES_USER=projectpulse
+- POSTGRES_PASSWORD=devpassword
+- POSTGRES_DB=projectpulse
 
 ### Future Containers
 
@@ -566,7 +566,7 @@ pnpm update
 
 ### Project Documentation
 
-- [Architecture](../docs/01-ARCHITECTURE.md)
+- [Architecture](../docs/03-Architecture.md)
 - [Database Schema](../docs/02-DATABASE-SCHEMA.md)
 - [Developer Guide](../docs/02-DEVELOPER_GUIDE.md)
 

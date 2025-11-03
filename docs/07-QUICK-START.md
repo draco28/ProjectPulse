@@ -134,16 +134,16 @@ uploads/*
 
 ```env
 # Database
-POSTGRES_USER=moksha
-POSTGRES_PASSWORD=moksha_dev_password_2025
-POSTGRES_DB=moksha_devhub
-DATABASE_URL=postgresql://moksha:moksha_dev_password_2025@postgres:5432/moksha_devhub
+POSTGRES_USER=projectpulse
+POSTGRES_PASSWORD=projectpulse_dev_password_2025
+POSTGRES_DB=projectpulse
+DATABASE_URL=postgresql://projectpulse:projectpulse_dev_password_2025@postgres:5432/projectpulse
 
 # Next.js
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# Moksha Project
-MOKSHA_PROJECT_ROOT=F:/Game_Projects/Moksha/MokshaMythicClash
+# ProjectPulse Project
+PROJECTPULSE_PROJECT_ROOT=F:/Web_Projects/ProjectPulse
 
 # Optional: OpenAI API Key (for future use)
 OPENAI_API_KEY=
@@ -157,7 +157,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: moksha-db
+    container_name: projectpulse-db
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -173,13 +173,13 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - moksha-network
+      - projectpulse-network
 
   web:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
-    container_name: moksha-web
+    container_name: projectpulse-web
     environment:
       DATABASE_URL: ${DATABASE_URL}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
@@ -191,14 +191,14 @@ services:
     volumes:
       - ./uploads:/app/uploads
     networks:
-      - moksha-network
+      - projectpulse-network
     restart: unless-stopped
 
 volumes:
   postgres_data:
 
 networks:
-  moksha-network:
+  projectpulse-network:
     driver: bridge
 ```
 
@@ -213,12 +213,12 @@ cd apps\web
 pnpm create next-app@latest . --typescript --tailwind --app --no-src-dir --import-alias "@/*"
 
 # Answer prompts:
-# ✅ TypeScript: Yes
-# ✅ ESLint: Yes
-# ✅ Tailwind CSS: Yes
-# ✅ App Router: Yes
-# ✅ Turbopack: Yes (optional)
-# ✅ Import alias: @/*
+# TypeScript: Yes
+# ESLint: Yes
+# Tailwind CSS: Yes
+# App Router: Yes
+# Turbopack: Yes (optional)
+# Import alias: @/*
 
 # Install additional dependencies
 pnpm add @prisma/client swr axios lucide-react
@@ -314,7 +314,7 @@ docker-compose logs postgres
 
 ```powershell
 # Connect to PostgreSQL
-docker exec -it moksha-db psql -U moksha -d moksha_devhub
+docker exec -it projectpulse-db psql -U projectpulse -d projectpulse
 
 # In psql:
 \l              # List databases
@@ -370,9 +370,9 @@ start http://localhost:3000
 
 **You should see:**
 
-- ✅ ProjectPulse homepage
-- ✅ Sidebar with navigation
-- ✅ Issue list (empty or with seed data)
+- ProjectPulse homepage
+- Sidebar with navigation
+- Issue list (empty or with seed data)
 
 ---
 
@@ -388,11 +388,11 @@ start http://localhost:3000
 3. **Click "Create Issue"**
 4. **Verify:** Issue appears in list
 
-**Congratulations! 🎉 ProjectPulse is running!**
+**Congratulations! ProjectPulse is running!**
 
 ---
 
-## 🌐 LAN Access (Mac Mini)
+## LAN Access (Mac Mini)
 
 ### Step 1: Find Windows PC IP
 
@@ -428,7 +428,7 @@ http://192.168.1.100:3000
 
 ---
 
-## 🔧 MCP Server Setup (Optional - Week 3)
+## MCP Server Setup (Optional - Week 3)
 
 This is optional for MVP, but here's how to set it up:
 
@@ -519,7 +519,7 @@ console.error('MCP server running on stdio');
 
 ### Step 3: Configure Claude Code
 
-⚠️ **Important:** This uses Claude Code (VS Code Extension), NOT Claude Desktop.
+**Important:** This uses Claude Code (VS Code Extension), NOT Claude Desktop.
 
 Edit Claude Code MCP configuration:
 
@@ -538,7 +538,7 @@ Edit Claude Code MCP configuration:
           "command": "node",
           "args": ["F:\\Web_Projects\\AI_HUB\\apps\\mcp-server\\dist\\index.js"],
           "env": {
-            "DATABASE_URL": "postgresql://moksha:moksha_dev_password_2025@localhost:5432/moksha_devhub"
+            "DATABASE_URL": "postgresql://projectpulse:projectpulse_dev_password_2025@localhost:5432/projectpulse"
           }
         }
       }
@@ -567,7 +567,7 @@ pnpm dev
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Docker won't start
 
@@ -636,14 +636,14 @@ ipconfig
 
 ---
 
-## 📊 Verification Checklist
+## Verification Checklist
 
 After setup, verify:
 
 ### Database
 
 - [ ] PostgreSQL running (`docker ps`)
-- [ ] Can connect to database (`docker exec -it moksha-db psql -U moksha -d moksha_devhub`)
+- [ ] Can connect to database (`docker exec -it projectpulse-db psql -U projectpulse -d projectpulse`)
 - [ ] Tables created (`\dt` in psql)
 - [ ] Extensions enabled (`\dx` in psql)
 
@@ -669,18 +669,18 @@ After setup, verify:
 
 ---
 
-## 🎯 Next Steps
+## Next Steps
 
 Now that DevHub is running:
 
-1. **Read 05-IMPLEMENTATION-GUIDE.md** to continue building features
+1. **Read 03-Architecture.md** to continue building features
 2. **Week 2:** Add issue detail page, filters, custom fields
 3. **Week 3:** Implement search (full-text + semantic)
 4. **Week 4:** Complete MCP integration
 
 ---
 
-## 📚 Useful Commands
+## Useful Commands
 
 ### Daily Usage
 
@@ -698,10 +698,10 @@ docker-compose restart web
 docker-compose logs -f web
 
 # Database backup
-docker exec moksha-db pg_dump -U moksha moksha_devhub > backup.sql
+docker exec projectpulse-db pg_dump -U projectpulse projectpulse > backup.sql
 
 # Database restore
-docker exec -i moksha-db psql -U moksha moksha_devhub < backup.sql
+docker exec -i projectpulse-db psql -U projectpulse projectpulse < backup.sql
 ```
 
 ### Development
@@ -723,29 +723,29 @@ pnpm prisma db seed
 
 ---
 
-## 🎉 Success!
+## Success!
 
 You now have:
-✅ ProjectPulse running locally  
-✅ PostgreSQL database with Prisma  
-✅ Issue tracker with basic features  
-✅ Accessible from Mac Mini (if configured)  
-✅ Ready to continue implementation
+ProjectPulse running locally  
+ PostgreSQL database with Prisma  
+ Issue tracker with basic features  
+ Accessible from Mac Mini (if configured)  
+ Ready to continue implementation
 
-**Time to build more features! 🚀**
+**Time to build more features! **
 
 ---
 
-## 📞 Getting Help
+## Getting Help
 
 If stuck:
 
 1. Check **troubleshooting section** above
 2. Review **02-DATABASE-SCHEMA.md** for database issues
-3. Review **01-ARCHITECTURE.md** for architecture questions
+3. Review **03-Architecture.md** for architecture questions
 4. Check Docker logs: `docker-compose logs`
 5. Check Prisma schema: `pnpm prisma validate`
 
 ---
 
-**Quick start complete! Let's build! 🎉**
+**Quick start complete! Let's build! **

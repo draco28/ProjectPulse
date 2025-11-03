@@ -192,7 +192,7 @@ test.describe('Dashboard Page', () => {
     test.skip(isMobile, 'Profile layout different on mobile');
 
     // Check email in sidebar (unique to the profile section)
-    await expect(page.getByText('dev@moksha.local')).toBeVisible();
+    await expect(page.getByText('dev@projectpulse.local')).toBeVisible();
 
     // Check avatar by looking for the "DV" text
     await expect(page.getByText('DV')).toBeVisible();

@@ -28,7 +28,8 @@ At the start of **EVERY** session, copy-paste this into Claude Code:
 MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
 
 Current phase: [copy from STATUS.md]
-Requirements: [copy from DEVELOPMENT_PLAN.md]
+Roadmap: [copy from docs/13-Project-Plan.md]
+Stories: [copy from docs/12-Backlog.md]
 
 ENFORCE:
 - ✅ Step 1: Initialize session
@@ -51,7 +52,7 @@ Proceed with [phase name].
 ### Required Actions
 
 - [ ] Read `STATUS.md` - understand current phase and progress
-- [ ] Read `DEVELOPMENT_PLAN.md` - understand phase requirements
+- [ ] Read `docs/13-Project-Plan.md` and `docs/12-Backlog.md` - understand roadmap and stories
 - [ ] Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
   - Document: Current phase, goals, requirements from STATUS.md
   - Include: Token budget (200K), session start time, deliverables
@@ -244,9 +245,7 @@ Next checkpoint: 45K tokens
   - Update "Last Completed" section with completion summary
   - Update "Current Phase" to next phase
   - Update git status if needed
-- [ ] Update `DEVELOPMENT_PLAN.md`
-  - Update "CURRENT STATUS" header section
-  - Mark completed phase with ✅
+- [ ] Verify `docs/13-Project-Plan.md` (roadmap) and `docs/12-Backlog.md` (stories) if scope changed
 
 ### Required Sub-Agent Invocations
 
@@ -268,7 +267,7 @@ Next checkpoint: 45K tokens
 
 **Documentation commit (FIRST):**
 
-- [ ] Stage: `git add .agent/ STATUS.md docs/DEVELOPMENT_PLAN.md COMPLETION_*.md`
+- [ ] Stage: `git add .agent/ STATUS.md docs/ COMPLETION_*.md`
 - [ ] Commit: `git commit -m "docs: Update documentation after [phase]"`
 
 **Code commit (SECOND):**
@@ -286,7 +285,7 @@ Next checkpoint: 45K tokens
 Documentation updates:
 - Created COMPLETION_[PHASE].md
 - Updated STATUS.md with completion summary
-- Updated DEVELOPMENT_PLAN.md current status
+- Roadmap verified in docs/13-Project-Plan.md (and docs/12-Backlog.md if applicable)
 
 Sub-agent invocations:
 - synthesize-docs → saved SOP to .agent/sops/[topic].md

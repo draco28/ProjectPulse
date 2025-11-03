@@ -478,7 +478,7 @@ View container logs
 
 ```typescript
 docker_logs({
-  container: 'moksha-db',
+  container: 'projectpulse-db',
   tail: 50,
 });
 ```
@@ -491,7 +491,7 @@ Restart a container
 
 ```typescript
 docker_restart({
-  container: 'moksha-web',
+  container: 'projectpulse-web',
 });
 ```
 

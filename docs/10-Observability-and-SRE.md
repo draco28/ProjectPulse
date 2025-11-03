@@ -647,10 +647,10 @@ async function monitorConnectionPool() {
 
 docker stats --no-stream --format \
   "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}" \
-  moksha-web moksha-db
+  projectpulse-web projectpulse-db
 
 # Alert if memory usage >80%
-MEM_PERCENT=$(docker stats --no-stream --format "{{.MemPerc}}" moksha-web | sed 's/%//')
+MEM_PERCENT=$(docker stats --no-stream --format "{{.MemPerc}}" projectpulse-web | sed 's/%//')
 if (( $(echo "$MEM_PERCENT > 80" | bc -l) )); then
   echo "⚠️ High memory usage: ${MEM_PERCENT}%"
 fi

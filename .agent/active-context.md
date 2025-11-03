@@ -180,7 +180,7 @@
 
 **User's Workflow**:
 
-1. User says: "Read STATUS.md, DEVELOPMENT_PLAN.md and continue with current phase"
+1. User says: "Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase"
 2. Claude handles everything:
    - Auto-loads relevant skills based on keywords
    - Invokes sub-agents for research
@@ -190,7 +190,7 @@
 
 **Skills System**:
 
-- Skills auto-load based on keywords in STATUS.md and DEVELOPMENT_PLAN.md
+- Skills auto-load based on keywords in STATUS.md, docs/13-Project-Plan.md, and docs/12-Backlog.md
 - Lazy-loading: Load tier 1 (most recent), tier 2 on mention, tier 3 on explicit request
 - Auto-unload after 10 turns or 50K tokens
 
@@ -282,7 +282,7 @@ pnpm build        # Success
 - Last Commits:
   - `fe2584d` - feat(filters): implement dynamic DB-driven issue filters
   - `f749dcf` - test: add comprehensive test suite for Phase 4 dynamic filters
-- Uncommitted: Documentation reconciliation in progress (STATUS.md, DEVELOPMENT_PLAN.md, progress.md, active-context.md)
+- Uncommitted: Documentation reconciliation in progress (STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md, progress.md, active-context.md)
 
 ---
 
@@ -329,7 +329,8 @@ pnpm build        # Success
 **Current Documentation**:
 
 - [STATUS.md](../STATUS.md) - Current snapshot
-- [DEVELOPMENT_PLAN.md](../docs/DEVELOPMENT_PLAN.md) - Full plan
+- [13-Project-Plan.md](../docs/13-Project-Plan.md) - Roadmap
+- [12-Backlog.md](../docs/12-Backlog.md) - User stories
 - [UI_TRANSFORMATION_PLAN.md](../docs/UI_TRANSFORMATION_PLAN.md) - Phase 3 details
 
 **Recent Completions**:

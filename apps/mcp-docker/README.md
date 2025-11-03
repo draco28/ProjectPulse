@@ -44,6 +44,7 @@ The MCP server is already configured in `.vscode/settings.json`:
 ### 4. Reload VS Code
 
 After building, reload VS Code window:
+
 - Press `Ctrl+Shift+P` (Windows) or `Cmd+Shift+P` (Mac)
 - Type "Developer: Reload Window"
 - Press Enter
@@ -61,8 +62,8 @@ You: "Show me the Docker container status"
 ### View Logs
 
 ```
-You: "Show me the logs for moksha-db"
-→ Uses: docker_logs with container="moksha-db"
+You: "Show me the logs for projectpulse-db"
+→ Uses: docker_logs with container="projectpulse-db"
 → Shows: Last 50 lines of logs (configurable)
 ```
 
@@ -70,7 +71,7 @@ You: "Show me the logs for moksha-db"
 
 ```
 You: "Restart the web container"
-→ Uses: docker_restart with container="moksha-web"
+→ Uses: docker_restart with container="projectpulse-web"
 → Restarts the specified container
 ```
 
@@ -85,8 +86,8 @@ You: "Show Docker resource usage"
 ### Inspect Container
 
 ```
-You: "Inspect the moksha-db container"
-→ Uses: docker_inspect with container="moksha-db"
+You: "Inspect the projectpulse-db container"
+→ Uses: docker_inspect with container="projectpulse-db"
 → Shows: Detailed JSON configuration
 ```
 
@@ -111,9 +112,10 @@ echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | node dist/index.js
 ## Common Containers
 
 In DevHub, you'll typically interact with:
-- **moksha-db** - PostgreSQL database
-- **moksha-web** - Next.js web application
-- **moksha-mcp** - MCP server (if running separately)
+
+- **projectpulse-db** - PostgreSQL database
+- **projectpulse-web** - Next.js web application
+- **projectpulse-mcp** - MCP server (if running separately)
 
 ## Troubleshooting
 

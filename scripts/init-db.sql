@@ -115,5 +115,5 @@ ORDER BY extname;
 -- 1. Apply Prisma schema: pnpm prisma migrate dev
 -- 2. Generate Prisma client: pnpm prisma generate
 -- 3. Seed initial data: pnpm prisma db seed
--- 4. Verify database health: docker exec moksha-db psql -U moksha -d moksha_devhub -c '\dx'
+-- 4. Verify database health: docker exec projectpulse-db psql -U projectpulse -d projectpulse -c '\dx'
 -- ============================================================================

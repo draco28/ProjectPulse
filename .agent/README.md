@@ -15,10 +15,11 @@
 **Always read in this order:**
 
 1. [STATUS.md](../STATUS.md) - Current snapshot
-2. [DEVELOPMENT_PLAN.md](../docs/DEVELOPMENT_PLAN.md) - Detailed plan
-3. [CLAUDE.md](../CLAUDE.md) - Integration guide
-4. [WORKFLOW_ARCHITECTURE.md](../docs/WORKFLOW_ARCHITECTURE.md) - Branching strategy
-5. **This file** (.agent/README.md) - Documentation index
+2. [13-Project-Plan.md](../docs/13-Project-Plan.md) - Roadmap
+3. [12-Backlog.md](../docs/12-Backlog.md) - User stories
+4. [CLAUDE.md](../CLAUDE.md) - Integration guide
+5. [WORKFLOW_ARCHITECTURE.md](../docs/WORKFLOW_ARCHITECTURE.md) - Branching strategy
+6. **This file** (.agent/README.md) - Documentation index
 
 **User Workflow Reference:**
 
@@ -213,7 +214,7 @@ Use these for context-heavy research tasks to keep main thread clean:
 
 ### After Completing a Feature
 
-1. **Follow existing workflow** (STATUS.md, DEVELOPMENT_PLAN.md)
+1. **Follow existing workflow** (STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md)
 2. **Optional**: If feature introduces new patterns:
    ```
    "Generate SOP for [new pattern]"
@@ -255,13 +256,14 @@ If Prisma schema or API structure changes significantly:
 ### Main Project Docs
 
 - [STATUS.md](../STATUS.md) - What's happening now
-- [DEVELOPMENT_PLAN.md](../docs/DEVELOPMENT_PLAN.md) - Full roadmap
+- [13-Project-Plan.md](../docs/13-Project-Plan.md) - Roadmap
+- [12-Backlog.md](../docs/12-Backlog.md) - User stories
 - [CLAUDE.md](../CLAUDE.md) - How to use Claude Code
 - [WORKFLOW_ARCHITECTURE.md](../docs/WORKFLOW_ARCHITECTURE.md) - Git workflow
 
 ### Architecture Docs
 
-- [01-ARCHITECTURE.md](../docs/01-ARCHITECTURE.md) - System architecture
+- [03-Architecture.md](../docs/03-Architecture.md) - System architecture
 - [02-DEVELOPER_GUIDE.md](../docs/02-DEVELOPER_GUIDE.md) - Dev setup
 - [03-MCP_ARCHITECTURE.md](../docs/03-MCP_ARCHITECTURE.md) - MCP design
 

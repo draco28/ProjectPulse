@@ -11,8 +11,8 @@
 
 All agents must reason from these in-repo references:
 
-- `docs/00-INDEX.md` - **Documentation overview and reading paths**
-- `docs/01-ARCHITECTURE.md` - **Complete system architecture**
+- `docs/README.md` - **Documentation overview and reading paths**
+- `docs/03-Architecture.md` - **Complete system architecture**
 - `docs/02-DATABASE-SCHEMA.md` - **Database schema and Prisma models**
 - `docs/03-MCP-SPECIFICATION.md` - **MCP specification and implementation**
 - `docs/07-QUICK-START.md` - **Setup and getting started guide**

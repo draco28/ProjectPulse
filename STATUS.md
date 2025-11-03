@@ -596,7 +596,7 @@
 
 ### Essential Documents
 
-- **Development Plan:** [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md)
+- **Project Plan:** [docs/13-Project-Plan.md](docs/13-Project-Plan.md)
 - **UI Transformation Plan:** [docs/UI_TRANSFORMATION_PLAN.md](docs/UI_TRANSFORMATION_PLAN.md)
 - **Session Start Guide:** [SESSION_START_GUIDE.md](SESSION_START_GUIDE.md)
 - **Latest Completion:** [COMPLETION_WEEK_1.5_PHASE_3_DAYS_6_7.md](docs/COMPLETION_WEEK_1.5_PHASE_3_DAYS_6_7.md) ⭐ **MOST RECENT**
@@ -605,7 +605,7 @@
 
 ### Architecture & Design
 
-- **Architecture:** [docs/01-ARCHITECTURE.md](docs/01-ARCHITECTURE.md)
+- **Architecture:** [docs/03-Architecture.md](docs/03-Architecture.md)
 - **Database Schema:** [docs/02-DATABASE-SCHEMA.md](docs/02-DATABASE-SCHEMA.md)
 - **UI Architecture:** [docs/04-UI-ARCHITECTURE.md](docs/04-UI-ARCHITECTURE.md)
 - **Workflow Architecture:** [docs/WORKFLOW_ARCHITECTURE.md](docs/WORKFLOW_ARCHITECTURE.md)
@@ -638,7 +638,7 @@
 
 1. ✅ Create completion document (use existing completion docs as template)
 2. ✅ Update this file (STATUS.md) with new current phase
-3. ✅ Update DEVELOPMENT_PLAN.md "CURRENT STATUS" section
+3. ✅ Update STATUS.md with the new current phase
 4. ✅ Commit all changes to Git
 5. ✅ Push to GitHub
 

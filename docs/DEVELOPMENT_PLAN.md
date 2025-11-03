@@ -1,4 +1,16 @@
-# ProjectPulse - Development Plan
+# ProjectPulse - Development Plan (RETIRED)
+
+> This document has been retired. For current status and planning, use:
+>
+> - [STATUS.md](../STATUS.md)
+> - [docs/13-Project-Plan.md](./13-Project-Plan.md)
+> - [docs/12-Backlog.md](./12-Backlog.md)
+
+Archived historical plan: [docs/archive/ui-first-phase/DEVELOPMENT_PLAN_v1.5_ARCHIVED.md](./archive/ui-first-phase/DEVELOPMENT_PLAN_v1.5_ARCHIVED.md)
+
+---
+
+Note: Historical content below is preserved for reference. Do not update.
 
 **Version:** 1.5
 **Last Updated:** 2025-10-30 (Week 1.5 Phase 3 COMPLETE - All 7 pages implemented)

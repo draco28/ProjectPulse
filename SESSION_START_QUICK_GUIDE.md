@@ -41,7 +41,7 @@ Proceed with [Sprint 1 - Database & API Foundation].
 **How to fill in:**
 
 - **Current phase:** Look at `STATUS.md` → "Current Phase" section → copy the phase name
-- **Requirements:** Look at `DEVELOPMENT_PLAN.md` → find current phase → copy brief summary
+- **Requirements:** Look at `STATUS.md` for current phase; see `docs/13-Project-Plan.md` (roadmap) and `docs/12-Backlog.md` (stories) → copy brief summary
 - **[phase name]:** Same as current phase (e.g., "Phase 3 Day 5 - Search & Filtering")
 
 ---
@@ -165,7 +165,7 @@ Which option do you choose?
 Documentation updates:
 - Created COMPLETION_[PHASE].md
 - Updated STATUS.md
-- Updated DEVELOPMENT_PLAN.md
+- Verified roadmap in docs/13-Project-Plan.md
 
 Sub-agent invocations:
 - synthesize-docs → SOP saved
