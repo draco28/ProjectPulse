@@ -724,7 +724,7 @@ C4Component
     Rel(workflow_engine, workflow_repo, "Uses", "Data access")
     Rel(workflow_repo, db, "Queries", "Prisma Client")
 
-    Rel(workflow_monitor, db, "Fetches", "Server Components")
+    Rel(workflow_page, db, "Fetches", "Server Components")
 ```
 
 **Workflow State Machine (5-Step Protocol):**
