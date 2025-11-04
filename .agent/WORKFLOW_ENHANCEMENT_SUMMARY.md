@@ -302,7 +302,7 @@ User: "/update-doc skill api-validation"
 **Claude's Automatic Behavior**:
 
 1. Read STATUS.md (identify current phase)
-2. Read DEVELOPMENT_PLAN.md (understand requirements)
+2. Read docs/13-Project-Plan.md and docs/12-Backlog.md (understand requirements)
 3. Create `.agent/task/current-session-[timestamp].md`
 4. Load skill frontmatter only (140 tokens, 7 skills)
 5. Auto-detect required skills based on phase keywords
@@ -523,7 +523,7 @@ Token Usage in main thread: ~1,500 (sub-agent works in isolation)
 
 1. Skills loading full content instead of frontmatter only
 2. Multiple skills loaded unnecessarily
-3. Large files in STATUS.md or DEVELOPMENT_PLAN.md
+3. Large files in STATUS.md or docs/13-Project-Plan.md
 
 **Fix**:
 
@@ -568,7 +568,8 @@ Token Usage in main thread: ~1,500 (sub-agent works in isolation)
 ### Core Documentation
 
 - [STATUS.md](../STATUS.md) - Current project status
-- [DEVELOPMENT_PLAN.md](../docs/DEVELOPMENT_PLAN.md) - Detailed implementation plan
+- [docs/13-Project-Plan.md](../docs/13-Project-Plan.md) - Implementation roadmap
+- [docs/12-Backlog.md](../docs/12-Backlog.md) - User stories
 - [CLAUDE.md](../CLAUDE.md) - Claude Code integration guide
 - [.agent/README.md](README.md) - Documentation index
 

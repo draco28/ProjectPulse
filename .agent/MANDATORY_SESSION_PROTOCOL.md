@@ -113,11 +113,27 @@ Estimated tokens: [rough estimate]
 
 ---
 
-## [STEP 3] EXPERT CONSULTATION - MANDATORY FOR DECISIONS
+## [STEP 3] EXPERT CONSULTATION - MANDATORY FOR ARCHITECTURAL DECISIONS
 
-**Before implementing, invoke expert agents for technical guidance:**
+**Before implementing new architectures or complex features, invoke expert agents for technical guidance.**
 
-### When to Invoke Which Expert
+### When Experts Are Required
+
+**Invoke experts for:**
+
+- New component architectures (complex state management, compound patterns)
+- Database schema design or migration strategy
+- Performance-critical features requiring optimization
+- Multi-step workflows or complex user flows
+
+**Experts are optional for:**
+
+- Routine CRUD following established patterns
+- UI updates matching existing component conventions
+- Minor refactors within established architecture
+- Simple features with clear precedent in codebase
+
+### Which Expert to Invoke
 
 **Component Architecture Decisions:**
 
@@ -238,9 +254,10 @@ Next checkpoint: 45K tokens
 
 ### Required Documentation Updates
 
-- [ ] Create `COMPLETION_[PHASE].md` using completion template
-  - Document: What was done, files created/modified, technical decisions
+- [ ] Create completion doc (optional but recommended for complex phases)
+  - If created: Document what was done, files created/modified, technical decisions
   - Include: Quality gate results (type-check, lint, build, tests)
+  - Auto-archived under docs/archive/completions/YYYY-MM/
 - [ ] Update `STATUS.md`
   - Update "Last Completed" section with completion summary
   - Update "Current Phase" to next phase

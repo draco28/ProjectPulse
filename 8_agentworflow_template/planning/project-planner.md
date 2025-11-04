@@ -675,7 +675,7 @@ Use project-planner agent to update Phase [N] of [project-name]
 **References** (for context, if available):
 
 - `STATUS.md` - Current project status (for existing projects)
-- `DEVELOPMENT_PLAN.md` - Existing development plan (for comparison)
+- `docs/13-Project-Plan.md` - Project plan (for comparison)
 - `.agent/project-brief.md` - Existing project brief (for consistency)
 
 ---

@@ -391,10 +391,10 @@ Layer 3: Project Docs (docs/)
 ```
 Your Existing Workflow (Unchanged):
 1. Read STATUS.md
-2. Read DEVELOPMENT_PLAN.md
+2. Read docs/13-Project-Plan.md and docs/12-Backlog.md
 3. Complete feature
 4. Update STATUS.md
-5. Update DEVELOPMENT_PLAN.md
+5. Update docs/13-Project-Plan.md and docs/12-Backlog.md if needed
 6. Commit
 
 Enhanced (Optional):

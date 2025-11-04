@@ -95,6 +95,15 @@ Proceed with [phase name].
 - Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
 - **Confirm:** "✅ STEP 1 COMPLETE: Session initialized at [timestamp]"
 
+**Reading Path After Step 1:**
+
+After initialization, load additional context based on phase type:
+
+- **Implementation phases:** [docs/03-Architecture.md](docs/03-Architecture.md) → [docs/04-Data-and-Model-Spec.md](docs/04-Data-and-Model-Spec.md) → [docs/06-API/openapi.yaml](docs/06-API/openapi.yaml)
+- **Planning phases:** [docs/01-PRD.md](docs/01-PRD.md) → [docs/02-SRS.md](docs/02-SRS.md) → [docs/12-Backlog.md](docs/12-Backlog.md)
+
+See [docs/README.md](docs/README.md) for complete reading paths.
+
 **STEP 2: PLAN CREATION**
 
 - Create implementation plan (use ExitPlanMode if needed)
@@ -110,6 +119,18 @@ Proceed with [phase name].
 - Invoke `prisma-expert` for database schema and query optimization
 - **Confirm:** "✅ STEP 3 COMPLETE: Consulted [expert-name] for [decision-topic]"
 
+**When Experts Required:**
+
+- New architectures (component hierarchies, state patterns)
+- Complex features (multi-step workflows, performance-critical)
+- Database changes (schema design, migration strategy)
+
+**When Experts Optional:**
+
+- Routine CRUD following established patterns
+- UI updates matching existing conventions
+- Minor refactors within established architecture
+
 **STEP 4: PROGRESS CHECKPOINTS**
 
 - At 15K, 30K, 45K, 60K, 75K, 90K tokens: Update session and todos files
@@ -117,7 +138,7 @@ Proceed with [phase name].
 
 **STEP 5: POST-COMPLETION**
 
-- Create COMPLETION\_[PHASE].md
+- Create completion doc (optional but recommended for complex phases)
 - Update STATUS.md and docs/13-Project-Plan.md
 - Invoke synthesize-docs (if new patterns)
 - Invoke map-system (if architecture changed)
@@ -324,7 +345,7 @@ To ensure no progress is ever lost, the protocol requires three levels of progre
 
 **After phase completion (STEP 5)**:
 
-1. Create COMPLETION\_[PHASE].md (REQUIRED)
+1. Create completion doc (optional but recommended for complex phases)
 2. Update STATUS.md and docs/13-Project-Plan.md (REQUIRED)
 3. Invoke synthesize-docs and map-system sub-agents (REQUIRED if patterns created or architecture changed)
 4. Commit documentation, then code (REQUIRED)
@@ -554,6 +575,21 @@ Need progress overview?             → progress.md
 - Refreshes .agent/system/ docs
 
 **You don't need to request these explicitly - I must invoke them per protocol Step 3 (experts) or Step 5 (documentation).**
+
+### When NOT to Invoke Sub-Agents
+
+**Don't invoke sub-agents for:**
+
+- Pattern already documented in .agent/sops/
+- Straightforward CRUD following existing conventions
+- Minor UI updates matching existing components
+- Information available in .agent/system/ docs
+
+**Use direct implementation when:**
+
+- Following established patterns from .agent/ docs
+- Implementing routine features with clear precedent
+- Making incremental changes to existing systems
 
 ---
 

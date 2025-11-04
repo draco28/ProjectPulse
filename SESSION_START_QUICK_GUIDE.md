@@ -16,6 +16,28 @@ This guide helps you enforce the **Mandatory Session Protocol** that ensures I f
 
 ---
 
+## Documentation Reading Paths
+
+After the protocol is initialized, Claude loads additional context based on the phase type:
+
+**For Implementation Work:**
+
+1. [docs/03-Architecture.md](docs/03-Architecture.md) → System design patterns and technical architecture
+2. [docs/04-Data-and-Model-Spec.md](docs/04-Data-and-Model-Spec.md) → Database schema and relationships
+3. [docs/06-API/openapi.yaml](docs/06-API/openapi.yaml) → API contracts and endpoints
+
+**For Planning & Discovery:**
+
+1. [docs/01-PRD.md](docs/01-PRD.md) → Product requirements
+2. [docs/02-SRS.md](docs/02-SRS.md) → System requirements
+3. [docs/12-Backlog.md](docs/12-Backlog.md) → User stories
+
+**See:** [docs/README.md](docs/README.md) for complete navigation paths and documentation index.
+
+**Note:** DEVELOPMENT_PLAN.md is retired; use STATUS.md, docs/13-Project-Plan.md, and docs/12-Backlog.md instead.
+
+---
+
 ## Step 1: Copy This Starter Prompt
 
 At the start of **EVERY** session, copy-paste this into Claude Code (use docs/README.md for canonical navigation):
@@ -83,6 +105,20 @@ Implementation approach: [what I'll do]
 ```
 
 **You may see multiple Step 3 confirmations** (one for each expert: react-expert, next-js-expert, prisma-expert)
+
+**When experts are required:**
+
+- New component architectures (complex state management, compound patterns)
+- Database schema design or complex queries
+- Performance-critical features (optimization strategies)
+- Multi-step workflows or complex user flows
+
+**When experts are optional:**
+
+- Routine CRUD following established patterns
+- UI updates matching existing component conventions
+- Minor refactors within established architecture
+- Simple features with clear precedent in codebase
 
 #### ✅ Step 4: Checkpoints (every 15K tokens)
 
@@ -163,7 +199,7 @@ Which option do you choose?
 ✅ STEP 5 COMPLETE: All documentation updated and committed
 
 Documentation updates:
-- Created COMPLETION_[PHASE].md
+- Completion recorded (optional but recommended for complex phases)
 - Updated STATUS.md
 - Verified roadmap in docs/13-Project-Plan.md
 
@@ -215,7 +251,7 @@ After I say "done" or "complete", verify these files exist:
 - [ ] `.agent/task/current-session-[YYYYMMDD-HHMM].md` exists and has checkpoints
 - [ ] `.agent/task/current-plan.md` exists with implementation plan
 - [ ] `.agent/task/current-todos.md` exists with completed tasks marked [x]
-- [ ] Completion recorded (optional doc auto-archived under docs/archive/completions/YYYY-MM/ if created)
+- [ ] Completion recorded (optional but recommended for complex phases; auto-archived under docs/archive/completions/YYYY-MM/ if created)
 - [ ] `STATUS.md` updated with completion summary (if phase complete)
 - [ ] Project plan/backlog updated as needed (`docs/13-Project-Plan.md`, `docs/12-Backlog.md`)
 - [ ] `.agent/sops/` has new SOPs (if new patterns were created)
@@ -391,7 +427,7 @@ Estimated token usage: 150K current + 15K Step 5 = 165K total (82.5% of budget)
 ✅ STEP 5 COMPLETE: Documentation updated and committed
 
 Documentation updates:
-- Completion recorded (any completion doc is archived under docs/archive/completions/)
+- Completion recorded (optional but recommended for complex phases; archived under docs/archive/completions/)
 - Updated STATUS.md (Last Completed: Day 5)
 - Reviewed plan/backlog (docs/13-Project-Plan.md, docs/12-Backlog.md)
 

@@ -28,6 +28,8 @@ This document describes the complete system architecture of ProjectPulse, an age
 - [04-Data-and-Model-Spec.md](04-Data-and-Model-Spec.md) - Database Schema
 - [12-Backlog.md](12-Backlog.md) - User Stories
 
+> Note: The legacy `DEVELOPMENT_PLAN.md` is retired. Any mentions of it in diagrams or examples are illustrative of the previous pipeline. The current sources of truth are `STATUS.md`, `docs/13-Project-Plan.md`, and `docs/12-Backlog.md`.
+
 ---
 
 ## Table of Contents
