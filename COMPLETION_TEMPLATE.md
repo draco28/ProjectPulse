@@ -1,5 +1,7 @@
 # [Phase Name] - COMPLETE ✅
 
+> Note: Completion documents are optional. If created, they are archived under `docs/archive/completions/YYYY-MM/` and are not part of the active reading paths.
+
 **Date:** [YYYY-MM-DD]
 **Status:** ✅ **COMPLETE**
 **Time:** [Actual time spent] hours

@@ -2,7 +2,7 @@
 
 **Version:** 2.0
 **Last Updated:** 2025-10-28
-**Purpose:** User guide for enforcing mandatory session protocol with token budget management
+**Purpose:** Enforce the Mandatory Session Protocol and point to current sources of truth (STATUS.md, docs/README.md, docs/13-Project-Plan.md, docs/12-Backlog.md)
 
 ---
 
@@ -18,13 +18,13 @@ This guide helps you enforce the **Mandatory Session Protocol** that ensures I f
 
 ## Step 1: Copy This Starter Prompt
 
-At the start of **EVERY** session, copy-paste this into Claude Code:
+At the start of **EVERY** session, copy-paste this into Claude Code (use docs/README.md for canonical navigation):
 
 ```
 MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
 
 Current phase: [copy from STATUS.md → "Current Phase"]
-Requirements: [copy brief summary from docs/13-Project-Plan.md]
+Requirements: [copy brief summary from docs/13-Project-Plan.md; stories from docs/12-Backlog.md]
 
 ENFORCE:
 - ✅ Step 1: Initialize session
@@ -215,9 +215,9 @@ After I say "done" or "complete", verify these files exist:
 - [ ] `.agent/task/current-session-[YYYYMMDD-HHMM].md` exists and has checkpoints
 - [ ] `.agent/task/current-plan.md` exists with implementation plan
 - [ ] `.agent/task/current-todos.md` exists with completed tasks marked [x]
-- [ ] `COMPLETION_[PHASE].md` exists (if phase complete)
+- [ ] Completion recorded (optional doc auto-archived under docs/archive/completions/YYYY-MM/ if created)
 - [ ] `STATUS.md` updated with completion summary (if phase complete)
-- [ ] `DEVELOPMENT_PLAN.md` updated with current status (if phase complete)
+- [ ] Project plan/backlog updated as needed (`docs/13-Project-Plan.md`, `docs/12-Backlog.md`)
 - [ ] `.agent/sops/` has new SOPs (if new patterns were created)
 - [ ] `.agent/system/` docs updated (if architecture changed)
 
@@ -230,8 +230,8 @@ ls .agent/task/current-session-*.md
 # Check plan and todos exist
 ls .agent/task/current-plan.md .agent/task/current-todos.md
 
-# Check completion doc (if phase complete)
-ls COMPLETION_*.md
+# Check latest archived completion (if a doc was created)
+rg -n --no-ignore -g 'docs/archive/completions/**' -e '^# ' | tail -n 1 || true
 
 # Check for checkpoints in session file
 grep "Checkpoint" .agent/task/current-session-*.md
@@ -388,12 +388,12 @@ Estimated token usage: 150K current + 15K Step 5 = 165K total (82.5% of budget)
 ### 6. I Complete with Step 5 Confirmation
 
 ```
-✅ STEP 5 COMPLETE: All documentation updated and committed
+✅ STEP 5 COMPLETE: Documentation updated and committed
 
 Documentation updates:
-- Created COMPLETION_PHASE3_DAY5_SEARCH.md
+- Completion recorded (any completion doc is archived under docs/archive/completions/)
 - Updated STATUS.md (Last Completed: Day 5)
-- Updated DEVELOPMENT_PLAN.md (Current Phase: Day 6)
+- Reviewed plan/backlog (docs/13-Project-Plan.md, docs/12-Backlog.md)
 
 Sub-agent invocations:
 - synthesize-docs → saved SOP to .agent/sops/search-implementation.md

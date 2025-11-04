@@ -12,7 +12,7 @@
 **Completed:** November 2, 2025
 **Duration:** ~12 hours (across multiple sessions)
 **Token Usage:** 200K / 200K (100%)
-**Completion Docs:** `docs/COMPLETION_PHASE_5_FINAL_INTEGRATION.md`
+**Last Completion:** archived under `docs/archive/completions/`
 
 **What Was Done:**
 
@@ -599,9 +599,7 @@
 - **Project Plan:** [docs/13-Project-Plan.md](docs/13-Project-Plan.md)
 - **UI Transformation Plan:** [docs/UI_TRANSFORMATION_PLAN.md](docs/UI_TRANSFORMATION_PLAN.md)
 - **Session Start Guide:** [SESSION_START_GUIDE.md](SESSION_START_GUIDE.md)
-- **Latest Completion:** [COMPLETION_WEEK_1.5_PHASE_3_DAYS_6_7.md](docs/COMPLETION_WEEK_1.5_PHASE_3_DAYS_6_7.md) ⭐ **MOST RECENT**
-- **Phase 3 Day 5:** [COMPLETION_WEEK_1.5_PHASE_3_DAY_5.md](docs/COMPLETION_WEEK_1.5_PHASE_3_DAY_5.md)
-- **Previous:** [WEEK_1_5_PHASE_2_COMPLETION.md](WEEK_1_5_PHASE_2_COMPLETION.md) (Phase 2)
+- **Completions Archive:** [docs/archive/completions/](docs/archive/completions/)
 
 ### Architecture & Design
 
@@ -636,8 +634,8 @@
 
 **After Completing Phases:**
 
-1. ✅ Create completion document (use existing completion docs as template)
-2. ✅ Update this file (STATUS.md) with new current phase
+1. ✅ Document completion in this file (STATUS.md)
+2. ✅ Update plan/backlog as needed (docs/13-Project-Plan.md, docs/12-Backlog.md)
 3. ✅ Update STATUS.md with the new current phase
 4. ✅ Commit all changes to Git
 5. ✅ Push to GitHub

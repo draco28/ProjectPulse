@@ -574,3 +574,4 @@ pnpm test:e2e:ui     # Run with UI mode
 - ✅ Zero ESLint warnings
 
 **Ready for next phase!** 🚀
+<!-- Archived 2025-11-04: moved to docs/archive/completions/2025-11/ -->

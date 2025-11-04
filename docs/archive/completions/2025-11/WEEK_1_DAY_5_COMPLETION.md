@@ -391,3 +391,4 @@ pnpm prisma db seed
 ---
 
 **🎉 Week 1 Complete! Database fully operational with seeded data. Ready for Week 2 feature development!**
+<!-- Archived 2025-11-04: moved to docs/archive/completions/2025-11/ -->

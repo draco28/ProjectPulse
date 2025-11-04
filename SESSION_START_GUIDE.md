@@ -13,6 +13,7 @@
 ```
 Read SESSION_START_GUIDE.md and STATUS.md to get up to speed.
 Then continue with ProjectPulse development from where we left off.
+Use docs/13-Project-Plan.md and docs/12-Backlog.md for planning; docs/README.md is the canonical index.
 ```
 
 **Option 2: Start Specific Task**
@@ -21,6 +22,7 @@ Then continue with ProjectPulse development from where we left off.
 Read SESSION_START_GUIDE.md and STATUS.md.
 I want to [describe your task: implement Dashboard, fix bug, add feature, etc.].
 Check which agent and skills are needed, create appropriate Git branch, and proceed.
+Reference docs/13-Project-Plan.md for roadmap details and docs/12-Backlog.md for stories.
 ```
 
 **Option 3: Planning/Architecture**
@@ -28,6 +30,7 @@ Check which agent and skills are needed, create appropriate Git branch, and proc
 ```
 Read SESSION_START_GUIDE.md and STATUS.md.
 I want to plan/design [feature name]. Use devhub-architect agent to help design the approach.
+Follow the reading path in docs/README.md and cross-check docs/03-Architecture.md.
 ```
 
 ---
@@ -214,7 +217,7 @@ Or let Claude automatically select based on task type.
 
 ### After Completing Work
 
-1. **Create completion document** (use COMPLETION_TEMPLATE.md)
+1. **Document completion in STATUS.md** (completion doc optional; archived if created)
 2. **Update STATUS.md** with new current phase
 3. **Update STATUS.md** (current phase)
 4. **Commit and push**
@@ -260,7 +263,7 @@ Or let Claude automatically select based on task type.
 
 **Templates:**
 
-- `COMPLETION_TEMPLATE.md` (root) - Template for completion docs
+- `COMPLETION_TEMPLATE.md` (root) - Optional; any completion doc is archived
 
 ---
 
@@ -423,7 +426,7 @@ Explicitly specify: "Use devhub-[agent-name] agent to..."
 
 **After Every Completion (5 minutes):**
 
-1. ✅ Create completion doc (use COMPLETION_TEMPLATE.md)
+1. ✅ Update STATUS.md (completion doc optional; archived if created)
 2. ✅ Update STATUS.md
 3. ✅ Update STATUS.md
 4. ✅ Git commit all changes

@@ -1,5 +1,7 @@
 # Planning System Usage Guide
 
+> ProjectPulse note: The active plan lives in `docs/13-Project-Plan.md` and `docs/12-Backlog.md`. This folder contains generic templates/examples.
+
 This guide explains how to use the reusable project planning system.
 
 ---

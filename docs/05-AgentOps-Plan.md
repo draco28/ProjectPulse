@@ -520,7 +520,7 @@ const phase = await mcp.call('sprint.phase.create', {
 {
   completionFile: string; // COMPLETION_[PHASE].md
   statusUpdated: boolean; // STATUS.md updated
-  planUpdated: boolean; // DEVELOPMENT_PLAN.md updated
+  planUpdated: boolean; // Project Plan updated (docs/13-Project-Plan.md)
   step5Complete: true;
 }
 ```
@@ -529,7 +529,7 @@ const phase = await mcp.call('sprint.phase.create', {
 
 - Creates `COMPLETION_[PHASE].md` file
 - Updates `STATUS.md` with completion timestamp
-- Updates `DEVELOPMENT_PLAN.md` with next phase
+- Updates `STATUS.md` and `docs/13-Project-Plan.md` with next phase
 - Optionally invokes `synthesize-docs` sub-agent (if new patterns created)
 - Optionally invokes `map-system` sub-agent (if architecture changed)
 - Updates workflow status to `COMPLETED`
@@ -1549,7 +1549,7 @@ stateDiagram-v2
 
 **Actions:**
 
-1. Agent reads `STATUS.md` and `DEVELOPMENT_PLAN.md`
+1. Agent reads `STATUS.md` and `docs/13-Project-Plan.md`
 2. Agent calls `workflow.start({ sessionId, phase, goals })`
 3. System creates `.agent/task/current-session-[YYYYMMDD-HHMM].md`
 4. System logs action in `AgentAction` table
@@ -1695,7 +1695,7 @@ stateDiagram-v2
 1. Agent completes implementation
 2. Agent calls `workflow.complete({ workflowId, completionSummary, invokeDocAgents: true })`
 3. System creates `COMPLETION_[PHASE].md`
-4. System updates `STATUS.md` and `DEVELOPMENT_PLAN.md`
+4. System updates `STATUS.md` and `docs/13-Project-Plan.md`
 5. System invokes `synthesize-docs` sub-agent (if `invokeDocAgents: true` and new patterns created)
 6. System invokes `map-system` sub-agent (if `invokeDocAgents: true` and architecture changed)
 7. Agent commits documentation, then code
@@ -2546,7 +2546,7 @@ ProjectPulse achieves **85-92% token reduction** through:
 **Before:**
 
 - Load all documentation: 30,000 tokens
-- Full DEVELOPMENT_PLAN.md: 15,000 tokens
+- Full Project Plan (docs/13-Project-Plan.md): 15,000 tokens
 - Full STATUS.md: 5,000 tokens
 - Full architecture docs: 10,000 tokens
 
@@ -2767,7 +2767,7 @@ Incomplete Workflows:
 5. **Workflow not complete until Step 5 done**
    - Completion file must be created with `workflow.complete`
    - STATUS.md must be updated
-   - DEVELOPMENT_PLAN.md must be updated
+   - STATUS.md / Project Plan must be updated
 
 **State Machine Enforcement:**
 
@@ -3024,7 +3024,7 @@ GROUP BY action;
 - [ ] ✅ Step 5: Workflow completed with `workflow.complete`
 - [ ] ✅ Completion file created: `COMPLETION_[PHASE].md`
 - [ ] ✅ STATUS.md updated
-- [ ] ✅ DEVELOPMENT_PLAN.md updated
+- [ ] ✅ STATUS.md / Project Plan updated
 - [ ] ✅ Documentation agents invoked (if needed)
 - [ ] ✅ Changes committed to git
 

@@ -489,3 +489,4 @@
 
 **Core Implementation:** ✅ COMPLETE (23/29 tasks)
 **Remaining:** Testing & QA (6 tasks for next session)
+<!-- Archived 2025-11-04: moved to docs/archive/completions/2025-11/ -->

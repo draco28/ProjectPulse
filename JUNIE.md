@@ -41,7 +41,7 @@ Environment Assumptions (from Week 1 plan)
 
 - Docker Desktop + WSL2 configured; backend runs in Docker
 - Node 20+ and pnpm 8+ installed
-- See: `docs/DEVELOPMENT_PLAN.md` (Week 1) for details
+- See: `STATUS.md`, `docs/13-Project-Plan.md`, and `docs/12-Backlog.md` for details
 
 How to Start a Junie Session
 

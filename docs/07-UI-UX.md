@@ -55,7 +55,7 @@ ProjectPulse is an **agent-first platform** with a dual-purpose UI:
 #### Agent Experience (MCP)
 
 - **No Visual Interface:** Agents interact purely via MCP tools (41 tools)
-- **Context Files:** Agents read markdown files for context (STATUS.md, DEVELOPMENT_PLAN.md)
+- **Context Files:** Agents read markdown files for context (STATUS.md, docs/13-Project-Plan.md)
 - **Database Operations:** All CRUD operations via MCP tools → Database → UI reflects changes
 - **Feedback Loop:** Agent actions visible in UI immediately (WebSocket real-time updates)
 

@@ -284,3 +284,4 @@ vs
 After applying the documented schema, fixing imports, and adding the referenced validation/types files, Week 1.5 can be brought to “functionally complete,” after which responsive/polish (Phase 4) and the 80%+ testing target can be finalized.
 Task Status
 Analysis complete. I crosschecked DEVELOPMENT_PLAN.md with code and STATUS.md, listed concrete gaps with file evidence, and provided a prioritized fix plan.
+# [ARCHIVED] Week 1.5 Audit

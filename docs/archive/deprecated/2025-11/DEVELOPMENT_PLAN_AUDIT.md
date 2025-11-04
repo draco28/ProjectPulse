@@ -1,8 +1,8 @@
-# Development Plan Audit - 2025-10-28
+# [ARCHIVED] Development Plan Audit - 2025-10-28
 
 ## 1. Executive Summary
 
-This audit of `docs/DEVELOPMENT_PLAN.md` reveals several significant issues that compromise the plan's clarity, feasibility, and status as a single source of truth.
+This archived report analyzed `docs/DEVELOPMENT_PLAN.md` during the v1.5 → v2.0 transition. See canonical replacements in `docs/MIGRATION_GUIDE.md` and the current stub at `docs/DEVELOPMENT_PLAN.md`.
 
 The most critical issue is a fundamental contradiction in the UI/theme strategy. The plan simultaneously mandates a single "Dark Neumorphic Coral" theme while also detailing extensive, completed, and ongoing work on a multi-theme system centered around a "Neon" aesthetic.
 

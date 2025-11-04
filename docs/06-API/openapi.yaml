@@ -817,7 +817,7 @@ paths:
       description: |
         **5-Step Protocol - Step 5: Post-Completion**
 
-        Create completion file, update STATUS.md and DEVELOPMENT_PLAN.md.
+        Update STATUS.md; optionally create a completion doc (auto-archived); review docs/13-Project-Plan.md and docs/12-Backlog.md.
         Optionally invoke synthesize-docs and map-system sub-agents.
 
         **Requirements:** FR-034, FR-035
