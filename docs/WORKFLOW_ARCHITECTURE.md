@@ -1,5 +1,7 @@
 # Workflow Architecture
 
+> Note: Canonical architecture is maintained in `docs/03-Architecture.md`. This document provides workflow-focused context; for system diagrams and authoritative design, refer to `docs/03-Architecture.md`.
+
 **Version:** 1.0
 **Last Updated:** 2025-10-24
 **Status:** Active - 3-Track Hybrid Workflow
@@ -919,7 +921,7 @@ pnpm test:e2e
 **Documentation:**
 
 - [ ] README.md updated (if needed)
-- [ ] DEVELOPMENT_PLAN.md updated with progress
+- [ ] STATUS.md updated with progress (and 13-Project-Plan/12-Backlog as needed)
 - [ ] API documented (if new endpoints)
 - [ ] Component usage documented (if new components)
 

@@ -1214,9 +1214,9 @@ screens: {
 
 ### Architecture Docs
 
-- `docs/01-ARCHITECTURE.md` - System architecture
+- `docs/03-Architecture.md` - System architecture
 - `docs/04-UI-ARCHITECTURE.md` - UI component system
-- `docs/DEVELOPMENT_PLAN.md` - Development roadmap
+- `STATUS.md`, `docs/13-Project-Plan.md`, `docs/12-Backlog.md` - Status, roadmap, stories
 
 ---
 

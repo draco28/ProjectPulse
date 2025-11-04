@@ -39,7 +39,7 @@ Plan: Create Enforceable Session Protocol │
 │ │
 │ ## [STEP 1] INITIALIZATION - REQUIRED BEFORE ANY WORK │
 │ □ Read STATUS.md │
-│ □ Read DEVELOPMENT_PLAN.md │
+│ □ Read STATUS.md; docs/13-Project-Plan.md │
 │ □ Create .agent/task/current-session-[YYYYMMDD-HHMM].md │
 │ □ Document: current phase, goals, requirements │
 │ **CONFIRM**: "✅ STEP 1 COMPLETE: Session initialized at [timestamp]" │
@@ -75,10 +75,10 @@ Plan: Create Enforceable Session Protocol │
 │ │
 │ □ Create COMPLETION*[PHASE].md │
 │ □ Update STATUS.md (Last Completed, Current Phase) │
-│ □ Update DEVELOPMENT_PLAN.md (CURRENT STATUS section) │
+│ □ Update STATUS.md (current phase) │
 │ □ Invoke synthesize-docs (if new patterns created) │
 │ □ Invoke map-system (if architecture changed) │
-│ □ Commit: git add .agent/ STATUS.md docs/DEVELOPMENT_PLAN.md │
+│ □ Commit: git add .agent/ STATUS.md docs/13-Project-Plan.md docs/12-Backlog.md │
 │ □ Commit: git commit -m "docs: Update docs after [phase]" │
 │ **CONFIRM**: "✅ STEP 5 COMPLETE: All documentation updated and committed" │
 │ │
@@ -112,7 +112,7 @@ Plan: Create Enforceable Session Protocol │
 │ MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps. │
 │ │
 │ Current phase: [copy from STATUS.md] │
-│ Requirements: [copy from DEVELOPMENT_PLAN.md] │
+│ Requirements: [copy from docs/02-SRS.md; roadmap from docs/13-Project-Plan.md] │
 │ │
 │ ENFORCE: │
 │ - ✅ Step 1: Initialize session │
@@ -148,7 +148,7 @@ Plan: Create Enforceable Session Protocol │
 │ - [ ] .agent/task/current-todos.md exists │
 │ - [ ] .agent/task/current-session-[timestamp].md has checkpoints │
 │ - [ ] STATUS.md updated │
-│ - [ ] DEVELOPMENT_PLAN.md updated │
+│ - [ ] STATUS.md updated; plan/backlog reviewed │
 │ - [ ] .agent/sops/ has new SOPs (if applicable) │
 │ │
 │ --- │

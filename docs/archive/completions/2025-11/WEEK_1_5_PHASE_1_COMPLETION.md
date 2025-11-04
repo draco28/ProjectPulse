@@ -348,3 +348,4 @@ Complete Coral theme variables added to `globals.css`:
 **Next Phase:** Week 1.5 Phase 2 - Create coral-themed component library
 **Agent Recommendation:** devhub-fullstack for component implementation
 **Reference:** [docs/UI_TRANSFORMATION_PLAN.md](docs/UI_TRANSFORMATION_PLAN.md) lines 250-420
+<!-- Archived 2025-11-04: moved to docs/archive/completions/2025-11/ -->

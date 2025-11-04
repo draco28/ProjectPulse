@@ -53,7 +53,7 @@ The neon design system has been integrated into the ProjectPulse development pla
 
 - **[../docs/04-UI-ARCHITECTURE.md](../docs/04-UI-ARCHITECTURE.md)** - Complete UI specification with Tailwind config, component roadmap, and page implementation guides
 - **[../docs/WORKFLOW_ARCHITECTURE.md](../docs/WORKFLOW_ARCHITECTURE.md)** - 3-track development workflow with branch strategy and quality gates
-- **[../docs/DEVELOPMENT_PLAN.md](../docs/DEVELOPMENT_PLAN.md)** - Updated with UI sections, Week 1 Day 3 design system setup, and Week 2 UI pages
+- **[../STATUS.md](../STATUS.md)** and **[../docs/13-Project-Plan.md](../docs/13-Project-Plan.md)** - Current status and plan for UI work
 
 ### Page-to-Week Mapping
 
@@ -417,7 +417,7 @@ xl: 1280px  /* Desktops */
 - **`DESIGN_DIRECTION.md`** - Complete design system specification (colors, typography, components, animations)
 - **`SUMMARY.md`** - Quick overview and implementation roadmap
 - **`DESIGN_BRAINSTORM.md`** - Original brainstorming notes (archived)
-- **`../docs/01-ARCHITECTURE.md`** - Technical architecture
+- **`../docs/03-Architecture.md`** - Technical architecture
 - **`../docs/02-DATABASE-SCHEMA.md`** - Database design
 
 ---

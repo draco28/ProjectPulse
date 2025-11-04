@@ -1,0 +1,15 @@
+path,inboundRefs,action,migrationTarget,rationale
+docs/DEVELOPMENT_PLAN_AUDIT.md,0,Archive,docs/MIGRATION_GUIDE.md,Orphan; superseded by Migration Guide and DEVELOPMENT_PLAN.md stub
+docs/audits/docs-deprecation-audit-20251104.md,0,Keep,,Audit record; lives under docs/audits
+docs/audits/old-plan-references-audit-20251104.md,0,Keep,,Audit record; supports deprecation updates
+docs/WORKFLOW_ARCHITECTURE.md,48,Update,docs/03-Architecture.md,High refs; align/merge with canonical Architecture doc
+SESSION_START_GUIDE.md,13,Update,STATUS.md; docs/13-Project-Plan.md; docs/12-Backlog.md,Referenced; replace legacy DEV plan directives per Migration Guide
+SESSION_START_QUICK_GUIDE.md,17,Update,STATUS.md; docs/README.md,Referenced; streamline to new reading paths
+docs/README.md,312,Keep,,Canonical docs index
+docs/03-Architecture.md,175,Keep,,Canonical architecture (high refs)
+docs/02-DATABASE-SCHEMA.md,61,Keep,,Canonical database schema (high refs)
+docs/03-MCP-SPECIFICATION.md,38,Keep,,Canonical MCP spec (high refs)
+docs/07-QUICK-START.md,30,Keep,,Active onboarding quick start
+docs/13-Project-Plan.md,195,Keep,,Canonical plan (high refs)
+STATUS.md,688,Keep,,Current status; referenced from guides
+CLAUDE.md,159,Keep,,Integration guide; referenced

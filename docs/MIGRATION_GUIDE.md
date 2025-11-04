@@ -138,6 +138,31 @@
 
 ---
 
+### Deprecated/Archived (2025-11-04)
+
+| Old Location                           | Action   | New/Canonical Target                   | Reason                                                  |
+| -------------------------------------- | -------- | -------------------------------------- | ------------------------------------------------------- |
+| docs/DEVELOPMENT_PLAN_AUDIT.md         | Archive  | docs/MIGRATION_GUIDE.md                | Orphan; superseded by migration policy and DEV plan stub |
+
+All archived docs are moved under `docs/archive/deprecated/2025-11/` to preserve traceability.
+
+### Archived Completions (2025-11-04)
+
+| Old Location                                  | Action  | New Location                                                | Reason                                 |
+| --------------------------------------------- | ------- | ----------------------------------------------------------- | -------------------------------------- |
+| COMPLETION_PHASE3_DAY4_ISSUE_DETAIL_PAGE.md   | Archive | docs/archive/completions/2025-11/COMPLETION_PHASE3_DAY4_ISSUE_DETAIL_PAGE.md | Agent completion artifact; archived    |
+| COMPLETION_PHASE3_DAYS_5_6_FIVE_PAGES.md      | Archive | docs/archive/completions/2025-11/COMPLETION_PHASE3_DAYS_5_6_FIVE_PAGES.md    | Agent completion artifact; archived    |
+| COMPLETION_PHASE3_TESTING_QA.md               | Archive | docs/archive/completions/2025-11/COMPLETION_PHASE3_TESTING_QA.md             | Agent completion artifact; archived    |
+| COMPLETION_WEEK_1.5_PHASE_3_DAY_4.md          | Archive | docs/archive/completions/2025-11/COMPLETION_WEEK_1.5_PHASE_3_DAY_4.md        | Agent completion artifact; archived    |
+| WEEK_1_5_PHASE_1_COMPLETION.md                | Archive | docs/archive/completions/2025-11/WEEK_1_5_PHASE_1_COMPLETION.md              | Agent completion artifact; archived    |
+| WEEK_1_5_PHASE_2_COMPLETION.md                | Archive | docs/archive/completions/2025-11/WEEK_1_5_PHASE_2_COMPLETION.md              | Agent completion artifact; archived    |
+| WEEK_1_DAYS_3_4_COMPLETION.md                 | Archive | docs/archive/completions/2025-11/WEEK_1_DAYS_3_4_COMPLETION.md               | Agent completion artifact; archived    |
+| WEEK_1_DAY_2_COMPLETION.md                    | Archive | docs/archive/completions/2025-11/WEEK_1_DAY_2_COMPLETION.md                  | Agent completion artifact; archived    |
+| WEEK_1_DAY_5_COMPLETION.md                    | Archive | docs/archive/completions/2025-11/WEEK_1_DAY_5_COMPLETION.md                  | Agent completion artifact; archived    |
+| docs/COMPLETION_PHASE_5_FINAL_INTEGRATION.md  | Archive | docs/archive/completions/2025-11/COMPLETION_PHASE_5_FINAL_INTEGRATION.md     | Agent completion artifact; archived    |
+| .claude/PHASES_6-8_COMPLETION.md              | Archive | docs/archive/completions/2025-11/PHASES_6-8_COMPLETION.md                    | Agent completion artifact; archived    |
+| .claude/PHASE_5_COMPLETION.md                 | Archive | docs/archive/completions/2025-11/PHASE_5_COMPLETION.md                        | Agent completion artifact; archived    |
+
 ## 3. Reading Paths
 
 ### Path 1: Developer (Implementation Focus)

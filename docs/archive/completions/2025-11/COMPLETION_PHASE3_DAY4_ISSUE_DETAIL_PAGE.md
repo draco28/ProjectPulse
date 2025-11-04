@@ -509,3 +509,4 @@ pnpm playwright test issue-detail.spec.ts
 ---
 
 **🎉 Ready for next phase: Search & Filtering!**
+<!-- Archived 2025-11-04: moved to docs/archive/completions/2025-11/ -->

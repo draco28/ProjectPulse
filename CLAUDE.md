@@ -780,9 +780,9 @@ Me: [Generates SOP, updates .agent/ docs]
 
 **Your existing workflow** (unchanged):
 
-1. Create completion doc (COMPLETION_TEMPLATE.md)
-2. Update STATUS.md
-3. Update docs/13-Project-Plan.md
+1. Update STATUS.md
+2. Update docs/13-Project-Plan.md (and docs/12-Backlog.md if needed)
+3. Optional: Create completion doc (COMPLETION_TEMPLATE.md) — will be archived under `docs/archive/completions/`
 4. Commit and push
 
 **Optional - New** (when feature introduces new patterns): 5. Ask me to generate SOP:

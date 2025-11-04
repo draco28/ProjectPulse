@@ -1,8 +1,17 @@
-# ðŸ—ï¸ ProjectPulse - Complete Documentation Package
+# [RETIRED] ProjectPulse - Legacy Index
 
 **Version:** 1.0 Final  
 **Last Updated:** October 23, 2025  
-**Status:** Production Ready âœ…
+**Status:** Retired — see docs/README.md
+
+This index is retired. Use the canonical docs index instead:
+
+- docs/README.md — Overview and reading paths
+- docs/03-Architecture.md — System Architecture
+- docs/13-Project-Plan.md — Implementation Roadmap
+- docs/12-Backlog.md — Product Backlog
+
+Historical content below remains for reference only.
 
 ---
 

@@ -11,7 +11,7 @@ Despite having:
 1. ✅ Complete mockup HTML (`mockups/dashboard-dark-neumorphic-coral.html`)
 2. ✅ 1200-line UI Transformation Plan
 3. ✅ Complete theme folder with all design specifications
-4. ✅ Detailed documentation (STATUS.md, DEVELOPMENT_PLAN.md, WORKFLOW_ARCHITECTURE.md)
+4. ✅ Detailed documentation (STATUS.md, docs/13-Project-Plan.md, WORKFLOW_ARCHITECTURE.md)
 
 **The current dashboard is completely different from the mockup.**
 

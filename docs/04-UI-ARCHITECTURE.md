@@ -1155,7 +1155,7 @@ import { FocusTrap } from '@headlessui/react';
 - **Mockup Features:** [mockups/MOCKUPS_COMPLETE.md](../mockups/MOCKUPS_COMPLETE.md)
 - **Quick Reference:** [mockups/QUICK_REFERENCE.md](../mockups/QUICK_REFERENCE.md)
 - **Workflow:** [WORKFLOW_ARCHITECTURE.md](WORKFLOW_ARCHITECTURE.md)
-- **Backend Plan:** [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)
+- **Backend Plan:** [docs/13-Project-Plan.md](13-Project-Plan.md)
 - **shadcn/ui Docs:** https://ui.shadcn.com/
 - **Tailwind CSS Docs:** https://tailwindcss.com/docs
 - **WCAG Guidelines:** https://www.w3.org/WAI/WCAG21/quickref/
