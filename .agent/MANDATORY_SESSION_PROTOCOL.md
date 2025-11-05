@@ -53,10 +53,16 @@ Proceed with [phase name].
 
 - [ ] Read `STATUS.md` - understand current phase and progress
 - [ ] Read `docs/13-Project-Plan.md` and `docs/12-Backlog.md` - understand roadmap and stories
+- [ ] **Read memory bank files (REQUIRED EVERY SESSION):**
+  - [ ] `.agent/project-brief.md` - project goals, constraints, success criteria
+  - [ ] `.agent/system-patterns.md` - architecture patterns, established conventions
+  - [ ] `.agent/tech-context.md` - tech stack, dependencies, environment constraints
+  - [ ] `.agent/active-context.md` - recent work, current focus, blockers
+  - [ ] `.agent/progress.md` - overall progress, completion %, lessons learned
 - [ ] Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
   - Document: Current phase, goals, requirements from STATUS.md
   - Include: Token budget (200K), session start time, deliverables
-- [ ] Read relevant `.agent/` context files based on phase keywords:
+- [ ] Read phase-specific `.agent/system/` reference files:
   - API work → `.agent/system/api-catalog.md`
   - Database work → `.agent/system/database-schema.md`
   - Component work → `.agent/system/component-patterns.md`
@@ -71,7 +77,13 @@ Proceed with [phase name].
 Created: .agent/task/current-session-[YYYYMMDD-HHMM].md
 Current phase: [phase name from STATUS.md]
 Goals: [brief description of what needs to be done]
-Token budget: [current]/200K
+Memory banks loaded:
+  ✓ project-brief.md (goals, constraints)
+  ✓ system-patterns.md (architecture patterns)
+  ✓ tech-context.md (tech stack)
+  ✓ active-context.md (recent work, blockers)
+  ✓ progress.md (completion %)
+Token budget: [current]/200K (including memory banks: ~8-10K)
 ```
 
 **If you don't see this confirmation, I skipped Step 1. Stop me immediately.**
@@ -264,6 +276,29 @@ Next checkpoint: 45K tokens
   - Update git status if needed
 - [ ] Verify `docs/13-Project-Plan.md` (roadmap) and `docs/12-Backlog.md` (stories) if scope changed
 
+### Required Memory Bank Updates
+
+**Update memory banks to reflect session work (REQUIRED EVERY SESSION):**
+
+- [ ] Update `.agent/active-context.md`:
+  - What was just completed
+  - Current focus for next session
+  - Recent technical decisions made
+  - Current blockers (if any)
+- [ ] Update `.agent/progress.md` (if milestone/phase complete):
+  - Overall completion percentage
+  - Update phase/day status (mark complete)
+  - Add lessons learned
+  - Update velocity metrics
+- [ ] Update `.agent/system-patterns.md` (if new patterns established):
+  - Add new architecture patterns discovered
+  - Document new conventions established
+  - Update existing patterns if refined
+- [ ] Update `.agent/tech-context.md` (if stack changed):
+  - Add new dependencies
+  - Document new environment constraints
+  - Update performance targets if changed
+
 ### Required Sub-Agent Invocations
 
 **If new patterns were created:**
@@ -300,16 +335,22 @@ Next checkpoint: 45K tokens
 ✅ STEP 5 COMPLETE: All documentation updated and committed
 
 Documentation updates:
-- Created COMPLETION_[PHASE].md
-- Updated STATUS.md with completion summary
-- Roadmap verified in docs/13-Project-Plan.md (and docs/12-Backlog.md if applicable)
+- STATUS.md updated
+- docs/13-Project-Plan.md verified
+- Completion doc created (if applicable)
+
+Memory banks updated:
+- active-context.md (recent work, next focus)
+- progress.md (completion %, lessons learned)
+- system-patterns.md (new patterns if any)
+- tech-context.md (stack changes if any)
 
 Sub-agent invocations:
-- synthesize-docs → saved SOP to .agent/sops/[topic].md
-- map-system → updated .agent/system/[files].md
+- synthesize-docs → SOP saved
+- map-system → system docs updated
 
 Git commits:
-- [hash] docs: Update documentation after [phase]
+- [hash] docs: Update documentation and memory banks after [phase]
 - [hash] feat: [feature description]
 
 All quality gates passed ✅

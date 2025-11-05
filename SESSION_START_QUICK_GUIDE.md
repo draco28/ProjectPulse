@@ -82,7 +82,13 @@ After pasting the starter prompt, you should see **explicit confirmations** for 
 Created: .agent/task/current-session-[YYYYMMDD-HHMM].md
 Current phase: [phase name]
 Goals: [brief description]
-Token budget: [current]/200K
+Memory banks loaded:
+  ✓ project-brief.md (goals, constraints)
+  ✓ system-patterns.md (architecture patterns)
+  ✓ tech-context.md (tech stack)
+  ✓ active-context.md (recent work, blockers)
+  ✓ progress.md (completion %)
+Token budget: [current]/200K (including memory banks: ~8-10K)
 ```
 
 #### ✅ Step 2: Plan Saved
@@ -202,6 +208,12 @@ Documentation updates:
 - Completion recorded (optional but recommended for complex phases)
 - Updated STATUS.md
 - Verified roadmap in docs/13-Project-Plan.md
+
+Memory banks updated:
+- active-context.md (recent work, next focus)
+- progress.md (completion %, lessons learned)
+- system-patterns.md (new patterns if any)
+- tech-context.md (stack changes if any)
 
 Sub-agent invocations:
 - synthesize-docs → SOP saved

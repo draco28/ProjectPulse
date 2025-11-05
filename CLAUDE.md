@@ -460,7 +460,11 @@ Step 4: Resume
 
 **Then I automatically load skills/.agent/ docs based on phase keywords.**
 
-### Memory Bank System (NEW)
+### Memory Bank System (MANDATORY)
+
+**🚨 REQUIRED BY PROTOCOL: These files must be read EVERY session (Step 1) and updated EVERY session (Step 5).**
+
+See [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md) Step 1 and Step 5 for requirements.
 
 **Structured context files for efficient knowledge retrieval:**
 
