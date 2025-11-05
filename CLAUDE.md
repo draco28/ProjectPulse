@@ -452,11 +452,13 @@ Step 4: Resume
 
 ### Session Start - Read in Order
 
-1. **[STATUS.md](STATUS.md)** - Current snapshot
-2. **[docs/13-Project-Plan.md](docs/13-Project-Plan.md)** - Implementation roadmap
+1. **[docs/13-Project-Plan.md](docs/13-Project-Plan.md)** - Implementation roadmap
+2. **[docs/12-Backlog.md](docs/12-Backlog.md)** - User stories and backlog
 3. **[docs/README.md](docs/README.md)** - Complete documentation index
 4. **This file** (CLAUDE.md) - Integration guide
 5. **[.agent/README.md](.agent/README.md)** - Agent documentation
+
+**Note**: STATUS.md is retired. Use `.agent/progress.md` for current phase and `.agent/active-context.md` for current work.
 
 **Then I automatically load skills/.agent/ docs based on phase keywords.**
 

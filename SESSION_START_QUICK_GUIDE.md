@@ -45,7 +45,7 @@ At the start of **EVERY** session, copy-paste this into Claude Code (use docs/RE
 ```
 MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
 
-Current phase: [copy from STATUS.md → "Current Phase"]
+Current phase: [copy from .agent/progress.md → current phase/day]
 Requirements: [copy brief summary from docs/13-Project-Plan.md; stories from docs/12-Backlog.md]
 
 ENFORCE:
@@ -204,10 +204,10 @@ Which option do you choose?
 ```
 ✅ STEP 5 COMPLETE: All documentation updated and committed
 
-Documentation updates:
-- Completion recorded (optional but recommended for complex phases)
-- Updated STATUS.md
-- Verified roadmap in docs/13-Project-Plan.md
+Project docs updated:
+- docs/13-Project-Plan.md (US-001, US-002 marked complete)
+- docs/12-Backlog.md (no changes - scope unchanged)
+- Completion doc created (if applicable)
 
 Memory banks updated:
 - active-context.md (recent work, next focus)

@@ -51,7 +51,6 @@ Proceed with [phase name].
 
 ### Required Actions
 
-- [ ] Read `STATUS.md` - understand current phase and progress
 - [ ] Read `docs/13-Project-Plan.md` and `docs/12-Backlog.md` - understand roadmap and stories
 - [ ] **Read memory bank files (REQUIRED EVERY SESSION):**
   - [ ] `.agent/project-brief.md` - project goals, constraints, success criteria
@@ -60,7 +59,7 @@ Proceed with [phase name].
   - [ ] `.agent/active-context.md` - recent work, current focus, blockers
   - [ ] `.agent/progress.md` - overall progress, completion %, lessons learned
 - [ ] Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
-  - Document: Current phase, goals, requirements from STATUS.md
+  - Document: Current phase, goals, requirements from .agent/progress.md
   - Include: Token budget (200K), session start time, deliverables
 - [ ] Read phase-specific `.agent/system/` reference files:
   - API work → `.agent/system/api-catalog.md`
@@ -270,11 +269,22 @@ Next checkpoint: 45K tokens
   - If created: Document what was done, files created/modified, technical decisions
   - Include: Quality gate results (type-check, lint, build, tests)
   - Auto-archived under docs/archive/completions/YYYY-MM/
-- [ ] Update `STATUS.md`
-  - Update "Last Completed" section with completion summary
-  - Update "Current Phase" to next phase
-  - Update git status if needed
-- [ ] Verify `docs/13-Project-Plan.md` (roadmap) and `docs/12-Backlog.md` (stories) if scope changed
+
+### Required Project Documentation Updates
+
+**Update project tracking files (when stories/phases complete):**
+
+- [ ] Update `docs/13-Project-Plan.md` traceability matrix:
+  - Mark completed user stories: "Not Started" → "Complete" (e.g., US-001, US-002)
+  - Update sprint checkpoints: "Sprint 1 End: ✅ Foundation operational" (when sprint completes)
+  - Update phase gates: "Phase A Gate: ✅ Can agent complete 5-step protocol?" (when phase completes)
+  - Update weekly milestones as they are achieved
+
+- [ ] Update `docs/12-Backlog.md` (ONLY if scope/priorities changed):
+  - Add new user stories if requirements expanded
+  - Update MoSCoW priorities if changed (e.g., "Should" → "Must")
+  - Update story points if re-estimated after implementation
+  - Update dependencies if new relationships discovered
 
 ### Required Memory Bank Updates
 
@@ -334,9 +344,9 @@ Next checkpoint: 45K tokens
 ```
 ✅ STEP 5 COMPLETE: All documentation updated and committed
 
-Documentation updates:
-- STATUS.md updated
-- docs/13-Project-Plan.md verified
+Project docs updated:
+- docs/13-Project-Plan.md (US-001, US-002 marked complete)
+- docs/12-Backlog.md (no changes - scope unchanged)
 - Completion doc created (if applicable)
 
 Memory banks updated:
