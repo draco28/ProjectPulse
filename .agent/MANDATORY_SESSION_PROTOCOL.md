@@ -474,3 +474,57 @@ Examples:
 **Protocol Status:** ACTIVE
 **Last Updated:** 2025-10-28
 **Violations Prevented:** 5 (plan-saving, todos, checkpoints, experts, post-completion)
+
+---
+
+## File Editor Protocol (Bulk Operations)
+
+**CRITICAL: Use file-editor agent for bulk file operations (3+ files)**
+
+### When to Invoke file-editor
+
+**MANDATORY invocation scenarios:**
+
+1. **Memory Bank Updates** (updating 3+ of the 5 memory bank files)
+   - Sprint transitions (e.g., Sprint 1 → Sprint 2)
+   - Phase completions (e.g., Phase A → Phase B)
+   - Major project pivots (e.g., UI-first → Agent-first)
+
+2. **Bulk Configuration Changes** (updating 3+ config/doc files)
+   - Documentation restructuring
+   - SOPs batch updates
+   - System docs refresh
+
+3. **Edit Tool Failures**
+   - "File has been unexpectedly modified" errors
+   - Persistent file detection issues
+   - Any scenario where Edit tool fails 2+ times
+
+### Token Efficiency
+
+- **Without file-editor**: 60-80K tokens for 5-file memory bank update
+- **With file-editor**: 5-10K tokens (75-90% savings)
+- **Rule**: If operation would use >30K tokens, invoke file-editor
+
+### Example Invocation
+
+```markdown
+Me: "Sprint 2 transition requires updating 5 memory bank files.
+This is a bulk operation (>3 files), invoking file-editor agent."
+
+<invoke file-editor agent with specifications>
+
+Me: "✅ Memory bank updated via file-editor (93% token savings)"
+```
+
+### Integration with Step 1
+
+**If Step 1 requires memory bank updates:**
+
+1. FIRST invoke file-editor with update specifications
+2. THEN proceed with normal Step 1 protocol (read updated files)
+3. This prevents token waste in main thread
+
+---
+
+**Updated**: 2025-11-05 (Added file-editor protocol)

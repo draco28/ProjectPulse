@@ -583,3 +583,219 @@ pnpm update
 ---
 
 Last reviewed: 2025-10-27
+
+---
+
+## MCP Integration
+
+### MCP Server Setup
+
+**Package**: @modelcontextprotocol/sdk
+**Version**: ^1.0.0 (latest stable)
+**Transport**: stdio (standard input/output)
+**Language**: TypeScript (Node.js runtime)
+
+**Installation**:
+
+```bash
+pnpm add @modelcontextprotocol/sdk
+pnpm add -D @types/node
+```
+
+**Project Structure**:
+
+```
+mcp-server/
+├── src/
+│   ├── index.ts              # Server initialization
+│   ├── tools/
+│   │   ├── sprint/           # Sprint tracking tools (7 tools)
+│   │   ├── workflow/         # Workflow orchestration (5 tools)
+│   │   ├── issues/           # Issue management (5 tools)
+│   │   ├── knowledge/        # Knowledge graph (5 tools)
+│   │   ├── skills/           # Skills system (4 tools)
+│   │   ├── wiki/             # Wiki documentation (5 tools)
+│   │   ├── health/           # Project health (4 tools)
+│   │   └── personas/         # Agent personas (4 tools)
+│   ├── lib/
+│   │   ├── prisma.ts         # Prisma client singleton
+│   │   ├── validation.ts     # Zod schemas
+│   │   └── markdown.ts       # Markdown generation
+│   └── types/
+│       └── tools.ts          # Tool type definitions
+├── package.json
+└── tsconfig.json
+```
+
+**Server Initialization**:
+
+```typescript
+// mcp-server/src/index.ts
+import { McpServer } from '@modelcontextprotocol/sdk/server';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
+
+const server = new McpServer({
+  name: 'projectpulse-mcp',
+  version: '1.0.0',
+});
+
+// Register all 42 tools
+import './tools/sprint';
+import './tools/workflow';
+import './tools/issues';
+// ... etc
+
+// Start server
+const transport = new StdioServerTransport();
+await server.connect(transport);
+console.log('MCP server running on stdio');
+```
+
+### Claude Code Configuration
+
+**Location**: `~/.claude/mcp_settings.json` (user config)
+
+```json
+{
+  "mcpServers": {
+    "projectpulse": {
+      "command": "node",
+      "args": ["F:/Web_Projects/AI_HUB/mcp-server/dist/index.js"],
+      "env": {
+        "DATABASE_URL": "postgresql://projectpulse:devpassword@localhost:5432/projectpulse"
+      }
+    }
+  }
+}
+```
+
+**Testing Connection**:
+
+```bash
+# 1. Build MCP server
+cd mcp-server
+pnpm build
+
+# 2. Test stdio communication
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | node dist/index.js
+
+# 3. Expected output: List of 42 tools
+```
+
+### MCP Tool Categories (42 Total)
+
+**1. Sprint/Phase Tracking (7 tools)**:
+
+- `sprint.phase.create` - Create phase
+- `sprint.week.create` - Create week within phase
+- `sprint.day.create` - Create day within week
+- `sprint.task.create` - Create task within day
+- `sprint.session.create` - Create session within task
+- `sprint.getCurrentTask` - Get active task
+- `sprint.checkpoint` - Create progress checkpoint
+
+**2. Workflow Orchestration (5 tools)**:
+
+- `workflow.start` - Start workflow execution
+- `workflow.getCurrentStep` - Get current step
+- `workflow.completeStep` - Mark step complete
+- `workflow.status` - Get workflow status
+- `workflow.recover` - Recover from failure
+
+**3. Issues Management (5 tools)**:
+
+- `issues.create` - Create single issue
+- `issues.createBulk` - Create 10-50 issues at once
+- `issues.update` - Update issue
+- `issues.query` - Search issues
+- `issues.link` - Link issue to task
+
+**4. Knowledge Graph (5 tools)**:
+
+- `knowledge.add` - Add knowledge item
+- `knowledge.query` - Hybrid search (semantic + full-text)
+- `knowledge.relate` - Create relationship
+- `knowledge.traverse` - 2-hop graph traversal
+- `knowledge.semanticSearch` - Semantic search only
+
+**5. Skills System (4 tools)**:
+
+- `skills.list` - List skills (frontmatter only, ~50 tokens)
+- `skills.load` - Load full skill content (~180 tokens)
+- `skills.search` - Search skills by keyword
+- `skills.create` - Create new skill
+
+**6. Wiki Documentation (5 tools)**:
+
+- `wiki.create` - Create wiki page
+- `wiki.update` - Update wiki page
+- `wiki.read` - Read wiki page
+- `wiki.search` - Search wiki
+- `wiki.autoGenerate` - Auto-generate from code
+
+**7. Project Health (4 tools)**:
+
+- `health.scan` - Run scanner (Semgrep, ESLint, etc.)
+- `health.findings` - Get findings by severity
+- `health.score` - Calculate health score
+- `health.remediate` - Mark finding resolved
+
+**8. Agent Personas (4 tools)**:
+
+- `personas.create` - Create persona
+- `personas.list` - List personas
+- `personas.activate` - Activate persona
+- `personas.deactivate` - Deactivate persona
+
+**9. Dashboard (3 tools)** - Cross-cutting:
+
+- `dashboard.getStats` - Get dashboard statistics
+- `dashboard.getActivity` - Get recent activity
+- `dashboard.getProgress` - Get phase/sprint progress
+
+### Development Workflow
+
+**Local Development**:
+
+```bash
+# Terminal 1: Run Next.js app
+pnpm dev
+
+# Terminal 2: Run MCP server in watch mode
+cd mcp-server
+pnpm dev  # Uses ts-node-dev for auto-reload
+
+# Terminal 3: Test MCP tools
+pnpm test:mcp
+```
+
+**Testing MCP Tools**:
+
+```bash
+# Unit tests (Jest)
+pnpm test mcp-server/src/tools/**/*.test.ts
+
+# Integration tests (invoke tools via stdio)
+pnpm test:integration mcp-server/tests/integration/**/*.test.ts
+```
+
+### Dependencies Added for Sprint 1
+
+```json
+{
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0"
+  }
+}
+```
+
+---
+
+**This section documents MCP integration setup. See system-patterns.md for MCP tool implementation patterns.**
+
+---
+
+Last updated: 2025-11-05

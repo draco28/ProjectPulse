@@ -1,8 +1,8 @@
 # Active Context
 
-**Last Updated**: 2025-10-29
-**Current Phase**: Week 1.5 Phase 3 - Page Transformation (Day 4 of 7 Complete)
-**Branch**: `master` (feature/phase4-dynamic-filters merged)
+**Last Updated**: 2025-11-05
+**Current Phase**: Sprint 1 - Foundation Setup (Weeks 1-2, Day 1)
+**Branch**: `master` (will create feature/sprint-1-foundation for Sprint 1 work)
 
 ---
 
@@ -10,204 +10,122 @@
 
 ### What We're Working On
 
-**Phase**: Week 1.5 Phase 3 - Page Transformation (Days 4-7)
-**Status**: Day 4 COMPLETE (50% through Phase 3), Days 5-7 REMAINING
-**Duration**: 7 days total (4 days complete, 3 days remaining)
+**Sprint**: Sprint 1 - Foundation Setup (Weeks 1-2)
+**Status**: Day 1 - Memory bank updates in progress
+**Duration**: 2 weeks (10 working days, 60 hours capacity, 52 story points)
 
-**Immediate Next Task**: Day 6 - Knowledge Base + Wiki pages (Day 5 Issue Detail BLOCKED - waiting for mockup)
+**Immediate Next Task**: Complete memory bank updates, then design Prisma schema for 5-level hierarchy
 
-**Recommended Path**: Proceed with Days 6-7 (Knowledge Base, Wiki, Security, Agents, Command Palette) while waiting for Issue Detail mockup
+**Sprint 1 Goal**: Establish 5-level hierarchy with progress tracking and MCP server scaffold
+
+**Key Deliverables:**
+
+1. Prisma schema with 5 new models (Phase, Week, Day, Task, Session)
+2. Progress roll-up algorithm (Session 100% → propagates to Phase)
+3. MCP server scaffold (Node.js, stdio transport)
+4. First 7 MCP tools (sprint.phase.create, sprint.getCurrentTask, sprint.checkpoint, etc.)
+5. Validation: Foreign keys, progress 0.0-1.0, timestamps
 
 ---
 
 ## Recent Changes
 
-### Day 4 Complete (October 29, 2025)
+### Sprint 1 Transition (November 5, 2025)
 
-**Dynamic Issue Filters - COMPLETE** ✅
+**Memory Bank Updates - IN PROGRESS** 🔄
 
-**What Was Implemented**:
+**What's Being Updated**:
 
-- Replaced hardcoded filter options with database-backed system
-- 3 new Prisma models (IssueStatusOption, IssuePriorityOption, IssueModuleOption)
-- Dynamic filter options API endpoint (GET /api/settings/filters)
-- Refactored FilterSidebar to accept dynamic options as props
-- Created useFilterParams hook for URL state management
-- Comprehensive test suite (52 tests passing)
+- Transitioned from Week 1.5 UI-First to Sprint 1 Agent-First architecture
+- Created SPRINT_1_TRANSITION.md comprehensive guide
+- Updated project-brief.md with agent-first mission and 16-week roadmap
+- Updating active-context.md, progress.md, system-patterns.md, tech-context.md
 
-**Technical Details**:
+**Key Changes**:
 
-- Database: 3 new models with indexes, upsert-based seeding
-- API: GET /api/settings/filters with ISR caching (1 hour TTL)
-- Helpers: getFilterOptions() with unstable_cache, parallel count queries
-- Types: Full TypeScript interfaces + Zod schemas for runtime validation
-- Hook: useFilterParams with CSV parsing and memoization
-- Tests: Unit (filters.test.ts) + Hook (useFilterParams.test.ts) + Component (FilterSidebar.test.tsx) + API (route.test.ts)
+- **Mission**: UI-first developer hub → Agent-first MCP platform
+- **Primary User**: Human developers (95%) → AI agents (95% via MCP)
+- **Roadmap**: 6-week UI transformation → 16-week agent-first MVP (8 sprints, 426 points)
+- **Focus**: Neumorphic design → MCP tools + Database as source of truth
 
-**Quality Metrics**:
+**Preservation Strategy**:
 
-- TypeScript: Zero errors
-- Test Coverage: 100% for new code (52/52 passing)
-- ESLint: Zero warnings
-- Build: Success
-
-**Files**:
-
-- 8 files created (types, lib, API, hook, 4 test files)
-- 2 files modified (FilterSidebar, issues/page.tsx)
-- ~950 lines added
-
-**Commits**:
-
-- `fe2584d` - feat(filters): implement dynamic DB-driven issue filters
-- `f749dcf` - test: add comprehensive test suite for Phase 4 dynamic filters
-
-**Impact**: Filter options now admin-manageable via database without code changes
+- Week 1.5 work: 40-50% reusable (Issues UI, theme, 30+ components)
+- Archived location: docs/archive/ui-first-phase/
+- Sprint 4 will integrate Issues UI with MCP tools layer
 
 ---
 
-### Day 3 Complete (October 26, 2025)
+### Week 1.5 Completion Summary (October 29, 2025)
 
-**Issues List Page - COMPLETE** ✅
+**Last Major Milestone**: Dynamic Issue Filters Complete ✅
 
-(See progress.md for full details - preserved for historical reference)
+**What Was Built**:
 
----
+- 7 UI pages with Coral neumorphic theme (Dashboard, Issues, Knowledge, Wiki, Security, Agents, Command Palette)
+- Dynamic filters system (database-driven, 52 tests passing)
+- 17 Prisma models
+- 30+ reusable UI components
+- Comprehensive test suite (E2E with Playwright)
 
-## Phase 3 Remaining Tasks (Days 5-7)
+**Quality Achieved**:
 
-### Day 5: Issue Detail Page - BLOCKED
+- TypeScript: 0 errors (strict mode)
+- Test Coverage: 100% for new code
+- Accessibility: WCAG 2.1 AA compliant
+- Performance: <1s page loads
 
-**Status**: Waiting for mockup file from user
-
-**Note**: Can skip to Day 6 (Knowledge Base + Wiki) and return to Day 5 when mockup arrives
-
-**When Ready, Will Implement**:
-
-1. **Server Component** for Issue Detail page layout
-   - Prisma query with select/include optimization
-   - Fetch issue + comments + attachments + history relations
-
-2. **Client Components** for interactivity
-   - CommentList component
-   - CommentForm with optimistic updates
-   - Status change controls
-
-3. **Prisma Queries**
-   - Issue detail with all relations
-   - Timeline/activity feed
-   - Comment submission
-
-4. **Server Actions**
-   - Status updates with Zod validation
-   - Comment creation
-   - Attachment handling
-
-5. **Playwright E2E Test**
-   - Open issue → add comment → change status workflow
-   - Verify optimistic updates
-   - Check validation errors
-
-**Expected Skills**: component-patterns, database-patterns, api-patterns, testing-patterns
-**Expected Agents**: react-expert, next-js-expert
-**Expected Sub-Agents**: explore-codebase (find comment/timeline patterns), analyze-architecture (trace data flows)
-
-**Research Needed**:
-
-- Existing comment patterns in codebase
-- Issue → Comments → Status data flow (UI → API → DB)
-
-**Deliverables**:
-
-- `app/issues/[id]/page.tsx` (Server Component)
-- `components/issues/CommentList.tsx`, `CommentForm.tsx` (Client)
-- `app/api/issues/[id]/status/route.ts` (API or Server Action)
-- `tests/e2e/issue-detail.spec.ts` (Playwright)
-
-**Acceptance Criteria**:
-
-- Status update reflects immediately (optimistic UI)
-- Comments list updates after submission
-- Zod validation errors shown inline
-- Playwright flow passes completely
+**Final Commit**: `f749dcf` - test: add comprehensive test suite for Phase 4 dynamic filters
 
 ---
 
-### Days 5-6: Remaining Pages
+## Sprint 1 Tasks (US-001 to US-014)
 
-**Status**: Can start if Day 4 mockup delayed
+### Week 1: Foundation Setup (Days 1-5)
 
-**5 Pages to Transform**:
+**Day 1 (Nov 5): Memory Bank + Planning** ⏳ IN PROGRESS
 
-1. **Knowledge Base page**
-   - API: GET /api/knowledge, GET /api/search
-   - Components: DocumentCard, CategoryPills, SearchBar
-   - Testing: Playwright E2E for search → open document
+- Update memory bank files to Sprint 1 context
+- Review docs/13-Project-Plan.md Sprint 1 section
+- Review docs/12-Backlog.md US-001 to US-014
+- Create Sprint 1 implementation plan
 
-2. **Wiki page**
-   - API: GET /api/wiki/[slug], GET /api/wiki/[slug]/related
-   - Components: WikiSidebar, TableOfContents, CodeBlock, Callout
-   - Testing: Playwright E2E for TOC navigation
+**Day 2-3: Prisma Schema Design** ⏳
 
-3. **Security page**
-   - API: GET /api/security/{score,vulnerabilities,scanners}
-   - Components: SecurityScoreMeter, VulnerabilityCard
-   - Testing: Playwright E2E for run scan → verify list
+- Design Phase/Week/Day/Task/Session models
+- Define relationships and foreign keys
+- Create migration scripts
+- Seed sample data
 
-4. **Agent Personas page**
-   - API: GET /api/agents, POST /api/agents/[id]/activate
-   - Components: AgentCard, AgentDetail, ToggleSwitch
-   - Testing: Playwright E2E for toggle agent
+**Day 4-5: MCP Server Scaffold** ⏳
 
-5. **Command Palette**
-   - Client Component: Full keyboard navigation (Cmd+K)
-   - Search: Fuzzy search across all entities
-   - Testing: React Testing Library for keyboard nav
+- Initialize MCP server project (@modelcontextprotocol/sdk)
+- Configure stdio transport
+- Create tool registration system
+- Test connection with Claude Code
 
-**Mockup References**:
+### Week 2: MCP Tools Implementation (Days 6-10)
 
-- [03-knowledge-dark-neumorphic-coral.html](../mockups/Default theme/03-knowledge-dark-neumorphic-coral.html)
-- [04-wiki-dark-neumorphic-coral.html](../mockups/Default theme/04-wiki-dark-neumorphic-coral.html)
-- [05-security-dark-neumorphic-coral.html](../mockups/Default theme/05-security-dark-neumorphic-coral.html)
-- [06-agent-personas-dark-neumorphic-coral.html](../mockups/Default theme/06-agent-personas-dark-neumorphic-coral.html)
-- [07-command-palette-dark-neumorphic-coral.html](../mockups/Default theme/07-command-palette-dark-neumorphic-coral.html)
+**Day 6-7: Core MCP Tools** ⏳
 
----
+- Implement sprint.phase.create
+- Implement sprint.getCurrentTask
+- Implement sprint.checkpoint
+- Unit tests for all tools
 
-## Current Session Context
+**Day 8-9: Progress Tracking** ⏳
 
-### What User Expects
+- Implement progress roll-up algorithm
+- Implement sprint.updateProgress
+- Integration tests for hierarchy
+- Validate progress calculations
 
-**User's Workflow**:
+**Day 10: Sprint 1 Completion** ⏳
 
-1. User says: "Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase"
-2. Claude handles everything:
-   - Auto-loads relevant skills based on keywords
-   - Invokes sub-agents for research
-   - Invokes experts for complex decisions
-   - Uses MCP tools (Playwright, postgres, docker-devhub)
-3. User reviews and approves
-
-**Skills System**:
-
-- Skills auto-load based on keywords in STATUS.md, docs/13-Project-Plan.md, and docs/12-Backlog.md
-- Lazy-loading: Load tier 1 (most recent), tier 2 on mention, tier 3 on explicit request
-- Auto-unload after 10 turns or 50K tokens
-
-**Sub-Agents**:
-
-- `explore-codebase`: Scan repo for patterns (saves 20-30K tokens in main thread)
-- `analyze-architecture`: Trace system flows (returns concise summary)
-- `synthesize-docs`: Generate SOPs after feature completion
-- `map-system`: Update system documentation
-
-**Memory Bank Structure** (NEW - implementing today):
-
-- `project-brief.md`: Core requirements, goals, success criteria
-- `system-patterns.md`: Architecture, patterns, conventions
-- `tech-context.md`: Stack, dependencies, constraints
-- `active-context.md`: Current focus, recent changes (THIS FILE)
-- `progress.md`: What's done, what's left, metrics
+- Final testing and validation
+- Sprint 1 completion document
+- Demo MCP tools with Claude Code
+- Prepare Sprint 2 planning
 
 ---
 
@@ -215,134 +133,118 @@
 
 ### Blockers
 
-**Issue Detail Mockup Missing**:
+**None currently** - Sprint 1 has no external dependencies
 
-- User will provide mockup file for issue detail page
-- Can proceed with Knowledge Base page (Day 5) if delayed
-- No technical blocker - just waiting for design reference
+### Technical Decisions Needed
 
-### Recent Fixes
+**1. MCP Server Location**
 
-**Port Configuration** (2025-10-25):
+- Option A: Monorepo structure (mcp-server/ folder in same repo)
+- Option B: Separate repo (projectpulse-mcp-server)
+- **Recommendation**: Option A (simpler for solo dev, easier testing)
 
-- Fixed port 3002 → 3000 issue
-- Updated package.json dev script
-- Documented in `.agent/sops/port-troubleshooting.md`
+**2. Embedding Provider**
 
-**Database Connection** (2025-10-25):
+- Option A: OpenAI text-embedding-3-small ($5/month, 384 dimensions)
+- Option B: Local Ollama (free, 384 dimensions)
+- **Recommendation**: Ollama for MVP, OpenAI as optional upgrade
 
-- Fixed PrismaClient instantiation (singleton pattern)
-- Resolved connection pool exhaustion
-- Added proper error handling
+**3. Prisma Migration Strategy**
 
-**Hydration Error** (2025-10-25):
-
-- Fixed deterministic comment count rendering
-- Resolved client/server mismatch
-- Documented solution for future reference
+- Option A: prisma migrate dev (development)
+- Option B: prisma db push (rapid prototyping)
+- **Recommendation**: Option A (proper migrations for production path)
 
 ---
 
 ## Dependencies / Waiting On
 
-### Waiting from User
+### No External Dependencies
 
-1. **Issue Detail Mockup**: User will provide HTML mockup file for issue detail page
-2. **Decision on Day 4 vs Day 5**: If mockup delayed, proceed with Knowledge Base?
+- All source documents complete (PRD, SRS, Architecture, Backlog)
+- Week 1.5 work preserved and documented
+- Development environment ready (Docker, PostgreSQL, Node.js)
+- No waiting on mockups or external approvals
 
-### No Technical Blockers
+### Internal Dependencies (Sprint 1)
 
-- All dependencies installed
-- Docker containers running
-- Database seeded
-- Build passing
-- Tests passing (where implemented)
+**US-002 → US-001**: Week creation depends on Phase existing
+**US-003 → US-002**: Day creation depends on Week existing
+**US-004 → US-003**: Task creation depends on Day existing
+**US-005 → US-004**: Session creation depends on Task existing
+
+**All dependencies are sequential within Sprint 1 - no blockers**
 
 ---
 
 ## Session Metadata
 
-**Start Date**: October 26, 2025
-**Current Time**: ~12:00 AM
-**Session Type**: Development (Phase 3 Day 3 just completed)
-
-**Last Commands**:
-
-```bash
-pnpm dev          # Server running on port 3000
-pnpm type-check   # Passing
-pnpm lint         # Passing
-pnpm build        # Success
-```
+**Start Date**: November 5, 2025
+**Current Session**: Sprint 1 Day 1 - Memory bank updates
+**Session Type**: Planning + Foundation setup
 
 **Git Status**:
 
 - Branch: master
-- Feature Branch Merged: feature/phase4-dynamic-filters (PR #2, squash merged)
-- Last Commits:
-  - `fe2584d` - feat(filters): implement dynamic DB-driven issue filters
-  - `f749dcf` - test: add comprehensive test suite for Phase 4 dynamic filters
-- Uncommitted: Documentation reconciliation in progress (STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md, progress.md, active-context.md)
+- Last commits: Week 1.5 work (UI transformation complete)
+- Next branch: feature/sprint-1-foundation
+- Uncommitted: Memory bank updates in progress
+
+**Development Environment**:
+
+- pnpm dev: Ready (port 3000)
+- PostgreSQL: Running (Docker container)
+- Docker: All containers operational
+- Build: Passing (Week 1.5 final state)
 
 ---
 
-## Next Steps (When User Returns)
+## Next Steps (Immediate)
 
-### Recommended: Start Day 6 (Knowledge Base + Wiki)
+### Today (Nov 5)
 
-**Rationale**: Day 5 (Issue Detail) is blocked waiting for mockup. Can proceed with Days 6-7 independently.
+1. ✅ Create SPRINT_1_TRANSITION.md guide
+2. 🔄 Complete memory bank updates (active-context, progress, system-patterns, tech-context)
+3. ⏳ Read docs/13-Project-Plan.md Sprint 1 section
+4. ⏳ Read docs/12-Backlog.md US-001 to US-014
+5. ⏳ Design Prisma schema for 5-level hierarchy
 
-**Steps**:
+### Tomorrow (Nov 6)
 
-1. Start with Knowledge Base page (mockup: 03-knowledge-dark-neumorphic-coral.html)
-2. Implement API endpoints: GET /api/knowledge, GET /api/search
-3. Create components: DocumentCard, CategoryPills, SearchBar, Filters
-4. Add Playwright E2E test
-5. Move to Wiki page (mockup: 04-wiki-dark-neumorphic-coral.html)
-6. Continue with Security + Agent Personas + Command Palette (Day 7)
-7. Complete Phase 4: Responsive & Polish (Day 8)
+1. ⏳ Create feature/sprint-1-foundation branch
+2. ⏳ Implement Phase/Week/Day/Task/Session models in Prisma
+3. ⏳ Create and run migrations
+4. ⏳ Seed sample Sprint 1 data
 
-### Alternative: Wait for Issue Detail Mockup (Day 5)
+### This Week (Nov 7-9)
 
-**If mockup becomes available**:
-
-1. Review issue detail mockup HTML
-2. Plan component structure (5 components: IssueHeader, CommentList, CommentForm, Timeline, StatusControls)
-3. Implement with Server Components + Server Actions
-4. Add optimistic UI updates
-5. Create Playwright E2E test
-6. Then proceed with Days 6-8
-
-### Alternative: Documentation Work
-
-**If user prefers non-coding tasks**:
-
-1. Complete documentation reconciliation (in progress)
-2. Create COMPLETION_WEEK_1.5_PHASE_3_DAY_4.md
-3. Update system docs (api-catalog.md, component-patterns.md)
-4. Generate SOPs for new patterns
+1. ⏳ Initialize MCP server project structure
+2. ⏳ Configure stdio transport
+3. ⏳ Implement first 3 MCP tools
+4. ⏳ Test MCP server connection with Claude Code
 
 ---
 
 ## Quick References
 
-**Current Documentation**:
+**Sprint 1 Planning Docs**:
 
-- [STATUS.md](../STATUS.md) - Current snapshot
-- [13-Project-Plan.md](../docs/13-Project-Plan.md) - Roadmap
-- [12-Backlog.md](../docs/12-Backlog.md) - User stories
-- [UI_TRANSFORMATION_PLAN.md](../docs/UI_TRANSFORMATION_PLAN.md) - Phase 3 details
+- [13-Project-Plan.md](../docs/13-Project-Plan.md) - Sprint 1 section (52 points, US-001 to US-014)
+- [12-Backlog.md](../docs/12-Backlog.md) - User stories details
+- [02-SRS.md](../docs/02-SRS.md) - Functional requirements (FR-001 to FR-025)
+- [SPRINT_1_TRANSITION.md](SPRINT_1_TRANSITION.md) - Transition guide from Week 1.5
 
-**Recent Completions**:
+**Architecture References**:
 
-- [WEEK_1_5_PHASE_2_COMPLETION.md](../WEEK_1_5_PHASE_2_COMPLETION.md) - Dashboard transform
-- [WEEK_1_5_PHASE_1_COMPLETION.md](../WEEK_1_5_PHASE_1_COMPLETION.md) - Theme removal
+- [03-Architecture.md](../docs/03-Architecture.md) - System design
+- [04-Data-and-Model-Spec.md](../docs/04-Data-and-Model-Spec.md) - Prisma schema (10 models)
+- [05-AgentOps-Plan.md](../docs/05-AgentOps-Plan.md) - MCP tools catalog
 
-**SOPs**:
+**Week 1.5 Preservation**:
 
-- [port-troubleshooting.md](sops/port-troubleshooting.md)
-- [git-workflow.md](sops/git-workflow.md)
-- [adding-api-endpoint.md](sops/adding-api-endpoint.md)
+- [docs/archive/ui-first-phase/](../docs/archive/ui-first-phase/) - Archived UI work
+- Issues pages: Reusable in Sprint 4
+- Theme system: Apply to new Sprint/Workflow pages
 
 ---
 
@@ -350,4 +252,5 @@ pnpm build        # Success
 
 ---
 
-Last reviewed: 2025-10-27
+Last reviewed: 2025-11-05
+Next review: End of Sprint 1 Day 1 (after memory bank updates complete)

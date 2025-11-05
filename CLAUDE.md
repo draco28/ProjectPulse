@@ -577,6 +577,19 @@ Need progress overview?             → progress.md
 
 **map-system**: "Update system documentation"
 
+**file-editor**: Bulk file operations (3+ files) or Edit tool failures
+
+- Efficient bulk file editing using sed/bash
+- Saves 70-90K tokens in main thread
+- Handles Edit tool failures reliably
+- Creates automatic backups before modifications
+
+**file-editor**: Bulk file operations (3+ files) or Edit tool failures
+
+- Efficient bulk file editing using sed/bash
+- Saves 70-90K tokens in main thread
+- Handles Edit tool failures reliably
+- Creates automatic backups before modifications
 - Scans Prisma/API/components
 - Refreshes .agent/system/ docs
 

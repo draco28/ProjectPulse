@@ -228,7 +228,7 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 **Human Workflow:**
 
 ```
-1. Open Issues List page (already built, Week 1.5)
+1. Open Issues List page (already built, Sprint 0)
 2. Review agent-created issues
 3. Bulk approve/reject via UI checkboxes
 4. Manually create issue for business logic bug (agent can't infer)
@@ -379,7 +379,7 @@ Project
 
 **MCP Tools:** `issues.create()`, `issues.createBulk()`, `issues.update()`, `issues.query()`, `issues.link()`
 
-**UI:** Already built (Week 1.5) - Issues List, Issue Detail pages with filtering, sorting, rich text editor
+**UI:** ✅ 100% Complete (Sprint 0) - Issues List, Issue Detail pages with filtering, sorting, comments, attachments (all 14 components built)
 
 ---
 
@@ -595,9 +595,9 @@ Project
 
 ---
 
-## 8. Completed Work Integration (Week 1.5 Preservation)
+## 8. Completed Work Integration (Sprint 0 Preservation)
 
-### 8.1 What Was Built (UI-First Phase)
+### 8.1 What Was Built (Sprint 0 - UI Foundation)
 
 **7 UI Pages (100% Complete):**
 
@@ -613,24 +613,23 @@ Project
 
 **Dark Neumorphic Coral Theme:** Fully responsive, WCAG 2.1 AA accessible
 
-### 8.2 Preservation Strategy (40-50% Reusable)
+### 8.2 Preservation Strategy (100% UI Complete)
 
-**Directly Reusable (40%):**
+**Sprint 0 Status:** ✅ All UI work complete (7 pages, 45+ components)
 
-- **Issues pages:** Already perfect, add MCP tools layer on top
-- **Theme system:** Apply to new Sprint/Workflow/Skills pages
-- **Component patterns:** 30+ reusable components (neumorphic cards, buttons, forms)
+**Directly Reusable (100% of UI):**
 
-**Adaptable (30%):**
+- **Issues pages:** 100% complete (all 14 components built) - Sprint 4 adds backend integration only
+- **Theme system:** Static Coral theme with neumorphic design - ready for all pages
+- **Component patterns:** 45+ reusable components (neumorphic cards, buttons, forms, widgets)
+- **All 7 pages:** Dashboard, Issues List/Detail, Knowledge, Wiki, Security, Agents - fully styled and functional
 
-- **Knowledge pages:** Add pgvector embeddings, graph visualization
-- **Wiki pages:** Add auto-generation from code
-- **Database models:** Extend with new models (Phase, Week, Day, Task, Session)
+**Backend Integration Needed (Sprints 1-8):**
 
-**Deprecated (30%):**
-
-- **Manual workflows:** Replaced by MCP-driven automation
-- **Security dashboard:** Renamed to Project Health, add scanner integration
+- **Phase/Week/Day/Task/Session models:** UI widgets ready (dashboard stats, progress cards)
+- **MCP tools:** Wire existing UI to backend tools (no UI changes needed)
+- **Database queries:** Connect Server Components to real workflow data
+- **Search features:** Add pgvector for semantic search (UI already has search inputs)
 
 ### 8.3 Integration Approach
 
@@ -660,7 +659,7 @@ Project
 - [x] Success metrics defined (token efficiency, autonomy, quality)
 - [x] Constraints documented (budget, region, stack, timeline)
 - [x] Out of scope items listed (10 exclusions)
-- [x] Week 1.5 work preservation strategy (40-50% reusable)
+- [x] Sprint 0 work preservation strategy (100% UI complete - documented in docs/13-Project-Plan.md)
 
 ---
 

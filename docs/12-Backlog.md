@@ -186,8 +186,8 @@ PRD (Features) → Backlog (Epics) → Backlog (Stories) → SRS (FRs) → Testi
 **FR Range:** FR-051 to FR-070
 **Total Points:** ~62 points
 **MoSCoW:** Must Have
-**Dependencies:** None (standalone feature, UI already built in Week 1.5)
-**Sprint Allocation:** Phase B Week 7-8 (3-4 sprints)
+**Dependencies:** Sprint 0 (Issues UI 100% complete - all 14 components, pages, and API routes already built)
+**Sprint Allocation:** Sprint 4 (Backend Integration Only - connect UI to MCP tools)
 
 ---
 

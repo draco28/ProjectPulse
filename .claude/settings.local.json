@@ -14,7 +14,9 @@
       "Bash(tail:*)",
       "Bash(cat:*)",
       "Bash(for file in next-js-expert.md react-expert.md prisma-expert.md)",
-      "Bash(do)"
+      "Bash(do)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": [

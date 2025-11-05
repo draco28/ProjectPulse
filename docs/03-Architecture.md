@@ -1567,6 +1567,509 @@ C4Component
 
 ---
 
+### 3.10 UI Layer Architecture (Sprint 0 - Pre-work Complete)
+
+**NOTE:** This section documents the UI layer implemented in **Sprint 0** (October 25-28, 2025) as pre-work before the main backend implementation plan. The UI is **100% complete** and serves as the foundation for backend MCP tool integration in Sprints 1-8.
+
+---
+
+#### 3.10.1 Overview
+
+**Status:** ✅ **COMPLETE** (Sprint 0)
+
+**Purpose:** Provide human monitoring interface and manual CRUD operations (5% interaction)
+
+**Architecture Pattern:** Next.js 14 App Router with Server/Client Component split
+
+**Design System:** Static Coral theme with neumorphic design
+
+**Key Characteristics:**
+
+- **Agent-First:** UI is secondary to MCP tools (human monitoring only)
+- **Static Theme:** Coral theme locked, no theme switching
+- **Pixel-Perfect:** Implemented from HTML mockups
+- **Modern Patterns:** useReducer, useOptimistic, IntersectionObserver
+- **Performance:** ISR for wiki pages, Server Components by default
+
+---
+
+#### 3.10.2 Page Architecture
+
+**Complete Pages (7 total):**
+
+| Page                   | Path           | Type             | Data Fetching         | Description                                        |
+| ---------------------- | -------------- | ---------------- | --------------------- | -------------------------------------------------- |
+| **Dashboard**          | `/dashboard`   | Server Component | force-dynamic         | Stats, recent issues, quick actions, agent widgets |
+| **Issues List**        | `/issues`      | Server Component | searchParams          | Filterable issue listing with pagination           |
+| **Issue Detail**       | `/issues/[id]` | Server Component | params                | Full detail with 11 sub-components                 |
+| **Knowledge Base**     | `/knowledge`   | Server Component | parallel queries      | Article listing with search and tags               |
+| **Wiki**               | `/wiki/[slug]` | Server Component | ISR (1h revalidation) | Documentation with TOC and markdown                |
+| **Security Dashboard** | `/security`    | Server Component | Promise.all queries   | Vulnerability tracking with score meter            |
+| **Agent Personas**     | `/agents`      | Server Component | force-dynamic         | Agent management with toggle switches              |
+
+**Page Patterns:**
+
+```typescript
+// Server Component Pattern (default)
+export default async function Page({ params, searchParams }) {
+  const data = await prisma.model.findMany({ where: {...} });
+  return <ClientComponent data={data} />;
+}
+
+// ISR Pattern (Wiki pages)
+export const revalidate = 3600; // 1 hour
+
+export async function generateStaticParams() {
+  const pages = await prisma.wikiPage.findMany({ select: { slug: true } });
+  return pages.map(page => ({ slug: page.slug }));
+}
+
+// Force Dynamic Pattern (real-time data)
+export const dynamic = 'force-dynamic';
+```
+
+---
+
+#### 3.10.3 Component Library
+
+**Layout Components (4 components):**
+
+1. **FloatingBackground** - Animated hexagons and bubbles (auto-hides on mobile)
+2. **Header** - Glass morphism with search bar and notifications
+3. **Sidebar** - Neumorphic navigation with coral active states
+4. **CommandPalette** - Cmd+K keyboard-driven search (useReducer state machine)
+
+**Dashboard Components (5 components):**
+
+1. **StatCard** - Icon gradient containers with large text-4xl numbers
+2. **IssueCard** - Glass-dark issue preview cards
+3. **WelcomeBanner** - Coral gradient with CTA button
+4. **QuickActionsWidget** - Neumorphic action buttons
+5. **AgentPersonasWidget** - Glass-dark agent cards with emoji icons
+
+**Issues Components (14 components):**
+
+**Main (5 components):**
+
+- IssuesPageClient, FilterSidebar, SearchSortBar, IssueListCard, Pagination
+
+**Detail Page (11 components):**
+
+- IssueHeader, IssueActions, QuickActions, DescriptionSection, CodeSection
+- CommentForm, CommentList, AttachmentList, RelatedIssues
+- WatchersSection, SystemActivity, IssueDetailSidebar
+
+**Knowledge Components (3 components):**
+
+- ArticleCard (React.memo), TagFilter (useSearchParams), SearchBar (debounced)
+
+**Wiki Components (4 components):**
+
+- WikiSidebar, TableOfContents (IntersectionObserver), WikiContent (ReactMarkdown), CodeBlock (Prism)
+
+**Security Components (3 components):**
+
+- SecurityScoreMeter (animated SVG), VulnerabilityCard, VulnerabilityFilter
+
+**Agent Components (1 component):**
+
+- AgentCard (useOptimistic for toggle)
+
+**UI Primitives (shadcn/ui):**
+
+- avatar, badge, button, card, input, separator
+
+---
+
+#### 3.10.4 State Management Patterns
+
+**No Global State Library** - Pages are self-contained
+
+**State Management Strategies:**
+
+| Pattern             | Use Case                   | Example                        |
+| ------------------- | -------------------------- | ------------------------------ |
+| **useReducer**      | Complex state machines     | Command Palette (10 actions)   |
+| **useOptimistic**   | Instant feedback mutations | Agent toggle switches          |
+| **useSearchParams** | URL-based filtering        | Issues filters, Knowledge tags |
+| **useState**        | Simple component state     | Modal open/close, form inputs  |
+| **Server State**    | Initial page data          | All Server Components          |
+
+**State Machine Example (Command Palette):**
+
+```typescript
+// useReducer for complex state with predictable transitions
+type State = {
+  isOpen: boolean;
+  query: string;
+  results: SearchResult[];
+  selectedIndex: number;
+  entityType: EntityType;
+  isLoading: boolean;
+};
+
+type Action =
+  | { type: 'OPEN' }
+  | { type: 'CLOSE' }
+  | { type: 'SET_QUERY'; query: string }
+  | { type: 'SET_RESULTS'; results: SearchResult[] }
+  | { type: 'MOVE_UP' }
+  | { type: 'MOVE_DOWN' }
+  | { type: 'SET_ENTITY_TYPE'; entityType: EntityType };
+
+const [state, dispatch] = useReducer(commandPaletteReducer, initialState);
+```
+
+**Optimistic Updates Example (Agent Toggle):**
+
+```typescript
+// useOptimistic for instant feedback before server confirmation
+const [optimisticAgents, setOptimisticAgents] = useOptimistic(
+  agents,
+  (state, { agentId, isActive }) =>
+    state.map((agent) => (agent.id === agentId ? { ...agent, isActive } : agent))
+);
+
+const [isPending, startTransition] = useTransition();
+
+async function handleToggle(agentId: string) {
+  setOptimisticAgents({ agentId, isActive: !agent.isActive });
+  startTransition(async () => {
+    await toggleAgentStatus(agentId); // Server Action
+  });
+}
+```
+
+---
+
+#### 3.10.5 Data Fetching Patterns
+
+**Three Patterns Used:**
+
+1. **Server Components** - Direct Prisma queries (default)
+2. **API Routes** - Client-side fetching (Command Palette search)
+3. **Server Actions** - Mutations with revalidatePath (Agent management)
+
+**Pattern Selection:**
+
+```typescript
+// Pattern 1: Server Component (PREFERRED)
+// Use for: Initial page load, SEO, performance
+export default async function Page() {
+  const issues = await prisma.issue.findMany();
+  return <IssueList issues={issues} />;
+}
+
+// Pattern 2: API Route
+// Use for: Client-side dynamic fetching, polling
+export async function GET(request: Request) {
+  const results = await searchAll(query);
+  return Response.json({ results });
+}
+
+// Pattern 3: Server Action
+// Use for: Mutations, form submissions
+'use server';
+export async function toggleAgentStatus(agentId: string) {
+  await prisma.agentPersona.update({ where: { id: agentId }, data: {...} });
+  revalidatePath('/agents');
+}
+```
+
+**Performance Optimizations:**
+
+- **ISR:** Wiki pages cached for 1 hour (fast + fresh)
+- **Parallel Queries:** Promise.all for multiple data sources
+- **Memoization:** React.memo for expensive list items
+- **Debouncing:** 300ms delay for search inputs
+- **IntersectionObserver:** Battery-efficient scroll spy (vs scroll listeners)
+
+---
+
+#### 3.10.6 Theme System
+
+**Static Coral Theme** - Multi-theme system removed
+
+**CSS Variable System:**
+
+```css
+/* Base Colors */
+--dark: #1a1a1a;
+--dark-card: #2a2a2a;
+--coral: #ff8b6a;
+--coral-light: #ffb299;
+--coral-dark: #e67759;
+--slate: #8b8b8b;
+
+/* Shadows */
+--shadow-dark: rgba(0, 0, 0, 0.6);
+--shadow-coral-soft: rgba(255, 139, 106, 0.3);
+--border-subtle: rgba(255, 255, 255, 0.05);
+```
+
+**Neumorphic Utility Classes:**
+
+```css
+.neu-raised     /* Raised card (8px/16px shadows) */
+.neu-pressed    /* Inset/pressed effect */
+.neu-flat       /* Minimal elevation (4px/8px shadows) */
+.coral-gradient /* Coral gradient button */
+.glass-dark     /* Dark glass morphism */
+.icon-coral     /* Coral gradient icon container */
+```
+
+**Animation Classes:**
+
+```css
+.animate-float-hex      /* Hexagon floating animation */
+.animate-float-bubble   /* Bubble floating animation */
+.animate-heartbeat      /* Pulsing scale animation */
+.animate-pulse-glow     /* Coral glow pulsing */
+```
+
+**Tailwind Extensions:**
+
+```javascript
+// tailwind.config.ts
+theme: {
+  extend: {
+    colors: {
+      dark: 'var(--dark)',
+      coral: 'var(--coral)',
+      // ... all CSS variables
+    },
+    boxShadow: {
+      'neu-raised': '8px 8px 16px rgba(0, 0, 0, 0.6), -4px -4px 8px rgba(255, 255, 255, 0.05)',
+      'coral-soft': '0 4px 16px rgba(255, 139, 106, 0.3)',
+      // ... all neumorphic shadows
+    }
+  }
+}
+```
+
+---
+
+#### 3.10.7 API Routes
+
+**6 API Routes Created (Sprint 0):**
+
+| Route                           | Method   | Purpose                                  | Status      |
+| ------------------------------- | -------- | ---------------------------------------- | ----------- |
+| `/api/knowledge`                | GET      | Paginated articles with search/filtering | ✅ Complete |
+| `/api/search`                   | GET      | Unified multi-entity search              | ✅ Complete |
+| `/api/wiki/[slug]`              | GET      | Wiki page fetching                       | ✅ Complete |
+| `/api/security/score`           | GET      | Security score calculation               | ✅ Complete |
+| `/api/security/vulnerabilities` | GET      | Vulnerability listing                    | ✅ Complete |
+| `/api/agents`                   | Implicit | Agent listing (via page)                 | ✅ Complete |
+
+**API Pattern:**
+
+```typescript
+// Next.js App Router API Route
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get('q');
+
+  const results = await prisma.model.findMany({ where: {...} });
+
+  return Response.json({
+    data: results,
+    meta: { page, limit, total, hasMore }
+  });
+}
+```
+
+---
+
+#### 3.10.8 Server Actions
+
+**1 Server Actions File Created (Sprint 0):**
+
+**`/app/agents/actions.ts`:**
+
+- `toggleAgentStatus(agentId)` - Toggle agent active status
+- `createAgent(data)` - Create new agent persona
+- `deleteAgent(agentId)` - Remove agent from database
+
+**Server Action Pattern:**
+
+```typescript
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { prisma } from '@/lib/prisma';
+
+export async function toggleAgentStatus(agentId: string) {
+  const agent = await prisma.agentPersona.findUnique({ where: { id: agentId } });
+
+  await prisma.agentPersona.update({
+    where: { id: agentId },
+    data: { isActive: !agent.isActive },
+  });
+
+  revalidatePath('/agents');
+
+  return { success: true };
+}
+```
+
+---
+
+#### 3.10.9 Hooks
+
+**Custom Hooks Created:**
+
+1. **useScrollSpy** (Sprint 0)
+   - IntersectionObserver-based scroll detection
+   - Returns active heading ID
+   - Battery-efficient (no scroll listeners)
+
+2. **useDebounce** (Pre-existing)
+   - Debounce user input (300ms delay)
+   - Used in SearchBar and CommandPalette
+
+**Hook Pattern:**
+
+```typescript
+// useScrollSpy.ts
+export function useScrollSpy(ids: string[], options?: IntersectionObserverInit) {
+  const [activeId, setActiveId] = useState<string>('');
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-20% 0px -80% 0px', ...options }
+    );
+
+    ids.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [ids]);
+
+  return activeId;
+}
+```
+
+---
+
+#### 3.10.10 Technology Stack
+
+**Frontend Framework:**
+
+- Next.js 14.1.0 (App Router)
+- React 18 (Server/Client Components)
+- TypeScript 5.x (strict mode)
+
+**Styling:**
+
+- Tailwind CSS 3.4.x (custom utilities)
+- CSS Variables (Coral theme system)
+- shadcn/ui (base components)
+
+**State Management:**
+
+- React hooks (useState, useReducer, useOptimistic, useTransition)
+- URL state (useSearchParams, useRouter)
+- No global state library
+
+**Data Fetching:**
+
+- Prisma ORM (direct queries in Server Components)
+- Next.js API Routes (client-side fetching)
+- Server Actions (mutations with revalidatePath)
+
+**UI Libraries:**
+
+- Lucide React (icons)
+- ReactMarkdown (markdown rendering)
+- react-syntax-highlighter (code highlighting)
+- date-fns (date formatting)
+
+---
+
+#### 3.10.11 Integration with Backend (Sprint 1-8)
+
+**Current State:** UI layer complete, ready for backend integration
+
+**Integration Points:**
+
+1. **Sprint 1-2:** Phase/Week/Day/Task/Session models
+   - UI: Dashboard already has stat cards and progress visualization
+   - Backend: Implement MCP tools to populate these stats
+
+2. **Sprint 3:** Workflow Orchestration
+   - UI: Workflow page already exists (from Sprint 0)
+   - Backend: Implement workflow MCP tools
+
+3. **Sprint 4:** Issues Backend Integration
+   - UI: ✅ 100% complete (all 14 components)
+   - Backend: Wire UI to new MCP tools (`createIssue`, `bulkCreateIssues`, etc.)
+
+4. **Sprint 5-6:** Knowledge & Skills
+   - UI: Knowledge page complete with search
+   - Backend: Implement hybrid search (pgvector + tsvector)
+
+5. **Sprint 7:** Wiki & Health
+   - UI: Both pages complete
+   - Backend: Connect to MCP tools
+
+---
+
+#### 3.10.12 Quality Metrics
+
+**Code Quality:**
+
+- ✅ TypeScript strict mode (0 errors)
+- ✅ Zero console errors
+- ✅ Zero hydration errors
+- ✅ Semantic HTML
+
+**Performance:**
+
+- ✅ Server Components by default (fast initial load)
+- ✅ ISR for wiki pages (cached 1 hour)
+- ✅ Debounced search (300ms delay)
+- ✅ IntersectionObserver for scroll spy
+
+**Accessibility:**
+
+- ✅ Keyboard navigation functional
+- ✅ Focus indicators visible
+- ✅ Semantic HTML elements
+- ✅ ARIA labels where needed
+
+**Testing:**
+
+- ⚠️ E2E tests (deferred to Sprint 8)
+- ⚠️ Unit tests (deferred to Sprint 8)
+- ✅ Manual testing complete
+
+---
+
+#### 3.10.13 Completion Documents
+
+**Sprint 0 Documentation:**
+
+- [WEEK_1_5_PHASE_1_COMPLETION.md](../archive/completions/2025-11/WEEK_1_5_PHASE_1_COMPLETION.md)
+- [WEEK_1_5_PHASE_2_COMPLETION.md](../archive/completions/2025-11/WEEK_1_5_PHASE_2_COMPLETION.md)
+- [COMPLETION_PHASE3_DAYS_5_6_FIVE_PAGES.md](../archive/completions/2025-11/COMPLETION_PHASE3_DAYS_5_6_FIVE_PAGES.md)
+- [UI_COMPLETION_SUMMARY.md](../UI_COMPLETION_SUMMARY.md)
+
+**Component Catalog:**
+
+- See [.agent/system/component-patterns.md](.agent/system/component-patterns.md)
+
+---
+
 ## 4. Data Flow Architecture
 
 ### 4.1 Agent Workflow (5-Step Protocol)

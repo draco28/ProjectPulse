@@ -647,3 +647,230 @@ export type IssueWithRelations = Issue & {
 ---
 
 Last reviewed: 2025-10-27
+
+---
+
+## MCP Tools & Agent Patterns
+
+### MCP Server Architecture
+
+**Protocol**: Model Context Protocol (MCP) via stdio transport
+**SDK**: @modelcontextprotocol/sdk
+**Tool Count**: 42 tools across 8 categories
+
+**Architecture Pattern**: Single MCP server serves all 42 tools
+
+```typescript
+// MCP server initialization
+import { McpServer } from '@modelcontextprotocol/sdk/server';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
+
+const server = new McpServer({
+  name: 'projectpulse-mcp',
+  version: '1.0.0',
+});
+
+// Tool registration pattern
+server.tool('sprint.phase.create', createPhaseSchema, async (params) => {
+  // 1. Validate input
+  // 2. Execute database operation
+  // 3. Return result
+});
+
+// Start stdio transport
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+### Tool Naming Convention
+
+**Pattern**: `<category>.<entity>.<action>`
+
+**Examples**:
+
+- `sprint.phase.create` - Create new phase
+- `sprint.getCurrentTask` - Get active task
+- `knowledge.query` - Search knowledge graph
+- `workflow.completeStep` - Mark workflow step complete
+
+### Tool Implementation Pattern
+
+```typescript
+// 1. Define Zod schema for validation
+const createPhaseSchema = z.object({
+  title: z.string().min(1).max(200),
+  startDate: z.date(),
+  goals: z.array(z.string()),
+  duration: z.number().int().min(1).max(52),
+});
+
+// 2. Implement handler
+async function createPhase(params: z.infer<typeof createPhaseSchema>) {
+  try {
+    // 3. Validate input (Zod already does this)
+
+    // 4. Execute Prisma operation
+    const phase = await prisma.phase.create({
+      data: {
+        title: params.title,
+        startDate: params.startDate,
+        goals: params.goals,
+        status: 'PLANNED',
+        progress: 0.0,
+      },
+    });
+
+    // 5. Auto-create child weeks based on duration
+    const weeks = await createWeeksForPhase(phase.id, params.duration);
+
+    // 6. Return success result
+    return {
+      success: true,
+      phaseId: phase.id,
+      weeksCount: weeks.length,
+    };
+  } catch (error) {
+    // 7. Error handling
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+// 3. Register tool
+server.tool('sprint.phase.create', createPhaseSchema, createPhase);
+```
+
+### Progress Roll-Up Algorithm
+
+**Pattern**: Bottom-up propagation (Session → Task → Day → Week → Phase)
+
+```typescript
+async function updateProgress(
+  entityType: 'session' | 'task' | 'day' | 'week' | 'phase',
+  entityId: number,
+  progress: number
+) {
+  // 1. Update current entity
+  await prisma[entityType].update({
+    where: { id: entityId },
+    data: { progress },
+  });
+
+  // 2. Calculate parent progress (average of all children)
+  const parent = await getParent(entityType, entityId);
+  if (parent) {
+    const siblings = await getChildren(parent.type, parent.id);
+    const avgProgress = siblings.reduce((sum, s) => sum + s.progress, 0) / siblings.length;
+
+    // 3. Recursively update parent
+    await updateProgress(parent.type, parent.id, avgProgress);
+  }
+
+  // 4. Trigger markdown sync if top-level (Phase) updated
+  if (entityType === 'phase') {
+    await syncMarkdownFiles();
+  }
+}
+```
+
+### Markdown Sync Pattern
+
+**Pattern**: Database → Markdown (one-way, read-only markdown)
+
+```typescript
+async function syncMarkdownFiles() {
+  // 1. Fetch latest data from database
+  const currentTask = await prisma.task.findFirst({
+    where: { status: 'IN_PROGRESS' },
+    include: {
+      day: { include: { week: { include: { phase: true } } } },
+      sessions: { orderBy: { timestamp: 'desc' } },
+    },
+  });
+
+  // 2. Generate STATUS.md content
+  const statusContent = generateStatusMarkdown(currentTask);
+
+  // 3. Generate DEVELOPMENT_PLAN.md content
+  const planContent = await generatePlanMarkdown();
+
+  // 4. Write to files atomically
+  await Promise.all([
+    fs.writeFile('.agent/STATUS.md', statusContent),
+    fs.writeFile('.agent/DEVELOPMENT_PLAN.md', planContent),
+  ]);
+
+  // 5. Log sync to database
+  await prisma.markdownFile.create({
+    data: {
+      filename: 'STATUS.md',
+      content: statusContent,
+      syncedAt: new Date(),
+    },
+  });
+}
+```
+
+### Workflow State Machine Pattern
+
+**Pattern**: Define workflows with steps, track state, enforce ordering
+
+```typescript
+// 1. Define workflow
+const fiveStepProtocol = {
+  name: '5-Step Mandatory Protocol',
+  steps: [
+    { order: 1, name: 'Initialize Session', required: true },
+    { order: 2, name: 'Create Implementation Plan', required: true },
+    { order: 3, name: 'Create Todo List', required: true },
+    { order: 4, name: 'Implement with Checkpoints', required: true },
+    { order: 5, name: 'Post-Completion', required: true },
+  ],
+};
+
+// 2. Start workflow execution
+async function startWorkflow(workflowId: number, taskId: number) {
+  const execution = await prisma.workflowExecution.create({
+    data: {
+      workflowId,
+      taskId,
+      status: 'IN_PROGRESS',
+      currentStep: 1,
+    },
+  });
+  return execution;
+}
+
+// 3. Complete step with validation
+async function completeStep(executionId: number, stepNumber: number) {
+  const execution = await prisma.workflowExecution.findUnique({
+    where: { id: executionId },
+    include: { workflow: { include: { steps: true } } },
+  });
+
+  // Validate step ordering
+  if (stepNumber !== execution.currentStep) {
+    throw new Error(`Cannot skip steps. Expected step ${execution.currentStep}, got ${stepNumber}`);
+  }
+
+  // Mark step complete, advance to next
+  const nextStep = stepNumber + 1;
+  await prisma.workflowExecution.update({
+    where: { id: executionId },
+    data: {
+      currentStep: nextStep <= execution.workflow.steps.length ? nextStep : null,
+      status: nextStep > execution.workflow.steps.length ? 'COMPLETED' : 'IN_PROGRESS',
+    },
+  });
+}
+```
+
+---
+
+**This section documents MCP-specific patterns for agent-first workflows. See project-brief.md for WHAT we're building.**
+
+---
+
+Last updated: 2025-11-05
