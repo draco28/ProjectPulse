@@ -1,10 +1,10 @@
 # Product Backlog
 
 **Document ID:** DOC-012
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Status:** Active
 **Owner:** Product Team
-**Last Updated:** 2025-11-02
+**Last Updated:** 2025-11-06
 **Review Cycle:** Sprint Planning (every 2 weeks)
 
 ---
@@ -14,6 +14,7 @@
 | Version | Date       | Author       | Changes                                                      |
 | ------- | ---------- | ------------ | ------------------------------------------------------------ |
 | 1.0.0   | 2025-11-02 | Product Team | Initial product backlog creation (8 epics, 125 user stories) |
+| 1.1.0   | 2025-11-06 | Product Team | Added EPIC-010 and EPIC-011 (10 epics, 138 user stories)     |
 
 ---
 
@@ -31,7 +32,7 @@
 
 ### 1.1 Purpose
 
-This Product Backlog defines all user stories for the ProjectPulse project, organized into 8 epics corresponding to the MVP features defined in [01-PRD.md](01-PRD.md). Each of the 125 user stories maps 1:1 to a Functional Requirement (FR-001 to FR-125) documented in [02-SRS.md](02-SRS.md).
+This Product Backlog defines all user stories for the ProjectPulse project, organized into 10 epics corresponding to the MVP features defined in [01-PRD.md](01-PRD.md). Each of the 138 user stories maps 1:1 to a Functional Requirement (FR-001 to FR-125, FR-146 to FR-158) documented in [02-SRS.md](02-SRS.md).
 
 **Key Objectives:**
 
@@ -101,7 +102,7 @@ All stories maintain bidirectional traceability:
 ```
 PRD (Features) → Backlog (Epics) → Backlog (Stories) → SRS (FRs) → Testing (TEST-XXX)
      ↓                  ↓                  ↓                ↓              ↓
-  8 Features        8 Epics         125 Stories       125 FRs      125 Tests
+  10 Features       10 Epics         138 Stories       138 FRs      138 Tests
 ```
 
 **Example Traceability Chain:**
@@ -316,6 +317,70 @@ PRD (Features) → Backlog (Epics) → Backlog (Stories) → SRS (FRs) → Testi
 
 ---
 
+### EPIC-010: Memory Bank System
+
+**Description:** Token-efficient context management for Claude Code development through structured knowledge files in .agent/ directory.
+
+**Business Value:**
+
+- Solves Claude Code's 200K token limit constraint
+- Enables 3-4x more features per development session (1 → 3+ complex features)
+- Session start overhead reduced from 40K → 10K tokens (75% reduction)
+- Pattern lookups complete in ≤1K tokens (93% reduction from 15K baseline)
+
+**Success Criteria:**
+
+- All 5 memory bank files created (project-brief, system-patterns, tech-context, active-context, progress)
+- Session start overhead ≤10K tokens (75% reduction)
+- Pattern lookups ≤1K tokens (93% reduction)
+- 100% knowledge retention across context compaction
+- Support 3+ complex features per 200K token session
+
+**Story Range:** US-010-01 to US-010-08 (8 stories)
+**FR Range:** FR-146 to FR-153 (Memory Bank FRs from PRD Section 4.2.10)
+**Total Points:** ~34 points
+**MoSCoW:** Must Have (Critical - blocks efficient Claude Code development)
+**Dependencies:** Filesystem MCP configured, Git MCP configured, .agent/ directory structure
+**Sprint Allocation:** Sprint 9 Week 1-2
+
+---
+
+### EPIC-011: Research Agent Orchestration (Reduced Scope)
+
+**Description:** Automated codebase exploration and analysis using isolated sub-agent threads. Includes research agents only (explore-codebase, analyze-architecture). Expert agents (next-js-expert, prisma-expert, react-expert) and utility agents (synthesize-docs, map-system) deferred post-MVP.
+
+**Business Value:**
+
+- Achieves 92% token savings per research task (25K → 2K in main thread)
+- Keeps main conversation clean and focused on implementation
+- Research reports saved to .agent/task/ persist across sessions
+- Supports parallel research operations (2+ agents simultaneously)
+
+**Success Criteria:**
+
+- Research tasks complete in ≤2K tokens in main thread (vs 25K baseline)
+- Sub-agent reports saved to .agent/task/ and persist across sessions
+- Support parallel research operations (2+ agents simultaneously)
+- Report quality: 90%+ actionable insights
+
+**Story Range:** US-011-01 to US-011-05 (5 stories)
+**FR Range:** FR-154 to FR-158 (Research Agent FRs from PRD Section 4.2.10)
+**Total Points:** ~24 points
+**MoSCoW:** Should Have (High priority - significant token savings)
+**Dependencies:** Filesystem MCP configured, .agent/task/ directory established, Sub-agent architecture
+**Sprint Allocation:** Sprint 9 Week 2
+
+**Scope Reduction Rationale:**
+
+- **Included:** explore-codebase, analyze-architecture (research agents)
+- **Deferred:** next-js-expert, prisma-expert, react-expert (expert agents - manual consultation acceptable for MVP)
+- **Deferred:** synthesize-docs, map-system (utility agents - can be run manually post-completion)
+- **Reasoning:** Research agents solve immediate token waste problem; expert agents are "nice-to-have"; utility agents acceptable as manual workflow
+
+---
+
+---
+
 ## 3. User Stories
 
 ### 3.1 EPIC-001: Sprint/Phase Tracking (US-001 to US-025)
@@ -515,137 +580,181 @@ PRD (Features) → Backlog (Epics) → Backlog (Stories) → SRS (FRs) → Testi
 
 ---
 
+### 3.9 EPIC-010: Memory Bank System (US-010-01 to US-010-08)
+
+| ID        | User Story                                                                                                               | FR     | Points | Priority | Deps                        |
+| --------- | ------------------------------------------------------------------------------------------------------------------------ | ------ | ------ | -------- | --------------------------- |
+| US-010-01 | As a Claude Code instance, I want a concise project overview file so that I can understand project goals in ≤3K tokens   | FR-146 | 5      | Must     | -                           |
+| US-010-02 | As a Claude Code instance, I want a structured pattern catalog so that I can find implementation patterns in ≤1K tokens  | FR-147 | 8      | Must     | -                           |
+| US-010-03 | As a Claude Code instance, I want a technical stack reference so that I understand dependencies in ≤2K tokens            | FR-148 | 3      | Must     | -                           |
+| US-010-04 | As a Claude Code instance, I want a real-time session state file so that I know current work focus in ≤1K tokens         | FR-149 | 3      | Must     | -                           |
+| US-010-05 | As a Claude Code instance, I want a progress tracking file so that I understand project status in ≤2K tokens             | FR-150 | 3      | Must     | -                           |
+| US-010-06 | As a Claude Code instance, I want an optimized session start workflow so that I load context in ≤10K tokens              | FR-151 | 5      | Must     | US-010-01 through US-010-05 |
+| US-010-07 | As a Claude Code instance, I want to find implementation patterns quickly so that lookups complete in ≤1K tokens         | FR-152 | 3      | Must     | US-010-02                   |
+| US-010-08 | As a Claude Code instance, I want to recover session context after interruption so that recovery completes in ≤6K tokens | FR-153 | 4      | Must     | US-010-04, US-010-05        |
+
+**EPIC-010 Total:** 8 stories, ~34 story points
+
+---
+
+### 3.10 EPIC-011: Research Agent Orchestration (US-011-01 to US-011-05)
+
+| ID        | User Story                                                                                                                                  | FR     | Points | Priority | Deps                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | -------- | -------------------- |
+| US-011-01 | As a Claude Code instance, I want an automated codebase scanning agent so that pattern searches complete in ≤2K main thread tokens          | FR-154 | 8      | Should   | -                    |
+| US-011-02 | As a Claude Code instance, I want an automated architecture analysis agent so that system flow questions complete in ≤2K main thread tokens | FR-155 | 8      | Should   | -                    |
+| US-011-03 | As a Claude Code instance, I want to invoke sub-agents automatically so that research happens without manual orchestration                  | FR-156 | 3      | Should   | US-011-01, US-011-02 |
+| US-011-04 | As a Claude Code instance, I want research reports saved to files so that findings persist across sessions                                  | FR-157 | 3      | Should   | US-011-01, US-011-02 |
+| US-011-05 | As a Claude Code instance, I want to invoke multiple sub-agents simultaneously so that complex features research faster                     | FR-158 | 2      | Should   | US-011-03            |
+
+**EPIC-011 Total:** 5 stories, ~24 story points
+
+---
+
 ## 4. Traceability Matrix
 
-| Epic     | Story ID | FR ID                                                  | Test ID  | Sprint      | Status      |
-| -------- | -------- | ------------------------------------------------------ | -------- | ----------- | ----------- |
-| EPIC-001 | US-001   | FR-001: Create Phase Hierarchy                         | TEST-001 | Phase A W1  | Not Started |
-| EPIC-001 | US-002   | FR-002: Update Progress Percentage                     | TEST-002 | Phase A W1  | Not Started |
-| EPIC-001 | US-003   | FR-003: Retrieve Current Active Task                   | TEST-003 | Phase A W1  | Not Started |
-| EPIC-001 | US-004   | FR-004: Create Session with Timestamp                  | TEST-004 | Phase A W1  | Not Started |
-| EPIC-001 | US-005   | FR-005: Auto-Sync Markdown Files                       | TEST-005 | Phase A W2  | Not Started |
-| EPIC-001 | US-006   | FR-006: Git Hooks Prevent Manual Edits                 | TEST-006 | Phase A W2  | Not Started |
-| EPIC-001 | US-007   | FR-007: Query Hierarchy by Filters                     | TEST-007 | Phase A W2  | Not Started |
-| EPIC-001 | US-008   | FR-008: Mark Task as Complete                          | TEST-008 | Phase A W1  | Not Started |
-| EPIC-001 | US-009   | FR-009: Create Checkpoint with Notes                   | TEST-009 | Phase A W2  | Not Started |
-| EPIC-001 | US-010   | FR-010: View Hierarchy as Tree                         | TEST-010 | Phase A W3  | Not Started |
-| EPIC-001 | US-011   | FR-011: Calculate Estimated Completion Date            | TEST-011 | Phase B W5  | Not Started |
-| EPIC-001 | US-012   | FR-012: Archive Completed Phases                       | TEST-012 | Phase A W3  | Not Started |
-| EPIC-001 | US-013   | FR-013: Export Hierarchy to JSON/CSV                   | TEST-013 | Phase B W5  | Not Started |
-| EPIC-001 | US-014   | FR-014: Validate Hierarchy Integrity                   | TEST-014 | Phase A W2  | Not Started |
-| EPIC-001 | US-015   | FR-015: Bulk-Update Task Status                        | TEST-015 | Phase A W3  | Not Started |
-| EPIC-001 | US-016   | FR-016: View Progress Charts                           | TEST-016 | Phase B W4  | Not Started |
-| EPIC-001 | US-017   | FR-017: Link Tasks to Issues                           | TEST-017 | Phase B W4  | Not Started |
-| EPIC-001 | US-018   | FR-018: Estimate Remaining Work for Phase              | TEST-018 | Phase B W5  | Not Started |
-| EPIC-001 | US-019   | FR-019: Customize Hierarchy Levels                     | TEST-019 | Post-MVP    | Not Started |
-| EPIC-001 | US-020   | FR-020: Detect Stale Tasks                             | TEST-020 | Phase B W5  | Not Started |
-| EPIC-001 | US-021   | FR-021: Rollback Task to Previous State                | TEST-021 | Phase B W5  | Not Started |
-| EPIC-001 | US-022   | FR-022: Duplicate Task Structure                       | TEST-022 | Phase B W5  | Not Started |
-| EPIC-001 | US-023   | FR-023: Set Task Dependencies                          | TEST-023 | Phase A W3  | Not Started |
-| EPIC-001 | US-024   | FR-024: Log Task Events                                | TEST-024 | Phase A W2  | Not Started |
-| EPIC-001 | US-025   | FR-025: Sync Hierarchy with .agent/task Files          | TEST-025 | Phase A W2  | Not Started |
-| EPIC-002 | US-026   | FR-026: Start Predefined Workflow                      | TEST-026 | Phase A W3  | Not Started |
-| EPIC-002 | US-027   | FR-027: Track Current Workflow Step                    | TEST-027 | Phase A W3  | Not Started |
-| EPIC-002 | US-028   | FR-028: Mark Workflow Step Complete                    | TEST-028 | Phase A W3  | Not Started |
-| EPIC-002 | US-029   | FR-029: Alert if Workflow Step Skipped                 | TEST-029 | Phase A W4  | Not Started |
-| EPIC-002 | US-030   | FR-030: View All Available Workflows                   | TEST-030 | Phase A W3  | Not Started |
-| EPIC-002 | US-031   | FR-031: Resume Workflow After Interruption             | TEST-031 | Phase A W4  | Not Started |
-| EPIC-002 | US-032   | FR-032: Rollback to Previous Workflow Step             | TEST-032 | Phase B W5  | Not Started |
-| EPIC-002 | US-033   | FR-033: Define Custom Workflows                        | TEST-033 | Post-MVP    | Not Started |
-| EPIC-002 | US-034   | FR-034: Visualize Workflow Progress                    | TEST-034 | Phase B W6  | Not Started |
-| EPIC-002 | US-035   | FR-035: Checkpoint Workflow State Every 15K Tokens     | TEST-035 | Phase A W4  | Not Started |
-| EPIC-002 | US-036   | FR-036: Validate Workflow Prerequisites                | TEST-036 | Phase A W4  | Not Started |
-| EPIC-002 | US-037   | FR-037: Log Workflow Failures                          | TEST-037 | Phase A W4  | Not Started |
-| EPIC-002 | US-038   | FR-038: Get Recovery Suggestions on Failure            | TEST-038 | Phase B W5  | Not Started |
-| EPIC-002 | US-039   | FR-039: Track Workflow Execution Time                  | TEST-039 | Phase B W6  | Not Started |
-| EPIC-002 | US-040   | FR-040: Link Workflow Steps to Tasks                   | TEST-040 | Phase B W5  | Not Started |
-| EPIC-002 | US-041   | FR-041: Enforce Step Order                             | TEST-041 | Phase A W4  | Not Started |
-| EPIC-002 | US-042   | FR-042: Mark Workflows as Complete                     | TEST-042 | Phase A W4  | Not Started |
-| EPIC-002 | US-043   | FR-043: Export Workflow History to JSON                | TEST-043 | Phase B W6  | Not Started |
-| EPIC-002 | US-044   | FR-044: Retry Failed Workflow Step Automatically       | TEST-044 | Phase B W5  | Not Started |
-| EPIC-002 | US-045   | FR-045: Validate Workflow Completion Criteria          | TEST-045 | Phase A W4  | Not Started |
-| EPIC-002 | US-046   | FR-046: Branch Workflows (If-Then-Else Logic)          | TEST-046 | Post-MVP    | Not Started |
-| EPIC-002 | US-047   | FR-047: Receive Notifications for Human Approval       | TEST-047 | Phase B W6  | Not Started |
-| EPIC-002 | US-048   | FR-048: Track Workflow Dependencies                    | TEST-048 | Phase B W5  | Not Started |
-| EPIC-002 | US-049   | FR-049: Audit Workflow Execution History               | TEST-049 | Phase B W6  | Not Started |
-| EPIC-002 | US-050   | FR-050: Detect Duplicate Workflow Executions           | TEST-050 | Phase B W6  | Not Started |
-| EPIC-003 | US-051   | FR-051: Create Single Issue                            | TEST-051 | Phase B W7  | Not Started |
-| EPIC-003 | US-052   | FR-052: Bulk-Create Issues (10-50 at once)             | TEST-052 | Phase B W7  | Not Started |
-| EPIC-003 | US-053   | FR-053: Auto-Tag Issues Based on File Paths            | TEST-053 | Phase B W7  | Not Started |
-| EPIC-003 | US-054   | FR-054: Inject Context into Issues                     | TEST-054 | Phase B W7  | Not Started |
-| EPIC-003 | US-055   | FR-055: Update Issue Status                            | TEST-055 | Phase B W7  | Not Started |
-| EPIC-003 | US-056   | FR-056: Query Issues by Filters                        | TEST-056 | Phase B W7  | Not Started |
-| EPIC-003 | US-057   | FR-057: Link Issues to Tasks                           | TEST-057 | Phase B W8  | Not Started |
-| EPIC-003 | US-058   | FR-058: Create Issues Manually via UI                  | TEST-058 | Phase B W7  | Not Started |
-| EPIC-003 | US-059   | FR-059: Bulk Approve/Reject Agent-Created Issues       | TEST-059 | Phase B W8  | Not Started |
-| EPIC-003 | US-060   | FR-060: Assign Issues to Personas                      | TEST-060 | Post-MVP    | Not Started |
-| EPIC-003 | US-061   | FR-061: Detect Duplicate Issues                        | TEST-061 | Phase B W8  | Not Started |
-| EPIC-003 | US-062   | FR-062: Prioritize Issues Using Severity Scoring       | TEST-062 | Phase B W7  | Not Started |
-| EPIC-003 | US-063   | FR-063: Link Issues to Knowledge Items                 | TEST-063 | Phase C W9  | Not Started |
-| EPIC-003 | US-064   | FR-064: Archive Resolved Issues                        | TEST-064 | Phase B W8  | Not Started |
-| EPIC-003 | US-065   | FR-065: Export Issues to CSV/JSON                      | TEST-065 | Phase C W9  | Not Started |
-| EPIC-003 | US-066   | FR-066: Comment on Issues                              | TEST-066 | Phase B W8  | Not Started |
-| EPIC-003 | US-067   | FR-067: Link Issues to Pull Requests/Commits           | TEST-067 | Phase C W9  | Not Started |
-| EPIC-003 | US-068   | FR-068: Estimate Issue Resolution Time                 | TEST-068 | Phase C W10 | Not Started |
-| EPIC-003 | US-069   | FR-069: Create Issue Templates                         | TEST-069 | Phase C W9  | Not Started |
-| EPIC-003 | US-070   | FR-070: View Issue Trends                              | TEST-070 | Phase B W8  | Not Started |
-| EPIC-004 | US-071   | FR-071: Add Knowledge Items                            | TEST-071 | Phase C W9  | Not Started |
-| EPIC-004 | US-072   | FR-072: Query Knowledge Using Hybrid Search            | TEST-072 | Phase C W9  | Not Started |
-| EPIC-004 | US-073   | FR-073: Semantic Search with pgvector Embeddings       | TEST-073 | Phase C W9  | Not Started |
-| EPIC-004 | US-074   | FR-074: Full-Text Search with tsvector                 | TEST-074 | Phase C W9  | Not Started |
-| EPIC-004 | US-075   | FR-075: Hybrid Search Merge Results                    | TEST-075 | Phase C W9  | Not Started |
-| EPIC-004 | US-076   | FR-076: Traverse Knowledge Graph (Max 2 Hops)          | TEST-076 | Phase C W9  | Not Started |
-| EPIC-004 | US-077   | FR-077: Create Relationships Between Knowledge Items   | TEST-077 | Phase C W9  | Not Started |
-| EPIC-004 | US-078   | FR-078: Limit Query Results to Top-K                   | TEST-078 | Phase C W9  | Not Started |
-| EPIC-004 | US-079   | FR-079: Generate Embeddings Automatically              | TEST-079 | Phase C W9  | Not Started |
-| EPIC-004 | US-080   | FR-080: Update Knowledge Items                         | TEST-080 | Phase C W9  | Not Started |
-| EPIC-004 | US-081   | FR-081: Delete Knowledge Items                         | TEST-081 | Phase C W9  | Not Started |
-| EPIC-004 | US-082   | FR-082: View Knowledge Graph Visualization             | TEST-082 | Phase C W10 | Not Started |
-| EPIC-004 | US-083   | FR-083: Tag Knowledge Items by Category                | TEST-083 | Phase C W9  | Not Started |
-| EPIC-004 | US-084   | FR-084: Version Knowledge Items                        | TEST-084 | Phase C W10 | Not Started |
-| EPIC-004 | US-085   | FR-085: Link Knowledge Items to Issues/Tasks           | TEST-085 | Phase C W10 | Not Started |
-| EPIC-004 | US-086   | FR-086: Measure Query Performance                      | TEST-086 | Phase C W10 | Not Started |
-| EPIC-004 | US-087   | FR-087: Export Knowledge Graph to JSON                 | TEST-087 | Phase C W10 | Not Started |
-| EPIC-004 | US-088   | FR-088: Import Knowledge from Markdown Files           | TEST-088 | Phase C W10 | Not Started |
-| EPIC-004 | US-089   | FR-089: Detect Duplicate Knowledge Items               | TEST-089 | Phase C W10 | Not Started |
-| EPIC-004 | US-090   | FR-090: Archive Obsolete Knowledge Items               | TEST-090 | Phase C W10 | Not Started |
-| EPIC-005 | US-091   | FR-091: List Available Skills with Frontmatter         | TEST-091 | Phase C W11 | Not Started |
-| EPIC-005 | US-092   | FR-092: Load Skill's Full Content On-Demand            | TEST-092 | Phase C W11 | Not Started |
-| EPIC-005 | US-093   | FR-093: Search Skills by Keywords/Tags                 | TEST-093 | Phase C W11 | Not Started |
-| EPIC-005 | US-094   | FR-094: Skills Auto-Unload After 5 Minutes             | TEST-094 | Phase C W11 | Not Started |
-| EPIC-005 | US-095   | FR-095: Create Skills with Frontmatter + Content       | TEST-095 | Phase C W11 | Not Started |
-| EPIC-005 | US-096   | FR-096: Categorize Skills                              | TEST-096 | Phase C W11 | Not Started |
-| EPIC-005 | US-097   | FR-097: Validate Skill Frontmatter Format              | TEST-097 | Phase C W11 | Not Started |
-| EPIC-005 | US-098   | FR-098: Measure Token Usage Per Skill Load             | TEST-098 | Phase C W12 | Not Started |
-| EPIC-005 | US-099   | FR-099: Update Skill Content                           | TEST-099 | Phase C W11 | Not Started |
-| EPIC-005 | US-100   | FR-100: Delete Skills                                  | TEST-100 | Phase C W11 | Not Started |
-| EPIC-005 | US-101   | FR-101: Export Skills to Markdown Files                | TEST-101 | Phase C W12 | Not Started |
-| EPIC-005 | US-102   | FR-102: Import Skills from Markdown Files              | TEST-102 | Phase C W12 | Not Started |
-| EPIC-005 | US-103   | FR-103: Track Skill Usage Frequency                    | TEST-103 | Phase C W12 | Not Started |
-| EPIC-005 | US-104   | FR-104: Link Skills to Knowledge Items                 | TEST-104 | Phase C W12 | Not Started |
-| EPIC-005 | US-105   | FR-105: Detect Duplicate Skills                        | TEST-105 | Phase C W11 | Not Started |
-| EPIC-006 | US-106   | FR-106: Create Wiki Pages                              | TEST-106 | Phase C W12 | Not Started |
-| EPIC-006 | US-107   | FR-107: Auto-Generate Wiki from JSDoc/Docstrings       | TEST-107 | Phase C W12 | Not Started |
-| EPIC-006 | US-108   | FR-108: Cross-Link Wiki Pages                          | TEST-108 | Phase C W12 | Not Started |
-| EPIC-006 | US-109   | FR-109: Version Wiki Pages with Git                    | TEST-109 | Phase C W12 | Not Started |
-| EPIC-006 | US-110   | FR-110: Search Wiki Pages by Full-Text                 | TEST-110 | Phase C W12 | Not Started |
-| EPIC-006 | US-111   | FR-111: Update Wiki Pages                              | TEST-111 | Phase C W12 | Not Started |
-| EPIC-006 | US-112   | FR-112: Organize Wiki Pages in Hierarchical Folders    | TEST-112 | Phase C W12 | Not Started |
-| EPIC-006 | US-113   | FR-113: View Wiki Pages in UI with Markdown Rendering  | TEST-113 | Phase C W12 | Not Started |
-| EPIC-006 | US-114   | FR-114: Link Wiki Pages to Issues/Tasks                | TEST-114 | Phase C W12 | Not Started |
-| EPIC-006 | US-115   | FR-115: Export Wiki to Static HTML                     | TEST-115 | Post-MVP    | Not Started |
-| EPIC-007 | US-116   | FR-116: Run Security Scans (Semgrep)                   | TEST-116 | Phase D W13 | Not Started |
-| EPIC-007 | US-117   | FR-117: Run Quality Scans (ESLint)                     | TEST-117 | Phase D W13 | Not Started |
-| EPIC-007 | US-118   | FR-118: Run Accessibility Scans (axe-core, Lighthouse) | TEST-118 | Phase D W13 | Not Started |
-| EPIC-007 | US-119   | FR-119: Calculate Project Health Score                 | TEST-119 | Phase D W13 | Not Started |
-| EPIC-007 | US-120   | FR-120: View Health Dashboard                          | TEST-120 | Phase D W13 | Not Started |
-| EPIC-008 | US-121   | FR-121: Create Personas                                | TEST-121 | Post-MVP    | Not Started |
-| EPIC-008 | US-122   | FR-122: Define Persona Activation Rules                | TEST-122 | Post-MVP    | Not Started |
-| EPIC-008 | US-123   | FR-123: List Available Personas                        | TEST-123 | Post-MVP    | Not Started |
-| EPIC-008 | US-124   | FR-124: Activate/Deactivate Personas Manually          | TEST-124 | Post-MVP    | Not Started |
-| EPIC-008 | US-125   | FR-125: Update Persona System Prompts                  | TEST-125 | Post-MVP    | Not Started |
+| Epic     | Story ID  | FR ID                                                  | Test ID  | Sprint      | Status      |
+| -------- | --------- | ------------------------------------------------------ | -------- | ----------- | ----------- |
+| EPIC-001 | US-001    | FR-001: Create Phase Hierarchy                         | TEST-001 | Phase A W1  | Not Started |
+| EPIC-001 | US-002    | FR-002: Update Progress Percentage                     | TEST-002 | Phase A W1  | Not Started |
+| EPIC-001 | US-003    | FR-003: Retrieve Current Active Task                   | TEST-003 | Phase A W1  | Not Started |
+| EPIC-001 | US-004    | FR-004: Create Session with Timestamp                  | TEST-004 | Phase A W1  | Not Started |
+| EPIC-001 | US-005    | FR-005: Auto-Sync Markdown Files                       | TEST-005 | Phase A W2  | Not Started |
+| EPIC-001 | US-006    | FR-006: Git Hooks Prevent Manual Edits                 | TEST-006 | Phase A W2  | Not Started |
+| EPIC-001 | US-007    | FR-007: Query Hierarchy by Filters                     | TEST-007 | Phase A W2  | Not Started |
+| EPIC-001 | US-008    | FR-008: Mark Task as Complete                          | TEST-008 | Phase A W1  | Not Started |
+| EPIC-001 | US-009    | FR-009: Create Checkpoint with Notes                   | TEST-009 | Phase A W2  | Not Started |
+| EPIC-001 | US-010    | FR-010: View Hierarchy as Tree                         | TEST-010 | Phase A W3  | Not Started |
+| EPIC-001 | US-011    | FR-011: Calculate Estimated Completion Date            | TEST-011 | Phase B W5  | Not Started |
+| EPIC-001 | US-012    | FR-012: Archive Completed Phases                       | TEST-012 | Phase A W3  | Not Started |
+| EPIC-001 | US-013    | FR-013: Export Hierarchy to JSON/CSV                   | TEST-013 | Phase B W5  | Not Started |
+| EPIC-001 | US-014    | FR-014: Validate Hierarchy Integrity                   | TEST-014 | Phase A W2  | Not Started |
+| EPIC-001 | US-015    | FR-015: Bulk-Update Task Status                        | TEST-015 | Phase A W3  | Not Started |
+| EPIC-001 | US-016    | FR-016: View Progress Charts                           | TEST-016 | Phase B W4  | Not Started |
+| EPIC-001 | US-017    | FR-017: Link Tasks to Issues                           | TEST-017 | Phase B W4  | Not Started |
+| EPIC-001 | US-018    | FR-018: Estimate Remaining Work for Phase              | TEST-018 | Phase B W5  | Not Started |
+| EPIC-001 | US-019    | FR-019: Customize Hierarchy Levels                     | TEST-019 | Post-MVP    | Not Started |
+| EPIC-001 | US-020    | FR-020: Detect Stale Tasks                             | TEST-020 | Phase B W5  | Not Started |
+| EPIC-001 | US-021    | FR-021: Rollback Task to Previous State                | TEST-021 | Phase B W5  | Not Started |
+| EPIC-001 | US-022    | FR-022: Duplicate Task Structure                       | TEST-022 | Phase B W5  | Not Started |
+| EPIC-001 | US-023    | FR-023: Set Task Dependencies                          | TEST-023 | Phase A W3  | Not Started |
+| EPIC-001 | US-024    | FR-024: Log Task Events                                | TEST-024 | Phase A W2  | Not Started |
+| EPIC-001 | US-025    | FR-025: Sync Hierarchy with .agent/task Files          | TEST-025 | Phase A W2  | Not Started |
+| EPIC-002 | US-026    | FR-026: Start Predefined Workflow                      | TEST-026 | Phase A W3  | Not Started |
+| EPIC-002 | US-027    | FR-027: Track Current Workflow Step                    | TEST-027 | Phase A W3  | Not Started |
+| EPIC-002 | US-028    | FR-028: Mark Workflow Step Complete                    | TEST-028 | Phase A W3  | Not Started |
+| EPIC-002 | US-029    | FR-029: Alert if Workflow Step Skipped                 | TEST-029 | Phase A W4  | Not Started |
+| EPIC-002 | US-030    | FR-030: View All Available Workflows                   | TEST-030 | Phase A W3  | Not Started |
+| EPIC-002 | US-031    | FR-031: Resume Workflow After Interruption             | TEST-031 | Phase A W4  | Not Started |
+| EPIC-002 | US-032    | FR-032: Rollback to Previous Workflow Step             | TEST-032 | Phase B W5  | Not Started |
+| EPIC-002 | US-033    | FR-033: Define Custom Workflows                        | TEST-033 | Post-MVP    | Not Started |
+| EPIC-002 | US-034    | FR-034: Visualize Workflow Progress                    | TEST-034 | Phase B W6  | Not Started |
+| EPIC-002 | US-035    | FR-035: Checkpoint Workflow State Every 15K Tokens     | TEST-035 | Phase A W4  | Not Started |
+| EPIC-002 | US-036    | FR-036: Validate Workflow Prerequisites                | TEST-036 | Phase A W4  | Not Started |
+| EPIC-002 | US-037    | FR-037: Log Workflow Failures                          | TEST-037 | Phase A W4  | Not Started |
+| EPIC-002 | US-038    | FR-038: Get Recovery Suggestions on Failure            | TEST-038 | Phase B W5  | Not Started |
+| EPIC-002 | US-039    | FR-039: Track Workflow Execution Time                  | TEST-039 | Phase B W6  | Not Started |
+| EPIC-002 | US-040    | FR-040: Link Workflow Steps to Tasks                   | TEST-040 | Phase B W5  | Not Started |
+| EPIC-002 | US-041    | FR-041: Enforce Step Order                             | TEST-041 | Phase A W4  | Not Started |
+| EPIC-002 | US-042    | FR-042: Mark Workflows as Complete                     | TEST-042 | Phase A W4  | Not Started |
+| EPIC-002 | US-043    | FR-043: Export Workflow History to JSON                | TEST-043 | Phase B W6  | Not Started |
+| EPIC-002 | US-044    | FR-044: Retry Failed Workflow Step Automatically       | TEST-044 | Phase B W5  | Not Started |
+| EPIC-002 | US-045    | FR-045: Validate Workflow Completion Criteria          | TEST-045 | Phase A W4  | Not Started |
+| EPIC-002 | US-046    | FR-046: Branch Workflows (If-Then-Else Logic)          | TEST-046 | Post-MVP    | Not Started |
+| EPIC-002 | US-047    | FR-047: Receive Notifications for Human Approval       | TEST-047 | Phase B W6  | Not Started |
+| EPIC-002 | US-048    | FR-048: Track Workflow Dependencies                    | TEST-048 | Phase B W5  | Not Started |
+| EPIC-002 | US-049    | FR-049: Audit Workflow Execution History               | TEST-049 | Phase B W6  | Not Started |
+| EPIC-002 | US-050    | FR-050: Detect Duplicate Workflow Executions           | TEST-050 | Phase B W6  | Not Started |
+| EPIC-003 | US-051    | FR-051: Create Single Issue                            | TEST-051 | Phase B W7  | Not Started |
+| EPIC-003 | US-052    | FR-052: Bulk-Create Issues (10-50 at once)             | TEST-052 | Phase B W7  | Not Started |
+| EPIC-003 | US-053    | FR-053: Auto-Tag Issues Based on File Paths            | TEST-053 | Phase B W7  | Not Started |
+| EPIC-003 | US-054    | FR-054: Inject Context into Issues                     | TEST-054 | Phase B W7  | Not Started |
+| EPIC-003 | US-055    | FR-055: Update Issue Status                            | TEST-055 | Phase B W7  | Not Started |
+| EPIC-003 | US-056    | FR-056: Query Issues by Filters                        | TEST-056 | Phase B W7  | Not Started |
+| EPIC-003 | US-057    | FR-057: Link Issues to Tasks                           | TEST-057 | Phase B W8  | Not Started |
+| EPIC-003 | US-058    | FR-058: Create Issues Manually via UI                  | TEST-058 | Phase B W7  | Not Started |
+| EPIC-003 | US-059    | FR-059: Bulk Approve/Reject Agent-Created Issues       | TEST-059 | Phase B W8  | Not Started |
+| EPIC-003 | US-060    | FR-060: Assign Issues to Personas                      | TEST-060 | Post-MVP    | Not Started |
+| EPIC-003 | US-061    | FR-061: Detect Duplicate Issues                        | TEST-061 | Phase B W8  | Not Started |
+| EPIC-003 | US-062    | FR-062: Prioritize Issues Using Severity Scoring       | TEST-062 | Phase B W7  | Not Started |
+| EPIC-003 | US-063    | FR-063: Link Issues to Knowledge Items                 | TEST-063 | Phase C W9  | Not Started |
+| EPIC-003 | US-064    | FR-064: Archive Resolved Issues                        | TEST-064 | Phase B W8  | Not Started |
+| EPIC-003 | US-065    | FR-065: Export Issues to CSV/JSON                      | TEST-065 | Phase C W9  | Not Started |
+| EPIC-003 | US-066    | FR-066: Comment on Issues                              | TEST-066 | Phase B W8  | Not Started |
+| EPIC-003 | US-067    | FR-067: Link Issues to Pull Requests/Commits           | TEST-067 | Phase C W9  | Not Started |
+| EPIC-003 | US-068    | FR-068: Estimate Issue Resolution Time                 | TEST-068 | Phase C W10 | Not Started |
+| EPIC-003 | US-069    | FR-069: Create Issue Templates                         | TEST-069 | Phase C W9  | Not Started |
+| EPIC-003 | US-070    | FR-070: View Issue Trends                              | TEST-070 | Phase B W8  | Not Started |
+| EPIC-004 | US-071    | FR-071: Add Knowledge Items                            | TEST-071 | Phase C W9  | Not Started |
+| EPIC-004 | US-072    | FR-072: Query Knowledge Using Hybrid Search            | TEST-072 | Phase C W9  | Not Started |
+| EPIC-004 | US-073    | FR-073: Semantic Search with pgvector Embeddings       | TEST-073 | Phase C W9  | Not Started |
+| EPIC-004 | US-074    | FR-074: Full-Text Search with tsvector                 | TEST-074 | Phase C W9  | Not Started |
+| EPIC-004 | US-075    | FR-075: Hybrid Search Merge Results                    | TEST-075 | Phase C W9  | Not Started |
+| EPIC-004 | US-076    | FR-076: Traverse Knowledge Graph (Max 2 Hops)          | TEST-076 | Phase C W9  | Not Started |
+| EPIC-004 | US-077    | FR-077: Create Relationships Between Knowledge Items   | TEST-077 | Phase C W9  | Not Started |
+| EPIC-004 | US-078    | FR-078: Limit Query Results to Top-K                   | TEST-078 | Phase C W9  | Not Started |
+| EPIC-004 | US-079    | FR-079: Generate Embeddings Automatically              | TEST-079 | Phase C W9  | Not Started |
+| EPIC-004 | US-080    | FR-080: Update Knowledge Items                         | TEST-080 | Phase C W9  | Not Started |
+| EPIC-004 | US-081    | FR-081: Delete Knowledge Items                         | TEST-081 | Phase C W9  | Not Started |
+| EPIC-004 | US-082    | FR-082: View Knowledge Graph Visualization             | TEST-082 | Phase C W10 | Not Started |
+| EPIC-004 | US-083    | FR-083: Tag Knowledge Items by Category                | TEST-083 | Phase C W9  | Not Started |
+| EPIC-004 | US-084    | FR-084: Version Knowledge Items                        | TEST-084 | Phase C W10 | Not Started |
+| EPIC-004 | US-085    | FR-085: Link Knowledge Items to Issues/Tasks           | TEST-085 | Phase C W10 | Not Started |
+| EPIC-004 | US-086    | FR-086: Measure Query Performance                      | TEST-086 | Phase C W10 | Not Started |
+| EPIC-004 | US-087    | FR-087: Export Knowledge Graph to JSON                 | TEST-087 | Phase C W10 | Not Started |
+| EPIC-004 | US-088    | FR-088: Import Knowledge from Markdown Files           | TEST-088 | Phase C W10 | Not Started |
+| EPIC-004 | US-089    | FR-089: Detect Duplicate Knowledge Items               | TEST-089 | Phase C W10 | Not Started |
+| EPIC-004 | US-090    | FR-090: Archive Obsolete Knowledge Items               | TEST-090 | Phase C W10 | Not Started |
+| EPIC-005 | US-091    | FR-091: List Available Skills with Frontmatter         | TEST-091 | Phase C W11 | Not Started |
+| EPIC-005 | US-092    | FR-092: Load Skill's Full Content On-Demand            | TEST-092 | Phase C W11 | Not Started |
+| EPIC-005 | US-093    | FR-093: Search Skills by Keywords/Tags                 | TEST-093 | Phase C W11 | Not Started |
+| EPIC-005 | US-094    | FR-094: Skills Auto-Unload After 5 Minutes             | TEST-094 | Phase C W11 | Not Started |
+| EPIC-005 | US-095    | FR-095: Create Skills with Frontmatter + Content       | TEST-095 | Phase C W11 | Not Started |
+| EPIC-005 | US-096    | FR-096: Categorize Skills                              | TEST-096 | Phase C W11 | Not Started |
+| EPIC-005 | US-097    | FR-097: Validate Skill Frontmatter Format              | TEST-097 | Phase C W11 | Not Started |
+| EPIC-005 | US-098    | FR-098: Measure Token Usage Per Skill Load             | TEST-098 | Phase C W12 | Not Started |
+| EPIC-005 | US-099    | FR-099: Update Skill Content                           | TEST-099 | Phase C W11 | Not Started |
+| EPIC-005 | US-100    | FR-100: Delete Skills                                  | TEST-100 | Phase C W11 | Not Started |
+| EPIC-005 | US-101    | FR-101: Export Skills to Markdown Files                | TEST-101 | Phase C W12 | Not Started |
+| EPIC-005 | US-102    | FR-102: Import Skills from Markdown Files              | TEST-102 | Phase C W12 | Not Started |
+| EPIC-005 | US-103    | FR-103: Track Skill Usage Frequency                    | TEST-103 | Phase C W12 | Not Started |
+| EPIC-005 | US-104    | FR-104: Link Skills to Knowledge Items                 | TEST-104 | Phase C W12 | Not Started |
+| EPIC-005 | US-105    | FR-105: Detect Duplicate Skills                        | TEST-105 | Phase C W11 | Not Started |
+| EPIC-006 | US-106    | FR-106: Create Wiki Pages                              | TEST-106 | Phase C W12 | Not Started |
+| EPIC-006 | US-107    | FR-107: Auto-Generate Wiki from JSDoc/Docstrings       | TEST-107 | Phase C W12 | Not Started |
+| EPIC-006 | US-108    | FR-108: Cross-Link Wiki Pages                          | TEST-108 | Phase C W12 | Not Started |
+| EPIC-006 | US-109    | FR-109: Version Wiki Pages with Git                    | TEST-109 | Phase C W12 | Not Started |
+| EPIC-006 | US-110    | FR-110: Search Wiki Pages by Full-Text                 | TEST-110 | Phase C W12 | Not Started |
+| EPIC-006 | US-111    | FR-111: Update Wiki Pages                              | TEST-111 | Phase C W12 | Not Started |
+| EPIC-006 | US-112    | FR-112: Organize Wiki Pages in Hierarchical Folders    | TEST-112 | Phase C W12 | Not Started |
+| EPIC-006 | US-113    | FR-113: View Wiki Pages in UI with Markdown Rendering  | TEST-113 | Phase C W12 | Not Started |
+| EPIC-006 | US-114    | FR-114: Link Wiki Pages to Issues/Tasks                | TEST-114 | Phase C W12 | Not Started |
+| EPIC-006 | US-115    | FR-115: Export Wiki to Static HTML                     | TEST-115 | Post-MVP    | Not Started |
+| EPIC-007 | US-116    | FR-116: Run Security Scans (Semgrep)                   | TEST-116 | Phase D W13 | Not Started |
+| EPIC-007 | US-117    | FR-117: Run Quality Scans (ESLint)                     | TEST-117 | Phase D W13 | Not Started |
+| EPIC-007 | US-118    | FR-118: Run Accessibility Scans (axe-core, Lighthouse) | TEST-118 | Phase D W13 | Not Started |
+| EPIC-007 | US-119    | FR-119: Calculate Project Health Score                 | TEST-119 | Phase D W13 | Not Started |
+| EPIC-007 | US-120    | FR-120: View Health Dashboard                          | TEST-120 | Phase D W13 | Not Started |
+| EPIC-008 | US-121    | FR-121: Create Personas                                | TEST-121 | Post-MVP    | Not Started |
+| EPIC-008 | US-122    | FR-122: Define Persona Activation Rules                | TEST-122 | Post-MVP    | Not Started |
+| EPIC-008 | US-123    | FR-123: List Available Personas                        | TEST-123 | Post-MVP    | Not Started |
+| EPIC-008 | US-124    | FR-124: Activate/Deactivate Personas Manually          | TEST-124 | Post-MVP    | Not Started |
+| EPIC-008 | US-125    | FR-125: Update Persona System Prompts                  | TEST-125 | Post-MVP    | Not Started |
+| EPIC-010 | US-010-01 | FR-146: Create project-brief.md Memory Bank            | TEST-146 | Sprint 9 W1 | Not Started |
+| EPIC-010 | US-010-02 | FR-147: Create system-patterns.md Memory Bank          | TEST-147 | Sprint 9 W1 | Not Started |
+| EPIC-010 | US-010-03 | FR-148: Create tech-context.md Memory Bank             | TEST-148 | Sprint 9 W1 | Not Started |
+| EPIC-010 | US-010-04 | FR-149: Create active-context.md Memory Bank           | TEST-149 | Sprint 9 W1 | Not Started |
+| EPIC-010 | US-010-05 | FR-150: Create progress.md Memory Bank                 | TEST-150 | Sprint 9 W1 | Not Started |
+| EPIC-010 | US-010-06 | FR-151: Implement Memory Bank Loading Workflow         | TEST-151 | Sprint 9 W2 | Not Started |
+| EPIC-010 | US-010-07 | FR-152: Implement Pattern Lookup Workflow              | TEST-152 | Sprint 9 W2 | Not Started |
+| EPIC-010 | US-010-08 | FR-153: Implement Context Recovery Workflow            | TEST-153 | Sprint 9 W2 | Not Started |
+| EPIC-011 | US-011-01 | FR-154: Implement explore-codebase Sub-Agent           | TEST-154 | Sprint 9 W2 | Not Started |
+| EPIC-011 | US-011-02 | FR-155: Implement analyze-architecture Sub-Agent       | TEST-155 | Sprint 9 W2 | Not Started |
+| EPIC-011 | US-011-03 | FR-156: Implement Sub-Agent Invocation Workflow        | TEST-156 | Sprint 9 W2 | Not Started |
+| EPIC-011 | US-011-04 | FR-157: Implement Report Persistence System            | TEST-157 | Sprint 9 W2 | Not Started |
+| EPIC-011 | US-011-05 | FR-158: Implement Parallel Research Support            | TEST-158 | Sprint 9 W2 | Not Started |
 
-**Total:** 125 user stories mapped to 125 FRs and 125 tests
+**Total:** 138 user stories mapped to 138 FRs and 138 tests
 
 ---
 
@@ -653,31 +762,33 @@ PRD (Features) → Backlog (Epics) → Backlog (Stories) → SRS (FRs) → Testi
 
 ### 5.1 Story Point Summary by Epic
 
-| Epic      | Epic Name              | Story Count | Total Points | MoSCoW      | Sprint Allocation                  |
-| --------- | ---------------------- | ----------- | ------------ | ----------- | ---------------------------------- |
-| EPIC-001  | Sprint/Phase Tracking  | 25          | 87           | Must Have   | Phase A W1-2 (5-6 sprints)         |
-| EPIC-002  | Workflow Orchestration | 25          | 95           | Must Have   | Phase A W3-4, B W5-6 (5-6 sprints) |
-| EPIC-003  | Issues                 | 20          | 62           | Must Have   | Phase B W7-8 (3-4 sprints)         |
-| EPIC-004  | Knowledge              | 20          | 78           | Should Have | Phase C W9-10 (4-5 sprints)        |
-| EPIC-005  | Skills                 | 15          | 42           | Should Have | Phase C W11 (2-3 sprints)          |
-| EPIC-006  | Wiki                   | 10          | 31           | Could Have  | Phase C W12 (1-2 sprints)          |
-| EPIC-007  | Project Health         | 5           | 19           | Could Have  | Phase D W13 (1 sprint)             |
-| EPIC-008  | Personas               | 5           | 12           | Won't Have  | Post-MVP                           |
-| **Total** | **8 Epics**            | **125**     | **426**      | -           | **~11 sprints (22 weeks)**         |
+| Epic      | Epic Name                    | Story Count | Total Points | MoSCoW      | Sprint Allocation                  |
+| --------- | ---------------------------- | ----------- | ------------ | ----------- | ---------------------------------- |
+| EPIC-001  | Sprint/Phase Tracking        | 25          | 87           | Must Have   | Phase A W1-2 (5-6 sprints)         |
+| EPIC-002  | Workflow Orchestration       | 25          | 95           | Must Have   | Phase A W3-4, B W5-6 (5-6 sprints) |
+| EPIC-003  | Issues                       | 20          | 62           | Must Have   | Phase B W7-8 (3-4 sprints)         |
+| EPIC-004  | Knowledge                    | 20          | 78           | Should Have | Phase C W9-10 (4-5 sprints)        |
+| EPIC-005  | Skills                       | 15          | 42           | Should Have | Phase C W11 (2-3 sprints)          |
+| EPIC-006  | Wiki                         | 10          | 31           | Could Have  | Phase C W12 (1-2 sprints)          |
+| EPIC-007  | Project Health               | 5           | 19           | Could Have  | Phase D W13 (1 sprint)             |
+| EPIC-008  | Personas                     | 5           | 12           | Won't Have  | Post-MVP                           |
+| EPIC-010  | Memory Bank System           | 8           | 34           | Must Have   | Sprint 9 W1-2                      |
+| EPIC-011  | Research Agent Orchestration | 5           | 24           | Should Have | Sprint 9 W2                        |
+| **Total** | **10 Epics**                 | **138**     | **484**      | -           | **~12 sprints (24 weeks)**         |
 
-**MVP Scope (Must + Should):** 105 stories, 364 points, ~9 sprints (18 weeks)
+**MVP Scope (Must + Should):** 118 stories, 422 points, ~11 sprints (22 weeks)
 
 ---
 
 ### 5.2 Cross-References
 
-| Document                 | Purpose                                          | Link                                         |
-| ------------------------ | ------------------------------------------------ | -------------------------------------------- |
-| **01-PRD.md**            | Product Requirements (8 MVP features → 8 epics)  | [01-PRD.md](01-PRD.md)                       |
-| **02-SRS.md**            | System Requirements (125 FRs → 125 user stories) | [02-SRS.md](02-SRS.md)                       |
-| **03-Architecture.md**   | System architecture and design patterns          | [03-Architecture.md](03-Architecture.md)     |
-| **09-Testing-and-QA.md** | Test strategy (TEST-001 to TEST-125)             | [09-Testing-and-QA.md](09-Testing-and-QA.md) |
-| **13-Project-Plan.md**   | Implementation roadmap and sprint planning       | [13-Project-Plan.md](13-Project-Plan.md)     |
+| Document                 | Purpose                                           | Link                                         |
+| ------------------------ | ------------------------------------------------- | -------------------------------------------- |
+| **01-PRD.md**            | Product Requirements (10 MVP features → 10 epics) | [01-PRD.md](01-PRD.md)                       |
+| **02-SRS.md**            | System Requirements (138 FRs → 138 user stories)  | [02-SRS.md](02-SRS.md)                       |
+| **03-Architecture.md**   | System architecture and design patterns           | [03-Architecture.md](03-Architecture.md)     |
+| **09-Testing-and-QA.md** | Test strategy (TEST-001 to TEST-138)              | [09-Testing-and-QA.md](09-Testing-and-QA.md) |
+| **13-Project-Plan.md**   | Implementation roadmap and sprint planning        | [13-Project-Plan.md](13-Project-Plan.md)     |
 
 ---
 
@@ -698,6 +809,6 @@ PRD (Features) → Backlog (Epics) → Backlog (Stories) → SRS (FRs) → Testi
 
 **Document End**
 
-**Last Updated:** 2025-11-02
+**Last Updated:** 2025-11-06
 **Next Review:** Sprint 1 Planning (Phase A Week 1)
-**Total Lines:** 663 lines (target: 600 lines, +10.5% over target for completeness)
+**Total Lines:** 814 lines (includes 2 new epics: EPIC-010, EPIC-011)

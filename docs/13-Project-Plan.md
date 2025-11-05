@@ -1,19 +1,20 @@
 # Project Implementation Plan
 
 **Document ID:** DOC-013
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Status:** Active
 **Owner:** Project Management
-**Last Updated:** 2025-11-02
+**Last Updated:** 2025-11-06
 **Review Cycle:** Weekly (sprint planning)
 
 ---
 
 ## Document Control
 
-| Version | Date       | Author             | Changes                                |
-| ------- | ---------- | ------------------ | -------------------------------------- |
-| 1.0.0   | 2025-11-02 | Project Management | Initial 16-week implementation roadmap |
+| Version | Date       | Author             | Changes                                                |
+| ------- | ---------- | ------------------ | ------------------------------------------------------ |
+| 1.0.0   | 2025-11-02 | Project Management | Initial 16-week implementation roadmap                 |
+| 1.1.0   | 2025-11-06 | Project Management | Added Sprint 9 (Memory Banks + Research Orchestration) |
 
 ---
 
@@ -50,21 +51,21 @@
 
 ### 1.2 Timeline & Scope
 
-**Duration:** 16 weeks (8 two-week sprints)
+**Duration:** 18 weeks (9 two-week sprints)
 **Start Date:** Phase A Week 1 (implementation begins after documentation restructuring)
-**Target Completion:** Phase D Week 16 (MVP production-ready)
+**Target Completion:** Phase E Week 18 (MVP production-ready with context optimization)
 
 **Scope Breakdown:**
 
 | Scope Category       | Story Count | Story Points | Percentage | Target Timeline            |
 | -------------------- | ----------- | ------------ | ---------- | -------------------------- |
-| **Must Have (P0)**   | 70 stories  | 244 points   | 57%        | Sprints 1-7                |
-| **Should Have (P1)** | 35 stories  | 120 points   | 28%        | Sprints 5-8                |
-| **Could Have (P2)**  | 15 stories  | 46 points    | 11%        | Sprint 8 (time permitting) |
-| **Won't Have (P3)**  | 5 stories   | 16 points    | 4%         | Post-MVP                   |
-| **Total**            | **125**     | **426**      | **100%**   | **8 sprints**              |
+| **Must Have (P0)**   | 78 stories  | 278 points   | 57%        | Sprints 1-7, Sprint 9      |
+| **Should Have (P1)** | 40 stories  | 144 points   | 30%        | Sprints 5-8, Sprint 9      |
+| **Could Have (P2)**  | 15 stories  | 46 points    | 10%        | Sprint 8 (time permitting) |
+| **Won't Have (P3)**  | 5 stories   | 16 points    | 3%         | Post-MVP                   |
+| **Total**            | **138**     | **484**      | **100%**   | **9 sprints**              |
 
-**MVP Definition:** Must Have + Should Have = 105 stories (364 points)
+**MVP Definition:** Must Have + Should Have = 118 stories (422 points)
 
 ---
 
@@ -122,8 +123,8 @@
 **Goal:** Establish 5-level hierarchy with auto-markdown sync and workflow orchestration
 
 **Duration:** 6 weeks (3 two-week sprints)
-**Story Points:** 162 points (87 Sprint Tracking + 75 Workflow)
-**Epics:** EPIC-001 (100%), EPIC-002 (79%)
+**Story Points:** 182 points (87 Sprint Tracking + 95 Workflow complete)
+**Epics:** EPIC-001 (100%), EPIC-002 (100%)
 
 **Key Deliverables:**
 
@@ -276,6 +277,75 @@
 
 - Integration issues discovered late (mitigated: Weekly integration tests starting Sprint 2)
 - Performance bottlenecks (mitigated: Early benchmarks, optimization in Sprint 8)
+
+---
+
+### Phase E: Context Management & Research Automation (Sprint 9, Weeks 17-18)
+
+**Goal:** Token-efficient context management and automated codebase research
+
+**Duration:** 2 weeks (1 two-week sprint)
+**Story Points:** 58 points (34 Memory Banks + 24 Research Orchestration)
+**Epics:** EPIC-010 (100%), EPIC-011 (100%)
+
+**Key Deliverables:**
+
+**Week 1: Memory Bank System (EPIC-010)**
+
+- **5 Memory Bank Files:** project-brief.md, system-patterns.md, tech-context.md, active-context.md, progress.md
+- **Session Start Optimization:** Reduce token overhead from 40K → 10K (75% reduction)
+- **Pattern Lookup Workflow:** Find implementation patterns in ≤1K tokens (93% reduction)
+- **Context Recovery:** Restore session context in ≤6K tokens after interruption
+
+**Week 2: Research Agent Orchestration (EPIC-011)**
+
+- **explore-codebase Sub-Agent:** Automated pattern discovery, convention analysis
+- **analyze-architecture Sub-Agent:** Data flow tracing, dependency mapping, Mermaid diagrams
+- **Sub-Agent Invocation Workflow:** Automatic research without manual orchestration
+- **Report Persistence:** Research reports saved to .agent/task/ (persist across sessions)
+- **Parallel Research:** Support 2+ sub-agents simultaneously
+
+**Phase Acceptance Criteria:**
+
+- ✅ Session start completes in ≤10K tokens (75% reduction from 40K baseline)
+- ✅ Pattern lookups complete in ≤1K tokens (93% reduction from 15K baseline)
+- ✅ Context recovery completes in ≤6K tokens (85% reduction from 40K baseline)
+- ✅ Research tasks complete in ≤2K tokens in main thread (92% reduction from 25K baseline)
+- ✅ Sub-agent reports saved to .agent/task/ and persist across sessions
+- ✅ Support 3+ complex features per 200K token session (3x improvement from baseline)
+
+**Dependencies:**
+
+- Filesystem MCP configured
+- Git MCP configured
+- .agent/ directory structure established
+- Sub-agent architecture implemented
+
+**Risks:**
+
+- Memory bank content accuracy (mitigated: Manual review in Sprint 9, iterative refinement)
+- Sub-agent report quality (mitigated: Validate 90%+ actionable insights target)
+- File system access permissions (mitigated: Test MCP filesystem tool thoroughly)
+
+**Rationale:**
+
+Sprint 1-8 implementation revealed critical architectural gap: Claude Code's 200K token limit prevents loading complete documentation context. Full system context (~150K tokens) exceeds practical limits, causing context compaction, knowledge loss, and reduced productivity (1 feature per session). Memory Bank System solves this through token-efficient structured knowledge files. Research Agent Orchestration eliminates token waste on codebase exploration by isolating research in sub-agent threads.
+
+**FR Traceability:**
+
+- US-010-01 (FR-146): Create project-brief.md Memory Bank
+- US-010-02 (FR-147): Create system-patterns.md Memory Bank
+- US-010-03 (FR-148): Create tech-context.md Memory Bank
+- US-010-04 (FR-149): Create active-context.md Memory Bank
+- US-010-05 (FR-150): Create progress.md Memory Bank
+- US-010-06 (FR-151): Implement Memory Bank Loading Workflow
+- US-010-07 (FR-152): Implement Pattern Lookup Workflow
+- US-010-08 (FR-153): Implement Context Recovery Workflow
+- US-011-01 (FR-154): Implement explore-codebase Sub-Agent
+- US-011-02 (FR-155): Implement analyze-architecture Sub-Agent
+- US-011-03 (FR-156): Implement Sub-Agent Invocation Workflow
+- US-011-04 (FR-157): Implement Report Persistence System
+- US-011-05 (FR-158): Implement Parallel Research Support
 
 ---
 
@@ -859,6 +929,52 @@
 
 ---
 
+### Sprint 9 (Weeks 17-18): Context Management & Research Automation - 58 points
+
+**User Stories:** US-010-01 to US-010-08 (EPIC-010 complete) + US-011-01 to US-011-05 (EPIC-011 complete)
+
+**Goal:** Token-efficient context management and automated codebase research
+
+**Key Deliverables:**
+
+- **Memory Bank System (34 points):**
+  - Create 5 Memory Bank files: project-brief.md, system-patterns.md, tech-context.md, active-context.md, progress.md
+  - Implement Memory Bank loading workflow (session start optimization)
+  - Implement Pattern Lookup workflow (find patterns in ≤1K tokens)
+  - Implement Context Recovery workflow (restore session in ≤6K tokens)
+
+- **Research Agent Orchestration (24 points):**
+  - Implement explore-codebase sub-agent (pattern discovery, convention analysis)
+  - Implement analyze-architecture sub-agent (data flow tracing, Mermaid diagrams)
+  - Implement sub-agent invocation workflow (automatic research)
+  - Implement report persistence system (.agent/task/ storage)
+  - Implement parallel research support (2+ sub-agents simultaneously)
+
+**Dependencies:** Sprints 1-8 (codebase must exist to document and explore)
+
+**Risks:**
+
+- Memory bank content accuracy (mitigated: Manual review, iterative refinement)
+- Sub-agent report quality (mitigated: Validate 90%+ actionable insights)
+- File system access permissions (mitigated: Test MCP filesystem tool)
+
+**Exit Criteria:**
+
+- ✅ Session start completes in ≤10K tokens (75% reduction from 40K baseline)
+- ✅ Pattern lookups complete in ≤1K tokens (93% reduction from 15K baseline)
+- ✅ Context recovery completes in ≤6K tokens (85% reduction from 40K baseline)
+- ✅ Research tasks complete in ≤2K tokens in main thread (92% reduction)
+- ✅ Sub-agent reports persist across sessions
+
+**Testing:**
+
+- Token measurement: Verify all token reduction targets met
+- Memory Bank loading tests: Validate structured content loads correctly
+- Sub-agent integration tests: Verify research reports actionable
+- Context recovery scenario tests: Session interruption → successful recovery
+
+---
+
 ## 4. Resource Allocation
 
 ### 4.1 Solo Developer Capacity
@@ -874,30 +990,33 @@
 
 Different epics have varying complexity levels, affecting the time required per story point:
 
-| Epic      | Epic Name              | Hour/Point Ratio | Reason                                | Total Hours |
-| --------- | ---------------------- | ---------------- | ------------------------------------- | ----------- |
-| EPIC-001  | Sprint Tracking        | 1.3 hours/point  | Database-heavy, complex roll-up logic | 113 hours   |
-| EPIC-002  | Workflow Orchestration | 1.4 hours/point  | State machine complexity              | 133 hours   |
-| EPIC-003  | Issues                 | 0.9 hours/point  | UI already built, mostly backend      | 56 hours    |
-| EPIC-004  | Knowledge              | 1.5 hours/point  | High complexity (pgvector, graph)     | 117 hours   |
-| EPIC-005  | Skills                 | 1.1 hours/point  | Moderate complexity (lazy-loading)    | 46 hours    |
-| EPIC-006  | Wiki                   | 1.2 hours/point  | JSDoc parsing moderate complexity     | 37 hours    |
-| EPIC-007  | Health                 | 1.0 hours/point  | Scanner integrations moderate         | 19 hours    |
-| **Total** |                        | **1.22 avg**     | **Weighted average across all epics** | **521 hrs** |
+| Epic      | Epic Name                    | Hour/Point Ratio | Reason                                | Total Hours |
+| --------- | ---------------------------- | ---------------- | ------------------------------------- | ----------- |
+| EPIC-001  | Sprint Tracking              | 1.3 hours/point  | Database-heavy, complex roll-up logic | 113 hours   |
+| EPIC-002  | Workflow Orchestration       | 1.4 hours/point  | State machine complexity              | 133 hours   |
+| EPIC-003  | Issues                       | 0.9 hours/point  | UI already built, mostly backend      | 56 hours    |
+| EPIC-004  | Knowledge                    | 1.5 hours/point  | High complexity (pgvector, graph)     | 117 hours   |
+| EPIC-005  | Skills                       | 1.1 hours/point  | Moderate complexity (lazy-loading)    | 46 hours    |
+| EPIC-006  | Wiki                         | 1.2 hours/point  | JSDoc parsing moderate complexity     | 37 hours    |
+| EPIC-007  | Health                       | 1.0 hours/point  | Scanner integrations moderate         | 19 hours    |
+| EPIC-010  | Memory Bank System           | 1.0 hours/point  | Documentation creation, file writing  | 34 hours    |
+| EPIC-011  | Research Agent Orchestration | 1.2 hours/point  | Sub-agent architecture, file I/O      | 29 hours    |
+| **Total** |                              | **1.20 avg**     | **Weighted average across all epics** | **584 hrs** |
 
 ---
 
 ### 4.3 Total Effort Estimate
 
-**Total Hours Required:** 521 hours (sum of all epics)
-**Sprint Capacity:** 60 hours/sprint × 8 sprints = **480 hours available**
-**Buffer:** 521 - 480 = 41 hours (7.9% buffer needed)
+**Total Hours Required:** 584 hours (sum of all epics)
+**Sprint Capacity:** 60 hours/sprint × 9 sprints = **540 hours available**
+**Buffer:** 584 - 540 = 44 hours (8.1% buffer needed)
 
 **Buffer Strategy:**
 
-- 20% buffer per sprint = 12 hours/sprint × 8 sprints = 96 hours total buffer
-- Available buffer: 96 hours > 41 hours required ✅ (sufficient)
+- 20% buffer per sprint = 12 hours/sprint × 9 sprints = 108 hours total buffer
+- Available buffer: 108 hours > 44 hours required ✅ (sufficient)
 - Sprint 8 is dedicated integration sprint (48 points = ~59 hours, below capacity)
+- Sprint 9 is context optimization (58 points = ~70 hours, slightly over but critical)
 
 ---
 
@@ -1014,7 +1133,16 @@ Different epics have varying complexity levels, affecting the time required per 
 - ✅ All features integrated seamlessly (end-to-end workflows)
 - ✅ Performance targets met across all NFRs
 - ✅ Bug fixes complete (zero P0 critical bugs)
-- ✅ MVP acceptance criteria validated (105 Must+Should stories)
+- ✅ MVP acceptance criteria validated (118 Must+Should stories)
+
+**Phase E: Context Management & Research Automation (Sprint 9)**
+
+- ✅ Session start completes in ≤10K tokens (75% reduction from 40K baseline)
+- ✅ Pattern lookups complete in ≤1K tokens (93% reduction from 15K baseline)
+- ✅ Context recovery completes in ≤6K tokens (85% reduction from 40K baseline)
+- ✅ Research tasks complete in ≤2K tokens in main thread (92% reduction from 25K baseline)
+- ✅ Sub-agent reports saved to .agent/task/ and persist across sessions
+- ✅ Support 3+ complex features per 200K token session (3x improvement from baseline)
 
 ---
 
@@ -1022,8 +1150,8 @@ Different epics have varying complexity levels, affecting the time required per 
 
 **Scope Complete:**
 
-1. ✅ All 105 Must+Should stories implemented (364 story points)
-2. ✅ 70 Must-Have stories (P0 priority) + 35 Should-Have stories (P1 priority)
+1. ✅ All 118 Must+Should stories implemented (422 story points)
+2. ✅ 78 Must-Have stories (P0 priority) + 40 Should-Have stories (P1 priority)
 
 **Tests Passing:** 3. ✅ All 125 tests passing (TEST-001 to TEST-125) 4. ✅ Unit tests: >80% code coverage for business logic 5. ✅ Integration tests: All MCP tools end-to-end 6. ✅ Performance tests: API, MCP, knowledge queries meet targets
 
@@ -1069,26 +1197,28 @@ Different epics have varying complexity levels, affecting the time required per 
 
 ## 7. Milestones & Dependencies
 
-### 7.1 Weekly Milestones (16-Week Timeline)
+### 7.1 Weekly Milestones (18-Week Timeline)
 
-| Week | Phase   | Milestone Description                                | Key Deliverable                         |
-| ---- | ------- | ---------------------------------------------------- | --------------------------------------- |
-| 1    | Phase A | Hierarchy CRUD complete, basic progress tracking     | 5-level hierarchy functional            |
-| 2    | Phase A | Markdown sync operational, git hooks enforced        | STATUS.md auto-generated <500ms         |
-| 3    | Phase A | Workflow state machine complete, 5-step protocol     | Workflow state persists across sessions |
-| 4    | Phase A | Checkpoint system operational, workflow recovery     | Checkpoints every 15K tokens            |
-| 5    | Phase B | Workflow orchestration complete (Phase A 100%)       | 12 workflows defined and enforceable    |
-| 6    | Phase B | Issue CRUD complete                                  | Issues table + MCP tools functional     |
-| 7    | Phase B | Bulk creation + auto-tagging operational             | 15 issues created in <2s                |
-| 8    | Phase B | Issues complete, context injection functional        | Issues UI integrated (Phase B 100%)     |
-| 9    | Phase C | Hybrid search foundation (pgvector + tsvector)       | Knowledge queries <200ms                |
-| 10   | Phase C | Semantic + fulltext merge working, token reduction   | 88% token reduction validated           |
-| 11   | Phase C | Knowledge graph traversal (2-hop) operational        | Related items retrieved via graph       |
-| 12   | Phase C | Skills lazy-loading operational, 92% token reduction | Skills frontmatter <80 tokens           |
-| 13   | Phase C | Wiki auto-generation working, JSDoc parsing          | Wiki pages generated from code comments |
-| 14   | Phase C | Health dashboard operational, scanners integrated    | Health score calculated (Phase C+D 87%) |
-| 15   | Phase D | Integration testing complete, all features working   | End-to-end workflows validated          |
-| 16   | Phase D | MVP acceptance criteria met, ready for production    | 105 stories complete, 0 critical bugs   |
+| Week | Phase   | Milestone Description                                | Key Deliverable                             |
+| ---- | ------- | ---------------------------------------------------- | ------------------------------------------- |
+| 1    | Phase A | Hierarchy CRUD complete, basic progress tracking     | 5-level hierarchy functional                |
+| 2    | Phase A | Markdown sync operational, git hooks enforced        | STATUS.md auto-generated <500ms             |
+| 3    | Phase A | Workflow state machine complete, 5-step protocol     | Workflow state persists across sessions     |
+| 4    | Phase A | Checkpoint system operational, workflow recovery     | Checkpoints every 15K tokens                |
+| 5    | Phase B | Workflow orchestration complete (Phase A 100%)       | 12 workflows defined and enforceable        |
+| 6    | Phase B | Issue CRUD complete                                  | Issues table + MCP tools functional         |
+| 7    | Phase B | Bulk creation + auto-tagging operational             | 15 issues created in <2s                    |
+| 8    | Phase B | Issues complete, context injection functional        | Issues UI integrated (Phase B 100%)         |
+| 9    | Phase C | Hybrid search foundation (pgvector + tsvector)       | Knowledge queries <200ms                    |
+| 10   | Phase C | Semantic + fulltext merge working, token reduction   | 88% token reduction validated               |
+| 11   | Phase C | Knowledge graph traversal (2-hop) operational        | Related items retrieved via graph           |
+| 12   | Phase C | Skills lazy-loading operational, 92% token reduction | Skills frontmatter <80 tokens               |
+| 13   | Phase C | Wiki auto-generation working, JSDoc parsing          | Wiki pages generated from code comments     |
+| 14   | Phase C | Health dashboard operational, scanners integrated    | Health score calculated (Phase C+D 87%)     |
+| 15   | Phase D | Integration testing complete, all features working   | End-to-end workflows validated              |
+| 16   | Phase D | MVP acceptance criteria met, ready for production    | 118 stories complete, 0 critical bugs       |
+| 17   | Phase E | Memory Bank System complete, 5 files created         | Context loading <10K tokens (75% reduction) |
+| 18   | Phase E | Research Agent Orchestration complete                | Sub-agents operational, reports persist     |
 
 ---
 
@@ -1101,7 +1231,8 @@ Different epics have varying complexity levels, affecting the time required per 
 **Sprint 5 End (Week 10):** Knowledge graph foundation operational, Phase C 40% done
 **Sprint 6 End (Week 12):** Knowledge + Skills complete, Phase C 75% done
 **Sprint 7 End (Week 14):** Wiki + Health complete, Phase C+D 100% done ✅
-**Sprint 8 End (Week 16):** MVP complete, ready for production ✅
+**Sprint 8 End (Week 16):** Integration complete, ready for context optimization ✅
+**Sprint 9 End (Week 18):** Memory Banks + Research Orchestration complete, MVP production-ready ✅
 
 ---
 
@@ -1124,8 +1255,13 @@ Different epics have varying complexity levels, affecting the time required per 
 
 **Phase D Gate (Week 16):** Is health score calculated correctly from all scanners?
 
-- ✅ Yes → Declare MVP complete
+- ✅ Yes → Proceed to Phase E
 - ❌ No → Fix integration issues (Sprint 8 extended)
+
+**Phase E Gate (Week 18):** Do Memory Banks achieve <10K token session starts?
+
+- ✅ Yes → Declare MVP complete (production-ready with context optimization)
+- ❌ No → Refine memory bank content, optimize loading workflow (Sprint 9 extended)
 
 ---
 
@@ -1143,6 +1279,7 @@ EPIC-004 (Knowledge) → EPIC-006 (Wiki) [cross-linking via graph]
 EPIC-003 (Issues) → EPIC-007 (Health) [creates issues from scanner findings]
 
 All EPICs → Sprint 8 Integration [end-to-end validation]
+          → Sprint 9 Context Optimization [EPIC-010, EPIC-011]
 ```
 
 **Key Dependencies:**
@@ -1152,8 +1289,9 @@ All EPICs → Sprint 8 Integration [end-to-end validation]
 3. **EPIC-004 → EPIC-005:** Skills reuse knowledge graph indexing patterns
 4. **EPIC-004 → EPIC-006:** Wiki cross-linking uses knowledge graph relationships
 5. **EPIC-003 → EPIC-007:** Health scanners create issues automatically (bulk creation)
+6. **Sprints 1-8 → Sprint 9:** Memory Banks document existing system patterns, sub-agents explore implemented codebase
 
-**No Blocking Dependencies:** All features can progress in parallel within phases
+**No Blocking Dependencies:** All features can progress in parallel within phases. Sprint 9 can proceed in parallel with late-stage Sprint 8 work.
 
 ---
 
@@ -1217,22 +1355,22 @@ PRD (Features) → SRS (FR-001 to FR-125) → Architecture (ADR-001 to ADR-005)
 
 ## Summary
 
-This 16-week implementation roadmap provides:
+This 18-week implementation roadmap provides:
 
-✅ **Complete Sprint Breakdown:** All 125 stories allocated across 8 balanced sprints (48-62 points each)
+✅ **Complete Sprint Breakdown:** All 138 stories allocated across 9 balanced sprints (48-62 points each)
 ✅ **Realistic Resource Planning:** Solo developer capacity validated (60 hours/sprint, 1.22 hours/point avg)
 ✅ **Risk-Aware Strategy:** 13 identified risks with specific mitigation strategies
 ✅ **Traceability:** Epic→Sprint→Stories→FRs→Tests maintained throughout
 ✅ **Phase Gates:** Clear acceptance criteria at phase, sprint, and MVP levels
-✅ **Buffer Strategy:** 7.9% buffer + Sprint 8 integration = realistic timeline
+✅ **Buffer Strategy:** 7.9% buffer + Sprint 8 integration + Sprint 9 context optimization = realistic timeline
 ✅ **Dependency Management:** Critical path validated, no blocking dependencies
 
-**Ready for implementation!** This plan guides the team from foundation (Sprint 1) to production-ready MVP (Sprint 8) with clear milestones, success criteria, and risk mitigation at every step.
+**Ready for implementation!** This plan guides the team from foundation (Sprint 1) to production-ready MVP with context optimization (Sprint 9) with clear milestones, success criteria, and risk mitigation at every step.
 
 ---
 
 **Document End**
 
-**Last Updated:** 2025-11-02
-**Next Review:** Sprint 1 Planning (Phase A Week 1)
-**Total Lines:** 680 lines (target: 475 lines, +43% over target for comprehensive detail)
+**Last Updated:** 2025-11-06
+**Next Review:** Sprint 9 Planning (Phase E Week 17)
+**Total Lines:** 760+ lines (target: 475 lines, comprehensive detail including Sprint 9)
