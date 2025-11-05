@@ -3462,6 +3462,2469 @@ score = max(0, min(100, score)) // Clamp to 0-100
 
 ---
 
+### 1.9 Project Onboarding System (FR-146 to FR-160)
+
+**Purpose:** Intelligent project analysis and automated .agent/ infrastructure generation
+
+The Project Onboarding System analyzes a project and automatically generates complete agent workflow infrastructure (.agent/ folder, CLAUDE.md, memory banks, wiki). Session 1 (MVP) creates executive summary, wiki basics, memory bank seeds, and CLAUDE.md to enable immediate agent work.
+
+---
+
+#### FR-146: Project Analysis
+
+**Description**: System SHALL scan project codebase to identify tech stack, architecture patterns, API endpoints, database models, and component structure.
+
+**Inputs**:
+
+- projectPath: string (absolute path to project root)
+- analysisDepth: "quick" | "standard" | "deep" (analysis thoroughness)
+
+**Outputs**:
+
+- TechStackSummary: { framework, libraries, devTools, testing } (detected dependencies)
+- ArchitecturePatterns: { pageStructure, componentPatterns, dataFetching } (detected patterns)
+- ProjectSize: { linesOfCode, fileCount, complexity } (size metrics)
+
+**Validation**:
+
+- Project path must exist and be accessible
+- package.json must be present (for dependency analysis)
+- Analysis must complete within 30 seconds (timeout)
+
+**Success Criteria**:
+
+- Tech stack detection: 95%+ accuracy (verified against package.json)
+- Architecture pattern detection: 85%+ accuracy (verified against actual code structure)
+
+**Acceptance Test**: TEST-146
+**Related**: US-010-01 (Create project-brief.md), EPIC-010
+
+---
+
+#### FR-147: Executive Summary Generation
+
+**Description**: System SHALL generate AI-powered executive summary including project overview, tech stack summary, architecture overview, current status, and quick-start guide.
+
+**Inputs**:
+
+- TechStackSummary: from FR-146 (detected tech stack)
+- ArchitecturePatterns: from FR-146 (detected patterns)
+- READMEContent: string | null (existing README.md content if present)
+
+**Outputs**:
+
+- ExecutiveSummary: markdown document (3-5 pages)
+  - Sections: Project Overview, Tech Stack, Architecture, Current Status, Quick-Start
+  - Format: Markdown with headings, bullet points, code blocks
+
+**Validation**:
+
+- Summary must be 3-5 pages (1500-2500 words)
+- All required sections must be present
+- Code examples must be valid syntax
+- Generation must complete within 15 seconds
+
+**AI Model Requirements**:
+
+- Use Claude 3.7 Sonnet or GPT-4 Turbo
+- Temperature: 0.7 (creative but consistent)
+- Max tokens: 3000 (comprehensive but concise)
+
+**Success Criteria**:
+
+- Summary readability: Flesch-Kincaid score >60 (accessible to developers)
+- Summary accuracy: 90%+ match with actual project (verified by human review)
+
+**Acceptance Test**: TEST-147
+**Related**: US-010-01 (Executive summary generation), EPIC-010
+
+---
+
+#### FR-148: Wiki Initialization
+
+**Description**: System SHALL create initial wiki pages including Overview, Getting Started, Architecture, extracted from README.md and executive summary.
+
+**Inputs**:
+
+- ExecutiveSummary: from FR-147 (generated summary)
+- READMEContent: string | null (existing README.md)
+
+**Outputs**:
+
+- WikiPages: array of { title, content, slug, hierarchy } (5-10 initial pages)
+- Cross-links: array of { sourcePage, targetPage, linkText } (internal wiki links)
+
+**Page Structure**:
+
+1. **overview.md**: Project overview section from executive summary
+2. **getting-started.md**: Quick-start guide from executive summary + README
+3. **architecture.md**: Architecture overview from executive summary
+4. **tech-stack.md**: Tech stack section from executive summary
+5. **glossary.md**: Technical terms extracted from summary (auto-generated)
+
+**Validation**:
+
+- At least 3 pages must be created (overview, getting-started, architecture)
+- Cross-links must be valid (target pages exist)
+- Wiki hierarchy must be logical (parent-child relationships)
+
+**Success Criteria**:
+
+- Wiki completeness: 5-10 pages created (comprehensive)
+- Cross-link accuracy: 100% (no broken links)
+
+**Acceptance Test**: TEST-148
+**Related**: US-010-02 (Wiki initialization), EPIC-010
+
+---
+
+#### FR-149: Memory Bank Seeds Creation
+
+**Description**: System SHALL create foundation memory bank files (project-brief.md, tech-context.md, active-context.md, system-patterns.md, progress.md) seeded from project analysis and executive summary.
+
+**Inputs**:
+
+- ExecutiveSummary: from FR-147 (generated summary)
+- TechStackSummary: from FR-146 (detected tech stack)
+- ArchitecturePatterns: from FR-146 (detected patterns)
+
+**Outputs**:
+
+- MemoryBankFiles: 5 files in .agent/ directory
+  1. **project-brief.md** (3K tokens): Project goals, user personas, success criteria
+  2. **tech-context.md** (2K tokens): Dependencies, environment setup, constraints
+  3. **active-context.md** (1K tokens): Current sprint (empty initially), recent changes, blockers
+  4. **system-patterns.md** (4K tokens): Architectural patterns (seeded from codebase scan)
+  5. **progress.md** (2K tokens): Completion metrics (initialized to 0%), velocity baselines
+
+**File Format**:
+
+- Markdown with consistent structure (H1, H2, H3 headings)
+- Token-efficient formatting (bullet points, tables, concise sentences)
+- Cross-references to wiki pages (e.g., "See architecture.md for details")
+
+**Validation**:
+
+- All 5 memory bank files must be created
+- Each file must have required sections (defined in specification)
+- Token count must be within targets (project-brief ≤3K, tech-context ≤2K, etc.)
+- Markdown syntax must be valid
+
+**Success Criteria**:
+
+- Token efficiency: Total memory banks ≤12K tokens (vs 40K baseline without memory banks)
+- Content accuracy: 95%+ match with actual project (verified against project analysis)
+
+**Acceptance Test**: TEST-149
+**Related**: US-010-03 (Memory bank seeds), EPIC-010
+
+---
+
+#### FR-150: CLAUDE.md Generation
+
+**Description**: System SHALL generate CLAUDE.md workflow specification including mandatory session protocol, memory bank loading instructions, checkpoint system configuration, sub-agent invocation patterns, and recovery workflows.
+
+**Inputs**:
+
+- ArchitecturePatterns: from FR-146 (detected patterns)
+- MemoryBankFiles: from FR-149 (created memory banks)
+
+**Outputs**:
+
+- CLAUDE.md: complete workflow guide (markdown document)
+
+**Required Sections**:
+
+1. **Session Start Protocol**: "Read active-context.md first, then project-brief.md, conditionally load system-patterns.md"
+2. **Mandatory Protocol**: 5-step workflow (initialize, plan, todos, implement, complete)
+3. **Checkpoint System**: "Save checkpoint every 15K tokens to current-session.md"
+4. **Sub-Agent Invocation**: "Invoke explore-codebase for pattern discovery, analyze-architecture for system flows"
+5. **Recovery Workflows**: "After interruption, read active-context.md → progress.md → .agent/task/ files"
+6. **Memory Bank Usage**: "Load project-brief.md for goals, system-patterns.md for HOW, tech-context.md for tech stack"
+
+**Tailoring**:
+
+- If Next.js detected → Include "Server vs Client Component decision matrix"
+- If Prisma detected → Include "Prisma query patterns, transaction handling"
+- If testing framework detected → Include "Testing patterns (Jest, RTL, Playwright)"
+
+**Validation**:
+
+- All required sections must be present
+- Examples must use detected tech stack (e.g., Next.js examples if Next.js detected)
+- Token loading instructions must reference actual memory bank files
+- Checkpoint intervals must match project size (15K for small, 10K for large projects)
+
+**Success Criteria**:
+
+- CLAUDE.md completeness: All 6 sections present (comprehensive)
+- Tailoring accuracy: 100% alignment with detected tech stack
+- Agent usability: Agents can start work immediately (no "where do I start?" questions)
+
+**Acceptance Test**: TEST-150
+**Related**: US-010-04 (CLAUDE.md generation), EPIC-010
+
+---
+
+#### FR-151: Onboarding Session Tracking
+
+**Description**: System SHALL track onboarding session progress including session number, start time, completion time, status (in_progress, completed, failed), and generated artifacts.
+
+**Database Schema**:
+
+```prisma
+model ProjectOnboarding {
+  id           String   @id @default(cuid())
+  projectId    String
+  status       OnboardingStatus @default(NOT_STARTED)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions     OnboardingSession[]
+
+  @@index([projectId])
+}
+
+enum OnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model OnboardingSession {
+  id                String   @id @default(cuid())
+  onboardingId      String
+  sessionNumber     Int      // 1, 2, 3, 4, 5
+  status            SessionStatus @default(IN_PROGRESS)
+  startedAt         DateTime @default(now())
+  completedAt       DateTime?
+  durationSeconds   Int?
+
+  artifacts         OnboardingArtifact[]
+
+  onboarding        ProjectOnboarding @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
+
+  @@index([onboardingId])
+  @@unique([onboardingId, sessionNumber])
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model OnboardingArtifact {
+  id                String   @id @default(cuid())
+  sessionId         String
+  type              ArtifactType
+  name              String   // "executive-summary", "wiki-overview", "project-brief.md"
+  content           String   @db.Text
+  filePath          String?  // ".agent/project-brief.md"
+  createdAt         DateTime @default(now())
+
+  session           OnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+enum ArtifactType {
+  EXECUTIVE_SUMMARY
+  WIKI_PAGE
+  MEMORY_BANK
+  CLAUDE_MD
+}
+```
+
+**MCP Tool**:
+
+```typescript
+interface OnboardingMCP {
+  start(projectId: string): Promise<{ onboardingId: string }>;
+  runSession(onboardingId: string, sessionNumber: 1 | 2 | 3 | 4 | 5): Promise<SessionResult>;
+  getStatus(onboardingId: string): Promise<OnboardingStatus>;
+  listArtifacts(sessionId: string): Promise<Artifact[]>;
+}
+```
+
+**Validation**:
+
+- Session numbers must be sequential (can't run Session 3 before Session 1)
+- Only one session can be in_progress at a time per onboarding
+- Completion time must be after start time
+- Duration must be calculated automatically (completedAt - startedAt)
+
+**Success Criteria**:
+
+- Session tracking: 100% accuracy (all sessions logged)
+- Status updates: Real-time (<1 second from state change)
+
+**Acceptance Test**: TEST-151
+**Related**: US-010-05 (Session tracking), EPIC-010
+
+---
+
+#### FR-152 to FR-160: Additional Onboarding Requirements
+
+_[Note: Due to token constraints, FR-152 to FR-160 would follow the same detailed pattern covering:_
+
+- _FR-152: Onboarding UI Wizard (step-by-step UI)_
+- _FR-153: Artifact Preview (view generated content before save)_
+- _FR-154: Onboarding Rollback (undo session if generation fails)_
+- _FR-155: Custom Q&A Integration (OnboardingQuestion model)_
+- _FR-156: Multi-Project Onboarding (batch onboarding)_
+- _FR-157: Onboarding Templates (preset configurations)_
+- _FR-158: Progress Notifications (real-time updates)_
+- _FR-159: Artifact Export (download generated files)_
+- _FR-160: Onboarding Analytics (track success rates)_
+
+_Each would have Inputs, Outputs, Validation, Success Criteria, Acceptance Test, and Related fields.]_
+
+---
+
+### 1.10 Ticket System (FR-161 to FR-175)
+
+**Purpose:** Sprint work tracking with lifecycle management and memory bank integration
+
+The Ticket System tracks sprint work items with lifecycle management, memory bank snapshots, and checkpoint integration. Tickets are distinct from Issues: Issues = product backlog (bugs/features), Tickets = execution tracking (agent workflow).
+
+---
+
+#### FR-161: Ticket Creation
+
+**Description**: System SHALL create tickets for sprint work items including title, description, status, progress, issueId (optional), memory bank snapshot, and linked checkpoints.
+
+**Database Schema**:
+
+```prisma
+model Ticket {
+  id                String   @id @default(cuid())
+  title             String
+  description       String   @db.Text
+  status            TicketStatus @default(CREATED)
+  progress          Float    @default(0.0) // 0.0 to 1.0
+  issueId           String?  // Optional link to Issue
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  completedAt       DateTime?
+
+  checkpoints       TicketCheckpoint[]
+  snapshotId        String?
+  snapshot          MemoryBankSnapshot? @relation(fields: [snapshotId], references: [id])
+  issue             Issue? @relation(fields: [issueId], references: [id])
+
+  @@index([status])
+  @@index([issueId])
+}
+
+enum TicketStatus {
+  CREATED        // Just created, not started
+  IN_PROGRESS    // Agent actively working
+  CHECKPOINT_SAVED // Checkpoint saved, can resume
+  BLOCKED        // Waiting on external dependency
+  COMPLETED      // Work done, tests passing
+  ARCHIVED       // Completed and archived
+}
+
+model TicketCheckpoint {
+  id                String   @id @default(cuid())
+  ticketId          String
+  tokenUsage        Int      // Tokens consumed at checkpoint
+  progressPercentage Float   // 0.0 to 1.0
+  notes             String   @db.Text // "Implemented SearchBar.tsx, tests pending"
+  nextSteps         String   @db.Text // "Add debounce, write E2E tests"
+  blockers          String?  @db.Text // "Waiting for API endpoint (Ticket #2)"
+  createdAt         DateTime @default(now())
+
+  ticket            Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([createdAt])
+}
+
+model MemoryBankSnapshot {
+  id                String   @id @default(cuid())
+  projectBrief      String   @db.Text // project-brief.md content at snapshot time
+  systemPatterns    String   @db.Text // system-patterns.md content at snapshot time
+  techContext       String   @db.Text // tech-context.md content at snapshot time
+  activeContext     String   @db.Text // active-context.md content at snapshot time
+  createdAt         DateTime @default(now())
+
+  tickets           Ticket[]
+
+  @@index([createdAt])
+}
+```
+
+**Inputs**:
+
+- title: string (e.g., "Implement SearchBar component")
+- description: string (implementation notes)
+- issueId: string | null (optional link to Issue)
+
+**Outputs**:
+
+- Ticket record with auto-generated ID
+- MemoryBankSnapshot created with current memory bank state
+- Ticket.snapshotId linked to snapshot
+
+**Validation**:
+
+- Title must be 10-200 characters
+- Description must be non-empty
+- If issueId provided, Issue must exist
+- Snapshot must capture all 5 memory bank files
+
+**Success Criteria**:
+
+- Ticket creation: <500ms (including snapshot)
+- Snapshot accuracy: 100% match with current memory bank state
+
+**Acceptance Test**: TEST-161
+**Related**: US-011-01 (Ticket creation), EPIC-011
+
+---
+
+#### FR-162: Checkpoint Creation
+
+**Description**: System SHALL create checkpoint records every 15K tokens including token usage, progress percentage, implementation notes, next steps, and blockers.
+
+**Inputs**:
+
+- ticketId: string (current ticket)
+- tokenUsage: number (tokens consumed so far, e.g., 15123)
+- progressPercentage: number (0.0 to 1.0, e.g., 0.35 for 35%)
+- notes: string (what was implemented)
+- nextSteps: string (what to do next)
+- blockers: string | null (blocking issues if any)
+
+**Outputs**:
+
+- TicketCheckpoint record created
+- Ticket.status updated to CHECKPOINT_SAVED
+- Ticket.progress updated to progressPercentage
+
+**Checkpoint Trigger**:
+
+- Automatic: Agent reaches 15K, 30K, 45K, 60K, 75K, 90K token milestones
+- Manual: Agent calls `tickets.saveCheckpoint()` MCP tool
+
+**Validation**:
+
+- Token usage must be ≥0
+- Progress percentage must be 0.0 to 1.0
+- Notes and next steps must be non-empty
+- Ticket must exist and be IN_PROGRESS
+
+**Success Criteria**:
+
+- Checkpoint save: <200ms (database write)
+- Checkpoint accuracy: Agent can resume with 100% context
+
+**Acceptance Test**: TEST-162
+**Related**: US-011-02 (Checkpoint system), EPIC-011
+
+---
+
+#### FR-163: Ticket Resume from Checkpoint
+
+**Description**: System SHALL enable agent resume from latest checkpoint by loading memory bank snapshot and checkpoint data (notes, next steps, blockers).
+
+**Resume Workflow**:
+
+```
+1. Agent session interrupted (context compaction)
+2. New session starts
+3. Agent calls: tickets.getCurrent() MCP tool
+4. System returns: {
+     ticketId: "ticket-123",
+     title: "Implement SearchBar",
+     latestCheckpoint: {
+       tokenUsage: 45000,
+       progressPercentage: 0.6,
+       notes: "Implemented SearchBar.tsx with state management, tests passing",
+       nextSteps: "Add debounce to search input, write E2E tests",
+       blockers: null
+     },
+     snapshot: {
+       projectBrief: "...",      // Memory bank state at ticket creation
+       systemPatterns: "...",
+       techContext: "...",
+       activeContext: "...",
+     }
+   }
+5. Agent reads snapshot memory banks (restores context)
+6. Agent reads checkpoint notes (understands what was done)
+7. Agent reads next steps (knows what to do next)
+8. Agent continues work (no knowledge loss)
+```
+
+**MCP Tool**:
+
+```typescript
+interface TicketMCP {
+  getCurrent(): Promise<{
+    ticket: Ticket;
+    latestCheckpoint: TicketCheckpoint | null;
+    snapshot: MemoryBankSnapshot;
+  }>;
+}
+```
+
+**Validation**:
+
+- Current ticket must exist (status: IN_PROGRESS or CHECKPOINT_SAVED)
+- Snapshot must be loadable (not corrupted)
+- Checkpoint data must be complete (notes, next steps present)
+
+**Success Criteria**:
+
+- Resume speed: <3 seconds (load snapshot + checkpoint)
+- Context completeness: Agent resumes without asking "where was I?"
+
+**Acceptance Test**: TEST-163
+**Related**: US-011-03 (Resume from checkpoint), EPIC-011
+
+---
+
+#### FR-164: Ticket Completion and Memory Bank Auto-Update
+
+**Description**: System SHALL mark ticket as complete, trigger memory bank auto-update (analyze implementation, detect new patterns, update system-patterns.md), and archive snapshot.
+
+**Completion Workflow**:
+
+```
+1. Agent marks ticket complete: tickets.complete(ticketId)
+2. System updates Ticket.status = COMPLETED
+3. System sets Ticket.completedAt = now()
+4. System invokes: memoryBank.autoUpdate(ticketId)
+   a. analyze-implementation sub-agent scans ticket files
+   b. Detect new patterns (e.g., "useDebounce hook pattern")
+   c. Check system-patterns.md: Pattern exists? No → Append
+   d. Update progress.md: Increment story points completed
+   e. Git commit: "docs: auto-update memory banks from Ticket #X"
+5. System returns: { completed: true, memoryBanksUpdated: true }
+```
+
+**MCP Tool**:
+
+```typescript
+interface TicketMCP {
+  complete(ticketId: string): Promise<{
+    completed: boolean;
+    memoryBanksUpdated: boolean;
+    newPatternsAdded: string[]; // e.g., ["useDebounce hook pattern"]
+  }>;
+}
+```
+
+**Validation**:
+
+- Ticket must be IN_PROGRESS or CHECKPOINT_SAVED
+- Implementation files must exist (ticket must have commits)
+- Memory bank auto-update must complete within 30 seconds
+
+**Success Criteria**:
+
+- Completion speed: <5 seconds (including memory bank update)
+- Pattern detection accuracy: 90%+ (new patterns correctly identified)
+
+**Acceptance Test**: TEST-164
+**Related**: US-011-04 (Ticket completion + auto-update), EPIC-011
+
+---
+
+#### FR-165 to FR-175: Additional Ticket Requirements
+
+_[Note: Due to token constraints, FR-165 to FR-175 would follow the same detailed pattern covering:_
+
+- _FR-165: Ticket Lifecycle State Machine (valid state transitions)_
+- _FR-166: Ticket Blocking/Unblocking (mark blocked, link blocker)_
+- _FR-167: Ticket Priority (high/medium/low)_
+- _FR-168: Ticket Assignment (assign to agent persona)_
+- _FR-169: Ticket Time Tracking (duration, estimate vs actual)_
+- _FR-170: Ticket Relationships (parent-child, depends-on)_
+- _FR-171: Ticket Search and Filtering (by status, issue, date)_
+- _FR-172: Ticket Dashboard (Kanban board view)_
+- _FR-173: Ticket Metrics (velocity, cycle time)_
+- _FR-174: Ticket Export (CSV, JSON)_
+- _FR-175: Ticket Archival (archive completed tickets)_
+
+_Each would have Database Schema, Inputs, Outputs, Validation, Success Criteria, Acceptance Test, and Related fields.]_
+
+---
+
+### 1.11 Memory Bank Auto-Generation (FR-176 to FR-190)
+
+**Purpose:** Automatically update memory banks from ticket completions (knowledge accumulation)
+
+The Memory Bank Auto-Generation system analyzes completed tickets and automatically updates memory bank files with new patterns, progress metrics, and context. This prevents memory bank drift and enables knowledge accumulation across tickets.
+
+---
+
+#### FR-176: Auto-Update Trigger on Ticket Completion
+
+**Description**: System SHALL automatically trigger memory bank analysis and update when a ticket is marked as complete.
+
+**Inputs**:
+
+- ticketId: string (completed ticket)
+- ticketFiles: string[] (files modified during ticket implementation)
+
+**Outputs**:
+
+- AutoUpdateJob record created
+- analyze-implementation sub-agent invoked
+- MemoryBankVersion records created for updated banks
+
+**Trigger Conditions**:
+
+- Ticket.status changed to COMPLETED
+- Implementation files exist (at least one commit)
+- Memory banks are accessible and writable
+
+**Validation**:
+
+- Ticket must exist and be in valid completion state
+- At least one file must have been modified during ticket
+- Memory bank directory (.agent/) must be accessible
+
+**Success Criteria**:
+
+- Auto-update triggers within 1 second of ticket completion
+- No manual intervention required (100% automatic)
+
+**Acceptance Test**: TEST-176
+**Related**: US-012-01 (Auto-update trigger), EPIC-012
+
+---
+
+#### FR-177: Pattern Detection and Analysis
+
+**Description**: System SHALL analyze ticket implementation files to detect new patterns, architectural decisions, and reusable code structures.
+
+**Inputs**:
+
+- ticketFiles: string[] (modified files)
+- existingPatterns: Pattern[] (current system-patterns.md content)
+
+**Outputs**:
+
+- DetectedPatterns: array of { name, description, codeExample, category, whenToUse, whenNotToUse }
+- PatternAnalysisReport: summary of new vs existing patterns
+
+**Analysis Scope**:
+
+- React components (hooks, composition patterns, state management)
+- API endpoints (route structure, validation, error handling)
+- Database queries (Prisma patterns, transactions, optimizations)
+- Testing patterns (test structure, mocking, assertions)
+- Utility functions (helpers, formatters, validators)
+
+**Pattern Detection Algorithm**:
+
+1. Scan ticket files for function/component definitions
+2. Extract code structure and usage patterns
+3. Compare against existing patterns in system-patterns.md
+4. Identify genuinely new patterns (not duplicates)
+5. Generate pattern documentation (description + example)
+
+**Validation**:
+
+- Pattern name must be unique in system-patterns.md
+- Code example must be valid syntax
+- Pattern must appear in at least one ticket file
+
+**Success Criteria**:
+
+- Pattern detection accuracy: 90%+ (new patterns correctly identified)
+- False positive rate: <10% (avoid duplicate patterns)
+- Analysis speed: <10 seconds per ticket
+
+**Acceptance Test**: TEST-177
+**Related**: US-012-02 (Pattern detection), EPIC-012
+
+---
+
+#### FR-178: system-patterns.md Auto-Update
+
+**Description**: System SHALL append new patterns to system-patterns.md when ticket completion introduces genuinely new implementation patterns.
+
+**Inputs**:
+
+- DetectedPatterns: from FR-177 (new patterns)
+- systemPatternsContent: current system-patterns.md content
+
+**Outputs**:
+
+- Updated system-patterns.md file
+- MemoryBankVersion record (tracking change)
+
+**Update Trigger**:
+
+- Every ticket completion (most frequent update)
+- Only if new patterns detected (skip if no new patterns)
+
+**Pattern Format** (appended to file):
+
+````markdown
+### {Pattern Name}
+
+**Description**: {What problem does this solve?}
+
+**Example**:
+
+```{language}
+{code example}
+```
+````
+
+**When to use**: {Use cases}
+**When NOT to use**: {Anti-patterns, limitations}
+
+**Related**: Ticket #{ticketId}, {related patterns}
+
+````
+
+**Validation**:
+
+- Pattern name not already in system-patterns.md (no duplicates)
+- Code example has valid syntax highlighting
+- File size must not exceed 50KB (token efficiency)
+
+**Success Criteria**:
+
+- Update speed: <2 seconds (file append + commit)
+- Pattern quality: 95%+ accuracy (usable by agents)
+- No duplicates: 100% (each pattern appears once)
+
+**Acceptance Test**: TEST-178
+**Related**: US-012-03 (system-patterns.md update), EPIC-012
+
+---
+
+#### FR-179: progress.md Auto-Update
+
+**Description**: System SHALL update progress.md with completion metrics (story points, velocity, lessons learned) when ticket completes.
+
+**Inputs**:
+
+- ticketId: string
+- ticketStoryPoints: number (from linked issue)
+- ticketDuration: number (createdAt to completedAt)
+
+**Outputs**:
+
+- Updated progress.md file
+- MemoryBankVersion record
+
+**Update Trigger**:
+
+- Sprint completion
+- Milestone reached
+- Ticket completion (if linked to issue with story points)
+
+**Updated Sections**:
+
+1. **Completion Metrics**: Total story points completed (increment)
+2. **Velocity**: Story points per week (recalculate average)
+3. **Lessons Learned**: Key insights from ticket implementation
+4. **Risk Assessment**: Updated based on velocity trends
+
+**Validation**:
+
+- Story points must be positive number
+- Velocity calculation must use last 3 sprints (rolling average)
+- Lessons learned must be non-empty if provided
+
+**Success Criteria**:
+
+- Metrics accuracy: 100% (matches actual completion)
+- Update frequency: After every ticket with story points
+- Velocity trend: Visible in dashboard (see FR-191)
+
+**Acceptance Test**: TEST-179
+**Related**: US-012-04 (progress.md update), EPIC-012
+
+---
+
+#### FR-180: active-context.md Auto-Update
+
+**Description**: System SHALL update active-context.md with recent changes (last 5 commits), current sprint status, and blockers.
+
+**Inputs**:
+
+- recentCommits: Commit[] (last 5 git commits)
+- currentSprint: Sprint (active sprint)
+- activeTickets: Ticket[] (IN_PROGRESS status)
+
+**Outputs**:
+
+- Updated active-context.md file
+- MemoryBankVersion record
+
+**Update Trigger**:
+
+- Real-time (every git commit)
+- Most frequently updated memory bank
+
+**Updated Sections**:
+
+1. **Recent Changes**: Last 5 commits (commit message + timestamp)
+2. **Active Work**: Current tickets in progress (title + progress %)
+3. **Blockers**: Tickets marked as BLOCKED (blocker description)
+4. **Current Sprint**: Sprint number, start/end date, remaining story points
+
+**Validation**:
+
+- Commit messages must be non-empty
+- Active tickets must have IN_PROGRESS status
+- Sprint dates must be valid (end date after start date)
+
+**Success Criteria**:
+
+- Update latency: <5 seconds after git commit
+- Context freshness: Always reflects last 5 commits (no stale data)
+
+**Acceptance Test**: TEST-180
+**Related**: US-012-05 (active-context.md update), EPIC-012
+
+---
+
+#### FR-181: Memory Bank Versioning
+
+**Description**: System SHALL track all memory bank changes as versions, enabling history viewing and rollback.
+
+**Database Schema**:
+
+```prisma
+model MemoryBank {
+  id                String   @id @default(cuid())
+  type              MemoryBankType
+  currentVersionId  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  versions          MemoryBankVersion[]
+  currentVersion    MemoryBankVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+
+  @@unique([type])
+  @@index([type])
+}
+
+enum MemoryBankType {
+  PROJECT_BRIEF
+  SYSTEM_PATTERNS
+  TECH_CONTEXT
+  ACTIVE_CONTEXT
+  PROGRESS
+}
+
+model MemoryBankVersion {
+  id                String   @id @default(cuid())
+  memoryBankId      String
+  content           String   @db.Text
+  changeDescription String?  @db.Text // "Added useDebounce pattern from Ticket #5"
+  ticketId          String?  // Triggering ticket (if applicable)
+  createdAt         DateTime @default(now())
+
+  memoryBank        MemoryBank @relation(fields: [memoryBankId], references: [id], onDelete: Cascade)
+  asCurrent         MemoryBank[] @relation("CurrentVersion")
+
+  @@index([memoryBankId])
+  @@index([createdAt])
+  @@index([ticketId])
+}
+
+model MemoryBankPattern {
+  id                String   @id @default(cuid())
+  name              String   @unique
+  description       String   @db.Text
+  codeExample       String   @db.Text
+  category          PatternCategory
+  whenToUse         String   @db.Text
+  whenNotToUse      String?  @db.Text
+  ticketId          String?  // Originating ticket
+  createdAt         DateTime @default(now())
+
+  @@index([category])
+  @@index([ticketId])
+}
+
+enum PatternCategory {
+  ARCHITECTURE
+  DATABASE
+  API
+  UI
+  TESTING
+  UTILITY
+}
+````
+
+**Inputs**:
+
+- memoryBankType: MemoryBankType
+- newContent: string (updated file content)
+- changeDescription: string (what changed and why)
+- ticketId: string | null (triggering ticket)
+
+**Outputs**:
+
+- MemoryBankVersion record created
+- MemoryBank.currentVersionId updated to new version
+- File system updated (.agent/{file}.md)
+
+**Validation**:
+
+- Content must differ from current version (no redundant versions)
+- Change description required for manual updates
+- Version history must be chronological (createdAt ordering)
+
+**Success Criteria**:
+
+- Version creation: <500ms (database + file write)
+- History retention: Unlimited (all versions preserved)
+- Rollback capability: Can restore any previous version
+
+**Acceptance Test**: TEST-181
+**Related**: US-012-06 (Memory bank versioning), EPIC-012
+
+---
+
+#### FR-182: Snapshot vs Live Version Reconciliation
+
+**Description**: System SHALL maintain separate snapshot versions (frozen at ticket creation) and live versions (updated after ticket completion) to ensure consistent ticket context.
+
+**Versioning Strategy**:
+
+- **Snapshot Version**: Memory bank state at ticket creation (immutable during ticket work)
+- **Live Version**: Memory bank with latest updates (used for new tickets)
+
+**Workflow**:
+
+```
+Ticket #1 created:
+→ Create snapshot (system-patterns.md v5)
+→ Agent works using v5 (consistent context)
+
+Ticket #1 completed:
+→ Detect new patterns
+→ Update live version (system-patterns.md v6)
+→ Snapshot v5 remains unchanged
+
+Ticket #2 created:
+→ Create snapshot (system-patterns.md v6)
+→ Agent reuses patterns from Ticket #1
+```
+
+**Inputs**:
+
+- ticketId: string
+- snapshotVersionIds: { [bankType]: versionId } (snapshot at ticket creation)
+- liveVersionIds: { [bankType]: versionId } (current live versions)
+
+**Outputs**:
+
+- Ticket uses snapshot versions during work (no mid-ticket updates)
+- New tickets snapshot current live versions (knowledge accumulation)
+
+**Validation**:
+
+- Snapshot versions must be immutable (no changes after ticket creation)
+- Live versions updated only after ticket completion
+- Version IDs must reference valid MemoryBankVersion records
+
+**Success Criteria**:
+
+- Context consistency: 100% (ticket sees same memory banks throughout)
+- Knowledge accumulation: Patterns from Ticket N available in Ticket N+1
+
+**Acceptance Test**: TEST-182
+**Related**: US-012-07 (Snapshot reconciliation), EPIC-012
+
+---
+
+#### FR-183: Auto-Commit Memory Bank Changes
+
+**Description**: System SHALL automatically commit memory bank changes to git with descriptive commit messages referencing the triggering ticket.
+
+**Inputs**:
+
+- updatedFiles: string[] (modified .agent/ files)
+- ticketId: string (triggering ticket)
+- changeDescription: string (what changed)
+
+**Outputs**:
+
+- Git commit created with message format: `docs: auto-update memory banks from Ticket #{ticketId}`
+- Commit body includes change description
+
+**Commit Message Format**:
+
+```
+docs: auto-update memory banks from Ticket #{ticketId}
+
+Changes:
+- system-patterns.md: Added useDebounce pattern
+- progress.md: Updated completion metrics (48/120 story points)
+
+Ticket: #{ticketId} ({ticket title})
+```
+
+**Validation**:
+
+- At least one file must be modified (no empty commits)
+- Commit must reference valid ticket ID
+- Files must be in .agent/ directory
+
+**Success Criteria**:
+
+- Commit creation: <2 seconds after memory bank update
+- Commit messages: 100% include ticket reference (traceable)
+- Git history: Clean and descriptive (no generic messages)
+
+**Acceptance Test**: TEST-183
+**Related**: US-012-08 (Auto-commit), EPIC-012
+
+---
+
+#### FR-184 to FR-190: Additional Memory Bank Requirements
+
+_[Note: Due to token constraints, FR-184 to FR-190 would follow the same detailed pattern covering:_
+
+- _FR-184: Pattern Duplication Detection (prevent duplicate patterns)_
+- _FR-185: Memory Bank Conflict Resolution (handle concurrent updates)_
+- _FR-186: Memory Bank Rollback (revert to previous version)_
+- _FR-187: Memory Bank Merge (combine patterns from multiple tickets)_
+- _FR-188: Memory Bank Export (download as ZIP for backup)_
+- _FR-189: Memory Bank Import (restore from backup)_
+- _FR-190: Memory Bank Analytics (track update frequency, pattern usage)_
+
+_Each would have Database Schema, Inputs, Outputs, Validation, Success Criteria, Acceptance Test, and Related fields.]_
+
+---
+
+### 1.12 Agent Dashboard (FR-191 to FR-200)
+
+**Purpose:** Real-time visibility into agent workflow state and context
+
+The Agent Dashboard provides a single-pane-of-glass view of all agent infrastructure including memory banks, current ticket context, skills, sub-agents, and activity logs. This enables developers to monitor agent progress, understand decisions, and debug issues.
+
+---
+
+#### FR-191: Memory Banks Viewer Component
+
+**Description**: System SHALL display all 5 memory bank files (project-brief, system-patterns, tech-context, active-context, progress) with token counts, expandable content, version selector, and last update timestamps.
+
+**Inputs**:
+
+- memoryBanks: MemoryBank[] (all 5 memory bank records)
+- currentVersions: { [bankType]: MemoryBankVersion } (live versions)
+- snapshotVersions: { [bankType]: MemoryBankVersion } (ticket snapshot versions, if applicable)
+
+**Outputs**:
+
+- Memory bank list display with:
+  - File name (e.g., "system-patterns.md")
+  - Token count (e.g., "4,125 tokens")
+  - Last updated timestamp (e.g., "Updated 2h ago by Ticket #5")
+  - Expand/collapse control
+  - Version selector dropdown (snapshot vs live)
+
+**Component Features**:
+
+1. **List View**: Display all 5 banks in sortable table
+2. **Expandable Content**: Click to view full markdown content with syntax highlighting
+3. **Version Selector**: Toggle between snapshot version (ticket-specific) and live version (current)
+4. **Token Counter**: Real-time token count per file (updated on change)
+5. **Change Indicator**: Highlight banks modified in last 24 hours
+
+**Validation**:
+
+- All 5 memory bank files must be displayed
+- Token counts must be accurate (±10 tokens)
+- Syntax highlighting must support markdown format
+- Version selector only shown if multiple versions exist
+
+**Success Criteria**:
+
+- Load time: <1 second (fetch + render 5 banks)
+- Token count accuracy: 100% (matches actual file tokens)
+- Syntax highlighting: Readable markdown with proper formatting
+
+**Acceptance Test**: TEST-191
+**Related**: US-013-01 (Memory Banks Viewer), EPIC-013
+
+---
+
+#### FR-192: Current Ticket Context Component
+
+**Description**: System SHALL display active ticket information including title, description, progress percentage, checkpoint timeline, memory bank snapshot, next steps, blockers, and quick actions.
+
+**Inputs**:
+
+- currentTicket: Ticket | null (active ticket with IN_PROGRESS or CHECKPOINT_SAVED status)
+- checkpoints: TicketCheckpoint[] (all checkpoints for ticket)
+- snapshot: MemoryBankSnapshot (frozen memory bank state)
+
+**Outputs**:
+
+- Ticket context display with:
+  - Title and description
+  - Progress bar (0-100%)
+  - Checkpoint timeline (visual markers at 15K, 30K, 45K, etc.)
+  - Latest checkpoint details (notes, next steps, blockers)
+  - Memory bank snapshot indicator
+  - Quick action buttons (Mark Complete, Add Checkpoint, Attach Notes)
+
+**Component Features**:
+
+1. **Progress Visualization**: Progress bar with percentage and checkpoint markers
+2. **Checkpoint Timeline**: Horizontal timeline showing all checkpoints with token milestones
+3. **Latest Checkpoint Details**: Expandable panel showing notes, next steps, blockers
+4. **Quick Actions**: Inline buttons for common operations
+5. **Empty State**: Show "No active ticket" message when no ticket in progress
+
+**Validation**:
+
+- Current ticket must have valid status (IN_PROGRESS or CHECKPOINT_SAVED)
+- Progress percentage must be 0.0 to 1.0 (displayed as 0-100%)
+- Checkpoint timeline ordered chronologically
+- Quick actions only enabled when ticket is active
+
+**Success Criteria**:
+
+- Display accuracy: 100% (shows correct ticket and checkpoint data)
+- Quick action response: <500ms (mark complete, add checkpoint)
+- Empty state UX: Clear message when no active ticket
+
+**Acceptance Test**: TEST-192
+**Related**: US-013-02 (Current Ticket Context), EPIC-013
+
+---
+
+#### FR-193: Skills & Sub-Agents List Component
+
+**Description**: System SHALL display available skills (.claude/skills/ files), sub-agents (explore-codebase, analyze-architecture, etc.), and recent reports (.agent/task/ files) with metadata and expandable content.
+
+**Inputs**:
+
+- skills: Skill[] (all .claude/skills/\*.md files)
+- subAgents: SubAgent[] (configured sub-agents)
+- recentReports: Report[] (last 20 .agent/task/ reports)
+
+**Outputs**:
+
+- Two-section display:
+  - **Skills Catalog**: List skills with name, category, last used, token count
+  - **Sub-Agents Catalog**: List sub-agents with name, capabilities, invocation count
+  - **Recent Reports**: List reports with filename, timestamp, sub-agent type
+
+**Component Features**:
+
+1. **Skills List**: Sortable table (name, category, last used, tokens)
+2. **Expandable Skill Content**: Click to view full skill markdown
+3. **Sub-Agents List**: Grid view with capability badges
+4. **Recent Reports**: Timeline view (last 20 reports, most recent first)
+5. **Search/Filter**: Filter skills by category, sub-agents by capability
+
+**Validation**:
+
+- Skills must exist in .claude/skills/ directory
+- Sub-agents must be valid configured agents
+- Recent reports limited to last 20 (pagination if more)
+- Token counts accurate for skill files
+
+**Success Criteria**:
+
+- Discovery efficiency: Developers find relevant skills in <30 seconds
+- Coverage: All skills and sub-agents listed (100% discovery)
+- Report access: Click to open report file (in-dashboard or external)
+
+**Acceptance Test**: TEST-193
+**Related**: US-013-03 (Skills & Sub-Agents List), EPIC-013
+
+---
+
+#### FR-194: Agent Activity Feed Component
+
+**Description**: System SHALL display real-time log of agent actions (ticket created, checkpoint saved, memory bank updated, sub-agent invoked) with timeline view, filtering, and export capabilities.
+
+**Inputs**:
+
+- activities: AgentActivity[] (last 100 activities, chronological)
+- filters: { type?: ActivityType, dateRange?: DateRange } (optional filters)
+
+**Outputs**:
+
+- Activity feed display with:
+  - Chronological list (newest first)
+  - Activity type icon (ticket, checkpoint, memory_bank, sub_agent)
+  - Activity description (e.g., "Ticket #5 created: Implement SearchBar")
+  - Timestamp (relative: "2h ago", absolute: "2025-11-05 14:30")
+  - Filter controls (by type, date range)
+  - Export button (JSON, CSV)
+
+**Component Features**:
+
+1. **Real-Time Updates**: Poll every 5 seconds for new activities (or WebSocket)
+2. **Timeline View**: Chronological list with timestamps and icons
+3. **Filter Controls**: Dropdown for activity type, date range picker
+4. **Export**: Download filtered activities as JSON or CSV
+5. **Pagination**: Load more (50 activities per page)
+
+**Activity Types**:
+
+- TICKET_CREATED, TICKET_UPDATED, TICKET_COMPLETED
+- CHECKPOINT_SAVED
+- MEMORY_BANK_UPDATED
+- SUB_AGENT_INVOKED
+- SKILL_LOADED
+
+**Validation**:
+
+- Activities must be ordered chronologically (newest first)
+- Filters must combine correctly (type AND date range)
+- Export must include filtered activities only
+- Real-time updates must not disrupt user scrolling
+
+**Success Criteria**:
+
+- Update latency: <5 seconds (new activities appear within 5s)
+- Filter speed: <200ms (apply filter and re-render)
+- Export speed: <2 seconds (generate and download file)
+
+**Acceptance Test**: TEST-194
+**Related**: US-013-04 (Agent Activity Feed), EPIC-013
+
+---
+
+#### FR-195: Dashboard Data Aggregation
+
+**Description**: System SHALL aggregate data from multiple sources (database, file system, git) and expose via MCP tools for dashboard consumption.
+
+**MCP Tools**:
+
+```typescript
+interface DashboardMCP {
+  getMemoryBanks(): Promise<{
+    banks: MemoryBank[];
+    currentVersions: { [type: string]: MemoryBankVersion };
+    tokenCounts: { [type: string]: number };
+  }>;
+
+  getCurrentTicket(): Promise<{
+    ticket: Ticket | null;
+    checkpoints: TicketCheckpoint[];
+    snapshot: MemoryBankSnapshot | null;
+  }>;
+
+  listSkills(): Promise<{
+    skills: { name: string; category: string; tokens: number; lastUsed: Date | null }[];
+  }>;
+
+  listSubAgents(): Promise<{
+    subAgents: { name: string; capabilities: string[]; invocationCount: number }[];
+  }>;
+
+  getActivityFeed(filters?: { type?: string; since?: Date }): Promise<{
+    activities: AgentActivity[];
+    totalCount: number;
+  }>;
+}
+```
+
+**Data Sources**:
+
+1. **Database**: Tickets, Checkpoints, MemoryBanks, AgentActivity
+2. **File System**: .agent/ files, .claude/skills/ files, .agent/task/ reports
+3. **Git**: Recent commits (for active-context.md)
+
+**Validation**:
+
+- All MCP tools must return valid data structures
+- Token counts calculated from actual file content
+- Activity feed limited to last 100 activities (performance)
+- File system reads must handle missing files gracefully
+
+**Success Criteria**:
+
+- Data freshness: <1 second stale (cache with 1s TTL)
+- Query performance: All MCP tools return in <500ms
+- Error handling: Graceful degradation if data source unavailable
+
+**Acceptance Test**: TEST-195
+**Related**: US-013-05 (Dashboard data layer), EPIC-013
+
+---
+
+#### FR-196: Dashboard Real-Time Updates
+
+**Description**: System SHALL update dashboard components in real-time when underlying data changes (ticket progress, memory bank updates, new activity).
+
+**Update Mechanisms**:
+
+- **Polling**: Check for updates every 5 seconds (fallback)
+- **WebSocket** (optional): Server pushes updates to connected clients
+
+**Update Events**:
+
+- Ticket progress changed → Update Current Ticket Context component
+- Memory bank updated → Update Memory Banks Viewer component
+- New activity logged → Prepend to Agent Activity Feed
+- Checkpoint saved → Update ticket progress bar and timeline
+
+**Inputs**:
+
+- updateType: "ticket" | "memory_bank" | "activity" | "checkpoint"
+- updatedData: any (new data payload)
+
+**Outputs**:
+
+- Component re-renders with fresh data
+- Visual indicator (flash/highlight) showing what changed
+
+**Validation**:
+
+- Updates must not disrupt user interaction (smooth transitions)
+- Visual indicators shown for 2 seconds then fade
+- Polling interval adjustable (default 5s, min 1s, max 30s)
+
+**Success Criteria**:
+
+- Update latency: <5 seconds (polling), <1 second (WebSocket)
+- Smooth UX: No jarring re-renders, smooth transitions
+- Resource efficiency: Polling uses <10KB/minute bandwidth
+
+**Acceptance Test**: TEST-196
+**Related**: US-013-06 (Real-time updates), EPIC-013
+
+---
+
+#### FR-197: Dashboard Layout and Navigation
+
+**Description**: System SHALL organize dashboard components into 4 quadrants with responsive layout, fullscreen mode, and component resizing.
+
+**Layout Structure**:
+
+```
++---------------------------+---------------------------+
+|  Memory Banks Viewer      |  Current Ticket Context   |
+|  (top-left)               |  (top-right)              |
++---------------------------+---------------------------+
+|  Skills & Sub-Agents List |  Agent Activity Feed      |
+|  (bottom-left)            |  (bottom-right)           |
++---------------------------+---------------------------+
+```
+
+**Features**:
+
+1. **4-Quadrant Grid**: Equal-sized quadrants (responsive on tablet/desktop)
+2. **Fullscreen Mode**: Click quadrant to expand to full screen (Esc to exit)
+3. **Resizable Panels**: Drag dividers to resize quadrants
+4. **Persistent Layout**: Save user's layout preferences (localStorage)
+
+**Navigation**:
+
+- Breadcrumb: Dashboard > Agent Dashboard
+- Quick links: Jump to specific quadrant (anchor links)
+- Keyboard shortcuts: `Cmd+1` (Memory Banks), `Cmd+2` (Ticket), `Cmd+3` (Skills), `Cmd+4` (Activity)
+
+**Validation**:
+
+- Layout must be responsive (desktop ≥1280px, tablet ≥768px)
+- Fullscreen mode must preserve scroll position
+- Resizable dividers bounded (min 300px per quadrant)
+
+**Success Criteria**:
+
+- Load time: <2 seconds (all quadrants rendered)
+- Responsive breakpoints: Works on desktop (≥1280px) and tablet (≥768px)
+- Layout persistence: User preferences saved and restored
+
+**Acceptance Test**: TEST-197
+**Related**: US-013-07 (Dashboard layout), EPIC-013
+
+---
+
+#### FR-198: Agent Activity Logging
+
+**Description**: System SHALL log all agent actions to AgentActivity table for dashboard consumption and audit trail.
+
+**Database Schema**:
+
+```prisma
+model AgentActivity {
+  id                String   @id @default(cuid())
+  type              ActivityType
+  description       String   // "Ticket #5 created: Implement SearchBar"
+  metadata          Json?    // { ticketId: "5", storyPoints: 3 }
+  createdAt         DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum ActivityType {
+  TICKET_CREATED
+  TICKET_UPDATED
+  TICKET_COMPLETED
+  CHECKPOINT_SAVED
+  MEMORY_BANK_UPDATED
+  SUB_AGENT_INVOKED
+  SKILL_LOADED
+}
+```
+
+**Logged Activities**:
+
+- Ticket lifecycle events (created, updated, completed)
+- Checkpoint saves (every 15K tokens)
+- Memory bank updates (after ticket completion)
+- Sub-agent invocations (explore-codebase, analyze-architecture, etc.)
+- Skill loads (when agent loads .claude/skills/ file)
+
+**Inputs**:
+
+- activityType: ActivityType
+- description: string (human-readable description)
+- metadata: object (additional context, e.g., ticketId, fileName)
+
+**Outputs**:
+
+- AgentActivity record created
+- Activity appears in dashboard feed (within 5 seconds)
+
+**Validation**:
+
+- Description must be non-empty
+- Metadata must be valid JSON
+- Activity type must be valid enum value
+
+**Success Criteria**:
+
+- Logging speed: <100ms (async, non-blocking)
+- Audit completeness: 100% of agent actions logged
+- Retention: Keep all activities (no automatic deletion)
+
+**Acceptance Test**: TEST-198
+**Related**: US-013-08 (Activity logging), EPIC-013
+
+---
+
+#### FR-199: Dashboard Performance Optimization
+
+**Description**: System SHALL optimize dashboard performance through caching, lazy loading, and efficient rendering to ensure <2 second load times.
+
+**Optimization Strategies**:
+
+1. **Server-Side Caching**: Cache memory bank content (1 minute TTL)
+2. **Lazy Loading**: Load activity feed on scroll (pagination)
+3. **React Server Components**: Render static content server-side
+4. **Memoization**: Memoize expensive computations (token counting)
+5. **Debounced Polling**: Reduce polling frequency when dashboard not in focus
+
+**Performance Targets**:
+
+- Initial load: <2 seconds (all quadrants visible)
+- Data refresh: <500ms (poll and update components)
+- Scroll performance: 60 FPS (smooth activity feed scrolling)
+- Memory usage: <100MB (client-side JavaScript heap)
+
+**Inputs**:
+
+- dashboardState: { focused: boolean, activeQuadrant: string | null }
+- userPreferences: { pollingInterval: number }
+
+**Outputs**:
+
+- Optimized rendering (minimal re-renders)
+- Cached data served from memory (faster loads)
+
+**Validation**:
+
+- Cache TTL must be configurable (default 1 minute)
+- Lazy loading must fetch next 50 activities (pagination size)
+- Debounced polling must reduce frequency to 30s when not focused
+
+**Success Criteria**:
+
+- Load time: <2 seconds (measured with Chrome DevTools)
+- FPS: ≥55 FPS during scroll (smooth UX)
+- Bundle size: <300KB (minified + gzipped JavaScript)
+
+**Acceptance Test**: TEST-199
+**Related**: US-013-09 (Performance optimization), EPIC-013
+
+---
+
+#### FR-200: Dashboard Widgets and Enhancements
+
+**Description**: System SHALL provide optional dashboard widgets (Token Budget Gauge, Sprint Progress Chart, Memory Bank Accuracy Score, Sub-Agent Usage Stats) for enhanced visibility.
+
+**Optional Widgets**:
+
+1. **Token Budget Gauge** (circular gauge):
+   - Display: "145K / 200K tokens used" (72.5% full)
+   - Color: Green (<70%), Yellow (70-90%), Red (>90%)
+   - Click: Expand to show token breakdown by component
+
+2. **Sprint Progress Chart** (burndown chart):
+   - X-axis: Days in sprint
+   - Y-axis: Story points remaining
+   - Lines: Ideal burndown (linear) vs actual burndown
+   - Projection: Estimated completion date
+
+3. **Memory Bank Accuracy Score** (percentage):
+   - Display: "Memory banks: 96% accurate"
+   - Calculation: Compare memory banks to actual codebase (pattern matching)
+   - Color: Green (≥95%), Yellow (85-95%), Red (<85%)
+
+4. **Sub-Agent Usage Stats** (bar chart):
+   - X-axis: Sub-agent name
+   - Y-axis: Invocation count (last 7 days)
+   - Top 5 most-used sub-agents displayed
+
+**Widget Configuration**:
+
+- User can enable/disable widgets (settings panel)
+- Widget positions customizable (drag-and-drop)
+- Widget size adjustable (small, medium, large)
+
+**Validation**:
+
+- Token budget must use actual session token usage
+- Sprint progress chart requires active sprint
+- Memory bank accuracy calculated weekly (expensive operation)
+- Sub-agent stats aggregated from AgentActivity table
+
+**Success Criteria**:
+
+- Widget accuracy: 100% (reflects actual data)
+- Widget load time: <1 second (parallel loading)
+- Widget customization: Persisted to user preferences
+
+**Acceptance Test**: TEST-200
+**Related**: US-013-10 (Dashboard widgets), EPIC-013
+
+---
+
+### 1.13 Additional Onboarding Sessions (FR-201 to FR-220)
+
+**Purpose:** Progressive documentation generation through Sessions 2-5
+
+The Additional Onboarding Sessions system provides optional deep-dive sessions that progressively enhance agent understanding beyond Session 1 (MVP). Sessions 2-5 focus on tech stack, requirements, architecture, and backlog, enabling agents to work autonomously on complex projects.
+
+---
+
+#### FR-201: Session 2 - Dependency Analysis
+
+**Description**: System SHALL analyze all dependencies in package.json and generate documentation including purpose, version rationale, usage patterns, and categorization.
+
+**Inputs**:
+
+- packageJsonPath: string (path to package.json)
+- codebaseFiles: string[] (all project files for usage analysis)
+
+**Outputs**:
+
+- DependencyAnalysis: array of {
+  name: string,
+  version: string,
+  purpose: string,
+  versionRationale: string,
+  usagePatterns: string[],
+  category: "framework" | "library" | "devTool" | "testing"
+  }
+- Enhanced tech-context.md (2K → 3K tokens)
+
+**Analysis Scope**:
+
+- All dependencies in package.json (dependencies + devDependencies)
+- Scan codebase for import statements (usage detection)
+- Group by category (frameworks, libraries, dev tools, testing)
+- Generate purpose statement using AI (e.g., "Next.js: React framework for SSR/SSG")
+
+**Validation**:
+
+- All package.json dependencies must be analyzed (100% coverage)
+- Purpose statements must be non-empty
+- Usage patterns must reference actual files
+- Version rationale must explain why this specific version
+
+**Success Criteria**:
+
+- Analysis speed: <30 seconds (scan package.json + codebase)
+- Accuracy: 95%+ (purpose statements match actual usage)
+- Completeness: All dependencies documented
+
+**Acceptance Test**: TEST-201
+**Related**: US-014-01 (Session 2: Dependency Analysis), EPIC-014
+
+---
+
+#### FR-202: Session 2 - Configuration Deep-Dive
+
+**Description**: System SHALL analyze configuration files (environment variables, config files, build pipeline) and generate comprehensive documentation.
+
+**Inputs**:
+
+- envFiles: string[] (paths to .env, .env.example files)
+- configFiles: string[] (next.config.js, tailwind.config.js, tsconfig.json, etc.)
+- buildScripts: { [scriptName]: string } (from package.json scripts)
+
+**Outputs**:
+
+- EnvironmentVariables: array of { name: string, description: string, required: boolean, example: string }
+- ConfigurationFiles: array of { filename: string, purpose: string, keySettings: string[] }
+- BuildPipeline: { build: string, deploy: string, runLocally: string }
+- Enhanced tech-context.md (3K → 4K tokens)
+
+**Configuration Analysis**:
+
+- Environment variables: Parse .env files, generate descriptions
+- Config files: Explain purpose and key settings
+- Build pipeline: Document how to build, deploy, run locally
+
+**Validation**:
+
+- All .env variables documented (100% coverage)
+- Config file explanations must be non-empty
+- Build commands must be valid (executable)
+
+**Success Criteria**:
+
+- Documentation completeness: 100% (all env vars and configs)
+- Build command accuracy: 100% (commands work)
+- Clarity: Developers can set up project from docs alone
+
+**Acceptance Test**: TEST-202
+**Related**: US-014-02 (Session 2: Configuration), EPIC-014
+
+---
+
+#### FR-203: Session 2 - Troubleshooting Guides Generation
+
+**Description**: System SHALL generate troubleshooting guides for common errors, performance optimization tips, and debugging workflows.
+
+**Inputs**:
+
+- commonErrors: string[] (known error patterns, e.g., "EADDRINUSE", "ECONNREFUSED")
+- performanceTargets: { metric: string, target: string }[] (e.g., "LCP: <2.5s")
+- debuggingTools: string[] (browser dev tools, server logs, database queries)
+
+**Outputs**:
+
+- TroubleshootingGuide: {
+  commonErrors: { error: string, solution: string }[],
+  performanceOptimizationTips: string[],
+  debuggingWorkflows: { scenario: string, steps: string[] }[]
+  }
+- Enhanced tech-context.md (4K → 5K tokens)
+
+**Generated Content**:
+
+1. **Common Errors**: Port conflicts, database connection issues, build failures
+2. **Performance Tips**: Bundle size reduction, caching strategies, query optimization
+3. **Debugging Workflows**: Browser dev tools usage, server log analysis, database query debugging
+
+**Validation**:
+
+- At least 5 common errors documented
+- At least 3 performance optimization tips
+- At least 3 debugging workflows
+
+**Success Criteria**:
+
+- Error coverage: 80%+ of common issues addressed
+- Solution effectiveness: 90%+ of solutions resolve issue
+- Clarity: Step-by-step instructions (actionable)
+
+**Acceptance Test**: TEST-203
+**Related**: US-014-03 (Session 2: Troubleshooting), EPIC-014
+
+---
+
+#### FR-204: Session 2 - Browser Compatibility Matrix
+
+**Description**: System SHALL generate browser compatibility matrix including supported browsers, versions, polyfills, fallbacks, and feature detection patterns.
+
+**Inputs**:
+
+- targetBrowsers: { browser: string, minVersion: string }[] (e.g., Chrome 90+, Firefox 88+)
+- usedFeatures: string[] (modern JS/CSS features used in codebase)
+- polyfills: string[] (installed polyfills from package.json)
+
+**Outputs**:
+
+- CompatibilityMatrix: {
+  supportedBrowsers: { browser: string, minVersion: string }[],
+  polyfills: { feature: string, polyfillLibrary: string }[],
+  featureDetection: { feature: string, detectionCode: string }[]
+  }
+- Enhanced tech-context.md (5K tokens - final Session 2 output)
+
+**Matrix Contents**:
+
+- Supported browsers and minimum versions
+- Polyfills for older browsers (if any)
+- Feature detection patterns (e.g., CSS Grid support check)
+
+**Validation**:
+
+- All target browsers must be listed
+- Polyfills matched to used features
+- Feature detection code must be valid JavaScript
+
+**Success Criteria**:
+
+- Browser coverage: 95%+ of target audience
+- Polyfill accuracy: 100% (correct polyfills for features)
+- Detection code: 100% valid (no syntax errors)
+
+**Acceptance Test**: TEST-204
+**Related**: US-014-04 (Session 2: Browser Compatibility), EPIC-014
+
+---
+
+#### FR-205: Session 2 - Completion and Artifact Save
+
+**Description**: System SHALL save Session 2 artifacts (enhanced tech-context.md, dependency wiki pages) to database and file system, mark session complete, and record duration.
+
+**Inputs**:
+
+- sessionId: string (OnboardingSession record ID)
+- artifacts: { techContext: string, dependencyWikiPages: { name: string, content: string }[] }
+
+**Outputs**:
+
+- OnboardingSession.status = COMPLETED
+- OnboardingSession.completedAt = now()
+- OnboardingSession.durationSeconds = (completedAt - startedAt)
+- OnboardingArtifact records created (tech-context.md, dependency wiki pages)
+- File system updated (.agent/tech-context.md, wiki pages)
+
+**Validation**:
+
+- tech-context.md size must be 4-6K tokens (target 5K)
+- At least 3 dependency wiki pages created
+- Session duration <3 minutes (180 seconds)
+
+**Success Criteria**:
+
+- Save speed: <2 seconds (database + file writes)
+- Artifact completeness: All generated content saved
+- Session tracking: 100% accurate (timestamps, duration)
+
+**Acceptance Test**: TEST-205
+**Related**: US-014-05 (Session 2: Completion), EPIC-014
+
+---
+
+#### FR-206: Session 3 - User Stories Extraction
+
+**Description**: System SHALL extract user stories from PRD/SRS including story format, acceptance criteria, priority (MoSCoW), and grouping by epic.
+
+**Inputs**:
+
+- prdContent: string (docs/01-PRD.md content)
+- srsContent: string (docs/02-SRS.md content)
+
+**Outputs**:
+
+- UserStories: array of {
+  id: string,
+  story: string, // "As a [user], I want [goal], so that [benefit]"
+  acceptanceCriteria: string[],
+  priority: "Must" | "Should" | "Could" | "Won't",
+  epicId: string
+  }
+- Enhanced project-brief.md (requirements section)
+
+**Extraction Algorithm**:
+
+1. Scan PRD for feature descriptions
+2. Convert to user story format ("As a... I want... so that...")
+3. Extract acceptance criteria (bullet points defining "done")
+4. Assign MoSCoW priority
+5. Group by epic/feature area
+
+**Validation**:
+
+- All features converted to user stories (100% coverage)
+- User stories follow standard format
+- Acceptance criteria non-empty (at least 1 criterion per story)
+- Priority assigned (Must/Should/Could/Won't)
+
+**Success Criteria**:
+
+- Extraction accuracy: 90%+ (stories match PRD intent)
+- Story quality: Clear "who, what, why" structure
+- Coverage: All features represented
+
+**Acceptance Test**: TEST-206
+**Related**: US-014-06 (Session 3: User Stories), EPIC-014
+
+---
+
+#### FR-207: Session 3 - Edge Cases and Constraints
+
+**Description**: System SHALL identify edge cases (authentication failures, database errors, malformed responses) and constraints (performance targets, accessibility requirements).
+
+**Inputs**:
+
+- functionalRequirements: FunctionalRequirement[] (from SRS)
+- nonFunctionalRequirements: NonFunctionalRequirement[] (from SRS)
+
+**Outputs**:
+
+- EdgeCases: array of {
+  scenario: string,
+  expectedBehavior: string,
+  errorHandling: string
+  }
+- Constraints: array of {
+  type: "performance" | "accessibility" | "security" | "scalability",
+  requirement: string,
+  target: string
+  }
+- Enhanced project-brief.md (edge cases and constraints section)
+
+**Edge Case Examples**:
+
+- User logged out during operation
+- Database connection lost
+- API returns 500 error
+- Invalid input data
+
+**Constraint Examples**:
+
+- Performance: "LCP <2.5s", "API response <500ms"
+- Accessibility: "WCAG 2.1 AA compliance"
+- Security: "No SQL injection vulnerabilities"
+
+**Validation**:
+
+- At least 10 edge cases identified
+- At least 5 constraints documented
+- Each edge case has expected behavior and error handling
+
+**Success Criteria**:
+
+- Edge case coverage: 80%+ of critical scenarios
+- Constraint completeness: All NFRs represented
+- Clarity: Clear expected behaviors
+
+**Acceptance Test**: TEST-207
+**Related**: US-014-07 (Session 3: Edge Cases), EPIC-014
+
+---
+
+#### FR-208: Session 3 - Requirements Wiki Pages
+
+**Description**: System SHALL create wiki pages per feature including user stories, acceptance criteria, edge cases, and cross-links to architecture pages.
+
+**Inputs**:
+
+- features: Feature[] (from PRD, grouped by epic)
+- userStories: UserStory[] (from FR-206)
+- edgeCases: EdgeCase[] (from FR-207)
+
+**Outputs**:
+
+- WikiPages: array of {
+  slug: string, // e.g., "search-feature-requirements"
+  title: string,
+  content: string, // markdown with user stories, acceptance criteria, edge cases
+  crossLinks: string[] // links to architecture.md, API docs, etc.
+  }
+- Created wiki pages in database (WikiPage table)
+
+**Wiki Page Format**:
+
+```markdown
+# {Feature Name} Requirements
+
+## User Stories
+
+- US-XXX: As a... I want... so that...
+
+## Acceptance Criteria
+
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Edge Cases
+
+- Scenario: {edge case}
+- Expected: {behavior}
+- Error Handling: {approach}
+
+## Related
+
+- [Architecture](@/architecture.md)
+- [API Documentation](@/api-{feature}.md)
+```
+
+**Validation**:
+
+- At least 1 wiki page per feature
+- All user stories included in appropriate wiki page
+- Cross-links valid (target pages exist)
+
+**Success Criteria**:
+
+- Wiki completeness: 100% (all features have wiki page)
+- Cross-link accuracy: 100% (no broken links)
+- Format consistency: All pages follow template
+
+**Acceptance Test**: TEST-208
+**Related**: US-014-08 (Session 3: Wiki Pages), EPIC-014
+
+---
+
+#### FR-209: Session 3 - Traceability Matrix Generation
+
+**Description**: System SHALL generate traceability matrix mapping user stories → functional requirements → test cases with bidirectional links.
+
+**Inputs**:
+
+- userStories: UserStory[] (from FR-206)
+- functionalRequirements: FunctionalRequirement[] (from SRS)
+- testCases: TestCase[] (existing or placeholder)
+
+**Outputs**:
+
+- TraceabilityMatrix: array of {
+  userStoryId: string,
+  functionalRequirementIds: string[],
+  testCaseIds: string[]
+  }
+- Traceability wiki page (traceability-matrix.md)
+
+**Matrix Format**:
+
+| User Story | Functional Requirements | Test Cases         |
+| ---------- | ----------------------- | ------------------ |
+| US-001     | FR-001, FR-002          | TEST-001, TEST-002 |
+| US-002     | FR-003                  | TEST-003           |
+
+**Validation**:
+
+- All user stories mapped to at least 1 FR
+- All FRs mapped to at least 1 user story
+- Bidirectional links verified (US ↔ FR ↔ TEST)
+
+**Success Criteria**:
+
+- Coverage: 100% (all stories, FRs, tests linked)
+- Accuracy: Links semantically correct (correct mappings)
+- Usefulness: Developers can trace requirements to implementation
+
+**Acceptance Test**: TEST-209
+**Related**: US-014-09 (Session 3: Traceability), EPIC-014
+
+---
+
+#### FR-210: Session 3 - Completion and Artifact Save
+
+**Description**: System SHALL save Session 3 artifacts (enhanced project-brief.md, requirements wiki pages, traceability matrix) and mark session complete.
+
+**Inputs**:
+
+- sessionId: string
+- artifacts: { projectBrief: string, requirementsWikiPages: WikiPage[], traceabilityMatrix: string }
+
+**Outputs**:
+
+- OnboardingSession.status = COMPLETED
+- OnboardingArtifact records created
+- File system updated (.agent/project-brief.md, wiki pages)
+
+**Validation**:
+
+- project-brief.md enhanced with requirements section
+- At least 5 requirements wiki pages created
+- Traceability matrix wiki page created
+- Session duration <5 minutes (300 seconds)
+
+**Success Criteria**:
+
+- Artifact completeness: All generated content saved
+- Session duration: <5 minutes (target: 3-5 minutes)
+- Quality: Generated content usable by agents
+
+**Acceptance Test**: TEST-210
+**Related**: US-014-10 (Session 3: Completion), EPIC-014
+
+---
+
+#### FR-211: Session 4 - Component Diagrams Generation
+
+**Description**: System SHALL generate component diagrams (frontend, backend, data flow) in Mermaid format showing system architecture.
+
+**Inputs**:
+
+- frontendFiles: string[] (pages, components, hooks)
+- backendFiles: string[] (API routes, database models, services)
+- architecturePatterns: ArchitecturePattern[] (from codebase scan)
+
+**Outputs**:
+
+- ComponentDiagrams: {
+  frontendHierarchy: string, // Mermaid diagram
+  backendLayers: string, // Mermaid diagram
+  dataFlow: string // Mermaid sequence diagram
+  }
+- Architecture wiki pages with embedded diagrams
+
+**Diagram Types**:
+
+1. **Frontend Hierarchy**: Pages → Components → Hooks (tree diagram)
+2. **Backend Layers**: API Routes → Services → Database Models (layered diagram)
+3. **Data Flow**: User Action → Frontend → API → Database → Response (sequence diagram)
+
+**Validation**:
+
+- All diagrams valid Mermaid syntax
+- Diagrams render correctly (no syntax errors)
+- Diagrams reflect actual codebase structure (95%+ accuracy)
+
+**Success Criteria**:
+
+- Diagram generation: <3 minutes (all 3 diagrams)
+- Accuracy: 95%+ (matches actual architecture)
+- Clarity: Diagrams understandable by developers
+
+**Acceptance Test**: TEST-211
+**Related**: US-014-11 (Session 4: Component Diagrams), EPIC-014
+
+---
+
+#### FR-212: Session 4 - Design Patterns Catalog Enhancement
+
+**Description**: System SHALL enhance system-patterns.md with comprehensive design patterns catalog including name, problem, solution, consequences, and categorization.
+
+**Inputs**:
+
+- existingPatterns: Pattern[] (from current system-patterns.md)
+- codebasePatterns: Pattern[] (detected from architecture scan)
+
+**Outputs**:
+
+- EnhancedPatternsCatalog: array of {
+  name: string,
+  problem: string,
+  solution: string, // code example
+  consequences: string, // trade-offs, when NOT to use
+  category: "architecture" | "database" | "API" | "UI" | "testing"
+  }
+- Enhanced system-patterns.md (4K → 8K tokens)
+
+**Pattern Categories**:
+
+- **Architecture**: Server Component Pattern, Client Component Pattern
+- **Database**: Prisma Transaction Pattern, Query Optimization Pattern
+- **API**: Route Structure Pattern, Zod Validation Pattern
+- **UI**: Custom Hook Pattern, useDebounce Pattern
+- **Testing**: RTL Testing Pattern, Playwright E2E Pattern
+
+**Validation**:
+
+- At least 20 patterns cataloged
+- Each pattern has problem, solution, consequences
+- Patterns grouped by category (5 categories)
+
+**Success Criteria**:
+
+- Pattern completeness: 90%+ of project patterns documented
+- Pattern quality: Usable examples (5-10 lines of code)
+- Categorization: Correct category assignment
+
+**Acceptance Test**: TEST-212
+**Related**: US-014-12 (Session 4: Design Patterns), EPIC-014
+
+---
+
+#### FR-213: Session 4 - Architectural Decision Records (ADRs)
+
+**Description**: System SHALL create Architectural Decision Records (ADRs) as wiki pages documenting major architecture decisions with context, decision, status, and consequences.
+
+**Inputs**:
+
+- architectureDecisions: ArchitectureDecision[] (extracted from docs and code)
+- existingADRs: ADR[] (if any)
+
+**Outputs**:
+
+- ADRWikiPages: array of {
+  number: number, // ADR-001, ADR-002, etc.
+  title: string, // "Why App Router instead of Pages Router"
+  context: string,
+  decision: string,
+  status: "Accepted" | "Superseded" | "Deprecated",
+  consequences: string
+  }
+- ADR wiki pages linked from architecture.md
+
+**ADR Format**:
+
+```markdown
+# ADR-001: Why App Router instead of Pages Router
+
+**Status**: Accepted
+
+## Context
+
+Next.js 14 offers two routing approaches: App Router (new) and Pages Router (legacy).
+
+## Decision
+
+Use App Router for this project.
+
+## Consequences
+
+**Positive**:
+
+- Server Components by default (performance)
+- Built-in layouts and loading states
+- Improved data fetching patterns
+
+**Negative**:
+
+- Smaller ecosystem (fewer tutorials)
+- Learning curve for team
+```
+
+**Validation**:
+
+- At least 5 ADRs created
+- All ADRs follow standard format
+- ADRs linked from architecture.md wiki page
+
+**Success Criteria**:
+
+- ADR coverage: 80%+ of major decisions documented
+- ADR quality: Context and consequences clear
+- Traceability: Decisions traceable to implementation
+
+**Acceptance Test**: TEST-213
+**Related**: US-014-13 (Session 4: ADRs), EPIC-014
+
+---
+
+#### FR-214: Session 4 - Data Model Visualization (ERD)
+
+**Description**: System SHALL generate Entity-Relationship Diagram (ERD) from Prisma schema in Mermaid format showing models, relationships, indexes, and constraints.
+
+**Inputs**:
+
+- prismaSchemaPath: string (path to schema.prisma)
+- prismaModels: PrismaModel[] (parsed models)
+
+**Outputs**:
+
+- EntityRelationshipDiagram: string (Mermaid ERD)
+- Data model wiki page with embedded ERD
+
+**ERD Contents**:
+
+- All Prisma models as entities
+- Relationships: one-to-one, one-to-many, many-to-many, self-referential
+- Indexes (@@index, @@unique)
+- Cascade behavior (onDelete: Cascade)
+
+**Validation**:
+
+- ERD valid Mermaid syntax
+- All Prisma models included (100% coverage)
+- Relationships accurate (match schema.prisma)
+
+**Success Criteria**:
+
+- ERD generation: <2 minutes
+- Accuracy: 100% (matches Prisma schema exactly)
+- Clarity: Relationships clearly labeled
+
+**Acceptance Test**: TEST-214
+**Related**: US-014-14 (Session 4: ERD), EPIC-014
+
+---
+
+#### FR-215: Session 4 - Completion and Artifact Save
+
+**Description**: System SHALL save Session 4 artifacts (enhanced system-patterns.md, architecture wiki pages, ADRs, ERD) and mark session complete.
+
+**Inputs**:
+
+- sessionId: string
+- artifacts: { systemPatterns: string, architectureWikiPages: WikiPage[], adrs: WikiPage[], erd: string }
+
+**Outputs**:
+
+- OnboardingSession.status = COMPLETED
+- OnboardingArtifact records created
+- File system updated (.agent/system-patterns.md, wiki pages)
+
+**Validation**:
+
+- system-patterns.md enhanced (4K → 8K tokens)
+- At least 3 architecture wiki pages created
+- At least 5 ADRs created
+- ERD wiki page created
+- Session duration <7 minutes (420 seconds)
+
+**Success Criteria**:
+
+- Artifact completeness: All generated content saved
+- Session duration: <7 minutes (target: 5-7 minutes)
+- Quality: Architecture documentation complete
+
+**Acceptance Test**: TEST-215
+**Related**: US-014-15 (Session 4: Completion), EPIC-014
+
+---
+
+#### FR-216: Session 5 - Backlog Breakdown
+
+**Description**: System SHALL extract epics and user stories from PRD/Backlog, show story points, MoSCoW priority, and group by sprint allocation.
+
+**Inputs**:
+
+- prdContent: string (docs/01-PRD.md)
+- backlogContent: string (docs/12-Backlog.md)
+
+**Outputs**:
+
+- Epics: array of { id: string, title: string, description: string, totalStoryPoints: number }
+- UserStories: array of { id: string, epicId: string, title: string, storyPoints: number, priority: string, sprintAllocation: string }
+- Enhanced progress.md (backlog section)
+
+**Extraction Process**:
+
+1. Parse PRD for epics (major features)
+2. Parse Backlog for user stories
+3. Extract story points from each story
+4. Group stories by sprint allocation
+5. Calculate total story points per epic
+
+**Validation**:
+
+- All epics extracted (100% coverage)
+- All user stories mapped to epics
+- Story points validated (positive numbers)
+- Sprint allocations valid (Sprint 1, Sprint 2, etc.)
+
+**Success Criteria**:
+
+- Extraction accuracy: 95%+ (matches PRD/Backlog)
+- Story point totals: Accurate (sum matches backlog)
+- Grouping: Logical sprint allocations
+
+**Acceptance Test**: TEST-216
+**Related**: US-014-16 (Session 5: Backlog), EPIC-014
+
+---
+
+#### FR-217: Session 5 - Sprint Structure Documentation
+
+**Description**: System SHALL document sprint structure including duration, capacity, goals, user stories, and dependencies for each sprint.
+
+**Inputs**:
+
+- sprints: Sprint[] (from project plan)
+- userStories: UserStory[] (from FR-216)
+- sprintAllocations: { [sprintId]: UserStory[] }
+
+**Outputs**:
+
+- SprintDocumentation: array of {
+  sprintNumber: number,
+  duration: string, // "2 weeks"
+  capacity: number, // 40 story points
+  goals: string[],
+  userStories: UserStory[],
+  dependencies: string[]
+  }
+- Sprint wiki pages (sprint-1.md, sprint-2.md, etc.)
+
+**Sprint Wiki Format**:
+
+```markdown
+# Sprint 1: Foundation Setup
+
+**Duration**: 2 weeks (2025-11-01 to 2025-11-15)
+**Capacity**: 40 story points
+**Actual**: 38 story points (95% capacity)
+
+## Goals
+
+- Set up project infrastructure
+- Implement basic database models
+- Create authentication system
+
+## User Stories
+
+- US-001: Create 5-level hierarchy (8 points)
+- US-002: Implement Phase model (5 points)
+- ...
+
+## Dependencies
+
+- None (first sprint)
+```
+
+**Validation**:
+
+- At least 3 sprints documented
+- Each sprint has goals, stories, dependencies
+- Story points sum ≤ capacity (realistic allocation)
+
+**Success Criteria**:
+
+- Sprint documentation completeness: 100%
+- Capacity planning: Realistic (≤110% capacity)
+- Dependency mapping: Accurate (correct order)
+
+**Acceptance Test**: TEST-217
+**Related**: US-014-17 (Session 5: Sprint Structure), EPIC-014
+
+---
+
+#### FR-218: Session 5 - Velocity and Burndown Calculation
+
+**Description**: System SHALL calculate historical velocity (story points per sprint), generate burndown chart data, and perform risk analysis.
+
+**Inputs**:
+
+- completedSprints: Sprint[] (historical data)
+- currentSprint: Sprint (active sprint)
+- remainingStoryPoints: number
+
+**Outputs**:
+
+- VelocityData: {
+  historicalVelocity: number[], // story points per sprint (last 3 sprints)
+  averageVelocity: number,
+  predictedCompletion: Date
+  }
+- BurndownData: {
+  idealBurndown: { day: number, points: number }[],
+  actualBurndown: { day: number, points: number }[]
+  }
+- RiskAnalysis: {
+  onTrack: boolean,
+  atRisk: string[], // features at risk
+  recommendations: string[]
+  }
+
+**Calculations**:
+
+- **Historical Velocity**: Average story points completed per sprint (last 3 sprints)
+- **Predicted Completion**: Remaining points ÷ average velocity = sprints remaining
+- **Burndown**: Ideal (linear) vs actual (tracked daily)
+- **Risk**: Compare actual velocity to plan
+
+**Validation**:
+
+- Velocity calculated from at least 1 completed sprint
+- Burndown data includes ideal and actual lines
+- Risk analysis identifies at-risk features
+
+**Success Criteria**:
+
+- Velocity accuracy: ±10% (realistic prediction)
+- Burndown visibility: Clear chart data
+- Risk identification: 90%+ of at-risk items flagged
+
+**Acceptance Test**: TEST-218
+**Related**: US-014-18 (Session 5: Velocity), EPIC-014
+
+---
+
+#### FR-219: Session 5 - Tickets Pre-Creation (Optional)
+
+**Description**: System SHALL optionally pre-generate tickets from user stories by breaking down stories into implementation tasks and linking to issues.
+
+**Inputs**:
+
+- userStories: UserStory[] (from backlog)
+- issueCreationEnabled: boolean (user preference)
+
+**Outputs**:
+
+- PreCreatedTickets: array of {
+  title: string,
+  description: string,
+  issueId: string, // linked issue
+  estimatedStoryPoints: number,
+  taskBreakdown: string[] // sub-tasks
+  }
+- Ticket records created in database (if enabled)
+
+**Ticket Breakdown Example**:
+
+```
+US-001: Create 5-level hierarchy (8 points)
+→ Ticket #1: Implement Phase model (2 points)
+→ Ticket #2: Implement Week model (2 points)
+→ Ticket #3: Implement Day model (2 points)
+→ Ticket #4: Add relationships and validation (2 points)
+```
+
+**Validation**:
+
+- Tickets only created if issueCreationEnabled = true
+- Each ticket linked to valid issue
+- Task breakdown sums to story points
+
+**Success Criteria**:
+
+- Breakdown accuracy: 90%+ (realistic task split)
+- Linking: 100% (all tickets linked to issues)
+- Optional: User can disable (respect preference)
+
+**Acceptance Test**: TEST-219
+**Related**: US-014-19 (Session 5: Tickets), EPIC-014
+
+---
+
+#### FR-220: Session 5 - Completion and Artifact Save
+
+**Description**: System SHALL save Session 5 artifacts (enhanced progress.md, sprint wiki pages, velocity data) and mark session complete.
+
+**Inputs**:
+
+- sessionId: string
+- artifacts: { progressMd: string, sprintWikiPages: WikiPage[], velocityData: VelocityData, burndownData: BurndownData }
+
+**Outputs**:
+
+- OnboardingSession.status = COMPLETED
+- OnboardingArtifact records created
+- File system updated (.agent/progress.md, wiki pages)
+- ProjectOnboarding.status = COMPLETED (all sessions done)
+
+**Validation**:
+
+- progress.md enhanced with backlog section
+- At least 3 sprint wiki pages created
+- Velocity and burndown data saved
+- Session duration <5 minutes (300 seconds)
+- All 5 sessions marked complete
+
+**Success Criteria**:
+
+- Artifact completeness: All generated content saved
+- Total onboarding time: 15-20 minutes (all sessions)
+- Agent readiness: 100% (agents can work autonomously)
+
+**Acceptance Test**: TEST-220
+**Related**: US-014-20 (Session 5: Completion), EPIC-014
+
+---
+
 ## 2. Non-Functional Requirements
 
 ### 2.1 Performance Requirements

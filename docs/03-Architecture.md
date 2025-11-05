@@ -23,7 +23,7 @@ This document describes the complete system architecture of ProjectPulse, an age
 **Related Documents:**
 
 - [01-PRD.md](01-PRD.md) - Product Requirements
-- [02-SRS.md](02-SRS.md) - System Requirements (125 FRs)
+- [02-SRS.md](02-SRS.md) - System Requirements (220 FRs)
 - [architecture/ADRs/](architecture/ADRs/) - Architecture Decision Records (5 ADRs)
 - [04-Data-and-Model-Spec.md](04-Data-and-Model-Spec.md) - Database Schema
 - [12-Backlog.md](12-Backlog.md) - User Stories
@@ -61,7 +61,7 @@ C4Context
     Person(developer, "Solo Developer", "Human monitoring and manual operations<br/>Secondary User (5% interaction)")
 
     System_Boundary(devhub, "ProjectPulse") {
-        System(mcp_server, "MCP Server", "41 tools across 8 features<br/>stdio transport")
+        System(mcp_server, "MCP Server", "59 tools across 13 features<br/>stdio transport")
         System(web_app, "Next.js Web App", "Monitoring dashboard + Manual CRUD<br/>React Server Components")
         SystemDb(database, "PostgreSQL", "Single source of truth<br/>Prisma ORM")
     }
@@ -71,7 +71,7 @@ C4Context
     System_Ext(docker, "Docker", "PostgreSQL container<br/>Development environment")
     System_Ext(embedding_api, "Embedding API", "OpenAI text-embedding-3-small<br/>Optional: local embeddings")
 
-    Rel(agent, mcp_server, "Executes workflows via MCP", "stdio, 41 tools")
+    Rel(agent, mcp_server, "Executes workflows via MCP", "stdio, 59 tools")
     Rel(developer, web_app, "Monitors progress, manual CRUD", "HTTPS")
 
     Rel(mcp_server, database, "CRUD operations", "Prisma queries")
@@ -93,7 +93,7 @@ C4Context
 
 | Actor/System             | Primary Interface      | Purpose                                                 | Volume                     |
 | ------------------------ | ---------------------- | ------------------------------------------------------- | -------------------------- |
-| AI Agent → MCP Server    | stdio, 42 MCP tools    | Execute workflows (5-step protocol)                     | 95% interaction            |
+| AI Agent → MCP Server    | stdio, 59 MCP tools    | Execute workflows (5-step protocol)                     | 95% interaction            |
 | Developer → Web App      | HTTPS, React UI        | Monitor progress, manual CRUD                           | 5% interaction             |
 | MCP Server → Database    | Prisma ORM             | State persistence (Phase, Week, Day, Task, Session)     | ~100 queries/minute        |
 | Database → File System   | Post-transaction hooks | Auto-generate markdown (STATUS.md, DEVELOPMENT_PLAN.md) | On state change            |
@@ -247,7 +247,7 @@ C4Container
     Person(developer, "Developer", "Secondary user (5%)")
 
     Container_Boundary(devhub, "ProjectPulse") {
-        Container(mcp_server, "MCP Server", "Node.js, TypeScript", "42 MCP tools<br/>stdio transport<br/>Zod validation")
+        Container(mcp_server, "MCP Server", "Node.js, TypeScript", "59 MCP tools<br/>stdio transport<br/>Zod validation")
 
         Container(web_app, "Next.js App", "React 18, Next.js 14 App Router", "Server Components<br/>Client Components<br/>shadcn/ui")
 
@@ -360,7 +360,30 @@ const tools = {
   "dashboard.getMetrics": ...,
   "dashboard.getActivity": ...,
   "dashboard.getProgress": ...,
-  "dashboard.export": ...
+  "dashboard.export": ...,
+
+  // Project Onboarding (4 tools)
+  "onboarding.startSession": ...,
+  "onboarding.answerQuestion": ...,
+  "onboarding.getProgress": ...,
+  "onboarding.generateSummary": ...,
+
+  // Ticket System (8 tools)
+  "ticket.create": ...,
+  "ticket.update": ...,
+  "ticket.complete": ...,
+  "ticket.addCheckpoint": ...,
+  "ticket.getContext": ...,
+  "ticket.search": ...,
+  "ticket.link": ...,
+  "ticket.updateProgress": ...,
+
+  // Memory Bank Auto-Gen (5 tools)
+  "memoryBank.read": ...,
+  "memoryBank.update": ...,
+  "memoryBank.autoSync": ...,
+  "memoryBank.getVersionHistory": ...,
+  "memoryBank.snapshot": ...
 };
 ```
 
@@ -544,9 +567,19 @@ erDiagram
 
     MarkdownFile }o--|| Task : "generated from"
     MarkdownFile }o--|| Phase : "generated from"
+
+    ProjectOnboarding ||--o{ OnboardingSession : "has sessions"
+    OnboardingSession }o--o{ OnboardingQuestion : "answers questions"
+
+    Phase ||--o{ Ticket : "has tickets"
+    Ticket ||--o{ TicketCheckpoint : "has checkpoints"
+    Ticket }o--|| MemoryBank : "has snapshot"
+
+    Project ||--o{ MemoryBank : "has memory banks"
+    MemoryBank ||--o{ MemoryBankVersion : "has versions"
 ```
 
-**Table Count:** 10 core tables + 8 junction/relation tables = 18 total
+**Table Count:** 16 core tables + 8 junction/relation tables = 24 total
 
 **Indexes:**
 
@@ -583,7 +616,7 @@ erDiagram
 
 **Requirements Fulfilled:**
 
-- FR-001 to FR-125: All data persistence
+- FR-001 to FR-220: All data persistence (includes onboarding, tickets, memory banks)
 - NFR-002: Database query time <100ms
 - NFR-010: Data durability (ACID transactions)
 
