@@ -477,54 +477,117 @@ Examples:
 
 ---
 
-## File Editor Protocol (Bulk Operations)
+## File Operations Protocol (MCP Filesystem Tools)
 
-**CRITICAL: Use file-editor agent for bulk file operations (3+ files)**
+**CRITICAL: Use MCP filesystem tools for ALL file read/write operations**
 
-### When to Invoke file-editor
+### Tool Selection for File Operations
 
-**MANDATORY invocation scenarios:**
+**MANDATORY tool usage:**
 
-1. **Memory Bank Updates** (updating 3+ of the 5 memory bank files)
-   - Sprint transitions (e.g., Sprint 1 → Sprint 2)
-   - Phase completions (e.g., Phase A → Phase B)
-   - Major project pivots (e.g., UI-first → Agent-first)
+1. **Reading Files:**
+   - ✅ USE: `mcp__filesystem__read_text_file` (MCP tool)
+   - ❌ NEVER: Standard `Read` tool (unreliable, causes "file modified" errors)
+   - **Benefits**: More reliable, handles concurrent modifications better
 
-2. **Bulk Configuration Changes** (updating 3+ config/doc files)
-   - Documentation restructuring
-   - SOPs batch updates
-   - System docs refresh
+2. **Writing New Files:**
+   - ✅ USE: `mcp__filesystem__write_file` (MCP tool)
+   - ❌ NEVER: Standard `Write` tool
+   - **Benefits**: Atomic writes, better error handling
 
-3. **Edit Tool Failures**
-   - "File has been unexpectedly modified" errors
-   - Persistent file detection issues
-   - Any scenario where Edit tool fails 2+ times
+3. **Editing Existing Files:**
+   - ✅ USE: `mcp__filesystem__edit_file` (MCP tool - supports multiple edits in one call)
+   - ❌ NEVER: Standard `Edit` tool (triggers false "file modified" warnings)
+   - **Benefits**: Handles multiple edits atomically, git-style diff output, reliable
 
-### Token Efficiency
+4. **Reading Multiple Files:**
+   - ✅ USE: `mcp__filesystem__read_multiple_files` (MCP tool)
+   - **Benefits**: Efficient batch reading, reduces tool call overhead
 
-- **Without file-editor**: 60-80K tokens for 5-file memory bank update
-- **With file-editor**: 5-10K tokens (75-90% savings)
-- **Rule**: If operation would use >30K tokens, invoke file-editor
+### When to Use Bulk Edits
 
-### Example Invocation
+**Single MCP edit call for multiple changes to same file:**
 
-```markdown
-Me: "Sprint 2 transition requires updating 5 memory bank files.
-This is a bulk operation (>3 files), invoking file-editor agent."
+```typescript
+// GOOD: Multiple edits in one call
+mcp__filesystem__edit_file({
+  path: 'file.md',
+  edits: [
+    { oldText: '...', newText: '...' },
+    { oldText: '...', newText: '...' },
+    { oldText: '...', newText: '...' },
+  ],
+});
 
-<invoke file-editor agent with specifications>
-
-Me: "✅ Memory bank updated via file-editor (93% token savings)"
+// BAD: Multiple separate Edit tool calls (causes file detection issues)
+Edit('file.md', 'old1', 'new1');
+Edit('file.md', 'old2', 'new2'); // ❌ Triggers "file modified" error
 ```
 
-### Integration with Step 1
+### Edit Tool Failure Recovery
 
-**If Step 1 requires memory bank updates:**
+**If standard Edit tool fails with "File has been unexpectedly modified":**
 
-1. FIRST invoke file-editor with update specifications
-2. THEN proceed with normal Step 1 protocol (read updated files)
-3. This prevents token waste in main thread
+1. ✅ Switch to `mcp__filesystem__edit_file` immediately
+2. ✅ Continue with MCP filesystem tools for remainder of session
+3. ❌ Do NOT retry with standard Edit tool
+
+### Token Efficiency for Large Operations
+
+**For complex multi-file operations (3+ files with 5+ changes each):**
+
+- Consider using `general-purpose` sub-agent with MCP filesystem tools
+- Sub-agent uses MCP tools in isolated thread
+- Main thread only receives summary (saves 70-90% tokens)
+
+**Example:**
+
+```markdown
+Me: "Documentation fix requires updating 7 files with 25+ changes.
+Invoking general-purpose sub-agent with MCP filesystem tool specifications."
+
+<invoke sub-agent with detailed edit specifications>
+
+Me: "✅ Documentation updated via sub-agent (92% token savings)"
+```
+
+### Integration with Step 1 (Session Initialization)
+
+**Reading memory banks at session start:**
+
+```markdown
+# GOOD: Use MCP filesystem tool
+
+mcp**filesystem**read_multiple_files({
+paths: [
+".agent/project-brief.md",
+".agent/system-patterns.md",
+".agent/tech-context.md",
+".agent/active-context.md",
+".agent/progress.md"
+]
+})
+
+# BAD: Multiple standard Read calls (slower, less efficient)
+```
+
+### Best Practices
+
+1. **Always use MCP filesystem tools** - they're more reliable than standard tools
+2. **Batch edits when possible** - use `edits` array for multiple changes to same file
+3. **Use sub-agents for bulk operations** - saves 70-90% tokens in main thread
+4. **Never mix standard and MCP tools** - stick with MCP tools throughout session
+
+### Verification
+
+**After edits, verify with git diff:**
+
+```bash
+git diff docs/file.md  # Review changes before committing
+```
+
+MCP filesystem tools provide git-style diff output automatically for verification.
 
 ---
 
-**Updated**: 2025-11-05 (Added file-editor protocol)
+**Updated**: 2025-11-06 (Switched from file-editor agent to MCP filesystem tools)
