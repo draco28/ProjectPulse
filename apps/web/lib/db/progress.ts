@@ -14,7 +14,6 @@
 
 import { prisma } from '@/lib/db';
 import { PrismaClient, Status } from '@prisma/client';
-import type { Prisma } from '@prisma/client';
 
 /**
  * Update progress and propagate to parent (one level at a time)
@@ -41,37 +40,88 @@ export async function updateProgressAndPropagate(
   // 1. Update current entity and calculate parent progress in transaction
   const parentInfo = await prisma.$transaction(
     async (tx) => {
-      // 1a. Update current entity
-      const updated = await tx[entityType].update({
-        where: { id: entityId },
-        data: {
-          progress: newProgress,
-          status: determineStatus(newProgress),
-          updatedAt: new Date(),
-        },
-        select: {
-          id: true,
-          progress: true,
-          // Get parent FK based on entity type
-          ...(entityType === 'session' && { taskId: true }),
-          ...(entityType === 'task' && { dayId: true }),
-          ...(entityType === 'day' && { weekId: true }),
-          ...(entityType === 'week' && { phaseId: true }),
-        },
-      });
+      let parentId: string | null = null;
+      let parentType: 'task' | 'day' | 'week' | 'phase' | null = null;
 
-      // 1b. If has parent, calculate new parent progress
-      const parentId = getParentId(updated, entityType);
-      if (!parentId) return null; // Phase has no parent
+      switch (entityType) {
+        case 'session': {
+          const updated = await tx.session.update({
+            where: { id: entityId },
+            data: {
+              progress: newProgress,
+              status: determineStatus(newProgress),
+              updatedAt: new Date(),
+            },
+            select: { id: true, progress: true, taskId: true },
+          });
+          parentId = updated.taskId;
+          parentType = 'task';
+          break;
+        }
+        case 'task': {
+          const updated = await tx.task.update({
+            where: { id: entityId },
+            data: {
+              progress: newProgress,
+              status: determineStatus(newProgress),
+              updatedAt: new Date(),
+            },
+            select: { id: true, progress: true, dayId: true },
+          });
+          parentId = updated.dayId;
+          parentType = 'day';
+          break;
+        }
+        case 'day': {
+          const updated = await tx.day.update({
+            where: { id: entityId },
+            data: {
+              progress: newProgress,
+              status: determineStatus(newProgress),
+              updatedAt: new Date(),
+            },
+            select: { id: true, progress: true, weekId: true },
+          });
+          parentId = updated.weekId;
+          parentType = 'week';
+          break;
+        }
+        case 'week': {
+          const updated = await tx.week.update({
+            where: { id: entityId },
+            data: {
+              progress: newProgress,
+              status: determineStatus(newProgress),
+              updatedAt: new Date(),
+            },
+            select: { id: true, progress: true, phaseId: true },
+          });
+          parentId = updated.phaseId;
+          parentType = 'phase';
+          break;
+        }
+        case 'phase': {
+          await tx.phase.update({
+            where: { id: entityId },
+            data: {
+              progress: newProgress,
+              status: determineStatus(newProgress),
+              updatedAt: new Date(),
+            },
+            select: { id: true, progress: true },
+          });
+          parentId = null;
+          parentType = null;
+          break;
+        }
+      }
 
-      const parentType = getParentType(entityType);
+      if (!parentId || !parentType) return null; // No parent (phase)
+
       const parentProgress = await calculateParentProgress(tx, parentId, parentType);
-
       return { parentId, parentType, parentProgress };
     },
-    {
-      timeout: 5000, // 5 second timeout per level
-    }
+    { timeout: 5000 }
   );
 
   // 2. Recursively propagate to parent (AFTER current transaction commits)
@@ -100,27 +150,68 @@ async function calculateParentProgress(
   parentId: string,
   parentType: 'task' | 'day' | 'week' | 'phase'
 ): Promise<number> {
-  const childType = getChildType(parentType);
-  const parentKey = `${parentType}Id`; // e.g., 'taskId' for sessions
-
-  // Use Prisma aggregation (single SQL query with AVG)
-  const result = await tx[childType].aggregate({
-    where: { [parentKey]: parentId } as any,
-    _avg: { progress: true },
-    _count: true,
-  });
-
-  // No children = keep current progress (don't reset to 0)
-  if (result._count === 0) {
-    const current = await tx[parentType].findUnique({
-      where: { id: parentId },
-      select: { progress: true },
-    });
-    return current?.progress ?? 0;
+  switch (parentType) {
+    case 'task': {
+      const result = await tx.session.aggregate({
+        where: { taskId: parentId },
+        _avg: { progress: true },
+        _count: true,
+      });
+      if (result._count === 0) {
+        const current = await tx.task.findUnique({
+          where: { id: parentId },
+          select: { progress: true },
+        });
+        return current?.progress ?? 0;
+      }
+      return Math.round(result._avg.progress ?? 0);
+    }
+    case 'day': {
+      const result = await tx.task.aggregate({
+        where: { dayId: parentId },
+        _avg: { progress: true },
+        _count: true,
+      });
+      if (result._count === 0) {
+        const current = await tx.day.findUnique({
+          where: { id: parentId },
+          select: { progress: true },
+        });
+        return current?.progress ?? 0;
+      }
+      return Math.round(result._avg.progress ?? 0);
+    }
+    case 'week': {
+      const result = await tx.day.aggregate({
+        where: { weekId: parentId },
+        _avg: { progress: true },
+        _count: true,
+      });
+      if (result._count === 0) {
+        const current = await tx.week.findUnique({
+          where: { id: parentId },
+          select: { progress: true },
+        });
+        return current?.progress ?? 0;
+      }
+      return Math.round(result._avg.progress ?? 0);
+    }
+    case 'phase': {
+      const result = await tx.week.aggregate({
+        where: { phaseId: parentId },
+        _avg: { progress: true },
+        _count: true,
+      });
+      if (result._count === 0) {
+        const current = await tx.phase.findUnique({
+          where: { id: parentId },
+          select: { progress: true },
+        });
+        return current?.progress ?? 0;
+      }
+      return Math.round(result._avg.progress ?? 0);
+    }
   }
-
-  // Round to nearest integer (0-100)
-  return Math.round(result._avg.progress ?? 0);
 }
 
 /**
