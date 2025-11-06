@@ -1,8 +1,9 @@
 # MANDATORY SESSION PROTOCOL - NO EXCEPTIONS
 
-**Version:** 1.0
+**Version:** 2.0 (with Verification Gate)
 **Created:** 2025-10-28
-**Purpose:** Enforce workflow compliance through user-visible confirmations
+**Last Updated:** 2025-11-06
+**Purpose:** Enforce workflow compliance through user-visible confirmations and evidence-based verification
 
 ---
 
@@ -36,6 +37,7 @@ ENFORCE:
 - ✅ Step 2: Save plan BEFORE code
 - ✅ Step 3: Consult experts
 - ✅ Step 4: Checkpoints every 15K tokens
+- ✅ Step 4.5: Verification gate (evidence-based)
 - ✅ Step 5: Post-completion workflow
 
 Confirm each step explicitly. If you skip ANY step, I will stop you.
@@ -259,6 +261,279 @@ Next checkpoint: 45K tokens
 
 ---
 
+## [STEP 4.5] VERIFICATION GATE - REQUIRED BEFORE COMPLETION
+
+**🚨 CRITICAL: Before marking ANY work complete, verify ALL plan requirements with evidence.**
+
+### Why This Step Exists
+
+**Problem:** Protocol can trust documentation claims without verifying actual results.
+**Solution:** Evidence-based verification prevents false completion claims.
+
+**Example:** Day 2 marked "complete" but database had 0/3 sessions (per plan requirement).
+
+### Required Actions
+
+**1. Re-read Success Criteria**
+
+- [ ] Open `.agent/task/current-plan.md`
+- [ ] Locate "Success Criteria" or "Requirements" section
+- [ ] List ALL requirements that must be verified
+
+**2. Verify EACH Requirement with Evidence**
+
+For each requirement, provide **concrete evidence**:
+
+**Database work:**
+
+```sql
+-- Example: Verify 3 sessions created
+SELECT COUNT(*) FROM sessions WHERE taskId = (SELECT id FROM tasks LIMIT 1);
+-- Expected: 3
+-- Actual: [show result]
+```
+
+**File work:**
+
+```bash
+# Example: Verify files created
+ls apps/web/app/api/health/route.ts
+# Show key content
+head -n 20 apps/web/app/api/health/route.ts
+```
+
+**Feature work:**
+
+```bash
+# Example: Verify tests pass
+pnpm test -- health.test.ts
+# Expected: All tests passing
+# Actual: [show result]
+```
+
+**Integration work:**
+
+```bash
+# Example: Verify endpoint works
+curl localhost:3000/api/health
+# Expected: {"status":"ok","timestamp":"..."}
+# Actual: [show result]
+```
+
+**3. Document Verification Results**
+
+Update `.agent/task/current-session-[timestamp].md` with:
+
+```markdown
+## Step 4.5: Verification Results
+
+### Requirement 1: [Description]
+
+✅ Evidence: [Query/Command output showing requirement met]
+Expected: [What should exist]
+Actual: [What was found]
+Status: PASS
+
+### Requirement 2: [Description]
+
+❌ Evidence: [Query/Command output showing gap]
+Expected: [What should exist]
+Actual: [What was found]
+Status: FAIL - [Description of gap]
+```
+
+**4. Apply Fail-Fast Rule**
+
+**If ANY requirement fails verification:**
+
+- [ ] Mark work as **IN PROGRESS** (not complete)
+- [ ] Update `.agent/task/current-plan.md` with remaining items
+- [ ] Update `.agent/task/current-todos.md` with new tasks
+- [ ] **DO NOT proceed to Step 5**
+- [ ] Continue work until ALL requirements pass
+- [ ] Re-run Step 4.5 verification when ready
+
+**Only proceed to Step 5 when ALL requirements verified with evidence.**
+
+### REQUIRED CONFIRMATION
+
+**You MUST output this confirmation when ALL requirements pass:**
+
+```
+✅ STEP 4.5 COMPLETE: All [X] requirements verified with evidence
+
+Verification summary:
+- Requirement 1: ✅ PASS - [brief evidence]
+- Requirement 2: ✅ PASS - [brief evidence]
+- Requirement 3: ✅ PASS - [brief evidence]
+[...list all requirements...]
+
+Evidence documented in: .agent/task/current-session-[timestamp].md
+All requirements met. Proceeding to Step 5.
+```
+
+**Example:**
+
+```
+✅ STEP 4.5 COMPLETE: All 4 requirements verified with evidence
+
+Verification summary:
+- Requirement 1: ✅ PASS - File exists at apps/web/app/api/health/route.ts
+- Requirement 2: ✅ PASS - TypeScript check passes (0 errors)
+- Requirement 3: ✅ PASS - Response format matches spec exactly
+- Requirement 4: ✅ PASS - curl test returns {"status":"ok","timestamp":"..."}
+
+Evidence documented in: .agent/task/current-session-20251106-1430.md
+All requirements met. Proceeding to Step 5.
+```
+
+### Verification Examples
+
+**Example 1: Database Seed Verification**
+
+````markdown
+## Success Criteria from Plan
+
+- [ ] 1 Phase created
+- [ ] 2 Weeks created
+- [ ] 5 Days created
+- [ ] 10 Tasks created
+- [ ] 3 Sessions created under Task 1
+
+## Step 4.5 Verification
+
+### Database Counts
+
+```sql
+SELECT 'Phases' as table_name, COUNT(*) as count FROM phases
+UNION ALL
+SELECT 'Weeks', COUNT(*) FROM weeks
+UNION ALL
+SELECT 'Days', COUNT(*) FROM days
+UNION ALL
+SELECT 'Tasks', COUNT(*) FROM tasks
+UNION ALL
+SELECT 'Sessions', COUNT(*) FROM sessions;
+```
+````
+
+**Expected:**
+
+```
+Phases:   1
+Weeks:    2
+Days:     5
+Tasks:   10
+Sessions: 3
+```
+
+**Actual:**
+
+```
+Phases:   1 ✅
+Weeks:    2 ✅
+Days:     5 ✅
+Tasks:   10 ✅
+Sessions: 0 ❌ FAIL
+```
+
+**Result:** ❌ VERIFICATION FAILED
+**Action:** Do NOT mark complete. Add "Create 3 sessions in seed" to remaining work.
+
+````
+
+**Example 2: API Endpoint Verification**
+
+```markdown
+## Success Criteria from Plan
+- [ ] File: apps/web/app/api/health/route.ts exists
+- [ ] TypeScript: Zero type errors
+- [ ] Response: {"status":"ok","timestamp":ISO}
+- [ ] Manual test: curl returns correct JSON
+
+## Step 4.5 Verification
+
+### 1. File Exists
+```bash
+ls apps/web/app/api/health/route.ts
+# Output: apps/web/app/api/health/route.ts
+````
+
+✅ PASS
+
+### 2. TypeScript Check
+
+```bash
+pnpm type-check
+# Output: Found 0 errors
+```
+
+✅ PASS
+
+### 3. Response Format
+
+```bash
+curl localhost:3000/api/health
+# Output: {"status":"ok","timestamp":"2025-11-06T14:30:00.000Z"}
+```
+
+✅ PASS - Matches spec exactly
+
+### 4. Manual Test
+
+```bash
+node -e 'console.log(new Date("2025-11-06T14:30:00.000Z").toISOString())'
+# Output: 2025-11-06T14:30:00.000Z
+```
+
+✅ PASS - Timestamp is valid ISO format
+
+**Result:** ✅ ALL REQUIREMENTS VERIFIED
+
+```
+
+### Common Evidence Types
+
+**Database:**
+- `SELECT COUNT(*) FROM table;` - Verify record counts
+- `SELECT * FROM table LIMIT 5;` - Verify data structure
+- `EXPLAIN ANALYZE SELECT...;` - Verify query performance
+
+**Files:**
+- `ls [path]` - Verify file exists
+- `head -n 20 [path]` - Show file content
+- `wc -l [path]` - Verify file size
+
+**Tests:**
+- `pnpm test -- [pattern]` - Run specific tests
+- `pnpm type-check` - Verify TypeScript
+- `pnpm lint` - Verify code quality
+
+**Integration:**
+- `curl [endpoint]` - Test API endpoints
+- `pnpm dev` - Verify app starts
+- Manual browser test - Screenshot + description
+
+### Troubleshooting
+
+**Q: What if I can't verify a requirement?**
+
+**A:** Mark verification as BLOCKED, note the blocker, update plan with resolution steps.
+
+**Q: What if requirements were unclear in plan?**
+
+**A:** Clarify with user, update plan with explicit success criteria, then verify.
+
+**Q: What if verification reveals additional work needed?**
+
+**A:** Add to current-todos.md, continue work, re-run Step 4.5 when ready.
+
+**If you skip Step 4.5, user will stop you:**
+
+> "You claimed work is complete without Step 4.5 verification. Run verification with evidence RIGHT NOW."
+
+---
+
 ## [STEP 5] POST-COMPLETION - BEFORE FINAL CODE COMMIT
 
 **After feature implementation complete, BEFORE committing code:**
@@ -342,28 +617,34 @@ Next checkpoint: 45K tokens
 **You MUST output this confirmation:**
 
 ```
+
 ✅ STEP 5 COMPLETE: All documentation updated and committed
 
 Project docs updated:
+
 - docs/13-Project-Plan.md (US-001, US-002 marked complete)
 - docs/12-Backlog.md (no changes - scope unchanged)
 - Completion doc created (if applicable)
 
 Memory banks updated:
+
 - active-context.md (recent work, next focus)
 - progress.md (completion %, lessons learned)
 - system-patterns.md (new patterns if any)
 - tech-context.md (stack changes if any)
 
 Sub-agent invocations:
+
 - synthesize-docs → SOP saved
 - map-system → system docs updated
 
 Git commits:
+
 - [hash] docs: Update documentation and memory banks after [phase]
 - [hash] feat: [feature description]
 
 All quality gates passed ✅
+
 ```
 
 **If you jump straight to code commit without docs, user will stop you:**
@@ -424,21 +705,26 @@ Examples:
 ### Session Start Checklist
 
 ```
+
 □ STEP 1: Initialize (create session file, read STATUS/PLAN)
-  Confirm: "✅ STEP 1 COMPLETE: Session initialized at [timestamp]"
+Confirm: "✅ STEP 1 COMPLETE: Session initialized at [timestamp]"
 
 □ STEP 2: Plan & Save (create plan, save to files)
-  Confirm: "✅ STEP 2 COMPLETE: Plan saved to current-plan.md..."
+Confirm: "✅ STEP 2 COMPLETE: Plan saved to current-plan.md..."
 
 □ STEP 3: Consult Experts (invoke react/next/prisma experts)
-  Confirm: "✅ STEP 3 COMPLETE: Consulted [expert] for [topic]"
+Confirm: "✅ STEP 3 COMPLETE: Consulted [expert] for [topic]"
 
 □ STEP 4: Checkpoints (every 15K tokens, update session/todos)
-  Confirm: "✅ CHECKPOINT at [X]K tokens: Progress saved"
+Confirm: "✅ CHECKPOINT at [X]K tokens: Progress saved"
+
+□ STEP 4.5: Verification Gate (evidence-based requirement verification)
+Confirm: "✅ STEP 4.5 COMPLETE: All [X] requirements verified with evidence"
 
 □ STEP 5: Post-Completion (docs → sub-agents → commits)
-  Confirm: "✅ STEP 5 COMPLETE: All documentation updated and committed"
-```
+Confirm: "✅ STEP 5 COMPLETE: All documentation updated and committed"
+
+````
 
 ### Files Created by Protocol
 
@@ -456,24 +742,26 @@ Examples:
 **Next session:**
 
 1. Copy-paste starter prompt (from top of this file)
-2. Watch for all 5 step confirmations
+2. Watch for all 6 step confirmations (including Step 4.5)
 3. Call out ANY missing confirmations immediately
 4. Verify checkpoint confirmations at 15K token intervals
-5. Ensure Step 5 complete before final code commit
+5. Verify evidence-based confirmation before allowing Step 5
+6. Ensure Step 5 complete before final code commit
 
 **This protocol prevents the violations that occurred previously:**
 
 1. ✅ Plan saved immediately after approval (Step 2)
 2. ✅ Todos persisted to file (Step 2)
 3. ✅ Progress checkpoints every 15K tokens (Step 4)
-4. ✅ Expert agents consulted for decisions (Step 3)
-5. ✅ Post-completion workflow mandatory (Step 5)
+4. ✅ Evidence-based verification before completion (Step 4.5)
+5. ✅ Expert agents consulted for decisions (Step 3)
+6. ✅ Post-completion workflow mandatory (Step 5)
 
 ---
 
-**Protocol Status:** ACTIVE
-**Last Updated:** 2025-10-28
-**Violations Prevented:** 5 (plan-saving, todos, checkpoints, experts, post-completion)
+**Protocol Status:** ACTIVE - v2.0 with Verification Gate
+**Last Updated:** 2025-11-06
+**Violations Prevented:** 6 (plan-saving, todos, checkpoints, verification, experts, post-completion)
 
 ---
 
@@ -522,7 +810,7 @@ mcp__filesystem__edit_file({
 // BAD: Multiple separate Edit tool calls (causes file detection issues)
 Edit('file.md', 'old1', 'new1');
 Edit('file.md', 'old2', 'new2'); // ❌ Triggers "file modified" error
-```
+````
 
 ### Edit Tool Failure Recovery
 
