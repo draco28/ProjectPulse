@@ -1,7 +1,7 @@
 # Active Context
 
-**Last Updated**: 2025-11-06 (Day 2 - 100% COMPLETE ✅)
-**Current Phase**: Sprint 1 - Foundation & Core Infrastructure (Week 1, Day 2 ✅ Complete)
+**Last Updated**: 2025-11-06 (Day 3 - 100% COMPLETE ✅)
+**Current Phase**: Sprint 1 - Foundation & Core Infrastructure (Week 1, Day 3 ✅ Complete)
 **Branch**: `feature/sprint-1-foundation`
 
 ---
@@ -10,31 +10,26 @@
 
 ### What We're Working On
 
-**Phase**: Sprint 1 - Week 1 (Foundation Setup) - 40% complete
-**Status**: Day 2 100% COMPLETE ✅
-**Current Day**: Day 2 ✅ 100% COMPLETE (Prisma schema design fully done)
-**Next Day**: Day 3 - Schema validation and utility functions
+**Phase**: Sprint 1 - Week 1 (Foundation Setup) - 60% complete
+**Status**: Day 3 100% COMPLETE ✅
+**Current Day**: Day 3 ✅ 100% COMPLETE (Schema validation and utility functions fully done)
+**Next Day**: Day 4 - MCP Server Scaffold
 
-**Day 2 Completion Summary** ✅:
+**Day 3 Completion Summary** ✅:
 
-1. ✅ Add 3 sessions to seed script under Task 1 (DONE)
-2. ✅ Test cascade delete functionality (2/2 tests passing)
-3. ✅ Test date filtering queries (3/3 tests passing)
-4. ✅ Re-verify data integrity with psql queries (3 sessions confirmed)
+1. ✅ Create progress roll-up utility (`lib/db/progress.ts`) - 282 lines with incremental transactions
+2. ✅ Create tree query helpers (`lib/db/hierarchy.ts`) - 251 lines with type-safe generics
+3. ✅ Create Zod validation schemas (`lib/db/validation.ts`) - 324 lines with custom validators
+4. ✅ Write 17 new tests across 3 test files (22/22 total tests passing)
+5. ✅ Fix incremental transaction pattern (recursive propagation AFTER commit)
+6. ✅ Complete US-014 (hierarchy integrity validation)
 
-**Immediate Next Tasks** (Day 3):
+**Immediate Next Tasks** (Day 4):
 
-1. Create progress roll-up utility function (`lib/db/progress.ts`)
-2. Write database tests (hierarchy CRUD, cascade deletes, progress calculation)
-3. Build Zod validation schemas (`lib/db/validation.ts`)
-4. Implement tree query helpers (`lib/db/hierarchy.ts`)
-
-**Then Day 3**:
-
-1. Create progress roll-up utility function (`lib/db/progress.ts`)
-2. Write database tests (hierarchy CRUD, cascade deletes, progress calculation)
-3. Build Zod validation schemas (`lib/db/validation.ts`)
-4. Implement tree query helpers (`lib/db/hierarchy.ts`)
+1. Initialize MCP server project structure (mcp-server/ folder)
+2. Configure stdio transport (@modelcontextprotocol/sdk)
+3. Create tool registration system
+4. Test MCP connection with Claude Code
 
 **Sprint 1 Goal**: Establish 5-level hierarchy with progress tracking and MCP server scaffold (52 points, 14 user stories)
 
@@ -44,15 +39,57 @@
 2. ✅ Status enum (5 values) - Day 2 COMPLETE
 3. ✅ 25 indexes for query optimization - Day 2 COMPLETE
 4. ✅ Migration applied to PostgreSQL - Day 2 COMPLETE
-5. ⚠️ Seed data with Sprint 1 hierarchy - Day 2 85% (missing 3 sessions, cascade test, date filtering test)
-6. ⏳ Progress roll-up algorithm (Session 100% → propagates to Phase) - Day 3
-7. ⏳ MCP server scaffold (Node.js, stdio transport) - Days 4-5
-8. ⏳ First 7 MCP tools (sprint.phase.create, sprint.getCurrentTask, sprint.checkpoint, etc.) - Days 6-7
-9. ⏳ Validation: Zod schemas, progress 0-100, circular reference checks - Day 3
+5. ✅ Seed data with Sprint 1 hierarchy - Day 2 COMPLETE
+6. ✅ Progress roll-up algorithm (Session 100% → propagates to Phase) - Day 3 COMPLETE
+7. ✅ Tree query helpers (getFullTree, getChildren, getParent) - Day 3 COMPLETE
+8. ✅ Validation: Zod schemas, progress 0-100, circular reference checks - Day 3 COMPLETE
+9. ⏳ MCP server scaffold (Node.js, stdio transport) - Days 4-5
+10. ⏳ First 7 MCP tools (sprint.phase.create, sprint.getCurrentTask, sprint.checkpoint, etc.) - Days 6-7
 
 ---
 
 ## Recent Changes
+
+### Sprint 1 Day 3 Status (November 6, 2025) ✅ 100% COMPLETE
+
+**Schema Validation & Utility Functions - 100% COMPLETE**
+
+**What Was Built**:
+
+1. **Progress Roll-Up Utility** ([lib/db/progress.ts](../apps/web/lib/db/progress.ts))
+   - Incremental transaction pattern (one level at a time)
+   - updateProgressAndPropagate() - Session → Phase propagation
+   - recalculateFullTree() - Bottom-up integrity recovery
+   - Fixed nested transaction bug (recursive call AFTER commit)
+
+2. **Tree Query Helpers** ([lib/db/hierarchy.ts](../apps/web/lib/db/hierarchy.ts))
+   - Type-safe generic functions (getChildren<T>, getParent<T>)
+   - getFullTree() - Phase with all nested relations
+   - getAllDescendants() - Recursive traversal
+   - getCurrentTask() - Find first IN_PROGRESS task
+
+3. **Zod Validation Schemas** ([lib/db/validation.ts](../apps/web/lib/db/validation.ts))
+   - 5 schemas: Phase, Week, Day, Task, Session
+   - Custom validators: validateDateRange, validateProgress, validateCircularReference
+   - validateHierarchyIntegrity() - Full tree integrity check (US-014)
+
+4. **Database Tests** (17 new tests, 22/22 total passing)
+   - [hierarchy-crud.test.ts](../apps/web/prisma/__tests__/hierarchy-crud.test.ts) - 4 tests
+   - [progress-calculation.test.ts](../apps/web/prisma/__tests__/progress-calculation.test.ts) - 7 tests
+   - [hierarchy-integrity.test.ts](../apps/web/prisma/__tests__/hierarchy-integrity.test.ts) - 6 tests
+
+**Key Technical Achievement**:
+Fixed incremental transaction pattern - recursive propagation now happens AFTER transaction commits, preventing nested transaction issues and ensuring correct progress roll-up across all 5 levels.
+
+**Quality Gates Status**:
+
+- ✅ TypeScript: Zero errors
+- ✅ Tests: 22/22 passing (5 existing + 17 new)
+- ✅ US-014 Complete: Hierarchy integrity validation working
+
+**Session Log**: [current-session-20251106-day3.md](task/current-session-20251106-day3.md)
+
+---
 
 ### Sprint 1 Day 2 Status (November 6, 2025) ✅ 100% COMPLETE
 
