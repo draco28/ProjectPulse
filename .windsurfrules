@@ -56,7 +56,7 @@ Every session in Windsurf MUST follow the same protocol described in `CLAUDE.md`
 **How it works:**
 
 1. Copy-paste the starter prompt at session start.
-2. Cascade must complete and confirm all five protocol steps.
+2. Cascade must complete and confirm all six protocol steps (including Step 4.5 Verification Gate).
 3. Missing confirmation = workflow violation (call it out immediately).
 
 **📋 Full Protocol:** `.agent/MANDATORY_SESSION_PROTOCOL.md`  
@@ -69,21 +69,19 @@ Every session in Windsurf MUST follow the same protocol described in `CLAUDE.md`
 ### Starter Prompt (Copy-Paste This)
 
 ```
-MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
+MANDATORY PROTOCOL — Follow .claude/sops/session-protocol.md and complete ALL 6 steps.
 
-Current phase: [copy from STATUS.md]
-Requirements: [copy from docs/13-Project-Plan.md]
+Current task: begin sprint 1
 
 ENFORCE:
-- ✅ Step 1: Initialize session
+- ✅ Step 1: Initialize session (load Memory Bank, create session log)
 - ✅ Step 2: Save plan BEFORE code
 - ✅ Step 3: Consult experts
-- ✅ Step 4: Checkpoints every 15K tokens
-- ✅ Step 5: Post-completion workflow
+- ✅ Step 4: Checkpoints every ~15K tokens
+- ✅ Step 4.5: Verification gate (evidence-based)
+- ✅ Step 5: Post-completion updates
 
-Confirm each step explicitly. If you skip ANY step, I will stop you.
-
-Proceed with [phase name].
+Confirm each step explicitly before proceeding to the next.
 ```
 
 ---
@@ -92,7 +90,7 @@ Proceed with [phase name].
 
 ### STEP 1: INITIALIZATION
 
-- Read `STATUS.md` and `docs/13-Project-Plan.md`.
+- Read `.agent/progress.md` (current phase) and `docs/13-Project-Plan.md`.
 - Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`.
 - **Confirm:** `✅ STEP 1 COMPLETE: Session initialized at [timestamp]`.
 
@@ -137,6 +135,24 @@ Proceed with [phase name].
   - Update `.agent/task/current-todos.md`.
 - **Confirm:** `✅ CHECKPOINT at [X]K tokens: Progress saved`.
 
+### STEP 4.5: VERIFICATION GATE
+
+**Before marking ANY work complete:**
+
+- Re-read `.agent/task/current-plan.md` success criteria
+- Verify EACH requirement with concrete evidence:
+  - Database: Run queries, show counts
+  - Files: List files, show content
+  - Tests: Run tests, show results
+  - Integration: Test endpoints, show responses
+- Document verification in session log
+- **Fail-fast rule**: If ANY requirement fails → mark incomplete, continue work
+- Only proceed to Step 5 when ALL verified
+
+**Confirm:** `✅ STEP 4.5 COMPLETE: All [X] requirements verified with evidence`
+
+See `.agent/MANDATORY_SESSION_PROTOCOL.md` Step 4.5 for detailed examples.
+
 ### STEP 5: POST-COMPLETION
 
 - Create a completion doc if the phase warrants it.
@@ -152,12 +168,12 @@ Proceed with [phase name].
 
 Cascade loads skills based on phase keywords:
 
-| Phase Contains                | Skills to Load                                                          |
-| ----------------------------- | ----------------------------------------------------------------------- |
-| "API", "endpoint", "route"    | `.claude/skills/projectpulse/api-patterns.md`                           |
-| "Component", "UI", "page"     | `.claude/skills/projectpulse/component-patterns.md`                     |
-| "Database", "Prisma", "query" | `.claude/skills/projectpulse/database-patterns.md`                      |
-| "Test", "testing", "coverage" | `.claude/skills/projectpulse/testing-patterns.md`                        |
+| Phase Contains                | Skills to Load                                      |
+| ----------------------------- | --------------------------------------------------- |
+| "API", "endpoint", "route"    | `.claude/skills/projectpulse/api-patterns.md`       |
+| "Component", "UI", "page"     | `.claude/skills/projectpulse/component-patterns.md` |
+| "Database", "Prisma", "query" | `.claude/skills/projectpulse/database-patterns.md`  |
+| "Test", "testing", "coverage" | `.claude/skills/projectpulse/testing-patterns.md`   |
 
 ---
 
@@ -224,10 +240,10 @@ Cascade must:
 
 ### Integration Checklist
 
-- [ ] MCP tools configured and working  
-- [ ] Access to `.agent/` documentation verified  
-- [ ] `pnpm dev` runs successfully  
-- [ ] Actively working on the correct feature branch  
+- [ ] MCP tools configured and working
+- [ ] Access to `.agent/` documentation verified
+- [ ] `pnpm dev` runs successfully
+- [ ] Actively working on the correct feature branch
 - [ ] `STATUS.md` and `docs/13-Project-Plan.md` reviewed
 
 ---
@@ -265,4 +281,3 @@ For standalone HTML/design prototypes, use the SuperDesign workflow.
 - **When to use:** “design UI prototype”, “create HTML mockup”, or explicit “use SuperDesign workflow”
 - **Output:** Standalone HTML files under `.superdesign/design_iterations/`
 - **Note:** For React components inside ProjectPulse, use `.claude/skills/projectpulse/ui-generation-workflow.md`.
-
