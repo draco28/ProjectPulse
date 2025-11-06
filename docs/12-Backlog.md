@@ -91,7 +91,7 @@ Stories are prioritized using the MoSCoW method:
 | **Could Have**       | Nice to have if time permits | P2 features, adds value but not essential | 15 stories  | ~46 points   |
 | **Won't Have (MVP)** | Not in MVP scope             | P3 features, deferred to future releases  | 5 stories   | ~15 points   |
 
-**MVP Scope:** Must Have + Should Have = 105 stories (~364 points) = ~9 sprints (18 weeks)
+**MVP Scope:** Must Have + Should Have = 118 stories (422 points) = 9 sprints (18 weeks)
 
 ---
 
@@ -314,6 +314,13 @@ PRD (Features) → Backlog (Epics) → Backlog (Stories) → SRS (FRs) → Testi
 **MoSCoW:** Won't Have (deferred to post-MVP)
 **Dependencies:** EPIC-002 (personas activate in workflows)
 **Sprint Allocation:** Post-MVP (Phase E)
+
+---
+
+### EPIC-009: Reserved for Future Use
+
+**Status**: Intentional Gap
+**Rationale**: EPIC-009 is reserved for future features and is not currently assigned. Epic numbering continues with EPIC-010 to maintain backward compatibility with existing references.
 
 ---
 
@@ -774,9 +781,9 @@ PRD (Features) → Backlog (Epics) → Backlog (Stories) → SRS (FRs) → Testi
 | EPIC-008  | Personas                     | 5           | 12           | Won't Have  | Post-MVP                           |
 | EPIC-010  | Memory Bank System           | 8           | 34           | Must Have   | Sprint 9 W1-2                      |
 | EPIC-011  | Research Agent Orchestration | 5           | 24           | Should Have | Sprint 9 W2                        |
-| **Total** | **10 Epics**                 | **138**     | **484**      | -           | **~12 sprints (24 weeks)**         |
+| **Total** | **10 Epics**                 | **138**     | **484**      | -           | **9 sprints (18 weeks)**           |
 
-**MVP Scope (Must + Should):** 118 stories, 422 points, ~11 sprints (22 weeks)
+**MVP Scope (Must + Should):** 118 stories, 422 points, 9 sprints (18 weeks)
 
 ---
 

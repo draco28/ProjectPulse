@@ -2422,7 +2422,7 @@ This Testing & QA Strategy provides comprehensive coverage of ProjectPulse's fun
 - ✅ **88% code coverage:** Exceeds 80% target
 - ✅ **92 security tests:** All STRIDE threats mitigated
 - ✅ **30 accessibility tests:** WCAG 2.1 AA compliant
-- ✅ **Complete traceability:** All 125 FRs mapped to tests
+- ✅ **Complete traceability:** All 158 MVP FRs mapped to tests
 - ✅ **CI/CD automation:** Tests run on every commit
 - ✅ **Performance gates:** All NFRs validated
 - ✅ **Release criteria:** 8 must-pass gates defined
@@ -2434,6 +2434,35 @@ This Testing & QA Strategy provides comprehensive coverage of ProjectPulse's fun
 3. Establish performance baselines (Week 3 Day 4)
 4. Run first complete test suite (Week 3 Day 5)
 5. Achieve 80% coverage by Phase A completion
+
+---
+
+## Test Case Index
+
+**Purpose**: Complete enumeration of all test cases with FR and user story mappings
+
+### Memory Bank System Tests (TEST-146 to TEST-153)
+
+| Test ID  | Test Name                                 | FR     | User Story | Description                                                    |
+| -------- | ----------------------------------------- | ------ | ---------- | -------------------------------------------------------------- |
+| TEST-146 | Memory Bank - project-brief.md Creation   | FR-146 | US-010-01  | Verify project-brief.md created with ≤3K token load time       |
+| TEST-147 | Memory Bank - system-patterns.md Creation | FR-147 | US-010-02  | Verify system-patterns.md created with ≤1K pattern lookups     |
+| TEST-148 | Memory Bank - tech-context.md Creation    | FR-148 | US-010-03  | Verify tech-context.md created with ≤2K token load time        |
+| TEST-149 | Memory Bank - active-context.md Creation  | FR-149 | US-010-04  | Verify active-context.md created with ≤1K token real-time load |
+| TEST-150 | Memory Bank - progress.md Creation        | FR-150 | US-010-05  | Verify progress.md created with ≤2K token load time            |
+| TEST-151 | Session Start Workflow Token Budget       | FR-151 | US-010-06  | Verify session start completes in ≤10K tokens total            |
+| TEST-152 | Pattern Lookup Performance                | FR-152 | US-010-07  | Verify pattern lookups complete in ≤1K tokens                  |
+| TEST-153 | Context Recovery Token Budget             | FR-153 | US-010-08  | Verify context recovery completes in ≤6K tokens                |
+
+### Research Agent Orchestration Tests (TEST-154 to TEST-158)
+
+| Test ID  | Test Name                                   | FR     | User Story | Description                                                        |
+| -------- | ------------------------------------------- | ------ | ---------- | ------------------------------------------------------------------ |
+| TEST-154 | Sub-Agent - explore-codebase Invocation     | FR-154 | US-011-01  | Verify explore-codebase completes in ≤2K main thread tokens        |
+| TEST-155 | Sub-Agent - analyze-architecture Invocation | FR-155 | US-011-02  | Verify analyze-architecture completes in ≤2K main thread tokens    |
+| TEST-156 | Sub-Agent - Automatic Invocation            | FR-156 | US-011-03  | Verify sub-agents invoked automatically without manual trigger     |
+| TEST-157 | Sub-Agent - Research Report Persistence     | FR-157 | US-011-04  | Verify research reports saved to files and persist across sessions |
+| TEST-158 | Sub-Agent - Parallel Execution              | FR-158 | US-011-05  | Verify multiple sub-agents can execute simultaneously              |
 
 ---
 

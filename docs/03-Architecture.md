@@ -23,7 +23,7 @@ This document describes the complete system architecture of ProjectPulse, an age
 **Related Documents:**
 
 - [01-PRD.md](01-PRD.md) - Product Requirements
-- [02-SRS.md](02-SRS.md) - System Requirements (220 FRs)
+- [02-SRS.md](02-SRS.md) - System Requirements (158 MVP FRs, 220 total)
 - [architecture/ADRs/](architecture/ADRs/) - Architecture Decision Records (5 ADRs)
 - [04-Data-and-Model-Spec.md](04-Data-and-Model-Spec.md) - Database Schema
 - [12-Backlog.md](12-Backlog.md) - User Stories
@@ -61,7 +61,7 @@ C4Context
     Person(developer, "Solo Developer", "Human monitoring and manual operations<br/>Secondary User (5% interaction)")
 
     System_Boundary(devhub, "ProjectPulse") {
-        System(mcp_server, "MCP Server", "59 tools across 13 features<br/>stdio transport")
+        System(mcp_server, "MCP Server", "41 tools across 9 features<br/>stdio transport")
         System(web_app, "Next.js Web App", "Monitoring dashboard + Manual CRUD<br/>React Server Components")
         SystemDb(database, "PostgreSQL", "Single source of truth<br/>Prisma ORM")
     }
@@ -71,7 +71,7 @@ C4Context
     System_Ext(docker, "Docker", "PostgreSQL container<br/>Development environment")
     System_Ext(embedding_api, "Embedding API", "OpenAI text-embedding-3-small<br/>Optional: local embeddings")
 
-    Rel(agent, mcp_server, "Executes workflows via MCP", "stdio, 59 tools")
+    Rel(agent, mcp_server, "Executes workflows via MCP", "stdio, 41 tools")
     Rel(developer, web_app, "Monitors progress, manual CRUD", "HTTPS")
 
     Rel(mcp_server, database, "CRUD operations", "Prisma queries")
@@ -2100,6 +2100,91 @@ export function useScrollSpy(ids: string[], options?: IntersectionObserverInit) 
 **Component Catalog:**
 
 - See [.agent/system/component-patterns.md](.agent/system/component-patterns.md)
+
+---
+
+### 3.11 Sub-Agent Architecture
+
+**Purpose**: Isolated agent threads for research tasks (EPIC-011)
+
+**Components**:
+
+- **explore-codebase**: Scans repo for patterns, returns summary (saves 20-30K tokens in main thread)
+- **analyze-architecture**: Traces system flows across files, returns architectural insights
+- **synthesize-docs**: Generates SOPs and updates .agent/ folder automatically
+- **map-system**: Updates system documentation (database-schema.md, api-catalog.md, component-patterns.md)
+
+**Invocation Pattern**:
+
+```mermaid
+sequenceDiagram
+    participant Main as Main Agent
+    participant SubAgent as Sub-Agent (Isolated Thread)
+    participant Context as Context File
+
+    Main->>Context: Write current-session.md
+    Main->>SubAgent: Invoke with context file path
+    SubAgent->>Context: Read current-session.md
+    SubAgent->>SubAgent: Execute research task
+    SubAgent->>Context: Write report file
+    SubAgent->>Main: Return report path
+    Main->>Context: Read report file
+    Main->>Main: Use findings for implementation
+```
+
+**Token Efficiency**:
+
+- Main thread cost: ~2K tokens (invocation + report reading)
+- Sub-agent thread cost: 20-30K tokens (isolated, doesn't affect main)
+- Total savings: 92% reduction vs direct research in main thread
+
+---
+
+### 3.12 Memory Bank Data Flows
+
+**Purpose**: Token-efficient context retrieval (EPIC-010)
+
+**Session Start Flow** (≤10K tokens):
+
+```mermaid
+sequenceDiagram
+    participant Agent
+    participant ProjectBrief as project-brief.md (3K)
+    participant ActiveContext as active-context.md (1K)
+    participant Progress as progress.md (2K)
+
+    Agent->>ProjectBrief: Read project overview
+    Agent->>ActiveContext: Read current work focus
+    Agent->>Progress: Read completion status
+    Note over Agent: Total: ~6-8K tokens
+```
+
+**Pattern Lookup Flow** (≤1K tokens):
+
+```mermaid
+sequenceDiagram
+    participant Agent
+    participant SystemPatterns as system-patterns.md
+
+    Agent->>SystemPatterns: Grep for pattern name
+    SystemPatterns-->>Agent: Return pattern section (500-1K tokens)
+    Note over Agent: 93% reduction vs loading full docs
+```
+
+**Context Recovery Flow** (≤6K tokens):
+
+```mermaid
+sequenceDiagram
+    participant Agent
+    participant SessionFile as current-session-[timestamp].md (2K)
+    participant TodosFile as current-todos.md (2K)
+    participant Progress as progress.md (2K)
+
+    Agent->>SessionFile: Read latest session state
+    Agent->>TodosFile: Read task list with progress
+    Agent->>Progress: Read phase completion
+    Note over Agent: Total: ~6K tokens, resume work immediately
+```
 
 ---
 

@@ -26,7 +26,7 @@ ProjectPulse is an **agent-first meta-platform** that generates complete agent w
 
 **Primary Users:** AI Agents (95% of interactions)
 
-- Execute workflows via MCP tools (41 tools across 8 features)
+- Execute workflows via MCP tools (41 tools across 9 features)
 - Persistent state tracking enables context-free operation
 - Complete workflow execution without human intervention
 - Token-efficient context retrieval (92% reduction for skills, 88% for knowledge)
@@ -326,23 +326,26 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 
 ### 4.1 Feature Overview
 
-| Feature                  | Priority | FR Range             | Description                                                              |
-| ------------------------ | -------- | -------------------- | ------------------------------------------------------------------------ |
-| Sprint/Phase Tracking    | P0       | FR-001 to FR-025     | 5-level hierarchy, auto-markdown sync, progress roll-up                  |
-| Workflow Orchestration   | P0       | FR-026 to FR-050     | Track 12 workflows, enforce consistency, checkpoint recovery             |
-| Issues                   | P0       | FR-051 to FR-070     | CRUD + bulk creation + auto-tagging + context injection                  |
-| Knowledge (RAG + Graph)  | P1       | FR-071 to FR-090     | Hybrid search, semantic embeddings, 2-hop graph traversal                |
-| Skills                   | P1       | FR-091 to FR-105     | Framework patterns, lazy loading, 92% token reduction                    |
-| Wiki                     | P2       | FR-106 to FR-115     | Auto-generation from code, cross-linking, version control                |
-| Project Health           | P2       | FR-116 to FR-120     | Security + quality + a11y tracking, auto-categorization                  |
-| Personas                 | P3       | FR-121 to FR-125     | Agent-created sub-agents, project-specific, context-activation           |
-| **Project Onboarding**   | **P0**   | **FR-146 to FR-160** | **Intelligent project analysis, .agent/ generation, CLAUDE.md creation** |
-| **Ticket System**        | **P0**   | **FR-161 to FR-175** | **Sprint work tracking, memory bank snapshots, lifecycle management**    |
-| **Memory Bank Auto-Gen** | **P1**   | **FR-176 to FR-190** | **Auto-update from ticket completion, 5 bank types, snapshot system**    |
-| **Agent Dashboard**      | **P1**   | **FR-191 to FR-200** | **Memory banks viewer, current ticket context, skills/sub-agents list**  |
-| **Additional Sessions**  | **P2**   | **FR-201 to FR-220** | **Sessions 2-5: Tech stack, requirements, architecture, backlog**        |
+| Feature                  | Priority | FR Range             | Description                                                             |
+| ------------------------ | -------- | -------------------- | ----------------------------------------------------------------------- |
+| Sprint/Phase Tracking    | P0       | FR-001 to FR-025     | 5-level hierarchy, auto-markdown sync, progress roll-up                 |
+| Workflow Orchestration   | P0       | FR-026 to FR-050     | Track 12 workflows, enforce consistency, checkpoint recovery            |
+| Issues                   | P0       | FR-051 to FR-070     | CRUD + bulk creation + auto-tagging + context injection                 |
+| Knowledge (RAG + Graph)  | P1       | FR-071 to FR-090     | Hybrid search, semantic embeddings, 2-hop graph traversal               |
+| Skills                   | P1       | FR-091 to FR-105     | Framework patterns, lazy loading, 92% token reduction                   |
+| Wiki                     | P2       | FR-106 to FR-115     | Auto-generation from code, cross-linking, version control               |
+| Project Health           | P2       | FR-116 to FR-120     | Security + quality + a11y tracking, auto-categorization                 |
+| Personas                 | P3       | FR-121 to FR-125     | Agent-created sub-agents, project-specific, context-activation          |
+| **Memory Bank System**   | **P0**   | **FR-146 to FR-153** | **Token-efficient context management, 5 structured memory bank files**  |
+| **Research Agent Orch.** | **P1**   | **FR-154 to FR-158** | **Isolated sub-agent threads, 92% token reduction, report persistence** |
+| **Ticket System**        | **P0**   | **FR-159 to FR-173** | **Sprint work tracking, memory bank snapshots, lifecycle management**   |
+| **Memory Bank Auto-Gen** | **P2**   | **FR-174 to FR-188** | **Auto-update from ticket completion, 5 bank types, snapshot system**   |
+| **Agent Dashboard**      | **P2**   | **FR-189 to FR-198** | **Memory banks viewer, current ticket context, skills/sub-agents list** |
+| **Additional Sessions**  | **P2**   | **FR-199 to FR-220** | **Sessions 2-5: Tech stack, requirements, architecture, backlog**       |
 
-**Total:** 162 Functional Requirements (FR-001 to FR-220)
+**Total:** 220 Functional Requirements (138 MVP, 82 Post-MVP)
+
+**Note on FR Numbering**: FR-126 to FR-145 are reserved for future features and are not assigned in MVP. MVP functional requirements are FR-001 to FR-125 and FR-146 to FR-158 (138 total FRs). Post-MVP requirements are FR-159 to FR-220.
 
 ---
 
@@ -491,121 +494,187 @@ Project
 
 ---
 
-#### 4.2.10 Project Onboarding System (P0 - FR-146 to FR-160)
+#### 4.2.9 Reserved for Future Use
 
-**Purpose**: Intelligent project analysis and automated .agent/ infrastructure generation
+**Epic ID**: EPIC-009
+**Status**: Reserved
 
-**The Onboarding Challenge**:
+This epic number is intentionally reserved for future features to maintain backward compatibility with existing documentation references.
 
-New projects face a "cold start" problem:
+---
 
-- No CLAUDE.md → Agents don't know workflows
-- No memory banks → No structured context
-- No sub-agents → Manual research required
-- No skills → Full docs loaded every session
-- Result: 40K token overhead, 1 feature per session
+#### 4.2.10 Memory Bank System (P0 - FR-146 to FR-153)
 
-**Solution: Automated Project Onboarding**
+**Epic ID**: EPIC-010
+**Priority**: Must Have (P0)
+**Functional Requirements**: FR-146 to FR-153
+**Related**: Backlog US-010-01 to US-010-08, SRS Section 1.9
 
-ProjectPulse analyzes your project and generates complete agent infrastructure:
+---
 
-**Session 1: Executive Summary & Foundation** (MVP Implementation):
+**Purpose**: Token-efficient context management through structured memory bank files
 
-1. **Project Analysis** (automated):
-   - Scan codebase → Identify tech stack (Next.js, Prisma, React, etc.)
-   - Detect architecture patterns (App Router, Server Components, etc.)
-   - Discover API endpoints, database models, component structure
-   - Estimate project size, complexity, and maturity
+**The Context Loading Problem**:
 
-2. **Executive Summary Generation** (AI-generated):
-   - Project overview (1-2 paragraphs): What does this project do?
-   - Tech stack summary: Key dependencies and versions
-   - Architecture overview: High-level system design
-   - Current status: Completion estimate, key milestones
-   - Quick-start guide: How to run the project locally
+Traditional agent workflows load all documentation at session start:
 
-3. **Wiki Initialization** (structured generation):
-   - Create top-level wiki pages: Overview, Getting Started, Architecture
-   - Extract README.md content → Convert to wiki pages
-   - Cross-link related pages (project-overview.md ↔ architecture.md)
-   - Establish wiki hierarchy (docs/ folder structure)
+- Full PRD (8K tokens) + SRS (12K tokens) + Architecture (10K tokens) = 30-40K tokens
+- Pattern lookups require re-reading entire files (15K tokens each time)
+- Context recovery after interruption requires reloading everything (40K tokens)
+- **Result**: 75% of token budget spent on context loading, not implementation
 
-4. **Memory Bank Seeds** (foundation files):
-   - `project-brief.md`: Project goals, user personas, success criteria (from executive summary)
-   - `tech-context.md`: Dependencies, environment setup, constraints (from tech stack analysis)
-   - `active-context.md`: Current sprint, recent changes, blockers (empty initially, for agent updates)
-   - `system-patterns.md`: Architectural patterns (seeded from codebase scan, grows over time)
-   - `progress.md`: Completion metrics, velocity, quality gates (initialized with baselines)
+**Solution: Memory Bank System**
 
-5. **CLAUDE.md Generation** (workflow specification):
-   - Mandatory session protocol (5-step workflow)
-   - Memory bank loading instructions (which files to read when)
-   - Checkpoint system configuration (15K token intervals)
-   - Sub-agent invocation patterns (explore-codebase, analyze-architecture)
-   - Recovery workflows (context restoration after interruption)
+Structured memory bank files in `.agent/` folder:
 
-**Session Flow**:
+1. **project-brief.md** (3K tokens):
+   - WHAT we're building and WHY
+   - Core requirements, goals, success criteria
+   - User personas, target audience
+   - Quality standards, constraints
 
-```
+2. **system-patterns.md** (4K tokens):
+   - HOW we build (implementation patterns)
+   - Architecture patterns (Server/Client Components)
+   - Database patterns (Prisma queries, optimization)
+   - API patterns (endpoints, validation)
+   - Testing patterns (Jest, RTL, Playwright)
 
-User: "Onboard this project into ProjectPulse"
-↓
-ProjectPulse scans codebase (15-20 seconds)
-↓
-AI generates executive summary (10-15 seconds)
-↓
-System creates wiki pages, memory banks, CLAUDE.md (5 seconds)
-↓
-Onboarding complete! Agents can now work autonomously
-Total time: ~30-40 seconds (vs 2-4 hours manual setup)
+3. **tech-context.md** (2K tokens):
+   - Technical stack details
+   - Dependencies (Next.js, Prisma, Zod, etc.)
+   - Environment setup, configuration
+   - Constraints and limitations
+
+4. **active-context.md** (1K tokens):
+   - Current focus (what we're working on RIGHT NOW)
+   - Recent changes and commits
+   - Remaining tasks for current phase
+   - Blockers and waiting items
+
+5. **progress.md** (2K tokens):
+   - Progress tracking (what's done, what's left)
+   - Metrics (velocity, quality gates)
+   - Risk assessment
+   - Lessons learned
+
+**Targeted Loading Examples**:
 
 ```
+Need project requirements?          → Read project-brief.md (3K tokens)
+Need architectural patterns?        → Read system-patterns.md (4K tokens)
+Need specific API pattern?          → Grep system-patterns.md for "API" (500 tokens)
+Need current task context?          → Read active-context.md (1K tokens)
+Need progress overview?             → Read progress.md (2K tokens)
+```
 
-**Output Artifacts** (Session 1):
+**Success Metrics**:
 
-- **Executive summary**: 3-5 page overview (ProjectPulse UI displays)
-- **Wiki pages**: 5-10 initial pages (getting-started.md, architecture.md, etc.)
-- **Memory banks**: 5 foundation files in .agent/ (2-3K tokens each)
-- **CLAUDE.md**: Complete workflow guide (tailored to project patterns)
-- **Database records**: ProjectOnboarding, OnboardingSession, WikiPage, MemoryBank tables populated
-
-**Future Sessions** (Sessions 2-5, see EPIC-014):
-
-- **Session 2: Tech Stack Deep-Dive** → Detailed dependency analysis, troubleshooting guides
-- **Session 3: Requirements Exploration** → User stories, acceptance criteria, edge cases
-- **Session 4: Architecture Mapping** → Component diagrams, data flows, design patterns
-- **Session 5: Backlog and Sprint Planning** → Ticket generation, sprint breakdown, velocity estimation
-
-**Key Benefits**:
-
-- **Speed**: 30-40 seconds vs 2-4 hours manual setup (99% faster)
-- **Completeness**: 95% documentation coverage vs 40% manual (AI fills gaps)
-- **Consistency**: Standardized .agent/ structure across all projects
-- **Agent-Ready**: Immediate autonomous development (no human scaffolding needed)
+- **Session start**: Load project-brief.md + active-context.md + progress.md = **≤10K tokens** (vs 40K baseline) = **75% reduction**
+- **Pattern lookup**: Grep system-patterns.md for specific pattern = **≤1K tokens** (vs 15K baseline) = **93% reduction**
+- **Context recovery**: Load current-session.md + current-todos.md + progress.md = **≤6K tokens** (vs 40K baseline) = **85% reduction**
 
 **MCP Tools**:
 
-- `onboarding.start()`: Initiate project analysis
-- `onboarding.generateSummary()`: AI-powered executive summary
-- `onboarding.createWiki()`: Generate initial wiki pages
-- `onboarding.initializeMemoryBanks()`: Create foundation memory bank files
+- `memoryBanks.read()`: Load specific memory bank file
+- `memoryBanks.update()`: Update memory bank content
+- `memoryBanks.search()`: Grep for patterns within memory banks
+- `memoryBanks.list()`: List all memory bank files
 
-**UI**: Onboarding wizard (step-by-step), progress tracker, generated artifacts preview
+**UI**: Memory bank viewer, edit memory banks, search across banks
 
 **Database Models**:
 
-- `ProjectOnboarding`: Master record (projectId, status, createdAt)
-- `OnboardingSession`: Individual session tracking (sessionNumber, completedAt)
-- `OnboardingQuestion`: Q&A for custom onboarding prompts (optional enhancement)
+- `MemoryBank`: File metadata (projectId, fileName, lastUpdatedAt)
+- `MemoryBankContent`: Versioned content storage
 
-**Success Criteria**:
+---
 
-- ✅ Session 1 completes in <60 seconds (scan + generate + save)
-- ✅ Executive summary is AI-generated (no manual writing)
-- ✅ Memory banks match project reality (95%+ accuracy)
-- ✅ CLAUDE.md enables immediate agent work (agents don't ask "where do I start?")
+#### 4.2.11 Research Agent Orchestration (P1 - FR-154 to FR-158)
 
-#### 4.2.11 Ticket System (P0 - FR-161 to FR-175)
+**Epic ID**: EPIC-011
+**Priority**: Should Have (P1)
+**Functional Requirements**: FR-154 to FR-158
+**Related**: Backlog US-011-01 to US-011-05, SRS Section 1.10
+
+---
+
+**Purpose**: Isolated sub-agent threads for research tasks to keep main conversation clean
+
+**The Research Token Problem**:
+
+Agent needs to understand authentication flow:
+
+- Read 15 files directly in main thread (15K tokens)
+- Grep across codebase (5K tokens)
+- Analyze and synthesize findings (5K tokens)
+- **Result**: 25K tokens in main thread, clutters conversation history
+
+**Solution: Sub-Agent Threads**
+
+Isolated agent threads handle research, return concise summaries:
+
+**Available Sub-Agents**:
+
+1. **explore-codebase**:
+   - Scans entire repository for patterns, components, architectural elements
+   - Returns summary of findings (≤500 tokens)
+   - Saves full report to file for reference
+   - Main thread cost: ~2K tokens (invocation + summary)
+
+2. **analyze-architecture**:
+   - Traces system flows across files (UI → API → Database)
+   - Maps dependencies and relationships between modules
+   - Returns architectural insights (≤500 tokens)
+   - Main thread cost: ~2K tokens (invocation + summary)
+
+3. **synthesize-docs**:
+   - Generates SOPs and documentation after feature completion
+   - Updates `.agent/` documentation system automatically
+   - Returns file paths of generated docs
+   - Main thread cost: ~1K tokens (invocation only)
+
+4. **map-system**:
+   - Scans Prisma schema, API routes, React components
+   - Updates `.agent/system/` documentation (database-schema.md, api-catalog.md, component-patterns.md)
+   - Returns summary of changes
+   - Main thread cost: ~1K tokens (invocation only)
+
+**Invocation Pattern**:
+
+```
+Main Agent: "Need to understand how authentication works"
+↓
+Invoke analyze-architecture sub-agent (isolated thread)
+↓
+Sub-agent reads 15 files, greps codebase, analyzes (25K tokens in isolated thread)
+↓
+Sub-agent returns architectural summary (500 tokens to main thread)
+↓
+Main Agent continues implementation (total main thread cost: 2K tokens)
+```
+
+**Success Metrics**:
+
+- **Research queries**: Complete in ≤2K main thread tokens (vs 25K baseline) = **92% reduction**
+- **Report persistence**: Sub-agent reports saved to files, survive sessions (100% retention)
+- **Parallel execution**: Multiple sub-agents run simultaneously (2+ agents at once)
+
+**MCP Tools**:
+
+- `subAgents.invoke()`: Launch isolated sub-agent thread
+- `subAgents.status()`: Check sub-agent completion status
+- `subAgents.readReport()`: Load sub-agent report file
+- `subAgents.list()`: List available sub-agents
+
+**UI**: Sub-agent activity monitor, view sub-agent reports, manual sub-agent invocation
+
+**Database Models**:
+
+- `SubAgentInvocation`: Invocation metadata (agentType, status, reportPath)
+- `SubAgentReport`: Stored reports for future reference
+
+#### 4.2.12 Ticket System (P0 - FR-159 to FR-173)
 
 **Purpose**: Sprint work tracking with lifecycle management and memory bank integration
 
@@ -766,7 +835,7 @@ System: "Ticket #1 (SearchBar): 60% complete, last checkpoint:
 - ✅ Agent resumes from checkpoint with 100% context (no repeated questions)
 - ✅ Ticket completion triggers memory bank auto-update (new patterns added)
 
-#### 4.2.12 Memory Bank Auto-Generation (P1 - FR-176 to FR-190)
+#### 4.2.13 Memory Bank Auto-Generation (Post-MVP - Priority 2, FR-174 to FR-188)
 
 **Purpose**: Automatically update memory banks from ticket completions (knowledge accumulation)
 
@@ -915,7 +984,7 @@ Day 3: Create Ticket #2 (AutocompleteInput)
 - ✅ Memory bank versions tracked (can view history, revert if needed)
 - ✅ Agents reuse accumulated patterns in subsequent tickets (no repeated implementation)
 
-#### 4.2.13 Agent Dashboard (P1 - FR-191 to FR-200)
+#### 4.2.14 Agent Dashboard (Post-MVP - Priority 2, FR-189 to FR-198)
 
 **Purpose**: Real-time visibility into agent workflow state and context
 
@@ -1058,7 +1127,7 @@ Action: Delete duplicate manually, note issue for improvement
 - ✅ Version selector allows comparing snapshots (useful for debugging)
 - ✅ Activity feed filterable and exportable (searchable logs)
 
-#### 4.2.14 Additional Onboarding Sessions (P2 - FR-201 to FR-220)
+#### 4.2.15 Additional Onboarding Sessions (Post-MVP - Priority 2, FR-199 to FR-220)
 
 **Purpose**: Progressive documentation generation through Sessions 2-5
 

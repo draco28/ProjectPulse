@@ -264,8 +264,8 @@
 
 **Phase Acceptance Criteria:**
 
-- ✅ All 105 Must+Should stories implemented and tested
-- ✅ All 125 tests passing (TEST-001 to TEST-125)
+- ✅ All 118 Must+Should stories implemented and tested
+- ✅ All 158 MVP tests passing (TEST-001 to TEST-158)
 - ✅ Performance targets met across all NFRs
 - ✅ Agent autonomy >95% validated (complete workflows without intervention)
 - ✅ Zero critical bugs (P0 severity)
@@ -1299,21 +1299,21 @@ All EPICs → Sprint 8 Integration [end-to-end validation]
 
 ### 8.1 Related Documentation
 
-| Document                       | Purpose                                        | Link                                                                       |
-| ------------------------------ | ---------------------------------------------- | -------------------------------------------------------------------------- |
-| **01-PRD.md**                  | Product vision and MVP features                | [01-PRD.md](01-PRD.md)                                                     |
-| **02-SRS.md**                  | 125 Functional Requirements (FR-001 to FR-125) | [02-SRS.md](02-SRS.md)                                                     |
-| **03-Architecture.md**         | System architecture and design patterns        | [03-Architecture.md](03-Architecture.md)                                   |
-| **04-Data-and-Model-Spec.md**  | Database schema (10 Prisma models)             | [04-Data-and-Model-Spec.md](04-Data-and-Model-Spec.md)                     |
-| **05-AgentOps-Plan.md**        | Agent workflows and MCP patterns               | [05-AgentOps-Plan.md](05-AgentOps-Plan.md)                                 |
-| **06-API/openapi.yaml**        | OpenAPI 3.1 specification (42 MCP tools)       | [06-API/openapi.yaml](06-API/openapi.yaml)                                 |
-| **07-UI-UX.md**                | User experience and UI design                  | [07-UI-UX.md](07-UI-UX.md)                                                 |
-| **08-Security-and-Compliance** | Security model and autonomy levels             | [08-Security-and-Compliance.md](08-Security-and-Compliance.md)             |
-| **09-Testing-and-QA.md**       | Test strategy (TEST-001 to TEST-125)           | [09-Testing-and-QA.md](09-Testing-and-QA.md)                               |
-| **10-Observability-and-SRE**   | Metrics, dashboards, SLOs                      | [10-Observability-and-SRE.md](10-Observability-and-SRE.md)                 |
-| **11-Infrastructure**          | CI/CD, environments, git workflow              | [11-Infrastructure-and-Deployment.md](11-Infrastructure-and-Deployment.md) |
-| **12-Backlog.md**              | Product backlog (8 epics, 125 user stories)    | [12-Backlog.md](12-Backlog.md)                                             |
-| **architecture/ADRs/**         | Architecture decision records (5 ADRs)         | [architecture/ADRs/](architecture/ADRs/)                                   |
+| Document                       | Purpose                                                       | Link                                                                       |
+| ------------------------------ | ------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **01-PRD.md**                  | Product vision and MVP features                               | [01-PRD.md](01-PRD.md)                                                     |
+| **02-SRS.md**                  | 158 MVP Functional Requirements (FR-001 to FR-158), 220 total | [02-SRS.md](02-SRS.md)                                                     |
+| **03-Architecture.md**         | System architecture and design patterns                       | [03-Architecture.md](03-Architecture.md)                                   |
+| **04-Data-and-Model-Spec.md**  | Database schema (10 Prisma models)                            | [04-Data-and-Model-Spec.md](04-Data-and-Model-Spec.md)                     |
+| **05-AgentOps-Plan.md**        | Agent workflows and MCP patterns                              | [05-AgentOps-Plan.md](05-AgentOps-Plan.md)                                 |
+| **06-API/openapi.yaml**        | OpenAPI 3.1 specification (41 MCP tools across 9 features)    | [06-API/openapi.yaml](06-API/openapi.yaml)                                 |
+| **07-UI-UX.md**                | User experience and UI design                                 | [07-UI-UX.md](07-UI-UX.md)                                                 |
+| **08-Security-and-Compliance** | Security model and autonomy levels                            | [08-Security-and-Compliance.md](08-Security-and-Compliance.md)             |
+| **09-Testing-and-QA.md**       | Test strategy (TEST-001 to TEST-158 for MVP)                  | [09-Testing-and-QA.md](09-Testing-and-QA.md)                               |
+| **10-Observability-and-SRE**   | Metrics, dashboards, SLOs                                     | [10-Observability-and-SRE.md](10-Observability-and-SRE.md)                 |
+| **11-Infrastructure**          | CI/CD, environments, git workflow                             | [11-Infrastructure-and-Deployment.md](11-Infrastructure-and-Deployment.md) |
+| **12-Backlog.md**              | Product backlog (10 epics, 138 user stories, 118 MVP)         | [12-Backlog.md](12-Backlog.md)                                             |
+| **architecture/ADRs/**         | Architecture decision records (5 ADRs)                        | [architecture/ADRs/](architecture/ADRs/)                                   |
 
 ---
 
@@ -1322,10 +1322,10 @@ All EPICs → Sprint 8 Integration [end-to-end validation]
 **Complete Traceability Chain:**
 
 ```
-PRD (Features) → SRS (FR-001 to FR-125) → Architecture (ADR-001 to ADR-005)
-                                        → Backlog (US-001 to US-125)
+PRD (Features) → SRS (FR-001 to FR-158 MVP, FR-159-220 Post-MVP) → Architecture (ADR-001 to ADR-005)
+                                        → Backlog (US-001 to US-138, 10 epics)
                                         → Project Plan (Sprint 1-8)
-                                        → Tests (TEST-001 to TEST-125)
+                                        → Tests (TEST-001 to TEST-158 MVP, TEST-159-220 Post-MVP)
 ```
 
 **Example: Sprint Tracking Feature**

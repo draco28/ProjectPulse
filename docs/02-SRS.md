@@ -16,7 +16,7 @@ This System Requirements Specification (SRS) defines the complete functional and
 
 - [01-PRD.md](01-PRD.md) - Product Requirements Document
 - [03-Architecture.md](03-Architecture.md) - Architecture Design
-- [12-Backlog.md](12-Backlog.md) - User Stories (125 stories mapped to these FRs)
+- [12-Backlog.md](12-Backlog.md) - User Stories (138 stories mapped to these FRs)
 
 ---
 
@@ -3462,604 +3462,628 @@ score = max(0, min(100, score)) // Clamp to 0-100
 
 ---
 
-### 1.9 Project Onboarding System (FR-146 to FR-160)
-
-**Purpose:** Intelligent project analysis and automated .agent/ infrastructure generation
-
-The Project Onboarding System analyzes a project and automatically generates complete agent workflow infrastructure (.agent/ folder, CLAUDE.md, memory banks, wiki). Session 1 (MVP) creates executive summary, wiki basics, memory bank seeds, and CLAUDE.md to enable immediate agent work.
+**Note on FR Numbering**: FR-126 to FR-145 are reserved for future features and are not assigned in MVP. These 20 FRs may be allocated to future epics or features as the project evolves beyond MVP scope.
 
 ---
 
-#### FR-146: Project Analysis
+### 1.9 Memory Bank System (FR-146 to FR-153)
 
-**Description**: System SHALL scan project codebase to identify tech stack, architecture patterns, API endpoints, database models, and component structure.
+**Purpose:** Token-efficient context management through structured memory bank files (EPIC-010)
+
+**Related**: Backlog US-010-01 to US-010-08, PRD Section 4.2.10
+
+The Memory Bank System provides structured knowledge files in .agent/ folder for token-efficient context retrieval. Instead of loading full 40K token documentation at session start, agents load targeted 3-10K token memory banks based on current needs.
+
+---
+
+#### FR-146: Create project-brief.md Memory Bank
+
+**Description**: System SHALL create project-brief.md memory bank file containing project overview, core requirements, goals, success criteria, user personas, and quality standards.
 
 **Inputs**:
 
-- projectPath: string (absolute path to project root)
-- analysisDepth: "quick" | "standard" | "deep" (analysis thoroughness)
+- projectId: string (project identifier)
+- projectData: { name, description, goals, personas, constraints } (project metadata from onboarding or manual input)
 
 **Outputs**:
 
-- TechStackSummary: { framework, libraries, devTools, testing } (detected dependencies)
-- ArchitecturePatterns: { pageStructure, componentPatterns, dataFetching } (detected patterns)
-- ProjectSize: { linesOfCode, fileCount, complexity } (size metrics)
+- project-brief.md file in .agent/ directory (3K tokens max)
+- Sections: WHAT (project purpose), WHY (business goals), WHO (user personas), SUCCESS (metrics), CONSTRAINTS
+
+**File Structure**:
+
+```markdown
+# Project Brief: [Project Name]
+
+## WHAT We're Building
+
+[1-2 paragraphs: Core product description]
+
+## WHY We're Building It
+
+[Business goals, success criteria]
+
+## WHO We're Building For
+
+[User personas, target audience]
+
+## Success Criteria
+
+[Measurable outcomes, quality gates]
+
+## Constraints
+
+[Technical, time, resource constraints]
+```
 
 **Validation**:
 
-- Project path must exist and be accessible
-- package.json must be present (for dependency analysis)
-- Analysis must complete within 30 seconds (timeout)
+- File must be ≤3K tokens (token-efficient)
+- All required sections must be present
+- Markdown syntax must be valid
 
 **Success Criteria**:
 
-- Tech stack detection: 95%+ accuracy (verified against package.json)
-- Architecture pattern detection: 85%+ accuracy (verified against actual code structure)
+- Session start loads project-brief.md in ≤3K tokens (vs 8K PRD)
+- Content accuracy: 95%+ match with actual project goals
 
 **Acceptance Test**: TEST-146
 **Related**: US-010-01 (Create project-brief.md), EPIC-010
 
 ---
 
-#### FR-147: Executive Summary Generation
+#### FR-147: Create system-patterns.md Memory Bank
 
-**Description**: System SHALL generate AI-powered executive summary including project overview, tech stack summary, architecture overview, current status, and quick-start guide.
+**Description**: System SHALL create system-patterns.md memory bank file containing HOW we build (architecture patterns, database patterns, API patterns, testing patterns).
 
 **Inputs**:
 
-- TechStackSummary: from FR-146 (detected tech stack)
-- ArchitecturePatterns: from FR-146 (detected patterns)
-- READMEContent: string | null (existing README.md content if present)
+- projectId: string
+- detectedPatterns: { architecture, database, api, testing } (from codebase analysis)
 
 **Outputs**:
 
-- ExecutiveSummary: markdown document (3-5 pages)
-  - Sections: Project Overview, Tech Stack, Architecture, Current Status, Quick-Start
-  - Format: Markdown with headings, bullet points, code blocks
+- system-patterns.md file in .agent/ directory (4K tokens max)
+- Sections: Architecture Patterns, Database Patterns, API Patterns, Styling Patterns, Testing Patterns
+
+**File Structure**:
+
+```markdown
+# System Patterns
+
+## Architecture Patterns
+
+[Server/Client Components, data fetching, routing]
+
+## Database Patterns
+
+[Prisma queries, transactions, optimization]
+
+## API Patterns
+
+[Endpoint structure, validation, error handling]
+
+## Styling Patterns
+
+[Tailwind conventions, component styling]
+
+## Testing Patterns
+
+[Jest, RTL, Playwright patterns]
+```
 
 **Validation**:
 
-- Summary must be 3-5 pages (1500-2500 words)
-- All required sections must be present
-- Code examples must be valid syntax
-- Generation must complete within 15 seconds
-
-**AI Model Requirements**:
-
-- Use Claude 3.7 Sonnet or GPT-4 Turbo
-- Temperature: 0.7 (creative but consistent)
-- Max tokens: 3000 (comprehensive but concise)
+- File must be ≤4K tokens
+- At least 3 pattern categories must be present
+- Patterns must be searchable (grep-friendly headings)
 
 **Success Criteria**:
 
-- Summary readability: Flesch-Kincaid score >60 (accessible to developers)
-- Summary accuracy: 90%+ match with actual project (verified by human review)
+- Pattern lookup via grep: ≤1K tokens (vs 15K full docs)
+- Pattern accuracy: 90%+ match with actual codebase conventions
 
 **Acceptance Test**: TEST-147
-**Related**: US-010-01 (Executive summary generation), EPIC-010
+**Related**: US-010-02 (Create system-patterns.md), EPIC-010
 
 ---
 
-#### FR-148: Wiki Initialization
+#### FR-148: Create tech-context.md Memory Bank
 
-**Description**: System SHALL create initial wiki pages including Overview, Getting Started, Architecture, extracted from README.md and executive summary.
+**Description**: System SHALL create tech-context.md memory bank file containing technical stack details, dependencies, environment setup, and constraints.
 
 **Inputs**:
 
-- ExecutiveSummary: from FR-147 (generated summary)
-- READMEContent: string | null (existing README.md)
+- projectId: string
+- techStack: { dependencies, devDependencies, runtime } (from package.json)
 
 **Outputs**:
 
-- WikiPages: array of { title, content, slug, hierarchy } (5-10 initial pages)
-- Cross-links: array of { sourcePage, targetPage, linkText } (internal wiki links)
+- tech-context.md file in .agent/ directory (2K tokens max)
+- Sections: Dependencies, Environment Setup, Configuration, Constraints, Browser Support
 
-**Page Structure**:
+**File Structure**:
 
-1. **overview.md**: Project overview section from executive summary
-2. **getting-started.md**: Quick-start guide from executive summary + README
-3. **architecture.md**: Architecture overview from executive summary
-4. **tech-stack.md**: Tech stack section from executive summary
-5. **glossary.md**: Technical terms extracted from summary (auto-generated)
+```markdown
+# Tech Context
+
+## Dependencies
+
+[Next.js 14, Prisma 5, React 18, etc.]
+
+## Environment Setup
+
+[Node version, Docker, PostgreSQL setup]
+
+## Configuration
+
+[Environment variables, build config]
+
+## Constraints
+
+[Performance targets, browser support]
+```
 
 **Validation**:
 
-- At least 3 pages must be created (overview, getting-started, architecture)
-- Cross-links must be valid (target pages exist)
-- Wiki hierarchy must be logical (parent-child relationships)
+- File must be ≤2K tokens
+- Dependencies must match package.json (100% accuracy)
+- Setup instructions must be executable
 
 **Success Criteria**:
 
-- Wiki completeness: 5-10 pages created (comprehensive)
-- Cross-link accuracy: 100% (no broken links)
+- Tech stack lookup: ≤2K tokens (vs 10K Architecture doc)
+- Setup accuracy: 100% (new developers can follow instructions)
 
 **Acceptance Test**: TEST-148
-**Related**: US-010-02 (Wiki initialization), EPIC-010
+**Related**: US-010-03 (Create tech-context.md), EPIC-010
 
 ---
 
-#### FR-149: Memory Bank Seeds Creation
+#### FR-149: Create active-context.md Memory Bank
 
-**Description**: System SHALL create foundation memory bank files (project-brief.md, tech-context.md, active-context.md, system-patterns.md, progress.md) seeded from project analysis and executive summary.
+**Description**: System SHALL create active-context.md memory bank file for current work focus, recent changes, remaining tasks, and blockers.
 
 **Inputs**:
 
-- ExecutiveSummary: from FR-147 (generated summary)
-- TechStackSummary: from FR-146 (detected tech stack)
-- ArchitecturePatterns: from FR-146 (detected patterns)
+- projectId: string
+- currentSprint: { name, goals, progress } (from sprint tracking)
+- recentCommits: Commit[] (last 10 commits from git)
 
 **Outputs**:
 
-- MemoryBankFiles: 5 files in .agent/ directory
-  1. **project-brief.md** (3K tokens): Project goals, user personas, success criteria
-  2. **tech-context.md** (2K tokens): Dependencies, environment setup, constraints
-  3. **active-context.md** (1K tokens): Current sprint (empty initially), recent changes, blockers
-  4. **system-patterns.md** (4K tokens): Architectural patterns (seeded from codebase scan)
-  5. **progress.md** (2K tokens): Completion metrics (initialized to 0%), velocity baselines
+- active-context.md file in .agent/ directory (1K tokens max)
+- Sections: Current Focus, Recent Changes, Remaining Tasks, Blockers
 
-**File Format**:
+**File Structure**:
 
-- Markdown with consistent structure (H1, H2, H3 headings)
-- Token-efficient formatting (bullet points, tables, concise sentences)
-- Cross-references to wiki pages (e.g., "See architecture.md for details")
+```markdown
+# Active Context
+
+## Current Focus
+
+[What we're working on RIGHT NOW]
+
+## Recent Changes
+
+[Last 5-10 commits, PRs merged]
+
+## Remaining Tasks
+
+[Current sprint todos]
+
+## Blockers
+
+[Waiting on, blocked by]
+```
 
 **Validation**:
 
-- All 5 memory bank files must be created
-- Each file must have required sections (defined in specification)
-- Token count must be within targets (project-brief ≤3K, tech-context ≤2K, etc.)
-- Markdown syntax must be valid
+- File must be ≤1K tokens (real-time loading)
+- Must update on every sprint/task change
+- Git commits must be recent (≤7 days)
 
 **Success Criteria**:
 
-- Token efficiency: Total memory banks ≤12K tokens (vs 40K baseline without memory banks)
-- Content accuracy: 95%+ match with actual project (verified against project analysis)
+- Session start includes active-context.md: ≤1K tokens
+- Update frequency: Real-time (<1 second after status change)
 
 **Acceptance Test**: TEST-149
-**Related**: US-010-03 (Memory bank seeds), EPIC-010
+**Related**: US-010-04 (Create active-context.md), EPIC-010
 
 ---
 
-#### FR-150: CLAUDE.md Generation
+#### FR-150: Create progress.md Memory Bank
 
-**Description**: System SHALL generate CLAUDE.md workflow specification including mandatory session protocol, memory bank loading instructions, checkpoint system configuration, sub-agent invocation patterns, and recovery workflows.
+**Description**: System SHALL create progress.md memory bank file tracking what's done, what's left, velocity metrics, and quality gates.
 
 **Inputs**:
 
-- ArchitecturePatterns: from FR-146 (detected patterns)
-- MemoryBankFiles: from FR-149 (created memory banks)
+- projectId: string
+- completionMetrics: { completedStories, totalStories, velocity } (from sprint tracking)
 
 **Outputs**:
 
-- CLAUDE.md: complete workflow guide (markdown document)
+- progress.md file in .agent/ directory (2K tokens max)
+- Sections: What's Done, What's Left, Velocity, Quality Gates, Risks
 
-**Required Sections**:
+**File Structure**:
 
-1. **Session Start Protocol**: "Read active-context.md first, then project-brief.md, conditionally load system-patterns.md"
-2. **Mandatory Protocol**: 5-step workflow (initialize, plan, todos, implement, complete)
-3. **Checkpoint System**: "Save checkpoint every 15K tokens to current-session.md"
-4. **Sub-Agent Invocation**: "Invoke explore-codebase for pattern discovery, analyze-architecture for system flows"
-5. **Recovery Workflows**: "After interruption, read active-context.md → progress.md → .agent/task/ files"
-6. **Memory Bank Usage**: "Load project-brief.md for goals, system-patterns.md for HOW, tech-context.md for tech stack"
+```markdown
+# Progress
 
-**Tailoring**:
+## What's Done
 
-- If Next.js detected → Include "Server vs Client Component decision matrix"
-- If Prisma detected → Include "Prisma query patterns, transaction handling"
-- If testing framework detected → Include "Testing patterns (Jest, RTL, Playwright)"
+[Completed epics, stories, features]
+
+## What's Left
+
+[Remaining backlog, current sprint]
+
+## Velocity Metrics
+
+[Story points per sprint, burn-down]
+
+## Quality Gates
+
+[Test coverage, performance, accessibility]
+
+## Risk Assessment
+
+[Blockers, dependencies, timeline risks]
+```
 
 **Validation**:
 
-- All required sections must be present
-- Examples must use detected tech stack (e.g., Next.js examples if Next.js detected)
-- Token loading instructions must reference actual memory bank files
-- Checkpoint intervals must match project size (15K for small, 10K for large projects)
+- File must be ≤2K tokens
+- Metrics must be calculated from actual data (not estimates)
+- Quality gates must be measurable
 
 **Success Criteria**:
 
-- CLAUDE.md completeness: All 6 sections present (comprehensive)
-- Tailoring accuracy: 100% alignment with detected tech stack
-- Agent usability: Agents can start work immediately (no "where do I start?" questions)
+- Progress overview loads in ≤2K tokens (vs 12K Backlog)
+- Metric accuracy: 100% (matches actual completion)
 
 **Acceptance Test**: TEST-150
-**Related**: US-010-04 (CLAUDE.md generation), EPIC-010
+**Related**: US-010-05 (Create progress.md), EPIC-010
 
 ---
 
-#### FR-151: Onboarding Session Tracking
+#### FR-151: Optimized Session Start Workflow
 
-**Description**: System SHALL track onboarding session progress including session number, start time, completion time, status (in_progress, completed, failed), and generated artifacts.
+**Description**: System SHALL provide session start workflow that loads project-brief.md + active-context.md + progress.md totaling ≤10K tokens (vs 40K baseline).
 
-**Database Schema**:
+**Inputs**:
 
-```prisma
-model ProjectOnboarding {
-  id           String   @id @default(cuid())
-  projectId    String
-  status       OnboardingStatus @default(NOT_STARTED)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+- projectId: string
+- sessionType: "new" | "resume" (new session vs resuming after interruption)
 
-  sessions     OnboardingSession[]
+**Outputs**:
 
-  @@index([projectId])
-}
+- loadedContext: { projectBrief, activeContext, progress } (combined ≤10K tokens)
+- loadTime: number (milliseconds to load all files)
 
-enum OnboardingStatus {
-  NOT_STARTED
-  IN_PROGRESS
-  COMPLETED
-  FAILED
-}
+**Loading Strategy**:
 
-model OnboardingSession {
-  id                String   @id @default(cuid())
-  onboardingId      String
-  sessionNumber     Int      // 1, 2, 3, 4, 5
-  status            SessionStatus @default(IN_PROGRESS)
-  startedAt         DateTime @default(now())
-  completedAt       DateTime?
-  durationSeconds   Int?
-
-  artifacts         OnboardingArtifact[]
-
-  onboarding        ProjectOnboarding @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
-
-  @@index([onboardingId])
-  @@unique([onboardingId, sessionNumber])
-}
-
-enum SessionStatus {
-  IN_PROGRESS
-  COMPLETED
-  FAILED
-}
-
-model OnboardingArtifact {
-  id                String   @id @default(cuid())
-  sessionId         String
-  type              ArtifactType
-  name              String   // "executive-summary", "wiki-overview", "project-brief.md"
-  content           String   @db.Text
-  filePath          String?  // ".agent/project-brief.md"
-  createdAt         DateTime @default(now())
-
-  session           OnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
-  @@index([sessionId])
-}
-
-enum ArtifactType {
-  EXECUTIVE_SUMMARY
-  WIKI_PAGE
-  MEMORY_BANK
-  CLAUDE_MD
-}
-```
-
-**MCP Tool**:
-
-```typescript
-interface OnboardingMCP {
-  start(projectId: string): Promise<{ onboardingId: string }>;
-  runSession(onboardingId: string, sessionNumber: 1 | 2 | 3 | 4 | 5): Promise<SessionResult>;
-  getStatus(onboardingId: string): Promise<OnboardingStatus>;
-  listArtifacts(sessionId: string): Promise<Artifact[]>;
-}
-```
+1. Always load: project-brief.md (3K) + active-context.md (1K) + progress.md (2K) = 6K base
+2. Conditionally load: system-patterns.md (4K) IF agent requests patterns
+3. Never auto-load: Full PRD (8K), SRS (12K), Architecture (10K)
 
 **Validation**:
 
-- Session numbers must be sequential (can't run Session 3 before Session 1)
-- Only one session can be in_progress at a time per onboarding
-- Completion time must be after start time
-- Duration must be calculated automatically (completedAt - startedAt)
+- Total base load must be ≤10K tokens
+- Load time must be ≤2 seconds
+- Files must exist before loading (error if missing)
 
 **Success Criteria**:
 
-- Session tracking: 100% accuracy (all sessions logged)
-- Status updates: Real-time (<1 second from state change)
+- 75% token reduction vs baseline (40K → 10K)
+- Agent can start work immediately (no "loading context" delays)
 
 **Acceptance Test**: TEST-151
-**Related**: US-010-05 (Session tracking), EPIC-010
+**Related**: US-010-06 (Session start workflow), EPIC-010
 
 ---
 
-#### FR-152 to FR-160: Additional Onboarding Requirements
+#### FR-152: Fast Pattern Lookup
 
-_[Note: Due to token constraints, FR-152 to FR-160 would follow the same detailed pattern covering:_
+**Description**: System SHALL provide grep-based pattern lookup within system-patterns.md returning ≤1K tokens (vs 15K full docs).
 
-- _FR-152: Onboarding UI Wizard (step-by-step UI)_
-- _FR-153: Artifact Preview (view generated content before save)_
-- _FR-154: Onboarding Rollback (undo session if generation fails)_
-- _FR-155: Custom Q&A Integration (OnboardingQuestion model)_
-- _FR-156: Multi-Project Onboarding (batch onboarding)_
-- _FR-157: Onboarding Templates (preset configurations)_
-- _FR-158: Progress Notifications (real-time updates)_
-- _FR-159: Artifact Export (download generated files)_
-- _FR-160: Onboarding Analytics (track success rates)_
+**Inputs**:
 
-_Each would have Inputs, Outputs, Validation, Success Criteria, Acceptance Test, and Related fields.]_
+- pattern: string (search query, e.g., "API endpoint pattern", "Prisma transaction")
+
+**Outputs**:
+
+- patternSection: string (matching section from system-patterns.md, ≤1K tokens)
+- filePath: string (.agent/system-patterns.md)
+- lineNumbers: { start, end } (section location)
+
+**Search Strategy**:
+
+- Use grep/ripgrep to find pattern heading in system-patterns.md
+- Extract section content (from heading to next heading)
+- Return only matching section (not entire file)
+
+**Validation**:
+
+- Search must complete in ≤500ms
+- Returned content must be ≤1K tokens
+- Grep must be case-insensitive
+
+**Success Criteria**:
+
+- 93% token reduction vs loading full docs (15K → 1K)
+- Pattern match accuracy: 95%+ (returns relevant section)
+
+**Acceptance Test**: TEST-152
+**Related**: US-010-07 (Fast pattern lookup), EPIC-010
 
 ---
 
-### 1.10 Ticket System (FR-161 to FR-175)
+#### FR-153: Context Recovery After Interruption
+
+**Description**: System SHALL provide context recovery workflow loading current-session.md + current-todos.md + progress.md totaling ≤6K tokens (vs 40K baseline).
+
+**Inputs**:
+
+- projectId: string
+- lastSessionTimestamp: DateTime (timestamp of interrupted session)
+
+**Outputs**:
+
+- recoveredContext: { sessionState, todos, progress } (combined ≤6K tokens)
+- resumePoint: string (where agent left off, e.g., "Implementing SearchBar component, line 45")
+
+**Recovery Strategy**:
+
+1. Load current-session-[timestamp].md (2K) - latest session state
+2. Load current-todos.md (2K) - task list with progress percentages
+3. Load progress.md (2K) - overall phase completion
+4. Extract "last action" from session file (resume point)
+
+**Validation**:
+
+- Total recovery load must be ≤6K tokens
+- Recovery time must be ≤3 seconds
+- Resume point must be extracted automatically (no manual search)
+
+**Success Criteria**:
+
+- 85% token reduction vs baseline (40K → 6K)
+- Agent resumes work immediately (no repeated questions like "what was I doing?")
+
+**Acceptance Test**: TEST-153
+**Related**: US-010-08 (Context recovery), EPIC-010
+
+---
+
+---
+
+### 1.10 Research Agent Orchestration (FR-154 to FR-158)
+
+**Purpose:** Isolated sub-agent threads for research tasks to keep main conversation clean (EPIC-011)
+
+**Related**: Backlog US-011-01 to US-011-05, PRD Section 4.2.11
+
+The Research Agent Orchestration system provides isolated agent threads for research tasks. Instead of reading 15 files + grepping + analyzing in main thread (25K tokens), sub-agents handle research in isolated threads and return concise summaries (≤500 tokens) to main thread.
+
+---
+
+#### FR-154: Implement explore-codebase Sub-Agent
+
+**Description**: System SHALL provide isolated sub-agent thread that scans entire codebase for patterns, components, and architectural elements, returning concise summary to main agent thread.
+
+**Inputs**:
+
+- searchPattern: string (what to find, e.g., "all API routes", "all database models")
+- contextFilePath: string (path to current-session.md for context)
+
+**Outputs**:
+
+- reportFilePath: string (path to generated report file, e.g., `.agent/task/explore-api-patterns-[timestamp].md`)
+- summary: string (key findings, ≤500 tokens)
+- tokensUsed: number (sub-agent thread token usage, isolated from main)
+
+**Sub-Agent Workflow**:
+
+1. Read contextFilePath to understand current work
+2. Scan codebase using glob + grep patterns
+3. Identify matching files, extract code snippets
+4. Generate comprehensive report (saved to file)
+5. Return concise summary (≤500 tokens) to main agent
+
+**Validation**:
+
+- Main thread token cost must be ≤2K tokens (invocation + summary)
+- Sub-agent completes scan in isolated thread (20-30K tokens, doesn't affect main)
+- Report must persist to file for future reference
+
+**Success Criteria**:
+
+- 92% token reduction in main thread (25K → 2K)
+- Report persistence: 100% (survives session interruptions)
+
+**Acceptance Test**: TEST-154
+**Related**: US-011-01 (explore-codebase sub-agent), EPIC-011
+
+---
+
+#### FR-155: Implement analyze-architecture Sub-Agent
+
+**Description**: System SHALL provide isolated sub-agent thread that traces system flows across files (UI → API → Database), returning architectural insights to main agent thread.
+
+**Inputs**:
+
+- flowToTrace: string (e.g., "authentication flow", "search feature")
+- contextFilePath: string (current session context)
+
+**Outputs**:
+
+- reportFilePath: string (e.g., `.agent/task/architecture-auth-[timestamp].md`)
+- insights: string (architectural summary, ≤500 tokens)
+- tokensUsed: number (isolated thread usage)
+
+**Sub-Agent Workflow**:
+
+1. Read contextFilePath for current work context
+2. Trace data flow: UI components → API routes → Database queries
+3. Map dependencies and relationships
+4. Generate architectural diagram (mermaid)
+5. Return insights summary (≤500 tokens) to main agent
+
+**Validation**:
+
+- Main thread cost ≤2K tokens
+- Sub-agent traces complete flow (UI → API → DB)
+- Report includes mermaid diagram
+
+**Success Criteria**:
+
+- 92% token reduction in main thread
+- Flow accuracy: 95%+ (matches actual system architecture)
+
+**Acceptance Test**: TEST-155
+**Related**: US-011-02 (analyze-architecture sub-agent), EPIC-011
+
+---
+
+#### FR-156: Automatic Sub-Agent Invocation
+
+**Description**: System SHALL automatically invoke appropriate sub-agents when agent requests research without manual trigger.
+
+**Inputs**:
+
+- agentQuery: string (e.g., "How does authentication work?", "Find all API patterns")
+- currentContext: { projectId, sessionId, currentFile }
+
+**Outputs**:
+
+- subAgentInvoked: "explore-codebase" | "analyze-architecture" | "none"
+- invocationReason: string (why this sub-agent was chosen)
+
+**Trigger Patterns**:
+
+- "How does X work?" → analyze-architecture
+- "Find all X" / "Scan for X" → explore-codebase
+- "What patterns for X?" → explore-codebase
+- "Trace X flow" → analyze-architecture
+
+**Validation**:
+
+- Pattern matching must be case-insensitive
+- Must not invoke sub-agent for simple file reads
+- Must wait for sub-agent completion before returning
+
+**Success Criteria**:
+
+- Automatic invocation accuracy: 90%+ (correct sub-agent chosen)
+- No false positives (doesn't invoke when not needed)
+
+**Acceptance Test**: TEST-156
+**Related**: US-011-03 (Automatic invocation), EPIC-011
+
+---
+
+#### FR-157: Research Report Persistence
+
+**Description**: System SHALL save all sub-agent reports to files in `.agent/task/` directory with timestamps, ensuring reports survive session interruptions.
+
+**Inputs**:
+
+- reportContent: string (sub-agent generated report)
+- reportType: "explore-codebase" | "analyze-architecture"
+- topicName: string (e.g., "api-patterns", "auth-flow")
+
+**Outputs**:
+
+- filePath: string (e.g., `.agent/task/explore-api-patterns-20251106-1430.md`)
+- fileSize: number (bytes)
+- created: DateTime
+
+**File Naming Convention**:
+
+- Format: `{reportType}-{topic}-{YYYYMMDD-HHMM}.md`
+- Examples: `explore-api-patterns-20251106-1430.md`, `architecture-auth-20251106-1445.md`
+
+**Validation**:
+
+- Files must be saved to `.agent/task/` directory
+- Filenames must include timestamps (for uniqueness)
+- Files must be readable in future sessions
+
+**Success Criteria**:
+
+- Report persistence: 100% (all reports saved)
+- Future sessions can read past reports (no expiration)
+
+**Acceptance Test**: TEST-157
+**Related**: US-011-04 (Report persistence), EPIC-011
+
+---
+
+#### FR-158: Parallel Sub-Agent Execution
+
+**Description**: System SHALL support multiple sub-agents running simultaneously (2+ agents at once) for parallel research tasks.
+
+**Inputs**:
+
+- subAgentRequests: Array<{ type, params }> (multiple sub-agent invocations)
+
+**Outputs**:
+
+- results: Array<{ type, reportPath, summary }> (results from all sub-agents)
+- executionTime: number (total time, should be ~same as slowest agent due to parallelization)
+
+**Parallel Execution Strategy**:
+
+1. Launch all sub-agents simultaneously (Promise.all)
+2. Each sub-agent runs in isolated thread
+3. Wait for all completions
+4. Return all results together
+
+**Validation**:
+
+- Must support at least 2 simultaneous sub-agents
+- Execution time ≈ max(individual times), not sum
+- No race conditions (each writes to separate file)
+
+**Success Criteria**:
+
+- Parallel execution works for 2+ sub-agents
+- Time savings: ~50% vs sequential (2 agents in parallel vs 2 sequential)
+
+**Acceptance Test**: TEST-158
+**Related**: US-011-05 (Parallel execution), EPIC-011
+
+---
+
+---
+
+---
+
+### Post-MVP Requirements (FR-159 to FR-220)
+
+**Status**: Deferred to Post-MVP (Priority 2)
+
+The following sections cover post-MVP functional requirements:
+
+- **Section 1.11**: Ticket System (FR-159 to FR-173)
+- **Section 1.12**: Memory Bank Auto-Generation (FR-174 to FR-188)
+- **Section 1.13**: Agent Dashboard (FR-189 to FR-198)
+- **Section 1.14**: Additional Onboarding Sessions (FR-199 to FR-220)
+
+Full specifications for these requirements are documented below.
+
+---
+
+### 1.11 Ticket System (FR-159 to FR-173)
 
 **Purpose:** Sprint work tracking with lifecycle management and memory bank integration
 
+**Related**: Backlog US-012-01 to US-012-15, PRD Section 4.2.12
+
 The Ticket System tracks sprint work items with lifecycle management, memory bank snapshots, and checkpoint integration. Tickets are distinct from Issues: Issues = product backlog (bugs/features), Tickets = execution tracking (agent workflow).
-
----
-
-#### FR-161: Ticket Creation
-
-**Description**: System SHALL create tickets for sprint work items including title, description, status, progress, issueId (optional), memory bank snapshot, and linked checkpoints.
-
-**Database Schema**:
-
-```prisma
-model Ticket {
-  id                String   @id @default(cuid())
-  title             String
-  description       String   @db.Text
-  status            TicketStatus @default(CREATED)
-  progress          Float    @default(0.0) // 0.0 to 1.0
-  issueId           String?  // Optional link to Issue
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  completedAt       DateTime?
-
-  checkpoints       TicketCheckpoint[]
-  snapshotId        String?
-  snapshot          MemoryBankSnapshot? @relation(fields: [snapshotId], references: [id])
-  issue             Issue? @relation(fields: [issueId], references: [id])
-
-  @@index([status])
-  @@index([issueId])
-}
-
-enum TicketStatus {
-  CREATED        // Just created, not started
-  IN_PROGRESS    // Agent actively working
-  CHECKPOINT_SAVED // Checkpoint saved, can resume
-  BLOCKED        // Waiting on external dependency
-  COMPLETED      // Work done, tests passing
-  ARCHIVED       // Completed and archived
-}
-
-model TicketCheckpoint {
-  id                String   @id @default(cuid())
-  ticketId          String
-  tokenUsage        Int      // Tokens consumed at checkpoint
-  progressPercentage Float   // 0.0 to 1.0
-  notes             String   @db.Text // "Implemented SearchBar.tsx, tests pending"
-  nextSteps         String   @db.Text // "Add debounce, write E2E tests"
-  blockers          String?  @db.Text // "Waiting for API endpoint (Ticket #2)"
-  createdAt         DateTime @default(now())
-
-  ticket            Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-
-  @@index([ticketId])
-  @@index([createdAt])
-}
-
-model MemoryBankSnapshot {
-  id                String   @id @default(cuid())
-  projectBrief      String   @db.Text // project-brief.md content at snapshot time
-  systemPatterns    String   @db.Text // system-patterns.md content at snapshot time
-  techContext       String   @db.Text // tech-context.md content at snapshot time
-  activeContext     String   @db.Text // active-context.md content at snapshot time
-  createdAt         DateTime @default(now())
-
-  tickets           Ticket[]
-
-  @@index([createdAt])
-}
-```
-
-**Inputs**:
-
-- title: string (e.g., "Implement SearchBar component")
-- description: string (implementation notes)
-- issueId: string | null (optional link to Issue)
-
-**Outputs**:
-
-- Ticket record with auto-generated ID
-- MemoryBankSnapshot created with current memory bank state
-- Ticket.snapshotId linked to snapshot
-
-**Validation**:
-
-- Title must be 10-200 characters
-- Description must be non-empty
-- If issueId provided, Issue must exist
-- Snapshot must capture all 5 memory bank files
-
-**Success Criteria**:
-
-- Ticket creation: <500ms (including snapshot)
-- Snapshot accuracy: 100% match with current memory bank state
-
-**Acceptance Test**: TEST-161
-**Related**: US-011-01 (Ticket creation), EPIC-011
-
----
-
-#### FR-162: Checkpoint Creation
-
-**Description**: System SHALL create checkpoint records every 15K tokens including token usage, progress percentage, implementation notes, next steps, and blockers.
-
-**Inputs**:
-
-- ticketId: string (current ticket)
-- tokenUsage: number (tokens consumed so far, e.g., 15123)
-- progressPercentage: number (0.0 to 1.0, e.g., 0.35 for 35%)
-- notes: string (what was implemented)
-- nextSteps: string (what to do next)
-- blockers: string | null (blocking issues if any)
-
-**Outputs**:
-
-- TicketCheckpoint record created
-- Ticket.status updated to CHECKPOINT_SAVED
-- Ticket.progress updated to progressPercentage
-
-**Checkpoint Trigger**:
-
-- Automatic: Agent reaches 15K, 30K, 45K, 60K, 75K, 90K token milestones
-- Manual: Agent calls `tickets.saveCheckpoint()` MCP tool
-
-**Validation**:
-
-- Token usage must be ≥0
-- Progress percentage must be 0.0 to 1.0
-- Notes and next steps must be non-empty
-- Ticket must exist and be IN_PROGRESS
-
-**Success Criteria**:
-
-- Checkpoint save: <200ms (database write)
-- Checkpoint accuracy: Agent can resume with 100% context
-
-**Acceptance Test**: TEST-162
-**Related**: US-011-02 (Checkpoint system), EPIC-011
-
----
-
-#### FR-163: Ticket Resume from Checkpoint
-
-**Description**: System SHALL enable agent resume from latest checkpoint by loading memory bank snapshot and checkpoint data (notes, next steps, blockers).
-
-**Resume Workflow**:
-
-```
-1. Agent session interrupted (context compaction)
-2. New session starts
-3. Agent calls: tickets.getCurrent() MCP tool
-4. System returns: {
-     ticketId: "ticket-123",
-     title: "Implement SearchBar",
-     latestCheckpoint: {
-       tokenUsage: 45000,
-       progressPercentage: 0.6,
-       notes: "Implemented SearchBar.tsx with state management, tests passing",
-       nextSteps: "Add debounce to search input, write E2E tests",
-       blockers: null
-     },
-     snapshot: {
-       projectBrief: "...",      // Memory bank state at ticket creation
-       systemPatterns: "...",
-       techContext: "...",
-       activeContext: "...",
-     }
-   }
-5. Agent reads snapshot memory banks (restores context)
-6. Agent reads checkpoint notes (understands what was done)
-7. Agent reads next steps (knows what to do next)
-8. Agent continues work (no knowledge loss)
-```
-
-**MCP Tool**:
-
-```typescript
-interface TicketMCP {
-  getCurrent(): Promise<{
-    ticket: Ticket;
-    latestCheckpoint: TicketCheckpoint | null;
-    snapshot: MemoryBankSnapshot;
-  }>;
-}
-```
-
-**Validation**:
-
-- Current ticket must exist (status: IN_PROGRESS or CHECKPOINT_SAVED)
-- Snapshot must be loadable (not corrupted)
-- Checkpoint data must be complete (notes, next steps present)
-
-**Success Criteria**:
-
-- Resume speed: <3 seconds (load snapshot + checkpoint)
-- Context completeness: Agent resumes without asking "where was I?"
-
-**Acceptance Test**: TEST-163
-**Related**: US-011-03 (Resume from checkpoint), EPIC-011
-
----
-
-#### FR-164: Ticket Completion and Memory Bank Auto-Update
-
-**Description**: System SHALL mark ticket as complete, trigger memory bank auto-update (analyze implementation, detect new patterns, update system-patterns.md), and archive snapshot.
-
-**Completion Workflow**:
-
-```
-1. Agent marks ticket complete: tickets.complete(ticketId)
-2. System updates Ticket.status = COMPLETED
-3. System sets Ticket.completedAt = now()
-4. System invokes: memoryBank.autoUpdate(ticketId)
-   a. analyze-implementation sub-agent scans ticket files
-   b. Detect new patterns (e.g., "useDebounce hook pattern")
-   c. Check system-patterns.md: Pattern exists? No → Append
-   d. Update progress.md: Increment story points completed
-   e. Git commit: "docs: auto-update memory banks from Ticket #X"
-5. System returns: { completed: true, memoryBanksUpdated: true }
-```
-
-**MCP Tool**:
-
-```typescript
-interface TicketMCP {
-  complete(ticketId: string): Promise<{
-    completed: boolean;
-    memoryBanksUpdated: boolean;
-    newPatternsAdded: string[]; // e.g., ["useDebounce hook pattern"]
-  }>;
-}
-```
-
-**Validation**:
-
-- Ticket must be IN_PROGRESS or CHECKPOINT_SAVED
-- Implementation files must exist (ticket must have commits)
-- Memory bank auto-update must complete within 30 seconds
-
-**Success Criteria**:
-
-- Completion speed: <5 seconds (including memory bank update)
-- Pattern detection accuracy: 90%+ (new patterns correctly identified)
-
-**Acceptance Test**: TEST-164
-**Related**: US-011-04 (Ticket completion + auto-update), EPIC-011
-
----
-
-#### FR-165 to FR-175: Additional Ticket Requirements
-
-_[Note: Due to token constraints, FR-165 to FR-175 would follow the same detailed pattern covering:_
-
-- _FR-165: Ticket Lifecycle State Machine (valid state transitions)_
-- _FR-166: Ticket Blocking/Unblocking (mark blocked, link blocker)_
-- _FR-167: Ticket Priority (high/medium/low)_
-- _FR-168: Ticket Assignment (assign to agent persona)_
-- _FR-169: Ticket Time Tracking (duration, estimate vs actual)_
-- _FR-170: Ticket Relationships (parent-child, depends-on)_
-- _FR-171: Ticket Search and Filtering (by status, issue, date)_
-- _FR-172: Ticket Dashboard (Kanban board view)_
-- _FR-173: Ticket Metrics (velocity, cycle time)_
-- _FR-174: Ticket Export (CSV, JSON)_
-- _FR-175: Ticket Archival (archive completed tickets)_
-
-_Each would have Database Schema, Inputs, Outputs, Validation, Success Criteria, Acceptance Test, and Related fields.]_
-
----
-
-### 1.11 Memory Bank Auto-Generation (FR-176 to FR-190)
-
-**Purpose:** Automatically update memory banks from ticket completions (knowledge accumulation)
-
-The Memory Bank Auto-Generation system analyzes completed tickets and automatically updates memory bank files with new patterns, progress metrics, and context. This prevents memory bank drift and enables knowledge accumulation across tickets.
 
 ---
 
