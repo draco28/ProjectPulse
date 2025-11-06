@@ -129,6 +129,30 @@ async function main() {
                         progress: 100,
                         startDate: new Date('2025-11-06T10:00:00Z'),
                         endDate: new Date('2025-11-06T10:30:00Z'),
+                        sessions: {
+                          create: [
+                            {
+                              title: 'Initial schema planning session',
+                              status: 'COMPLETED',
+                              progress: 100,
+                              startDate: new Date('2025-11-06T10:00:00Z'),
+                              endDate: new Date('2025-11-06T10:15:00Z'),
+                            },
+                            {
+                              title: 'Expert consultation session',
+                              status: 'COMPLETED',
+                              progress: 100,
+                              startDate: new Date('2025-11-06T10:15:00Z'),
+                              endDate: new Date('2025-11-06T10:30:00Z'),
+                            },
+                            {
+                              title: 'Schema review and refinement',
+                              status: 'COMPLETED',
+                              progress: 100,
+                              startDate: new Date('2025-11-06T10:30:00Z'),
+                            },
+                          ],
+                        },
                       },
                       {
                         title: 'Define Phase, Week, Day, Task, Session models',

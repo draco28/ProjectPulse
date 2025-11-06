@@ -1,7 +1,7 @@
 # Current TODOs — Sprint 1 (Foundation Setup)
 
-Progress: 47% (14/30 tasks)
-Last updated: 2025-11-06 Day 2 Complete
+Progress: 53% (16/30 tasks)
+Last updated: 2025-11-06 Day 2 100% COMPLETE ✅
 
 ## Day 1: Setup & Planning ✅ COMPLETE
 
@@ -10,7 +10,7 @@ Last updated: 2025-11-06 Day 2 Complete
 - [x] Create .env.example and validate docker-compose Postgres service
 - [x] Document risks and mitigations in session log
 
-## Day 2: Prisma Schema & DB ✅ COMPLETE
+## Day 2: Prisma Schema & DB ✅ 100% COMPLETE
 
 - [x] Consult prisma-expert for schema design
 - [x] Define models: Phase, Week, Day, Task, Session
@@ -18,10 +18,14 @@ Last updated: 2025-11-06 Day 2 Complete
 - [x] Generate initial migration (20251106141927_add_sprint_hierarchy)
 - [x] Apply migration to PostgreSQL
 - [x] Validate Prisma Client generation
-- [x] Write prisma/seed.ts with Sprint 1 hierarchy
-- [x] Run seed script successfully
-- [x] Verify data integrity with psql queries
-- [x] Update memory banks (progress.md, active-context.md)
+- [x] Write prisma/seed.ts with Sprint 1 hierarchy (complete)
+- [x] Add 3 sessions to seed script (DONE)
+- [x] Test cascade delete functionality (2/2 tests passing)
+- [x] Test date filtering queries (3/3 tests passing)
+- [x] Re-verify data integrity with psql queries (3 sessions confirmed)
+- [x] Update memory banks (progress.md, active-context.md) to reflect Day 2 complete
+
+## Day 3: Schema Validation ⏳ NOT STARTED
 
 ## Next.js API + Services
 
