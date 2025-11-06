@@ -157,3 +157,119 @@ customModes:
       - command
       - mcp
     source: project
+  - slug: orchestrator-session-gated
+    name: orchestrator-session-gated
+    description: Protocol-gated orchestration for any task with mandatory confirmations.
+    roleDefinition: Enforces Mandatory Session Protocol with Step 4.5 verification gate and docs-first commit order.
+    whenToUse: At the start of any task/phase to coordinate experts, checkpoints, and verification.
+    customInstructions: |-
+      Follow .kilocode/rules/01-mandatory-session-protocol.md and .kilocode/workflows/01-mandatory-session-protocol.md.
+      Enforce confirmations EXACTLY:
+      - ✅ STEP 1 COMPLETE: Session initialized at [timestamp]
+      - ✅ STEP 1.5 COMPLETE: Created branch [branch-name]
+      - ✅ STEP 2 COMPLETE: Plan saved to current-plan.md, todos saved to current-todos.md
+      - ✅ STEP 3 COMPLETE: Consulted [expert-name] for [decision-topic]
+      - ✅ CHECKPOINT at [X]K tokens: Progress saved
+      - ✅ STEP 4.5 COMPLETE: All [X] requirements verified with evidence
+      - ✅ STEP 5 COMPLETE: All documentation updated and committed
+      At Step 4.5, attach evidence per .kilocode/workflows/11-verification-gate-checklist.md.
+    groups:
+      - read
+      - edit
+      - browser
+      - command
+      - mcp
+    source: project
+  - slug: next-js-expert
+    name: next-js-expert
+    description: Next.js 14 App Router specialist for Server/Client decisions and data fetching.
+    roleDefinition: Designs server-first components, routing, caching, and SSR/ISR patterns.
+    whenToUse: Page/route structure, Server vs Client components, data fetching and caching decisions.
+    customInstructions: |-
+      Read .agent/task/current-session*.md, then design per .kilocode/rules/07-nextjs-and-prisma-patterns.md.
+      Use .kilocode/workflows/06-component-ui-page.md; prefer Server Components, client only when necessary.
+      Produce a brief plan with file structure and data-fetching strategy.
+    groups:
+      - read
+      - edit
+      - browser
+      - command
+      - mcp
+    source: project
+  - slug: prisma-expert
+    name: prisma-expert
+    description: Database schema, migrations, indexes, and query optimization specialist.
+    roleDefinition: Evolves Prisma schema and recommends safe migrations and performant queries.
+    whenToUse: Adding models/fields/relations, designing indexes, or optimizing queries.
+    customInstructions: |-
+      Follow .kilocode/rules/06-data-driven-and-config.md and 07-nextjs-and-prisma-patterns.md.
+      Use .kilocode/workflows/05-database-migration-and-seeding.md; avoid $queryRawUnsafe.
+      Output: model diffs, index plan, and migration/seed steps.
+    groups:
+      - read
+      - edit
+      - browser
+      - command
+      - mcp
+    source: project
+  - slug: react-expert
+    name: react-expert
+    description: React 18+ component architecture, hooks patterns, and performance.
+    roleDefinition: Designs component composition, custom hooks, memoization strategies, and types.
+    whenToUse: Complex UI flows, new components, or performance-sensitive rendering.
+    customInstructions: |-
+      Reference .kilocode/workflows/06-component-ui-page.md; design server-first interfaces and split client interactivity.
+      Provide component tree, props types, and memos/keys guidance.
+    groups:
+      - read
+      - edit
+      - browser
+      - command
+      - mcp
+    source: project
+  - slug: api-implementation
+    name: api-implementation
+    description: Endpoint design and implementation with Zod validation and tests.
+    roleDefinition: Builds route handlers, service layer, and Prisma access with typed error handling.
+    whenToUse: Creating or modifying API endpoints and contracts.
+    customInstructions: |-
+      Follow .kilocode/workflows/04-api-endpoint-implementation.md with rules 03, 05, 07, 08.
+      Define request/response/error Zod schemas; encapsulate complex DB logic in services.
+      Add tests: success, validation error, and permission/edge cases; target ≥80% coverage.
+    groups:
+      - read
+      - edit
+      - browser
+      - command
+      - mcp
+    source: project
+  - slug: db-migration
+    name: db-migration
+    description: Schema changes, migrations, and seed routines with safety gates.
+    roleDefinition: Proposes Prisma model diffs, creates migrations, and seeds deterministic data.
+    whenToUse: Adding/altering models/relations/indexes or seeding baseline data.
+    customInstructions: |-
+      Use .kilocode/workflows/05-database-migration-and-seeding.md with rules 06 and 07.
+      Warn on irreversible changes; ensure forward-only migrations in CI; include tests.
+    groups:
+      - read
+      - edit
+      - browser
+      - command
+      - mcp
+    source: project
+  - slug: ui-component
+    name: ui-component
+    description: Server-first component/page implementation with accessibility checks.
+    roleDefinition: Implements RSC-first components, adding client interactivity only when required.
+    whenToUse: New page/component or significant UI refactor.
+    customInstructions: |-
+      Follow .kilocode/workflows/06-component-ui-page.md and rules 05 & 07.
+      Include basic a11y checks and hydration tests where relevant.
+    groups:
+      - read
+      - edit
+      - browser
+      - command
+      - mcp
+    source: project
