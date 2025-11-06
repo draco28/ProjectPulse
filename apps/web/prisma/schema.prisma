@@ -1,6 +1,6 @@
-// Prisma schema for Moksha DevHub
+// Prisma schema for ProjectPulse (Sprint Tracking System)
 // Database: PostgreSQL 16
-// Features: JSONB, Full-text search, Vector embeddings
+// Features: JSONB, Full-text search, Vector embeddings, Sprint Hierarchy
 
 generator client {
   provider        = "prisma-client-js"
@@ -10,6 +10,182 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// SPRINT HIERARCHY (5-LEVEL TASK TRACKING)
+// ============================================================================
+// Architecture: Adjacency List (FK relationships)
+// Progress: Stored field with application-managed roll-up
+// Query Strategy: Prisma nested includes for tree traversal
+
+enum Status {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+  CANCELLED
+}
+
+model Phase {
+  id          String    @id @default(cuid())
+
+  // Core fields
+  title       String
+  description String?   @db.Text
+  status      Status    @default(NOT_STARTED)
+  progress    Int       @default(0) // 0-100, validated in application
+
+  // Time window
+  startDate   DateTime
+  endDate     DateTime?
+
+  // Hierarchy - Children
+  weeks       Week[]
+
+  // Metadata
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Indexes for performance
+  @@index([startDate, endDate])
+  @@index([status])
+  @@index([startDate, endDate, status])
+
+  @@map("phases")
+}
+
+model Week {
+  id          String    @id @default(cuid())
+
+  // Core fields
+  title       String
+  description String?   @db.Text
+  status      Status    @default(NOT_STARTED)
+  progress    Int       @default(0) // 0-100, validated in application
+
+  // Time window
+  startDate   DateTime
+  endDate     DateTime?
+
+  // Hierarchy - Parent
+  phaseId     String
+  phase       Phase     @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+
+  // Hierarchy - Children
+  days        Day[]
+
+  // Metadata
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Indexes for performance
+  @@index([phaseId])
+  @@index([startDate, endDate])
+  @@index([status])
+  @@index([phaseId, status])
+  @@index([phaseId, startDate, endDate, status])
+
+  @@map("weeks")
+}
+
+model Day {
+  id          String    @id @default(cuid())
+
+  // Core fields
+  title       String
+  description String?   @db.Text
+  status      Status    @default(NOT_STARTED)
+  progress    Int       @default(0) // 0-100, validated in application
+
+  // Time window
+  startDate   DateTime
+  endDate     DateTime?
+
+  // Hierarchy - Parent
+  weekId      String
+  week        Week      @relation(fields: [weekId], references: [id], onDelete: Cascade)
+
+  // Hierarchy - Children
+  tasks       Task[]
+
+  // Metadata
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Indexes for performance
+  @@index([weekId])
+  @@index([startDate, endDate])
+  @@index([status])
+  @@index([weekId, status])
+  @@index([weekId, startDate, endDate, status])
+
+  @@map("days")
+}
+
+model Task {
+  id          String    @id @default(cuid())
+
+  // Core fields
+  title       String
+  description String?   @db.Text
+  status      Status    @default(NOT_STARTED)
+  progress    Int       @default(0) // 0-100, validated in application
+
+  // Time window
+  startDate   DateTime
+  endDate     DateTime?
+
+  // Hierarchy - Parent
+  dayId       String
+  day         Day       @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  // Hierarchy - Children
+  sessions    Session[]
+
+  // Metadata
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Indexes for performance
+  @@index([dayId])
+  @@index([startDate, endDate])
+  @@index([status])
+  @@index([dayId, status])
+  @@index([dayId, startDate, endDate, status])
+
+  @@map("tasks")
+}
+
+model Session {
+  id          String    @id @default(cuid())
+
+  // Core fields
+  title       String
+  description String?   @db.Text
+  status      Status    @default(NOT_STARTED)
+  progress    Int       @default(0) // 0-100, validated in application
+
+  // Time window
+  startDate   DateTime
+  endDate     DateTime?
+
+  // Hierarchy - Parent (leaf level, no children)
+  taskId      String
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Indexes for performance
+  @@index([taskId])
+  @@index([startDate, endDate])
+  @@index([status])
+  @@index([taskId, status])
+  @@index([taskId, startDate, endDate, status])
+
+  @@map("sessions")
 }
 
 // ============================================================================
