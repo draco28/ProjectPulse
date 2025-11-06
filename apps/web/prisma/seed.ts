@@ -18,6 +18,15 @@ async function main() {
 
   // Clean existing data (in reverse dependency order)
   console.log('🧹 Cleaning existing data...');
+
+  // Clean Sprint Hierarchy (new models)
+  await prisma.session.deleteMany();
+  await prisma.task.deleteMany();
+  await prisma.day.deleteMany();
+  await prisma.week.deleteMany();
+  await prisma.phase.deleteMany();
+
+  // Clean Moksha DevHub (old models)
   await prisma.agentSession.deleteMany();
   await prisma.agentPersona.deleteMany();
   await prisma.promptTemplate.deleteMany();
@@ -36,6 +45,216 @@ async function main() {
   await prisma.project.deleteMany();
   await prisma.setting.deleteMany();
   console.log('✓ Cleanup complete\n');
+
+  // ========================================================================
+  // SPRINT HIERARCHY (5-LEVEL TASK TRACKING)
+  // ========================================================================
+  console.log('🎯 Creating Sprint 1 hierarchy...');
+
+  const phase = await prisma.phase.create({
+    data: {
+      title: 'Phase A - Foundation & Core Infrastructure',
+      description:
+        'Build backend foundation for 5-level hierarchy with progress roll-up and MCP tool scaffold',
+      status: 'IN_PROGRESS',
+      progress: 20, // Day 2 of ~10 days = 20%
+      startDate: new Date('2025-11-01'),
+      endDate: new Date('2025-11-15'),
+      weeks: {
+        create: [
+          {
+            title: 'Week 1 - Setup & Database',
+            description:
+              'Environment setup, TypeScript config, Prisma schema design, and initial testing',
+            status: 'IN_PROGRESS',
+            progress: 40, // Days 1-2 complete, Days 3-5 pending
+            startDate: new Date('2025-11-01'),
+            endDate: new Date('2025-11-08'),
+            days: {
+              create: [
+                {
+                  title: 'Day 1 - Environment Setup',
+                  description:
+                    'Verify workspace, configure TypeScript strict mode, ESLint, validate Docker',
+                  status: 'COMPLETED',
+                  progress: 100,
+                  startDate: new Date('2025-11-01'),
+                  endDate: new Date('2025-11-01'),
+                  tasks: {
+                    create: [
+                      {
+                        title: 'Confirm pnpm workspace and lockfile',
+                        status: 'COMPLETED',
+                        progress: 100,
+                        startDate: new Date('2025-11-01T09:00:00Z'),
+                        endDate: new Date('2025-11-01T09:15:00Z'),
+                      },
+                      {
+                        title: 'Create base tsconfig with strict mode',
+                        status: 'COMPLETED',
+                        progress: 100,
+                        startDate: new Date('2025-11-01T09:15:00Z'),
+                        endDate: new Date('2025-11-01T09:45:00Z'),
+                      },
+                      {
+                        title: 'Create root ESLint configuration',
+                        status: 'COMPLETED',
+                        progress: 100,
+                        startDate: new Date('2025-11-01T09:45:00Z'),
+                        endDate: new Date('2025-11-01T10:00:00Z'),
+                      },
+                      {
+                        title: 'Validate Docker PostgreSQL container',
+                        status: 'COMPLETED',
+                        progress: 100,
+                        startDate: new Date('2025-11-01T10:00:00Z'),
+                        endDate: new Date('2025-11-01T10:15:00Z'),
+                      },
+                    ],
+                  },
+                },
+                {
+                  title: 'Day 2 - Prisma Schema Design',
+                  description:
+                    'Design 5-level hierarchy, create migration, generate Prisma Client, seed data',
+                  status: 'IN_PROGRESS',
+                  progress: 60, // Schema done, seed in progress
+                  startDate: new Date('2025-11-06'),
+                  endDate: new Date('2025-11-06'),
+                  tasks: {
+                    create: [
+                      {
+                        title: 'Consult prisma-expert for schema design',
+                        status: 'COMPLETED',
+                        progress: 100,
+                        startDate: new Date('2025-11-06T10:00:00Z'),
+                        endDate: new Date('2025-11-06T10:30:00Z'),
+                        sessions: {
+                          create: [
+                            {
+                              title: 'Initial schema planning session',
+                              status: 'COMPLETED',
+                              progress: 100,
+                              startDate: new Date('2025-11-06T10:00:00Z'),
+                              endDate: new Date('2025-11-06T10:15:00Z'),
+                            },
+                            {
+                              title: 'Expert consultation session',
+                              status: 'COMPLETED',
+                              progress: 100,
+                              startDate: new Date('2025-11-06T10:15:00Z'),
+                              endDate: new Date('2025-11-06T10:30:00Z'),
+                            },
+                            {
+                              title: 'Schema review and refinement',
+                              status: 'COMPLETED',
+                              progress: 100,
+                              startDate: new Date('2025-11-06T10:30:00Z'),
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        title: 'Define Phase, Week, Day, Task, Session models',
+                        status: 'COMPLETED',
+                        progress: 100,
+                        startDate: new Date('2025-11-06T10:30:00Z'),
+                        endDate: new Date('2025-11-06T11:00:00Z'),
+                      },
+                      {
+                        title: 'Add indexes and foreign key constraints',
+                        status: 'COMPLETED',
+                        progress: 100,
+                        startDate: new Date('2025-11-06T11:00:00Z'),
+                        endDate: new Date('2025-11-06T11:15:00Z'),
+                      },
+                      {
+                        title: 'Generate and apply migration',
+                        status: 'COMPLETED',
+                        progress: 100,
+                        startDate: new Date('2025-11-06T11:15:00Z'),
+                        endDate: new Date('2025-11-06T11:30:00Z'),
+                      },
+                      {
+                        title: 'Create seed script with Sprint 1 data',
+                        status: 'IN_PROGRESS',
+                        progress: 50,
+                        startDate: new Date('2025-11-06T11:30:00Z'),
+                      },
+                      {
+                        title: 'Test data integrity in Prisma Studio',
+                        status: 'NOT_STARTED',
+                        progress: 0,
+                        startDate: new Date('2025-11-06T12:00:00Z'),
+                      },
+                    ],
+                  },
+                },
+                {
+                  title: 'Day 3 - Schema Validation',
+                  description:
+                    'Create validation tests, verify progress roll-up logic, test cascade deletes',
+                  status: 'NOT_STARTED',
+                  progress: 0,
+                  startDate: new Date('2025-11-07'),
+                },
+                {
+                  title: 'Day 4-5 - MCP Server Scaffold',
+                  description:
+                    'Initialize MCP server project, configure stdio, create tool registration system',
+                  status: 'NOT_STARTED',
+                  progress: 0,
+                  startDate: new Date('2025-11-08'),
+                  endDate: new Date('2025-11-09'),
+                },
+              ],
+            },
+          },
+          {
+            title: 'Week 2 - MCP Tools Implementation',
+            description: 'Implement core MCP tools, progress tracking, integration tests',
+            status: 'NOT_STARTED',
+            progress: 0,
+            startDate: new Date('2025-11-09'),
+            endDate: new Date('2025-11-15'),
+            days: {
+              create: [
+                {
+                  title: 'Day 6-7 - Core MCP Tools',
+                  description:
+                    'Implement sprint.phase.create, sprint.getCurrentTask, sprint.checkpoint with unit tests',
+                  status: 'NOT_STARTED',
+                  progress: 0,
+                  startDate: new Date('2025-11-10'),
+                  endDate: new Date('2025-11-11'),
+                },
+                {
+                  title: 'Day 8-9 - Progress Tracking',
+                  description:
+                    'Implement progress roll-up algorithm, integration tests, validate hierarchy',
+                  status: 'NOT_STARTED',
+                  progress: 0,
+                  startDate: new Date('2025-11-12'),
+                  endDate: new Date('2025-11-13'),
+                },
+                {
+                  title: 'Day 10 - Sprint 1 Completion',
+                  description:
+                    'Final testing, validation, Sprint 1 completion document, prepare Sprint 2 planning',
+                  status: 'NOT_STARTED',
+                  progress: 0,
+                  startDate: new Date('2025-11-14'),
+                  endDate: new Date('2025-11-15'),
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  console.log(`✓ Created Sprint 1 hierarchy: Phase A with 2 weeks, 7 days, and sample tasks\n`);
 
   // ========================================================================
   // FILTER OPTIONS (Phase 4: Dynamic Filters)

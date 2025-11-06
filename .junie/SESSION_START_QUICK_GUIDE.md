@@ -17,7 +17,8 @@ ENFORCE:
 - ✅ Step 2: Save plan BEFORE code (.agent/task/current-plan-junie.md, current-todos-junie.md)
 - ✅ Step 3: Consult experts (.claude/agents/* and .claude/skills/*)
 - ✅ Step 4: Checkpoints every 15K tokens
-- ✅ Step 5: Post-completion workflow (update HANDOFF_NEXT_SESSION.md)
+- ✅ Step 4.5: Verification gate (evidence-based)
+- ✅ Step 5: Post-completion workflow
 
 Confirm each step explicitly. If you skip ANY step, I will stop you.
 Proceed with [phase name].
@@ -29,7 +30,8 @@ What Junie Must Produce
 2. `.agent/task/current-plan-junie.md`
 3. `.agent/task/current-todos-junie.md`
 4. Checkpoint notes at ~15K tokens or per milestone
-5. Handoff update in `.agent/task/HANDOFF_NEXT_SESSION.md`
+5. Step 4.5 verification results documented in session file
+6. Memory banks updated (.agent/active-context.md, .agent/progress.md)
 
 Verification Checklist
 

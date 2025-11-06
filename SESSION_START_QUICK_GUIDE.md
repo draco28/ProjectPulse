@@ -53,6 +53,7 @@ ENFORCE:
 - ✅ Step 2: Save plan BEFORE code
 - ✅ Step 3: Consult experts
 - ✅ Step 4: Checkpoints every 15K tokens
+- ✅ Step 4.5: Verification gate (evidence-based)
 - ✅ Step 5: Post-completion workflow
 
 Confirm each step explicitly. If you skip ANY step, I will stop you.
@@ -143,6 +144,34 @@ Next checkpoint: [X+15]K tokens
 
 - 15K, 30K, 45K, 60K, 75K, 90K, 105K, 120K, 135K tokens (progress checkpoints)
 - 150K tokens (⚠️ **CRITICAL** - wrap-up decision required)
+
+#### ✅ Step 4.5: Verification Gate
+
+```
+✅ STEP 4.5 COMPLETE: All [X] requirements verified with evidence
+
+Verification summary:
+- Requirement 1: ✅ PASS - [brief evidence]
+- Requirement 2: ✅ PASS - [brief evidence]
+[...list all...]
+
+Evidence documented in: .agent/task/current-session-[timestamp].md
+All requirements met. Proceeding to Step 5.
+```
+
+**When required:**
+
+- Before marking ANY work complete
+- After all implementation complete
+- Before proceeding to Step 5
+- Must verify EVERY success criterion from plan
+
+**If ANY requirement fails:**
+
+- Do NOT proceed to Step 5
+- Mark work as IN PROGRESS
+- Add remaining items to todos
+- Continue work until all pass
 
 **At 150K tokens, I must provide wrap-up options:**
 
@@ -248,6 +277,10 @@ Stop me immediately with one of these responses:
 
 > "You're at 50K tokens with only ONE checkpoint. Update current-session.md and current-todos.md RIGHT NOW."
 
+### Missing Step 4.5
+
+> "You claimed work is complete without Step 4.5 verification. Verify ALL plan requirements with evidence RIGHT NOW. Do not proceed to Step 5 until verification complete."
+
 ### Missing Step 5
 
 > "You committed code without completing Step 5. Complete the full post-completion workflow NOW."
@@ -304,6 +337,7 @@ ENFORCE:
 - ✅ Step 2: Save plan BEFORE code
 - ✅ Step 3: Consult experts
 - ✅ Step 4: Checkpoints every 15K tokens
+- ✅ Step 4.5: Verification gate (evidence-based)
 - ✅ Step 5: Post-completion workflow
 
 Confirm each step explicitly. If you skip ANY step, I will stop you.
@@ -594,7 +628,19 @@ If files are missing:
 
 ---
 
-### Violation 6: Ignored Context Budget Warning at 150K
+### Violation 6: Verification Gate Skipped
+
+**Symptom:** I said "done" and proceeded to Step 5, but never said "✅ STEP 4.5 COMPLETE"
+
+**What should happen:** Evidence-based verification of ALL plan requirements before claiming completion
+
+**Fix:** Stop me and demand:
+
+> "You skipped Step 4.5 verification. Verify ALL plan requirements with evidence RIGHT NOW. Do not proceed to Step 5 until verification complete."
+
+---
+
+### Violation 7: Ignored Context Budget Warning at 150K
 
 **Symptom:** I'm at 165K+ tokens, never asked for wrap-up decision at 150K
 
@@ -619,6 +665,7 @@ If files are missing:
 - No progress checkpoints (entire sessions lost if interrupted)
 - Expert agents never consulted
 - Documentation updates skipped
+- Claimed work "complete" without verifying requirements
 
 **New behavior with protocol:**
 
@@ -626,6 +673,7 @@ If files are missing:
 - Must save plans to files (survive compaction)
 - Must checkpoint every 15K tokens (progress never lost)
 - Must consult experts (get proper technical guidance)
+- Must verify requirements with evidence before claiming complete
 - Must complete full post-completion workflow (documentation always updated)
 
 ### Enforcement Mechanism
@@ -650,13 +698,13 @@ If files are missing:
 1. **Save this guide** for reference
 2. **Bookmark** the starter prompt section
 3. **Next session:** Copy-paste starter prompt
-4. **Watch for:** All 5 step confirmations
+4. **Watch for:** All 6 step confirmations (including Step 4.5)
 5. **Enforce:** Call out ANY missing confirmations
 
 ---
 
 **Protocol Status:** ACTIVE
-**Last Updated:** 2025-10-28
-**Purpose:** Prevent the 5 workflow violations that occurred in previous sessions
+**Last Updated:** 2025-11-06
+**Purpose:** Prevent the 7 workflow violations that occurred in previous sessions (including verification gate)
 
 **For detailed protocol:** See [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md)

@@ -21,7 +21,7 @@ Example intents:
 
 ## 🚨 CRITICAL: Mandatory Session Protocol (Same as Claude)
 
-Before any work, I must follow the same 5‑step protocol defined for Claude Code.
+Before any work, I must follow the same 6-step protocol (includes Step 4.5 Verification Gate) defined for Claude Code.
 
 - **Full Spec**: [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md)
 - **Quick Guide**: [.junie/SESSION_START_QUICK_GUIDE.md](.junie/SESSION_START_QUICK_GUIDE.md)
@@ -48,6 +48,7 @@ ENFORCE:
 - ✅ Step 2: Save plan BEFORE code
 - ✅ Step 3: Consult experts
 - ✅ Step 4: Checkpoints every 15K tokens
+- ✅ Step 4.5: Verification gate (evidence-based)
 - ✅ Step 5: Post-completion workflow + update memory banks
 
 Confirm each step explicitly. If you skip ANY step, I will stop you.
@@ -222,6 +223,64 @@ Next checkpoint: [X+15]K tokens
 
 ---
 
+### STEP 4.5: VERIFICATION GATE
+
+**🚨 CRITICAL: Before marking ANY work complete, verify ALL plan requirements with evidence.**
+
+**Why This Step Exists:**
+
+Protocol can trust documentation claims without verifying actual results. Step 4.5 adds evidence-based verification.
+
+**Required Actions:**
+
+1. **Re-read Success Criteria** from `.agent/task/current-plan-junie.md`
+2. **Verify EACH Requirement** with concrete evidence:
+   - **Database work**: `SELECT COUNT(*)` queries showing expected data
+   - **File work**: `ls` commands showing files exist, `head` showing content
+   - **Feature work**: `pnpm test` showing tests pass
+   - **Integration work**: `curl` showing endpoints work
+3. **Document Results** in `.agent/task/current-session-[timestamp]-junie.md`:
+
+   ```markdown
+   ## Step 4.5: Verification Results
+
+   ### Requirement 1: [Description]
+
+   ✅ Evidence: [Query/Command output]
+   Status: PASS
+
+   ### Requirement 2: [Description]
+
+   ❌ Evidence: [Query/Command output]
+   Status: FAIL - [gap description]
+   ```
+
+4. **Apply Fail-Fast Rule**:
+   - If ANY requirement fails → mark work as IN PROGRESS
+   - Update current-plan-junie.md with remaining items
+   - DO NOT proceed to Step 5
+   - Continue work until ALL requirements pass
+
+**REQUIRED CONFIRMATION:**
+
+```
+✅ STEP 4.5 COMPLETE (Junie): All [X] requirements verified with evidence
+
+Verification summary:
+- Requirement 1: ✅ PASS - [brief evidence]
+- Requirement 2: ✅ PASS - [brief evidence]
+[...list all requirements...]
+
+Evidence documented in: .agent/task/current-session-[timestamp]-junie.md
+All requirements met. Proceeding to Step 5.
+```
+
+**Verification Template:** `.agent/templates/verification-checklist.md`
+
+**See:** `.agent/MANDATORY_SESSION_PROTOCOL.md` Step 4.5 for detailed examples.
+
+---
+
 ### STEP 5: POST-COMPLETION
 
 **After feature implementation complete, BEFORE committing code:**
@@ -233,7 +292,7 @@ Next checkpoint: [X+15]K tokens
 - [ ] Update `docs/13-Project-Plan.md` traceability matrix:
   - Mark completed user stories: "Not Started" → "Complete" (e.g., US-001, US-002)
   - Update sprint checkpoints: "Sprint 1 End: ✅ Foundation operational" (when sprint completes)
-  - Update phase gates: "Phase A Gate: ✅ Can agent complete 5-step protocol?" (when phase completes)
+  - Update phase gates: "Phase A Gate: ✅ Can agent complete 6-step protocol with verification?" (when phase completes)
   - Update weekly milestones as they are achieved
 
 - [ ] Update `docs/12-Backlog.md` (ONLY if scope/priorities changed):
@@ -502,6 +561,9 @@ Need progress overview?             → progress.md
 □ STEP 4: Checkpoints every 15K tokens
   Confirm: "✅ CHECKPOINT (Junie) at [X]K tokens: Progress saved"
 
+□ STEP 4.5: Verification gate (evidence-based)
+  Confirm: "✅ STEP 4.5 COMPLETE (Junie): All [X] requirements verified with evidence"
+
 □ STEP 5: Post-Completion + update memory banks
   Confirm: "✅ COMPLETION (Junie): All documentation updated and committed"
   Memory banks updated: ✓ active-context.md, progress.md, system-patterns.md, tech-context.md
@@ -534,5 +596,5 @@ This guide mirrors `CLAUDE.md` expectations while adapting names and conventions
 3. **Coordination required**: Non-disruptive scope, note "Junie's work" in active-context.md
 
 **Protocol Status:** ACTIVE
-**Version:** 2.0 (Protocol-Aligned)
-**Last Updated:** 2025-11-05
+**Version:** 2.1 (Protocol v2.0 with Verification Gate)
+**Last Updated:** 2025-11-06

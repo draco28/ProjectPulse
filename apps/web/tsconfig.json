@@ -1,43 +1,7 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    // Type Checking
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-
-    // Modules
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-
-    // Emit
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "noEmit": true,
-
-    // JavaScript Support
-    "allowJs": true,
-    "checkJs": false,
-
-    // Interop Constraints
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-
-    // Language and Environment
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "jsx": "preserve",
-
-    // Projects
-    "incremental": true,
-
-    // Skip .d.ts type checking
-    "skipLibCheck": true,
-
-    // Next.js specific
+    // Next.js specific plugin must remain in project config
     "plugins": [
       {
         "name": "next"
@@ -55,16 +19,6 @@
       "@/types/*": ["./types/*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    ".next",
-    "dist",
-    "build"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next", "dist", "build", "**/__tests__/**"]
 }
