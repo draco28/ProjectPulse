@@ -1,7 +1,7 @@
 # Technical Context
 
 **Project**: ProjectPulse
-**Last Updated**: 2025-10-26
+**Last Updated**: 2025-11-06
 
 ---
 
@@ -582,7 +582,7 @@ pnpm update
 
 ---
 
-Last reviewed: 2025-10-27
+Last reviewed: 2025-11-06
 
 ---
 
@@ -796,6 +796,8 @@ pnpm test:integration mcp-server/tests/integration/**/*.test.ts
 
 **This section documents MCP integration setup. See system-patterns.md for MCP tool implementation patterns.**
 
+**Note**: Current MCP tool count is 41 tools across 9 features (verified in openapi.yaml). Sprint 9 advanced tools (Memory Banks, Research Agents) are documented but implementation deferred to post-MVP.
+
 ---
 
-Last updated: 2025-11-05
+Last updated: 2025-11-06

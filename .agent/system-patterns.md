@@ -1,7 +1,7 @@
 # System Patterns & Architecture
 
 **Project**: ProjectPulse
-**Last Updated**: 2025-10-26
+**Last Updated**: 2025-11-06
 
 ---
 
@@ -646,7 +646,7 @@ export type IssueWithRelations = Issue & {
 
 ---
 
-Last reviewed: 2025-10-27
+Last reviewed: 2025-11-06
 
 ---
 
@@ -871,6 +871,8 @@ async function completeStep(executionId: number, stepNumber: number) {
 
 **This section documents MCP-specific patterns for agent-first workflows. See project-brief.md for WHAT we're building.**
 
+**Note**: Sprint 9 advanced patterns (Memory Banks, Research Agent Orchestration) are documented in architecture but implementation is deferred to post-MVP. Sprint 1-8 patterns documented above remain current.
+
 ---
 
-Last updated: 2025-11-05
+Last updated: 2025-11-06

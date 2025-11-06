@@ -2,97 +2,117 @@
 
 **Project Name**: ProjectPulse
 **Version**: 1.0.0
-**Last Updated**: 2025-10-26
+**Last Updated**: 2025-11-06
 
 ---
 
 ## Core Mission
 
-Build a comprehensive developer hub that integrates issue tracking, knowledge management, wiki documentation, security scanning, and AI agent orchestration in a unified platform.
+Build an agent-first project management platform (meta-platform) that generates agent workflow infrastructure for development projects. ProjectPulse enables AI agents to drive 95% of project workflows through MCP (Model Context Protocol) tools, with the database as the source of truth and human developers providing strategic oversight.
 
 ---
 
 ## Primary Goals
 
-### 1. Unified Developer Experience
+### 1. Agent-First Architecture
 
-- Single platform for all development workflows
-- Seamless integration between issues, docs, and knowledge
-- AI-powered assistance through agent personas
+- 95% of workflows driven by AI agents through MCP tools
+- Database as single source of truth (not markdown files)
+- Zero-drift markdown sync (database → markdown, one-way)
+- Human oversight for strategic decisions only
 
-### 2. Modern UI/UX
+### 2. Meta-Platform Vision
 
-- Neumorphic design system with Coral theme
-- Dark theme as primary design
-- Glass morphism effects for depth
-- Responsive across all devices
+- Generates agent workflow infrastructure for users' projects
+- 5-level hierarchy: Phase → Week → Day → Task → Session
+- Progress auto-rolls up from sessions to phases
+- Workflow orchestration with mandatory protocols
 
 ### 3. Intelligent Automation
 
-- AI agents for specialized tasks (fullstack, testing, architecture)
-- Automated documentation generation
-- Context-aware suggestions and assistance
+- 41 MCP tools across 9 feature categories
+- Sub-agent system (explore-codebase, analyze-architecture, synthesize-docs)
+- Memory bank system for context preservation
+- Research agent orchestration for deep analysis
 
-### 4. Developer-First Features
+### 4. Developer Features (Secondary)
 
-- Fast search across all entities
-- Command palette (Cmd+K) for quick actions
-- Keyboard shortcuts throughout
-- Real-time collaboration features
+- Issue tracking with auto-tagging and bulk creation
+- Knowledge graph with semantic search (pgvector)
+- Wiki with auto-generation from code
+- Project health dashboard with security scanning
 
 ---
 
 ## Target Users
 
-**Primary**: Development teams working on complex software projects
-**Secondary**: Solo developers, open-source maintainers, technical leads
+**Primary**: AI agents (Claude Code, Windsurf, other LLM-based dev tools) - 95% interaction
+**Secondary**: Human developers for strategic oversight - 5% interaction
 
-**User Personas**:
+**Agent Personas**:
 
-- **Dev Team Lead**: Tracks issues, reviews code, manages sprints
-- **Backend Developer**: Writes APIs, manages database, reviews architecture
-- **Frontend Developer**: Builds UI components, implements designs
-- **QA Engineer**: Writes tests, tracks bugs, verifies fixes
-- **Technical Writer**: Documents features, maintains wiki, writes guides
+- **DevHub Fullstack**: Implements features across React/Next.js/Prisma stack
+- **DevHub Architect**: Makes architecture decisions (Next.js patterns, Prisma schema design)
+- **DevHub Testing**: Creates comprehensive test suites (Jest, RTL, Playwright)
+- **DevHub MCP Specialist**: Designs and implements MCP tools
+- **Research Agents**: Deep codebase analysis, pattern discovery, documentation synthesis
+
+**Human Roles** (Strategic Oversight):
+
+- **Technical Lead**: Approves architecture decisions, sets Sprint goals
+- **Product Owner**: Defines features, prioritizes backlog
 
 ---
 
 ## Success Criteria
 
-### Phase 1: Foundation (Week 1)
+### ✅ Documentation Phase (Week 1.5 - Nov 6, 2025) - COMPLETE
 
-- ✅ Docker + PostgreSQL setup complete
-- ✅ Next.js 14 App Router application running
-- ✅ Database schema with 17 models implemented
-- ✅ Dashboard UI with real data integration
+- ✅ Architecture pivot documented (5 new epics: EPIC-010 to EPIC-014)
+- ✅ PRD updated with Memory Banks and Research Agent features
+- ✅ SRS updated with 75 new FRs (FR-146 to FR-220, 13 MVP + 62 Post-MVP)
+- ✅ Backlog updated with 37 new user stories (138 total, 484 points)
+- ✅ Project Plan updated with Sprint 9 (18 weeks total, 9 sprints)
+- ✅ Testing plan updated with TEST-146 to TEST-158
+- ✅ Architecture documentation updated with Sub-Agent and Memory Bank sections
+- ✅ Audit specification created (.agent/ARCHITECTURE_UPDATE_AUDIT_SPEC.md)
+- ✅ All documentation cross-referenced and verified
 
-### Phase 2: UI Transformation (Week 1.5)
+### 🔄 Sprint 1: Foundation Setup (Weeks 1-2) - READY TO START
 
-- ✅ Multi-theme system removed, Coral theme locked
-- ✅ All dashboard components transformed to neumorphic design
-- 🔄 **IN PROGRESS**: All 7 pages transformed to neumorphic design (3/7 complete)
-- ⏳ Responsive design and polish
+**Target**: 52 story points, 14 user stories (US-001 to US-014)
 
-### Phase 3: Core Features (Week 2-3)
+- ⏳ Prisma schema with 5-level hierarchy (Phase, Week, Day, Task, Session)
+- ⏳ Progress roll-up algorithm (Session → Task → Day → Week → Phase)
+- ⏳ MCP server scaffold (Node.js, stdio transport)
+- ⏳ First 7 MCP tools (sprint.phase.create, sprint.getCurrentTask, etc.)
+- ⏳ Validation: Foreign keys, progress 0.0-1.0, timestamps
 
-- ⏳ Issue management (create, edit, comment, status changes)
-- ⏳ Knowledge base (full-text search, categories, tagging)
-- ⏳ Wiki system (markdown editor, versioning, linking)
-- ⏳ Security dashboard (vulnerability scanning, score tracking)
+### ⏳ Sprint 2-3: Workflow Orchestration (Weeks 3-6)
 
-### Phase 4: AI Integration (Week 4)
+- ⏳ Workflow definition system (5-Step Protocol, custom workflows)
+- ⏳ Workflow state machine with validation
+- ⏳ Markdown sync (database → markdown, zero drift)
+- ⏳ 5 workflow MCP tools
 
-- ⏳ Agent personas activation/deactivation
-- ⏳ MCP server integration (25+ tools)
-- ⏳ Context injection system
-- ⏳ Agent communication protocols
+### ⏳ Sprint 4: Issue Management (Weeks 7-8)
 
-### Phase 5: Advanced Features (Week 5-6)
+- ⏳ Issue CRUD with MCP tools
+- ⏳ Bulk issue creation (10-50 issues at once)
+- ⏳ Auto-tagging and classification
+- ⏳ Integration with existing Issues UI from Week 1.5
 
-- ⏳ Real-time collaboration
-- ⏳ Webhook integrations
-- ⏳ API documentation
-- ⏳ Export/import functionality
+### ⏳ Sprints 5-8: Advanced Features (Weeks 9-16)
+
+- ⏳ Knowledge graph with semantic search (Sprint 5-6)
+- ⏳ Wiki and Health dashboard (Sprint 7)
+- ⏳ Integration testing and MVP acceptance (Sprint 8)
+
+### 📅 Sprint 9: Advanced Agent Features (Weeks 17-18) - POST-MVP
+
+- Memory Bank System (EPIC-010, 8 stories, 34 points)
+- Research Agent Orchestration (EPIC-011, 5 stories, 24 points)
+- Documented but deferred to post-MVP implementation
 
 ---
 
@@ -132,22 +152,33 @@ Build a comprehensive developer hub that integrates issue tracking, knowledge ma
 
 ---
 
-## Current Status (2025-10-26)
+## Current Status (2025-11-06)
 
-**Overall Progress**: Week 1.5 Phase 3 (Day 3 complete - 37.5%)
+**Overall Progress**: Documentation Phase Complete (100%), Implementation Phase Ready to Start (0%)
 
-**Latest Milestone**: Issues List Page Complete
+**Latest Milestone**: Architecture Update Complete (Nov 6, 2025)
 
-- Filter by status, priority, module
-- Search with debouncing
-- Pagination and sorting
-- Pixel-perfect match to mockup
+- 5 new epics documented (EPIC-010 to EPIC-014)
+- 75 new FRs added (FR-146 to FR-220)
+- 37 new user stories (13 MVP, 24 Post-MVP)
+- Sprint 9 added to project plan (18 weeks total)
+- 5,500+ lines of documentation added
+- Audit specification created for future verification
 
-**Current Work**: Day 4 - Issue Detail Page (waiting for mockup)
-**Next Up**: Days 5-6 - Knowledge Base, Wiki, Security, Agents, Command Palette
+**Current Work**: Ready to start Sprint 1 implementation
+**Next Up**:
 
-**Branch**: `ui/theme-foundation`
-**Last Commit**: `d0194e8` - feat(ui): Add Issues List page with filtering and search
+1. Merge docs/architecture-pivot-sprint-1-redefinition to master
+2. Create feature/sprint-1-foundation branch
+3. Design Prisma schema for 5-level hierarchy
+4. Implement MCP server scaffold
+
+**Branch**: `docs/architecture-pivot-sprint-1-redefinition` (to be merged)
+**Recent Commits**:
+
+- `b4e2afc` - docs: add comprehensive documentation audit specification
+- `5e154ff` - docs: add Sprint 9 with Memory Banks and Research Agent Orchestration
+- `a1ae4fc` - docs: Update PRD, SRS, and Architecture with 5 new epics (EPIC-010 to EPIC-014)
 
 ---
 
@@ -235,4 +266,4 @@ Build a comprehensive developer hub that integrates issue tracking, knowledge ma
 
 ---
 
-Last reviewed: 2025-10-27
+Last reviewed: 2025-11-06
