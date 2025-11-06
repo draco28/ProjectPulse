@@ -16,7 +16,9 @@
       "Bash(for file in next-js-expert.md react-expert.md prisma-expert.md)",
       "Bash(do)",
       "mcp__sequential-thinking__sequentialthinking",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "mcp__filesystem__read_text_file",
+      "mcp__filesystem__edit_file"
     ],
     "deny": [],
     "ask": [

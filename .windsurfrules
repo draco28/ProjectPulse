@@ -1,406 +1,268 @@
-# Moksha DevHub - Cascade Configuration
+# ProjectPulse Windsurf Rules - Cascade Configuration
 
-# Version: 1.0 | Last Updated: 2025-10-28
+**Version**: 2.0 (Context-Optimized)  
+**Last Updated**: 2025-10-28
 
-When asked to design UI & frontend interface:
-You are superdesign, integrated into Windsurf as part of Super Design extension.
-Use Flowbite library, avoid indigo/blue unless specified, MUST generate responsive designs.
-Output design files in '.superdesign/design*iterations' folder as {design_name}*{n}.html.
-Font: Use Google Fonts (JetBrains Mono, Inter, Roboto, etc.).
-Always use tools for write/edit, never just output in message.
+This file mirrors the authoritative workflow from `CLAUDE.md` so that Windsurf enforces the same rules and protocols.
 
 ---
 
-## MOKSHA DEVHUB AGENT SYSTEM
+## Quick Start
 
-### SOURCE OF TRUTH
-
-All agents reason from:
-
-- docs/01-ARCHITECTURE.md - Complete system architecture
-- docs/02-DATABASE-SCHEMA.md - Database schema and Prisma models
-- docs/03-MCP-SPECIFICATION.md - MCP specification
-- AGENTS.md - Agent rules and workflows
-- .agent/ directory - Memory bank and SOPs
-
-If conflicts exist, docs/ is authoritative.
-
-### GOLDEN RULES (NON-NEGOTIABLE)
-
-1. **[R-DOC-001] Documentation Authority:** All implementations align with docs/ architecture
-2. **[R-DATA-001] Data-Driven Development:** No hardcoded values; use database or config
-3. **[R-TS-001] Type Safety:** Strict TypeScript, no `any` types
-4. **[R-NEXT-001] Server Components First:** Use React Server Components by default
-5. **[R-SEC-001] Prisma Parameterized:** No raw SQL string interpolation (SQL injection prevention)
-6. **[R-TEST-001] Testing Required:** All features must have tests (80%+ coverage)
-7. **[R-MCP-001] MCP Pattern:** MCP server calls Next.js API (not direct database)
-8. **[R-PRIVACY-001] Local-First:** All data stored locally, no cloud dependencies
-
-### MANDATORY SESSION PROTOCOL
-
-Every session MUST follow this 6-step protocol:
-
-**STEP 1: INITIALIZATION (Before any code)**
-
-- Read STATUS.md and DEVELOPMENT_PLAN.md
-- Create .agent/task/current-session-[YYYYMMDD-HHMM].md
-- Load relevant context from .agent/ memory bank
-- Check current branch: `git branch --show-current`
-- Ensure on master/main: If not, switch to master first
-- Pull latest changes: `git pull origin master`
-- CONFIRM: "✅ STEP 1 COMPLETE: Session initialized at [timestamp], on master branch"
-
-**STEP 1.5: BRANCH CREATION (MANDATORY - Before plan)**
-
-- Determine branch type: api/_, ui/_, or feature/\*
-- Create feature branch: `git checkout -b [type]/[description]`
-- Verify branch created: `git branch --show-current`
-- CONFIRM: "✅ STEP 1.5 COMPLETE: Created branch [branch-name]"
-- CRITICAL: Do NOT proceed to Step 2 until branch is created!
-
-**STEP 2: PLAN CREATION (Before implementation)**
-
-- Create implementation plan
-- Get user approval
-- Verify on feature branch: `git branch --show-current`
-- IMMEDIATELY save to .agent/task/current-plan.md
-- Create .agent/task/current-todos.md
-- Optional: Commit plan files if user approves
-- CONFIRM: "✅ STEP 2 COMPLETE: Plan saved to current-plan.md on branch [branch-name], todos saved to current-todos.md"
-
-**STEP 3: EXPERT CONSULTATION (For technical decisions)**
-
-- Invoke react-expert for component architecture
-- Invoke next-js-expert for Server/Client decisions
-- Invoke prisma-expert for database design
-- Read agent template from memory + apply structured prompt
-- Save plan to .agent/task/[expert]-[topic]-[timestamp].md
-- Ensure still on feature branch
-- Optional: Commit consultations
-- CONFIRM: "✅ STEP 3 COMPLETE: Consulted [expert] for [topic] on branch [branch-name]"
-
-**STEP 4: PROGRESS CHECKPOINTS (Every 15K tokens)**
-
-- At 15K, 30K, 45K, 60K, 75K, 90K tokens
-- Update .agent/task/current-session.md
-- Update .agent/task/current-todos.md
-- Verify still on feature branch
-- Optional: Commit checkpoint files
-- CONFIRM: "✅ CHECKPOINT at [X]K tokens: Progress saved on branch [branch-name]"
-
-**STEP 5: POST-COMPLETION (Before final commit)**
-
-- Create COMPLETION\_[PHASE].md
-- Update STATUS.md and DEVELOPMENT_PLAN.md
-- Invoke synthesize-docs if new patterns created
-- Invoke map-system if architecture changed
-
-**CRITICAL - Commit order:**
-
-1. Documentation commit FIRST:
-   - Stage: docs/, STATUS.md, DEVELOPMENT*PLAN.md, COMPLETION*\*.md, .agent/
-   - Commit: `git commit -m "docs: complete [phase] - [description]"`
-2. Code commit SECOND:
-   - Stage: apps/, packages/, prisma/, _.config._
-   - Commit: `git commit -m "feat: implement [feature]"`
-
-- CONFIRM: "✅ STEP 5 COMPLETE: All documentation updated and committed (docs first, code second) on branch [branch-name]"
-
-**STEP 6: MERGE & CLEANUP (MANDATORY - Before ending session)**
-
-- Run quality gates (ALL must pass):
-  - `pnpm lint` - Must pass
-  - `pnpm type-check` - Must pass
-  - `pnpm build` - Must pass
-  - `pnpm test` - Must pass (80%+ coverage)
-- Switch to master: `git checkout master`
-- Pull latest: `git pull origin master`
-- Merge feature branch: `git merge --no-ff [branch-name]`
-- Optional: Push to remote: `git push origin master`
-- Optional: Delete feature branch: `git branch -d [branch-name]`
-- CONFIRM: "✅ STEP 6 COMPLETE: Branch [branch-name] merged to master, quality gates passed"
-
-### TDD WORKFLOW (MANDATORY FOR ALL TASKS)
-
-Every feature implementation MUST follow Test-Driven Development:
-
-1. **🔴 RED Phase:** Write failing test first
-2. **🟢 GREEN Phase:** Write minimal code to pass test
-3. **🔵 REFACTOR Phase:** Improve code quality while keeping tests passing
-
-This applies to:
-
-- API endpoints
-- React components
-- Database queries
-- Utility functions
-- ALL implementation tasks
-
-### ARCHITECTURE PATTERNS
-
-**Component Architecture:**
-
-- Default: Server Components (no "use client")
-- Use Client Components only for: interactivity, hooks, browser APIs, event listeners
-- Hybrid pattern: Server page → Client interactive components
-
-**Database Patterns:**
-
-- Prisma for ALL database access
-- Use select/include for optimization (only fetch needed fields)
-- Parameterized queries only (no string interpolation)
-- Connection pooling: PrismaClient singleton pattern
-
-**API Patterns:**
-
-- Zod validation for all inputs
-- Standard response format: { data: T } | { error: string }
-- Error handling: try-catch with proper HTTP status codes
-- Pagination pattern: { page, limit, total, hasMore, data }
-
-**Testing Patterns:**
-
-- Jest for unit tests
-- React Testing Library for components
-- Playwright (via MCP) for E2E tests
-- 80%+ coverage required
-
-### GIT WORKFLOW (3-TRACK STRATEGY)
-
-**Branch naming:**
-
-- `api/*` - Backend/API development
-- `ui/*` - Frontend/UI development
-- `feature/*` - Full-stack features
-
-**Commit format:**
-
-- feat: New feature
-- fix: Bug fix
-- refactor: Code refactoring
-- test: Add tests
-- docs: Documentation update
-
-**Commit order:**
-
-1. Documentation commit FIRST
-2. Code commit SECOND
-
-### QUALITY GATES
-
-Before marking any task complete:
-
-- ✅ TypeScript: No errors, no `any` types
-- ✅ Linting: pnpm lint passes
-- ✅ Build: pnpm build succeeds
-- ✅ Tests: pnpm test passes (80%+ coverage)
-- ✅ Security: No SQL injection, no XSS vulnerabilities
-- ✅ Documentation: Updated STATUS.md, DEVELOPMENT_PLAN.md
-
-### SKILLS AUTO-LOADING
-
-Based on phase keywords, automatically load relevant skills:
-
-**Keywords → Skills mapping:**
-
-- "API", "endpoint", "route" → .claude/skills/moksha-devhub/api-patterns.md
-- "Component", "UI", "page" → .claude/skills/moksha-devhub/component-patterns.md
-- "Database", "Prisma", "query" → .claude/skills/moksha-devhub/database-patterns.md
-- "Test", "testing" → .claude/skills/moksha-devhub/testing-patterns.md
-- "Port", "3000" → .claude/skills/moksha-devhub/port-config.md
-- "Git", "branch", "commit" → .claude/skills/moksha-devhub/git-workflow.md
-
-Load skill by reading full file content when keywords detected.
-
-### AGENT SIMULATION
-
-When specialized expertise needed, use agent templates from memory:
-
-**Implementation Agents:**
-
-- devhub-architect: "Design the X system"
-- devhub-fullstack: "Implement X feature"
-- devhub-testing: "Write tests for X"
-- devhub-auditor: "Review X for quality"
-- devhub-mcp-specialist: "Design MCP tool for X"
-
-**Expert Agents (REQUIRED for Step 3):**
-
-- react-expert: "Design component for X"
-- next-js-expert: "Server/Client decision for X"
-- prisma-expert: "Design schema for X"
-
-**Research Agents:**
-
-- explore-codebase: "Find all X patterns"
-- analyze-architecture: "How does X work?"
-- synthesize-docs: "Generate SOP for X"
-- map-system: "Update system docs"
-
-**How to invoke:**
-
-1. Retrieve agent template from memory system
-2. Apply structured prompt with current context
-3. Save output to .agent/task/[agent]-[topic]-[timestamp].md
-4. Return confirmation with summary
-
-### MEMORY BANK STRUCTURE
-
-**Core context files (.agent/):**
-
-- project-brief.md - WHAT & WHY (requirements, goals)
-- system-patterns.md - HOW we build (architecture patterns)
-- tech-context.md - Tech stack and setup
-- active-context.md - Current focus (READ EVERY SESSION)
-- progress.md - Progress tracking and metrics
-
-**Task tracking (.agent/task/):**
-
-- current-session-[timestamp].md - Real-time session tracking
-- current-plan.md - Approved implementation plan
-- current-todos.md - Task list with progress
-- [agent]-[topic]-[timestamp].md - Agent consultation reports
-
-**System docs (.agent/system/):**
-
-- api-catalog.md - All API endpoints
-- database-schema.md - Prisma schema summary
-- component-patterns.md - React conventions
-- mcp-tools-guide.md - MCP usage examples
-
-**SOPs (.agent/sops/):**
-
-- api-route-creation.md - Standard API pattern
-- server-component-data-fetching.md - Prisma optimization
-- port-troubleshooting.md - Port configuration fixes
-- git-workflow.md - Branch management
-- [Plus 11 more procedures]
-
-### TOKEN OPTIMIZATION STRATEGY
-
-**Target: 70%+ reduction (from 21K baseline to ~6K)**
-
-**Optimization techniques:**
-
-1. Load skill frontmatter only (20 tokens per skill)
-2. Read full skill content only when keyword matches
-3. Use memory retrieval instead of file reading when possible
-4. Agent consultations in isolated analysis (don't pollute main context)
-5. Checkpoint updates minimal (200 tokens per checkpoint)
-
-**Token budget tracking:**
-
-- Monitor token usage continuously
-- Checkpoints at 15K intervals
-- Warning at 140-150K tokens (approaching 200K limit)
-
-### FILE PERMISSIONS
-
-**Allow:**
-
-- Read: All files
-- Write: apps/, packages/, docs/, .agent/, .cascade/
-- Bash: pnpm, npm, docker, git, python
-
-**Deny:**
-
-- Write: node_modules/, .next/, dist/, .env
-- Destructive: Commands that delete data
-
-**Ask first:**
-
-- git push
-- docker-compose down
-- prisma migrate reset
-- pnpm remove
-
-### DEBUGGING WORKFLOW
-
-When bugs encountered:
-
-1. Use systematic-debugging-web skill (layer isolation)
-2. If complex, use root-cause-tracing-fullstack skill
-3. Add regression test
-4. Verify fix with testing
-
-### COMPLETION CRITERIA
-
-Feature complete when:
-
-- ✅ All Golden Rules followed
-- ✅ All protocol steps completed
-- ✅ Quality gates passed
-- ✅ Tests achieve 80%+ coverage
-- ✅ Code reviewed (auditor patterns applied)
-- ✅ Documentation updated
-- ✅ Commits clean (docs first, code second)
-
----
-
-## HOW TO USE
-
-**Session start:**
+Work with Cascade in Windsurf the same way you would with Claude Code:
 
 ```
-User: "Start session for Phase 3 Day 5"
-Cascade: [Follows Step 1 protocol automatically]
-```
-
-**During work:**
-
-```
-User: "Implement POST /api/issues"
-Cascade: [TDD workflow: Red → Green → Refactor]
-```
-
-**Need expertise:**
-
-```
-User: "Need component architecture advice"
-Cascade: [Invokes react-expert template from memory]
-```
-
-**Session end:**
-
-```
-User: "Complete this phase"
-Cascade: [Follows Step 5 protocol: docs → commits]
+"Implement POST /api/issues endpoint"
+"Write tests for the search API"
+"Debug the authentication flow"
 ```
 
 ---
 
-## ENFORCEMENT
+## 🚨 CRITICAL: Pre-Work Checklist
 
-**Missing protocol confirmations = VIOLATION**
+**BEFORE starting ANY coding work:**
 
-User must stop work and enforce:
+### 1. Port Configuration
 
-- "You skipped Step 2. Save the plan RIGHT NOW."
-- "Where's the Step 3 confirmation? Consult expert NOW."
-- "You're at 50K tokens with ZERO checkpoints. Update files NOW."
+```bash
+pnpm dev
+# ✅ MUST show: "ready started server on 0.0.0.0:3000"
+# ❌ WRONG: "ready started server on 0.0.0.0:3002"
+```
 
-Protocol is MANDATORY, not optional.
+See `.agent/sops/port-troubleshooting.md` for recovery steps.
+
+### 2. Git Branch
+
+```bash
+git branch
+# ✅ MUST be on feature branch (NOT master!)
+# If on master:
+git checkout master && git pull origin master
+git checkout -b feature/your-feature
+```
+
+See `.agent/sops/git-workflow.md` for the full SOP.
 
 ---
 
-**This configuration ensures Cascade follows the same workflow quality as Claude Code.**
+## 🚨 CRITICAL: Mandatory Session Protocol
 
+Every session in Windsurf MUST follow the same protocol described in `CLAUDE.md`.
+
+**Why this exists:** Cascade reads instructions but will not follow them unless confirmations are requested explicitly.
+
+**How it works:**
+
+1. Copy-paste the starter prompt at session start.
+2. Cascade must complete and confirm all five protocol steps.
+3. Missing confirmation = workflow violation (call it out immediately).
+
+**📋 Full Protocol:** `.agent/MANDATORY_SESSION_PROTOCOL.md`  
+**🚀 Quick Start Guide:** `SESSION_START_QUICK_GUIDE.md`
+
+---
+
+## Session Start Pattern (REQUIRED PROTOCOL)
+
+### Starter Prompt (Copy-Paste This)
+
+```
+MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
+
+Current phase: [copy from STATUS.md]
+Requirements: [copy from docs/13-Project-Plan.md]
+
+ENFORCE:
+- ✅ Step 1: Initialize session
+- ✅ Step 2: Save plan BEFORE code
+- ✅ Step 3: Consult experts
+- ✅ Step 4: Checkpoints every 15K tokens
+- ✅ Step 5: Post-completion workflow
+
+Confirm each step explicitly. If you skip ANY step, I will stop you.
+
+Proceed with [phase name].
 ```
 
 ---
 
-## Usage Notes
+## What Cascade Must Do (Per Protocol)
 
-1. **Save this content** to `.windsurfrules` file in project root
-2. **Restart Windsurf** to load new rules
-3. **Test** by starting a session with protocol
-4. **Validate** that confirmations appear for each step
+### STEP 1: INITIALIZATION
 
-The rules system will automatically enforce:
-- Golden Rules compliance
-- Mandatory protocol steps
-- TDD workflow
-- Quality gates
-- Token optimization
-- Documentation requirements
+- Read `STATUS.md` and `docs/13-Project-Plan.md`.
+- Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`.
+- **Confirm:** `✅ STEP 1 COMPLETE: Session initialized at [timestamp]`.
+
+**Reading Path After Step 1**
+
+- **Implementation phases:** `docs/03-Architecture.md` → `docs/04-Data-and-Model-Spec.md` → `docs/06-API/openapi.yaml`
+- **Planning phases:** `docs/01-PRD.md` → `docs/02-SRS.md` → `docs/12-Backlog.md`
+
+(See `docs/README.md` for full reading paths.)
+
+### STEP 2: PLAN CREATION
+
+- Create an implementation plan (use ExitPlanMode if helpful).
+- Obtain user approval.
+- **Immediately save** plan to `.agent/task/current-plan.md`.
+- Create `.agent/task/current-todos.md`.
+- **Confirm:** `✅ STEP 2 COMPLETE: Plan saved to current-plan.md, todos saved to current-todos.md`.
+
+### STEP 3: EXPERT CONSULTATION
+
+- Invoke `react-expert` for component architecture.
+- Invoke `next-js-expert` for Server/Client and data fetching decisions.
+- Invoke `prisma-expert` for database schema and query optimization.
+- **Confirm:** `✅ STEP 3 COMPLETE: Consulted [expert-name] for [decision-topic]`.
+
+**When experts are required**
+
+- New component architectures or complex UI flows.
+- Complex backend features or performance-sensitive areas.
+- Any database schema changes or non-trivial Prisma queries.
+
+**When experts are optional**
+
+- Routine CRUD following established patterns.
+- Minor UI updates that match existing conventions.
+- Small refactors within an established module.
+
+### STEP 4: PROGRESS CHECKPOINTS
+
+- At 15K, 30K, 45K, 60K, 75K, 90K tokens:
+  - Update `.agent/task/current-session.md`.
+  - Update `.agent/task/current-todos.md`.
+- **Confirm:** `✅ CHECKPOINT at [X]K tokens: Progress saved`.
+
+### STEP 5: POST-COMPLETION
+
+- Create a completion doc if the phase warrants it.
+- Update `STATUS.md` and `docs/13-Project-Plan.md`.
+- Invoke `synthesize-docs` if new patterns emerged.
+- Invoke `map-system` if architecture changed.
+- Commit documentation first, then code.
+- **Confirm:** `✅ STEP 5 COMPLETE: All documentation updated and committed`.
+
+---
+
+## Skills and Context Loading
+
+Cascade loads skills based on phase keywords:
+
+| Phase Contains                | Skills to Load                                                          |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| "API", "endpoint", "route"    | `.claude/skills/projectpulse/api-patterns.md`                           |
+| "Component", "UI", "page"     | `.claude/skills/projectpulse/component-patterns.md`                     |
+| "Database", "Prisma", "query" | `.claude/skills/projectpulse/database-patterns.md`                      |
+| "Test", "testing", "coverage" | `.claude/skills/projectpulse/testing-patterns.md`                        |
+
+---
+
+## Sub-Agent Invocations
+
+**Research agents (planning):**
+
+- `explore-codebase` – identify existing patterns.
+- `analyze-architecture` – trace data flows.
+
+**Expert agents (protocol Step 3):**
+
+- `react-expert` – component architecture.
+- `next-js-expert` – server/client boundaries.
+- `prisma-expert` – database modeling and queries.
+
+**Documentation agents (protocol Step 5):**
+
+- `synthesize-docs` – generate or extend SOPs.
+- `map-system` – update architecture/system documentation.
+
+---
+
+## Context File Workflow (REQUIRED)
+
+### At Session Start (Step 1)
+
+Cascade must:
+
+1. Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`.
+2. Document current phase, goals, and requirements derived from `STATUS.md`.
+3. Update this file at every protocol checkpoint.
+
+### When Invoking Sub-Agents (Step 3)
+
+Cascade must:
+
+1. Pass the context file (`.agent/task/current-session.md`) to the specialist.
+2. Wait for the research/analysis report (saved under `.agent/task/`).
+3. Read and incorporate each report before implementing.
+4. Update the session file with implementation notes.
+
+---
+
+## Quick Reference
+
+### Daily Checklist
+
+```markdown
+- [ ] pnpm dev shows port 3000
+- [ ] localhost:3000 loads application
+- [ ] On feature branch (not master)
+- [ ] Read STATUS.md and docs/13-Project-Plan.md
+- [ ] Check .agent/README.md for task context
 ```
+
+### Common Tasks
+
+- **Need API structure?** → `.agent/system/api-catalog.md`
+- **Need database schema?** → `.agent/system/database-schema.md`
+- **Port configuration broken?** → `.agent/sops/port-troubleshooting.md`
+- **Creating a branch?** → `.agent/sops/git-workflow.md`
+- **Deep codebase analysis?** → Use the Gemini CLI (`SIMPLE_GEMINI_WORKFLOW.md`)
+
+### Integration Checklist
+
+- [ ] MCP tools configured and working  
+- [ ] Access to `.agent/` documentation verified  
+- [ ] `pnpm dev` runs successfully  
+- [ ] Actively working on the correct feature branch  
+- [ ] `STATUS.md` and `docs/13-Project-Plan.md` reviewed
+
+---
+
+## Getting Help
+
+**Documentation:**
+
+1. `.agent/README.md` – Agent documentation index
+2. `STATUS.md` – Current state
+3. `docs/13-Project-Plan.md` – Implementation roadmap
+4. `docs/README.md` – Complete documentation index
+
+**Procedures:** `.agent/sops/`  
+**Common errors:** `.claude/CRITICAL_MISTAKES.md`  
+**System docs:** `.agent/system/`
+
+---
+
+## Ready to Code?
+
+1. Complete the pre-work checklist.
+2. Start the session with the mandatory protocol prompt.
+3. Cascade will handle sub-agents, documentation, and context optimization automatically—just enforce confirmations.
+
+🚀 **Happy coding with optimized context!**
+
+---
+
+## UI & Frontend Design (SuperDesign)
+
+For standalone HTML/design prototypes, use the SuperDesign workflow.
+
+- **Guide:** `.claude/skills/projectpulse/superdesign-ui-generator.md`
+- **When to use:** “design UI prototype”, “create HTML mockup”, or explicit “use SuperDesign workflow”
+- **Output:** Standalone HTML files under `.superdesign/design_iterations/`
+- **Note:** For React components inside ProjectPulse, use `.claude/skills/projectpulse/ui-generation-workflow.md`.
+
