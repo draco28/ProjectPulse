@@ -203,7 +203,7 @@ export function CommandPalette() {
         e.preventDefault();
         dispatch({ type: 'MOVE_UP' });
         break;
-      case 'Enter':
+      case 'Enter': {
         e.preventDefault();
         const selectedResult = state.results[state.selectedIndex];
         if (selectedResult) {
@@ -211,6 +211,7 @@ export function CommandPalette() {
           dispatch({ type: 'CLOSE' });
         }
         break;
+      }
       case 'Escape':
         e.preventDefault();
         dispatch({ type: 'CLOSE' });

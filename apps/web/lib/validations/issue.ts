@@ -74,7 +74,7 @@ export type StatusUpdate = z.infer<typeof StatusUpdateSchema>;
  */
 export const AttachmentUploadSchema = z.object({
   filename: z.string().min(1, 'Filename is required').max(255, 'Filename too long'),
-  mimetype: z.string().regex(/^[a-z]+\/[a-z0-9\-\+\.]+$/i, 'Invalid MIME type'),
+  mimetype: z.string().regex(/^[a-z]+\/[a-z0-9.+-]+$/i, 'Invalid MIME type'),
   size: z
     .number()
     .int()
