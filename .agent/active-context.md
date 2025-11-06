@@ -1,8 +1,8 @@
 # Active Context
 
-**Last Updated**: 2025-11-06
-**Current Phase**: Documentation Phase Complete, Ready for Sprint 1 Implementation
-**Branch**: `docs/architecture-pivot-sprint-1-redefinition` (to be merged to master)
+**Last Updated**: 2025-11-06 (Day 2 Complete)
+**Current Phase**: Sprint 1 - Foundation & Core Infrastructure (Week 1, Day 2 ✅ Complete)
+**Branch**: `feature/sprint-1-foundation`
 
 ---
 
@@ -10,59 +10,124 @@
 
 ### What We're Working On
 
-**Phase**: Documentation complete, implementation ready to start
-**Status**: Memory banks updated (Nov 6), ready to begin Sprint 1
-**Next Branch**: `feature/sprint-1-foundation` (to be created from master)
+**Phase**: Sprint 1 - Week 1 (Foundation Setup) - 40% complete
+**Status**: Day 2 complete, Day 3 ready to start
+**Current Day**: Day 2 ✅ Complete (Prisma schema design)
+**Next Day**: Day 3 - Schema validation and utility functions
 
-**Immediate Next Tasks**:
+**Immediate Next Tasks** (Day 3):
 
-1. Merge documentation branch to master
-2. Create feature/sprint-1-foundation branch
-3. Read Sprint 1 requirements (docs/13-Project-Plan.md, docs/12-Backlog.md)
-4. Design Prisma schema for 5-level hierarchy (Phase, Week, Day, Task, Session)
+1. Create progress roll-up utility function (`lib/db/progress.ts`)
+2. Write database tests (hierarchy CRUD, cascade deletes, progress calculation)
+3. Build Zod validation schemas (`lib/db/validation.ts`)
+4. Implement tree query helpers (`lib/db/hierarchy.ts`)
 
-**Sprint 1 Goal** (Once Started): Establish 5-level hierarchy with progress tracking and MCP server scaffold (52 points, 14 user stories)
+**Sprint 1 Goal**: Establish 5-level hierarchy with progress tracking and MCP server scaffold (52 points, 14 user stories)
 
 **Key Deliverables:**
 
-1. Prisma schema with 5 new models (Phase, Week, Day, Task, Session)
-2. Progress roll-up algorithm (Session 100% → propagates to Phase)
-3. MCP server scaffold (Node.js, stdio transport)
-4. First 7 MCP tools (sprint.phase.create, sprint.getCurrentTask, sprint.checkpoint, etc.)
-5. Validation: Foreign keys, progress 0.0-1.0, timestamps
+1. ✅ Prisma schema with 5 new models (Phase, Week, Day, Task, Session) - Day 2 COMPLETE
+2. ✅ Status enum (5 values) - Day 2 COMPLETE
+3. ✅ 25 indexes for query optimization - Day 2 COMPLETE
+4. ✅ Migration applied to PostgreSQL - Day 2 COMPLETE
+5. ✅ Seed data with Sprint 1 hierarchy - Day 2 COMPLETE
+6. ⏳ Progress roll-up algorithm (Session 100% → propagates to Phase) - Day 3
+7. ⏳ MCP server scaffold (Node.js, stdio transport) - Days 4-5
+8. ⏳ First 7 MCP tools (sprint.phase.create, sprint.getCurrentTask, sprint.checkpoint, etc.) - Days 6-7
+9. ⏳ Validation: Zod schemas, progress 0-100, circular reference checks - Day 3
 
 ---
 
 ## Recent Changes
 
+### Sprint 1 Day 2 Complete (November 6, 2025) ✅
+
+**Prisma Schema Design - COMPLETE**
+
+**What Was Built**:
+
+1. **5-Level Sprint Hierarchy Schema** ([schema.prisma](../apps/web/prisma/schema.prisma))
+   - 5 models: Phase, Week, Day, Task, Session
+   - Status enum: NOT_STARTED, IN_PROGRESS, COMPLETED, BLOCKED, CANCELLED
+   - Adjacency list pattern (simple FK relationships)
+   - Cascade delete enabled (delete parent → delete children)
+
+2. **Query Optimization** (25 indexes total)
+   - Foreign key indexes (5): parent_id columns
+   - Date range indexes (5): startDate, endDate composite
+   - Status indexes (5): status filtering
+   - Parent+status indexes (5): filtered children queries
+   - Composite indexes (5): parent_id + startDate + endDate + status
+
+3. **Database Migration** ([20251106141927_add_sprint_hierarchy](../apps/web/prisma/migrations/20251106141927_add_sprint_hierarchy/migration.sql))
+   - CREATE TYPE "Status" AS ENUM
+   - CREATE TABLE phases, weeks, days, tasks, sessions
+   - CREATE INDEX (25 performance indexes)
+   - ALTER TABLE (4 foreign key constraints)
+   - Applied successfully to PostgreSQL
+
+4. **Seed Data** ([seed.ts](../apps/web/prisma/seed.ts))
+   - 1 Phase: "Phase A - Foundation" (20% progress, IN_PROGRESS)
+   - 2 Weeks: Week 1 (40% progress), Week 2 (NOT_STARTED)
+   - 7 Days: Day 1 (COMPLETED), Day 2 (IN_PROGRESS), Days 3-10 (pending)
+   - 10 Tasks with realistic statuses and progress
+
+**Key Technical Decisions** (from prisma-expert consultation):
+
+- **Tree Structure**: Adjacency list (Prisma-native, TypeScript support)
+- **Progress Roll-Up**: Stored field + application-managed updates (not triggers)
+- **Date Filtering**: DateTime + composite indexes (sufficient for <100K rows)
+- **Index Strategy**: 5 per model (FK + dates + status + composites)
+- **Migration Strategy**: Side-by-side (keep old models, validate new system first)
+
+**Quality Gates Passed**:
+
+- ✅ TypeScript: Zero errors (`pnpm type-check`)
+- ✅ Prisma schema: Valid
+- ✅ Migration: Applied successfully
+- ✅ Seed: Executed successfully
+- ✅ Data integrity: Verified with psql queries
+
+**Session Log**: [current-session-20251106-day2.md](task/current-session-20251106-day2.md) (comprehensive documentation)
+
+---
+
+### Sprint 1 Day 1 Complete (November 6, 2025) ✅
+
+**Environment Setup - COMPLETE**
+
+**What Was Configured**:
+
+1. **TypeScript Strict Mode** ([tsconfig.base.json](../tsconfig.base.json))
+   - Strict mode enabled
+   - noUncheckedIndexedAccess: true
+   - noImplicitOverride: true
+
+2. **ESLint Root Configuration** ([.eslintrc.json](../.eslintrc.json))
+   - Minimal baseline
+   - Package-specific extensions allowed
+
+3. **Environment Validation**
+   - PostgreSQL container: Verified running (projectpulse-db, healthy)
+   - Prisma CLI: v5.22.0 confirmed
+   - DATABASE_URL: Fixed for host-side commands (localhost vs postgres)
+
+**Issues Fixed**:
+
+- DATABASE_URL in root .env changed from `postgres:5432` to `localhost:5432`
+- Added comments explaining Docker networking (postgres for containers, localhost for host)
+
+---
+
 ### Architecture Update Complete (November 6, 2025) ✅
 
-**Documentation Phase - COMPLETE**
+**Documentation Phase - COMPLETE** (archived for reference)
 
 **What Was Added** (5,500+ lines across 3 major commits):
 
-1. **Commit a1ae4fc** (Nov 6): Update PRD, SRS, and Architecture with 5 new epics (EPIC-010 to EPIC-014)
-   - 3,367 lines added
-   - 75 new functional requirements (FR-146 to FR-220)
-   - Architecture sections 3.11-3.12 added (Sub-Agent, Memory Banks)
-
-2. **Commit 5e154ff** (Nov 6): Add Sprint 9 with Memory Banks and Research Agent Orchestration
-   - 685 lines added
-   - Project Plan extended to 18 weeks (9 sprints)
-   - Sprint 9: 58 points, 13 user stories
-
-3. **Commit b4e2afc** (Nov 6): Add comprehensive documentation audit specification
-   - 1,178 lines modified
-   - Audit spec created for Gemini/AI verification
-   - Documents 7 common pitfalls and verification procedures
-
-**Key Architecture Decisions**:
-
-- **Sprint 9 Placement**: Documented for future, NOT current implementation focus
-- **Sprint 1-8**: Original roadmap (426 points, 16 weeks) remains the MVP implementation path
-- **Post-MVP**: EPIC-010 (Memory Banks), EPIC-011 (Research Agents), EPIC-012-014 (62 FRs)
-- **Product Clarification**: ProjectPulse = product for end-users, NOT a dev workflow tool
-- **"Project Onboarding System"**: Feature for end-users to onboard THEIR projects (not our development project)
+1. **Commit a1ae4fc**: Update PRD, SRS, and Architecture with 5 new epics
+2. **Commit 5e154ff**: Add Sprint 9 (Memory Banks + Research Agents)
+3. **Commit b4e2afc**: Add documentation audit specification
 
 ---
 
