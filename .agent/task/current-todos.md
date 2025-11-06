@@ -1,66 +1,98 @@
-# Current TODOs — Sprint 1 (Foundation Setup)
+# Sprint 1 Day 3 - Task List
 
-Progress: 53% (16/30 tasks)
-Last updated: 2025-11-06 Day 2 100% COMPLETE ✅
+**Created**: 2025-11-06
+**Status**: ✅ COMPLETE (100%)
+**Progress**: 11/11 tasks complete
 
-## Day 1: Setup & Planning ✅ COMPLETE
+---
 
-- [x] Confirm pnpm workspace + lockfile
-- [x] Add base tsconfig (strict) and eslint config
-- [x] Create .env.example and validate docker-compose Postgres service
-- [x] Document risks and mitigations in session log
+## Task Checklist
 
-## Day 2: Prisma Schema & DB ✅ 100% COMPLETE
+- [x] 1. Consult prisma-expert for progress roll-up strategy ✅
+- [x] 2. Create lib/db directory structure ✅
+- [x] 3. Implement progress.ts (calculateProgress, updateProgressAndPropagate, recalculateFullTree) ✅
+- [x] 4. Implement hierarchy.ts (getFullTree, getChildren, getParent, getAllDescendants) ✅
+- [x] 5. Implement validation.ts (5 Zod schemas + custom validators) ✅
+- [x] 6. Create hierarchy-crud.test.ts (4 tests) ✅
+- [x] 7. Create progress-calculation.test.ts (7 tests) ✅
+- [x] 8. Create hierarchy-integrity.test.ts (6 tests - US-014) ✅
+- [x] 9. Run all tests and verify 22 tests passing ✅
+- [x] 10. Update memory banks (active-context.md, progress.md) ✅
+- [x] 11. Commit Day 3 changes to git ✅
 
-- [x] Consult prisma-expert for schema design
-- [x] Define models: Phase, Week, Day, Task, Session
-- [x] Add relations, indexes, constraints (25 indexes total)
-- [x] Generate initial migration (20251106141927_add_sprint_hierarchy)
-- [x] Apply migration to PostgreSQL
-- [x] Validate Prisma Client generation
-- [x] Write prisma/seed.ts with Sprint 1 hierarchy (complete)
-- [x] Add 3 sessions to seed script (DONE)
-- [x] Test cascade delete functionality (2/2 tests passing)
-- [x] Test date filtering queries (3/3 tests passing)
-- [x] Re-verify data integrity with psql queries (3 sessions confirmed)
-- [x] Update memory banks (progress.md, active-context.md) to reflect Day 2 complete
+---
 
-## Day 3: Schema Validation ⏳ NOT STARTED
+## Progress by Category
 
-## Next.js API + Services
+### Implementation (5/5 complete)
 
-- [ ] Scaffold apps/web (Next.js 14, App Router)
-- [ ] Add Prisma client helper and Zod schemas
-- [ ] Implement POST /api/phase (createPhase)
-- [ ] Implement POST /api/week (createWeek)
-- [ ] Implement POST /api/day (createDay)
-- [ ] Implement POST /api/task (createTask)
-- [ ] Implement POST /api/session (createSession)
-- [ ] Implement roll-up service (propagate progress)
-- [ ] Wire roll-up into create/update flows
+- ✅ lib/db/progress.ts - 282 lines
+- ✅ lib/db/hierarchy.ts - 251 lines
+- ✅ lib/db/validation.ts - 324 lines
 
-## MCP Server
+### Testing (3/3 complete)
 
-- [ ] Scaffold apps/mcp-server (stdio)
-- [ ] Register tools: createPhase/Week/Day/Task/Session
-- [ ] Implement tool handlers calling Next.js API with Zod validation
-- [ ] Add local CLI for tool smoke tests
+- ✅ hierarchy-crud.test.ts - 4 tests
+- ✅ progress-calculation.test.ts - 7 tests
+- ✅ hierarchy-integrity.test.ts - 6 tests
 
-## Testing & Gates
+### Documentation (2/2 complete)
 
-- [ ] Unit tests: roll-up algorithm (10 cases)
-- [ ] Integration tests: API routes
-- [ ] MCP smoke test: create full 5-level hierarchy
-- [ ] pnpm lint, type-check, build all pass
+- ✅ Memory banks updated
+- ✅ Git commit created
 
-## Checkpoints
+---
 
-- [ ] 15K tokens — update session + todos
-- [ ] 30K tokens — update session + todos
-- [ ] 45K tokens — update session + todos
-- [ ] 60K tokens — update session + todos
+## Key Achievements
 
-Notes
+1. **Fixed Incremental Transaction Pattern**
+   - Recursive propagation now happens AFTER transaction commits
+   - Prevents nested transaction issues
+   - Progress roll-up works correctly across all 5 levels
 
-- Follow R-DOC-001, R-TS-001, R-NEXT-001, R-SEC-001, R-MCP-001, R-PRIVACY-001.
-- No hardcoded values; use config/database as per Golden Rules.
+2. **Type-Safe Generic Functions**
+   - getChildren<T>() and getParent<T>() with TypeScript conditional types
+   - Full type safety for tree traversal
+
+3. **Complete US-014 Implementation**
+   - Hierarchy integrity validation with validateHierarchyIntegrity()
+   - Detects orphaned Tasks and Sessions
+   - Validates circular references and date ranges
+
+---
+
+## Test Results
+
+```
+Test Suites: 5 passed, 5 total
+Tests:       22 passed, 22 total
+  - cascade-delete.test.ts: 2 tests ✓
+  - date-filtering.test.ts: 3 tests ✓
+  - hierarchy-crud.test.ts: 4 tests ✓ (NEW)
+  - progress-calculation.test.ts: 7 tests ✓ (NEW)
+  - hierarchy-integrity.test.ts: 6 tests ✓ (NEW)
+```
+
+---
+
+## Token Usage
+
+- **Total**: ~65K tokens
+- **Percentage**: 32.5% of 200K budget
+- **Well within limits** ✅
+
+---
+
+## Next Session Tasks (Day 4-5)
+
+### MCP Server Scaffold
+
+1. Initialize MCP server project structure (mcp-server/ folder)
+2. Configure stdio transport (@modelcontextprotocol/sdk)
+3. Create tool registration system
+4. Test MCP connection with Claude Code
+
+---
+
+**Session Complete**: 2025-11-06
+**Status**: ✅ ALL TASKS COMPLETE
