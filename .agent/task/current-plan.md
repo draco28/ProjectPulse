@@ -1,301 +1,135 @@
-# Week 1.75 - Phase 4 Completion Implementation Plan
+# Implementation Plan: Sprint 1 Day 4 – MCP Server Scaffold
 
-**Created**: 2025-11-01 14:45
-**Phase**: Week 1.75 - Phase 4 Completion
-**Estimated Duration**: 3-7 hours
-
----
-
-## Overview
-
-Complete all deferred tasks from Week 1.5 Phase 4 before starting Week 2 (Issue Tracker Core). Focus on polish, performance optimization, and quality gates.
+**Created**: 2025-11-07 05:58  
+**Phase**: Sprint 1 · Week 1 · Day 4 (MCP foundation)  
+**Estimated Duration**: 3-5 hours (includes scaffolding + smoke test)
 
 ---
 
-## Success Criteria
+## Objective
 
-- ✅ 0 TypeScript errors
-- ✅ 0 lint warnings (currently 11)
-- ✅ Font Awesome completely removed (30 files migrated to Lucide)
-- ✅ Font Awesome CDN link removed from layout.tsx
-- ✅ Bundle size reduced by ~60KB
-- ✅ Bundle analyzer configured and baseline documented
-- ✅ Accessibility: 0 axe-core violations (WCAG 2.1 AA)
-- ✅ Performance: ≥90 Lighthouse score on all pages
+Stand up the first dedicated MCP server workspace so future sprint-tracking tools (US-001…US-007, US-009) have a stdio entrypoint that Claude Code can connect to. Day 4 focuses on project structure, stdio transport wiring, config/logging bootstrap, and an extensible tool registry with at least one placeholder tool.
+
+**Status**: ✅ Completed 2025-11-07 (workspace + health tool live; Day 5 will harden workflows and prep new tools)
 
 ---
 
-## Phase 1: Font Awesome → Lucide Migration (2-3 hours)
+## Requirements & References
 
-**Goal**: Replace all Font Awesome icons with Lucide React components
+- `docs/13-Project-Plan.md` – Sprint 1 Week 1 Day 4 deliverables (MCP scaffold, stdio transport, tool registration)
+- `docs/12-Backlog.md` – US-001, US-003, US-004, US-009 dependencies
+- `.agent/system/mcp-tools-guide.md` – transport/tool conventions
+- `.agent/system-patterns.md` – TypeScript strict + Zod validation patterns
+- `.agent/project-brief.md` – agent-first, MCP-first architecture goals
 
-### Strategy
+Key requirements distilled:
 
-1. Start with High Priority files (most visible to users)
-2. Test type-check after every 5 files
-3. Verify visually in browser after each migration
-4. Remove CDN link only after ALL migrations complete
-
-### Migration Pattern
-
-```tsx
-// BEFORE (Font Awesome)
-<i className="fas fa-plus"></i>;
-
-// AFTER (Lucide)
-import { Plus } from 'lucide-react';
-<Plus className="h-5 w-5" aria-hidden="true" />;
-```
-
-### Icon Mapping Reference
-
-See: `.agent/task/font-awesome-to-lucide-migration.md` for complete mapping table
-
-### File Priority
-
-**High Priority (8 files)** - Start here:
-
-1. ✅ components/issues/SearchSortBar.tsx - Search, view toggles
-2. ⏳ app/issues/page.tsx - New Issue button
-3. ⏳ app/issues/[id]/page.tsx - Attachments, comments sections
-4. ⏳ components/issues/detail/QuickActions.tsx - Action buttons
-5. ⏳ components/issues/detail/IssueActions.tsx - Status change buttons
-6. ⏳ components/issues/detail/IssueHeader.tsx - Header icons
-7. ⏳ components/dashboard/QuickActionsWidget.tsx - Dashboard actions
-8. ⏳ components/issues/FilterSidebar.tsx - Filter icons
-
-**Medium Priority (14 files)**:
-
-- components/issues/detail/DescriptionSection.tsx
-- components/issues/detail/CodeSection.tsx
-- components/issues/detail/SystemActivity.tsx
-- components/issues/detail/WatchersSection.tsx
-- components/issues/detail/RelatedIssues.tsx
-- components/issues/detail/IssueDetailSidebar.tsx
-- components/issues/detail/CommentList.tsx
-- components/issues/detail/CommentForm.tsx
-- components/issues/IssueListCard.tsx
-- app/knowledge/page.tsx
-- app/agents/page.tsx
-- app/security/page.tsx
-- app/wiki/[slug]/page.tsx
-- app/wiki/[slug]/not-found.tsx
-
-**Low Priority (8 files)**:
-
-- components/CommandPalette.tsx
-- components/agents/AgentCard.tsx
-- components/knowledge/SearchBar.tsx
-- components/knowledge/ArticleCard.tsx
-- components/knowledge/TagFilter.tsx
-- components/security/VulnerabilityCard.tsx
-- components/security/VulnerabilityFilter.tsx
-- components/wiki/WikiSidebar.tsx
-
-### Testing Checkpoints
-
-- After 5 files: `pnpm type-check`
-- After 10 files: `pnpm type-check` + visual browser test
-- After 20 files: `pnpm type-check` + full page review
-- After all files: `pnpm type-check` + `pnpm lint`
+1. Server must run locally (no Docker) with stdio transport for Claude Code.
+2. MCP server must remain stateless—every tool call proxies through existing Next.js API routes (no direct Prisma usage).
+3. Tool registration system must be data-driven (no hardcoded branching).
+4. Config + logging should be centralized (preps for future env overrides).
+5. Provide developer script (`pnpm mcp-server:dev`) and README quick start.
 
 ---
 
-## Phase 2: Quality Gates (1-2 hours)
+## Deliverables
 
-### 2.1 Fix Lint Warnings (15 minutes)
-
-**Current State**: 11 unused variable warnings
-
-**Fix Pattern**:
-
-```tsx
-// Before
-const issueId = parseInt(id, 10);
-
-// After (if truly unused)
-const _issueId = parseInt(id, 10);
-```
-
-**Files to Check**:
-
-- Run `pnpm lint` to see all warnings
-- Fix each by prefixing with underscore or removing if truly unused
-- Re-run `pnpm lint` to verify 0 warnings
-
-### 2.2 Bundle Analyzer Setup (30 minutes)
-
-**Steps**:
-
-1. Install: `pnpm add -D @next/bundle-analyzer`
-2. Create `next.config.analyzer.js`:
-
-```js
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
-
-module.exports = withBundleAnalyzer({
-  // ... existing config
-});
-```
-
-3. Add script to package.json: `"analyze": "ANALYZE=true pnpm build"`
-4. Run analysis: `pnpm analyze`
-5. Document findings in session file
-
-**Expected Findings**:
-
-- Identify largest chunks
-- Confirm CodeBlock lazy loading working
-- Confirm Font Awesome removed
-- Identify additional optimization opportunities
-
-### 2.3 Accessibility Audit (1 hour)
-
-**Tool**: axe-core via Playwright
-
-**Implementation**:
-
-1. Create test file: `e2e/accessibility.spec.ts`
-2. Add axe-core integration
-3. Test pages: Dashboard, Issues List, Issue Detail
-4. Fix any violations found
-5. Target: 0 violations (WCAG 2.1 AA)
-
-**Test Pattern**:
-
-```typescript
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-
-test('Dashboard accessibility', async ({ page }) => {
-  await page.goto('http://localhost:3000/dashboard');
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
-});
-```
-
-### 2.4 Lighthouse Audit (30 minutes)
-
-**Pages to Test**:
-
-- Dashboard (`/dashboard`)
-- Issues List (`/issues`)
-- Issue Detail (`/issues/1`)
-
-**Metrics Target**: ≥90 for all
-
-- Performance
-- Accessibility
-- Best Practices
-- SEO
-
-**Documentation**:
-
-- Screenshot baseline scores
-- Document in session file
-- Note any recommendations
+1. `apps/mcp-server/` workspace with package.json, tsconfig, src tree, README.
+2. Shared TypeScript config extending root `tsconfig.base.json`, ESLint hook optional.
+3. `src/index.ts` bootstrapping stdio transport from `@modelcontextprotocol/sdk`, wiring HTTP client, graceful shutdown.
+4. `src/config.ts`, `src/logger.ts` (or utilities) for env + structured logging.
+5. `src/tools/index.ts` + at least one placeholder tool module demonstrating schema validation with Zod.
+6. Basic smoke test (e.g., `src/__tests__/bootstrap.test.ts` or script) ensuring registry loads without runtime errors.
+7. Root-level npm script + documentation so engineers can run `pnpm mcp-server:dev`.
 
 ---
 
-## Phase 3: Documentation & Completion (30 minutes)
+## Task Breakdown & Estimates
 
-### 3.1 Create Completion Report
+### Task 1: Workspace & Dependency Setup (30-45 min)
 
-**File**: `docs/COMPLETION_WEEK_1.75.md`
+- Add `apps/mcp-server` to `pnpm-workspace.yaml`.
+- Scaffold `package.json` (type: module, TS + ts-node/dev deps, SDK dependency).
+- Ensure Prisma + shared tooling dependencies referenced correctly (reuse root lockfile).
+- Verify `pnpm install` succeeds and no duplicate dependencies conflict.
 
-**Template**: Follow `docs/COMPLETION_WEEK_1.5_PHASE_4.md` structure
+### Task 2: Configuration & Build System (30 min)
 
-**Sections**:
+- Create `tsconfig.json` that extends `../../tsconfig.base.json`, configure outDir, strict, moduleResolution, path aliases (e.g., `@/tools`).
+- Add `tsconfig.build.json` if needed for emitted JS.
+- Optional: `eslint.config.js` referencing workspace lint rules (if required by guidelines).
 
-- Executive Summary
-- Deliverables Completed
-- Files Modified (summary table)
-- Technical Decisions & Patterns
-- Metrics & Impact (before/after)
-- Known Issues & Future Work
-- Sign-Off
+### Task 3: Server Bootstrap (`src/index.ts`) (45-60 min)
 
-### 3.2 Update Project Documentation
+- Create logger + HTTP client wiring (fetch to Next.js API).
+- Configure stdio transport via `@modelcontextprotocol/sdk/server`.
+- Implement graceful shutdown (SIGINT/SIGTERM) and transport close.
+- Log startup metadata (API base URL, tool count) for debugging.
 
-**STATUS.md**:
+### Task 4: Tool Registry & Sample Tool (45-60 min)
 
-- Update last completed phase
-- Update last task completed
-- Update next steps
+- Design `ToolDefinition` interface (id, metadata, handler, zod schemas).
+- Implement `src/tools/index.ts` to auto-register tools (array map → SDK registration).
+- Create placeholder tool (e.g., `src/tools/healthCheck.ts`) that validates input + returns static data (foundation for createPhase tool).
+- Add tests for schema validation & registry wiring (Jest or tsx-runner).
 
-**DEVELOPMENT_PLAN.md**:
+### Task 5: Developer Experience & Documentation (30 min)
 
-- Mark Week 1.75 complete
-- Add completion date
-- Note that Week 2 prerequisites satisfied
+- Add npm scripts to root `package.json` (and/or workspace package) for `dev`/`build`.
+- Document usage in `apps/mcp-server/README.md` (install, run, connect from Claude).
+- Add instructions to `.agent/task/current-session` log as part of Step 4 checkpoints.
 
-### 3.3 Git Commit
+### Task 6: Verification & Cleanup (30 min)
 
-**Workflow**:
-
-1. Stage changes: `git add .`
-2. Commit with message:
-
-```
-docs: complete Week 1.75 - Phase 4 finalization
-
-- Migrate 30 files from Font Awesome to Lucide React
-- Fix 11 lint warnings (unused variables)
-- Configure bundle analyzer
-- Run accessibility audit (0 violations)
-- Run Lighthouse audit (≥90 all metrics)
-- Bundle size reduced by ~60KB
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-
-3. Verify: `git status`
+- Smoke-test server start (log output).
+- Run `pnpm lint`, `pnpm type-check`, and targeted tests.
+- Update plan/todos progress + checkpoint log.
+- Prep Step 4.5 verification list (files created, script outputs).
 
 ---
 
-## Dependencies
+## Files to Create / Modify
 
-**None** - All tasks can proceed independently
+- `pnpm-workspace.yaml`
+- `apps/mcp-server/package.json`
+- `apps/mcp-server/tsconfig.json` (+ optional `tsconfig.build.json`)
+- `apps/mcp-server/src/index.ts`
+- `apps/mcp-server/src/config.ts`
+- `apps/mcp-server/src/logger.ts`
+- `apps/mcp-server/src/tools/index.ts`
+- `apps/mcp-server/src/tools/healthCheck.ts` (placeholder)
+- `apps/mcp-server/src/__tests__/bootstrap.test.ts` (or similar)
+- `apps/mcp-server/README.md`
+- Root `package.json` scripts section (if needed)
+- `.agent/task/current-session-20251107-0552.md` (checkpoints)
+- `.agent/task/current-todos.md` (progress tracking)
 
 ---
 
 ## Risks & Mitigations
 
-**Risk 1**: Icon visual differences after migration
-
-- **Mitigation**: Visual review after each file, adjust sizing if needed
-
-**Risk 2**: Breaking changes in component functionality
-
-- **Mitigation**: Test after every 5 files, maintain type-check passing
-
-**Risk 3**: Build failure with database requirement
-
-- **Mitigation**: Use `pnpm type-check` + `pnpm lint` instead of full build
+| Risk                                      | Impact                                | Mitigation                                                                                         |
+| ----------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Dependency conflicts or missing peer deps | Blocks install                        | Reuse root versions, run `pnpm install` immediately after scaffold                                 |
+| Prisma client duplication                 | Bundle bloat / mismatched schema      | Use workspace protocol to import Prisma from root `node_modules`, avoid generating separate schema |
+| ESM/CommonJS mismatch                     | Runtime failure when launching server | Align `type: module`, use `ts-node --esm` or compile to ESM; test via `pnpm mcp-server:dev`        |
+| Tool registration drift                   | Hard to add future tools              | Centralize metadata + auto-registration with typed schema definitions                              |
 
 ---
 
-## Token Budget
+## Success Criteria & Verification Plan
 
-**Estimated Token Usage**:
-
-- Font Awesome migration: ~40-60K tokens (30 files × 2K avg)
-- Quality gates: ~15-20K tokens
-- Documentation: ~10-15K tokens
-- **Total Estimated**: 65-95K tokens
-- **Budget Available**: 200K tokens
-- **Safety Margin**: ✅ Comfortable (2-3x buffer)
+- `pnpm mcp-server:dev` starts server, logs “MCP server ready” and stays alive until Ctrl+C.
+- Tool registry reports ≥1 registered tool; health check responds over stdio (manual log evidence).
+- `pnpm lint`, `pnpm type-check`, and targeted tests pass (no TS errors).
+- Step 4.5 verification documents evidence: command outputs, file listings, tool count.
 
 ---
 
-## Next Steps After Week 1.75
+## Testing Strategy
 
-**Week 2: Issue Tracker Core**
+- Unit: Jest/tsx tests for config + registry.
+- Integration: Launch server via ts-node (or compiled JS) to ensure bootstrap path works.
+- Manual: Observe stdout handshake log, confirm graceful shutdown message.
 
-- Per DEVELOPMENT_PLAN.md lines 2815+
-- Prerequisites: ✅ All satisfied after Week 1.75 completion
-- Focus: CRUD APIs for issues, comments, attachments
+---

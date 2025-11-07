@@ -60,7 +60,9 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
   - ✅ **Complete**: 3 sessions added, cascade delete tests (2/2), date filtering tests (3/3)
 - Day 3: Schema Validation (✅ 100% COMPLETE - Progress roll-up, tree queries, Zod validation, 17 new tests)
   - ✅ **Complete**: Incremental transactions, type-safe generics, US-014 hierarchy integrity
-- Day 4-5: MCP Server Scaffold (⏳ 0% - stdio transport, tool registration)
+- Day 4: MCP Server Scaffold (✅ 100% COMPLETE - stdio transport, tool registry, health tool)
+  - ✅ **Complete**: `apps/mcp-server/` workspace, config/logger/httpClient utilities, stdio bootstrap, `projectpulse.health_check` tool, lint/type/test/build, Step 4.5 verification
+- Day 5: MCP Server Hardening (⏳ 0% - CLI smoke test + docs)
 
 **Week 2: MCP Tools Implementation (Days 6-10)** ⏳ Not Started
 
@@ -81,7 +83,7 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 - [x] Validation: Zod schemas, progress 0-100, circular reference checks ✅ Day 3
 - [x] Database tests: 17 new tests (22/22 total passing) ✅ Day 3
 - [ ] MCP tools: createPhase, createWeek, createDay, createTask, createSession
-- [ ] MCP server foundation (stdio transport, tool registration)
+- [x] MCP server foundation (stdio transport, tool registration) ✅ Day 4
 
 **Exit Criteria**:
 
@@ -165,5 +167,5 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 
 ---
 
-Last reviewed: 2025-11-06
+Last reviewed: 2025-11-07
 Next review: End of Sprint 1 implementation (2 weeks after start)

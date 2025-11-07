@@ -1,0 +1,37 @@
+{
+  "name": "@devhub/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ProjectPulse MCP server (stdio transport) that bridges Claude Code tools to Next.js APIs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "lint": "eslint . --ext .ts --max-warnings=0",
+    "type-check": "tsc --noEmit",
+    "test": "tsx --test src/__tests__/bootstrap.test.ts"
+  },
+  "keywords": [
+    "projectpulse",
+    "mcp",
+    "claude",
+    "devhub"
+  ],
+  "author": "ProjectPulse",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.4.2"
+  }
+}

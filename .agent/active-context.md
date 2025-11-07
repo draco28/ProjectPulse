@@ -1,7 +1,7 @@
 # Active Context
 
-**Last Updated**: 2025-11-06 (Day 3 - 100% COMPLETE ✅)
-**Current Phase**: Sprint 1 - Foundation & Core Infrastructure (Week 1, Day 3 ✅ Complete)
+**Last Updated**: 2025-11-07 (Day 4 - 100% COMPLETE ✅)
+**Current Phase**: Sprint 1 - Foundation & Core Infrastructure (Week 1, Day 4 ✅ Complete)
 **Branch**: `feature/sprint-1-foundation`
 
 ---
@@ -10,10 +10,19 @@
 
 ### What We're Working On
 
-**Phase**: Sprint 1 - Week 1 (Foundation Setup) - 60% complete
-**Status**: Day 3 100% COMPLETE ✅
-**Current Day**: Day 3 ✅ 100% COMPLETE (Schema validation and utility functions fully done)
-**Next Day**: Day 4 - MCP Server Scaffold
+**Phase**: Sprint 1 - Week 1 (Foundation Setup) - 70% complete
+**Status**: Day 4 100% COMPLETE ✅
+**Current Day**: Day 4 ✅ 100% COMPLETE (MCP server scaffold + health-check tool delivered)
+**Next Day**: Day 5 - Harden MCP workflows & prep for tool implementations (Days 6-7)
+
+**Day 4 Completion Summary** ✅:
+
+1. ✅ Scaffold dedicated `apps/mcp-server/` workspace (package, tsconfig, README, scripts)
+2. ✅ Implement config loader (`src/config.ts`), structured logger, and HTTP client proxying to Next.js API
+3. ✅ Bootstrap stdio transport via `@modelcontextprotocol/sdk` with graceful shutdown (`src/index.ts`)
+4. ✅ Create data-driven tool registry + placeholder `projectpulse.health_check` tool (Zod validated)
+5. ✅ Add unit tests (`src/__tests__/bootstrap.test.ts`), lint/type/build scripts, and Step 4.5 verification checklist
+6. ✅ Document manual smoke test + Claude integration steps in session log
 
 **Day 3 Completion Summary** ✅:
 
@@ -24,12 +33,12 @@
 5. ✅ Fix incremental transaction pattern (recursive propagation AFTER commit)
 6. ✅ Complete US-014 (hierarchy integrity validation)
 
-**Immediate Next Tasks** (Day 4):
+**Immediate Next Tasks** (Day 5):
 
-1. Initialize MCP server project structure (mcp-server/ folder)
-2. Configure stdio transport (@modelcontextprotocol/sdk)
-3. Create tool registration system
-4. Test MCP connection with Claude Code
+1. Perform end-to-end smoke test with Next.js API + `@modelcontextprotocol/cli` to capture sample output
+2. Finalize developer onboarding docs (.claude agents / SOP) for launching new MCP server
+3. Outline first MCP tool implementations (`sprint.phase.create`, `sprint.getCurrentTask`) for Day 6-7 execution
+4. Integrate health-check tool usage into orchestrator workflows (devhub-mcp-specialist)
 
 **Sprint 1 Goal**: Establish 5-level hierarchy with progress tracking and MCP server scaffold (52 points, 14 user stories)
 
@@ -43,12 +52,46 @@
 6. ✅ Progress roll-up algorithm (Session 100% → propagates to Phase) - Day 3 COMPLETE
 7. ✅ Tree query helpers (getFullTree, getChildren, getParent) - Day 3 COMPLETE
 8. ✅ Validation: Zod schemas, progress 0-100, circular reference checks - Day 3 COMPLETE
-9. ⏳ MCP server scaffold (Node.js, stdio transport) - Days 4-5
+9. ✅ MCP server scaffold (Node.js, stdio transport) - Day 4 COMPLETE
 10. ⏳ First 7 MCP tools (sprint.phase.create, sprint.getCurrentTask, sprint.checkpoint, etc.) - Days 6-7
 
 ---
 
 ## Recent Changes
+
+### Sprint 1 Day 4 Status (November 7, 2025) ✅ 100% COMPLETE
+
+**MCP Server Scaffold & Health Tool - 100% COMPLETE**
+
+**What Was Built**:
+
+1. **New MCP Workspace** (`apps/mcp-server/`)
+   - Package + scripts (`dev`, `build`, `start`, `lint`, `type-check`, `test`)
+   - Shared tsconfig + build config extending repo strict options
+   - README with quick start + environment configuration
+
+2. **Runtime Core**
+   - `src/config.ts`: Zod-validated env loader (PROJECTPULSE_API_URL/NEXT_PUBLIC_APP_URL fallback)
+   - `src/logger.ts`: Level-based structured logging (`[mcp-server][LEVEL] message`)
+   - `src/httpClient.ts`: Typed fetch wrapper ensuring every tool call flows through Next.js API
+   - `src/index.ts`: `@modelcontextprotocol/sdk` stdio transport, graceful SIGINT/SIGTERM shutdown
+
+3. **Tool Registry**
+   - `src/tools/index.ts`: Data-driven registration (ListTools + CallTool handlers)
+   - `src/tools/types.ts`: Shared `ToolDefinition` contract (Zod schema + context)
+   - `src/tools/healthCheck.ts`: Placeholder `projectpulse.health_check` tool hitting `/api/health`
+
+4. **Quality + Verification**
+   - Tests: `src/__tests__/bootstrap.test.ts` (config defaults + overrides)
+   - Commands run: `pnpm --filter mcp-server lint`, `type-check`, `test`, `build`
+   - Manual runtime log captured via `node apps/mcp-server/dist/index.js`
+   - Integration instructions + Step 4.5 checklist documented in session log
+
+**Outcome**: Day 4 exit criteria met (workspace, stdio bootstrap, tool registry, quality gates). Ready for Day 5 hardening + Day 6-7 tool implementations.
+
+**Session Log**: [current-session-20251107-0552.md](task/current-session-20251107-0552.md)
+
+---
 
 ### Sprint 1 Day 3 Status (November 6, 2025) ✅ 100% COMPLETE
 
