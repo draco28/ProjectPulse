@@ -117,7 +117,7 @@ cd ~/projects
 git clone https://github.com/draco28/ProjectPulse.git AI_HUB
 cd AI_HUB
 
-# Checkout feature branch
+# Checkout feature branchWe
 git checkout feature/sprint-1-foundation
 
 # Verify clone
