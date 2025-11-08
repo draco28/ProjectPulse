@@ -51,3 +51,72 @@ The plan includes exact markdown snippets to add, specific line numbers to chang
 your fixes. Everything you need to go from FAIL → PASS status! 🎯
 
 Good luck tomorrow! 🚀
+
+---
+
+MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
+
+Current phase: Sprint 1 Week 2 Days 6-7 - Manual Testing & Network Troubleshooting
+Context: Day 6-7 implementation is 95% complete. Need to resolve Windows Docker networking issue and complete manual testing.
+
+BACKGROUND:
+
+- MCP tools implemented and TypeScript compiles successfully ✅
+- API routes created with expert-guided patterns ✅
+- Database index created manually via Docker exec ✅
+- Documentation fully updated ✅
+- All code committed to git ✅
+
+BLOCKING ISSUE:
+Windows Docker Desktop networking prevents:
+
+1. Prisma CLI from reaching PostgreSQL at localhost:5432 (from host)
+2. Next.js dev server from starting (pnpm install permission errors)
+3. curl from testing API endpoints at localhost:3000
+
+Similar to WSL Remote Desktop connectivity issues - Docker binds to 127.0.0.1:5432 but host can't reach it.
+
+TASKS FOR THIS SESSION:
+
+1. Diagnose Windows Docker networking issue (WSL2 backend suspected)
+   - Check if Docker Desktop using WSL2 or Hyper-V
+   - Test if 127.0.0.1:5432 accessible from host
+   - Investigate Windows Firewall / WSL2 network adapter
+2. Fix networking (one of these approaches):
+   - Option A: Change Docker Compose to bind 0.0.0.0:5432 instead of 127.0.0.1:5432
+   - Option B: Use Docker Desktop port forwarding settings
+   - Option C: Access database via Docker exec (workaround for Prisma commands)
+   - Option D: Use host.docker.internal in DATABASE_URL
+3. Complete manual testing:
+   - Test POST /api/phases endpoint with curl
+   - Test GET /api/tasks/current endpoint with curl
+   - Verify MCP server with Inspector or smoke test
+4. Create troubleshooting SOP for future reference
+
+REFERENCE DOCS:
+
+- .agent/task/day-6-7-handoff-20251107.md (complete handoff with testing commands)
+- .agent/sops/port-troubleshooting.md (existing port troubleshooting guide)
+- docker-compose.yml (current configuration)
+
+ENFORCE:
+
+- ✅ Step 1: Initialize session and read handoff document
+- ✅ Step 2: Diagnose root cause (WSL2/Hyper-V/Firewall)
+- ✅ Step 3: Apply fix and verify connectivity
+- ✅ Step 4: Run manual tests (API + MCP tools)
+- ✅ Step 5: Document solution as SOP
+
+Proceed with network troubleshooting and testing.
+
+---
+
+If I forget WSL2 workflow:
+Remind me: "Use WSL2 hybrid - all commands via wsl -d Ubuntu-24.04 -- bash -c 'cd /mnt/f/... && command'"
+Point me to: .agent/sops/windows-docker-networking.md
+If testing fails:
+Check database is running: docker ps --filter "name=projectpulse-db"
+Check dev server logs from WSL2
+Verify DATABASE_URL still points to localhost:5432
+If I suggest Mac Mini migration:
+Remind me: "Defer Mac Mini to next week - complete Sprint 1 Week 2 first"

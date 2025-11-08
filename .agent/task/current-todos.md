@@ -1,63 +1,51 @@
-# Day 6-7 Testing & Completion Todos
+# Day 8-9 Task Checklist
 
-**Created**: 2025-11-08 08:30 AM
-**Sprint**: Sprint 1 Week 2 Days 6-7
-**Total Tasks**: 15
-**Progress**: 0/15 (0%)
-
----
-
-## Phase 1: Manual API Testing
-
-- [ ] 1. Start Next.js dev server from WSL2
-- [ ] 2. Test POST /api/phases with valid input (success case)
-- [ ] 3. Test POST /api/phases error handling (validation errors)
-- [ ] 4. Test GET /api/tasks/current without query params
-- [ ] 5. Test GET /api/tasks/current with includeHistory=true
-
-**Phase 1 Progress**: 0/5 tasks (0%)
+**Created**: 2025-11-08 09:45
+**Progress**: 0/15 tasks (0%)
+**Current Task**: None (starting Phase 1)
 
 ---
 
-## Phase 2: MCP Server Integration
+## Phase 1: Bug Fix (1 task)
 
-- [ ] 6. Build MCP server and verify compilation
-- [ ] 7. Test MCP tool invocations (manual or smoke test)
+- [ ] Fix date validation bug in POST /api/phases
 
-**Phase 2 Progress**: 0/2 tasks (0%)
+## Phase 2: Tool 1 - sprint.updateProgress (3 tasks)
 
----
+- [ ] Create POST /api/progress API route
+- [ ] Implement sprint.updateProgress MCP tool
+- [ ] Manual testing (API + MCP tool)
 
-## Phase 3: Documentation Updates
+## Phase 3: Tool 2 - sprint.task.create (3 tasks)
 
-- [ ] 8. Update .agent/system/api-catalog.md with 2 new endpoints
-- [ ] 9. Update .agent/system/mcp-tools-guide.md with 2 new tools
-- [ ] 10. Update .agent/active-context.md (mark Day 6-7 complete)
-- [ ] 11. Update .agent/progress.md (Sprint 1 Week 2 progress)
+- [ ] Create POST /api/tasks API route
+- [ ] Implement sprint.task.create MCP tool
+- [ ] Manual testing (API + MCP tool)
 
-**Phase 3 Progress**: 0/4 tasks (0%)
+## Phase 4: Tool 3 - sprint.session.create (3 tasks)
 
----
+- [ ] Create POST /api/sessions API route
+- [ ] Implement sprint.session.create MCP tool
+- [ ] Manual testing (API + MCP tool)
 
-## Phase 4: Verification & Completion
+## Phase 5: Integration & Build (3 tasks)
 
-- [ ] 12. Run Step 4.5 verification with evidence collection
-- [ ] 13. Create optional completion document
-- [ ] 14. Commit documentation updates to git
-- [ ] 15. Commit any code fixes (if needed)
+- [ ] Register 3 new tools in MCP server
+- [ ] Build MCP server (verify 0 TypeScript errors)
+- [ ] Integration testing (phase → task → session → progress workflow)
 
-**Phase 4 Progress**: 0/4 tasks (0%)
+## Phase 6: Documentation (2 tasks)
 
----
-
-## Overall Progress
-
-**Total**: 0/15 tasks complete (0%)
-
-**Estimated Time Remaining**: 2h 25m
-
-**Next Checkpoint**: 15K tokens (update this file with progress)
+- [ ] Update API catalog with 3 new endpoints
+- [ ] Update MCP tools guide with 3 new tools
+- [ ] Update context files (active-context.md, progress.md)
+- [ ] Create Step 4.5 verification report with evidence
 
 ---
 
-**Last Updated**: 2025-11-08 08:30 AM
+**Total**: 15 tasks
+**Completed**: 0
+**In Progress**: 0
+**Pending**: 15
+
+**Next Checkpoint**: 15K tokens (~125K total)

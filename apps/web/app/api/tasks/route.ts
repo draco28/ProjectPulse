@@ -1,12 +1,11 @@
 /**
- * API Route: POST /api/phases
+ * API Route: POST /api/tasks
  *
- * Purpose: Create a new phase with auto-generated child weeks
+ * Purpose: Create a new task within a day
  *
- * Pattern: Next.js 14 API Route → Zod validation → Prisma nested write
+ * Pattern: Next.js 14 API Route → Zod validation → Prisma create
  *
- * Performance: Uses Prisma nested write (3x faster than loop + transaction)
- * See: .agent/task/prisma-sprint-tools-20251107-0630.md
+ * Hierarchy: Phase → Week → Day → **Task** → Session
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -17,7 +16,10 @@ import { prisma } from '@/lib/prisma';
 // VALIDATION SCHEMA
 // ============================================================================
 
-const createPhaseSchema = z.object({
+const createTaskSchema = z.object({
+  dayId: z.string()
+    .uuid('dayId must be a valid UUID'),
+
   title: z.string()
     .min(1, 'Title is required')
     .max(200, 'Title must be 200 characters or less'),
@@ -47,119 +49,118 @@ const createPhaseSchema = z.object({
   path: ['startDate'],
 });
 
-type CreatePhaseInput = z.infer<typeof createPhaseSchema>;
+type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
 // ============================================================================
 // POST HANDLER
 // ============================================================================
 
 /**
- * Create a new phase with auto-generated weeks
+ * Create a new task within a day
  *
  * Flow:
  * 1. Parse and validate request body
- * 2. Calculate number of weeks from date range
- * 3. Use Prisma nested write to create phase + weeks atomically
- * 4. Return phase and weeks data
+ * 2. Verify dayId exists
+ * 3. Create task with Prisma
+ * 4. Return task with hierarchical context (day → week → phase)
  *
  * Error Handling:
- * - 400: Validation errors (Zod)
+ * - 400: Validation errors (Zod) or day not found
  * - 500: Database errors (Prisma)
  *
  * Response Format:
- * Success: { success: true, data: { phase, weeks } }
+ * Success: { success: true, data: { task, context: { day, week, phase } } }
  * Error: { success: false, error: { code, message, field? } }
  */
 export async function POST(request: NextRequest) {
   try {
     // 1. Parse and validate request
     const body = await request.json();
-    const validated = createPhaseSchema.parse(body);
+    const validated = createTaskSchema.parse(body);
 
-    // 2. Convert dates
+    // 2. Verify dayId exists
+    const day = await prisma.day.findUnique({
+      where: { id: validated.dayId },
+      select: {
+        id: true,
+        title: true,
+        week: {
+          select: {
+            id: true,
+            title: true,
+            phase: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!day) {
+      return NextResponse.json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Day not found',
+          field: 'dayId',
+        },
+      }, { status: 400 });
+    }
+
+    // 3. Convert dates
     const startDate = new Date(validated.startDate);
     const endDate = new Date(validated.endDate);
 
-    // 3. Calculate number of weeks
-    const durationMs = endDate.getTime() - startDate.getTime();
-    const durationWeeks = Math.ceil(durationMs / (7 * 24 * 60 * 60 * 1000));
-
-    // 4. Prepare week data for nested write
-    const weeksData = [];
-    for (let i = 0; i < durationWeeks; i++) {
-      const weekStart = new Date(startDate);
-      weekStart.setDate(weekStart.getDate() + (i * 7));
-
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 7);
-
-      // Cap week end date at phase end date
-      if (weekEnd > endDate) {
-        weekEnd.setTime(endDate.getTime());
-      }
-
-      weeksData.push({
-        title: `${validated.title} - Week ${i + 1}`,
-        startDate: weekStart,
-        endDate: weekEnd,
-        status: 'NOT_STARTED' as const,
-        progress: 0,
-      });
-    }
-
-    // 5. Create phase + weeks using Prisma nested write (atomic, single query)
-    const phase = await prisma.phase.create({
+    // 4. Create task
+    const task = await prisma.task.create({
       data: {
+        dayId: validated.dayId,
         title: validated.title,
         description: validated.description,
         startDate,
         endDate,
         status: validated.status,
         progress: validated.progress,
-        // Nested write: Create weeks inline (3x faster than manual transaction)
-        weeks: {
-          create: weeksData,
-        },
-      },
-      // Include weeks in response
-      include: {
-        weeks: {
-          orderBy: {
-            startDate: 'asc',
-          },
-        },
       },
     });
 
-    // 6. Success response
+    // 5. Success response with hierarchical context
     return NextResponse.json({
       success: true,
       data: {
-        phase: {
-          id: phase.id,
-          title: phase.title,
-          description: phase.description,
-          status: phase.status,
-          progress: phase.progress,
-          startDate: phase.startDate.toISOString(),
-          endDate: phase.endDate?.toISOString() || null,
-          createdAt: phase.createdAt.toISOString(),
-          updatedAt: phase.updatedAt.toISOString(),
+        task: {
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          status: task.status,
+          progress: task.progress,
+          startDate: task.startDate.toISOString(),
+          endDate: task.endDate?.toISOString() || null,
+          createdAt: task.createdAt.toISOString(),
+          updatedAt: task.updatedAt.toISOString(),
         },
-        weeks: phase.weeks.map((week) => ({
-          id: week.id,
-          title: week.title,
-          phaseId: week.phaseId,
-          startDate: week.startDate.toISOString(),
-          endDate: week.endDate?.toISOString() || null,
-          status: week.status,
-          progress: week.progress,
-        })),
+        context: {
+          day: {
+            id: day.id,
+            title: day.title,
+          },
+          week: day.week ? {
+            id: day.week.id,
+            title: day.week.title,
+          } : null,
+          phase: day.week?.phase ? {
+            id: day.week.phase.id,
+            title: day.week.phase.title,
+          } : null,
+        },
       },
     }, { status: 201 });
 
   } catch (error) {
-    // 7. Error handling
+    // 6. Error handling
 
     // Zod validation errors (400)
     if (error instanceof z.ZodError) {
@@ -175,7 +176,7 @@ export async function POST(request: NextRequest) {
 
     // Prisma database errors (500)
     if (error?.constructor?.name === 'PrismaClientKnownRequestError') {
-      console.error('[API] Prisma error in POST /api/phases:', error);
+      console.error('[API] Prisma error in POST /api/tasks:', error);
       return NextResponse.json({
         success: false,
         error: {
@@ -186,7 +187,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Unknown errors (500)
-    console.error('[API] Unexpected error in POST /api/phases:', error);
+    console.error('[API] Unexpected error in POST /api/tasks:', error);
     return NextResponse.json({
       success: false,
       error: {

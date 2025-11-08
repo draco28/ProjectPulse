@@ -26,7 +26,19 @@
       "Bash(node -e:*)",
       "Bash(pnpm --version:*)",
       "Bash(npx husky:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(docker-compose restart:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker port:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(timeout 5 bash -c \"echo > /dev/tcp/127.0.0.1/5432\")",
+      "Bash(docker inspect:*)",
+      "Bash(wsl -d Ubuntu-24.04 -- bash -c:*)",
+      "Bash(wsl -d Ubuntu-24.04 -- cat:*)",
+      "Bash(npm install)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm install)",
+      "Bash(yes:*)"
     ],
     "deny": [],
     "ask": [

@@ -4,11 +4,17 @@ import type { ToolDefinition, ToolContext } from './types.js';
 import { healthCheckTool } from './healthCheck.js';
 import { sprintPhaseCreateTool } from './sprintPhaseCreate.js';
 import { sprintGetCurrentTaskTool } from './sprintGetCurrentTask.js';
+import { sprintUpdateProgressTool } from './sprintUpdateProgress.js';
+import { sprintTaskCreateTool } from './sprintTaskCreate.js';
+import { sprintSessionCreateTool } from './sprintSessionCreate.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
   sprintPhaseCreateTool,
   sprintGetCurrentTaskTool,
+  sprintUpdateProgressTool,
+  sprintTaskCreateTool,
+  sprintSessionCreateTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {

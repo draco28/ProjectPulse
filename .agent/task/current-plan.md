@@ -1,655 +1,431 @@
-# Day 6-7 Manual Testing & Completion Plan
+# Day 8-9 Implementation Plan - Additional MCP Tools
 
-**Created**: 2025-11-08 08:30 AM
-**Sprint**: Sprint 1 Week 2 Days 6-7
-**Goal**: Complete manual testing and verification for sprint.phase.create and sprint.getCurrentTask
-
----
-
-## Context
-
-**Implementation Status**: 95% complete
-- ✅ MCP tools implemented (sprint.phase.create, sprint.getCurrentTask)
-- ✅ Next.js API routes created (POST /api/phases, GET /api/tasks/current)
-- ✅ TypeScript compilation successful (0 errors)
-- ✅ Database index created (tasks_updatedAt_idx)
-- ✅ Windows Docker networking resolved (WSL2 hybrid workflow)
-
-**Remaining Work**: Manual testing, documentation updates, verification
+**Created**: 2025-11-08 09:45
+**Sprint**: Sprint 1 Week 2 Days 8-9
+**Goal**: Implement 3 new MCP tools + fix date validation bug
 
 ---
 
-## Phase 1: Manual API Testing (30 minutes)
-
-### 1.1 Start Development Server
-
-**Command** (from WSL2):
-```bash
-wsl -d Ubuntu-24.04 -- bash -c "cd /mnt/f/Web_Projects/AI_HUB/apps/web && pnpm dev"
-```
-
-**Expected Output**: Server running on http://localhost:3000
-
-**Verification**:
-```bash
-wsl -d Ubuntu-24.04 -- bash -c "curl http://localhost:3000/api/health"
-```
-
-### 1.2 Test POST /api/phases (Success Case)
-
-**Command**:
-```bash
-wsl -d Ubuntu-24.04 -- bash -c "curl -X POST http://localhost:3000/api/phases \
-  -H 'Content-Type: application/json' \
-  -d '{
-    \"title\": \"Phase 2: API Development\",
-    \"description\": \"Build REST APIs for MCP integration\",
-    \"startDate\": \"2025-11-10T00:00:00.000Z\",
-    \"endDate\": \"2025-12-08T00:00:00.000Z\"
-  }' \
-  -w '\nResponse time: %{time_total}s\n'"
-```
-
-**Expected Response**:
-```json
-{
-  "success": true,
-  "data": {
-    "phase": {
-      "id": "...",
-      "title": "Phase 2: API Development",
-      "description": "Build REST APIs for MCP integration",
-      "startDate": "2025-11-10T00:00:00.000Z",
-      "endDate": "2025-12-08T00:00:00.000Z",
-      "status": "NOT_STARTED",
-      "progress": 0,
-      "createdAt": "...",
-      "updatedAt": "..."
-    },
-    "weeks": [
-      { "id": "...", "title": "Week 1", "startDate": "2025-11-10T00:00:00.000Z", ... },
-      { "id": "...", "title": "Week 2", "startDate": "2025-11-17T00:00:00.000Z", ... },
-      { "id": "...", "title": "Week 3", "startDate": "2025-11-24T00:00:00.000Z", ... },
-      { "id": "...", "title": "Week 4", "startDate": "2025-12-01T00:00:00.000Z", ... }
-    ]
-  }
-}
-```
-
-**Verification Points**:
-- ✅ Status code: 201 Created
-- ✅ Response format matches OpenAPI spec
-- ✅ Phase created with correct data
-- ✅ 4 weeks auto-generated (28-day duration)
-- ✅ Response time <500ms
-
-### 1.3 Test POST /api/phases (Error Cases)
-
-**Test Case 1: Empty Title (Validation Error)**
-```bash
-wsl -d Ubuntu-24.04 -- bash -c "curl -X POST http://localhost:3000/api/phases \
-  -H 'Content-Type: application/json' \
-  -d '{
-    \"title\": \"\",
-    \"description\": \"Test\",
-    \"startDate\": \"2025-11-10T00:00:00.000Z\",
-    \"endDate\": \"2025-12-08T00:00:00.000Z\"
-  }'"
-```
-
-**Expected Response**:
-```json
-{
-  "success": false,
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "String must contain at least 1 character(s)"
-  }
-}
-```
-
-**Test Case 2: Invalid Date Range (endDate before startDate)**
-```bash
-wsl -d Ubuntu-24.04 -- bash -c "curl -X POST http://localhost:3000/api/phases \
-  -H 'Content-Type: application/json' \
-  -d '{
-    \"title\": \"Test Phase\",
-    \"description\": \"Test\",
-    \"startDate\": \"2025-12-08T00:00:00.000Z\",
-    \"endDate\": \"2025-11-10T00:00:00.000Z\"
-  }'"
-```
-
-**Expected Response**:
-```json
-{
-  "success": false,
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "End date must be after start date"
-  }
-}
-```
-
-**Verification Points**:
-- ✅ Status code: 400 Bad Request
-- ✅ Error format matches spec
-- ✅ Error messages are clear
-
-### 1.4 Test GET /api/tasks/current
-
-**Test Case 1: Without Query Params**
-```bash
-wsl -d Ubuntu-24.04 -- bash -c "curl http://localhost:3000/api/tasks/current \
-  -w '\nResponse time: %{time_total}s\n'"
-```
-
-**Expected Response** (if IN_PROGRESS task exists):
-```json
-{
-  "success": true,
-  "data": {
-    "currentTask": {
-      "id": "...",
-      "title": "Design Prisma Schema",
-      "status": "IN_PROGRESS",
-      "progress": 50,
-      "day": {
-        "id": "...",
-        "title": "Day 2",
-        "progress": 40
-      },
-      "week": {
-        "id": "...",
-        "title": "Week 1",
-        "progress": 40
-      },
-      "phase": {
-        "id": "...",
-        "title": "Phase A - Foundation",
-        "progress": 20
-      }
-    }
-  }
-}
-```
-
-**Expected Response** (if no IN_PROGRESS task):
-```json
-{
-  "success": true,
-  "data": {
-    "currentTask": null
-  }
-}
-```
-
-**Test Case 2: With includeHistory=true**
-```bash
-wsl -d Ubuntu-24.04 -- bash -c "curl 'http://localhost:3000/api/tasks/current?includeHistory=true' \
-  -w '\nResponse time: %{time_total}s\n'"
-```
-
-**Expected Response**:
-```json
-{
-  "success": true,
-  "data": {
-    "currentTask": {
-      "id": "...",
-      "title": "Design Prisma Schema",
-      "sessions": [
-        { "id": "...", "title": "Initial planning", "status": "COMPLETED", ... },
-        { "id": "...", "title": "Expert consultation", "status": "IN_PROGRESS", ... }
-      ],
-      ...
-    }
-  }
-}
-```
-
-**Verification Points**:
-- ✅ Status code: 200 OK
-- ✅ Response format correct
-- ✅ Hierarchy flattened (day → week → phase)
-- ✅ Sessions included when includeHistory=true
-- ✅ Response time <500ms
-
----
-
-## Phase 2: MCP Server Integration (30 minutes)
-
-### 2.1 Build MCP Server
-
-**Command**:
-```bash
-cd apps/mcp-server
-npm run build
-```
-
-**Expected Output**: 
-- No TypeScript errors
-- Build succeeds
-- `dist/` folder created
-
-**Verification**:
-```bash
-ls -la apps/mcp-server/dist/
-# Should show: index.js, tools/, config.js, logger.js, httpClient.js
-```
-
-### 2.2 Test Tool Invocations
-
-**Manual Test** (if MCP Inspector available):
-1. Start MCP server: `node apps/mcp-server/dist/index.js`
-2. Connect with MCP Inspector
-3. List tools → verify sprint.phase.create and sprint.getCurrentTask appear
-4. Invoke sprint.phase.create with test data
-5. Invoke sprint.getCurrentTask
-6. Review logs for errors
-
-**Smoke Test** (if MCP Inspector not available):
-```bash
-node apps/mcp-server/tests/smoke-test.js
-```
-
-**Verification Points**:
-- ✅ MCP server starts without errors
-- ✅ Tools registered correctly
-- ✅ Tools can call Next.js API successfully
-- ✅ Logs show no errors
-
----
-
-## Phase 3: Documentation Updates (40 minutes)
-
-### 3.1 Update .agent/system/api-catalog.md
-
-**Add to API Endpoints Section**:
-
-#### POST /api/phases
-
-**Description**: Create a new phase with auto-generated child weeks
-
-**Request**:
-```json
-{
-  "title": "Phase 2: API Development",
-  "description": "Build REST APIs for MCP integration",
-  "startDate": "2025-11-10T00:00:00.000Z",
-  "endDate": "2025-12-08T00:00:00.000Z"
-}
-```
-
-**Response** (201 Created):
-```json
-{
-  "success": true,
-  "data": {
-    "phase": { "id": "...", "title": "...", ... },
-    "weeks": [ { "id": "...", "title": "Week 1", ... } ]
-  }
-}
-```
-
-**Errors**:
-- 400 Bad Request: Validation error (empty title, invalid dates)
-- 500 Internal Server Error: Database error
-
-**Implementation**: `apps/web/app/api/phases/route.ts`
-
----
-
-#### GET /api/tasks/current
-
-**Description**: Get the first IN_PROGRESS task with full hierarchy context
-
-**Query Parameters**:
-- `includeHistory` (boolean, optional): Include session history
-
-**Response** (200 OK):
-```json
-{
-  "success": true,
-  "data": {
-    "currentTask": {
-      "id": "...",
-      "title": "Design Prisma Schema",
-      "status": "IN_PROGRESS",
-      "progress": 50,
-      "day": { "id": "...", "title": "Day 2", "progress": 40 },
-      "week": { "id": "...", "title": "Week 1", "progress": 40 },
-      "phase": { "id": "...", "title": "Phase A", "progress": 20 },
-      "sessions": [ ... ] // Only if includeHistory=true
-    }
-  }
-}
-```
-
-**Response** (200 OK - No active task):
-```json
-{
-  "success": true,
-  "data": { "currentTask": null }
-}
-```
-
-**Implementation**: `apps/web/app/api/tasks/current/route.ts`
-
----
-
-### 3.2 Update .agent/system/mcp-tools-guide.md
-
-**Add ProjectPulse Tools Section** (if not exists):
-
-## ProjectPulse Sprint Tracking Tools
-
-### sprint.phase.create
-
-**Description**: Create a new sprint phase with auto-generated child weeks
-
-**Usage**:
-```typescript
-// MCP tool invocation
-{
-  "name": "projectpulse.sprint.phase.create",
-  "arguments": {
-    "title": "Phase 2: API Development",
-    "description": "Build REST APIs for MCP integration",
-    "startDate": "2025-11-10T00:00:00.000Z",
-    "durationWeeks": 4
-  }
-}
-```
-
-**Parameters**:
-- `title` (string, required): Phase title (1-200 characters)
-- `description` (string, optional): Phase description
-- `startDate` (ISO 8601, required): Phase start date
-- `durationWeeks` (number, optional): Duration in weeks (default: 4, range: 1-52)
-
-**Response**:
-```json
-{
-  "phase": {
-    "id": "...",
-    "title": "Phase 2: API Development",
-    "status": "NOT_STARTED",
-    "progress": 0,
-    "startDate": "2025-11-10T00:00:00.000Z",
-    "endDate": "2025-12-08T00:00:00.000Z"
-  },
-  "weeks": [
-    { "id": "...", "title": "Week 1", "startDate": "2025-11-10T00:00:00.000Z", ... },
-    ...
-  ]
-}
-```
-
-**Implementation**: `apps/mcp-server/src/tools/sprintPhaseCreate.ts` → POST /api/phases
-
----
-
-### sprint.getCurrentTask
-
-**Description**: Get the current IN_PROGRESS task with hierarchical context
-
-**Usage**:
-```typescript
-// MCP tool invocation
-{
-  "name": "projectpulse.sprint.getCurrentTask",
-  "arguments": {
-    "includeHistory": true
-  }
-}
-```
-
-**Parameters**:
-- `includeHistory` (boolean, optional): Include session history (default: false)
-
-**Response**:
-```json
-{
-  "currentTask": {
-    "id": "...",
-    "title": "Design Prisma Schema",
-    "status": "IN_PROGRESS",
-    "progress": 50,
-    "phase": { "title": "Phase A - Foundation", "progress": 20 },
-    "week": { "title": "Week 1", "progress": 40 },
-    "day": { "title": "Day 2", "progress": 40 },
-    "sessions": [ ... ] // Only if includeHistory=true
-  }
-}
-```
-
-**Response** (No active task):
-```json
-{
-  "currentTask": null
-}
-```
-
-**Implementation**: `apps/mcp-server/src/tools/sprintGetCurrentTask.ts` → GET /api/tasks/current
-
----
-
-### 3.3 Update Context Files
-
-**Update .agent/active-context.md**:
-- Change "Day 6-7 95% COMPLETE" → "Day 6-7 100% COMPLETE ✅"
-- Add "Manual testing complete" section
-- Update "Next Focus" to "Week 2 Days 8-9"
-
-**Update .agent/progress.md**:
-- Update Sprint 1 progress: ~30/52 points → ~35/52 points (67%)
-- Add "Week 2 Days 6-7 Complete" entry
-- Update "Current Sprint" status
-
----
-
-## Phase 4: Step 4.5 Verification (30 minutes)
-
-### Requirements from Plan
-
-1. **TypeScript Compilation**
-   - Command: `cd apps/mcp-server && npm run build`
-   - Expected: 0 errors
-   - Evidence: Build output showing "Compiled successfully"
-
-2. **POST /api/phases Response Format**
-   - Command: curl POST with valid data
-   - Expected: `{ success: true, data: { phase, weeks } }`
-   - Evidence: Actual curl output
-
-3. **GET /api/tasks/current Response Format**
-   - Command: curl GET
-   - Expected: `{ success: true, data: { currentTask } }`
-   - Evidence: Actual curl output
-
-4. **Response Times <500ms** (NFR-019)
-   - Command: curl with `-w '\nTime: %{time_total}s\n'`
-   - Expected: <0.500s for all endpoints
-   - Evidence: Time measurements from curl
-
-5. **Error Handling Validated**
-   - Command: curl POST with invalid data
-   - Expected: 400 status with `{ success: false, error: {...} }`
-   - Evidence: Error response outputs
-
-### Verification Documentation
-
-**Update current-session-20251108-0830.md** with:
-
-```markdown
-## Step 4.5: Verification Results
-
-### Requirement 1: TypeScript Compilation (0 errors)
-✅ Evidence:
-```
-$ cd apps/mcp-server && npm run build
-> projectpulse-mcp-server@1.0.0 build
-> tsc
-
-Compiled successfully
-```
-Status: PASS
-
-### Requirement 2: POST /api/phases Response Format
-✅ Evidence:
-```
-$ curl -X POST http://localhost:3000/api/phases ...
-{
-  "success": true,
-  "data": {
-    "phase": { ... },
-    "weeks": [ ... ]
-  }
-}
-Response time: 0.234s
-```
-Status: PASS
-
-### Requirement 3: GET /api/tasks/current Response Format
-✅ Evidence:
-```
-$ curl http://localhost:3000/api/tasks/current
-{
-  "success": true,
-  "data": {
-    "currentTask": { ... }
-  }
-}
-Response time: 0.156s
-```
-Status: PASS
-
-### Requirement 4: Response Times <500ms
-✅ Evidence:
-- POST /api/phases: 0.234s ✅
-- GET /api/tasks/current: 0.156s ✅
-Status: PASS
-
-### Requirement 5: Error Handling
-✅ Evidence:
-```
-$ curl -X POST http://localhost:3000/api/phases -d '{"title":""}'
-{
-  "success": false,
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "String must contain at least 1 character(s)"
-  }
-}
-```
-Status: PASS
-```
-
-### Pass Criteria
-
-**ALL requirements must pass with evidence before proceeding to Step 5.**
-
-If any requirement fails:
-- Mark work as IN PROGRESS
-- Fix the issue
-- Re-run verification
-- Do NOT proceed to completion
-
----
-
-## Phase 5: Completion (15 minutes)
-
-### 5.1 Optional Completion Document
-
-**File**: `COMPLETION_Day-6-7-MCP-Tools.md` (optional but recommended)
-
-**Content**:
-- Summary of what was tested
-- API endpoints verified
-- MCP tools validated
-- Performance metrics
-- Issues encountered (if any)
-- Lessons learned
-
-### 5.2 Git Commits
-
-**Commit 1: Documentation**
-```bash
-git add .agent/system/api-catalog.md \
-        .agent/system/mcp-tools-guide.md \
-        .agent/active-context.md \
-        .agent/progress.md \
-        .agent/task/
-
-git commit -m "docs: update API catalog and MCP tools guide for Day 6-7
-
-- Add POST /api/phases endpoint documentation
-- Add GET /api/tasks/current endpoint documentation
-- Document sprint.phase.create MCP tool usage
-- Document sprint.getCurrentTask MCP tool usage
-- Mark Day 6-7 complete in active-context.md
-- Update Sprint 1 progress (67% complete)
-
-🤖 Generated with Claude Code
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-```
-
-**Commit 2: Code (if any fixes needed)**
-```bash
-git add apps/mcp-server/ apps/web/app/api/
-
-git commit -m "fix: [description of any fixes]
-
-🤖 Generated with Claude Code
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-```
+## Overview
+
+**Deliverables**:
+1. `sprint.updateProgress` - Update task/session progress with roll-up
+2. `sprint.task.create` - Create task within a day
+3. `sprint.session.create` - Create session within a task
+4. Fix date range validation bug in POST /api/phases
+
+**Total Estimated Time**: 6-8 hours
+**Token Budget**: 200K (currently at 110K, 90K remaining)
 
 ---
 
 ## Success Criteria
 
-- ✅ All API endpoints return correct response formats
-- ✅ Response times <500ms (NFR-019 compliance)
-- ✅ Error handling validated with actual test cases
-- ✅ MCP tools successfully invoke API routes
-- ✅ Documentation complete and accurate
-- ✅ Step 4.5 verification passed with evidence
-- ✅ All changes committed to git
+**Implementation Complete**:
+- ✅ All 3 MCP tools implemented with Zod validation
+- ✅ All 3 Next.js API routes created (POST /api/progress, POST /api/tasks, POST /api/sessions)
+- ✅ Date validation bug fixed in POST /api/phases
+- ✅ TypeScript compilation 0 errors
+- ✅ Tools registered in MCP server
+
+**Testing Complete**:
+- ✅ Manual curl tests pass for all 4 endpoints
+- ✅ Response times <500ms verified
+- ✅ Error handling validated (invalid inputs, missing fields)
+- ✅ Progress roll-up working (session 100% → task recalculates)
+
+**Documentation Complete**:
+- ✅ API catalog updated with 3 new endpoints
+- ✅ MCP tools guide updated with 3 new tool examples
+- ✅ Context files updated (active-context.md, progress.md)
 
 ---
 
-## Estimated Timeline
+## Implementation Steps
 
-| Phase | Task | Duration |
-|-------|------|----------|
-| 1 | Manual API Testing | 30 min |
-| 2 | MCP Server Integration | 30 min |
-| 3 | Documentation Updates | 40 min |
-| 4 | Step 4.5 Verification | 30 min |
-| 5 | Completion & Commits | 15 min |
-| **Total** | | **2h 25m** |
+### Phase 1: Bug Fix (30 min)
+
+**Task 1.1: Fix Date Validation in POST /api/phases**
+
+**Current Bug**: API accepts `startDate > endDate` (should reject)
+
+**File to modify**: `apps/web/app/api/phases/route.ts`
+
+**Fix**:
+```typescript
+// Add custom validator after Zod schema (around line 20)
+.refine((data) => new Date(data.startDate) < new Date(data.endDate), {
+  message: "startDate must be before endDate",
+  path: ["startDate"],
+})
+```
+
+**Test**:
+```bash
+# Should fail with 400
+curl -X POST http://localhost:3000/api/phases \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Test","startDate":"2025-12-01T00:00:00.000Z","endDate":"2025-11-01T00:00:00.000Z"}'
+```
+
+---
+
+### Phase 2: Tool 1 - sprint.updateProgress (2 hours)
+
+**User Story**: US-019 from backlog (update progress and trigger roll-up)
+
+**Task 2.1: Create POST /api/progress API Route** (45 min)
+
+**File**: `apps/web/app/api/progress/route.ts`
+
+**Zod Schema**:
+```typescript
+const schema = z.object({
+  entityType: z.enum(['session', 'task', 'day', 'week', 'phase']),
+  entityId: z.string().uuid(),
+  progress: z.number().int().min(0).max(100),
+});
+```
+
+**Implementation**:
+1. Validate input with Zod
+2. Call `updateProgressAndPropagate()` from `lib/db/progress.ts` (already exists from Day 3)
+3. Return updated entity + affected parents
+
+**Response Format**:
+```typescript
+{
+  success: true,
+  data: {
+    updated: { id, type, progress },
+    affected: [
+      { id, type, progress }, // parent entities that changed
+    ]
+  }
+}
+```
+
+**Task 2.2: Create MCP Tool Handler** (45 min)
+
+**File**: `apps/mcp-server/src/tools/sprintUpdateProgress.ts`
+
+**Pattern**: Follow `sprintPhaseCreate.ts` structure
+- Zod schema matching API
+- httpClient.post to /api/progress
+- Type-safe with ApiResponse<> generics
+- Formatted response for Claude
+
+**Task 2.3: Register Tool** (5 min)
+
+**File**: `apps/mcp-server/src/tools/index.ts`
+- Import tool definition
+- Add to loadTools() array
+
+**Task 2.4: Manual Testing** (25 min)
+
+```bash
+# Test API directly
+curl -X POST http://localhost:3000/api/progress \
+  -H "Content-Type: application/json" \
+  -d '{"entityType":"session","entityId":"<uuid>","progress":100}'
+
+# Test MCP tool (via MCP Inspector or smoke test)
+# Verify progress roll-up propagates to parent entities
+```
+
+---
+
+### Phase 3: Tool 2 - sprint.task.create (2 hours)
+
+**User Story**: US-004 from backlog (create task within day)
+
+**Task 3.1: Create POST /api/tasks API Route** (45 min)
+
+**File**: `apps/web/app/api/tasks/route.ts`
+
+**Zod Schema**:
+```typescript
+const schema = z.object({
+  dayId: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  description: z.string().optional(),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime(),
+  status: z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'CANCELLED']).default('NOT_STARTED'),
+  progress: z.number().int().min(0).max(100).default(0),
+}).refine((data) => new Date(data.startDate) < new Date(data.endDate), {
+  message: "startDate must be before endDate",
+  path: ["startDate"],
+});
+```
+
+**Implementation**:
+1. Validate input
+2. Verify dayId exists
+3. Create task with Prisma
+4. Return created task
+
+**Task 3.2: Create MCP Tool Handler** (45 min)
+
+**File**: `apps/mcp-server/src/tools/sprintTaskCreate.ts`
+
+**Pattern**: Similar to sprintPhaseCreate.ts
+- Zod schema
+- httpClient.post to /api/tasks
+- Include hierarchical context in response (day → week → phase)
+
+**Task 3.3: Register Tool** (5 min)
+
+**Task 3.4: Manual Testing** (25 min)
+
+```bash
+# Get a valid dayId first
+curl http://localhost:3000/api/days  # (needs to be created)
+
+# Create task
+curl -X POST http://localhost:3000/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dayId":"<uuid>",
+    "title":"Implement feature X",
+    "startDate":"2025-11-08T08:00:00.000Z",
+    "endDate":"2025-11-08T12:00:00.000Z"
+  }'
+```
+
+---
+
+### Phase 4: Tool 3 - sprint.session.create (2 hours)
+
+**User Story**: US-005 from backlog (create session within task)
+
+**Task 4.1: Create POST /api/sessions API Route** (45 min)
+
+**File**: `apps/web/app/api/sessions/route.ts`
+
+**Zod Schema**:
+```typescript
+const schema = z.object({
+  taskId: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  description: z.string().optional(),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime().optional(),
+  status: z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'CANCELLED']).default('NOT_STARTED'),
+  progress: z.number().int().min(0).max(100).default(0),
+  notes: z.string().optional(),
+}).refine((data) => !data.endDate || new Date(data.startDate) < new Date(data.endDate), {
+  message: "startDate must be before endDate",
+  path: ["startDate"],
+});
+```
+
+**Implementation**:
+1. Validate input
+2. Verify taskId exists
+3. Create session with Prisma
+4. Return created session with task context
+
+**Task 4.2: Create MCP Tool Handler** (45 min)
+
+**File**: `apps/mcp-server/src/tools/sprintSessionCreate.ts`
+
+**Pattern**: Similar to previous tools
+- Zod schema
+- httpClient.post to /api/sessions
+- Include full hierarchical context (session → task → day → week → phase)
+
+**Task 4.3: Register Tool** (5 min)
+
+**Task 4.4: Manual Testing** (25 min)
+
+```bash
+# Create session
+curl -X POST http://localhost:3000/api/sessions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "taskId":"<uuid>",
+    "title":"Morning coding session",
+    "startDate":"2025-11-08T08:00:00.000Z"
+  }'
+```
+
+---
+
+### Phase 5: Integration Testing (1 hour)
+
+**Task 5.1: End-to-End Workflow Test** (30 min)
+
+```bash
+# Workflow: Create phase → create task → create session → update progress
+# 1. Create phase (existing tool)
+# 2. Create task in phase's first week's first day
+# 3. Create session in that task
+# 4. Update session progress to 100%
+# 5. Verify progress rolls up to task → day → week → phase
+```
+
+**Task 5.2: Build MCP Server** (10 min)
+
+```bash
+cd apps/mcp-server
+npm run build
+# Verify: 0 TypeScript errors
+```
+
+**Task 5.3: MCP Tool Smoke Test** (20 min)
+
+- Test tool discovery (list all tools)
+- Test each new tool with valid input
+- Test error handling with invalid input
+- Verify response formats match spec
+
+---
+
+### Phase 6: Documentation (1 hour)
+
+**Task 6.1: Update API Catalog** (20 min)
+
+**File**: `.agent/system/api-catalog.md`
+
+Add sections for:
+- POST /api/progress
+- POST /api/tasks
+- POST /api/sessions
+
+Include: description, request/response examples, validation rules, error responses
+
+**Task 6.2: Update MCP Tools Guide** (20 min)
+
+**File**: `.agent/system/mcp-tools-guide.md`
+
+Add sections for:
+- projectpulse.sprint.updateProgress
+- projectpulse.sprint.task.create
+- projectpulse.sprint.session.create
+
+Include: parameters, examples, use cases, performance notes
+
+**Task 6.3: Update Context Files** (20 min)
+
+**Files**:
+- `.agent/active-context.md` - Mark Day 8-9 complete, update recent changes
+- `.agent/progress.md` - Update Sprint 1 progress (Week 2 status)
+
+---
+
+## Dependencies
+
+**External Dependencies**: None
+- Database already seeded with test data
+- Existing utilities (`updateProgressAndPropagate`) ready to use
+- MCP server scaffold ready from Day 4
+
+**Internal Dependencies**:
+1. Progress roll-up utility (already exists from Day 3)
+2. GET /api/days endpoint (may need to create if doesn't exist)
+3. WSL2 hybrid workflow (documented in windows-docker-networking.md)
 
 ---
 
 ## Risk Mitigation
 
-**Risk 1: WSL2 environment issues**
-- Mitigation: Follow `.agent/sops/windows-docker-networking.md`
-- Fallback: Use docker exec for database queries
+**Risk 1: Progress roll-up performance**
+- **Mitigation**: Already optimized with incremental transactions (Day 3)
+- **Fallback**: Add indexes if needed (already have 25 indexes from Day 2)
 
-**Risk 2: MCP Inspector not available**
-- Mitigation: Use smoke test script instead
-- Fallback: Skip MCP integration testing, verify code review only
+**Risk 2: TypeScript compilation errors**
+- **Mitigation**: Define ApiResponse<T> interfaces upfront (learned from Day 6-7)
+- **Fallback**: Use Day 6-7 handoff patterns as reference
 
-**Risk 3: Database empty (no IN_PROGRESS tasks)**
-- Mitigation: Check seed data or create test task
-- Fallback: Test with null response case
+**Risk 3: WSL2 networking issues**
+- **Mitigation**: Use WSL2 commands from start (documented SOP available)
+- **Fallback**: Docker exec for quick tests
+
+**Risk 4: Date validation complexity**
+- **Mitigation**: Use Zod refine pattern (simple and tested)
+- **Example**: Already working in other validation schemas
 
 ---
 
-**Plan created**: 2025-11-08 08:30 AM
-**Estimated completion**: 2025-11-08 11:00 AM
-**Next phase after completion**: Days 8-9 (additional MCP tools)
+## Token Checkpoints
+
+**15K checkpoint** (~125K total): After Phase 1-2 complete
+**30K checkpoint** (~140K total): After Phase 3 complete
+**45K checkpoint** (~155K total): After Phase 4-5 complete
+**60K checkpoint** (~170K total): After Phase 6 complete (if needed)
+
+**Manual save** if approaching 180K tokens
+
+---
+
+## Technical Decisions
+
+### Decision 1: Use Existing Progress Utility
+**Choice**: Call `updateProgressAndPropagate()` from Day 3
+**Rationale**: Already tested, handles incremental transactions correctly
+**Alternative Rejected**: Rewrite progress logic (duplicates work)
+
+### Decision 2: API Route Structure
+**Choice**: Separate routes (POST /api/tasks, POST /api/sessions)
+**Rationale**: RESTful design, easier to test, consistent with existing routes
+**Alternative Rejected**: Single /api/sprint endpoint with type parameter (less discoverable)
+
+### Decision 3: Date Validation
+**Choice**: Zod refine() with custom validator
+**Rationale**: Consistent with Zod patterns, easy to test, clear error messages
+**Alternative Rejected**: Manual validation in handler (less type-safe)
+
+### Decision 4: Response Format
+**Choice**: Include hierarchical context (e.g., session → task → day → week → phase)
+**Rationale**: Provides full context for Claude, easier to understand current state
+**Alternative Rejected**: Minimal response (forces additional API calls)
+
+---
+
+## File Checklist
+
+**New Files (7)**:
+- [ ] `apps/web/app/api/progress/route.ts`
+- [ ] `apps/web/app/api/tasks/route.ts`
+- [ ] `apps/web/app/api/sessions/route.ts`
+- [ ] `apps/mcp-server/src/tools/sprintUpdateProgress.ts`
+- [ ] `apps/mcp-server/src/tools/sprintTaskCreate.ts`
+- [ ] `apps/mcp-server/src/tools/sprintSessionCreate.ts`
+- [ ] `.agent/task/day-8-9-verification-results.md` (Step 4.5)
+
+**Modified Files (3)**:
+- [ ] `apps/web/app/api/phases/route.ts` (date validation fix)
+- [ ] `apps/mcp-server/src/tools/index.ts` (3 new tool registrations)
+- [ ] `.agent/system/api-catalog.md` (3 new endpoints)
+- [ ] `.agent/system/mcp-tools-guide.md` (3 new tools)
+- [ ] `.agent/active-context.md` (Day 8-9 completion)
+- [ ] `.agent/progress.md` (Sprint 1 Week 2 progress)
+
+---
+
+## Completion Criteria
+
+**Code Complete**:
+- ✅ All 7 new files created
+- ✅ All 6 files modified
+- ✅ TypeScript: 0 errors
+- ✅ Build: Successful
+
+**Testing Complete**:
+- ✅ Manual API tests: All 4 endpoints pass
+- ✅ MCP tool tests: All 5 tools functional (including 2 from Day 6-7)
+- ✅ Integration test: Phase → Task → Session → Progress workflow
+- ✅ Response times: <500ms verified
+
+**Documentation Complete**:
+- ✅ API catalog: 3 new endpoints documented
+- ✅ MCP tools guide: 3 new tools documented
+- ✅ Context files: Updated with Day 8-9 completion
+- ✅ Verification report: Step 4.5 evidence documented
+
+---
+
+**Plan Status**: READY FOR APPROVAL
+**Estimated Completion**: 6-8 hours
+**Token Estimate**: 60-80K tokens (within budget)
