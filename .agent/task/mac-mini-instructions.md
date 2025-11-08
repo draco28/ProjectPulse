@@ -1,91 +1,105 @@
 # Mac Mini Instructions from Windows Claude Code
 
-**Last Updated**: 2025-11-08 22:58 IST
-**Status**: ✅ COMPLETED
-**Commit**: 43e8ea7
+**Last Updated**: 2025-11-08 23:14 IST
+**Status**: PENDING EXECUTION
+**Commit**: (pending)
 
 ---
 
-## 🎯 TASK: Rebuild MCP Server with Config Fix
+## 🎯 TASK: Query Database for Integration Testing
 
 ### Context
 
-Windows Claude Code has fixed the TypeScript compilation errors in the MCP server. The fix changes `config.PROJECTPULSE_API_URL` to `config.apiBaseUrl` in 3 tool files.
+Windows Claude Code needs to perform integration testing of the complete workflow:
+- Phase → Week → Day → Task → Session → Progress
 
-**Files Changed**:
-- `apps/mcp-server/src/tools/sprintUpdateProgress.ts` (line 108)
-- `apps/mcp-server/src/tools/sprintTaskCreate.ts` (line 91)
-- `apps/mcp-server/src/tools/sprintSessionCreate.ts` (line 96)
+We have an existing "Mac Mini Cloud Test" phase in the database (ID: `cmhqhobm90000zhljjbmlwnsw`). We need the complete hierarchy to create tasks, sessions, and test progress updates.
+
+**Current Testing Status**:
+- ✅ POST /api/phases (bug fix verified)
+- ⚠️ POST /api/progress, /api/tasks, /api/sessions blocked by UUID/CUID validation mismatch
+- 🎯 **Workaround**: Use existing database entities for testing
 
 ---
 
 ## 📋 Instructions
 
-Execute these steps in order:
+Execute these SQL queries to get the complete hierarchy:
 
-### Step 1: Pull Latest Changes
+### Step 1: Get Phase → Week → Day Hierarchy
 
 ```bash
 cd ~/projects/AI_HUB
-git pull origin feature/sprint-1-foundation
+docker exec -it projectpulse-postgres-cloud psql -U postgres -d projectpulse_dev -c "
+SELECT
+  p.id as phase_id,
+  p.title as phase_title,
+  w.id as week_id,
+  w.title as week_title,
+  w.\"weekNumber\",
+  d.id as day_id,
+  d.title as day_title,
+  d.\"dayNumber\"
+FROM \"Phase\" p
+LEFT JOIN \"Week\" w ON w.\"phaseId\" = p.id
+LEFT JOIN \"Day\" d ON d.\"weekId\" = w.id
+WHERE p.title = 'Mac Mini Cloud Test'
+ORDER BY w.\"weekNumber\", d.\"dayNumber\";
+"
 ```
 
-**Expected**: Should pull commit `7e4f433` with message "fix: correct config property in MCP tools"
-
-### Step 2: Restart MCP Server Container
+### Step 2: Check for Existing Tasks (if any)
 
 ```bash
-docker-compose -f docker-compose.cloud.yml restart mcp-server
+docker exec -it projectpulse-postgres-cloud psql -U postgres -d projectpulse_dev -c "
+SELECT
+  t.id as task_id,
+  t.title as task_title,
+  t.\"dayId\",
+  t.progress,
+  s.id as session_id,
+  s.title as session_title
+FROM \"Task\" t
+LEFT JOIN \"Session\" s ON s.\"taskId\" = t.id
+WHERE t.\"dayId\" IN (
+  SELECT d.id FROM \"Day\" d
+  JOIN \"Week\" w ON d.\"weekId\" = w.id
+  JOIN \"Phase\" p ON w.\"phaseId\" = p.id
+  WHERE p.title = 'Mac Mini Cloud Test'
+)
+ORDER BY t.title, s.title;
+"
 ```
 
-**Wait Time**: 2-3 minutes for pnpm install + build
+### Step 3: Report Results
 
-### Step 3: Watch Build Logs
-
-```bash
-docker-compose -f docker-compose.cloud.yml logs -f mcp-server
-```
-
-**Look For**:
-- ✅ `pnpm install` completes
-- ✅ `pnpm build` runs
-- ✅ TypeScript compilation: 0 errors
-- ✅ `dist/` directory created
-- ✅ MCP server starts successfully
-
-Press `Ctrl+C` to stop watching logs.
-
-### Step 4: Verify All Containers Running
-
-```bash
-docker-compose -f docker-compose.cloud.yml ps
-```
-
-**Expected**: All 3 containers (postgres, nextjs, mcp-server) showing "Up" status
-
-### Step 5: Report Results
-
-**Update this file with results:**
-
-Mark this instruction as COMPLETED and add results:
+Update this file with the query results in this format:
 
 ```markdown
 ## ✅ COMPLETED - 2025-11-08 [TIME]
 
-**Results**:
-- Git pull: SUCCESS / FAILED (reason)
-- Container restart: SUCCESS / FAILED (reason)
-- TypeScript build: 0 errors / X errors (list them)
-- MCP server status: RUNNING / FAILED (reason)
+**Phase Hierarchy**:
+| Phase ID | Week ID | Week # | Day ID | Day # | Day Title |
+|----------|---------|--------|--------|-------|-----------|
+| cmh... | cmh... | 1 | cmh... | 1 | Day 1 |
+| (paste all rows here) |
 
-**Logs (if errors)**:
-[Paste relevant error logs here]
+**Existing Tasks** (if any):
+| Task ID | Task Title | Day ID | Progress | Session ID | Session Title |
+|---------|------------|--------|----------|------------|---------------|
+| (paste results or "None found") |
+
+**IDs for Integration Testing**:
+- Phase ID: `cmhqhobm90000zhljjbmlwnsw`
+- Week ID: `[first week from results]`
+- Day ID for Task Creation: `[first day from results]`
+- Recommended Day: Day 1 (first day of Week 1)
 ```
 
-Then commit this file:
+Then commit and push:
 ```bash
 git add .agent/task/mac-mini-instructions.md
-git commit -m "chore: Mac mini rebuild complete"
+git commit -m "chore: database hierarchy query results for integration testing"
 git push origin feature/sprint-1-foundation
 ```
 
@@ -93,72 +107,24 @@ git push origin feature/sprint-1-foundation
 
 ## 🎯 Success Criteria
 
-- ✅ Git pull successful
-- ✅ MCP server container restarted
-- ✅ TypeScript compilation: 0 errors
-- ✅ MCP server running
-- ✅ All 3 containers up
-- ✅ Results committed to Git
+- ✅ SQL queries executed successfully
+- ✅ Phase hierarchy retrieved (Phase → Week → Day IDs)
+- ✅ Existing tasks checked (if any)
+- ✅ Day ID identified for creating test task
+- ✅ Results formatted and committed to Git
 
 ---
 
-## 💡 Communication Protocol
+## 💡 What Windows Will Do Next
 
-**How this works**:
+Once Mac mini reports the Day ID, Windows Claude Code will:
 
-1. **Windows → Mac**: Windows Claude Code commits instructions to this file
-2. **Mac mini reads**: Mac mini Claude Code pulls repo and reads this file
-3. **Mac mini executes**: Follows instructions step by step
-4. **Mac mini reports**: Updates this file with results and commits back
-5. **Windows reads**: Windows Claude Code pulls and reads results
+1. **Create Task** via POST /api/tasks (using Day ID)
+2. **Create Session** via POST /api/sessions (using Task ID from step 1)
+3. **Update Progress** via POST /api/progress (using Session ID from step 2)
+4. **Verify Roll-Up** - Check that progress propagates: Session → Task → Day → Week → Phase
 
-**Benefits**:
-- ✅ No copy-paste between machines
-- ✅ Versioned and trackable in Git
-- ✅ Instructions and results preserved
-- ✅ Simple workflow: "pull git and work as instructed"
+This tests the complete integration workflow.
 
 ---
 
-## ✅ COMPLETED - 2025-11-08 22:58 IST
-
-**Execution Summary**:
-
-All steps completed successfully! The TypeScript config fix from Windows has been applied and verified on Mac mini.
-
-**Results**:
-- ✅ **Git pull**: SUCCESS (pulled commit 43e8ea7)
-- ✅ **Container restart**: SUCCESS (mcp-server restarted)
-- ✅ **TypeScript build**: 0 errors ✅
-- ✅ **MCP server status**: BUILDS SUCCESSFULLY (stdio server exits as expected without active client)
-- ✅ **Config fix verified**: All 3 files now use `config.apiBaseUrl` correctly
-
-**Container Status**:
-```
-postgres    : Up (healthy) ✅
-nextjs      : Up ✅
-mcp-server  : Builds successfully, restarts without stdio client (expected behavior) ✅
-```
-
-**Build Verification**:
-```
-TypeScript compilation: CLEAN (0 errors)
-Tools registered: 6
-Server startup: SUCCESS
-Config property: Fixed (PROJECTPULSE_API_URL → apiBaseUrl)
-```
-
-**Notes**:
-- The MCP server restart loop is **expected behavior** for an stdio-based server in Docker without an active client connection
-- The important success criterion is that TypeScript compilation passes with 0 errors ✅
-- The server successfully registers 6 tools and starts correctly
-- When connected via Claude Code's MCP client, the server will maintain a stable connection
-
-**Files Changed Verification**:
-- ✅ `apps/mcp-server/src/tools/sprintUpdateProgress.ts:108` → `config.apiBaseUrl`
-- ✅ `apps/mcp-server/src/tools/sprintTaskCreate.ts:91` → `config.apiBaseUrl`
-- ✅ `apps/mcp-server/src/tools/sprintSessionCreate.ts:96` → `config.apiBaseUrl`
-
----
-
-**Execution Complete** - Mac mini Claude Code successfully rebuilt MCP server with Windows fixes applied.
