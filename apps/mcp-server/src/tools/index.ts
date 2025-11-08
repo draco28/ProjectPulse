@@ -2,8 +2,14 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import type { ToolDefinition, ToolContext } from './types.js';
 import { healthCheckTool } from './healthCheck.js';
+import { sprintPhaseCreateTool } from './sprintPhaseCreate.js';
+import { sprintGetCurrentTaskTool } from './sprintGetCurrentTask.js';
 
-const loadTools = (): ToolDefinition[] => [healthCheckTool];
+const loadTools = (): ToolDefinition[] => [
+  healthCheckTool,
+  sprintPhaseCreateTool,
+  sprintGetCurrentTaskTool,
+];
 
 export const registerTools = (server: Server, context: ToolContext) => {
   const tools = loadTools();
