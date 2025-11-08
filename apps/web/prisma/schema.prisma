@@ -153,6 +153,7 @@ model Task {
   @@index([status])
   @@index([dayId, status])
   @@index([dayId, startDate, endDate, status])
+  @@index([updatedAt(sort: Desc)]) // CRITICAL: For getCurrentTask query (100x faster)
 
   @@map("tasks")
 }
