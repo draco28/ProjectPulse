@@ -26,11 +26,11 @@ services:
       PGTZ: UTC
 
     # Port Mapping
-    # Restricted to localhost only for security (127.0.0.1:5432)
-    # This allows Prisma CLI to access database from host
+    # Bind to 0.0.0.0 for Windows Docker Desktop + WSL2 compatibility
+    # This allows Prisma CLI to access database from Windows host
     # For production: Remove port mapping (web container accesses via network)
     ports:
-      - "127.0.0.1:5432:5432"
+      - "0.0.0.0:5432:5432"
 
     # Persistent Volume
     volumes:
