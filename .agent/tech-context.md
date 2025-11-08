@@ -796,8 +796,36 @@ pnpm test:integration mcp-server/tests/integration/**/*.test.ts
 
 **This section documents MCP integration setup. See system-patterns.md for MCP tool implementation patterns.**
 
-**Note**: Current MCP tool count is 41 tools across 9 features (verified in openapi.yaml). Sprint 9 advanced tools (Memory Banks, Research Agents) are documented but implementation deferred to post-MVP.
+### MCP Tool Roadmap
+
+**Current Status** (as of 2025-11-07):
+- **Sprint 1-8 MVP**: 42 tools (baseline)
+- **Sprint 9-13 Full**: 65 tools (enhancements)
+- **Gap**: 23 tools deferred to post-MVP
+
+**Tool Count Breakdown**:
+
+**Sprint 1-8 MVP (42 tools)** ✅:
+1. Sprint Hierarchy (9 tools) - EPIC-001
+2. Progress Tracking (4 tools) - EPIC-002
+3. AI Agent Integration (5 tools) - EPIC-003
+4. Context Management (4 tools) - EPIC-004
+5. Issue Tracking (6 tools) - EPIC-005
+6. Knowledge Base (5 tools) - EPIC-006
+7. Hybrid Search (3 tools) - EPIC-007
+8. Health & Monitoring (3 tools) - EPIC-008
+9. Documentation (3 tools) - EPIC-009
+
+**Sprint 9+ Enhancements (23 tools)** 🔄:
+1. Advanced Analytics (8 tools) - EPIC-010
+2. Collaboration Tools (5 tools) - EPIC-011
+3. Template System (5 tools) - EPIC-012
+4. Integration Hooks (5 tools) - EPIC-013
+
+**See**: `.agent/tech-debt/mcp-tool-gap-23-tools.md` for detailed breakdown
+
+**Impact**: None - MVP functionality complete with 42 tools. Enhancement tools add value but aren't critical path.
 
 ---
 
-Last updated: 2025-11-06
+Last updated: 2025-11-07

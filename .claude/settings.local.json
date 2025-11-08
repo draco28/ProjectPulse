@@ -23,7 +23,10 @@
       "Bash(pnpm dev:*)",
       "Bash(timeout 15 bash:*)",
       "Bash(curl:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(pnpm --version:*)",
+      "Bash(npx husky:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": [

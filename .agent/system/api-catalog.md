@@ -1,12 +1,17 @@
 # API Endpoint Catalog
 
-**Last Updated**: 2025-10-28
+**Last Updated**: 2025-11-08
 **Base URL**: `http://localhost:3000/api`
-**Status**: Full CRUD + Search + Multi-entity system (Phase 3 Days 5-6 complete)
+**Status**: Full CRUD + Search + Multi-entity + Sprint Management (Sprint 1 Week 1 complete)
 
 ---
 
 ## Quick Index
+
+### Sprint Management
+
+- [POST /api/phases](#post-apiphases) - Create phase with auto-generated weeks
+- [GET /api/tasks/current](#get-apitaskscurrent) - Get currently active task with hierarchy
 
 ### Theme Management
 
@@ -42,6 +47,269 @@
 ---
 
 ## Current Endpoints
+
+### Sprint Management
+
+#### POST /api/phases
+
+**Description**: Create a new phase with auto-generated child weeks
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  title: string (1-200 chars, required),
+  description?: string (optional),
+  startDate: string (ISO 8601 format, required),
+  endDate: string (ISO 8601 format, required),
+  status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "BLOCKED" | "CANCELLED" (default: "NOT_STARTED"),
+  progress?: number (0-100, default: 0)
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/phases HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "title": "Phase 2: API Development",
+  "description": "Build REST APIs for sprint management",
+  "startDate": "2025-11-10T00:00:00.000Z",
+  "endDate": "2025-12-08T00:00:00.000Z"
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "success": true,
+  "data": {
+    "phase": {
+      "id": "clxxxx",
+      "title": "Phase 2: API Development",
+      "description": "Build REST APIs for sprint management",
+      "status": "NOT_STARTED",
+      "progress": 0,
+      "startDate": "2025-11-10T00:00:00.000Z",
+      "endDate": "2025-12-08T00:00:00.000Z",
+      "createdAt": "2025-11-08T08:00:00.000Z",
+      "updatedAt": "2025-11-08T08:00:00.000Z"
+    },
+    "weeks": [
+      {
+        "id": "clxxxx",
+        "title": "Phase 2: API Development - Week 1",
+        "phaseId": "clxxxx",
+        "startDate": "2025-11-10T00:00:00.000Z",
+        "endDate": "2025-11-17T00:00:00.000Z",
+        "status": "NOT_STARTED",
+        "progress": 0
+      },
+      {
+        "id": "clxxxx",
+        "title": "Phase 2: API Development - Week 2",
+        "phaseId": "clxxxx",
+        "startDate": "2025-11-17T00:00:00.000Z",
+        "endDate": "2025-11-24T00:00:00.000Z",
+        "status": "NOT_STARTED",
+        "progress": 0
+      }
+      // ... (4 weeks total in this example)
+    ]
+  }
+}
+```
+
+**Implementation Details**:
+
+- **Auto-Week Generation**: Automatically calculates number of weeks from date range and creates child week records
+- **Atomic Operation**: Uses Prisma nested write pattern (single database transaction, 3x faster than manual loops)
+- **Week Naming**: Auto-generates week titles as `{Phase Title} - Week {N}`
+- **Date Capping**: Week end dates never exceed phase end date
+
+**Validation**:
+
+- `title`: Required, 1-200 characters
+- `startDate`: Required, valid ISO 8601 date string
+- `endDate`: Required, valid ISO 8601 date string
+- `status`: Optional, must be valid enum value
+- `progress`: Optional, integer 0-100
+
+**Error Responses**:
+
+`400 Bad Request` - Validation error
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Title is required",
+    "field": "title"
+  }
+}
+```
+
+`500 Internal Server Error` - Database error
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "message": "Database operation failed"
+  }
+}
+```
+
+**Performance**:
+
+- Uses Prisma nested write (3x faster than loop + transaction: 50ms vs 150ms)
+- Single atomic query instead of N+1 queries
+- See: `.agent/task/prisma-sprint-tools-20251107-0630.md`
+
+**Source**: [apps/web/app/api/phases/route.ts](../../apps/web/app/api/phases/route.ts)
+**Authentication**: None (to be added)
+
+---
+
+#### GET /api/tasks/current
+
+**Description**: Retrieve the currently active task (status=IN_PROGRESS) with full hierarchical context (phase → week → day → task)
+
+**Query Parameters**:
+
+- `includeHistory` (optional, boolean): Include recent session history (last 5 sessions) - default: `false`
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Examples**:
+
+```http
+GET /api/tasks/current HTTP/1.1
+Host: localhost:3000
+```
+
+```http
+GET /api/tasks/current?includeHistory=true HTTP/1.1
+Host: localhost:3000
+```
+
+**Response (Task Found)**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "currentTask": {
+      "id": "clxxxx",
+      "title": "Implement POST /api/phases endpoint",
+      "description": "Create API route with Prisma nested write pattern",
+      "status": "IN_PROGRESS",
+      "progress": 75,
+      "startDate": "2025-11-08T08:00:00.000Z",
+      "endDate": "2025-11-08T12:00:00.000Z",
+      "createdAt": "2025-11-08T07:00:00.000Z",
+      "updatedAt": "2025-11-08T10:30:00.000Z",
+      "day": {
+        "id": "clxxxx",
+        "title": "Day 6-7: Sprint Tools Implementation",
+        "status": "IN_PROGRESS",
+        "progress": 85,
+        "startDate": "2025-11-07T00:00:00.000Z"
+      },
+      "week": {
+        "id": "clxxxx",
+        "title": "Sprint 1 - Week 1",
+        "status": "IN_PROGRESS",
+        "progress": 100,
+        "startDate": "2025-11-01T00:00:00.000Z"
+      },
+      "phase": {
+        "id": "clxxxx",
+        "title": "Sprint 1: Foundation",
+        "status": "IN_PROGRESS",
+        "progress": 58,
+        "startDate": "2025-11-01T00:00:00.000Z"
+      },
+      "sessions": [
+        {
+          "id": "clxxxx",
+          "title": "Session 2025-11-08 Morning",
+          "status": "COMPLETED",
+          "progress": 100,
+          "startDate": "2025-11-08T08:00:00.000Z"
+        }
+        // ... (up to 5 recent sessions if includeHistory=true)
+      ]
+    }
+  }
+}
+```
+
+**Response (No Active Task)**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "currentTask": null,
+    "message": "No task is currently in progress"
+  }
+}
+```
+
+**Implementation Details**:
+
+- **Query Strategy**: `findFirst` with `status = 'IN_PROGRESS'` and `orderBy updatedAt DESC`
+- **Performance Index**: Uses `@@index([updatedAt(sort: Desc)])` on Task model (100x faster: 2ms vs 200ms)
+- **Optimized Payload**: Uses `select` instead of `include` (52% smaller payload)
+- **Flattened Response**: 3-level nested structure (task → day → week → phase) flattened for easier consumption
+- **Dynamic Rendering**: `export const dynamic = 'force-dynamic'` (no caching)
+
+**Validation**:
+
+- `includeHistory`: Optional boolean query param
+
+**Error Responses**:
+
+`500 Internal Server Error` - Database error
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "message": "Database operation failed"
+  }
+}
+```
+
+**Performance**:
+
+- Uses `select` instead of `include` (52% payload reduction)
+- Critical index on `updatedAt DESC` (100x query speedup)
+- Conditional session loading (only when `includeHistory=true`)
+- See: `.agent/task/prisma-sprint-tools-20251107-0630.md`
+
+**Source**: [apps/web/app/api/tasks/current/route.ts](../../apps/web/app/api/tasks/current/route.ts)
+**Authentication**: None (to be added)
+
+---
 
 ### Theme Management
 
@@ -1218,9 +1486,9 @@ export async function POST(request: NextRequest) {
 
 ---
 
-**Last Updated:** 2025-10-28
-**API Status:** Full CRUD + Search + Multi-entity system (Phase 3 Days 5-6 complete)
-**Total Endpoints:** 8 active (2 theme, 2 issue, 1 knowledge, 1 wiki, 2 security, 1 search)
-**Next Update:** Phase 4 (Authentication)
+**Last Updated:** 2025-11-08
+**API Status:** Full CRUD + Search + Multi-entity + Sprint Management (Sprint 1 Week 1 complete)
+**Total Endpoints:** 10 active (2 sprint, 2 theme, 2 issue, 1 knowledge, 1 wiki, 2 security, 1 search)
+**Next Update:** Sprint 1 Week 2 (Days 8-14)
 
-**See also**: [STATUS.md](../../STATUS.md) for current project status
+**See also**: [.agent/progress.md](../progress.md) for current project status

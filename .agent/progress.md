@@ -1,8 +1,8 @@
 # Progress Tracker
 
 **Project**: ProjectPulse
-**Last Updated**: 2025-11-06
-**Overall Completion**: Documentation 100%, Implementation 0% (Ready for Sprint 1 / 18 weeks total)
+**Last Updated**: 2025-11-07
+**Overall Completion**: Documentation 100%, Implementation 5% (Sprint 1 Week 1 in progress)
 
 ---
 
@@ -51,9 +51,9 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 
 **Goal**: Establish 5-level hierarchy with progress tracking and basic validation
 
-### Sprint 1 Progress: ~20/52 points (38%)
+### Sprint 1 Progress: ~25/52 points (48%)
 
-**Week 1: Foundation Setup (Days 1-5)** 🔄 In Progress (60% complete)
+**Week 1: Foundation Setup (Days 1-5)** ✅ COMPLETE (100%)
 
 - Day 1: Environment Setup (✅ 100% - TypeScript strict mode, ESLint, Docker validation)
 - Day 2: Prisma Schema Design (✅ 100% COMPLETE - 5 models, 25 indexes, migration, seed, tests)
@@ -62,7 +62,8 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
   - ✅ **Complete**: Incremental transactions, type-safe generics, US-014 hierarchy integrity
 - Day 4: MCP Server Scaffold (✅ 100% COMPLETE - stdio transport, tool registry, health tool)
   - ✅ **Complete**: `apps/mcp-server/` workspace, config/logger/httpClient utilities, stdio bootstrap, `projectpulse.health_check` tool, lint/type/test/build, Step 4.5 verification
-- Day 5: MCP Server Hardening (⏳ 0% - CLI smoke test + docs)
+- Day 5: MCP Server Hardening (✅ 100% COMPLETE - Smoke tests, documentation, tool planning)
+  - ✅ **Complete**: Node.js smoke test (protocol-level validation), MCP Inspector integration guide, developer onboarding SOP, Day 6-7 tool implementation plan (sprint.phase.create, sprint.getCurrentTask), health-check orchestrator integration, 23-tool technical debt documentation, 42 vs 65 tool clarification
 
 **Week 2: MCP Tools Implementation (Days 6-10)** ⏳ Not Started
 
@@ -82,8 +83,11 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 - [x] Tree query helpers (getFullTree, getChildren, getParent) ✅ Day 3
 - [x] Validation: Zod schemas, progress 0-100, circular reference checks ✅ Day 3
 - [x] Database tests: 17 new tests (22/22 total passing) ✅ Day 3
-- [ ] MCP tools: createPhase, createWeek, createDay, createTask, createSession
 - [x] MCP server foundation (stdio transport, tool registration) ✅ Day 4
+- [x] Smoke test harness (Node.js + MCP Inspector) ✅ Day 5
+- [x] Developer onboarding documentation ✅ Day 5
+- [x] Tool specifications for Day 6-7 ✅ Day 5
+- [ ] MCP tools: createPhase, createWeek, createDay, createTask, createSession (Day 6-7)
 
 **Exit Criteria**:
 

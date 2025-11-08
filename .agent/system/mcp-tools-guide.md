@@ -1,8 +1,8 @@
 # MCP Tools Guide
 
-**Last Updated**: 2025-10-26
+**Last Updated**: 2025-11-08
 **Purpose**: Reference guide for all MCP (Model Context Protocol) tools available to Claude Code
-**Status**: Core tools configured - DevHub-specific tools pending
+**Status**: Core tools configured + ProjectPulse tools active (Sprint 1 Week 1 complete)
 
 ---
 
@@ -33,6 +33,10 @@
 
 - [docker-devhub](#docker-devhub) - Docker container management
 - [sequential-thinking](#sequential-thinking) - Complex problem solving
+
+**ProjectPulse Tools**:
+
+- [projectpulse](#projectpulse-mcp-server) - Sprint and task management (2 tools active)
 
 ---
 
@@ -514,6 +518,188 @@ docker_compose_status();
 
 ---
 
+## ProjectPulse MCP Server
+
+**Server**: `projectpulse` (Custom MCP server for sprint management)
+**When to use**: Sprint and task management operations
+**Status**: Active (Sprint 1 Week 1 complete - 2 tools available)
+
+### Available Tools
+
+#### `projectpulse.sprint.phase.create`
+
+Create a new sprint phase with auto-generated child weeks
+
+**Parameters**:
+
+```typescript
+{
+  title: string,              // Phase title (1-200 chars)
+  description?: string,       // Optional description
+  startDate: string,          // ISO 8601 date (e.g., "2025-11-10T00:00:00.000Z")
+  durationWeeks: number,      // Number of weeks (1-52, default: 4)
+  goals?: string[]            // Optional array of phase goals
+}
+```
+
+**Example**:
+
+```typescript
+projectpulse.sprint.phase.create({
+  title: 'Phase 2: API Development',
+  description: 'Build REST APIs for sprint management',
+  startDate: '2025-11-10T00:00:00.000Z',
+  durationWeeks: 4,
+  goals: [
+    'Implement POST /api/phases endpoint',
+    'Implement GET /api/tasks/current endpoint',
+    'Add performance indexes',
+  ],
+});
+```
+
+**Returns**:
+
+```json
+{
+  "status": "success",
+  "phase": {
+    "id": "clxxxx",
+    "title": "Phase 2: API Development",
+    "startDate": "2025-11-10T00:00:00.000Z",
+    "endDate": "2025-12-08T00:00:00.000Z",
+    "progress": 0
+  },
+  "weeks": [
+    {
+      "id": "clxxxx",
+      "title": "Phase 2: API Development - Week 1",
+      "startDate": "2025-11-10T00:00:00.000Z",
+      "endDate": "2025-11-17T00:00:00.000Z"
+    }
+    // ... (4 weeks total)
+  ]
+}
+```
+
+**Implementation**:
+
+- **API Endpoint**: `POST /api/phases`
+- **Performance**: Uses Prisma nested write (3x faster than manual loops)
+- **Auto-Generation**: Automatically creates N child weeks based on duration
+- **Atomic**: Single database transaction ensures data consistency
+
+**Source**: [apps/mcp-server/src/tools/sprintPhaseCreate.ts](../../apps/mcp-server/src/tools/sprintPhaseCreate.ts)
+
+---
+
+#### `projectpulse.sprint.getCurrentTask`
+
+Retrieve the currently active task with full hierarchical context
+
+**Parameters**:
+
+```typescript
+{
+  includeHistory?: boolean    // Include recent session history (default: false)
+}
+```
+
+**Example**:
+
+```typescript
+// Get current task without history
+projectpulse.sprint.getCurrentTask({});
+
+// Get current task with session history
+projectpulse.sprint.getCurrentTask({
+  includeHistory: true,
+});
+```
+
+**Returns (Task Active)**:
+
+```json
+{
+  "status": "active_task_found",
+  "currentTask": {
+    "id": "clxxxx",
+    "title": "Implement POST /api/phases endpoint",
+    "status": "IN_PROGRESS",
+    "progress": "75%"
+  },
+  "context": {
+    "hierarchy": {
+      "phase": "Sprint 1: Foundation (58% complete)",
+      "week": "Sprint 1 - Week 1 (100% complete)",
+      "day": "Day 6-7: Sprint Tools Implementation (85% complete)"
+    }
+  }
+}
+```
+
+**Returns (No Active Task)**:
+
+```json
+{
+  "status": "no_active_task",
+  "message": "No task is currently in progress"
+}
+```
+
+**Implementation**:
+
+- **API Endpoint**: `GET /api/tasks/current?includeHistory={boolean}`
+- **Performance**: Uses optimized `select` (52% smaller payload) + critical index on `updatedAt DESC` (100x faster)
+- **Query Strategy**: `findFirst` with `status='IN_PROGRESS'` ordered by most recently updated
+- **Hierarchy**: Flattened 3-level nested structure (task → day → week → phase)
+
+**Source**: [apps/mcp-server/src/tools/sprintGetCurrentTask.ts](../../apps/mcp-server/src/tools/sprintGetCurrentTask.ts)
+
+---
+
+### When to Use ProjectPulse Tools
+
+**Use `sprint.phase.create` when**:
+
+- Starting a new sprint or phase
+- Need to set up sprint structure with weeks
+- Planning multi-week development cycles
+- Initializing project timeline
+
+**Use `sprint.getCurrentTask` when**:
+
+- Need to know what task is currently in progress
+- Want full context of current work (phase → week → day → task)
+- Checking sprint progress and hierarchy
+- Resuming work after interruption
+
+**Common Workflows**:
+
+```typescript
+// 1. Start new phase
+projectpulse.sprint.phase.create({
+  title: 'Phase 2',
+  startDate: '2025-11-10T00:00:00.000Z',
+  durationWeeks: 4,
+});
+
+// 2. Check current task context
+projectpulse.sprint.getCurrentTask({ includeHistory: true });
+
+// 3. Use context to inform next actions
+// (e.g., update task progress, create session notes, etc.)
+```
+
+**Performance Notes**:
+
+- Both tools optimized for <500ms response time (NFR-019)
+- Database indexes added for critical queries
+- Prisma nested writes and select patterns for efficiency
+- See: `.agent/task/prisma-sprint-tools-20251107-0630.md`
+
+---
+
 ## Sequential Thinking
 
 **Server**: `mcp__sequential-thinking`
@@ -741,8 +927,8 @@ cat ~/.config/claude-code/logs/mcp-servers.log
 
 ---
 
-**Last Updated:** 2025-10-26
-**MCP Status:** Core tools configured
-**Next:** Custom DevHub MCP server (Week 2+)
+**Last Updated:** 2025-11-08
+**MCP Status:** Core tools configured + ProjectPulse MCP server active (2 tools)
+**Next:** Additional sprint tools (Week 2: task creation, session management)
 
-**See also**: [STATUS.md](../../STATUS.md) for current project status
+**See also**: [.agent/progress.md](../progress.md) for current project status

@@ -420,6 +420,147 @@ server.prompt(
 8. **Templates** (2 tools)
    - apply_issue_template, apply_wiki_template
 
+## Health Check Integration
+
+**Purpose**: The `projectpulse.health_check` tool verifies MCP server and Next.js API connectivity.
+
+**When to Use Health Checks:**
+
+1. **Session Start** - Verify system operational before executing workflows
+2. **Pre-Deployment** - Confirm all services running before major operations
+3. **Debugging** - Diagnose connectivity issues between MCP server and API
+4. **Automated Workflows** - Include as first step in multi-tool sequences
+
+**Health Check Tool Implementation:**
+
+```typescript
+// mcp-server/src/tools/healthCheck.ts
+import { z } from 'zod';
+import { HttpClient } from '../httpClient.js';
+
+export const healthCheckSchema = z.object({});
+
+export type HealthCheckInput = z.infer<typeof healthCheckSchema>;
+
+export async function healthCheckHandler(
+  input: HealthCheckInput,
+  httpClient: HttpClient
+): Promise<string> {
+  try {
+    const response = await httpClient.get('/api/health');
+    
+    if (response.status === 'ok') {
+      return JSON.stringify({
+        status: 'ok',
+        timestamp: response.timestamp,
+        version: response.version,
+        server: response.server,
+        message: '✅ MCP server and Next.js API are operational',
+      }, null, 2);
+    } else {
+      throw new Error('Health check returned non-OK status');
+    }
+  } catch (error) {
+    return JSON.stringify({
+      status: 'error',
+      message: '❌ Health check failed',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      troubleshooting: [
+        '1. Verify Next.js is running: cd apps/web && npm run dev',
+        '2. Check API_BASE_URL environment variable',
+        '3. Test API directly: curl http://localhost:3000/api/health',
+      ],
+    }, null, 2);
+  }
+}
+```
+
+**Usage in Workflows:**
+
+```typescript
+// Example: Multi-step workflow with health check
+async function createIssueWorkflow(issueData) {
+  // Step 1: Health check
+  const health = await callTool('projectpulse.health_check', {});
+  if (health.status !== 'ok') {
+    throw new Error('System not ready: ' + health.message);
+  }
+  
+  // Step 2: Create issue (system verified operational)
+  const issue = await callTool('projectpulse.create_issue', issueData);
+  
+  return issue;
+}
+```
+
+**Expected Responses:**
+
+**Success Response** (Next.js running):
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-11-07T12:00:00.000Z",
+  "version": "1.0.0",
+  "server": "projectpulse-mcp",
+  "message": "✅ MCP server and Next.js API are operational"
+}
+```
+
+**Error Response** (Next.js not running):
+```json
+{
+  "status": "error",
+  "message": "❌ Health check failed",
+  "details": "fetch failed",
+  "troubleshooting": [
+    "1. Verify Next.js is running: cd apps/web && npm run dev",
+    "2. Check API_BASE_URL environment variable",
+    "3. Test API directly: curl http://localhost:3000/api/health"
+  ]
+}
+```
+
+**Integration Points:**
+
+1. **Orchestrator Workflows**: Always invoke health check before multi-step operations
+2. **Error Recovery**: Use health check to diagnose "fetch failed" errors
+3. **Session Initialization**: Recommended first tool call in new sessions
+4. **CI/CD Pipelines**: Include in pre-deployment verification steps
+
+**Troubleshooting with Health Checks:**
+
+If health check fails:
+
+1. **Check Next.js Process**:
+   ```bash
+   cd apps/web
+   npm run dev
+   # Should show: ready - started server on 0.0.0.0:3000
+   ```
+
+2. **Verify API Endpoint**:
+   ```bash
+   curl http://localhost:3000/api/health
+   # Should return: {"status":"ok","timestamp":"..."}
+   ```
+
+3. **Check MCP Server Config**:
+   - Verify `API_BASE_URL` environment variable
+   - Default: `http://localhost:3000`
+   - Check `.claude/mcp_settings.json` or `~/.claude/mcp_settings.json`
+
+4. **Test MCP Server Directly**:
+   ```bash
+   cd apps/mcp-server
+   node tests/smoke-test.js
+   # Should show: ✅ SMOKE TEST PASSED
+   ```
+
+**See Also:**
+- [MCP Server Launch SOP](../../.agent/sops/mcp-server-launch.md)
+- [Smoke Test Documentation](../../apps/mcp-server/tests/README.md)
+- [Day 6-7 Tool Implementation Plan](../../.agent/task/day-6-7-tool-plan.md)
+
 ## Your Response Protocol
 
 When the user requests MCP work:
