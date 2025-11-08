@@ -92,7 +92,7 @@ ProjectPulse uses a distributed architecture for clean separation of concerns:
 - Root cause: Docker Desktop port forwarding from WSL2 to Windows failing
 - Solution: Run development commands from WSL2 (`/mnt/f/Web_Projects/AI_HUB`)
 - Docker fix: Changed port binding from 127.0.0.1:5432 to 0.0.0.0:5432
-- Documentation: Created `.agent/sops/windows-docker-networking.md` (350+ lines)
+- Documentation: Created `.agent/sops/ARCHIVED-windows-docker-networking.md` (350+ lines) - **ARCHIVED, superseded by Mac mini cloud architecture**
 - Verification: ✅ Prisma works from WSL2, ✅ MCP server compiles (0 errors)
 
 **Day 6-7 Verification Results** ✅:

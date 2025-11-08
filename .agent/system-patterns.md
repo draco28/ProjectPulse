@@ -381,6 +381,8 @@ test('complete issue workflow', async ({ page }) => {
 
 ```typescript
 // Via MCP tool in Claude Code
+// Note: Use http://192.168.1.15:3000 when targeting Mac mini runtime from Windows
+//       Use http://localhost:3000 for CI or when running tests on the same machine as services
 // 1. Navigate: mcp__playwright__browser_navigate({ url: "http://localhost:3000/issues/1" })
 // 2. Snapshot: mcp__playwright__browser_snapshot() - gets page structure
 // 3. Click: mcp__playwright__browser_click({ element: "Add Comment button", ref: "btn-123" })

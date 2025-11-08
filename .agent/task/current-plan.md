@@ -324,7 +324,7 @@ Include: parameters, examples, use cases, performance notes
 **Internal Dependencies**:
 1. Progress roll-up utility (already exists from Day 3)
 2. GET /api/days endpoint (may need to create if doesn't exist)
-3. WSL2 hybrid workflow (documented in windows-docker-networking.md)
+3. WSL2 hybrid workflow (documented in ARCHIVED-windows-docker-networking.md - now superseded by Mac mini cloud architecture)
 
 ---
 

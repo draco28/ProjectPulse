@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ARCHIVED — Superseded by Mac mini Cloud Runtime
+# Do NOT use this script for ProjectPulse development.
+# Use docker-compose.cloud.yml on the Mac mini (192.168.1.15).
+# See .agent/sops/mac-mini-cloud-architecture.md
+
 # ProjectPulse — WSL helper to start the Next.js dev server
 # - Installs Linux-specific dependencies if needed (e.g., @next/swc-linux-x64-gnu)
 # - Disables telemetry

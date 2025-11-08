@@ -1,10 +1,14 @@
 # ============================================================================
-# ProjectPulse - Docker Compose Configuration
+# ProjectPulse - Docker Compose Configuration (LEGACY: CI/local fallback)
 # ============================================================================
 # Services: PostgreSQL + Next.js Web Application
 # Network: projectpulse-network (bridge, isolated)
 # Volumes: postgres_data (persistent database storage)
 # ============================================================================
+#
+# NOTE: Mac mini runtime uses docker-compose.cloud.yml.
+# Do NOT use this file on the Mac mini. See .agent/sops/mac-mini-cloud-architecture.md
+# and .agent/sops/mac-mini-communication-protocol.md for the workflow.
 
 services:
   # ==========================================================================
@@ -26,9 +30,10 @@ services:
       PGTZ: UTC
 
     # Port Mapping
-    # Bind to 0.0.0.0 for Windows Docker Desktop + WSL2 compatibility
-    # This allows Prisma CLI to access database from Windows host
-    # For production: Remove port mapping (web container accesses via network)
+    # LEGACY (CI/local only): For Windows fallback. On Mac mini runtime,
+    # see docker-compose.cloud.yml and do not expose 5432 to LAN.
+    # For CI/local fallback, binding to 0.0.0.0 allows Prisma CLI from host.
+    # Prefer 127.0.0.1 when possible. For production: remove port mapping.
     ports:
       - "0.0.0.0:5432:5432"
 
@@ -205,35 +210,45 @@ volumes:
 # USAGE INSTRUCTIONS
 # ============================================================================
 #
-# Start all services:
+# Mac mini runtime (preferred):
+#   docker compose -f docker-compose.cloud.yml up -d
+#
+# CI/local fallback (legacy):
 #   docker-compose up -d
 #
 # View logs:
-#   docker-compose logs -f
-#   docker-compose logs -f web      # Web app only
-#   docker-compose logs -f postgres # Database only
+#   docker compose -f docker-compose.cloud.yml logs -f   # Mac mini runtime
+#   docker-compose logs -f                                 # CI/local fallback
+#   docker-compose logs -f web      # Web app only (legacy)
+#   docker-compose logs -f postgres # Database only (legacy)
 #
 # Check status:
-#   docker-compose ps
+#   docker compose -f docker-compose.cloud.yml ps         # Mac mini runtime
+#   docker-compose ps                                     # CI/local fallback
 #
 # Restart services:
-#   docker-compose restart
-#   docker-compose restart web      # Web app only
+#   docker compose -f docker-compose.cloud.yml restart    # Mac mini runtime
+#   docker-compose restart                                 # CI/local fallback
+#   docker-compose restart web      # Web app only (legacy)
 #
 # Stop all services:
-#   docker-compose down
+#   docker compose -f docker-compose.cloud.yml down       # Mac mini runtime
+#   docker-compose down                                   # CI/local fallback
 #
 # Stop and remove volumes (CAUTION: Deletes all data):
-#   docker-compose down -v
+#   docker-compose down -v                                # CI/local fallback only
 #
 # Rebuild containers:
-#   docker-compose up -d --build
+#   docker compose -f docker-compose.cloud.yml up -d --build  # Mac mini runtime
+#   docker-compose up -d --build                                # CI/local fallback
 #
 # Execute commands in container:
+#   docker compose -f docker-compose.cloud.yml exec postgres psql -U projectpulse projectpulse_db
+#   docker compose -f docker-compose.cloud.yml exec web pnpm prisma studio
+#   # (CI/local fallback):
 #   docker-compose exec postgres psql -U projectpulse projectpulse_db
 #   docker-compose exec web pnpm prisma studio
 #
 # View resource usage:
 #   docker stats projectpulse-db projectpulse-web
-#
 # ============================================================================

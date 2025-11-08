@@ -4,6 +4,11 @@
 **Last Updated:** October 23, 2025  
 **Status:** Retired — see docs/README.md
 
+> ⚠️ ARCHITECTURE CHANGE — Mac mini Cloud Runtime (Current)
+> This index is retired. For current runtime architecture and procedures, see:
+> - .agent/sops/mac-mini-cloud-architecture.md (overview, services, compose file)
+> - .agent/sops/mac-mini-communication-protocol.md (Git-based cross-machine workflow)
+
 This index is retired. Use the canonical docs index instead:
 
 - docs/README.md — Overview and reading paths

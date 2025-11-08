@@ -60,9 +60,9 @@ Git branch management and commit procedures.
 
 Fix Next.js dev server port configuration issues (3000 vs 3002).
 
-### [windows-docker-networking.md](windows-docker-networking.md)
+### [ARCHIVED-windows-docker-networking.md](ARCHIVED-windows-docker-networking.md)
 
-WSL2 Docker networking issues and workarounds (legacy - migrate to Mac mini to avoid these issues).
+**ARCHIVED** - WSL2 Docker networking issues and workarounds (superseded by Mac mini cloud architecture).
 
 ---
 

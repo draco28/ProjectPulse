@@ -263,6 +263,31 @@ test('Agent completes 5-step protocol successfully', async ({ page }) => {
 
 ---
 
+#### 1.4.1 Running E2E Against Mac mini Runtime
+
+When services are running on the Mac mini (192.168.1.15), run Playwright against that external origin instead of starting a local dev server.
+
+```bash
+# From Windows shell
+set BASE_URL=http://192.168.1.15:3000
+set EXTERNAL_BASE_URL=1
+pnpm --filter web test:e2e
+
+# PowerShell
+$env:BASE_URL="http://192.168.1.15:3000"; $env:EXTERNAL_BASE_URL="1"; pnpm --filter web test:e2e
+
+# macOS/Linux
+BASE_URL=http://192.168.1.15:3000 EXTERNAL_BASE_URL=1 pnpm --filter web test:e2e
+```
+
+Notes:
+
+- EXTERNAL_BASE_URL=1 disables Playwright’s local `webServer` (per playright.config.ts) so tests target the external base URL.
+- BASE_URL must match the Mac mini web app origin.
+- For CI, continue using the default localhost configuration.
+
+---
+
 ### 1.5 Test Framework Stack
 
 | Layer         | Framework                 | Purpose                 | Version |

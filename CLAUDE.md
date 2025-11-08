@@ -96,6 +96,21 @@ ProjectPulse uses a distributed development setup:
 - **API Health**: http://192.168.1.15:3000/api/health
 - **Database**: `postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev`
 
+### Environment Profiles
+
+| Environment | NEXT_PUBLIC_APP_URL | DATABASE_URL | Usage |
+|-------------|---------------------|--------------|-------|
+| **Mac mini (Current)** | `http://192.168.1.15:3000` | `postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev` | Primary development runtime |
+| **CI/GitHub Actions** | `http://localhost:3000` | `postgresql://postgres:postgres@localhost:5432/projectpulse_test` | Automated testing |
+| **Future Production** | `https://app.projectpulse.com` | Supabase/Railway connection string | Cloud deployment |
+
+**Note**: For Playwright E2E tests targeting Mac mini from Windows, set `BASE_URL=http://192.168.1.15:3000` and `EXTERNAL_BASE_URL=1` in your test environment.
+
+### Compose Files (Quick Reference)
+
+- **Mac mini runtime (preferred)**: `docker-compose.cloud.yml` (run on Mac mini)
+- **CI/local fallback (legacy)**: `docker-compose.yml` (use only for CI or explicit local runs)
+
 ### When to Use Mac Mini
 
 Use Mac mini for:
@@ -983,10 +998,11 @@ Initialize or update .agent/ documentation system
 ### Daily Checklist
 
 ```markdown
-- [ ] pnpm dev shows port 3000
-- [ ] localhost:3000 loads application
+- [ ] Mac mini health OK: curl http://192.168.1.15:3000/api/health returns healthy
+- [ ] 192.168.1.15:3000 loads application (from Windows)
+- [ ] (Optional local) pnpm dev only if explicitly running locally on Windows
 - [ ] On feature branch (not master)
-- [ ] Read STATUS.md + docs/13-Project-Plan.md
+- [ ] Read .agent/active-context.md + docs/13-Project-Plan.md
 - [ ] Check .agent/README.md for task context
 ```
 

@@ -113,10 +113,39 @@ Proceed with network troubleshooting and testing.
 
 If I forget WSL2 workflow:
 Remind me: "Use WSL2 hybrid - all commands via wsl -d Ubuntu-24.04 -- bash -c 'cd /mnt/f/... && command'"
-Point me to: .agent/sops/windows-docker-networking.md
+Point me to: .agent/sops/ARCHIVED-windows-docker-networking.md (ARCHIVED - superseded by Mac mini cloud architecture)
 If testing fails:
 Check database is running: docker ps --filter "name=projectpulse-db"
 Check dev server logs from WSL2
 Verify DATABASE_URL still points to localhost:5432
 If I suggest Mac Mini migration:
 Remind me: "Defer Mac Mini to next week - complete Sprint 1 Week 2 first"
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+
+
+MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
+
+Current phase: Sprint 1 Week 2 Days 8-9 - Additional MCP Tools Implementation
+Status: Implementation complete (3 APIs + 3 MCP tools), integration testing in progress
+Branch: feature/sprint-1-foundation
+
+Requirements: 
+- Complete integration testing (phase → task → session → progress workflow)
+- Update API catalog with 3 new endpoints
+- Update MCP tools guide with 3 new tools
+- Update context files and create verification report
+
+ENFORCE:
+- ✅ Step 1: Initialize session (read STATUS.md, docs/13-Project-Plan.md, create session file)
+- ✅ Step 2: Save plan BEFORE code (create current-plan.md and current-todos.md)
+- ✅ Step 3: Consult experts (invoke react-expert, next-js-expert, prisma-expert as needed)
+- ✅ Step 4: Checkpoints every 15K tokens (update session and todos files)
+- ✅ Step 5: Post-completion workflow (update docs, invoke synthesize-docs, commit)
+
+Confirm each step explicitly. If you skip ANY step, I will stop you.
+
+Proceed with Day 8-9 integration testing and documentation.

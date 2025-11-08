@@ -6,6 +6,12 @@
 
 ---
 
+> ⚠️ ARCHITECTURE CHANGE — Mac mini Cloud Runtime
+> All runtime services now run on the Mac mini (192.168.1.15); do not run Docker on Windows.
+> Access the app from Windows at http://192.168.1.15:3000. Use localhost only when executing commands on the Mac mini host or inside containers.
+> Primary compose file: docker-compose.cloud.yml (run on the Mac mini). docker-compose.yml is legacy for CI/local fallback.
+> See: .agent/sops/mac-mini-cloud-architecture.md and .agent/sops/mac-mini-communication-protocol.md
+
 ## 11.1 Overview and Philosophy
 
 ### Purpose
@@ -16,7 +22,7 @@ This document defines the **infrastructure architecture** and **deployment strat
 
 ProjectPulse's infrastructure is optimized for **AI agent workflows**:
 
-1. **Local-First Development**: $0 infrastructure cost, runs entirely on localhost (Docker Desktop)
+1. **Local-First Development**: $0 infrastructure cost, services run on Mac mini (192.168.1.15)
 2. **Persistent State**: Database as single source of truth, enables stateless agent operation
 3. **Fast Iteration**: Hot-reload development environment, <5s container restart
 4. **Production-Ready**: Architecture designed for seamless cloud migration (Vercel + Railway/Supabase)
@@ -220,7 +226,7 @@ environment:
 
   # Next.js
   NODE_ENV: ${NODE_ENV:-development}
-  NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+  NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://192.168.1.15:3000}
   PORT: ${PORT:-3000}
 
   # MCP Server
@@ -386,9 +392,10 @@ volumes:
 - **macOS**: `~/Library/Containers/com.docker.docker/Data/vms/0/data/docker/volumes/projectpulse_postgres_data/_data`
 - **Linux**: `/var/lib/docker/volumes/projectpulse_postgres_data/_data`
 
-### 11.2.6 Complete docker-compose.yml
+### 11.2.6 Compose Files (Mac mini vs CI/local)
 
-See [docker-compose.yml](../docker-compose.yml) for the authoritative configuration (240 lines with comprehensive comments).
+Mac mini runtime (authoritative): [docker-compose.cloud.yml](../docker-compose.cloud.yml)
+Legacy local/CI fallback: [docker-compose.yml](../docker-compose.yml)
 
 **Key Features**:
 
@@ -411,7 +418,7 @@ See [docker-compose.yml](../docker-compose.yml) for the authoritative configurat
 | -------------------------------- | --------------- | ---------------------------------- | ----------------------------------------------- |
 | **Node.js**                      | 20.x LTS        | JavaScript runtime for Next.js     | https://nodejs.org/                             |
 | **pnpm**                         | 9.x             | Package manager (faster than npm)  | `npm install -g pnpm`                           |
-| **Docker Desktop**               | 24.x            | Container runtime + Docker Compose | https://www.docker.com/products/docker-desktop/ |
+| **Docker (Mac mini host)**       | 24.x            | Container runtime + Docker Compose (run on Mac mini) | https://docs.docker.com/engine/install/ |
 | **Git**                          | 2.40+           | Version control                    | https://git-scm.com/downloads                   |
 | **VS Code** (optional)           | Latest          | IDE with Prisma extension          | https://code.visualstudio.com/                  |
 | **PostgreSQL Client** (optional) | 15+             | Database CLI (psql)                | `brew install postgresql` (macOS)               |
@@ -488,11 +495,12 @@ pnpm store prune
 pnpm install
 ```
 
-#### Step 4: Start Docker Containers
+#### Step 4: Start Docker Containers (on Mac mini)
 
 ```bash
+# On the Mac mini host
 # Start all services in detached mode (background)
-docker-compose up -d
+docker compose -f docker-compose.cloud.yml up -d
 
 # Expected output:
 # [+] Running 3/3
@@ -504,8 +512,8 @@ docker-compose up -d
 **Verify Services**:
 
 ```bash
-# Check container status
-docker-compose ps
+# On the Mac mini host: Check container status
+docker compose -f docker-compose.cloud.yml ps
 
 # Expected output:
 # NAME                  STATUS              PORTS
@@ -584,29 +592,29 @@ pnpm prisma studio
 
 ### 11.3.4 Starting Services (Daily Workflow)
 
-#### Normal Startup
+#### Normal Startup (on Mac mini)
 
 ```bash
 # Start all services (foreground, see logs)
-docker-compose up
+docker compose -f docker-compose.cloud.yml up
 
 # OR start in background (detached mode)
-docker-compose up -d
+docker compose -f docker-compose.cloud.yml up -d
 
 # View logs after starting in background
-docker-compose logs -f
+docker compose -f docker-compose.cloud.yml logs -f
 
 # View logs for specific service
-docker-compose logs -f web      # Next.js web app only
-docker-compose logs -f postgres # Database only
+docker compose -f docker-compose.cloud.yml logs -f web      # Next.js web app only
+docker compose -f docker-compose.cloud.yml logs -f postgres # Database only
 ```
 
 #### Verify Application
 
-**1. Check Application Health**:
+**1. Check Application Health (from Windows)**:
 
 ```bash
-curl http://localhost:3000/api/health
+curl http://192.168.1.15:3000/api/health
 
 # Expected response:
 # {
@@ -620,10 +628,12 @@ curl http://localhost:3000/api/health
 **2. Open Dashboard**:
 
 ```bash
-# Open in browser
-open http://localhost:3000          # macOS
-start http://localhost:3000         # Windows
-xdg-open http://localhost:3000      # Linux
+# Open in browser (from Windows)
+start http://192.168.1.15:3000
+
+# Alternatively, on the Mac mini host
+open http://localhost:3000          # macOS (Mac mini)
+xdg-open http://localhost:3000      # Linux (if applicable)
 
 # Expected: See ProjectPulse dashboard with navigation, sprint progress
 ```
@@ -643,15 +653,16 @@ xdg-open http://localhost:3000      # Linux
 ### 11.3.5 Stopping Services
 
 ```bash
+# On the Mac mini host
 # Stop all services (preserves data)
-docker-compose down
+docker compose -f docker-compose.cloud.yml down
 
 # Stop and remove volumes (⚠️ DELETES ALL DATA)
-docker-compose down -v
+docker compose -f docker-compose.cloud.yml down -v
 
 # Restart specific service
-docker-compose restart web
-docker-compose restart postgres
+docker compose -f docker-compose.cloud.yml restart web
+docker compose -f docker-compose.cloud.yml restart postgres
 ```
 
 ### 11.3.6 Troubleshooting Common Setup Issues
@@ -659,11 +670,11 @@ docker-compose restart postgres
 | Issue                          | Symptoms                                                   | Solution                                                                                                                                                                 |
 | ------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Port 3000 Already in Use**   | `Error: listen EADDRINUSE: address already in use :::3000` | Kill existing process:<br/>`lsof -i :3000` → `kill -9 <PID>`<br/>OR change PORT in `.env`: `PORT=3001`                                                                   |
-| **Database Connection Failed** | `PrismaClientInitializationError: Can't reach database`    | 1. Check Docker: `docker ps` → postgres should be running<br/>2. Verify `DATABASE_URL` in `.env`<br/>3. Check health: `docker-compose ps` → postgres should be "healthy" |
-| **Docker Not Running**         | `Cannot connect to Docker daemon`                          | Start Docker Desktop application<br/>Wait for whale icon (system tray) to show "Docker Desktop is running"                                                               |
-| **Permission Denied**          | `EACCES: permission denied, open '/app/.next/...'`         | Fix ownership:<br/>`sudo chown -R $USER:$USER .`<br/>Rebuild: `docker-compose up -d --build`                                                                             |
+| **Database Connection Failed** | `PrismaClientInitializationError: Can't reach database`    | 1. Check Docker on Mac mini: `docker ps` → postgres should be running<br/>2. Verify `DATABASE_URL` in `.env`<br/>3. Check health: `docker compose -f docker-compose.cloud.yml ps` → postgres should be "healthy" |
+| **Docker Not Running**         | `Cannot connect to Docker daemon`                          | Start Docker services on the Mac mini host<br/>Then verify: `docker compose -f docker-compose.cloud.yml ps`                                                               |
+| **Permission Denied**          | `EACCES: permission denied, open '/app/.next/...'`         | Fix ownership:<br/>`sudo chown -R $USER:$USER .`<br/>Rebuild: `docker compose -f docker-compose.cloud.yml up -d --build`                                                     |
 | **Out of Memory**              | Docker crashes, slow performance                           | Increase Docker Desktop limits:<br/>Settings → Resources → Memory → Set to 4GB+                                                                                          |
-| **Hot Reload Not Working**     | Code changes not reflected in browser                      | 1. Restart web container: `docker-compose restart web`<br/>2. Clear Next.js cache: `rm -rf apps/web/.next`<br/>3. Verify volume mount in `docker-compose.yml`            |
+| **Hot Reload Not Working**     | Code changes not reflected in browser                      | 1. Restart web container: `docker compose -f docker-compose.cloud.yml restart web`<br/>2. Clear Next.js cache: `rm -rf apps/web/.next`<br/>3. Verify volume mount in `docker-compose.cloud.yml` |
 
 ---
 
@@ -719,7 +730,7 @@ POSTGRES_MAX_CONNECTIONS=100
 NODE_ENV=development
 
 # Public App URL (for CORS, webhooks, absolute URLs)
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=http://192.168.1.15:3000
 
 # Port for Next.js dev server
 PORT=3000

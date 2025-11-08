@@ -38,7 +38,9 @@
       "Bash(npm install)",
       "Bash(pnpm build:*)",
       "Bash(pnpm install)",
-      "Bash(yes:*)"
+      "Bash(yes:*)",
+      "Bash(git mv:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": [

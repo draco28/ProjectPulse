@@ -26,7 +26,7 @@
 **Network Resolution** (from current-session-20251108-0830.md):
 - ✅ WSL2 hybrid workflow established
 - ✅ Database accessible from WSL2 at localhost:5432
-- ✅ Comprehensive SOP created (.agent/sops/windows-docker-networking.md)
+- ✅ Comprehensive SOP created (.agent/sops/ARCHIVED-windows-docker-networking.md) - ARCHIVED, superseded by Mac mini cloud architecture
 - ✅ Next.js dev server verified working from WSL2
 
 **Testing Approach**:
