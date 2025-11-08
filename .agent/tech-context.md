@@ -1011,5 +1011,30 @@ pnpm test:integration mcp-server/tests/integration/**/*.test.ts
 **Impact**: None - MVP functionality complete with 42 tools. Enhancement tools add value but aren't critical path.
 
 ---
+### Code Execution with MCP (Planned for Sprint 2)
+
+**Traditional MCP (current usage):**
+- All tool definitions loaded upfront in each session
+- Results pass through the model context window
+- Token cost scales with tool count
+
+**Code Execution MCP (planned enhancement):**
+- On-demand tool discovery via filesystem exploration (e.g., `./servers/projectpulse/...`)
+- Local data processing before returning to the model
+- Token savings: up to 98.7% reduction on tool operations
+- Scales to 25+ tools without context bloat
+- Privacy via auto-tokenization (mask sensitive data prior to model exposure)
+
+**Benefits for ProjectPulse:**
+- Efficient search/filter operations (processing happens locally)
+- Complex workflows with loops/conditionals are feasible
+- Stronger privacy posture through automatic tokenization
+
+**Timeline:**
+- Sprint 2: Design ProjectPulse MCP server with code execution
+- Sprint 3: Implement on-demand discovery and local filtering in priority tool areas
+- Future: Evaluate wrapping existing servers where large payloads benefit from local processing
+
+**Reference:** Code Execution with MCP – https://www.anthropic.com/engineering/code-execution-with-mcp
 
 Last updated: 2025-11-07

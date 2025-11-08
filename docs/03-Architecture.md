@@ -420,6 +420,61 @@ type MCPError = {
 - NFR-001: MCP response time <200ms
 - NFR-015: Input validation (Zod schemas)
 
+#### MCP Execution Approach: Code Execution with MCP
+
+To support a 25+ tool ecosystem efficiently, ProjectPulse adopts the Code Execution MCP approach for the custom MCP server. Instead of loading all tool definitions into the model context up front, tools are discovered and invoked on-demand via a filesystem-oriented module structure. Data-intensive work is performed locally and only the final, filtered results are returned to the model.
+
+| Aspect            | Traditional MCP                 | Code Execution MCP (Our Choice) |
+|-------------------|---------------------------------|----------------------------------|
+| Tool loading      | All upfront                      | On-demand discovery              |
+| Token cost        | ~50K+ for 25 tools               | ~2–5K per operation              |
+| Data processing   | In model context                 | Local execution                  |
+| Scalability       | Limited (~<20 tools practical)   | Scales to thousands              |
+| Privacy           | Manual handling                  | Auto-tokenization layer          |
+
+**Why Code Execution for ProjectPulse**
+1) 25+ tools would create unacceptable upfront token overhead
+2) Knowledge/issue search may return large result sets best filtered locally
+3) Agent personas require different tool subsets (load only what’s needed)
+4) Privacy: sensitive fields must be masked before reaching the model
+
+**Filesystem-Based Tool Organization**
+```
+./servers/projectpulse/
+├── issues/
+│   ├── create.ts
+│   ├── update.ts
+│   ├── search.ts
+│   └── filter.ts
+├── knowledge/
+│   ├── search.ts
+│   ├── embed.ts
+│   └── retrieve.ts
+├── agents/
+│   ├── personas.ts
+│   └── activate.ts
+└── projects/
+    ├── context.ts
+    └── status.ts
+```
+
+**Agent Discovery Pattern (TypeScript)**
+```ts
+// Agent explores filesystem and loads only what is needed
+const tools = await listDirectory('./servers/projectpulse/issues/')
+const { search } = await import('./servers/projectpulse/issues/search.ts')
+const results = await search(query)
+const open = results.filter(i => i.status === 'open')
+return open.slice(0, 10)
+```
+
+**Privacy & Security (Auto-Tokenization)**
+- Sensitive data (emails, IPs, phone numbers) is tokenized in the code execution environment
+- The model sees tokens (e.g., `<EMAIL_1>`, `<IP_1>`) instead of raw values
+- Original values are never sent to the model and can be de-tokenized only for authorized presentation
+
+This approach aligns with our Local-First and Privacy principles while delivering substantial token savings (observed up to ~98.7% reduction) and enabling complex workflows (loops, filtering, ranking) that would be impractical in the model context.
+
 ---
 
 ### 2.3 Container: Next.js Web App

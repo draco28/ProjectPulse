@@ -907,6 +907,81 @@ cat ~/.config/claude-code/logs/mcp-servers.log
 
 ---
 
+## Code Execution vs Traditional MCP
+
+### Traditional MCP (Current Usage)
+
+**How it works:**
+1. All tool definitions are sent to the model at session start
+2. Model calls tools via function calling
+3. Results return through the model context window
+4. Repeat for each tool call
+
+**Token costs:**
+- Tool definitions: ~500–1000 tokens per tool
+- Results: Full content passes back through context
+- Example: 9 servers × ~10 tools ≈ ~45K–90K tokens upfront
+
+**Best for:**
+- Small tool sets (<20 tools)
+- Simple request/response patterns
+- Immediate tool availability
+
+### Code Execution MCP (Planned)
+
+**How it works:**
+1. Tools organized as filesystem modules (e.g., `./servers/projectpulse/...`)
+2. Agent explores directories to discover tools on-demand
+3. Agent writes code that imports and calls tools
+4. Code executes locally, processes/filters data, returns minimal results
+
+**Token costs:**
+- Tool definitions: Loaded only when needed
+- Results: Pre-filtered locally before returning to model
+- Example: 150K tokens → ~2K tokens (≈98.7% reduction)
+
+**Best for:**
+- Large tool sets (25+ tools)
+- Complex workflows (loops/filtering)
+- Privacy-sensitive operations
+- Large dataset processing (search/rank/filter)
+
+### When to Use Each Approach
+
+| Use Case                          | Traditional MCP | Code Execution MCP |
+|-----------------------------------|-----------------|--------------------|
+| Current day-to-day ops            | ✅               | ➖ Planned          |
+| ProjectPulse server (25+ tools)   | ❌ Context bloat | ✅ Planned Sprint 2 |
+| Simple CRUD                       | ✅ Fast          | ⚠️ Overhead         |
+| Search/filter large datasets      | ❌ Token heavy   | ✅ Efficient        |
+| Privacy-sensitive data processing | ⚠️ Manual        | ✅ Auto-tokenize    |
+
+### Implementation Roadmap
+
+**Sprint 1 (Current):**
+- Continue using traditional MCP; focus on core features
+
+**Sprint 2 (Design):**
+- Design filesystem structure `./servers/projectpulse/{issues,knowledge,agents}/`
+- Plan on-demand tool discovery patterns
+- Draft privacy auto-tokenization rules
+
+**Sprint 3 (Integration):**
+- Implement code execution environment
+- Build on-demand loading + local filtering for search-heavy tools
+
+**Future:**
+- Evaluate wrapping existing servers for heavy operations (e.g., postgres)
+- Hybrid: traditional for simple, code execution for complex
+
+**References:**
+- Code Execution with MCP – https://www.anthropic.com/engineering/code-execution-with-mcp
+- MCP Spec – https://modelcontextprotocol.io
+- Architecture – ../../docs/03-Architecture.md
+- Design – ../../docs/archive/plans/mcp-code-execution-design.md
+
+---
+
 ## Resources
 
 ### Documentation

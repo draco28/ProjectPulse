@@ -687,6 +687,24 @@ Sprint 1-8 implementation revealed critical architectural gap: Claude Code's 200
 - Git hook tests: Verify pre-commit validation blocks edits
 - Workflow state persistence tests
 
+#### Addendum: Code Execution MCP (Design Kickoff)
+
+To support a 25+ tool ecosystem without context bloat and achieve ~98.7% token savings on tool operations, initiate the Code Execution MCP design in Sprint 2:
+
+**Design Tasks (Sprint 2):**
+- Define filesystem structure for tools: `./servers/projectpulse/{issues,knowledge,agents,projects}/`
+- Specify on-demand discovery pattern (directory exploration + selective imports)
+- Draft privacy auto-tokenization patterns (emails, IPs, phone numbers)
+- Outline local processing strategy for search/filter/rank operations
+- Produce initial design artifact and circulate for review
+
+**References:**
+- Design: [docs/archive/plans/mcp-code-execution-design.md](archive/plans/mcp-code-execution-design.md)
+- Architecture: [docs/03-Architecture.md](03-Architecture.md#mcp-execution-approach-code-execution-with-mcp)
+- Tools Guide: [.agent/system/mcp-tools-guide.md](../.agent/system/mcp-tools-guide.md#code-execution-vs-traditional-mcp)
+
+**Notes:** Implementation is scheduled to proceed in subsequent sprints (integration work begins Sprint 3), while Sprint 2 focuses on design and planning deliverables.
+
 ---
 
 ### Sprint 3 (Weeks 5-6): Workflow Orchestration - 56 points
