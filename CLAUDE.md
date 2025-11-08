@@ -21,17 +21,34 @@ Just chat naturally with me (Claude Code):
 
 **BEFORE starting ANY coding work:**
 
-### 1. Port Configuration
+### 1. Mac Mini Services Verification
+
+**CRITICAL**: All services run on Mac mini (192.168.1.15), NOT on Windows.
+
+```bash
+# Check Mac mini services are running
+curl http://192.168.1.15:3000/api/health
+# ✅ MUST return: {"status":"healthy","database":"connected"}
+```
+
+**If services down:**
+- Tell user to start Mac mini Docker services
+- Or use Git communication to tell Mac mini: "Start Docker services"
+
+**See**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
+
+### 2. Port Configuration (Optional - Only if running locally on Windows)
 
 ```bash
 pnpm dev
 # ✅ MUST show: "ready started server on 0.0.0.0:3000"
-# ❌ WRONG: "ready started server on 0.0.0.0:3002"
 ```
+
+**Note**: Usually you won't run pnpm dev on Windows. Access Mac mini: `http://192.168.1.15:3000`
 
 **See**: [.agent/sops/port-troubleshooting.md](.agent/sops/port-troubleshooting.md)
 
-### 2. Git Branch
+### 3. Git Branch
 
 ```bash
 git branch
@@ -42,6 +59,91 @@ git checkout -b feature/your-feature
 ```
 
 **See**: [.agent/sops/git-workflow.md](.agent/sops/git-workflow.md)
+
+---
+
+## 🖥️ Mac Mini Cloud Architecture
+
+**IMPORTANT**: Services run on Mac mini (local network), NOT on Windows.
+
+### Architecture Overview
+
+ProjectPulse uses a distributed development setup:
+
+```
+┌─────────────────────────────────────┐
+│ Windows (192.168.1.x)               │
+│  - Windsurf (code editor)           │
+│  - Browser → http://192.168.1.15:3000│
+│  - Git push/pull                    │
+│  - NO Docker, NO local services     │
+└──────────────┬──────────────────────┘
+               │
+               │ Git + HTTP
+               │
+┌──────────────▼──────────────────────┐
+│ Mac mini (192.168.1.15)             │
+│  - Docker Compose (all services)    │
+│  - PostgreSQL :5432                 │
+│  - Next.js :3000                    │
+│  - MCP Server (stdio)               │
+└─────────────────────────────────────┘
+```
+
+### Service URLs
+
+- **Web App**: http://192.168.1.15:3000
+- **API Health**: http://192.168.1.15:3000/api/health
+- **Database**: `postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev`
+
+### When to Use Mac Mini
+
+Use Mac mini for:
+- ✅ Docker operations (restart containers, view logs)
+- ✅ Database operations (migrations, queries)
+- ✅ Service verification (health checks, builds)
+- ✅ Mac mini-specific setup
+
+Use Windows for:
+- ✅ Code editing (all file operations)
+- ✅ Git operations
+- ✅ Documentation
+- ✅ Planning and design
+
+**Complete Setup Guide**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
+
+---
+
+## 🔄 Communicating with Mac Mini Claude Code
+
+### The Problem
+
+Windows Claude Code and Mac mini Claude Code are separate instances. Manually copy-pasting prompts between machines is tedious.
+
+### The Solution: Git-Based Communication
+
+Use `.agent/task/mac-mini-instructions.md` as an instruction queue.
+
+### Quick Workflow
+
+**On Windows** (when you need Mac mini to do something):
+1. I write instructions to `.agent/task/mac-mini-instructions.md`
+2. I commit: `git commit -m "task: [description] for Mac mini"`
+3. I push: `git push origin feature/sprint-1-foundation`
+4. You tell Mac mini: "Pull git and execute mac-mini-instructions"
+
+**On Mac mini** (when you say "pull git and work as instructed"):
+1. Mac mini Claude Code pulls: `git pull origin feature/sprint-1-foundation`
+2. Reads: `.agent/task/mac-mini-instructions.md`
+3. Executes instructions step by step
+4. Updates file with results
+5. Commits and pushes back
+
+**Windows pulls to see results**.
+
+**Complete Protocol**: [.agent/sops/mac-mini-communication-protocol.md](.agent/sops/mac-mini-communication-protocol.md)
+
+**Protocol Overview**: [.agent/task/README-mac-mini-communication.md](.agent/task/README-mac-mini-communication.md)
 
 ---
 

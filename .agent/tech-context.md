@@ -103,6 +103,190 @@
 
 ---
 
+## Runtime Environment: Mac Mini Cloud
+
+**CRITICAL**: All services run on Mac mini (local network), NOT on Windows.
+
+### Architecture Overview
+
+ProjectPulse uses a distributed development architecture:
+
+**Windows Machine** (Code Editor Only):
+- **Role**: Code editing, Git operations, documentation
+- **Tools**: Windsurf IDE, Browser, Git
+- **Services**: None (all on Mac mini)
+- **Access**: Via network (HTTP to Mac mini)
+
+**Mac Mini** (Runtime Environment):
+- **IP Address**: `192.168.1.15`
+- **Role**: All runtime services (database, web server, MCP)
+- **Docker Compose**: `docker-compose.cloud.yml`
+- **Status**: ✅ Production-like containerized environment
+
+### Service Architecture
+
+```
+┌─────────────────────────────────────┐
+│ Windows (192.168.1.x)               │
+│  - Windsurf (code editor)           │
+│  - Browser → 192.168.1.15:3000     │
+│  - Git push/pull                    │
+│  - NO Docker, NO local services     │
+└──────────────┬──────────────────────┘
+               │
+               │ Git + HTTP + PostgreSQL
+               │
+┌──────────────▼──────────────────────┐
+│ Mac Mini (192.168.1.15)             │
+│  - Docker Compose (all services)    │
+│  - PostgreSQL :5432                 │
+│  - Next.js :3000                    │
+│  - MCP Server (stdio)               │
+└─────────────────────────────────────┘
+```
+
+### Services on Mac Mini
+
+| Service | Port | Access from Windows | Container Name | Purpose |
+|---------|------|---------------------|----------------|---------|
+| **PostgreSQL** | 5432 | `192.168.1.15:5432` | projectpulse-postgres-cloud | Database |
+| **Next.js** | 3000 | `http://192.168.1.15:3000` | projectpulse-nextjs-cloud | Web app + API |
+| **MCP Server** | stdio | N/A (stdio only) | projectpulse-mcp-cloud | AI tools |
+
+### Connection Details
+
+**Database Connection**:
+```bash
+# From Windows
+DATABASE_URL="postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev"
+
+# From Mac mini (within Docker network)
+DATABASE_URL="postgresql://postgres:postgres123@postgres:5432/projectpulse_dev"
+```
+
+**Web Application**:
+```bash
+# From Windows browser
+http://192.168.1.15:3000
+
+# Health check
+curl http://192.168.1.15:3000/api/health
+# Expected: {"status":"healthy","database":"connected"}
+```
+
+**API Endpoints**:
+```bash
+# From Windows
+curl http://192.168.1.15:3000/api/phases
+curl http://192.168.1.15:3000/api/tasks
+curl http://192.168.1.15:3000/api/progress
+```
+
+### Docker Compose Configuration
+
+**File**: `docker-compose.cloud.yml` (Mac mini only)
+
+**Key Configuration**:
+```yaml
+services:
+  postgres:
+    image: postgres:15-alpine
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_DB: projectpulse_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+
+  nextjs:
+    image: node:20-alpine
+    ports: ["3000:3000"]
+    command: sh -c "corepack enable && pnpm install && cd apps/web && pnpm dev --hostname 0.0.0.0"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/projectpulse_dev
+
+  mcp-server:
+    image: node:20-alpine
+    command: sh -c "pnpm install && cd apps/mcp-server && pnpm build && node dist/index.js"
+    environment:
+      PROJECTPULSE_API_URL: http://nextjs:3000
+```
+
+### Mac Mini Management
+
+**Common Operations** (run on Mac mini):
+
+```bash
+# Navigate to project
+cd ~/projects/AI_HUB
+
+# Start all services
+docker-compose -f docker-compose.cloud.yml up -d
+
+# Stop all services
+docker-compose -f docker-compose.cloud.yml down
+
+# Restart a specific service
+docker-compose -f docker-compose.cloud.yml restart nextjs
+
+# View logs
+docker-compose -f docker-compose.cloud.yml logs -f [service-name]
+
+# Check status
+docker-compose -f docker-compose.cloud.yml ps
+```
+
+### Cross-Machine Communication
+
+**Code Synchronization**: Git push/pull between machines
+
+**Service Access**: HTTP over local network (192.168.1.x)
+
+**Claude Code Instances**: Git-based instruction files
+- Windows commits instructions to `.agent/task/mac-mini-instructions.md`
+- Mac mini pulls, executes, commits results back
+- Windows pulls to read results
+
+**See**: `.agent/sops/mac-mini-communication-protocol.md` for complete workflow
+
+### Setup Documentation
+
+**Complete Setup Guide**: `.agent/sops/mac-mini-cloud-architecture.md`
+- Full Mac mini setup from scratch
+- Docker installation
+- Repository cloning
+- Service verification
+
+**Setup Completion Report**: `.agent/sops/mac-mini-setup-complete.md`
+- Current setup status
+- Network configuration
+- Service verification results
+
+**Communication Protocol**: `.agent/sops/mac-mini-communication-protocol.md`
+- When to use Mac mini vs Windows
+- Git-based communication workflow
+- Real-world examples
+
+### Why This Architecture?
+
+**Problem Solved**:
+- Eliminated Windows WSL2 file permission issues
+- Eliminated Windows TypeScript module resolution errors
+- Clean separation of concerns (edit vs runtime)
+
+**Benefits**:
+- ✅ Production-like containerized environment
+- ✅ Windows = code editor only (simpler, faster)
+- ✅ Mac mini = dedicated runtime (stable, isolated)
+- ✅ Network-accessible services (testable from any device)
+- ✅ Git-based communication (versioned, reproducible)
+
+**Trade-offs**:
+- ⚠️ Initial setup time (~25 minutes)
+- ⚠️ Requires Mac mini to be powered on
+- ⚠️ Requires local network connectivity
+
+---
+
 ## Dependencies
 
 ### Core Dependencies

@@ -869,6 +869,241 @@ async function completeStep(executionId: number, stepNumber: number) {
 
 ---
 
+## Git-Based Cross-Machine Communication
+
+**Pattern**: Use Git commits as async message queue between Claude Code instances on different machines
+
+### When to Use
+
+**Use Mac Mini for**:
+- Docker operations (start/stop/restart containers)
+- Database operations (migrations, queries, seeding)
+- Service verification (health checks, builds, logs)
+- Mac mini-specific setup and configuration
+
+**Use Windows for**:
+- All code editing (file operations)
+- Git operations (commit, push, pull, branches)
+- Documentation updates
+- Planning and architecture decisions
+
+### The Problem
+
+ProjectPulse uses a distributed architecture:
+- **Windows**: Code editing only (no Docker, no local services)
+- **Mac mini (192.168.1.15)**: All runtime services (PostgreSQL, Next.js, MCP server in Docker)
+
+Two separate Claude Code instances (Windows and Mac mini) need to coordinate work. Manual copy-paste is tedious and error-prone.
+
+### The Solution
+
+Use `.agent/task/mac-mini-instructions.md` as a Git-based instruction queue:
+
+1. Windows writes instructions to file
+2. Windows commits and pushes
+3. User tells Mac mini to "pull git and execute instructions"
+4. Mac mini pulls, reads, executes
+5. Mac mini updates file with results
+6. Mac mini commits and pushes
+7. User tells Windows to "pull git and read results"
+
+### Pattern Implementation
+
+**Windows Writes Instructions**:
+
+```typescript
+// Windows Claude Code writes to .agent/task/mac-mini-instructions.md
+const instructions = `
+# Mac Mini Instructions from Windows Claude Code
+
+**Last Updated**: ${new Date().toISOString()}
+**Status**: PENDING EXECUTION
+
+## 🎯 TASK: ${taskTitle}
+
+### Context
+${contextDescription}
+
+### Instructions
+
+#### Step 1: ${action1Title}
+\`\`\`bash
+${command1}
+\`\`\`
+**Expected**: ${expectedOutcome1}
+
+#### Step 2: ${action2Title}
+\`\`\`bash
+${command2}
+\`\`\`
+
+### Report Results
+Update this file with:
+\`\`\`markdown
+## ✅ COMPLETED - ${timestamp}
+**Results**:
+- Step 1: SUCCESS / FAILED
+- Step 2: [outcome]
+\`\`\`
+
+## 🎯 Success Criteria
+- ✅ ${criterion1}
+- ✅ ${criterion2}
+`;
+
+// Write, commit, push
+fs.writeFileSync('.agent/task/mac-mini-instructions.md', instructions);
+execSync('git add .agent/task/mac-mini-instructions.md');
+execSync('git commit -m "task: ${taskTitle} for Mac mini"');
+execSync('git push origin feature/sprint-1-foundation');
+
+// Tell user
+console.log('✅ Instructions committed. On Mac mini: git pull and execute mac-mini-instructions');
+```
+
+**Mac Mini Executes**:
+
+```typescript
+// Mac mini Claude Code pulls and reads
+execSync('cd ~/projects/AI_HUB && git pull origin feature/sprint-1-foundation');
+const instructions = fs.readFileSync('.agent/task/mac-mini-instructions.md', 'utf8');
+
+// Parse and execute instructions
+const steps = parseInstructionSteps(instructions);
+const results = [];
+
+for (const step of steps) {
+  try {
+    const output = execSync(step.command, { cwd: '~/projects/AI_HUB' });
+    results.push({ step: step.title, status: 'SUCCESS', output });
+  } catch (error) {
+    results.push({ step: step.title, status: 'FAILED', error: error.message });
+  }
+}
+
+// Update file with results
+const updatedInstructions = instructions + `
+## ✅ COMPLETED - ${new Date().toISOString()}
+
+**Results**:
+${results.map(r => `- ${r.status}: ${r.step}`).join('\n')}
+
+**Output**:
+\`\`\`
+${results.map(r => r.output || r.error).join('\n\n')}
+\`\`\`
+`;
+
+fs.writeFileSync('.agent/task/mac-mini-instructions.md', updatedInstructions);
+execSync('git add .agent/task/mac-mini-instructions.md');
+execSync('git commit -m "chore: Mac mini ${taskTitle} complete"');
+execSync('git push origin feature/sprint-1-foundation');
+
+// Tell user
+console.log('✅ Task complete. On Windows: git pull to read results');
+```
+
+**Windows Reads Results**:
+
+```typescript
+// Windows pulls and reads results
+execSync('git pull origin feature/sprint-1-foundation');
+const results = fs.readFileSync('.agent/task/mac-mini-instructions.md', 'utf8');
+
+// Parse results section
+const completedSection = results.match(/## ✅ COMPLETED[\s\S]*/)?.[0];
+if (completedSection.includes('SUCCESS')) {
+  console.log('✅ Mac mini task succeeded');
+  // Continue with next steps
+} else {
+  console.log('⚠️ Mac mini task had issues');
+  // Analyze errors, send updated instructions
+}
+```
+
+### Real-World Examples
+
+**Example 1: Rebuild MCP Server**
+
+```markdown
+## 🎯 TASK: Rebuild MCP Server
+
+### Instructions
+\`\`\`bash
+cd ~/projects/AI_HUB
+git pull origin feature/sprint-1-foundation
+docker-compose -f docker-compose.cloud.yml restart mcp-server
+docker-compose -f docker-compose.cloud.yml logs mcp-server | grep -i "error"
+\`\`\`
+
+**Expected**: 0 TypeScript errors, server running
+```
+
+**Example 2: Query Database**
+
+```markdown
+## 🎯 TASK: Get Day IDs for Testing
+
+### Instructions
+\`\`\`bash
+docker exec projectpulse-postgres-cloud psql -U postgres -d projectpulse_dev -c "
+SELECT d.id, d.title
+FROM \"Day\" d
+JOIN \"Week\" w ON d.\"weekId\" = w.id
+JOIN \"Phase\" p ON w.\"phaseId\" = p.id
+WHERE p.title = 'Mac Mini Cloud Test'
+LIMIT 5;
+"
+\`\`\`
+
+Report Day IDs in results.
+```
+
+### Benefits of This Pattern
+
+✅ **Versioned**: All instructions and results tracked in Git history
+✅ **Asynchronous**: Can work at different times
+✅ **Reproducible**: Instructions preserved for future reference
+✅ **Auditable**: Full history of what was done and when
+✅ **Simple**: Uses existing Git workflow, no external tools
+✅ **No Copy-Paste**: Eliminates manual text transfer between machines
+
+### Integration with MCP Tools
+
+This pattern complements MCP tools:
+
+**MCP Tools** (Windows → Mac mini services):
+```typescript
+// Windows Claude Code uses MCP tool to query Mac mini database
+const result = await mcp.call('postgres.query', {
+  sql: 'SELECT * FROM "Phase" LIMIT 5'
+});
+```
+
+**Git Communication** (Windows ↔ Mac mini Claude Code):
+```markdown
+# When Mac mini Claude Code needs to execute Docker commands
+Windows commits: "Restart Next.js container, check logs for errors"
+Mac mini executes: docker-compose restart nextjs
+Mac mini reports: "SUCCESS - container restarted, no errors"
+```
+
+**When to Use Each**:
+- **MCP Tools**: Windows needs data from Mac mini services (database queries, API calls)
+- **Git Communication**: Mac mini Claude Code needs to execute system operations (Docker, migrations, logs)
+
+### File Location
+
+**Instruction File**: `.agent/task/mac-mini-instructions.md`
+**Protocol SOP**: `.agent/sops/mac-mini-communication-protocol.md`
+**Setup Guide**: `.agent/sops/mac-mini-cloud-architecture.md`
+
+### Architecture Context
+
+**See**: `.agent/tech-context.md` → "Runtime Environment: Mac Mini Cloud" for complete architecture details.
+
+---
+
 **This section documents MCP-specific patterns for agent-first workflows. See project-brief.md for WHAT we're building.**
 
 **Note**: Sprint 9 advanced patterns (Memory Banks, Research Agent Orchestration) are documented in architecture but implementation is deferred to post-MVP. Sprint 1-8 patterns documented above remain current.

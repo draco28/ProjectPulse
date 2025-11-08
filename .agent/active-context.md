@@ -1,8 +1,51 @@
 # Active Context
 
-**Last Updated**: 2025-11-08 (Day 6-7 - 100% COMPLETE ✅ - Testing & Documentation Complete)
-**Current Phase**: Sprint 1 - Foundation & Core Infrastructure (Week 1 COMPLETE ✅, Week 2 Day 6-7 COMPLETE ✅)
+**Last Updated**: 2025-11-08 (Day 8-9 - 66% COMPLETE ⏳ - Implementation Complete, Testing In Progress)
+**Current Phase**: Sprint 1 - Foundation & Core Infrastructure (Week 1 COMPLETE ✅, Week 2 Day 6-7 COMPLETE ✅, Day 8-9 IN PROGRESS ⏳)
 **Branch**: `feature/sprint-1-foundation`
+
+---
+
+## Current Infrastructure
+
+**Runtime Environment**: Mac Mini Cloud Architecture (as of Day 8-9)
+
+### Distributed Development Setup
+
+ProjectPulse uses a distributed architecture for clean separation of concerns:
+
+**Windows Machine** (Code Editor Only):
+- **Role**: Code editing, Git operations, documentation
+- **Tools**: Windsurf IDE, Browser, Git
+- **Services**: None (all on Mac mini)
+- **Access**: Network HTTP to Mac mini
+
+**Mac Mini (192.168.1.15)** (Runtime Environment):
+- **IP Address**: `192.168.1.15`
+- **Status**: ✅ Running
+- **Docker Compose**: `docker-compose.cloud.yml`
+- **Services**:
+  - PostgreSQL 15: ✅ Running (port 5432)
+  - Next.js: ✅ Running (port 3000)
+  - MCP Server: ✅ Building successfully (0 TypeScript errors)
+
+**Service Access from Windows**:
+- Web App: `http://192.168.1.15:3000`
+- API Health: `http://192.168.1.15:3000/api/health`
+- Database: `postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev`
+
+**Cross-Machine Communication**:
+- Code Sync: Git push/pull
+- Service Access: HTTP over local network
+- Claude Code Instances: Git-based instructions (`.agent/task/mac-mini-instructions.md`)
+
+**See**: `.agent/sops/mac-mini-communication-protocol.md` for complete workflow
+
+**Architecture Rationale**:
+- ✅ Eliminated Windows WSL2 file permission issues
+- ✅ Eliminated Windows TypeScript module resolution errors
+- ✅ Production-like containerized environment
+- ✅ Clean separation: Windows = edit, Mac mini = runtime
 
 ---
 
@@ -11,9 +54,9 @@
 ### What We're Working On
 
 **Phase**: Sprint 1 - Week 1-2 (Foundation + MCP Tools)
-**Status**: Week 1 100% COMPLETE ✅ | Week 2 Days 6-7 - 100% COMPLETE ✅
-**Current Day**: Day 6-7 ✅ 100% COMPLETE (Implementation, testing, documentation complete)
-**Next Focus**: Week 2 Days 8-9 - Additional MCP tool implementations
+**Status**: Week 1 100% COMPLETE ✅ | Week 2 Days 6-7 COMPLETE ✅ | Days 8-9 IN PROGRESS ⏳
+**Current Day**: Day 8-9 ⏳ 66% COMPLETE (Implementation complete, integration testing in progress)
+**Next Focus**: Week 2 Days 10+ - Additional MCP tool implementations or Sprint 1 completion
 
 **Day 6-7 Final Summary** ✅ 100% COMPLETE:
 

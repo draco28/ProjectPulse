@@ -91,11 +91,65 @@ Need patterns?             → system-patterns.md
 Need tech details?         → tech-context.md
 Need current work?         → active-context.md (READ EVERY SESSION)
 Need progress?             → progress.md
+Need Mac mini info?        → See Mac Mini Cloud section below
 ```
 
 ---
 
+## 🖥️ Mac Mini Cloud
+
+**CRITICAL**: All services run on Mac mini (192.168.1.15), not Windows.
+
+### Quick Reference
+
+**Runtime Environment**: Mac mini cloud architecture (Docker containers)
+
+**Service Access**:
+- Web App: `http://192.168.1.15:3000`
+- API Health: `http://192.168.1.15:3000/api/health`
+- Database: `192.168.1.15:5432`
+
+**Docker Management**: On Mac mini only (`docker-compose.cloud.yml`)
+
+### Key Documents
+
+**Setup & Architecture**:
+- [sops/mac-mini-cloud-architecture.md](sops/mac-mini-cloud-architecture.md) - Complete setup guide
+- [sops/mac-mini-setup-complete.md](sops/mac-mini-setup-complete.md) - Setup verification report
+- [sops/mac-mini-communication-protocol.md](sops/mac-mini-communication-protocol.md) - Git-based communication workflow
+
+**Communication**:
+- [task/README-mac-mini-communication.md](task/README-mac-mini-communication.md) - Communication protocol overview
+- [task/mac-mini-instructions.md](task/mac-mini-instructions.md) - Active instruction file
+
+**Context in Memory Banks**:
+- [tech-context.md](tech-context.md) → "Runtime Environment: Mac Mini Cloud" section
+- [system-patterns.md](system-patterns.md) → "Git-Based Cross-Machine Communication" pattern
+- [active-context.md](active-context.md) → "Current Infrastructure" section
+
+### When to Use Mac Mini
+
+**Use Mac mini for**:
+- Docker operations (restart, logs, status)
+- Database operations (migrations, queries)
+- Service verification (health checks, builds)
+- Mac mini-specific setup
+
+**Use Windows for**:
+- Code editing (all file operations)
+- Git operations
+- Documentation
+- Planning and design
+
+---
+
 ## 🎯 Finding What You Need
+
+### Working on Mac Mini / Docker Operations?
+
+- [sops/mac-mini-cloud-architecture.md](sops/mac-mini-cloud-architecture.md) - Complete Mac mini setup
+- [sops/mac-mini-communication-protocol.md](sops/mac-mini-communication-protocol.md) - How to delegate tasks
+- [task/README-mac-mini-communication.md](task/README-mac-mini-communication.md) - Quick protocol overview
 
 ### Working on API Development?
 
