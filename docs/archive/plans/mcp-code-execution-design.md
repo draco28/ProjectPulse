@@ -577,6 +577,333 @@ Hybrid approach possible:
 
 ---
 
+## Contingency Planning & Multi-Client Architecture
+
+### Critical Requirement: Client-Agnostic Design
+
+**Problem**: ProjectPulse MCP server will be used by multiple AI agents, not just Claude Code:
+- Claude Code (Anthropic agents)
+- GPT-based agents (OpenAI)
+- Gemini (Google AI)
+- Other MCP-compliant tools
+- Human developers via CLI
+
+**Requirement**: All clients must have equal functionality regardless of code execution support.
+
+**Solution**: Dual-mode MCP server that adapts to client capabilities.
+
+---
+
+### Dual-Mode Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│ ProjectPulse MCP Server                     │
+│                                             │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Mode 1: Traditional MCP (stdio)         │ │
+│ │  - 25+ tools as function calls          │ │
+│ │  - Works with: ALL MCP clients          │ │
+│ │  - Optimizations: Pagination, streaming │ │
+│ └─────────────────────────────────────────┘ │
+│                                             │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Mode 2: Code Execution MCP (optional)   │ │
+│ │  - Tools as filesystem modules          │ │
+│ │  - Works with: Claude Code (if supported)│ │
+│ │  - Optimizations: Local processing      │ │
+│ └─────────────────────────────────────────┘ │
+│                                             │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Shared Layer                            │ │
+│ │  - Business logic (Prisma, validation)  │ │
+│ │  - Database operations                  │ │
+│ │  - Privacy tokenization                 │ │
+│ └─────────────────────────────────────────┘ │
+└─────────────────────────────────────────────┘
+```
+
+**Design Principle**: Same functionality, different delivery mechanisms.
+
+---
+
+### Client Capability Detection
+
+**MCP Protocol Negotiation**:
+
+```typescript
+// Server declares both capabilities
+const server = new MCPServer({
+  capabilities: {
+    tools: true,              // Traditional MCP
+    codeExecution: true,      // Code execution (if supported)
+  }
+});
+
+// Client declares what it supports
+client.connect({
+  supports: {
+    codeExecution: false,  // GPT doesn't support this
+  }
+});
+
+// Server adapts
+if (client.supports.codeExecution) {
+  // Use filesystem-based tool exposure
+} else {
+  // Use traditional function calls
+}
+```
+
+**Fallback Logic**:
+1. Client connects → Server checks capabilities
+2. Code execution supported? → Expose filesystem interface
+3. Code execution NOT supported? → Use traditional tools
+4. No difference in functionality, only in efficiency
+
+---
+
+### Implementation Paths
+
+#### Path A: Code Execution Works (Ideal)
+
+**Trigger**: Week 5 POC succeeds + Claude Code supports it
+
+**Implementation**:
+1. Build dual-mode server (Weeks 5-8)
+2. Traditional MCP as baseline
+3. Code execution as enhancement layer
+4. Test with multiple clients (Claude, GPT, Gemini)
+
+**Result**:
+- Claude Code: 98% token reduction
+- GPT/Gemini: Traditional MCP (still works)
+- All clients: Same functionality
+
+---
+
+#### Path B: Code Execution Fails (Fallback)
+
+**Triggers**:
+- Week 5 POC shows code execution doesn't work as expected
+- Claude Code doesn't support it yet
+- Too many technical challenges
+- Security concerns can't be resolved
+
+**Implementation**:
+1. Traditional MCP only (Weeks 5-8)
+2. Optimize traditional approach:
+   - Pagination for large datasets
+   - Streaming for search results
+   - Server-side filtering
+   - Response compression
+3. Still achieve 50-70% token reduction (vs 98%)
+
+**Result**:
+- All clients: Traditional MCP
+- Token savings: 50-70% (still significant)
+- No client discrimination
+
+---
+
+#### Path C: Hybrid Approach (Pragmatic)
+
+**Trigger**: Code execution works but has limitations
+
+**Implementation**:
+1. Simple tools → Traditional MCP
+   - create-issue, update-issue, get-issue
+   - Fast, low-overhead operations
+
+2. Complex tools → Code execution (Claude Code only)
+   - search-knowledge (1000+ results)
+   - semantic-search (large embeddings)
+   - bulk-operations (batch processing)
+
+**Result**:
+- Claude Code: Best experience (both modes)
+- GPT/Gemini: Good experience (simple tools work)
+- Complex operations: Client-specific optimization
+
+---
+
+### Traditional MCP Optimization Strategy
+
+**If code execution not available**, optimize traditional MCP:
+
+**1. Pagination**
+```typescript
+// Instead of returning 1000 issues
+search_issues(query) → [1000 issues] // 200K tokens ❌
+
+// Return paginated
+search_issues(query, page=1, limit=20) → [20 issues] // 5K tokens ✅
+```
+
+**2. Server-Side Filtering**
+```typescript
+// Server does the filtering
+search_issues({
+  query: 'bug',
+  status: 'open',
+  priority: 'high',
+  limit: 10
+}) → [10 filtered issues] // 2K tokens ✅
+```
+
+**3. Response Compression**
+```typescript
+// Return summaries instead of full objects
+search_issues_summary({
+  query: 'bug'
+}) → [
+  { id: 1, title: '...', priority: 'high' },
+  // No description, comments, attachments
+] // 1K tokens vs 50K ✅
+```
+
+**4. Streaming**
+```typescript
+// Stream results as they're found
+for await (const issue of searchIssues('bug')) {
+  // Client processes incrementally
+  // Can stop early if enough results
+}
+```
+
+**Token Savings with Traditional Optimization**: 50-70% (vs 98% with code execution)
+
+---
+
+### Week 5 Checkpoint: Go/No-Go Decision
+
+**Evaluation Criteria**:
+
+| Criterion | Go (Code Execution) | No-Go (Traditional) |
+|-----------|---------------------|---------------------|
+| Claude Code Support | ✅ Verified working | ❌ Not supported yet |
+| Token Reduction | ✅ >90% on POC | ❌ <70% |
+| Debugging Difficulty | ✅ Manageable | ❌ Too complex |
+| Multi-Client Support | ✅ Dual-mode works | ❌ Claude-only |
+| Security | ✅ Sandboxed safely | ❌ Unresolved concerns |
+| Performance | ✅ <500ms latency | ❌ >1s latency |
+
+**Decision Matrix**:
+
+- **All ✅**: Proceed with dual-mode (Path A)
+- **Mixed ✅❌**: Hybrid approach (Path C)
+- **Mostly ❌**: Traditional MCP only (Path B)
+
+**Deliverable**: Week 5 POC Report documenting:
+1. 3 tools implemented (create, search, filter)
+2. Token benchmarks (actual vs expected)
+3. Client compatibility test results
+4. Recommendation: Path A, B, or C
+
+---
+
+### Multi-Client Testing Strategy
+
+**Week 5 POC Must Test**:
+
+1. **Claude Code** (primary)
+   - Code execution interface
+   - Token usage measurement
+   - Debugging experience
+
+2. **Mock GPT Client** (secondary)
+   - Traditional MCP interface
+   - Same functionality verification
+   - Performance comparison
+
+3. **CLI Tool** (tertiary)
+   - Developer experience
+   - Direct tool invocation
+   - Response validation
+
+**Success Criteria**: All three clients can create, search, and filter issues with same results.
+
+---
+
+### Implementation Timeline Adjustments
+
+**Original Timeline** (4 weeks):
+- Week 5: POC + 3 tools
+- Weeks 6-7: 11 tools + privacy
+- Week 8: Personas
+
+**Adjusted Timeline if Path B** (Traditional MCP):
+- Week 5: POC + 3 tools (traditional)
+- Weeks 6-7: 11 tools + optimization (pagination, filtering)
+- Week 8: Testing + multi-client validation
+
+**Adjusted Timeline if Path C** (Hybrid):
+- Week 5: POC + dual-mode infrastructure
+- Weeks 6-7: Simple tools (traditional) + Complex tools (code exec)
+- Week 8: Client detection + fallback logic
+
+---
+
+### Success Metrics (Revised)
+
+**Non-Negotiable**:
+- ✅ All MCP clients can use all 25+ tools
+- ✅ Functionality identical across clients
+- ✅ No vendor lock-in (Claude-only features)
+
+**Path-Dependent**:
+- Path A: 90-98% token reduction (Claude Code)
+- Path B: 50-70% token reduction (all clients)
+- Path C: 50-98% token reduction (client-dependent)
+
+**Quality Gates**:
+- Response time <500ms (all paths)
+- Test coverage >80% (all paths)
+- Privacy tokenization 100% (all paths)
+
+---
+
+### Risk Updates
+
+**New Risk #5: Client Discrimination**
+
+- **Risk**: Code execution only works with Claude Code, creating two-tier system
+- **Impact**: HIGH (violates multi-client requirement)
+- **Mitigation**: Dual-mode architecture ensures all clients get full functionality
+- **Fallback**: Traditional MCP baseline guarantees equality
+
+**Updated Risk #1: Learning Curve**
+
+- **Original**: Agents unfamiliar with filesystem exploration
+- **Updated**: Non-Anthropic agents may not support code execution at all
+- **Mitigation**: Traditional MCP ensures all agents can use the server
+
+---
+
+### Recommended Approach
+
+**Sprint 2 Implementation Plan**:
+
+1. **Week 5**: Build dual-mode infrastructure
+   - Implement 3 tools in BOTH modes
+   - Test with multiple clients
+   - Measure token efficiency for each mode
+   - Go/No-Go decision at week end
+
+2. **Weeks 6-7**: Based on Week 5 decision
+   - Path A: Scale dual-mode to 14 tools
+   - Path B: Traditional only, optimize aggressively
+   - Path C: Split tools by complexity
+
+3. **Week 8**: Multi-client validation
+   - Test all clients (Claude, GPT, Gemini)
+   - Verify functionality parity
+   - Document client-specific optimizations
+
+**Outcome**: Regardless of path, all clients have equal access to ProjectPulse functionality.
+
+---
+
 ## References
 
 - Code Execution with MCP - Anthropic Blog: https://www.anthropic.com/engineering/code-execution-with-mcp

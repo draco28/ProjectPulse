@@ -420,25 +420,88 @@ type MCPError = {
 - NFR-001: MCP response time <200ms
 - NFR-015: Input validation (Zod schemas)
 
-#### MCP Execution Approach: Code Execution with MCP
+#### MCP Execution Approach: Dual-Mode Architecture
 
-To support a 25+ tool ecosystem efficiently, ProjectPulse adopts the Code Execution MCP approach for the custom MCP server. Instead of loading all tool definitions into the model context up front, tools are discovered and invoked on-demand via a filesystem-oriented module structure. Data-intensive work is performed locally and only the final, filtered results are returned to the model.
+**Critical Requirement**: ProjectPulse MCP server must support **all MCP clients** equally, not just Claude Code.
 
-| Aspect            | Traditional MCP                 | Code Execution MCP (Our Choice) |
-|-------------------|---------------------------------|----------------------------------|
-| Tool loading      | All upfront                      | On-demand discovery              |
-| Token cost        | ~50K+ for 25 tools               | ~2–5K per operation              |
-| Data processing   | In model context                 | Local execution                  |
-| Scalability       | Limited (~<20 tools practical)   | Scales to thousands              |
-| Privacy           | Manual handling                  | Auto-tokenization layer          |
+To support a 25+ tool ecosystem efficiently while maintaining universal client compatibility, ProjectPulse implements a **dual-mode MCP server** that adapts to client capabilities:
 
-**Why Code Execution for ProjectPulse**
-1) 25+ tools would create unacceptable upfront token overhead
-2) Knowledge/issue search may return large result sets best filtered locally
-3) Agent personas require different tool subsets (load only what’s needed)
-4) Privacy: sensitive fields must be masked before reaching the model
+**Architecture Overview:**
 
-**Filesystem-Based Tool Organization**
+```
+┌────────────────────────────────────────┐
+│ ProjectPulse MCP Server                │
+│                                        │
+│ ┌────────────────────────────────────┐ │
+│ │ Mode 1: Traditional MCP (stdio)    │ │
+│ │  - 25+ tools as function calls     │ │
+│ │  - Works with: ALL MCP clients     │ │
+│ │  - Optimizations: Pagination       │ │
+│ └────────────────────────────────────┘ │
+│                                        │
+│ ┌────────────────────────────────────┐ │
+│ │ Mode 2: Code Execution (optional)  │ │
+│ │  - Tools as filesystem modules     │ │
+│ │  - Works with: Claude Code (if     │ │
+│ │    supported)                      │ │
+│ │  - Optimizations: Local processing │ │
+│ └────────────────────────────────────┘ │
+│                                        │
+│ ┌────────────────────────────────────┐ │
+│ │ Shared Layer                       │ │
+│ │  - Business logic (Prisma)         │ │
+│ │  - Privacy tokenization            │ │
+│ │  - Database operations             │ │
+│ └────────────────────────────────────┘ │
+└────────────────────────────────────────┘
+```
+
+**Design Principle**: Same functionality, different delivery mechanisms.
+
+| Aspect            | Traditional MCP             | Code Execution MCP      |
+|-------------------|-----------------------------|-------------------------|
+| **Tool loading**  | All upfront                 | On-demand discovery     |
+| **Token cost**    | ~50K+ for 25 tools          | ~2–5K per operation     |
+| **Data processing**| In model context           | Local execution         |
+| **Client support**| ALL MCP clients             | Claude Code (if supported)|
+| **Scalability**   | Limited (~<20 tools)        | Scales to thousands     |
+| **Privacy**       | Server-side tokenization    | Auto-tokenization layer |
+| **Optimization**  | Pagination, filtering       | Local processing        |
+
+**Why Dual-Mode for ProjectPulse:**
+1. **Universal Compatibility**: GPT, Gemini, Claude all get full functionality
+2. **No Vendor Lock-In**: Not dependent on Claude Code support
+3. **Future-Proof**: Code execution as enhancement, not requirement
+4. **Token Efficiency**: 50-70% savings (traditional) to 90-98% (code execution)
+
+**Mode 1: Traditional MCP (Baseline)**
+
+All clients get optimized traditional MCP:
+
+```typescript
+// Server-side filtering and pagination
+search_issues({
+  query: 'bug',
+  status: 'open',
+  priority: 'high',
+  page: 1,
+  limit: 20
+}) → [20 filtered issues] // ~5K tokens
+```
+
+**Optimizations**:
+- Pagination (default: 20 results per page)
+- Server-side filtering (status, priority, dates)
+- Response compression (summaries vs full objects)
+- Streaming for large result sets
+
+**Token Savings**: 50-70% vs unoptimized traditional MCP
+
+**Mode 2: Code Execution MCP (Enhancement)**
+
+Claude Code (if supported) gets additional optimization:
+
+**Filesystem-Based Tool Organization:**
 ```
 ./servers/projectpulse/
 ├── issues/
@@ -458,7 +521,7 @@ To support a 25+ tool ecosystem efficiently, ProjectPulse adopts the Code Execut
     └── status.ts
 ```
 
-**Agent Discovery Pattern (TypeScript)**
+**Agent Discovery Pattern (TypeScript):**
 ```ts
 // Agent explores filesystem and loads only what is needed
 const tools = await listDirectory('./servers/projectpulse/issues/')
@@ -468,12 +531,47 @@ const open = results.filter(i => i.status === 'open')
 return open.slice(0, 10)
 ```
 
-**Privacy & Security (Auto-Tokenization)**
-- Sensitive data (emails, IPs, phone numbers) is tokenized in the code execution environment
-- The model sees tokens (e.g., `<EMAIL_1>`, `<IP_1>`) instead of raw values
-- Original values are never sent to the model and can be de-tokenized only for authorized presentation
+**Token Savings**: 90-98% vs traditional MCP
 
-This approach aligns with our Local-First and Privacy principles while delivering substantial token savings (observed up to ~98.7% reduction) and enabling complex workflows (loops, filtering, ranking) that would be impractical in the model context.
+**Client Capability Detection:**
+
+```typescript
+// Server declares both capabilities
+const server = new MCPServer({
+  capabilities: {
+    tools: true,              // Traditional MCP
+    codeExecution: true,      // Code execution (if supported)
+  }
+});
+
+// Server adapts based on client
+if (client.supports.codeExecution) {
+  // Use filesystem-based tool exposure
+} else {
+  // Use traditional function calls
+}
+```
+
+**Privacy & Security (All Modes):**
+
+Auto-tokenization happens in shared layer (available to all clients):
+- Sensitive data (emails, IPs, phone numbers) tokenized before transmission
+- Model sees tokens (e.g., `<EMAIL_1>`, `<IP_1>`) instead of raw values
+- De-tokenization only for authorized presentation
+
+**Implementation Path:**
+
+Sprint 2 will validate this approach:
+- **Week 5**: Build dual-mode infrastructure, test with multiple clients
+- **Week 5 Checkpoint**: Evaluate code execution support in Claude Code
+- **Weeks 6-7**: Scale based on checkpoint results
+  - Path A: Both modes if code execution works
+  - Path B: Traditional only if code execution unavailable
+  - Path C: Hybrid (simple=traditional, complex=code execution)
+
+**Outcome**: Regardless of path, all MCP clients have equal access to ProjectPulse functionality.
+
+**Reference**: See [docs/archive/plans/mcp-code-execution-design.md](../docs/archive/plans/mcp-code-execution-design.md) for complete contingency planning.
 
 ---
 
