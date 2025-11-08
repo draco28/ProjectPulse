@@ -14,138 +14,181 @@ Status: Planning
 
 ---
 
-## Phase 1: Foundation (Week 5)
+## Phase 1: Design + Traditional POC (Week 5)
 
 ### Environment Setup
-- [ ] Install code execution MCP dependencies
-- [ ] Configure TypeScript for tool modules
+- [ ] Install dependencies (Prisma, Zod, etc.)
+- [ ] Configure TypeScript for server
 - [ ] Set up MCP stdio server boilerplate
-- [ ] Create filesystem structure
+- [ ] Create server directory structure (adapters/services/repositories)
 
-### Filesystem Structure
-- [ ] Create ./servers/projectpulse/ directory
-- [ ] Create subdirectories: issues/, knowledge/, agents/, projects/
-- [ ] Create client.ts (MCP client wrapper)
-- [ ] Create types.ts (TypeScript interfaces)
+### Shared Services Structure
+- [ ] Define directory structure:
+  - [ ] src/server/adapters/traditional/tools/
+  - [ ] src/server/services/
+  - [ ] src/server/repositories/
+  - [ ] src/server/types/
+- [ ] Create types.ts (Issue, SearchOptions, PrivacyConfig)
 
-### Proof-of-Concept Tools (3 tools)
-- [ ] Implement issues/create.ts
-  - [ ] Write tool wrapper
-  - [ ] Add TypeScript types
-  - [ ] Test MCP stdio call
-  - [ ] Document usage
+### Traditional Adapter (3 Tools)
+- [ ] Implement create-issue tool (traditional)
+  - [ ] Tool definition and schema
+  - [ ] Route to IssueService
+  - [ ] Error handling
+  - [ ] Test with mock client
 
-- [ ] Implement issues/search.ts
-  - [ ] Write tool wrapper
-  - [ ] Add local filtering capability
-  - [ ] Test with 100+ results
-  - [ ] Verify token efficiency
+- [ ] Implement search-issues tool (traditional)
+  - [ ] Tool definition and schema
+  - [ ] Pagination support (page, limit)
+  - [ ] Route to IssueService
+  - [ ] Test with mock client
 
-- [ ] Implement issues/filter.ts
-  - [ ] Implement filter logic (status, priority, dates)
-  - [ ] Add sorting options
-  - [ ] Test composability with search
-  - [ ] Document filter patterns
+- [ ] Implement filter-issues tool (traditional)
+  - [ ] Tool definition and schema
+  - [ ] Server-side filter logic
+  - [ ] Route to IssueService
+  - [ ] Test with mock client
 
-### Testing & Validation
-- [ ] Test on-demand tool discovery
-- [ ] Benchmark token usage (target: < 5K)
-- [ ] Compare vs traditional MCP approach
-- [ ] Document findings
+### Capability Detection (Stubs)
+- [ ] Design capability negotiation strategy
+- [ ] Implement env var detection (PP_MCP_MODE)
+- [ ] Implement probe function (stub)
+- [ ] Add session mode caching
+- [ ] Test mode selection logic
+
+### Privacy Tokenization Specification
+- [ ] Complete tokenization spec document
+- [ ] Define storage strategy (LRU cache)
+- [ ] Define access control rules
+- [ ] Define audit logging format
+- [ ] Performance considerations documented
+
+### Sandbox Specification
+- [ ] Complete sandbox security spec
+- [ ] Document resource limits
+- [ ] Document isolation requirements
+- [ ] Research candidate technologies
+- [ ] Document threat model
+
+### Multi-Client Testing
+- [ ] Build minimal Node.js test client
+- [ ] Implement MCP JSON-RPC protocol
+- [ ] Create CLI test tool
+- [ ] Write parity test suite (3 tools)
+- [ ] Test with traditional mode
+
+### Token Measurement
+- [ ] Implement TokenCounter class
+- [ ] Add measurement to adapters
+- [ ] Create benchmark script
+- [ ] Run baseline measurements (traditional)
+- [ ] Document methodology
 
 ### Week 5 Deliverables
-- [ ] Working code execution environment
-- [ ] 3 tools functional
-- [ ] Token benchmark report
-- [ ] Progress update in session file
+- [ ] Traditional MCP server with 3 tools functional
+- [ ] Shared services architecture implemented
+- [ ] Capability detection design complete
+- [ ] Privacy specification document
+- [ ] Sandbox specification document
+- [ ] Multi-client test harness working
+- [ ] Token usage baseline established
+- [ ] Go/No-Go decision documented
 
 ---
 
-## Phase 2: Core Tools (Weeks 6-7)
+## Phase 2: Refinement & Documentation (Weeks 6-7)
 
-### Issue Management Suite (7 additional tools)
-- [ ] issues/update.ts - Update issue fields
-- [ ] issues/delete.ts - Delete issue
-- [ ] issues/get.ts - Get single issue
-- [ ] issues/list.ts - List all issues
-- [ ] issues/comment.ts - Add comment
-- [ ] issues/assign.ts - Assign to user
-- [ ] issues/status.ts - Update status
+### Specification Refinement
+- [ ] Review POC learnings
+- [ ] Update capability detection based on findings
+- [ ] Refine privacy tokenization spec
+- [ ] Update sandbox requirements
+- [ ] Document architectural patterns
 
-### Utilities
-- [ ] Create utils/filter.ts - Common filter functions
-- [ ] Create utils/sort.ts - Common sort functions
-- [ ] Create utils/paginate.ts - Pagination helpers
-- [ ] Create utils/validate.ts - Input validation
+### Traditional Mode Optimization
+- [ ] Implement server-side pagination
+- [ ] Implement response compression
+- [ ] Add timeout handling
+- [ ] Optimize Prisma queries
+- [ ] Measure token savings vs baseline
 
-### Privacy Layer
-- [ ] Create privacy/tokenize.ts
-  - [ ] Email pattern detection
-  - [ ] IP address pattern detection
-  - [ ] Phone number pattern detection
-  - [ ] Custom pattern support
+### Developer Documentation
+- [ ] Create Dual-Mode Developer Guide
+- [ ] Create Client Integration Guide
+- [ ] Create Migration/Rollback Guide
+- [ ] Add code examples
+- [ ] Review and publish docs
 
-- [ ] Create privacy/detokenize.ts
-  - [ ] Maintain token mapping
-  - [ ] Secure storage
-  - [ ] Authorized access only
-
-- [ ] Integrate tokenization into all tools
-- [ ] Test privacy coverage
-
-### Knowledge Base Tools (4 tools)
-- [ ] knowledge/search.ts - Hybrid search
-- [ ] knowledge/retrieve.ts - Get article
-- [ ] knowledge/create.ts - Create article
-- [ ] knowledge/update.ts - Update article
-
-### Testing
-- [ ] Unit tests for all 14 tools
-- [ ] Integration test: Create → Search → Filter → Update workflow
-- [ ] Privacy test: Verify tokenization
-- [ ] Performance test: Large dataset handling
+### Sprint 3 Preparation
+- [ ] Design code execution wrapper structure
+- [ ] Plan filesystem tool organization
+- [ ] Define dual-mode parity tests
+- [ ] Prepare Sprint 3 implementation plan
+- [ ] Update checklist for Sprint 3
 
 ### Week 6-7 Deliverables
-- [ ] 14 tools functional (10 issues + 4 knowledge)
-- [ ] Privacy layer working
-- [ ] Test suite passing
-- [ ] Progress update
+- [ ] Optimized traditional mode (50-70% token savings)
+- [ ] Complete developer/client documentation
+- [ ] Sprint 3 implementation plan ready
+- [ ] All specifications finalized
 
 ---
 
-## Phase 3: Agent Personas (Week 8)
+## Phase 3: Sprint 3 Implementation (Weeks 9-12)
 
-### Persona Definitions
-- [ ] Define architect persona tools
-- [ ] Define fullstack persona tools
-- [ ] Define testing persona tools
-- [ ] Create persona configuration file
+### Code Execution Infrastructure
+- [ ] Implement sandbox (isolated-vm or chosen tech)
+- [ ] Create ./servers/projectpulse/ structure
+- [ ] Build MCP client wrapper
+- [ ] Implement code execution adapter
+- [ ] Test sandbox security
 
-### Persona Tool Discovery
-- [ ] Implement agents/personas.ts
-  - [ ] Load persona definition
-  - [ ] Map persona to tool subset
-  - [ ] Return filtered tool list
+### Code Execution Wrappers (41 Tools)
+- [ ] Create wrapper generator script
+- [ ] Generate wrappers for all 41 tools
+- [ ] Test each wrapper individually
+- [ ] Verify local filtering works
+- [ ] Measure token savings per tool
 
-- [ ] Create persona activation workflow
+### Privacy Implementation
+- [ ] Implement PrivacyService with LRU cache
+- [ ] Add tokenization patterns (email, IP, phone, SSN)
+- [ ] Implement access control
+- [ ] Add audit logging
+- [ ] Test collision prevention
+
+### Agent Persona Integration
+- [ ] Define persona tool subsets
+- [ ] Implement persona-based discovery
+- [ ] Create persona configuration
 - [ ] Test each persona
-- [ ] Benchmark token usage per persona
+- [ ] Measure token savings per persona
 
-### Documentation
-- [ ] Document persona usage patterns
-- [ ] Create examples for each persona
-- [ ] Update MCP tools guide
-- [ ] Update architecture docs
+### Multi-Client Validation
+- [ ] Test with Claude Code (code execution)
+- [ ] Test with mock traditional client
+- [ ] Test with CLI tool
+- [ ] Run complete parity test suite
+- [ ] Verify all clients get same results
 
-### Week 8 Deliverables
-- [ ] Persona system working
-- [ ] All 3 personas tested
-- [ ] Documentation complete
-- [ ] Sprint 2 complete
+### Performance & Security
+- [ ] Load testing (100 concurrent clients)
+- [ ] Security audit (sandbox escapes)
+- [ ] Token efficiency validation (90-98%)
+- [ ] Timeout and error handling
+- [ ] Monitoring and alerting setup
+
+### Sprint 3 Deliverables
+- [ ] Full dual-mode server operational
+- [ ] 41 tools in both modes
+- [ ] Sandbox security verified
+- [ ] Privacy tokenization working
+- [ ] Multi-client parity proven
+- [ ] Token savings validated (90-98%)
 
 ---
 
-## Post-Sprint 2
+## Post-Sprint 3
 
 ### Documentation
 - [ ] Update .agent/system/mcp-tools-guide.md
@@ -163,10 +206,19 @@ Status: Planning
 
 ## Success Criteria
 
-- [ ] 98%+ token reduction achieved
-- [ ] 14+ tools working
-- [ ] On-demand loading functional
-- [ ] Privacy layer covering all PII
+**Week 5 (Traditional POC):**
+- [ ] 3 tools working in traditional mode
+- [ ] All clients (Claude, Mock GPT, CLI) can use tools
+- [ ] Results identical across clients
+- [ ] Token savings 50-70% measured
+- [ ] Capability detection stub functional
+- [ ] Privacy/sandbox specs complete
+
+**Sprint 3 (Full Dual-Mode):**
+- [ ] 41 tools in both modes
+- [ ] Code execution 90-98% token reduction
+- [ ] Sandbox security verified
+- [ ] Privacy layer covers all PII
 - [ ] Agent personas loading correct subsets
 - [ ] Test coverage > 80%
-- [ ] Documentation complete
+- [ ] Multi-client parity proven

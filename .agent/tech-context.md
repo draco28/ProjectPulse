@@ -573,7 +573,7 @@ pnpm start  # Production server
 **MCP Server** (future):
 
 - Port: 3001
-- Protocol: stdio + HTTP
+- Protocol: stdio (HTTP optional in future; not required)
 
 **Redis** (future - caching):
 
@@ -823,7 +823,7 @@ const server = new McpServer({
   version: '1.0.0',
 });
 
-// Register all 42 tools
+// Register all 41 tools (current scope)
 import './tools/sprint';
 import './tools/workflow';
 import './tools/issues';
@@ -863,10 +863,10 @@ pnpm build
 # 2. Test stdio communication
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | node dist/index.js
 
-# 3. Expected output: List of 42 tools
+# 3. Expected output: List of 41 tools
 ```
 
-### MCP Tool Categories (42 Total)
+### MCP Tool Categories (41 Total)
 
 **1. Sprint/Phase Tracking (7 tools)**:
 
@@ -983,13 +983,13 @@ pnpm test:integration mcp-server/tests/integration/**/*.test.ts
 ### MCP Tool Roadmap
 
 **Current Status** (as of 2025-11-07):
-- **Sprint 1-8 MVP**: 42 tools (baseline)
+- **Sprint 1-8 MVP**: 41 tools (baseline)
 - **Sprint 9-13 Full**: 65 tools (enhancements)
 - **Gap**: 23 tools deferred to post-MVP
 
 **Tool Count Breakdown**:
 
-**Sprint 1-8 MVP (42 tools)** ✅:
+**Sprint 1-8 MVP (41 tools)** ✅:
 1. Sprint Hierarchy (9 tools) - EPIC-001
 2. Progress Tracking (4 tools) - EPIC-002
 3. AI Agent Integration (5 tools) - EPIC-003
@@ -1008,7 +1008,7 @@ pnpm test:integration mcp-server/tests/integration/**/*.test.ts
 
 **See**: `.agent/tech-debt/mcp-tool-gap-23-tools.md` for detailed breakdown
 
-**Impact**: None - MVP functionality complete with 42 tools. Enhancement tools add value but aren't critical path.
+**Impact**: None - MVP functionality complete with 41 tools. Enhancement tools add value but aren't critical path.
 
 ---
 ### Code Execution with MCP (Planned for Sprint 2)
@@ -1022,7 +1022,7 @@ pnpm test:integration mcp-server/tests/integration/**/*.test.ts
 - On-demand tool discovery via filesystem exploration (e.g., `./servers/projectpulse/...`)
 - Local data processing before returning to the model
 - Token savings: up to 98.7% reduction on tool operations
-- Scales to 25+ tools without context bloat
+- Scales without context bloat (41 tools current scope; expandable)
 - Privacy via auto-tokenization (mask sensitive data prior to model exposure)
 
 **Benefits for ProjectPulse:**
@@ -1031,10 +1031,23 @@ pnpm test:integration mcp-server/tests/integration/**/*.test.ts
 - Stronger privacy posture through automatic tokenization
 
 **Timeline:**
-- Sprint 2: Design ProjectPulse MCP server with code execution
-- Sprint 3: Implement on-demand discovery and local filtering in priority tool areas
+- Sprint 2 Week 5: Design + Traditional POC (3 tools: create-issue, search-issues, filter-issues)
+  - Capability detection design and stubs (PP_MCP_MODE + probe)
+  - Shared services interface definitions
+  - Privacy tokenization specification (document)
+  - Sandbox specification (document)
+  - Multi-client test harness design (mock traditional client + CLI)
+  - Token usage baseline (traditional mode)
+- Sprint 2 Weeks 6-7: Refine specs; optimize traditional mode (pagination, compression, timeouts); document dual-mode patterns; prep Sprint 3
+- Sprint 3: Implement on-demand discovery and local filtering (code execution wrappers), sandbox, and full dual-mode infrastructure
 - Future: Evaluate wrapping existing servers where large payloads benefit from local processing
 
 **Reference:** Code Execution with MCP – https://www.anthropic.com/engineering/code-execution-with-mcp
+
+### Client Capability Detection (Hybrid Strategy)
+
+- Negotiation attempt during handshake (if supported): server `capabilities: { tools: true, codeExecution: true }`, client `supports: { codeExecution: boolean }`
+- Fallback via env var: `PP_MCP_MODE=traditional|code-exec|auto` (default: `auto`)
+- Probe verification on first call; cache per session; safe default is traditional mode
 
 Last updated: 2025-11-07

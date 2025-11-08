@@ -93,13 +93,15 @@ C4Context
 
 | Actor/System             | Primary Interface      | Purpose                                                 | Volume                     |
 | ------------------------ | ---------------------- | ------------------------------------------------------- | -------------------------- |
-| AI Agent → MCP Server    | stdio, 59 MCP tools    | Execute workflows (5-step protocol)                     | 95% interaction            |
+| AI Agent → MCP Server    | stdio, 41 MCP tools    | Execute workflows (5-step protocol)                     | 95% interaction            |
 | Developer → Web App      | HTTPS, React UI        | Monitor progress, manual CRUD                           | 5% interaction             |
 | MCP Server → Database    | Prisma ORM             | State persistence (Phase, Week, Day, Task, Session)     | ~100 queries/minute        |
 | Database → File System   | Post-transaction hooks | Auto-generate markdown (STATUS.md, DEVELOPMENT_PLAN.md) | On state change            |
 | Database → Embedding API | REST API               | Generate embeddings for knowledge items                 | On knowledge create/update |
 
 **Design Decision Reference:** See [ADR-001](architecture/ADRs/ADR-001-agent-first-architecture.md) for agent-first architecture rationale.
+
+Note: Tool count may expand; 41 represents current scope.
 
 ---
 
@@ -247,7 +249,7 @@ C4Container
     Person(developer, "Developer", "Secondary user (5%)")
 
     Container_Boundary(devhub, "ProjectPulse") {
-        Container(mcp_server, "MCP Server", "Node.js, TypeScript", "59 MCP tools<br/>stdio transport<br/>Zod validation")
+        Container(mcp_server, "MCP Server", "Node.js, TypeScript", "41 MCP tools<br/>stdio transport<br/>Zod validation")
 
         Container(web_app, "Next.js App", "React 18, Next.js 14 App Router", "Server Components<br/>Client Components<br/>shadcn/ui")
 
@@ -424,7 +426,7 @@ type MCPError = {
 
 **Critical Requirement**: ProjectPulse MCP server must support **all MCP clients** equally, not just Claude Code.
 
-To support a 25+ tool ecosystem efficiently while maintaining universal client compatibility, ProjectPulse implements a **dual-mode MCP server** that adapts to client capabilities:
+To support a 41-tool ecosystem efficiently while maintaining universal client compatibility, ProjectPulse implements a **dual-mode MCP server** that adapts to client capabilities:
 
 **Architecture Overview:**
 
@@ -434,7 +436,7 @@ To support a 25+ tool ecosystem efficiently while maintaining universal client c
 │                                        │
 │ ┌────────────────────────────────────┐ │
 │ │ Mode 1: Traditional MCP (stdio)    │ │
-│ │  - 25+ tools as function calls     │ │
+│ │  - 41 tools as function calls      │ │
 │ │  - Works with: ALL MCP clients     │ │
 │ │  - Optimizations: Pagination       │ │
 │ └────────────────────────────────────┘ │
@@ -474,6 +476,31 @@ To support a 25+ tool ecosystem efficiently while maintaining universal client c
 3. **Future-Proof**: Code execution as enhancement, not requirement
 4. **Token Efficiency**: 50-70% savings (traditional) to 90-98% (code execution)
 
+### Dual-Mode Architecture – Adapter Pattern
+
+Clarification: There is ONE MCP server with TWO adapter layers, not two servers.
+- Traditional Adapter: Receives `tools/call` over stdio, routes to shared services.
+- Code Execution Adapter: Client-side wrappers import modules but still call the same MCP server; wrappers perform local pre/post-processing for efficiency.
+
+### Functional Parity Guarantee
+
+All MCP clients receive identical functionality:
+- Same 41 tools, same business logic and results
+- Same privacy protections (tokenization)
+- Same data access (Prisma operations)
+
+Efficiency varies by client capability:
+- Traditional mode (ALL clients): 50–70% token reduction via pagination, filtering, compression
+- Code execution mode (Claude Code if supported): 90–98% token reduction via local processing
+
+Parity Matrix (Week 5 POC – 3 tools):
+
+| Tool | Traditional Mode | Code Execution Mode | Result Parity |
+|------|------------------|---------------------|---------------|
+| create-issue | Direct stdio call | Wrapper imports service | ✅ Identical |
+| search-issues | Server-side filter (20/page) | Local filter (all → 10) | ✅ Identical IDs |
+| filter-issues | Server-side logic | Client-side logic | ✅ Identical |
+
 **Mode 1: Traditional MCP (Baseline)**
 
 All clients get optimized traditional MCP:
@@ -493,9 +520,50 @@ search_issues({
 - Pagination (default: 20 results per page)
 - Server-side filtering (status, priority, dates)
 - Response compression (summaries vs full objects)
-- Streaming for large result sets
+- Backpressure and timeouts using pagination (see Large Dataset Handling)
+- Streaming optional (future), if MCP notifications/progress are supported
 
 **Token Savings**: 50-70% vs unoptimized traditional MCP
+
+### Large Dataset Handling - Pagination First
+
+Primary Strategy: Server-side pagination (universal across clients)
+
+```typescript
+// Server-side paginated search (default)
+async function searchIssues(params: { query: string; page?: number; limit?: number }) {
+  const page = params.page ?? 1;
+  const limit = Math.min(params.limit ?? 20, 100); // Max 100/page
+  const skip = (page - 1) * limit;
+
+  const [items, total] = await Promise.all([
+    prisma.issue.findMany({
+      where: {/* filters based on params */},
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.issue.count({ where: {/* same filters */} }),
+  ]);
+
+  return {
+    items,
+    total,
+    page,
+    pages: Math.ceil(total / limit),
+    hasMore: skip + items.length < total,
+  };
+}
+```
+
+Backpressure and Timeouts:
+- Server timeout: 30s per operation (configurable)
+- Max page size: 100; Max results per query: 10,000 (hard limit)
+- Abort: Clients can stop requesting further pages when satisfied
+
+Future Enhancement (optional):
+- Research MCP notifications/progress for streaming; if supported, implement chunked responses
+- Pagination remains the primary strategy
 
 **Mode 2: Code Execution MCP (Enhancement)**
 
@@ -533,22 +601,53 @@ return open.slice(0, 10)
 
 **Token Savings**: 90-98% vs traditional MCP
 
-**Client Capability Detection:**
+**Client Capability Detection - Hybrid Strategy:**
+
+Strategy: Try protocol negotiation, fallback to environment variable, verify with a probe. Safe default is traditional mode.
+
+Step 1: Attempt MCP negotiation (if supported by client/server):
 
 ```typescript
-// Server declares both capabilities
+// Server declares capabilities during handshake (if protocol supports it)
 const server = new MCPServer({
   capabilities: {
-    tools: true,              // Traditional MCP
-    codeExecution: true,      // Code execution (if supported)
-  }
+    tools: true,         // Traditional MCP (required)
+    codeExecution: true, // Code execution (optional)
+  },
 });
 
-// Server adapts based on client
-if (client.supports.codeExecution) {
-  // Use filesystem-based tool exposure
-} else {
-  // Use traditional function calls
+// Client may declare support
+client.connect({
+  supports: {
+    codeExecution: false,
+  },
+});
+```
+
+Step 2: Environment variable fallback (always available):
+
+```typescript
+// PP_MCP_MODE=traditional | code-exec | auto (default)
+const mode = process.env.PP_MCP_MODE ?? 'auto';
+```
+
+Step 3: Probe verification (first call), with session caching:
+
+```typescript
+async function detectClientMode(client: MCPClient): Promise<'traditional' | 'code-exec'> {
+  // Trust explicit client declaration when available (and verify)
+  if ((client as any).declared?.codeExecution === true) {
+    try { await client.execute('return 2 + 2'); return 'code-exec'; } catch { return 'traditional'; }
+  }
+
+  if (process.env.PP_MCP_MODE === 'traditional') return 'traditional';
+  if (process.env.PP_MCP_MODE === 'code-exec') {
+    await client.execute('return 2 + 2'); // throws if unsupported
+    return 'code-exec';
+  }
+
+  // auto: try probe, else fallback
+  try { await client.execute('return 2 + 2'); return 'code-exec'; } catch { return 'traditional'; }
 }
 ```
 
@@ -561,17 +660,27 @@ Auto-tokenization happens in shared layer (available to all clients):
 
 **Implementation Path:**
 
-Sprint 2 will validate this approach:
-- **Week 5**: Build dual-mode infrastructure, test with multiple clients
-- **Week 5 Checkpoint**: Evaluate code execution support in Claude Code
-- **Weeks 6-7**: Scale based on checkpoint results
-  - Path A: Both modes if code execution works
-  - Path B: Traditional only if code execution unavailable
-  - Path C: Hybrid (simple=traditional, complex=code execution)
+Sprint 2 scope and checkpoints:
+- **Week 5**: Design + Traditional POC
+  - Traditional MCP server with 3 tools (create-issue, search-issues, filter-issues)
+  - Capability detection design + detection stubs (env var + probe)
+  - Shared services interface definitions (no wrappers yet)
+  - Privacy tokenization specification (document only)
+  - Sandbox security specification (document only)
+  - Multi-client test harness design (mock traditional client + CLI)
+  - Token usage measurement baseline (traditional mode)
+- **Weeks 6-7**: Refine specifications, optimize traditional mode (pagination, compression, timeouts), document dual-mode patterns, prepare Sprint 3 plan
+
+Sprint 3 (Weeks 9-12): Full dual-mode implementation
+- Code execution wrappers for all tools
+- Capability negotiation (if supported) and full detection
+- Sandbox implementation and testing
+- Agent persona tool discovery
+- Complete multi-client validation
 
 **Outcome**: Regardless of path, all MCP clients have equal access to ProjectPulse functionality.
 
-**Reference**: See [docs/archive/plans/mcp-code-execution-design.md](../docs/archive/plans/mcp-code-execution-design.md) for complete contingency planning.
+**Reference**: See [archive/plans/mcp-code-execution-design.md](archive/plans/mcp-code-execution-design.md) for complete contingency planning.
 
 ---
 

@@ -941,7 +941,7 @@ cat ~/.config/claude-code/logs/mcp-servers.log
 - Example: 150K tokens → ~2K tokens (≈98.7% reduction)
 
 **Best for:**
-- Large tool sets (25+ tools)
+- Large tool sets (current scope: 41 tools; expandable)
 - Complex workflows (loops/filtering)
 - Privacy-sensitive operations
 - Large dataset processing (search/rank/filter)
@@ -951,24 +951,49 @@ cat ~/.config/claude-code/logs/mcp-servers.log
 | Use Case                          | Traditional MCP | Code Execution MCP |
 |-----------------------------------|-----------------|--------------------|
 | Current day-to-day ops            | ✅               | ➖ Planned          |
-| ProjectPulse server (25+ tools)   | ❌ Context bloat | ✅ Planned Sprint 2 |
+| ProjectPulse server (41 tools)   | ❌ Context bloat | ✅ Planned Sprint 2 |
 | Simple CRUD                       | ✅ Fast          | ⚠️ Overhead         |
 | Search/filter large datasets      | ❌ Token heavy   | ✅ Efficient        |
 | Privacy-sensitive data processing | ⚠️ Manual        | ✅ Auto-tokenize    |
+
+### Functional Parity Guarantee
+
+All MCP clients receive identical functionality:
+- Same 41 tools, same business logic and results
+- Same privacy protections (tokenization)
+- Same data access (Prisma operations)
+
+Efficiency varies by client capability:
+- Traditional mode (ALL clients): 50–70% token reduction (pagination, filtering, compression)
+- Code execution mode (Claude Code if supported): 90–98% token reduction (local processing)
+
+### Client Capability Detection (Hybrid)
+
+- Attempt negotiation during handshake (if supported): server `capabilities: { tools: true, codeExecution: true }`, client `supports: { codeExecution: boolean }`
+- Fallback via env var: `PP_MCP_MODE=traditional|code-exec|auto` (default: `auto`)
+- Probe on first call with session caching; safe default is traditional mode
 
 ### Implementation Roadmap
 
 **Sprint 1 (Current):**
 - Continue using traditional MCP; focus on core features
 
-**Sprint 2 (Design):**
-- Design filesystem structure `./servers/projectpulse/{issues,knowledge,agents}/`
-- Plan on-demand tool discovery patterns
-- Draft privacy auto-tokenization rules
+**Sprint 2 (Week 5: Design + Traditional POC):**
+- Traditional MCP server POC (3 tools: create-issue, search-issues, filter-issues)
+- Capability detection design + detection stubs (PP_MCP_MODE + probe)
+- Shared services interface definitions (Issue/Privacy/Validation)
+- Privacy tokenization specification (document)
+- Sandbox security specification (document)
+- Multi-client test harness design (mock traditional client + CLI)
+- Token usage baseline (traditional mode)
+
+**Sprint 2 (Weeks 6-7):**
+- Refine specs; optimize traditional mode (pagination-first, compression, timeouts)
+- Document dual-mode patterns; prepare Sprint 3 plan
 
 **Sprint 3 (Integration):**
-- Implement code execution environment
-- Build on-demand loading + local filtering for search-heavy tools
+- Implement code execution environment and wrappers for all tools
+- Enable on-demand loading + local filtering for search-heavy tools
 
 **Future:**
 - Evaluate wrapping existing servers for heavy operations (e.g., postgres)

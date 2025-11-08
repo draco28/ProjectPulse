@@ -10,7 +10,7 @@ Last Updated: 2025-11-09
 
 ProjectPulse will implement the code execution approach for its MCP server to achieve:
 - 98.7% token reduction on tool operations
-- 25+ tools without context bloat
+- 41 tools without context bloat
 - Privacy-preserving data processing
 - Scalable architecture for future growth
 
@@ -21,7 +21,7 @@ ProjectPulse will implement the code execution approach for its MCP server to ac
 ### Current MCP Limitations
 
 Traditional MCP (used by our current servers):
-1. Tool Definition Overload: All 25+ tools loaded upfront = 50K+ tokens
+1. Tool Definition Overload: All 41 tools loaded upfront = 50K+ tokens
 2. Context Window Bloat: Search results (100K+ tokens) pass through model
 3. No Local Processing: Filtering/sorting happens in model context
 4. Privacy Challenges: Sensitive data exposed to model
@@ -29,7 +29,7 @@ Traditional MCP (used by our current servers):
 ### Our Specific Challenges
 
 ProjectPulse requirements:
-- 25+ MCP tools across 4 categories (issues, knowledge, projects, agents)
+- 41 MCP tools across categories (issues, knowledge, projects, agents)
 - Knowledge base search returning 100-500 articles
 - Agent personas needing different tool subsets
 - Issue content potentially sensitive (emails, IPs, customer data)
@@ -206,28 +206,138 @@ export async function searchIssues(options: SearchOptions) {
 }
 ```
 
+### Privacy Tokenization - Complete Specification
+
+Storage Architecture:
+
+```typescript
+// In-memory LRU cache with TTL
+import LRU from 'lru-cache';
+
+interface TokenMapping {
+  token: string;
+  originalValue: string;
+  type: 'EMAIL' | 'IP' | 'PHONE' | 'SSN';
+  createdAt: Date;
+  sessionId: string;
+}
+
+class PrivacyService {
+  private tokenMap: LRU<string, TokenMapping>;
+  private counter: Map<string, number>;
+
+  constructor() {
+    this.tokenMap = new LRU({ max: 10000, ttl: 1000 * 60 * 60 }); // 1 hour TTL
+    this.counter = new Map();
+  }
+
+  async tokenize(data: any): Promise<any> {
+    if (typeof data === 'string') return this.tokenizeString(data);
+    if (typeof data === 'object') return this.tokenizeObject(data);
+    return data;
+  }
+
+  private tokenizeString(text: string): string {
+    const email = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+    const ip = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
+    const phone = /\b\d{3}-\d{3}-\d{4}\b/g;
+    const ssn = /\b\d{3}-\d{2}-\d{4}\b/g;
+
+    return text
+      .replace(email, (m) => this.getOrCreateToken(m, 'EMAIL'))
+      .replace(ip, (m) => this.getOrCreateToken(m, 'IP'))
+      .replace(phone, (m) => this.getOrCreateToken(m, 'PHONE'))
+      .replace(ssn, (m) => this.getOrCreateToken(m, 'SSN'));
+  }
+
+  private tokenizeObject(obj: any): any {
+    const res: any = Array.isArray(obj) ? [] : {};
+    for (const k in obj) {
+      const v = (obj as any)[k];
+      if (typeof v === 'string') res[k] = this.tokenizeString(v);
+      else if (typeof v === 'object') res[k] = this.tokenizeObject(v);
+      else res[k] = v;
+    }
+    return res;
+  }
+
+  private getOrCreateToken(value: string, type: TokenMapping['type']): string {
+    for (const m of this.tokenMap.values()) {
+      if (m.originalValue === value && m.type === type) return m.token;
+    }
+    const n = (this.counter.get(type) || 0) + 1;
+    this.counter.set(type, n);
+    const token = `<${type}_${n}>`;
+    this.tokenMap.set(token, { token, originalValue: value, type, createdAt: new Date(), sessionId: this.getCurrentSessionId() });
+    return token;
+  }
+
+  async detokenize(data: any, auth: AuthContext): Promise<any> {
+    if (!auth.hasPermission('DETOKENIZE')) throw new Error('Unauthorized');
+    await this.auditLog({ action: 'DETOKENIZE', user: auth.userId, timestamp: new Date() });
+    if (typeof data === 'string') return this.detokenizeString(data);
+    if (typeof data === 'object') return this.detokenizeObject(data);
+    return data;
+  }
+
+  private detokenizeString(text: string): string {
+    return text.replace(/<(EMAIL|IP|PHONE|SSN)_\d+>/g, (t) => this.tokenMap.get(t)?.originalValue || t);
+  }
+
+  private detokenizeObject(obj: any): any {
+    const res: any = Array.isArray(obj) ? [] : {};
+    for (const k in obj) {
+      const v = (obj as any)[k];
+      if (typeof v === 'string') res[k] = this.detokenizeString(v);
+      else if (typeof v === 'object') res[k] = this.detokenizeObject(v);
+      else res[k] = v;
+    }
+    return res;
+  }
+
+  private getCurrentSessionId(): string { return 'session-id'; }
+  private async auditLog(event: any) { console.log('[AUDIT]', JSON.stringify(event)); }
+}
+
+interface AuthContext {
+  userId: string;
+  roles: string[];
+  permissions: string[];
+  hasPermission(permission: string): boolean;
+}
+```
+
+Access Control and Security:
+- Detokenization allowed only server-side with explicit permission
+- Audit all detokenization events
+- Tokens expire after 1 hour (session lifetime)
+- Monotonic counters prevent collisions
+
 ---
 
 ## Implementation Plan
 
-### Phase 1: Foundation (Sprint 2, Week 5)
+### Phase 1: Design + Traditional POC (Sprint 2, Week 5)
 
 Goals:
-- Set up code execution environment
-- Create filesystem structure
-- Implement 3 proof-of-concept tools
+- Deliver traditional MCP server POC with 3 tools (create-issue, search-issues, filter-issues)
+- Design capability detection (negotiation attempt + env var) and implement detection stubs (probe)
+- Define shared services interfaces; write privacy and sandbox specifications
+- Design multi-client test harness; establish token usage baseline (traditional)
 
 Tasks:
-- Install code execution MCP dependencies
-- Create ./servers/projectpulse/ structure
-- Implement basic tools: issues/create.ts, issues/search.ts, issues/filter.ts
-- Test on-demand loading
-- Benchmark token usage
+- Implement traditional adapter for 3 tools; no code-exec wrappers in Week 5
+- Add `PP_MCP_MODE` env var and probe stub; cache mode per session
+- Specify IssueService/PrivacyService/ValidationService interfaces
+- Author Privacy Tokenization spec and Sandbox Security spec (docs only)
+- Build mock traditional client + CLI tool; author parity tests (traditional)
+- Add token measurement instrumentation (traditional only)
 
 Success Criteria:
-- Agent can discover and load tools
-- Create + search + filter workflow works
-- Token usage < 5K for full operation
+- All 3 clients (Claude, Mock GPT, CLI) use the 3 tools successfully
+- Results identical across clients; parity tests pass
+- Token savings measured baseline: 50–70% vs unoptimized
+- Capability detection stub functional; privacy and sandbox specs complete
 
 ### Phase 2: Core Tools (Sprint 2, Weeks 6-7)
 
@@ -285,7 +395,7 @@ Success Criteria:
 ### Phase 5: Complete Tool Suite (Sprint 3, Weeks 11-12)
 
 Goals:
-- Reach 25+ total tools
+- Reach 41 tools (current scope)
 - Complete privacy layer
 - Performance optimization
 
@@ -296,7 +406,7 @@ Tasks:
 - Performance benchmarking
 
 Success Criteria:
-- 25+ tools available
+- 41 tools available
 - Average operation < 5K tokens
 - Privacy layer covers all sensitive patterns
 
@@ -353,6 +463,31 @@ Code Execution MCP:
 - Rank locally:              (local, 0 tokens)
 - Return top 10:             5,000 tokens
 - TOTAL:                     7,000 tokens ✅ 98.4% reduction
+
+### Token Savings Measurement Methodology
+
+Baseline (Week 5 traditional mode):
+
+Test Corpus:
+- 100 issues seeded; 10 queries; 5 filter combinations
+
+Process:
+```typescript
+function measureTokens(op: string, input: any, output: any) {
+  const inputTokens = countTokens(JSON.stringify(input));
+  const outputTokens = countTokens(JSON.stringify(output));
+  return { op, inputTokens, outputTokens, totalTokens: inputTokens + outputTokens };
+}
+```
+
+Benchmark Harness:
+- Script: `scripts/benchmark-tokens.ts`
+- Library: `tiktoken` (cl100k_base)
+- Output: JSON results + summary
+
+Expected Ranges:
+- Traditional optimized: 50–70% vs unoptimized
+- Code execution (Sprint 3): 90–98% vs unoptimized
 
 Overall Budget Impact
 
@@ -532,7 +667,7 @@ Hybrid approach possible:
 - Goal: < 10K tokens per complex workflow
 
 ### Tool Scalability
-- Target: 25+ tools without context bloat
+- Target: 41 tools without context bloat (current scope; expandable)
 - Measure: Upfront token cost
 - Goal: 0 tokens (on-demand loading)
 
@@ -565,6 +700,297 @@ Hybrid approach possible:
 - Impact: High
 - Mitigation: Sandboxed execution environment; input validation and sanitization; rate limiting and timeouts
 
+### Code Execution Sandbox - Security Specification (Week 5: Spec Only)
+
+Sandbox Requirements:
+- CPU Limit: 500ms timeout per execution
+- Memory Limit: 256MB max heap
+- Filesystem: Read-only; allowed paths `./servers/projectpulse/`
+- Network: Disabled by default
+- Process Isolation: No access to parent process/system resources
+
+Candidate Technologies:
+- VM2 (mature); isolated-vm (preferred, V8 isolates); Deno sandbox (permissions model)
+
+Security Boundaries:
+- Whitelist-only imports
+- No access to: `process`, `fs` (except allowed), `child_process`, `net`, `http`
+- Input validation; output size limit 10MB
+
+Threat Model:
+- Malicious code injection; Resource exhaustion; Data exfiltration; FS traversal; Prototype pollution
+
+---
+
+## Risk Mitigation Strategies
+
+### Risk Mitigation 1: Complexity Overhead
+
+Strategy: Enforce shared services pattern
+
+```typescript
+// All adapters MUST use services
+// NO direct Prisma calls in adapters/
+
+// ✅ Correct
+async function handler(input) {
+  return await issueService.create(input);
+}
+
+// ❌ Wrong
+async function handler(input) {
+  return await prisma.issue.create({ data: input });
+}
+```
+
+Automation:
+- ESLint rule: Forbid imports of `@prisma/client` in `src/server/adapters/**`
+- CI check: Verify all adapters import from `services/`
+- Code review checklist: "Uses shared services?"
+
+### Risk Mitigation 2: Code Divergence
+
+Strategy: Automated parity testing
+
+```typescript
+// CI pipeline runs parity tests
+describe('Parity Tests', () => {
+  const tools = ['create-issue', 'search-issues', 'filter-issues'];
+  test.each(tools)('%s parity', async (tool) => {
+    const input = generateTestInput(tool);
+    const trad = await traditionalAdapter.call(tool, input);
+    const exec = await codeExecAdapter.call(tool, input); // Sprint 3
+    expect(exec).toEqual(trad);
+  });
+});
+```
+
+CI Integration (example):
+
+```yaml
+# .github/workflows/parity.yml
+name: Parity Tests
+on: [pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: corepack enable && pnpm i
+      - run: pnpm test:parity
+```
+
+### Risk Mitigation 3: Security Surface
+
+Strategy: Separate security audits per mode
+
+- Traditional Mode: Input validation (Zod), SQL injection prevention (Prisma), privacy tokenization, rate limiting
+- Code Execution Mode: Sandbox escape attempts, resource exhaustion tests, FS isolation verification, import whitelist enforcement
+
+Schedule: Quarterly security reviews
+
+### Risk Mitigation 4: Performance Variance
+
+Strategy: SLA per mode with adaptive fallback
+
+```typescript
+const SLA = {
+  traditional: { p95: 200, p99: 500 },
+  codeExec: { p95: 300, p99: 800 },
+};
+
+// Monitor and auto-fallback
+if (codeExecP95 > SLA.codeExec.p95 * 1.5) {
+  console.warn('Code exec performance degraded, switching to traditional');
+  forceModeForNewSessions('traditional');
+}
+```
+
+Monitoring: Prometheus + Grafana dashboards
+
+---
+
+## Token Measurement Instrumentation
+
+### TokenCounter Utility
+
+```typescript
+// src/server/instrumentation/TokenCounter.ts
+import { encode } from 'tiktoken/node';
+
+export interface TokenMeasurement {
+  operation: string;
+  mode: 'traditional' | 'code-exec';
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  timestamp: number;
+}
+
+export class TokenCounter {
+  private encoder: any;
+  private measurements: TokenMeasurement[] = [];
+
+  constructor() {
+    this.encoder = encode('cl100k_base');
+  }
+
+  countTokens(text: string): number {
+    const tokens = this.encoder(text);
+    return tokens.length;
+  }
+
+  measure(operation: string, mode: 'traditional' | 'code-exec', input: any, output: any): TokenMeasurement {
+    const inputStr = JSON.stringify(input);
+    const outputStr = JSON.stringify(output);
+    const m: TokenMeasurement = {
+      operation,
+      mode,
+      inputTokens: this.countTokens(inputStr),
+      outputTokens: this.countTokens(outputStr),
+      totalTokens: 0,
+      timestamp: Date.now(),
+    };
+    m.totalTokens = m.inputTokens + m.outputTokens;
+    this.measurements.push(m);
+    return m;
+  }
+
+  exportToFile(path: string) {
+    const fs = require('fs');
+    fs.writeFileSync(path, JSON.stringify({
+      measurements: this.measurements,
+      timestamp: new Date().toISOString(),
+    }, null, 2));
+  }
+}
+```
+
+### Adapter Integration (Traditional)
+
+```typescript
+// src/server/adapters/traditional/tools/search-issues.ts
+import { TokenCounter } from '../../instrumentation/TokenCounter';
+const counter = new TokenCounter();
+
+export function createSearchIssuesTool(issueService: IssueService) {
+  return {
+    name: 'search-issues',
+    async handler(input: any) {
+      const result = await issueService.search(input);
+      counter.measure('search-issues', 'traditional', input, result);
+      return result;
+    },
+  };
+}
+```
+
+### Benchmark Script
+
+```typescript
+// scripts/benchmark-tokens.ts
+import { TokenCounter } from '../src/server/instrumentation/TokenCounter';
+
+async function main() {
+  const counter = new TokenCounter();
+  // run test suite invoking tools ...
+  counter.exportToFile('./benchmarks/results-' + Date.now() + '.json');
+}
+
+main().catch(console.error);
+```
+
+---
+
+## Multi-Client Test Harness Design
+
+### Mock Traditional Client (Node.js)
+
+```typescript
+// test/mock-client/traditional-client.ts
+import { spawn } from 'child_process';
+import { createInterface } from 'readline';
+
+export class MockMCPClient {
+  private process: any;
+  private requestId = 0;
+  private handlers = new Map<number, (r: any) => void>();
+
+  async connect(serverPath: string, mode: 'traditional' | 'code-exec' = 'traditional') {
+    const env = { ...process.env, PP_MCP_MODE: mode };
+    this.process = spawn('node', [serverPath], { env });
+    const rl = createInterface({ input: this.process.stdout });
+    rl.on('line', (line) => {
+      const msg = JSON.parse(line);
+      const h = this.handlers.get(msg.id);
+      if (h) { h(msg.result); this.handlers.delete(msg.id); }
+    });
+  }
+
+  private waitFor(id: number) {
+    return new Promise((resolve) => { this.handlers.set(id, resolve as any); });
+  }
+
+  async callTool(name: string, args: any) {
+    const id = this.requestId++;
+    this.process.stdin.write(JSON.stringify({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } }) + '\n');
+    return this.waitFor(id);
+  }
+
+  async listTools() {
+    const id = this.requestId++;
+    this.process.stdin.write(JSON.stringify({ jsonrpc: '2.0', id, method: 'tools/list' }) + '\n');
+    return this.waitFor(id);
+  }
+
+  disconnect() { this.process.kill(); }
+}
+```
+
+### Parity Test (Traditional baseline; code-exec in Sprint 3)
+
+```typescript
+// test/multi-client/parity.test.ts
+import { MockMCPClient } from '../mock-client/traditional-client';
+
+describe('Multi-Client Parity Tests', () => {
+  let client: MockMCPClient;
+  beforeAll(async () => {
+    client = new MockMCPClient();
+    await client.connect('./dist/server.js', 'traditional');
+  });
+
+  test('create-issue returns expected fields', async () => {
+    const result = await client.callTool('create-issue', { title: 'Test', priority: 'high' });
+    expect(result).toMatchObject({ id: expect.any(String), title: 'Test', priority: 'high' });
+  });
+
+  test('search-issues pagination', async () => {
+    const result = await client.callTool('search-issues', { query: 'bug', page: 1, limit: 20 });
+    expect(result.items).toHaveLength(20);
+    expect(result.total).toBeGreaterThan(0);
+  });
+
+  afterAll(() => client.disconnect());
+});
+```
+
+### CLI Test Tool
+
+```bash
+# test/cli/mcp-test.sh
+#!/bin/bash
+MODE=$1
+TOOL=$2
+ARGS=$3
+export PP_MCP_MODE=$MODE
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"'$TOOL'","arguments":'$ARGS'}}' \
+  | node ./dist/server.js \
+  | jq '.result'
+```
+
 3) Debugging Complexity
 - Risk: Harder to debug code execution vs direct tool calls
 - Impact: Medium
@@ -590,6 +1016,26 @@ Hybrid approach possible:
 
 **Requirement**: All clients must have equal functionality regardless of code execution support.
 
+### Functional Parity Guarantee
+
+All MCP clients receive identical functionality:
+- Same 41 tools available
+- Same business logic and results
+- Same privacy protections (tokenization)
+- Same data access (Prisma operations)
+
+Efficiency varies by client capability:
+- Traditional mode (ALL clients): 50–70% token reduction
+- Code execution mode (Claude Code if supported): 90–98% token reduction
+
+Parity Matrix (Week 5 POC – 3 tools):
+
+| Tool | Traditional Mode | Code Execution Mode | Result Parity |
+|------|------------------|---------------------|---------------|
+| create-issue | Direct stdio call | Wrapper imports service | ✅ Identical |
+| search-issues | Server-side filter (20/page) | Local filter (all → 10) | ✅ Identical IDs |
+| filter-issues | Server-side logic | Client-side logic | ✅ Identical |
+
 **Solution**: Dual-mode MCP server that adapts to client capabilities.
 
 ---
@@ -602,9 +1048,9 @@ Hybrid approach possible:
 │                                             │
 │ ┌─────────────────────────────────────────┐ │
 │ │ Mode 1: Traditional MCP (stdio)         │ │
-│ │  - 25+ tools as function calls          │ │
+│ │  - 41 tools as function calls           │ │
 │ │  - Works with: ALL MCP clients          │ │
-│ │  - Optimizations: Pagination, streaming │ │
+│ │  - Optimizations: Pagination            │ │
 │ └─────────────────────────────────────────┘ │
 │                                             │
 │ ┌─────────────────────────────────────────┐ │
@@ -627,39 +1073,64 @@ Hybrid approach possible:
 
 ---
 
-### Client Capability Detection
+### Client Capability Detection – Hybrid Strategy
 
-**MCP Protocol Negotiation**:
+Strategy: Try negotiation, fallback to env var, verify with probe; default to traditional.
+
+Step 1: Attempt MCP negotiation (if spec/client supports):
 
 ```typescript
-// Server declares both capabilities
-const server = new MCPServer({
-  capabilities: {
-    tools: true,              // Traditional MCP
-    codeExecution: true,      // Code execution (if supported)
-  }
-});
+const server = new MCPServer({ capabilities: { tools: true, codeExecution: true } });
+client.connect({ supports: { codeExecution: false } });
+```
 
-// Client declares what it supports
-client.connect({
-  supports: {
-    codeExecution: false,  // GPT doesn't support this
-  }
-});
+Step 2: Environment variable fallback:
 
-// Server adapts
-if (client.supports.codeExecution) {
-  // Use filesystem-based tool exposure
-} else {
-  // Use traditional function calls
+```typescript
+// PP_MCP_MODE=traditional | code-exec | auto
+const mode = process.env.PP_MCP_MODE ?? 'auto';
+```
+
+Step 3: Probe verification and session cache:
+
+```typescript
+async function detectClientCapability(client: MCPClient) {
+  if ((client as any).declaredCapabilities?.codeExecution === true) {
+    try { await client.execute('return 2 + 2'); return 'code-exec'; } catch { return 'traditional'; }
+  }
+  if (process.env.PP_MCP_MODE === 'traditional') return 'traditional';
+  if (process.env.PP_MCP_MODE === 'code-exec') { await client.execute('return 2 + 2'); return 'code-exec'; }
+  try { await client.execute('return 2 + 2'); return 'code-exec'; } catch { return 'traditional'; }
 }
 ```
 
-**Fallback Logic**:
-1. Client connects → Server checks capabilities
-2. Code execution supported? → Expose filesystem interface
-3. Code execution NOT supported? → Use traditional tools
-4. No difference in functionality, only in efficiency
+### Partial Capability Support (Degraded Modes)
+
+Capability Matrix:
+
+| Feature | Traditional | Discovery Only | Code Exec Full |
+|---------|-------------|----------------|----------------|
+| Call tools | ✅ | ✅ | ✅ |
+| List tools | ✅ | ✅ | ✅ |
+| Filesystem discovery | ❌ | ✅ | ✅ |
+| Local execution | ❌ | ❌ | ✅ |
+| Tool definitions upfront | ✅ All | ✅ All | ❌ On-demand |
+
+Selection Logic:
+
+```typescript
+interface ClientCapabilities {
+  tools: boolean;              // Basic MCP (required)
+  discovery?: boolean;         // Filesystem exploration
+  codeExecution?: boolean;     // Local execution
+}
+
+function selectOperationMode(c: ClientCapabilities) {
+  if (c.codeExecution) return { mode: 'code-exec', features: ['tools', 'discovery', 'local-execution'] };
+  if (c.discovery) return { mode: 'discovery-only', features: ['tools', 'discovery'] };
+  return { mode: 'traditional', features: ['tools'] };
+}
+```
 
 ---
 
@@ -762,14 +1233,16 @@ search_issues_summary({
 ] // 1K tokens vs 50K ✅
 ```
 
-**4. Streaming**
+**4. Large Dataset Handling – Pagination First**
 ```typescript
-// Stream results as they're found
-for await (const issue of searchIssues('bug')) {
-  // Client processes incrementally
-  // Can stop early if enough results
-}
+// Paginated search (default)
+search_issues({ query: 'bug', page: 1, limit: 20 })
+// → { items: [...20], total, page, pages, hasMore }
 ```
+
+Backpressure & Timeouts:
+- Server timeout 30s; chunk/page limit 100; max total 10,000
+- Clients stop when satisfied; optional abort parameter for cancellation
 
 **Token Savings with Traditional Optimization**: 50-70% (vs 98% with code execution)
 
@@ -804,50 +1277,38 @@ for await (const issue of searchIssues('bug')) {
 
 ### Multi-Client Testing Strategy
 
-**Week 5 POC Must Test**:
+**Week 5 POC Must Test (Traditional Only + Detection Stubs)**:
 
-1. **Claude Code** (primary)
-   - Code execution interface
-   - Token usage measurement
-   - Debugging experience
-
-2. **Mock GPT Client** (secondary)
+1. **Mock Traditional Client**
    - Traditional MCP interface
-   - Same functionality verification
-   - Performance comparison
+   - Parity and performance baseline
 
-3. **CLI Tool** (tertiary)
+2. **CLI Tool**
    - Developer experience
-   - Direct tool invocation
-   - Response validation
+   - Direct tool invocation and validation
 
-**Success Criteria**: All three clients can create, search, and filter issues with same results.
+3. **Claude Code (Optional)**
+   - Traditional mode usage
+   - Detection stubs (env var + probe) do not break functionality
+
+**Success Criteria**: All clients can create, search, and filter issues with identical results.
 
 ---
 
 ### Implementation Timeline Adjustments
 
-**Original Timeline** (4 weeks):
-- Week 5: POC + 3 tools
-- Weeks 6-7: 11 tools + privacy
-- Week 8: Personas
+**Week 5 (Sprint 2):** Design + Traditional POC (3 tools), detection stubs, specs, test harness design, token baseline
 
-**Adjusted Timeline if Path B** (Traditional MCP):
-- Week 5: POC + 3 tools (traditional)
-- Weeks 6-7: 11 tools + optimization (pagination, filtering)
-- Week 8: Testing + multi-client validation
+**Weeks 6-7 (Sprint 2):** Refine specs; optimize traditional mode (pagination, compression, timeouts); document dual-mode patterns; prepare Sprint 3 plan
 
-**Adjusted Timeline if Path C** (Hybrid):
-- Week 5: POC + dual-mode infrastructure
-- Weeks 6-7: Simple tools (traditional) + Complex tools (code exec)
-- Week 8: Client detection + fallback logic
+**Sprint 3 (Weeks 9-12):** Full dual-mode implementation; code execution wrappers; sandbox; capability detection; personas; multi-client validation
 
 ---
 
 ### Success Metrics (Revised)
 
 **Non-Negotiable**:
-- ✅ All MCP clients can use all 25+ tools
+- ✅ All MCP clients can use all 41 tools
 - ✅ Functionality identical across clients
 - ✅ No vendor lock-in (Claude-only features)
 
@@ -882,25 +1343,16 @@ for await (const issue of searchIssues('bug')) {
 
 ### Recommended Approach
 
-**Sprint 2 Implementation Plan**:
+**Sprint 2 Plan**:
 
-1. **Week 5**: Build dual-mode infrastructure
-   - Implement 3 tools in BOTH modes
-   - Test with multiple clients
-   - Measure token efficiency for each mode
-   - Go/No-Go decision at week end
+1. **Week 5**: Design + Traditional POC (no code-exec wrappers). Deliver detection stubs, specs, test harness, token baseline.
+2. **Weeks 6-7**: Refine specs and optimize traditional mode; finalize dual-mode design; plan Sprint 3.
+3. **Week 8**: Documentation polish and readiness for Sprint 3.
 
-2. **Weeks 6-7**: Based on Week 5 decision
-   - Path A: Scale dual-mode to 14 tools
-   - Path B: Traditional only, optimize aggressively
-   - Path C: Split tools by complexity
+**Sprint 3 Plan**:
+- Implement full dual-mode infrastructure, wrappers for all tools, sandbox, and multi-client validation.
 
-3. **Week 8**: Multi-client validation
-   - Test all clients (Claude, GPT, Gemini)
-   - Verify functionality parity
-   - Document client-specific optimizations
-
-**Outcome**: Regardless of path, all clients have equal access to ProjectPulse functionality.
+**Outcome**: All clients get identical functionality; efficiency varies by mode.
 
 ---
 
