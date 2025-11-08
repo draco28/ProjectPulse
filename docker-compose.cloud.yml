@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (like Supabase)
+  postgres:
+    image: postgres:15-alpine
+    container_name: projectpulse-postgres-cloud
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: projectpulse_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - projectpulse
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Next.js Frontend (like Vercel)
+  nextjs:
+    image: node:20-alpine
+    container_name: projectpulse-nextjs-cloud
+    working_dir: /app
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && cd apps/web && pnpm prisma generate && pnpm dev --hostname 0.0.0.0"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/projectpulse_dev
+      - NEXT_PUBLIC_API_URL=http://0.0.0.0:3000
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+      - nextjs_node_modules:/app/node_modules
+      - web_node_modules:/app/apps/web/node_modules
+      - next_cache:/app/apps/web/.next
+    networks:
+      - projectpulse
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # MCP Server (Custom Backend)
+  mcp-server:
+    image: node:20-alpine
+    container_name: projectpulse-mcp-cloud
+    working_dir: /app
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && cd apps/mcp-server && pnpm build && node dist/index.js"
+    environment:
+      - PROJECTPULSE_API_URL=http://nextjs:3000
+      - NODE_ENV=development
+    volumes:
+      - ./:/app
+      - mcp_node_modules:/app/apps/mcp-server/node_modules
+    networks:
+      - projectpulse
+    depends_on:
+      - nextjs
+    restart: unless-stopped
+
+networks:
+  projectpulse:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  nextjs_node_modules:
+  web_node_modules:
+  mcp_node_modules:
+  next_cache:
