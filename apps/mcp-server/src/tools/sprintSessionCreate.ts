@@ -93,7 +93,7 @@ async function handler(
   const { logger, httpClient, config } = context;
 
   try {
-    const url = `${config.PROJECTPULSE_API_URL}/api/sessions`;
+    const url = `${config.apiBaseUrl}/api/sessions`;
 
     logger.info('[sprint.session.create] Calling POST /api/sessions', {
       taskId: input.taskId,

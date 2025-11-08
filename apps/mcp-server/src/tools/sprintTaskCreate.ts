@@ -88,7 +88,7 @@ async function handler(
   const { logger, httpClient, config } = context;
 
   try {
-    const url = `${config.PROJECTPULSE_API_URL}/api/tasks`;
+    const url = `${config.apiBaseUrl}/api/tasks`;
 
     logger.info('[sprint.task.create] Calling POST /api/tasks', {
       dayId: input.dayId,

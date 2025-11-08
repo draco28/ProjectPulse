@@ -105,7 +105,7 @@ async function handler(
 
   try {
     // 1. Build API URL
-    const url = `${config.PROJECTPULSE_API_URL}/api/progress`;
+    const url = `${config.apiBaseUrl}/api/progress`;
 
     // 2. Call API
     logger.info('[sprint.updateProgress] Calling POST /api/progress', {
