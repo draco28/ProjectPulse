@@ -1,6 +1,6 @@
 # Active Context
 
-**Last Updated**: 2025-11-08 (Day 6-7 - 95% COMPLETE ✅ - Testing Pending)
+**Last Updated**: 2025-11-08 (Day 6-7 - 95% COMPLETE ✅ - WSL2 Networking Fixed)
 **Current Phase**: Sprint 1 - Foundation & Core Infrastructure (Week 1 COMPLETE ✅)
 **Branch**: `feature/sprint-1-foundation`
 
@@ -42,9 +42,19 @@
    - API routes implemented and verified by code review
    - MCP server compiles successfully
 
+**Day 6-7 Network Troubleshooting Complete** ✅:
+
+**Issue Resolved**: Windows Docker Desktop + WSL2 networking
+- Root cause: Docker Desktop port forwarding from WSL2 to Windows failing
+- Solution: Run development commands from WSL2 (`/mnt/f/Web_Projects/AI_HUB`)
+- Docker fix: Changed port binding from 127.0.0.1:5432 to 0.0.0.0:5432
+- Documentation: Created `.agent/sops/windows-docker-networking.md` (350+ lines)
+- Verification: ✅ Prisma works from WSL2, ✅ MCP server compiles (0 errors)
+
 **Remaining for Day 6-7**:
-- Manual API testing with Next.js dev server (requires pnpm install + env setup)
+- Manual API testing from WSL2 (requires WSL2 environment setup)
 - MCP tool integration testing with MCP Inspector
+- Full verification: POST /api/phases, GET /api/tasks/current
 
 **Session Logs**:
 - [day-6-7-handoff-20251107.md](task/day-6-7-handoff-20251107.md) - Complete handoff documentation
