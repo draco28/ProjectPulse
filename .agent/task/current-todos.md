@@ -1,39 +1,63 @@
-# Day 5 Task List - MCP Server Hardening & Documentation
+# Day 6-7 Testing & Completion Todos
 
-**Created**: 2025-11-07 06:15
-**Total Tasks**: 10
-**Progress**: 0/10 (0%)
-
----
-
-## Tasks
-
-- [ ] **Task 1**: Install MCP CLI and create smoke test harness
-- [ ] **Task 2**: Run smoke test and capture JSON output
-- [ ] **Task 3**: Create developer onboarding SOP (.agent/sops/mcp-server-launch.md)
-- [ ] **Task 4**: Design sprint.phase.create tool specification
-- [ ] **Task 5**: Design sprint.getCurrentTask tool specification
-- [ ] **Task 6**: Save tool plans to day-6-7-tool-plan.md
-- [ ] **Task 7**: Update devhub-mcp-specialist with health-check integration
-- [ ] **Task 8**: Create technical debt documentation (23-tool gap)
-- [ ] **Task 9**: Update tech-context.md (42 vs 65 tools clarification)
-- [ ] **Task 10**: Update progress.md and active-context.md (Day 5 complete)
+**Created**: 2025-11-08 08:30 AM
+**Sprint**: Sprint 1 Week 2 Days 6-7
+**Total Tasks**: 15
+**Progress**: 0/15 (0%)
 
 ---
 
-## Checkpoint Schedule
+## Phase 1: Manual API Testing
 
-- **15K tokens**: Task 1-2 complete (smoke test)
-- **30K tokens**: Task 3-4 complete (SOP + first tool spec)
-- **45K tokens**: Task 5-7 complete (second tool spec + orchestrator)
-- **60K tokens**: Task 8-10 complete (tech debt + memory bank updates)
+- [ ] 1. Start Next.js dev server from WSL2
+- [ ] 2. Test POST /api/phases with valid input (success case)
+- [ ] 3. Test POST /api/phases error handling (validation errors)
+- [ ] 4. Test GET /api/tasks/current without query params
+- [ ] 5. Test GET /api/tasks/current with includeHistory=true
 
----
-
-## Current Task
-
-**None** - Plan just saved, ready to start Task 1
+**Phase 1 Progress**: 0/5 tasks (0%)
 
 ---
 
-**Last Updated**: 2025-11-07 06:15
+## Phase 2: MCP Server Integration
+
+- [ ] 6. Build MCP server and verify compilation
+- [ ] 7. Test MCP tool invocations (manual or smoke test)
+
+**Phase 2 Progress**: 0/2 tasks (0%)
+
+---
+
+## Phase 3: Documentation Updates
+
+- [ ] 8. Update .agent/system/api-catalog.md with 2 new endpoints
+- [ ] 9. Update .agent/system/mcp-tools-guide.md with 2 new tools
+- [ ] 10. Update .agent/active-context.md (mark Day 6-7 complete)
+- [ ] 11. Update .agent/progress.md (Sprint 1 Week 2 progress)
+
+**Phase 3 Progress**: 0/4 tasks (0%)
+
+---
+
+## Phase 4: Verification & Completion
+
+- [ ] 12. Run Step 4.5 verification with evidence collection
+- [ ] 13. Create optional completion document
+- [ ] 14. Commit documentation updates to git
+- [ ] 15. Commit any code fixes (if needed)
+
+**Phase 4 Progress**: 0/4 tasks (0%)
+
+---
+
+## Overall Progress
+
+**Total**: 0/15 tasks complete (0%)
+
+**Estimated Time Remaining**: 2h 25m
+
+**Next Checkpoint**: 15K tokens (update this file with progress)
+
+---
+
+**Last Updated**: 2025-11-08 08:30 AM
