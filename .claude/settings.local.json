@@ -39,9 +39,13 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm install)",
       "Bash(yes:*)",
+      "Bash(git pull:*)",
       "Bash(git mv:*)",
       "Bash(git reset:*)",
-      "Bash(time rg:*)"
+      "Bash(time rg:*)",
+      "Bash(docker-compose:*)",
+      "Bash(timeout 60 docker-compose:*)",
+      "Bash(git rebase:*)"
     ],
     "deny": [],
     "ask": [
