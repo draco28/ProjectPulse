@@ -45,7 +45,9 @@
       "Bash(time rg:*)",
       "Bash(docker-compose:*)",
       "Bash(timeout 60 docker-compose:*)",
-      "Bash(git rebase:*)"
+      "Bash(git rebase:*)",
+      "Bash(git tag:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": [
