@@ -140,14 +140,23 @@ Start Week 1 Day 1-2 implementation (Database Schema + Template Engine Core)
 5. ✅ Add to apps/web/prisma/schema.prisma
 6. ✅ Copy TemplateEngine class from report
 7. ✅ Copy DataExtractorRegistry from report
-8. ⏳ Create migration on Mac mini
-9. ⏳ Verify TypeScript compilation
+8. ✅ Create migration on Mac mini (prisma db push)
+9. ✅ Verify TypeScript compilation (Mac mini confirmed zero errors)
 
-**Files Created**:
+**Files Created (Windows)**:
 - apps/web/prisma/schema.prisma (MarkdownFile model added)
 - apps/web/lib/markdown/template-engine.ts (TemplateEngine class)
 - apps/web/lib/markdown/data-extractors.ts (DataExtractorRegistry class)
+- .agent/task/mac-mini-instructions.md (migration guide)
+
+**Mac Mini Migration Results**:
+- ✅ Database synced with prisma db push
+- ✅ Created markdown_files table with 6 indexes
+- ✅ Added foreign key to projects table
+- ✅ Generated Prisma Client v5.22.0
+- ✅ Fixed 4 API bugs (sessionContext, Zod errors, null handling)
+- ✅ Zero TypeScript errors confirmed
 
 **Progress Checkpoints**:
 - 15K tokens: ✅ Complete (schema + core classes created)
-- 30K tokens: [Pending]
+- 30K tokens: ✅ Complete (migration verified, session updated)
