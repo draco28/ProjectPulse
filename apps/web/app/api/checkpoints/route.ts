@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         sessionId,
         notes,
         tokenUsage,
-        sessionContext: sessionContext ?? null,
+        ...(sessionContext && { sessionContext }),
         checkpointNumber,
       },
     });

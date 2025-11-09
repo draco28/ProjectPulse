@@ -79,9 +79,9 @@ export async function POST(request: NextRequest) {
     const taskStart = new Date(data.startDate);
     const taskEnd = new Date(data.endDate);
     const dayStart = new Date(day.startDate);
-    const dayEnd = new Date(day.endDate);
+    const dayEnd = day.endDate ? new Date(day.endDate) : null;
 
-    if (taskStart < dayStart || taskEnd > dayEnd) {
+    if (dayEnd && (taskStart < dayStart || taskEnd > dayEnd)) {
       return NextResponse.json(
         {
           success: false,
@@ -105,7 +105,6 @@ export async function POST(request: NextRequest) {
         endDate: taskEnd,
         status: data.status,
         progress: data.progress,
-        estimatedHours: data.estimatedHours,
       },
       select: {
         id: true,
@@ -115,7 +114,6 @@ export async function POST(request: NextRequest) {
         progress: true,
         startDate: true,
         endDate: true,
-        estimatedHours: true,
       },
     });
 
@@ -127,7 +125,7 @@ export async function POST(request: NextRequest) {
           task: {
             ...task,
             startDate: task.startDate.toISOString(),
-            endDate: task.endDate.toISOString(),
+            endDate: task.endDate ? task.endDate.toISOString() : null,
           },
           context: {
             day: { id: day.id, title: day.title },

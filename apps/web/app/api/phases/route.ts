@@ -167,8 +167,8 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: error.errors[0].message,
-          field: String(error.errors[0].path[0]),
+          message: error.errors[0]?.message || 'Validation error',
+          field: String(error.errors[0]?.path[0] || 'unknown'),
         },
       }, { status: 400 });
     }
