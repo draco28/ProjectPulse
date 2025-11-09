@@ -22,7 +22,7 @@ const sprintUpdateProgressSchema = z.object({
   }),
 
   entityId: z.string()
-    .uuid('entityId must be a valid UUID'),
+    .cuid('entityId must be a valid CUID'),
 
   progress: z.number()
     .int('Progress must be an integer')
@@ -44,38 +44,20 @@ interface ApiResponse<T> {
 }
 
 interface ProgressUpdateData {
-  updated: {
-    type: string;
+  entity: {
     id: string;
-    title: string;
+    type: string;
     progress: number;
     status: string;
   };
-  hierarchy: {
-    task?: {
+  propagation: {
+    updated: Array<{
       id: string;
-      title: string;
+      type: string;
       progress: number;
       status: string;
-    } | null;
-    day?: {
-      id: string;
-      title: string;
-      progress: number;
-      status: string;
-    } | null;
-    week?: {
-      id: string;
-      title: string;
-      progress: number;
-      status: string;
-    } | null;
-    phase?: {
-      id: string;
-      title: string;
-      progress: number;
-      status: string;
-    } | null;
+    }>;
+    totalAffected: number;
   };
 }
 
@@ -104,19 +86,18 @@ async function handler(
   const { logger, httpClient, config } = context;
 
   try {
-    // 1. Build API URL
-    const url = `${config.apiBaseUrl}/api/progress`;
+    // 1. Build API URL (generic route: /api/:entity/:id/progress)
+    const entityTypePlural = `${input.entityType}s`;
+    const url = `${config.apiBaseUrl}/api/${entityTypePlural}/${input.entityId}/progress`;
 
-    // 2. Call API
-    logger.info('[sprint.updateProgress] Calling POST /api/progress', {
+    // 2. Call API (PUT with progress in body)
+    logger.info('[sprint.updateProgress] Calling PUT /api/:entity/:id/progress', {
       entityType: input.entityType,
       entityId: input.entityId,
       progress: input.progress,
     });
 
-    const response = await httpClient.post<ApiResponse<ProgressUpdateData>>(url, {
-      entityType: input.entityType,
-      entityId: input.entityId,
+    const response = await httpClient.put<ApiResponse<ProgressUpdateData>>(url, {
       progress: input.progress,
     });
 
@@ -138,50 +119,32 @@ async function handler(
     }
 
     // 4. Format success response
-    const { updated, hierarchy } = response.data;
+    const { entity, propagation } = response.data;
 
-    // Build hierarchy string
-    const hierarchyParts: string[] = [];
-    if (hierarchy.phase) {
-      hierarchyParts.push(
-        `Phase: ${hierarchy.phase.title} (${hierarchy.phase.progress}% ${hierarchy.phase.status})`
-      );
-    }
-    if (hierarchy.week) {
-      hierarchyParts.push(
-        `Week: ${hierarchy.week.title} (${hierarchy.week.progress}% ${hierarchy.week.status})`
-      );
-    }
-    if (hierarchy.day) {
-      hierarchyParts.push(
-        `Day: ${hierarchy.day.title} (${hierarchy.day.progress}% ${hierarchy.day.status})`
-      );
-    }
-    if (hierarchy.task) {
-      hierarchyParts.push(
-        `Task: ${hierarchy.task.title} (${hierarchy.task.progress}% ${hierarchy.task.status})`
-      );
-    }
+    // Build propagation chain string
+    const propagationChain = propagation.updated
+      .map((e) => `${e.type} (${e.progress}% ${e.status})`)
+      .join(' → ');
 
     logger.info('[sprint.updateProgress] Progress updated successfully', {
-      entityType: updated.type,
-      newProgress: updated.progress,
-      affectedParents: hierarchyParts.length,
+      entityType: entity.type,
+      newProgress: entity.progress,
+      totalAffected: propagation.totalAffected,
     });
 
     return JSON.stringify(
       {
         status: 'success',
         updated: {
-          type: updated.type,
-          id: updated.id,
-          title: updated.title,
-          progress: `${updated.progress}%`,
-          status: updated.status,
+          type: entity.type,
+          id: entity.id,
+          progress: `${entity.progress}%`,
+          status: entity.status,
         },
         propagation: {
-          message: `Progress propagated to ${hierarchyParts.length} parent entity/entities`,
-          hierarchy: hierarchyParts.length > 0 ? hierarchyParts : ['No parent entities to update'],
+          message: `Progress propagated to ${propagation.totalAffected} parent entity/entities`,
+          chain: propagationChain || 'No parent entities (top level)',
+          affected: propagation.updated,
         },
       },
       null,

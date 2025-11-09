@@ -5,94 +5,57 @@
  *
  * Pattern: Next.js 14 API Route → Zod validation → Prisma create
  *
- * Hierarchy: Phase → Week → Day → **Task** → Session
+ * Validation: Parent day must exist, dates within day's range
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 // ============================================================================
 // VALIDATION SCHEMA
 // ============================================================================
 
-const createTaskSchema = z.object({
-  dayId: z.string()
-    .uuid('dayId must be a valid UUID'),
-
-  title: z.string()
-    .min(1, 'Title is required')
-    .max(200, 'Title must be 200 characters or less'),
-
+const CreateTaskSchema = z.object({
+  dayId: z.string().cuid('Day ID must be a valid CUID'),
+  title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
   description: z.string().optional(),
-
-  startDate: z.string()
-    .refine((date) => !isNaN(Date.parse(date)), 'Invalid ISO 8601 date format'),
-
-  endDate: z.string()
-    .refine((date) => !isNaN(Date.parse(date)), 'Invalid ISO 8601 date format'),
-
-  status: z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'CANCELLED'])
-    .default('NOT_STARTED'),
-
-  progress: z.number()
-    .int()
-    .min(0, 'Progress must be between 0 and 100')
-    .max(100, 'Progress must be between 0 and 100')
-    .default(0),
-}).refine((data) => {
-  const start = new Date(data.startDate);
-  const end = new Date(data.endDate);
-  return start < end;
-}, {
-  message: 'startDate must be before endDate',
-  path: ['startDate'],
+  startDate: z.string().datetime('Start date must be valid ISO 8601 format'),
+  endDate: z.string().datetime('End date must be valid ISO 8601 format'),
+  status: z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'CANCELLED']).default('NOT_STARTED'),
+  progress: z.number().int().min(0).max(100).default(0),
+  estimatedHours: z.number().positive().optional(),
 });
 
-type CreateTaskInput = z.infer<typeof createTaskSchema>;
+type CreateTaskInput = z.infer<typeof CreateTaskSchema>;
 
 // ============================================================================
 // POST HANDLER
 // ============================================================================
 
-/**
- * Create a new task within a day
- *
- * Flow:
- * 1. Parse and validate request body
- * 2. Verify dayId exists
- * 3. Create task with Prisma
- * 4. Return task with hierarchical context (day → week → phase)
- *
- * Error Handling:
- * - 400: Validation errors (Zod) or day not found
- * - 500: Database errors (Prisma)
- *
- * Response Format:
- * Success: { success: true, data: { task, context: { day, week, phase } } }
- * Error: { success: false, error: { code, message, field? } }
- */
 export async function POST(request: NextRequest) {
   try {
-    // 1. Parse and validate request
+    // 1. Parse and validate request body
     const body = await request.json();
-    const validated = createTaskSchema.parse(body);
+    const data = CreateTaskSchema.parse(body);
 
-    // 2. Verify dayId exists
+    // 2. Verify parent day exists
     const day = await prisma.day.findUnique({
-      where: { id: validated.dayId },
+      where: { id: data.dayId },
       select: {
         id: true,
         title: true,
+        startDate: true,
+        endDate: true,
         week: {
           select: {
             id: true,
             title: true,
             phase: {
-              select: {
-                id: true,
-                title: true,
-              },
+              select: { id: true, title: true },
             },
           },
         },
@@ -100,100 +63,122 @@ export async function POST(request: NextRequest) {
     });
 
     if (!day) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'NOT_FOUND',
-          message: 'Day not found',
-          field: 'dayId',
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: `Day with ID ${data.dayId} not found`,
+          },
         },
-      }, { status: 400 });
+        { status: 404 }
+      );
     }
 
-    // 3. Convert dates
-    const startDate = new Date(validated.startDate);
-    const endDate = new Date(validated.endDate);
+    // 3. Validate dates are within day's range
+    const taskStart = new Date(data.startDate);
+    const taskEnd = new Date(data.endDate);
+    const dayStart = new Date(day.startDate);
+    const dayEnd = new Date(day.endDate);
+
+    if (taskStart < dayStart || taskEnd > dayEnd) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: `Task dates must be within day's range (${day.startDate} to ${day.endDate})`,
+            field: 'startDate',
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     // 4. Create task
     const task = await prisma.task.create({
       data: {
-        dayId: validated.dayId,
-        title: validated.title,
-        description: validated.description,
-        startDate,
-        endDate,
-        status: validated.status,
-        progress: validated.progress,
+        dayId: data.dayId,
+        title: data.title,
+        description: data.description,
+        startDate: taskStart,
+        endDate: taskEnd,
+        status: data.status,
+        progress: data.progress,
+        estimatedHours: data.estimatedHours,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        progress: true,
+        startDate: true,
+        endDate: true,
+        estimatedHours: true,
       },
     });
 
     // 5. Success response with hierarchical context
-    return NextResponse.json({
-      success: true,
-      data: {
-        task: {
-          id: task.id,
-          title: task.title,
-          description: task.description,
-          status: task.status,
-          progress: task.progress,
-          startDate: task.startDate.toISOString(),
-          endDate: task.endDate?.toISOString() || null,
-          createdAt: task.createdAt.toISOString(),
-          updatedAt: task.updatedAt.toISOString(),
-        },
-        context: {
-          day: {
-            id: day.id,
-            title: day.title,
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          task: {
+            ...task,
+            startDate: task.startDate.toISOString(),
+            endDate: task.endDate.toISOString(),
           },
-          week: day.week ? {
-            id: day.week.id,
-            title: day.week.title,
-          } : null,
-          phase: day.week?.phase ? {
-            id: day.week.phase.id,
-            title: day.week.phase.title,
-          } : null,
+          context: {
+            day: { id: day.id, title: day.title },
+            week: day.week ? { id: day.week.id, title: day.week.title } : null,
+            phase: day.week?.phase ? { id: day.week.phase.id, title: day.week.phase.title } : null,
+          },
         },
       },
-    }, { status: 201 });
-
+      { status: 201 }
+    );
   } catch (error) {
-    // 6. Error handling
-
-    // Zod validation errors (400)
+    // Error handling
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: error.errors[0].message,
-          field: String(error.errors[0].path[0]),
+      const firstError = error.errors[0];
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: firstError?.message || 'Validation failed',
+            field: String(firstError?.path?.[0] || 'unknown'),
+          },
         },
-      }, { status: 400 });
+        { status: 400 }
+      );
     }
 
-    // Prisma database errors (500)
     if (error?.constructor?.name === 'PrismaClientKnownRequestError') {
       console.error('[API] Prisma error in POST /api/tasks:', error);
-      return NextResponse.json({
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Database operation failed',
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    console.error('[API] Unexpected error in POST /api/tasks:', error);
+    return NextResponse.json(
+      {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Database operation failed',
+          message: error instanceof Error ? error.message : 'Unknown error occurred',
         },
-      }, { status: 500 });
-    }
-
-    // Unknown errors (500)
-    console.error('[API] Unexpected error in POST /api/tasks:', error);
-    return NextResponse.json({
-      success: false,
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
       },
-    }, { status: 500 });
+      { status: 500 }
+    );
   }
 }

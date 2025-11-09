@@ -16,99 +16,123 @@ import { prisma } from '@/lib/db';
 import { PrismaClient, Status } from '@prisma/client';
 
 /**
+ * Propagation result type
+ * Tracks which entities were updated during progress roll-up
+ */
+export interface PropagationResult {
+  entity: {
+    id: string;
+    type: 'session' | 'task' | 'day' | 'week' | 'phase';
+    progress: number;
+    status: Status;
+  };
+  propagated: Array<{
+    id: string;
+    type: 'task' | 'day' | 'week' | 'phase';
+    progress: number;
+    status: Status;
+  }>;
+}
+
+/**
  * Update progress and propagate to parent (one level at a time)
  * Uses row-level locking to prevent race conditions
  *
  * @param entityId - ID of the entity to update
  * @param entityType - Type of entity (session, task, day, week, phase)
  * @param newProgress - New progress value (0-100)
+ * @param _propagatedEntities - Internal accumulator for tracking propagated entities
+ * @returns Propagation result with updated entity and all affected parents
  *
  * @example
  * // Update Session 1 to 100%, propagates to Task → Day → Week → Phase
- * await updateProgressAndPropagate('session1', 'session', 100);
+ * const result = await updateProgressAndPropagate('session1', 'session', 100);
+ * console.log(result.propagated); // [Task, Day, Week, Phase]
  */
 export async function updateProgressAndPropagate(
   entityId: string,
   entityType: 'session' | 'task' | 'day' | 'week' | 'phase',
-  newProgress: number
-): Promise<void> {
+  newProgress: number,
+  _propagatedEntities: Array<any> = []
+): Promise<PropagationResult> {
   // Validate progress range (0-100)
   if (newProgress < 0 || newProgress > 100) {
     throw new Error(`Progress must be 0-100, got ${newProgress}`);
   }
 
   // 1. Update current entity and calculate parent progress in transaction
-  const parentInfo = await prisma.$transaction(
+  const { parentInfo, updatedEntity } = await prisma.$transaction(
     async (tx) => {
       let parentId: string | null = null;
       let parentType: 'task' | 'day' | 'week' | 'phase' | null = null;
+      let updatedEntity: any = null;
 
       switch (entityType) {
         case 'session': {
-          const updated = await tx.session.update({
+          updatedEntity = await tx.session.update({
             where: { id: entityId },
             data: {
               progress: newProgress,
               status: determineStatus(newProgress),
               updatedAt: new Date(),
             },
-            select: { id: true, progress: true, taskId: true },
+            select: { id: true, progress: true, status: true, taskId: true },
           });
-          parentId = updated.taskId;
+          parentId = updatedEntity.taskId;
           parentType = 'task';
           break;
         }
         case 'task': {
-          const updated = await tx.task.update({
+          updatedEntity = await tx.task.update({
             where: { id: entityId },
             data: {
               progress: newProgress,
               status: determineStatus(newProgress),
               updatedAt: new Date(),
             },
-            select: { id: true, progress: true, dayId: true },
+            select: { id: true, progress: true, status: true, dayId: true },
           });
-          parentId = updated.dayId;
+          parentId = updatedEntity.dayId;
           parentType = 'day';
           break;
         }
         case 'day': {
-          const updated = await tx.day.update({
+          updatedEntity = await tx.day.update({
             where: { id: entityId },
             data: {
               progress: newProgress,
               status: determineStatus(newProgress),
               updatedAt: new Date(),
             },
-            select: { id: true, progress: true, weekId: true },
+            select: { id: true, progress: true, status: true, weekId: true },
           });
-          parentId = updated.weekId;
+          parentId = updatedEntity.weekId;
           parentType = 'week';
           break;
         }
         case 'week': {
-          const updated = await tx.week.update({
+          updatedEntity = await tx.week.update({
             where: { id: entityId },
             data: {
               progress: newProgress,
               status: determineStatus(newProgress),
               updatedAt: new Date(),
             },
-            select: { id: true, progress: true, phaseId: true },
+            select: { id: true, progress: true, status: true, phaseId: true },
           });
-          parentId = updated.phaseId;
+          parentId = updatedEntity.phaseId;
           parentType = 'phase';
           break;
         }
         case 'phase': {
-          await tx.phase.update({
+          updatedEntity = await tx.phase.update({
             where: { id: entityId },
             data: {
               progress: newProgress,
               status: determineStatus(newProgress),
               updatedAt: new Date(),
             },
-            select: { id: true, progress: true },
+            select: { id: true, progress: true, status: true },
           });
           parentId = null;
           parentType = null;
@@ -116,10 +140,15 @@ export async function updateProgressAndPropagate(
         }
       }
 
-      if (!parentId || !parentType) return null; // No parent (phase)
+      if (!parentId || !parentType) {
+        return { parentInfo: null, updatedEntity }; // No parent (phase)
+      }
 
       const parentProgress = await calculateParentProgress(tx, parentId, parentType);
-      return { parentId, parentType, parentProgress };
+      return {
+        parentInfo: { parentId, parentType, parentProgress },
+        updatedEntity,
+      };
     },
     { timeout: 5000 }
   );
@@ -127,12 +156,33 @@ export async function updateProgressAndPropagate(
   // 2. Recursively propagate to parent (AFTER current transaction commits)
   // This releases locks incrementally, preventing deadlocks
   if (parentInfo) {
-    await updateProgressAndPropagate(
+    const parentResult = await updateProgressAndPropagate(
       parentInfo.parentId,
       parentInfo.parentType,
-      parentInfo.parentProgress
+      parentInfo.parentProgress,
+      _propagatedEntities
     );
+
+    // The parent's entity info is now part of the propagation chain
+    // Add it to our tracking (parent was updated during recursive call)
+    _propagatedEntities.push({
+      id: parentResult.entity.id,
+      type: parentResult.entity.type as 'task' | 'day' | 'week' | 'phase',
+      progress: parentResult.entity.progress,
+      status: parentResult.entity.status,
+    });
   }
+
+  // 3. Build and return propagation result
+  return {
+    entity: {
+      id: updatedEntity.id,
+      type: entityType,
+      progress: updatedEntity.progress,
+      status: updatedEntity.status,
+    },
+    propagated: _propagatedEntities,
+  };
 }
 
 /**
