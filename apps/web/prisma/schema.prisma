@@ -243,12 +243,62 @@ model Project {
   description String? @db.Text
   repository  String? // Git repository URL
 
-  issues Issue[]
+  issues        Issue[]
+  markdownFiles MarkdownFile[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([name])
+}
+
+// ============================================================================
+// MARKDOWN DOCUMENTATION GENERATION
+// ============================================================================
+// Sprint 2: Generic, extensible schema for auto-generated markdown files
+// Design: String fields (NOT enums) to enable EPIC-012 (13 docs) without migrations
+// Architecture: Plugin-based templates with data extractor registry
+
+model MarkdownFile {
+  id String @id @default(cuid())
+
+  // Project relationship (multi-tenant ready)
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Document Identification (String - NOT Enum for extensibility)
+  slug String // Unique identifier: 'STATUS', 'DEVELOPMENT_PLAN', '01-PRD', etc.
+  path String // File path: 'STATUS.md', 'docs/01-PRD.md', '.agent/progress.md'
+
+  // Categorization (String - NOT Enum for future categories)
+  category String // 'tracking', 'industry_doc', 'memory_bank', 'custom'
+
+  // Sync Strategy (String - NOT Enum)
+  syncStrategy String // 'auto' (post-transaction), 'curated' (explicit trigger), 'manual' (user-controlled)
+
+  // Template System (String - references code-registered template)
+  templateId String // 'status-template', 'prd-template', 'architecture-template'
+
+  // Content Tracking (SHA-256 hash for change detection)
+  contentHash  String?   @db.Char(64) // 64 hex characters
+  lastSyncedAt DateTime?
+
+  // Metadata
+  isGenerated Boolean  @default(true) // false = manually created file (don't overwrite)
+  status      String   @default("active") // 'active', 'deprecated', 'archived'
+  metadata    Json?    @db.JsonB // Extensible metadata (author, tags, version, etc.)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes for performance
+  @@unique([projectId, slug]) // Prevent duplicate slugs per project
+  @@index([projectId, category]) // Query by category (e.g., sync only 'tracking' docs)
+  @@index([projectId, status]) // Query active vs deprecated docs
+  @@index([projectId, syncStrategy]) // Query by sync strategy
+  @@index([lastSyncedAt]) // Find stale documents
+  @@map("markdown_files")
 }
 
 model Issue {
