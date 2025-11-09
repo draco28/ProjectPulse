@@ -239,7 +239,19 @@ Tip: Need your database queries to be 1000x faster? Accelerate offers you that a
 ```
 ✓ Compiled /api/markdown/sync in 179ms (46 modules)
 [API] Markdown sync error: TypeError: Cannot read properties of undefined (reading 'findMany')
-    at syncMultipleFiles (.../lib/markdown/sync-service.ts:122:82)
+    at syncMultipleFiles (.../lib/markdown/sync-service.ts:161)
 ```
 
-The container is up (logs show successful compilation and Prisma queries), but the existing `/api/markdown/sync` bug still surfaces when that route is hit.
+**Root cause identified (Windows analysis)**: The Next.js container is using old `node_modules` from before Prisma client regeneration. Container restart doesn't reload node_modules - the Prisma client inside the container is still the old version without `markdownFile` model.
+
+**Solution needed**: Rebuild container to pick up new Prisma client:
+
+```bash
+cd ~/projects/AI_HUB
+docker-compose -f docker-compose.cloud.yml down
+docker-compose -f docker-compose.cloud.yml up -d --build
+docker-compose -f docker-compose.cloud.yml logs -f nextjs
+# Wait for "ready started server on 0.0.0.0:3000"
+```
+
+This will rebuild the Next.js container with the regenerated Prisma client that includes the `markdownFile` model.
