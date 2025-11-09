@@ -653,7 +653,7 @@ Sprint 1-8 implementation revealed critical architectural gap: Claude Code's 200
 
 ---
 
-### Sprint 2 (Weeks 3-4): Tracking Complete + Workflow Start - 54 points
+### Sprint 2 (Weeks 3-4): Tracking Complete + Workflow Start - 58 points
 
 **User Stories:** US-015 to US-025 (EPIC-001 completion) + US-026 to US-031 (EPIC-002 start)
 
@@ -661,12 +661,57 @@ Sprint 1-8 implementation revealed critical architectural gap: Claude Code's 200
 
 **Key Deliverables:**
 
-- **Markdown Sync:** STATUS.md, DEVELOPMENT_PLAN.md auto-generated from database
-- **MarkdownFile Table:** Stores generated content, tracks last sync timestamp
-- **Git Hooks:** Pre-commit validation prevents manual markdown edits
+- **Markdown Sync Foundation:** Generic, extensible system for generating any markdown files
+- **MarkdownFile Table:** Stores generated content with generic `category`, `templateId`, `path` fields
+- **Template Engine:** Plugin-based system for registering templates (not hardcoded document types)
+- **Data Extractor Registry:** Extensible data extraction for template rendering
+- **Sync Service:** Path-agnostic service supporting any file location (root, docs/, .agent/)
+- **Git Hooks:** Dynamic pre-commit validation using `.agent/generated-files.json`
+- **MCP Tools:** `syncMarkdown` with `category` parameter for filtering
+- **2 Document Templates:** `status-template` (STATUS.md) and `project-plan-template` (DEVELOPMENT_PLAN.md)
 - **Workflow Foundation:** Workflow/WorkflowStep tables, state machine design
 - **5-Step Protocol:** Define workflow steps in database
 - **MCP Tools:** `syncMarkdown`, `startWorkflow`, `getWorkflowState`
+
+**Architecture Requirements (For EPIC-012 Extensibility):**
+
+```prisma
+// MarkdownFile schema MUST be generic
+model MarkdownFile {
+  id            String   @id @default(cuid())
+  projectId     String
+  slug          String   // NOT enum - allows unlimited doc types
+  path          String   // Supports any directory: 'STATUS.md', 'docs/01-PRD.md'
+  category      String   // 'tracking', 'industry_doc', 'memory_bank'
+  syncStrategy  String   // 'auto', 'curated', 'manual'
+  templateId    String   // 'status-template', 'prd-template'...
+  contentHash   String?
+  lastSyncedAt  DateTime?
+  isGenerated   Boolean  @default(true)
+  status        String   @default("active")
+
+  @@unique([projectId, slug])
+}
+```
+
+**Template System Requirements:**
+
+- Plugin-based registration: `templateEngine.register(id, template)`
+- NOT hardcoded switch statements (enables EPIC-012 to add 13 templates later)
+- Data extractors registered separately: `dataExtractorRegistry.register(id, extractor)`
+
+**Git Hooks Requirements:**
+
+- Dynamic file list via `.agent/generated-files.json`
+- NOT hardcoded filenames in pre-commit script
+
+**Why These Requirements Matter:**
+
+Sprint 2 builds the **documentation generation platform** with generic architecture. Sprint 2 ships with **2 document plugins** (STATUS, DEVELOPMENT_PLAN). EPIC-012 later adds **13 document plugins** (PRD, SRS, Architecture, etc.) using the same platform - **zero refactoring required**.
+
+Without generic architecture: EPIC-012 requires ~140 points (refactoring + new features)
+With generic architecture: EPIC-012 requires ~95 points (templates + data extractors only)
+**Net savings: 45 points**
 
 **Dependencies:** Sprint 1 (hierarchy must exist)
 
@@ -674,17 +719,22 @@ Sprint 1-8 implementation revealed critical architectural gap: Claude Code's 200
 
 - Git hook Windows compatibility (test on Windows, fallback to manual validation)
 - Markdown template complexity (Handlebars syntax)
+- Over-engineering risk (mitigated: requirements validated against EPIC-012 needs)
 
 **Exit Criteria:**
 
 - ✅ Markdown sync completes <500ms per file
-- ✅ Git hooks block manual STATUS.md edits (pre-commit validation)
+- ✅ Git hooks block manual STATUS.md edits (dynamic validation)
 - ✅ Workflow state persists in database
+- ✅ MarkdownFile schema supports unlimited categories (no enum)
+- ✅ Template engine accepts dynamic registration (plugin pattern verified)
+- ✅ Sync service works with any file path (not root-only)
 
 **Testing:**
 
 - Performance tests: Markdown sync latency (target <500ms)
-- Git hook tests: Verify pre-commit validation blocks edits
+- Git hook tests: Verify dynamic validation using generated-files.json
+- Extensibility tests: Register mock template, verify sync works
 - Workflow state persistence tests
 
 #### Addendum: Code Execution MCP (Week 5: Design + Traditional POC)
@@ -1011,6 +1061,101 @@ To support a 41-tool ecosystem without context bloat and achieve up to ~98.7% to
 - Memory Bank loading tests: Validate structured content loads correctly
 - Sub-agent integration tests: Verify research reports actionable
 - Context recovery scenario tests: Session interruption → successful recovery
+
+---
+
+### Sprint 10 (Weeks 19-20): Industry-Grade Documentation Suite - 95 points (POST-MVP)
+
+**User Stories:** US-013-01 to US-013-18 (EPIC-012 complete)
+
+**Goal:** Auto-generate complete professional documentation suite for user projects
+
+**Key Deliverables:**
+
+- **13 Industry-Standard Documents:**
+  - 01-PRD.md (Product Requirements Document)
+  - 02-SRS.md (Software Requirements Specification)
+  - 03-Architecture.md (System Design + Diagrams)
+  - 04-Data-and-Model-Spec.md (Database Schema from Prisma)
+  - 05-AgentOps-Plan.md (Agent Workflows from Workflow tables)
+  - 06-API/openapi.yaml (API Specification from endpoints)
+  - 07-UI-UX.md (User Experience Design)
+  - 08-Security-and-Compliance.md (Security Model)
+  - 09-Testing-and-QA.md (Test Strategy)
+  - 10-Observability-and-SRE.md (Monitoring & SLOs)
+  - 11-Infrastructure.md (Deployment Architecture)
+  - 12-Backlog.md (User Stories & Epics from hierarchy)
+  - 13-Project-Plan.md (Sprint Roadmap from progress)
+
+- **Template Registration:** 13 new templates added to Sprint 2's template engine
+- **Data Extractors:** 13 data extraction functions for each document type
+- **Migration Workflow:** Deprecate STATUS.md/DEVELOPMENT_PLAN.md gracefully
+- **MCP Tool:** `generateIndustryDocs` command for generating complete docs suite
+
+**Implementation Strategy:**
+
+**Week 1 (Core Documentation):**
+- PRD, SRS, Architecture templates (3 templates, most complex)
+- Data extractors for requirements, features, tech stack
+- Test generation for first 3 documents
+
+**Week 2 (Remaining Docs + Migration):**
+- Remaining 10 document templates (simpler, follow patterns from Week 1)
+- Migration workflow (deprecation logic)
+- PDF/HTML export feature
+- Integration testing
+
+**Reuse from Sprint 2:**
+
+Sprint 2's generic architecture means ZERO refactoring required:
+- ✅ MarkdownFile schema (already supports unlimited categories)
+- ✅ TemplateEngine (already plugin-based)
+- ✅ DataExtractorRegistry (already extensible)
+- ✅ SyncService (already path-agnostic)
+- ✅ Git hooks (already dynamic via .agent/generated-files.json)
+
+**New Code Only:**
+- 13 template files (~400 lines each = ~5.2K lines total)
+- 13 data extractor functions (~150 lines each = ~2K lines total)
+- MCP tool wrapper (~50 lines)
+- Migration logic (~200 lines)
+- **Total: ~7.5K lines (all templates + extractors, zero infrastructure)**
+
+**Dependencies:**
+
+- Sprint 2 complete (markdown infrastructure with generic architecture)
+- Sprint 1-2 complete (hierarchy + workflow data sources)
+- Prisma schema stable (04-Data-and-Model-Spec.md generation)
+
+**Risks:**
+
+- Template complexity for complex docs (PRD, SRS) - mitigated: Start simple, iterate
+- Data extraction from incomplete projects - mitigated: Graceful degradation, placeholders
+- PDF export dependency (if external library needed) - mitigated: HTML export MVP
+
+**Exit Criteria:**
+
+- ✅ All 13 documents generate successfully from test project
+- ✅ Generated docs match quality of ProjectPulse's own docs (manual review)
+- ✅ Documentation stays in sync (regenerate on project changes)
+- ✅ Migration from STATUS.md → docs/ suite works without data loss
+- ✅ Cross-references between documents functional (PRD ↔ SRS ↔ Architecture)
+- ✅ MCP tool `generateIndustryDocs` completes in <5 seconds for 13 files
+
+**Testing:**
+
+- Template rendering tests: Each template with mock data
+- Data extraction tests: Verify correct data pulled from database
+- Integration tests: Full generation workflow end-to-end
+- Cross-reference tests: Validate internal links between documents
+- Migration tests: STATUS.md deprecation workflow
+
+**Success Metrics:**
+
+- Documentation generation time: <5 seconds for full suite
+- User satisfaction: 9/10+ rating for doc quality (manual review)
+- Time savings: 40+ hours of manual documentation eliminated per project
+- Compliance readiness: Docs pass ISO 9001 / FDA checklist (if applicable)
 
 ---
 
