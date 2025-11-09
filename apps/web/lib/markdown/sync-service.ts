@@ -206,7 +206,9 @@ export async function updateGeneratedFilesRegistry(
     return; // Nothing to update
   }
 
-  const registryPath = path.resolve(process.cwd(), '.agent/generated-files.json');
+  // Registry is at project root (.agent/), not in apps/web
+  // In Docker: process.cwd() = /app/apps/web, but registry is at /app/.agent/
+  const registryPath = path.resolve(process.cwd(), '../../.agent/generated-files.json');
 
   // Read existing registry (or create default)
   let registry: GeneratedFilesRegistry;
