@@ -232,5 +232,16 @@ Tip: Need your database queries to be 1000x faster? Accelerate offers you that a
 - `prisma studio` requires elevated permissions to bind to port 5555; once elevated it launched successfully but had to be terminated after verification, which caused the CLI timeout message above.
 
 **Next Steps**:
-- If formal migration history is required, consider capturing the current database state with `prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script` and checking in the generated SQL as a baseline before future migrations.
-- Confirm with the product team whether the existing `markdown_files` structure (string `id`, `path` column) should be retained or evolved toward the simplified spec in this runbook before generating additional docs.
+- ✅ **Schema Confirmed**: Keep the existing `markdown_files` structure (string `id`, `path` column). The sync service code uses `markdownFile.path` which matches the database schema. No changes needed.
+- ✅ Fixed extractor registration issue on Windows (commit d5b6e39)
+- **TODO for Mac mini**: Pull latest changes and restart Next.js:
+
+```bash
+cd ~/projects/AI_HUB
+git pull origin feature/sprint-2-markdown-sync
+docker-compose -f docker-compose.cloud.yml restart nextjs
+docker-compose -f docker-compose.cloud.yml logs -f nextjs
+# Wait for "ready started server on 0.0.0.0:3000"
+```
+
+Then Windows will test the API endpoint.
