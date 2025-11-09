@@ -349,3 +349,45 @@ The API is now working - the new error is just a missing JSON file (application 
 **Next Steps for Windows**:
 - The Prisma issue is resolved
 - Windows should handle the missing JSON file error (application-level fix)
+
+---
+
+## ✅ Registry Path Fix (2025-11-10T01:30 Windows)
+
+**Issue Identified**: The error `/app/apps/web/.agent/generated-files.json` shows that `process.cwd()` in the Docker container returns `/app/apps/web` (Next.js app directory), not `/app` (monorepo root).
+
+**Root Cause**: The registry path used `path.resolve(process.cwd(), '.agent/generated-files.json')` which resolved to `/app/apps/web/.agent/generated-files.json`, but the registry actually exists at `/app/.agent/generated-files.json` (project root).
+
+**Fix Applied** (Windows - commit a73577e):
+- Updated `apps/web/lib/markdown/sync-service.ts` line 211
+- Changed path from `process.cwd()/.agent` to `../../.agent`
+- This resolves to `/app/.agent/generated-files.json` (correct location)
+
+**Files Modified**:
+- `apps/web/lib/markdown/sync-service.ts` (registry path fix)
+
+---
+
+## 📋 Mac Mini: Pull Latest Code and Restart Container
+
+**INSTRUCTIONS FOR MAC MINI**:
+
+```bash
+cd ~/projects/AI_HUB
+git pull origin feature/sprint-2-markdown-sync  # Pull commit a73577e
+docker-compose -f docker-compose.cloud.yml restart nextjs
+docker-compose -f docker-compose.cloud.yml logs -f nextjs
+# Wait for "ready started server on 0.0.0.0:3000"
+```
+
+**Then test the API endpoint** (from Mac mini or Windows):
+
+```bash
+curl -X POST http://192.168.1.15:3000/api/markdown/sync \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+**Expected Result**: API should successfully sync files and update the registry at `/app/.agent/generated-files.json`
+
+**Update this file with test results!**
