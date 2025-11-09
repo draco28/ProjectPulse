@@ -1,76 +1,109 @@
-# Sprint 2 Task List
+# Sprint 2 Week 1 Day 5-6 - Task List
 
-**Sprint**: Sprint 2 - Markdown Sync Foundation + Workflow Start
-**Total Points**: 54 points
-**Progress**: 0/54 (0%)
-
----
-
-## Week 1: Markdown Sync Foundation (26 points)
-
-### Days 1-2: Database Schema + Template Engine (8 points)
-- [ ] Design MarkdownFile Prisma model (generic schema) - 2 points
-- [ ] Create Template Engine class with plugin registration - 3 points
-- [ ] Create Data Extractor Registry class - 2 points
-- [ ] Run migration and verify zero TypeScript errors - 1 point
-
-### Days 3-4: Sync Service + Templates (10 points)
-- [ ] Implement MarkdownSyncService (path-agnostic) - 3 points
-- [ ] Create STATUS.md template + data extractor - 3 points
-- [ ] Create DEVELOPMENT_PLAN.md template + data extractor - 3 points
-- [ ] Performance test: <500ms per file - 1 point
-
-### Days 5-6: Git Hooks + MCP Tool (6 points)
-- [ ] Create .agent/generated-files.json registry - 1 point
-- [ ] Implement pre-commit hook (dynamic validation) - 2 points
-- [ ] Test git hooks on Windows - 1 point
-- [ ] Implement projectpulse.markdown.sync MCP tool - 2 points
-
-### Day 7: Week 1 Checkpoint (2 points)
-- [ ] Integration testing: Full sync workflow - 1 point
-- [ ] Update API catalog documentation - 1 point
+**Created**: 2025-11-09 21:30
+**Phase**: Git Hooks + MCP Tool
+**Story Points**: 8 points (5 git hooks + 3 MCP tool)
+**Progress**: 0/8 tasks (0%)
 
 ---
 
-## Week 2: Workflow Foundation (28 points)
+## Task Breakdown
 
-### Days 8-9: Workflow Database Schema (8 points)
-- [ ] Design Workflow/WorkflowStep/WorkflowExecution models - 3 points
-- [ ] Create migration - 1 point
-- [ ] Seed 5-Step Protocol workflow - 2 points
-- [ ] Verify database schema - 2 points
+### Step 1: Registry Structure (30 mins)
+- [ ] Create `.agent/generated-files.json` with schema
+- [ ] Add version field, lastUpdated, generatedFiles array
+- [ ] Document registry structure in session notes
 
-### Days 10-11: Workflow MCP Tools (10 points)
-- [ ] Implement projectpulse.workflow.start tool - 3 points
-- [ ] Implement projectpulse.workflow.completeStep tool - 4 points
-- [ ] Implement projectpulse.workflow.getState tool - 2 points
-- [ ] Test step validation logic - 1 point
-
-### Days 12-13: State Persistence + Recovery (8 points)
-- [ ] Implement resume workflow logic - 3 points
-- [ ] Integration testing: Session interruption scenarios - 3 points
-- [ ] Verify state persistence across sessions - 2 points
-
-### Day 14: Sprint 2 Closure (2 points)
-- [ ] Update docs/13-Project-Plan.md - 1 point
-- [ ] Update .agent/progress.md - 1 point
-- [ ] Commit documentation and code - 0 points (administrative)
+**Completion**: 0%
 
 ---
 
-## Architectural Validation Checklist
+### Step 2: Sync Service Registry Update (45 mins)
+- [ ] Add `updateGeneratedFilesRegistry()` function
+- [ ] Integrate registry update after successful sync
+- [ ] Handle file write errors gracefully
+- [ ] Test registry updates with sync service
 
-**Before Sprint 2 Completion**:
-- [ ] MarkdownFile schema supports unlimited categories (no enum)
-- [ ] Template engine accepts dynamic registration
-- [ ] Data extractor registry extensible
-- [ ] Sync service works with any file path (tested with 3 paths)
-- [ ] Git hooks read .agent/generated-files.json
-- [ ] Workflow state persists across sessions
-- [ ] Performance: <500ms markdown sync
-- [ ] Zero TypeScript errors
+**Completion**: 0%
 
 ---
 
-**Last Updated**: 2025-11-09 14:30
-**Status**: Planning complete, ready to begin
+### Step 3: Pre-Commit Hook (60 mins)
+- [ ] Create `.husky/pre-commit` Node.js script
+- [ ] Implement registry file reading
+- [ ] Implement staged files detection
+- [ ] Implement protected file validation
+- [ ] Add clear error messages
+- [ ] Make script executable
+
+**Completion**: 0%
+
+---
+
+### Step 4: Configure Husky (15 mins)
+- [ ] Check Husky is in package.json devDependencies
+- [ ] Run `npx husky install`
+- [ ] Configure pre-commit hook
+- [ ] Verify hook is executable on Windows
+
+**Completion**: 0%
+
+---
+
+### Step 5: MCP Tool Creation (60 mins)
+- [ ] Create `apps/mcp-server/src/tools/markdown-sync.ts`
+- [ ] Define input schema (category, force params)
+- [ ] Implement HTTP call to `/api/markdown/sync`
+- [ ] Format response for MCP protocol
+- [ ] Handle errors gracefully
+
+**Completion**: 0%
+
+---
+
+### Step 6: Register MCP Tool (10 mins)
+- [ ] Import tool in `apps/mcp-server/src/tools/index.ts`
+- [ ] Add to tools array
+- [ ] Build MCP server
+- [ ] Verify no TypeScript errors
+
+**Completion**: 0%
+
+---
+
+### Step 7: Windows Testing (45 mins)
+- [ ] Test 1: Registry creation (run sync)
+- [ ] Test 2: Hook blocks manual STATUS.md edit
+- [ ] Test 3: Hook allows non-generated file edits
+- [ ] Test 4: Bypass works with --no-verify
+- [ ] Test 5: MCP tool triggers sync successfully
+
+**Completion**: 0%
+
+---
+
+### Step 8: Documentation (30 mins)
+- [ ] Update `.agent/sops/git-workflow.md` with hook bypass
+- [ ] Update `.agent/system/mcp-tools-guide.md` with markdown.sync
+- [ ] Update session file with progress notes
+- [ ] Mark tasks complete in this file
+
+**Completion**: 0%
+
+---
+
+## Overall Progress
+
+**Tasks Completed**: 0/8 (0%)
+**Estimated Time Remaining**: ~5 hours
+**Blockers**: None
+
+---
+
+## Next Action
+
+Start with Step 1: Create `.agent/generated-files.json` registry structure.
+
+---
+
+**Last Updated**: 2025-11-09 21:30

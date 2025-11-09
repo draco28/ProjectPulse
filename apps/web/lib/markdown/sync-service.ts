@@ -11,9 +11,33 @@ import { dataExtractorRegistry } from './data-extractors';
 export interface SyncResult {
   slug: string;
   path: string;
+  category?: string;
+  templateId?: string;
+  contentHash?: string;
   status: 'synced' | 'skipped' | 'error';
   message?: string;
   duration: number; // milliseconds
+}
+
+/**
+ * Generated files registry entry
+ */
+interface GeneratedFileEntry {
+  path: string;
+  category: string;
+  templateId: string;
+  contentHash: string;
+  lastGenerated: string;
+}
+
+/**
+ * Generated files registry structure
+ */
+interface GeneratedFilesRegistry {
+  version: string;
+  lastUpdated: string;
+  description: string;
+  generatedFiles: GeneratedFileEntry[];
 }
 
 /**
@@ -69,6 +93,9 @@ export async function syncMarkdownFile(
       return {
         slug,
         path: filePath,
+        category: markdownFile.category,
+        templateId,
+        contentHash,
         status: 'skipped',
         message: 'Content unchanged',
         duration: Date.now() - startTime,
@@ -97,6 +124,9 @@ export async function syncMarkdownFile(
     return {
       slug,
       path: filePath,
+      category: markdownFile.category,
+      templateId,
+      contentHash,
       status: 'synced',
       message: 'File synced successfully',
       duration: Date.now() - startTime,
@@ -154,4 +184,71 @@ export async function syncMultipleFiles(
  */
 export async function syncAutoFiles(projectId: number): Promise<SyncResult[]> {
   return syncMultipleFiles(projectId, { syncStrategy: 'auto' });
+}
+
+/**
+ * Update generated files registry (.agent/generated-files.json)
+ *
+ * This registry is used by git hooks to prevent manual edits to auto-generated files.
+ * It must be updated after every sync operation.
+ *
+ * @param results - Sync results containing file metadata
+ */
+export async function updateGeneratedFilesRegistry(
+  results: SyncResult[]
+): Promise<void> {
+  // Filter out errors and include only synced/skipped files
+  const validResults = results.filter(
+    (r) => r.status !== 'error' && r.category && r.templateId && r.contentHash
+  );
+
+  if (validResults.length === 0) {
+    return; // Nothing to update
+  }
+
+  const registryPath = path.resolve(process.cwd(), '.agent/generated-files.json');
+
+  // Read existing registry (or create default)
+  let registry: GeneratedFilesRegistry;
+  try {
+    const content = await fs.readFile(registryPath, 'utf-8');
+    registry = JSON.parse(content);
+  } catch (error) {
+    // Registry doesn't exist, create default
+    registry = {
+      version: '1.0',
+      lastUpdated: new Date().toISOString(),
+      description: 'Registry of auto-generated markdown files. Git hooks use this to prevent manual edits.',
+      generatedFiles: [],
+    };
+  }
+
+  // Update registry with new sync results
+  const existingPaths = new Set(registry.generatedFiles.map((f) => f.path));
+
+  for (const result of validResults) {
+    const entry: GeneratedFileEntry = {
+      path: result.path,
+      category: result.category!,
+      templateId: result.templateId!,
+      contentHash: result.contentHash!,
+      lastGenerated: new Date().toISOString(),
+    };
+
+    if (existingPaths.has(result.path)) {
+      // Update existing entry
+      const index = registry.generatedFiles.findIndex((f) => f.path === result.path);
+      registry.generatedFiles[index] = entry;
+    } else {
+      // Add new entry
+      registry.generatedFiles.push(entry);
+      existingPaths.add(result.path);
+    }
+  }
+
+  // Update timestamp
+  registry.lastUpdated = new Date().toISOString();
+
+  // Write registry back to disk
+  await fs.writeFile(registryPath, JSON.stringify(registry, null, 2), 'utf-8');
 }

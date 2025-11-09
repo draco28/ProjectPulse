@@ -9,6 +9,7 @@ import { sprintTaskCreateTool } from './sprintTaskCreate.js';
 import { sprintSessionCreateTool } from './sprintSessionCreate.js';
 import { sprintCheckpointCreateTool } from './sprintCheckpointCreate.js';
 import { sprintQueryHierarchyTool } from './sprintQueryHierarchy.js';
+import { markdownSyncTool } from './markdownSync.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -19,6 +20,7 @@ const loadTools = (): ToolDefinition[] => [
   sprintSessionCreateTool,
   sprintCheckpointCreateTool,
   sprintQueryHierarchyTool,
+  markdownSyncTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {

@@ -26,6 +26,7 @@
     "prisma:seed": "pnpm --filter web prisma db seed",
     "db:push": "pnpm --filter web prisma db push",
     "db:reset": "pnpm --filter web prisma migrate reset",
+    "sync:markdown": "node scripts/sync-markdown.js",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",

@@ -1,235 +1,337 @@
-# Sprint 2 Implementation Plan
+# Implementation Plan: Sprint 2 Week 1 Day 5-6
 
-**Sprint**: Sprint 2 - Markdown Sync Foundation + Workflow Start
-**Duration**: 2 weeks (14 days)
-**Story Points**: 54 points
-**Created**: 2025-11-09 14:30
+**Date**: 2025-11-09 21:30
+**Phase**: Sprint 2 Week 1 Day 5-6 - Git Hooks + MCP Tool
+**Story Points**: ~8 points (5 for git hooks + 3 for MCP tool)
+**Dependencies**: Week 1 Day 3-5 complete (templates + extractors + sync service ✅)
 
 ---
 
 ## Overview
 
-Sprint 2 builds the **markdown documentation generation platform** with generic, extensible architecture to enable EPIC-012 (13-document suite) later WITHOUT refactoring.
+Complete the markdown sync automation layer by adding:
+1. Generated files registry (.agent/generated-files.json)
+2. Pre-commit hook validation (prevent manual edits)
+3. MCP tool for triggering sync from agents
+4. Windows testing of git hooks
 
-**Net Savings**: 45 story points (avoiding refactoring in EPIC-012)
+## Success Criteria
 
----
-
-## Week 1: Markdown Sync Foundation (Days 1-7)
-
-### Days 1-2: Database Schema + Template Engine Core
-
-**Deliverables**:
-
-1. **MarkdownFile Prisma Model** (Generic Design)
-   - String fields (NO enums) for unlimited doc types
-   - Supports ANY file path (root, docs/, .agent/)
-   - Category field for filtering ('tracking', 'industry_doc', 'memory_bank')
-
-2. **Template Engine Architecture**
-   - Plugin-based registration (NOT switch statement)
-   - Map-based storage for dynamic templates
-   - Render method accepts templateId + data
-
-3. **Data Extractor Registry**
-   - Plugin-based registration for extractors
-   - Async extraction methods
-   - Project-scoped data extraction
-
-**Acceptance Criteria**:
-- ✅ MarkdownFile schema has NO enums (all string fields)
-- ✅ Template engine supports dynamic registration
-- ✅ Data extractor registry supports dynamic registration
-- ✅ Migration applied successfully
-- ✅ Zero TypeScript errors
-
-### Days 3-4: Sync Service + First 2 Templates
-
-**Deliverables**:
-
-1. **Path-Agnostic Sync Service**
-   - Accepts ANY file path parameter
-   - Content hash tracking (prevent unnecessary rewrites)
-   - Database upsert after successful write
-
-2. **STATUS.md Template**
-   - Extracts: Current phase, active tasks, progress percentages
-   - Renders: Handlebars template → STATUS.md
-
-3. **DEVELOPMENT_PLAN.md Template**
-   - Extracts: Sprint breakdown, story points, timeline
-   - Renders: Handlebars template → DEVELOPMENT_PLAN.md
-
-**Acceptance Criteria**:
-- ✅ Sync service works with ANY file path (tested with root/, docs/, .agent/)
-- ✅ STATUS.md generates in <500ms
-- ✅ DEVELOPMENT_PLAN.md generates in <500ms
-- ✅ Content hash prevents unnecessary rewrites
-
-### Days 5-6: Git Hooks + Dynamic Validation
-
-**Deliverables**:
-
-1. **Generated Files Registry** (`.agent/generated-files.json`)
-   - JSON array of generated file paths
-   - Source attribution (database, external, etc.)
-
-2. **Pre-Commit Hook**
-   - Reads from .agent/generated-files.json (NOT hardcoded)
-   - Blocks commits of auto-generated files
-   - Windows-compatible bash script
-
-3. **MCP Tool**: `projectpulse.markdown.sync`
-   - Input: `{ projectId, category?, slug? }`
-   - Output: Synced files list
-   - Performance: <500ms per file
-
-**Acceptance Criteria**:
-- ✅ Git hooks block manual edits (tested on Windows)
-- ✅ Hooks read from .agent/generated-files.json (NOT hardcoded)
-- ✅ MCP tool syncs documents successfully
-- ✅ Category filtering works (sync only 'tracking' docs)
-
-### Day 7: Week 1 Checkpoint
-
-- Integration testing: Full sync workflow end-to-end
-- Performance validation: <500ms per document
-- Documentation: Update API catalog with markdown.sync tool
-
----
-
-## Week 2: Workflow Foundation (Days 8-14)
-
-### Days 8-9: Workflow Database Schema
-
-**Deliverables**:
-
-1. **Workflow Prisma Models**
-   - Workflow: name, description, category
-   - WorkflowStep: order, name, isRequired
-   - WorkflowExecution: state tracking across sessions
-
-2. **Seed Data**: 5-Step Protocol workflow
-   - Step 1: Initialize session
-   - Step 2: Create plan
-   - Step 3: Consult experts
-   - Step 4: Progress checkpoints
-   - Step 5: Post-completion
-
-**Acceptance Criteria**:
-- ✅ Workflow/WorkflowStep models created
-- ✅ WorkflowExecution tracks state across sessions
-- ✅ 5-Step Protocol seeded successfully
-- ✅ Migration applied
-
-### Days 10-11: Workflow MCP Tools
-
-**Deliverables**:
-
-1. **MCP Tool**: `projectpulse.workflow.start`
-   - Starts workflow execution
-   - Returns executionId and first step
-
-2. **MCP Tool**: `projectpulse.workflow.completeStep`
-   - Validates step completion
-   - Increments currentStep
-   - Prevents skipping required steps
-
-3. **MCP Tool**: `projectpulse.workflow.getState`
-   - Returns current workflow state
-   - Returns next required step
-
-**Acceptance Criteria**:
-- ✅ Can start 5-Step Protocol via MCP
-- ✅ Can complete steps sequentially
-- ✅ Step validation prevents skipping required steps
-- ✅ State query returns current position
-
-### Days 12-13: State Persistence + Recovery
-
-**Deliverables**:
-
-1. **Resume Workflow Logic**
-   - Query existing execution state
-   - Return next step to complete
-   - Handle session interruptions
-
-2. **Integration Testing**
-   - Start workflow → Interrupt → Resume → Verify state
-   - Test all 5 steps of protocol
-   - Validate required step enforcement
-
-**Acceptance Criteria**:
-- ✅ Workflow state persists in database
-- ✅ Can resume after session interruption
-- ✅ Integration tests passing
-
-### Day 14: Sprint 2 Closure
-
-- Complete STEP 5: Post-completion workflow
-- Update docs/13-Project-Plan.md (Sprint 2 complete)
-- Update .agent/progress.md
-- Commit documentation, then code
-
----
-
-## Architectural Validation Checklist
-
-Before Sprint 2 completion, verify ALL requirements met:
-
-- [ ] MarkdownFile schema supports unlimited categories (no enum)
-- [ ] Template engine accepts dynamic registration (verified with mock template)
-- [ ] Data extractor registry extensible (verified with mock extractor)
-- [ ] Sync service works with any file path (tested with 3 paths)
-- [ ] Git hooks read .agent/generated-files.json (not hardcoded)
-- [ ] Workflow state persists across sessions
-- [ ] Performance: <500ms markdown sync
+- [ ] .agent/generated-files.json tracks all generated markdown files
+- [ ] Pre-commit hook prevents manual edits to generated files
+- [ ] Hook reads registry dynamically (no hardcoded filenames)
+- [ ] MCP tool syncs markdown via HTTP endpoint
+- [ ] Hooks tested on Windows
 - [ ] Zero TypeScript errors
 
 ---
 
-## Success Criteria
+## Implementation Steps
 
-**Functional**:
-- ✅ Markdown sync <500ms per file
-- ✅ Git hooks block manual edits (dynamic validation)
-- ✅ Workflow state persists in database
-- ✅ 5-step protocol enforceable
+### Step 1: Generated Files Registry (30 mins)
 
-**Architectural** (CRITICAL for EPIC-012):
-- ✅ Generic schema (no enums)
-- ✅ Plugin-based templates
-- ✅ Extensible extractors
-- ✅ Path-agnostic sync
-- ✅ Dynamic git hooks
+**File**: `.agent/generated-files.json`
 
-**Quality**:
-- ✅ Zero TypeScript errors
-- ✅ All integration tests passing
-- ✅ Performance targets met
+Create JSON registry to track all auto-generated markdown files:
+
+```json
+{
+  "version": "1.0",
+  "lastUpdated": "2025-11-09T21:30:00Z",
+  "generatedFiles": [
+    {
+      "path": "STATUS.md",
+      "category": "tracking",
+      "templateId": "status-template",
+      "contentHash": "sha256_hash_here",
+      "lastGenerated": "2025-11-09T20:45:00Z"
+    }
+  ]
+}
+```
+
+**Why this matters**: Git hooks will read this registry dynamically instead of hardcoding filenames. This allows EPIC-012 to add 13 new document templates without modifying the hook script.
+
+---
+
+### Step 2: Update Sync Service to Maintain Registry (45 mins)
+
+**File**: `apps/web/lib/services/markdown-sync-service.ts`
+
+Add registry update logic to `syncMarkdownFiles()`:
+
+```typescript
+async function updateGeneratedFilesRegistry(syncedFiles: SyncResult[]) {
+  const registry = {
+    version: '1.0',
+    lastUpdated: new Date().toISOString(),
+    generatedFiles: syncedFiles.map(f => ({
+      path: f.path,
+      category: f.category,
+      templateId: f.templateId,
+      contentHash: f.contentHash,
+      lastGenerated: new Date().toISOString()
+    }))
+  };
+
+  await fs.writeFile(
+    '.agent/generated-files.json',
+    JSON.stringify(registry, null, 2)
+  );
+}
+```
+
+**Integration point**: Call `updateGeneratedFilesRegistry()` after successful sync.
+
+---
+
+### Step 3: Create Pre-Commit Hook (60 mins)
+
+**File**: `.husky/pre-commit`
+
+Create Node.js script for cross-platform compatibility:
+
+```javascript
+#!/usr/bin/env node
+
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+// Read generated files registry
+const registryPath = path.join(process.cwd(), '.agent', 'generated-files.json');
+
+if (!fs.existsSync(registryPath)) {
+  console.log('⚠️  Warning: .agent/generated-files.json not found. Skipping validation.');
+  process.exit(0);
+}
+
+const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+const generatedPaths = registry.generatedFiles.map(f => f.path);
+
+// Get staged files
+const stagedFiles = execSync('git diff --cached --name-only', { encoding: 'utf8' })
+  .split('\n')
+  .filter(Boolean);
+
+// Check for manual edits to generated files
+const protectedEdits = stagedFiles.filter(file => generatedPaths.includes(file));
+
+if (protectedEdits.length > 0) {
+  console.error('❌ ERROR: Manual edits to auto-generated files detected!');
+  console.error('');
+  console.error('Protected files:');
+  protectedEdits.forEach(file => console.error(`  - ${file}`));
+  console.error('');
+  console.error('These files are auto-generated from the database.');
+  console.error('To update them, use: pnpm mcp:sync-markdown');
+  console.error('');
+  console.error('To bypass (emergencies only): git commit --no-verify');
+  process.exit(1);
+}
+
+console.log('✅ Pre-commit validation passed');
+process.exit(0);
+```
+
+**Windows compatibility**: Node.js scripts work cross-platform (unlike shell scripts).
+
+---
+
+### Step 4: Configure Husky (15 mins)
+
+**File**: `package.json`
+
+Ensure husky is configured:
+
+```json
+{
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "husky": "^8.0.0"
+  }
+}
+```
+
+**Commands**:
+```bash
+npx husky install
+npx husky add .husky/pre-commit "node .husky/pre-commit"
+chmod +x .husky/pre-commit
+```
+
+---
+
+### Step 5: Create MCP Tool (60 mins)
+
+**File**: `apps/mcp-server/src/tools/markdown-sync.ts`
+
+Create MCP tool wrapper for markdown sync:
+
+```typescript
+import { McpTool, McpToolCall } from '../types/mcp.js';
+import { httpClient } from '../utils/http-client.js';
+
+export const markdownSyncTool: McpTool = {
+  name: 'projectpulse.markdown.sync',
+  description: 'Sync markdown files from database (STATUS.md, etc.)',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      category: {
+        type: 'string',
+        description: 'Filter by category (e.g., "tracking", "industry_doc"). Syncs all if omitted.',
+        enum: ['tracking', 'industry_doc', 'memory_bank']
+      },
+      force: {
+        type: 'boolean',
+        description: 'Force sync even if content hash matches',
+        default: false
+      }
+    }
+  },
+
+  async execute(call: McpToolCall) {
+    const { category, force = false } = call.params as {
+      category?: string;
+      force?: boolean;
+    };
+
+    // Call HTTP endpoint on Mac mini
+    const response = await httpClient.post('/api/markdown/sync', {
+      category,
+      force
+    });
+
+    if (!response.ok) {
+      throw new Error(`Markdown sync failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `✅ Markdown sync complete\n\n` +
+                `Synced ${result.syncedCount} file(s) in ${result.duration}ms\n\n` +
+                `Files updated:\n${result.files.map(f => `  - ${f.path}`).join('\n')}`
+        }
+      ]
+    };
+  }
+};
+```
+
+**API endpoint**: Already exists from Day 3-5 (`POST /api/markdown/sync`).
+
+---
+
+### Step 6: Register MCP Tool (10 mins)
+
+**File**: `apps/mcp-server/src/tools/index.ts`
+
+Add to tool registry:
+
+```typescript
+import { markdownSyncTool } from './markdown-sync.js';
+
+export const tools = [
+  // ... existing tools
+  markdownSyncTool
+];
+```
+
+---
+
+### Step 7: Windows Testing (45 mins)
+
+**Test scenarios**:
+
+1. **Registry creation**: Run sync → verify .agent/generated-files.json created
+2. **Hook blocks manual edit**: Edit STATUS.md → git add → git commit → verify blocked
+3. **Hook allows other files**: Edit README.md → git commit → verify allowed
+4. **Bypass works**: git commit --no-verify → verify bypass works
+5. **MCP tool works**: Call projectpulse.markdown.sync → verify sync completes
+
+**Test on Windows** (current environment).
+
+---
+
+### Step 8: Documentation (30 mins)
+
+**Files to update**:
+
+1. `.agent/sops/git-workflow.md` - Add hook bypass instructions
+2. `.agent/system/mcp-tools-guide.md` - Add markdown.sync tool
+3. `current-session-20251109-2130.md` - Update with implementation notes
+
+---
+
+## Time Estimates
+
+| Step | Estimated Time | Complexity |
+|------|---------------|------------|
+| 1. Registry structure | 30 mins | Low |
+| 2. Update sync service | 45 mins | Medium |
+| 3. Pre-commit hook | 60 mins | Medium |
+| 4. Configure Husky | 15 mins | Low |
+| 5. Create MCP tool | 60 mins | Medium |
+| 6. Register tool | 10 mins | Low |
+| 7. Windows testing | 45 mins | Medium |
+| 8. Documentation | 30 mins | Low |
+| **Total** | **~5 hours** | **Medium** |
 
 ---
 
 ## Dependencies
 
-- Sprint 1 complete (5-level hierarchy exists)
-- Mac mini services running at http://192.168.1.15:3000
-- .agent/generated-files.json created
+**From Previous Session (Day 3-5)** ✅:
+- MarkdownFile Prisma schema
+- TemplateEngine with Handlebars
+- DataExtractorRegistry with status extractor
+- MarkdownSyncService with SHA-256 hashing
+- POST /api/markdown/sync endpoint
+
+**Required for This Session**:
+- Husky installed (check package.json)
+- Git configured on Windows
+- MCP server infrastructure (from Sprint 1)
 
 ---
 
-## Risks
+## Risks & Mitigations
 
-1. **Git hooks Windows compatibility**
-   - Mitigation: Test early (Day 5), fallback to manual validation
+**Risk 1: Windows git hooks fail**
+- Mitigation: Use Node.js script (not shell script)
+- Fallback: Manual validation script
 
-2. **Template complexity**
-   - Mitigation: Start simple (Handlebars), iterate
+**Risk 2: Registry not found on first run**
+- Mitigation: Graceful degradation (skip validation if registry missing)
+- Solution: Run sync once to create registry
 
-3. **Over-engineering**
-   - Mitigation: All requirements validated against EPIC-012 needs
+**Risk 3: MCP tool HTTP call fails**
+- Mitigation: Proper error handling with descriptive messages
+- Fallback: Direct API call documentation
 
 ---
 
-**Plan Created**: 2025-11-09 14:30
-**Status**: Approved, ready for expert consultation
+## Definition of Done
+
+- [ ] .agent/generated-files.json created and tracked
+- [ ] Pre-commit hook prevents manual STATUS.md edits
+- [ ] Hook reads registry dynamically (no hardcoded paths)
+- [ ] Husky configured and working on Windows
+- [ ] MCP tool syncs markdown via HTTP
+- [ ] All 5 test scenarios pass on Windows
+- [ ] Documentation updated
+- [ ] Zero TypeScript errors
+- [ ] Changes committed to feature/sprint-2-markdown-sync
+
+---
+
+**Plan Complete** ✅
+**Ready to Execute**: Yes
+**Expert Consultation**: Not required (patterns established in Day 3-5)

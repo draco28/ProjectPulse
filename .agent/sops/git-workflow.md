@@ -734,6 +734,73 @@ git stash pop  # Restore work
 
 ---
 
-**Last Updated**: 2025-10-26
+## Git Hooks: Generated Files Protection
+
+### Pre-Commit Hook
+
+ProjectPulse uses git hooks to prevent manual edits to auto-generated markdown files.
+
+**Protected Files** (tracked in `.agent/generated-files.json`):
+- STATUS.md (auto-generated from database)
+- Future: docs/01-PRD.md, docs/02-SRS.md, etc. (EPIC-012)
+
+**How It Works**:
+1. Pre-commit hook runs before every commit
+2. Reads `.agent/generated-files.json` to get protected file list
+3. Checks if any protected files are staged
+4. Blocks commit if protected files detected
+
+**What You'll See**:
+
+```bash
+git commit -m "Update STATUS.md manually"
+
+╔═══════════════════════════════════════════════════════════════╗
+║  ❌ COMMIT BLOCKED: Manual edits to generated files detected  ║
+╚═══════════════════════════════════════════════════════════════╝
+
+Protected files:
+  • STATUS.md
+    Category: tracking
+    Template: status-template
+
+ℹ️  These files are auto-generated from the database.
+   To update them, use: pnpm run sync:markdown
+
+⚠️  To bypass this check (emergencies only):
+   git commit --no-verify
+```
+
+### Updating Generated Files
+
+**Correct Way**:
+```bash
+# 1. Update data in database (via MCP tools or direct DB update)
+# 2. Sync markdown files
+pnpm run sync:markdown
+
+# 3. Commit the updated files
+git add STATUS.md
+git commit -m "chore: sync markdown from database"
+```
+
+**Emergency Bypass** (Use only for emergencies):
+```bash
+git commit --no-verify -m "emergency: manual STATUS.md fix"
+```
+
+**When to Bypass**:
+- Git hook is broken and blocking valid commits
+- Emergency hotfix needed immediately
+- Registry is corrupted and needs manual fix
+
+**After Bypassing**:
+1. Fix the root cause (run `pnpm run sync:markdown`)
+2. Document why bypass was needed
+3. Create issue to prevent future bypasses
+
+---
+
+**Last Updated**: 2025-11-09
 **Priority**: CRITICAL - Check branch BEFORE every commit
-**Created From**: CLAUDE.md golden rules + WORKFLOW_ARCHITECTURE.md
+**Created From**: CLAUDE.md golden rules + WORKFLOW_ARCHITECTURE.md + Sprint 2 hooks
