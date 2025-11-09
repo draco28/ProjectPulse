@@ -291,3 +291,18 @@ docker-compose -f docker-compose.cloud.yml up -d --build
 - ✅ Server ready to handle API requests
 
 **Next Steps**: Windows should now test the `/api/markdown/sync` endpoint. The `prisma.markdownFile.findMany()` call should now work because the container has the updated Prisma client.
+
+---
+
+## ⚠️ Prisma Binary Compatibility Issue (2025-11-10T01:15 Windows)
+
+**API Test Result**:
+```json
+{"success":false,"error":"Unable to require(`/app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma/client/libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node`). The Prisma engines do not seem to be compatible with your system."}
+```
+
+**Root Cause**: Prisma generated ARM64 musl binary but missing `libssl.so.1.1` in the Docker container.
+
+**Solution**: Generate Prisma client with correct binary target in Dockerfile or install OpenSSL 1.1 in container.
+
+**TODO for Mac mini**: Check Dockerfile and add OpenSSL 1.1 or set `PRISMA_CLI_BINARY_TARGETS` environment variable.
