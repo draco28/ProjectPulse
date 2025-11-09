@@ -234,14 +234,12 @@ Tip: Need your database queries to be 1000x faster? Accelerate offers you that a
 **Next Steps**:
 - ✅ **Schema Confirmed**: Keep the existing `markdown_files` structure (string `id`, `path` column). The sync service code uses `markdownFile.path` which matches the database schema. No changes needed.
 - ✅ Fixed extractor registration issue on Windows (commit d5b6e39)
-- **TODO for Mac mini**: Pull latest changes and restart Next.js:
+- ✅ **Mac mini follow-up (2025-11-10T00:47+05:30)**: Pulled latest changes, restarted `projectpulse-nextjs-cloud`, tailed logs, and verified `/api/health` returns healthy. Relevant log excerpt:
 
-```bash
-cd ~/projects/AI_HUB
-git pull origin feature/sprint-2-markdown-sync
-docker-compose -f docker-compose.cloud.yml restart nextjs
-docker-compose -f docker-compose.cloud.yml logs -f nextjs
-# Wait for "ready started server on 0.0.0.0:3000"
+```
+✓ Compiled /api/markdown/sync in 179ms (46 modules)
+[API] Markdown sync error: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at syncMultipleFiles (.../lib/markdown/sync-service.ts:122:82)
 ```
 
-Then Windows will test the API endpoint.
+The container is up (logs show successful compilation and Prisma queries), but the existing `/api/markdown/sync` bug still surfaces when that route is hit.
