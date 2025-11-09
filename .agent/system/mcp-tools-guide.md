@@ -979,6 +979,135 @@ projectpulse.sprint.session.create({
 
 ---
 
+#### `projectpulse.sprint.checkpoint.create`
+
+Create a checkpoint to save agent progress every 15K tokens for context recovery
+
+**Parameters**:
+
+```typescript
+{
+  sessionId: string,          // Parent session ID (CUID, required)
+  notes: string,              // Checkpoint notes 1-5000 chars (required)
+  tokenUsage: number,         // Current token usage 0-200000 (required)
+  sessionContext?: {          // Optional context snapshot
+    taskId?: string,
+    taskTitle?: string,
+    dayId?: string,
+    dayTitle?: string,
+    completionPercentage?: number,
+    checkpointCount?: number,
+    filesModified?: string[],
+    filesCreated?: string[],
+    endpointsImplemented?: string[],
+    uncommittedChanges?: boolean,
+    currentBranch?: string,
+    tokenBudgetRemaining?: number
+  }
+}
+```
+
+**Example**:
+
+```typescript
+// Create checkpoint with full context
+projectpulse.sprint.checkpoint.create({
+  sessionId: 'clxEFGH9876543210ABC',
+  notes: 'Completed API implementation, starting tests. Files modified: route.ts, checkpoint.ts',
+  tokenUsage: 45000,
+  sessionContext: {
+    taskId: 'clxABCD1234567890XYZ',
+    taskTitle: 'Implement checkpoint API',
+    completionPercentage: 60,
+    filesModified: ['app/api/checkpoints/route.ts', 'lib/validation/checkpoint.ts'],
+    uncommittedChanges: true,
+    currentBranch: 'feature/sprint-1-foundation',
+    tokenBudgetRemaining: 155000
+  }
+});
+
+// Create minimal checkpoint (no context)
+projectpulse.sprint.checkpoint.create({
+  sessionId: 'clxEFGH9876543210ABC',
+  notes: 'Quick checkpoint at 30K tokens',
+  tokenUsage: 30000
+});
+```
+
+**Returns (Success)**:
+
+```json
+{
+  "status": "success",
+  "checkpoint": {
+    "id": "clxCHK1234567890DEF",
+    "checkpointNumber": 3,
+    "sessionId": "clxEFGH9876543210ABC",
+    "tokenUsage": 45000,
+    "createdAt": "2025-11-09T14:30:00.000Z"
+  },
+  "message": "Checkpoint #3 created successfully",
+  "nextCheckpoint": "Create next checkpoint at 60000 tokens"
+}
+```
+
+**Returns (Error - Session Not Found)**:
+
+```json
+{
+  "status": "error",
+  "error": "Session with ID clxEFGH9876543210ABC not found",
+  "code": "SESSION_NOT_FOUND"
+}
+```
+
+**Implementation**:
+
+- **API Endpoint**: `POST /api/checkpoints`
+- **Parent Validation**: Verifies session exists before creating checkpoint
+- **Sequential Numbering**: Auto-increments checkpointNumber per session
+- **JSONB Storage**: Flexible sessionContext field (no schema changes needed)
+- **Performance**: <100ms creation, <50ms latest checkpoint query
+- **Strict Validation**: Rejects unknown sessionContext properties
+
+**Use Cases**:
+
+- Save progress every 15K tokens (15K, 30K, 45K, 60K, 75K, 90K)
+- Context recovery after compaction or session interruption
+- Checkpoint at major milestones (component complete, tests passing)
+- Track implementation progress with file/endpoint lists
+- Monitor token budget to prevent hitting 200K limit
+
+**Workflow Integration**:
+
+```typescript
+// 1. Agent tracks token usage during session
+let currentTokens = 0;
+
+// 2. Every 15K tokens → Create checkpoint automatically
+if (currentTokens >= 15000 && currentTokens % 15000 < 1000) {
+  projectpulse.sprint.checkpoint.create({
+    sessionId: currentSessionId,
+    notes: `Checkpoint at ${currentTokens} tokens. Implemented: ${completedItems.join(', ')}`,
+    tokenUsage: currentTokens,
+    sessionContext: {
+      completionPercentage: calculateProgress(),
+      filesModified: getModifiedFiles(),
+      uncommittedChanges: hasUncommittedChanges(),
+      tokenBudgetRemaining: 200000 - currentTokens
+    }
+  });
+}
+
+// 3. On context compaction → Query latest checkpoint to restore state
+const latestCheckpoint = await queryLatestCheckpoint(sessionId);
+// Use checkpoint.sessionContext to resume work
+```
+
+**Source**: [apps/mcp-server/src/tools/sprintCheckpointCreate.ts](../../apps/mcp-server/src/tools/sprintCheckpointCreate.ts)
+
+---
+
 ### When to Use ProjectPulse Tools
 
 **Use `sprint.phase.create` when**:

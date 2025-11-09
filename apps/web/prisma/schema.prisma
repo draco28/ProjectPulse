@@ -175,6 +175,9 @@ model Session {
   taskId      String
   task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
+  // Checkpoints - Track progress every 15K tokens
+  checkpoints Checkpoint[]
+
   // Metadata
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -187,6 +190,24 @@ model Session {
   @@index([taskId, startDate, endDate, status])
 
   @@map("sessions")
+}
+
+model Checkpoint {
+  id               String   @id @default(cuid())
+  sessionId        String
+  notes            String   @db.Text
+  tokenUsage       Int
+  sessionContext   Json?    @db.JsonB
+  checkpointNumber Int
+  createdAt        DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, checkpointNumber])
+  @@index([sessionId])
+  @@index([createdAt(sort: Desc)])
+  @@index([sessionId, createdAt(sort: Desc)])
+  @@map("checkpoints")
 }
 
 // ============================================================================

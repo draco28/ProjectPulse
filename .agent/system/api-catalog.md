@@ -15,6 +15,7 @@
 - [PUT /api/:entity/:id/progress](#put-apientityidprogress) - Update progress with automatic roll-up (NEW)
 - [POST /api/tasks](#post-apitasks) - Create task under a day (NEW)
 - [POST /api/sessions](#post-apisessions) - Create session under a task (NEW)
+- [POST /api/checkpoints](#post-apicheckpoints) - Create checkpoint for session (NEW - Day 13)
 
 ### Theme Management
 
@@ -723,6 +724,161 @@ curl -X POST http://192.168.1.15:3000/api/sessions \
 
 **Source**: [apps/web/app/api/sessions/route.ts](../../apps/web/app/api/sessions/route.ts)
 **MCP Tool**: [apps/mcp-server/src/tools/sprintSessionCreate.ts](../../apps/mcp-server/src/tools/sprintSessionCreate.ts)
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/checkpoints
+
+**Description**: Create a checkpoint to save agent progress for context recovery (every 15K tokens)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  sessionId: string,          // Parent session ID (CUID, required)
+  notes: string,              // Checkpoint notes 1-5000 chars (required)
+  tokenUsage: number,         // Current token usage 0-200000 (required)
+  sessionContext?: {          // Optional context snapshot
+    taskId?: string,
+    taskTitle?: string,
+    dayId?: string,
+    dayTitle?: string,
+    completionPercentage?: number,
+    checkpointCount?: number,
+    filesModified?: string[],
+    filesCreated?: string[],
+    endpointsImplemented?: string[],
+    uncommittedChanges?: boolean,
+    currentBranch?: string,
+    tokenBudgetRemaining?: number
+  }
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/checkpoints HTTP/1.1
+Host: 192.168.1.15:3000
+Content-Type: application/json
+
+{
+  "sessionId": "clxEFGH9876543210ABC",
+  "notes": "Completed API implementation, starting tests. Files modified: route.ts, checkpoint.ts",
+  "tokenUsage": 45000,
+  "sessionContext": {
+    "taskId": "clxABCD1234567890XYZ",
+    "taskTitle": "Implement checkpoint API",
+    "completionPercentage": 60,
+    "filesModified": ["app/api/checkpoints/route.ts", "lib/validation/checkpoint.ts"],
+    "uncommittedChanges": true,
+    "currentBranch": "feature/sprint-1-foundation",
+    "tokenBudgetRemaining": 155000
+  }
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "data": {
+    "id": "clxCHK1234567890DEF",
+    "sessionId": "clxEFGH9876543210ABC",
+    "notes": "Completed API implementation, starting tests. Files modified: route.ts, checkpoint.ts",
+    "tokenUsage": 45000,
+    "sessionContext": {
+      "taskId": "clxABCD1234567890XYZ",
+      "taskTitle": "Implement checkpoint API",
+      "completionPercentage": 60,
+      "filesModified": ["app/api/checkpoints/route.ts", "lib/validation/checkpoint.ts"],
+      "uncommittedChanges": true,
+      "currentBranch": "feature/sprint-1-foundation",
+      "tokenBudgetRemaining": 155000
+    },
+    "checkpointNumber": 3,
+    "createdAt": "2025-11-09T14:30:00.000Z"
+  },
+  "error": null
+}
+```
+
+**Error Responses**:
+
+`400 Bad Request` - Validation error (invalid CUID, notes too long, tokenUsage out of range)
+
+```json
+{
+  "data": null,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid checkpoint data",
+    "details": [
+      {
+        "code": "too_big",
+        "maximum": 200000,
+        "type": "number",
+        "inclusive": true,
+        "exact": false,
+        "message": "Token usage exceeds maximum (200K)",
+        "path": ["tokenUsage"]
+      }
+    ]
+  }
+}
+```
+
+`404 Not Found` - Parent session not found
+
+```json
+{
+  "data": null,
+  "error": {
+    "code": "SESSION_NOT_FOUND",
+    "message": "Session with ID clxEFGH9876543210ABC not found"
+  }
+}
+```
+
+`500 Internal Server Error` - Database error
+
+**cURL Example**:
+
+```bash
+# Create checkpoint with full context
+curl -X POST http://192.168.1.15:3000/api/checkpoints \
+  -H "Content-Type: application/json" \
+  -d '{"sessionId":"clxEFGH9876543210ABC","notes":"Completed API implementation, starting tests","tokenUsage":45000,"sessionContext":{"taskId":"clxABCD1234567890XYZ","taskTitle":"Implement checkpoint API","completionPercentage":60,"filesModified":["app/api/checkpoints/route.ts"],"uncommittedChanges":true,"currentBranch":"feature/sprint-1-foundation","tokenBudgetRemaining":155000}}'
+
+# Create minimal checkpoint (no context)
+curl -X POST http://192.168.1.15:3000/api/checkpoints \
+  -H "Content-Type: application/json" \
+  -d '{"sessionId":"clxEFGH9876543210ABC","notes":"Quick checkpoint at 30K tokens","tokenUsage":30000}'
+```
+
+**Implementation Details**:
+
+- Validates parent session exists before creating checkpoint
+- Sequential checkpoint numbering per session (auto-increments)
+- JSONB sessionContext field for flexible context storage
+- Optimized indexes for <50ms latest checkpoint queries
+- Strict Zod validation rejects unknown sessionContext properties
+- Uses Zod schema validation for type safety
+
+**Performance**:
+- Checkpoint creation: <100ms
+- Latest checkpoint query: <50ms (composite index on sessionId + createdAt DESC)
+
+**Source**: [apps/web/app/api/checkpoints/route.ts](../../apps/web/app/api/checkpoints/route.ts)
+**Validation**: [apps/web/lib/validation/checkpoint.ts](../../apps/web/lib/validation/checkpoint.ts)
+**MCP Tool**: [apps/mcp-server/src/tools/sprintCheckpointCreate.ts](../../apps/mcp-server/src/tools/sprintCheckpointCreate.ts)
 **Authentication**: None (to be added)
 
 ---

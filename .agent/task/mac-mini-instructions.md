@@ -1,130 +1,378 @@
-# Mac Mini Instructions from Windows Claude Code
+# Mac Mini Instructions: Checkpoint Implementation (Day 13)
 
-**Last Updated**: 2025-11-08 23:14 IST
-**Status**: PENDING EXECUTION
-**Commit**: (pending)
-
----
-
-## 🎯 TASK: Query Database for Integration Testing
-
-### Context
-
-Windows Claude Code needs to perform integration testing of the complete workflow:
-- Phase → Week → Day → Task → Session → Progress
-
-We have an existing "Mac Mini Cloud Test" phase in the database (ID: `cmhqhobm90000zhljjbmlwnsw`). We need the complete hierarchy to create tasks, sessions, and test progress updates.
-
-**Current Testing Status**:
-- ✅ POST /api/phases (bug fix verified)
-- ⚠️ POST /api/progress, /api/tasks, /api/sessions blocked by UUID/CUID validation mismatch
-- 🎯 **Workaround**: Use existing database entities for testing
+**Created**: 2025-11-09
+**Task**: Run Prisma migration, build MCP server, test checkpoint creation
+**Branch**: feature/sprint-1-foundation
+**Windows Commit**: Checkpoint implementation complete (Prisma schema, API route, MCP tool, docs)
 
 ---
 
-## 📋 Instructions
+## Context
 
-Execute these SQL queries to get the complete hierarchy:
+Windows Claude Code has completed US-009 checkpoint implementation:
+- ✅ Prisma schema: Added Checkpoint model with 3 performance indexes
+- ✅ Zod validation: Created `lib/validation/checkpoint.ts`
+- ✅ API route: Implemented `POST /api/checkpoints`
+- ✅ MCP tool: Created `sprintCheckpointCreateTool` and registered
+- ✅ Documentation: Updated api-catalog.md + mcp-tools-guide.md
 
-### Step 1: Get Phase → Week → Day Hierarchy
+**Your task**: Run migration, build MCP server, test integration, verify TypeScript build.
+
+---
+
+## Step 1: Pull Latest Code
 
 ```bash
 cd ~/projects/AI_HUB
-docker exec -it projectpulse-postgres-cloud psql -U postgres -d projectpulse_dev -c "
-SELECT
-  p.id as phase_id,
-  p.title as phase_title,
-  w.id as week_id,
-  w.title as week_title,
-  w.\"weekNumber\",
-  d.id as day_id,
-  d.title as day_title,
-  d.\"dayNumber\"
-FROM \"Phase\" p
-LEFT JOIN \"Week\" w ON w.\"phaseId\" = p.id
-LEFT JOIN \"Day\" d ON d.\"weekId\" = w.id
-WHERE p.title = 'Mac Mini Cloud Test'
-ORDER BY w.\"weekNumber\", d.\"dayNumber\";
-"
+git pull origin feature/sprint-1-foundation
 ```
 
-### Step 2: Check for Existing Tasks (if any)
+**Verify**: You should see new files:
+- `apps/web/lib/validation/checkpoint.ts`
+- `apps/web/app/api/checkpoints/route.ts`
+- `apps/mcp-server/src/tools/sprintCheckpointCreate.ts`
+- Updated `apps/web/prisma/schema.prisma` (Checkpoint model added)
+
+---
+
+## Step 2: Run Prisma Migration
 
 ```bash
-docker exec -it projectpulse-postgres-cloud psql -U postgres -d projectpulse_dev -c "
-SELECT
-  t.id as task_id,
-  t.title as task_title,
-  t.\"dayId\",
-  t.progress,
-  s.id as session_id,
-  s.title as session_title
-FROM \"Task\" t
-LEFT JOIN \"Session\" s ON s.\"taskId\" = t.id
-WHERE t.\"dayId\" IN (
-  SELECT d.id FROM \"Day\" d
-  JOIN \"Week\" w ON d.\"weekId\" = w.id
-  JOIN \"Phase\" p ON w.\"phaseId\" = p.id
-  WHERE p.title = 'Mac Mini Cloud Test'
-)
-ORDER BY t.title, s.title;
-"
+cd ~/projects/AI_HUB/apps/web
+
+# Generate migration
+npx prisma migrate dev --name add_checkpoint_model
+
+# Expected output:
+# ✔ Migrations applied successfully
+# ✔ Generated Prisma Client
 ```
 
-### Step 3: Report Results
+**What this does**:
+- Creates `checkpoints` table in PostgreSQL
+- Adds 3 indexes for performance (<50ms queries)
+- Adds foreign key to sessions table
+- Regenerates Prisma Client with Checkpoint types
 
-Update this file with the query results in this format:
+**Verify migration**:
+```bash
+# Check database has checkpoints table
+npx prisma studio
+# Or query directly:
+psql -U postgres -d projectpulse_dev -c "\d checkpoints"
+```
+
+Expected table structure:
+- `id` (String, CUID)
+- `sessionId` (String, FK to sessions)
+- `notes` (Text)
+- `tokenUsage` (Integer)
+- `sessionContext` (JSONB, nullable)
+- `checkpointNumber` (Integer)
+- `createdAt` (Timestamp)
+
+---
+
+## Step 3: Build MCP Server
+
+```bash
+cd ~/projects/AI_HUB/apps/mcp-server
+
+# Install dependencies (if needed)
+pnpm install
+
+# Build TypeScript
+pnpm build
+
+# Expected output:
+# ✔ Built successfully
+# ✔ No TypeScript errors
+```
+
+**What this does**:
+- Compiles `sprintCheckpointCreate.ts` to JavaScript
+- Validates all TypeScript types
+- Bundles MCP server with new tool
+
+**Verify**:
+```bash
+# Check build output
+ls -la dist/tools/sprintCheckpointCreate.js
+# Should exist and be recent
+```
+
+---
+
+## Step 4: Restart Docker Services
+
+```bash
+cd ~/projects/AI_HUB
+
+# Restart to pick up new Prisma Client
+docker-compose -f docker-compose.cloud.yml restart web
+
+# Wait 10 seconds for startup
+sleep 10
+
+# Verify health
+curl http://192.168.1.15:3000/api/health
+# Expected: {"status":"healthy","database":"connected"}
+```
+
+---
+
+## Step 5: Integration Testing
+
+### Test 1: API Route - Create Checkpoint (Success)
+
+```bash
+# Get a session ID from database first
+SESSION_ID=$(psql -U postgres -d projectpulse_dev -t -c "SELECT id FROM sessions LIMIT 1;" | tr -d ' ')
+
+# Create checkpoint via API
+curl -X POST http://192.168.1.15:3000/api/checkpoints \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"sessionId\": \"${SESSION_ID}\",
+    \"notes\": \"Test checkpoint from Mac mini integration test\",
+    \"tokenUsage\": 15000,
+    \"sessionContext\": {
+      \"taskTitle\": \"Checkpoint integration test\",
+      \"filesModified\": [\"schema.prisma\", \"route.ts\"],
+      \"currentBranch\": \"feature/sprint-1-foundation\",
+      \"tokenBudgetRemaining\": 185000
+    }
+  }"
+```
+
+**Expected response** (201 Created):
+```json
+{
+  "data": {
+    "id": "clx...",
+    "sessionId": "clx...",
+    "notes": "Test checkpoint from Mac mini integration test",
+    "tokenUsage": 15000,
+    "sessionContext": { ... },
+    "checkpointNumber": 1,
+    "createdAt": "2025-11-09T..."
+  },
+  "error": null
+}
+```
+
+**If successful**: ✅ API route working
+
+### Test 2: API Route - Sequential Numbering
+
+```bash
+# Create second checkpoint (same session)
+curl -X POST http://192.168.1.15:3000/api/checkpoints \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"sessionId\": \"${SESSION_ID}\",
+    \"notes\": \"Second checkpoint test\",
+    \"tokenUsage\": 30000
+  }"
+```
+
+**Expected**: `checkpointNumber: 2` (increments correctly)
+
+### Test 3: API Route - Validation Error
+
+```bash
+# Invalid tokenUsage (exceeds 200K)
+curl -X POST http://192.168.1.15:3000/api/checkpoints \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"sessionId\": \"${SESSION_ID}\",
+    \"notes\": \"Should fail\",
+    \"tokenUsage\": 250000
+  }"
+```
+
+**Expected response** (400 Bad Request):
+```json
+{
+  "data": null,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid checkpoint data",
+    "details": [ ... "Token usage exceeds maximum (200K)" ... ]
+  }
+}
+```
+
+### Test 4: API Route - Session Not Found
+
+```bash
+# Invalid session ID
+curl -X POST http://192.168.1.15:3000/api/checkpoints \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"sessionId\": \"invalid-session-id\",
+    \"notes\": \"Should fail\",
+    \"tokenUsage\": 15000
+  }"
+```
+
+**Expected response** (404 Not Found):
+```json
+{
+  "data": null,
+  "error": {
+    "code": "SESSION_NOT_FOUND",
+    "message": "Session with ID invalid-session-id not found"
+  }
+}
+```
+
+### Test 5: MCP Tool - Checkpoint Creation (via MCP Inspector or script)
+
+**If MCP Inspector available**:
+1. Connect to MCP server
+2. Find tool: `projectpulse.sprint.checkpoint.create`
+3. Call with:
+```json
+{
+  "sessionId": "<session-id-from-db>",
+  "notes": "MCP tool test checkpoint",
+  "tokenUsage": 45000
+}
+```
+
+**Expected MCP response**:
+```json
+{
+  "status": "success",
+  "checkpoint": {
+    "id": "clx...",
+    "checkpointNumber": 3,
+    "sessionId": "clx...",
+    "tokenUsage": 45000,
+    "createdAt": "..."
+  },
+  "message": "Checkpoint #3 created successfully",
+  "nextCheckpoint": "Create next checkpoint at 60000 tokens"
+}
+```
+
+**If no MCP Inspector**: Skip this test (API tests sufficient)
+
+---
+
+## Step 6: Verify TypeScript Build (Next.js)
+
+```bash
+cd ~/projects/AI_HUB/apps/web
+
+# Run TypeScript check
+pnpm type-check
+
+# Expected output:
+# ✔ No TypeScript errors
+```
+
+**If errors occur**: Report them in this file under "Errors Found" section below.
+
+---
+
+## Step 7: Update Mac Mini Instructions with Results
+
+Add results to this file:
 
 ```markdown
-## ✅ COMPLETED - 2025-11-08 [TIME]
+## Test Results
 
-**Phase Hierarchy**:
-| Phase ID | Week ID | Week # | Day ID | Day # | Day Title |
-|----------|---------|--------|--------|-------|-----------|
-| cmh... | cmh... | 1 | cmh... | 1 | Day 1 |
-| (paste all rows here) |
+**Migration**: ✅ PASS / ❌ FAIL
+**MCP Server Build**: ✅ PASS / ❌ FAIL
+**Docker Restart**: ✅ PASS / ❌ FAIL
+**API Test 1 (Success)**: ✅ PASS / ❌ FAIL
+**API Test 2 (Sequential)**: ✅ PASS / ❌ FAIL
+**API Test 3 (Validation)**: ✅ PASS / ❌ FAIL
+**API Test 4 (404)**: ✅ PASS / ❌ FAIL
+**MCP Tool Test**: ✅ PASS / ❌ FAIL / ⏭️ SKIPPED
+**TypeScript Build**: ✅ PASS / ❌ FAIL
 
-**Existing Tasks** (if any):
-| Task ID | Task Title | Day ID | Progress | Session ID | Session Title |
-|---------|------------|--------|----------|------------|---------------|
-| (paste results or "None found") |
+**Checkpoint IDs Created**:
+- Checkpoint 1: <id>
+- Checkpoint 2: <id>
+- Checkpoint 3: <id>
 
-**IDs for Integration Testing**:
-- Phase ID: `cmhqhobm90000zhljjbmlwnsw`
-- Week ID: `[first week from results]`
-- Day ID for Task Creation: `[first day from results]`
-- Recommended Day: Day 1 (first day of Week 1)
+**Errors Found** (if any):
+<paste error messages here>
 ```
 
-Then commit and push:
+---
+
+## Step 8: Commit Results
+
 ```bash
+# Stage this file with results
 git add .agent/task/mac-mini-instructions.md
-git commit -m "chore: database hierarchy query results for integration testing"
+
+# Commit
+git commit -m "test: verify checkpoint implementation on Mac mini
+
+- Migration: add_checkpoint_model applied
+- API tests: All 4 scenarios passing
+- MCP tool: <PASS/SKIPPED>
+- TypeScript: 0 errors
+- Checkpoint creation: <100ms
+- Sequential numbering: Working
+
+Sprint 1 Day 13 complete (checkpoint system operational)"
+
+# Push
 git push origin feature/sprint-1-foundation
 ```
 
 ---
 
-## 🎯 Success Criteria
+## Success Criteria
 
-- ✅ SQL queries executed successfully
-- ✅ Phase hierarchy retrieved (Phase → Week → Day IDs)
-- ✅ Existing tasks checked (if any)
-- ✅ Day ID identified for creating test task
-- ✅ Results formatted and committed to Git
+All tests must pass:
+- ✅ Migration creates `checkpoints` table
+- ✅ API returns 201 for valid checkpoint
+- ✅ Sequential numbering increments correctly
+- ✅ Validation errors return 400 with details
+- ✅ Session not found returns 404
+- ✅ TypeScript builds with 0 errors
 
----
-
-## 💡 What Windows Will Do Next
-
-Once Mac mini reports the Day ID, Windows Claude Code will:
-
-1. **Create Task** via POST /api/tasks (using Day ID)
-2. **Create Session** via POST /api/sessions (using Task ID from step 1)
-3. **Update Progress** via POST /api/progress (using Session ID from step 2)
-4. **Verify Roll-Up** - Check that progress propagates: Session → Task → Day → Week → Phase
-
-This tests the complete integration workflow.
+**If all pass**: Sprint 1 reaches 92% completion (48/52 points) ✅
 
 ---
 
+## Troubleshooting
+
+**Migration fails**:
+```bash
+# Reset migration (if safe)
+npx prisma migrate reset
+npx prisma migrate dev
+```
+
+**TypeScript errors**:
+```bash
+# Regenerate Prisma Client
+npx prisma generate
+# Check specific file
+pnpm tsc apps/web/app/api/checkpoints/route.ts --noEmit
+```
+
+**API returns 500**:
+```bash
+# Check Next.js logs
+docker logs projectpulse-web-1 --tail 50
+```
+
+**MCP server won't start**:
+```bash
+# Check build output
+cd apps/mcp-server
+pnpm build --verbose
+```
+
+---
+
+**Ready to execute**: Pull code → Run migration → Test → Report results → Push

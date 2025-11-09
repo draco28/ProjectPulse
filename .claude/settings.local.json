@@ -40,7 +40,8 @@
       "Bash(pnpm install)",
       "Bash(yes:*)",
       "Bash(git mv:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(time rg:*)"
     ],
     "deny": [],
     "ask": [

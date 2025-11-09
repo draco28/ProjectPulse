@@ -1,196 +1,471 @@
-# Implementation Plan - Days 10-12: Additional MCP Tools
+# Implementation Plan: US-009 Checkpoint Creation
 
-**Created**: 2025-11-09 00:00
-**Phase**: Sprint 1 Week 2 Days 10-12
-**Status**: Ready for implementation
+**Date**: 2025-11-09
+**Goal**: Implement checkpoint system to reach Sprint 1 92% completion (48/52 points)
+**User Story**: US-009 - "As an agent, I want to create a checkpoint with notes and token usage so that I can resume work after context compaction"
+**Story Points**: 3 points (~3-4 hours)
 
 ---
 
 ## Overview
 
-Implement 3 additional MCP tools to complete Sprint 1's core functionality, enabling agents to create tasks/sessions and update progress with automatic roll-up through the 5-level hierarchy.
+Implement checkpoint creation functionality to enable agents to save progress snapshots every 15K tokens for context recovery after compaction or session interruption.
 
-## Deliverables
+**Key Deliverables**:
+1. Prisma Checkpoint model with migration
+2. POST /api/checkpoints API route
+3. sprint.checkpoint.create MCP tool
+4. Documentation updates (api-catalog.md, mcp-tools-guide.md)
+5. Integration test
 
-**1. MCP Tools (3 new tools)**
-- `sprint.updateProgress` - Update any entity's progress, trigger roll-up algorithm
-- `sprint.task.create` - Create task under a day with validation
-- `sprint.session.create` - Create session under a task with validation
+---
 
-**2. Next.js API Routes (3 new endpoints)**
-- `PUT /api/tasks/:id/progress` - Update task progress
-- `POST /api/tasks` - Create task
-- `POST /api/sessions` - Create session
+## Expert Consultation Summary
 
-**3. Integration Testing**
-- Progress propagation workflow test (Session 100% → Task → Day → Week → Phase)
-- Task creation with parent validation
-- Session creation with task linkage
+### Prisma Expert Recommendations
 
-**4. Documentation Updates**
-- `.agent/system/api-catalog.md` - Add 3 new endpoints
-- `.agent/system/mcp-tools-guide.md` - Add 3 new tools with examples
+**Report**: `.agent/task/prisma-checkpoint-design-20251109-1430.md`
+
+**Key Decisions**:
+- ✅ **Separate Model**: Checkpoint as new model (not Session extension)
+- ✅ **Index Strategy**: 3 indexes for <50ms recovery query
+  - `@@index([sessionId])`
+  - `@@index([createdAt DESC])`
+  - `@@index([sessionId, createdAt DESC])` ← Critical for latest checkpoint query
+- ✅ **JSONB Storage**: sessionContext as flexible JSON field
+- ✅ **Migration**: Non-breaking, no backfill needed
+
+### Next.js Expert Recommendations
+
+**Report**: `.agent/task/nextjs-checkpoints-api-20251109-1400.md`
+
+**Key Decisions**:
+- ✅ **API Route** (not Server Action) - MCP tools call via HTTP
+- ✅ **Zod Validation**: Strict schema with field-level constraints
+- ✅ **Size Limits**: notes max 5000 chars, sessionContext validated structure
+- ✅ **No Rate Limiting**: Not needed for MVP (single user, infrequent calls)
 
 ---
 
 ## Implementation Steps
 
-### Part 1: Sprint.updateProgress Tool (Estimated: 25K tokens)
+### Step 1: Prisma Schema Design (30 minutes)
 
-**Step 1.1: Create API Route** (`apps/web/app/api/tasks/[id]/progress/route.ts`)
-- Zod schema: `{ progress: number (0-100) }`
-- Call `updateProgressAndPropagate()` from `lib/db/progress.ts`
-- Return updated task + affected ancestors
+**File**: `apps/web/prisma/schema.prisma`
 
-**Step 1.2: Create MCP Tool** (`apps/mcp-server/src/tools/updateProgress.ts`)
-- Input schema: `taskId` (string), `progress` (number 0-100)
-- Handler: PUT to `/api/tasks/:id/progress`
-- Response: Success message + propagation summary
+**Add Checkpoint Model**:
+```prisma
+model Checkpoint {
+  id               String   @id @default(cuid())
+  sessionId        String
+  notes            String   @db.Text
+  tokenUsage       Int
+  sessionContext   Json?
+  checkpointNumber Int
+  createdAt        DateTime @default(now())
 
-**Step 1.3: Register Tool**
-- Add to `src/tools/index.ts` registry
-- Export from tools module
+  session          Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
-**Step 1.4: Test Progress Propagation**
-- Manual test: Update Session → verify Task/Day/Week/Phase updated
-- Verify incremental transaction pattern works
-
-### Part 2: Sprint.task.create Tool (Estimated: 20K tokens)
-
-**Step 2.1: Create API Route** (`apps/web/app/api/tasks/route.ts`)
-- Zod schema: `{ dayId, title, description, status?, startDate?, endDate?, estimatedHours? }`
-- Validate: dayId exists, dates within day's range
-- Create task with Prisma
-- Return created task
-
-**Step 2.2: Create MCP Tool** (`apps/mcp-server/src/tools/createTask.ts`)
-- Input schema matching API
-- Handler: POST to `/api/tasks`
-- Response: Created task with full details
-
-**Step 2.3: Register Tool**
-- Add to registry with proper typing
-
-### Part 3: Sprint.session.create Tool (Estimated: 20K tokens)
-
-**Step 3.1: Create API Route** (`apps/web/app/api/sessions/route.ts`)
-- Zod schema: `{ taskId, title, description?, startTime, endTime?, tokenCount?, notes? }`
-- Validate: taskId exists, times are valid
-- Create session with Prisma
-- Return created session
-
-**Step 3.2: Create MCP Tool** (`apps/mcp-server/src/tools/createSession.ts`)
-- Input schema matching API
-- Handler: POST to `/api/sessions`
-- Response: Created session with full details
-
-**Step 3.3: Register Tool**
-- Add to registry
-
-### Part 4: Integration Testing (Estimated: 15K tokens)
-
-**Test 1: Progress Propagation Workflow**
-```bash
-# Create session → Update to 100% → Verify propagation
-1. Create session under task
-2. Update session progress to 100%
-3. Query task (should reflect progress)
-4. Query day, week, phase (should all update)
+  @@unique([sessionId, checkpointNumber])
+  @@index([sessionId])
+  @@index([createdAt(sort: Desc)])
+  @@index([sessionId, createdAt(sort: Desc)])
+  @@map("checkpoints")
+}
 ```
 
-**Test 2: Task Creation Workflow**
-```bash
-# Create day → Create task under it → Verify relationship
-1. Get existing day ID
-2. Create task with required fields
-3. Verify task appears in day's tasks
+**Update Session Model**:
+```prisma
+model Session {
+  // ... existing fields
+  checkpoints Checkpoint[]  // Add relation
+}
 ```
 
-**Test 3: Session Creation Workflow**
+**Create Migration**:
 ```bash
-# Create task → Create session under it → Verify relationship
-1. Get existing task ID
-2. Create session with time tracking
-3. Verify session appears in task's sessions
+# On Mac mini (where database runs)
+cd /Users/[user]/projects/AI_HUB
+npx prisma migrate dev --name add_checkpoint_model
+npx prisma generate
 ```
 
-### Part 5: Documentation Updates (Estimated: 10K tokens)
+**Success Criteria**:
+- ✅ Migration applies successfully
+- ✅ Prisma Client regenerated
+- ✅ TypeScript types available
 
-**Update api-catalog.md**
-- Document 3 new endpoints with request/response schemas
-- Add cURL examples for each
+---
 
-**Update mcp-tools-guide.md**
-- Document 3 new tools with usage examples
-- Show progress propagation workflow example
+### Step 2: Zod Validation Schemas (20 minutes)
+
+**File**: `apps/web/lib/validation/checkpoint.ts` (new file)
+
+**Create Validation Schemas**:
+```typescript
+import { z } from 'zod';
+
+// SessionContext schema (flexible structure)
+export const SessionContextSchema = z.object({
+  // Hierarchy context
+  taskId: z.string().cuid().optional(),
+  taskTitle: z.string().max(200).optional(),
+  dayId: z.string().cuid().optional(),
+  dayTitle: z.string().max(100).optional(),
+
+  // Progress context
+  completionPercentage: z.number().min(0).max(100).optional(),
+  checkpointCount: z.number().int().min(0).optional(),
+
+  // Code context
+  filesModified: z.array(z.string()).optional(),
+  filesCreated: z.array(z.string()).optional(),
+  endpointsImplemented: z.array(z.string()).optional(),
+
+  // Recovery context
+  uncommittedChanges: z.boolean().optional(),
+  currentBranch: z.string().optional(),
+  tokenBudgetRemaining: z.number().int().min(0).optional(),
+}).strict();  // Reject unknown properties
+
+export type SessionContext = z.infer<typeof SessionContextSchema>;
+
+// Create Checkpoint request schema
+export const CreateCheckpointSchema = z.object({
+  sessionId: z.string().cuid({ message: 'Invalid session ID format' }),
+  notes: z.string()
+    .min(1, 'Notes cannot be empty')
+    .max(5000, 'Notes must be at most 5000 characters'),
+  tokenUsage: z.number()
+    .int('Token usage must be an integer')
+    .min(0, 'Token usage cannot be negative')
+    .max(200000, 'Token usage exceeds maximum (200K)'),
+  sessionContext: SessionContextSchema.optional(),
+});
+
+export type CreateCheckpointInput = z.infer<typeof CreateCheckpointSchema>;
+
+// Checkpoint response schema
+export const CheckpointSchema = z.object({
+  id: z.string().cuid(),
+  sessionId: z.string().cuid(),
+  notes: z.string(),
+  tokenUsage: z.number().int(),
+  sessionContext: SessionContextSchema.nullable(),
+  checkpointNumber: z.number().int(),
+  createdAt: z.date(),
+});
+
+export type Checkpoint = z.infer<typeof CheckpointSchema>;
+```
+
+**Success Criteria**:
+- ✅ All schemas defined with proper validation
+- ✅ TypeScript types inferred correctly
+- ✅ No compilation errors
+
+---
+
+### Step 3: API Route Implementation (45 minutes)
+
+**File**: `apps/web/app/api/checkpoints/route.ts` (new file)
+
+**Implement POST Handler**:
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { CreateCheckpointSchema } from '@/lib/validation/checkpoint';
+import { ApiResponse } from '@/lib/types/api';
+
+export async function POST(request: NextRequest) {
+  try {
+    // 1. Parse and validate request body
+    const body = await request.json();
+    const validationResult = CreateCheckpointSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json<ApiResponse<null>>({
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid checkpoint data',
+          details: validationResult.error.errors,
+        },
+      }, { status: 400 });
+    }
+
+    const { sessionId, notes, tokenUsage, sessionContext } = validationResult.data;
+
+    // 2. Verify session exists
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      select: { id: true },
+    });
+
+    if (!session) {
+      return NextResponse.json<ApiResponse<null>>({
+        data: null,
+        error: {
+          code: 'SESSION_NOT_FOUND',
+          message: `Session with ID ${sessionId} not found`,
+        },
+      }, { status: 404 });
+    }
+
+    // 3. Get next checkpoint number for this session
+    const lastCheckpoint = await prisma.checkpoint.findFirst({
+      where: { sessionId },
+      orderBy: { checkpointNumber: 'desc' },
+      select: { checkpointNumber: true },
+    });
+
+    const checkpointNumber = (lastCheckpoint?.checkpointNumber ?? 0) + 1;
+
+    // 4. Create checkpoint
+    const checkpoint = await prisma.checkpoint.create({
+      data: {
+        sessionId,
+        notes,
+        tokenUsage,
+        sessionContext: sessionContext ?? null,
+        checkpointNumber,
+      },
+    });
+
+    // 5. Return success response
+    return NextResponse.json<ApiResponse<typeof checkpoint>>({
+      data: checkpoint,
+      error: null,
+    }, { status: 201 });
+
+  } catch (error) {
+    console.error('[POST /api/checkpoints] Error:', error);
+
+    return NextResponse.json<ApiResponse<null>>({
+      data: null,
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to create checkpoint',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+    }, { status: 500 });
+  }
+}
+```
+
+**Success Criteria**:
+- ✅ Validation errors return 400 with details
+- ✅ Session not found returns 404
+- ✅ Successful creation returns 201 with checkpoint data
+- ✅ Server errors return 500 with message
+- ✅ Checkpoint numbers increment correctly per session
+
+---
+
+### Step 4: MCP Tool Implementation (30 minutes)
+
+**File**: `apps/mcp-server/src/tools/checkpoint.ts` (new file)
+
+**Implement MCP Tool**:
+```typescript
+import { z } from 'zod';
+import { ToolDefinition } from './types.js';
+import { httpClient } from '../httpClient.js';
+import { logger } from '../logger.js';
+
+// Zod schema for MCP tool input (matches API but with optional context)
+const CreateCheckpointInputSchema = z.object({
+  sessionId: z.string().describe('Session ID to attach checkpoint to'),
+  notes: z.string().describe('Checkpoint notes (max 5000 chars)'),
+  tokenUsage: z.number().int().describe('Current token usage (0-200000)'),
+  sessionContext: z.object({
+    taskId: z.string().optional(),
+    taskTitle: z.string().optional(),
+    completionPercentage: z.number().optional(),
+    filesModified: z.array(z.string()).optional(),
+    // ... other context fields
+  }).optional().describe('Optional session context snapshot'),
+});
+
+export const checkpointTool: ToolDefinition = {
+  definition: {
+    name: 'sprint.checkpoint.create',
+    description: 'Create a checkpoint to save agent progress (every 15K tokens)',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'Session ID to attach checkpoint to',
+        },
+        notes: {
+          type: 'string',
+          description: 'Checkpoint notes describing current progress',
+        },
+        tokenUsage: {
+          type: 'number',
+          description: 'Current token usage (0-200000)',
+        },
+        sessionContext: {
+          type: 'object',
+          description: 'Optional session context snapshot',
+          properties: {
+            taskId: { type: 'string' },
+            taskTitle: { type: 'string' },
+            completionPercentage: { type: 'number' },
+            filesModified: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+          },
+        },
+      },
+      required: ['sessionId', 'notes', 'tokenUsage'],
+    },
+  },
+
+  handler: async (args: unknown) => {
+    // Validate input
+    const validationResult = CreateCheckpointInputSchema.safeParse(args);
+    if (!validationResult.success) {
+      throw new Error(`Invalid input: ${validationResult.error.message}`);
+    }
+
+    const input = validationResult.data;
+
+    logger.info('[checkpoint.create] Creating checkpoint', {
+      sessionId: input.sessionId,
+      tokenUsage: input.tokenUsage,
+    });
+
+    // Call API
+    const response = await httpClient.post('/api/checkpoints', input);
+
+    if (!response.data) {
+      throw new Error(response.error?.message || 'Failed to create checkpoint');
+    }
+
+    const checkpoint = response.data;
+
+    logger.info('[checkpoint.create] Checkpoint created', {
+      checkpointId: checkpoint.id,
+      checkpointNumber: checkpoint.checkpointNumber,
+    });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            checkpoint: {
+              id: checkpoint.id,
+              checkpointNumber: checkpoint.checkpointNumber,
+              sessionId: checkpoint.sessionId,
+              tokenUsage: checkpoint.tokenUsage,
+              createdAt: checkpoint.createdAt,
+            },
+            message: `Checkpoint #${checkpoint.checkpointNumber} created successfully`,
+          }, null, 2),
+        },
+      ],
+    };
+  },
+};
+```
+
+**Register Tool** in `apps/mcp-server/src/tools/index.ts`:
+```typescript
+import { checkpointTool } from './checkpoint.js';
+
+export const tools: ToolDefinition[] = [
+  healthCheckTool,
+  phaseCreateTool,
+  getCurrentTaskTool,
+  updateProgressTool,
+  taskCreateTool,
+  sessionCreateTool,
+  checkpointTool,  // Add here
+];
+```
+
+**Success Criteria**:
+- ✅ Tool registered in MCP server
+- ✅ Input validation working
+- ✅ API call successful
+- ✅ Response formatted correctly
+- ✅ Errors handled gracefully
+
+---
+
+### Step 5: Documentation Updates (20 minutes)
+
+Update both documentation files with checkpoint endpoint and tool details.
+
+**Success Criteria**:
+- ✅ API endpoint documented with examples
+- ✅ MCP tool documented with workflow
+- ✅ Both files updated and committed
+
+---
+
+### Step 6: Integration Testing (30 minutes)
+
+**Test Scenarios**:
+1. Successful checkpoint creation
+2. Validation error (invalid tokenUsage)
+3. Session not found
+4. MCP tool test
+5. Sequential checkpoints (verify numbering)
+
+**Success Criteria**:
+- ✅ All 5 test scenarios pass
+- ✅ Checkpoint numbers increment correctly
+- ✅ TypeScript builds successfully (0 errors)
+- ✅ Response formats match ApiResponse<> pattern
 
 ---
 
 ## Success Criteria
 
-**Functional Requirements:**
-- [ ] All 3 MCP tools compile without TypeScript errors
-- [ ] All 3 API endpoints return correct responses
-- [ ] Progress roll-up propagates through all 5 levels
-- [ ] Task creation validates parent day exists
-- [ ] Session creation validates parent task exists
+**Functional Requirements**:
+- ✅ Can create checkpoint via POST /api/checkpoints
+- ✅ Can create checkpoint via sprint.checkpoint.create MCP tool
+- ✅ Checkpoint numbers increment sequentially per session
+- ✅ Session context stored as JSONB (flexible structure)
+- ✅ All validation rules enforced (notes max 5K, tokenUsage 0-200K)
 
-**Testing Requirements:**
-- [ ] Progress propagation test passes (Session → Phase)
-- [ ] Task creation test passes with validation
-- [ ] Session creation test passes with validation
-- [ ] All integration tests complete in <2 minutes
+**Performance Requirements**:
+- ✅ Checkpoint creation <100ms
+- ✅ Latest checkpoint query <50ms (via composite index)
 
-**Documentation Requirements:**
-- [ ] API catalog includes all 3 endpoints with examples
-- [ ] MCP tools guide includes all 3 tools with usage
-- [ ] Documentation matches actual implementation
+**Quality Requirements**:
+- ✅ TypeScript builds successfully (0 errors)
+- ✅ All test scenarios pass
+- ✅ API responses follow ApiResponse<> pattern
+- ✅ Documentation complete and accurate
 
----
-
-## Technical Considerations
-
-**Reusing Day 3 Progress Algorithm:**
-- `updateProgressAndPropagate()` already exists in `lib/db/progress.ts`
-- Incremental transaction pattern (one level at a time)
-- No changes needed to core algorithm - just expose via API/MCP
-
-**Validation Strategy:**
-- Reuse Zod schemas from `lib/db/validation.ts`
-- Additional API-level validation for parent relationships
-- Consistent error messages across all tools
-
-**Error Handling:**
-- 400: Invalid input (Zod validation failure)
-- 404: Parent entity not found
-- 500: Database/transaction errors
+**Sprint 1 Impact**:
+- ✅ Reaches 92% completion (48/52 points)
+- ✅ Checkpoint system operational (exit criteria met)
+- ✅ Ready for Sprint 2 (Markdown Sync + Workflow)
 
 ---
 
-## Estimated Token Budget
+## Estimated Time
 
-| Part | Activity | Estimated Tokens |
-|------|----------|------------------|
-| 1 | sprint.updateProgress | 25K |
-| 2 | sprint.task.create | 20K |
-| 3 | sprint.session.create | 20K |
-| 4 | Integration testing | 15K |
-| 5 | Documentation | 10K |
-| **Total** | | **90K tokens** |
+**Total**: 3-4 hours (~3 story points)
 
-**Buffer:** 110K tokens remaining (30K buffer = 33% contingency)
+**Breakdown**:
+- Prisma schema + migration: 30 minutes
+- Zod validation: 20 minutes
+- API route: 45 minutes
+- MCP tool: 30 minutes
+- Documentation: 20 minutes
+- Testing: 30 minutes
+- **Buffer**: 15-45 minutes
 
 ---
 
-## Dependencies
-
-**Existing Code to Leverage:**
-- ✅ `lib/db/progress.ts` - Progress roll-up algorithm (Day 3)
-- ✅ `lib/db/validation.ts` - Zod schemas (Day 3)
-- ✅ `apps/mcp-server/src/tools/` - Tool patterns (Days 4-7)
-- ✅ `apps/web/app/api/` - API route patterns (Days 6-7)
-
-**No External Blockers:**
-- Mac mini services running
-- Database schema complete
-- All prerequisites met
+**Plan created: 2025-11-09**
+**Ready to implement: YES**

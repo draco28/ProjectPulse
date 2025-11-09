@@ -7,6 +7,7 @@ import { sprintGetCurrentTaskTool } from './sprintGetCurrentTask.js';
 import { sprintUpdateProgressTool } from './sprintUpdateProgress.js';
 import { sprintTaskCreateTool } from './sprintTaskCreate.js';
 import { sprintSessionCreateTool } from './sprintSessionCreate.js';
+import { sprintCheckpointCreateTool } from './sprintCheckpointCreate.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -15,6 +16,7 @@ const loadTools = (): ToolDefinition[] => [
   sprintUpdateProgressTool,
   sprintTaskCreateTool,
   sprintSessionCreateTool,
+  sprintCheckpointCreateTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {
