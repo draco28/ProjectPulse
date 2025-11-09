@@ -1,8 +1,8 @@
 # MCP Tools Guide
 
-**Last Updated**: 2025-11-08
+**Last Updated**: 2025-11-09
 **Purpose**: Reference guide for all MCP (Model Context Protocol) tools available to Claude Code
-**Status**: Core tools configured + ProjectPulse tools active (Sprint 1 Week 1 complete)
+**Status**: Core tools configured + ProjectPulse tools active (Sprint 1 Week 2 Days 10-12 complete)
 
 ---
 
@@ -36,7 +36,7 @@
 
 **ProjectPulse Tools**:
 
-- [projectpulse](#projectpulse-mcp-server) - Sprint and task management (2 tools active)
+- [projectpulse](#projectpulse-mcp-server) - Sprint and task management (5 tools active)
 
 ---
 
@@ -522,7 +522,7 @@ docker_compose_status();
 
 **Server**: `projectpulse` (Custom MCP server for sprint management)
 **When to use**: Sprint and task management operations
-**Status**: Active (Sprint 1 Week 1 complete - 2 tools available)
+**Status**: Active (Sprint 1 Week 2 Days 10-12 complete - 5 tools available)
 
 ### Available Tools
 
@@ -658,6 +658,327 @@ projectpulse.sprint.getCurrentTask({
 
 ---
 
+#### `projectpulse.sprint.updateProgress`
+
+Update entity progress with automatic parent roll-up propagation
+
+**Parameters**:
+
+```typescript
+{
+  entityType: 'session' | 'task' | 'day' | 'week' | 'phase',  // Entity type (required)
+  entityId: string,           // Entity ID in CUID format (required)
+  progress: number            // Progress value 0-100 (required, integer)
+}
+```
+
+**Example**:
+
+```typescript
+// Update session progress (triggers task → day → week → phase propagation)
+projectpulse.sprint.updateProgress({
+  entityType: 'session',
+  entityId: 'clx1234567890abcdefgh',
+  progress: 75,
+});
+
+// Update task progress directly
+projectpulse.sprint.updateProgress({
+  entityType: 'task',
+  entityId: 'clxABCD1234567890XYZ',
+  progress: 50,
+});
+```
+
+**Returns (Success)**:
+
+```json
+{
+  "status": "success",
+  "entity": {
+    "id": "clx1234567890abcdefgh",
+    "type": "session",
+    "progress": 75,
+    "status": "IN_PROGRESS"
+  },
+  "propagation": {
+    "updated": [
+      {
+        "id": "clx0987654321zyxwvuts",
+        "type": "task",
+        "progress": 62,
+        "status": "IN_PROGRESS"
+      },
+      {
+        "id": "clx5555666677778888",
+        "type": "day",
+        "progress": 45,
+        "status": "IN_PROGRESS"
+      }
+    ],
+    "summary": "Updated session → propagated to task (62%) → day (45%)"
+  }
+}
+```
+
+**Returns (Error)**:
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Progress must be between 0 and 100"
+  }
+}
+```
+
+**Implementation**:
+
+- **API Endpoint**: `PUT /api/:entity/:id/progress` (generic route for all 5 entity types)
+- **Progress Algorithm**: Uses `updateProgressAndPropagate()` from `lib/db/progress.ts` (Day 3 implementation)
+- **Propagation Tracking**: Returns summary of all affected parent entities
+- **Performance**: Incremental transactions (1 level at a time) to prevent deadlocks
+- **Validation**: Zod schema validation for entity type enum + progress range (0-100)
+
+**Use Cases**:
+
+- Mark session as complete after work (progress: 100)
+- Update task progress manually (progress: 50, 75, etc.)
+- Track day/week/phase completion automatically via child updates
+- Observe propagation chain to verify roll-up calculations
+
+**Source**: [apps/mcp-server/src/tools/sprintUpdateProgress.ts](../../apps/mcp-server/src/tools/sprintUpdateProgress.ts)
+
+---
+
+#### `projectpulse.sprint.task.create`
+
+Create a new task under a day with parent validation and date range checks
+
+**Parameters**:
+
+```typescript
+{
+  dayId: string,              // Parent day ID (CUID, required)
+  title: string,              // Task title 1-200 chars (required)
+  description?: string,       // Optional description
+  startDate: string,          // ISO 8601 datetime (required)
+  endDate: string,            // ISO 8601 datetime (required)
+  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED' | 'CANCELLED',  // Default: NOT_STARTED
+  progress?: number,          // Integer 0-100 (default: 0)
+  estimatedHours?: number     // Positive number (optional)
+}
+```
+
+**Example**:
+
+```typescript
+// Create task with full details
+projectpulse.sprint.task.create({
+  dayId: 'clx9999888877776666',
+  title: 'Implement progress update API',
+  description: 'Create generic PUT /api/:entity/:id/progress route',
+  startDate: '2025-11-09T09:00:00Z',
+  endDate: '2025-11-09T17:00:00Z',
+  status: 'IN_PROGRESS',
+  progress: 0,
+  estimatedHours: 4,
+});
+
+// Create minimal task
+projectpulse.sprint.task.create({
+  dayId: 'clx9999888877776666',
+  title: 'Fix bug in session validation',
+  startDate: '2025-11-09T14:00:00Z',
+  endDate: '2025-11-09T16:00:00Z',
+});
+```
+
+**Returns (Success)**:
+
+```json
+{
+  "status": "success",
+  "task": {
+    "id": "clxABCD1234567890XYZ",
+    "dayId": "clx9999888877776666",
+    "title": "Implement progress update API",
+    "description": "Create generic PUT /api/:entity/:id/progress route",
+    "startDate": "2025-11-09T09:00:00.000Z",
+    "endDate": "2025-11-09T17:00:00.000Z",
+    "status": "IN_PROGRESS",
+    "progress": 0,
+    "estimatedHours": 4,
+    "actualHours": null
+  },
+  "context": {
+    "day": { "id": "clx9999888877776666", "title": "Day 10" },
+    "week": { "id": "clx1111222233334444", "title": "Week 2" },
+    "phase": { "id": "clx5555666677778888", "title": "Sprint 1" }
+  }
+}
+```
+
+**Returns (Error - Date Range Violation)**:
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Task dates must be within day's range (2025-11-09 to 2025-11-09)",
+    "details": {
+      "taskStart": "2025-11-09T09:00:00Z",
+      "taskEnd": "2025-11-10T17:00:00Z",
+      "dayStart": "2025-11-09T00:00:00Z",
+      "dayEnd": "2025-11-09T23:59:59Z"
+    }
+  }
+}
+```
+
+**Returns (Error - Parent Not Found)**:
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Day with ID clx9999888877776666 not found"
+  }
+}
+```
+
+**Implementation**:
+
+- **API Endpoint**: `POST /api/tasks`
+- **Parent Validation**: Verifies day exists before creating task
+- **Date Range Validation**: Enforces task dates within day's start/end range
+- **Hierarchical Context**: Returns full context (day → week → phase) for navigation
+- **Validation**: Zod schema for type safety, CUID format for IDs
+
+**Use Cases**:
+
+- Break down a day into specific tasks
+- Track estimated vs actual hours
+- Create task structure for sprint planning
+- Maintain data integrity via date range constraints
+
+**Source**: [apps/mcp-server/src/tools/sprintTaskCreate.ts](../../apps/mcp-server/src/tools/sprintTaskCreate.ts)
+
+---
+
+#### `projectpulse.sprint.session.create`
+
+Create a new session under a task with parent validation and optional endDate support
+
+**Parameters**:
+
+```typescript
+{
+  taskId: string,             // Parent task ID (CUID, required)
+  title: string,              // Session title 1-200 chars (required)
+  description?: string,       // Optional description
+  startDate: string,          // ISO 8601 datetime (required)
+  endDate?: string,           // ISO 8601 datetime (optional - sessions can be in-progress)
+  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED' | 'CANCELLED',  // Default: NOT_STARTED
+  progress?: number,          // Integer 0-100 (default: 0)
+  notes?: string,             // Optional session notes
+  tokenCount?: number         // Positive integer (optional - AI token usage tracking)
+}
+```
+
+**Example**:
+
+```typescript
+// Create completed session
+projectpulse.sprint.session.create({
+  taskId: 'clxABCD1234567890XYZ',
+  title: 'Morning implementation session',
+  description: 'Implement progress route and MCP tool',
+  startDate: '2025-11-09T09:00:00Z',
+  endDate: '2025-11-09T12:00:00Z',
+  status: 'COMPLETED',
+  progress: 100,
+  notes: 'Successfully implemented generic route pattern',
+  tokenCount: 45000,
+});
+
+// Create in-progress session (no endDate)
+projectpulse.sprint.session.create({
+  taskId: 'clxABCD1234567890XYZ',
+  title: 'Afternoon debugging session',
+  startDate: '2025-11-09T14:00:00Z',
+  status: 'IN_PROGRESS',
+  progress: 50,
+});
+```
+
+**Returns (Success)**:
+
+```json
+{
+  "status": "success",
+  "session": {
+    "id": "clxEFGH9876543210ABC",
+    "taskId": "clxABCD1234567890XYZ",
+    "title": "Morning implementation session",
+    "description": "Implement progress route and MCP tool",
+    "startDate": "2025-11-09T09:00:00.000Z",
+    "endDate": "2025-11-09T12:00:00.000Z",
+    "status": "COMPLETED",
+    "progress": 100,
+    "notes": "Successfully implemented generic route pattern",
+    "tokenCount": 45000
+  },
+  "context": {
+    "task": { "id": "clxABCD1234567890XYZ", "title": "Implement progress update API" },
+    "day": { "id": "clx9999888877776666", "title": "Day 10" },
+    "week": { "id": "clx1111222233334444", "title": "Week 2" },
+    "phase": { "id": "clx5555666677778888", "title": "Sprint 1" }
+  }
+}
+```
+
+**Returns (Error - Date Range Violation)**:
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Session end date must be within task's range (2025-11-09 09:00 to 2025-11-09 17:00)",
+    "details": {
+      "sessionEnd": "2025-11-09T18:00:00Z",
+      "taskStart": "2025-11-09T09:00:00Z",
+      "taskEnd": "2025-11-09T17:00:00Z"
+    }
+  }
+}
+```
+
+**Implementation**:
+
+- **API Endpoint**: `POST /api/sessions`
+- **Parent Validation**: Verifies task exists before creating session
+- **Optional endDate**: Supports in-progress sessions without end time
+- **Date Range Validation**: When `endDate` provided, enforces within task's range
+- **Hierarchical Context**: Returns full context (task → day → week → phase)
+- **Token Tracking**: Optional `tokenCount` field for AI usage monitoring
+
+**Use Cases**:
+
+- Track individual work sessions within a task
+- Monitor AI token consumption per session
+- Create session notes for future reference
+- Support in-progress sessions (no endDate until complete)
+- Maintain data integrity via date range constraints
+
+**Source**: [apps/mcp-server/src/tools/sprintSessionCreate.ts](../../apps/mcp-server/src/tools/sprintSessionCreate.ts)
+
+---
+
 ### When to Use ProjectPulse Tools
 
 **Use `sprint.phase.create` when**:
@@ -674,6 +995,29 @@ projectpulse.sprint.getCurrentTask({
 - Checking sprint progress and hierarchy
 - Resuming work after interruption
 
+**Use `sprint.updateProgress` when**:
+
+- Marking session as complete after work
+- Updating task progress manually
+- Tracking completion across hierarchy levels
+- Verifying progress roll-up calculations
+- Need to see propagation chain (which parents were updated)
+
+**Use `sprint.task.create` when**:
+
+- Breaking down a day into specific tasks
+- Planning detailed work within a day
+- Need to track estimated vs actual hours
+- Setting up task structure for sprint
+
+**Use `sprint.session.create` when**:
+
+- Starting a new work session on a task
+- Tracking AI token consumption
+- Recording session notes and outcomes
+- Supporting in-progress sessions (no endDate)
+- Monitoring detailed work activity
+
 **Common Workflows**:
 
 ```typescript
@@ -684,19 +1028,44 @@ projectpulse.sprint.phase.create({
   durationWeeks: 4,
 });
 
-// 2. Check current task context
-projectpulse.sprint.getCurrentTask({ includeHistory: true });
+// 2. Create task under a day
+projectpulse.sprint.task.create({
+  dayId: 'clx9999888877776666',
+  title: 'Implement progress update API',
+  startDate: '2025-11-09T09:00:00Z',
+  endDate: '2025-11-09T17:00:00Z',
+  estimatedHours: 4,
+});
 
-// 3. Use context to inform next actions
-// (e.g., update task progress, create session notes, etc.)
+// 3. Create session under task
+projectpulse.sprint.session.create({
+  taskId: 'clxABCD1234567890XYZ',
+  title: 'Morning implementation session',
+  startDate: '2025-11-09T09:00:00Z',
+  status: 'IN_PROGRESS',
+});
+
+// 4. Update session progress (triggers propagation)
+projectpulse.sprint.updateProgress({
+  entityType: 'session',
+  entityId: 'clxEFGH9876543210ABC',
+  progress: 100,
+});
+// Response shows: session → task → day → week → phase propagation
+
+// 5. Check current task context
+projectpulse.sprint.getCurrentTask({ includeHistory: true });
 ```
 
 **Performance Notes**:
 
-- Both tools optimized for <500ms response time (NFR-019)
-- Database indexes added for critical queries
+- All 5 tools optimized for <500ms response time (NFR-019)
+- Database indexes added for critical queries (updatedAt DESC, dayId, taskId)
 - Prisma nested writes and select patterns for efficiency
+- Generic route pattern reduces code duplication (1 route for 5 entity types)
+- Progress propagation uses incremental transactions to prevent deadlocks
 - See: `.agent/task/prisma-sprint-tools-20251107-0630.md`
+- See: `.agent/task/days-10-12-verification-report.md`
 
 ---
 
@@ -1027,8 +1396,8 @@ Efficiency varies by client capability:
 
 ---
 
-**Last Updated:** 2025-11-08
-**MCP Status:** Core tools configured + ProjectPulse MCP server active (2 tools)
-**Next:** Additional sprint tools (Week 2: task creation, session management)
+**Last Updated:** 2025-11-09
+**MCP Status:** Core tools configured + ProjectPulse MCP server active (5 tools)
+**Completed:** Sprint 1 Week 2 Days 10-12 (progress update, task creation, session management)
 
 **See also**: [.agent/progress.md](../progress.md) for current project status

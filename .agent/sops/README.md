@@ -54,6 +54,22 @@ Git branch management and commit procedures.
 
 ---
 
+## 🛠️ API Development
+
+### [api-route-creation.md](api-route-creation.md)
+
+Standard procedure for creating entity-specific API routes with validation, error handling, and response format.
+
+### [generic-api-routes.md](generic-api-routes.md)
+
+Pattern for creating generic API routes that serve multiple entity types through a single implementation. Use when operation is identical across entities.
+
+### [api-route-pagination-pattern.md](api-route-pagination-pattern.md)
+
+Implementing pagination in API routes for list endpoints.
+
+---
+
 ## 🔧 Troubleshooting
 
 ### [port-troubleshooting.md](port-troubleshooting.md)

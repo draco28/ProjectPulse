@@ -1,8 +1,8 @@
 # API Endpoint Catalog
 
-**Last Updated**: 2025-11-08
+**Last Updated**: 2025-11-09
 **Base URL**: `http://localhost:3000/api`
-**Status**: Full CRUD + Search + Multi-entity + Sprint Management (Sprint 1 Week 1 complete)
+**Status**: Full CRUD + Search + Multi-entity + Sprint Management (Sprint 1 Week 2 Days 10-12 complete)
 
 ---
 
@@ -12,6 +12,9 @@
 
 - [POST /api/phases](#post-apiphases) - Create phase with auto-generated weeks
 - [GET /api/tasks/current](#get-apitaskscurrent) - Get currently active task with hierarchy
+- [PUT /api/:entity/:id/progress](#put-apientityidprogress) - Update progress with automatic roll-up (NEW)
+- [POST /api/tasks](#post-apitasks) - Create task under a day (NEW)
+- [POST /api/sessions](#post-apisessions) - Create session under a task (NEW)
 
 ### Theme Management
 
@@ -307,6 +310,419 @@ Host: localhost:3000
 - See: `.agent/task/prisma-sprint-tools-20251107-0630.md`
 
 **Source**: [apps/web/app/api/tasks/current/route.ts](../../apps/web/app/api/tasks/current/route.ts)
+**Authentication**: None (to be added)
+
+---
+
+#### PUT /api/:entity/:id/progress
+
+**Description**: Update entity progress with automatic parent roll-up propagation. Generic route serving all 5 entity types (sessions, tasks, days, weeks, phases).
+
+**Path Parameters**:
+
+- `entity` (string) - Entity type: `sessions` | `tasks` | `days` | `weeks` | `phases`
+- `id` (string) - Entity ID (CUID format)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  progress: number  // Integer 0-100 (required)
+}
+```
+
+**Request Example**:
+
+```http
+PUT /api/sessions/clx1234567890abcdefgh/progress HTTP/1.1
+Host: 192.168.1.15:3000
+Content-Type: application/json
+
+{
+  "progress": 75
+}
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "entity": {
+      "id": "clx1234567890abcdefgh",
+      "type": "session",
+      "progress": 75,
+      "status": "IN_PROGRESS"
+    },
+    "propagation": {
+      "updated": [
+        {
+          "id": "clx0987654321zyxwvuts",
+          "type": "task",
+          "progress": 62,
+          "status": "IN_PROGRESS"
+        },
+        {
+          "id": "clx5555666677778888",
+          "type": "day",
+          "progress": 45,
+          "status": "IN_PROGRESS"
+        }
+      ],
+      "totalAffected": 2
+    }
+  }
+}
+```
+
+**Error Responses**:
+
+`400 Bad Request` - Invalid entity type, invalid ID format, or progress out of range (0-100)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid entity type. Must be one of: sessions, tasks, days, weeks, phases"
+  }
+}
+```
+
+`404 Not Found` - Entity not found
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Session with ID clx1234567890abcdefgh not found"
+  }
+}
+```
+
+`500 Internal Server Error` - Database error during propagation
+
+**cURL Example**:
+
+```bash
+# Update session progress (triggers task → day propagation)
+curl -X PUT http://192.168.1.15:3000/api/sessions/clx1234567890abcdefgh/progress \
+  -H "Content-Type: application/json" \
+  -d "{\"progress\":75}"
+
+# Update task progress directly
+curl -X PUT http://192.168.1.15:3000/api/tasks/clx0987654321zyxwvuts/progress \
+  -H "Content-Type: application/json" \
+  -d "{\"progress\":50}"
+```
+
+**Implementation Details**:
+
+- Uses generic route pattern for DRY principle (1 implementation for 5 entity types)
+- Extends `updateProgressAndPropagate()` from `lib/db/progress.ts` with propagation tracking
+- Returns propagation summary showing all affected parent entities
+- Validates entity type via Zod enum, maps plural routes to singular utility types
+- Non-breaking extension to existing Day 3 progress algorithm
+
+**Source**: [apps/web/app/api/[entity]/[id]/progress/route.ts](../../apps/web/app/api/[entity]/[id]/progress/route.ts)
+**Validation Schema**: [apps/web/lib/validations/progress.ts](../../apps/web/lib/validations/progress.ts)
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/tasks
+
+**Description**: Create a new task under a day with parent validation and date range checks.
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  dayId: string,              // Parent day ID (CUID, required)
+  title: string,              // Task title 1-200 chars (required)
+  description?: string,       // Optional description
+  startDate: string,          // ISO 8601 datetime (required)
+  endDate: string,            // ISO 8601 datetime (required)
+  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED' | 'CANCELLED',  // Default: NOT_STARTED
+  progress?: number,          // Integer 0-100 (default: 0)
+  estimatedHours?: number     // Positive number (optional)
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/tasks HTTP/1.1
+Host: 192.168.1.15:3000
+Content-Type: application/json
+
+{
+  "dayId": "clx9999888877776666",
+  "title": "Implement progress update API",
+  "description": "Create generic PUT /api/:entity/:id/progress route",
+  "startDate": "2025-11-09T09:00:00Z",
+  "endDate": "2025-11-09T17:00:00Z",
+  "status": "IN_PROGRESS",
+  "progress": 0,
+  "estimatedHours": 4
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "success": true,
+  "data": {
+    "task": {
+      "id": "clxABCD1234567890XYZ",
+      "dayId": "clx9999888877776666",
+      "title": "Implement progress update API",
+      "description": "Create generic PUT /api/:entity/:id/progress route",
+      "startDate": "2025-11-09T09:00:00.000Z",
+      "endDate": "2025-11-09T17:00:00.000Z",
+      "status": "IN_PROGRESS",
+      "progress": 0,
+      "estimatedHours": 4,
+      "actualHours": null,
+      "createdAt": "2025-11-09T08:30:00.000Z",
+      "updatedAt": "2025-11-09T08:30:00.000Z"
+    },
+    "context": {
+      "day": {
+        "id": "clx9999888877776666",
+        "title": "Day 10"
+      },
+      "week": {
+        "id": "clx1111222233334444",
+        "title": "Week 2"
+      },
+      "phase": {
+        "id": "clx5555666677778888",
+        "title": "Sprint 1"
+      }
+    }
+  }
+}
+```
+
+**Error Responses**:
+
+`400 Bad Request` - Validation error (invalid CUID, missing required fields, date range outside parent day)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Task dates must be within day's range (2025-11-09 to 2025-11-09)",
+    "details": {
+      "taskStart": "2025-11-09T09:00:00Z",
+      "taskEnd": "2025-11-10T17:00:00Z",
+      "dayStart": "2025-11-09T00:00:00Z",
+      "dayEnd": "2025-11-09T23:59:59Z"
+    }
+  }
+}
+```
+
+`404 Not Found` - Parent day not found
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Day with ID clx9999888877776666 not found"
+  }
+}
+```
+
+`500 Internal Server Error` - Database error
+
+**cURL Example**:
+
+```bash
+# Create task with full hierarchy context
+curl -X POST http://192.168.1.15:3000/api/tasks \
+  -H "Content-Type: application/json" \
+  -d "{\"dayId\":\"clx9999888877776666\",\"title\":\"Implement progress update API\",\"description\":\"Create generic PUT route\",\"startDate\":\"2025-11-09T09:00:00Z\",\"endDate\":\"2025-11-09T17:00:00Z\",\"status\":\"IN_PROGRESS\",\"progress\":0,\"estimatedHours\":4}"
+```
+
+**Implementation Details**:
+
+- Validates parent day exists before creating task
+- Enforces date range constraint (task dates must be within day's start/end range)
+- Returns hierarchical context (day → week → phase) for navigation
+- Uses Zod schema validation for type safety
+- CUID format for all IDs (not UUID)
+
+**Source**: [apps/web/app/api/tasks/route.ts](../../apps/web/app/api/tasks/route.ts)
+**MCP Tool**: [apps/mcp-server/src/tools/sprintTaskCreate.ts](../../apps/mcp-server/src/tools/sprintTaskCreate.ts)
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/sessions
+
+**Description**: Create a new session under a task with parent validation and optional endDate support.
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  taskId: string,             // Parent task ID (CUID, required)
+  title: string,              // Session title 1-200 chars (required)
+  description?: string,       // Optional description
+  startDate: string,          // ISO 8601 datetime (required)
+  endDate?: string,           // ISO 8601 datetime (optional - sessions can be in-progress)
+  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED' | 'CANCELLED',  // Default: NOT_STARTED
+  progress?: number,          // Integer 0-100 (default: 0)
+  notes?: string,             // Optional session notes
+  tokenCount?: number         // Positive integer (optional - AI token usage tracking)
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/sessions HTTP/1.1
+Host: 192.168.1.15:3000
+Content-Type: application/json
+
+{
+  "taskId": "clxABCD1234567890XYZ",
+  "title": "Morning implementation session",
+  "description": "Implement progress route and MCP tool",
+  "startDate": "2025-11-09T09:00:00Z",
+  "endDate": "2025-11-09T12:00:00Z",
+  "status": "COMPLETED",
+  "progress": 100,
+  "notes": "Successfully implemented generic route pattern",
+  "tokenCount": 45000
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "success": true,
+  "data": {
+    "session": {
+      "id": "clxEFGH9876543210ABC",
+      "taskId": "clxABCD1234567890XYZ",
+      "title": "Morning implementation session",
+      "description": "Implement progress route and MCP tool",
+      "startDate": "2025-11-09T09:00:00.000Z",
+      "endDate": "2025-11-09T12:00:00.000Z",
+      "status": "COMPLETED",
+      "progress": 100,
+      "notes": "Successfully implemented generic route pattern",
+      "tokenCount": 45000,
+      "createdAt": "2025-11-09T12:05:00.000Z",
+      "updatedAt": "2025-11-09T12:05:00.000Z"
+    },
+    "context": {
+      "task": {
+        "id": "clxABCD1234567890XYZ",
+        "title": "Implement progress update API"
+      },
+      "day": {
+        "id": "clx9999888877776666",
+        "title": "Day 10"
+      },
+      "week": {
+        "id": "clx1111222233334444",
+        "title": "Week 2"
+      },
+      "phase": {
+        "id": "clx5555666677778888",
+        "title": "Sprint 1"
+      }
+    }
+  }
+}
+```
+
+**Error Responses**:
+
+`400 Bad Request` - Validation error (invalid CUID, missing required fields, endDate outside task range)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Session end date must be within task's range (2025-11-09 09:00 to 2025-11-09 17:00)",
+    "details": {
+      "sessionEnd": "2025-11-09T18:00:00Z",
+      "taskStart": "2025-11-09T09:00:00Z",
+      "taskEnd": "2025-11-09T17:00:00Z"
+    }
+  }
+}
+```
+
+`404 Not Found` - Parent task not found
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Task with ID clxABCD1234567890XYZ not found"
+  }
+}
+```
+
+`500 Internal Server Error` - Database error
+
+**cURL Example**:
+
+```bash
+# Create completed session with full context
+curl -X POST http://192.168.1.15:3000/api/sessions \
+  -H "Content-Type: application/json" \
+  -d "{\"taskId\":\"clxABCD1234567890XYZ\",\"title\":\"Morning implementation session\",\"description\":\"Implement progress route and MCP tool\",\"startDate\":\"2025-11-09T09:00:00Z\",\"endDate\":\"2025-11-09T12:00:00Z\",\"status\":\"COMPLETED\",\"progress\":100,\"notes\":\"Successfully implemented generic route pattern\",\"tokenCount\":45000}"
+
+# Create in-progress session (no endDate)
+curl -X POST http://192.168.1.15:3000/api/sessions \
+  -H "Content-Type: application/json" \
+  -d "{\"taskId\":\"clxABCD1234567890XYZ\",\"title\":\"Afternoon debugging session\",\"startDate\":\"2025-11-09T14:00:00Z\",\"status\":\"IN_PROGRESS\",\"progress\":50}"
+```
+
+**Implementation Details**:
+
+- Validates parent task exists before creating session
+- Supports optional `endDate` for in-progress sessions
+- Enforces date range constraint when `endDate` is provided (session dates within task's range)
+- Returns full hierarchical context (task → day → week → phase)
+- Tracks AI token usage via optional `tokenCount` field
+- Uses Zod schema validation for type safety
+
+**Source**: [apps/web/app/api/sessions/route.ts](../../apps/web/app/api/sessions/route.ts)
+**MCP Tool**: [apps/mcp-server/src/tools/sprintSessionCreate.ts](../../apps/mcp-server/src/tools/sprintSessionCreate.ts)
 **Authentication**: None (to be added)
 
 ---
@@ -1486,9 +1902,9 @@ export async function POST(request: NextRequest) {
 
 ---
 
-**Last Updated:** 2025-11-08
-**API Status:** Full CRUD + Search + Multi-entity + Sprint Management (Sprint 1 Week 1 complete)
-**Total Endpoints:** 10 active (2 sprint, 2 theme, 2 issue, 1 knowledge, 1 wiki, 2 security, 1 search)
-**Next Update:** Sprint 1 Week 2 (Days 8-14)
+**Last Updated:** 2025-11-09
+**API Status:** Full CRUD + Search + Multi-entity + Sprint Management (Sprint 1 Week 2 Days 10-12 complete)
+**Total Endpoints:** 13 active (5 sprint, 2 theme, 2 issue, 1 knowledge, 1 wiki, 2 security, 1 search)
+**Next Update:** Sprint 1 Week 2 completion (Days 13-14)
 
 **See also**: [.agent/progress.md](../progress.md) for current project status
