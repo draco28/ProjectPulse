@@ -65,9 +65,16 @@ Implement first template + extractor + sync service following copy-paste ready c
 - Path-agnostic sync service (supports root, docs/, .agent/)
 - Async data extraction with Prisma includes (avoids N+1 queries)
 
-**Next Steps (Mac Mini)**:
-1. Pull latest code: `git pull origin feature/sprint-2-markdown-sync`
-2. Install dependencies: `pnpm install` (includes handlebars, types)
-3. Verify TypeScript: `pnpm type-check`
-4. Test sync service (create test script or API endpoint)
-5. Continue Week 1 Day 5-6 (Git hooks + MCP tool)
+**Mac Mini Testing Results** (commit ff7a787):
+1. ✅ Pulled code and installed dependencies
+2. ✅ Fixed TypeScript errors (Phase.name → Phase.title, calculated weekNumber/dayNumber)
+3. ✅ Normalized 5-state Status enum to 3-state template enum
+4. ✅ Created test database records
+5. ✅ Successfully generated STATUS.md with real data
+6. ✅ Verified content hash optimization (51ms → 41ms)
+
+**Session Complete**: 2025-11-09 21:15
+**Token Usage**: ~115K/200K (57% used)
+**Result**: Week 1 Day 3-5 COMPLETE ✅
+
+**Next Session**: Week 1 Day 5-6 (Git hooks + MCP tool)
