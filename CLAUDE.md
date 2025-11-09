@@ -111,19 +111,38 @@ ProjectPulse uses a distributed development setup:
 - **Mac mini runtime (preferred)**: `docker-compose.cloud.yml` (run on Mac mini)
 - **CI/local fallback (legacy)**: `docker-compose.yml` (use only for CI or explicit local runs)
 
-### When to Use Mac Mini
+### When to Use Mac Mini vs Windows
 
-Use Mac mini for:
-- ✅ Docker operations (restart containers, view logs)
-- ✅ Database operations (migrations, queries)
-- ✅ Service verification (health checks, builds)
-- ✅ Mac mini-specific setup
+**🚨 CRITICAL RULE: Mac mini ONLY for server-side operations**
 
-Use Windows for:
-- ✅ Code editing (all file operations)
-- ✅ Git operations
-- ✅ Documentation
-- ✅ Planning and design
+The Mac mini runs the Next.js server and database accessible at `http://192.168.1.15:3000`. **Most work happens on Windows** where code is edited and tested by calling the Mac mini API endpoints.
+
+**Windows (Primary Development - Do 95% of work here)**:
+- ✅ **All code editing** (Read, Edit, Write tools)
+- ✅ **All Git operations** (commits, pushes, branch management)
+- ✅ **API testing** (curl to `http://192.168.1.15:3000/api/*`)
+- ✅ **MCP tool testing** (calls Mac mini API endpoints)
+- ✅ **TypeScript compilation checks** (pnpm type-check)
+- ✅ **Documentation updates**
+- ✅ **File operations** (creating configs, scripts, etc.)
+- ✅ **Testing** (unit tests, integration tests calling Mac mini)
+
+**Mac mini (Server Operations ONLY - Use sparingly)**:
+- ✅ **Docker container management** (restart, logs, rebuild)
+- ✅ **Database migrations** (npx prisma migrate dev, db push)
+- ✅ **Prisma client regeneration** (npx prisma generate)
+- ✅ **Server process debugging** (check Next.js server logs)
+- ✅ **Critical server-side issues** (network constraints, connection issues)
+
+**❌ NEVER delegate to Mac mini**:
+- ❌ Testing API endpoints (test FROM Windows BY calling Mac mini)
+- ❌ Checking TypeScript errors (run on Windows)
+- ❌ Running MCP tools (run on Windows, they call Mac mini)
+- ❌ Creating/editing files (do on Windows)
+- ❌ Git operations (do on Windows)
+- ❌ Any work that can be done on Windows
+
+**Why this matters**: If you transfer work to Mac mini that could be done on Windows, you force changing configuration from network-accessible (`192.168.1.15:3000`) to localhost, defeating the purpose of having a dedicated development server.
 
 **Complete Setup Guide**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
 
@@ -131,13 +150,15 @@ Use Windows for:
 
 ## 🔄 Communicating with Mac Mini Claude Code
 
+**⚠️ Use sparingly - Only for critical server-side operations**
+
 ### The Problem
 
 Windows Claude Code and Mac mini Claude Code are separate instances. Manually copy-pasting prompts between machines is tedious.
 
 ### The Solution: Git-Based Communication
 
-Use `.agent/task/mac-mini-instructions.md` as an instruction queue.
+Use `.agent/task/mac-mini-instructions.md` as an instruction queue **ONLY** for server-side operations that cannot be done from Windows (Docker operations, database migrations, server debugging).
 
 ### Quick Workflow
 
