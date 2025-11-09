@@ -251,7 +251,6 @@ export async function GET(request: NextRequest) {
               progress: true,
               startDate: true,
               endDate: true,
-              notes: true,
               createdAt: true,
               // Parent context
               task: {

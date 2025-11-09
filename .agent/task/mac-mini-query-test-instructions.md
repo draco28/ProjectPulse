@@ -271,6 +271,34 @@ Add results to this file:
 
 ---
 
+## Test Results
+
+**MCP Server Build**: ✅ PASS
+**Docker Restart**: ✅ PASS
+**API Test 1 (Blocked Tasks)**: ✅ PASS
+**API Test 2 (Progress Filter)**: ✅ PASS
+**API Test 3 (Multiple Status)**: ✅ PASS
+**API Test 4 (Validation Error)**: ✅ PASS
+**API Test 5 (Pagination)**: ✅ PASS (after bug fix)
+**API Test 6 (All Entity Levels)**: ✅ PASS (phase: ✅, week: ✅, day: ✅, task: ✅, session: ✅)
+**TypeScript Build**: ✅ PASS (0 errors in new query files)
+
+**Query Response Times**:
+- Simple query (single filter): ~48ms (first request), ~24-31ms (subsequent)
+- Complex query (multiple filters): ~31ms
+- Entity-specific queries: phase (39ms), week (30ms), day (29ms), task (27ms), session (22ms)
+
+**Bug Fixed During Testing**:
+- Session entity query had `notes: true` field that doesn't exist in Prisma schema
+- Fixed by removing the field from `app/api/hierarchy/query/route.ts:254`
+- Created missing type file `lib/types/api.ts` for ApiResponse interface
+
+**Files Modified on Mac mini**:
+1. `apps/web/app/api/hierarchy/query/route.ts` - Removed non-existent `notes` field
+2. `apps/web/lib/types/api.ts` - Created missing ApiResponse type (NEW FILE)
+
+---
+
 ## Step 7: Commit Results
 
 ```bash
