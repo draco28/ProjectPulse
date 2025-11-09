@@ -24,7 +24,7 @@ services:
 
   # Next.js Frontend (like Vercel)
   nextjs:
-    image: node:20-alpine
+    image: node:20-bullseye-slim
     container_name: projectpulse-nextjs-cloud
     working_dir: /app
     command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && cd apps/web && pnpm prisma generate && pnpm dev --hostname 0.0.0.0"

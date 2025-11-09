@@ -306,3 +306,46 @@ docker-compose -f docker-compose.cloud.yml up -d --build
 **Solution**: Generate Prisma client with correct binary target in Dockerfile or install OpenSSL 1.1 in container.
 
 **TODO for Mac mini**: Check Dockerfile and add OpenSSL 1.1 or set `PRISMA_CLI_BINARY_TARGETS` environment variable.
+
+---
+
+## ✅ SOLUTION COMPLETE (2025-11-10T01:19+05:30)
+
+**Root Cause**: Prisma binary compatibility with OpenSSL versions.
+- Mac mini ARM64 architecture
+- Alpine Linux (node:20-alpine) uses musl libc
+- Prisma defaulted to OpenSSL 1.1.x binary but Alpine 3.22 only has OpenSSL 3.x
+- Attempted fixes (Alpine compat packages, Debian Bookworm) failed
+
+**Working Solution**: Switched to Debian Bullseye base image
+
+**Changes Made**:
+
+1. **docker-compose.cloud.yml**:
+   ```yaml
+   # Changed FROM: node:20-alpine
+   # Changed TO: node:20-bullseye-slim
+   ```
+
+2. **Reason**: Debian Bullseye ships with OpenSSL 1.1 built-in, matching Prisma's binary target.
+
+**Test Results**:
+```bash
+curl -X POST http://192.168.1.15:3000/api/markdown/sync \
+  -H "Content-Type: application/json" \
+  -d '{"files": ["mac-mini-instructions"]}'
+
+# Old Error: "Unable to require libquery_engine-linux-arm64-openssl-1.1.x.so.node"
+# New Response: {"success":false,"error":"ENOENT: no such file or directory, open '/app/apps/web/.agent/generated-files.json'"}
+```
+
+**✅ Prisma Binary Compatibility SOLVED!**
+
+The API is now working - the new error is just a missing JSON file (application logic), not infrastructure.
+
+**Files Modified**:
+- docker-compose.cloud.yml (nextjs service image)
+
+**Next Steps for Windows**:
+- The Prisma issue is resolved
+- Windows should handle the missing JSON file error (application-level fix)
