@@ -1,8 +1,8 @@
 # Progress Tracker
 
 **Project**: ProjectPulse
-**Last Updated**: 2025-11-09 (Sprint 1 CLOSED ✅)
-**Overall Completion**: Documentation 100%, Implementation 10% (Sprint 1 CLOSED at 96% - 50/52 points)
+**Last Updated**: 2025-11-09 (Sprint 2 STARTED 🚀)
+**Overall Completion**: Documentation 100%, Implementation 12% (Sprint 1 complete 50 points, Sprint 2 started 0/54 points)
 
 ---
 
@@ -18,9 +18,9 @@ Documentation Phase (Nov 1-6, 2025) ✅ 100% COMPLETE
   Audit specification created                       ✅ Complete
   5,500+ lines of documentation added               ✅ Complete
 
-Phase A: Foundation & Core Infrastructure (Weeks 1-6, Sprints 1-3) ⏳ 0% Ready to Start
-  Sprint 1: 5-level hierarchy + MCP scaffold        ⏳ Ready (52 points)
-  Sprint 2: Markdown sync + Workflow foundation     ⏳ Not started
+Phase A: Foundation & Core Infrastructure (Weeks 1-6, Sprints 1-3) 🔄 27% IN PROGRESS
+  Sprint 1: 5-level hierarchy + MCP scaffold        ✅ CLOSED at 96% (50/52 points)
+  Sprint 2: Markdown sync + Workflow foundation     🔄 IN PROGRESS (0/54 points)
   Sprint 3: Workflow orchestration complete         ⏳ Not started
 
 Phase B: Core Features - Issues (Weeks 7-8, Sprint 4) ⏳ 0% Not Started
@@ -38,10 +38,10 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
   Sprint 9: Memory Banks + Research Orchestration   ⏳ Documented for future
 ```
 
-**Total Progress**: 0/484 story points (0% implementation, 100% documentation)
-**MVP Implementation**: 0/422 story points (Sprints 1-8, 16 weeks)
-**Current Sprint**: Documentation complete, Sprint 1 ready to start
-**Completed Sprints**: 0/9 (documentation phase complete)
+**Total Progress**: 50/484 story points (10% implementation, 100% documentation)
+**MVP Implementation**: 50/422 story points (Sprints 1-8, 16 weeks) - 12% complete
+**Current Sprint**: Sprint 2 - Markdown sync + Workflow foundation (0/54 points)
+**Completed Sprints**: 1/9 (Sprint 1 closed at 96%)
 
 ---
 
@@ -152,6 +152,78 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 - Code coverage: Database layer 100%
 
 **Ready for Sprint 2**: ✅ All foundations complete, no blockers
+
+---
+
+## Sprint 2: Markdown Sync + Workflow Foundation (Weeks 3-4) - 54 points
+
+**User Stories**: US-005 to US-031 (EPIC-001 completion + EPIC-002 start)
+
+**Goal**: Complete tracking infrastructure with markdown sync and git hooks, start workflow orchestration
+
+### Sprint 2 Progress: 0/54 points (0%) 🔄 IN PROGRESS
+
+**Week 3: Markdown Sync + Git Hooks (Days 1-7)** ⏳ NOT STARTED (0/7 days)
+
+- Day 1-2: Markdown sync database + templates ⏳ NOT STARTED
+- Day 3-4: Markdown sync MCP tool + auto-triggers ⏳ NOT STARTED
+- Day 5-6: Git hooks implementation ⏳ NOT STARTED
+- Day 7: Week 3 checkpoint + buffer ⏳ NOT STARTED
+
+**Week 4: Workflow Foundation (Days 8-14)** ⏳ NOT STARTED (0/7 days)
+
+- Day 8-9: Workflow database schema + seed data ⏳ NOT STARTED
+- Day 10-11: Workflow MCP tools ⏳ NOT STARTED
+- Day 12-13: Workflow state persistence + recovery ⏳ NOT STARTED
+- Day 14: Sprint 2 closure ⏳ NOT STARTED
+
+**Key Deliverables**:
+
+- [ ] Markdown sync system operational (<500ms target)
+- [ ] Git hooks blocking manual edits (Windows-compatible)
+- [ ] Workflow state machine operational
+- [ ] 5-step protocol enforceable via MCP
+- [ ] STATUS.md auto-generated from database
+- [ ] DEVELOPMENT_PLAN.md auto-generated from database
+- [ ] Workflow state persists across sessions
+- [ ] Zero TypeScript errors (strict mode)
+
+**Exit Criteria**:
+
+- [ ] Markdown sync completes <500ms per file
+- [ ] Git hooks block manual STATUS.md/DEVELOPMENT_PLAN.md edits
+- [ ] Workflow state persists in database
+- [ ] 5-step protocol enforceable via MCP tools
+- [ ] All integration tests passing on Mac mini
+- [ ] Zero TypeScript errors
+
+**Sprint 2 User Stories** (54 points total):
+
+**EPIC-001 Completion (37 points)**:
+- [ ] US-005: Markdown auto-sync (8 points)
+- [ ] US-006: Git hooks (5 points)
+- [ ] US-007: Date range filter completion (1 point)
+- [ ] US-008: Mark task complete (2 points)
+- [ ] US-010: View hierarchy tree (5 points)
+- [ ] US-012: Archive completed phases (3 points)
+- [ ] US-013: Export hierarchy to JSON/CSV (3 points)
+- [ ] US-015: Bulk-update task status (3 points)
+- [ ] US-016: Progress charts (5 points)
+- [ ] US-025: Sync hierarchy with .agent/task files (5 points)
+
+**EPIC-002 Start (17 points)**:
+- [ ] US-026: Start predefined workflow (5 points)
+- [ ] US-027: Track current workflow step (2 points)
+- [ ] US-028: Mark workflow step complete (2 points)
+- [ ] US-029: Alert if step skipped (3 points)
+- [ ] US-030: View all workflows (2 points)
+- [ ] US-031: Resume workflow after interruption (5 points)
+
+**Current Status**: Planning complete, ready to begin Day 1
+
+**Branch**: `feature/sprint-2-markdown-sync`
+
+**Plan Document**: `.agent/task/sprint-2-plan.md`
 
 ---
 
