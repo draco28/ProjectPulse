@@ -5,6 +5,10 @@ import {
   type SyncResult,
 } from '@/lib/markdown/sync-service';
 
+// CRITICAL: Import to trigger template and extractor registration
+import '@/lib/markdown/templates';
+import '@/lib/markdown/extractors';
+
 /**
  * POST /api/markdown/sync
  *
