@@ -255,3 +255,39 @@ docker-compose -f docker-compose.cloud.yml logs -f nextjs
 ```
 
 This will rebuild the Next.js container with the regenerated Prisma client that includes the `markdownFile` model.
+
+---
+
+## ✅ Container Rebuild Complete (2025-11-10T01:02+05:30)
+
+**Action Taken**: Rebuilt Next.js container with `--build` flag per Windows instructions.
+
+**Commands Executed**:
+```bash
+cd ~/projects/AI_HUB
+git pull origin feature/sprint-2-markdown-sync  # Pulled commit 60bdcb9
+docker-compose -f docker-compose.cloud.yml down
+docker-compose -f docker-compose.cloud.yml up -d --build
+```
+
+**Build Output Highlights**:
+```
+✔ Generated Prisma Client (v5.22.0) to ./../../node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client in 199ms
+
+> web@0.1.0 dev /app/apps/web
+> next dev "--hostname" "0.0.0.0"
+
+   ▲ Next.js 14.1.0
+   - Local:        http://localhost:3000
+   - Network:      http://0.0.0.0:3000
+
+ ✓ Ready in 2s
+```
+
+**Status**:
+- ✅ Container rebuilt with fresh `pnpm install`
+- ✅ Prisma Client regenerated inside container with `markdownFile` model
+- ✅ Next.js server started successfully on `0.0.0.0:3000`
+- ✅ Server ready to handle API requests
+
+**Next Steps**: Windows should now test the `/api/markdown/sync` endpoint. The `prisma.markdownFile.findMany()` call should now work because the container has the updated Prisma client.
