@@ -1,11 +1,6 @@
-// Prisma schema for ProjectPulse
-// Database: PostgreSQL 16
-// NOTE: This is a minimal schema for theme system support
-// Full schema will be implemented in Week 1 Day 2
-
 generator client {
-  provider = "prisma-client-js"
-  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextIndex", "fullTextSearch"]
 }
 
 datasource db {
@@ -13,35 +8,482 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================================
-// USER PREFERENCES (for theme system and future UI preferences)
-// ============================================================================
-
 model UserPreferences {
-  id        Int      @id @default(autoincrement())
-  userId    Int?     @unique  // Optional: will be linked to User model when auth is added
-
-  // Theme preferences
-  theme     String   @default("desert")  // "desert", "neon", "earthy", "coral"
-
-  // UI preferences (future)
-  sidebarCollapsed  Boolean  @default(false)
-  compactMode       Boolean  @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               Int      @id @default(autoincrement())
+  userId           Int?     @unique
+  theme            String   @default("desert")
+  sidebarCollapsed Boolean  @default(false)
+  compactMode      Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([userId])
   @@index([theme])
   @@map("user_preferences")
 }
 
-// ============================================================================
-// FUTURE MODELS (will be added in Week 1 Day 2)
-// ============================================================================
+model MarkdownFile {
+  id           String    @id
+  projectId    Int
+  slug         String
+  path         String
+  category     String
+  syncStrategy String
+  templateId   String
+  contentHash  String?   @db.Char(64)
+  lastSyncedAt DateTime?
+  isGenerated  Boolean   @default(true)
+  status       String    @default("active")
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  Project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-// model User { ... }
-// model Issue { ... }
-// model Comment { ... }
-// model KnowledgeItem { ... }
-// etc.
+  @@unique([projectId, slug])
+  @@index([lastSyncedAt])
+  @@index([projectId, category])
+  @@index([projectId, status])
+  @@index([projectId, syncStrategy])
+  @@map("markdown_files")
+}
+
+model AgentPersona {
+  id                   Int             @id @default(autoincrement())
+  name                 String          @unique
+  slug                 String          @unique
+  icon                 String?
+  description          String?
+  systemPrompt         String
+  skills               String[]
+  tools                String[]
+  rules                String[]
+  autoActivate         Boolean         @default(false)
+  activationConditions Json?
+  templateId           Int?
+  isBuiltIn            Boolean         @default(false)
+  isActive             Boolean         @default(false)
+  expertise            String[]
+  personality          String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime
+  PromptTemplate       PromptTemplate? @relation(fields: [templateId], references: [id])
+  AgentSession         AgentSession[]
+
+  @@index([isActive])
+  @@index([isBuiltIn])
+  @@index([slug])
+}
+
+model AgentSession {
+  id            Int          @id @default(autoincrement())
+  personaId     Int
+  activatedBy   String?
+  context       Json?
+  duration      Int?
+  toolCalls     Int          @default(0)
+  issuesCreated Int          @default(0)
+  startedAt     DateTime     @default(now())
+  endedAt       DateTime?
+  AgentPersona  AgentPersona @relation(fields: [personaId], references: [id], onDelete: Cascade)
+
+  @@index([personaId])
+  @@index([startedAt(sort: Desc)])
+}
+
+model Attachment {
+  id         Int      @id @default(autoincrement())
+  filename   String
+  filepath   String
+  mimetype   String
+  size       Int
+  issueId    Int
+  uploadedAt DateTime @default(now())
+  Issue      Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  author    String?
+  issueId   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  Issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([issueId])
+}
+
+model Issue {
+  id              Int              @id @default(autoincrement())
+  title           String
+  description     String?
+  status          String           @default("open")
+  priority        String           @default("medium")
+  module          String?
+  assignee        String?
+  customFields    Json?
+  searchVector    String?
+  projectId       Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime
+  closedAt        DateTime?
+  Attachment      Attachment[]
+  Comment         Comment[]
+  Project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  KnowledgeLink   KnowledgeLink[]
+  LinkedCommit    LinkedCommit[]
+  LinkedFile      LinkedFile[]
+  SecurityFinding SecurityFinding?
+  WikiPageLink    WikiPageLink[]
+  Label           Label[]
+
+  @@index([assignee])
+  @@index([createdAt(sort: Desc)])
+  @@index([module])
+  @@index([priority])
+  @@index([projectId])
+  @@index([status])
+}
+
+model KnowledgeItem {
+  id            Int             @id @default(autoincrement())
+  title         String
+  content       String
+  category      String?
+  tags          String[]
+  searchVector  String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  KnowledgeLink KnowledgeLink[]
+
+  @@index([category])
+  @@index([createdAt(sort: Desc)])
+}
+
+model KnowledgeLink {
+  id              Int           @id @default(autoincrement())
+  knowledgeItemId Int
+  issueId         Int
+  createdAt       DateTime      @default(now())
+  Issue           Issue         @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  KnowledgeItem   KnowledgeItem @relation(fields: [knowledgeItemId], references: [id], onDelete: Cascade)
+
+  @@unique([knowledgeItemId, issueId])
+  @@index([issueId])
+  @@index([knowledgeItemId])
+}
+
+model Label {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  color     String   @default("#808080")
+  createdAt DateTime @default(now())
+  Issue     Issue[]
+
+  @@index([name])
+}
+
+model LinkedCommit {
+  id            Int       @id @default(autoincrement())
+  commitHash    String
+  commitMessage String?
+  commitDate    DateTime?
+  issueId       Int
+  createdAt     DateTime  @default(now())
+  Issue         Issue     @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, commitHash])
+  @@index([commitHash])
+}
+
+model LinkedFile {
+  id         Int      @id @default(autoincrement())
+  filePath   String
+  lineNumber Int?
+  issueId    Int
+  createdAt  DateTime @default(now())
+  Issue      Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, filePath])
+  @@index([filePath])
+}
+
+model PageLink {
+  id                                       Int      @id @default(autoincrement())
+  sourcePageId                             Int
+  targetPageId                             Int
+  linkType                                 String?
+  createdAt                                DateTime @default(now())
+  WikiPage_PageLink_sourcePageIdToWikiPage WikiPage @relation("PageLink_sourcePageIdToWikiPage", fields: [sourcePageId], references: [id], onDelete: Cascade)
+  WikiPage_PageLink_targetPageIdToWikiPage WikiPage @relation("PageLink_targetPageIdToWikiPage", fields: [targetPageId], references: [id], onDelete: Cascade)
+
+  @@unique([sourcePageId, targetPageId])
+  @@index([sourcePageId])
+  @@index([targetPageId])
+}
+
+model Project {
+  id             Int            @id @default(autoincrement())
+  name           String         @unique
+  description    String?
+  repository     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime
+  Issue          Issue[]
+  markdown_files MarkdownFile[]
+
+  @@index([name])
+}
+
+model PromptTemplate {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  description  String?
+  content      String
+  variables    String[]
+  category     String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  AgentPersona AgentPersona[]
+
+  @@index([category])
+}
+
+model SecurityFinding {
+  id          Int       @id @default(autoincrement())
+  ruleId      String
+  severity    String
+  message     String
+  filePath    String
+  lineNumber  Int
+  codeSnippet String?
+  status      String    @default("open")
+  issueId     Int?      @unique
+  scanDate    DateTime  @default(now())
+  fixedAt     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  Issue       Issue?    @relation(fields: [issueId], references: [id])
+
+  @@index([filePath])
+  @@index([ruleId])
+  @@index([scanDate(sort: Desc)])
+  @@index([severity])
+  @@index([status])
+}
+
+model Setting {
+  key         String   @id
+  value       Json
+  category    String
+  description String?
+  updatedAt   DateTime
+  updatedBy   String?
+
+  @@index([category])
+}
+
+model WikiPage {
+  id                                       Int            @id @default(autoincrement())
+  title                                    String
+  content                                  String
+  category                                 String?
+  parentId                                 Int?
+  path                                     String         @unique
+  orderIndex                               Int            @default(0)
+  searchVector                             String?
+  version                                  Int            @default(1)
+  createdAt                                DateTime       @default(now())
+  updatedAt                                DateTime
+  PageLink_PageLink_sourcePageIdToWikiPage PageLink[]     @relation("PageLink_sourcePageIdToWikiPage")
+  PageLink_PageLink_targetPageIdToWikiPage PageLink[]     @relation("PageLink_targetPageIdToWikiPage")
+  WikiPage                                 WikiPage?      @relation("WikiPageToWikiPage", fields: [parentId], references: [id], onDelete: Cascade)
+  other_WikiPage                           WikiPage[]     @relation("WikiPageToWikiPage")
+  WikiPageLink                             WikiPageLink[]
+
+  @@index([category])
+  @@index([orderIndex])
+  @@index([parentId])
+  @@index([path])
+}
+
+model WikiPageLink {
+  id         Int      @id @default(autoincrement())
+  wikiPageId Int
+  issueId    Int
+  createdAt  DateTime @default(now())
+  Issue      Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  WikiPage   WikiPage @relation(fields: [wikiPageId], references: [id], onDelete: Cascade)
+
+  @@unique([wikiPageId, issueId])
+  @@index([issueId])
+  @@index([wikiPageId])
+}
+
+model checkpoints {
+  id               String   @id
+  sessionId        String
+  notes            String
+  tokenUsage       Int
+  sessionContext   Json?
+  checkpointNumber Int
+  createdAt        DateTime @default(now())
+  sessions         sessions @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, checkpointNumber])
+  @@index([createdAt(sort: Desc)])
+  @@index([sessionId, createdAt(sort: Desc)])
+  @@index([sessionId])
+}
+
+model days {
+  id          String    @id
+  title       String
+  description String?
+  status      Status    @default(NOT_STARTED)
+  progress    Int       @default(0)
+  startDate   DateTime
+  endDate     DateTime?
+  weekId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  weeks       weeks     @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  tasks       tasks[]
+
+  @@index([startDate, endDate])
+  @@index([status])
+  @@index([weekId])
+  @@index([weekId, startDate, endDate, status])
+  @@index([weekId, status])
+}
+
+model issue_module_options {
+  id        Int      @id @default(autoincrement())
+  value     String   @unique
+  label     String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  @@index([order])
+  @@index([value])
+}
+
+model issue_priority_options {
+  id              Int      @id @default(autoincrement())
+  value           String   @unique
+  label           String
+  order           Int      @default(0)
+  dotColorClass   String?
+  badgeColorClass String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+
+  @@index([order])
+  @@index([value])
+}
+
+model issue_status_options {
+  id         Int      @id @default(autoincrement())
+  value      String   @unique
+  label      String
+  order      Int      @default(0)
+  colorClass String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+
+  @@index([order])
+  @@index([value])
+}
+
+model phases {
+  id          String    @id
+  title       String
+  description String?
+  status      Status    @default(NOT_STARTED)
+  progress    Int       @default(0)
+  startDate   DateTime
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  weeks       weeks[]
+
+  @@index([startDate, endDate])
+  @@index([startDate, endDate, status])
+  @@index([status])
+}
+
+model sessions {
+  id          String        @id
+  title       String
+  description String?
+  status      Status        @default(NOT_STARTED)
+  progress    Int           @default(0)
+  startDate   DateTime
+  endDate     DateTime?
+  taskId      String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime
+  checkpoints checkpoints[]
+  tasks       tasks         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([startDate, endDate])
+  @@index([status])
+  @@index([taskId])
+  @@index([taskId, startDate, endDate, status])
+  @@index([taskId, status])
+}
+
+model tasks {
+  id          String     @id
+  title       String
+  description String?
+  status      Status     @default(NOT_STARTED)
+  progress    Int        @default(0)
+  startDate   DateTime
+  endDate     DateTime?
+  dayId       String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime
+  sessions    sessions[]
+  days        days       @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  @@index([dayId])
+  @@index([dayId, startDate, endDate, status])
+  @@index([dayId, status])
+  @@index([startDate, endDate])
+  @@index([status])
+  @@index([updatedAt(sort: Desc)])
+}
+
+model weeks {
+  id          String    @id
+  title       String
+  description String?
+  status      Status    @default(NOT_STARTED)
+  progress    Int       @default(0)
+  startDate   DateTime
+  endDate     DateTime?
+  phaseId     String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  days        days[]
+  phases      phases    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+
+  @@index([phaseId])
+  @@index([phaseId, startDate, endDate, status])
+  @@index([phaseId, status])
+  @@index([startDate, endDate])
+  @@index([status])
+}
+
+enum Status {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+  CANCELLED
+}

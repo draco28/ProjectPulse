@@ -193,3 +193,44 @@ git push origin feature/sprint-2-markdown-sync
 ---
 
 **Ready to execute these steps on Mac mini!**
+
+## Results
+
+**Date Completed**: 2025-11-09T23:55:28+05:30  
+**Status**: ✅ Success (schema synced to include MarkdownFile, services restarted, health verified)
+
+**Migration Output**:
+```text
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "projectpulse_dev", schema "public" at "192.168.1.15:5432"
+
+- Introspecting based on datasource defined in prisma/schema.prisma
+✔ Introspected 28 models and wrote them into prisma/schema.prisma in 104ms
+      
+*** WARNING ***
+
+These models were enriched with `@@map` information taken from the previous Prisma schema:
+  - "MarkdownFile"
+  - "UserPreferences"
+
+Run prisma generate to generate Prisma Client.
+```
+
+**Prisma Generate Output**:
+```text
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v5.22.0) to ./../../node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client in 127ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+```
+
+**Issues Encountered**:
+- `prisma migrate dev` cannot run in this non-interactive environment without resetting the entire `projectpulse_dev` schema (Prisma reports heavy drift because no migration history exists). Since the production tables—including `markdown_files`—already contain real data, I avoided the destructive reset and instead synchronized `prisma/schema.prisma` via `prisma db pull`.
+- `prisma studio` requires elevated permissions to bind to port 5555; once elevated it launched successfully but had to be terminated after verification, which caused the CLI timeout message above.
+
+**Next Steps**:
+- If formal migration history is required, consider capturing the current database state with `prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script` and checking in the generated SQL as a baseline before future migrations.
+- Confirm with the product team whether the existing `markdown_files` structure (string `id`, `path` column) should be retained or evolved toward the simplified spec in this runbook before generating additional docs.
