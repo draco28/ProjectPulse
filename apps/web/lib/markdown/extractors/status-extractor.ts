@@ -66,26 +66,41 @@ export const statusExtractor: DataExtractor<StatusData> = {
       orderBy: { updatedAt: 'desc' },
     });
 
-    // 4. Format data for template
+    // 4. Get all weeks in phase to calculate week number
+    const weeksInPhase = await prisma.week.findMany({
+      where: { phaseId: currentPhase.id },
+      orderBy: { startDate: 'asc' },
+      select: { id: true },
+    });
+    const weekNumber = weeksInPhase.findIndex((w) => w.id === currentWeek.id) + 1;
+
+    // 5. Map Prisma Status to template Status (normalize to 3 states)
+    const normalizeStatus = (status: string): 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' => {
+      if (status === 'COMPLETED') return 'COMPLETED';
+      if (status === 'IN_PROGRESS' || status === 'BLOCKED') return 'IN_PROGRESS';
+      return 'NOT_STARTED'; // NOT_STARTED, CANCELLED
+    };
+
+    // 6. Format data for template
     return {
       phase: {
-        name: currentPhase.name,
+        name: currentPhase.title, // Use title field from Prisma
         progress: currentPhase.progress,
-        status: currentPhase.status,
+        status: normalizeStatus(currentPhase.status),
         startDate: currentPhase.startDate,
         endDate: currentPhase.endDate ?? undefined,
       },
       currentWeek: {
-        weekNumber: currentWeek.weekNumber,
+        weekNumber, // Calculated from position in phase
         progress: currentWeek.progress,
-        status: currentWeek.status,
-        days: currentWeek.days.map((day) => ({
-          dayNumber: day.dayNumber,
+        status: normalizeStatus(currentWeek.status),
+        days: currentWeek.days.map((day, index) => ({
+          dayNumber: index + 1, // Calculate from array index
           title: day.title,
           progress: day.progress,
           tasks: day.tasks.map((task) => ({
             title: task.title,
-            status: task.status,
+            status: normalizeStatus(task.status),
             progress: task.progress,
           })),
         })),

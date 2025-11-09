@@ -54,7 +54,9 @@
       "Bash(mkdir:*)",
       "Bash(git fetch:*)",
       "Bash(git checkout:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(npx tsx:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev\" npx tsx:*)"
     ],
     "deny": [],
     "ask": [

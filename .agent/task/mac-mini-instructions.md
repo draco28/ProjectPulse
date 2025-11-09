@@ -360,7 +360,80 @@ Once testing is complete and successful:
 
 ---
 
-**Last Updated**: 2025-11-09 21:05 (Windows)
-**Waiting for**: Mac mini testing execution
-**Commit**: 7bd98b5
+## Testing Results
+
+**Status**: ✅ SUCCESS
+
+**Dependencies installed**: ✅ YES - handlebars@^4.7.8 and type dependencies
+
+**TypeScript compilation**: ✅ PASS - Zero errors after fixing status-extractor.ts
+
+**TypeScript fixes applied**:
+- Fixed field name mismatch (Phase.name → Phase.title)
+- Calculated weekNumber and dayNumber from array indices (not stored in DB)
+- Normalized Prisma's 5-state Status enum to template's 3-state enum:
+  - BLOCKED → IN_PROGRESS (blocked tasks are still active)
+  - CANCELLED → NOT_STARTED (for reporting purposes)
+
+**Database record created**: ✅ YES
+- Project ID: 1 ("Test Project for Markdown Sync")
+- MarkdownFile record: slug=status, templateId=status-template
+
+**Sync test executed**: ✅ YES
+
+**STATUS.md generated**: ✅ YES
+- Location: apps/web/STATUS.md (created in working directory)
+- Content: Rendered from database with Phase, Week, Day, Task hierarchy
+- Sample output:
+```markdown
+# Project Status
+
+**Last Updated**: 2025-11-09
+
+---
+
+## Current Phase: Sprint 1
+
+- **Progress**: 50%
+- **Status**: IN_PROGRESS
+- **Timeline**: 2025-11-09 → 2025-11-23
+
+---
+
+## Current Week: Week 1
+
+**Progress**: 50% | **Status**: IN_PROGRESS
+
+### Day 1 - Day 1
+
+**Progress**: 50%
+
+**Tasks**:
+- [ ] Test Task (50%)
+
+---
+
+## Last Task Completed
+
+No tasks completed yet.
+```
+
+**Content hash optimization verified**: ✅ YES
+- First sync: 51ms (generated + wrote file)
+- Second sync: 41ms (skipped write - hash matched)
+- **Performance gain**: ~20% reduction (93% gain refers to skipping unnecessary writes)
+
+**Errors encountered**:
+1. ❌ Initial TypeScript errors - status-extractor.ts field mismatches
+   - ✅ Fixed: Mapped Prisma fields to template schema
+2. ❌ Missing DATABASE_URL environment variable
+   - ✅ Fixed: Added DATABASE_URL to script execution
+
+**Completed at**: 2025-11-09 16:50 PST (Mac Mini)
+
+---
+
+**Last Updated**: 2025-11-09 16:50 (Mac Mini - Testing COMPLETE ✅)
+**Waiting for**: Windows review and next steps decision
+**Commit**: Ready to commit fixes + test results
 **Branch**: feature/sprint-2-markdown-sync
