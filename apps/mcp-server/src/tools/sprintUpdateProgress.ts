@@ -123,7 +123,7 @@ async function handler(
 
     // Build propagation chain string
     const propagationChain = propagation.updated
-      .map((e) => `${e.type} (${e.progress}% ${e.status})`)
+      .map((e: { type: string; progress: number; status: string }) => `${e.type} (${e.progress}% ${e.status})`)
       .join(' → ');
 
     logger.info('[sprint.updateProgress] Progress updated successfully', {

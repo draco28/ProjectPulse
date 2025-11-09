@@ -10,7 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import { prisma } from '@/lib/prisma';
 import { CreateCheckpointSchema } from '@/lib/validation/checkpoint';
 import { ApiResponse } from '@/lib/types/api';
 

@@ -4,6 +4,7 @@ import type { Logger } from './logger.js';
 export interface HttpClient {
   get<T>(path: string, init?: RequestInit): Promise<T>;
   post<T, B = unknown>(path: string, body?: B, init?: RequestInit): Promise<T>;
+  put<T, B = unknown>(path: string, body?: B, init?: RequestInit): Promise<T>;
 }
 
 const ensureAbsoluteUrl = (baseUrl: string, path: string) => {
@@ -64,6 +65,12 @@ export const createHttpClient = (config: AppConfig, logger: Logger): HttpClient 
       request<T>(path, {
         ...init,
         method: 'POST',
+        body: body === undefined ? undefined : JSON.stringify(body),
+      }),
+    put: <T, B = unknown>(path: string, body?: B, init?: RequestInit) =>
+      request<T>(path, {
+        ...init,
+        method: 'PUT',
         body: body === undefined ? undefined : JSON.stringify(body),
       }),
   };
