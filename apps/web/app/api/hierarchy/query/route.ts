@@ -1,0 +1,331 @@
+/**
+ * Hierarchy Query API Route
+ *
+ * GET /api/hierarchy/query - Query hierarchy entities with filters
+ *
+ * Implements US-007 (partial - status + progress filters only).
+ * Date range filtering deferred to Sprint 2 for full US-007 completion.
+ *
+ * @see {@link file://./lib/validation/hierarchy-query.ts} for validation schemas
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { HierarchyQuerySchema, type EntityLevel } from '@/lib/validation/hierarchy-query';
+import { ApiResponse } from '@/lib/types/api';
+import type { Prisma } from '@prisma/client';
+
+// Force dynamic rendering (no caching for query results)
+export const dynamic = 'force-dynamic';
+
+/**
+ * Build Prisma where clause for common filters (status + progress)
+ */
+function buildWhereClause(filters: {
+  status?: string[];
+  progressMin?: number;
+  progressMax?: number;
+}): Record<string, unknown> {
+  const where: Record<string, unknown> = {};
+
+  // Status filter (OR logic - match any of the provided statuses)
+  if (filters.status && filters.status.length > 0) {
+    where.status = { in: filters.status };
+  }
+
+  // Progress range filter
+  if (filters.progressMin !== undefined || filters.progressMax !== undefined) {
+    where.progress = {};
+    if (filters.progressMin !== undefined) {
+      (where.progress as Record<string, number>).gte = filters.progressMin;
+    }
+    if (filters.progressMax !== undefined) {
+      (where.progress as Record<string, number>).lte = filters.progressMax;
+    }
+  }
+
+  return where;
+}
+
+/**
+ * GET /api/hierarchy/query
+ *
+ * Query hierarchy entities with filters.
+ *
+ * Query parameters:
+ * - level: "phase" | "week" | "day" | "task" | "session" (required)
+ * - status[]: Status filter (can pass multiple, e.g., ?status=IN_PROGRESS&status=BLOCKED)
+ * - progressMin: Minimum progress (0-100)
+ * - progressMax: Maximum progress (0-100)
+ * - page: Page number (default 1)
+ * - limit: Results per page (default 20, max 100)
+ *
+ * Returns:
+ * - 200: Paginated array of entities with parent context
+ * - 400: Validation error
+ * - 500: Server error
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+
+    // 1. Parse and validate query parameters
+    const queryInput = {
+      level: searchParams.get('level'),
+      status: searchParams.getAll('status'),
+      progressMin: searchParams.get('progressMin'),
+      progressMax: searchParams.get('progressMax'),
+      page: searchParams.get('page'),
+      limit: searchParams.get('limit'),
+    };
+
+    const validationResult = HierarchyQuerySchema.safeParse(queryInput);
+
+    if (!validationResult.success) {
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          data: null,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid query parameters',
+            details: validationResult.error.errors,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    const { level, status, progressMin, progressMax, page, limit } = validationResult.data;
+
+    // 2. Build common where clause
+    const where = buildWhereClause({ status, progressMin, progressMax });
+
+    // 3. Calculate pagination
+    const skip = (page - 1) * limit;
+
+    // 4. Query based on entity level (with parent context)
+    let entities;
+    let total;
+
+    switch (level) {
+      case 'phase': {
+        [entities, total] = await Promise.all([
+          prisma.phase.findMany({
+            where: where as Prisma.PhaseWhereInput,
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              status: true,
+              progress: true,
+              startDate: true,
+              endDate: true,
+              createdAt: true,
+            },
+            orderBy: { startDate: 'desc' },
+            skip,
+            take: limit,
+          }),
+          prisma.phase.count({ where: where as Prisma.PhaseWhereInput }),
+        ]);
+        break;
+      }
+
+      case 'week': {
+        [entities, total] = await Promise.all([
+          prisma.week.findMany({
+            where: where as Prisma.WeekWhereInput,
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              status: true,
+              progress: true,
+              startDate: true,
+              endDate: true,
+              createdAt: true,
+              // Parent context
+              phase: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
+            orderBy: { startDate: 'desc' },
+            skip,
+            take: limit,
+          }),
+          prisma.week.count({ where: where as Prisma.WeekWhereInput }),
+        ]);
+        break;
+      }
+
+      case 'day': {
+        [entities, total] = await Promise.all([
+          prisma.day.findMany({
+            where: where as Prisma.DayWhereInput,
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              status: true,
+              progress: true,
+              startDate: true,
+              endDate: true,
+              createdAt: true,
+              // Parent context
+              week: {
+                select: {
+                  id: true,
+                  title: true,
+                  phase: {
+                    select: {
+                      id: true,
+                      title: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: { startDate: 'desc' },
+            skip,
+            take: limit,
+          }),
+          prisma.day.count({ where: where as Prisma.DayWhereInput }),
+        ]);
+        break;
+      }
+
+      case 'task': {
+        [entities, total] = await Promise.all([
+          prisma.task.findMany({
+            where: where as Prisma.TaskWhereInput,
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              status: true,
+              progress: true,
+              startDate: true,
+              endDate: true,
+              createdAt: true,
+              // Parent context
+              day: {
+                select: {
+                  id: true,
+                  title: true,
+                  week: {
+                    select: {
+                      id: true,
+                      title: true,
+                      phase: {
+                        select: {
+                          id: true,
+                          title: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: { startDate: 'desc' },
+            skip,
+            take: limit,
+          }),
+          prisma.task.count({ where: where as Prisma.TaskWhereInput }),
+        ]);
+        break;
+      }
+
+      case 'session': {
+        [entities, total] = await Promise.all([
+          prisma.session.findMany({
+            where: where as Prisma.SessionWhereInput,
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              status: true,
+              progress: true,
+              startDate: true,
+              endDate: true,
+              notes: true,
+              createdAt: true,
+              // Parent context
+              task: {
+                select: {
+                  id: true,
+                  title: true,
+                  day: {
+                    select: {
+                      id: true,
+                      title: true,
+                      week: {
+                        select: {
+                          id: true,
+                          title: true,
+                          phase: {
+                            select: {
+                              id: true,
+                              title: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: { startDate: 'desc' },
+            skip,
+            take: limit,
+          }),
+          prisma.session.count({ where: where as Prisma.SessionWhereInput }),
+        ]);
+        break;
+      }
+    }
+
+    // 5. Return paginated results
+    return NextResponse.json<ApiResponse<{
+      entities: unknown[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+    }>>(
+      {
+        data: {
+          entities,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+          },
+        },
+        error: null,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('[GET /api/hierarchy/query] Error:', error);
+
+    return NextResponse.json<ApiResponse<null>>(
+      {
+        data: null,
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to query hierarchy',
+          details: error instanceof Error ? error.message : 'Unknown error',
+        },
+      },
+      { status: 500 }
+    );
+  }
+}

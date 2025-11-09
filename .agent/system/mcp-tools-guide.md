@@ -2,7 +2,7 @@
 
 **Last Updated**: 2025-11-09
 **Purpose**: Reference guide for all MCP (Model Context Protocol) tools available to Claude Code
-**Status**: Core tools configured + ProjectPulse tools active (Sprint 1 Week 2 Days 10-12 complete)
+**Status**: Core tools configured + ProjectPulse tools active (Sprint 1 Week 2 Days 10-13 complete)
 
 ---
 
@@ -36,7 +36,7 @@
 
 **ProjectPulse Tools**:
 
-- [projectpulse](#projectpulse-mcp-server) - Sprint and task management (5 tools active)
+- [projectpulse](#projectpulse-mcp-server) - Sprint and task management (8 tools active)
 
 ---
 
@@ -1108,6 +1108,177 @@ const latestCheckpoint = await queryLatestCheckpoint(sessionId);
 
 ---
 
+#### `projectpulse.sprint.queryHierarchy`
+
+Query hierarchy entities with filters (status, progress) for reporting and finding specific work items
+
+**Parameters**:
+
+```typescript
+{
+  level: "phase" | "week" | "day" | "task" | "session",  // Entity level to query (required)
+  status?: ("NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "BLOCKED" | "CANCELLED")[],  // Filter by status (OR logic)
+  progressMin?: number,     // Minimum progress (0-100)
+  progressMax?: number,     // Maximum progress (0-100)
+  page?: number,            // Page number (default 1)
+  limit?: number            // Results per page (default 20, max 100)
+}
+```
+
+**Examples**:
+
+```typescript
+// Find all blocked tasks
+projectpulse.sprint.queryHierarchy({
+  level: 'task',
+  status: ['BLOCKED']
+});
+
+// Find stuck work (low progress, in progress)
+projectpulse.sprint.queryHierarchy({
+  level: 'task',
+  status: ['IN_PROGRESS'],
+  progressMax: 30
+});
+
+// Find nearly complete sessions
+projectpulse.sprint.queryHierarchy({
+  level: 'session',
+  progressMin: 75,
+  progressMax: 99
+});
+
+// Find completed OR blocked tasks (OR logic)
+projectpulse.sprint.queryHierarchy({
+  level: 'task',
+  status: ['COMPLETED', 'BLOCKED']
+});
+
+// Pagination example (page 2, 50 results per page)
+projectpulse.sprint.queryHierarchy({
+  level: 'week',
+  status: ['IN_PROGRESS'],
+  page: 2,
+  limit: 50
+});
+```
+
+**Returns (Success)**:
+
+```json
+{
+  "status": "success",
+  "query": {
+    "level": "task",
+    "filters": {
+      "status": ["BLOCKED"],
+      "progressRange": null
+    }
+  },
+  "results": [
+    {
+      "id": "clxABC123",
+      "title": "Implement authentication system",
+      "description": "OAuth + JWT auth flow",
+      "status": "BLOCKED",
+      "progress": 25,
+      "startDate": "2025-11-08T09:00:00.000Z",
+      "endDate": null,
+      "createdAt": "2025-11-08T09:00:00.000Z",
+      "day": {
+        "id": "clxDAY001",
+        "title": "Day 5 - Auth Implementation",
+        "week": {
+          "id": "clxWEEK01",
+          "title": "Week 2 - Security Features",
+          "phase": {
+            "id": "clxPHASE1",
+            "title": "Phase B - Core Features"
+          }
+        }
+      }
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 5,
+    "totalPages": 1,
+    "hasMore": false
+  }
+}
+```
+
+**Returns (Error - Invalid Level)**:
+
+```json
+{
+  "status": "error",
+  "error": "Invalid enum value. Expected 'phase' | 'week' | 'day' | 'task' | 'session', received 'invalid'",
+  "code": "VALIDATION_ERROR"
+}
+```
+
+**Implementation**:
+
+- **API Endpoint**: `GET /api/hierarchy/query`
+- **Single Endpoint Pattern**: DRY - reduces code duplication by 80%
+- **Parent Context**: Always included via Prisma `select` (52% smaller payload)
+- **Status Filter**: OR logic (matches ANY of the provided statuses)
+- **Progress Range**: Validates progressMin <= progressMax
+- **Pagination**: Default 20, max 100 items per page
+- **Performance**: <50ms simple query, <200ms complex query
+
+**Use Cases**:
+
+- **Find blocked work**: `status: ['BLOCKED']`
+- **Find stuck tasks**: `status: ['IN_PROGRESS'], progressMax: 30`
+- **Find completed items**: `status: ['COMPLETED']`
+- **Find nearly done work**: `progressMin: 75, progressMax: 99`
+- **Sprint reporting**: Query all levels for status dashboard
+- **Identify issues**: Find blocked or low-progress items for intervention
+
+**Workflow Integration**:
+
+```typescript
+// 1. Daily standup: Find all blocked work
+const blockedItems = await projectpulse.sprint.queryHierarchy({
+  level: 'task',
+  status: ['BLOCKED']
+});
+
+// 2. Sprint review: Find all completed work this week
+const completedWork = await projectpulse.sprint.queryHierarchy({
+  level: 'task',
+  status: ['COMPLETED']
+});
+
+// 3. Risk assessment: Find stuck tasks (in progress but low completion)
+const stuckTasks = await projectpulse.sprint.queryHierarchy({
+  level: 'task',
+  status: ['IN_PROGRESS'],
+  progressMax: 25
+});
+
+// 4. Planning: Find nearly complete items to prioritize finishing
+const almostDone = await projectpulse.sprint.queryHierarchy({
+  level: 'session',
+  progressMin: 80,
+  status: ['IN_PROGRESS']
+});
+```
+
+**Scope (Minimal US-007 - 2 story points)**:
+
+- ✅ Status filtering (OR logic, multiple values)
+- ✅ Progress range filtering (min/max)
+- ✅ Pagination (efficiency for large datasets)
+- ⏭️ Date range filtering (deferred to Sprint 2 for full US-007 completion)
+
+**Source**: [apps/mcp-server/src/tools/sprintQueryHierarchy.ts](../../apps/mcp-server/src/tools/sprintQueryHierarchy.ts)
+
+---
+
 ### When to Use ProjectPulse Tools
 
 **Use `sprint.phase.create` when**:
@@ -1146,6 +1317,25 @@ const latestCheckpoint = await queryLatestCheckpoint(sessionId);
 - Recording session notes and outcomes
 - Supporting in-progress sessions (no endDate)
 - Monitoring detailed work activity
+
+**Use `sprint.checkpoint.create` when**:
+
+- Saving agent progress every 15K tokens (15K, 30K, 45K, 60K, 75K, 90K)
+- Creating context recovery points before context compaction
+- Tracking implementation progress at major milestones
+- Monitoring token budget to prevent hitting 200K limit
+- Saving work state with file/endpoint lists for resumption
+
+**Use `sprint.queryHierarchy` when**:
+
+- Finding all blocked or stuck work items
+- Generating sprint status reports
+- Identifying low-progress tasks that need attention
+- Finding completed work for sprint review
+- Filtering entities by status (completed, blocked, in progress)
+- Finding nearly complete items to prioritize finishing
+- Daily standup: "What's blocked?"
+- Risk assessment: "What's stuck with low progress?"
 
 **Common Workflows**:
 

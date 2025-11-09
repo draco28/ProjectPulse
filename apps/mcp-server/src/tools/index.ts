@@ -8,6 +8,7 @@ import { sprintUpdateProgressTool } from './sprintUpdateProgress.js';
 import { sprintTaskCreateTool } from './sprintTaskCreate.js';
 import { sprintSessionCreateTool } from './sprintSessionCreate.js';
 import { sprintCheckpointCreateTool } from './sprintCheckpointCreate.js';
+import { sprintQueryHierarchyTool } from './sprintQueryHierarchy.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -17,6 +18,7 @@ const loadTools = (): ToolDefinition[] => [
   sprintTaskCreateTool,
   sprintSessionCreateTool,
   sprintCheckpointCreateTool,
+  sprintQueryHierarchyTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {
