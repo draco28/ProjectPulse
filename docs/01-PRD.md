@@ -10,17 +10,23 @@
 ## 1. Project Overview
 
 ### 1.1 Vision
+ProjectPulse is a **web-based project management platform** that replaces filesystem-based agent workflows with database-backed, UI-accessible project management.
 
-ProjectPulse is an **agent-first meta-platform** that generates complete agent workflow infrastructure for any software project. It analyzes a project and automatically creates:
+**What It Provides:**
+- **Web UI for Humans**: Searchable wiki, visual dashboards, issue tracking, knowledge base
+- **MCP API for Agents**: 41 tools for CRUD operations, vector search, progress tracking
+- **Database Storage**: All project data stored in PostgreSQL (docs, issues, knowledge, progress)
+- **Clean Repositories**: User's repo stays free of .agent/ folder clutter
 
-- **Agent Workflow Systems**: Complete CLAUDE.md with mandatory protocols, memory banks, sub-agents, and skills
-- **Context Management**: Structured knowledge files (.agent/) for token-efficient development
-- **Sprint Execution Infrastructure**: Ticket system with lifecycle tracking and memory bank snapshots
-- **Developer Monitoring**: Dashboard for observing agent activity and project health
+**How It Works:**
+1. Developer creates project in ProjectPulse web app
+2. AI agent connects via MCP (Model Context Protocol)
+3. Agent follows guided onboarding prompts from ProjectPulse
+4. Agent stores all data in ProjectPulse database (NOT local files)
+5. Human monitors via web UI (wiki, dashboards, search)
+6. Repository stays clean (no .agent/ folder, no markdown files)
 
-**Meta-Platform Vision**: ProjectPulse doesn't just manage projects—it generates the tools that enable AI agents to manage projects autonomously. The onboarding system analyzes your codebase, requirements, and architecture, then produces a complete .agent/ folder tailored to your specific project context.
-
-**Primary Use Case**: Onboard a new project → ProjectPulse generates CLAUDE.md, memory banks, sub-agents, and skills → AI agents immediately have complete context and workflows → 95% autonomous development.
+**Primary Use Case**: Developer creates project → Agent connects via MCP → Agent stores documentation/issues/knowledge in database → Human views via web UI → Repository stays clean.
 
 ### 1.2 Agent-First Philosophy
 
@@ -40,22 +46,31 @@ ProjectPulse is an **agent-first meta-platform** that generates complete agent w
 
 **UI Purpose:** BOTH monitoring AND full manual CRUD functionality (not just monitoring)
 
-**Onboarding as Core Philosophy**:
+**Guided Onboarding System**:
 
-The agent-first approach begins with **intelligent project onboarding**. Instead of manual documentation maintenance, ProjectPulse:
+ProjectPulse provides **prompt templates** that guide AI agents through project initialization. All data is stored in the database and accessible via web UI.
 
-1. **Analyzes Project Structure**: Scans codebase, identifies patterns, detects tech stack
-2. **Generates Agent Infrastructure**: Creates CLAUDE.md, memory banks, sub-agents, skills
-3. **Establishes Workflows**: Defines mandatory protocols, checkpoint systems, recovery procedures
-4. **Enables Autonomy**: Agents immediately have complete context without human intervention
+**3-Session Onboarding Flow:**
 
-**Progressive Knowledge Building**:
+1. **Session 1 - Executive Summary**
+   - ProjectPulse sends prompt: "Ask user these 10 questions about their project..."
+   - Agent collects answers from user
+   - Agent stores executive summary in database via MCP
+   - Visible in: Wiki page (category: "Overview")
 
-- **Session 1** (MVP): Executive summary, wiki basics, memory bank seeds → Agents can start work
-- **Session 2**: Tech stack deep-dive → Agents understand dependencies and constraints
-- **Session 3**: Requirements exploration → Agents align with business goals
-- **Session 4**: Architecture mapping → Agents understand system design patterns
-- **Session 5**: Backlog and sprint planning → Agents prioritize work autonomously
+2. **Session 2 - Industry Documentation**
+   - ProjectPulse sends prompt: "Generate PRD, SRS, Architecture based on: {executive_summary}..."
+   - Agent generates industry-standard documents
+   - Agent stores documents in database via MCP (`wiki.create()` tool)
+   - Visible in: Wiki page (categories: "Requirements", "Architecture")
+
+3. **Session 3 - AI Workflow Blueprint**
+   - ProjectPulse sends prompt: "Create memory banks, skills, SOPs for this project..."
+   - Agent creates workflow artifacts
+   - Agent stores in database via MCP (Knowledge Base + Wiki)
+   - Visible in: Knowledge Base page, Wiki page (category: "Workflows")
+
+**Result:** All onboarding data lives in ProjectPulse database. User accesses via web UI. Repository stays clean.
 
 **Ticket System Integration**:
 

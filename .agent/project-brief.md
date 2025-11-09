@@ -8,39 +8,124 @@
 
 ## Core Mission
 
-Build an agent-first project management platform (meta-platform) that generates agent workflow infrastructure for development projects. ProjectPulse enables AI agents to drive 95% of project workflows through MCP (Model Context Protocol) tools, with the database as the source of truth and human developers providing strategic oversight.
+Build a **web-based project management platform** that replaces filesystem-based agent workflows with database-backed, UI-accessible project management.
+
+**What We're Building:**
+
+- **Web Application** (Next.js + PostgreSQL + MCP API)
+- **Database Storage** (all project data: docs, issues, knowledge, progress)
+- **Web UI for Humans** (wiki, dashboards, search, issue tracking)
+- **MCP API for Agents** (41 tools for CRUD operations)
+
+**What We're NOT Building:**
+
+- .agent/ folder generator
+- CLAUDE.md file creator
+- Markdown template system for end users (markdown sync is internal tooling for OUR development)
+
+**End User Gets:**
+
+A self-hosted web application (local-first) with pages for:
+- Wiki (searchable documentation)
+- Knowledge Base (RAG with semantic search)
+- Issues (bug/feature tracking)
+- Tickets (sprint work items)
+- Development Cycle (hierarchical progress visualization)
+- Dashboard (project overview)
+
+**End User Does NOT Get:**
+
+- .agent/ folder in their repository
+- CLAUDE.md in their repository
+- Any markdown files in their repository
 
 ---
 
 ## Primary Goals
 
-### 1. Agent-First Architecture
+### 1. Web Application Features
 
-- 95% of workflows driven by AI agents through MCP tools
-- Database as single source of truth (not markdown files)
-- Zero-drift markdown sync (database → markdown, one-way)
-- Human oversight for strategic decisions only
+**Wiki Page:**
+- Database storage (WikiPage model)
+- Search interface (full-text + category filters)
+- Markdown rendering with syntax highlighting
+- Manual editing + agent creation via MCP
 
-### 2. Meta-Platform Vision
+**Knowledge Base:**
+- RAG system with pgvector
+- Semantic search (vector similarity)
+- Agent stores via `knowledge.store()`
+- Human searches via web UI
 
-- Generates agent workflow infrastructure for users' projects
-- 5-level hierarchy: Phase → Week → Day → Task → Session
-- Progress auto-rolls up from sessions to phases
-- Workflow orchestration with mandatory protocols
+**Issues Page:**
+- Bug/feature tracking
+- Auto-tagging and classification
+- Bulk creation (agents create 10-50 at once)
+- Priority/status/assignee management
 
-### 3. Intelligent Automation
+**Development Cycle Page:**
+- Hierarchical progress visualization
+- Sprint → Week → Day → Task → Session
+- Progress auto-rollup
+- Real-time updates when agents modify
 
-- 41 MCP tools across 9 feature categories
-- Sub-agent system (explore-codebase, analyze-architecture, synthesize-docs)
-- Memory bank system for context preservation
-- Research agent orchestration for deep analysis
+**Tickets Page:**
+- Sprint work items
+- Lifecycle tracking (backlog → in progress → done)
+- Memory bank snapshots
+- Checkpoint recovery
 
-### 4. Developer Features (Secondary)
+**Dashboard:**
+- Project health overview
+- Recent activity feed
+- Key metrics (velocity, quality gates)
 
-- Issue tracking with auto-tagging and bulk creation
-- Knowledge graph with semantic search (pgvector)
-- Wiki with auto-generation from code
-- Project health dashboard with security scanning
+### 2. MCP API for Agents
+
+**41 MCP Tools** across categories:
+- Wiki tools (create, search, update, delete, list)
+- Knowledge tools (store, query, vector search)
+- Issue tools (create, update, bulk create, search)
+- Ticket tools (create, update, transition, link)
+- Progress tracking tools (update progress, get current task)
+- Onboarding tools (getPrompt, submitResponse)
+
+**Authentication:**
+- API key-based (generated per project)
+- Scoped to project (agents can only access their project data)
+
+### 3. Database-First Architecture
+
+**PostgreSQL as Source of Truth:**
+- All data in database (NOT local files)
+- Models: WikiPage, KnowledgeChunk, Issue, Ticket, Phase, Week, Day, Task, Session, OnboardingSession
+
+**Real-time Sync:**
+- Web UI updates when agents modify data
+- No polling required (use Prisma subscriptions or SSE)
+
+**Persistence:**
+- No context loss across sessions
+- Agents can resume work after interruption
+- Checkpoint recovery via database state
+
+### 4. Guided Onboarding
+
+**3-Session Flow:**
+
+Session 1: Executive summary (10 questions)
+Session 2: Industry docs (PRD, SRS, Architecture)
+Session 3: AI workflow blueprint (memory banks, skills, SOPs)
+
+**All Stored in Database:**
+- Onboarding responses → OnboardingSession table
+- Generated docs → WikiPage table (visible in Wiki page)
+- Knowledge → KnowledgeChunk table (searchable in Knowledge Base)
+
+**User's Repo Stays Clean:**
+- No .agent/ folder
+- No markdown files
+- All data stored locally in the ProjectPulse database (no cloud dependency)
 
 ---
 

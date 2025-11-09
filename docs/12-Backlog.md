@@ -118,21 +118,40 @@ PRD (Features) → Backlog (Epics) → Backlog (Stories) → SRS (FRs) → Testi
 
 ## 2. Epic Breakdown
 
-### EPIC-001: Sprint/Phase Tracking
+### EPIC-001: Progress Tracking & Development Cycle Page
 
-**Description:** Hierarchical progress tracking with auto-sync to markdown files. Agents and humans can track work across 5 levels: Phase → Week → Day → Task → Session.
+**Description:** Hierarchical progress tracking (Sprint → Week → Day → Task → Session) with database storage and web UI visualization.
+
+**Goal:**
+Enable agents to track progress via MCP tools and humans to monitor via Development Cycle page (web UI).
+
+**Features:**
+- 5-level hierarchy in database (Phase, Week, Day, Task, Session models)
+- Progress auto-rollup (Session → Task → Day → Week → Phase)
+- MCP tools for agents to update progress
+- Development Cycle page for humans to view progress
+- Real-time progress percentage calculation
+
+**NOT Included:**
+- ❌ Markdown file generation (not an end user feature)
+- ❌ .agent/ folder creation (users don't need local files)
+- ❌ File synchronization (end users use web UI, not files)
+
+**User Stories:** US-001 to US-014 (14 stories, 52 points)
+
+**Priority:** P0 (Must Have - Foundation for all progress tracking)
 
 **Business Value:**
 
 - Agents always know current task context (no manual STATUS.md updates)
 - Progress rolls up automatically (Session 100% → Task 50% → Day 25% → Week 12.5% → Phase 3%)
-- Markdown files (STATUS.md, DEVELOPMENT_PLAN.md) auto-generated from database (single source of truth)
+- Development Cycle page displays progress visualization from database (single source of truth)
 
 **Success Criteria:**
 
 - All 5 hierarchy levels functional (Phase, Week, Day, Task, Session)
-- Progress updates trigger markdown regeneration in <500ms
-- Git hooks prevent manual markdown edits (database as source of truth)
+- Progress updates reflected in Development Cycle page in <500ms (P95)
+- No markdown files for end users; UI reflects database state in real time
 
 **Story Range:** US-001 to US-025 (25 stories)
 **FR Range:** FR-001 to FR-025

@@ -24,9 +24,9 @@ This System Requirements Specification (SRS) defines the complete functional and
 
 ### 1.1 Sprint/Phase Tracking (FR-001 to FR-025)
 
-**Purpose:** Hierarchical progress tracking with auto-sync to markdown files
+**Purpose:** Hierarchical progress tracking stored in database and displayed in Development Cycle page (web UI)
 
-**Database as Source of Truth:** All progress tracked in database (Phase, Week, Day, Task, Session tables). Markdown files auto-generated from database (read-only). Git hooks prevent manual markdown edits.
+**Database as Source of Truth:** All progress tracked in database (Phase, Week, Day, Task, Session tables). Development Cycle page displays real-time progress visualization. No markdown files generated for end users.
 
 ---
 

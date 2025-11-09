@@ -653,129 +653,396 @@ Sprint 1-8 implementation revealed critical architectural gap: Claude Code's 200
 
 ---
 
-### Sprint 2 (Weeks 3-4): Tracking Complete + Workflow Start - 58 points
+### Sprint 2 (Weeks 3-4): Wiki Page + Onboarding System - 58 points
 
-**User Stories:** US-015 to US-025 (EPIC-001 completion) + US-026 to US-031 (EPIC-002 start)
+**User Stories:** US-015 to US-031 (EPIC-002: Wiki & Knowledge, EPIC-003: Onboarding)
 
-**Goal:** Complete progress tracking with markdown sync, start workflow orchestration
+**Goal:** Build core end user features that enable documentation storage and agent-guided project initialization
 
-**Key Deliverables:**
+---
 
-- **Markdown Sync Foundation:** Generic, extensible system for generating any markdown files
-- **MarkdownFile Table:** Stores generated content with generic `category`, `templateId`, `path` fields
-- **Template Engine:** Plugin-based system for registering templates (not hardcoded document types)
-- **Data Extractor Registry:** Extensible data extraction for template rendering
-- **Sync Service:** Path-agnostic service supporting any file location (root, docs/, .agent/)
-- **Git Hooks:** Dynamic pre-commit validation using `.agent/generated-files.json`
-- **MCP Tools:** `syncMarkdown` with `category` parameter for filtering
-- **2 Document Templates:** `status-template` (STATUS.md) and `project-plan-template` (DEVELOPMENT_PLAN.md)
-- **Workflow Foundation:** Workflow/WorkflowStep tables, state machine design
-- **5-Step Protocol:** Define workflow steps in database
-- **MCP Tools:** `syncMarkdown`, `startWorkflow`, `getWorkflowState`
+#### Sprint 2 Overview
 
-**Architecture Requirements (For EPIC-012 Extensibility):**
+**What We're Building:**
+
+This sprint delivers the **first real end user features**:
+1. **Wiki Page** - Web UI for viewing/searching documentation + MCP tools for agents to create/update docs
+2. **Onboarding Prompt System** - Templated prompts that guide agents through 3-session project initialization
+
+**What We're NOT Building:**
+
+- ❌ Markdown file generation (not an end user feature)
+- ❌ .agent/ folder creation (users don't need local files)
+- ❌ File synchronization (end users use web UI, not files)
+
+---
+
+#### Key Deliverables
+
+##### 1. Wiki Page (UI + Backend) - 34 points
+
+**Database Model:**
 
 ```prisma
-// MarkdownFile schema MUST be generic
-model MarkdownFile {
-  id            String   @id @default(cuid())
-  projectId     String
-  slug          String   // NOT enum - allows unlimited doc types
-  path          String   // Supports any directory: 'STATUS.md', 'docs/01-PRD.md'
-  category      String   // 'tracking', 'industry_doc', 'memory_bank'
-  syncStrategy  String   // 'auto', 'curated', 'manual'
-  templateId    String   // 'status-template', 'prd-template'...
-  contentHash   String?
-  lastSyncedAt  DateTime?
-  isGenerated   Boolean  @default(true)
-  status        String   @default("active")
+model WikiPage {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  title       String
+  slug        String   // URL-friendly: "prd", "architecture-overview"
+  content     Text     // Markdown content
+  category    String   // "requirements", "architecture", "api", "guides"
+  createdBy   String   // "agent" or "user:{userId}"
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project     Project  @relation(fields: [projectId], references: [id])
 
   @@unique([projectId, slug])
+  @@index([category])
+  @@index([projectId, updatedAt])
+  @@map("wiki_pages")
 }
 ```
 
-**Template System Requirements:**
+**Web UI Pages:**
 
-- Plugin-based registration: `templateEngine.register(id, template)`
-- NOT hardcoded switch statements (enables EPIC-012 to add 13 templates later)
-- Data extractors registered separately: `dataExtractorRegistry.register(id, extractor)`
+1. **Wiki List Page** (`/projects/[id]/wiki`)
+    - Search bar (full-text search across title + content)
+    - Category filter dropdown (All, Requirements, Architecture, API, Guides)
+    - Sort options (Recent, Title A-Z, Category)
+    - Page grid with cards showing:
+      - Title
+      - Category badge
+      - Preview snippet (first 100 chars)
+      - Last updated timestamp
+      - Created by badge (Agent/User)
+    - "New Page" button (opens editor)
 
-**Git Hooks Requirements:**
+2. **Wiki Detail Page** (`/projects/[id]/wiki/[slug]`)
+    - Markdown content rendered with:
+      - Syntax highlighting for code blocks
+      - Tables, lists, headings, blockquotes
+      - Link handling (internal wiki links + external)
+    - Table of contents sidebar (auto-generated from H2/H3 headings)
+    - Metadata footer:
+      - Created by: Agent (Claude Code) on 2025-11-10
+      - Last updated: 2 hours ago
+      - Category: Requirements
+    - Action buttons:
+      - Edit (opens editor)
+      - Delete (with confirmation)
+      - Share (copy link)
 
-- Dynamic file list via `.agent/generated-files.json`
-- NOT hardcoded filenames in pre-commit script
+3. **Wiki Editor** (`/projects/[id]/wiki/new` or `/projects/[id]/wiki/[slug]/edit`)
+    - Split view: Markdown editor (left) + Live preview (right)
+    - Title input field
+    - Category dropdown
+    - Slug auto-generation from title (editable)
+    - Save / Cancel buttons
+    - Validation:
+      - Title required (1-200 chars)
+      - Slug unique within project
+      - Content required
+      - Category required
 
-**Why These Requirements Matter:**
+**MCP Tools (6 tools):**
 
-Sprint 2 builds the **documentation generation platform** with generic architecture. Sprint 2 ships with **2 document plugins** (STATUS, DEVELOPMENT_PLAN). EPIC-012 later adds **13 document plugins** (PRD, SRS, Architecture, etc.) using the same platform - **zero refactoring required**.
+```typescript
+// Create new wiki page
+wiki.create({
+  title: string,           // "Product Requirements Document"
+  content: string,         // Markdown content
+  category: string,        // "requirements"
+  slug?: string            // Optional, auto-generated if not provided
+})
+// Returns: { id, slug, url: "/wiki/prd" }
 
-Without generic architecture: EPIC-012 requires ~140 points (refactoring + new features)
-With generic architecture: EPIC-012 requires ~95 points (templates + data extractors only)
-**Net savings: 45 points**
+// Search wiki pages
+wiki.search({
+  query: string,           // "authentication flow"
+  category?: string,       // Optional filter
+  limit?: number           // Default 10, max 50
+})
+// Returns: { pages: [{ id, title, slug, snippet, similarity }] }
 
-**Dependencies:** Sprint 1 (hierarchy must exist)
+// Get single page
+wiki.get({
+  slug: string             // "prd"
+})
+// Returns: { id, title, content, category, createdBy, createdAt, updatedAt }
 
-**Risks:**
+// Update page
+wiki.update({
+  slug: string,            // "prd"
+  content?: string,        // New content
+  title?: string,          // New title
+  category?: string        // New category
+})
+// Returns: { id, slug, updatedAt }
 
-- Git hook Windows compatibility (test on Windows, fallback to manual validation)
-- Markdown template complexity (Handlebars syntax)
-- Over-engineering risk (mitigated: requirements validated against EPIC-012 needs)
+// Delete page
+wiki.delete({
+  slug: string             // "prd"
+})
+// Returns: { success: true }
 
-**Exit Criteria:**
+// List all pages
+wiki.list({
+  category?: string,       // Optional filter
+  orderBy?: 'recent' | 'title' | 'category'
+})
+// Returns: { pages: [{ id, title, slug, category, updatedAt }], total: number }
+```
 
-- ✅ Markdown sync completes <500ms per file
-- ✅ Git hooks block manual STATUS.md edits (dynamic validation)
-- ✅ Workflow state persists in database
-- ✅ MarkdownFile schema supports unlimited categories (no enum)
-- ✅ Template engine accepts dynamic registration (plugin pattern verified)
-- ✅ Sync service works with any file path (not root-only)
+**API Routes:**
+
+```typescript
+// REST API (for web UI)
+GET    /api/projects/[id]/wiki              // List pages
+GET    /api/projects/[id]/wiki/[slug]       // Get page
+POST   /api/projects/[id]/wiki              // Create page
+PATCH  /api/projects/[id]/wiki/[slug]       // Update page
+DELETE /api/projects/[id]/wiki/[slug]       // Delete page
+POST   /api/projects/[id]/wiki/search       // Search pages
+
+// MCP tools use same backend services
+```
+
+**Technical Stack:**
+
+- **Frontend:** Next.js 14 App Router (Server Components for list/detail, Client Components for editor)
+- **Editor:** `react-markdown` for rendering, `react-simplemde-editor` or `@uiw/react-md-editor` for editing
+- **Syntax Highlighting:** `prism-react-renderer` or `highlight.js`
+- **Search:** PostgreSQL full-text search (`to_tsvector`, `to_tsquery`)
+- **Validation:** Zod schemas for MCP tools and API routes
 
 **Testing:**
 
-- Performance tests: Markdown sync latency (target <500ms)
-- Git hook tests: Verify dynamic validation using generated-files.json
-- Extensibility tests: Register mock template, verify sync works
-- Workflow state persistence tests
+- Unit tests: Wiki service (CRUD operations)
+- Component tests: WikiList, WikiDetail, WikiEditor
+- Integration tests: MCP tool → Database → UI flow
+- E2E tests: Agent creates page via MCP → User sees it in UI
 
-#### Addendum: Code Execution MCP (Week 5: Design + Traditional POC)
+---
 
-To support a 41-tool ecosystem without context bloat and achieve up to ~98.7% token savings (in code-exec mode later), Sprint 2 Week 5 delivers a traditional MCP POC and specifications, with full dual-mode implementation deferred to Sprint 3.
+##### 2. Onboarding Prompt System - 24 points
 
-**Week 5 Deliverables (Design + Traditional POC):**
-- Traditional MCP server with 3 tools: `create-issue`, `search-issues`, `filter-issues`
-- Capability detection design and detection stubs
-  - Env var: `PP_MCP_MODE=traditional|code-exec|auto` (default: auto)
-  - Probe on first call; cache per session; safe default is traditional
-- Shared services interface definitions (Issue/Privacy/Validation)
-- Privacy tokenization specification (document only)
-- Sandbox security specification (document only)
-- Multi-client test harness design (mock traditional client + CLI)
-- Token usage measurement baseline (traditional mode)
+**Database Model:**
 
-**Success Criteria (Week 5):**
-- All clients (Claude, Mock GPT, CLI) can use the 3 tools
-- Results identical across clients (parity verified)
-- Token savings baseline 50–70% vs unoptimized (traditional)
-- Detection stubs functional; privacy/sandbox specs complete
+```prisma
+model OnboardingSession {
+  id             Int      @id @default(autoincrement())
+  projectId      Int
+  sessionNumber  Int      // 1, 2, 3
+  promptTemplate String   // Template text with {variables}
+  response       Json?    // Stores agent/user responses
+  status         String   // "pending", "in_progress", "complete"
 
-**Weeks 6–7 (Sprint 2 remainder):**
-- Refine specifications based on POC
-- Optimize traditional mode (pagination-first, response compression, timeouts)
-- Document dual-mode architecture patterns
-- Prepare Sprint 3 implementation plan
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-**Sprint 3 (Weeks 9–12):**
-- Full dual-mode implementation (code execution wrappers for all 41 tools)
-- Capability negotiation (if supported) + full detection
-- Sandbox implementation and testing
-- Agent persona tool discovery
-- Complete multi-client validation
+  project        Project  @relation(fields: [projectId], references: [id])
 
-**References:**
-- Design: [docs/archive/plans/mcp-code-execution-design.md](archive/plans/mcp-code-execution-design.md)
-- Architecture: [docs/03-Architecture.md](03-Architecture.md#mcp-execution-approach-dual-mode-architecture)
-- Tools Guide: [.agent/system/mcp-tools-guide.md](../.agent/system/mcp-tools-guide.md#code-execution-vs-traditional-mcp)
+  @@unique([projectId, sessionNumber])
+  @@index([projectId, status])
+  @@map("onboarding_sessions")
+}
 
+model OnboardingTemplate {
+  id             Int      @id @default(autoincrement())
+  sessionNumber  Int      // 1, 2, 3
+  name           String   // "Executive Summary", "Industry Docs", "AI Workflow"
+  promptTemplate String   // Template text
+  variables      Json     // Expected variables: { "executive_summary": "from session 1" }
+  isActive       Boolean  @default(true)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([sessionNumber, isActive])
+  @@map("onboarding_templates")
+}
+```
+
+**Prompt Templates:**
+
+**Session 1: Executive Summary**
+```markdown
+# ProjectPulse - New Project Onboarding (Session 1/3)
+
+Welcome! Let's initialize your project with a quick onboarding session.
+
+## Executive Summary Collection
+
+Please answer these 10 questions to help me understand your project:
+
+1. **Project Name**: What are you building?
+2. **Target Users**: Who will use this product?
+3. **Problem Statement**: What problem does it solve?
+4. **Tech Stack**: What technologies are you using? (languages, frameworks, databases)
+5. **Project Phase**: Where are you in development? (planning, active development, maintenance, refactoring)
+6. **Team Size**: How many developers?
+7. **Timeline**: Development timeline or deadline?
+8. **Key Features**: Top 3 most important features?
+9. **Technical Constraints**: Any limitations? (budget, hosting, compliance requirements)
+10. **Success Criteria**: How will you measure success?
+
+Once you provide these answers, I'll store the executive summary and move to Session 2 (industry documentation generation).
+```
+
+**Session 2: Industry Documentation**
+```markdown
+# ProjectPulse - New Project Onboarding (Session 2/3)
+
+Based on your executive summary:
+
+**Project:** {project_name}
+**Problem:** {problem_statement}
+**Users:** {target_users}
+**Tech Stack:** {tech_stack}
+
+## Documentation Generation Task
+
+Please generate the following industry-standard documents:
+
+### 1. Product Requirements Document (PRD)
+
+Create a PRD with these sections:
+- Project Vision & Goals
+- User Personas (based on: {target_users})
+- Feature Requirements (top 10 features, including: {key_features})
+- Success Metrics (based on: {success_criteria})
+- Technical Constraints: {technical_constraints}
+
+**Store using:** `wiki.create({ title: "Product Requirements Document", category: "requirements", content: "..." })`
+
+### 2. System Requirements Specification (SRS)
+
+Create an SRS with:
+- Functional Requirements (numbered: FR-001, FR-002, ...)
+  - Based on features: {key_features}
+  - Include CRUD operations, validation, error handling
+- Non-Functional Requirements
+  - Performance targets
+  - Security requirements
+  - Scalability considerations
+- Acceptance Criteria for each FR
+
+**Store using:** `wiki.create({ title: "System Requirements Specification", category: "requirements", content: "..." })`
+
+### 3. Architecture Document
+
+Create an Architecture overview with:
+- System Context (what we're building: {project_name})
+- Tech Stack breakdown: {tech_stack}
+- Component Architecture (frontend, backend, database layers)
+- Data Flow diagrams
+- Key Architecture Decisions
+
+**Store using:** `wiki.create({ title: "Architecture Overview", category: "architecture", content: "..." })`
+
+Once complete, we'll move to Session 3 (AI workflow blueprint).
+```
+
+**Session 3: AI Workflow Blueprint**
+```markdown
+# ProjectPulse - New Project Onboarding (Session 3/3)
+
+Based on your project documentation (PRD, SRS, Architecture), let's create your AI workflow blueprint.
+
+## AI Workflow Artifacts
+
+### 1. Memory Bank Files
+
+Create knowledge chunks for quick retrieval:
+
+- **Tech Context** (store in Knowledge Base):
+  - Tech stack: {tech_stack}
+  - Dependencies and versions
+  - Environment setup
+  - Common patterns for this stack
+
+- **Project Context** (store in Knowledge Base):
+  - What we're building: {project_name}
+  - Target users: {target_users}
+  - Key features: {key_features}
+  - Current phase: {project_phase}
+
+**Store using:** `knowledge.store({ content: "...", metadata: { type: "tech_context" } })`
+
+### 2. Development SOPs (Standard Operating Procedures)
+
+Create wiki pages for common workflows:
+
+- **Git Workflow** (branching strategy for team size: {team_size})
+- **Code Review Process**
+- **Testing Requirements** (unit, integration, E2E)
+- **Deployment Process**
+
+**Store using:** `wiki.create({ title: "Git Workflow", category: "guides", content: "..." })`
+
+### 3. Agent Skills
+
+Create wiki pages documenting patterns:
+
+- **{tech_stack} Patterns** (framework-specific best practices)
+- **API Design Patterns** (RESTful conventions, error handling)
+- **Database Patterns** (query optimization, migration strategy)
+
+**Store using:** `wiki.create({ title: "{tech_stack} Patterns", category: "guides", content: "..." })`
+
+## Completion
+
+Once you've created these artifacts, your project initialization is complete!
+
+You can now:
+- View all documentation in the Wiki page
+- Search knowledge via the Knowledge Base
+- Create issues/tickets for upcoming work
+- Track progress in the Development Cycle page
+```
+
+**MCP Tools (2 tools):**
+
+```typescript
+// Get prompt for specific session
+onboarding.getPrompt({
+  sessionNumber: number     // 1, 2, or 3
+})
+// Returns: {
+//   promptTemplate: string,  // Template with variables filled
+//   expectedVariables: string[],
+//   sessionName: string
+// }
+
+// Submit session response
+onboarding.submitResponse({
+  sessionNumber: number,    // 1, 2, or 3
+  data: Record<string, any> // Session-specific data
+})
+// Returns: {
+//   sessionNumber: number,
+//   status: "complete",
+//   nextSession: number | null
+// }
+```
+
+**Admin UI (Project Settings):**
+
+- Page: `/projects/[id]/settings/onboarding`
+- Allows editing prompt templates
+- Variable reference guide
+- Preview prompt with sample data
+
+**Testing:**
+
+- Integration test: Complete 3-session flow
+- Unit tests: Template variable substitution
+- E2E test: Agent calls getPrompt → submitResponse → Wiki pages created
+ 
 ---
 
 ### Sprint 3 (Weeks 5-6): Workflow Orchestration - 56 points
