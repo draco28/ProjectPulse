@@ -80,16 +80,15 @@ export function WikiEditor({
     watch,
     setValue,
     formState: { errors, isDirty },
-  } = useForm({
+  } = useForm<CreateWikiPageInput | UpdateWikiPageInput>({
     resolver: zodResolver(schema),
     mode: 'onBlur', // Validate on blur for better performance
     defaultValues: {
       title: initialData?.title || '',
       path: initialData?.path || '',
       content: initialData?.content || '',
-      category: initialData?.category || 'getting-started',
+      category: initialData?.category || ('getting-started' as WikiCategory),
       excerpt: initialData?.excerpt || '',
-      parentPath: initialData?.parentPath || '',
     },
   });
 

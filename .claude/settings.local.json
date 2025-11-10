@@ -56,7 +56,15 @@
       "Bash(git checkout:*)",
       "Bash(git stash:*)",
       "Bash(npx tsx:*)",
-      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev\" npx tsx:*)"
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev\" npx tsx:*)",
+      "Bash(pnpm prisma db seed:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev\" npx prisma migrate deploy:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev\" npx tsx prisma/seed.ts:*)",
+      "Bash(node --version:*)",
+      "Bash(npm:*)",
+      "Bash(npx -y @modelcontextprotocol/server-sequential-thinking --version)",
+      "Bash(claude doctor)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": [

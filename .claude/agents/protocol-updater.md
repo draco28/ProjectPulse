@@ -1,3 +1,10 @@
+---
+name: protocol-updater
+description: Update protocol tracking files without consuming main thread context
+type: maintenance
+invocation: automatic
+---
+
 # Protocol Updater Sub-Agent
 
 **Type**: Maintenance Agent (File Updates)

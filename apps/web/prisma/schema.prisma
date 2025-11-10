@@ -470,6 +470,7 @@ model WikiPage {
 
   title   String
   content String @db.Text
+  excerpt String? @db.VarChar(200) // Short description for list views
 
   // Added field
   category String?

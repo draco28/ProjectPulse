@@ -1,3 +1,23 @@
+---
+name: file-editor
+description: Bulk file editor for efficient multi-file modifications with automatic backups and verification
+capabilities:
+  - Bulk file operations (3+ files at once)
+  - Automatic backup creation (.bak files)
+  - Sed/bash-based modifications for reliability
+  - File verification (line count, format checks)
+  - Rollback capability if needed
+suitable_for:
+  - Memory bank updates (5 files at once)
+  - Multi-file configuration changes
+  - Large-scale text replacements
+  - Operations where Edit tool fails
+not_suitable_for:
+  - Single file edits (use Edit tool directly)
+  - Operations requiring GUI interaction
+  - Database modifications
+---
+
 ### Correct Invocation Pattern
 
 ```typescript

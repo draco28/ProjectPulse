@@ -31,8 +31,8 @@ export const createWikiPageSchema = z.object({
       /^[\/]?[a-z0-9]+(?:-[a-z0-9]+)*$/,
       'Path must be lowercase letters, numbers, and hyphens only'
     )
-    .trim()
-    .transform(val => val.startsWith('/') ? val.slice(1) : val), // Normalize: remove leading slash AFTER validation
+    .trim(),
+    // Note: Path normalization (remove leading slash) happens in API route
 
   content: z
     .string()
@@ -122,8 +122,8 @@ export const validatePathSchema = z.object({
       /^[\/]?[a-z0-9]+(?:-[a-z0-9]+)*$/,
       'Path must be lowercase letters, numbers, and hyphens only'
     )
-    .trim()
-    .transform(val => val.startsWith('/') ? val.slice(1) : val), // Normalize AFTER validation
+    .trim(),
+    // Note: Path normalization happens in API route
 
   excludeId: z.string().optional(), // Exclude current page ID when editing
 });
@@ -133,6 +133,17 @@ export type CreateWikiPageInput = z.infer<typeof createWikiPageSchema>;
 export type UpdateWikiPageInput = z.infer<typeof updateWikiPageSchema>;
 export type WikiSearchInput = z.infer<typeof wikiSearchSchema>;
 export type ValidatePathInput = z.infer<typeof validatePathSchema>;
+
+/**
+ * Helper function to normalize path (remove leading slash)
+ * Used in API routes to ensure consistent DB storage
+ *
+ * @param path - The wiki page path (may or may not have leading slash)
+ * @returns Path without leading slash
+ */
+export function normalizePath(path: string): string {
+  return path.startsWith('/') ? path.slice(1) : path;
+}
 
 /**
  * Helper function to generate path from title

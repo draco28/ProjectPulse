@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
-import { createWikiPageSchema } from '@/lib/validations/wiki';
+import { createWikiPageSchema, normalizePath } from '@/lib/validations/wiki';
 
 /**
  * POST /api/wiki
@@ -49,8 +49,9 @@ export async function POST(request: NextRequest) {
 
     const { title, path, content, category, excerpt, parentPath } = validation.data;
 
-    // Normalize path: add leading slash for database storage
-    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    // Normalize path: remove leading slash if present, then add it for DB storage
+    const cleanPath = normalizePath(path);
+    const normalizedPath = `/${cleanPath}`;
 
     // Check if path already exists (409 Conflict per next-js-expert)
     const existingPage = await prisma.wikiPage.findUnique({
