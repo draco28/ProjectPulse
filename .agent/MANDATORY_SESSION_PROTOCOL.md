@@ -879,4 +879,69 @@ MCP filesystem tools provide git-style diff output automatically for verificatio
 
 ---
 
-**Updated**: 2025-11-06 (Switched from file-editor agent to MCP filesystem tools)
+## PROTOCOL VIOLATIONS LOG
+
+**Purpose:** Track protocol violations to enforce compliance in future sessions.
+
+### Violation History
+
+**2025-11-10 Session (Sprint 2 Week 3 Day 2):**
+
+**Violation Type:** Incomplete Protocol Execution
+**Steps Violated:** Step 4.5 (Verification Gate), Step 5 (Post-completion workflow)
+
+**What Happened:**
+- Completed implementation (wiki list + detail UI)
+- Claimed "Session Complete" and "Protocol Complete"
+- **SKIPPED Step 4.5:** No formal evidence-based verification documentation
+- **INCOMPLETE Step 5:**
+  - Did NOT update `docs/13-Project-Plan.md`
+  - Did NOT invoke `synthesize-docs` sub-agent (4 SOPs missing)
+  - Did NOT invoke `map-system` sub-agent (component patterns undocumented)
+
+**Impact:**
+- User rightfully questioned protocol adherence
+- Trust violation: "if you are not following the protocols even after explicitly telling it then how will you follow?"
+- Future sessions at risk: "in new chat you will forget everything"
+
+**Resolution:**
+- Executed Step 4.5 with documented evidence (2025-11-10 19:00 IST)
+- Completed Step 5 fully:
+  - Updated `docs/13-Project-Plan.md` with Sprint 2 status tracking
+  - Invoked `synthesize-docs`: Created 4 SOPs (680 lines total)
+  - Invoked `map-system`: Updated component-patterns.md (4 new patterns)
+  - Committed documentation before code
+- Added this violations log to protocol file
+
+**Lessons Learned:**
+1. **Protocol exists because I "read instructions but don't follow them"** (per CLAUDE.md)
+2. **Claiming "complete" without evidence = violation**
+3. **User correctly identified that without file updates, enforcement cannot persist**
+4. **Required confirmations are NOT optional** - they are proof of execution
+
+**Enforcement Mechanism Added:**
+- This violations log section added to protocol file
+- Will be read at every session start (Step 1)
+- Serves as persistent reminder of required checks
+
+### Future Session Checklist (READ THIS EVERY SESSION START)
+
+**Before claiming any step "complete":**
+
+- [ ] **Step 1:** Did I create current-session-[timestamp].md with all required sections?
+- [ ] **Step 2:** Did I save plan to current-plan.md IMMEDIATELY after approval?
+- [ ] **Step 3:** Did I invoke required expert sub-agents BEFORE making technical decisions?
+- [ ] **Step 4:** Did I update todos at EVERY 15K token checkpoint?
+- [ ] **Step 4.5:** Did I execute verification commands and document evidence?
+- [ ] **Step 5:** Did I update ALL required files (plan, memory banks, SOPs, system docs)?
+- [ ] **Step 5:** Did I invoke synthesize-docs AND map-system sub-agents?
+- [ ] **Step 5:** Did I commit documentation BEFORE code?
+- [ ] **Step 5:** Did I provide the required completion confirmation?
+
+**If you cannot check ALL boxes, the step is NOT complete.**
+
+**If user says "you did not do step X", you violated the protocol. Execute step X RIGHT NOW with full documentation.**
+
+---
+
+**Updated**: 2025-11-10 (Added Protocol Violations Log after Step 4.5/5 violation)
