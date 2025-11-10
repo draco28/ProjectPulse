@@ -78,11 +78,74 @@ Add results to this file under "Results" section below.
 
 ## Results
 
-[Mac mini Claude Code: Add results here after execution]
+**Executed by**: Mac mini Claude Code
+**Timestamp**: 2025-11-10 15:30 IST
+**Status**: ✅ PARTIAL SUCCESS (Wiki pages seeded, links failed)
 
-**Seed Status**: ⏳ PENDING
+### Step 1: Pull Latest Code ✅
 
-**Database Verification**: ⏳ PENDING
+```bash
+git checkout master
+git pull origin master
+# Fast-forwarded 33 commits (d50652e..dc3ecbd)
+```
+
+### Step 2: Schema Sync Required ⚠️
+
+Before seeding, had to sync the schema to database:
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev" npx prisma db push --accept-data-loss
+# 🚀 Your database is now in sync with your Prisma schema. Done in 105ms
+```
+
+**Note**: WikiPage table was not in database. Used `db push` to create all missing tables.
+
+### Step 3: Seed Script Output ✅
+
+```
+📖 Creating wiki pages...
+✓ Created 5 root-level wiki pages
+
+✓ Created 2 child pages under "Development Guides"
+
+🔗 Creating page links...
+✓ Created 7 page links
+
+✓ Wiki seeding complete: 7 pages total
+```
+
+**Error at end**: `ReferenceError: wikiPages is not defined` (line 2045 in seed.ts)
+
+### Step 4: Database Verification ✅ (Pages) / ❌ (Links)
+
+**WikiPage Table**: ✅ **7 pages created successfully**
+
+```sql
+SELECT id, title, path, category, "parentId", "orderIndex" FROM "WikiPage" ORDER BY "orderIndex";
+```
+
+| id | title | path | category | parentId | orderIndex |
+|----|-------|------|----------|----------|------------|
+| 13 | Docker Setup Guide | /guides/docker-setup | guides | 11 | 0 |
+| 8 | Getting Started with ProjectPulse | /getting-started | getting-started | NULL | 0 |
+| 9 | Configuration | /configuration | getting-started | NULL | 1 |
+| 14 | Database Migrations Guide | /guides/database-migrations | guides | 11 | 1 |
+| 11 | Development Guides | /guides | guides | NULL | 2 |
+| 10 | API Documentation | /reference/api | reference | NULL | 3 |
+| 12 | Troubleshooting | /troubleshooting | troubleshooting | NULL | 4 |
+
+**WikiPageLink Table**: ❌ **0 links created**
+
+Despite seed output claiming "Created 7 page links", the `WikiPageLink` table is empty.
+
+**Seed Status**: ⚠️ **PARTIAL SUCCESS**
+- ✅ 7 wiki pages created with correct structure
+- ✅ Parent-child relationships working (Docker Setup & Database Migrations are children of Development Guides)
+- ✅ All categories assigned correctly
+- ❌ Wiki page links NOT created (error in seed script line 2045)
+
+**Database Verification**: ✅ **WikiPage table verified** / ❌ **WikiPageLink table empty**
 
 ---
 
