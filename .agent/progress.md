@@ -1,8 +1,8 @@
 # Progress Tracker
 
 **Project**: ProjectPulse
-**Last Updated**: 2025-11-09 (Sprint 1 CLOSED ✅)
-**Overall Completion**: Documentation 100%, Implementation 10% (Sprint 1 CLOSED at 96% - 50/52 points)
+**Last Updated**: 2025-11-09 (Sprint 2 STARTED 🚀)
+**Overall Completion**: Documentation 100%, Implementation 12% (Sprint 1 complete 50 points, Sprint 2 started 0/54 points)
 
 ---
 
@@ -18,9 +18,9 @@ Documentation Phase (Nov 1-6, 2025) ✅ 100% COMPLETE
   Audit specification created                       ✅ Complete
   5,500+ lines of documentation added               ✅ Complete
 
-Phase A: Foundation & Core Infrastructure (Weeks 1-6, Sprints 1-3) ⏳ 0% Ready to Start
-  Sprint 1: 5-level hierarchy + MCP scaffold        ⏳ Ready (52 points)
-  Sprint 2: Markdown sync + Workflow foundation     ⏳ Not started
+Phase A: Foundation & Core Infrastructure (Weeks 1-6, Sprints 1-3) 🔄 27% IN PROGRESS
+  Sprint 1: 5-level hierarchy + MCP scaffold        ✅ CLOSED at 96% (50/52 points)
+  Sprint 2: Markdown sync + Workflow foundation     🔄 IN PROGRESS (0/54 points)
   Sprint 3: Workflow orchestration complete         ⏳ Not started
 
 Phase B: Core Features - Issues (Weeks 7-8, Sprint 4) ⏳ 0% Not Started
@@ -38,10 +38,10 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
   Sprint 9: Memory Banks + Research Orchestration   ⏳ Documented for future
 ```
 
-**Total Progress**: 0/484 story points (0% implementation, 100% documentation)
-**MVP Implementation**: 0/422 story points (Sprints 1-8, 16 weeks)
-**Current Sprint**: Documentation complete, Sprint 1 ready to start
-**Completed Sprints**: 0/9 (documentation phase complete)
+**Total Progress**: 50/484 story points (10% implementation, 100% documentation)
+**MVP Implementation**: 50/422 story points (Sprints 1-8, 16 weeks) - 12% complete
+**Current Sprint**: Sprint 2 - Wiki Page + Onboarding System (0/58 points)
+**Completed Sprints**: 1/9 (Sprint 1 closed at 96%)
 
 ---
 
@@ -152,6 +152,103 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 - Code coverage: Database layer 100%
 
 **Ready for Sprint 2**: ✅ All foundations complete, no blockers
+
+---
+
+## Sprint 2: Wiki Page + Onboarding System (Weeks 3-4) - 58 points
+
+**User Stories**: US-015 to US-031 (EPIC-002: Wiki & Knowledge, EPIC-003: Onboarding)
+
+**Goal**: Build core end user features that enable documentation storage and agent-guided project initialization
+
+**CRITICAL**: Sprint 2 vision clarified on 2025-11-10. Original plan (markdown sync) was WRONG - confusion between dogfooding vs end user features. Correct Sprint 2 = Wiki + Onboarding (database-backed web features for END USERS).
+
+### Sprint 2 Progress: 0/58 points (0%) 🔄 RESTARTING AFTER VISION CLARIFICATION
+
+**Week 3: Wiki (Days 1-7)** ⏳ NOT STARTED (0/7 days)
+
+- Day 1-2: Wiki DB model + migration ⏳ NOT STARTED
+  - WikiPage model already exists in schema (no migration needed)
+  - Seed sample wiki pages (Getting Started, API Docs, etc.)
+- Day 3-4: Wiki list/detail UI + search ⏳ NOT STARTED
+  - Wiki list page (server component with category filtering)
+  - Wiki detail page (server component with markdown rendering)
+  - Full-text search functionality
+- Day 5-6: Wiki editor UI + MCP tools ⏳ NOT STARTED
+  - Wiki editor UI (client component with TipTap)
+  - MCP tools: wiki.create, wiki.search, wiki.update
+  - Zod validation for wiki operations
+- Day 7: Week 3 buffer & tests ⏳ NOT STARTED
+  - Integration tests (agent creates wiki page → user sees in UI)
+  - E2E tests for wiki search and editing
+
+**Week 4: Onboarding (Days 8-14)** ⏳ NOT STARTED (0/7 days)
+
+- Day 8-9: Onboarding DB models + templates ⏳ NOT STARTED
+  - OnboardingSession, OnboardingPrompt Prisma models
+  - 3 prompt templates (Session 1-3)
+  - Migration to add onboarding tables
+- Day 10-11: Onboarding MCP tools ⏳ NOT STARTED
+  - MCP tool: onboarding.getPrompt (returns next prompt for agent)
+  - MCP tool: onboarding.submitResponse (saves user's answers)
+  - Session state management (which prompt is next)
+- Day 12-13: Admin prompt editor + integration tests ⏳ NOT STARTED
+  - Admin UI to edit onboarding prompt templates
+  - Integration tests (3-session flow end-to-end)
+  - E2E tests for complete onboarding workflow
+- Day 14: Sprint 2 closure ⏳ NOT STARTED
+  - Sprint 2 completion document
+  - Update documentation (STATUS.md, Project Plan)
+  - Demo wiki + onboarding features
+
+**Key Deliverables**:
+
+- [ ] Wiki Page: DB model (✅ already exists) + list/detail UI + editor
+- [ ] Wiki search: category filter + full-text search
+- [ ] Onboarding Prompt System: DB models + 3 templates
+- [ ] MCP tools: `wiki.create/search/update` (3 tools)
+- [ ] MCP tools: `onboarding.getPrompt` and `onboarding.submitResponse` (2 tools)
+- [ ] Integration: Agent creates page → User sees in UI
+- [ ] Integration: Agent runs onboarding → User answers prompts → Data saved
+- [ ] Zero TypeScript errors (strict mode)
+
+**Exit Criteria**:
+
+- [ ] Wiki list/detail/editor functional
+- [ ] Wiki search working (full-text + category filters)
+- [ ] Onboarding 3-session flow functional
+- [ ] MCP tools work end-to-end (DB → UI bidirectional)
+- [ ] All integration tests passing (wiki + onboarding)
+- [ ] Zero TypeScript errors
+- [ ] Demo: Agent can create wiki pages and guide user onboarding
+
+**Sprint 2 User Stories** (58 points total):
+
+**EPIC-002: Wiki & Knowledge (34 points)**
+- [ ] US-015: Wiki database model (3 points) - ✅ WikiPage already exists, just need seed data
+- [ ] US-016: Wiki list page UI (5 points)
+- [ ] US-017: Wiki detail page UI (5 points)
+- [ ] US-018: Wiki editor UI (8 points)
+- [ ] US-019: Wiki search functionality (5 points)
+- [ ] US-020: MCP tool `wiki.create()` (3 points)
+- [ ] US-021: MCP tool `wiki.search()` (3 points)
+- [ ] US-022: MCP tool `wiki.update()` (2 points)
+
+**EPIC-003: Onboarding System (24 points)**
+- [ ] US-026: Onboarding database models (3 points)
+- [ ] US-027: Session 1 prompt template (3 points) - Executive Summary
+- [ ] US-028: Session 2 prompt template (5 points) - Industry/Domain Documentation
+- [ ] US-029: Session 3 prompt template (5 points) - AI Workflow Blueprint
+- [ ] US-030: MCP tool `onboarding.getPrompt()` (5 points)
+- [ ] US-031: MCP tool `onboarding.submitResponse()` (3 points)
+
+**Current Status**: Vision clarified, MarkdownFile removed, ready to begin after migration
+
+**Branch**: `feature/docs-vision-refactor-phase1` (cleanup migration)
+
+**Next Branch**: `feature/sprint-2-wiki-onboarding` (after Mac mini migration completes)
+
+**Plan Document**: `docs/13-Project-Plan.md` Sprint 2
 
 ---
 

@@ -111,19 +111,38 @@ ProjectPulse uses a distributed development setup:
 - **Mac mini runtime (preferred)**: `docker-compose.cloud.yml` (run on Mac mini)
 - **CI/local fallback (legacy)**: `docker-compose.yml` (use only for CI or explicit local runs)
 
-### When to Use Mac Mini
+### When to Use Mac Mini vs Windows
 
-Use Mac mini for:
-- ✅ Docker operations (restart containers, view logs)
-- ✅ Database operations (migrations, queries)
-- ✅ Service verification (health checks, builds)
-- ✅ Mac mini-specific setup
+**🚨 CRITICAL RULE: Mac mini ONLY for server-side operations**
 
-Use Windows for:
-- ✅ Code editing (all file operations)
-- ✅ Git operations
-- ✅ Documentation
-- ✅ Planning and design
+The Mac mini runs the Next.js server and database accessible at `http://192.168.1.15:3000`. **Most work happens on Windows** where code is edited and tested by calling the Mac mini API endpoints.
+
+**Windows (Primary Development - Do 95% of work here)**:
+- ✅ **All code editing** (Read, Edit, Write tools)
+- ✅ **All Git operations** (commits, pushes, branch management)
+- ✅ **API testing** (curl to `http://192.168.1.15:3000/api/*`)
+- ✅ **MCP tool testing** (calls Mac mini API endpoints)
+- ✅ **TypeScript compilation checks** (pnpm type-check)
+- ✅ **Documentation updates**
+- ✅ **File operations** (creating configs, scripts, etc.)
+- ✅ **Testing** (unit tests, integration tests calling Mac mini)
+
+**Mac mini (Server Operations ONLY - Use sparingly)**:
+- ✅ **Docker container management** (restart, logs, rebuild)
+- ✅ **Database migrations** (npx prisma migrate dev, db push)
+- ✅ **Prisma client regeneration** (npx prisma generate)
+- ✅ **Server process debugging** (check Next.js server logs)
+- ✅ **Critical server-side issues** (network constraints, connection issues)
+
+**❌ NEVER delegate to Mac mini**:
+- ❌ Testing API endpoints (test FROM Windows BY calling Mac mini)
+- ❌ Checking TypeScript errors (run on Windows)
+- ❌ Running MCP tools (run on Windows, they call Mac mini)
+- ❌ Creating/editing files (do on Windows)
+- ❌ Git operations (do on Windows)
+- ❌ Any work that can be done on Windows
+
+**Why this matters**: If you transfer work to Mac mini that could be done on Windows, you force changing configuration from network-accessible (`192.168.1.15:3000`) to localhost, defeating the purpose of having a dedicated development server.
 
 **Complete Setup Guide**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
 
@@ -131,13 +150,15 @@ Use Windows for:
 
 ## 🔄 Communicating with Mac Mini Claude Code
 
+**⚠️ Use sparingly - Only for critical server-side operations**
+
 ### The Problem
 
 Windows Claude Code and Mac mini Claude Code are separate instances. Manually copy-pasting prompts between machines is tedious.
 
 ### The Solution: Git-Based Communication
 
-Use `.agent/task/mac-mini-instructions.md` as an instruction queue.
+Use `.agent/task/mac-mini-instructions.md` as an instruction queue **ONLY** for server-side operations that cannot be done from Windows (Docker operations, database migrations, server debugging).
 
 ### Quick Workflow
 
@@ -189,7 +210,7 @@ At the start of **EVERY** session, copy-paste this:
 ```
 MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
 
-Current phase: [copy from STATUS.md]
+Current phase: [copy from .agent/active-context.md or .agent/progress.md]
 Requirements: [copy from docs/13-Project-Plan.md]
 
 ENFORCE:
@@ -208,7 +229,7 @@ Proceed with [phase name].
 
 **STEP 1: INITIALIZATION**
 
-- Read STATUS.md and docs/13-Project-Plan.md
+- Read .agent/active-context.md and .agent/progress.md, plus docs/13-Project-Plan.md and docs/12-Backlog.md
 - Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
 - **Confirm:** "✅ STEP 1 COMPLETE: Session initialized at [timestamp]"
 
@@ -256,7 +277,7 @@ See [docs/README.md](docs/README.md) for complete reading paths.
 **STEP 5: POST-COMPLETION**
 
 - Create completion doc (optional but recommended for complex phases)
-- Update STATUS.md and docs/13-Project-Plan.md
+- Update .agent/active-context.md, .agent/progress.md, and docs/13-Project-Plan.md
 - Invoke synthesize-docs (if new patterns)
 - Invoke map-system (if architecture changed)
 - Commit documentation, then code
@@ -302,7 +323,7 @@ Based on phase keywords, I load relevant skills:
 Per protocol Step 1, I am REQUIRED to:
 
 1. **Create** `.agent/task/current-session-[YYYYMMDD-HHMM].md`
-2. **Document**: Current phase, goals, requirements from STATUS.md
+2. **Document**: Current phase, goals, requirements from .agent/progress.md / docs plan
 3. **Update** this file at every checkpoint (Step 4)
 
 ### When Invoking Sub-Agents (STEP 3)
@@ -405,7 +426,7 @@ To ensure no progress is ever lost, the protocol requires three levels of progre
 
 **File I update**:
 
-- `STATUS.md` - Add "Last Task Completed" entry with timestamp
+- `.agent/progress.md` - Add milestone entry with timestamp
 
 **I update when**:
 
@@ -457,13 +478,13 @@ To ensure no progress is ever lost, the protocol requires three levels of progre
 
 **After significant milestone**:
 
-1. Update STATUS.md with checkpoint
+1. Update `.agent/progress.md` with checkpoint
 2. Commit to git if appropriate
 
 **After phase completion (STEP 5)**:
 
 1. Create completion doc (optional but recommended for complex phases)
-2. Update STATUS.md and docs/13-Project-Plan.md (REQUIRED)
+2. Update .agent/active-context.md, .agent/progress.md, and docs/13-Project-Plan.md (REQUIRED)
 3. Invoke synthesize-docs and map-system sub-agents (REQUIRED if patterns created or architecture changed)
 4. Commit documentation, then code (REQUIRED)
 5. Archive `current-todos.md` → `archive/phase-X-day-Y-todos-COMPLETE.md`
@@ -493,7 +514,7 @@ To ensure no progress is ever lost, the protocol requires three levels of progre
 
 1. Update `current-session-[timestamp].md` with latest progress
 2. Update `current-todos.md` with task statuses
-3. Update `STATUS.md` at major checkpoints
+3. Update `.agent/progress.md` at major checkpoints
 4. Brief note: "💾 Progress saved at [X]K tokens"
 
 **Token Counter Quick Reference**:
@@ -546,8 +567,8 @@ You: [Save to current-plan.md, update session file, begin implementation]
 **If context compacts or session interrupted**:
 
 ```
-Step 1: Read STATUS.md
-→ "Phase 3 Day 4, 60% complete, last: CommentForm component"
+Step 1: Read .agent/active-context.md and .agent/progress.md
+→ "Current: Phase 3 Day 4, 60% complete, last: CommentForm component"
 
 Step 2: Find latest .agent/task/current-session-[timestamp].md
 → "Was implementing CommentList at 16:45"
@@ -952,7 +973,7 @@ Me: [Generates SOP, updates .agent/ docs]
 
 **Your existing workflow** (unchanged):
 
-1. Update STATUS.md
+1. Update .agent/active-context.md and .agent/progress.md
 2. Update docs/13-Project-Plan.md (and docs/12-Backlog.md if needed)
 3. Optional: Create completion doc (COMPLETION_TEMPLATE.md) — will be archived under `docs/archive/completions/`
 4. Commit and push
@@ -1002,7 +1023,7 @@ Initialize or update .agent/ documentation system
 - [ ] 192.168.1.15:3000 loads application (from Windows)
 - [ ] (Optional local) pnpm dev only if explicitly running locally on Windows
 - [ ] On feature branch (not master)
-- [ ] Read .agent/active-context.md + docs/13-Project-Plan.md
+- [ ] Read .agent/active-context.md, .agent/progress.md and docs/13-Project-Plan.md
 - [ ] Check .agent/README.md for task context
 ```
 
@@ -1042,7 +1063,7 @@ Initialize or update .agent/ documentation system
 **Documentation**:
 
 1. [.agent/README.md](.agent/README.md) - Agent documentation index
-2. [STATUS.md](STATUS.md) - Current state
+2. [.agent/progress.md](.agent/progress.md) - Current state
 3. [docs/13-Project-Plan.md](docs/13-Project-Plan.md) - Implementation roadmap
 4. [docs/README.md](docs/README.md) - Complete documentation index
 
@@ -1090,7 +1111,7 @@ Initialize or update .agent/ documentation system
 
 ### What Stayed the Same?
 
-- Your workflow (STATUS.md → docs/13-Project-Plan.md → work)
+- Your workflow (.agent/active-context.md/.agent/progress.md → docs/13-Project-Plan.md → work)
 - Git workflow rules
 - Port configuration checks
 - Gemini integration for deep analysis

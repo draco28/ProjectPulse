@@ -1,4 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Validate generated files (prevent manual edits)
+node .husky/validate-generated-files.cjs
+
+# Run lint-staged
 pnpm lint-staged

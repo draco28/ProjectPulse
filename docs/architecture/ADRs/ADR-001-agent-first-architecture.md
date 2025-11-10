@@ -42,7 +42,7 @@ Planning session (2025-11-02) revealed opportunities for comprehensive agent aut
 
 - **Token efficiency:** 92% reduction for skills, 88% for knowledge graph retrieval
 - **Automation:** Complete workflows without human intervention (5-step protocol, checkpoints, recovery)
-- **Consistency:** Database as source of truth, markdown auto-sync prevents conflicts
+- **Consistency:** Database as source of truth with Web UI + MCP access; markdown export is optional/internal (not required for end users)
 - **Preservation:** 100% of Sprint 0 UI work reusable (all 7 pages, 45+ components, theme system complete)
 
 ### Negative

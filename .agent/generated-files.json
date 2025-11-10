@@ -1,0 +1,6 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-11-09T21:35:00Z",
+  "description": "Registry of auto-generated markdown files. Git hooks use this to prevent manual edits.",
+  "generatedFiles": []
+}

@@ -1715,8 +1715,71 @@ Efficiency varies by client capability:
 
 ---
 
+---
+
+#### `projectpulse.markdown.sync`
+
+Sync markdown files from database to filesystem. Generates STATUS.md and other auto-generated documentation from current project state.
+
+**Parameters**:
+
+```typescript
+{
+  category?: "tracking" | "industry_doc" | "memory_bank",  // Filter by category (optional, syncs all if omitted)
+  force?: boolean  // Force sync even if content hash matches (default: false)
+}
+```
+
+**Usage Examples**:
+
+```typescript
+// 1. Sync all markdown files (skip unchanged)
+await markdownSync({});
+
+// 2. Sync only tracking documents (STATUS.md, etc.)
+await markdownSync({ category: "tracking" });
+
+// 3. Force sync all files (ignore content hash)
+await markdownSync({ force: true });
+```
+
+**Response**:
+
+```typescript
+{
+  syncedCount: number,        // Files successfully synced
+  skippedCount: number,       // Files skipped (unchanged)
+  errorCount: number,         // Files that failed
+  duration: number,           // Total duration in milliseconds
+  files: Array<{
+    slug: string,             // Document slug
+    path: string,             // File path
+    status: "synced" | "skipped" | "error",
+    message?: string,         // Status message
+    duration: number          // Per-file duration
+  }>
+}
+```
+
+**When to Use**:
+
+- After updating hierarchy state (progress, tasks, sessions)
+- After completing a sprint or phase
+- Before creating a pull request (ensure docs are current)
+- When STATUS.md is out of sync with database
+
+**Git Hooks Integration**:
+
+Markdown files synced by this tool are protected by git hooks (see [.agent/sops/git-workflow.md](../sops/git-workflow.md#git-hooks-generated-files-protection)).
+
+**Performance**: Target <500ms per file (P95)
+
+**Source**: [apps/mcp-server/src/tools/markdownSync.ts](../../apps/mcp-server/src/tools/markdownSync.ts)
+
+---
+
 **Last Updated:** 2025-11-09
-**MCP Status:** Core tools configured + ProjectPulse MCP server active (5 tools)
-**Completed:** Sprint 1 Week 2 Days 10-12 (progress update, task creation, session management)
+**MCP Status:** Core tools configured + ProjectPulse MCP server active (9 tools)
+**Completed:** Sprint 1 complete (8 tools) + Sprint 2 Week 1 Day 5-6 (markdown sync tool)
 
 **See also**: [.agent/progress.md](../progress.md) for current project status

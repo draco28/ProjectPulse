@@ -289,6 +289,15 @@ ifconfig | grep "inet " | grep -v 127.0.0.1
 
 ## 🖥️ Phase 3: Windows Development Workflow
 
+**🚨 CRITICAL: Do 95% of work on Windows, NOT Mac mini**
+
+- **Windows**: Code editing, Git operations, API testing (curl to Mac mini), MCP tools, TypeScript checks
+- **Mac mini**: ONLY Docker operations, database migrations, server debugging
+
+**The Mac mini is your API server, not your development machine!**
+
+---
+
 ### Step 3.1: Development Workflow (Daily Use)
 
 **On Windows in Windsurf:**

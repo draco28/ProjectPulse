@@ -15,7 +15,7 @@ This document describes the complete system architecture of ProjectPulse, an age
 **Architecture Principles:**
 
 1. **Agent-First Design:** MCP tools are the primary interface, UI is secondary
-2. **Database as Source of Truth:** All state in database, markdown files auto-generated (see [ADR-002](architecture/ADRs/ADR-002-database-as-source-of-truth.md))
+2. **Database as Source of Truth:** All state in database; end users view data in the web UI. Optional internal markdown export for dogfooding only (see [ADR-002](architecture/ADRs/ADR-002-database-as-source-of-truth.md))
 3. **Token Efficiency:** 92% reduction for skills, 88% for knowledge queries
 4. **Local-First:** $0 budget, runs entirely on localhost
 5. **Stateless Agent Operation:** Persistent state enables context-free execution
@@ -28,7 +28,7 @@ This document describes the complete system architecture of ProjectPulse, an age
 - [04-Data-and-Model-Spec.md](04-Data-and-Model-Spec.md) - Database Schema
 - [12-Backlog.md](12-Backlog.md) - User Stories
 
-> Note: The legacy `DEVELOPMENT_PLAN.md` is retired. Any mentions of it in diagrams or examples are illustrative of the previous pipeline. The current sources of truth are `STATUS.md`, `docs/13-Project-Plan.md`, and `docs/12-Backlog.md`.
+> Note: The legacy `DEVELOPMENT_PLAN.md` is retired. For end users, the sources of truth are the database and the web UI (Development Cycle page, Wiki, Issues). Any markdown files (e.g., `STATUS.md`) are internal dogfooding artifacts only, not part of end-user projects.
 
 ---
 
@@ -46,6 +46,68 @@ This document describes the complete system architecture of ProjectPulse, an age
 10. [Architecture Decisions](#10-architecture-decisions)
 
 ---
+
+## System Architecture Overview
+
+```
+┌─────────────────────────────────────────────┐
+│           End User's Environment            │
+│  ┌──────────────┐      ┌─────────────┐     │
+│  │   Browser    │      │  AI Agent   │     │
+│  │   (Human)    │      │  (Claude)   │     │
+│  └──────┬───────┘      └──────┬──────┘     │
+│         │                     │             │
+│         │ HTTPS               │ MCP         │
+└─────────┼─────────────────────┼─────────────┘
+          │                     │
+          ▼                     ▼
+  ┌───────────────────────────────────────────┐
+  │       ProjectPulse Web Application        │
+  │                                           │
+  │  ┌──────────────┐  ┌──────────────┐      │
+  │  │   Web UI     │  │  MCP Server  │      │
+  │  │  (Next.js)   │  │  (stdio)     │      │
+  │  │              │  │              │      │
+  │  │  - /wiki     │  │  - wiki.*    │      │
+  │  │  - /kb       │  │  - kb.*      │      │
+  │  │  - /issues   │  │  - issue.*   │      │
+  │  │  - /tickets  │  │  - ticket.*  │      │
+  │  │  - /cycle    │  │  - progress.*│      │
+  │  └──────┬───────┘  └──────┬───────┘      │
+  │         │                  │              │
+  │         └────────┬─────────┘              │
+  │                  │                        │
+  │        ┌─────────▼─────────┐              │
+  │        │  Service Layer    │              │
+  │        │  - WikiService    │              │
+  │        │  - IssueService   │              │
+  │        │  - KBService      │              │
+  │        └─────────┬─────────┘              │
+  │                  │                        │
+  │        ┌─────────▼─────────┐              │
+  │        │   Prisma ORM      │              │
+  │        └─────────┬─────────┘              │
+  │                  │                        │
+  │        ┌─────────▼─────────┐              │
+  │        │   PostgreSQL      │              │
+  │        │   + pgvector      │              │
+  │        │                   │              │
+  │        │  - wiki_pages     │              │
+  │        │  - issues         │              │
+  │        │  - knowledge_*    │              │
+  │        │  - tickets        │              │
+  │        │  - phases/weeks   │              │
+  │        └───────────────────┘              │
+  └───────────────────────────────────────────┘
+
+End User's Repository:
+┌────────────────────┐
+│  my-ecommerce-app/ │
+│    ├── src/        │  ← CLEAN (no .agent/)
+│    ├── tests/      │  ← CLEAN (no markdown)
+│    └── package.json│  ← CLEAN
+└────────────────────┘
+```
 
 ## 1. System Context
 
@@ -67,7 +129,7 @@ C4Context
     }
 
     System_Ext(git, "Git Repository", "Version control, branches, commits")
-    System_Ext(filesystem, "File System", "Markdown files (auto-generated)<br/>.agent/ folder, STATUS.md")
+    System_Ext(filesystem, "File System", "Internal dogfooding-only markdown export (optional)<br/>.agent/ folder, STATUS.md")
     System_Ext(docker, "Docker", "PostgreSQL container<br/>Development environment")
     System_Ext(embedding_api, "Embedding API", "OpenAI text-embedding-3-small<br/>Optional: local embeddings")
 
@@ -77,8 +139,8 @@ C4Context
     Rel(mcp_server, database, "CRUD operations", "Prisma queries")
     Rel(web_app, database, "Read/write state", "Prisma queries")
 
-    Rel(mcp_server, filesystem, "Reads markdown context<br/>Triggers markdown sync", "Node.js fs")
-    Rel(database, filesystem, "Auto-generates markdown", "Post-transaction hooks")
+    Rel(mcp_server, filesystem, "Reads internal markdown export (optional)", "Node.js fs")
+    Rel(database, filesystem, "Optional internal markdown export (dogfooding only)", "Post-transaction hooks")
 
     Rel(mcp_server, git, "git add, commit (via agent)", "shell commands")
     Rel(agent, git, "git checkout, push", "shell commands")
@@ -96,7 +158,7 @@ C4Context
 | AI Agent → MCP Server    | stdio, 41 MCP tools    | Execute workflows (5-step protocol)                     | 95% interaction            |
 | Developer → Web App      | HTTPS, React UI        | Monitor progress, manual CRUD                           | 5% interaction             |
 | MCP Server → Database    | Prisma ORM             | State persistence (Phase, Week, Day, Task, Session)     | ~100 queries/minute        |
-| Database → File System   | Post-transaction hooks | Auto-generate markdown (STATUS.md, DEVELOPMENT_PLAN.md) | On state change            |
+| Database → File System   | Post-transaction hooks | Optional internal markdown export (dogfooding only)     | On state change            |
 | Database → Embedding API | REST API               | Generate embeddings for knowledge items                 | On knowledge create/update |
 
 **Design Decision Reference:** See [ADR-001](architecture/ADRs/ADR-001-agent-first-architecture.md) for agent-first architecture rationale.
@@ -114,7 +176,7 @@ Note: Tool count may expand; 41 represents current scope.
 - **Type:** Any MCP-compatible agent (Claude Code, Cursor AI, Codex, Cascade)
 - **Interface:** MCP stdio transport, 41 tools
 - **Behavior:** Autonomous workflow execution, stateless operation
-- **Context:** Reads markdown files (STATUS.md, DEVELOPMENT_PLAN.md, .agent/task/)
+- **Context:** Reads and writes via MCP to the database; may optionally read internal markdown exports in the ProjectPulse repo (dogfooding only)
 - **State Persistence:** All progress saved to database (survives context compaction)
 
 **Primary Workflows:**
@@ -123,7 +185,7 @@ Note: Tool count may expand; 41 represents current scope.
 2. **Issue Bulk Creation** (see Section 3.3)
 3. **Knowledge Query** (hybrid search) (see Section 3.4)
 4. **Checkpoint Updates** (every 15K tokens) (see Section 8.2)
-5. **Markdown Sync Trigger** (auto-generation) (see Section 7.3)
+5. **Internal Markdown Export** (dogfooding only; optional)
 
 **Requirements Fulfilled:**
 
@@ -165,7 +227,7 @@ Note: Tool count may expand; 41 represents current scope.
 
 - Agent executes git commands via shell (git add, commit, push)
 - MCP tools do NOT execute git directly (agent handles git workflow)
-- Markdown files committed to git (auto-generated, read-only in repo)
+- Internal only: ProjectPulse repo may commit markdown snapshots for dogfooding. End-user projects do not generate or commit markdown files.
 
 **Git Hooks:**
 
@@ -176,12 +238,11 @@ Note: Tool count may expand; 41 represents current scope.
 
 #### 1.3.2 File System
 
-**Purpose:** Markdown file storage for agent context
+**Purpose:** Internal dogfooding-only markdown export (optional; not for end users)
 
-**Key Files:**
+**Key Files (Internal Only):**
 
 - `STATUS.md` - Current phase, last task completed (auto-generated)
-- `DEVELOPMENT_PLAN.md` - Detailed plan (auto-generated)
 - `.agent/task/current-session-[timestamp].md` - Session notes (agent-created, human-editable)
 - `.agent/task/current-todos.md` - Todo list (auto-generated from database)
 - `.agent/task/current-plan.md` - Implementation plan (agent-created, human-editable)

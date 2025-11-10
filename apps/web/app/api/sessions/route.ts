@@ -85,9 +85,9 @@ export async function POST(request: NextRequest) {
     // 3. Validate dates are within task's range (if endDate provided)
     const sessionStart = new Date(data.startDate);
     const taskStart = new Date(task.startDate);
-    const taskEnd = new Date(task.endDate);
+    const taskEnd = task.endDate ? new Date(task.endDate) : null;
 
-    if (sessionStart < taskStart || sessionStart > taskEnd) {
+    if (taskEnd && (sessionStart < taskStart || sessionStart > taskEnd)) {
       return NextResponse.json(
         {
           success: false,
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (data.endDate) {
+    if (data.endDate && taskEnd) {
       const sessionEnd = new Date(data.endDate);
       if (sessionEnd > taskEnd) {
         return NextResponse.json(
@@ -128,8 +128,6 @@ export async function POST(request: NextRequest) {
         endDate: data.endDate ? new Date(data.endDate) : null,
         status: data.status,
         progress: data.progress,
-        notes: data.notes,
-        tokenCount: data.tokenCount,
       },
       select: {
         id: true,
@@ -139,8 +137,6 @@ export async function POST(request: NextRequest) {
         progress: true,
         startDate: true,
         endDate: true,
-        notes: true,
-        tokenCount: true,
       },
     });
 

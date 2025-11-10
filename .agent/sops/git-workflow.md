@@ -734,6 +734,57 @@ git stash pop  # Restore work
 
 ---
 
-**Last Updated**: 2025-10-26
+## Git Hooks (Optional)
+
+ProjectPulse does not protect generated markdown files (STATUS.md retired). Hooks below are optional for branch safety only.
+
+### Prevent Master Commits (Optional)
+
+Create `.git/hooks/pre-commit`:
+
+```bash
+#!/bin/bash
+
+branch="$(git rev-parse --abbrev-ref HEAD)"
+
+if [ "$branch" = "master" ]; then
+    echo "❌ ERROR: Cannot commit directly to master!"
+    echo "Create a feature branch first:"
+    echo "  git checkout -b feature/your-feature"
+    exit 1
+fi
+```
+
+Make executable:
+
+```bash
+chmod +x .git/hooks/pre-commit
+```
+
+### Prevent Master Push (Optional)
+
+Create `.git/hooks/pre-push`:
+
+```bash
+#!/bin/bash
+
+protected_branch='master'
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+if [ "$current_branch" = "$protected_branch" ]; then
+    echo "❌ ERROR: Cannot push directly to master! Use pull requests instead."
+    exit 1
+fi
+```
+
+Make executable:
+
+```bash
+chmod +x .git/hooks/pre-push
+```
+
+---
+
+**Last Updated**: 2025-11-09
 **Priority**: CRITICAL - Check branch BEFORE every commit
-**Created From**: CLAUDE.md golden rules + WORKFLOW_ARCHITECTURE.md
+**Created From**: CLAUDE.md golden rules + WORKFLOW_ARCHITECTURE.md + Sprint 2 hooks

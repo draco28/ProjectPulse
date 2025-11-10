@@ -42,7 +42,7 @@ Project
 
 - Timestamp format: YYYYMMDD-HHMM
 - Captures: notes, tokenUsage, startedAt, endedAt
-- Maps to `.agent/task/current-session-[timestamp].md`
+- Persisted in database; optional internal markdown export may mirror session notes
 
 ## Consequences
 
@@ -69,7 +69,7 @@ Project
    - Rejected: Over-engineering for solo developer, added complexity without benefit
 
 2. **Reduce to 4 Levels (remove Session):**
-   - Rejected: Session level critical for tracking `.agent/task/current-session-[timestamp].md` files
+   - Rejected: Session level critical for checkpointing, audit trail, and roll-up calculations (Session → Task → Day → Week → Phase)
 
 3. **Reduce to 3 Levels (Phase → Task → Session):**
    - Rejected: Week/Day levels provide useful intermediate milestones
