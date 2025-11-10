@@ -64,7 +64,12 @@
       "Bash(npm:*)",
       "Bash(npx -y @modelcontextprotocol/server-sequential-thinking --version)",
       "Bash(claude doctor)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(chmod:*)",
+      "mcp__filesystem__list_directory",
+      "mcp__filesystem__search_files",
+      "Bash(pnpm audit:*)",
+      "mcp__filesystem__write_file"
     ],
     "deny": [],
     "ask": [

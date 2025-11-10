@@ -1,10 +1,13 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { Clock, Link, Edit, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
-import { WikiSidebar } from '@/components/wiki/WikiSidebar';
+import { WikiHeader } from '@/components/wiki/WikiHeader';
+import { QuickNavigation } from '@/components/wiki/QuickNavigation';
 import { WikiContent } from '@/components/wiki/WikiContent';
+import { WikiContributors } from '@/components/wiki/WikiContributors';
+import { WikiFooterNav } from '@/components/wiki/WikiFooterNav';
 import NextLink from 'next/link';
 
 interface PageProps {
@@ -15,6 +18,20 @@ interface PageProps {
 
 // ISR: Revalidate every hour (3600 seconds)
 export const revalidate = 3600;
+
+interface Contributor {
+  name: string;
+  avatar?: string;
+  editCount: number;
+  lastEditAt: string;
+}
+
+interface Category {
+  name: string;
+  icon: string;
+  count: number;
+  slug: string;
+}
 
 interface TOCItem {
   id: string;
@@ -44,30 +61,36 @@ function extractHeadings(markdown: string): TOCItem[] {
   return headings;
 }
 
+// Helper function to get category icon
+function getCategoryIcon(category: string): string {
+  const iconMap: Record<string, string> = {
+    'Getting Started': 'Rocket',
+    'Guides': 'BookOpen',
+    'API Documentation': 'Code',
+    'Reference': 'FileText',
+    'Troubleshooting': 'Wrench'
+  };
+  return iconMap[category] || 'FileText';
+}
+
 async function getWikiPage(slug: string) {
   // Find page by path (slug is the path)
   const page = await prisma.wikiPage.findUnique({
-    where: { path: `/${slug}` }, // Assuming slug maps to path
+    where: { path: `/${slug}` },
     select: {
       id: true,
       title: true,
       content: true,
+      excerpt: true,
+      category: true,
       path: true,
+      views: true,
+      revisions: true,
+      contributors: true,
+      readingTime: true,
+      tags: true,
       createdAt: true,
       updatedAt: true,
-      // Related pages via outgoing links
-      outgoingLinks: {
-        select: {
-          targetPage: {
-            select: {
-              id: true,
-              title: true,
-              path: true,
-            },
-          },
-        },
-        take: 5, // Limit to 5 related pages
-      },
     },
   });
 
@@ -78,16 +101,61 @@ async function getWikiPage(slug: string) {
   // Extract TOC from markdown (server-side)
   const tocItems = extractHeadings(page.content);
 
-  // Flatten related pages
-  const relatedPages = page.outgoingLinks.map((link) => link.targetPage);
+  // Get prev/next pages in same category (ordered by ID since orderIndex doesn't exist)
+  const [prevPage, nextPage] = await Promise.all([
+    prisma.wikiPage.findFirst({
+      where: {
+        category: page.category,
+        id: { lt: page.id }
+      },
+      orderBy: { id: 'desc' },
+      select: { title: true, path: true }
+    }),
+    prisma.wikiPage.findFirst({
+      where: {
+        category: page.category,
+        id: { gt: page.id }
+      },
+      orderBy: { id: 'asc' },
+      select: { title: true, path: true }
+    })
+  ]);
+
+  // Safely convert JSON fields
+  const contributors = Array.isArray(page.contributors)
+    ? (page.contributors as unknown[]).filter(item =>
+        item && typeof item === 'object' && 'name' in item && 'editCount' in item
+      ) as Contributor[]
+    : [];
+  const tags = Array.isArray(page.tags)
+    ? (page.tags as unknown[]).filter(item => typeof item === 'string') as string[]
+    : [];
 
   return {
     ...page,
+    contributors,
+    tags,
     createdAt: page.createdAt.toISOString(),
     updatedAt: page.updatedAt.toISOString(),
     tocItems,
-    relatedPages,
+    prevPage: prevPage || undefined,
+    nextPage: nextPage || undefined,
   };
+}
+
+async function getCategoryStats(): Promise<Category[]> {
+  const stats = await prisma.wikiPage.groupBy({
+    by: ['category'],
+    _count: { id: true },
+    where: { category: { not: null } }
+  });
+
+  return stats.map(stat => ({
+    name: stat.category!,
+    slug: stat.category!.toLowerCase().replace(/\s+/g, '-'),
+    count: stat._count.id,
+    icon: getCategoryIcon(stat.category!)
+  }));
 }
 
 // Generate static params for ISR
@@ -103,7 +171,10 @@ export async function generateStaticParams() {
 }
 
 export default async function WikiPage({ params }: PageProps) {
-  const page = await getWikiPage(params.slug);
+  const [page, categories] = await Promise.all([
+    getWikiPage(params.slug),
+    getCategoryStats()
+  ]);
 
   if (!page) {
     notFound();
@@ -116,8 +187,11 @@ export default async function WikiPage({ params }: PageProps) {
         <Sidebar />
 
         <div className="content-wrapper flex flex-1 gap-4 overflow-hidden p-4">
-          {/* Wiki Sidebar (TOC + Related Articles) */}
-          <WikiSidebar tocItems={page.tocItems} relatedPages={page.relatedPages} />
+          {/* Left Sidebar: Quick Navigation */}
+          <QuickNavigation
+            categories={categories}
+            currentCategory={page.category ? page.category.toLowerCase().replace(/\s+/g, '-') : undefined}
+          />
 
           {/* Main Content */}
           <main className="flex-1 overflow-auto">
@@ -140,36 +214,34 @@ export default async function WikiPage({ params }: PageProps) {
                 </ol>
               </nav>
 
-              {/* Header */}
-              <header className="neu-raised smooth-transition rounded-3xl px-8 py-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h1 className="text-4xl font-bold text-white">{page.title}</h1>
-                  <button
-                    className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl"
-                    aria-label="Edit wiki page"
-                    disabled
-                    title="Edit functionality coming soon"
-                  >
-                    <Edit className="h-4 w-4" aria-hidden="true" />
-                    <span>Edit</span>
-                  </button>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-slate">
-                  <span className="flex items-center">
-                    <Clock className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Last updated: {new Date(page.updatedAt).toLocaleDateString()}
-                  </span>
-                  <span className="flex items-center">
-                    <Link className="mr-2 h-4 w-4" aria-hidden="true" />
-                    {page.path}
-                  </span>
-                </div>
-              </header>
+              {/* Enhanced Wiki Header */}
+              <WikiHeader
+                title={page.title}
+                description={page.excerpt || undefined}
+                category={page.category || 'Uncategorized'}
+                tags={page.tags}
+                contributors={page.contributors}
+                updatedAt={page.updatedAt}
+                views={page.views}
+                path={page.path}
+                readingTime={page.readingTime || undefined}
+              />
 
               {/* Wiki Content with Markdown Rendering */}
               <WikiContent content={page.content} tocItems={page.tocItems} />
+
+              {/* Footer Navigation */}
+              <WikiFooterNav prevPage={page.prevPage} nextPage={page.nextPage} />
             </div>
           </main>
+
+          {/* Right Sidebar: Contributors + Stats + Feedback */}
+          <WikiContributors
+            contributors={page.contributors}
+            views={page.views}
+            revisions={page.revisions}
+            pageId={page.id}
+          />
         </div>
       </div>
     </>

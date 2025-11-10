@@ -3,9 +3,9 @@
 import ReactMarkdown from 'react-markdown';
 import dynamic from 'next/dynamic';
 
-// Lazy load CodeBlock (~300KB with syntax highlighter)
+// Lazy load EnhancedCodeBlock (~300KB with syntax highlighter)
 // Only loads when markdown contains code blocks
-const CodeBlock = dynamic(() => import('./CodeBlock').then((mod) => ({ default: mod.CodeBlock })), {
+const EnhancedCodeBlock = dynamic(() => import('./EnhancedCodeBlock').then((mod) => ({ default: mod.EnhancedCodeBlock })), {
   loading: () => (
     <div className="neu-pressed animate-pulse rounded-2xl p-4">
       <div className="h-4 w-3/4 rounded bg-slate/20"></div>
@@ -77,7 +77,7 @@ export function WikiContent({ content, tocItems }: WikiContentProps) {
               const language = match[1];
               const code = String(children).replace(/\n$/, '');
 
-              return <CodeBlock language={language} code={code} />;
+              return <EnhancedCodeBlock language={language} code={code} />;
             },
             // Links
             a: ({ href, children, ...props }) => (
