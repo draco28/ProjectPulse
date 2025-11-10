@@ -885,7 +885,7 @@ MCP filesystem tools provide git-style diff output automatically for verificatio
 
 ### Violation History
 
-**2025-11-10 Session (Sprint 2 Week 3 Day 2):**
+**2025-11-10 Session (Sprint 2 Week 3 Day 2) - Violation #1:**
 
 **Violation Type:** Incomplete Protocol Execution
 **Steps Violated:** Step 4.5 (Verification Gate), Step 5 (Post-completion workflow)
@@ -930,8 +930,11 @@ MCP filesystem tools provide git-style diff output automatically for verificatio
 
 - [ ] **Step 1:** Did I create current-session-[timestamp].md with all required sections?
 - [ ] **Step 2:** Did I save plan to current-plan.md IMMEDIATELY after approval?
+- [ ] **Step 2:** Did I update current-plan.md checkboxes as I completed each criterion?
+- [ ] **Step 2:** Did I update current-todos.md progress percentage as tasks completed?
 - [ ] **Step 3:** Did I invoke required expert sub-agents BEFORE making technical decisions?
-- [ ] **Step 4:** Did I update todos at EVERY 15K token checkpoint?
+- [ ] **Step 4:** Did I update current-todos.md at EVERY 15K token checkpoint?
+- [ ] **Step 4:** Did I update current-plan.md checkboxes at EVERY checkpoint?
 - [ ] **Step 4.5:** Did I execute verification commands and document evidence?
 - [ ] **Step 5:** Did I update ALL required files (plan, memory banks, SOPs, system docs)?
 - [ ] **Step 5:** Did I invoke synthesize-docs AND map-system sub-agents?
@@ -944,4 +947,46 @@ MCP filesystem tools provide git-style diff output automatically for verificatio
 
 ---
 
-**Updated**: 2025-11-10 (Added Protocol Violations Log after Step 4.5/5 violation)
+**2025-11-10 Session - Violation #2:**
+
+**Violation Type:** File Abandonment After Creation
+**Steps Violated:** Step 2 (Plan/Todos maintenance), Step 4 (Checkpoint updates)
+
+**What Happened:**
+- Created `current-plan.md` and `current-todos.md` per Step 2
+- Claimed "Step 2 complete"
+- **NEVER UPDATED THESE FILES AGAIN** during entire session
+- Completed all 10 tasks but todos file still showed "0/7 tasks (0%)"
+- All success criteria met but plan file still had unchecked boxes
+- User correctly identified: "once created you literally forget it and never even updated these two files"
+
+**Impact:**
+- Files intended for progress tracking were useless
+- Step 4 checkpoint requirement violated (no todos updates at 15K, 30K, etc.)
+- Step 2 purpose defeated (create plan → follow plan → update plan)
+- Protocol instructs "update at every checkpoint" but I ignored this
+
+**Resolution:**
+- Updated `current-todos.md` (2025-11-10 19:35 IST)
+  - Changed "0/7 tasks (0%)" → "10/10 tasks (100%) ✅ COMPLETE"
+  - Added all protocol steps completion status
+  - Added quality metrics
+- Updated `current-plan.md` (2025-11-10 19:35 IST)
+  - Marked all success criteria checkboxes [x]
+  - Added implementation details for both user stories
+
+**Lessons Learned:**
+1. **Creating file ≠ Following protocol** - Must UPDATE files, not just create them
+2. **Checkpoint updates are NOT optional** - Every 15K tokens = update todos
+3. **Plan is living document** - Check boxes as you complete criteria
+4. **"Create and forget" defeats purpose** - Files exist to track progress
+
+**New Enforcement Rule Added:**
+At EVERY checkpoint (15K, 30K, 45K, etc.), MUST:
+1. Update `current-todos.md` with task progress
+2. Update checkboxes in `current-plan.md`
+3. Cannot claim "checkpoint complete" without file updates
+
+---
+
+**Updated**: 2025-11-10 (Added Violations #1 and #2 - Protocol Execution + File Abandonment)

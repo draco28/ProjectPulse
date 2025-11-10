@@ -17,26 +17,40 @@ Implement wiki list and detail pages leveraging existing UI-first architecture (
 
 ## Success Criteria
 
-### US-016: Wiki List Page (5 points)
+### US-016: Wiki List Page (5 points) ✅ COMPLETE
 
-- [ ] Create `/wiki/page.tsx` (list page) with Server Component
-- [ ] Category filtering (getting-started, guides, reference, troubleshooting)
-- [ ] Search functionality (title + content search)
-- [ ] Grid or list view with wiki page cards
-- [ ] Pagination (10 items per page)
-- [ ] Sorting (newest, oldest, title A-Z)
-- [ ] Responsive design (mobile, tablet, desktop)
-- [ ] Uses neumorphic theme from existing pages
+- [x] Create `/wiki/page.tsx` (list page) with Server Component
+- [x] Category filtering (getting-started, guides, reference, troubleshooting)
+- [x] Search functionality (title + content search)
+- [x] Grid or list view with wiki page cards
+- [x] Pagination (10 items per page)
+- [x] Sorting (newest, oldest, title A-Z)
+- [x] Responsive design (mobile, tablet, desktop)
+- [x] Uses neumorphic theme from existing pages
 
-### US-017: Wiki Detail Page (5 points)
+**Implementation Details:**
+- ISR with 1-hour cache (revalidate: 3600)
+- Parallel Prisma queries (pages + categoryStats)
+- Debounced search (300ms)
+- Multi-select category filtering (comma-separated URL params)
+- Desktop sidebar + mobile drawer with FAB
+- HTTP 200 OK verified on Mac mini (192.168.1.15:3000/wiki)
 
-- [ ] Enhance existing `/wiki/[slug]/page.tsx`
-- [ ] Verify markdown rendering works
-- [ ] Verify TOC (table of contents) works
-- [ ] Verify related pages sidebar works
-- [ ] Add breadcrumb navigation
-- [ ] Add "Edit" button placeholder (future feature)
-- [ ] Responsive design verification
+### US-017: Wiki Detail Page (5 points) ✅ COMPLETE
+
+- [x] Enhance existing `/wiki/[slug]/page.tsx`
+- [x] Verify markdown rendering works
+- [x] Verify TOC (table of contents) works
+- [x] Verify related pages sidebar works
+- [x] Add breadcrumb navigation
+- [x] Add "Edit" button placeholder (future feature)
+- [x] Responsive design verification
+
+**Implementation Details:**
+- Added breadcrumb navigation (Wiki > Current Page)
+- Added "Edit" button (disabled, tooltip: "Edit functionality coming soon")
+- Verified all existing functionality working
+- HTTP 200 OK verified on Mac mini (192.168.1.15:3000/wiki/getting-started)
 
 ---
 
