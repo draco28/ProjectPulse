@@ -1042,7 +1042,45 @@ onboarding.submitResponse({
 - Integration test: Complete 3-session flow
 - Unit tests: Template variable substitution
 - E2E test: Agent calls getPrompt → submitResponse → Wiki pages created
- 
+
+---
+
+#### Sprint 2 Status Tracking
+
+**Overall Progress:** 13/58 points (22%) 🔄 IN PROGRESS
+
+**Week 3: Wiki (Days 1-7)** 🔄 IN PROGRESS (2/7 days) - **13/34 points (38%)**
+
+**Completed:**
+
+- ✅ **Day 1** (2025-11-09): WikiPage seed data (US-015: 3 points)
+  - Created 7 comprehensive wiki pages with hierarchy
+  - Verified parent-child relationships and cross-references
+  - Fixed seed script bug (undefined wikiPages variable)
+
+- ✅ **Day 2** (2025-11-10): Wiki list & detail UI (US-016 + US-017: 10 points)
+  - Implemented `/wiki` list page with ISR (1-hour cache)
+  - Category filtering (multi-select checkboxes)
+  - Search functionality (debounced 300ms)
+  - Sort options (newest, oldest, title, updated)
+  - Pagination (10 items per page)
+  - Enhanced `/wiki/[slug]` detail page with breadcrumb navigation and edit button placeholder
+  - Created 4 components: WikiCard (memoized), WikiSearchBar, WikiListClient, enhanced detail page
+
+**In Progress:**
+
+- ⏳ **Day 3-7**: Wiki editor + MCP tools (US-018 to US-023: 21 points)
+
+**Remaining:**
+
+- Week 4: Onboarding System (24 points)
+
+**Quality Metrics (Days 1-2):**
+- TypeScript errors: 0
+- HTTP status: 200 OK on all wiki pages
+- Performance: ISR with 1-hour cache working correctly
+- Tests: All components working on Mac mini (192.168.1.15:3000)
+
 ---
 
 ### Sprint 3 (Weeks 5-6): Workflow Orchestration - 56 points

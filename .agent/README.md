@@ -227,6 +227,10 @@ Step-by-step guides for common operations and troubleshooting.
 **Next.js Patterns:**
 
 - [next-js-isr-pattern.md](sops/next-js-isr-pattern.md) - Incremental Static Regeneration with revalidation
+- [isr-wiki-list-pattern.md](sops/isr-wiki-list-pattern.md) - ISR for list pages with search/filter (wiki, blog, catalog)
+- [debounced-search-pattern.md](sops/debounced-search-pattern.md) - Client-side debounced search with URL state (300ms delay)
+- [multi-select-url-filter-pattern.md](sops/multi-select-url-filter-pattern.md) - Multi-select filters with URL as single source of truth
+- [server-component-performance.md](sops/server-component-performance.md) - Performance optimization (React.memo, parallel queries, select)
 
 **Type Safety:**
 
