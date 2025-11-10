@@ -99,25 +99,24 @@ Token budget: [current]/200K (including memory banks: ~8-10K)
 
 - [ ] Create implementation plan in conversation (use ExitPlanMode if in plan mode)
 - [ ] Get user approval for the plan
-- [ ] **IMMEDIATELY** save plan to `.agent/task/current-plan.md`
-  - Include: Overview, deliverables, implementation steps, success criteria
-  - Single reusable file (overwrites previous plan)
-- [ ] Create `.agent/task/current-todos.md` with full task list
-  - Include: All tasks with checkboxes, progress percentage, token checkpoints
-  - This file will be updated throughout session
-- [ ] Create TodoWrite UI list (visual progress tracking)
+- [ ] **INVOKE protocol-updater sub-agent** to create plan and todos files
+  - Pass: Plan summary, task list, success criteria
+  - Sub-agent creates: `current-plan.md` and `current-todos.md`
+  - Receive: Confirmation with file paths
+  - **Token cost**: ~200 tokens main thread (vs ~2K if done manually)
+- [ ] Create TodoWrite UI list (visual progress tracking - main thread)
 
 ### REQUIRED CONFIRMATION
 
 **You MUST output this exact confirmation:**
 
 ```
-✅ STEP 2 COMPLETE: Plan saved to current-plan.md, todos saved to current-todos.md
+✅ STEP 2 COMPLETE: protocol-updater invoked, files created
 
-Plan overview: [1-2 sentence summary]
+Plan saved to: .agent/task/current-plan.md
+Todos saved to: .agent/task/current-todos.md
 Total tasks: [X]
-Files to create/modify: [list]
-Estimated tokens: [rough estimate]
+Protocol-updater confirmation: [summary from sub-agent]
 ```
 
 **If you don't see this confirmation, I skipped saving the plan. Stop me immediately:**
@@ -214,29 +213,30 @@ Monitor system warnings: **"Token usage: X/200000"**
 
 ### Required Actions at Each Checkpoint
 
-- [ ] Update `.agent/task/current-session-[timestamp].md`
-  - Add progress summary: What's been completed since last checkpoint
-  - Note any blockers or issues encountered
-  - Update token usage
-- [ ] Update `.agent/task/current-todos.md`
-  - Mark completed tasks with [x]
-  - Update progress percentage
-  - Note current task in progress
-- [ ] Update TodoWrite UI to match file state
+- [ ] Summarize work completed since last checkpoint (2-3 sentences)
+- [ ] **INVOKE protocol-updater sub-agent** with summary
+  - Pass: Completed tasks, current progress, next tasks
+  - Sub-agent updates: `current-session.md`, `current-todos.md`, `current-plan.md`
+  - Receive: Confirmation with updated progress percentage
+  - **Token cost**: ~200 tokens main thread (vs ~5K if done manually)
+- [ ] Update TodoWrite UI to match file state (main thread)
 
 ### REQUIRED CONFIRMATION
 
 **You MUST output this confirmation at EACH checkpoint:**
 
 ```
-✅ CHECKPOINT at [X]K tokens: Progress saved
+✅ CHECKPOINT at [X]K tokens: protocol-updater invoked
 
 Completed since last checkpoint:
 - [task 1]
 - [task 2]
 
-Current progress: [X]/[Y] tasks complete ([Z]%)
-Updated: current-session.md, current-todos.md
+Protocol-updater updated:
+- current-session.md (checkpoint summary added)
+- current-todos.md ([X]/[Y] tasks, [Z]% complete)
+- current-plan.md ([X]/[Y] criteria checked)
+
 Next checkpoint: [X+15]K tokens
 ```
 
@@ -929,12 +929,11 @@ MCP filesystem tools provide git-style diff output automatically for verificatio
 **Before claiming any step "complete":**
 
 - [ ] **Step 1:** Did I create current-session-[timestamp].md with all required sections?
-- [ ] **Step 2:** Did I save plan to current-plan.md IMMEDIATELY after approval?
-- [ ] **Step 2:** Did I update current-plan.md checkboxes as I completed each criterion?
-- [ ] **Step 2:** Did I update current-todos.md progress percentage as tasks completed?
+- [ ] **Step 2:** Did I invoke protocol-updater to create current-plan.md and current-todos.md?
+- [ ] **Step 2:** Did I receive confirmation from protocol-updater with file paths?
 - [ ] **Step 3:** Did I invoke required expert sub-agents BEFORE making technical decisions?
-- [ ] **Step 4:** Did I update current-todos.md at EVERY 15K token checkpoint?
-- [ ] **Step 4:** Did I update current-plan.md checkboxes at EVERY checkpoint?
+- [ ] **Step 4:** Did I invoke protocol-updater at EVERY 15K token checkpoint?
+- [ ] **Step 4:** Did I receive confirmation from protocol-updater with updated progress?
 - [ ] **Step 4.5:** Did I execute verification commands and document evidence?
 - [ ] **Step 5:** Did I update ALL required files (plan, memory banks, SOPs, system docs)?
 - [ ] **Step 5:** Did I invoke synthesize-docs AND map-system sub-agents?
