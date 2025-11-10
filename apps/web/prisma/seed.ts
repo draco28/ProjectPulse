@@ -2042,7 +2042,7 @@ Format:
   console.log(`   - Issues: ${issues.length} (5 open, 3 closed)`);
   console.log(`   - Labels: ${labels.length}`);
   console.log(`   - Knowledge Items: ${knowledgeItems.length}`);
-  console.log(`   - Wiki Pages: ${wikiPages.length}`);
+  console.log(`   - Wiki Pages: ${rootPages.length + childPages.length}`);
   console.log(`   - Security Findings: ${securityFindings.length} (2 open, 1 false positive)`);
   console.log(`   - Agent Personas: ${personas.length}`);
   console.log(`   - Comments: 3`);
