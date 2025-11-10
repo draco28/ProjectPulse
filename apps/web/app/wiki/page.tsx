@@ -1,0 +1,222 @@
+/**
+ * Wiki List Page
+ *
+ * Displays all wiki pages with category filtering, search, and sorting
+ * Pattern: Similar to issues page but with ISR (documentation changes infrequently)
+ */
+
+import { Metadata } from 'next';
+import { Plus } from 'lucide-react';
+import { FloatingBackground } from '@/components/FloatingBackground';
+import { Sidebar } from '@/components/Sidebar';
+import { WikiListClient } from '@/components/wiki/WikiListClient';
+import { WikiSearchBar } from '@/components/wiki/WikiSearchBar';
+import { WikiCard } from '@/components/wiki/WikiCard';
+import { Pagination } from '@/components/issues/Pagination';
+import { prisma } from '@/lib/prisma';
+
+// ISR: Revalidate every hour (same as wiki detail page)
+export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: 'Wiki | ProjectPulse',
+  description: 'Browse documentation, guides, and references',
+};
+
+interface SearchParams {
+  category?: string;
+  search?: string;
+  sort?: string;
+  page?: string;
+  [key: string]: string | undefined;
+}
+
+type WhereClause = {
+  category?: { in: string[] };
+  OR?: Array<{
+    title?: { contains: string; mode: 'insensitive' };
+    content?: { contains: string; mode: 'insensitive' };
+  }>;
+};
+
+async function getWikiPages(searchParams: SearchParams) {
+  // Parse filters from URL
+  const categoryFilter = searchParams.category?.split(',').filter(Boolean) || [];
+  const searchTerm = searchParams.search || '';
+  const sortBy = searchParams.sort || 'newest';
+  const page = parseInt(searchParams.page || '1', 10);
+  const perPage = 10;
+
+  // Build where clause
+  const where: WhereClause = {};
+
+  // Category filter (OR logic for multiple categories)
+  if (categoryFilter.length > 0) {
+    where.category = { in: categoryFilter };
+  }
+
+  // Search filter (searches title AND content)
+  if (searchTerm) {
+    where.OR = [
+      { title: { contains: searchTerm, mode: 'insensitive' as const } },
+      { content: { contains: searchTerm, mode: 'insensitive' as const } },
+    ];
+  }
+
+  // Build orderBy clause
+  let orderBy:
+    | { createdAt: 'desc' | 'asc' }
+    | { updatedAt: 'desc' | 'asc' }
+    | { title: 'asc' };
+
+  switch (sortBy) {
+    case 'newest':
+      orderBy = { createdAt: 'desc' };
+      break;
+    case 'oldest':
+      orderBy = { createdAt: 'asc' };
+      break;
+    case 'title':
+      orderBy = { title: 'asc' };
+      break;
+    case 'updated':
+      orderBy = { updatedAt: 'desc' };
+      break;
+    default:
+      orderBy = { createdAt: 'desc' };
+  }
+
+  // Fetch pages + total count in parallel
+  const [pages, totalCount] = await Promise.all([
+    prisma.wikiPage.findMany({
+      where,
+      select: {
+        id: true,
+        title: true,
+        content: true, // Will truncate to excerpt client-side
+        category: true,
+        path: true,
+        updatedAt: true,
+      },
+      orderBy,
+      take: perPage,
+      skip: (page - 1) * perPage,
+    }),
+    prisma.wikiPage.count({ where }),
+  ]);
+
+  return {
+    pages,
+    totalCount,
+    currentPage: page,
+    totalPages: Math.ceil(totalCount / perPage),
+    perPage,
+  };
+}
+
+async function getCategoryStats() {
+  const categoryCounts = await prisma.wikiPage.groupBy({
+    by: ['category'],
+    _count: true,
+    where: {
+      category: { not: null },
+    },
+  });
+
+  return Object.fromEntries(
+    categoryCounts
+      .filter((c) => c.category)
+      .map((c) => [c.category!, c._count])
+  );
+}
+
+export default async function WikiPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const [{ pages, totalCount, currentPage, totalPages, perPage }, categoryStats] =
+    await Promise.all([getWikiPages(params), getCategoryStats()]);
+
+  return (
+    <>
+      <FloatingBackground />
+
+      <div className="content-wrapper flex h-screen overflow-hidden">
+        <Sidebar />
+
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
+          {/* Header */}
+          <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="mb-1 text-3xl font-bold text-white">Wiki</h2>
+                <p className="text-sm text-slate">Documentation, guides, and references</p>
+              </div>
+              <button
+                className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"
+                aria-label="Create new wiki page"
+              >
+                <Plus className="h-5 w-5" aria-hidden="true" />
+                <span>New Page</span>
+              </button>
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <main className="flex flex-1 gap-4 overflow-hidden">
+            {/* Filters Sidebar (Desktop) + FAB + Mobile Drawer */}
+            <WikiListClient categoryStats={categoryStats} searchParams={params} />
+
+            {/* Wiki List */}
+            <div className="flex flex-1 flex-col gap-4 overflow-auto">
+              {/* Search & Sort */}
+              <WikiSearchBar searchParams={params} />
+
+              {/* Wiki Pages */}
+              <div className="space-y-3">
+                {pages.length === 0 ? (
+                  <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
+                    <p className="text-lg font-semibold text-white">No wiki pages found</p>
+                    <p className="text-sm text-slate">
+                      {params.search || params.category
+                        ? 'Try adjusting your filters or search term'
+                        : 'Create your first wiki page to get started'}
+                    </p>
+                  </div>
+                ) : (
+                  pages.map((page) => (
+                    <WikiCard
+                      key={page.id}
+                      page={{
+                        id: page.id.toString(),
+                        title: page.title,
+                        excerpt: page.content.slice(0, 200) + '...',
+                        category: page.category || 'Uncategorized',
+                        path: page.path,
+                        updatedAt: page.updatedAt,
+                      }}
+                    />
+                  ))
+                )}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalCount={totalCount}
+                  showing={pages.length}
+                  perPage={perPage}
+                />
+              )}
+            </div>
+          </main>
+        </div>
+      </div>
+    </>
+  );
+}

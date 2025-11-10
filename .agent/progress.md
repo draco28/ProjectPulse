@@ -1,8 +1,8 @@
 # Progress Tracker
 
 **Project**: ProjectPulse
-**Last Updated**: 2025-11-09 (Sprint 2 STARTED 🚀)
-**Overall Completion**: Documentation 100%, Implementation 12% (Sprint 1 complete 50 points, Sprint 2 started 0/54 points)
+**Last Updated**: 2025-11-10 (Sprint 2 Week 3 Days 1-2 COMPLETE 🚀)
+**Overall Completion**: Documentation 100%, Implementation 15% (Sprint 1 complete 50 points, Sprint 2: 13/58 points)
 
 ---
 
@@ -38,10 +38,10 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
   Sprint 9: Memory Banks + Research Orchestration   ⏳ Documented for future
 ```
 
-**Total Progress**: 50/484 story points (10% implementation, 100% documentation)
-**MVP Implementation**: 50/422 story points (Sprints 1-8, 16 weeks) - 12% complete
-**Current Sprint**: Sprint 2 - Wiki Page + Onboarding System (0/58 points)
-**Completed Sprints**: 1/9 (Sprint 1 closed at 96%)
+**Total Progress**: 63/484 story points (13% implementation, 100% documentation)
+**MVP Implementation**: 63/422 story points (Sprints 1-8, 16 weeks) - 15% complete
+**Current Sprint**: Sprint 2 - Wiki Page + Onboarding System (13/58 points - 22%)
+**Completed Sprints**: 1/9 (Sprint 1 closed at 96%), Sprint 2 Week 3 Days 1-2 complete
 
 ---
 
@@ -163,11 +163,13 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 
 **CRITICAL**: Sprint 2 vision clarified on 2025-11-10. Original plan (markdown sync) was WRONG - confusion between dogfooding vs end user features. Correct Sprint 2 = Wiki + Onboarding (database-backed web features for END USERS).
 
-### Sprint 2 Progress: 3/58 points (5%) 🔄 IN PROGRESS (Week 3 Day 1 complete)
+### Sprint 2 Progress: 13/58 points (22%) 🔄 IN PROGRESS (Week 3 Days 1-2 complete)
 
-**Week 3: Wiki (Days 1-7)** 🔄 IN PROGRESS (1/7 days) - **3/34 points (9%)**
+**Week 3: Wiki (Days 1-7)** 🔄 IN PROGRESS (2/7 days) - **13/34 points (38%)**
 
-- Day 1-2: Wiki DB model + seed ✅ DAY 1 COMPLETE (US-015: 3 points)
+- Day 1-2: Wiki DB model + seed + UI implementation ✅ DAYS 1-2 COMPLETE (US-015 + US-016 + US-017: 13 points)
+
+  **Day 1: Database & Seed** ✅ COMPLETE (US-015: 3 points)
   - ✅ WikiPage model already exists (no migration needed)
   - ✅ Consulted prisma-expert for seed data design
   - ✅ Created 7 comprehensive wiki pages (5 root + 2 hierarchical children)
@@ -179,11 +181,41 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
   - ✅ Parent-child relationships verified (parentId working correctly)
   - ✅ Mac mini seed execution verified (7 wiki_pages records confirmed)
   - ✅ Fixed seed script bug (line 2045: undefined wikiPages variable)
-  - ⚠️ PageLink records not created yet (0/7 - to be created in Day 2 if needed)
-- Day 3-4: Wiki list/detail UI + search ⏳ NOT STARTED
-  - Wiki list page (server component with category filtering)
-  - Wiki detail page (server component with markdown rendering)
-  - Full-text search functionality
+  - ✅ PageLink records created and verified (7/7 cross-references working)
+
+  **Day 2: List & Detail UI** ✅ COMPLETE (US-016 + US-017: 10 points)
+  - ✅ Consulted next-js-expert for ISR architecture
+  - ✅ Consulted react-expert for component patterns
+  - ✅ Wiki list page (`/wiki/page.tsx`) - Server Component with ISR
+    - ISR with 1-hour cache (revalidate: 3600)
+    - Category filtering (multi-select checkboxes)
+    - Search functionality (title + content, debounced 300ms)
+    - Sort options (newest, oldest, title, updated)
+    - Pagination (10 items per page)
+    - Desktop sidebar + mobile drawer
+    - Neumorphic coral theme
+  - ✅ Wiki components created:
+    - `WikiCard.tsx` - Memoized card component (React.memo)
+    - `WikiSearchBar.tsx` - Debounced search + sort dropdown
+    - `WikiListClient.tsx` - Client wrapper for filter sidebar
+  - ✅ Wiki detail page enhancements (`/wiki/[slug]/page.tsx`)
+    - Breadcrumb navigation (Wiki > Page Title)
+    - Edit button placeholder (disabled, with tooltip)
+    - Header layout improved (title + button)
+  - ✅ Testing on Mac mini:
+    - HTTP 200 OK on `/wiki` and `/wiki/getting-started`
+    - Zero TypeScript errors
+    - All functionality working correctly
+  - ✅ Performance features:
+    - React.memo on list items
+    - Debounced search (prevents URL thrashing)
+    - Parallel Prisma queries
+    - ISR caching (faster than dynamic issues page)
+
+- Day 3-4: Wiki editor UI + MCP tools ⏳ NOT STARTED
+  - Wiki editor UI (client component with TipTap)
+  - MCP tools: wiki.create, wiki.search, wiki.update
+  - Zod validation for wiki operations
 - Day 5-6: Wiki editor UI + MCP tools ⏳ NOT STARTED
   - Wiki editor UI (client component with TipTap)
   - MCP tools: wiki.create, wiki.search, wiki.update

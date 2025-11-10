@@ -1,10 +1,11 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { Clock, Link } from 'lucide-react';
+import { Clock, Link, Edit, ChevronRight } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { WikiSidebar } from '@/components/wiki/WikiSidebar';
 import { WikiContent } from '@/components/wiki/WikiContent';
+import NextLink from 'next/link';
 
 interface PageProps {
   params: {
@@ -121,9 +122,38 @@ export default async function WikiPage({ params }: PageProps) {
           {/* Main Content */}
           <main className="flex-1 overflow-auto">
             <div className="space-y-6">
+              {/* Breadcrumb Navigation */}
+              <nav aria-label="Breadcrumb" className="text-sm">
+                <ol className="flex items-center gap-2 text-slate">
+                  <li>
+                    <NextLink
+                      href="/wiki"
+                      className="hover:text-white smooth-transition"
+                    >
+                      Wiki
+                    </NextLink>
+                  </li>
+                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  <li aria-current="page" className="text-white font-semibold">
+                    {page.title}
+                  </li>
+                </ol>
+              </nav>
+
               {/* Header */}
               <header className="neu-raised smooth-transition rounded-3xl px-8 py-6">
-                <h1 className="mb-2 text-4xl font-bold text-white">{page.title}</h1>
+                <div className="flex items-center justify-between mb-4">
+                  <h1 className="text-4xl font-bold text-white">{page.title}</h1>
+                  <button
+                    className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl"
+                    aria-label="Edit wiki page"
+                    disabled
+                    title="Edit functionality coming soon"
+                  >
+                    <Edit className="h-4 w-4" aria-hidden="true" />
+                    <span>Edit</span>
+                  </button>
+                </div>
                 <div className="flex items-center gap-4 text-sm text-slate">
                   <span className="flex items-center">
                     <Clock className="mr-2 h-4 w-4" aria-hidden="true" />

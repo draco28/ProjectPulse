@@ -123,4 +123,60 @@
 
 **Token Usage**: 122K/200K (61%) - Approaching auto-compact threshold
 
-**Next Session**: Resume with implementation of wiki list page
+**Wiki List Page Implementation Complete** (2025-11-10 12:45 IST):
+
+**Files Created**:
+1. ✅ `apps/web/app/wiki/page.tsx` - Server Component with ISR (revalidate: 3600)
+2. ✅ `apps/web/components/wiki/WikiCard.tsx` - Memoized card component
+3. ✅ `apps/web/components/wiki/WikiSearchBar.tsx` - Debounced search (300ms) + sort dropdown
+4. ✅ `apps/web/components/wiki/WikiListClient.tsx` - Category filter sidebar (desktop + mobile drawer)
+
+**Testing Results**:
+- ✅ HTTP 200 OK on http://192.168.1.15:3000/wiki
+- ✅ No TypeScript errors
+- ✅ Server Component pattern working correctly
+- ✅ ISR caching enabled (1-hour revalidation)
+
+**Performance Features Implemented**:
+- React.memo on WikiCard (prevent sibling re-renders)
+- Debounced search (300ms delay on URL updates)
+- Parallel Prisma queries (pages + category stats)
+- Select optimization (only fetch needed fields)
+- ISR with 1-hour cache (faster than issues page which is fully dynamic)
+
+**Wiki Detail Page Enhancements Complete** (2025-11-10 12:50 IST):
+
+**Changes Made**:
+1. ✅ Added breadcrumb navigation (Wiki > Current Page)
+2. ✅ Added "Edit" button placeholder (disabled, with tooltip)
+3. ✅ Improved header layout (title + edit button side by side)
+
+**Testing Results**:
+- ✅ HTTP 200 OK on http://192.168.1.15:3000/wiki/getting-started
+- ✅ No TypeScript errors
+- ✅ Breadcrumb navigation working
+- ✅ Edit button visible but disabled (planned feature)
+
+**Implementation Summary**:
+
+**US-016 (Wiki List Page - 5 points)**: ✅ COMPLETE
+- Server Component with ISR (1-hour cache)
+- Category filtering (multi-select checkboxes)
+- Search functionality (title + content)
+- Sort options (newest, oldest, title, updated)
+- Pagination (10 items per page)
+- Responsive design (desktop sidebar + mobile drawer)
+- Neumorphic coral theme
+
+**US-017 (Wiki Detail Page - 5 points)**: ✅ COMPLETE
+- Breadcrumb navigation
+- Edit button placeholder
+- Existing features verified working:
+  - Markdown rendering ✅
+  - Table of contents ✅
+  - Related pages sidebar ✅
+  - Responsive design ✅
+
+**Token Usage**: 81K/200K (41%) - Well under budget
+
+**Next**: Update documentation and commit changes
