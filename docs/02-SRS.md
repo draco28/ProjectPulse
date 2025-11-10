@@ -832,7 +832,37 @@ Progress: [progress]%
 
 ---
 
-### 1.2 Workflow Orchestration (FR-026 to FR-050)
+### 1.2 Web UI Pages (Overview)
+
+**Purpose:** Provide a human-accessible web interface for all project data stored in the database.
+
+**Pages:**
+
+- **Wiki Page:** Searchable documentation with categories, markdown rendering, and editor.
+- **Knowledge Base:** Semantic search (pgvector) with relevance scores and source links.
+- **Issues Page:** CRUD operations, filtering, bulk actions, and context injection.
+- **Tickets Page:** Sprint work items with lifecycle tracking and status transitions.
+- **Development Cycle Page:** Hierarchical progress visualization (Phase → Week → Day → Task → Session).
+- **Dashboard Page:** Project overview with metrics and quick actions.
+- **Agent Personas Page:** Manage agent personas and toggles.
+- **Project Health Page:** Security, quality, accessibility, and tech debt scores.
+
+**Notes:**
+
+- End users interact via web UI; AI agents interact via MCP tools. No markdown dependence for end-user workflows.
+- Detailed functional requirements for these pages are covered in the implementation plan (docs/13-Project-Plan.md, Sprint 2) and related ADRs.
+
+**Cross-References:**
+
+- PRD: Section 4.1 Feature Overview
+- Project Plan: Sprint 2 (Wiki + Onboarding)
+- ADR-002: Database as Source of Truth
+- ADR-003: Hybrid Knowledge Graph
+- ADR-005: Five-Level Hierarchy
+
+---
+
+### 1.3 Workflow Orchestration (FR-026 to FR-050)
 
 **Purpose:** Track and enforce 12 workflow state machines from CLAUDE.md
 

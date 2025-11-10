@@ -730,22 +730,21 @@ git stash                     # Save changes temporarily
    # Fill in all sections
    ```
 
-2. **Update STATUS.md** (1-page snapshot)
+2. **Update .agent/progress.md** (1-page snapshot)
    - Update "Last Completed" section
    - Update "Current Phase" section
    - Update "Git Status" section
    - Update "Overall Progress" section
 
-3. **Update DEVELOPMENT_PLAN.md Header**
-   - Update "CURRENT STATUS" section at the very top
-   - Change "Last Completed" to your phase
-   - Change "Current Phase" to next phase
+3. **Update docs/13-Project-Plan.md Summary**
+   - Update sprint status and milestones
+   - Ensure deliverables reflect latest completion
    - Update "Next Immediate Task"
 
 4. **Commit All Context Files**
    ```bash
-   git add STATUS.md docs/DEVELOPMENT_PLAN.md WEEK_X_DAY_Y_COMPLETION.md
-   git commit -m "docs: Update status after [phase name] completion"
+   git add .agent/progress.md docs/13-Project-Plan.md WEEK_X_DAY_Y_COMPLETION.md
+   git commit -m "docs: Update progress and project plan after [phase name] completion"
    git push origin your-branch
    ```
 
@@ -770,15 +769,15 @@ git stash                     # Save changes temporarily
 After every completion, verify:
 
 - [ ] Completion document created (from COMPLETION_TEMPLATE.md)
-- [ ] STATUS.md updated with new current phase
-- [ ] DEVELOPMENT_PLAN.md "CURRENT STATUS" section updated
-- [ ] All 3 files committed to Git
+- [ ] .agent/progress.md updated with new current phase
+- [ ] docs/13-Project-Plan.md sprint status updated
+- [ ] All files committed to Git
 - [ ] Pushed to GitHub
 
 **Takes 5 minutes, saves hours later!**
 
 ---
 
-**Remember:** Good Git hygiene = Easier collaboration, better code reviews, and cleaner history. Take the extra 30 seconds to write a good commit message - your future self will thank you!
+ **Remember:** Good Git hygiene = Easier collaboration, better code reviews, and cleaner history. Take the extra 30 seconds to write a good commit message - your future self will thank you!
 
-**And:** Keep STATUS.md updated after every completion - your next Claude Code session will thank you!
+ **And:** Keep .agent/progress.md updated after every completion - your next Claude Code session will thank you!

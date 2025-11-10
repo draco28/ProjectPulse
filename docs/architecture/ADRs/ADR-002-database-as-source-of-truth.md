@@ -1,4 +1,4 @@
-# ADR-002: Database as Source of Truth for Markdown Files
+# ADR-002: Database as Source of Truth (Markdown Export Optional/Internal)
 
 **Status:** Accepted
 **Date:** 2025-11-02
@@ -29,15 +29,14 @@ Current pain point: Manual markdown file updates lead to inconsistencies.
 
 ## Decision
 
-**Database is the single source of truth. Markdown files are auto-generated and read-only.**
+**Database is the single source of truth. End users consume data via web UI and MCP API. Markdown export is optional/internal (dogfooding) and not required for end users.**
 
 **Implementation:**
 
-- All progress tracked in database (Sprint/Phase tables: Phase, Week, Day, Task, Session)
-- Markdown files generated from database via templates
-- Agents update database → Automatic markdown regeneration
-- Git hooks prevent manual markdown edits (pre-commit validation)
-- UI displays "Auto-generated - Edit via app" banner on markdown pages
+- All data tracked in database (Phase, Week, Day, Task, Session; Issues; Wiki; Knowledge)
+- End users access data via web UI (Next.js) and agents via MCP API; no markdown dependence in user workflows
+- Markdown export is optional for internal development context (dogfooding) and considered read-only by convention
+- If markdown export is used, regeneration can be triggered on progress updates/checkpoints; no enforced git hooks for generated files
 
 ## Consequences
 
@@ -51,7 +50,6 @@ Current pain point: Manual markdown file updates lead to inconsistencies.
 ### Negative
 
 - **Read-only markdown:** Developers cannot directly edit STATUS.md, current-todos.md
-- **Git hook overhead:** Pre-commit validation adds ~500ms to commit time
 - **Template maintenance:** Changes to markdown format require template updates
 
 ### Neutral
@@ -70,9 +68,9 @@ Current pain point: Manual markdown file updates lead to inconsistencies.
    - Allow both database and markdown edits, reconcile conflicts
    - Rejected: Conflict resolution complex, race conditions, merge complexity
 
-3. **No Markdown Files:**
-   - Use database/UI only, no markdown files
-   - Rejected: Agents (Claude Code) rely on markdown files for context (STATUS.md, DEVELOPMENT_PLAN.md)
+3. **No Markdown Files (End-User Default):**
+   - For end users, ProjectPulse uses database + web UI; no markdown reliance
+   - Internal teams may optionally export markdown for dogfooding; this ADR treats markdown as optional/internal
 
 ## References
 
