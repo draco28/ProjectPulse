@@ -14,11 +14,11 @@
 
 **Always read in this order:**
 
-1. [STATUS.md](../STATUS.md) - Current snapshot
-2. [13-Project-Plan.md](../docs/13-Project-Plan.md) - Roadmap
-3. [12-Backlog.md](../docs/12-Backlog.md) - User stories
-4. [CLAUDE.md](../CLAUDE.md) - Integration guide
-5. [WORKFLOW_ARCHITECTURE.md](../docs/WORKFLOW_ARCHITECTURE.md) - Branching strategy
+1. [.agent/active-context.md](active-context.md) - Current focus and blockers
+2. [.agent/progress.md](progress.md) - Progress & metrics snapshot
+3. [13-Project-Plan.md](../docs/13-Project-Plan.md) - Roadmap
+4. [12-Backlog.md](../docs/12-Backlog.md) - User stories
+5. [CLAUDE.md](../CLAUDE.md) - Integration guide
 6. **This file** (.agent/README.md) - Documentation index
 
 **User Workflow Reference:**
@@ -309,7 +309,6 @@ If Prisma schema or API structure changes significantly:
 
 ### Main Project Docs
 
-- [STATUS.md](../STATUS.md) - What's happening now
 - [13-Project-Plan.md](../docs/13-Project-Plan.md) - Roadmap
 - [12-Backlog.md](../docs/12-Backlog.md) - User stories
 - [CLAUDE.md](../CLAUDE.md) - How to use Claude Code

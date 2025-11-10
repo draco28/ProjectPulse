@@ -11,7 +11,7 @@
 ### Your Daily Workflow (90% of Time)
 
 ```
-You: "Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase"
+You: "Read .agent/active-context.md, .agent/progress.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase"
 Claude: [Does everything automatically]
 ```
 
@@ -37,12 +37,12 @@ Claude: [Does everything automatically]
 **Your Prompt:**
 
 ```
-Read STATUS.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase
+Read .agent/active-context.md, .agent/progress.md, docs/13-Project-Plan.md, docs/12-Backlog.md and continue with current phase
 ```
 
 **What Happens Automatically:**
 
-1. ✅ I read STATUS.md to identify current phase
+1. ✅ I read .agent/active-context.md and .agent/progress.md to identify current phase and status
 2. ✅ I read docs/13-Project-Plan.md (roadmap) and docs/12-Backlog.md (stories) to understand scope
 3. ✅ I create `.agent/task/current-session-[timestamp].md`
 4. ✅ I load skill frontmatter (7 skills × 20 tokens = 140 tokens)

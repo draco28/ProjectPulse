@@ -28,7 +28,7 @@ At the start of **EVERY** session, copy-paste this into Claude Code:
 ```
 MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
 
-Current phase: [copy from STATUS.md]
+Current phase: [copy from .agent/active-context.md or .agent/progress.md]
 Roadmap: [copy from docs/13-Project-Plan.md]
 Stories: [copy from docs/12-Backlog.md]
 
@@ -53,7 +53,7 @@ Proceed with [phase name].
 
 ### Required Actions
 
-- [ ] Read `docs/13-Project-Plan.md` and `docs/12-Backlog.md` - understand roadmap and stories
+- [ ] Read .agent/active-context.md and .agent/progress.md, plus docs/13-Project-Plan.md and docs/12-Backlog.md - understand roadmap and stories
 - [ ] **Read memory bank files (REQUIRED EVERY SESSION):**
   - [ ] `.agent/project-brief.md` - project goals, constraints, success criteria
   - [ ] `.agent/system-patterns.md` - architecture patterns, established conventions
@@ -76,7 +76,7 @@ Proceed with [phase name].
 ✅ STEP 1 COMPLETE: Session initialized at [timestamp]
 
 Created: .agent/task/current-session-[YYYYMMDD-HHMM].md
-Current phase: [phase name from STATUS.md]
+Current phase: [phase name from .agent/active-context.md or .agent/progress.md]
 Goals: [brief description of what needs to be done]
 Memory banks loaded:
   ✓ project-brief.md (goals, constraints)
@@ -540,8 +540,9 @@ node -e 'console.log(new Date("2025-11-06T14:30:00.000Z").toISOString())'
 
 ### Required Documentation Updates
 
-- [ ] Create completion doc (optional but recommended for complex phases)
-  - If created: Document what was done, files created/modified, technical decisions
+- Create completion doc (optional but recommended for complex phases)
+- Update memory banks (.agent/active-context.md, .agent/progress.md) and docs/13-Project-Plan.md
+- Document what was done, files created/modified, technical decisions
   - Include: Quality gate results (type-check, lint, build, tests)
   - Auto-archived under docs/archive/completions/YYYY-MM/
 
@@ -604,7 +605,7 @@ node -e 'console.log(new Date("2025-11-06T14:30:00.000Z").toISOString())'
 
 **Documentation commit (FIRST):**
 
-- [ ] Stage: `git add .agent/ STATUS.md docs/ COMPLETION_*.md`
+- [ ] Stage: `git add .agent/ docs/`
 - [ ] Commit: `git commit -m "docs: Update documentation after [phase]"`
 
 **Code commit (SECOND):**
@@ -706,7 +707,7 @@ Examples:
 
 ```
 
-□ STEP 1: Initialize (create session file, read STATUS/PLAN)
+□ STEP 1: Initialize (create session file, read memory banks + plan/backlog)
 Confirm: "✅ STEP 1 COMPLETE: Session initialized at [timestamp]"
 
 □ STEP 2: Plan & Save (create plan, save to files)

@@ -40,7 +40,7 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 
 **Total Progress**: 50/484 story points (10% implementation, 100% documentation)
 **MVP Implementation**: 50/422 story points (Sprints 1-8, 16 weeks) - 12% complete
-**Current Sprint**: Sprint 2 - Markdown sync + Workflow foundation (0/54 points)
+**Current Sprint**: Sprint 2 - Wiki Page + Onboarding System (0/58 points)
 **Completed Sprints**: 1/9 (Sprint 1 closed at 96%)
 
 ---
@@ -155,75 +155,73 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 
 ---
 
-## Sprint 2: Markdown Sync + Workflow Foundation (Weeks 3-4) - 54 points
+## Sprint 2: Wiki Page + Onboarding System (Weeks 3-4) - 58 points
 
-**User Stories**: US-005 to US-031 (EPIC-001 completion + EPIC-002 start)
+**User Stories**: US-015 to US-031 (EPIC-002: Wiki & Knowledge, EPIC-003: Onboarding)
 
-**Goal**: Complete tracking infrastructure with markdown sync and git hooks, start workflow orchestration
+**Goal**: Build core end user features that enable documentation storage and agent-guided project initialization
 
-### Sprint 2 Progress: 0/54 points (0%) 🔄 IN PROGRESS
+### Sprint 2 Progress: 0/58 points (0%) 🔄 IN PROGRESS
 
-**Week 3: Markdown Sync + Git Hooks (Days 1-7)** ⏳ NOT STARTED (0/7 days)
+**Week 3: Wiki (Days 1-7)** ⏳ NOT STARTED (0/7 days)
 
-- Day 1-2: Markdown sync database + templates ⏳ NOT STARTED
-- Day 3-4: Markdown sync MCP tool + auto-triggers ⏳ NOT STARTED
-- Day 5-6: Git hooks implementation ⏳ NOT STARTED
-- Day 7: Week 3 checkpoint + buffer ⏳ NOT STARTED
+- Day 1-2: Wiki DB model + migration ⏳ NOT STARTED
+- Day 3-4: Wiki list/detail UI + search ⏳ NOT STARTED
+- Day 5-6: Wiki editor UI + validation ⏳ NOT STARTED
+- Day 7: Week 3 buffer & tests ⏳ NOT STARTED
 
-**Week 4: Workflow Foundation (Days 8-14)** ⏳ NOT STARTED (0/7 days)
+**Week 4: Onboarding (Days 8-14)** ⏳ NOT STARTED (0/7 days)
 
-- Day 8-9: Workflow database schema + seed data ⏳ NOT STARTED
-- Day 10-11: Workflow MCP tools ⏳ NOT STARTED
-- Day 12-13: Workflow state persistence + recovery ⏳ NOT STARTED
+- Day 8-9: Onboarding DB models + templates ⏳ NOT STARTED
+- Day 10-11: Onboarding MCP tools (getPrompt/submitResponse) ⏳ NOT STARTED
+- Day 12-13: Admin prompt editor + integration tests ⏳ NOT STARTED
 - Day 14: Sprint 2 closure ⏳ NOT STARTED
 
 **Key Deliverables**:
 
-- [ ] Markdown sync system operational (<500ms target)
-- [ ] Git hooks blocking manual edits (Windows-compatible)
-- [ ] Workflow state machine operational
-- [ ] 5-step protocol enforceable via MCP
-- [ ] STATUS.md auto-generated from database
-- [ ] DEVELOPMENT_PLAN.md auto-generated from database
-- [ ] Workflow state persists across sessions
+- [ ] Wiki Page: DB model + list/detail UI + editor
+- [ ] Wiki search: category filter + full-text search
+- [ ] Onboarding Prompt System: DB models + templates
+- [ ] MCP tools: `wiki.create/search/update/get/delete/list`
+- [ ] MCP tools: `onboarding.getPrompt` and `onboarding.submitResponse`
+- [ ] Integration: Agent creates page → User sees in UI
 - [ ] Zero TypeScript errors (strict mode)
 
 **Exit Criteria**:
 
-- [ ] Markdown sync completes <500ms per file
-- [ ] Git hooks block manual STATUS.md/DEVELOPMENT_PLAN.md edits
-- [ ] Workflow state persists in database
-- [ ] 5-step protocol enforceable via MCP tools
-- [ ] All integration tests passing on Mac mini
+- [ ] Wiki list/detail/editor functional
+- [ ] Onboarding 3-session flow functional
+- [ ] MCP tools work end-to-end (DB → UI)
+- [ ] All integration tests passing
 - [ ] Zero TypeScript errors
 
-**Sprint 2 User Stories** (54 points total):
+**Sprint 2 User Stories** (58 points total):
 
-**EPIC-001 Completion (37 points)**:
-- [ ] US-005: Markdown auto-sync (8 points)
-- [ ] US-006: Git hooks (5 points)
-- [ ] US-007: Date range filter completion (1 point)
-- [ ] US-008: Mark task complete (2 points)
-- [ ] US-010: View hierarchy tree (5 points)
-- [ ] US-012: Archive completed phases (3 points)
-- [ ] US-013: Export hierarchy to JSON/CSV (3 points)
-- [ ] US-015: Bulk-update task status (3 points)
-- [ ] US-016: Progress charts (5 points)
-- [ ] US-025: Sync hierarchy with .agent/task files (5 points)
+**EPIC-002: Wiki & Knowledge (34 points)**
+- [ ] US-015: Wiki database model (3 points)
+- [ ] US-016: Wiki list page UI (5 points)
+- [ ] US-017: Wiki detail page UI (5 points)
+- [ ] US-018: Wiki editor UI (8 points)
+- [ ] US-019: Wiki search functionality (5 points)
+- [ ] US-020: MCP tool `wiki.create()` (3 points)
+- [ ] US-021: MCP tool `wiki.search()` (3 points)
+- [ ] US-022: MCP tool `wiki.update()` (2 points)
 
-**EPIC-002 Start (17 points)**:
-- [ ] US-026: Start predefined workflow (5 points)
-- [ ] US-027: Track current workflow step (2 points)
-- [ ] US-028: Mark workflow step complete (2 points)
-- [ ] US-029: Alert if step skipped (3 points)
-- [ ] US-030: View all workflows (2 points)
-- [ ] US-031: Resume workflow after interruption (5 points)
+**EPIC-003: Onboarding System (24 points)**
+- [ ] US-026: Onboarding database models (3 points)
+- [ ] US-027: Session 1 prompt template (3 points)
+- [ ] US-028: Session 2 prompt template (5 points)
+- [ ] US-029: Session 3 prompt template (5 points)
+- [ ] US-030: MCP tool `onboarding.getPrompt()` (5 points)
+- [ ] US-031: MCP tool `onboarding.submitResponse()` (3 points)
 
 **Current Status**: Planning complete, ready to begin Day 1
 
-**Branch**: `feature/sprint-2-markdown-sync`
+**Branch**: `feature/docs-vision-refactor-phase1` (Phase 1)
 
-**Plan Document**: `.agent/task/sprint-2-plan.md`
+**Next Branch**: `feature/sprint-2-wiki-onboarding`
+
+**Plan Document**: `docs/13-Project-Plan.md` Sprint 2
 
 ---
 

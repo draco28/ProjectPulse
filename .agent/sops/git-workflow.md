@@ -734,70 +734,54 @@ git stash pop  # Restore work
 
 ---
 
-## Git Hooks: Generated Files Protection
+## Git Hooks (Optional)
 
-### Pre-Commit Hook
+ProjectPulse does not protect generated markdown files (STATUS.md retired). Hooks below are optional for branch safety only.
 
-ProjectPulse uses git hooks to prevent manual edits to auto-generated markdown files.
+### Prevent Master Commits (Optional)
 
-**Protected Files** (tracked in `.agent/generated-files.json`):
-- STATUS.md (auto-generated from database)
-- Future: docs/01-PRD.md, docs/02-SRS.md, etc. (EPIC-012)
-
-**How It Works**:
-1. Pre-commit hook runs before every commit
-2. Reads `.agent/generated-files.json` to get protected file list
-3. Checks if any protected files are staged
-4. Blocks commit if protected files detected
-
-**What You'll See**:
+Create `.git/hooks/pre-commit`:
 
 ```bash
-git commit -m "Update STATUS.md manually"
+#!/bin/bash
 
-╔═══════════════════════════════════════════════════════════════╗
-║  ❌ COMMIT BLOCKED: Manual edits to generated files detected  ║
-╚═══════════════════════════════════════════════════════════════╝
+branch="$(git rev-parse --abbrev-ref HEAD)"
 
-Protected files:
-  • STATUS.md
-    Category: tracking
-    Template: status-template
-
-ℹ️  These files are auto-generated from the database.
-   To update them, use: pnpm run sync:markdown
-
-⚠️  To bypass this check (emergencies only):
-   git commit --no-verify
+if [ "$branch" = "master" ]; then
+    echo "❌ ERROR: Cannot commit directly to master!"
+    echo "Create a feature branch first:"
+    echo "  git checkout -b feature/your-feature"
+    exit 1
+fi
 ```
 
-### Updating Generated Files
+Make executable:
 
-**Correct Way**:
 ```bash
-# 1. Update data in database (via MCP tools or direct DB update)
-# 2. Sync markdown files
-pnpm run sync:markdown
-
-# 3. Commit the updated files
-git add STATUS.md
-git commit -m "chore: sync markdown from database"
+chmod +x .git/hooks/pre-commit
 ```
 
-**Emergency Bypass** (Use only for emergencies):
+### Prevent Master Push (Optional)
+
+Create `.git/hooks/pre-push`:
+
 ```bash
-git commit --no-verify -m "emergency: manual STATUS.md fix"
+#!/bin/bash
+
+protected_branch='master'
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+if [ "$current_branch" = "$protected_branch" ]; then
+    echo "❌ ERROR: Cannot push directly to master! Use pull requests instead."
+    exit 1
+fi
 ```
 
-**When to Bypass**:
-- Git hook is broken and blocking valid commits
-- Emergency hotfix needed immediately
-- Registry is corrupted and needs manual fix
+Make executable:
 
-**After Bypassing**:
-1. Fix the root cause (run `pnpm run sync:markdown`)
-2. Document why bypass was needed
-3. Create issue to prevent future bypasses
+```bash
+chmod +x .git/hooks/pre-push
+```
 
 ---
 

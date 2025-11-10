@@ -22,31 +22,6 @@ model UserPreferences {
   @@map("user_preferences")
 }
 
-model MarkdownFile {
-  id           String    @id
-  projectId    Int
-  slug         String
-  path         String
-  category     String
-  syncStrategy String
-  templateId   String
-  contentHash  String?   @db.Char(64)
-  lastSyncedAt DateTime?
-  isGenerated  Boolean   @default(true)
-  status       String    @default("active")
-  metadata     Json?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  Project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, slug])
-  @@index([lastSyncedAt])
-  @@index([projectId, category])
-  @@index([projectId, status])
-  @@index([projectId, syncStrategy])
-  @@map("markdown_files")
-}
-
 model AgentPersona {
   id                   Int             @id @default(autoincrement())
   name                 String          @unique
@@ -233,7 +208,6 @@ model Project {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime
   Issue          Issue[]
-  markdown_files MarkdownFile[]
 
   @@index([name])
 }
