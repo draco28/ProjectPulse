@@ -163,13 +163,23 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 
 **CRITICAL**: Sprint 2 vision clarified on 2025-11-10. Original plan (markdown sync) was WRONG - confusion between dogfooding vs end user features. Correct Sprint 2 = Wiki + Onboarding (database-backed web features for END USERS).
 
-### Sprint 2 Progress: 0/58 points (0%) 🔄 RESTARTING AFTER VISION CLARIFICATION
+### Sprint 2 Progress: 3/58 points (5%) 🔄 IN PROGRESS (Week 3 Day 1 complete)
 
-**Week 3: Wiki (Days 1-7)** ⏳ NOT STARTED (0/7 days)
+**Week 3: Wiki (Days 1-7)** 🔄 IN PROGRESS (1/7 days) - **3/34 points (9%)**
 
-- Day 1-2: Wiki DB model + migration ⏳ NOT STARTED
-  - WikiPage model already exists in schema (no migration needed)
-  - Seed sample wiki pages (Getting Started, API Docs, etc.)
+- Day 1-2: Wiki DB model + seed ✅ DAY 1 COMPLETE (US-015: 3 points)
+  - ✅ WikiPage model already exists (no migration needed)
+  - ✅ Consulted prisma-expert for seed data design
+  - ✅ Created 7 comprehensive wiki pages (5 root + 2 hierarchical children)
+    - Getting Started with ProjectPulse, Configuration, Development Guides (parent)
+    - Docker Setup Guide, Database Migrations Guide (children)
+    - API Documentation, Troubleshooting
+  - ✅ Content: 500-1500 words per page (realistic documentation)
+  - ✅ Categories: getting-started (2), guides (3), reference (1), troubleshooting (1)
+  - ✅ Parent-child relationships verified (parentId working correctly)
+  - ✅ Mac mini seed execution verified (7 wiki_pages records confirmed)
+  - ✅ Fixed seed script bug (line 2045: undefined wikiPages variable)
+  - ⚠️ PageLink records not created yet (0/7 - to be created in Day 2 if needed)
 - Day 3-4: Wiki list/detail UI + search ⏳ NOT STARTED
   - Wiki list page (server component with category filtering)
   - Wiki detail page (server component with markdown rendering)
