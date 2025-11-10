@@ -770,50 +770,11 @@ async function updateProgress(
     await updateProgress(parent.type, parent.id, avgProgress);
   }
 
-  // 4. Trigger markdown sync if top-level (Phase) updated
-  if (entityType === 'phase') {
-    await syncMarkdownFiles();
   }
 }
 ```
 
-### Markdown Sync Pattern
-
-**Pattern**: Database → Markdown (one-way, read-only markdown)
-
-```typescript
-async function syncMarkdownFiles() {
-  // 1. Fetch latest data from database
-  const currentTask = await prisma.task.findFirst({
-    where: { status: 'IN_PROGRESS' },
-    include: {
-      day: { include: { week: { include: { phase: true } } } },
-      sessions: { orderBy: { timestamp: 'desc' } },
-    },
-  });
-
-  // 2. Generate STATUS.md content
-  const statusContent = generateStatusMarkdown(currentTask);
-
-  // 3. Generate DEVELOPMENT_PLAN.md content
-  const planContent = await generatePlanMarkdown();
-
-  // 4. Write to files atomically
-  await Promise.all([
-    fs.writeFile('.agent/STATUS.md', statusContent),
-    fs.writeFile('.agent/DEVELOPMENT_PLAN.md', planContent),
-  ]);
-
-  // 5. Log sync to database
-  await prisma.markdownFile.create({
-    data: {
-      filename: 'STATUS.md',
-      content: statusContent,
-      syncedAt: new Date(),
-    },
-  });
-}
-```
+**Note**: Progress updates propagate from Session → Task → Day → Week → Phase automatically. No manual markdown file syncing needed - data lives in database only.
 
 ### Workflow State Machine Pattern
 

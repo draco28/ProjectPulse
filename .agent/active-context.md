@@ -1,9 +1,9 @@
 # Active Context
 
-**Last Updated**: 2025-11-09 (Sprint 2 STARTED 🚀)
-**Current Phase**: Sprint 2 - Markdown Sync + Workflow Foundation 🔄
-**Sprint 2 Target**: 54 points (37 tracking completion + 17 workflow start)
-**Branch**: `feature/sprint-2-markdown-sync`
+**Last Updated**: 2025-11-10 (Sprint 2 UPDATED - Vision Clarified 🎯)
+**Current Phase**: Sprint 2 - Wiki Page + Onboarding System 🔄
+**Sprint 2 Target**: 58 points (34 Wiki + 24 Onboarding)
+**Branch**: `feature/docs-vision-refactor-phase1` (migration in progress)
 **Previous Sprint**: Sprint 1 CLOSED at 96% (50/52 points) ✅
 
 ---
@@ -55,16 +55,16 @@ ProjectPulse uses a distributed architecture for clean separation of concerns:
 
 ### What We're Working On
 
-**Phase**: Sprint 2 - Week 3-4 (Markdown Sync + Workflow Foundation) 🔄 IN PROGRESS
+**Phase**: Sprint 2 - Week 3-4 (Wiki Page + Onboarding System) 🔄 RESTARTING
 **Status**: Week 3 NOT STARTED (0/7 days) | Week 4 NOT STARTED (0/7 days)
-**Current Day**: Planning complete, ready to begin Day 1
-**Sprint 2 Progress**: 0% (0/54 points)
+**Current Day**: Vision clarified, ready to begin Day 1
+**Sprint 2 Progress**: 0% (0/58 points)
 **Sprint 2 Goals**:
-1. Markdown sync system (US-005 - 8 points) - Auto-generate STATUS.md from database
-2. Git hooks (US-006 - 5 points) - Prevent manual markdown edits
-3. Workflow foundation (US-026 to US-031 - 17 points) - 5-step protocol enforcement
-4. Complete EPIC-001 (tracking) - 37 points total in Sprint 2
-5. Start EPIC-002 (workflow orchestration) - 17 points in Sprint 2
+1. Wiki Page system (US-015 to US-022 - 34 points) - Database + Web UI + MCP tools
+2. Onboarding system (US-026 to US-031 - 24 points) - 3-session guided onboarding
+3. Complete EPIC-002 (Wiki & Knowledge) - 34 points
+4. Complete EPIC-003 (Onboarding System) - 24 points
+5. Enable agents to create wiki pages and guide user onboarding
 
 **Sprint 1 Achievements** (Completed 2025-11-09):
 - ✅ 96% completion (50/52 points)
@@ -283,25 +283,22 @@ ProjectPulse uses a distributed architecture for clean separation of concerns:
 5. ✅ Fix incremental transaction pattern (recursive propagation AFTER commit)
 6. ✅ Complete US-014 (hierarchy integrity validation)
 
-**Immediate Next Tasks** (Week 2 Days 6-7):
+**Immediate Next Tasks** (Sprint 2 Week 3 Days 1-7):
 
-1. Implement `sprint.phase.create` MCP tool
-   - Zod schema with title, description, startDate, durationWeeks
-   - Handler calling POST /api/phases
-   - Auto-generate child weeks (7-day intervals)
-   - Unit tests (5 test cases)
-2. Implement `sprint.getCurrentTask` MCP tool
-   - Query first IN_PROGRESS task
-   - Include full hierarchical context (day → week → phase)
-   - Optional session history
-   - Unit tests (5 test cases)
-3. Create Next.js API routes
-   - POST /api/phases - Create phase with auto-generated weeks
-   - GET /api/tasks/current - Query active task with context
-4. Integration testing with MCP Inspector
-5. Documentation updates (api-catalog.md, mcp-tools-guide.md)
+1. **Day 1-2**: Wiki database model + migration
+   - WikiPage Prisma model (title, content, category, parentId, path)
+   - Create migration to add WikiPage table
+   - Seed sample wiki pages
+2. **Day 3-4**: Wiki list/detail UI pages
+   - Wiki list page (server component with filtering)
+   - Wiki detail page (server component with markdown rendering)
+   - Search functionality (full-text + category filters)
+3. **Day 5-6**: Wiki editor UI + MCP tools
+   - Wiki editor page (client component with TipTap)
+   - MCP tools: wiki.create, wiki.search, wiki.update
+4. **Day 7**: Week 3 buffer & integration tests
 
-**Sprint 1 Goal**: Establish 5-level hierarchy with progress tracking and MCP server scaffold (52 points, 14 user stories)
+**Sprint 2 Goal**: Build Wiki Page system + Onboarding system for end users (58 points, 17 user stories)
 
 **Key Deliverables:**
 
@@ -525,53 +522,31 @@ Fixed incremental transaction pattern - recursive propagation now happens AFTER 
 
 ---
 
-## Sprint 1 Tasks (US-001 to US-014)
+## Sprint 2 User Stories (US-015 to US-031)
 
-### Week 1: Foundation Setup (Days 1-5)
+### EPIC-002: Wiki & Knowledge (34 points)
 
-**Day 1 (Nov 5): Memory Bank + Planning** ⏳ IN PROGRESS
+**Week 3: Wiki Foundation (Days 1-7)**
 
-- Update memory bank files to Sprint 1 context
-- Review docs/13-Project-Plan.md Sprint 1 section
-- Review docs/12-Backlog.md US-001 to US-014
-- Create Sprint 1 implementation plan
+- US-015: Wiki database model (3 points)
+- US-016: Wiki list page UI (5 points)
+- US-017: Wiki detail page UI (5 points)
+- US-018: Wiki editor UI (8 points)
+- US-019: Wiki search functionality (5 points)
+- US-020: MCP tool wiki.create() (3 points)
+- US-021: MCP tool wiki.search() (3 points)
+- US-022: MCP tool wiki.update() (2 points)
 
-**Day 2-3: Prisma Schema Design** ⏳
+### EPIC-003: Onboarding System (24 points)
 
-- Design Phase/Week/Day/Task/Session models
-- Define relationships and foreign keys
-- Create migration scripts
-- Seed sample data
+**Week 4: Onboarding (Days 8-14)**
 
-**Day 4-5: MCP Server Scaffold** ⏳
-
-- Initialize MCP server project (@modelcontextprotocol/sdk)
-- Configure stdio transport
-- Create tool registration system
-- Test connection with Claude Code
-
-### Week 2: MCP Tools Implementation (Days 6-10)
-
-**Day 6-7: Core MCP Tools** ⏳
-
-- Implement sprint.phase.create
-- Implement sprint.getCurrentTask
-- Implement sprint.checkpoint
-- Unit tests for all tools
-
-**Day 8-9: Progress Tracking** ⏳
-
-- Implement progress roll-up algorithm
-- Implement sprint.updateProgress
-- Integration tests for hierarchy
-- Validate progress calculations
-
-**Day 10: Sprint 1 Completion** ⏳
-
-- Final testing and validation
-- Sprint 1 completion document
-- Demo MCP tools with Claude Code
-- Prepare Sprint 2 planning
+- US-026: Onboarding database models (3 points)
+- US-027: Session 1 prompt template (3 points)
+- US-028: Session 2 prompt template (5 points)
+- US-029: Session 3 prompt template (5 points)
+- US-030: MCP tool onboarding.getPrompt() (5 points)
+- US-031: MCP tool onboarding.submitResponse() (3 points)
 
 ---
 
@@ -660,31 +635,35 @@ Fixed incremental transaction pattern - recursive propagation now happens AFTER 
 3. ⏳ Merge docs/architecture-pivot-sprint-1-redefinition to master
 4. ⏳ Ready for Sprint 1 in next conversation
 
-### Next Conversation - Sprint 1 Start
+### Next Steps - Sprint 2 Start
 
-1. ⏳ Create feature/sprint-1-foundation branch from master
-2. ⏳ Read Sprint 1 requirements (docs/13-Project-Plan.md Sprint 1 section, docs/12-Backlog.md US-001 to US-014)
-3. ⏳ Invoke prisma-expert to design 5-level hierarchy schema
-4. ⏳ Implement Phase/Week/Day/Task/Session models in Prisma
-5. ⏳ Create and run migrations
+1. ✅ Vision clarified: Wiki + Onboarding (NOT markdown sync)
+2. ✅ MarkdownFile model removed from schema
+3. ⏳ Wait for Mac mini to execute migration (drop MarkdownFile table)
+4. ⏳ Create feature/sprint-2-wiki-onboarding branch
+5. ⏳ Read Sprint 2 requirements (docs/13-Project-Plan.md Sprint 2 section, docs/12-Backlog.md US-015 to US-031)
+6. ⏳ Implement WikiPage model (already exists in schema)
+7. ⏳ Build Wiki list/detail/editor UI pages
+8. ⏳ Implement Wiki MCP tools (wiki.create, wiki.search, wiki.update)
 
-### Sprint 1 Week 1 (Days 2-5)
+### Sprint 2 Week 4 (Onboarding)
 
-1. ⏳ Initialize MCP server project structure (mcp-server/ folder)
-2. ⏳ Configure stdio transport (@modelcontextprotocol/sdk)
-3. ⏳ Implement first 7 MCP tools (sprint.phase.create, sprint.getCurrentTask, etc.)
-4. ⏳ Test MCP server connection with Claude Code
+1. ⏳ Implement OnboardingSession models
+2. ⏳ Create 3-session prompt templates (Executive Summary, Industry Docs, AI Workflow)
+3. ⏳ Implement MCP tools (onboarding.getPrompt, onboarding.submitResponse)
+4. ⏳ Build admin prompt editor UI
+5. ⏳ Integration tests for complete onboarding flow
 
 ---
 
 ## Quick References
 
-**Sprint 1 Planning Docs**:
+**Sprint 2 Planning Docs**:
 
-- [13-Project-Plan.md](../docs/13-Project-Plan.md) - Sprint 1 section (52 points, US-001 to US-014)
-- [12-Backlog.md](../docs/12-Backlog.md) - User stories details
-- [02-SRS.md](../docs/02-SRS.md) - Functional requirements (FR-001 to FR-025)
-- [SPRINT_1_TRANSITION.md](SPRINT_1_TRANSITION.md) - Transition guide from Week 1.5
+- [13-Project-Plan.md](../docs/13-Project-Plan.md) - Sprint 2 section (58 points, US-015 to US-031)
+- [12-Backlog.md](../docs/12-Backlog.md) - User stories details (EPIC-002 Wiki, EPIC-003 Onboarding)
+- [02-SRS.md](../docs/02-SRS.md) - Functional requirements (FR-026 to FR-060)
+- [CASCADE_REFACTOR_PROMPT.md](.agent/task/CASCADE_REFACTOR_PROMPT.md) - Vision refactor documentation
 
 **Architecture References**:
 
