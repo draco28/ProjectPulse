@@ -47,8 +47,6 @@ export const createWikiPageSchema = z.object({
     .string()
     .max(200, 'Excerpt must be less than 200 characters')
     .optional(),
-
-  parentPath: z.string().optional(),
 });
 
 /**
@@ -82,8 +80,6 @@ export const updateWikiPageSchema = z.object({
     .string()
     .max(200, 'Excerpt must be less than 200 characters')
     .optional(),
-
-  parentPath: z.string().optional(),
 
   // Note: slug cannot be changed after creation to maintain stable URLs
 });

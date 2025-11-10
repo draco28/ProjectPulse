@@ -497,6 +497,13 @@ model WikiPage {
   // Version history (simplified - Phase 3)
   version Int @default(1)
 
+  // New fields for wiki detail page enhancement
+  views        Int      @default(0)
+  revisions    Int      @default(1)
+  contributors Json     @default("[]")
+  readingTime  Int?
+  tags         String[] @default([])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -504,6 +511,8 @@ model WikiPage {
   @@index([parentId])
   @@index([orderIndex])
   @@index([category])
+  @@index([views(sort: Desc)])
+  @@index([category, orderIndex])
 }
 
 model PageLink {

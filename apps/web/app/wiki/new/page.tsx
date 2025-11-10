@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { WikiEditor } from '@/components/wiki/WikiEditor';
-import type { CreateWikiPageInput } from '@/lib/validations/wiki';
+import type { CreateWikiPageInput, UpdateWikiPageInput } from '@/lib/validations/wiki';
 
 /**
  * New Wiki Page Route
@@ -24,11 +24,16 @@ export default function NewWikiPage() {
    * Handle wiki page creation
    * Uses Server Action pattern for form submission (next-js-expert recommendation)
    */
-  async function handleCreateWikiPage(data: CreateWikiPageInput) {
+  async function handleCreateWikiPage(data: CreateWikiPageInput | UpdateWikiPageInput) {
     'use server';
 
+    // Type guard: in create mode, we should only receive CreateWikiPageInput
+    if (!('path' in data) || !('title' in data) || !('content' in data) || !('category' in data)) {
+      throw new Error('Invalid data: missing required fields for create operation');
+    }
+
     // Validate data (already validated by Zod in Client Component, but double-check)
-    const { title, path, content, category, excerpt, parentPath } = data;
+    const { title, path, content, category, excerpt } = data;
 
     try {
       // Make API request to create wiki page
@@ -43,7 +48,6 @@ export default function NewWikiPage() {
           content,
           category,
           excerpt,
-          parentPath,
         }),
       });
 

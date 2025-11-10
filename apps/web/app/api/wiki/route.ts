@@ -16,17 +16,16 @@ import { createWikiPageSchema, normalizePath } from '@/lib/validations/wiki';
  * POST /api/wiki
  * Body: {
  *   title: "Getting Started",
- *   slug: "getting-started",
+ *   path: "getting-started",
  *   content: "# Getting Started\n\nWelcome!",
  *   category: "getting-started",
- *   excerpt: "Learn how to get started",
- *   parentPath: null
+ *   excerpt: "Learn how to get started"
  * }
  *
  * Response: {
- *   id: "...",
+ *   id: 1,
  *   title: "Getting Started",
- *   slug: "getting-started",
+ *   path: "getting-started",
  *   ...
  * }
  */
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { title, path, content, category, excerpt, parentPath } = validation.data;
+    const { title, path, content, category, excerpt } = validation.data;
 
     // Normalize path: remove leading slash if present, then add it for DB storage
     const cleanPath = normalizePath(path);
@@ -77,7 +76,6 @@ export async function POST(request: NextRequest) {
         content,
         category,
         excerpt: excerpt || null,
-        parentPath: parentPath || null,
         version: 1,
       },
     });
@@ -123,7 +121,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         title: true,
-        slug: true,
+        path: true,
         category: true,
         excerpt: true,
         createdAt: true,

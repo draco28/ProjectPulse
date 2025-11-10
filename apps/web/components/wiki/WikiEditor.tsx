@@ -49,13 +49,12 @@ import { Input } from '@/components/ui/input';
 interface WikiEditorProps {
   mode: 'create' | 'edit';
   initialData?: {
-    id: string;
+    id: number;
     title: string;
     path: string;
     content: string;
     category: WikiCategory;
     excerpt?: string | null;
-    parentPath?: string | null;
   };
   onSave: (data: CreateWikiPageInput | UpdateWikiPageInput) => Promise<void>;
   onCancelPath: string; // Path to redirect to on cancel
@@ -231,30 +230,39 @@ export function WikiEditor({
         </div>
 
         {/* Path */}
-        <div>
-          <label htmlFor="path" className="block text-sm font-medium mb-2">Path *</label>
-          <Controller
-            name="path"
-            control={control}
-            render={({ field }) => (
-              <Input
-                {...field}
-                id="path"
-                placeholder="auto-generated-from-title"
-                disabled={mode === 'edit'} // Cannot change path after creation
-                className={errors.path ? 'border-red-500' : ''}
-              />
+        {mode === 'create' && (
+          <div>
+            <label htmlFor="path" className="block text-sm font-medium mb-2">Path *</label>
+            <Controller
+              name="path"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="path"
+                  placeholder="auto-generated-from-title"
+                  className={'path' in errors ? 'border-red-500' : ''}
+                />
+              )}
+            />
+            {'path' in errors && (
+              <p className="mt-1 text-sm text-red-500">{(errors as any).path?.message}</p>
             )}
-          />
-          {errors.path && (
-            <p className="mt-1 text-sm text-red-500">{errors.path.message}</p>
-          )}
-          {mode === 'edit' && (
+          </div>
+        )}
+        {mode === 'edit' && (
+          <div>
+            <label htmlFor="path" className="block text-sm font-medium mb-2">Path</label>
+            <Input
+              value={initialData?.path || ''}
+              disabled
+              className="bg-gray-100"
+            />
             <p className="mt-1 text-sm text-gray-500">
-              Path cannot be changed after creation (see TD-001 for slug refactor)
+              Path cannot be changed after creation
             </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Category */}
         <div>

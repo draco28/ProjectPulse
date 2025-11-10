@@ -270,6 +270,13 @@ model WikiPage {
   orderIndex                               Int            @default(0)
   searchVector                             String?
   version                                  Int            @default(1)
+  // New fields for wiki detail page enhancement
+  views                                    Int            @default(0)
+  revisions                                Int            @default(1)
+  contributors                             Json           @default("[]")
+  readingTime                              Int?
+  tags                                     String[]       @default([])
+  excerpt                                  String?
   createdAt                                DateTime       @default(now())
   updatedAt                                DateTime
   PageLink_PageLink_sourcePageIdToWikiPage PageLink[]     @relation("PageLink_sourcePageIdToWikiPage")
@@ -282,6 +289,8 @@ model WikiPage {
   @@index([orderIndex])
   @@index([parentId])
   @@index([path])
+  @@index([views(sort: Desc)])
+  @@index([category, orderIndex])
 }
 
 model WikiPageLink {

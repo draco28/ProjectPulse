@@ -1,37 +1,47 @@
-# Sprint 2 Day 3 - Todo List
+# TODO: Sprint 2 Week 3 Day 4 - Wiki Detail Page Enhancement
 
-**Progress**: 7/16 tasks (44%)
-**Session**: 2025-11-10 14:55 IST
-**Last Updated**: 2025-11-10 20:20 IST (Checkpoint 1)
+**Session**: 2025-11-10 14:30
+**User Story**: US-019 (5 points)
+**Progress**: 3/16 tasks complete (19%)
 
-## Phase 1: Wiki Editor UI
-1. [ ] Install TipTap dependencies
-2. [ ] Create /wiki/new/page.tsx route
-3. [ ] Create WikiEditor.tsx component (split view)
-4. [ ] Create /wiki/[slug]/edit/page.tsx route
-5. [ ] Add Zod validation schemas
+## Session Protocol Tasks
+- [x] Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps
+- [x] Initialize session and create current-session file
+- [x] Create implementation plan and save to current-plan.md
+- [ ] Consult react-expert for component architecture
 
-## Phase 2: API Routes
-6. [ ] Create POST /api/wiki endpoint
-7. [ ] Create PATCH /api/wiki/[slug] endpoint
-8. [ ] Create POST /api/wiki/search endpoint
+## Phase 1: Database Schema (1 point)
+- [ ] Update Prisma schema with views, revisions, contributors fields
+- [ ] Generate and run database migration
 
-## Phase 3: MCP Tools
-9. [ ] Create wiki.create MCP tool
-10. [ ] Create wiki.search MCP tool
-11. [ ] Create wiki.update MCP tool
-12. [ ] Register tools in MCP server
+## Phase 2: Enhanced Components (2 points)
+- [ ] Create WikiHeader component with metadata display
+- [ ] Create WikiContributors component for right sidebar
+- [ ] Enhance CodeBlock component with copy button
 
-## Phase 4: Testing & Verification
-13. [ ] Test wiki editor UI (create + edit)
-14. [ ] Test MCP tools end-to-end
-15. [ ] Verify zero TypeScript errors
-16. [ ] Test on Mac mini (HTTP 200)
+## Phase 3: Quick Navigation (1 point)
+- [ ] Update WikiSidebar with category-based quick navigation
 
-## Protocol Steps
-- [x] STEP 1: Session initialized (2025-11-10 14:55 IST)
-- [ ] STEP 2: Plan saved (files created manually)
-- [ ] STEP 3: Expert consultation (react-expert for TipTap, next-js-expert for routes)
-- [ ] STEP 4: Implementation with checkpoints every 15K tokens
-- [ ] STEP 4.5: Verification gate (evidence-based)
-- [ ] STEP 5: Post-completion workflow (docs, sub-agents, commits)
+## Phase 4: Footer Navigation (0.5 points)
+- [ ] Create WikiFooterNav component for prev/next navigation
+- [ ] Update wiki detail page to use new components
+
+## Phase 5: Testing & Documentation (0.5 points)
+- [ ] Test all features on Mac mini
+- [ ] Run TypeScript checks (pnpm type-check)
+- [ ] Update documentation (.agent/progress.md, docs/13-Project-Plan.md)
+- [ ] Commit and push all changes
+
+## Checkpoints (Step 4 - Every 15K tokens)
+- [ ] 15K tokens: Phase 1 progress update
+- [ ] 30K tokens: Phase 1 complete, Phase 2 started
+- [ ] 45K tokens: Phase 2 progress update
+- [ ] 60K tokens: Phase 2 complete, Phase 3 started
+- [ ] 75K tokens: Phase 3/4 complete
+- [ ] 90K tokens: Testing started
+
+## Notes
+- Follow mockup at `mockups/Default theme/04-wiki-dark-neumorphic-coral.html`
+- Maintain ISR configuration (revalidate: 3600s)
+- Use existing neumorphic design patterns
+- Contributors data seeded manually for now

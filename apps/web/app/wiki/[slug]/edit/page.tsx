@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { WikiEditor } from '@/components/wiki/WikiEditor';
 import { prisma } from '@/lib/prisma';
-import type { UpdateWikiPageInput } from '@/lib/validations/wiki';
+import type { UpdateWikiPageInput, WikiCategory } from '@/lib/validations/wiki';
 
 /**
  * Edit Wiki Page Route
@@ -33,8 +33,9 @@ export const revalidate = 3600; // ISR: 1-hour cache (documentation changes infr
 export async function generateMetadata({
   params,
 }: EditWikiPageProps): Promise<Metadata> {
+  const normalizedPath = params.slug.startsWith('/') ? params.slug : `/${params.slug}`;
   const page = await prisma.wikiPage.findUnique({
-    where: { slug: params.slug },
+    where: { path: normalizedPath },
     select: { title: true },
   });
 
@@ -64,7 +65,6 @@ export default async function EditWikiPage({ params }: EditWikiPageProps) {
       content: true,
       category: true,
       excerpt: true,
-      parentPath: true,
     },
   });
 
@@ -80,7 +80,7 @@ export default async function EditWikiPage({ params }: EditWikiPageProps) {
   async function handleUpdateWikiPage(data: UpdateWikiPageInput) {
     'use server';
 
-    const { title, content, category, excerpt, parentPath } = data;
+    const { title, content, category, excerpt } = data;
 
     try {
       // Make API request to update wiki page
@@ -96,7 +96,6 @@ export default async function EditWikiPage({ params }: EditWikiPageProps) {
             content,
             category,
             excerpt,
-            parentPath,
           }),
         }
       );
@@ -122,7 +121,10 @@ export default async function EditWikiPage({ params }: EditWikiPageProps) {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <WikiEditor
         mode="edit"
-        initialData={page}
+        initialData={{
+          ...page,
+          category: (page.category || 'getting-started') as WikiCategory,
+        }}
         onSave={handleUpdateWikiPage}
         onCancelPath={`/wiki/${params.slug}`}
       />
