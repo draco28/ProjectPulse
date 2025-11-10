@@ -58,14 +58,14 @@ interface WikiEditorProps {
     parentPath?: string | null;
   };
   onSave: (data: CreateWikiPageInput | UpdateWikiPageInput) => Promise<void>;
-  onCancel: () => void;
+  onCancelPath: string; // Path to redirect to on cancel
 }
 
 export function WikiEditor({
   mode,
   initialData,
   onSave,
-  onCancel,
+  onCancelPath,
 }: WikiEditorProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
@@ -171,8 +171,8 @@ export function WikiEditor({
       );
       if (!confirmed) return;
     }
-    onCancel();
-  }, [hasUnsavedChanges, onCancel]);
+    router.push(onCancelPath);
+  }, [hasUnsavedChanges, onCancelPath, router]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {

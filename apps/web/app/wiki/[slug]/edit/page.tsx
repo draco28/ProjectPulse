@@ -118,21 +118,13 @@ export default async function EditWikiPage({ params }: EditWikiPageProps) {
     }
   }
 
-  /**
-   * Handle cancel action
-   */
-  function handleCancel() {
-    'use server';
-    redirect(`/wiki/${params.slug}`); // Return to wiki detail page
-  }
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <WikiEditor
         mode="edit"
         initialData={page}
         onSave={handleUpdateWikiPage}
-        onCancel={handleCancel}
+        onCancelPath={`/wiki/${params.slug}`}
       />
     </div>
   );

@@ -64,20 +64,12 @@ export default function NewWikiPage() {
     }
   }
 
-  /**
-   * Handle cancel action
-   */
-  function handleCancel() {
-    'use server';
-    redirect('/wiki'); // Return to wiki list page
-  }
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <WikiEditor
         mode="create"
         onSave={handleCreateWikiPage}
-        onCancel={handleCancel}
+        onCancelPath="/wiki"
       />
     </div>
   );
