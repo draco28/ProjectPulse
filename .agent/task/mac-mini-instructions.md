@@ -9,14 +9,16 @@
 ## Sprint 2 Cleanup - Drop MarkdownFile Table
 
 **Date:** 2025-11-10
-**Branch:** feature/sprint-2-markdown-sync (will rename after cleanup)
+**Branch:** feature/docs-vision-refactor-phase1
+**Status:** Ready to execute
 
 ### Instructions
 
 1. **Pull latest changes:**
    ```bash
    cd ~/projects/AI_HUB
-   git pull origin feature/sprint-2-markdown-sync
+   git checkout feature/docs-vision-refactor-phase1
+   git pull origin feature/docs-vision-refactor-phase1
    ```
 
 2. **Create migration to drop MarkdownFile table:**
@@ -60,7 +62,7 @@
    ```bash
    git add prisma/migrations/
    git commit -m "feat(db): drop MarkdownFile table (Sprint 2 cleanup)"
-   git push origin feature/sprint-2-markdown-sync
+   git push origin feature/docs-vision-refactor-phase1
    ```
 
 ### Success Criteria
