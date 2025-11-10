@@ -1,9 +1,11 @@
 # ProjectPulse Windsurf Rules - Cascade Configuration
 
-**Version**: 2.0 (Context-Optimized)  
-**Last Updated**: 2025-10-28
+**Version**: 2.1 (Protocol Enforcement)
+**Last Updated**: 2025-11-10
 
 This file mirrors the authoritative workflow from `CLAUDE.md` so that Windsurf enforces the same rules and protocols.
+
+**CRITICAL UPDATE (2025-11-10)**: Protocol violations log added to enforce compliance. See `.agent/MANDATORY_SESSION_PROTOCOL.md` for violations history and enforcement checklist.
 
 ---
 
@@ -23,17 +25,34 @@ Work with Cascade in Windsurf the same way you would with Claude Code:
 
 **BEFORE starting ANY coding work:**
 
-### 1. Port Configuration
+### 1. Mac Mini Services Verification
+
+**CRITICAL**: All services run on Mac mini (192.168.1.15), NOT on Windows.
+
+```bash
+# Check Mac mini services are running
+curl http://192.168.1.15:3000/api/health
+# ✅ MUST return: {"status":"healthy","database":"connected"}
+```
+
+**If services down:**
+- Tell user to start Mac mini Docker services
+- Or use Git communication to tell Mac mini: "Start Docker services"
+
+**See**: `.agent/sops/mac-mini-cloud-architecture.md`
+
+### 2. Port Configuration (Optional - Only if running locally on Windows)
 
 ```bash
 pnpm dev
 # ✅ MUST show: "ready started server on 0.0.0.0:3000"
-# ❌ WRONG: "ready started server on 0.0.0.0:3002"
 ```
+
+**Note**: Usually you won't run pnpm dev on Windows. Access Mac mini: `http://192.168.1.15:3000`
 
 See `.agent/sops/port-troubleshooting.md` for recovery steps.
 
-### 2. Git Branch
+### 3. Git Branch
 
 ```bash
 git branch
@@ -69,20 +88,25 @@ Every session in Windsurf MUST follow the same protocol described in `CLAUDE.md`
 ### Starter Prompt (Copy-Paste This)
 
 ```
-MANDATORY PROTOCOL — Follow .claude/sops/session-protocol.md and complete ALL 6 steps.
+MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
 
-Current task: begin sprint 1
+Current phase: [copy from .agent/active-context.md or .agent/progress.md]
+Requirements: [copy from docs/13-Project-Plan.md]
 
 ENFORCE:
-- ✅ Step 1: Initialize session (load Memory Bank, create session log)
+- ✅ Step 1: Initialize session
 - ✅ Step 2: Save plan BEFORE code
 - ✅ Step 3: Consult experts
-- ✅ Step 4: Checkpoints every ~15K tokens
+- ✅ Step 4: Checkpoints every 15K tokens
 - ✅ Step 4.5: Verification gate (evidence-based)
-- ✅ Step 5: Post-completion updates
+- ✅ Step 5: Post-completion workflow
 
-Confirm each step explicitly before proceeding to the next.
+Confirm each step explicitly. If you skip ANY step, I will stop you.
+
+Proceed with [phase name].
 ```
+
+**IMPORTANT**: Before claiming any step "complete", check the Protocol Violations Log in `.agent/MANDATORY_SESSION_PROTOCOL.md` to see what happened when protocol was violated on 2025-11-10.
 
 ---
 
@@ -90,9 +114,11 @@ Confirm each step explicitly before proceeding to the next.
 
 ### STEP 1: INITIALIZATION
 
-- Read `.agent/progress.md` (current phase) and `docs/13-Project-Plan.md`.
-- Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`.
-- **Confirm:** `✅ STEP 1 COMPLETE: Session initialized at [timestamp]`.
+- Read `.agent/MANDATORY_SESSION_PROTOCOL.md` **INCLUDING Protocol Violations Log section**
+- Read `.agent/active-context.md` and `.agent/progress.md` (current phase)
+- Read `docs/13-Project-Plan.md` and `docs/12-Backlog.md`
+- Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
+- **Confirm:** `✅ STEP 1 COMPLETE: Session initialized at [timestamp]`
 
 **Reading Path After Step 1**
 
@@ -135,32 +161,100 @@ Confirm each step explicitly before proceeding to the next.
   - Update `.agent/task/current-todos.md`.
 - **Confirm:** `✅ CHECKPOINT at [X]K tokens: Progress saved`.
 
-### STEP 4.5: VERIFICATION GATE
+### STEP 4.5: VERIFICATION GATE (EVIDENCE-BASED)
+
+**CRITICAL**: This step was violated on 2025-11-10. See Protocol Violations Log.
 
 **Before marking ANY work complete:**
 
 - Re-read `.agent/task/current-plan.md` success criteria
 - Verify EACH requirement with concrete evidence:
-  - Database: Run queries, show counts
-  - Files: List files, show content
-  - Tests: Run tests, show results
-  - Integration: Test endpoints, show responses
-- Document verification in session log
+  - **Files**: Run `ls` commands, show output
+  - **TypeScript**: Run `npx tsc --noEmit`, show clean output
+  - **HTTP Endpoints**: Run `curl` commands, show 200 OK status
+  - **Database**: Run queries, show counts
+  - **Tests**: Run tests, show passing results
+- **Document ALL verification evidence in session file**
+- Create verification summary table with Expected/Actual/Status columns
 - **Fail-fast rule**: If ANY requirement fails → mark incomplete, continue work
-- Only proceed to Step 5 when ALL verified
+- Only proceed to Step 5 when ALL verified WITH EVIDENCE
 
-**Confirm:** `✅ STEP 4.5 COMPLETE: All [X] requirements verified with evidence`
+**Required Confirmation:**
+```
+✅ STEP 4.5 COMPLETE: All verification criteria passed with documented evidence
 
-See `.agent/MANDATORY_SESSION_PROTOCOL.md` Step 4.5 for detailed examples.
+Verification Results:
+| Criterion | Expected | Actual | Status |
+|-----------|----------|--------|--------|
+| [item 1]  | [expect] | [actual] | ✅ PASS |
+| [item 2]  | [expect] | [actual] | ✅ PASS |
 
-### STEP 5: POST-COMPLETION
+Evidence documented in: .agent/task/current-session-[timestamp].md
+```
 
-- Create a completion doc if the phase warrants it.
-- Update `STATUS.md` and `docs/13-Project-Plan.md`.
-- Invoke `synthesize-docs` if new patterns emerged.
-- Invoke `map-system` if architecture changed.
-- Commit documentation first, then code.
-- **Confirm:** `✅ STEP 5 COMPLETE: All documentation updated and committed`.
+See `.agent/MANDATORY_SESSION_PROTOCOL.md` Step 4.5 for detailed examples and Protocol Violations Log.
+
+### STEP 5: POST-COMPLETION WORKFLOW
+
+**CRITICAL**: This step was violated on 2025-11-10. See Protocol Violations Log.
+
+**After feature implementation complete, BEFORE committing code:**
+
+#### 5.1: Update Project Documentation (REQUIRED)
+
+- [ ] Update `docs/13-Project-Plan.md`:
+  - Mark completed user stories (e.g., US-016, US-017 complete)
+  - Add status tracking section with progress percentage
+  - Document quality metrics (TypeScript errors, HTTP status, tests)
+- [ ] Update `docs/12-Backlog.md` (ONLY if scope changed)
+
+#### 5.2: Update Memory Banks (REQUIRED)
+
+- [ ] Update `.agent/active-context.md` (current focus for next session)
+- [ ] Update `.agent/progress.md` (milestone completion, lessons learned)
+- [ ] Update `.agent/system-patterns.md` (if new patterns)
+- [ ] Update `.agent/tech-context.md` (if stack changed)
+
+#### 5.3: Invoke Sub-Agents (REQUIRED if applicable)
+
+- [ ] **If new patterns created**: Invoke `synthesize-docs` sub-agent
+  - Generates SOPs from implemented patterns
+  - Saves to `.agent/sops/[pattern-name].md`
+  - Updates `.agent/README.md` index
+- [ ] **If architecture changed**: Invoke `map-system` sub-agent
+  - Updates `.agent/system/api-catalog.md` (if new endpoints)
+  - Updates `.agent/system/database-schema.md` (if schema changed)
+  - Updates `.agent/system/component-patterns.md` (if new components)
+
+#### 5.4: Commit Documentation (REQUIRED)
+
+- [ ] **Documentation commit FIRST**: `git add .agent/ docs/ && git commit -m "docs: ..."`
+- [ ] **Code commit SECOND**: `git add [code files] && git commit -m "feat: ..."`
+- [ ] **Push**: `git push origin [branch]`
+
+**Required Confirmation:**
+```
+✅ STEP 5 COMPLETE: All post-completion workflow tasks executed
+
+Project docs updated:
+- docs/13-Project-Plan.md (US-XXX marked complete, status tracking added)
+- docs/12-Backlog.md (no changes - scope unchanged)
+
+Memory banks updated:
+- .agent/active-context.md (next session focus)
+- .agent/progress.md (milestone complete, metrics updated)
+
+Sub-agents invoked:
+- synthesize-docs: Created [N] SOPs ([X] lines total)
+- map-system: Updated component-patterns.md ([N] new patterns)
+
+Git commits:
+- Documentation: [commit hash] "docs: ..."
+- Code (if applicable): [commit hash] "feat: ..."
+- Pushed to origin/[branch]
+```
+
+**If you cannot provide ALL these updates, Step 5 is NOT complete.**
 
 ---
 
@@ -223,11 +317,12 @@ Cascade must:
 ### Daily Checklist
 
 ```markdown
-- [ ] pnpm dev shows port 3000
-- [ ] localhost:3000 loads application
+- [ ] Mac mini health OK: curl http://192.168.1.15:3000/api/health returns healthy
+- [ ] 192.168.1.15:3000 loads application (from Windows)
+- [ ] (Optional local) pnpm dev only if explicitly running locally on Windows
 - [ ] On feature branch (not master)
-- [ ] Read STATUS.md and docs/13-Project-Plan.md
-- [ ] Check .agent/README.md for task context
+- [ ] Read .agent/active-context.md, .agent/progress.md and docs/13-Project-Plan.md
+- [ ] Read .agent/MANDATORY_SESSION_PROTOCOL.md Protocol Violations Log
 ```
 
 ### Common Tasks
@@ -253,9 +348,11 @@ Cascade must:
 **Documentation:**
 
 1. `.agent/README.md` – Agent documentation index
-2. `STATUS.md` – Current state
-3. `docs/13-Project-Plan.md` – Implementation roadmap
-4. `docs/README.md` – Complete documentation index
+2. `.agent/active-context.md` – Current state and focus
+3. `.agent/progress.md` – Sprint/phase progress tracking
+4. `docs/13-Project-Plan.md` – Implementation roadmap
+5. `docs/README.md` – Complete documentation index
+6. `.agent/MANDATORY_SESSION_PROTOCOL.md` – **READ PROTOCOL VIOLATIONS LOG**
 
 **Procedures:** `.agent/sops/`  
 **Common errors:** `.claude/CRITICAL_MISTAKES.md`  
@@ -273,11 +370,26 @@ Cascade must:
 
 ---
 
-## UI & Frontend Design (SuperDesign)
+## Protocol Violations Log Reference
 
-For standalone HTML/design prototypes, use the SuperDesign workflow.
+**CRITICAL**: Before starting any session, read the Protocol Violations Log in `.agent/MANDATORY_SESSION_PROTOCOL.md`.
 
-- **Guide:** `.claude/skills/projectpulse/superdesign-ui-generator.md`
-- **When to use:** “design UI prototype”, “create HTML mockup”, or explicit “use SuperDesign workflow”
-- **Output:** Standalone HTML files under `.superdesign/design_iterations/`
-- **Note:** For React components inside ProjectPulse, use `.claude/skills/projectpulse/ui-generation-workflow.md`.
+**What to check:**
+1. **Violation History** - See what went wrong on 2025-11-10
+2. **Future Session Checklist** - 9-point checklist MUST be satisfied before claiming any step "complete"
+3. **Enforcement Mechanism** - This log persists across sessions and context resets
+
+**Key Lesson from 2025-11-10 Violation:**
+- Claiming "protocol complete" without evidence = violation
+- User will stop you and demand RIGHT NOW execution
+- Without file updates, enforcement cannot persist
+- Required confirmations are NOT optional - they are proof of execution
+
+**If user says "you did not do step X":**
+1. You violated the protocol
+2. Execute step X RIGHT NOW with full documentation
+3. Update session file with evidence
+4. Provide required confirmation
+
+---
+
