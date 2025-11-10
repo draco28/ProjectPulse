@@ -9,6 +9,9 @@ import { sprintTaskCreateTool } from './sprintTaskCreate.js';
 import { sprintSessionCreateTool } from './sprintSessionCreate.js';
 import { sprintCheckpointCreateTool } from './sprintCheckpointCreate.js';
 import { sprintQueryHierarchyTool } from './sprintQueryHierarchy.js';
+import { wikiCreateTool } from './wikiCreate.js';
+import { wikiSearchTool } from './wikiSearch.js';
+import { wikiUpdateTool } from './wikiUpdate.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -19,6 +22,9 @@ const loadTools = (): ToolDefinition[] => [
   sprintSessionCreateTool,
   sprintCheckpointCreateTool,
   sprintQueryHierarchyTool,
+  wikiCreateTool,
+  wikiSearchTool,
+  wikiUpdateTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {
