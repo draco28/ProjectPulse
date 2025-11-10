@@ -56,9 +56,9 @@ ProjectPulse uses a distributed architecture for clean separation of concerns:
 ### What We're Working On
 
 **Phase**: Sprint 2 - Week 3-4 (Wiki Page + Onboarding System) 🔄 IN PROGRESS
-**Status**: Week 3 Day 1 COMPLETE (1/7 days) | Week 4 NOT STARTED (0/7 days)
-**Current Day**: Day 2 (Wiki list page UI planning)
-**Sprint 2 Progress**: 5% (3/58 points)
+**Status**: Week 3 Days 1-2 COMPLETE (2/7 days) | Week 4 NOT STARTED (0/7 days)
+**Current Day**: Day 3 (Wiki editor UI + MCP tools planning)
+**Sprint 2 Progress**: 22% (13/58 points)
 **Sprint 2 Goals**:
 1. Wiki Page system (US-015 to US-022 - 34 points) - Database + Web UI + MCP tools
 2. Onboarding system (US-026 to US-031 - 24 points) - 3-session guided onboarding
@@ -283,20 +283,26 @@ ProjectPulse uses a distributed architecture for clean separation of concerns:
 5. ✅ Fix incremental transaction pattern (recursive propagation AFTER commit)
 6. ✅ Complete US-014 (hierarchy integrity validation)
 
-**Immediate Next Tasks** (Sprint 2 Week 3 Days 1-7):
+**Immediate Next Tasks** (Sprint 2 Week 3 Days 3-7):
 
-1. **Day 1-2**: Wiki database model + migration
-   - WikiPage Prisma model (title, content, category, parentId, path)
-   - Create migration to add WikiPage table
-   - Seed sample wiki pages
-2. **Day 3-4**: Wiki list/detail UI pages
-   - Wiki list page (server component with filtering)
-   - Wiki detail page (server component with markdown rendering)
-   - Search functionality (full-text + category filters)
-3. **Day 5-6**: Wiki editor UI + MCP tools
+1. ✅ **Day 1-2 COMPLETE**: Wiki database model + UI implementation (13 points)
+   - ✅ WikiPage seed data (7 pages with hierarchy)
+   - ✅ Wiki list page with ISR (category filter, search, sort, pagination)
+   - ✅ Wiki detail page enhanced (breadcrumb, edit button)
+   - ✅ 4 new components (WikiCard, WikiSearchBar, WikiListClient)
+   - ✅ Expert consultations (next-js-expert, react-expert)
+   - ✅ Testing complete on Mac mini
+2. **Day 3-4**: Wiki editor UI + MCP tools (next up)
    - Wiki editor page (client component with TipTap)
    - MCP tools: wiki.create, wiki.search, wiki.update
+   - Zod validation for wiki operations
+3. **Day 5-6**: Additional wiki features
+   - Wiki page versioning (optional)
+   - Wiki search enhancement (full-text search)
+   - Wiki analytics (page views)
 4. **Day 7**: Week 3 buffer & integration tests
+   - E2E tests for wiki CRUD
+   - Integration test (agent creates wiki → user sees in UI)
 
 **Sprint 2 Goal**: Build Wiki Page system + Onboarding system for end users (58 points, 17 user stories)
 
