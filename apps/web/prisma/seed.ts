@@ -660,103 +660,1193 @@ issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
   // ========================================================================
   console.log('📖 Creating wiki pages...');
 
-  const wikiPages = await Promise.all([
+  // ROOT LEVEL PAGES
+  const rootPages = await Promise.all([
+    // 1. Getting Started (root, getting-started category)
     prisma.wikiPage.create({
       data: {
-        title: 'Getting Started',
+        title: 'Getting Started with ProjectPulse',
         path: '/getting-started',
-        content: `# Getting Started
+        category: 'getting-started',
+        orderIndex: 0,
+        content: `# Getting Started with ProjectPulse
 
-Welcome to Moksha DevHub! This guide will help you set up and start using the platform.
+Welcome to ProjectPulse! This guide will help you set up and start using the platform.
 
-## Introduction
+## What is ProjectPulse?
 
-Moksha DevHub is a unified development hub that combines issue tracking, knowledge management, wiki documentation, and AI agent assistance in one platform.
+ProjectPulse is a comprehensive project management and development hub that combines:
+- **Issue Tracking**: Manage bugs, features, and tasks with customizable workflows
+- **Knowledge Base**: Store and search technical documentation with AI-powered semantic search
+- **Wiki**: Create hierarchical documentation with full-text search
+- **Sprint Planning**: Track phases, weeks, days, tasks, and sessions in a 5-level hierarchy
+- **Security Scanning**: Integrate with security tools to track vulnerabilities
+- **Agent Personas**: Use AI assistants specialized for code review, debugging, and documentation
 
-## Installation
+## Prerequisites
 
-### Prerequisites
+Before you begin, ensure you have:
 
-- Node.js 20+
-- PostgreSQL 16
-- pnpm 8+
+- **Node.js** 20.x or higher ([Download](https://nodejs.org/))
+- **PostgreSQL** 16.x with pgvector extension ([Installation Guide](/guides/docker-setup))
+- **pnpm** 8.x or higher (\`npm install -g pnpm\`)
+- **Git** for version control
 
-### Setup Steps
+## Installation Steps
 
-1. Clone the repository
-2. Install dependencies: \`pnpm install\`
-3. Set up environment variables
-4. Run database migrations: \`pnpm prisma migrate dev\`
-5. Seed the database: \`pnpm prisma db seed\`
+### 1. Clone the Repository
 
-## Usage
+\`\`\`bash
+git clone https://github.com/draco28/ProjectPulse.git
+cd ProjectPulse
+\`\`\`
 
-### Dashboard
+### 2. Install Dependencies
 
-The dashboard provides an overview of:
-- Open issues and their status
-- Recent knowledge base articles
-- Active AI agents
-- Security findings
+\`\`\`bash
+pnpm install
+\`\`\`
 
-### Navigation
+### 3. Set Up Environment Variables
 
-Use the sidebar to navigate between:
-- Issues
-- Knowledge Base
-- Wiki
-- Security
-- Agent Personas
+Create a \`.env\` file in the \`apps/web\` directory:
 
-Press \`Cmd+K\` (or \`Ctrl+K\`) to open the command palette for quick navigation.`,
+\`\`\`bash
+# Database
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev"
+
+# Next.js
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Authentication (optional for MVP)
+NEXTAUTH_SECRET="your-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+\`\`\`
+
+> **Note**: For production, generate a secure random secret with: \`openssl rand -base64 32\`
+
+### 4. Start PostgreSQL
+
+Using Docker Compose:
+
+\`\`\`bash
+docker-compose up -d
+\`\`\`
+
+Verify PostgreSQL is running:
+
+\`\`\`bash
+docker ps
+# Should show: postgres:16-alpine container running on port 5432
+\`\`\`
+
+### 5. Run Database Migrations
+
+\`\`\`bash
+cd apps/web
+pnpm prisma migrate dev
+\`\`\`
+
+### 6. Seed the Database
+
+\`\`\`bash
+pnpm prisma db seed
+\`\`\`
+
+This creates:
+- Sample Sprint 1 hierarchy (Phase, Weeks, Days, Tasks, Sessions)
+- Sample issues with labels and comments
+- Knowledge base articles
+- Wiki pages (you're reading one!)
+- Agent personas
+
+### 7. Start Development Server
+
+\`\`\`bash
+pnpm dev
+\`\`\`
+
+Open [http://localhost:3000](http://localhost:3000) to see the dashboard.
+
+## Quick Start Guide
+
+### Create Your First Project
+
+1. Navigate to **Projects** in the sidebar
+2. Click **"New Project"**
+3. Enter project details:
+   - **Name**: Your project name
+   - **Description**: Brief overview
+   - **Repository**: GitHub URL (optional)
+4. Click **"Create Project"**
+
+### Create Your First Issue
+
+1. Navigate to **Issues** in the sidebar
+2. Click **"New Issue"**
+3. Fill in issue details:
+   - **Title**: Brief description
+   - **Status**: open, in_progress, or closed
+   - **Priority**: critical, high, medium, or low
+   - **Module**: Component/area affected
+   - **Assignee**: Team member (optional)
+4. Click **"Create Issue"**
+
+### Search the Knowledge Base
+
+1. Navigate to **Knowledge Base** in the sidebar
+2. Use the search bar to find articles by:
+   - **Keyword search**: Full-text search using PostgreSQL tsvector
+   - **Category filter**: Database, Frontend, Backend, etc.
+   - **Tag filter**: Select multiple tags
+
+### Browse Wiki Documentation
+
+1. Navigate to **Wiki** in the sidebar
+2. Browse hierarchical documentation tree
+3. Use search to find specific pages
+4. Click links to navigate between related pages
+
+## Next Steps
+
+- [Configuration Guide](/configuration) - Configure environment and settings
+- [API Documentation](/reference/api) - Learn about REST API endpoints
+- [Docker Setup Guide](/guides/docker-setup) - Set up PostgreSQL with Docker
+- [Troubleshooting](/troubleshooting) - Common issues and solutions
+
+## Getting Help
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/draco28/ProjectPulse/issues)
+- **Wiki**: Browse documentation in the Wiki section
+- **Knowledge Base**: Search for technical articles
+
+---
+
+**Last Updated**: 2025-11-10
+**Version**: 1.0`,
       },
     }),
 
+    // 2. Configuration (root, getting-started category)
     prisma.wikiPage.create({
       data: {
         title: 'Configuration',
         path: '/configuration',
+        category: 'getting-started',
+        orderIndex: 1,
         content: `# Configuration
 
-Learn how to configure Moksha DevHub for your team.
+Learn how to configure ProjectPulse for your team and environment.
 
 ## Environment Variables
 
-Create a \`.env\` file with the following variables:
+ProjectPulse uses environment variables for configuration. Create a \`.env\` file in \`apps/web/\`:
+
+### Required Variables
 
 \`\`\`bash
-DATABASE_URL="postgresql://user:password@localhost:5432/devhub"
-NEXTAUTH_SECRET="your-secret-key"
+# Database Connection
+DATABASE_URL="postgresql://username:password@host:port/database"
+
+# Example (local development)
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev"
+
+# Example (production with SSL)
+DATABASE_URL="postgresql://user:pass@production-host:5432/projectpulse_prod?sslmode=require"
+\`\`\`
+
+### Optional Variables
+
+\`\`\`bash
+# Application URL
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Authentication (NextAuth.js)
+NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
 NEXTAUTH_URL="http://localhost:3000"
+
+# GitHub OAuth (optional)
+GITHUB_CLIENT_ID="your-github-oauth-app-id"
+GITHUB_CLIENT_SECRET="your-github-oauth-app-secret"
+
+# PostgreSQL Connection Pool
+DATABASE_CONNECTION_LIMIT="10"
+DATABASE_POOL_TIMEOUT="20"
 \`\`\`
 
 ## Database Setup
 
-The application uses PostgreSQL with the pgvector extension for semantic search.
+ProjectPulse requires PostgreSQL 16+ with the **pgvector** extension for semantic search.
 
-### Enable Extensions
+### Enable Required Extensions
+
+Connect to your database and run:
 
 \`\`\`sql
+-- Enable vector similarity search
 CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Enable trigram similarity for fuzzy search
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Enable full-text search (pre-installed)
+-- tsvector and tsquery are built-in
 \`\`\`
+
+### Verify Extensions
+
+\`\`\`sql
+SELECT * FROM pg_extension WHERE extname IN ('vector', 'pg_trgm');
+
+-- Should return:
+-- extname | extversion
+-- --------+-----------
+-- vector  | 0.5.1
+-- pg_trgm | 1.6
+\`\`\`
+
+### Connection Pooling
+
+For production, configure connection pooling:
+
+\`\`\`bash
+# .env
+DATABASE_URL="postgresql://user:pass@host:5432/db?connection_limit=20&pool_timeout=30"
+\`\`\`
+
+**Recommended Settings**:
+- **Development**: \`connection_limit=5\`
+- **Production**: \`connection_limit=20-50\` (based on server capacity)
 
 ## Theme Customization
 
-The Coral neumorphic theme is the default. CSS variables can be customized in \`globals.css\`.`,
+ProjectPulse uses the **Coral Neumorphic** theme by default with CSS custom properties.
+
+### Theme Variables
+
+Edit \`apps/web/app/globals.css\`:
+
+\`\`\`css
+:root[data-theme="coral"] {
+  /* Background Colors */
+  --background: #fff7ed;
+  --foreground: #44403c;
+
+  /* Neumorphic Shadows */
+  --neu-light: #ffffff;
+  --neu-dark: #e8c8b0;
+
+  /* Accent Colors */
+  --primary: #f97316;
+  --primary-foreground: #ffffff;
+
+  /* ... more variables */
+}
+\`\`\`
+
+### Custom Theme
+
+To create a custom theme:
+
+1. Add theme definition in \`globals.css\`
+2. Update theme selector in Settings page
+3. Restart development server
+
+## Prisma Configuration
+
+### Generate Client
+
+After schema changes:
+
+\`\`\`bash
+pnpm prisma generate
+\`\`\`
+
+### Migration Workflow
+
+**Development**:
+\`\`\`bash
+# Create and apply migration
+pnpm prisma migrate dev --name add_new_field
+
+# Reset database (WARNING: deletes all data)
+pnpm prisma migrate reset
+\`\`\`
+
+**Production**:
+\`\`\`bash
+# Apply pending migrations
+pnpm prisma migrate deploy
+
+# Rollback is manual - create new migration to revert
+\`\`\`
+
+### Prisma Studio
+
+Explore database with GUI:
+
+\`\`\`bash
+pnpm prisma studio
+\`\`\`
+
+Opens [http://localhost:5555](http://localhost:5555)
+
+## TypeScript Configuration
+
+ProjectPulse uses **strict mode** TypeScript:
+
+\`\`\`json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
+\`\`\`
+
+### Type Generation
+
+Generate types from Prisma schema:
+
+\`\`\`bash
+pnpm prisma generate
+\`\`\`
+
+Types available at:
+\`\`\`typescript
+import { Issue, WikiPage, KnowledgeItem } from '@prisma/client';
+\`\`\`
+
+## Next Steps
+
+- [Docker Setup Guide](/guides/docker-setup) - Set up PostgreSQL with Docker
+- [Database Migrations Guide](/guides/database-migrations) - Learn migration workflow
+- [API Documentation](/reference/api) - Configure API access
+
+---
+
+**Last Updated**: 2025-11-10
+**Version**: 1.0`,
+      },
+    }),
+
+    // 3. Development Guides (parent page)
+    prisma.wikiPage.create({
+      data: {
+        title: 'Development Guides',
+        path: '/guides',
+        category: 'guides',
+        orderIndex: 2,
+        content: `# Development Guides
+
+Comprehensive guides for developing with ProjectPulse.
+
+## Available Guides
+
+### Getting Started
+- [Docker Setup](/guides/docker-setup) - Set up PostgreSQL with Docker Compose
+- [Database Migrations](/guides/database-migrations) - Prisma migration workflow
+
+### Advanced Topics
+- API Development (Coming Soon)
+- Testing Strategies (Coming Soon)
+- Deployment Guide (Coming Soon)
+
+## Contributing
+
+Want to add a guide? See our [Contributing Guidelines](https://github.com/draco28/ProjectPulse/blob/master/CONTRIBUTING.md).
+
+---
+
+**Last Updated**: 2025-11-10
+**Version**: 1.0`,
+      },
+    }),
+
+    // 4. API Documentation (root, reference category)
+    prisma.wikiPage.create({
+      data: {
+        title: 'API Documentation',
+        path: '/reference/api',
+        category: 'reference',
+        orderIndex: 3,
+        content: `# API Documentation
+
+ProjectPulse provides a RESTful API for programmatic access to issues, knowledge base, and wiki pages.
+
+## Base URL
+
+\`\`\`
+http://localhost:3000/api
+\`\`\`
+
+**Production**: Replace with your deployed domain
+
+## Authentication
+
+Currently, API endpoints are **unauthenticated** (MVP phase).
+
+**Planned**: NextAuth.js integration with JWT bearer tokens:
+
+\`\`\`bash
+Authorization: Bearer <your-jwt-token>
+\`\`\`
+
+## Response Format
+
+All API responses follow this structure:
+
+**Success Response**:
+\`\`\`json
+{
+  "data": { /* response payload */ },
+  "error": null
+}
+\`\`\`
+
+**Error Response**:
+\`\`\`json
+{
+  "data": null,
+  "error": "Error message"
+}
+\`\`\`
+
+## Endpoints
+
+### Issues API
+
+#### GET /api/issues
+
+Get all issues with optional filtering.
+
+**Query Parameters**:
+- \`status\` (optional): Filter by status (open, in_progress, closed)
+- \`priority\` (optional): Filter by priority (critical, high, medium, low)
+- \`module\` (optional): Filter by module name
+
+**Example Request**:
+\`\`\`bash
+curl http://localhost:3000/api/issues?status=open&priority=high
+\`\`\`
+
+**Example Response**:
+\`\`\`json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Add authentication with NextAuth.js",
+      "status": "open",
+      "priority": "critical",
+      "module": "Auth",
+      "assignee": "Developer",
+      "projectId": 1,
+      "createdAt": "2025-10-24T10:00:00.000Z",
+      "updatedAt": "2025-10-24T10:00:00.000Z",
+      "closedAt": null,
+      "labels": [
+        { "id": 1, "name": "enhancement", "color": "#a2eeef" }
+      ]
+    }
+  ],
+  "error": null
+}
+\`\`\`
+
+#### POST /api/issues
+
+Create a new issue.
+
+**Request Body**:
+\`\`\`json
+{
+  "title": "Issue title",
+  "description": "Detailed description (optional)",
+  "status": "open",
+  "priority": "high",
+  "module": "UI",
+  "assignee": "Developer (optional)",
+  "projectId": 1
+}
+\`\`\`
+
+**Example Request**:
+\`\`\`bash
+curl -X POST http://localhost:3000/api/issues \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "title": "Fix button styling",
+    "status": "open",
+    "priority": "low",
+    "module": "UI",
+    "projectId": 1
+  }'
+\`\`\`
+
+**Example Response**:
+\`\`\`json
+{
+  "data": {
+    "id": 10,
+    "title": "Fix button styling",
+    "status": "open",
+    "priority": "low",
+    "module": "UI",
+    "assignee": null,
+    "projectId": 1,
+    "createdAt": "2025-11-10T14:30:00.000Z",
+    "updatedAt": "2025-11-10T14:30:00.000Z"
+  },
+  "error": null
+}
+\`\`\`
+
+#### GET /api/issues/:id
+
+Get a single issue by ID.
+
+**Example Request**:
+\`\`\`bash
+curl http://localhost:3000/api/issues/1
+\`\`\`
+
+**Example Response**:
+\`\`\`json
+{
+  "data": {
+    "id": 1,
+    "title": "Add authentication with NextAuth.js",
+    "description": "Implement user authentication...",
+    "status": "open",
+    "priority": "critical",
+    "module": "Auth",
+    "labels": [...],
+    "comments": [...]
+  },
+  "error": null
+}
+\`\`\`
+
+### Wiki API
+
+#### GET /api/wiki
+
+Get all wiki pages.
+
+**Query Parameters**:
+- \`category\` (optional): Filter by category
+
+**Example Request**:
+\`\`\`bash
+curl http://localhost:3000/api/wiki?category=guides
+\`\`\`
+
+#### GET /api/wiki/:path
+
+Get wiki page by path (URL-encoded).
+
+**Example Request**:
+\`\`\`bash
+curl http://localhost:3000/api/wiki/getting-started
+\`\`\`
+
+### Knowledge Base API
+
+#### GET /api/knowledge
+
+Get all knowledge base items.
+
+**Query Parameters**:
+- \`category\` (optional): Filter by category
+- \`q\` (optional): Full-text search query
+
+**Example Request**:
+\`\`\`bash
+curl http://localhost:3000/api/knowledge?q=postgresql&category=Database
+\`\`\`
+
+## Error Codes
+
+| Status Code | Meaning |
+|-------------|---------|
+| 200 | Success |
+| 400 | Bad Request (invalid input) |
+| 404 | Not Found |
+| 500 | Internal Server Error |
+
+## Rate Limiting
+
+**Currently**: No rate limiting (MVP)
+
+**Planned**: 100 requests per minute per IP address
+
+## Pagination
+
+**Currently**: All results returned (MVP)
+
+**Planned**: Cursor-based pagination:
+\`\`\`
+GET /api/issues?cursor=<last-id>&limit=20
+\`\`\`
+
+## Next Steps
+
+- [Troubleshooting Guide](/troubleshooting) - Common API errors
+- [Configuration](/configuration) - API environment setup
+
+---
+
+**Last Updated**: 2025-11-10
+**Version**: 1.0`,
+      },
+    }),
+
+    // 5. Troubleshooting (root, troubleshooting category)
+    prisma.wikiPage.create({
+      data: {
+        title: 'Troubleshooting',
+        path: '/troubleshooting',
+        category: 'troubleshooting',
+        orderIndex: 4,
+        content: `# Troubleshooting
+
+Common issues and solutions for ProjectPulse.
+
+## Database Connection Issues
+
+### Problem: "Connection refused" or "ECONNREFUSED"
+
+**Symptoms**:
+\`\`\`
+Error: P1001: Can't reach database server at localhost:5432
+\`\`\`
+
+**Causes**:
+- PostgreSQL container not running
+- Wrong database URL in \`.env\`
+- Port 5432 already in use
+
+**Solutions**:
+
+1. **Check PostgreSQL is running**:
+   \`\`\`bash
+   docker ps
+   # Should show: postgres:16-alpine container
+   \`\`\`
+
+2. **Start PostgreSQL**:
+   \`\`\`bash
+   docker-compose up -d
+   \`\`\`
+
+3. **Verify DATABASE_URL**:
+   \`\`\`bash
+   # apps/web/.env
+   DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev"
+   \`\`\`
+
+4. **Check port availability**:
+   \`\`\`bash
+   # Windows
+   netstat -ano | findstr :5432
+
+   # Mac/Linux
+   lsof -i :5432
+   \`\`\`
+
+---
+
+## Migration Issues
+
+### Problem: "Migration failed" or "Schema out of sync"
+
+**Symptoms**:
+\`\`\`
+Error: P3006: Migration failed to apply cleanly to the shadow database
+\`\`\`
+
+**Solutions**:
+
+1. **Reset development database** (⚠️ deletes all data):
+   \`\`\`bash
+   pnpm prisma migrate reset
+   \`\`\`
+
+2. **Apply migrations manually**:
+   \`\`\`bash
+   pnpm prisma migrate dev
+   \`\`\`
+
+3. **Regenerate Prisma Client**:
+   \`\`\`bash
+   pnpm prisma generate
+   \`\`\`
+
+---
+
+## pgvector Extension Not Found
+
+### Problem: "Extension 'vector' does not exist"
+
+**Symptoms**:
+\`\`\`
+ERROR: extension "vector" is not available
+\`\`\`
+
+**Solution**:
+
+1. **Connect to database**:
+   \`\`\`bash
+   docker exec -it projectpulse-db-1 psql -U postgres -d projectpulse_dev
+   \`\`\`
+
+2. **Create extension**:
+   \`\`\`sql
+   CREATE EXTENSION IF NOT EXISTS vector;
+   \\dx  -- List extensions to verify
+   \`\`\`
+
+3. **Restart Docker container**:
+   \`\`\`bash
+   docker-compose restart
+   \`\`\`
+
+---
+
+## TypeScript Type Errors
+
+### Problem: "Type 'X' is not assignable to type 'Y'"
+
+**Symptoms**:
+\`\`\`
+Type 'Issue | null' is not assignable to type 'Issue'
+\`\`\`
+
+**Solutions**:
+
+1. **Regenerate Prisma Client**:
+   \`\`\`bash
+   pnpm prisma generate
+   \`\`\`
+
+2. **Check for null safety**:
+   \`\`\`typescript
+   // ❌ Wrong
+   const issue = await prisma.issue.findUnique({ where: { id: 1 } });
+   console.log(issue.title); // Error: issue might be null
+
+   // ✅ Correct
+   const issue = await prisma.issue.findUnique({ where: { id: 1 } });
+   if (!issue) throw new Error('Issue not found');
+   console.log(issue.title); // Safe
+   \`\`\`
+
+3. **Restart TypeScript server** (VS Code):
+   - \`Cmd+Shift+P\` (Mac) or \`Ctrl+Shift+P\` (Windows)
+   - Type: "TypeScript: Restart TS Server"
+
+---
+
+## Port Already in Use
+
+### Problem: "Port 3000 already in use"
+
+**Symptoms**:
+\`\`\`
+Error: listen EADDRINUSE: address already in use :::3000
+\`\`\`
+
+**Solutions**:
+
+1. **Find process using port 3000**:
+   \`\`\`bash
+   # Windows
+   netstat -ano | findstr :3000
+   taskkill /PID <PID> /F
+
+   # Mac/Linux
+   lsof -i :3000
+   kill -9 <PID>
+   \`\`\`
+
+2. **Change port**:
+   \`\`\`bash
+   # apps/web/package.json
+   "dev": "next dev -p 3001"
+   \`\`\`
+
+---
+
+## Seed Script Fails
+
+### Problem: "Unique constraint failed"
+
+**Symptoms**:
+\`\`\`
+Error: Unique constraint failed on the fields: ('value')
+\`\`\`
+
+**Solution**:
+
+Seed script tries to create duplicate data. Reset database:
+
+\`\`\`bash
+pnpm prisma migrate reset
+# This runs migrations AND seed script automatically
+\`\`\`
+
+---
+
+## API Returns 500 Error
+
+### Problem: API endpoint returns 500 Internal Server Error
+
+**Debugging Steps**:
+
+1. **Check terminal logs** (where \`pnpm dev\` runs)
+2. **Check Prisma query logs**:
+   \`\`\`typescript
+   // lib/db.ts
+   const prisma = new PrismaClient({
+     log: ['query', 'error', 'warn'],
+   });
+   \`\`\`
+
+3. **Verify database schema matches code**:
+   \`\`\`bash
+   pnpm prisma db pull  # Pull schema from database
+   pnpm prisma generate  # Regenerate client
+   \`\`\`
+
+---
+
+## Next Steps
+
+- [Configuration](/configuration) - Environment setup
+- [Docker Setup Guide](/guides/docker-setup) - Container configuration
+- [API Documentation](/reference/api) - API endpoint reference
+
+---
+
+**Last Updated**: 2025-11-10
+**Version**: 1.0`,
       },
     }),
   ]);
 
-  // Create wiki page links (related pages)
-  await prisma.pageLink.create({
-    data: {
-      sourcePageId: wikiPages[0].id, // Getting Started
-      targetPageId: wikiPages[1].id, // Configuration
-    },
+  console.log(`✓ Created ${rootPages.length} root-level wiki pages\n`);
+
+  // HIERARCHICAL PAGES (children of "Development Guides")
+  const guidesParent = rootPages[2]; // Development Guides
+
+  const childPages = await Promise.all([
+    // Docker Setup Guide (child of Development Guides)
+    prisma.wikiPage.create({
+      data: {
+        title: 'Docker Setup Guide',
+        path: '/guides/docker-setup',
+        category: 'guides',
+        orderIndex: 0,
+        parentId: guidesParent.id, // Set parent relationship
+        content: `# Docker Setup Guide
+
+Set up PostgreSQL 16 with pgvector extension using Docker Compose.
+
+## Prerequisites
+
+- Docker Desktop installed ([Download](https://www.docker.com/products/docker-desktop))
+- Docker Compose CLI (included in Docker Desktop)
+
+## docker-compose.yml
+
+Create \`docker-compose.yml\` in project root:
+
+\`\`\`yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: projectpulse-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: projectpulse_dev
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+\`\`\`
+
+## Start PostgreSQL
+
+\`\`\`bash
+docker-compose up -d
+\`\`\`
+
+**Flags**:
+- \`-d\`: Run in detached mode (background)
+
+## Verify Setup
+
+\`\`\`bash
+# Check container status
+docker ps
+
+# Check logs
+docker logs projectpulse-db
+
+# Connect to database
+docker exec -it projectpulse-db psql -U postgres -d projectpulse_dev
+\`\`\`
+
+## Enable Extensions
+
+\`\`\`sql
+-- Enable pgvector (semantic search)
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Enable pg_trgm (fuzzy search)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Verify extensions
+\\dx
+\`\`\`
+
+## Stop PostgreSQL
+
+\`\`\`bash
+docker-compose down
+\`\`\`
+
+**Preserve data**:
+\`\`\`bash
+docker-compose down  # Keeps volumes
+\`\`\`
+
+**Delete data**:
+\`\`\`bash
+docker-compose down -v  # Removes volumes
+\`\`\`
+
+## Troubleshooting
+
+See [Troubleshooting Guide](/troubleshooting) for common Docker issues.
+
+---
+
+**Last Updated**: 2025-11-10
+**Version**: 1.0`,
+      },
+    }),
+
+    // Database Migrations Guide (child of Development Guides)
+    prisma.wikiPage.create({
+      data: {
+        title: 'Database Migrations Guide',
+        path: '/guides/database-migrations',
+        category: 'guides',
+        orderIndex: 1,
+        parentId: guidesParent.id,
+        content: `# Database Migrations Guide
+
+Learn how to manage database schema changes with Prisma Migrate.
+
+## Overview
+
+Prisma Migrate tracks schema changes as migration files in \`prisma/migrations/\`.
+
+## Development Workflow
+
+### 1. Modify Schema
+
+Edit \`prisma/schema.prisma\`:
+
+\`\`\`prisma
+model Issue {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?  @db.Text
+
+  // Add new field
+  estimatedHours Int? // New field
+}
+\`\`\`
+
+### 2. Create Migration
+
+\`\`\`bash
+pnpm prisma migrate dev --name add_estimated_hours
+\`\`\`
+
+**What happens**:
+1. Generates SQL migration file
+2. Applies migration to database
+3. Regenerates Prisma Client
+
+### 3. Review Migration SQL
+
+Check \`prisma/migrations/YYYYMMDDHHMMSS_add_estimated_hours/migration.sql\`:
+
+\`\`\`sql
+-- AlterTable
+ALTER TABLE "issues" ADD COLUMN "estimatedHours" INTEGER;
+\`\`\`
+
+### 4. Commit Migration
+
+\`\`\`bash
+git add prisma/migrations
+git commit -m "feat: add estimatedHours to Issue model"
+\`\`\`
+
+## Production Workflow
+
+### Apply Migrations
+
+\`\`\`bash
+pnpm prisma migrate deploy
+\`\`\`
+
+**Use in**:
+- CI/CD pipelines
+- Production deployments
+- Staging environments
+
+### Rollback
+
+Prisma does NOT support automatic rollback. To rollback:
+
+1. Create new migration that reverts changes
+2. Apply new migration
+
+**Example** (remove field):
+\`\`\`prisma
+model Issue {
+  // Remove estimatedHours field
+}
+\`\`\`
+
+\`\`\`bash
+pnpm prisma migrate dev --name remove_estimated_hours
+\`\`\`
+
+## Common Operations
+
+### Reset Database (Development Only)
+
+⚠️ **WARNING**: Deletes ALL data
+
+\`\`\`bash
+pnpm prisma migrate reset
+\`\`\`
+
+**What happens**:
+1. Drops database
+2. Recreates database
+3. Applies all migrations
+4. Runs seed script
+
+### Prototype Mode (No Migration Files)
+
+For rapid prototyping:
+
+\`\`\`bash
+pnpm prisma db push
+\`\`\`
+
+**Use when**:
+- Testing schema changes
+- Prototyping features
+- NOT for production
+
+### View Migration Status
+
+\`\`\`bash
+pnpm prisma migrate status
+\`\`\`
+
+## Best Practices
+
+1. ✅ **Always review generated SQL** before committing
+2. ✅ **Test migrations on staging** before production
+3. ✅ **Backup production database** before major migrations
+4. ✅ **Use descriptive migration names**
+5. ❌ **Never edit applied migrations**
+6. ❌ **Never use \`migrate reset\` in production**
+
+## Next Steps
+
+- [Configuration](/configuration) - Database connection setup
+- [Troubleshooting](/troubleshooting) - Migration error solutions
+
+---
+
+**Last Updated**: 2025-11-10
+**Version**: 1.0`,
+      },
+    }),
+  ]);
+
+  console.log(`✓ Created ${childPages.length} child pages under "Development Guides"\n`);
+
+  // CREATE CROSS-LINKS BETWEEN PAGES
+  console.log('🔗 Creating page links...');
+
+  await prisma.pageLink.createMany({
+    data: [
+      // Getting Started → Configuration
+      {
+        sourcePageId: rootPages[0].id,
+        targetPageId: rootPages[1].id,
+      },
+      // Getting Started → Docker Setup
+      {
+        sourcePageId: rootPages[0].id,
+        targetPageId: childPages[0].id,
+      },
+      // Configuration → Docker Setup
+      {
+        sourcePageId: rootPages[1].id,
+        targetPageId: childPages[0].id,
+      },
+      // Configuration → Database Migrations
+      {
+        sourcePageId: rootPages[1].id,
+        targetPageId: childPages[1].id,
+      },
+      // API Documentation → Troubleshooting
+      {
+        sourcePageId: rootPages[3].id,
+        targetPageId: rootPages[4].id,
+      },
+      // Troubleshooting → Configuration
+      {
+        sourcePageId: rootPages[4].id,
+        targetPageId: rootPages[1].id,
+      },
+      // Troubleshooting → Docker Setup
+      {
+        sourcePageId: rootPages[4].id,
+        targetPageId: childPages[0].id,
+      },
+    ],
   });
 
-  console.log(`✓ Created ${wikiPages.length} wiki pages\n`);
+  console.log(`✓ Created 7 page links\n`);
+
+  console.log(`✓ Wiki seeding complete: ${rootPages.length + childPages.length} pages total\n`);
 
   // ========================================================================
   // SECURITY FINDINGS
