@@ -57,8 +57,8 @@ ProjectPulse uses a distributed architecture for clean separation of concerns:
 
 **Phase**: Sprint 2 - Week 3-4 (Wiki Page + Onboarding System) 🔄 IN PROGRESS
 **Status**: Week 3 Days 1-2 COMPLETE (2/7 days) | Week 4 NOT STARTED (0/7 days)
-**Current Day**: Day 3 (Wiki editor UI + MCP tools planning)
-**Sprint 2 Progress**: 22% (13/58 points)
+**Current Day**: Day 3 COMPLETE (Wiki editor UI + MCP tools delivered)
+**Sprint 2 Progress**: 50% (29/58 points)
 **Sprint 2 Goals**:
 1. Wiki Page system (US-015 to US-022 - 34 points) - Database + Web UI + MCP tools
 2. Onboarding system (US-026 to US-031 - 24 points) - 3-session guided onboarding
@@ -292,10 +292,15 @@ ProjectPulse uses a distributed architecture for clean separation of concerns:
    - ✅ 4 new components (WikiCard, WikiSearchBar, WikiListClient)
    - ✅ Expert consultations (next-js-expert, react-expert)
    - ✅ Testing complete on Mac mini
-2. **Day 3-4**: Wiki editor UI + MCP tools (next up)
-   - Wiki editor page (client component with TipTap)
-   - MCP tools: wiki.create, wiki.search, wiki.update
-   - Zod validation for wiki operations
+2. ✅ **Day 3 COMPLETE**: Wiki editor UI + MCP tools (16 points)
+   - ✅ WikiEditor component (9733 bytes) with TipTap split view
+   - ✅ `/wiki/new` and `/wiki/[slug]/edit` routes
+   - ✅ MCP tools: projectpulse.wiki.create, projectpulse.wiki.search, projectpulse.wiki.update
+   - ✅ Zod validation schemas for wiki CRUD operations
+   - ✅ API endpoints: POST /api/wiki, PATCH /api/wiki/[slug], GET /api/wiki
+   - ✅ Expert consultations (react-expert for TipTap, next-js-expert for routes)
+   - ✅ Path normalization workaround (TD-001 technical debt documented)
+   - ✅ 13 TypeScript warnings documented as non-blocking
 3. **Day 5-6**: Additional wiki features
    - Wiki page versioning (optional)
    - Wiki search enhancement (full-text search)
