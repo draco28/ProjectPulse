@@ -6,6 +6,77 @@
 
 ---
 
+## Sprint 2 Cleanup - Drop MarkdownFile Table
+
+**Date:** 2025-11-10
+**Branch:** feature/sprint-2-markdown-sync (will rename after cleanup)
+
+### Instructions
+
+1. **Pull latest changes:**
+   ```bash
+   cd ~/projects/AI_HUB
+   git pull origin feature/sprint-2-markdown-sync
+   ```
+
+2. **Create migration to drop MarkdownFile table:**
+   ```bash
+   DATABASE_URL="postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev" \
+     npx prisma migrate dev --name remove_markdown_file_model
+   ```
+
+   **Expected output:**
+   ```
+   Applying migration `20251110XXXXXX_remove_markdown_file_model`
+
+   The following migration(s) have been created and applied:
+
+   migrations/
+     └─ 20251110XXXXXX_remove_markdown_file_model/
+         └─ migration.sql
+
+   Your database is now in sync with your schema.
+   ```
+
+3. **Regenerate Prisma Client:**
+   ```bash
+   npx prisma generate
+   ```
+
+4. **Restart Next.js container:**
+   ```bash
+   docker-compose -f docker-compose.cloud.yml restart nextjs
+   docker-compose -f docker-compose.cloud.yml logs -f nextjs
+   # Wait for "ready started server on 0.0.0.0:3000"
+   ```
+
+5. **Verify health:**
+   ```bash
+   curl http://192.168.1.15:3000/api/health
+   # Expected: {"status":"healthy","database":"connected"}
+   ```
+
+6. **Commit and push migration:**
+   ```bash
+   git add prisma/migrations/
+   git commit -m "feat(db): drop MarkdownFile table (Sprint 2 cleanup)"
+   git push origin feature/sprint-2-markdown-sync
+   ```
+
+### Success Criteria
+- [ ] Migration applied successfully
+- [ ] Prisma Client regenerated
+- [ ] Next.js container restarted
+- [ ] Health check passes
+- [ ] Migration committed to git
+
+### After Completion
+Report back with:
+- Migration output
+- Health check response
+- Any issues encountered
+
+
 ## 🚨 Critical Issue
 
 The Sprint 2 markdown sync feature was implemented but the database schema was never created. The API endpoint `/api/markdown/sync` returns error:
