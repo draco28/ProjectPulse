@@ -1,22 +1,24 @@
-# Mac Mini Instructions - Sprint 2 Day 4
+# Mac Mini Instructions - Sprint 2 Week 4 Verification
 
-**Created**: 2025-11-10 14:30
-**Phase**: Sprint 2 Week 3 Day 4
-**Task**: Run Wiki Contributors Update Script (US-019)
+**Created**: 2025-11-12 14:00
+**Phase**: Sprint 2 Week 4 (Onboarding System)
+**Task**: Restart Next.js Server + Verify Onboarding API Endpoints
 
 ---
 
 ## Context
 
-Wiki Detail Page enhancement requires updating existing wiki pages with:
-- Contributors (JSON array)
-- Page views (Int)
-- Revisions count (Int)
-- Reading time (Int, minutes)
-- Tags (String array)
-- Excerpt (String)
+Sprint 2 Week 4 implementation (US-026 to US-031) is complete on Windows side:
+- ✅ Prisma schema: OnboardingSession + OnboardingTemplate models
+- ✅ Migration: Applied locally on Windows
+- ✅ Seed: 3 templates created
+- ✅ API Routes: GET /api/onboarding/prompt + POST /api/onboarding/responses
+- ✅ MCP Tools: onboarding.getPrompt + onboarding.submitResponse
+- ✅ TypeScript: 0 errors (compiles successfully)
 
-Script created at: `scripts/update-wiki-contributors.ts`
+**CRITICAL**: Mac mini Next.js server needs to restart to reload Prisma client with new models.
+
+Branch: `feature/sprint-2-week-4`
 
 ---
 
@@ -25,67 +27,216 @@ Script created at: `scripts/update-wiki-contributors.ts`
 ### Step 1: Pull Latest Code
 ```bash
 cd ~/Projects/AI_HUB
-git fetch origin master
-git pull origin master
+git fetch origin feature/sprint-2-week-4
+git pull origin feature/sprint-2-week-4
 ```
 
-### Step 2: Run Update Script
+**Expected**: Clean pull with new files:
+- `apps/web/prisma/migrations/[timestamp]_add_onboarding_models/migration.sql`
+- `apps/web/app/api/onboarding/prompt/route.ts`
+- `apps/web/app/api/onboarding/responses/route.ts`
+- `apps/web/lib/validations/onboarding.ts`
+- `apps/mcp-server/src/tools/onboarding/*`
+
+### Step 2: Apply Migration to Mac Mini Database
 ```bash
-DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev" npx tsx scripts/update-wiki-contributors.ts
+cd ~/Projects/AI_HUB/apps/web
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev" npx prisma migrate deploy
 ```
 
 **Expected Output**:
 ```
-🔄 Updating wiki pages with contributors...
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "projectpulse_dev"
 
-Found X wiki pages to update
+1 migration found in prisma/migrations
 
-✓ Updated: Getting Started with ProjectPulse
-  - Views: 450, Revisions: 12, Reading time: 8 min
-  - Contributors: Moksha Dev, Sarah Chen
-  - Tags: tutorial, 5 min read
+Applying migration `[timestamp]_add_onboarding_models`
 
-... (more pages) ...
+The following migration have been applied:
 
-✅ All wiki pages updated successfully!
+migrations/
+  └─ [timestamp]_add_onboarding_models/
+    └─ migration.sql
+
+All migrations have been successfully applied.
 ```
 
-### Step 3: Verify Database
+### Step 3: Regenerate Prisma Client
 ```bash
-# Check one page to verify fields were added
-DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev" npx prisma studio
-# Open WikiPage model and verify:
-# - views field exists
-# - revisions field exists
-# - contributors field has JSON data
-# - readingTime field has values
-# - tags array has data
+cd ~/Projects/AI_HUB/apps/web
+npx prisma generate
 ```
 
-### Step 4: Report Back
-Once complete, add results to this file under "Results" section below.
+**Expected Output**:
+```
+✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client
+```
+
+### Step 4: Run Seed Script (Add 3 Templates)
+```bash
+cd ~/Projects/AI_HUB/apps/web
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev" npx tsx prisma/seed.ts
+```
+
+**Expected**: Seed should show onboarding templates created:
+```
+✅ Onboarding templates seeded (3 templates)
+```
+
+### Step 5: Restart Docker Compose (Next.js Server)
+```bash
+cd ~/Projects/AI_HUB
+docker-compose restart web
+```
+
+**Alternative** (if restart doesn't work):
+```bash
+# Stop and start to force full reload
+docker-compose stop web
+docker-compose up -d web
+```
+
+**Verification**:
+```bash
+# Check container is running
+docker ps | grep projectpulse-web
+
+# Check logs for successful start
+docker logs projectpulse-web --tail 50
+
+# Look for: "ready started server on 0.0.0.0:3000"
+```
+
+### Step 6: Verify Health Check
+```bash
+curl http://localhost:3000/api/health
+```
+
+**Expected Output**:
+```json
+{"status":"healthy","database":"connected"}
+```
+
+### Step 7: Test Onboarding API Endpoints
+
+**Test 1: GET Prompt (Session 1)**
+```bash
+curl -X GET "http://localhost:3000/api/onboarding/prompt?projectId=4&sessionNumber=1" -H "Content-Type: application/json"
+```
+
+**Expected Output** (200 OK):
+```json
+{
+  "data": {
+    "sessionNumber": 1,
+    "title": "Executive Summary",
+    "promptText": "...",
+    "placeholders": ["PROJECT_NAME", "OWNER_NAME"],
+    "resolvedVariables": {}
+  }
+}
+```
+
+**Test 2: POST Response**
+```bash
+curl -X POST "http://localhost:3000/api/onboarding/responses" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": 4,
+    "sessionNumber": 1,
+    "responses": {
+      "PROJECT_NAME": "Test Project",
+      "OWNER_NAME": "Moksha Dev"
+    }
+  }'
+```
+
+**Expected Output** (200 OK):
+```json
+{
+  "data": {
+    "sessionId": "...",
+    "sessionNumber": 1,
+    "completedAt": "2025-11-12T...",
+    "nextSession": 2
+  }
+}
+```
+
+**Test 3: GET Prompt (Session 2 with prefilled variables)**
+```bash
+curl -X GET "http://localhost:3000/api/onboarding/prompt?projectId=4&sessionNumber=2" -H "Content-Type: application/json"
+```
+
+**Expected Output** (200 OK with resolvedVariables prefilled from Session 1):
+```json
+{
+  "data": {
+    "sessionNumber": 2,
+    "title": "Industry & Domain Context",
+    "promptText": "...",
+    "placeholders": ["PROJECT_NAME", "INDUSTRY", "DOMAIN"],
+    "resolvedVariables": {
+      "PROJECT_NAME": "Test Project",
+      "OWNER_NAME": "Moksha Dev"
+    }
+  }
+}
+```
+
+### Step 8: Verify Database Records
+```bash
+cd ~/Projects/AI_HUB/apps/web
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev" npx prisma studio
+```
+
+**Verify**:
+1. Navigate to `OnboardingTemplate` table → Should show 3 records (Sessions 1-3)
+2. Navigate to `OnboardingSession` table → Should show 1 record (projectId: 4, sessionNumber: 1, responses JSON)
 
 ---
 
 ## Troubleshooting
 
-**If `npx tsx` fails**:
+**If migration fails (table already exists)**:
 ```bash
-# Install tsx globally
-npm install -g tsx
+# Check if tables exist
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev" psql -c "\dt onboarding*"
 
-# Or use node directly with ts-node
-pnpm add -D ts-node
-npx ts-node scripts/update-wiki-contributors.ts
+# If tables exist but migration not recorded:
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev" npx prisma migrate resolve --applied [migration_name]
 ```
 
-**If database connection fails**:
+**If API returns 404**:
 ```bash
-# Check PostgreSQL is running
-docker ps | grep postgres
+# Check route files exist
+ls -la ~/Projects/AI_HUB/apps/web/app/api/onboarding/
 
-# Test connection
-psql postgresql://postgres:postgres123@localhost:5432/projectpulse_dev -c "SELECT COUNT(*) FROM \"WikiPage\";"
+# Check Next.js server logs
+docker logs projectpulse-web --tail 100
+```
+
+**If API returns 500 (Prisma model not found)**:
+```bash
+# Verify Prisma client was regenerated
+ls -la ~/Projects/AI_HUB/apps/web/node_modules/.prisma/client/
+
+# Force regenerate and restart
+cd ~/Projects/AI_HUB/apps/web
+npx prisma generate
+docker-compose restart web
+```
+
+**If templates not in database**:
+```bash
+# Check seed script
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev" \
+  psql -c "SELECT COUNT(*) FROM \"OnboardingTemplate\";"
+
+# If 0, re-run seed
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev" \
+  npx tsx prisma/seed.ts
 ```
 
 ---
@@ -93,46 +244,54 @@ psql postgresql://postgres:postgres123@localhost:5432/projectpulse_dev -c "SELEC
 ## Results
 
 **Executed by**: Mac mini Claude Code
-**Timestamp**: 2025-11-10 23:25 IST
-**Status**: ✅ SUCCESS
+**Timestamp**: [To be filled by Mac mini]
+**Status**: [To be filled by Mac mini]
 
 ### Execution Log
 
-**Step 1**: Pulled latest code ✅
-**Step 2**: Updated both schema files (root + apps/web) ✅
-**Step 3**: Regenerated Prisma Client ✅
-**Step 4**: Ran update script ✅
+**Step 1**: Pull latest code → [STATUS]
+**Step 2**: Apply migration → [STATUS]
+**Step 3**: Regenerate Prisma Client → [STATUS]
+**Step 4**: Run seed script → [STATUS]
+**Step 5**: Restart Docker Compose → [STATUS]
+**Step 6**: Health check → [STATUS]
+**Step 7**: API endpoint tests → [STATUS]
+**Step 8**: Database verification → [STATUS]
 
-**Script Output**:
+### Test Results
+
+**GET /api/onboarding/prompt?projectId=4&sessionNumber=1**:
 ```
-🔄 Updating wiki pages with contributors...
-
-Found 8 wiki pages to update
-
-✓ Updated: Development Guides (Views: 711, Revisions: 6, Reading time: 1 min)
-✓ Updated: Getting Started with ProjectPulse (Views: 357, Revisions: 5, Reading time: 3 min)
-✓ Updated: API Documentation (Views: 482, Revisions: 20, Reading time: 3 min)
-✓ Updated: Configuration (Views: 849, Revisions: 6, Reading time: 3 min)
-✓ Updated: Troubleshooting (Views: 326, Revisions: 4, Reading time: 3 min)
-✓ Updated: Docker Setup Guide (Views: 778, Revisions: 18, Reading time: 1 min)
-✓ Updated: Database Migrations Guide (Views: 173, Revisions: 17, Reading time: 2 min)
-✓ Updated: Test Wiki Page (Views: 422, Revisions: 11, Reading time: 1 min)
-
-✅ All wiki pages updated successfully!
+[Output to be pasted here]
 ```
 
-### Actual Changes
+**POST /api/onboarding/responses**:
+```
+[Output to be pasted here]
+```
 
-The script will update ALL existing wiki pages with:
-- `views`: Random 100-1100 (simulated page views)
-- `revisions`: Random 1-20 (edit count)
-- `contributors`: Array of 1-3 random contributors from: Moksha Dev, Sarah Chen, Alex Kumar
-- `readingTime`: Calculated from content (200 words/min)
-- `tags`: Based on category (tutorial, reference, guide, etc.)
-- `excerpt`: First 200 characters of content
+**GET /api/onboarding/prompt?projectId=4&sessionNumber=2**:
+```
+[Output to be pasted here]
+```
 
-This data is required for the wiki detail page UI components.
+### Database Verification
+
+**OnboardingTemplate count**: [NUMBER]
+**OnboardingSession count**: [NUMBER]
+
+**Screenshot from Prisma Studio** (optional): [Describe what you see]
 
 ---
 
-**Next Step**: Once script completes successfully, Windows Claude Code will pull git and continue with React component implementation (WikiHeader, WikiContributors, etc.).
+## Next Steps
+
+Once all tests pass successfully:
+1. Mac mini commits results to this file
+2. Mac mini pushes to `feature/sprint-2-week-4` branch
+3. Windows Claude Code pulls and proceeds with documentation updates
+4. Final commit: "feat(onboarding): Implement US-026 to US-031 (24 points)"
+
+---
+
+**Note**: This is a critical checkpoint. All 8 steps must succeed before Sprint 2 Week 4 can be marked COMPLETE.
