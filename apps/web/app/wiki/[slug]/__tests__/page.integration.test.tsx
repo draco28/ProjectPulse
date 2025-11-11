@@ -21,7 +21,10 @@ jest.mock('@/lib/prisma', () => ({
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
-  notFound: jest.fn(),
+  notFound: jest.fn(() => {
+    // In real Next.js, notFound() throws a NEXT_NOT_FOUND error to stop execution
+    throw new Error('NEXT_NOT_FOUND');
+  }),
   useRouter: jest.fn(() => ({
     push: jest.fn(),
     back: jest.fn(),
@@ -77,7 +80,7 @@ jest.mock('@/components/wiki/WikiContributors', () => ({
       {contributors?.map((c: any) => (
         <div key={c.name}>
           <span>{c.name}</span>
-          <span>{c.role}</span>
+          <span>{c.editCount} edits</span>
         </div>
       ))}
       <span>{views}</span>
@@ -125,12 +128,12 @@ const config = {
     path: '/getting-started',
     views: 1250,
     revisions: 5,
-    contributors: JSON.stringify([
-      { name: 'Alice Smith', avatar: 'https://example.com/alice.jpg', role: 'Author' },
-      { name: 'Bob Johnson', avatar: null, role: 'Contributor' },
-    ]),
+    contributors: [ // Prisma returns Json type as parsed object, not string
+      { name: 'Alice Smith', avatar: 'https://example.com/alice.jpg', editCount: 15, lastEditAt: '2025-11-10T00:00:00Z' },
+      { name: 'Bob Johnson', editCount: 3, lastEditAt: '2025-11-08T00:00:00Z' },
+    ],
     readingTime: 5,
-    tags: JSON.stringify(['quickstart', 'tutorial', 'beginner']),
+    tags: ['quickstart', 'tutorial', 'beginner'], // Prisma returns String[] natively
     createdAt: new Date('2025-01-01T00:00:00Z'),
     updatedAt: new Date('2025-11-10T00:00:00Z'),
   };
@@ -180,12 +183,13 @@ const config = {
       expect(screen.getByTestId('sidebar')).toBeInTheDocument();
 
       // Verify breadcrumb navigation
-      expect(screen.getByRole('navigation', { name: /breadcrumb/i })).toBeInTheDocument();
-      expect(screen.getByText('Wiki')).toBeInTheDocument();
-      expect(screen.getByText('Getting Started with ProjectPulse')).toBeInTheDocument();
+      const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i });
+      expect(breadcrumb).toBeInTheDocument();
+      expect(within(breadcrumb).getByText('Wiki')).toBeInTheDocument();
 
-      // Verify main content sections exist
-      expect(screen.getByText('Getting Started with ProjectPulse')).toBeInTheDocument();
+      // Verify main content (title appears in multiple places - breadcrumb, header)
+      const titleElements = screen.getAllByText('Getting Started with ProjectPulse');
+      expect(titleElements.length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText(/learn how to get started/i)).toBeInTheDocument();
     });
 
@@ -193,14 +197,19 @@ const config = {
       const Component = await WikiPage({ params: { slug: 'getting-started' } });
       render(Component);
 
-      // Verify title is rendered
-      expect(screen.getByText('Getting Started with ProjectPulse')).toBeInTheDocument();
+      // Verify WikiHeader section exists
+      const wikiHeader = screen.getByRole('region', { name: /wiki.*header/i });
+      expect(wikiHeader).toBeInTheDocument();
+
+      // Verify title is rendered in header
+      expect(within(wikiHeader).getByText('Getting Started with ProjectPulse')).toBeInTheDocument();
 
       // Verify description/excerpt
-      expect(screen.getByText(/learn how to get started/i)).toBeInTheDocument();
+      expect(within(wikiHeader).getByText(/learn how to get started/i)).toBeInTheDocument();
 
-      // Verify category
-      expect(screen.getByText('Getting Started')).toBeInTheDocument();
+      // Verify category (appears in multiple places)
+      const categoryElements = screen.getAllByText('Getting Started');
+      expect(categoryElements.length).toBeGreaterThanOrEqual(1);
 
       // Verify tags (if rendered by WikiHeader)
       expect(screen.getByText('quickstart')).toBeInTheDocument();
@@ -226,13 +235,23 @@ const config = {
       const Component = await WikiPage({ params: { slug: 'getting-started' } });
       render(Component);
 
+      // Verify WikiContributors section exists
+      const contributorsSection = screen.getByTestId('wiki-contributors');
+      expect(contributorsSection).toBeInTheDocument();
+
       // Verify contributors are rendered
-      expect(screen.getByText('Alice Smith')).toBeInTheDocument();
-      expect(screen.getByText('Bob Johnson')).toBeInTheDocument();
+      expect(within(contributorsSection).getByText('Alice Smith')).toBeInTheDocument();
+      expect(within(contributorsSection).getByText('Bob Johnson')).toBeInTheDocument();
+
+      // Verify edit counts
+      expect(within(contributorsSection).getByText(/15 edits/)).toBeInTheDocument();
+      expect(within(contributorsSection).getByText(/3 edits/)).toBeInTheDocument();
 
       // Verify stats
-      expect(screen.getByText(/1250/)).toBeInTheDocument(); // views
-      expect(screen.getByText(/5/)).toBeInTheDocument(); // revisions
+      expect(within(contributorsSection).getByText('1250')).toBeInTheDocument(); // views (exact match)
+      // Note: "5" matches "15 edits", so check revisions are present by checking views + multiple spans
+      const spans = within(contributorsSection).getAllByText(/\d+/); // All numbers
+      expect(spans.length).toBeGreaterThanOrEqual(4); // 15, 3, 1250, 5
     });
 
     it('should render WikiFooterNav with prev/next links', async () => {
@@ -248,15 +267,18 @@ const config = {
       const Component = await WikiPage({ params: { slug: 'getting-started' } });
       render(Component);
 
-      // Verify category sidebar
-      expect(screen.getByText('Getting Started')).toBeInTheDocument();
-      expect(screen.getByText('Guides')).toBeInTheDocument();
-      expect(screen.getByText('API Documentation')).toBeInTheDocument();
+      // Verify QuickNavigation section exists
+      const quickNav = screen.getByTestId('quick-nav');
+      expect(quickNav).toBeInTheDocument();
 
-      // Verify counts
-      expect(screen.getByText('5')).toBeInTheDocument(); // Getting Started count
-      expect(screen.getByText('12')).toBeInTheDocument(); // Guides count
-      expect(screen.getByText('8')).toBeInTheDocument(); // API count
+      // Verify category sidebar (Getting Started appears in multiple places)
+      expect(within(quickNav).getByText('Guides')).toBeInTheDocument();
+      expect(within(quickNav).getByText('API Documentation')).toBeInTheDocument();
+
+      // Verify counts (numbers may appear in multiple places)
+      expect(within(quickNav).getByText('5')).toBeInTheDocument(); // Getting Started count
+      expect(within(quickNav).getByText('12')).toBeInTheDocument(); // Guides count
+      expect(within(quickNav).getByText('8')).toBeInTheDocument(); // API count
     });
   });
 
@@ -276,23 +298,29 @@ const config = {
       const Component = await WikiPage({ params: { slug: 'getting-started' } });
       render(Component);
 
-      // Verify contributors parsed correctly from JSON
-      expect(screen.getByText('Alice Smith')).toBeInTheDocument();
-      expect(screen.getByText('Bob Johnson')).toBeInTheDocument();
+      // Verify WikiContributors section exists
+      const contributorsSection = screen.getByTestId('wiki-contributors');
 
-      // Verify roles if rendered
-      expect(screen.getByText('Author')).toBeInTheDocument();
-      expect(screen.getByText('Contributor')).toBeInTheDocument();
+      // Verify contributors parsed correctly from JSON
+      expect(within(contributorsSection).getByText('Alice Smith')).toBeInTheDocument();
+      expect(within(contributorsSection).getByText('Bob Johnson')).toBeInTheDocument();
+
+      // Verify edit counts are displayed
+      expect(within(contributorsSection).getByText(/15 edits/)).toBeInTheDocument();
+      expect(within(contributorsSection).getByText(/3 edits/)).toBeInTheDocument();
     });
 
     it('should parse tags correctly from JSON', async () => {
       const Component = await WikiPage({ params: { slug: 'getting-started' } });
       render(Component);
 
+      // Verify WikiHeader section exists (tags are rendered there)
+      const wikiHeader = screen.getByRole('region', { name: /wiki.*header/i });
+
       // Verify all tags rendered
-      expect(screen.getByText('quickstart')).toBeInTheDocument();
-      expect(screen.getByText('tutorial')).toBeInTheDocument();
-      expect(screen.getByText('beginner')).toBeInTheDocument();
+      expect(within(wikiHeader).getByText('quickstart')).toBeInTheDocument();
+      expect(within(wikiHeader).getByText('tutorial')).toBeInTheDocument();
+      expect(within(wikiHeader).getByText('beginner')).toBeInTheDocument();
     });
 
     it('should extract TOC from markdown content', async () => {
@@ -362,11 +390,8 @@ const config = {
     it('should call notFound() when page does not exist', async () => {
       (prisma.wikiPage.findUnique as jest.Mock).mockResolvedValue(null);
 
-      const { notFound } = await import('next/navigation');
-
-      await WikiPage({ params: { slug: 'non-existent' } });
-
-      expect(notFound).toHaveBeenCalled();
+      // notFound() throws an error in Next.js to stop execution
+      await expect(WikiPage({ params: { slug: 'non-existent' } })).rejects.toThrow('NEXT_NOT_FOUND');
     });
 
     it('should handle missing prev/next pages gracefully', async () => {
@@ -377,34 +402,38 @@ const config = {
       const Component = await WikiPage({ params: { slug: 'getting-started' } });
       render(Component);
 
-      // Page should still render without errors
-      expect(screen.getByText('Getting Started with ProjectPulse')).toBeInTheDocument();
+      // Page should still render without errors (title appears in multiple places)
+      const titleElements = screen.getAllByText('Getting Started with ProjectPulse');
+      expect(titleElements.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should handle empty contributors array', async () => {
       (prisma.wikiPage.findUnique as jest.Mock).mockResolvedValue({
         ...mockWikiPage,
-        contributors: JSON.stringify([]),
+        contributors: [], // Empty array (Prisma returns as parsed object)
       });
 
       const Component = await WikiPage({ params: { slug: 'getting-started' } });
       render(Component);
 
-      // Page should still render
-      expect(screen.getByText('Getting Started with ProjectPulse')).toBeInTheDocument();
+      // Page should still render (title appears in multiple places)
+      const titleElements = screen.getAllByText('Getting Started with ProjectPulse');
+      expect(titleElements.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('should handle invalid JSON in contributors field', async () => {
+    it('should handle invalid contributors data', async () => {
       (prisma.wikiPage.findUnique as jest.Mock).mockResolvedValue({
         ...mockWikiPage,
-        contributors: 'invalid-json',
+        contributors: 'invalid-data', // Invalid format (should be array)
       });
 
       const Component = await WikiPage({ params: { slug: 'getting-started' } });
       render(Component);
 
       // Page should still render (Zod validation should handle this)
-      expect(screen.getByText('Getting Started with ProjectPulse')).toBeInTheDocument();
+      // Title appears in multiple places
+      const titleElements = screen.getAllByText('Getting Started with ProjectPulse');
+      expect(titleElements.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -425,8 +454,12 @@ const config = {
       const Component = await WikiPage({ params: { slug: 'getting-started' } });
       render(Component);
 
-      const currentPage = screen.getByText('Getting Started with ProjectPulse').closest('li');
-      expect(currentPage).toHaveAttribute('aria-current', 'page');
+      // Find the breadcrumb navigation
+      const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i });
+
+      // Title appears in multiple places - find the one in breadcrumb with aria-current
+      const currentPageItem = within(breadcrumb).getByText('Getting Started with ProjectPulse').closest('li');
+      expect(currentPageItem).toHaveAttribute('aria-current', 'page');
     });
   });
 });

@@ -36,14 +36,18 @@ Object.defineProperty(navigator, 'clipboard', {
 });
 
 // Mock localStorage for component tests
-const localStorageMock = (() => {
-  let store = {};
-  return {
-    getItem: jest.fn((key) => store[key] || null),
-    setItem: jest.fn((key, value) => { store[key] = value; }),
-    removeItem: jest.fn((key) => { delete store[key]; }),
-    clear: jest.fn(() => { store = {}; }),
-  };
-})();
+let localStorageStore = {};
 
-global.localStorage = localStorageMock;
+// Define mock functions that persist across test runs
+Object.defineProperty(global, 'localStorage', {
+  value: {
+    getItem: jest.fn((key) => localStorageStore[key] || null),
+    setItem: jest.fn((key, value) => { localStorageStore[key] = value; }),
+    removeItem: jest.fn((key) => { delete localStorageStore[key]; }),
+    clear: jest.fn(() => { localStorageStore = {}; }),
+    length: 0,
+    key: jest.fn(),
+  },
+  writable: true,
+  configurable: true,
+});
