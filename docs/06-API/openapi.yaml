@@ -62,7 +62,7 @@ tags:
     description: |
       5-step mandatory protocol enforcement: Initialize → Plan → Consult → Checkpoint → Complete.
       Ensures workflow consistency, traceability, and compliance.
-      **Tools:** 5 | **FRs:** FR-026 to FR-050
+      **Tools:** 5 | **FRs:** FR-032 to FR-056
 
   - name: Issues Management
     description: |

@@ -1420,13 +1420,13 @@ model HealthScanner {
 
 **Purpose:** Enforce 5-step mandatory protocol with state machine and agent persona management.
 
-**Requirements:** FR-026 to FR-050 (Workflow), FR-121 to FR-125 (Personas)
+**Requirements:** FR-032 to FR-056 (Workflow), FR-121 to FR-125 (Personas)
 
 ---
 
 #### 3.7.1 Workflow Table
 
-**Requirements:** FR-026 (Create workflow), FR-027 (State machine), FR-028 (5-step protocol)
+**Requirements:** FR-032 to FR-056 (Workflow Orchestration)
 
 ```prisma
 model Workflow {

@@ -259,7 +259,7 @@ test('Agent completes 5-step protocol successfully', async ({ page }) => {
 });
 ```
 
-**Requirements:** FR-026 to FR-050 (Workflow Orchestration)
+**Requirements:** FR-032 to FR-056 (Workflow Orchestration)
 
 ---
 
@@ -843,19 +843,65 @@ test('IssueList component has no accessibility violations', async () => {
 
 ---
 
-### 3.2 Workflow Orchestration Tests (FR-026 to FR-050)
+### 3.2 Onboarding System Tests (FR-026 to FR-031)
 
-**Total Tests:** 90 tests (30 unit, 35 integration, 25 E2E)
+**Total Tests:** 18 tests (8 unit, 6 integration, 4 E2E)
 
-#### 3.2.1 Five-Step Protocol Tests (30 tests)
+#### 3.2.1 Session Prompts (8 unit tests)
 
 **Scope:**
 
-- FR-026: Initialize session (Step 1)
-- FR-027: Save plan (Step 2)
-- FR-028: Consult experts (Step 3)
-- FR-029: Checkpoints (Step 4)
-- FR-030: Post-completion workflow (Step 5)
+- FR-027: Session 1 prompt (Executive Summary)
+- FR-028: Session 2 prompt (Industry Docs)
+- FR-029: Session 3 prompt (AI Workflow)
+
+**Test Cases:**
+
+- ✅ Session 1 template renders with expected variables (10 questions)
+- ✅ Session 2 template merges Session 1 data correctly
+- ✅ Session 3 template includes memory bank and SOP placeholders
+- ✅ Variable substitution errors are reported with field names
+
+#### 3.2.2 MCP Tools (6 integration tests)
+
+**Scope:**
+
+- FR-030: onboarding.getPrompt()
+- FR-031: onboarding.submitResponse()
+
+**Test Cases:**
+
+- ✅ getPrompt returns next session based on state
+- ✅ submitResponse persists JSON data and advances session
+- ✅ Invalid session number → 400 with Zod error details
+- ✅ End-to-end: Session 1 → 2 → 3 flow completes
+
+#### 3.2.3 E2E Flow (4 tests)
+
+**Scope:** Complete 3-session flow writes wiki pages
+
+**Test Cases:**
+
+- ✅ Session 1 answers → Wiki Executive Summary page created
+- ✅ Session 2 answers → PRD/SRS/Architecture wiki pages created
+- ✅ Session 3 answers → Memory Banks/SOPs/Skills pages created
+- ✅ Admin prompt editor changes reflected in getPrompt()
+
+---
+
+### 3.3 Workflow Orchestration Tests (FR-032 to FR-056)
+
+**Total Tests:** 90 tests (30 unit, 35 integration, 25 E2E)
+
+#### 3.3.1 Five-Step Protocol Tests (30 tests)
+
+**Scope:**
+
+- Initialize session (Step 1) — FR-032
+- Save plan (Step 2) — FR-033
+- Consult experts (Step 3) — FR-034
+- Checkpoints (Step 4) — FR-035
+- Post-completion workflow (Step 5) — FR-036
 
 **Test Cases:**
 
@@ -928,7 +974,7 @@ test('IssueList component has no accessibility violations', async () => {
 
 ---
 
-### 3.3 Issues Management Tests (FR-051 to FR-070)
+### 3.4 Issues Management Tests (FR-051 to FR-070)
 
 **Total Tests:** 70 tests (25 unit, 30 integration, 15 E2E)
 
@@ -1007,7 +1053,7 @@ test('IssueList component has no accessibility violations', async () => {
 
 ---
 
-### 3.4 Knowledge Graph Tests (FR-071 to FR-090)
+### 3.5 Knowledge Graph Tests (FR-071 to FR-090)
 
 **Total Tests:** 90 tests (30 unit, 35 integration, 25 E2E)
 
@@ -1087,7 +1133,7 @@ test('IssueList component has no accessibility violations', async () => {
 
 ---
 
-### 3.5 Skills System Tests (FR-091 to FR-105)
+### 3.6 Skills System Tests (FR-091 to FR-105)
 
 **Total Tests:** 50 tests (15 unit, 25 integration, 10 E2E)
 

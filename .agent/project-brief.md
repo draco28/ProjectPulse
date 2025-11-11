@@ -173,12 +173,18 @@ Session 3: AI workflow blueprint (memory banks, skills, SOPs)
 - ⏳ First 7 MCP tools (sprint.phase.create, sprint.getCurrentTask, etc.)
 - ⏳ Validation: Foreign keys, progress 0.0-1.0, timestamps
 
-### ⏳ Sprint 2-3: Workflow Orchestration (Weeks 3-6)
+### 🔄 Sprint 2: Wiki + Onboarding (Weeks 3-4)
 
-- ⏳ Workflow definition system (5-Step Protocol, custom workflows)
-- ⏳ Workflow state machine with validation
-- ⏳ Markdown sync (database → markdown, zero drift)
-- ⏳ 5 workflow MCP tools
+- ✅ Wiki Page (Week 3): list/detail/editor, search, analytics
+- ⏳ Onboarding System (Week 4): 3-session prompts, admin prompt editor
+- ⏳ MCP tools: `wiki.create/search/update`, `onboarding.getPrompt/submitResponse`
+
+### ⏳ Sprint 3: Workflow Orchestration (Weeks 5-6)
+
+- ⏳ Workflow definition system (5-Step Protocol, session start, git, checkpoint)
+- ⏳ Workflow state machine with validation + recovery
+- ⏳ Checkpoints every 15K tokens
+- ⏳ MCP tools: validate/resume/createCheckpoint
 
 ### ⏳ Sprint 4: Issue Management (Weeks 7-8)
 

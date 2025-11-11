@@ -862,7 +862,37 @@ Progress: [progress]%
 
 ---
 
-### 1.3 Workflow Orchestration (FR-026 to FR-050)
+### 1.3 Onboarding System (FR-026 to FR-031)
+
+**Purpose:** Three-session project initiation flow that captures executive summary, generates industry-grade documents, and creates AI workflow artifacts.
+
+#### FR-026: Create Onboarding Session Record
+- Backlog: US-026
+- Description: System shall create an OnboardingSession record per project per session (1..3) with status tracking and JSON data storage.
+
+#### FR-027: Get Session 1 Prompt (Executive Summary)
+- Backlog: US-027
+- Description: Provide a prompt template with 10 questions (project name, users, problem, tech stack, phase, team size, timeline, key features, constraints, success criteria).
+
+#### FR-028: Get Session 2 Prompt (Industry Documentation)
+- Backlog: US-028
+- Description: Provide a prompt template that generates PRD, SRS, and Architecture docs from Session 1 answers.
+
+#### FR-029: Get Session 3 Prompt (AI Workflow Blueprint)
+- Backlog: US-029
+- Description: Provide a prompt template to create Memory Banks, SOPs, and Skills documentation.
+
+#### FR-030: MCP Tool onboarding.getPrompt()
+- Backlog: US-030
+- Description: Return the active session's prompt template with variables pre-filled from prior sessions.
+
+#### FR-031: MCP Tool onboarding.submitResponse()
+- Backlog: US-031
+- Description: Store agent/user responses for the given session, update status, and indicate next session.
+
+---
+
+### 1.4 Workflow Orchestration (FR-032 to FR-056)
 
 **Purpose:** Track and enforce 12 workflow state machines from CLAUDE.md
 

@@ -121,7 +121,7 @@ Agents don't interact with UI directly, but their actions are reflected in real-
 - **Auto-generated context files** (markdown files update automatically)
 - **Agent vs Human attribution** (createdBy: "agent" badge on all entities)
 
-**Requirements:** FR-026 to FR-050 (Workflow Orchestration)
+**Requirements:** FR-032 to FR-056 (Workflow Orchestration)
 
 ---
 
@@ -533,10 +533,10 @@ Phase A: MVP Core > Week 2: Database Schema > Day 3: Prisma Models > Task 5: Iss
 
 **Related Requirements:**
 
-- **Functional Requirements:** FR-026 to FR-050 (25 requirements for workflow orchestration)
-- **User Stories:** US-030 to US-055 (26 stories, 75 story points)
-- **Test Cases:** TEST-033 to TEST-060 (28 test cases)
-- **Epic:** EPIC-002 (Workflow Orchestration, 95 points total)
+- **Functional Requirements:** FR-032 to FR-056 (Workflow Orchestration)
+- **User Stories:** US-032 to US-050 (19 stories, 71 story points)
+- **Test Cases:** TEST-032 to TEST-056
+- **Epic:** EPIC-002 (Workflow Orchestration, 71 points total)
 
 ---
 

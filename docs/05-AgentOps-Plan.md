@@ -77,7 +77,7 @@ See [ADR-001: Agent-First Architecture](architecture/ADRs/ADR-001-agent-first-ar
 | Token Efficiency (Skills)    | 92% reduction | 220 tokens vs 2,500 tokens           |
 | Token Efficiency (Knowledge) | 88% reduction | 1,200 tokens vs 10,000 tokens        |
 
-**Requirements:** FR-026 to FR-050 (Workflow Orchestration)
+**Requirements:** FR-032 to FR-056 (Workflow Orchestration)
 
 ---
 
@@ -88,7 +88,7 @@ See [ADR-001: Agent-First Architecture](architecture/ADRs/ADR-001-agent-first-ar
 ProjectPulse provides **42 MCP tools** across **8 functional categories**:
 
 1. **Sprint/Phase Tracking** (7 tools) - FR-001 to FR-025
-2. **Workflow Orchestration** (5 tools) - FR-026 to FR-050
+2. **Workflow Orchestration** (5 tools) - FR-032 to FR-056
 3. **Issues Management** (5 tools) - FR-051 to FR-070
 4. **Knowledge Graph** (5 tools) - FR-071 to FR-090
 5. **Skills System** (4 tools) - FR-091 to FR-105
@@ -379,7 +379,7 @@ const phase = await mcp.call('sprint.phase.create', {
 - Updates context file with session goals
 - Logs action in `AgentAction` table
 
-**Requirements:** FR-026, FR-027 (Step 1: Initialize)
+**Requirements:** FR-032 (Step 1: Initialize)
 
 ---
 
@@ -418,7 +418,7 @@ const phase = await mcp.call('sprint.phase.create', {
 - Updates workflow step to 2 (COMPLETED)
 - Logs action in `AgentAction` table
 
-**Requirements:** FR-028, FR-029 (Step 2: Plan & Save)
+**Requirements:** FR-033 (Step 2: Plan & Save)
 
 ---
 
@@ -455,7 +455,7 @@ const phase = await mcp.call('sprint.phase.create', {
 - Updates workflow step to 3 (COMPLETED)
 - Logs action in `AgentAction` table
 
-**Requirements:** FR-030, FR-031 (Step 3: Consult Experts)
+**Requirements:** FR-034 (Step 3: Consult Experts)
 
 ---
 
@@ -496,7 +496,7 @@ const phase = await mcp.call('sprint.phase.create', {
 - After completing any significant action
 - Before risky operations (large refactorings)
 
-**Requirements:** FR-032, FR-033 (Step 4: Checkpoints)
+**Requirements:** FR-035 (Step 4: Checkpoints)
 
 ---
 
@@ -535,7 +535,7 @@ const phase = await mcp.call('sprint.phase.create', {
 - Updates workflow status to `COMPLETED`
 - Logs action in `AgentAction` table
 
-**Requirements:** FR-034, FR-035 (Step 5: Post-Completion)
+**Requirements:** FR-036 (Step 5: Post-Completion)
 
 ---
 
@@ -2909,7 +2909,7 @@ GROUP BY action;
 **Functional Requirements (FR):**
 
 - FR-001 to FR-025: Sprint/Phase Tracking → MCP Tools (Section 2.2)
-- FR-026 to FR-050: Workflow Orchestration → 5-Step Protocol (Section 3)
+- FR-032 to FR-056: Workflow Orchestration → 5-Step Protocol (Section 3)
 - FR-051 to FR-070: Issues Management → MCP Tools (Section 2.4)
 - FR-071 to FR-090: Knowledge Graph → Context Management (Section 4.4)
 - FR-091 to FR-105: Skills → Context Management (Section 4.3)

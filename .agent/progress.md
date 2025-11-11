@@ -43,6 +43,11 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 **Current Sprint**: Sprint 2 - Wiki Page + Onboarding System (58/58 points Week 3 - 100%)
 **Completed Sprints**: 1/9 (Sprint 1 closed at 96%), Sprint 2 Week 3 complete (58 points)
 
+**Reconciliation (Option C) — 2025-11-11:**
+- US-026..US-031 = Onboarding System (Sprint 2 Week 4)
+- Workflow Orchestration = US-032..US-050 (Sprint 3)
+- SRS ranges: FR-026..FR-031 (Onboarding), FR-032..FR-056 (Workflow)
+
 ---
 
 ## Sprint 1: Foundation Setup (Weeks 1-2) - 52 points

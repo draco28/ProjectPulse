@@ -189,7 +189,7 @@ Note: Tool count may expand; 41 represents current scope.
 
 **Requirements Fulfilled:**
 
-- FR-026 to FR-050: Workflow Orchestration (see [02-SRS.md](02-SRS.md))
+- FR-032 to FR-056: Workflow Orchestration (see [02-SRS.md](02-SRS.md))
 - NFR-001 to NFR-005: Performance (MCP response <200ms)
 
 #### 1.2.2 Solo Developer (Secondary User - 5%)
@@ -1150,7 +1150,7 @@ stateDiagram-v2
 | IMPLEMENT    | Todos created, git branch checked            | Validate todos non-empty, branch != master |
 | COMPLETE     | All todos 100%, tests passed                 | Validate todo completion, test results     |
 
-**Requirements Fulfilled:** FR-026 to FR-050
+**Requirements Fulfilled:** FR-032 to FR-056
 
 ---
 
@@ -2579,7 +2579,7 @@ sequenceDiagram
 4. **Database → File System:** Auto-generate markdown (post-transaction hooks)
 5. **Agent → Git:** Commit changes (not via MCP, direct shell commands)
 
-**Requirements Fulfilled:** FR-026 to FR-050 (Workflow Orchestration)
+**Requirements Fulfilled:** FR-032 to FR-056 (Workflow Orchestration)
 
 ---
 
@@ -3507,7 +3507,7 @@ sequenceDiagram
 
 **Duration:** ~2-4 hours (typical task with 3-4 checkpoints)
 
-**Requirements Fulfilled:** FR-026 to FR-050 (Workflow Orchestration)
+**Requirements Fulfilled:** FR-032 to FR-056 (Workflow Orchestration)
 
 ---
 
@@ -3753,7 +3753,7 @@ All **125 Functional Requirements** (FR-001 to FR-125) and **33 Non-Functional R
 **Traceability:**
 
 - FR-001 to FR-025: Sprint/Phase Tracking → Section 3.1
-- FR-026 to FR-050: Workflow Orchestration → Section 3.2
+- FR-032 to FR-056: Workflow Orchestration → Section 3.2
 - FR-051 to FR-070: Issues Management → Section 3.3
 - FR-071 to FR-090: Knowledge Graph → Section 3.4
 - FR-091 to FR-105: Skills → Section 3.5

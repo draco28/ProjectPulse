@@ -66,6 +66,12 @@ ProjectPulse uses a distributed architecture for clean separation of concerns:
 4. ⏳ EPIC-003 (Onboarding System) - 24 points (Week 4)
 5. ✅ Agents can create/edit/search/analyze wiki pages via MCP tools
 
+### Reconciliation Notes (Option C) — 2025-11-11
+
+- US-026..US-031 reserved for Onboarding System (Sprint 2 Week 4)
+- Workflow Orchestration renumbered to US-032..US-050 (Sprint 3)
+- SRS updated: FR-026..FR-031 = Onboarding; FR-032..FR-056 = Workflow Orchestration
+
 **Sprint 1 Achievements** (Completed 2025-11-09):
 - ✅ 96% completion (50/52 points)
 - ✅ 5-level hierarchy operational (Phase → Week → Day → Task → Session)

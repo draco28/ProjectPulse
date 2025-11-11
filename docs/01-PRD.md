@@ -344,7 +344,7 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 | Feature                  | Priority | FR Range             | Description                                                             |
 | ------------------------ | -------- | -------------------- | ----------------------------------------------------------------------- |
 | Sprint/Phase Tracking    | P0       | FR-001 to FR-025     | 5-level hierarchy, auto-markdown sync, progress roll-up                 |
-| Workflow Orchestration   | P0       | FR-026 to FR-050     | Track 12 workflows, enforce consistency, checkpoint recovery            |
+| Workflow Orchestration   | P0       | FR-032 to FR-056     | Track 12 workflows, enforce consistency, checkpoint recovery            |
 | Issues                   | P0       | FR-051 to FR-070     | CRUD + bulk creation + auto-tagging + context injection                 |
 | Knowledge (RAG + Graph)  | P1       | FR-071 to FR-090     | Hybrid search, semantic embeddings, 2-hop graph traversal               |
 | Skills                   | P1       | FR-091 to FR-105     | Framework patterns, lazy loading, 92% token reduction                   |
@@ -394,7 +394,7 @@ Project
 
 ---
 
-#### 4.2.2 Workflow Orchestration (P0 - FR-026 to FR-050)
+#### 4.2.2 Workflow Orchestration (P0 - FR-032 to FR-056)
 
 **Purpose:** Track and enforce 12+ workflows from CLAUDE.md
 
