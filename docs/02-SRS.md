@@ -913,7 +913,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-026: Define Workflow
+#### FR-032: Define Workflow
 
 **Description:** Create workflow definition with steps, validation rules, and state machine logic.
 
@@ -944,11 +944,11 @@ Progress: [progress]%
 - PRD: Section 4.2.2 (Workflow Orchestration feature)
 - Architecture: ADR-004 (Workflow state machine design)
 - Tests: TEST-033, TEST-034
-- Backlog: US-030, US-031
+- Backlog: US-033
 
 ---
 
-#### FR-027: Start Workflow
+#### FR-033: Start Workflow
 
 **Description:** Initialize workflow state machine, setting status to IN_PROGRESS and currentStepId to first step.
 
@@ -978,11 +978,11 @@ Progress: [progress]%
 - PRD: Section 3.1 (5-step protocol)
 - Architecture: Section 4.8 (Workflow execution engine)
 - Tests: TEST-035
-- Backlog: US-032
+- Backlog: US-033
 
 ---
 
-#### FR-028: Get Current Workflow Step
+#### FR-034: Get Current Workflow Step
 
 **Description:** Retrieve current step in active workflow with full context and completion status.
 
@@ -1015,7 +1015,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-029: Complete Workflow Step
+#### FR-035: Complete Workflow Step
 
 **Description:** Mark workflow step as complete, advance to next step, validate required steps not skipped.
 
@@ -1053,7 +1053,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-030: Validate Workflow Compliance
+#### FR-036: Validate Workflow Compliance
 
 **Description:** Check if all required steps completed before marking workflow COMPLETED. Prevent completion if required steps skipped.
 
@@ -1089,7 +1089,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-031: Pause Workflow
+#### FR-037: Pause Workflow
 
 **Description:** Pause active workflow, save current state, allow resumption later.
 
@@ -1120,7 +1120,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-032: Resume Workflow from Checkpoint
+#### FR-038: Resume Workflow from Checkpoint
 
 **Description:** Resume paused workflow from last completed step.
 
@@ -1151,7 +1151,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-033: Retry Failed Workflow Steps
+#### FR-039: Retry Failed Workflow Steps
 
 **Description:** Retry a failed step (e.g., if API call failed, database connection lost).
 
@@ -1183,7 +1183,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-034: Workflow Recovery Suggestions
+#### FR-040: Workflow Recovery Suggestions
 
 **Description:** When workflow fails or agent gets stuck, provide recovery suggestions based on workflow state.
 
@@ -1208,7 +1208,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-035: Workflow Templates
+#### FR-041: Workflow Templates
 
 **Description:** Define custom workflow templates (post-MVP feature for workflow customization).
 
@@ -1233,7 +1233,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-036: Workflow Step Dependencies
+#### FR-042: Workflow Step Dependencies
 
 **Description:** Define dependencies between workflow steps (Step 3 requires Step 1 and Step 2 complete).
 
@@ -1261,7 +1261,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-037: Workflow Branching
+#### FR-043: Workflow Branching
 
 **Description:** Conditional workflow steps based on context (e.g., if testsFailed, go to step 5, else skip to step 7).
 
@@ -1284,7 +1284,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-038: Workflow History
+#### FR-044: Workflow History
 
 **Description:** Track all workflow executions with timestamps, steps completed, and outcomes.
 
@@ -1309,7 +1309,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-039: Workflow Success Rate Analytics
+#### FR-045: Workflow Success Rate Analytics
 
 **Description:** Calculate success rate for each workflow (% of executions that completed successfully).
 
@@ -1336,7 +1336,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-040: Workflow Failure Logs
+#### FR-046: Workflow Failure Logs
 
 **Description:** Log detailed failure information when workflow step fails.
 
@@ -1361,7 +1361,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-041: Workflow Step Time Tracking
+#### FR-047: Workflow Step Time Tracking
 
 **Description:** Track how long each step takes to complete for velocity estimation.
 
@@ -1382,7 +1382,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-042: Workflow Duplication
+#### FR-048: Workflow Duplication
 
 **Description:** Duplicate existing workflow as new workflow with modified steps.
 
@@ -1406,7 +1406,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-043: Workflow Enable/Disable
+#### FR-049: Workflow Enable/Disable
 
 **Description:** Temporarily disable workflow without deleting (e.g., disable "Git Workflow" if not using git).
 
@@ -1430,7 +1430,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-044: Workflow Alerts
+#### FR-050: Workflow Alerts
 
 **Description:** Send alerts to agent and human when workflow issues occur (missing steps, failures, stuck).
 
@@ -1456,7 +1456,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-045: Workflow Auto-Recovery
+#### FR-051: Workflow Auto-Recovery
 
 **Description:** Agent receives automatic suggestions when workflow gets stuck or fails.
 
@@ -1478,7 +1478,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-046: Multiple Concurrent Workflows
+#### FR-052: Multiple Concurrent Workflows
 
 **Description:** Track multiple workflows simultaneously (e.g., "5-step-protocol" + "Git Workflow" both active).
 
@@ -1498,7 +1498,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-047: Workflow Priority
+#### FR-053: Workflow Priority
 
 **Description:** Assign priority to workflows to determine which workflow agent should focus on.
 
@@ -1522,7 +1522,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-048: Workflow Context Injection
+#### FR-054: Workflow Context Injection
 
 **Description:** Pass data between workflow steps (e.g., Step 1 creates plan file, Step 2 reads plan file path).
 
@@ -1546,7 +1546,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-049: Workflow Undo
+#### FR-055: Workflow Undo
 
 **Description:** Rollback to previous workflow step (undo last step completion).
 
@@ -1575,7 +1575,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-050: Workflow Export/Import
+#### FR-056: Workflow Export/Import
 
 **Description:** Export workflow definition to JSON, import to create new workflow.
 
@@ -1603,13 +1603,13 @@ Progress: [progress]%
 
 ---
 
-### 1.3 Issues (FR-051 to FR-070)
+### 1.5 Issues (FR-057 to FR-076)
 
 **Purpose:** Bug and task tracking for agent-created and human-created work items
 
 ---
 
-#### FR-051: Create Single Issue
+#### FR-057: Create Single Issue
 
 **Description:** Create single issue with title, description, status, priority, and createdBy attribution.
 
@@ -1645,7 +1645,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-052: Create Bulk Issues
+#### FR-058: Create Bulk Issues
 
 **Description:** Create 10-50 issues at once in atomic transaction (e.g., from audit results).
 
@@ -1676,7 +1676,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-053: Update Issue
+#### FR-059: Update Issue
 
 **Description:** Update any issue field except id, createdAt (status, priority, description, etc.).
 
@@ -1708,7 +1708,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-054: Query Issues
+#### FR-060: Query Issues
 
 **Description:** Search issues with filters, full-text search, pagination, and sorting.
 
@@ -1741,7 +1741,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-055: Link Related Issues
+#### FR-067: Link Related Issues
 
 **Description:** Create relationships between issues (blocks, related, duplicate).
 
@@ -1772,7 +1772,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-056: Delete Issue (Soft Delete)
+#### FR-062: Delete Issue (Soft Delete)
 
 **Description:** Soft delete issue (preserve audit trail, don't actually delete from database).
 
@@ -1803,7 +1803,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-057: Add Issue Comment
+#### FR-063: Add Issue Comment
 
 **Description:** Add comment to issue with markdown support and createdBy attribution.
 
@@ -1828,7 +1828,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-058: Attach File to Issue
+#### FR-064: Attach File to Issue
 
 **Description:** Link issue to code file with line number (context injection).
 
@@ -1856,7 +1856,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-059: Link Issue to Git Commit
+#### FR-065: Link Issue to Git Commit
 
 **Description:** Associate issue with git commit SHA (track which commit fixed the issue).
 
@@ -1881,7 +1881,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-060: Auto-Tag Based on File Path
+#### FR-066: Auto-Tag Based on File Path
 
 **Description:** Automatically assign labels to issues based on file path (e.g., "src/api" → "backend" label).
 
@@ -1903,7 +1903,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-061: Context Injection (Stack Traces)
+#### FR-067: Context Injection (Stack Traces)
 
 **Description:** Attach stack trace or error log to issue for debugging context.
 
@@ -1930,7 +1930,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-062: Issue Templates
+#### FR-068: Issue Templates
 
 **Description:** Predefined issue templates (bug report, feature request) for consistency.
 
@@ -1950,7 +1950,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-063: Issue Priority Auto-Assignment
+#### FR-069: Issue Priority Auto-Assignment
 
 **Description:** Auto-assign priority based on keywords (e.g., "critical", "urgent" → HIGH).
 
@@ -1972,7 +1972,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-064: Issue Assignment
+#### FR-070: Issue Assignment
 
 **Description:** Assign issue to agent persona or human for responsibility tracking.
 
@@ -1996,7 +1996,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-065: Issue Labels Management
+#### FR-071: Issue Labels Management
 
 **Description:** Create, assign, and remove labels (tags) from issues.
 
@@ -2017,7 +2017,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-066: Issue Status Workflow Customization
+#### FR-072: Issue Status Workflow Customization
 
 **Description:** Define custom status workflow (beyond OPEN → IN_PROGRESS → REVIEW → CLOSED).
 
@@ -2033,7 +2033,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-067: Issue Search by Code Snippet
+#### FR-073: Issue Search by Code Snippet
 
 **Description:** Search for issues related to specific code snippet (semantic search).
 
@@ -2057,7 +2057,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-068: Issue Export
+#### FR-074: Issue Export
 
 **Description:** Export issues to CSV or JSON for external analysis.
 
@@ -2081,7 +2081,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-069: Issue Import
+#### FR-075: Issue Import
 
 **Description:** Import issues from external systems (GitHub, Jira, Linear).
 
@@ -2106,7 +2106,7 @@ Progress: [progress]%
 
 ---
 
-#### FR-070: Duplicate Issue Detection
+#### FR-076: Duplicate Issue Detection
 
 **Description:** Detect duplicate issues using semantic similarity before creation.
 
