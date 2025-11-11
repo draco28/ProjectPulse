@@ -25,3 +25,25 @@ jest.mock('react-syntax-highlighter/dist/esm/languages/hljs/python', () => ({ de
 
 // Global fetch polyfill for Node environment
 global.fetch = jest.fn();
+
+// Mock Clipboard API for component tests
+Object.defineProperty(navigator, 'clipboard', {
+  value: {
+    writeText: jest.fn(() => Promise.resolve()),
+  },
+  writable: true,
+  configurable: true,
+});
+
+// Mock localStorage for component tests
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: jest.fn((key) => store[key] || null),
+    setItem: jest.fn((key, value) => { store[key] = value; }),
+    removeItem: jest.fn((key) => { delete store[key]; }),
+    clear: jest.fn(() => { store = {}; }),
+  };
+})();
+
+global.localStorage = localStorageMock;
