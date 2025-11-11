@@ -1,47 +1,52 @@
-# TODO: Sprint 2 Week 3 Day 4 - Wiki Detail Page Enhancement
+# TODO: Sprint 2 Week 3 Days 6-7 – Wiki Advanced Features
 
-**Session**: 2025-11-10 14:30
-**User Story**: US-019 (5 points)
-**Progress**: 3/16 tasks complete (19%)
+**Session**: 2025-11-11 14:59 PST  
+**Stories**: US-023 (Versioning), US-024 (Search), US-025 (Analytics)  
+**Progress**: 0/21 tasks complete (0%)
 
 ## Session Protocol Tasks
-- [x] Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps
-- [x] Initialize session and create current-session file
-- [x] Create implementation plan and save to current-plan.md
-- [ ] Consult react-expert for component architecture
+- [x] Read .agent/MANDATORY_SESSION_PROTOCOL.md and initialize session
+- [ ] Save plan + todos via protocol-updater confirmation
+- [x] Consult prisma-expert (tsvector + versioning schema)
+- [x] Consult react-expert (analytics + revision UI)
+- [x] Schedule 15K-token checkpoints + verification gate evidence
 
-## Phase 1: Database Schema (1 point)
-- [ ] Update Prisma schema with views, revisions, contributors fields
-- [ ] Generate and run database migration
+## Day 6 – Versioning & Data Capture (US-023)
+1. [x] Update Prisma schema with `WikiRevision`, `lastEditedBy`, `lastEditedAt`, `isLocked`
+2. [x] Generate + apply migration locally, then on Mac mini (192.168.1.15)
+3. [x] Seed existing wiki pages with initial revisions + actor metadata
+4. [x] Enhance PATCH `/api/wiki/[slug]` to wrap updates + write revision entries
+5. [x] Add `GET /api/wiki/[slug]/history` + `POST /api/wiki/[slug]/revert`
+6. [x] Update MCP `wiki.update` to pass changelog + optional revert flag
+7. [x] Build `WikiRevisionTimeline` + `RevisionDiffViewer` components
+8. [x] Integrate revision UI into `/wiki/[slug]` with revert CTA + confirmation dialog
 
-## Phase 2: Enhanced Components (2 points)
-- [ ] Create WikiHeader component with metadata display
-- [ ] Create WikiContributors component for right sidebar
-- [ ] Enhance CodeBlock component with copy button
+## Day 7 – Search + Analytics (US-024, US-025)
+9. [ ] Add `content_tsv` generated column + GIN index via SQL migration
+10. [ ] Backfill search vectors + add script for future updates
+11. [ ] Upgrade `/api/wiki` + `/api/search` to support `query`, `ts_rank`, category boosts
+12. [ ] Update MCP `wiki.search` + client search UI to show ranked results + highlights
+13. [ ] Create `WikiPageEvent` + `WikiPageAnalytics` models + aggregation job
+14. [ ] Instrument view + feedback events (server action + API endpoint)
+15. [ ] Build `/wiki/analytics` page + shared components (TopPages, TrendingTags, FeedbackFunnel)
+16. [ ] Surface analytics snippets on list/detail (views, helpful %, popularity sort)
+17. [ ] (Stretch) Add MCP tool `wiki.analytics.topPages` if time remains
 
-## Phase 3: Quick Navigation (1 point)
-- [ ] Update WikiSidebar with category-based quick navigation
+## Verification & Documentation
+18. [ ] Run `pnpm lint`, `pnpm type-check`, `pnpm test`, targeted Playwright flows
+19. [ ] Capture evidence for Step 4.5 gate (screens + API logs)
+20. [ ] Update `.agent/progress.md`, `.agent/active-context.md`, docs/13-Project-Plan.md
+21. [ ] Prepare Mac mini deployment/test notes + git commits referencing US-023/024/025
 
-## Phase 4: Footer Navigation (0.5 points)
-- [ ] Create WikiFooterNav component for prev/next navigation
-- [ ] Update wiki detail page to use new components
-
-## Phase 5: Testing & Documentation (0.5 points)
-- [ ] Test all features on Mac mini
-- [ ] Run TypeScript checks (pnpm type-check)
-- [ ] Update documentation (.agent/progress.md, docs/13-Project-Plan.md)
-- [ ] Commit and push all changes
-
-## Checkpoints (Step 4 - Every 15K tokens)
-- [ ] 15K tokens: Phase 1 progress update
-- [ ] 30K tokens: Phase 1 complete, Phase 2 started
-- [ ] 45K tokens: Phase 2 progress update
-- [ ] 60K tokens: Phase 2 complete, Phase 3 started
-- [ ] 75K tokens: Phase 3/4 complete
-- [ ] 90K tokens: Testing started
+## Checkpoints (Step 4 – Every 15K tokens)
+- [ ] 15K: Schema + migration status
+- [ ] 30K: API + MCP updates
+- [ ] 45K: Revision UI wired up
+- [ ] 60K: Search upgrade validated
+- [ ] 75K: Analytics dashboard functional
+- [ ] 90K: Testing + documentation complete
 
 ## Notes
-- Follow mockup at `mockups/Default theme/04-wiki-dark-neumorphic-coral.html`
-- Maintain ISR configuration (revalidate: 3600s)
-- Use existing neumorphic design patterns
-- Contributors data seeded manually for now
+- Services hosted on Mac mini `192.168.1.15`; verify API + Next.js after migrations.
+- Ensure localStorage fallbacks remain defensive in FeedbackButtons per Day 5 fixes.
+- Keep TypeScript strict (no `any`); extend shared types in `apps/web/types/wiki.ts`.

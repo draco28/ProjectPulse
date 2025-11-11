@@ -16,6 +16,9 @@ jest.mock('@/lib/prisma', () => ({
       groupBy: jest.fn(),
       findMany: jest.fn(),
     },
+    wikiRevision: {
+      findMany: jest.fn(),
+    },
   },
 }));
 
@@ -171,6 +174,9 @@ const config = {
       { category: 'Guides', _count: { id: 12 } },
       { category: 'API Documentation', _count: { id: 8 } },
     ]);
+
+    // Mock WikiRevision findMany (revision history)
+    (prisma.wikiRevision.findMany as jest.Mock).mockResolvedValue([]);
   });
 
   describe('Full page rendering', () => {
