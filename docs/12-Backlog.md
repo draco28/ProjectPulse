@@ -178,16 +178,41 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 - Current workflow step tracked in database
 - Missing step alerts trigger before workflow can proceed
 
-**Story Range:** US-026 to US-050 (25 stories)
-**FR Range:** FR-026 to FR-050
-**Total Points:** ~95 points
+**Story Range:** US-032 to US-050 (19 stories)
+**FR Range:** FR-032 to FR-056
+**Total Points:** ~71 points
 **MoSCoW:** Must Have
 **Dependencies:** EPIC-001 (uses sprint tracking for checkpoints)
 **Sprint Allocation:** Phase A Week 3-4, Phase B Week 5-6 (5-6 sprints)
 
 ---
 
-### EPIC-003: Issues
+### EPIC-003: Onboarding System
+
+**Description:** 3-session guided project initialization flow that creates executive summary, generates industry-grade documentation, and establishes AI workflow artifacts.
+
+**Business Value:**
+
+- End users get a ready-to-develop project in under 60 minutes
+- Industry-standard docs (PRD, SRS, Architecture) created automatically
+- Memory banks and SOPs established for efficient agent development
+
+**Success Criteria:**
+
+- 3-session flow operational (Session 1→3)
+- Prompts configurable via admin UI
+- Wiki pages created for PRD/SRS/Architecture
+
+**Story Range:** US-026 to US-031 (6 stories)
+**FR Range:** FR-026 to FR-031
+**Total Points:** 24 points
+**MoSCoW:** Must Have
+**Dependencies:** EPIC-002 (Wiki pages used to store generated docs)
+**Sprint Allocation:** Sprint 2 Week 4
+
+---
+
+### EPIC-004: Issues
 
 **Description:** Bug and task tracking for agent-created and human-created work items. Agents can bulk-create issues (10-50 at once), auto-tag based on file paths, and inject context (code links, stack traces).
 
@@ -505,41 +530,48 @@ When EPIC-012 is implemented:
 
 ---
 
-### 3.2 EPIC-002: Workflow Orchestration (US-026 to US-050)
+### 3.2 EPIC-002: Workflow Orchestration (US-032 to US-050)
 
 | ID     | User Story                                                                                                                      | FR     | Points | Priority | Deps                   |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | -------- | ---------------------- |
-| US-026 | As an agent, I want to start a predefined workflow (e.g., "5-Step Protocol") so that I follow consistent patterns               | FR-026 | 5      | Must     | -                      |
-| US-027 | As an agent, I want to track current workflow step so that I know what to do next                                               | FR-027 | 2      | Must     | US-026                 |
-| US-028 | As an agent, I want to mark a workflow step complete so that I can progress to the next step                                    | FR-028 | 2      | Must     | US-027                 |
-| US-029 | As an agent, I want to be alerted if I skip a required workflow step so that I maintain consistency                             | FR-029 | 3      | Must     | US-027, US-028         |
-| US-030 | As an agent, I want to view all available workflows so that I can select the appropriate pattern for my task                    | FR-030 | 2      | Must     | US-026                 |
-| US-031 | As an agent, I want to resume a workflow after interruption so that I don't lose progress across sessions                       | FR-031 | 5      | Must     | US-027                 |
-| US-032 | As an agent, I want to rollback to a previous workflow step if I made an error so that I can correct mistakes                   | FR-032 | 3      | Should   | US-028                 |
-| US-033 | As an agent, I want to define custom workflows with steps and validation rules so that I can adapt to project-specific patterns | FR-033 | 8      | Won't    | US-026                 |
-| US-034 | As a developer, I want to visualize workflow progress so that I can see which steps are complete                                | FR-034 | 3      | Should   | US-027                 |
-| US-035 | As an agent, I want to checkpoint workflow state every 15K tokens so that I can recover from context compaction                 | FR-035 | 5      | Must     | US-027, US-009         |
-| US-036 | As an agent, I want to validate workflow prerequisites (e.g., git branch exists) before starting so that I catch blockers early | FR-036 | 3      | Must     | US-026                 |
-| US-037 | As an agent, I want to log workflow failures with error messages so that I can debug issues                                     | FR-037 | 3      | Should   | US-028                 |
-| US-038 | As an agent, I want to get recovery suggestions when a workflow fails so that I know how to proceed                             | FR-038 | 5      | Should   | US-037                 |
-| US-039 | As an agent, I want to track workflow execution time so that I can optimize slow patterns                                       | FR-039 | 2      | Could    | US-027, US-028         |
-| US-040 | As an agent, I want to link workflow steps to tasks so that I can track workflow-driven work items                              | FR-040 | 3      | Should   | US-027, US-017         |
-| US-041 | As an agent, I want to enforce step order (Step 2 requires Step 1 complete) so that workflows execute correctly                 | FR-041 | 3      | Must     | US-028                 |
-| US-042 | As an agent, I want to mark workflows as complete so that they are archived and don't clutter active list                       | FR-042 | 2      | Should   | US-028                 |
-| US-043 | As a developer, I want to export workflow history to JSON so that I can analyze patterns over time                              | FR-043 | 3      | Could    | US-027, US-028         |
-| US-044 | As an agent, I want to retry a failed workflow step automatically (max 3 retries) so that transient errors don't block progress | FR-044 | 5      | Should   | US-037                 |
-| US-045 | As an agent, I want to validate workflow completion criteria so that I don't prematurely mark workflows done                    | FR-045 | 3      | Must     | US-042                 |
-| US-046 | As an agent, I want to branch workflows (if-then-else logic) so that I can handle conditional paths                             | FR-046 | 8      | Won't    | US-026                 |
-| US-047 | As an agent, I want to receive notifications when workflow steps require human approval so that I don't proceed automatically   | FR-047 | 5      | Could    | US-028                 |
-| US-048 | As an agent, I want to track workflow dependencies (Workflow B requires Workflow A) so that I execute in correct order          | FR-048 | 3      | Should   | US-026                 |
-| US-049 | As a developer, I want to audit workflow execution history so that I can verify agent followed all steps correctly              | FR-049 | 3      | Should   | US-027, US-028, US-037 |
-| US-050 | As an agent, I want to detect duplicate workflow executions so that I don't repeat completed work                               | FR-050 | 3      | Could    | US-026, US-042         |
+| US-032 | As an agent, I want to start a predefined workflow (e.g., "5-Step Protocol") so that I follow consistent patterns               | FR-032 | 5      | Must     | -                      |
+| US-033 | As an agent, I want to track current workflow step so that I know what to do next                                               | FR-033 | 2      | Must     | US-032                 |
+| US-034 | As an agent, I want to mark a workflow step complete so that I can progress to the next step                                    | FR-034 | 2      | Must     | US-033                 |
+| US-035 | As an agent, I want to be alerted if I skip a required workflow step so that I maintain consistency                             | FR-035 | 3      | Must     | US-033, US-034         |
+| US-036 | As an agent, I want to view all available workflows so that I can select the appropriate pattern                                | FR-036 | 2      | Must     | US-032                 |
+| US-037 | As an agent, I want to resume a workflow after interruption so that I don't lose progress                                       | FR-037 | 5      | Must     | US-033                 |
+| US-038 | As an agent, I want to rollback to a previous workflow step if I made an error so that I can correct mistakes                   | FR-038 | 3      | Should   | US-034                 |
+| US-039 | As an agent, I want to define custom workflows with steps and validation rules so that I can adapt to project-specific patterns | FR-039 | 8      | Won't    | US-032                 |
+| US-040 | As a developer, I want to visualize workflow progress so that I can see which steps are complete                                | FR-040 | 3      | Should   | US-033                 |
+| US-041 | As an agent, I want to checkpoint workflow state every 15K tokens so that I can recover from context compaction                 | FR-041 | 5      | Must     | US-033, US-009         |
+| US-042 | As an agent, I want to validate workflow prerequisites (e.g., git branch exists) before starting so that I catch blockers early | FR-042 | 3      | Must     | US-032                 |
+| US-043 | As an agent, I want to log workflow failures with error messages so that I can debug issues                                     | FR-043 | 3      | Should   | US-034                 |
+| US-044 | As an agent, I want to get recovery suggestions when a workflow fails so that I know how to proceed                             | FR-044 | 5      | Should   | US-043                 |
+| US-045 | As an agent, I want to track workflow execution time so that I can optimize slow patterns                                       | FR-045 | 2      | Could    | US-033, US-034         |
+| US-046 | As an agent, I want to link workflow steps to tasks so that I can track workflow-driven work items                              | FR-046 | 3      | Should   | US-033, US-017         |
+| US-047 | As an agent, I want to enforce step order (Step 2 requires Step 1 complete) so that workflows execute correctly                 | FR-047 | 3      | Must     | US-034                 |
+| US-048 | As an agent, I want to mark workflows as complete so that they are archived and don't clutter active list                       | FR-048 | 2      | Should   | US-034                 |
+| US-049 | As a developer, I want to export workflow history to JSON so that I can analyze patterns over time                              | FR-049 | 3      | Could    | US-033, US-034, US-043 |
+| US-050 | As an agent, I want to retry a failed workflow step automatically (max 3 retries) so that transient errors don't block progress | FR-050 | 5      | Should   | US-043                 |
 
-**EPIC-002 Total:** 25 stories, ~95 story points
+**EPIC-002 Total:** 19 stories, ~71 story points
 
 ---
 
-### 3.3 EPIC-003: Issues (US-051 to US-070)
+<!-- Removed duplicate Issues header due to Option C; Onboarding is 3.3, Issues moved to 3.4 below. -->
+
+### 3.3 EPIC-003: Onboarding System (US-026 to US-031)
+
+| ID     | User Story                                                                                                   | FR     | Points | Priority | Deps   |
+| ------ | ------------------------------------------------------------------------------------------------------------ | ------ | ------ | -------- | ------ |
+| US-026 | As a project owner, I want to create onboarding session records so that agent can track progress             | FR-026 | 3      | Must     | -      |
+| US-027 | As an agent, I want to get Session 1 prompt (Executive Summary) so that I can guide user through Q&A        | FR-027 | 3      | Must     | US-026 |
+| US-028 | As an agent, I want to get Session 2 prompt (Industry Docs) so that I can generate PRD/SRS/Architecture     | FR-028 | 5      | Must     | US-027 |
+| US-029 | As an agent, I want to get Session 3 prompt (AI Workflow) so that I can create Memory Banks/SOPs/Skills     | FR-029 | 5      | Must     | US-028 |
+| US-030 | As an agent, I want the onboarding.getPrompt MCP tool to retrieve templates with variables pre-filled        | FR-030 | 5      | Must     | US-026 |
+| US-031 | As an agent, I want the onboarding.submitResponse MCP tool to store user responses and advance the session   | FR-031 | 3      | Must     | US-030 |
+
+### 3.4 EPIC-004: Issues (US-051 to US-070)
 
 | ID     | User Story                                                                                                                          | FR     | Points | Priority | Deps           |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | -------- | -------------- |

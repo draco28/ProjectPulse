@@ -123,7 +123,7 @@
 **Goal:** Establish 5-level hierarchy with auto-markdown sync and workflow orchestration
 
 **Duration:** 6 weeks (3 two-week sprints)
-**Story Points:** 182 points (87 Sprint Tracking + 95 Workflow complete)
+**Story Points:** 206 points (87 Sprint Tracking + 24 Onboarding + 95 Workflow complete)
 **Epics:** EPIC-001 (100%), EPIC-002 (100%)
 
 **Key Deliverables:**
@@ -1083,7 +1083,7 @@ onboarding.submitResponse({
 
 ---
 
-### Sprint 3 (Weeks 5-6): Workflow Orchestration - 56 points
+### Sprint 3 (Weeks 5-6): Workflow Orchestration - 71 points
 
 **User Stories:** US-032 to US-050 (EPIC-002 completion)
 
