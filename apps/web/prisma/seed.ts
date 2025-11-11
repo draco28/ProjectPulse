@@ -353,6 +353,79 @@ async function main() {
     },
   });
   console.log(`✓ Created project: ${project.name}\n`);
+  await prisma.onboardingSession.deleteMany();
+  await prisma.onboardingTemplate.deleteMany();
+  const onboardingTemplates = [
+    {
+      sessionNumber: 1,
+      name: 'Executive Summary',
+      promptTemplate: `# ProjectPulse - New Project Onboarding (Session 1/3)
+
+Welcome! Let's initialize your project with a quick onboarding session.
+
+## Executive Summary Collection
+
+Please answer these 10 questions to help me understand your project:
+
+1. Project Name: What are you building?
+2. Target Users: Who will use this product?
+3. Problem Statement: What problem does it solve?
+4. Tech Stack: What technologies are you using? (languages, frameworks, databases)
+5. Project Phase: Where are you in development? (planning, active development, maintenance, refactoring)
+6. Team Size: How many developers?
+7. Timeline: Development timeline or deadline?
+8. Key Features: Top 3 most important features?
+9. Technical Constraints: Any limitations? (budget, hosting, compliance requirements)
+10. Success Criteria: How will you measure success?`,
+      variables: { expectedVariables: ['project_name', 'target_users', 'problem_statement', 'tech_stack', 'project_phase', 'team_size', 'timeline', 'key_features', 'technical_constraints', 'success_criteria'] },
+      isActive: true,
+    },
+    {
+      sessionNumber: 2,
+      name: 'Industry Documentation',
+      promptTemplate: `# ProjectPulse - New Project Onboarding (Session 2/3)
+
+Based on your executive summary:
+
+Project: {project_name}
+Problem: {problem_statement}
+Users: {target_users}
+Tech Stack: {tech_stack}
+
+## Documentation Generation Task
+
+Please generate the following industry-standard documents:
+
+1) Product Requirements Document (PRD)
+2) System Requirements Specification (SRS)
+3) Architecture Overview`,
+      variables: { expectedVariables: ['project_name', 'problem_statement', 'target_users', 'tech_stack', 'key_features', 'success_criteria', 'technical_constraints'] },
+      isActive: true,
+    },
+    {
+      sessionNumber: 3,
+      name: 'AI Workflow Blueprint',
+      promptTemplate: `# ProjectPulse - New Project Onboarding (Session 3/3)
+
+Based on your project documentation (PRD, SRS, Architecture), create your AI workflow blueprint with Memory Bank files, SOPs, and Agent Skills.`,
+      variables: { expectedVariables: ['tech_stack', 'project_name', 'target_users', 'key_features', 'project_phase'] },
+      isActive: true,
+    },
+  ];
+  for (const t of onboardingTemplates) {
+    await prisma.onboardingTemplate.upsert({
+      where: { sessionNumber_isActive: { sessionNumber: t.sessionNumber, isActive: true } },
+      update: {
+        name: t.name,
+        promptTemplate: t.promptTemplate,
+        variables: t.variables,
+        isActive: true,
+        updatedAt: new Date(),
+      },
+      create: t,
+    });
+  }
+  console.log(`✓ Seeded ${onboardingTemplates.length} onboarding templates\n`);
 
   // ========================================================================
   // LABELS

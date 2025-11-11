@@ -1,9 +1,9 @@
 # Active Context
 
-**Last Updated**: 2025-11-11 (Sprint 2 Week 3 COMPLETE 🚀)
-**Current Phase**: Sprint 2 - Wiki Page + Onboarding System ✅ Week 3 Complete
-**Sprint 2 Progress**: 58/58 points Week 3 (100%) | Week 4 Not Started (0/24 points)
-**Branch**: `feature/sprint-2-wiki-detail-enhancement`
+**Last Updated**: 2025-11-12 (Sprint 2 COMPLETE 🚀)
+**Current Phase**: Sprint 2 - Wiki Page + Onboarding System ✅ COMPLETE
+**Sprint 2 Progress**: 82/82 points (100%) - Week 3: 58 points, Week 4: 24 points
+**Branch**: `feature/sprint-2-week-4`
 **Previous Sprint**: Sprint 1 CLOSED at 96% (50/52 points) ✅
 
 ---
@@ -53,24 +53,33 @@ ProjectPulse uses a distributed architecture for clean separation of concerns:
 
 ## Current Focus
 
-### What We're Working On
+### Sprint 2 COMPLETE ✅ (2025-11-12)
 
-**Phase**: Sprint 2 - Week 3-4 (Wiki Page + Onboarding System) ✅ Week 3 COMPLETE
-**Status**: Week 3 COMPLETE (7/7 days) | Week 4 NOT STARTED (0/7 days)
-**Current Achievement**: Advanced wiki features delivered (versioning, search, analytics)
-**Sprint 2 Progress**: 100% Week 3 (58/58 points) | 0% Week 4 (0/24 points)
-**Sprint 2 Week 3 Achievements**:
-1. ✅ Wiki Page system (US-015 to US-025 - 58 points) - Database + Web UI + MCP tools + Advanced features
-2. ⏳ Onboarding system (US-026 to US-031 - 24 points) - Planned for Week 4
-3. ✅ Complete EPIC-002 (Wiki & Knowledge) - 58 points delivered
-4. ⏳ EPIC-003 (Onboarding System) - 24 points (Week 4)
+**Phase**: Sprint 2 - Weeks 3-4 (Wiki Page + Onboarding System) ✅ 100% COMPLETE
+**Status**: Week 3 COMPLETE (58/58 points) | Week 4 COMPLETE (24/24 points)
+**Total**: 82/82 story points (100%)
+**Branch**: `feature/sprint-2-week-4`
+
+**Sprint 2 Week 3 Achievements** (58 points):
+1. ✅ Wiki Page system (US-015 to US-025) - Database + Web UI + MCP tools + Advanced features
+2. ✅ Complete EPIC-002 (Wiki & Knowledge) - 58 points delivered
+3. ✅ 3 wiki MCP tools (create, search, update)
+4. ✅ Wiki versioning, full-text search, analytics dashboard
 5. ✅ Agents can create/edit/search/analyze wiki pages via MCP tools
+
+**Sprint 2 Week 4 Achievements** (24 points):
+1. ✅ Onboarding system (US-026 to US-031) - Database + API + MCP tools
+2. ✅ Complete EPIC-003 (Onboarding System) - 24 points delivered
+3. ✅ 3 onboarding templates (Executive Summary, Industry Docs, AI Workflow)
+4. ✅ 2 onboarding MCP tools (getPrompt, submitResponse)
+5. ✅ Variable resolution system (Session 2-3 prefill from Session 1)
+6. ✅ All endpoints verified on Mac mini (health check, GET/POST onboarding API)
 
 ### Reconciliation Notes (Option C) — 2025-11-11
 
-- US-026..US-031 reserved for Onboarding System (Sprint 2 Week 4)
-- Workflow Orchestration renumbered to US-032..US-050 (Sprint 3)
-- SRS updated: FR-026..FR-031 = Onboarding; FR-032..FR-056 = Workflow Orchestration
+- US-026..US-031 = Onboarding System (Sprint 2 Week 4) ✅ COMPLETE
+- Workflow Orchestration = US-032..US-050 (Sprint 3) ⏳ NEXT
+- SRS ranges: FR-026..FR-031 (Onboarding), FR-032..FR-056 (Workflow)
 
 **Sprint 1 Achievements** (Completed 2025-11-09):
 - ✅ 96% completion (50/52 points)
@@ -289,33 +298,31 @@ ProjectPulse uses a distributed architecture for clean separation of concerns:
 5. ✅ Fix incremental transaction pattern (recursive propagation AFTER commit)
 6. ✅ Complete US-014 (hierarchy integrity validation)
 
-**Immediate Next Tasks** (Sprint 2 Week 3 Days 3-7):
+**Immediate Next Tasks** (Sprint 3 - Workflow Orchestration):
 
-1. ✅ **Day 1-2 COMPLETE**: Wiki database model + UI implementation (13 points)
-   - ✅ WikiPage seed data (7 pages with hierarchy)
-   - ✅ Wiki list page with ISR (category filter, search, sort, pagination)
-   - ✅ Wiki detail page enhanced (breadcrumb, edit button)
-   - ✅ 4 new components (WikiCard, WikiSearchBar, WikiListClient)
-   - ✅ Expert consultations (next-js-expert, react-expert)
-   - ✅ Testing complete on Mac mini
-2. ✅ **Day 3 COMPLETE**: Wiki editor UI + MCP tools (16 points)
-   - ✅ WikiEditor component (9733 bytes) with TipTap split view
-   - ✅ `/wiki/new` and `/wiki/[slug]/edit` routes
-   - ✅ MCP tools: projectpulse.wiki.create, projectpulse.wiki.search, projectpulse.wiki.update
-   - ✅ Zod validation schemas for wiki CRUD operations
-   - ✅ API endpoints: POST /api/wiki, PATCH /api/wiki/[slug], GET /api/wiki
-   - ✅ Expert consultations (react-expert for TipTap, next-js-expert for routes)
-   - ✅ Path normalization workaround (TD-001 technical debt documented)
-   - ✅ 13 TypeScript warnings documented as non-blocking
-3. **Day 5-6**: Additional wiki features
-   - Wiki page versioning (optional)
-   - Wiki search enhancement (full-text search)
-   - Wiki analytics (page views)
-4. **Day 7**: Week 3 buffer & integration tests
-   - E2E tests for wiki CRUD
-   - Integration test (agent creates wiki → user sees in UI)
+**Sprint 3 Goal**: Build 12 predefined workflow templates + orchestration system (US-032 to US-050, 48 points)
 
-**Sprint 2 Goal**: Build Wiki Page system + Onboarding system for end users (58 points, 17 user stories)
+1. ⏳ **Week 5-6**: Workflow Orchestration System
+   - Database models: WorkflowTemplate, WorkflowRun, WorkflowStep
+   - 12 workflow templates (Feature Implementation, Bug Fix, Refactoring, etc.)
+   - MCP tools: workflow.start, workflow.executeStep, workflow.complete
+   - API endpoints: GET /api/workflows, POST /api/workflows/run
+   - Workflow state machine (pending → running → completed/failed)
+   - Step validation and dependency tracking
+
+2. ⏳ **Integration Requirements**:
+   - Workflow templates use existing MCP tools (sprint.*, wiki.*, onboarding.*)
+   - Each workflow has 5-10 steps with validation rules
+   - Token-efficient context injection (workflow state in JSONB)
+   - Checkpoint creation at each workflow step
+
+3. ⏳ **Exit Criteria**:
+   - 12 workflow templates seeded in database
+   - Agent can start/execute/complete workflows via MCP
+   - All workflow states tracked in database
+   - Zero TypeScript errors
+
+**Next Branch**: `feature/sprint-3-workflow-orchestration`
 
 **Key Deliverables:**
 

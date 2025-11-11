@@ -13,6 +13,8 @@ import { wikiCreateTool } from './wikiCreate.js';
 import { wikiSearchTool } from './wikiSearch.js';
 import { wikiUpdateTool } from './wikiUpdate.js';
 import { wikiAnalyticsTopPagesTool } from './wikiAnalyticsTopPages.js';
+import { onboardingGetPromptTool } from './onboarding/getPrompt.js';
+import { onboardingSubmitResponseTool } from './onboarding/submitResponse.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -27,6 +29,8 @@ const loadTools = (): ToolDefinition[] => [
   wikiSearchTool,
   wikiUpdateTool,
   wikiAnalyticsTopPagesTool,
+  onboardingGetPromptTool,
+  onboardingSubmitResponseTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {
