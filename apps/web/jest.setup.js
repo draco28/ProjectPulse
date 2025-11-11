@@ -1,6 +1,13 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Load test environment variables
+// For Mac mini integration tests that need DATABASE_URL
+import { config } from 'dotenv';
+import path from 'path';
+
+config({ path: path.resolve(__dirname, '.env.test') });
+
 // Mock Next.js revalidation functions
 jest.mock('next/cache', () => ({
   revalidatePath: jest.fn(),

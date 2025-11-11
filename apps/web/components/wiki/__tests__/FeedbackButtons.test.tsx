@@ -320,20 +320,71 @@ describe('FeedbackButtons', () => {
   });
 
   describe('localStorage error handling', () => {
-    // Note: Current implementation does NOT handle localStorage errors gracefully
-    // These tests verify that localStorage is being called, but the component will crash if errors occur
-    // TODO (Future): Add try-catch around localStorage calls for production resilience
+    it('should not crash if localStorage.setItem throws', async () => {
+      // Mock console.warn to suppress warnings during test
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
-    it.skip('should not crash if localStorage.setItem throws', async () => {
-      // SKIPPED: Component does not have error handling around localStorage.setItem
-      // If quota exceeded, component will crash
-      // Add try-catch in FeedbackButtons.tsx to enable this test
+      // Mock localStorage.setItem to throw (quota exceeded)
+      const originalSetItem = localStorage.setItem;
+      (localStorage.setItem as jest.Mock).mockImplementation(() => {
+        throw new Error('QuotaExceededError');
+      });
+
+      const user = userEvent.setup();
+      render(<FeedbackButtons pageId={mockPageId} />);
+
+      const yesButton = screen.getByRole('button', { name: /mark as helpful/i });
+
+      // Click Yes button - should not crash
+      await user.click(yesButton);
+
+      // Verify setItem was called (and threw)
+      expect(localStorage.setItem).toHaveBeenCalled();
+
+      // Verify error was logged
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Failed to save feedback to localStorage:',
+        expect.any(Error)
+      );
+
+      // Verify component still renders and state updated (feedback saved in React state)
+      expect(yesButton).toBeInTheDocument();
+      await waitFor(() => {
+        expect(yesButton).toHaveAttribute('aria-pressed', 'true');
+      });
+
+      // Restore
+      localStorage.setItem = originalSetItem;
+      consoleWarnSpy.mockRestore();
     });
 
-    it.skip('should not crash if localStorage.getItem throws', () => {
-      // SKIPPED: Component does not have error handling around localStorage.getItem
-      // If security error, component will crash on mount
-      // Add try-catch in FeedbackButtons.tsx to enable this test
+    it('should not crash if localStorage.getItem throws', () => {
+      // Mock console.warn to suppress warnings during test
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      // Mock localStorage.getItem to throw (security error)
+      const originalGetItem = localStorage.getItem;
+      (localStorage.getItem as jest.Mock).mockImplementation(() => {
+        throw new Error('SecurityError');
+      });
+
+      // Should not crash on mount
+      render(<FeedbackButtons pageId={mockPageId} />);
+
+      const yesButton = screen.getByRole('button', { name: /mark as helpful/i });
+
+      // Verify component still renders
+      expect(yesButton).toBeInTheDocument();
+
+      // Verify error was logged
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Failed to load feedback from localStorage:',
+        expect.any(Error)
+      );
+
+      // Restore
+      localStorage.getItem = originalGetItem;
+      consoleWarnSpy.mockRestore();
     });
   });
 

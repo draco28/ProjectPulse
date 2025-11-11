@@ -1,4 +1,6 @@
 /**
+ * @jest-environment node
+ *
  * Health API route tests
  */
 

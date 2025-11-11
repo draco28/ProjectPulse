@@ -15,10 +15,15 @@ export function FeedbackButtons({ pageId }: FeedbackButtonsProps) {
 
   // Load from localStorage on mount
   useEffect(() => {
-    const storageKey = `wiki-feedback-${pageId}`;
-    const stored = localStorage.getItem(storageKey);
-    if (stored === 'helpful' || stored === 'not-helpful') {
-      setFeedback(stored);
+    try {
+      const storageKey = `wiki-feedback-${pageId}`;
+      const stored = localStorage.getItem(storageKey);
+      if (stored === 'helpful' || stored === 'not-helpful') {
+        setFeedback(stored);
+      }
+    } catch (error) {
+      // Silently fail if localStorage is unavailable (private browsing, security restrictions)
+      console.warn('Failed to load feedback from localStorage:', error);
     }
   }, [pageId]);
 
@@ -28,12 +33,18 @@ export function FeedbackButtons({ pageId }: FeedbackButtonsProps) {
     // Update local state
     setFeedback(value);
 
-    // Persist to localStorage
-    const storageKey = `wiki-feedback-${pageId}`;
-    if (value) {
-      localStorage.setItem(storageKey, value);
-    } else {
-      localStorage.removeItem(storageKey);
+    // Persist to localStorage with error handling
+    try {
+      const storageKey = `wiki-feedback-${pageId}`;
+      if (value) {
+        localStorage.setItem(storageKey, value);
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+    } catch (error) {
+      // Handle quota exceeded, security errors, or private browsing mode
+      console.warn('Failed to save feedback to localStorage:', error);
+      // User feedback still saved in React state, so UI remains functional
     }
 
     // TODO (US-023): Send to API
