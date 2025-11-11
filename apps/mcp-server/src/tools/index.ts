@@ -12,6 +12,7 @@ import { sprintQueryHierarchyTool } from './sprintQueryHierarchy.js';
 import { wikiCreateTool } from './wikiCreate.js';
 import { wikiSearchTool } from './wikiSearch.js';
 import { wikiUpdateTool } from './wikiUpdate.js';
+import { wikiAnalyticsTopPagesTool } from './wikiAnalyticsTopPages.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -25,6 +26,7 @@ const loadTools = (): ToolDefinition[] => [
   wikiCreateTool,
   wikiSearchTool,
   wikiUpdateTool,
+  wikiAnalyticsTopPagesTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {

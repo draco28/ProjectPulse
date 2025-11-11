@@ -7,6 +7,7 @@
 
 import { Metadata } from 'next';
 import { Plus } from 'lucide-react';
+import { Prisma } from '@prisma/client';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
 import { WikiListClient } from '@/components/wiki/WikiListClient';
@@ -37,6 +38,21 @@ type WhereClause = {
     title?: { contains: string; mode: 'insensitive' };
     content?: { contains: string; mode: 'insensitive' };
   }>;
+};
+
+type WikiListResult = {
+  id: number;
+  title: string;
+  excerpt: string;
+  category: string | null;
+  path: string;
+  updatedAt: Date;
+  highlight?: string | null;
+  stats?: {
+    views: number;
+    helpfulRatio: number | null;
+    popularity: number | null;
+  };
 };
 
 async function getWikiPages(searchParams: SearchParams) {
@@ -86,27 +102,152 @@ async function getWikiPages(searchParams: SearchParams) {
       orderBy = { createdAt: 'desc' };
   }
 
-  // Fetch pages + total count in parallel
+  const offset = (page - 1) * perPage;
+
+  if (searchTerm) {
+    const categoryFilterSql = categoryFilter.length
+      ? Prisma.sql`AND "category" = ANY(${categoryFilter})`
+      : Prisma.sql``;
+
+    const rankedPages = await prisma.$queryRaw<
+      Array<{
+        id: number;
+        title: string;
+        path: string;
+        category: string | null;
+        excerpt: string | null;
+        updatedAt: Date;
+        highlight: string | null;
+        rank: number;
+      }>
+    >(Prisma.sql`
+      SELECT
+        "id",
+        "title",
+        "path",
+        "category",
+        "excerpt",
+        "updatedAt",
+        ts_headline(
+          'english',
+          "content",
+          plainto_tsquery('english', ${searchTerm}),
+          'MaxFragments=2, MinWords=5, MaxWords=20, StartSel=**, StopSel=**'
+        ) AS highlight,
+        ts_rank_cd("content_tsv", plainto_tsquery('english', ${searchTerm})) AS rank
+      FROM "WikiPage"
+      WHERE "content_tsv" @@ plainto_tsquery('english', ${searchTerm})
+      ${categoryFilterSql}
+      ORDER BY rank DESC, "updatedAt" DESC
+      LIMIT ${perPage} OFFSET ${offset};
+    `);
+
+    const countResult = await prisma.$queryRaw<Array<{ count: number }>>(Prisma.sql`
+      SELECT COUNT(*)::int AS count
+      FROM "WikiPage"
+      WHERE "content_tsv" @@ plainto_tsquery('english', ${searchTerm})
+      ${categoryFilterSql};
+    `);
+
+    const totalCount = countResult[0]?.count ?? 0;
+
+    const analytics = await prisma.wikiPageAnalytics.findMany({
+      where: { wikiPageId: { in: rankedPages.map((page) => page.id) } },
+      select: {
+        wikiPageId: true,
+        viewCount: true,
+        positiveVotes: true,
+        negativeVotes: true,
+        popularity: true,
+      },
+    });
+    const analyticsMap = new Map(analytics.map((entry) => [entry.wikiPageId, entry]));
+
+    const mapped: WikiListResult[] = rankedPages.map((page) => {
+      const stats = analyticsMap.get(page.id);
+      const totalVotes = (stats?.positiveVotes ?? 0) + (stats?.negativeVotes ?? 0);
+      const helpfulRatio = totalVotes ? Math.round(((stats?.positiveVotes ?? 0) / totalVotes) * 100) : null;
+      return {
+        id: page.id,
+        title: page.title,
+        excerpt: page.excerpt || '',
+        category: page.category,
+        path: page.path,
+        updatedAt: page.updatedAt,
+        highlight: page.highlight,
+        stats: stats
+          ? {
+              views: stats.viewCount,
+              helpfulRatio,
+              popularity: stats.popularity,
+            }
+          : undefined,
+      };
+    });
+
+    return {
+      pages: mapped,
+      totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / perPage),
+      perPage,
+    };
+  }
+
+  // Fetch pages + total count in parallel when no search term
   const [pages, totalCount] = await Promise.all([
     prisma.wikiPage.findMany({
       where,
       select: {
         id: true,
         title: true,
-        content: true, // Will truncate to excerpt client-side
+        content: true,
         category: true,
         path: true,
         updatedAt: true,
       },
       orderBy,
       take: perPage,
-      skip: (page - 1) * perPage,
+      skip: offset,
     }),
     prisma.wikiPage.count({ where }),
   ]);
 
+  const analytics = await prisma.wikiPageAnalytics.findMany({
+    where: { wikiPageId: { in: pages.map((page) => page.id) } },
+    select: {
+      wikiPageId: true,
+      viewCount: true,
+      positiveVotes: true,
+      negativeVotes: true,
+      popularity: true,
+    },
+  });
+  const analyticsMap = new Map(analytics.map((entry) => [entry.wikiPageId, entry]));
+
+  const mapped: WikiListResult[] = pages.map((page) => {
+    const stats = analyticsMap.get(page.id);
+    const totalVotes = (stats?.positiveVotes ?? 0) + (stats?.negativeVotes ?? 0);
+    const helpfulRatio = totalVotes ? Math.round(((stats?.positiveVotes ?? 0) / totalVotes) * 100) : null;
+    return {
+      id: page.id,
+      title: page.title,
+      excerpt: `${page.content.slice(0, 200)}...`,
+      category: page.category,
+      path: page.path,
+      updatedAt: page.updatedAt,
+      stats: stats
+        ? {
+            views: stats.viewCount,
+            helpfulRatio,
+            popularity: stats.popularity,
+          }
+        : undefined,
+    };
+  });
+
   return {
-    pages,
+    pages: mapped,
     totalCount,
     currentPage: page,
     totalPages: Math.ceil(totalCount / perPage),
@@ -193,7 +334,8 @@ export default async function WikiPage({
                       page={{
                         id: page.id.toString(),
                         title: page.title,
-                        excerpt: page.content.slice(0, 200) + '...',
+                        excerpt: page.excerpt,
+                        highlight: page.highlight || undefined,
                         category: page.category || 'Uncategorized',
                         path: page.path,
                         updatedAt: page.updatedAt,

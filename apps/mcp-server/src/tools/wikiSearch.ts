@@ -26,11 +26,12 @@ type WikiSearchResponse = {
   pages: Array<{
     id: number;
     title: string;
-    slug: string;
+    path: string;
     category: string;
     excerpt: string | null;
     createdAt: string;
     updatedAt: string;
+    highlight?: string | null;
   }>;
   pagination: {
     total: number;
@@ -100,11 +101,12 @@ export const wikiSearchTool: ToolDefinition = {
 
       const resultsList = data.pages
         .map((page, index) => {
-          const excerpt = page.excerpt || 'No excerpt available';
-          return `${offset + index + 1}. **${page.title}** (/wiki/${page.slug})
-   Category: ${page.category}
-   Excerpt: ${excerpt}
-   Updated: ${new Date(page.updatedAt).toLocaleDateString()}`;
+          const excerpt = page.highlight || page.excerpt || 'No excerpt available';
+          const cleanedPath = page.path.replace(/^\//, '');
+          return `${offset + index + 1}. **${page.title}** (/wiki/${cleanedPath})
+Category: ${page.category}
+Excerpt: ${excerpt}
+Updated: ${new Date(page.updatedAt).toLocaleDateString()}`;
         })
         .join('\n\n');
 

@@ -73,14 +73,12 @@ export function WikiEditor({
 
   // Form setup with react-hook-form + Zod validation
   const schema = mode === 'create' ? createWikiPageSchema : updateWikiPageSchema;
-  const {
-    control,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors, isDirty },
-  } = useForm<CreateWikiPageInput | UpdateWikiPageInput>({
-    resolver: zodResolver(schema),
+  const form = useForm<CreateWikiPageInput | UpdateWikiPageInput>({
+    resolver: (mode === 'create'
+      ? zodResolver(createWikiPageSchema)
+      : zodResolver(updateWikiPageSchema)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any,
     mode: 'onBlur', // Validate on blur for better performance
     defaultValues: {
       title: initialData?.title || '',
@@ -90,6 +88,7 @@ export function WikiEditor({
       excerpt: initialData?.excerpt || '',
     },
   });
+  const { control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = form;
 
   // Watch form fields for auto-path generation and unsaved changes
   const titleValue = watch('title');

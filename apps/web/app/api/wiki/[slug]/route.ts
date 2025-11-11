@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { updateWikiPageSchema } from '@/lib/validations/wiki';
 
 /**
  * GET /api/wiki/:slug
@@ -69,5 +72,189 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
   } catch (error) {
     console.error('Failed to fetch wiki page:', error);
     return NextResponse.json({ error: 'Failed to fetch wiki page' }, { status: 500 });
+  }
+}
+
+const DEFAULT_ACTOR_NAME = 'Unknown Editor';
+const DEFAULT_ACTOR_TYPE: 'human' | 'agent' | 'system' = 'human';
+
+type WikiUpdateError = 'NOT_FOUND' | 'PARENT_NOT_FOUND' | 'PARENT_SELF' | 'NO_FIELDS';
+
+function mapUpdateError(error: WikiUpdateError) {
+  switch (error) {
+    case 'NOT_FOUND':
+      return NextResponse.json({ error: 'Wiki page not found' }, { status: 404 });
+    case 'PARENT_NOT_FOUND':
+      return NextResponse.json(
+        { error: 'Parent page not found', message: 'The provided parentPath does not exist.' },
+        { status: 400 }
+      );
+    case 'PARENT_SELF':
+      return NextResponse.json(
+        { error: 'Invalid parent', message: 'A page cannot be its own parent.' },
+        { status: 400 }
+      );
+    case 'NO_FIELDS':
+    default:
+      return NextResponse.json(
+        { error: 'No updates provided', message: 'Provide at least one field to update.' },
+        { status: 400 }
+      );
+  }
+}
+
+/**
+ * PATCH /api/wiki/:slug
+ *
+ * Updates a wiki page, creates a WikiRevision snapshot, and logs a WikiPageEvent.
+ */
+export async function PATCH(request: NextRequest, { params }: { params: { slug: string } }) {
+  try {
+    const slugPath = params.slug.startsWith('/') ? params.slug : `/${params.slug}`;
+    const body = await request.json();
+    const validation = updateWikiPageSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const {
+      changelog,
+      updatedBy,
+      updatedByType,
+      parentPath,
+      ...partialUpdate
+    } = validation.data;
+
+    const hasPageFieldUpdates = Object.values(partialUpdate).some((value) => value !== undefined);
+    const hasParentUpdate = typeof parentPath !== 'undefined';
+
+    if (!hasPageFieldUpdates && !hasParentUpdate) {
+      throw 'NO_FIELDS';
+    }
+
+    const actorName =
+      updatedBy ||
+      request.headers.get('x-projectpulse-actor') ||
+      DEFAULT_ACTOR_NAME;
+    const actorType =
+      updatedByType ||
+      (request.headers.get('x-projectpulse-actor-type') as 'human' | 'agent' | 'system' | null) ||
+      DEFAULT_ACTOR_TYPE;
+
+    const updatedPage = await prisma.$transaction(async (tx) => {
+      const existing = await tx.wikiPage.findUnique({
+        where: { path: slugPath },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          excerpt: true,
+          version: true,
+          revisions: true,
+          parentId: true,
+          category: true,
+          tags: true,
+        },
+      });
+
+      if (!existing) {
+        throw 'NOT_FOUND';
+      }
+
+      const parentUpdate: Prisma.WikiPageUpdateInput = {};
+      if (hasParentUpdate) {
+        if (!parentPath) {
+          parentUpdate.parent = { disconnect: true };
+        } else {
+          const normalizedParentPath = parentPath.startsWith('/') ? parentPath : `/${parentPath}`;
+          const parentPage = await tx.wikiPage.findUnique({
+            where: { path: normalizedParentPath },
+            select: { id: true },
+          });
+
+          if (!parentPage) {
+            throw 'PARENT_NOT_FOUND';
+          }
+
+          if (parentPage.id === existing.id) {
+            throw 'PARENT_SELF';
+          }
+
+          parentUpdate.parent = { connect: { id: parentPage.id } };
+        }
+      }
+
+      await tx.wikiRevision.create({
+        data: {
+          wikiPageId: existing.id,
+          version: existing.version,
+          title: existing.title,
+          excerpt: existing.excerpt,
+          content: existing.content,
+          diffSummary: changelog ?? null,
+          createdBy: actorName,
+          createdByType: actorType,
+        },
+      });
+
+      await tx.wikiPageEvent.create({
+        data: {
+          wikiPageId: existing.id,
+          type: 'REVISION',
+          actor: actorName,
+          metadata: {
+            changelog: changelog ?? null,
+            updatedByType: actorType,
+            previousVersion: existing.version,
+          } as Prisma.InputJsonObject,
+        },
+      });
+
+      const updateData: Prisma.WikiPageUpdateInput = {
+        lastEditedBy: actorName,
+        lastEditedAt: new Date(),
+        version: { increment: 1 },
+        revisions: { increment: 1 },
+        ...parentUpdate,
+      };
+
+      if (partialUpdate.title !== undefined) updateData.title = partialUpdate.title;
+      if (partialUpdate.content !== undefined) updateData.content = partialUpdate.content;
+      if (partialUpdate.category !== undefined) updateData.category = partialUpdate.category;
+      if (partialUpdate.excerpt !== undefined) updateData.excerpt = partialUpdate.excerpt;
+
+      const page = await tx.wikiPage.update({
+        where: { id: existing.id },
+        data: updateData,
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          category: true,
+          excerpt: true,
+          path: true,
+          version: true,
+          updatedAt: true,
+        },
+      });
+
+      return page;
+    });
+
+    revalidatePath('/wiki');
+    revalidatePath(`/wiki/${params.slug}`);
+
+    return NextResponse.json({ data: updatedPage });
+  } catch (error) {
+    if (typeof error === 'string') {
+      return mapUpdateError(error as WikiUpdateError);
+    }
+
+    console.error('Failed to update wiki page:', error);
+    return NextResponse.json({ error: 'Failed to update wiki page' }, { status: 500 });
   }
 }

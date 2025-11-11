@@ -28,56 +28,55 @@ enum Status {
 }
 
 model Phase {
-  id          String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Core fields
   title       String
-  description String?   @db.Text
-  status      Status    @default(NOT_STARTED)
-  progress    Int       @default(0) // 0-100, validated in application
+  description String? @db.Text
+  status      Status  @default(NOT_STARTED)
+  progress    Int     @default(0) // 0-100, validated in application
 
   // Time window
-  startDate   DateTime
-  endDate     DateTime?
+  startDate DateTime
+  endDate   DateTime?
 
   // Hierarchy - Children
-  weeks       Week[]
+  weeks Week[]
 
   // Metadata
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Indexes for performance
   @@index([startDate, endDate])
   @@index([status])
   @@index([startDate, endDate, status])
-
   @@map("phases")
 }
 
 model Week {
-  id          String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Core fields
   title       String
-  description String?   @db.Text
-  status      Status    @default(NOT_STARTED)
-  progress    Int       @default(0) // 0-100, validated in application
+  description String? @db.Text
+  status      Status  @default(NOT_STARTED)
+  progress    Int     @default(0) // 0-100, validated in application
 
   // Time window
-  startDate   DateTime
-  endDate     DateTime?
+  startDate DateTime
+  endDate   DateTime?
 
   // Hierarchy - Parent
-  phaseId     String
-  phase       Phase     @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  phaseId String
+  phase   Phase  @relation(fields: [phaseId], references: [id], onDelete: Cascade)
 
   // Hierarchy - Children
-  days        Day[]
+  days Day[]
 
   // Metadata
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Indexes for performance
   @@index([phaseId])
@@ -85,33 +84,32 @@ model Week {
   @@index([status])
   @@index([phaseId, status])
   @@index([phaseId, startDate, endDate, status])
-
   @@map("weeks")
 }
 
 model Day {
-  id          String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Core fields
   title       String
-  description String?   @db.Text
-  status      Status    @default(NOT_STARTED)
-  progress    Int       @default(0) // 0-100, validated in application
+  description String? @db.Text
+  status      Status  @default(NOT_STARTED)
+  progress    Int     @default(0) // 0-100, validated in application
 
   // Time window
-  startDate   DateTime
-  endDate     DateTime?
+  startDate DateTime
+  endDate   DateTime?
 
   // Hierarchy - Parent
-  weekId      String
-  week        Week      @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  weekId String
+  week   Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
 
   // Hierarchy - Children
-  tasks       Task[]
+  tasks Task[]
 
   // Metadata
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Indexes for performance
   @@index([weekId])
@@ -119,33 +117,32 @@ model Day {
   @@index([status])
   @@index([weekId, status])
   @@index([weekId, startDate, endDate, status])
-
   @@map("days")
 }
 
 model Task {
-  id          String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Core fields
   title       String
-  description String?   @db.Text
-  status      Status    @default(NOT_STARTED)
-  progress    Int       @default(0) // 0-100, validated in application
+  description String? @db.Text
+  status      Status  @default(NOT_STARTED)
+  progress    Int     @default(0) // 0-100, validated in application
 
   // Time window
-  startDate   DateTime
-  endDate     DateTime?
+  startDate DateTime
+  endDate   DateTime?
 
   // Hierarchy - Parent
-  dayId       String
-  day         Day       @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  dayId String
+  day   Day    @relation(fields: [dayId], references: [id], onDelete: Cascade)
 
   // Hierarchy - Children
-  sessions    Session[]
+  sessions Session[]
 
   // Metadata
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Indexes for performance
   @@index([dayId])
@@ -154,33 +151,32 @@ model Task {
   @@index([dayId, status])
   @@index([dayId, startDate, endDate, status])
   @@index([updatedAt(sort: Desc)]) // CRITICAL: For getCurrentTask query (100x faster)
-
   @@map("tasks")
 }
 
 model Session {
-  id          String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Core fields
   title       String
-  description String?   @db.Text
-  status      Status    @default(NOT_STARTED)
-  progress    Int       @default(0) // 0-100, validated in application
+  description String? @db.Text
+  status      Status  @default(NOT_STARTED)
+  progress    Int     @default(0) // 0-100, validated in application
 
   // Time window
-  startDate   DateTime
-  endDate     DateTime?
+  startDate DateTime
+  endDate   DateTime?
 
   // Hierarchy - Parent (leaf level, no children)
-  taskId      String
-  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   // Checkpoints - Track progress every 15K tokens
   checkpoints Checkpoint[]
 
   // Metadata
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Indexes for performance
   @@index([taskId])
@@ -188,7 +184,6 @@ model Session {
   @@index([status])
   @@index([taskId, status])
   @@index([taskId, startDate, endDate, status])
-
   @@map("sessions")
 }
 
@@ -284,9 +279,9 @@ model MarkdownFile {
   lastSyncedAt DateTime?
 
   // Metadata
-  isGenerated Boolean  @default(true) // false = manually created file (don't overwrite)
-  status      String   @default("active") // 'active', 'deprecated', 'archived'
-  metadata    Json?    @db.JsonB // Extensible metadata (author, tags, version, etc.)
+  isGenerated Boolean @default(true) // false = manually created file (don't overwrite)
+  status      String  @default("active") // 'active', 'deprecated', 'archived'
+  metadata    Json?   @db.JsonB // Extensible metadata (author, tags, version, etc.)
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -315,8 +310,8 @@ model Issue {
   // Custom fields (flexible schema)
   customFields Json? @db.JsonB
 
-  // Full-text search (will be populated by triggers)
-  searchVector String? @db.Text // Using Text as placeholder for tsvector
+  // Full-text search vector (generated column)
+  contentSearchVector Unsupported("tsvector")? @map("content_tsv")
 
   // Relationships
   projectId Int
@@ -469,7 +464,7 @@ model WikiPage {
   id Int @id @default(autoincrement())
 
   title   String
-  content String @db.Text
+  content String  @db.Text
   excerpt String? @db.VarChar(200) // Short description for list views
 
   // Added field
@@ -498,11 +493,19 @@ model WikiPage {
   version Int @default(1)
 
   // New fields for wiki detail page enhancement
-  views        Int      @default(0)
-  revisions    Int      @default(1)
-  contributors Json     @default("[]")
+  views        Int       @default(0)
+  revisions    Int       @default(1)
+  contributors Json      @default("[]")
   readingTime  Int?
-  tags         String[] @default([])
+  tags         String[]  @default([])
+  lastEditedBy String?
+  lastEditedAt DateTime?
+  isLocked     Boolean   @default(false)
+
+  // Relations
+  revisionEntries WikiRevision[]
+  events          WikiPageEvent[]
+  analytics       WikiPageAnalytics?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -513,6 +516,25 @@ model WikiPage {
   @@index([category])
   @@index([views(sort: Desc)])
   @@index([category, orderIndex])
+}
+
+model WikiRevision {
+  id         Int      @id @default(autoincrement())
+  wikiPageId Int
+  wikiPage   WikiPage @relation(fields: [wikiPageId], references: [id], onDelete: Cascade)
+
+  version     Int
+  title       String
+  excerpt     String? @db.VarChar(200)
+  content     String  @db.Text
+  diffSummary String? @db.VarChar(500)
+
+  createdBy     String
+  createdByType String   @default("agent") // agent | human | system
+  createdAt     DateTime @default(now())
+
+  @@unique([wikiPageId, version])
+  @@index([wikiPageId, version])
 }
 
 model PageLink {
@@ -547,6 +569,44 @@ model WikiPageLink {
   @@unique([wikiPageId, issueId])
   @@index([wikiPageId])
   @@index([issueId])
+}
+
+model WikiPageEvent {
+  id         BigInt   @id @default(autoincrement())
+  wikiPageId Int
+  wikiPage   WikiPage @relation(fields: [wikiPageId], references: [id], onDelete: Cascade)
+
+  type       WikiEventType
+  actor      String?
+  durationMs Int?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([wikiPageId, createdAt])
+  @@index([type])
+}
+
+model WikiPageAnalytics {
+  id         Int      @id @default(autoincrement())
+  wikiPageId Int      @unique
+  wikiPage   WikiPage @relation(fields: [wikiPageId], references: [id], onDelete: Cascade)
+
+  viewCount      Int      @default(0)
+  uniqueVisitors Int      @default(0)
+  avgReadTimeMs  Int      @default(0)
+  positiveVotes  Int      @default(0)
+  negativeVotes  Int      @default(0)
+  popularity     Float    @default(0)
+  trend          Float    @default(0)
+  refreshedAt    DateTime @default(now())
+}
+
+enum WikiEventType {
+  VIEW
+  FEEDBACK_POSITIVE
+  FEEDBACK_NEGATIVE
+  REVISION
 }
 
 // ============================================================================

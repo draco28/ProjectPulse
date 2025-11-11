@@ -20,6 +20,12 @@ const inputSchema = z.object({
     .describe('New category (optional)'),
   excerpt: z.string().max(200).optional().describe('New excerpt (optional)'),
   parentPath: z.string().optional().describe('New parent path (optional)'),
+  changelog: z.string().max(500).optional().describe('Summary of the change (optional)'),
+  actorName: z.string().min(1).max(100).optional().describe('Name recorded for this revision'),
+  actorType: z
+    .enum(['human', 'agent', 'system'])
+    .optional()
+    .describe('Type of actor performing the update (defaults to agent)'),
 });
 
 type WikiUpdateInput = z.infer<typeof inputSchema>;
@@ -40,7 +46,7 @@ type WikiUpdateResponse = {
 export const wikiUpdateTool: ToolDefinition = {
   name: 'projectpulse.wiki.update',
   description:
-    'Update an existing wiki page in ProjectPulse. Supports partial updates - only provide fields you want to change. The path field identifies the page to update and cannot be changed (see TD-001 for future slug refactor).',
+    'Update an existing wiki page in ProjectPulse. Supports partial updates, changelog summaries, and actor metadata so WikiRevision entries can be audited. Path identifies the page and cannot be changed (see TD-001 for future slug refactor).',
   schema: inputSchema,
   inputSchema: {
     type: 'object',
@@ -70,11 +76,25 @@ export const wikiUpdateTool: ToolDefinition = {
         type: 'string',
         description: 'New parent page path for hierarchy (optional)',
       },
+      changelog: {
+        type: 'string',
+        description: 'Summary of the change recorded in history (optional)',
+      },
+      actorName: {
+        type: 'string',
+        description: 'Name recorded for this update (defaults to MCP Agent)',
+      },
+      actorType: {
+        type: 'string',
+        enum: ['human', 'agent', 'system'],
+        description: 'Actor type classification (defaults to agent)',
+      },
     },
     required: ['path'],
   },
   execute: async (params, context) => {
-    const { path, title, content, category, excerpt, parentPath } = params as WikiUpdateInput;
+    const { path, title, content, category, excerpt, parentPath, changelog, actorName, actorType } =
+      params as WikiUpdateInput;
 
     // Build update payload (only include provided fields)
     const updateData: any = {};
@@ -83,6 +103,9 @@ export const wikiUpdateTool: ToolDefinition = {
     if (category !== undefined) updateData.category = category;
     if (excerpt !== undefined) updateData.excerpt = excerpt;
     if (parentPath !== undefined) updateData.parentPath = parentPath;
+    if (changelog !== undefined) updateData.changelog = changelog;
+    updateData.updatedBy = actorName ?? 'MCP Agent';
+    updateData.updatedByType = actorType ?? 'agent';
 
     try {
       // Normalize path for API call (add leading slash if missing)
@@ -93,7 +116,8 @@ export const wikiUpdateTool: ToolDefinition = {
         updateData
       );
 
-      const updatedFields = Object.keys(updateData).join(', ');
+      const auditedFields = Object.keys(updateData).filter((field) => !['updatedBy', 'updatedByType', 'changelog'].includes(field));
+      const updatedFields = auditedFields.length ? auditedFields.join(', ') : 'metadata only';
       const summary = `✅ Wiki page updated successfully
 
 Title: ${data.title}

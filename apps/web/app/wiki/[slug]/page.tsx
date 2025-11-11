@@ -8,6 +8,8 @@ import { QuickNavigation } from '@/components/wiki/QuickNavigation';
 import { WikiContent } from '@/components/wiki/WikiContent';
 import { WikiContributors } from '@/components/wiki/WikiContributors';
 import { WikiFooterNav } from '@/components/wiki/WikiFooterNav';
+import { WikiRevisionTimeline } from '@/components/wiki/WikiRevisionTimeline';
+import { WikiViewTracker } from '@/components/wiki/WikiViewTracker';
 import { parseContributors, parseTags, type Contributor } from '@/lib/validations/wiki';
 import NextLink from 'next/link';
 
@@ -85,12 +87,28 @@ async function getWikiPage(slug: string) {
       tags: true,
       createdAt: true,
       updatedAt: true,
+      lastEditedBy: true,
+      lastEditedAt: true,
+      version: true,
     },
   });
 
   if (!page) {
     return null;
   }
+
+  const analytics = await prisma.wikiPageAnalytics.findUnique({
+    where: { wikiPageId: page.id },
+    select: {
+      viewCount: true,
+      uniqueVisitors: true,
+      avgReadTimeMs: true,
+      positiveVotes: true,
+      negativeVotes: true,
+      popularity: true,
+      refreshedAt: true,
+    },
+  });
 
   // Extract TOC from markdown (server-side)
   const tocItems = extractHeadings(page.content);
@@ -125,10 +143,45 @@ async function getWikiPage(slug: string) {
     tags,
     createdAt: page.createdAt.toISOString(),
     updatedAt: page.updatedAt.toISOString(),
+    lastEditedAt: page.lastEditedAt?.toISOString() ?? null,
+    analytics: analytics
+      ? {
+          viewCount: analytics.viewCount,
+          uniqueVisitors: analytics.uniqueVisitors,
+          avgReadTimeMs: analytics.avgReadTimeMs,
+          positiveVotes: analytics.positiveVotes,
+          negativeVotes: analytics.negativeVotes,
+          popularity: analytics.popularity,
+          refreshedAt: analytics.refreshedAt.toISOString(),
+        }
+      : null,
     tocItems,
     prevPage: prevPage || undefined,
     nextPage: nextPage || undefined,
   };
+}
+
+async function getRecentRevisions(pageId: number, limit = 10) {
+  const revisions = await prisma.wikiRevision.findMany({
+    where: { wikiPageId: pageId },
+    orderBy: { version: 'desc' },
+    take: limit,
+    select: {
+      version: true,
+      createdAt: true,
+      createdBy: true,
+      createdByType: true,
+      diffSummary: true,
+    },
+  });
+
+  return revisions.map((revision) => ({
+    version: revision.version,
+    createdAt: revision.createdAt.toISOString(),
+    createdBy: revision.createdBy,
+    createdByType: revision.createdByType,
+    diffSummary: revision.diffSummary ?? null,
+  }));
 }
 
 async function getCategoryStats(): Promise<Category[]> {
@@ -159,17 +212,32 @@ export async function generateStaticParams() {
 }
 
 export default async function WikiPage({ params }: PageProps) {
-  const [page, categories] = await Promise.all([
-    getWikiPage(params.slug),
-    getCategoryStats()
-  ]);
+  const page = await getWikiPage(params.slug);
 
   if (!page) {
     notFound();
   }
 
+  const [categories, revisions] = await Promise.all([
+    getCategoryStats(),
+    getRecentRevisions(page.id),
+  ]);
+  const normalizedSlug = page.path.replace(/^\//, '');
+  const helpfulTotal = (page.analytics?.positiveVotes ?? 0) + (page.analytics?.negativeVotes ?? 0);
+  const helpfulRatio = helpfulTotal
+    ? Math.round(((page.analytics?.positiveVotes ?? 0) / helpfulTotal) * 100)
+    : null;
+  const pageStats = {
+    views: page.analytics?.viewCount ?? page.views,
+    revisions: page.revisions,
+    uniqueVisitors: page.analytics?.uniqueVisitors ?? null,
+    helpfulRatio,
+    avgReadTimeMs: page.analytics?.avgReadTimeMs ?? null,
+  };
+
   return (
     <>
+      <WikiViewTracker slug={normalizedSlug} />
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
         <Sidebar />
@@ -210,13 +278,27 @@ export default async function WikiPage({ params }: PageProps) {
                 tags={page.tags}
                 contributors={page.contributors}
                 updatedAt={page.updatedAt}
+                lastEditedBy={page.lastEditedBy}
+                lastEditedAt={page.lastEditedAt}
+                version={page.version}
+                revisionsCount={page.revisions}
                 views={page.views}
                 path={page.path}
                 readingTime={page.readingTime || undefined}
+                helpfulRatio={helpfulRatio}
+                uniqueVisitors={page.analytics?.uniqueVisitors}
+                popularity={page.analytics?.popularity}
               />
 
               {/* Wiki Content with Markdown Rendering */}
               <WikiContent content={page.content} tocItems={page.tocItems} />
+
+              {/* Revision Timeline */}
+              <WikiRevisionTimeline
+                slug={normalizedSlug}
+                revisions={revisions}
+                currentVersion={page.version}
+              />
 
               {/* Footer Navigation */}
               <WikiFooterNav prevPage={page.prevPage} nextPage={page.nextPage} />
@@ -226,9 +308,9 @@ export default async function WikiPage({ params }: PageProps) {
           {/* Right Sidebar: Contributors + Stats + Feedback */}
           <WikiContributors
             contributors={page.contributors}
-            views={page.views}
-            revisions={page.revisions}
+            stats={pageStats}
             pageId={page.id}
+            slug={normalizedSlug}
           />
         </div>
       </div>

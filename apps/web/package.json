@@ -14,7 +14,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "clean": "rm -rf .next node_modules"
+    "clean": "rm -rf .next node_modules",
+    "db:backfill:wiki-search": "tsx scripts/backfill-wiki-search.ts",
+    "db:aggregate:wiki-analytics": "tsx scripts/aggregate-wiki-analytics.ts"
   },
   "dependencies": {
     "@fontsource/inter": "^5.0.16",

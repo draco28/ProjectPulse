@@ -94,7 +94,6 @@ async function getIssueDetail(id: number) {
       assignee: true,
       projectId: true,
       customFields: true,
-      searchVector: true,
       createdAt: true,
       updatedAt: true,
       closedAt: true,

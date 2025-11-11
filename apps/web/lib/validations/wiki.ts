@@ -27,10 +27,7 @@ export const createWikiPageSchema = z.object({
     .string()
     .min(3, 'Path must be at least 3 characters')
     .max(100, 'Path must be less than 100 characters')
-    .regex(
-      /^[\/]?[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      'Path must be lowercase letters, numbers, and hyphens only'
-    )
+    .regex(/^\/?[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Path must be lowercase letters, numbers, and hyphens only')
     .trim(),
     // Note: Path normalization (remove leading slash) happens in API route
 
@@ -81,6 +78,26 @@ export const updateWikiPageSchema = z.object({
     .max(200, 'Excerpt must be less than 200 characters')
     .optional(),
 
+  parentPath: z
+    .string()
+    .min(1, 'Parent path must be at least 1 character')
+    .max(100, 'Parent path must be less than 100 characters')
+    .regex(/^\/?[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Parent path must be lowercase letters, numbers, and hyphens only')
+    .optional(),
+
+  changelog: z
+    .string()
+    .max(500, 'Changelog must be less than 500 characters')
+    .optional(),
+
+  updatedBy: z
+    .string()
+    .min(1, 'updatedBy must be at least 1 character')
+    .max(100, 'updatedBy must be less than 100 characters')
+    .optional(),
+
+  updatedByType: z.enum(['human', 'agent', 'system']).optional(),
+
   // Note: slug cannot be changed after creation to maintain stable URLs
 });
 
@@ -114,10 +131,7 @@ export const validatePathSchema = z.object({
   path: z
     .string()
     .min(3, 'Path must be at least 3 characters')
-    .regex(
-      /^[\/]?[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      'Path must be lowercase letters, numbers, and hyphens only'
-    )
+    .regex(/^\/?[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Path must be lowercase letters, numbers, and hyphens only')
     .trim(),
     // Note: Path normalization happens in API route
 

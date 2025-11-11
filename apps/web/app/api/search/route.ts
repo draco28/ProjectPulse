@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 // Search result type for unified search
@@ -107,29 +108,34 @@ export async function GET(request: NextRequest) {
 
     // Search Wiki Pages
     if (type === 'all' || type === 'wiki') {
-      const pages = await prisma.wikiPage.findMany({
-        where: {
-          OR: [
-            { title: { contains: searchTerm, mode: 'insensitive' as const } },
-            { content: { contains: searchTerm, mode: 'insensitive' as const } },
-          ],
-        },
-        take: limit,
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          path: true,
-          category: true,
-        },
-      });
+      const categoryBoost = Prisma.sql`CASE WHEN "category" = 'reference' THEN 1.1 ELSE 1 END`;
+      const wikiRows = await prisma.$queryRaw<
+        Array<{ id: number; title: string; path: string; category: string | null; highlight: string | null; rank: number }>
+      >(Prisma.sql`
+        SELECT
+          "id",
+          "title",
+          "path",
+          "category",
+          ts_headline(
+            'english',
+            "content",
+            plainto_tsquery('english', ${searchTerm}),
+            'MaxFragments=1, MinWords=5, MaxWords=20, StartSel=**, StopSel=**'
+          ) AS highlight,
+          ts_rank_cd("content_tsv", plainto_tsquery('english', ${searchTerm})) * ${categoryBoost} AS rank
+        FROM "WikiPage"
+        WHERE "content_tsv" @@ plainto_tsquery('english', ${searchTerm})
+        ORDER BY rank DESC, "updatedAt" DESC
+        LIMIT ${limit};
+      `);
 
       results.push(
-        ...pages.map((page) => ({
+        ...wikiRows.map((page) => ({
           id: page.id,
           type: 'wiki' as const,
           title: page.title,
-          description: page.content.slice(0, 100),
+          description: page.highlight ?? undefined,
           url: `/wiki/${page.path.replace(/^\//, '')}`,
           icon: 'fa-file-alt',
           metadata: page.category || 'Documentation',

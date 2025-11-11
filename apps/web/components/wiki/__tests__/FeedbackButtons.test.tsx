@@ -303,7 +303,7 @@ describe('FeedbackButtons', () => {
       // Render component for page 123
       const { unmount } = render(<FeedbackButtons pageId={123} />);
 
-      let yesButton = screen.getByRole('button', { name: /mark as helpful/i });
+      const yesButton = screen.getByRole('button', { name: /mark as helpful/i });
       expect(yesButton).toHaveAttribute('aria-pressed', 'true');
 
       unmount();

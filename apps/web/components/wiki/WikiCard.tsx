@@ -16,14 +16,20 @@ interface WikiCardProps {
     id: string;
     title: string;
     excerpt: string;
+    highlight?: string;
     category: string;
     path: string;
     updatedAt: Date;
+    stats?: {
+      views: number;
+      helpfulRatio: number | null;
+      popularity: number | null;
+    };
   };
 }
 
 export const WikiCard = memo(function WikiCard({ page }: WikiCardProps) {
-  const { id, title, excerpt, category, path, updatedAt } = page;
+  const { id, title, excerpt, highlight, category, path, updatedAt, stats } = page;
 
   // Format timestamp (relative time)
   const formatDistanceToNow = (date: Date): string => {
@@ -42,7 +48,7 @@ export const WikiCard = memo(function WikiCard({ page }: WikiCardProps) {
   return (
     <article className="neu-raised smooth-transition group rounded-3xl p-6 hover:-translate-y-1 hover:shadow-2xl">
       <Link
-        href={`/wiki${path}`}
+        href={`/wiki/${path.replace(/^\//, '')}`}
         className="block focus:outline-none focus:ring-2 focus:ring-coral/50 rounded-2xl"
       >
         {/* Category Badge */}
@@ -62,11 +68,24 @@ export const WikiCard = memo(function WikiCard({ page }: WikiCardProps) {
           {title}
         </h3>
 
-        {/* Excerpt (truncated to 3 lines) */}
-        {excerpt && (
+        {(highlight || excerpt) && (
           <p className="mb-4 line-clamp-3 text-sm text-slate">
-            {excerpt}
+            {renderHighlightedText(highlight || excerpt)}
           </p>
+        )}
+
+        {stats && (
+          <div className="mb-4 flex items-center gap-3 text-xs text-slate">
+            <span>{stats.views.toLocaleString()} views</span>
+            {stats.helpfulRatio !== null && stats.helpfulRatio !== undefined && (
+              <span>{stats.helpfulRatio}% helpful</span>
+            )}
+            {stats.popularity !== null && stats.popularity !== undefined && (
+              <span className="rounded-full bg-black/20 px-2 py-0.5 text-white/70">
+                Pop {stats.popularity.toFixed(1)}
+              </span>
+            )}
+          </div>
         )}
 
         {/* Last Updated */}
@@ -78,3 +97,16 @@ export const WikiCard = memo(function WikiCard({ page }: WikiCardProps) {
     </article>
   );
 });
+
+function renderHighlightedText(text: string) {
+  const segments = text.split('**');
+  return segments.map((segment, index) =>
+    index % 2 === 1 ? (
+      <mark key={index} className="bg-coral/20 text-white">
+        {segment}
+      </mark>
+    ) : (
+      <span key={index}>{segment}</span>
+    )
+  );
+}

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Edit, Clock, Eye } from 'lucide-react';
+import { Edit, Clock, Eye, Layers } from 'lucide-react';
 import { ContributorAvatar } from './ContributorAvatar';
 import { formatRelativeTime } from '@/lib/utils/date';
 
@@ -17,7 +17,14 @@ interface WikiHeaderProps {
   tags?: string[];
   contributors: Contributor[];
   updatedAt: string;
+  lastEditedBy?: string | null;
+  lastEditedAt?: string | null;
+  version?: number;
+  revisionsCount?: number;
   views: number;
+  uniqueVisitors?: number | null;
+  helpfulRatio?: number | null;
+  popularity?: number | null;
   path: string;
   readingTime?: number;
 }
@@ -29,7 +36,14 @@ export function WikiHeader({
   tags,
   contributors,
   updatedAt,
+  lastEditedBy,
+  lastEditedAt,
+  version,
+  revisionsCount,
   views,
+  uniqueVisitors,
+  helpfulRatio,
+  popularity,
   path,
   readingTime
 }: WikiHeaderProps) {
@@ -38,7 +52,8 @@ export function WikiHeader({
   const primaryContributor = sortedContributors[0];
   const topContributors = sortedContributors.slice(0, 5);
 
-  const relativeTime = formatRelativeTime(updatedAt);
+  const relativeTime = formatRelativeTime(lastEditedAt ?? updatedAt);
+  const editorName = lastEditedBy ?? primaryContributor?.name;
 
   return (
     <div className="mb-8">
@@ -61,11 +76,11 @@ export function WikiHeader({
 
       {/* Contributor + Metadata */}
       <div className="flex items-center gap-4 text-sm text-slate mb-4">
-        {primaryContributor && (
+        {editorName && (
           <>
             <div className="flex items-center gap-2">
-              <ContributorAvatar contributor={primaryContributor} size="sm" />
-              <span>Updated by {primaryContributor.name}</span>
+              {primaryContributor && <ContributorAvatar contributor={primaryContributor} size="sm" />}
+              <span>Updated by {editorName}</span>
             </div>
             <span>•</span>
           </>
@@ -79,6 +94,33 @@ export function WikiHeader({
           <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
           {views.toLocaleString()} views
         </span>
+        {uniqueVisitors !== undefined && uniqueVisitors !== null && (
+          <>
+            <span>•</span>
+            <span>{uniqueVisitors.toLocaleString()} visitors</span>
+          </>
+        )}
+        {helpfulRatio !== null && helpfulRatio !== undefined && (
+          <>
+            <span>•</span>
+            <span>{helpfulRatio}% helpful</span>
+          </>
+        )}
+        {popularity !== null && popularity !== undefined && (
+          <>
+            <span>•</span>
+            <span>Popularity {popularity.toFixed(1)}</span>
+          </>
+        )}
+        {(version || revisionsCount) && (
+          <>
+            <span>•</span>
+            <span className="flex items-center">
+              <Layers className="mr-2 h-4 w-4" aria-hidden="true" />
+              v{version ?? '?'} · {revisionsCount ?? 0} revisions
+            </span>
+          </>
+        )}
       </div>
 
       {/* Tags */}

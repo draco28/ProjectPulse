@@ -19,6 +19,9 @@ jest.mock('@/lib/prisma', () => ({
     wikiRevision: {
       findMany: jest.fn(),
     },
+    wikiPageAnalytics: {
+      findUnique: jest.fn(),
+    },
   },
 }));
 
@@ -34,6 +37,14 @@ jest.mock('next/navigation', () => ({
   })),
   usePathname: jest.fn(() => '/wiki/getting-started'),
 }));
+
+// Mock fetch for WikiViewTracker beacons
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: async () => ({}),
+  } as Response)
+);
 
 // Mock child components to simplify integration test
 jest.mock('@/components/Sidebar', () => ({
@@ -78,7 +89,7 @@ jest.mock('@/components/wiki/WikiContent', () => ({
 }));
 
 jest.mock('@/components/wiki/WikiContributors', () => ({
-  WikiContributors: ({ contributors, views, revisions }: any) => (
+  WikiContributors: ({ contributors, stats }: any) => (
     <div data-testid="wiki-contributors">
       {contributors?.map((c: any) => (
         <div key={c.name}>
@@ -86,8 +97,8 @@ jest.mock('@/components/wiki/WikiContributors', () => ({
           <span>{c.editCount} edits</span>
         </div>
       ))}
-      <span>{views}</span>
-      <span>{revisions}</span>
+      <span>{stats?.views}</span>
+      <span>{stats?.revisions}</span>
     </div>
   ),
 }));
@@ -163,10 +174,14 @@ const config = {
     // Mock Prisma findUnique (main page data)
     (prisma.wikiPage.findUnique as jest.Mock).mockResolvedValue(mockWikiPage);
 
-    // Mock Prisma findFirst for prev/next pages
-    (prisma.wikiPage.findFirst as jest.Mock)
-      .mockResolvedValueOnce(mockPrevPage) // First call: prevPage
-      .mockResolvedValueOnce(mockNextPage); // Second call: nextPage
+    // Mock Prisma findFirst for prev/next pages - use mockImplementation to handle multiple calls
+    let findFirstCallCount = 0;
+    (prisma.wikiPage.findFirst as jest.Mock).mockImplementation(() => {
+      findFirstCallCount++;
+      if (findFirstCallCount === 1) return Promise.resolve(mockPrevPage);
+      if (findFirstCallCount === 2) return Promise.resolve(mockNextPage);
+      return Promise.resolve(null);
+    });
 
     // Mock Prisma groupBy for categories
     (prisma.wikiPage.groupBy as jest.Mock).mockResolvedValue([
@@ -177,6 +192,19 @@ const config = {
 
     // Mock WikiRevision findMany (revision history)
     (prisma.wikiRevision.findMany as jest.Mock).mockResolvedValue([]);
+
+    // Mock WikiPageAnalytics findUnique (analytics data)
+    (prisma.wikiPageAnalytics.findUnique as jest.Mock).mockResolvedValue({
+      wikiPageId: 1,
+      viewCount: 1250,
+      uniqueVisitors: 450,
+      avgReadTimeMs: 300000,
+      positiveVotes: 85,
+      negativeVotes: 5,
+      popularity: 0.87,
+      trend: 0.12,
+      refreshedAt: new Date('2025-11-11T00:00:00Z'),
+    });
   });
 
   describe('Full page rendering', () => {

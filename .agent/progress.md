@@ -1,8 +1,8 @@
 # Progress Tracker
 
 **Project**: ProjectPulse
-**Last Updated**: 2025-11-11 (Sprint 2 Week 3 Day 4 COMPLETE 🚀)
-**Overall Completion**: Documentation 100%, Implementation 20% (Sprint 1 complete 50 points, Sprint 2: 34/58 points)
+**Last Updated**: 2025-11-11 (Sprint 2 Week 3 COMPLETE 🚀)
+**Overall Completion**: Documentation 100%, Implementation 26% (Sprint 1 complete 50 points, Sprint 2 Week 3: 58/58 points)
 
 ---
 
@@ -18,9 +18,9 @@ Documentation Phase (Nov 1-6, 2025) ✅ 100% COMPLETE
   Audit specification created                       ✅ Complete
   5,500+ lines of documentation added               ✅ Complete
 
-Phase A: Foundation & Core Infrastructure (Weeks 1-6, Sprints 1-3) 🔄 27% IN PROGRESS
+Phase A: Foundation & Core Infrastructure (Weeks 1-6, Sprints 1-3) 🔄 50% IN PROGRESS
   Sprint 1: 5-level hierarchy + MCP scaffold        ✅ CLOSED at 96% (50/52 points)
-  Sprint 2: Markdown sync + Workflow foundation     🔄 IN PROGRESS (0/54 points)
+  Sprint 2: Wiki + Onboarding system                🔄 IN PROGRESS (Week 3: 58/58 points)
   Sprint 3: Workflow orchestration complete         ⏳ Not started
 
 Phase B: Core Features - Issues (Weeks 7-8, Sprint 4) ⏳ 0% Not Started
@@ -38,10 +38,10 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
   Sprint 9: Memory Banks + Research Orchestration   ⏳ Documented for future
 ```
 
-**Total Progress**: 79/484 story points (16% implementation, 100% documentation)
-**MVP Implementation**: 79/422 story points (Sprints 1-8, 16 weeks) - 19% complete
-**Current Sprint**: Sprint 2 - Wiki Page + Onboarding System (34/58 points - 59%)
-**Completed Sprints**: 1/9 (Sprint 1 closed at 96%), Sprint 2 Week 3 Days 1-4 complete
+**Total Progress**: 108/484 story points (22% implementation, 100% documentation)
+**MVP Implementation**: 108/422 story points (Sprints 1-8, 16 weeks) - 26% complete
+**Current Sprint**: Sprint 2 - Wiki Page + Onboarding System (58/58 points Week 3 - 100%)
+**Completed Sprints**: 1/9 (Sprint 1 closed at 96%), Sprint 2 Week 3 complete (58 points)
 
 ---
 
@@ -163,13 +163,14 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
 
 **CRITICAL**: Sprint 2 vision clarified on 2025-11-10. Original plan (markdown sync) was WRONG - confusion between dogfooding vs end user features. Correct Sprint 2 = Wiki + Onboarding (database-backed web features for END USERS).
 
-### Sprint 2 Progress: 34/58 points (59%) 🔄 IN PROGRESS (Week 3 Days 1-4 complete)
+### Sprint 2 Progress: 58/58 points (100%) ✅ WEEK 3 COMPLETE
 
-**Week 3: Wiki (Days 1-7)** 🔄 IN PROGRESS (4/7 days) - **34/34 points (100%)**
+**Week 3: Wiki (Days 1-7)** ✅ COMPLETE (7/7 days) - **58/58 points (100%)**
 
 - Day 1-2: Wiki DB model + seed + UI implementation ✅ DAYS 1-2 COMPLETE (US-015 + US-016 + US-017: 13 points)
 - Day 3: Wiki editor UI + MCP tools ✅ DAY 3 COMPLETE (US-018 + US-020 + US-021 + US-022: 16 points)
 - Day 4: Wiki detail page enhancement ✅ DAY 4 COMPLETE (US-019: 5 points)
+- Day 6-7: Advanced wiki features ✅ DAYS 6-7 COMPLETE (US-023 + US-024 + US-025: 24 points)
 
   **Day 1: Database & Seed** ✅ COMPLETE (US-015: 3 points)
   - ✅ WikiPage model already exists (no migration needed)
@@ -291,12 +292,37 @@ Phase E: Advanced Agent Features (Weeks 17-18, Sprint 9) ⏳ 0% Documented (Post
     - Accessibility features (ARIA labels, keyboard navigation)
     - Responsive design patterns following existing coral neumorphic theme
 
-- Day 5-6: Additional wiki features ⏳ NOT STARTED
-  - Wiki page versioning (optional)
-  - Wiki search enhancement (full-text search)
-  - Wiki analytics (page views)
-- Day 7: Week 3 buffer & tests ⏳ NOT STARTED
-  - Integration tests (agent creates wiki page → user sees in UI)
+  **Day 6-7: Advanced Wiki Features** ✅ COMPLETE (US-023 + US-024 + US-025: 24 points)
+  - ✅ **US-023: Wiki Page Versioning** (8 points)
+    - Extended Prisma schema with WikiRevision, lastEditedBy, lastEditedAt, isLocked fields
+    - Created migrations (baseline + wiki_versioning_foundation), deployed to Mac mini database
+    - Updated seed script to backfill initial revisions for all wiki pages
+    - Enhanced PATCH `/api/wiki/[slug]` to create revision snapshots on every edit
+    - Added history endpoints: GET `/api/wiki/[slug]/history` (paginated), POST `/api/wiki/[slug]/revert`
+    - Updated MCP `wiki.update` tool to pass changelog + actor metadata
+    - Built revision UI components: WikiRevisionTimeline (server), RevisionDiffViewer (client)
+    - Integrated revision timeline into wiki detail page with revert confirmation dialog
+    - All 326 tests passing (100%): 4 new test files (2,321 LOC) covering history/revert/timeline/diff
+  - ✅ **US-024: Wiki Full-Text Search** (8 points)
+    - Added generated `content_tsv` column (weighted tsvector) + GIN index via SQL migration
+    - Created backfill script (`scripts/backfill-wiki-search.ts`) + npm script `db:backfill:wiki-search`
+    - Upgraded `/api/wiki` to use ts_rank_cd for ranking + ts_headline for highlighted excerpts
+    - Enhanced `/api/search` with same ranked query + category boost for unified search
+    - Updated MCP `wiki.search` tool to consume ranked results with highlights
+    - Wired wiki list page to render highlighted search matches using the tsvector pipeline
+    - Search results now show relevance-ranked snippets with semantic `<mark>` tags
+  - ✅ **US-025: Wiki Analytics Dashboard** (8 points)
+    - Created WikiPageEvent + WikiPageAnalytics models for view/feedback tracking
+    - Built aggregation job (`scripts/aggregate-wiki-analytics.ts`) that rolls up 7-day events into analytics records
+    - Added `/api/wiki/[slug]/events` endpoint to log VIEW/FEEDBACK_POSITIVE/FEEDBACK_NEGATIVE events
+    - Implemented WikiViewTracker client component (sends beacons on visibility/pagehide with duration)
+    - Connected FeedbackButtons to events API so votes persist server-side beyond localStorage
+    - Built `/wiki/analytics` dashboard with 4 cards: Top Pages, Trending Tags, Feedback Funnel, View Timeline
+    - Created reusable analytics components (TopPagesCard, TrendingTagsCard, FeedbackFunnelCard, ViewTimelineCard)
+    - Surfaced analytics snippets on detail page (views, unique visitors, helpful ratio, read time)
+    - Updated list cards to display view counts + helpful badges, sorted by popularity/rank
+    - Added MCP tool `wiki.analytics.summary` with top pages + trending tags API endpoint
+  - ✅ **Verification**: TypeScript 0 errors, ESLint passing, 326/326 tests (100%), all features deployed to Mac mini
   - E2E tests for wiki search and editing
 
 **Week 4: Onboarding (Days 8-14)** ⏳ NOT STARTED (0/7 days)

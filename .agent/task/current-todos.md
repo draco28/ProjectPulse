@@ -22,15 +22,15 @@
 8. [x] Integrate revision UI into `/wiki/[slug]` with revert CTA + confirmation dialog
 
 ## Day 7 – Search + Analytics (US-024, US-025)
-9. [ ] Add `content_tsv` generated column + GIN index via SQL migration
-10. [ ] Backfill search vectors + add script for future updates
-11. [ ] Upgrade `/api/wiki` + `/api/search` to support `query`, `ts_rank`, category boosts
-12. [ ] Update MCP `wiki.search` + client search UI to show ranked results + highlights
-13. [ ] Create `WikiPageEvent` + `WikiPageAnalytics` models + aggregation job
-14. [ ] Instrument view + feedback events (server action + API endpoint)
-15. [ ] Build `/wiki/analytics` page + shared components (TopPages, TrendingTags, FeedbackFunnel)
-16. [ ] Surface analytics snippets on list/detail (views, helpful %, popularity sort)
-17. [ ] (Stretch) Add MCP tool `wiki.analytics.topPages` if time remains
+9. [x] Add `content_tsv` generated column + GIN index via SQL migration
+10. [x] Backfill search vectors + add script for future updates
+11. [x] Upgrade `/api/wiki` + `/api/search` to support `query`, `ts_rank`, category boosts
+12. [x] Update MCP `wiki.search` + client search UI to show ranked results + highlights
+13. [x] Create `WikiPageEvent` + `WikiPageAnalytics` models + aggregation job
+14. [x] Instrument view + feedback events (server action + API endpoint)
+15. [x] Build `/wiki/analytics` page + shared components (TopPages, TrendingTags, FeedbackFunnel)
+16. [x] Surface analytics snippets on list/detail (views, helpful %, popularity sort)
+17. [x] (Stretch) Add MCP tool `wiki.analytics.topPages` if time remains
 
 ## Verification & Documentation
 18. [ ] Run `pnpm lint`, `pnpm type-check`, `pnpm test`, targeted Playwright flows

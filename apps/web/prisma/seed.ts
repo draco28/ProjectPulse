@@ -1848,6 +1848,40 @@ pnpm prisma migrate status
 
   console.log(`✓ Wiki seeding complete: ${rootPages.length + childPages.length} pages total\n`);
 
+  console.log('[wiki] Capturing initial wiki revisions...');
+  const allWikiPages = await prisma.wikiPage.findMany();
+
+  await prisma.$transaction(
+    allWikiPages.map((page) =>
+      prisma.wikiRevision.create({
+        data: {
+          wikiPageId: page.id,
+          version: page.version,
+          title: page.title,
+          excerpt: page.excerpt,
+          content: page.content,
+          diffSummary: 'Initial import from seed script',
+          createdBy: 'seed-script',
+          createdByType: 'system',
+        },
+      })
+    )
+  );
+
+  await prisma.$transaction(
+    allWikiPages.map((page) =>
+      prisma.wikiPage.update({
+        where: { id: page.id },
+        data: {
+          lastEditedBy: 'Seed Script',
+          lastEditedAt: page.updatedAt,
+        },
+      })
+    )
+  );
+
+  console.log(`✓ Seeded ${allWikiPages.length} wiki revisions\n`);
+
   // ========================================================================
   // SECURITY FINDINGS
   // ========================================================================

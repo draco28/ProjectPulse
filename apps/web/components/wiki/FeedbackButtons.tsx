@@ -5,11 +5,12 @@ import { ThumbsUp, ThumbsDown } from 'lucide-react';
 
 interface FeedbackButtonsProps {
   pageId: number;
+  slug: string;
 }
 
 type FeedbackValue = 'helpful' | 'not-helpful' | null;
 
-export function FeedbackButtons({ pageId }: FeedbackButtonsProps) {
+export function FeedbackButtons({ pageId, slug }: FeedbackButtonsProps) {
   const [feedback, setFeedback] = useState<FeedbackValue>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,16 +48,20 @@ export function FeedbackButtons({ pageId }: FeedbackButtonsProps) {
       // User feedback still saved in React state, so UI remains functional
     }
 
-    // TODO (US-023): Send to API
-    // try {
-    //   await fetch('/api/wiki/feedback', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ pageId, value })
-    //   });
-    // } catch (error) {
-    //   console.error('Failed to submit feedback:', error);
-    // }
+    if (value) {
+      try {
+        await fetch(`/api/wiki/${slug}/events`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: value === 'helpful' ? 'FEEDBACK_POSITIVE' : 'FEEDBACK_NEGATIVE',
+            metadata: { source: 'feedback-buttons' },
+          }),
+        });
+      } catch (error) {
+        console.warn('Failed to record feedback event', error);
+      }
+    }
 
     setIsLoading(false);
   };
