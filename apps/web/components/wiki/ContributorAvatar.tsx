@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { generateInitials } from '@/lib/utils/text';
 
 interface Contributor {
   name: string;
@@ -56,16 +57,4 @@ export function ContributorAvatar({
   }
 
   return avatar;
-}
-
-function generateInitials(name: string): string {
-  const initials = name
-    .trim()
-    .split(/\s+/)
-    .map(word => word[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-  return initials || 'U'; // Fallback to 'U' for "User"
 }

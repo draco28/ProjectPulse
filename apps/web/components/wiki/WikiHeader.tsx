@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Edit, Clock, Eye } from 'lucide-react';
 import { ContributorAvatar } from './ContributorAvatar';
+import { formatRelativeTime } from '@/lib/utils/date';
 
 interface Contributor {
   name: string;
@@ -106,19 +107,4 @@ export function WikiHeader({
       </div>
     </div>
   );
-}
-
-// Helper: Format relative time
-function formatRelativeTime(isoString: string): string {
-  const date = new Date(isoString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 60) return `${diffMins} minutes ago`;
-  if (diffHours < 24) return `${diffHours} hours ago`;
-  if (diffDays < 7) return `${diffDays} days ago`;
-  return date.toLocaleDateString();
 }

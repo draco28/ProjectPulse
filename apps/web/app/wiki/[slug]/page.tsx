@@ -8,6 +8,7 @@ import { QuickNavigation } from '@/components/wiki/QuickNavigation';
 import { WikiContent } from '@/components/wiki/WikiContent';
 import { WikiContributors } from '@/components/wiki/WikiContributors';
 import { WikiFooterNav } from '@/components/wiki/WikiFooterNav';
+import { parseContributors, parseTags, type Contributor } from '@/lib/validations/wiki';
 import NextLink from 'next/link';
 
 interface PageProps {
@@ -18,13 +19,6 @@ interface PageProps {
 
 // ISR: Revalidate every hour (3600 seconds)
 export const revalidate = 3600;
-
-interface Contributor {
-  name: string;
-  avatar?: string;
-  editCount: number;
-  lastEditAt: string;
-}
 
 interface Category {
   name: string;
@@ -121,15 +115,9 @@ async function getWikiPage(slug: string) {
     })
   ]);
 
-  // Safely convert JSON fields
-  const contributors = Array.isArray(page.contributors)
-    ? (page.contributors as unknown[]).filter(item =>
-        item && typeof item === 'object' && 'name' in item && 'editCount' in item
-      ) as Contributor[]
-    : [];
-  const tags = Array.isArray(page.tags)
-    ? (page.tags as unknown[]).filter(item => typeof item === 'string') as string[]
-    : [];
+  // Safely parse and validate JSON fields using Zod
+  const contributors = parseContributors(page.contributors);
+  const tags = parseTags(page.tags);
 
   return {
     ...page,

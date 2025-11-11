@@ -161,3 +161,59 @@ export function generatePath(title: string): string {
     .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
     .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
 }
+
+/**
+ * Contributor schema - validates contributor JSON from database
+ * Used for runtime validation of JSON fields
+ */
+export const ContributorSchema = z.object({
+  name: z.string().min(1),
+  avatar: z.string().url().optional(),
+  editCount: z.number().int().nonnegative(),
+  lastEditAt: z.string() // ISO date string
+});
+
+export type Contributor = z.infer<typeof ContributorSchema>;
+
+/**
+ * Parse and validate contributors array from database JSON field
+ * Filters out invalid entries and returns type-safe array
+ *
+ * @param data - Unknown data from database (Prisma JSON field)
+ * @returns Validated contributor array
+ *
+ * @example
+ * const contributors = parseContributors(wikiPage.contributors);
+ * // Type: Contributor[] with guaranteed structure
+ */
+export function parseContributors(data: unknown): Contributor[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data
+    .map(item => {
+      const result = ContributorSchema.safeParse(item);
+      return result.success ? result.data : null;
+    })
+    .filter((item): item is Contributor => item !== null);
+}
+
+/**
+ * Parse and validate tags array from database JSON field
+ * Filters out non-string or empty values
+ *
+ * @param data - Unknown data from database (Prisma JSON field)
+ * @returns Validated string array
+ *
+ * @example
+ * const tags = parseTags(wikiPage.tags);
+ * // Type: string[] with guaranteed non-empty strings
+ */
+export function parseTags(data: unknown): string[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.filter((item): item is string => typeof item === 'string' && item.length > 0);
+}

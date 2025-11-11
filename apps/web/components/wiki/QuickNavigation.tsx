@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search, FileText } from 'lucide-react';
 import * as Icons from 'lucide-react';
 
@@ -19,14 +20,40 @@ interface QuickNavigationProps {
 
 export function QuickNavigation({ categories, currentCategory }: QuickNavigationProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Navigate to search results
-      window.location.href = `/wiki?q=${encodeURIComponent(searchQuery)}`;
+      // Use Next.js router for client-side navigation
+      router.push(`/wiki?q=${encodeURIComponent(searchQuery)}`);
     }
   };
+
+  // Memoize category list to prevent unnecessary re-renders
+  const categoryLinks = useMemo(() => {
+    return categories.map((category) => {
+      const isActive = category.slug === currentCategory;
+      const IconComponent = (Icons as any)[category.icon] || FileText;
+
+      return (
+        <Link
+          key={category.slug}
+          href={`/wiki?category=${category.slug}`}
+          className={`sidebar-item block px-3 py-2.5 text-sm rounded-xl smooth-transition ${
+            isActive
+              ? 'active text-coral bg-coral/10'
+              : 'text-slate hover:text-white hover:bg-coral/5'
+          }`}
+          aria-current={isActive ? 'page' : undefined}
+        >
+          <IconComponent className="inline-block mr-2 h-4 w-4" aria-hidden="true" />
+          {category.name}
+          <span className="float-right text-xs text-slate">{category.count}</span>
+        </Link>
+      );
+    });
+  }, [categories, currentCategory]);
 
   return (
     <aside className="w-64 flex-shrink-0">
@@ -50,27 +77,7 @@ export function QuickNavigation({ categories, currentCategory }: QuickNavigation
 
         {/* Category Navigation */}
         <nav className="space-y-1" aria-label="Wiki categories">
-          {categories.map((category) => {
-            const isActive = category.slug === currentCategory;
-            const IconComponent = (Icons as any)[category.icon] || FileText;
-
-            return (
-              <Link
-                key={category.slug}
-                href={`/wiki?category=${category.slug}`}
-                className={`sidebar-item block px-3 py-2.5 text-sm rounded-xl smooth-transition ${
-                  isActive
-                    ? 'active text-coral bg-coral/10'
-                    : 'text-slate hover:text-white hover:bg-coral/5'
-                }`}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                <IconComponent className="inline-block mr-2 h-4 w-4" aria-hidden="true" />
-                {category.name}
-                <span className="float-right text-xs text-slate">{category.count}</span>
-              </Link>
-            );
-          })}
+          {categoryLinks}
         </nav>
       </div>
     </aside>
