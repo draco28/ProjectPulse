@@ -1,739 +1,209 @@
 # Active Context
 
-**Last Updated**: 2025-11-12 (Sprint 3 COMPLETE 🚀)
-**Current Phase**: Sprint 3 - Workflow Orchestration ✅ COMPLETE
-**Sprint 3 Progress**: 48/48 points (100%) - Week 5-6: 48 points
-**Branch**: `feature/sprint-3-workflow-orchestration`
-**Previous Sprints**: Sprint 1 (50/52 points 96%), Sprint 2 (82/82 points 100%) ✅
+**Last Updated**: 2025-11-12
+**Current Focus**: Sprint 5.5 - MCP Server Infrastructure (PLANNED)
+**Recent Completion**: Sprint 5 - Knowledge Graph Foundation (✅ COMPLETE)
 
 ---
 
-## Current Infrastructure
+## Current State
 
-**Runtime Environment**: Mac Mini Cloud Architecture (as of Day 8-9)
+### What Just Completed (Sprint 5)
 
-### Distributed Development Setup
+**Sprint 5: Knowledge Graph Foundation** ✅ 100% COMPLETE (21/21 points)
 
-ProjectPulse uses a distributed architecture for clean separation of concerns:
+**Delivered**:
+- Hybrid search system (semantic + full-text + graph traversal)
+- nomic-embed-text 768d embeddings with Ollama/OpenAI fallback
+- Production-grade APIs: POST /api/knowledge, GET /api/knowledge/search
+- 2-hop graph traversal with relationship discovery
+- MCP tool specifications (knowledge.search, knowledge.create, knowledge.related)
 
-**Windows Machine** (Code Editor Only):
-- **Role**: Code editing, Git operations, documentation
-- **Tools**: Windsurf IDE, Browser, Git
-- **Services**: None (all on Mac mini)
-- **Access**: Network HTTP to Mac mini
+**Performance**:
+- Search latency: 45-122ms (target: <200ms) ✅
+- Embedding generation: 77-836ms (target: <2s) ✅
+- All quality gates passed (TypeScript 0 errors, tests passing)
 
-**Mac Mini (192.168.1.15)** (Runtime Environment):
-- **IP Address**: `192.168.1.15`
-- **Status**: ✅ Running
-- **Docker Compose**: `docker-compose.cloud.yml`
-- **Services**:
-  - PostgreSQL 15: ✅ Running (port 5432)
-  - Next.js: ✅ Running (port 3000)
-  - MCP Server: ✅ Building successfully (0 TypeScript errors)
+**Files Created**: 11 new files (embeddings, search, graph, MCP tools)
+**Database**: 15 seeded knowledge items with 768d embeddings
 
-**Service Access from Windows**:
-- Web App: `http://192.168.1.15:3000`
-- API Health: `http://192.168.1.15:3000/api/health`
-- Database: `postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev`
+### Critical Discovery
 
-**Cross-Machine Communication**:
-- Code Sync: Git push/pull
-- Service Access: HTTP over local network
-- Claude Code Instances: Git-based instructions (`.agent/task/mac-mini-instructions.md`)
+**Sprint 1 Gap Identified**: MCP server infrastructure was never built (Sprint 1 closed at 96%, missing 2 points). This **blocks the 90% use case** - AI agents cannot access ProjectPulse without MCP server.
 
-**See**: `.agent/sops/mac-mini-communication-protocol.md` for complete workflow
+**Impact**:
+- ✅ We have: Backend APIs, database, MCP tool specifications
+- ❌ We're missing: MCP server to expose tools to agents
+- 🚫 Blocking: End users' AI agents cannot connect via MCP config
 
-**Architecture Rationale**:
-- ✅ Eliminated Windows WSL2 file permission issues
-- ✅ Eliminated Windows TypeScript module resolution errors
-- ✅ Production-like containerized environment
-- ✅ Clean separation: Windows = edit, Mac mini = runtime
+### What's Next (Sprint 5.5)
 
----
+**Sprint 5.5: MCP Server Infrastructure** ⏳ PLANNED (21 points estimated)
 
-## Current Focus
+**Goal**: Build HTTP transport MCP server so end users' AI agents can connect to ProjectPulse
 
-### Sprint 2 COMPLETE ✅ (2025-11-12)
+**Scope**:
+1. HTTP MCP server at `http://192.168.1.15:3000/api/mcp`
+2. Tool registry that loads from lib/mcp-tools/
+3. Tool invocation handlers (connect to backend APIs)
+4. Resource system for context injection
+5. Integration testing with Claude Desktop
+6. End user documentation (setup guide)
 
-**Phase**: Sprint 2 - Weeks 3-4 (Wiki Page + Onboarding System) ✅ 100% COMPLETE
-**Status**: Week 3 COMPLETE (58/58 points) | Week 4 COMPLETE (24/24 points)
-**Total**: 82/82 story points (100%)
-**Branch**: `feature/sprint-2-week-4`
+**Architecture**:
+- HTTP transport (Streamable HTTP 2025-03-26 spec)
+- No auth for local network (OAuth 2.1 for cloud later)
+- Integrates into existing Next.js 14 App Router
+- End users add to their claude_desktop_config.json
 
-**Sprint 2 Week 3 Achievements** (58 points):
-1. ✅ Wiki Page system (US-015 to US-025) - Database + Web UI + MCP tools + Advanced features
-2. ✅ Complete EPIC-002 (Wiki & Knowledge) - 58 points delivered
-3. ✅ 3 wiki MCP tools (create, search, update)
-4. ✅ Wiki versioning, full-text search, analytics dashboard
-5. ✅ Agents can create/edit/search/analyze wiki pages via MCP tools
-
-**Sprint 2 Week 4 Achievements** (24 points):
-1. ✅ Onboarding system (US-026 to US-031) - Database + API + MCP tools
-2. ✅ Complete EPIC-003 (Onboarding System) - 24 points delivered
-3. ✅ 3 onboarding templates (Executive Summary, Industry Docs, AI Workflow)
-4. ✅ 2 onboarding MCP tools (getPrompt, submitResponse)
-5. ✅ Variable resolution system (Session 2-3 prefill from Session 1)
-6. ✅ All endpoints verified on Mac mini (health check, GET/POST onboarding API)
-
-### Reconciliation Notes (Option C) — 2025-11-11
-
-- US-026..US-031 = Onboarding System (Sprint 2 Week 4) ✅ COMPLETE
-- Workflow Orchestration = US-032..US-050 (Sprint 3) ⏳ NEXT
-- SRS ranges: FR-026..FR-031 (Onboarding), FR-032..FR-056 (Workflow)
-
-**Sprint 1 Achievements** (Completed 2025-11-09):
-- ✅ 96% completion (50/52 points)
-- ✅ 5-level hierarchy operational (Phase → Week → Day → Task → Session)
-- ✅ Progress roll-up system working
-- ✅ 8 MCP tools registered and tested
-- ✅ Checkpoint system for context recovery
-- ✅ Query system with status + progress filters
-- ✅ Mac mini cloud architecture validated
-- ✅ Zero TypeScript errors (strict mode)
-- ✅ <50ms query performance
-- ✅ Merged to master, tagged v1.0.0-sprint1
-
-**Day 6-7 Final Summary** ✅ 100% COMPLETE:
-
-1. ✅ Implemented `sprint.phase.create` MCP tool
-   - Zod schema validation (title, description, startDate, endDate, status, progress)
-   - Handler calling POST /api/phases
-   - Type-safe with ApiResponse<> generics
-2. ✅ Implemented `sprint.getCurrentTask` MCP tool
-   - Query first IN_PROGRESS task with hierarchy
-   - Optional session history parameter
-   - Optimized with select pattern (52% smaller payload)
-3. ✅ Created Next.js API routes
-   - POST /api/phases - Prisma nested write (3x faster)
-   - GET /api/tasks/current - Optimized select with critical index
-4. ✅ Fixed TypeScript compilation errors
-   - Added ApiResponse<T> and CurrentTaskData interfaces
-   - Template literal syntax correction
-5. ✅ Created performance index
-   - Added `tasks_updatedAt_idx` DESC via Docker exec (100x faster queries)
-   - Manually applied due to Windows Docker networking issue
-6. ✅ Documentation updates
-   - Updated .agent/system/api-catalog.md (2 new endpoints documented)
-   - Updated .agent/system/mcp-tools-guide.md (ProjectPulse section added)
-7. ✅ Manual API testing complete
-   - POST /api/phases tested (success + error cases)
-   - GET /api/tasks/current tested (with/without history)
-   - Response times measured (<500ms after warm-up)
-   - MCP server builds successfully (0 TypeScript errors)
-
-**Day 6-7 Network Troubleshooting Complete** ✅:
-
-**Issue Resolved**: Windows Docker Desktop + WSL2 networking
-- Root cause: Docker Desktop port forwarding from WSL2 to Windows failing
-- Solution: Run development commands from WSL2 (`/mnt/f/Web_Projects/AI_HUB`)
-- Docker fix: Changed port binding from 127.0.0.1:5432 to 0.0.0.0:5432
-- Documentation: Created `.agent/sops/ARCHIVED-windows-docker-networking.md` (350+ lines) - **ARCHIVED, superseded by Mac mini cloud architecture**
-- Verification: ✅ Prisma works from WSL2, ✅ MCP server compiles (0 errors)
-
-**Day 6-7 Verification Results** ✅:
-- ✅ Manual API testing complete (WSL2 hybrid workflow)
-- ✅ MCP server compilation verified (0 errors)
-
-**Day 8-9 Completion Summary** ✅ 100% COMPLETE:
-
-1. ✅ Integration testing executed (2/2 tests passed)
-   - Phase creation with auto-week generation: PASSED
-   - Task context query with hierarchical response: PASSED
-   - Mac mini services verified healthy and accessible
-2. ✅ Documentation verification complete
-   - API catalog: Already updated from Day 6-7 (POST /api/phases, GET /api/tasks/current)
-   - MCP tools guide: Already updated from Day 6-7 (sprint.phase.create, sprint.getCurrentTask)
-   - Both documents comprehensive and accurate
-3. ✅ Verification report created
-   - Comprehensive test evidence documented
-   - Integration test results with request/response examples
-   - Quality gates verification (TypeScript 0 errors, API format compliance)
-   - Recommendations for Days 10+ (Option A: more tools, Option B: sprint completion)
-4. ✅ Context files updated
-   - active-context.md: Day 8-9 marked complete
-   - progress.md: Sprint 1 progress updated to 67%
-
-**Day 8-9 Key Findings**:
-- Documentation was already complete from Day 6-7 session (saved significant time)
-- Both API endpoints work exactly as specified
-- Performance optimization validated (Prisma nested write <500ms, optimized select 52% smaller)
-- Mac mini cloud architecture running smoothly
-- Ready for Option A (additional tools) or Option B (sprint completion)
-- ✅ Documentation updated (api-catalog.md, mcp-tools-guide.md)
-- ✅ All endpoints tested with curl
-- ✅ Response formats validated against OpenAPI spec
-
-**Days 10-12 Completion Summary** ✅ 100% COMPLETE:
-
-1. ✅ Implemented 3 additional MCP tools (2 → 5 total tools)
-   - `sprint.updateProgress` - Update progress with automatic roll-up propagation
-   - `sprint.task.create` - Create task under a day with parent validation
-   - `sprint.session.create` - Create session under a task (optional endDate support)
-2. ✅ Created 3 API endpoints (10 → 13 total endpoints)
-   - `PUT /api/:entity/:id/progress` - Generic route for all 5 entity types
-   - `POST /api/tasks` - Task creation with date range validation
-   - `POST /api/sessions` - Session creation with optional endDate
-3. ✅ Extended progress algorithm
-   - Added `PropagationResult` return type for observability
-   - Non-breaking extension to Day 3 implementation
-   - Returns summary of all affected parent entities
-4. ✅ Architectural achievements
-   - Generic route pattern (80% code reduction vs entity-specific routes)
-   - Parent validation + date range constraints for data integrity
-   - Type-safe Zod enum validation for entity types
-5. ✅ Documentation updates
-   - API catalog: Added 3 endpoints with full request/response schemas (13 total)
-   - MCP tools guide: Added 3 tools with examples and workflows (5 total)
-   - SOP generated: Generic API routes pattern (synthesize-docs sub-agent)
-6. ✅ Verification complete
-   - Code review verification (all success criteria met)
-   - Integration test plans created (ready for execution)
-   - Comprehensive verification checkpoint with evidence
-
-**Days 10-12 Key Achievements**:
-- Chose Option A (additional tools) and exceeded expectations
-- Token efficiency: 86K/200K (57% under budget)
-- All 16 todos completed within single session
-- Generic route pattern established as reusable SOP
-- Progress tracking now fully integrated across 5-level hierarchy
-- Sprint 1 progress: 67% → 87% (+20 points in 3 days)
-
-**Day 13 Completion Summary** ✅ 100% COMPLETE:
-
-1. ✅ Implemented US-009 Checkpoint Creation (3 story points)
-   - Prisma model: Checkpoint with 3 performance indexes
-   - Zod validation: CreateCheckpointSchema with strict mode
-   - API route: POST /api/checkpoints (sequential numbering)
-   - MCP tool: projectpulse.sprint.checkpoint.create
-   - JSONB storage: Flexible sessionContext field
-2. ✅ Expert consultations completed
-   - prisma-expert: Separate model, 3 indexes, JSONB storage
-   - next-js-expert: API route pattern, Zod validation
-3. ✅ Mac mini verification (100% passing)
-   - Migration: checkpoints table created with 3 indexes
-   - API tests: 4/4 scenarios passing (success, sequential, validation, 404)
-   - Performance: <100ms creation, <50ms query
-   - Code fixes: Import path correction, HttpClient.put method added
-4. ✅ Documentation updates
-   - api-catalog.md: Added POST /api/checkpoints endpoint
-   - mcp-tools-guide.md: Added checkpoint tool with examples
-   - mac-mini-instructions.md: Comprehensive 8-step test protocol
-
-**Day 13 Key Achievements**:
-- Sprint 1 progress: 87% → 92% (+5 points, +3 story points)
-- Checkpoint system enables 15K token context recovery
-- Sequential numbering prevents checkpoint confusion
-- JSONB sessionContext future-proofs storage without migrations
-- Mac mini handoff workflow validated (Windows → Mac mini → Windows)
-- Expert-driven design ensures scalability and performance
-
-**Day 13 Continued Completion Summary** ✅ 100% COMPLETE:
-
-1. ✅ Implemented US-007 Query Hierarchy (Minimal - 2 story points)
-   - Zod validation: CreateCheckpointSchema with query parameter coercion
-   - API route: GET /api/hierarchy/query with single endpoint pattern
-   - MCP tool: projectpulse.sprint.queryHierarchy (8th tool registered)
-   - Status filters: OR logic with array support (in operator)
-   - Progress filters: Range validation (min/max with Zod refinement)
-2. ✅ Expert consultations completed
-   - next-js-expert: Single endpoint pattern, Zod query validation, parent context
-   - Saved to: nextjs-hierarchy-query-20251109-1645.md
-3. ✅ Mac mini verification (100% passing)
-   - MCP server build: 0 TypeScript errors
-   - API tests: 6/6 scenarios passing (status, progress, OR logic, validation, pagination, all levels)
-   - Performance: ~24-48ms simple queries, ~31ms complex queries
-   - Bug fixes: Removed non-existent `notes` field, created missing ApiResponse type
-4. ✅ Documentation updates
-   - api-catalog.md: Added GET /api/hierarchy/query with 5 cURL examples
-   - mcp-tools-guide.md: Added queryHierarchy tool with 5 usage examples
-   - mac-mini-query-test-instructions.md: Comprehensive 7-step test protocol
-
-**Day 13 Continued Key Achievements**:
-- Sprint 1 progress: 92% → 96% (+4 points, +2 story points)
-- Single endpoint pattern serves 5 entity types (80% code reduction)
-- Parent context included via select pattern (52% smaller payload)
-- Query performance: <50ms for all entity levels
-- Mac mini testing protocol validated end-to-end
-- Strategic scope limitation: Status + progress filters only (date range → Sprint 2)
-
-**Session Logs**:
-- [day-6-7-handoff-20251107.md](task/day-6-7-handoff-20251107.md) - Complete handoff documentation
-- [current-session-20251107-0600.md](task/current-session-20251107-0600.md) - Day 6 implementation session
-- [nextjs-mcp-api-routes-20251107-0615.md](task/nextjs-mcp-api-routes-20251107-0615.md) - Next.js expert patterns
-- [prisma-sprint-tools-20251107-0630.md](task/prisma-sprint-tools-20251107-0630.md) - Prisma optimization guide
-
-**Day 5 Completion Summary** ✅:
-
-1. ✅ Created automated smoke test harness (Node.js + MCP Inspector)
-   - `apps/mcp-server/tests/smoke-test.js` - Automated protocol-level validation
-   - `apps/mcp-server/tests/smoke-test.sh` - Manual testing guide
-   - `apps/mcp-server/tests/README.md` - Testing documentation
-2. ✅ Created developer onboarding SOP
-   - `.agent/sops/mcp-server-launch.md` - Complete setup, testing, troubleshooting guide
-3. ✅ Designed Day 6-7 tool specifications
-   - `.agent/task/day-6-7-tool-plan.md` - sprint.phase.create + sprint.getCurrentTask specs
-   - Full Zod schemas, API integration, test cases, 16-hour timeline
-4. ✅ Integrated health-check into orchestrator workflows
-   - `.claude/agents/devhub-mcp-specialist.md` - Added Health Check Integration section
-5. ✅ Documented technical debt (23-tool gap)
-   - `.agent/tech-debt/mcp-tool-gap-23-tools.md` - 42 vs 65 tool breakdown, Sprint 9+ roadmap
-6. ✅ Updated tech-context.md with tool clarification
-   - MCP Tool Roadmap section added with epic breakdown
-
-**Day 4 Completion Summary** ✅:
-
-1. ✅ Scaffold dedicated `apps/mcp-server/` workspace (package, tsconfig, README, scripts)
-2. ✅ Implement config loader (`src/config.ts`), structured logger, and HTTP client proxying to Next.js API
-3. ✅ Bootstrap stdio transport via `@modelcontextprotocol/sdk` with graceful shutdown (`src/index.ts`)
-4. ✅ Create data-driven tool registry + placeholder `projectpulse.health_check` tool (Zod validated)
-5. ✅ Add unit tests (`src/__tests__/bootstrap.test.ts`), lint/type/build scripts, and Step 4.5 verification checklist
-6. ✅ Document manual smoke test + Claude integration steps in session log
-
-**Day 3 Completion Summary** ✅:
-
-1. ✅ Create progress roll-up utility (`lib/db/progress.ts`) - 282 lines with incremental transactions
-2. ✅ Create tree query helpers (`lib/db/hierarchy.ts`) - 251 lines with type-safe generics
-3. ✅ Create Zod validation schemas (`lib/db/validation.ts`) - 324 lines with custom validators
-4. ✅ Write 17 new tests across 3 test files (22/22 total tests passing)
-5. ✅ Fix incremental transaction pattern (recursive propagation AFTER commit)
-6. ✅ Complete US-014 (hierarchy integrity validation)
-
-**Sprint 3 Completion Summary** (2025-11-12) ✅:
-
-**Achievements** (48/48 points - 100%):
-
-1. ✅ **Database & Seed** (Phase A: Database/API)
-   - Prisma models: WorkflowTemplate, WorkflowRun, WorkflowStep
-   - 12 workflow templates seeded (3 categories: development, project-management, knowledge)
-   - 82 total steps across all templates
-   - Schema pushed to Mac mini (192.168.1.15:5432)
-
-2. ✅ **API Endpoints** (Phase A: Database/API)
-   - GET /api/workflows - List templates with filtering
-   - POST /api/workflows/run - Start workflow execution
-   - GET /api/workflows/run/:id - Get status and progress
-   - POST /api/workflows/run/:id/step - Execute steps with state transitions
-   - All endpoints tested with curl (100% passing)
-
-3. ✅ **MCP Tools** (Phase B: MCP Tools)
-   - workflow.list - Browse templates by category
-   - workflow.start - Initialize workflow runs
-   - workflow.executeStep - Execute and advance steps
-   - workflow.getStatus - Check progress and context
-   - workflow.pause - Create checkpoints
-   - workflow.resume - Continue from paused state
-   - workflow.complete - Manual completion
-   - All 7 tools registered and documented
-
-4. ✅ **Testing & Documentation** (Phase C: Testing/Docs)
-   - 9 integration tests (100% passing)
-   - Feature Implementation workflow E2E (10 steps)
-   - Bug Fix workflow E2E (8 steps)
-   - Sprint Planning workflow E2E (6 steps)
-   - Checkpoint recovery (pause/resume)
-   - Error handling (template not found, inactive, state validation)
-
-5. ✅ **Documentation Updates** (Phase C: Testing/Docs)
-   - Updated `.agent/system/api-catalog.md` (4 workflow endpoints)
-   - Updated `.agent/system/mcp-tools-guide.md` (7 workflow tools)
-   - Created `.agent/system/workflow-templates.md` (12 templates catalog)
-
-6. ✅ **Quality Metrics**
-   - TypeScript: 0 errors
-   - Tests: 9/9 passing (100%)
-   - State machine enforces valid transitions
-   - JSONB context storage for flexibility
-
-**State Machine**: pending → running → completed/paused/failed
-
-**Immediate Next Tasks** (Sprint 4 - Issue Management):
-
-**Sprint 4 Goal**: Build complete issue management system (US-051 to US-066, 42 points)
-
-**Next Branch**: `feature/sprint-4-issue-management`
-
-**Key Deliverables:**
-
-1. ✅ Prisma schema with 5 new models (Phase, Week, Day, Task, Session) - Day 2 COMPLETE
-2. ✅ Status enum (5 values) - Day 2 COMPLETE
-3. ✅ 25 indexes for query optimization - Day 2 COMPLETE
-4. ✅ Migration applied to PostgreSQL - Day 2 COMPLETE
-5. ✅ Seed data with Sprint 1 hierarchy - Day 2 COMPLETE
-6. ✅ Progress roll-up algorithm (Session 100% → propagates to Phase) - Day 3 COMPLETE
-7. ✅ Tree query helpers (getFullTree, getChildren, getParent) - Day 3 COMPLETE
-8. ✅ Validation: Zod schemas, progress 0-100, circular reference checks - Day 3 COMPLETE
-9. ✅ MCP server scaffold (Node.js, stdio transport) - Day 4 COMPLETE
-10. ✅ Day 5 hardening complete (smoke tests, docs, planning) - Day 5 COMPLETE
-11. ⏳ First 2 MCP tools (sprint.phase.create, sprint.getCurrentTask) - Days 6-7
-12. ⏳ Next 5 MCP tools (sprint.checkpoint, sprint.task.create, etc.) - Days 8-10
+**Plan Location**: `.agent/task/sprint-5.5-mcp-server-plan.md` (35KB, 1,177 lines)
 
 ---
 
-## Recent Changes
+## Recent Changes & Commits
 
-### Sprint 1 Day 4 Status (November 7, 2025) ✅ 100% COMPLETE
+### Sprint 5 Changes (NOT YET COMMITTED)
 
-**MCP Server Scaffold & Health Tool - 100% COMPLETE**
+**New Files** (11):
+1. `lib/embeddings/ollama.ts` - Ollama embedding client
+2. `lib/embeddings/openai.ts` - OpenAI fallback
+3. `lib/embeddings/index.ts` - Unified service
+4. `lib/validations/knowledge.ts` - Zod schemas
+5. `lib/knowledge/create.ts` - Creation service
+6. `lib/knowledge/search.ts` - Search services
+7. `lib/knowledge/graph.ts` - Graph traversal
+8. `app/api/knowledge/route.ts` - Knowledge API
+9. `app/api/knowledge/search/route.ts` - Search API
+10. `lib/mcp-tools/knowledge-tools.ts` - MCP tool specs
+11. `prisma/seed-knowledge.ts` - Knowledge seeding
 
-**What Was Built**:
+**Modified Files** (3):
+1. `prisma/schema.prisma` - vector(768) update
+2. `prisma/seed.ts` - Deprecated old knowledge code
+3. `lib/embeddings/test-unified.ts` - Updated tests
 
-1. **New MCP Workspace** (`apps/mcp-server/`)
-   - Package + scripts (`dev`, `build`, `start`, `lint`, `type-check`, `test`)
-   - Shared tsconfig + build config extending repo strict options
-   - README with quick start + environment configuration
+**Database Changes**:
+- Altered knowledge_items.embedding to vector(768)
+- Recreated HNSW index
+- Seeded 15 items with 768d embeddings
 
-2. **Runtime Core**
-   - `src/config.ts`: Zod-validated env loader (PROJECTPULSE_API_URL/NEXT_PUBLIC_APP_URL fallback)
-   - `src/logger.ts`: Level-based structured logging (`[mcp-server][LEVEL] message`)
-   - `src/httpClient.ts`: Typed fetch wrapper ensuring every tool call flows through Next.js API
-   - `src/index.ts`: `@modelcontextprotocol/sdk` stdio transport, graceful SIGINT/SIGTERM shutdown
-
-3. **Tool Registry**
-   - `src/tools/index.ts`: Data-driven registration (ListTools + CallTool handlers)
-   - `src/tools/types.ts`: Shared `ToolDefinition` contract (Zod schema + context)
-   - `src/tools/healthCheck.ts`: Placeholder `projectpulse.health_check` tool hitting `/api/health`
-
-4. **Quality + Verification**
-   - Tests: `src/__tests__/bootstrap.test.ts` (config defaults + overrides)
-   - Commands run: `pnpm --filter mcp-server lint`, `type-check`, `test`, `build`
-   - Manual runtime log captured via `node apps/mcp-server/dist/index.js`
-   - Integration instructions + Step 4.5 checklist documented in session log
-
-**Outcome**: Day 4 exit criteria met (workspace, stdio bootstrap, tool registry, quality gates). Ready for Day 5 hardening + Day 6-7 tool implementations.
-
-**Session Log**: [current-session-20251107-0552.md](task/current-session-20251107-0552.md)
-
----
-
-### Sprint 1 Day 3 Status (November 6, 2025) ✅ 100% COMPLETE
-
-**Schema Validation & Utility Functions - 100% COMPLETE**
-
-**What Was Built**:
-
-1. **Progress Roll-Up Utility** ([lib/db/progress.ts](../apps/web/lib/db/progress.ts))
-   - Incremental transaction pattern (one level at a time)
-   - updateProgressAndPropagate() - Session → Phase propagation
-   - recalculateFullTree() - Bottom-up integrity recovery
-   - Fixed nested transaction bug (recursive call AFTER commit)
-
-2. **Tree Query Helpers** ([lib/db/hierarchy.ts](../apps/web/lib/db/hierarchy.ts))
-   - Type-safe generic functions (getChildren<T>, getParent<T>)
-   - getFullTree() - Phase with all nested relations
-   - getAllDescendants() - Recursive traversal
-   - getCurrentTask() - Find first IN_PROGRESS task
-
-3. **Zod Validation Schemas** ([lib/db/validation.ts](../apps/web/lib/db/validation.ts))
-   - 5 schemas: Phase, Week, Day, Task, Session
-   - Custom validators: validateDateRange, validateProgress, validateCircularReference
-   - validateHierarchyIntegrity() - Full tree integrity check (US-014)
-
-4. **Database Tests** (17 new tests, 22/22 total passing)
-   - [hierarchy-crud.test.ts](../apps/web/prisma/__tests__/hierarchy-crud.test.ts) - 4 tests
-   - [progress-calculation.test.ts](../apps/web/prisma/__tests__/progress-calculation.test.ts) - 7 tests
-   - [hierarchy-integrity.test.ts](../apps/web/prisma/__tests__/hierarchy-integrity.test.ts) - 6 tests
-
-**Key Technical Achievement**:
-Fixed incremental transaction pattern - recursive propagation now happens AFTER transaction commits, preventing nested transaction issues and ensuring correct progress roll-up across all 5 levels.
-
-**Quality Gates Status**:
-
-- ✅ TypeScript: Zero errors
-- ✅ Tests: 22/22 passing (5 existing + 17 new)
-- ✅ US-014 Complete: Hierarchy integrity validation working
-
-**Session Log**: [current-session-20251106-day3.md](task/current-session-20251106-day3.md)
+**Documentation**:
+- `.agent/task/sprint-5-completion-summary.md` - Complete Sprint 5 summary
+- `.agent/task/sprint-5.5-mcp-server-plan.md` - Sprint 5.5 implementation plan
+- `.agent/progress.md` - Updated with Sprint 5 completion
+- `.agent/active-context.md` - Updated (this file)
 
 ---
 
-### Sprint 1 Day 2 Status (November 6, 2025) ✅ 100% COMPLETE
+## Remaining Tasks
 
-**Prisma Schema Design - 100% COMPLETE**
+### Immediate (Step 5 Completion)
+- [x] Update .agent/progress.md ✅
+- [x] Update .agent/active-context.md ✅ (this file)
+- [ ] Update docs/13-Project-Plan.md
+- [ ] Commit Sprint 5 code
+- [ ] Commit Sprint 5 documentation
 
-**What Was Built**:
-
-1. **5-Level Sprint Hierarchy Schema** ([schema.prisma](../apps/web/prisma/schema.prisma))
-   - 5 models: Phase, Week, Day, Task, Session
-   - Status enum: NOT_STARTED, IN_PROGRESS, COMPLETED, BLOCKED, CANCELLED
-   - Adjacency list pattern (simple FK relationships)
-   - Cascade delete enabled (delete parent → delete children)
-
-2. **Query Optimization** (25 indexes total)
-   - Foreign key indexes (5): parent_id columns
-   - Date range indexes (5): startDate, endDate composite
-   - Status indexes (5): status filtering
-   - Parent+status indexes (5): filtered children queries
-   - Composite indexes (5): parent_id + startDate + endDate + status
-
-3. **Database Migration** ([20251106141927_add_sprint_hierarchy](../apps/web/prisma/migrations/20251106141927_add_sprint_hierarchy/migration.sql))
-   - CREATE TYPE "Status" AS ENUM
-   - CREATE TABLE phases, weeks, days, tasks, sessions
-   - CREATE INDEX (25 performance indexes)
-   - ALTER TABLE (4 foreign key constraints)
-   - Applied successfully to PostgreSQL
-
-4. **Seed Data** ([seed.ts](../apps/web/prisma/seed.ts)) ✅ **COMPLETE**
-   - ✅ 1 Phase: "Phase A - Foundation" (20% progress, IN_PROGRESS)
-   - ✅ 2 Weeks: Week 1 (40% progress), Week 2 (NOT_STARTED)
-   - ✅ 7 Days: Day 1 (COMPLETED), Day 2 (IN_PROGRESS), Days 3-10 (pending)
-   - ✅ 10 Tasks with realistic statuses and progress
-   - ✅ **3 Sessions under Task 1** (Initial planning, Expert consultation, Schema review)
-
-5. **Validation Tests** ✅ **NEW**
-   - ✅ Cascade delete tests (2/2 passing) - [cascade-delete.test.ts](../apps/web/prisma/__tests__/cascade-delete.test.ts)
-   - ✅ Date filtering tests (3/3 passing) - [date-filtering.test.ts](../apps/web/prisma/__tests__/date-filtering.test.ts)
-   - ✅ Database verification via psql (3 sessions confirmed)
-
-**Key Technical Decisions** (from prisma-expert consultation):
-
-- **Tree Structure**: Adjacency list (Prisma-native, TypeScript support)
-- **Progress Roll-Up**: Stored field + application-managed updates (not triggers)
-- **Date Filtering**: DateTime + composite indexes (sufficient for <100K rows)
-- **Index Strategy**: 5 per model (FK + dates + status + composites)
-- **Migration Strategy**: Side-by-side (keep old models, validate new system first)
-
-**Quality Gates Status**:
-
-- ✅ TypeScript: Zero errors (`pnpm type-check`)
-- ✅ Prisma schema: Valid
-- ✅ Migration: Applied successfully
-- ✅ Seed: Executed successfully (3 sessions added)
-- ✅ Data integrity: Fully verified (cascade delete + date filtering + psql confirmation)
-- ✅ Tests: 5/5 passing (2 cascade delete, 3 date filtering)
-
-**Day 2 Complete (100%)** ✅:
-
-- [x] Add 3 sessions to seed script (DONE)
-- [x] Test cascade delete functionality (DONE - 2/2 tests passing)
-- [x] Test date filtering queries (DONE - 3/3 tests passing)
-- [x] Re-verify data with psql queries (DONE - 3 sessions confirmed)
-
-**Session Log**: [current-session-20251106-day2.md](task/current-session-20251106-day2.md) (comprehensive documentation)
+### Next Sprint (Sprint 5.5)
+- [ ] Review Sprint 5.5 plan
+- [ ] Begin MCP server implementation
+- [ ] Day 1: Foundation + HTTP transport
+- [ ] Day 2: HTTP transport + knowledge tools
+- [ ] Day 3: Knowledge tools + resources
+- [ ] Day 4: Integration testing with Claude Desktop
+- [ ] Day 5: Documentation
 
 ---
 
-### Sprint 1 Day 1 Complete (November 6, 2025) ✅
+## Current Work Focus
 
-**Environment Setup - COMPLETE**
-
-**What Was Configured**:
-
-1. **TypeScript Strict Mode** ([tsconfig.base.json](../tsconfig.base.json))
-   - Strict mode enabled
-   - noUncheckedIndexedAccess: true
-   - noImplicitOverride: true
-
-2. **ESLint Root Configuration** ([.eslintrc.json](../.eslintrc.json))
-   - Minimal baseline
-   - Package-specific extensions allowed
-
-3. **Environment Validation**
-   - PostgreSQL container: Verified running (projectpulse-db, healthy)
-   - Prisma CLI: v5.22.0 confirmed
-   - DATABASE_URL: Fixed for host-side commands (localhost vs postgres)
-
-**Issues Fixed**:
-
-- DATABASE_URL in root .env changed from `postgres:5432` to `localhost:5432`
-- Added comments explaining Docker networking (postgres for containers, localhost for host)
+**Status**: Completing Sprint 5 Step 5 (commit and document)
+**Next**: Begin Sprint 5.5 MCP Server Infrastructure
+**Blockers**: None - all prerequisites complete
 
 ---
 
-### Architecture Update Complete (November 6, 2025) ✅
+## Key Decisions Made
 
-**Documentation Phase - COMPLETE** (archived for reference)
+### Sprint 5 Decisions
 
-**What Was Added** (5,500+ lines across 3 major commits):
+1. **Embedding Model**: Switched from all-minilm (384d) to nomic-embed-text (768d) for better semantic understanding
+2. **Search Weights**: 0.7 semantic + 0.3 fulltext provides good balance in practice
+3. **Docker Networking**: Use `host.docker.internal` for Ollama access from Docker containers
+4. **Graph Strength Decay**: 2-hop connections get 0.8x strength multiplier
 
-1. **Commit a1ae4fc**: Update PRD, SRS, and Architecture with 5 new epics
-2. **Commit 5e154ff**: Add Sprint 9 (Memory Banks + Research Agents)
-3. **Commit b4e2afc**: Add documentation audit specification
+### Sprint 5.5 Decisions (from plan)
 
----
-
-### Week 1.5 Completion Summary (October 29, 2025)
-
-**Last Major Milestone**: Dynamic Issue Filters Complete ✅
-
-**What Was Built**:
-
-- 7 UI pages with Coral neumorphic theme (Dashboard, Issues, Knowledge, Wiki, Security, Agents, Command Palette)
-- Dynamic filters system (database-driven, 52 tests passing)
-- 17 Prisma models
-- 30+ reusable UI components
-- Comprehensive test suite (E2E with Playwright)
-
-**Quality Achieved**:
-
-- TypeScript: 0 errors (strict mode)
-- Test Coverage: 100% for new code
-- Accessibility: WCAG 2.1 AA compliant
-- Performance: <1s page loads
-
-**Final Commit**: `f749dcf` - test: add comprehensive test suite for Phase 4 dynamic filters
+1. **Transport**: HTTP (not stdio) because it's a network service
+2. **Integration**: Add MCP routes to existing Next.js app (not standalone server)
+3. **Auth**: None for local network (OAuth 2.1 for cloud deployment later)
+4. **Protocol**: Streamable HTTP (2025-03-26 spec) for cost-efficiency
 
 ---
 
-## Sprint 2 User Stories (US-015 to US-031)
+## Technical Context
 
-### EPIC-002: Wiki & Knowledge (34 points)
+### Stack
+- Next.js 14 App Router
+- PostgreSQL with pgvector
+- Prisma ORM
+- TypeScript (strict mode)
+- Ollama (nomic-embed-text 768d)
+- OpenAI (text-embedding-3-large fallback)
 
-**Week 3: Wiki Foundation (Days 1-7)**
+### Deployment
+- Mac mini local network: 192.168.1.15:3000
+- Future: Cloud (Railway/Vercel) with OAuth 2.1
 
-- US-015: Wiki database model (3 points)
-- US-016: Wiki list page UI (5 points)
-- US-017: Wiki detail page UI (5 points)
-- US-018: Wiki editor UI (8 points)
-- US-019: Wiki search functionality (5 points)
-- US-020: MCP tool wiki.create() (3 points)
-- US-021: MCP tool wiki.search() (3 points)
-- US-022: MCP tool wiki.update() (2 points)
-
-### EPIC-003: Onboarding System (24 points)
-
-**Week 4: Onboarding (Days 8-14)**
-
-- US-026: Onboarding database models (3 points)
-- US-027: Session 1 prompt template (3 points)
-- US-028: Session 2 prompt template (5 points)
-- US-029: Session 3 prompt template (5 points)
-- US-030: MCP tool onboarding.getPrompt() (5 points)
-- US-031: MCP tool onboarding.submitResponse() (3 points)
+### MCP Status
+- ✅ Tool specifications: Created
+- ❌ MCP server: Not built (Sprint 5.5 planned)
+- ❌ End user access: Blocked until Sprint 5.5
 
 ---
 
-## Known Issues / Blockers
+## Architecture Clarifications
 
-### Blockers
+### Vision Alignment (Confirmed 2025-11-12)
 
-**None** - Documentation complete, all prerequisites met for Sprint 1
+**Primary Use Case (90%)**: AI agents accessing via MCP
+- End users' Claude/GPT agents connect to ProjectPulse via MCP config
+- Agents perform CRUD operations (search knowledge, create issues, track tasks)
+- **The agent IS the interface**, not a helper
 
-- ✅ All architecture documents updated and cross-referenced
-- ✅ Sprint 1-8 fully documented (426 points, 16 weeks)
-- ✅ Sprint 9 documented for future (58 points, 2 weeks)
-- ✅ Development environment ready (Docker, PostgreSQL, Node.js)
-- ✅ Memory banks updated with current context
+**Secondary Use Case (10%)**: Human admin via web UI
+- Web UI for setup, bulk operations, manual management
+- Fallback when agents can't help
 
-### Technical Decisions Needed (Sprint 1)
-
-**1. MCP Server Location**
-
-- Option A: Monorepo structure (mcp-server/ folder in same repo)
-- Option B: Separate repo (projectpulse-mcp-server)
-- **Recommendation**: Option A (simpler for solo dev, easier testing with shared Prisma schema)
-
-**2. Prisma Migration Strategy**
-
-- Option A: prisma migrate dev (development)
-- Option B: prisma db push (rapid prototyping)
-- **Recommendation**: Option A (proper migrations for production path)
-
-**3. Progress Roll-up Implementation**
-
-- Option A: PostgreSQL triggers (automatic)
-- Option B: Application-level (MCP tool handles it)
-- **Recommendation**: Option B (easier debugging, more control)
+**Architecture**:
+```
+End User's Claude Desktop
+    ↓ MCP Config (claude_desktop_config.json)
+    ↓ HTTP Transport
+ProjectPulse MCP Server (192.168.1.15:3000/api/mcp)
+    ↓
+Backend APIs (Knowledge, Issues, Tasks)
+    ↓
+PostgreSQL Database
+```
 
 ---
 
-## Dependencies / Waiting On
+## Notes & Observations
 
-### No External Dependencies
+1. **MCP Server Gap Critical**: Without Sprint 5.5, the 90% use case (AI agents) is completely blocked. This should have been caught earlier - Sprint 1 was 96% complete but missed the core MCP server.
 
-- All source documents complete (PRD, SRS, Architecture, Backlog)
-- Week 1.5 work preserved and documented
-- Development environment ready (Docker, PostgreSQL, Node.js)
-- No waiting on mockups or external approvals
+2. **Sprint 5 Success**: Despite the MCP server gap, Sprint 5 delivered excellent backend infrastructure. All APIs work, search is fast, embeddings are high-quality.
 
-### Internal Dependencies (Sprint 1)
+3. **Architecture Alignment**: Now confirmed that ProjectPulse is MCP-first (90% agents, 10% humans). Sprint 5.5 plan reflects this with HTTP transport for network access.
 
-**US-002 → US-001**: Week creation depends on Phase existing
-**US-003 → US-002**: Day creation depends on Week existing
-**US-004 → US-003**: Task creation depends on Day existing
-**US-005 → US-004**: Session creation depends on Task existing
+4. **Performance Targets**: All Sprint 5 targets met or exceeded. Search is fast (<200ms), embeddings are acceptable (<2s), quality gates passed.
 
-**All dependencies are sequential within Sprint 1 - no blockers**
-
----
-
-## Session Metadata
-
-**Start Date**: November 5, 2025
-**Current Session**: Sprint 1 Day 1 - Memory bank updates
-**Session Type**: Planning + Foundation setup
-
-**Git Status**:
-
-- Branch: master
-- Last commits: Week 1.5 work (UI transformation complete)
-- Next branch: feature/sprint-1-foundation
-- Uncommitted: Memory bank updates in progress
-
-**Development Environment**:
-
-- pnpm dev: Ready (port 3000)
-- PostgreSQL: Running (Docker container)
-- Docker: All containers operational
-- Build: Passing (Week 1.5 final state)
-
----
-
-## Next Steps (Immediate)
-
-### Today (Nov 6) - Memory Bank Updates Complete ✅
-
-1. ✅ Update all memory bank files (project-brief, active-context, progress, system-patterns, tech-context)
-2. ✅ Commit memory bank updates
-3. ⏳ Merge docs/architecture-pivot-sprint-1-redefinition to master
-4. ⏳ Ready for Sprint 1 in next conversation
-
-### Next Steps - Sprint 2 Start
-
-1. ✅ Vision clarified: Wiki + Onboarding (NOT markdown sync)
-2. ✅ MarkdownFile model removed from schema
-3. ⏳ Wait for Mac mini to execute migration (drop MarkdownFile table)
-4. ⏳ Create feature/sprint-2-wiki-onboarding branch
-5. ⏳ Read Sprint 2 requirements (docs/13-Project-Plan.md Sprint 2 section, docs/12-Backlog.md US-015 to US-031)
-6. ⏳ Implement WikiPage model (already exists in schema)
-7. ⏳ Build Wiki list/detail/editor UI pages
-8. ⏳ Implement Wiki MCP tools (wiki.create, wiki.search, wiki.update)
-
-### Sprint 2 Week 4 (Onboarding)
-
-1. ⏳ Implement OnboardingSession models
-2. ⏳ Create 3-session prompt templates (Executive Summary, Industry Docs, AI Workflow)
-3. ⏳ Implement MCP tools (onboarding.getPrompt, onboarding.submitResponse)
-4. ⏳ Build admin prompt editor UI
-5. ⏳ Integration tests for complete onboarding flow
-
----
-
-## Quick References
-
-**Sprint 2 Planning Docs**:
-
-- [13-Project-Plan.md](../docs/13-Project-Plan.md) - Sprint 2 section (58 points, US-015 to US-031)
-- [12-Backlog.md](../docs/12-Backlog.md) - User stories details (EPIC-002 Wiki, EPIC-003 Onboarding)
-- [02-SRS.md](../docs/02-SRS.md) - Functional requirements (FR-026 to FR-060)
-- [CASCADE_REFACTOR_PROMPT.md](.agent/task/CASCADE_REFACTOR_PROMPT.md) - Vision refactor documentation
-
-**Architecture References**:
-
-- [03-Architecture.md](../docs/03-Architecture.md) - System design
-- [04-Data-and-Model-Spec.md](../docs/04-Data-and-Model-Spec.md) - Prisma schema (10 models)
-- [05-AgentOps-Plan.md](../docs/05-AgentOps-Plan.md) - MCP tools catalog
-
-**Week 1.5 Preservation**:
-
-- [docs/archive/ui-first-phase/](../docs/archive/ui-first-phase/) - Archived UI work
-- Issues pages: Reusable in Sprint 4
-- Theme system: Apply to new Sprint/Workflow pages
+5. **Next Session Priority**: Sprint 5.5 must be completed before Sprint 6. The MCP server is the foundation that enables all future agent interactions.
 
 ---
 
 **This file contains what's actively being worked on RIGHT NOW. Update after every significant change.**
 
----
-
-Last reviewed: 2025-11-06
-Next review: Start of Sprint 1 implementation (next conversation)
+Last reviewed: 2025-11-12
+Next review: Sprint 5.5 implementation start
