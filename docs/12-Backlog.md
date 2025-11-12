@@ -1,10 +1,10 @@
 # Product Backlog
 
 **Document ID:** DOC-012
-**Version:** 1.2.0
+**Version:** 1.3.0
 **Status:** Active
 **Owner:** Product Team
-**Last Updated:** 2025-01-09
+**Last Updated:** 2025-11-12
 **Review Cycle:** Sprint Planning (every 2 weeks)
 
 ---
@@ -16,6 +16,7 @@
 | 1.0.0   | 2025-11-02 | Product Team | Initial product backlog creation (8 epics, 125 user stories) |
 | 1.1.0   | 2025-11-06 | Product Team | Added EPIC-010 and EPIC-011 (10 epics, 138 user stories)     |
 | 1.2.0   | 2025-01-09 | Product Team | Added EPIC-012: Industry-Grade Documentation (11 epics, 156 user stories) |
+| 1.3.0   | 2025-11-12 | Product Team | Added EPIC-009: Production Infrastructure (HTTP transport for Sprint 8) |
 
 ---
 
@@ -362,10 +363,33 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 
 ---
 
-### EPIC-009: Reserved for Future Use
+### EPIC-009: Production Infrastructure & Deployment
 
-**Status**: Intentional Gap
-**Rationale**: EPIC-009 is reserved for future features and is not currently assigned. Epic numbering continues with EPIC-010 to maintain backward compatibility with existing references.
+**Description:** Production-ready infrastructure for cloud deployment, including HTTP transport for MCP server, API key management, monitoring, and scaling capabilities.
+
+**Business Value:**
+
+- Enables true cloud deployment (no local MCP installation required for users)
+- Aligns with industry standard (73% of companies prefer cloud MCP deployments)
+- Competitive positioning vs products like ref.tools and Notion AI
+- Scalable architecture supporting 100+ concurrent AI agents
+- Zero-friction user onboarding (just configure endpoint + API key)
+
+**Success Criteria:**
+
+- Streamable HTTP transport operational (March 2025 MCP spec)
+- API key authentication system with rate limiting
+- MCP endpoint accessible at https://api.projectpulse.com/mcp
+- Performance parity with stdio (P95 <1s per tool execution)
+- Support 100+ concurrent agent connections
+- Health monitoring and observability configured
+
+**Story Range:** US-126 to US-128 (3 stories)
+**FR Range:** Infrastructure requirements (non-functional)
+**Total Points:** ~13 points
+**MoSCoW:** Should Have (P1 - Required for production cloud deployment)
+**Dependencies:** All MCP tools implemented (Sprint 1-7), Next.js API operational
+**Sprint Allocation:** Sprint 8 - Integration & Polish (Week 15-16)
 
 ---
 
@@ -689,6 +713,22 @@ When EPIC-012 is implemented:
 ---
 
 ### 3.8 EPIC-008: Personas (US-121 to US-125)
+
+---
+
+### 3.9 EPIC-009: Production Infrastructure & Deployment (US-126 to US-128)
+
+| Story ID | User Story | Linked FR | Points | Priority | Dependencies |
+|----------|-----------|-----------|--------|----------|--------------|
+| US-126 | As a developer, I want AI agents to connect to ProjectPulse via HTTPS (no local installation) so that I can use ProjectPulse as a cloud service | NFR-Infrastructure | 8 | Should | All MCP tools (Sprint 1-7) |
+| US-127 | As a developer, I want to generate API keys for my AI agents so that I can authenticate securely with ProjectPulse MCP server | NFR-Security | 3 | Should | US-126 |
+| US-128 | As an admin, I want to monitor MCP server health and performance so that I can ensure reliability for all users | NFR-Observability | 2 | Could | US-126 |
+
+**EPIC-009 Total:** 3 stories, ~13 points
+
+---
+
+### 3.10 EPIC-008: Personas (US-121 to US-125)
 
 | ID     | User Story                                                                                                                                    | FR     | Points | Priority | Deps   |
 | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | -------- | ------ |
