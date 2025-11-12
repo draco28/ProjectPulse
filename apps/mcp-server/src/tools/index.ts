@@ -15,6 +15,13 @@ import { wikiUpdateTool } from './wikiUpdate.js';
 import { wikiAnalyticsTopPagesTool } from './wikiAnalyticsTopPages.js';
 import { onboardingGetPromptTool } from './onboarding/getPrompt.js';
 import { onboardingSubmitResponseTool } from './onboarding/submitResponse.js';
+import { workflowListTool } from './workflow/list.js';
+import { workflowStartTool } from './workflow/start.js';
+import { workflowExecuteStepTool } from './workflow/executeStep.js';
+import { workflowGetStatusTool } from './workflow/getStatus.js';
+import { workflowPauseTool } from './workflow/pause.js';
+import { workflowResumeTool } from './workflow/resume.js';
+import { workflowCompleteTool } from './workflow/complete.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -31,6 +38,13 @@ const loadTools = (): ToolDefinition[] => [
   wikiAnalyticsTopPagesTool,
   onboardingGetPromptTool,
   onboardingSubmitResponseTool,
+  workflowListTool,
+  workflowStartTool,
+  workflowExecuteStepTool,
+  workflowGetStatusTool,
+  workflowPauseTool,
+  workflowResumeTool,
+  workflowCompleteTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {
