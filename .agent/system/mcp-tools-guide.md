@@ -520,9 +520,9 @@ docker_compose_status();
 
 ## ProjectPulse MCP Server
 
-**Server**: `projectpulse` (Custom MCP server for sprint management and workflow orchestration)
-**When to use**: Sprint management, task tracking, and workflow orchestration
-**Status**: Active (Sprint 1-3 complete - 12 tools available)
+**Server**: `projectpulse` (Custom MCP server for sprint management, workflow orchestration, and issue management)
+**When to use**: Sprint management, task tracking, workflow orchestration, and issue management
+**Status**: Active (Sprint 1-4 complete - 18 tools available)
 
 ### Available Tools
 
@@ -1667,6 +1667,279 @@ All steps executed successfully
 - **Use Case**: Manual completion or early termination
 
 **Source**: [apps/mcp-server/src/tools/workflowComplete.ts](../../apps/mcp-server/src/tools/workflowComplete.ts)
+
+---
+
+#### `projectpulse.issue.create`
+
+Create a single issue with automatic tagging and context injection
+
+**Parameters**:
+
+```typescript
+{
+  projectId: number,           // Required, project ID
+  title: string,               // Required, 1-200 chars
+  description?: string,        // Optional, max 50,000 chars
+  status?: string,             // Optional, max 32 chars
+  priority?: string,           // Optional, max 32 chars
+  module?: string,             // Optional, max 80 chars
+  assignee?: string,           // Optional, max 120 chars
+  labelIds?: number[],         // Optional, max 25 labels
+  context?: {
+    files?: Array<{
+      filePath: string,        // Required, max 2048 chars
+      lineNumber?: number,     // Optional, 1-1,000,000
+      snippet?: string         // Optional, max 5000 chars
+    }>,                        // Max 25 files
+    metadata?: Record<string, unknown>
+  }
+}
+```
+
+**Example**:
+
+```typescript
+projectpulse.issue.create({
+  projectId: 5,
+  title: 'Add user authentication',
+  description: 'Implement JWT-based authentication',
+  priority: 'high',
+  context: {
+    files: [
+      {
+        filePath: 'src/auth/AuthService.ts',
+        lineNumber: 42,
+        snippet: 'function login(credentials: LoginInput) {...}'
+      }
+    ]
+  }
+});
+```
+
+**Features**:
+- **Auto-tagging**: Module and labels derived from file paths
+- **Auto-priority**: Derived from file path patterns
+- **Label creation**: Missing labels are created automatically
+- **Context injection**: Stores file references with line numbers and code snippets
+
+**API**: `POST /api/issues`
+**Source**: [apps/mcp-server/src/tools/issues/create.ts](../../apps/mcp-server/src/tools/issues/create.ts)
+
+---
+
+#### `projectpulse.issue.bulkCreate`
+
+Create multiple issues in a single transaction (up to 50 issues)
+
+**Parameters**:
+
+```typescript
+{
+  projectId: number,
+  issues: Array<{
+    title: string,
+    description?: string,
+    status?: string,
+    priority?: string,
+    module?: string,
+    assignee?: string,
+    labelIds?: number[],
+    context?: {
+      files?: Array<{
+        filePath: string,
+        lineNumber?: number,
+        snippet?: string
+      }>,
+      metadata?: Record<string, unknown>
+    },
+    reference?: string         // Optional identifier, max 64 chars
+  }>                          // Min: 1, Max: 50
+}
+```
+
+**Example**:
+
+```typescript
+projectpulse.issue.bulkCreate({
+  projectId: 5,
+  issues: [
+    {
+      title: 'Fix login bug',
+      priority: 'high',
+      context: {
+        files: [{ filePath: 'src/auth/login.ts', lineNumber: 42 }]
+      }
+    },
+    {
+      title: 'Add logout endpoint',
+      priority: 'medium',
+      context: {
+        files: [{ filePath: 'src/api/auth/route.ts', lineNumber: 100 }]
+      }
+    }
+  ]
+});
+```
+
+**Performance**: Optimized for bulk operations (<2s for 15 issues)
+
+**Features**:
+- **Transactional**: All issues created or none
+- **Auto-tagging**: Applied to each issue based on context files
+- **Bulk optimized**: Uses Prisma `createMany` for performance
+
+**API**: `POST /api/issues/bulk`
+**Source**: [apps/mcp-server/src/tools/issues/bulkCreate.ts](../../apps/mcp-server/src/tools/issues/bulkCreate.ts)
+
+---
+
+#### `projectpulse.issue.update`
+
+Update an existing issue (partial update)
+
+**Parameters**:
+
+```typescript
+{
+  issueId: number,             // Required, issue ID
+  title?: string,
+  description?: string,
+  status?: string,
+  priority?: string,
+  module?: string,
+  assignee?: string,
+  labelIds?: number[]
+}
+```
+
+**Example**:
+
+```typescript
+projectpulse.issue.update({
+  issueId: 123,
+  status: 'in_progress',
+  priority: 'high',
+  assignee: 'john@example.com'
+});
+```
+
+**API**: `PATCH /api/issues/[id]`
+**Source**: [apps/mcp-server/src/tools/issues/update.ts](../../apps/mcp-server/src/tools/issues/update.ts)
+
+---
+
+#### `projectpulse.issue.search`
+
+Search and filter issues with pagination
+
+**Parameters**:
+
+```typescript
+{
+  projectId?: number,
+  status?: string | string[],
+  priority?: string | string[],
+  module?: string | string[],
+  assignee?: string,
+  labelIds?: number | number[],
+  search?: string,             // Searches title + description
+  orderBy?: "createdAt" | "updatedAt" | "priority" | "status",
+  orderDir?: "asc" | "desc",
+  page?: number,               // Default: 1
+  pageSize?: number            // Default: 25, Max: 100
+}
+```
+
+**Example**:
+
+```typescript
+// Find all high-priority open issues
+projectpulse.issue.search({
+  projectId: 5,
+  status: 'open',
+  priority: 'high',
+  orderBy: 'createdAt',
+  orderDir: 'desc'
+});
+
+// Search by text
+projectpulse.issue.search({
+  search: 'authentication',
+  page: 1,
+  pageSize: 10
+});
+```
+
+**API**: `GET /api/issues`
+**Source**: [apps/mcp-server/src/tools/issues/search.ts](../../apps/mcp-server/src/tools/issues/search.ts)
+
+---
+
+#### `projectpulse.issue.addComment`
+
+Add a comment to an existing issue
+
+**Parameters**:
+
+```typescript
+{
+  issueId: number,             // Required, issue ID
+  content: string,             // Required, 1-10000 chars
+  author?: string              // Optional, defaults to 'Anonymous'
+}
+```
+
+**Example**:
+
+```typescript
+projectpulse.issue.addComment({
+  issueId: 123,
+  content: 'Fixed in commit abc123. Ready for review.',
+  author: 'john@example.com'
+});
+```
+
+**API**: `POST /api/issues/[id]/comments`
+**Source**: [apps/mcp-server/src/tools/issues/addComment.ts](../../apps/mcp-server/src/tools/issues/addComment.ts)
+
+---
+
+#### `projectpulse.issue.setStatus`
+
+Update issue status with automatic timestamp management
+
+**Parameters**:
+
+```typescript
+{
+  issueId: number,             // Required, issue ID
+  status: string               // Required, max 32 chars
+}
+```
+
+**Example**:
+
+```typescript
+// Close an issue
+projectpulse.issue.setStatus({
+  issueId: 123,
+  status: 'closed'
+});
+
+// Reopen an issue
+projectpulse.issue.setStatus({
+  issueId: 123,
+  status: 'open'
+});
+```
+
+**Features**:
+- **Auto-timestamps**: Sets `closedAt` when status changes to 'closed'
+- **Reopen support**: Clears `closedAt` when reopening
+
+**API**: `PATCH /api/issues/[id]/status`
+**Source**: [apps/mcp-server/src/tools/issues/setStatus.ts](../../apps/mcp-server/src/tools/issues/setStatus.ts)
 
 ---
 

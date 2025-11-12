@@ -1,88 +1,81 @@
-# Sprint 3 Implementation Plan — Workflow Orchestration System (US-032..US-050, 48 points)
+# Sprint 4 Implementation Plan — Issues Backend Integration (US-051..US-066, 42 points)
 
-Session: 2025-11-12 13:38 IST
-Scope: Build end-user workflow orchestration backed by database + MCP tools, tied to Project
+Session: $(date '+%Y-%m-%d %H:%M %Z')
+Scope: Connect existing Issues UI to database via API + MCP tools; add bulk + auto-tagging + context injection
 
 ## Objectives
-- Database models: WorkflowTemplate, WorkflowRun, WorkflowStep (linked to Project)
-- Seed 12 templates: Feature Implementation, Bug Fix, Refactoring, Documentation Update, Test Coverage Improvement, Database Migration, Sprint Planning, Sprint Review, Progress Checkpoint, Wiki Page Creation, Knowledge Search, Onboarding New Project
-- MCP tools (7): workflow.list, workflow.start, workflow.executeStep, workflow.getStatus, workflow.pause, workflow.resume, workflow.complete
-- API endpoints (4):
-  - GET /api/workflows
-  - POST /api/workflows/run
-  - GET /api/workflows/run/:id
-  - POST /api/workflows/run/:id/step
-- State machine: pending → running → completed/failed/paused with validations
-- Checkpoints: integrate sprint.checkpoint.create on pause/resume
-- Web UI (minimal): /workflows page to list templates and active runs (monitor-only)
+- API Routes: Issue CRUD, Bulk create, Status update, Comments, Filtered list/search
+- Auto-tagging: Config-driven module/label mapping from file paths
+- Context Injection: LinkedFile (file:line) + optional code snippets via Attachment
+- MCP Tools (agents): issue.create, issue.bulkCreate, issue.update, issue.search, issue.addComment, issue.setStatus, issue.linkTask
+- Validation & Security: Zod schemas, parameterized Prisma, no raw string SQL
+- Performance: Bulk create 15 issues in <2s (P95)
+- Quality Gates: 0 TS errors; lint clean; tests ≥80% for new code
 
 ## Architecture Decisions
-- JSONB for variable context and step results (WorkflowRun.context, WorkflowStep.result)
-- Templates are data (WorkflowTemplate.steps JSON) with pre/post conditions
-- Indexes for status/templateId/projectId on runs and runId/status on steps
-- All MCP tools call Next.js API (R-MCP-001); no direct DB from MCP server
+- Server Components first; use API routes for client interactions
+- Endpoints under app/api/issues with RESTful structure:
+  - POST/GET /api/issues
+  - GET/PATCH/DELETE /api/issues/[id]
+  - POST /api/issues/bulk
+  - POST /api/issues/[id]/comments (exists)
+  - PATCH /api/issues/[id]/status (exists)
+- Zod validation schemas shared via a types module (no `any`)
+- Auto-tagging rules stored in Setting (category: "issues.rules") to satisfy R-DATA-001
+- Prisma createMany for bulk; wrap operations in transaction for integrity
+- Filters: status, priority, module, assignee, date range; indexed columns already present
 
 ## Phased Implementation
 
-### Phase A (Day 1-2): Prisma schema + migration
-1. Add WorkflowTemplate, WorkflowRun, WorkflowStep models with relations to Project
-2. Create indexes: runs(templateId,status), runs(projectId,status), steps(runId,status), unique(runId,stepNumber)
-3. Generate migration locally; deploy on Mac mini
-4. Prisma Client regenerate and type-check
+### Phase A: Scaffolding & Validation
+1. Define Zod schemas: IssueCreate, IssueUpdate, IssueBulkCreate, IssueFilters, CommentCreate, StatusUpdate
+2. Add shared types in apps/web/lib/types/issues.ts
+3. Seed default auto-tagging rules in Setting (category: "issues.rules")
 
-### Phase B (Day 3-5): Seed 12 workflow templates
-5. Author JSON step definitions with names, descriptions, mcpTool, preconditions, postconditions
-6. Insert via seed.ts using upsert patterns
-7. Validate structure with a lightweight unit test (schema guard)
+### Phase B: CRUD Endpoints
+4. Implement POST /api/issues (create)
+5. Implement GET /api/issues (filtered list + pagination)
+6. Implement GET /api/issues/[id] (detail with relations)
+7. Implement PATCH /api/issues/[id] (update) with whitelist fields
+8. Implement DELETE /api/issues/[id]
 
-### Phase C (Day 6-7): State machine + validations
-8. Implement transition helpers in API layer (pending→running, etc.) with guards
-9. Pre/post condition validator (declarative rules)
+### Phase C: Bulk + Auto-Tagging
+9. Implement POST /api/issues/bulk (createMany + transactional labels/links)
+10. Implement autoTagging util (path→module/labels) reading from Setting
+11. Add basic accuracy unit tests with sample paths (≥80% target on sample set)
 
-### Phase D (Day 8-10): MCP tools (7 tools)
-10. Implement and register workflow.list, start, executeStep, getStatus, pause, resume, complete
-11. Add unit tests (handler-level, mocked HTTP)
+### Phase D: MCP Tools
+12. Implement MCP tool handlers calling the API (no direct DB)
+13. Register tools; add handler-level tests (mock HTTP client)
 
-### Phase E (Day 11-12): API endpoints
-12. Implement GET /api/workflows, POST /api/workflows/run
-13. Implement GET /api/workflows/run/:id, POST /api/workflows/run/:id/step
-14. Zod validation + error handling, P95 <500ms target
-
-### Phase F (Day 13): Integration tests
-15. E2E: Feature Implementation, Bug Fix, Sprint Planning
-16. Checkpoint recovery: pause → resume after context reset
-
-### Phase G (Day 14): Documentation + minimal UI
-17. Update .agent/system/api-catalog.md (4 endpoints)
-18. Update .agent/system/mcp-tools-guide.md (7 tools)
-19. Create .agent/system/workflow-templates.md summary
-20. Add minimal /workflows page to monitor templates and active runs
+### Phase E: Tests + Verification
+14. API tests (unit/integration) for endpoints and validation
+15. Performance test: 15-issue bulk latency <2s (local)
+16. Type-check, lint, build; update api-catalog.md and mcp-tools-guide.md
 
 ## Success Criteria (Step 4.5 Verification)
-- [ ] 12 workflow templates seeded in DB
-- [ ] MCP tools operational (list/start/executeStep/getStatus/pause/resume/complete)
-- [ ] API endpoints return correct payloads; P95 <500ms
-- [ ] Workflow state machine enforces ordering and failure semantics
-- [ ] Checkpoint pause/resume integrates sprint.checkpoint.create
-- [ ] 3 E2E workflows pass + checkpoint recovery passes
-- [ ] TypeScript errors: 0; ESLint: 0 warnings
+- [ ] Endpoints return correct payloads; Zod validation enforced
+- [ ] Bulk create latency <2s for 15 issues (measured)
+- [ ] Auto-tagging rules achieve ≥80% accuracy on sample inputs
+- [ ] MCP tools functional and call API only (R-MCP-001)
+- [ ] Tests ≥80% for new backend code; TS 0 errors; lint clean
 
-## Evidence to Capture (Verification Gate)
-- Files exist (schema, routes, tools)
+## Evidence to Capture
+- File existence and key snippets (ls/head)
 - pnpm type-check, pnpm lint outputs
-- curl for endpoints (200 OK + response bodies)
-- DB counts: templates, runs, steps
-- Test results summary (unit + integration)
+- curl/API test outputs
+- Timing results for bulk operation (local measurement)
+- Test results summary
 
 ## Risks & Mitigations
-- Workflow variability → JSONB; declarative validation to avoid schema churn
-- Long-running steps → explicit pause/resume; checkpointing
-- Token budget → template-driven execution; small payloads and select patterns
+- Bulk performance → use createMany + minimal includes; prefetch labels; transaction
+- Tagging accuracy → config-driven rules in Setting; allow easy updates
+- Validation drift → centralize Zod schemas; reuse across endpoints/tools
 
 ## Checkpoints (Step 4)
-- 15K: Schema + migration ready
-- 30K: Templates seeded; tool stubs in place
-- 45K: API endpoints implemented
-- 60K: Integration tests passing locally
-- 75K: Mac mini verification complete
-- 90K: Documentation + evidence recorded
+- 15K: Plan approved; schemas and scaffolds in place
+- 30K: CRUD endpoints implemented
+- 45K: Bulk + auto-tagging implemented
+- 60K: MCP tools implemented; tests passing
+- 75K: Performance verified; docs updated
+- 90K: Verification Gate evidence captured

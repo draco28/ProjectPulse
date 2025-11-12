@@ -18,29 +18,26 @@
  * - Revalidates both /issues and /issues/[id] pages
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
-import { StatusUpdateSchema } from '@/lib/validations/issue';
+import { IssueIdParamSchema, StatusUpdateSchema } from '@/lib/validations/issue';
+import { resolveStatusValue } from '@/lib/issues/options';
+import { failure, success } from '../../_utils';
 import { z } from 'zod';
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // 1. Extract and validate issue ID
-    const { id } = await params;
-    const issueId = parseInt(id, 10);
-
-    if (isNaN(issueId)) {
-      return NextResponse.json({ data: null, error: 'Invalid issue ID' }, { status: 400 });
-    }
+    const { id } = IssueIdParamSchema.parse({ id: params.id });
 
     // 2. Parse and validate request body
     const body = await request.json();
-    const { status } = StatusUpdateSchema.parse(body);
+    const { status: requestedStatus } = StatusUpdateSchema.parse(body);
+    const status = await resolveStatusValue(requestedStatus);
 
     // 3. Update issue status in database
     const issue = await prisma.issue.update({
-      where: { id: issueId },
+      where: { id },
       data: {
         status,
         // Set closedAt timestamp when closing, clear it when reopening
@@ -66,43 +63,28 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     });
 
     // 4. Revalidate both list and detail pages
-    revalidatePath('/issues'); // Refresh issues list
-    revalidatePath(`/issues/${issueId}`); // Refresh issue detail
+    revalidatePath('/issues');
+    revalidatePath(`/issues/${id}`);
 
-    // 5. Return success response
-    return NextResponse.json({ data: issue, error: null }, { status: 200 });
+    return success(issue);
   } catch (error) {
-    // Handle not found error (Prisma will throw if issue doesn't exist)
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
-      return NextResponse.json({ data: null, error: 'Issue not found' }, { status: 404 });
-    }
-
-    // Handle Zod validation errors
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: 'Invalid status value',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid status value',
+        details: error.flatten(),
+      });
     }
 
-    // Handle other Prisma errors
-    if (error && typeof error === 'object' && 'code' in error) {
-      console.error('Prisma error updating issue status:', error);
-      return NextResponse.json(
-        { data: null, error: 'Database error while updating status' },
-        { status: 500 }
-      );
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+      return failure({ code: 'NOT_FOUND', message: 'Issue not found', status: 404 });
     }
 
-    // Handle other errors
-    console.error('Unexpected error updating issue status:', error);
-    return NextResponse.json(
-      { data: null, error: 'Failed to update issue status' },
-      { status: 500 }
-    );
+    console.error('[API] PATCH /api/issues/[id]/status failed', error);
+    return failure({
+      code: 'INTERNAL_ERROR',
+      message: 'Failed to update issue status',
+      status: 500,
+    });
   }
 }

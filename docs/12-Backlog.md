@@ -369,9 +369,9 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 
 ---
 
-### EPIC-010: Memory Bank System
+### EPIC-010: Memory Bank System (End User Feature - Cloud-Based)
 
-**Description:** Token-efficient context management for Claude Code development through structured knowledge files in .agent/ directory.
+**Description:** Token-efficient context management for end users' AI agents through cloud-based memory banks stored in ProjectPulse database (virtual .agent/ directory - no local files).
 
 **Business Value:**
 
@@ -382,44 +382,46 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 
 **Success Criteria:**
 
-- All 5 memory bank files created (project-brief, system-patterns, tech-context, active-context, progress)
-- Session start overhead ≤10K tokens (75% reduction)
-- Pattern lookups ≤1K tokens (93% reduction)
-- 100% knowledge retention across context compaction
+- All 5 memory bank types created in database (project-brief, system-patterns, tech-context, active-context, progress)
+- Session start overhead ≤10K tokens (75% reduction) via MCP tools
+- Pattern lookups ≤1K tokens (93% reduction) via targeted queries
+- 100% knowledge retention across context compaction (persistent database storage)
 - Support 3+ complex features per 200K token session
+- End users' repositories remain clean (no .agent/ folders created)
 
 **Story Range:** US-010-01 to US-010-08 (8 stories)
 **FR Range:** FR-146 to FR-153 (Memory Bank FRs from PRD Section 4.2.10)
 **Total Points:** ~34 points
-**MoSCoW:** Must Have (Critical - blocks efficient Claude Code development)
-**Dependencies:** Filesystem MCP configured, Git MCP configured, .agent/ directory structure
+**MoSCoW:** Must Have (Critical - core product feature for end users)
+**Dependencies:** PostgreSQL database, MCP server, memory.* tools implementation
 **Sprint Allocation:** Sprint 9 Week 1-2
 
 ---
 
-### EPIC-011: Research Agent Orchestration (Reduced Scope)
+### EPIC-011: Agent Persona System (End User Feature - Cloud-Based)
 
-**Description:** Automated codebase exploration and analysis using isolated sub-agent threads. Includes research agents only (explore-codebase, analyze-architecture). Expert agents (next-js-expert, prisma-expert, react-expert) and utility agents (synthesize-docs, map-system) deferred post-MVP.
+**Description:** End users can store and invoke specialized AI agent personas in ProjectPulse database for automated codebase exploration and expert assistance without losing main context. Includes research agents (explore-codebase, analyze-architecture) and expert agents (next-js-expert, prisma-expert, react-expert).
 
 **Business Value:**
 
 - Achieves 92% token savings per research task (25K → 2K in main thread)
 - Keeps main conversation clean and focused on implementation
-- Research reports saved to .agent/task/ persist across sessions
+- Research reports saved to ProjectPulse database persist across sessions
 - Supports parallel research operations (2+ agents simultaneously)
 
 **Success Criteria:**
 
 - Research tasks complete in ≤2K tokens in main thread (vs 25K baseline)
-- Sub-agent reports saved to .agent/task/ and persist across sessions
+- Agent persona reports saved to ProjectPulse database (not local files)
 - Support parallel research operations (2+ agents simultaneously)
 - Report quality: 90%+ actionable insights
+- End users can create, store, and invoke custom personas via MCP tools
 
 **Story Range:** US-011-01 to US-011-05 (5 stories)
 **FR Range:** FR-154 to FR-158 (Research Agent FRs from PRD Section 4.2.10)
 **Total Points:** ~24 points
-**MoSCoW:** Should Have (High priority - significant token savings)
-**Dependencies:** Filesystem MCP configured, .agent/task/ directory established, Sub-agent architecture
+**MoSCoW:** Must Have (Critical - core product feature for end users)
+**Dependencies:** PostgreSQL database, MCP server, personas.* tools implementation, Agent invocation system
 **Sprint Allocation:** Sprint 9 Week 2
 
 **Scope Reduction Rationale:**

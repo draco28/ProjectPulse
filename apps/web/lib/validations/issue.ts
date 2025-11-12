@@ -7,6 +7,64 @@
 
 import { z } from 'zod';
 
+// ============================================================================ //
+// COMMON HELPERS                                                               //
+// ============================================================================ //
+
+const MAX_TITLE_LENGTH = 200;
+const MAX_DESCRIPTION_LENGTH = 50000;
+const MAX_ASSIGNEE_LENGTH = 120;
+const MAX_MODULE_LENGTH = 80;
+const MAX_FILEPATH_LENGTH = 2048;
+const MAX_SNIPPET_LENGTH = 5000;
+
+export const LinkedFileSchema = z.object({
+  filePath: z
+    .string()
+    .min(1, 'File path is required')
+    .max(MAX_FILEPATH_LENGTH, 'File path is too long'),
+  lineNumber: z.number().int().positive().max(1_000_000).optional(),
+  snippet: z.string().max(MAX_SNIPPET_LENGTH, 'Snippet cannot exceed 5,000 characters').optional(),
+});
+
+export type IssueFileContextInput = z.infer<typeof LinkedFileSchema>;
+
+export const IssueContextSchema = z.object({
+  files: z.array(LinkedFileSchema).max(25, 'Maximum of 25 file references allowed').optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+export type IssueContextInput = z.infer<typeof IssueContextSchema>;
+
+const IssueBaseSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(MAX_TITLE_LENGTH, 'Title is too long').trim(),
+  description: z
+    .string()
+    .max(MAX_DESCRIPTION_LENGTH, 'Description cannot exceed 50,000 characters')
+    .optional(),
+  status: z
+    .string()
+    .min(1, 'Status is required when provided')
+    .max(32, 'Status must be 32 characters or fewer')
+    .optional(),
+  priority: z
+    .string()
+    .min(1, 'Priority is required when provided')
+    .max(32, 'Priority must be 32 characters or fewer')
+    .optional(),
+  module: z.string().max(MAX_MODULE_LENGTH, 'Module name too long').optional(),
+  assignee: z.string().max(MAX_ASSIGNEE_LENGTH, 'Assignee name too long').optional(),
+  labelIds: z.array(z.number().int().positive()).max(25).optional(),
+  customFields: z.record(z.unknown()).optional(),
+  context: IssueContextSchema.optional(),
+});
+
+export const IssueIdParamSchema = z.object({
+  id: z.union([z.number().int().positive(), z.string().regex(/^\d+$/, 'ID must be numeric')]).transform(
+    (value) => Number(value)
+  ),
+});
+
 // ============================================================================
 // COMMENT VALIDATION
 // ============================================================================
@@ -46,11 +104,7 @@ export type CommentInput = z.infer<typeof CommentSchema>;
  * Note: When status changes to 'closed', the API route will set closedAt timestamp
  */
 export const StatusUpdateSchema = z.object({
-  status: z.enum(['open', 'in_progress', 'closed'], {
-    errorMap: () => ({
-      message: 'Status must be one of: open, in_progress, closed',
-    }),
-  }),
+  status: z.string().min(1, 'Status is required').max(32, 'Status must be 32 characters or fewer'),
 });
 
 /**
@@ -122,16 +176,7 @@ export type LabelUpdate = z.infer<typeof LabelUpdateSchema>;
  * - module: Optional
  * - assignee: Optional
  */
-export const CreateIssueSchema = z.object({
-  title: z
-    .string()
-    .min(1, 'Title is required')
-    .max(200, 'Title cannot exceed 200 characters')
-    .trim(),
-  description: z.string().max(50000, 'Description cannot exceed 50,000 characters').optional(),
-  priority: z.enum(['critical', 'high', 'medium', 'low']).default('medium'),
-  module: z.string().optional(),
-  assignee: z.string().optional(),
+export const CreateIssueSchema = IssueBaseSchema.extend({
   projectId: z.number().int().positive(),
 });
 
@@ -144,9 +189,51 @@ export type CreateIssue = z.infer<typeof CreateIssueSchema>;
  * Schema for updating an existing issue
  * All fields optional (partial update)
  */
-export const UpdateIssueSchema = CreateIssueSchema.partial().omit({ projectId: true });
+export const UpdateIssueSchema = IssueBaseSchema.partial().extend({
+  labelIds: z.array(z.number().int().positive()).optional(),
+});
 
 /**
  * Inferred TypeScript type from UpdateIssueSchema
  */
 export type UpdateIssue = z.infer<typeof UpdateIssueSchema>;
+
+// ============================================================================
+// BULK CREATION VALIDATION
+// ============================================================================
+
+export const BulkIssueItemSchema = IssueBaseSchema.extend({
+  reference: z.string().max(64).optional(),
+});
+
+export const IssueBulkCreateSchema = z.object({
+  projectId: z.number().int().positive(),
+  issues: z.array(BulkIssueItemSchema).min(1, 'At least one issue is required').max(50, 'Max 50 issues'),
+});
+
+export type BulkIssueCreateInput = z.infer<typeof IssueBulkCreateSchema>;
+
+// ============================================================================
+// FILTER & QUERY VALIDATION
+// ============================================================================
+
+export const IssueFilterSchema = z.object({
+  projectId: z.number().int().positive().optional(),
+  status: z.array(z.string().min(1)).optional(),
+  priority: z.array(z.string().min(1)).optional(),
+  module: z.array(z.string().min(1)).optional(),
+  assignee: z.array(z.string().min(1)).optional(),
+  search: z.string().max(200).optional(),
+  tags: z.array(z.string().min(1)).optional(),
+  createdFrom: z.string().datetime().optional(),
+  createdTo: z.string().datetime().optional(),
+  includeRelations: z.boolean().optional(),
+  page: z.number().int().min(1).default(1),
+  pageSize: z.number().int().min(1).max(100).default(20),
+  sortBy: z
+    .enum(['createdAt', 'updatedAt', 'priority'])
+    .default('createdAt'),
+  sortDirection: z.enum(['asc', 'desc']).default('desc'),
+});
+
+export type IssueFilters = z.infer<typeof IssueFilterSchema>;

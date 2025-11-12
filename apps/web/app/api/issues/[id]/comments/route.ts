@@ -13,30 +13,25 @@
  * - Server Error (500): { data: null, error: string }
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
-import { CommentSchema } from '@/lib/validations/issue';
+import { CommentSchema, IssueIdParamSchema } from '@/lib/validations/issue';
+import { failure, success } from '../../_utils';
 import { z } from 'zod';
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // 1. Extract and validate issue ID
-    const { id } = await params;
-    const issueId = parseInt(id, 10);
-
-    if (isNaN(issueId)) {
-      return NextResponse.json({ data: null, error: 'Invalid issue ID' }, { status: 400 });
-    }
+    const { id } = IssueIdParamSchema.parse({ id: params.id });
 
     // 2. Verify issue exists
     const issueExists = await prisma.issue.findUnique({
-      where: { id: issueId },
+      where: { id },
       select: { id: true },
     });
 
     if (!issueExists) {
-      return NextResponse.json({ data: null, error: 'Issue not found' }, { status: 404 });
+      return failure({ code: 'NOT_FOUND', message: 'Issue not found', status: 404 });
     }
 
     // 3. Parse and validate request body
@@ -48,7 +43,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       data: {
         content: validatedData.content,
         author: validatedData.author || 'Anonymous',
-        issueId,
+        issueId: id,
       },
       select: {
         id: true,
@@ -61,34 +56,23 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     });
 
     // 5. Revalidate issue detail page (clears Next.js cache)
-    revalidatePath(`/issues/${issueId}`);
+    revalidatePath(`/issues/${id}`);
 
-    // 6. Return success response
-    return NextResponse.json({ data: comment, error: null }, { status: 201 });
+    return success(comment, 201);
   } catch (error) {
-    // Handle Zod validation errors
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: 'Invalid comment data',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid comment data',
+        details: error.flatten(),
+      });
     }
 
-    // Handle Prisma errors
-    if (error && typeof error === 'object' && 'code' in error) {
-      console.error('Prisma error creating comment:', error);
-      return NextResponse.json(
-        { data: null, error: 'Database error while creating comment' },
-        { status: 500 }
-      );
-    }
-
-    // Handle other errors
-    console.error('Unexpected error creating comment:', error);
-    return NextResponse.json({ data: null, error: 'Failed to create comment' }, { status: 500 });
+    console.error('[API] POST /api/issues/[id]/comments failed', error);
+    return failure({
+      code: 'INTERNAL_ERROR',
+      message: 'Failed to create comment',
+      status: 500,
+    });
   }
 }
