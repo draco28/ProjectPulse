@@ -75,7 +75,9 @@
       "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev\" npx prisma migrate status:*)",
       "Bash(python3:*)",
       "Bash(pnpm --filter web lint:*)",
-      "Bash(pnpm --filter web build:*)"
+      "Bash(pnpm --filter web build:*)",
+      "WebSearch",
+      "WebFetch(domain:ref.tools)"
     ],
     "deny": [],
     "ask": [
