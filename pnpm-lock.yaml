@@ -73,6 +73,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.65.0)
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.0.0
+        version: 1.20.2
       '@prisma/client':
         specifier: ^5.9.1
         version: 5.22.0(prisma@5.22.0)
