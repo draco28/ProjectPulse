@@ -694,8 +694,11 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
   // ========================================================================
   // KNOWLEDGE BASE
   // ========================================================================
-  console.log('📚 Creating knowledge base items...');
+  // NOTE: Knowledge base seeding now handled by seed-knowledge.ts
+  // This section is deprecated
+  console.log('📚 Skipping knowledge base items (use: pnpm prisma db seed)...');
 
+  /* DEPRECATED - Use seed-knowledge.ts instead
   const knowledgeItems = await Promise.all([
     prisma.knowledgeItem.create({
       data: {
@@ -822,6 +825,9 @@ issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
   ]);
 
   console.log(`✓ Created ${knowledgeItems.length} knowledge base items\n`);
+  */ // End DEPRECATED section
+
+  const knowledgeItems: any[] = []; // Placeholder for type safety
 
   // ========================================================================
   // WIKI PAGES

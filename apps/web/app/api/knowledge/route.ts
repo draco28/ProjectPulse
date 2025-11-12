@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
+import { createKnowledgeItemSchema } from '@/lib/validations/knowledge';
+import { createKnowledgeItem, KnowledgeCreationError } from '@/lib/knowledge/create';
 
 /**
  * GET /api/knowledge
@@ -84,5 +86,102 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Failed to fetch knowledge articles:', error);
     return NextResponse.json({ error: 'Failed to fetch knowledge articles' }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/knowledge
+ *
+ * Create a new knowledge item with automatic embedding generation.
+ * Embeddings are generated from title + content using Ollama (primary)
+ * or OpenAI (fallback).
+ *
+ * Request body:
+ * - title: string (1-200 chars)
+ * - content: string (10-50000 chars)
+ * - category: string (1-50 chars)
+ * - tags: string[] (0-20 items)
+ *
+ * Response:
+ * - 201: Created successfully
+ * - 400: Validation error
+ * - 503: Embedding service unavailable
+ * - 500: Server error
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Parse and validate request body
+    const body = await request.json();
+    const validation = createKnowledgeItemSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          details: validation.error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
+    // Create knowledge item with auto-embedding
+    const result = await createKnowledgeItem(validation.data);
+
+    // Return success response
+    return NextResponse.json(
+      {
+        data: {
+          id: result.id,
+          title: result.title,
+          content: result.content,
+          category: result.category,
+          tags: result.tags,
+          createdAt: result.createdAt.toISOString(),
+          updatedAt: result.updatedAt.toISOString(),
+        },
+        meta: {
+          embeddingProvider: result.embeddingProvider,
+          embeddingDuration: result.embeddingDuration,
+        },
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    // Handle known errors
+    if (error instanceof KnowledgeCreationError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          code: error.code,
+        },
+        { status: error.statusCode }
+      );
+    }
+
+    // Handle JSON parse errors
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        {
+          error: 'Invalid JSON in request body',
+          code: 'INVALID_JSON',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Log unexpected errors
+    console.error('[POST /api/knowledge] Unexpected error:', error);
+
+    // Return generic error
+    return NextResponse.json(
+      {
+        error: 'An unexpected error occurred',
+        code: 'INTERNAL_ERROR',
+      },
+      { status: 500 }
+    );
   }
 }

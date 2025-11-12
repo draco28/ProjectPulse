@@ -379,24 +379,41 @@ model LinkedCommit {
 model KnowledgeItem {
   id Int @id @default(autoincrement())
 
-  title    String
-  content  String  @db.Text
-  category String?
+  title    String   @db.VarChar(200)
+  content  String   @db.Text
+  category String   @db.VarChar(50)
 
-  // Tags (array)
+  // Tags (array with GIN index for fast filtering)
   tags String[]
 
-  // Full-text search (will be populated by triggers)
-  searchVector String? @db.Text // Using Text as placeholder for tsvector
+  // Vector search (pgvector) - 768 dimensions from Ollama nomic-embed-text
+  // NOT NULL for query performance (expert recommendation)
+  embedding Unsupported("vector(768)")
 
-  // Links to issues
+  // Full-text search - auto-generated via trigger
+  // NOT NULL for query performance (expert recommendation)
+  contentTsvector Unsupported("tsvector")
+
+  // Graph relationships
+  relationsFrom KnowledgeRelationship[] @relation("FromKnowledge")
+  relationsTo   KnowledgeRelationship[] @relation("ToKnowledge")
+
+  // Version history
+  versions KnowledgeItemVersion[]
+
+  // Links to issues (existing functionality)
   linkedIssues KnowledgeLink[] @relation("KnowledgeIssue")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Indexes (note: HNSW vector index created via raw SQL migration)
   @@index([category])
+  @@index([tags], type: Gin)
+  @@index([contentTsvector], type: Gin)
   @@index([createdAt(sort: Desc)])
+
+  @@map("knowledge_items")
 }
 
 model KnowledgeLink {
@@ -413,6 +430,62 @@ model KnowledgeLink {
   @@unique([knowledgeItemId, issueId])
   @@index([knowledgeItemId])
   @@index([issueId])
+}
+
+// Graph relationships between knowledge items (for 2-hop traversal)
+model KnowledgeRelationship {
+  id Int @id @default(autoincrement())
+
+  fromId Int
+  toId   Int
+
+  // Relationship types: RELATES_TO, DEPENDS_ON, CONTRADICTS, EXTENDS, SUPERSEDES
+  relationType String @db.VarChar(50)
+
+  // Weight for ranking related items (0.00 to 1.00)
+  weight Decimal @default(1.0) @db.Decimal(3, 2)
+
+  createdAt DateTime @default(now())
+
+  // Relationships
+  fromKnowledge KnowledgeItem @relation("FromKnowledge", fields: [fromId], references: [id], onDelete: Cascade)
+  toKnowledge   KnowledgeItem @relation("ToKnowledge", fields: [toId], references: [id], onDelete: Cascade)
+
+  // Prevent duplicate relationships
+  @@unique([fromId, toId, relationType])
+
+  // Indexes for graph traversal performance
+  @@index([fromId])
+  @@index([toId])
+  @@index([relationType])
+  @@index([fromId, relationType]) // Composite for filtered traversal
+
+  @@map("knowledge_relationships")
+}
+
+// Version history for knowledge items (audit trail)
+model KnowledgeItemVersion {
+  id Int @id @default(autoincrement())
+
+  itemId  Int
+  version Int
+
+  content           String  @db.Text
+  changeDescription String? @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+
+  // Relationship
+  item KnowledgeItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  // Unique constraint: one version number per item
+  @@unique([itemId, version])
+
+  // Indexes for version queries
+  @@index([itemId])
+  @@index([itemId, version(sort: Desc)]) // Get latest version efficiently
+
+  @@map("knowledge_item_versions")
 }
 
 // ============================================================================
