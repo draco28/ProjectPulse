@@ -65,18 +65,47 @@ ProjectPulse provides **prompt templates** that guide AI agents through project 
    - Visible in: Wiki page (categories: "Requirements", "Architecture")
 
 3. **Session 3 - AI Workflow Blueprint**
-   - ProjectPulse sends prompt: "Create memory banks, skills, SOPs for this project..."
-   - Agent creates workflow artifacts
-   - Agent stores in database via MCP (Knowledge Base + Wiki)
-   - Visible in: Knowledge Base page, Wiki page (category: "Workflows")
+   - ProjectPulse sends prompt: "Create cloud-based memory banks, skills library, and SOPs for this project..."
+   - Agent creates workflow artifacts (stored in ProjectPulse database, NOT local files)
+   - Agent stores in database via MCP tools (memory.create(), skills.add(), wiki.create())
+   - Visible in: Memory Banks page, Skills Library page, Wiki page (category: "Workflows")
 
 **Result:** All onboarding data lives in ProjectPulse database. User accesses via web UI. Repository stays clean.
+
+### 1.2.5 Cloud-Based AI Infrastructure Philosophy
+
+**Key Innovation**: ALL context management happens in ProjectPulse cloud, NOT in user repositories.
+
+**Traditional AI Development Problems:**
+- `.agent/` folders → Clutters repository with dozens of files
+- `.claude/` folders → More clutter with skills and configurations
+- `STATUS.md` files → Even more tracking files in repo
+- Lost context on restart → Frustration and repeated work
+- Manual file management → Time wasted organizing AI artifacts
+
+**ProjectPulse Solution (Everything Cloud-Based):**
+- **Memory Banks** → Stored in PostgreSQL database (virtual .agent/ folder)
+- **Agent Personas** → Stored in database, invoked via MCP
+- **Skills/SOPs** → Stored in database, retrieved on-demand
+- **Progress/Plans** → Stored in database, visible in web UI
+- **Workflow State** → Stored in database, survives restarts
+- **User Repos** → CLEAN! Just source code, no AI clutter
+
+**How It Works:**
+1. Agent connects to ProjectPulse via MCP
+2. Agent creates "memory banks" → Stored in `memory_banks` table
+3. Agent saves progress → Stored in `progress_tracking` table
+4. Agent needs context → Retrieved via MCP tools
+5. Human monitors → Views everything via web UI
+6. Repository → Remains pristine, only contains actual project code
+
+**Every feature is cloud-based. No local AI files ever touch user repositories.**
 
 **Ticket System Integration**:
 
 - Traditional project management uses **Issues** (bugs/features)
 - Agent workflow management uses **Tickets** (sprint work items with lifecycle)
-- Tickets include memory bank snapshots → Context preserved across sessions
+- Tickets include project context snapshots (from cloud memory banks) → Context preserved across sessions
 - Tickets track agent checkpoints → Resume after interruption without knowledge loss
 
 ### 1.3 Core Value Proposition
@@ -538,49 +567,63 @@ Traditional agent workflows load all documentation at session start:
 - Context recovery after interruption requires reloading everything (40K tokens)
 - **Result**: 75% of token budget spent on context loading, not implementation
 
-**Solution: Memory Bank System**
+**Solution: Cloud-Based Memory Bank System**
 
-Structured memory bank files in `.agent/` folder:
+**Important**: Memory banks are stored in ProjectPulse database, NOT as local files in user repositories.
 
-1. **project-brief.md** (3K tokens):
-   - WHAT we're building and WHY
+Structured memory banks in ProjectPulse cloud (virtual `.agent/` folder):
+
+1. **project-brief** (3K tokens):
+   - WHAT the end user is building and WHY
    - Core requirements, goals, success criteria
    - User personas, target audience
    - Quality standards, constraints
+   - **Storage**: `memory_banks` table with type='project-brief'
+   - **Access**: Web UI (/memory-banks) + MCP tool (`memory.read('project-brief')`)
 
-2. **system-patterns.md** (4K tokens):
-   - HOW we build (implementation patterns)
+2. **system-patterns** (4K tokens):
+   - HOW the end user builds (implementation patterns)
    - Architecture patterns (Server/Client Components)
    - Database patterns (Prisma queries, optimization)
    - API patterns (endpoints, validation)
    - Testing patterns (Jest, RTL, Playwright)
+   - **Storage**: `memory_banks` table with type='system-patterns'
+   - **Access**: Web UI + MCP tool (`memory.read('system-patterns')`)
 
-3. **tech-context.md** (2K tokens):
+3. **tech-context** (2K tokens):
    - Technical stack details
    - Dependencies (Next.js, Prisma, Zod, etc.)
    - Environment setup, configuration
    - Constraints and limitations
+   - **Storage**: `memory_banks` table with type='tech-context'
+   - **Access**: Web UI + MCP tool (`memory.read('tech-context')`)
 
-4. **active-context.md** (1K tokens):
-   - Current focus (what we're working on RIGHT NOW)
+4. **active-context** (1K tokens):
+   - Current focus (what the end user's agent is working on RIGHT NOW)
    - Recent changes and commits
    - Remaining tasks for current phase
    - Blockers and waiting items
+   - **Storage**: `memory_banks` table with type='active-context'
+   - **Access**: Web UI + MCP tool (`memory.read('active-context')`)
 
-5. **progress.md** (2K tokens):
+5. **progress** (2K tokens):
    - Progress tracking (what's done, what's left)
    - Metrics (velocity, quality gates)
    - Risk assessment
    - Lessons learned
+   - **Storage**: `memory_banks` table with type='progress'
+   - **Access**: Web UI + MCP tool (`memory.read('progress')`)
 
-**Targeted Loading Examples**:
+**Key Benefit**: End user's repository stays completely clean - no `.agent/` folder needed!
+
+**Targeted Loading Examples** (via MCP tools):
 
 ```
-Need project requirements?          → Read project-brief.md (3K tokens)
-Need architectural patterns?        → Read system-patterns.md (4K tokens)
-Need specific API pattern?          → Grep system-patterns.md for "API" (500 tokens)
-Need current task context?          → Read active-context.md (1K tokens)
-Need progress overview?             → Read progress.md (2K tokens)
+Need project requirements?          → memory.read('project-brief') (3K tokens)
+Need architectural patterns?        → memory.read('system-patterns') (4K tokens)
+Need specific API pattern?          → memory.search('system-patterns', 'API') (500 tokens)
+Need current task context?          → memory.read('active-context') (1K tokens)
+Need progress overview?             → memory.read('progress') (2K tokens)
 ```
 
 **Success Metrics**:

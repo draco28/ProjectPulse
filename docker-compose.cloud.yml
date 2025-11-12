@@ -46,15 +46,22 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # MCP Server (Custom Backend)
+  # MCP Server (Custom Backend - Streamable HTTP for Production)
+  # Production: Streamable HTTP transport (March 2025 spec, replaces deprecated SSE)
+  # Development: stdio transport for local Claude Code
+  # Architecture: AI agents connect via HTTP POST to /mcp endpoint with OAuth/API keys
   mcp-server:
     image: node:20-alpine
     container_name: projectpulse-mcp-cloud
     working_dir: /app
-    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && cd apps/mcp-server && pnpm build && node dist/index.js"
+    # Run HTTP transport server (production-ready, cloud-deployable)
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && cd apps/mcp-server && pnpm build && node dist/index-http.js"
     environment:
       - PROJECTPULSE_API_URL=http://nextjs:3000
-      - NODE_ENV=development
+      - NODE_ENV=production
+      - MCP_PORT=3001
+    ports:
+      - "3001:3001"
     volumes:
       - ./:/app
       - mcp_node_modules:/app/apps/mcp-server/node_modules
@@ -63,6 +70,12 @@ services:
     depends_on:
       - nextjs
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   projectpulse:

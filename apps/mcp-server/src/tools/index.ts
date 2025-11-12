@@ -22,6 +22,12 @@ import { workflowGetStatusTool } from './workflow/getStatus.js';
 import { workflowPauseTool } from './workflow/pause.js';
 import { workflowResumeTool } from './workflow/resume.js';
 import { workflowCompleteTool } from './workflow/complete.js';
+import { issueCreateTool } from './issues/create.js';
+import { issueBulkCreateTool } from './issues/bulkCreate.js';
+import { issueUpdateTool } from './issues/update.js';
+import { issueSearchTool } from './issues/search.js';
+import { issueAddCommentTool } from './issues/addComment.js';
+import { issueSetStatusTool } from './issues/setStatus.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -38,6 +44,12 @@ const loadTools = (): ToolDefinition[] => [
   wikiAnalyticsTopPagesTool,
   onboardingGetPromptTool,
   onboardingSubmitResponseTool,
+  issueCreateTool,
+  issueBulkCreateTool,
+  issueUpdateTool,
+  issueSearchTool,
+  issueAddCommentTool,
+  issueSetStatusTool,
   workflowListTool,
   workflowStartTool,
   workflowExecuteStepTool,

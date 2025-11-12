@@ -40,6 +40,9 @@ async function main() {
   await prisma.securityFinding.deleteMany();
   await prisma.issue.deleteMany();
   await prisma.label.deleteMany();
+  await prisma.issueStatusOption.deleteMany();
+  await prisma.issuePriorityOption.deleteMany();
+  await prisma.issueModuleOption.deleteMany();
   await prisma.knowledgeItem.deleteMany();
   await prisma.wikiPage.deleteMany();
   await prisma.project.deleteMany();
@@ -440,6 +443,98 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
     prisma.label.create({ data: { name: 'ui/ux', color: '#d876e3' } }),
   ]);
   console.log(`✓ Created ${labels.length} labels\n`);
+
+  console.log('🧩 Seeding issue option lists...');
+  await prisma.issueStatusOption.createMany({
+    data: [
+      { value: 'open', label: 'Open', order: 1 },
+      { value: 'in_progress', label: 'In Progress', order: 2 },
+      { value: 'blocked', label: 'Blocked', order: 3 },
+      { value: 'closed', label: 'Closed', order: 4 },
+    ],
+    skipDuplicates: true,
+  });
+  await prisma.issuePriorityOption.createMany({
+    data: [
+      { value: 'critical', label: 'Critical', order: 1, dotColorClass: 'bg-red-500', badgeColorClass: 'bg-red-500/20 text-red-100' },
+      { value: 'high', label: 'High', order: 2, dotColorClass: 'bg-orange-500', badgeColorClass: 'bg-orange-500/20 text-orange-100' },
+      { value: 'medium', label: 'Medium', order: 3, dotColorClass: 'bg-yellow-500', badgeColorClass: 'bg-yellow-500/20 text-yellow-100' },
+      { value: 'low', label: 'Low', order: 4, dotColorClass: 'bg-green-500', badgeColorClass: 'bg-green-500/20 text-green-100' },
+    ],
+    skipDuplicates: true,
+  });
+  await prisma.issueModuleOption.createMany({
+    data: [
+      { value: 'API', label: 'API' },
+      { value: 'Database', label: 'Database' },
+      { value: 'UI', label: 'UI' },
+      { value: 'Core', label: 'Core' },
+      { value: 'Feature', label: 'Feature' },
+      { value: 'Security', label: 'Security' },
+      { value: 'Performance', label: 'Performance' },
+      { value: 'Documentation', label: 'Documentation' },
+    ],
+    skipDuplicates: true,
+  });
+  console.log('✓ Issue option lists ready\n');
+
+  // ========================================================================
+  // ISSUE AUTO-TAGGING RULES
+  // ========================================================================
+  console.log('⚙️  Seeding issue auto-tagging rules...');
+  const autoTagConfig = {
+    version: 1,
+    defaultModule: 'General',
+    defaultPriority: 'medium',
+    rules: [
+      {
+        pattern: '^apps/web/app/api/',
+        module: 'API',
+        labels: ['enhancement'],
+        priority: 'high',
+      },
+      {
+        pattern: '^apps/web/prisma/',
+        module: 'Database',
+        labels: ['bug'],
+        priority: 'critical',
+      },
+      {
+        pattern: '^apps/web/components/',
+        module: 'UI',
+        labels: ['ui/ux'],
+        priority: 'medium',
+      },
+      {
+        pattern: '^apps/web/lib/',
+        module: 'Core',
+        labels: ['enhancement'],
+      },
+      {
+        pattern: '^apps/web/app/(issues|wiki|knowledge)/',
+        module: 'Feature',
+        labels: ['enhancement', 'documentation'],
+      },
+    ],
+  };
+
+  await prisma.setting.upsert({
+    where: { key: 'issues.rules' },
+    update: {
+      category: 'issues',
+      description: 'Auto-tagging configuration for issue creation',
+      value: autoTagConfig,
+      updatedBy: 'seed-script',
+    },
+    create: {
+      key: 'issues.rules',
+      category: 'issues',
+      description: 'Auto-tagging configuration for issue creation',
+      value: autoTagConfig,
+      updatedBy: 'seed-script',
+    },
+  });
+  console.log('✓ Auto-tagging rules saved\n');
 
   // ========================================================================
   // ISSUES

@@ -69,7 +69,15 @@
       "mcp__filesystem__list_directory",
       "mcp__filesystem__search_files",
       "Bash(pnpm audit:*)",
-      "mcp__filesystem__write_file"
+      "mcp__filesystem__write_file",
+      "Bash(bash:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev\" npx prisma migrate dev:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev\" npx prisma migrate status:*)",
+      "Bash(python3:*)",
+      "Bash(pnpm --filter web lint:*)",
+      "Bash(pnpm --filter web build:*)",
+      "WebSearch",
+      "WebFetch(domain:ref.tools)"
     ],
     "deny": [],
     "ask": [

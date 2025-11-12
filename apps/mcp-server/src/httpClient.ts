@@ -5,6 +5,8 @@ export interface HttpClient {
   get<T>(path: string, init?: RequestInit): Promise<T>;
   post<T, B = unknown>(path: string, body?: B, init?: RequestInit): Promise<T>;
   put<T, B = unknown>(path: string, body?: B, init?: RequestInit): Promise<T>;
+  patch<T, B = unknown>(path: string, body?: B, init?: RequestInit): Promise<T>;
+  delete<T>(path: string, init?: RequestInit): Promise<T>;
 }
 
 const ensureAbsoluteUrl = (baseUrl: string, path: string) => {
@@ -72,6 +74,17 @@ export const createHttpClient = (config: AppConfig, logger: Logger): HttpClient 
         ...init,
         method: 'PUT',
         body: body === undefined ? undefined : JSON.stringify(body),
+      }),
+    patch: <T, B = unknown>(path: string, body?: B, init?: RequestInit) =>
+      request<T>(path, {
+        ...init,
+        method: 'PATCH',
+        body: body === undefined ? undefined : JSON.stringify(body),
+      }),
+    delete: <T>(path: string, init?: RequestInit) =>
+      request<T>(path, {
+        ...init,
+        method: 'DELETE',
       }),
   };
 };

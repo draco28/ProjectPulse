@@ -32,6 +32,12 @@
 
 ### Issue Management
 
+- [POST /api/issues](#post-apiissues) - Create single issue with auto-tagging
+- [GET /api/issues](#get-apiissues) - List issues with filters and pagination
+- [GET /api/issues/[id]](#get-apiissuesid) - Get issue detail
+- [PATCH /api/issues/[id]](#patch-apiissuesid) - Update issue
+- [DELETE /api/issues/[id]](#delete-apiissuesid) - Delete issue
+- [POST /api/issues/bulk](#post-apiissuesbulk) - Bulk create issues (up to 50)
 - [POST /api/issues/[id]/comments](#post-apiissuesidcomments) - Add comment to issue
 - [PATCH /api/issues/[id]/status](#patch-apiissuesidstatus) - Update issue status
 
@@ -1632,6 +1638,263 @@ Content-Type: application/json
 ---
 
 ### Issue Management
+
+#### POST /api/issues
+
+**Description**: Create a single issue with automatic tagging based on file paths
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  projectId: number (required),
+  title: string (1-200 chars, required),
+  description?: string (max 50,000 chars),
+  status?: string (max 32 chars),
+  priority?: string (max 32 chars),
+  module?: string (max 80 chars),
+  assignee?: string (max 120 chars),
+  labelIds?: number[] (max 25 labels),
+  customFields?: Record<string, unknown>,
+  context?: {
+    files?: Array<{
+      filePath: string (required, max 2048 chars),
+      lineNumber?: number (positive, max 1,000,000),
+      snippet?: string (max 5000 chars)
+    }> (max 25 files),
+    metadata?: Record<string, unknown>
+  }
+}
+```
+
+**Response**: `201 Created`
+
+```typescript
+{
+  data: {
+    id: number,
+    projectId: number,
+    title: string,
+    description: string | null,
+    status: string,
+    priority: string,
+    module: string | null,
+    assignee: string | null,
+    customFields: JsonValue | null,
+    createdAt: string,
+    updatedAt: string,
+    closedAt: string | null,
+    labels: Array<{ id: number, name: string, color: string }>,
+    linkedFiles: Array<{ id: number, filePath: string, lineNumber: number | null }>,
+    _count: { comments: number, attachments: number }
+  },
+  error: null
+}
+```
+
+**Features**:
+- Auto-tagging: Module and labels derived from file paths
+- Context injection: File references with line numbers and code snippets
+- Auto-priority: Derived from file path patterns
+- Label creation: Missing labels are created automatically
+
+---
+
+#### GET /api/issues
+
+**Description**: List issues with filtering, sorting, and pagination
+
+**Query Parameters**:
+
+```typescript
+{
+  projectId?: number,
+  status?: string | string[],
+  priority?: string | string[],
+  module?: string | string[],
+  assignee?: string,
+  labelIds?: number | number[],
+  search?: string (searches title + description),
+  orderBy?: "createdAt" | "updatedAt" | "priority" | "status",
+  orderDir?: "asc" | "desc",
+  page?: number (default: 1),
+  pageSize?: number (default: 25, max: 100)
+}
+```
+
+**Response**: `200 OK`
+
+```typescript
+{
+  data: {
+    issues: Array<{
+      id: number,
+      title: string,
+      status: string,
+      priority: string,
+      module: string | null,
+      assignee: string | null,
+      createdAt: string,
+      closedAt: string | null,
+      labels: Array<{ id: number, name: string, color: string }>,
+      _count: { comments: number }
+    }>,
+    pagination: {
+      page: number,
+      pageSize: number,
+      total: number,
+      totalPages: number
+    }
+  },
+  error: null
+}
+```
+
+---
+
+#### GET /api/issues/[id]
+
+**Description**: Get detailed information for a single issue
+
+**Path Parameters**:
+- `id` (number) - Issue ID
+
+**Response**: `200 OK`
+
+```typescript
+{
+  data: {
+    id: number,
+    projectId: number,
+    title: string,
+    description: string | null,
+    status: string,
+    priority: string,
+    module: string | null,
+    assignee: string | null,
+    customFields: JsonValue | null,
+    createdAt: string,
+    updatedAt: string,
+    closedAt: string | null,
+    labels: Array<{ id: number, name: string, color: string }>,
+    linkedFiles: Array<{ id: number, filePath: string, lineNumber: number | null }>,
+    comments: Array<{
+      id: number,
+      content: string,
+      author: string,
+      createdAt: string
+    }>,
+    attachments: Array<{ id: number, fileName: string, fileSize: number }>
+  },
+  error: null
+}
+```
+
+---
+
+#### PATCH /api/issues/[id]
+
+**Description**: Update an issue (partial update)
+
+**Path Parameters**:
+- `id` (number) - Issue ID
+
+**Request Body**: (all fields optional)
+
+```typescript
+{
+  title?: string,
+  description?: string,
+  status?: string,
+  priority?: string,
+  module?: string,
+  assignee?: string,
+  labelIds?: number[],
+  customFields?: Record<string, unknown>
+}
+```
+
+**Response**: `200 OK` (same structure as GET /api/issues/[id])
+
+---
+
+#### DELETE /api/issues/[id]
+
+**Description**: Permanently delete an issue
+
+**Path Parameters**:
+- `id` (number) - Issue ID
+
+**Response**: `204 No Content`
+
+---
+
+#### POST /api/issues/bulk
+
+**Description**: Create multiple issues in a single transaction (up to 50 issues)
+
+**Performance**: Optimized for bulk operations (<2s for 15 issues)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  projectId: number (required),
+  issues: Array<{
+    title: string (required),
+    description?: string,
+    status?: string,
+    priority?: string,
+    module?: string,
+    assignee?: string,
+    labelIds?: number[],
+    customFields?: Record<string, unknown>,
+    context?: {
+      files?: Array<{
+        filePath: string,
+        lineNumber?: number,
+        snippet?: string
+      }>,
+      metadata?: Record<string, unknown>
+    },
+    reference?: string (max 64 chars, optional identifier)
+  }> (min: 1, max: 50)
+}
+```
+
+**Response**: `201 Created`
+
+```typescript
+{
+  data: {
+    created: number,
+    failed: number,
+    issues: Array<IssueDetail>,
+    durationMs: number
+  },
+  error: null
+}
+```
+
+**Features**:
+- Transactional: All issues created or none
+- Auto-tagging: Applied to each issue based on context files
+- Performance: Optimized with `createMany` and batch operations
+- Label management: Auto-creates missing labels per issue
+
+---
 
 #### POST /api/issues/[id]/comments
 

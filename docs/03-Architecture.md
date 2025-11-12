@@ -167,9 +167,66 @@ Note: Tool count may expand; 41 represents current scope.
 
 ---
 
-### 1.2 Primary Actors
+### 1.2 No Local Files Philosophy
 
-#### 1.2.1 AI Agent (Primary User - 95%)
+**Core Principle**: User repositories remain pristine. ALL AI context lives in ProjectPulse cloud.
+
+**Traditional AI Development (Problems):**
+```
+my-project/
+├── .agent/                 ← Dozens of markdown files
+│   ├── memory-banks/       ← More clutter
+│   ├── task/               ← Even more files
+│   └── sops/               ← Documentation sprawl
+├── .claude/                ← Configuration files
+│   ├── skills/             ← More markdown
+│   └── agents/             ← Agent configs
+├── STATUS.md               ← Progress tracking
+├── DEVELOPMENT_PLAN.md     ← Planning docs
+└── src/                    ← Actual code (buried)
+```
+
+**ProjectPulse Solution (Cloud-Based):**
+```
+my-project/
+└── src/                    ← ONLY source code!
+
+ProjectPulse Database:
+├── memory_banks table      → Replaces .agent/memory-banks/
+├── skills table            → Replaces .claude/skills/
+├── tickets table           → Replaces .agent/task/
+├── wiki_pages table        → Replaces STATUS.md
+├── plans table             → Replaces current-plan.md
+└── todos table             → Replaces current-todos.md
+```
+
+**What Traditionally Required Local Files → Now in Cloud:**
+- `.agent/memory-banks/project-brief.md` → `memory_banks` table with type='project-brief'
+- `.agent/memory-banks/system-patterns.md` → `memory_banks` table with type='system-patterns'
+- `.agent/task/current-session.md` → `tickets` table with context snapshots
+- `.claude/skills/*.md` → `skills` table with categorized entries
+- `STATUS.md` → Progress tracking page (/cycle)
+- `current-plan.md` → `plans` table with versioning
+- `current-todos.md` → `todos` table with state tracking
+
+**Benefits:**
+- **Clean Repos**: Zero AI-related files in user repositories
+- **Centralized**: All context in one searchable location
+- **Persistent**: Survives git operations, branch switches
+- **Shareable**: Multiple agents can access same context
+- **Versioned**: Full history of all changes
+- **No Conflicts**: No merge conflicts from AI files
+
+**Access Methods:**
+- **Web UI**: Human-friendly pages (/memory-banks, /skills, /wiki)
+- **MCP Tools**: Agent-friendly API (memory.read(), skills.load(), wiki.get())
+- **REST API**: Integration-friendly endpoints (GET /api/memory-banks)
+
+---
+
+### 1.3 Primary Actors
+
+#### 1.3.1 AI Agent (Primary User - 95%)
 
 **Characteristics:**
 
@@ -192,7 +249,7 @@ Note: Tool count may expand; 41 represents current scope.
 - FR-032 to FR-056: Workflow Orchestration (see [02-SRS.md](02-SRS.md))
 - NFR-001 to NFR-005: Performance (MCP response <200ms)
 
-#### 1.2.2 Solo Developer (Secondary User - 5%)
+#### 1.3.2 Solo Developer (Secondary User - 5%)
 
 **Characteristics:**
 
@@ -217,9 +274,9 @@ Note: Tool count may expand; 41 represents current scope.
 
 ---
 
-### 1.3 External Systems
+### 1.4 External Systems
 
-#### 1.3.1 Git Repository
+#### 1.4.1 Git Repository
 
 **Purpose:** Version control for codebase and documentation
 
@@ -236,7 +293,7 @@ Note: Tool count may expand; 41 represents current scope.
 
 **Requirements:** FR-027 (Workflow step validation)
 
-#### 1.3.2 File System
+#### 1.4.2 File System
 
 **Purpose:** Internal dogfooding-only markdown export (optional; not for end users)
 
@@ -249,7 +306,7 @@ Note: Tool count may expand; 41 represents current scope.
 
 **Design Decision:** See [ADR-002](architecture/ADRs/ADR-002-database-as-source-of-truth.md) for markdown auto-generation rationale.
 
-#### 1.3.3 Docker
+#### 1.4.3 Docker
 
 **Purpose:** PostgreSQL containerization for development
 
@@ -272,7 +329,7 @@ services:
 
 **Requirements:** FR-001 (Database setup), NFR-006 (Development environment)
 
-#### 1.3.4 Embedding API (Optional)
+#### 1.4.4 Embedding API (Optional)
 
 **Purpose:** Generate embeddings for knowledge graph semantic search
 

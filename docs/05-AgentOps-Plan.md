@@ -16,6 +16,15 @@
 
 ---
 
+## Important Note on File References
+
+**Cloud-Based Architecture**: All references to `.agent/` folders and files in this document represent **cloud-based features stored in ProjectPulse database**, NOT local files in end users' repositories. For example:
+- `.agent/task/current-session.md` → Stored in `sessions` table
+- `.agent/task/current-plan.md` → Stored in `plans` table
+- `.agent/task/current-todos.md` → Stored in `todos` table
+
+End users' repositories remain completely clean with NO local AI files.
+
 ## Table of Contents
 
 1. [Overview](#1-overview)
