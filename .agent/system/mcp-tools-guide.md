@@ -520,9 +520,9 @@ docker_compose_status();
 
 ## ProjectPulse MCP Server
 
-**Server**: `projectpulse` (Custom MCP server for sprint management)
-**When to use**: Sprint and task management operations
-**Status**: Active (Sprint 1 Week 2 Days 10-12 complete - 5 tools available)
+**Server**: `projectpulse` (Custom MCP server for sprint management and workflow orchestration)
+**When to use**: Sprint management, task tracking, and workflow orchestration
+**Status**: Active (Sprint 1-3 complete - 12 tools available)
 
 ### Available Tools
 
@@ -1276,6 +1276,397 @@ const almostDone = await projectpulse.sprint.queryHierarchy({
 - ⏭️ Date range filtering (deferred to Sprint 2 for full US-007 completion)
 
 **Source**: [apps/mcp-server/src/tools/sprintQueryHierarchy.ts](../../apps/mcp-server/src/tools/sprintQueryHierarchy.ts)
+
+---
+
+#### `projectpulse.workflow.list`
+
+List available workflow templates with optional filtering
+
+**Parameters**:
+
+```typescript
+{
+  category?: string,     // Optional filter: "development", "project-management", "knowledge"
+  isActive?: boolean     // Optional filter (default: true)
+}
+```
+
+**Example**:
+
+```typescript
+// List all active workflows
+projectpulse.workflow.list({});
+
+// Filter by development category
+projectpulse.workflow.list({
+  category: 'development',
+});
+
+// Include inactive workflows
+projectpulse.workflow.list({
+  isActive: false,
+});
+```
+
+**Returns**:
+
+```
+📋 Available Workflow Templates (6 found)
+
+🔧 Development Workflows:
+1. Feature Implementation (10 steps)
+   Complete workflow for implementing a new feature from planning to deployment
+
+2. Bug Fix (8 steps)
+   Systematic workflow for investigating and fixing bugs
+
+📊 Project Management Workflows:
+3. Sprint Planning (6 steps)
+   Setup new sprint with phases, weeks, days, and tasks
+
+[...]
+```
+
+**Implementation**:
+
+- **API Endpoint**: `GET /api/workflows`
+- **Formatted Output**: Rich text with emoji categorization
+- **Filtering**: Supports category and active status filters
+
+**Source**: [apps/mcp-server/src/tools/workflowList.ts](../../apps/mcp-server/src/tools/workflowList.ts)
+
+---
+
+#### `projectpulse.workflow.start`
+
+Start a new workflow run from a template
+
+**Parameters**:
+
+```typescript
+{
+  templateId: number,               // Required, workflow template ID
+  projectId?: number,               // Optional, link to project
+  initialContext?: Record<string, any>  // Optional, initial execution context
+}
+```
+
+**Example**:
+
+```typescript
+// Start Feature Implementation workflow
+projectpulse.workflow.start({
+  templateId: 1,
+  initialContext: {
+    featureName: 'User Authentication',
+    targetBranch: 'feature/auth',
+  },
+});
+
+// Start Bug Fix workflow with project link
+projectpulse.workflow.start({
+  templateId: 2,
+  projectId: 42,
+  initialContext: {
+    bugTitle: 'Fix login timeout',
+    issueNumber: 123,
+  },
+});
+```
+
+**Returns**:
+
+```
+✅ Workflow Run Started
+
+Run ID: 123
+Template: Feature Implementation
+Status: pending
+Current Step: 1/10
+
+📝 Next Step:
+Step 1: Create Feature Branch
+Create new git branch for feature
+
+Ready to execute first step with workflow.executeStep
+```
+
+**Implementation**:
+
+- **API Endpoint**: `POST /api/workflows/run`
+- **Creates**: WorkflowRun + all WorkflowStep records
+- **Returns**: Run ID and next step information
+
+**Source**: [apps/mcp-server/src/tools/workflowStart.ts](../../apps/mcp-server/src/tools/workflowStart.ts)
+
+---
+
+#### `projectpulse.workflow.executeStep`
+
+Execute the current step in a workflow run
+
+**Parameters**:
+
+```typescript
+{
+  runId: number,                     // Required, workflow run ID
+  stepResult?: Record<string, any>   // Optional, result from completed step
+}
+```
+
+**Example**:
+
+```typescript
+// Execute step without result data
+projectpulse.workflow.executeStep({
+  runId: 123,
+});
+
+// Execute step with result data
+projectpulse.workflow.executeStep({
+  runId: 123,
+  stepResult: {
+    success: true,
+    branchName: 'feature/auth',
+    filesCreated: ['auth.ts', 'login.tsx'],
+  },
+});
+```
+
+**Returns**:
+
+```
+✅ Step Completed
+
+Step 3: Create Wiki Page ✓
+Status: completed
+
+📝 Next Step:
+Step 4: Create Sprint Task
+Track feature in sprint system
+
+Progress: 3/10 steps complete
+Workflow Status: running
+```
+
+**Implementation**:
+
+- **API Endpoint**: `POST /api/workflows/run/:id/step`
+- **Updates**: Current step status, advances to next step
+- **State Machine**: Enforces valid transitions
+
+**Source**: [apps/mcp-server/src/tools/workflowExecuteStep.ts](../../apps/mcp-server/src/tools/workflowExecuteStep.ts)
+
+---
+
+#### `projectpulse.workflow.getStatus`
+
+Get current status of a workflow run
+
+**Parameters**:
+
+```typescript
+{
+  runId: number   // Required, workflow run ID
+}
+```
+
+**Example**:
+
+```typescript
+// Get workflow status
+projectpulse.workflow.getStatus({
+  runId: 123,
+});
+```
+
+**Returns**:
+
+```
+📊 Workflow Run Status
+
+Run ID: 123
+Template: Feature Implementation
+Status: running
+Progress: 3/10 steps complete (30%)
+
+⏱️ Timeline:
+Started: 2025-11-12 08:00:00
+Current Duration: 2 hours
+
+📝 Steps:
+✓ Step 1: Create Feature Branch (completed)
+✓ Step 2: Run Onboarding Session (completed)
+✓ Step 3: Create Wiki Page (completed)
+⏳ Step 4: Create Sprint Task (pending)
+⏸ Step 5: Implement Feature Code (pending)
+[...]
+
+💾 Context:
+{
+  "featureName": "User Authentication",
+  "branchName": "feature/auth"
+}
+```
+
+**Implementation**:
+
+- **API Endpoint**: `GET /api/workflows/run/:id`
+- **Returns**: Full status, all steps, context data
+- **Formatted**: Rich text with progress indicators
+
+**Source**: [apps/mcp-server/src/tools/workflowGetStatus.ts](../../apps/mcp-server/src/tools/workflowGetStatus.ts)
+
+---
+
+#### `projectpulse.workflow.pause`
+
+Pause a running workflow (creates checkpoint)
+
+**Parameters**:
+
+```typescript
+{
+  runId: number   // Required, workflow run ID
+}
+```
+
+**Example**:
+
+```typescript
+// Pause workflow
+projectpulse.workflow.pause({
+  runId: 123,
+});
+```
+
+**Returns**:
+
+```
+⏸️ Workflow Paused
+
+Run ID: 123
+Template: Feature Implementation
+Previous Status: running → paused
+Current Step: 4/10
+
+Paused At: 2025-11-12 10:30:00
+Progress Saved: 3 steps completed
+
+Use workflow.resume to continue execution
+```
+
+**Implementation**:
+
+- **Updates**: WorkflowRun status to `paused`
+- **Sets**: `pausedAt` timestamp
+- **Integration**: Can trigger `sprint.checkpoint.create`
+
+**Source**: [apps/mcp-server/src/tools/workflowPause.ts](../../apps/mcp-server/src/tools/workflowPause.ts)
+
+---
+
+#### `projectpulse.workflow.resume`
+
+Resume a paused workflow
+
+**Parameters**:
+
+```typescript
+{
+  runId: number   // Required, workflow run ID
+}
+```
+
+**Example**:
+
+```typescript
+// Resume workflow
+projectpulse.workflow.resume({
+  runId: 123,
+});
+```
+
+**Returns**:
+
+```
+▶️ Workflow Resumed
+
+Run ID: 123
+Template: Feature Implementation
+Previous Status: paused → running
+Current Step: 4/10
+
+Paused Duration: 2 hours 15 minutes
+
+📝 Next Step:
+Step 4: Create Sprint Task
+Track feature in sprint system
+
+Ready to continue with workflow.executeStep
+```
+
+**Implementation**:
+
+- **Updates**: WorkflowRun status to `running`
+- **Clears**: `pausedAt` timestamp
+- **Returns**: Current step for continued execution
+
+**Source**: [apps/mcp-server/src/tools/workflowResume.ts](../../apps/mcp-server/src/tools/workflowResume.ts)
+
+---
+
+#### `projectpulse.workflow.complete`
+
+Manually mark workflow as complete
+
+**Parameters**:
+
+```typescript
+{
+  runId: number   // Required, workflow run ID
+}
+```
+
+**Example**:
+
+```typescript
+// Complete workflow manually
+projectpulse.workflow.complete({
+  runId: 123,
+});
+```
+
+**Returns**:
+
+```
+✅ Workflow Completed
+
+Run ID: 123
+Template: Feature Implementation
+Final Status: completed
+
+⏱️ Duration:
+Started: 2025-11-12 08:00:00
+Completed: 2025-11-12 16:30:00
+Total Time: 8 hours 30 minutes
+
+📊 Summary:
+Total Steps: 10
+Completed: 10
+Success Rate: 100%
+
+All steps executed successfully
+```
+
+**Implementation**:
+
+- **Updates**: WorkflowRun status to `completed`
+- **Sets**: `completedAt` timestamp
+- **Use Case**: Manual completion or early termination
+
+**Source**: [apps/mcp-server/src/tools/workflowComplete.ts](../../apps/mcp-server/src/tools/workflowComplete.ts)
 
 ---
 

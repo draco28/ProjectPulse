@@ -1,8 +1,8 @@
 # API Endpoint Catalog
 
-**Last Updated**: 2025-11-09
+**Last Updated**: 2025-11-12
 **Base URL**: `http://localhost:3000/api`
-**Status**: Full CRUD + Search + Multi-entity + Sprint Management (Sprint 1 Week 2 Days 10-13 complete)
+**Status**: Full CRUD + Search + Multi-entity + Sprint Management + Workflow Orchestration (Sprint 3 complete)
 
 ---
 
@@ -17,6 +17,13 @@
 - [POST /api/sessions](#post-apisessions) - Create session under a task
 - [POST /api/checkpoints](#post-apicheckpoints) - Create checkpoint for session (Day 13)
 - [GET /api/hierarchy/query](#get-apihierarchyquery) - Query hierarchy with filters (NEW - Day 13)
+
+### Workflow Orchestration
+
+- [GET /api/workflows](#get-apiworkflows) - List workflow templates
+- [POST /api/workflows/run](#post-apiworkflowsrun) - Start workflow run
+- [GET /api/workflows/run/:id](#get-apiworkflowsrunid) - Get workflow run status
+- [POST /api/workflows/run/:id/step](#post-apiworkflowsrunidstep) - Execute workflow step
 
 ### Theme Management
 
@@ -1030,6 +1037,446 @@ curl "http://192.168.1.15:3000/api/hierarchy/query?level=week&status=IN_PROGRESS
 **Source**: [apps/web/app/api/hierarchy/query/route.ts](../../apps/web/app/api/hierarchy/query/route.ts)
 **Validation**: [apps/web/lib/validation/hierarchy-query.ts](../../apps/web/lib/validation/hierarchy-query.ts)
 **MCP Tool**: [apps/mcp-server/src/tools/sprintQueryHierarchy.ts](../../apps/mcp-server/src/tools/sprintQueryHierarchy.ts)
+
+---
+
+### Workflow Orchestration
+
+#### GET /api/workflows
+
+**Description**: List workflow templates with optional filtering by category and active status
+
+**Query Parameters**:
+
+- `category` (optional): Filter by category - `development`, `project-management`, or `knowledge`
+- `isActive` (optional): Filter by active status - `true` (default) or `false`
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Examples**:
+
+```http
+GET /api/workflows HTTP/1.1
+Host: 192.168.1.15:3000
+
+# Filter by category
+GET /api/workflows?category=development HTTP/1.1
+Host: 192.168.1.15:3000
+
+# Include inactive templates
+GET /api/workflows?isActive=false HTTP/1.1
+Host: 192.168.1.15:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "data": {
+    "templates": [
+      {
+        "id": 1,
+        "name": "Feature Implementation",
+        "description": "Complete workflow for implementing a new feature from planning to deployment",
+        "category": "development",
+        "steps": [
+          { "stepNumber": 1, "name": "Create Feature Branch", "description": "Create new git branch for feature" },
+          { "stepNumber": 2, "name": "Run Onboarding Session", "description": "Gather feature context via onboarding" }
+          // ... (10 steps total)
+        ],
+        "stepCount": 10,
+        "isActive": true,
+        "createdAt": "2025-01-01T00:00:00.000Z",
+        "updatedAt": "2025-01-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+**Error Responses**:
+
+`500 Internal Server Error` - Database error
+
+```json
+{
+  "data": null,
+  "error": "Failed to fetch workflow templates"
+}
+```
+
+**Implementation Details**:
+
+- Returns templates ordered by category (asc) then name (asc)
+- Each template includes computed `stepCount` field
+- Steps array contains full step definitions with `mcpTool`, `preconditions`, `postconditions`
+
+**cURL Example**:
+
+```bash
+# List all active templates
+curl http://192.168.1.15:3000/api/workflows
+
+# Filter by development category
+curl http://192.168.1.15:3000/api/workflows?category=development
+```
+
+**Source**: [apps/web/app/api/workflows/route.ts](../../apps/web/app/api/workflows/route.ts)
+**MCP Tools**: `workflow.list`
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/workflows/run
+
+**Description**: Start a new workflow run from a template
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  templateId: number,               // Required, must be positive integer
+  projectId?: number,               // Optional, link workflow to project
+  initialContext?: Record<string, any>  // Optional, initial execution context
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/workflows/run HTTP/1.1
+Host: 192.168.1.15:3000
+Content-Type: application/json
+
+{
+  "templateId": 1,
+  "projectId": 42,
+  "initialContext": {
+    "featureName": "User Authentication",
+    "targetBranch": "feature/auth"
+  }
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "data": {
+    "runId": 123,
+    "status": "pending",
+    "currentStep": 1,
+    "nextStepName": "Create Feature Branch"
+  },
+  "error": null
+}
+```
+
+**Validation**:
+
+- `templateId`: Required, positive integer
+- `projectId`: Optional, positive integer (must exist in database)
+- `initialContext`: Optional, any JSON object
+
+**Error Responses**:
+
+`400 Bad Request` - Validation error or inactive template
+
+```json
+{
+  "data": null,
+  "error": "Invalid request: Expected number, received string"
+}
+```
+
+`404 Not Found` - Template or project not found
+
+```json
+{
+  "data": null,
+  "error": "Workflow template with ID 999 not found"
+}
+```
+
+`500 Internal Server Error` - Database error
+
+**Implementation Details**:
+
+- Creates `WorkflowRun` record with status `pending`
+- Creates `WorkflowStep` records for all template steps
+- Returns first step name for execution
+- Validates template is active before creating run
+- Atomically creates run + steps in single transaction
+
+**cURL Example**:
+
+```bash
+# Start Feature Implementation workflow
+curl -X POST http://192.168.1.15:3000/api/workflows/run \
+  -H "Content-Type: application/json" \
+  -d '{"templateId":1,"initialContext":{"featureName":"User Authentication"}}'
+```
+
+**Source**: [apps/web/app/api/workflows/run/route.ts](../../apps/web/app/api/workflows/run/route.ts)
+**MCP Tools**: `workflow.start`
+**Authentication**: None (to be added)
+
+---
+
+#### GET /api/workflows/run/:id
+
+**Description**: Get workflow run status and details including all steps
+
+**Path Parameters**:
+
+- `id` (string) - Workflow run ID (integer)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+GET /api/workflows/run/123 HTTP/1.1
+Host: 192.168.1.15:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "data": {
+    "run": {
+      "id": 123,
+      "templateName": "Feature Implementation",
+      "status": "running",
+      "currentStep": 3,
+      "totalSteps": 10,
+      "completedSteps": 2,
+      "context": {
+        "featureName": "User Authentication",
+        "branchName": "feature/auth"
+      },
+      "startedAt": "2025-11-12T08:00:00.000Z",
+      "completedAt": null,
+      "pausedAt": null,
+      "steps": [
+        {
+          "stepNumber": 1,
+          "name": "Create Feature Branch",
+          "status": "completed",
+          "startedAt": "2025-11-12T08:00:00.000Z",
+          "completedAt": "2025-11-12T08:05:00.000Z",
+          "error": null
+        },
+        {
+          "stepNumber": 2,
+          "name": "Run Onboarding Session",
+          "status": "completed",
+          "startedAt": "2025-11-12T08:05:00.000Z",
+          "completedAt": "2025-11-12T08:15:00.000Z",
+          "error": null
+        },
+        {
+          "stepNumber": 3,
+          "name": "Create Wiki Page",
+          "status": "pending",
+          "startedAt": null,
+          "completedAt": null,
+          "error": null
+        }
+        // ... (remaining steps)
+      ]
+    }
+  },
+  "error": null
+}
+```
+
+**Error Responses**:
+
+`400 Bad Request` - Invalid run ID format
+
+```json
+{
+  "data": null,
+  "error": "Invalid workflow run ID"
+}
+```
+
+`404 Not Found` - Workflow run not found
+
+```json
+{
+  "data": null,
+  "error": "Workflow run with ID 999 not found"
+}
+```
+
+`500 Internal Server Error` - Database error
+
+**Implementation Details**:
+
+- Returns full run details with template name
+- Includes all steps with current status
+- Calculates `totalSteps` and `completedSteps` counts
+- Context contains accumulated execution data
+
+**cURL Example**:
+
+```bash
+# Get workflow run status
+curl http://192.168.1.15:3000/api/workflows/run/123
+```
+
+**Source**: [apps/web/app/api/workflows/run/[id]/route.ts](../../apps/web/app/api/workflows/run/[id]/route.ts)
+**MCP Tools**: `workflow.getStatus`
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/workflows/run/:id/step
+
+**Description**: Execute the current step in a workflow run and advance to next step
+
+**Path Parameters**:
+
+- `id` (string) - Workflow run ID (integer)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  stepResult?: Record<string, any>  // Optional, result data from completed step
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/workflows/run/123/step HTTP/1.1
+Host: 192.168.1.15:3000
+Content-Type: application/json
+
+{
+  "stepResult": {
+    "success": true,
+    "branchName": "feature/auth",
+    "filesCreated": ["auth.ts", "login.tsx"]
+  }
+}
+```
+
+**Response (Step Complete, More Steps Remaining)**: `200 OK`
+
+```json
+{
+  "data": {
+    "stepNumber": 3,
+    "stepName": "Create Wiki Page",
+    "status": "completed",
+    "nextStep": {
+      "stepNumber": 4,
+      "name": "Create Sprint Task",
+      "description": "Track feature in sprint system"
+    },
+    "workflowStatus": "running"
+  },
+  "error": null
+}
+```
+
+**Response (Workflow Complete)**: `200 OK`
+
+```json
+{
+  "data": {
+    "stepNumber": 10,
+    "stepName": "Complete Task",
+    "status": "completed",
+    "nextStep": null,
+    "workflowStatus": "completed"
+  },
+  "error": null
+}
+```
+
+**Validation**:
+
+- `stepResult`: Optional, any JSON object
+
+**Error Responses**:
+
+`400 Bad Request` - Invalid run ID, workflow completed/failed/paused
+
+```json
+{
+  "data": null,
+  "error": "Workflow run is already completed"
+}
+```
+
+`400 Bad Request` - Workflow is paused
+
+```json
+{
+  "data": null,
+  "error": "Workflow run is paused. Use workflow.resume to continue"
+}
+```
+
+`404 Not Found` - Workflow run not found
+
+`500 Internal Server Error` - Database error
+
+**Implementation Details**:
+
+- Marks current step as `completed` with timestamp
+- Stores `stepResult` in step record
+- Advances `currentStep` counter
+- Marks next step as `running`
+- Updates workflow status to `completed` when all steps done
+- Enforces state machine: can't execute if status is `completed`, `failed`, or `paused`
+
+**State Machine**:
+
+- `pending` → `running` (on first step execution)
+- `running` → `running` (between steps)
+- `running` → `completed` (after last step)
+- `paused` → blocked (must use `workflow.resume`)
+
+**cURL Example**:
+
+```bash
+# Execute current step
+curl -X POST http://192.168.1.15:3000/api/workflows/run/123/step \
+  -H "Content-Type: application/json" \
+  -d '{"stepResult":{"success":true,"branchName":"feature/auth"}}'
+```
+
+**Source**: [apps/web/app/api/workflows/run/[id]/step/route.ts](../../apps/web/app/api/workflows/run/[id]/step/route.ts)
+**MCP Tools**: `workflow.executeStep`, `workflow.pause`, `workflow.resume`, `workflow.complete`
+**Authentication**: None (to be added)
 
 ---
 
@@ -2208,9 +2655,9 @@ export async function POST(request: NextRequest) {
 
 ---
 
-**Last Updated:** 2025-11-09
-**API Status:** Full CRUD + Search + Multi-entity + Sprint Management (Sprint 1 Week 2 Days 10-13 complete)
-**Total Endpoints:** 14 active (7 sprint, 2 theme, 2 issue, 1 knowledge, 1 wiki, 2 security, 1 search)
-**Next Update:** Sprint 1 completion or Sprint 2 start
+**Last Updated:** 2025-11-12
+**API Status:** Full CRUD + Search + Multi-entity + Sprint Management + Workflow Orchestration (Sprint 3 complete)
+**Total Endpoints:** 18 active (7 sprint, 4 workflow, 2 theme, 2 issue, 1 knowledge, 1 wiki, 2 security, 1 search)
+**Next Update:** Sprint 4 start
 
 **See also**: [.agent/progress.md](../progress.md) for current project status
