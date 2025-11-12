@@ -19,10 +19,10 @@ It's a web application that end users (developers and their AI agents) use to ma
 
 1. **Project Management Suite**
    - **Issues**: Bug tracking, feature requests, improvements (like Jira)
-   - **Tickets**: Sprint work items with full context snapshots
+   - **Tasks/Sessions**: Sprint work items with hierarchical tracking (Phase→Week→Day→Task→Session)
    - **Sprints**: Development cycles with phases, weeks, days
-   - **Stories/Tasks**: Hierarchical work breakdown
    - **Progress Tracking**: Visual dashboards and metrics
+   - **🔮 Phase 2**: Memory bank snapshots for task context resumption (Sprint 10+)
 
 2. **AI Infrastructure (Cloud-Based)**
    - **Memory Banks**: Virtual `.agent/` folder stored in database
@@ -237,6 +237,38 @@ Just:
 - Accessed via Web UI (humans) and MCP tools (agents)
 - Repositories stay completely clean
 - Full project management suite integrated with AI context management
+
+---
+
+## 📝 Resolution: Task vs Ticket Terminology (2025-11-13)
+
+**Issue**: Earlier versions of this document and PRD Section 4.2.12 created confusion by referring to "Tickets" as sprint work items with memory bank snapshots, without clarifying their relationship to the existing Task/Session system.
+
+**Investigation Findings**:
+- ✅ **Task/Session entities ARE correct product features** - Implemented and working (243 story points tracked)
+- ✅ **Properly documented** - PRD Section 4.2.1, Data Model Section 3.1, Backlog EPIC-001 all describe them correctly
+- ⚠️ **"Ticket" terminology created confusion** - Appeared to be a replacement rather than an enhancement
+
+**Resolution**:
+1. **MVP (Sprint 1-9)**: Task/Session system as implemented
+   - 5-level hierarchy: Phase → Week → Day → Task → Session
+   - Progress tracking with auto-rollup
+   - Session checkpoints at 15K tokens
+   - MCP tools: `task.create()`, `session.start()`, `session.checkpoint()`
+
+2. **Phase 2 (Sprint 10+)**: Memory Bank Snapshot Enhancement
+   - NOT a new entity, but an enhancement to existing Task model
+   - Adds optional `MemoryBankSnapshot` relation to Task
+   - Fully backward compatible (non-breaking change)
+   - New MCP tools: `task.captureSnapshot()`, `task.getContextSnapshot()`
+
+**Updated Documentation**:
+- PRD Section 4.2.12: Now clearly marked as "Phase 2 Enhancement (Post-MVP)"
+- PRD Feature Priority Table: Changed from P0 to P3 (Phase 2)
+- Project Plan Sprint 10: Added with non-breaking implementation strategy
+- This document: Updated to use "Tasks/Sessions" terminology for MVP features
+
+**Key Takeaway**: This investigation confirmed the current architecture is correct. Task/Session are properly designed product features for end users. Memory bank snapshots will be added as an optional enhancement in Sprint 10, not as a replacement system.
 
 ---
 

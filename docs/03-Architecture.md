@@ -488,12 +488,13 @@ const tools = {
   "onboarding.getProgress": ...,
   "onboarding.generateSummary": ...,
 
-  // Ticket System (8 tools)
-  "ticket.create": ...,
+  // Ticket System (8 tools) - 🔮 Phase 2 Enhancement (Sprint 10+)
+  // Note: Memory bank snapshots for Tasks (task.create gains optional snapshot parameter)
+  "ticket.create": ...,  // Enhanced task.create with automatic snapshot capture
   "ticket.update": ...,
   "ticket.complete": ...,
   "ticket.addCheckpoint": ...,
-  "ticket.getContext": ...,
+  "ticket.getContext": ...,  // Retrieves frozen memory bank snapshot
   "ticket.search": ...,
   "ticket.link": ...,
   "ticket.updateProgress": ...,
@@ -951,7 +952,9 @@ erDiagram
     ProjectOnboarding ||--o{ OnboardingSession : "has sessions"
     OnboardingSession }o--o{ OnboardingQuestion : "answers questions"
 
-    Phase ||--o{ Ticket : "has tickets"
+    %% Phase 2 Enhancement (Sprint 10+): Memory Bank Snapshots for Tasks
+    %% These add optional snapshot capabilities to existing Task model (non-breaking)
+    Phase ||--o{ Ticket : "has tickets (tasks with snapshots)"
     Ticket ||--o{ TicketCheckpoint : "has checkpoints"
     Ticket }o--|| MemoryBank : "has snapshot"
 

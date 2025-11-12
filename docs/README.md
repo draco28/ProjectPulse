@@ -22,6 +22,25 @@ ProjectPulse is an agent-first project management platform designed for AI agent
 
 ---
 
+## 📋 Documentation Scope
+
+**IMPORTANT**: This documentation describes ProjectPulse PRODUCT features for end users (teams who will install and use ProjectPulse).
+
+**What This Covers**:
+- ✅ Product features: Task/Session entities, Issue tracking, Wiki, Knowledge Graph, MCP API
+- ✅ End user workflows: How AI agents interact with ProjectPulse via MCP
+- ✅ Database schema: Tables that store end users' project data
+- ✅ Architecture: How ProjectPulse works as a product
+
+**What This Does NOT Cover**:
+- ❌ Internal tooling: The `.agent/` folder in this repository (our dogfooding workflow)
+- ❌ Development setup: How we build ProjectPulse (see `CLAUDE.md` for that)
+- ❌ Our own tracking: How we track building ProjectPulse itself
+
+**Key Distinction**: The `.agent/` folder in this repository is ProjectPulse team's internal workflow while building the product. End users who install ProjectPulse will NOT have `.agent/` folders - their AI agents will use the Task/Session database entities described in this documentation, and all data will be stored in the ProjectPulse database (clean repositories, no markdown files).
+
+---
+
 ## Documentation Contents
 
 ### Product & Requirements

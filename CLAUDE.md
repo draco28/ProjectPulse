@@ -659,6 +659,38 @@ Need progress overview?             → progress.md
 - 💾 **Token Efficient**: ~3-5K tokens per file vs 30K+ for full context
 - 📊 **Structured**: Consistent format makes information easy to find
 
+---
+
+## 🔧 Internal Tooling vs Product Features
+
+**IMPORTANT DISTINCTION**:
+
+### Internal Tooling (ProjectPulse Team Only)
+- `.agent/` folder - Our team's dogfooding workflow while building ProjectPulse
+- `.agent/task/current-session-*.md` - Tracking our work building the product itself
+- `.agent/progress.md` - Our sprint progress (building ProjectPulse)
+- `CLAUDE.md` - Integration guide for Claude Code working on ProjectPulse
+- **NOT visible to end users**
+
+### Product Features (For End User Teams)
+- `apps/web/` - ProjectPulse application code (the product we're building)
+- Database entities: `Phase`, `Week`, `Day`, `Task`, `Session` (for end users' AI agents)
+- MCP API: `task.create()`, `session.start()`, `session.checkpoint()` (called by end users' agents)
+- Web UI: Progress dashboards, issue tracking, wiki pages (viewed by end users)
+- **End users install ProjectPulse and THEIR agents use these features**
+
+**For End Users**:
+- ✅ Their AI agents use Task/Session database entities to track THEIR development work
+- ✅ Their work tracked in ProjectPulse database (their own instance)
+- ✅ Clean repositories - NO `.agent/` folders in their codebases
+- ✅ NO markdown files in their repos - everything in ProjectPulse database
+
+**End users get the clean, database-backed experience we're building!**
+
+The `.agent/` folder exists in THIS repository because we're using our own early version of ProjectPulse to build ProjectPulse itself (dogfooding). But end users won't have `.agent/` folders - they'll have a clean codebase with all tracking in the ProjectPulse database.
+
+---
+
 ### Finding Information
 
 **Project Documentation (Main):**

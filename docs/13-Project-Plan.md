@@ -1629,7 +1629,95 @@ Without Sprint 5.5, ProjectPulse cannot fulfill its primary mission - 90% of use
 
 ---
 
-### Sprint 10 (Weeks 19-20): Industry-Grade Documentation Suite - 95 points (POST-MVP)
+### Sprint 10 (Weeks 19-20): Memory Bank Snapshot Integration - 42 points (Phase 2)
+
+**User Stories:** Enhancement to existing Task/Session system (FR-159 to FR-173 subset)
+
+**Goal:** Add memory bank snapshot capabilities to existing Task model for improved context resumption
+
+**Status:** 📅 **POST-MVP ENHANCEMENT** - Builds on proven Task/Session system from Sprint 1
+
+**Key Deliverables:**
+
+- **Memory Bank Snapshot Model (12 points):**
+  - Add `MemoryBankSnapshot` table with relation to `Task` model
+  - Capture 5 memory bank files at task creation: project-brief, system-patterns, tech-context, active-context, progress
+  - Store snapshot metadata (timestamp, version, size)
+
+- **Task Enhancement (15 points):**
+  - Add `snapshotId` optional foreign key to `Task` model (non-breaking)
+  - Implement `task.captureSnapshot()` MCP tool
+  - Implement `task.getContextSnapshot()` MCP tool for resumption
+  - Update `task.create()` to optionally capture snapshot (backward compatible)
+
+- **Context Resumption Workflow (10 points):**
+  - Load snapshot when resuming task after interruption
+  - Compare current memory banks vs snapshot (detect drift)
+  - Provide diff summary to agent (what changed since task creation)
+
+- **Auto-Update Integration (5 points):**
+  - On task completion, compare implementation vs snapshot patterns
+  - Detect new patterns discovered during implementation
+  - Optional: Auto-update system-patterns.md with new patterns
+
+**Implementation Strategy:**
+
+**Week 1 (Database & Core Logic):**
+- Create `MemoryBankSnapshot` Prisma model
+- Add migration (non-breaking: nullable snapshotId on tasks table)
+- Implement snapshot capture logic (read 5 memory bank files, store JSON)
+- Write snapshot retrieval logic
+
+**Week 2 (MCP Tools & Testing):**
+- Implement `task.captureSnapshot()` MCP tool
+- Implement `task.getContextSnapshot()` MCP tool
+- Update `task.create()` with optional snapshot parameter
+- Integration testing: Task creation → snapshot → resumption
+- Performance testing: Snapshot capture <500ms, retrieval <200ms
+
+**Dependencies:**
+
+- Sprint 1 complete (Task/Session system working)
+- Sprint 6 complete (Memory Bank files exist: project-brief, system-patterns, tech-context, active-context, progress)
+
+**Migration Strategy:**
+
+- **Non-Breaking**: Existing tasks without snapshots continue working
+- **Backward Compatible**: `task.create()` works with or without snapshot
+- **Graceful Degradation**: If snapshot missing, agent proceeds without it (current behavior)
+
+**Risks:**
+
+- Snapshot storage size (5 files × ~5KB each = ~25KB per task) - mitigated: Reasonable for typical projects
+- Memory bank drift (snapshots become stale) - mitigated: Diff tool shows what changed
+- Task model complexity increase - mitigated: Optional feature, existing tasks unaffected
+
+**Exit Criteria:**
+
+- ✅ MemoryBankSnapshot table created and migrated
+- ✅ task.captureSnapshot() captures all 5 memory bank files
+- ✅ task.getContextSnapshot() retrieves frozen snapshot correctly
+- ✅ Agent can resume task with snapshot context (test scenario: context compaction → resume)
+- ✅ Existing tasks (without snapshots) continue working (backward compatibility verified)
+- ✅ Snapshot capture completes in <500ms (performance target met)
+
+**Testing:**
+
+- Unit tests: Snapshot capture, retrieval, diff logic
+- Integration tests: Task creation with snapshot → resumption workflow
+- Performance tests: Snapshot operations meet latency targets
+- Backward compatibility tests: Existing tasks without snapshots work correctly
+
+**Success Metrics:**
+
+- Zero breaking changes to existing Task/Session API
+- 100% backward compatibility (all existing MCP tools work)
+- Context resumption success rate >95% (agents don't repeat questions)
+- Snapshot capture latency P95 <500ms
+
+---
+
+### Sprint 11 (Weeks 21-22): Industry-Grade Documentation Suite - 95 points (POST-MVP)
 
 **User Stories:** US-013-01 to US-013-18 (EPIC-012 complete)
 

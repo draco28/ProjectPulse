@@ -841,7 +841,7 @@ Progress: [progress]%
 - **Wiki Page:** Searchable documentation with categories, markdown rendering, and editor.
 - **Knowledge Base:** Semantic search (pgvector) with relevance scores and source links.
 - **Issues Page:** CRUD operations, filtering, bulk actions, and context injection.
-- **Tickets Page:** Sprint work items with lifecycle tracking and status transitions.
+- **Tickets Page:** 🔮 Phase 2 (Sprint 10+) - Tasks with memory bank snapshots for context resumption.
 - **Development Cycle Page:** Hierarchical progress visualization (Phase → Week → Day → Task → Session).
 - **Dashboard Page:** Project overview with metrics and quick actions.
 - **Agent Personas Page:** Manage agent personas and toggles.
@@ -4137,13 +4137,19 @@ Full specifications for these requirements are documented below.
 
 ---
 
-### 1.11 Ticket System (FR-159 to FR-173)
+### 1.11 Ticket System with Memory Bank Integration (FR-159 to FR-173)
 
-**Purpose:** Sprint work tracking with lifecycle management and memory bank integration
+**📅 STATUS: POST-MVP** - Phase 2 Enhancement (Sprint 10+)
 
-**Related**: Backlog US-012-01 to US-012-15, PRD Section 4.2.12
+**Purpose:** Memory bank snapshot integration for the existing Task model
 
-The Ticket System tracks sprint work items with lifecycle management, memory bank snapshots, and checkpoint integration. Tickets are distinct from Issues: Issues = product backlog (bugs/features), Tickets = execution tracking (agent workflow).
+**Related**: Backlog US-012-01 to US-012-15, PRD Section 4.2.12, Project Plan Sprint 10
+
+**Note**: This section describes Phase 2 enhancements to the existing Task/Session system from FR-001 to FR-025. "Tickets" in this context refers to Tasks with optional memory bank snapshots—a non-breaking enhancement that adds snapshot capture and retrieval capabilities to the proven Task model.
+
+**Current MVP (Sprint 1-9)**: Tasks and Sessions provide hierarchical tracking (Phase→Week→Day→Task→Session) with progress rollup and session checkpoints. This works correctly for MVP.
+
+**Phase 2 Enhancement (Sprint 10+)**: Adds `MemoryBankSnapshot` relation to Task model, enabling frozen context capture at task creation and context resumption after interruptions. Fully backward compatible—existing tasks without snapshots continue working.
 
 ---
 

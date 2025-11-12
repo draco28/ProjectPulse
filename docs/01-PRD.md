@@ -382,7 +382,7 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 | Personas                 | P3       | FR-121 to FR-125     | Agent-created sub-agents, project-specific, context-activation          |
 | **Memory Bank System**   | **P0**   | **FR-146 to FR-153** | **Token-efficient context management, 5 structured memory bank files**  |
 | **Research Agent Orch.** | **P1**   | **FR-154 to FR-158** | **Isolated sub-agent threads, 92% token reduction, report persistence** |
-| **Ticket System**        | **P0**   | **FR-159 to FR-173** | **Sprint work tracking, memory bank snapshots, lifecycle management**   |
+| **Ticket System**        | **P3**   | **FR-159 to FR-173** | **Phase 2: Memory bank snapshots for Tasks (Sprint 10+ post-MVP)**      |
 | **Memory Bank Auto-Gen** | **P2**   | **FR-174 to FR-188** | **Auto-update from ticket completion, 5 bank types, snapshot system**   |
 | **Agent Dashboard**      | **P2**   | **FR-189 to FR-198** | **Memory banks viewer, current ticket context, skills/sub-agents list** |
 | **Additional Sessions**  | **P2**   | **FR-199 to FR-220** | **Sessions 2-5: Tech stack, requirements, architecture, backlog**       |
@@ -732,11 +732,44 @@ Main Agent continues implementation (total main thread cost: 2K tokens)
 - `SubAgentInvocation`: Invocation metadata (agentType, status, reportPath)
 - `SubAgentReport`: Stored reports for future reference
 
-#### 4.2.12 Ticket System (P0 - FR-159 to FR-173)
+#### 4.2.12 Ticket System with Memory Bank Integration (Phase 2 Enhancement)
+
+**📅 STATUS: POST-MVP** - Planned for Sprint 10+ after MCP server proven
+
+**Note**: This section describes a future enhancement to the existing Task/Session system. The core 5-level hierarchy (Phase→Week→Day→Task→Session) from Section 4.2.1 is implemented and working in MVP. This enhancement adds memory bank snapshots for improved context resumption.
+
+---
+
+**Current MVP (Sprint 1-9)**:
+
+✅ **Task/Session System** (Section 4.2.1):
+- 5-level hierarchy: Phase → Week → Day → Task → Session
+- Progress tracking with auto-rollup
+- Session checkpoints at 15K tokens
+- MCP tools: `task.create()`, `session.start()`, `session.checkpoint()`
+- Database tables: `tasks`, `sessions`, `checkpoints`
+
+**Phase 2 Enhancement (Sprint 10+)**:
+
+🔮 **Memory Bank Snapshot Integration**:
+- Capture full memory bank state at task creation
+- Enable context resumption after interruption
+- Store snapshots per task (frozen context)
+- Auto-update memory banks on task completion
+
+**Why Defer to Phase 2**:
+- Current Task/Session model proven and working
+- Sprint 5.5 MCP server is critical blocker (90% use case)
+- Memory bank infrastructure needs Sprint 5-6 foundation first
+- Can enhance existing Task model incrementally (non-breaking change)
+
+---
 
 **Purpose**: Sprint work tracking with lifecycle management and memory bank integration
 
 **Issues vs Tickets: Dual Entity Model**
+
+**Terminology Note**: In this section, "Tickets" refers to Tasks with memory bank snapshot enhancement. This Phase 2 feature will add snapshot capabilities to the existing `Task` model (non-breaking enhancement). The term "Ticket" is used here to distinguish snapshot-enhanced Tasks from basic Tasks, but implementation will enhance the existing `tasks` table rather than create a new entity.
 
 ProjectPulse distinguishes between two types of work items:
 
