@@ -240,6 +240,7 @@ model Project {
 
   issues             Issue[]
   onboardingSessions OnboardingSession[]
+  workflowRuns       WorkflowRun[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -796,4 +797,61 @@ model OnboardingTemplate {
   @@unique([sessionNumber, isActive])
   @@index([sessionNumber])
   @@map("onboarding_templates")
+}
+
+// ============================================================================
+// WORKFLOW ORCHESTRATION (Sprint 3)
+// ============================================================================
+
+model WorkflowTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String   @db.Text
+  category    String
+  steps       Json     @db.JsonB  // Array of step definitions
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  runs        WorkflowRun[]
+}
+
+model WorkflowRun {
+  id          Int      @id @default(autoincrement())
+  templateId  Int
+  projectId   Int?
+  status      String   // "pending", "running", "completed", "failed", "paused"
+  currentStep Int      @default(1)
+  context     Json     @db.JsonB  // Execution context (JSONB)
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  pausedAt    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  template    WorkflowTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  project     Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  steps       WorkflowStep[]
+
+  @@index([templateId, status])
+  @@index([projectId, status])
+}
+
+model WorkflowStep {
+  id          Int      @id @default(autoincrement())
+  runId       Int
+  stepNumber  Int
+  name        String
+  status      String   // "pending", "running", "completed", "failed", "skipped"
+  result      Json?    @db.JsonB  // Step execution result (JSONB)
+  startedAt   DateTime?
+  completedAt DateTime?
+  error       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  run         WorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, stepNumber])
+  @@index([runId, status])
 }
