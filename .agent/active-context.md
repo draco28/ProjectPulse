@@ -1,8 +1,8 @@
 # Active Context
 
-**Last Updated**: 2025-11-14
-**Current Focus**: Sprint 7 Planning (Tasks & Sessions MVP)
-**Recent Completion**: Sprint 6 - Skills System (✅ COMPLETE) + Documentation Refactoring (✅ COMPLETE)
+**Last Updated**: 2025-11-14 00:49
+**Current Focus**: Sprint 7 Implementation - Wiki Auto-Generation + Health Monitoring (Day 1 Started)
+**Recent Completion**: Memory Banks Updated + Sprint 7 Planning Complete
 
 ---
 
@@ -10,37 +10,38 @@
 
 ### What Just Completed
 
-**Sprint 6: Skills System + Knowledge Graph** ✅ 100% COMPLETE (51/51 points)
+**Memory Banks Updated** ✅ (Nov 14, 2025)
+- Updated 4 memory bank files to align with cloud SaaS vision
+- project-brief.md → v2.0.0 (Sprint 6 complete, 315/505 points)
+- system-patterns.md → Added architecture principles
+- tech-context.md → Current sprint status (Sprint 7 next)
+- active-context.md → Updated (this file)
 
-**Delivered**:
-- Skills lazy-loading system (92% token reduction: frontmatter ~70 tokens, full content ~250 tokens)
-- LRU cache with 5-minute TTL and automatic cleanup
-- Knowledge metrics, export, import, deduplication, archival
-- 15 MCP tools total (7 knowledge + 8 skills)
-- Multi-tenancy support (projectId scoping)
-- Duplicate detection (semantic similarity >0.95 for knowledge, slug collision for skills)
+**Sprint 7 Planning Complete** ✅ (33 points)
+- User stories breakdown: US-107, US-108, US-109 (wiki) + US-116 to US-120 (health)
+- Technical architecture designed (JSDoc parser, 4 scanners, weighted scoring)
+- Implementation plan created (.agent/task/sprint-7-plan.md)
+- Todo list created (41 tasks)
+- Session file created (.agent/task/current-session-20251114-0049.md)
 
-**Documentation Refactoring** ✅ 100% COMPLETE (Nov 13-14)
+### What's In Progress (Sprint 7 Day 1)
 
-**Delivered**:
-- Eliminated 101 doc-coding references across 18 documents (6 phases)
-- Clarified cloud SaaS vision (database as single source of truth)
-- Separated internal tooling (`.agent/`) from product features
-- Aligned all documentation with database-first architecture
-- Updated: PRD, SRS, Architecture, Data Model, OpenAPI, Testing, Infrastructure, Observability, Security, MCP docs
+**Sprint 7: Wiki Auto-Generation + Health Monitoring** (33 points - STARTED)
 
-**Key Insight**: `.agent/` folder is OUR internal dogfooding tool, NOT an end-user product feature. End users get clean repositories with everything in ProjectPulse database.
+**Week 1: Wiki Auto-Generation** (14 points)
+- Day 1-2: JSDoc parser with @microsoft/tsdoc (US-107 part 1: 4 points) ← **CURRENT**
+- Day 3: Wiki generation API (US-107 part 2: 4 points)
+- Day 4: Cross-linking automation (US-108: 3 points)
+- Day 5: Git integration (US-109: 3 points)
+- Day 6-7: MCP tool (wiki.generate)
 
-### What's Next (Sprint 7)
-
-**Status**: Sprint 6 complete, documentation refactored, memory banks updated, ready for Sprint 7
-
-**Sprint 7: Tasks & Sessions MVP** (21 points)
-- Task/Session entities with checkpoint recovery
-- Real-time progress tracking
-- Context snapshots for session resumption
-- MCP tools: task.create, session.start, session.checkpoint
-- UI: Tasks view integrated into Development Cycle page
+**Week 2: Health Monitoring** (19 points)
+- Day 8-9: Scanner foundation (Semgrep, ESLint)
+- Day 10: Accessibility scanners (axe-core, Lighthouse)
+- Day 11: Health score calculation
+- Day 12: Health MCP tools (3 tools)
+- Day 13: Health dashboard UI
+- Day 14: Integration testing + documentation
 
 ---
 

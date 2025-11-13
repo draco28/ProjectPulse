@@ -6,6 +6,7 @@ export const wikiCategories = [
   'guides',
   'reference',
   'troubleshooting',
+  'api-reference', // For auto-generated API docs
 ] as const;
 
 export type WikiCategory = (typeof wikiCategories)[number];
@@ -231,3 +232,27 @@ export function parseTags(data: unknown): string[] {
 
   return data.filter((item): item is string => typeof item === 'string' && item.length > 0);
 }
+
+/**
+ * Validation schema for wiki generation from JSDoc
+ *
+ * @see US-107: JSDoc Auto-Generation
+ * @see POST /api/wiki/generate
+ */
+export const generateWikiSchema = z.object({
+  projectPath: z
+    .string()
+    .min(1, 'Project path is required')
+    .max(500, 'Project path too long'),
+
+  filePatterns: z
+    .array(z.string())
+    .optional()
+    .default(['**/*.{ts,tsx,js,jsx}']),
+
+  category: z.enum(wikiCategories).default('api-reference'),
+
+  overwriteExisting: z.boolean().default(false),
+});
+
+export type GenerateWikiInput = z.infer<typeof generateWikiSchema>;
