@@ -109,7 +109,7 @@ ProjectPulse follows the **Test Pyramid** pattern to maximize test coverage whil
    - Return value structure
 
 3. **Utility Functions** (~100 tests)
-   - Markdown generation (STATUS.md, DEVELOPMENT_PLAN.md)
+   - Data export utilities (JSON, optional markdown derivatives)
    - Embedding generation (OpenAI API mocking)
    - Graph traversal algorithms (2-hop limit)
    - Date/time utilities (YYYYMMDD-HHMM formatting)
@@ -162,7 +162,7 @@ describe('sprint.updateProgress', () => {
 1. **MCP Tool Integration** (~60 tests)
    - Full tool execution (input → database → output)
    - Database transactions (rollback on error)
-   - Markdown sync triggered correctly
+   - UI state synchronized via WebSocket
    - Performance benchmarks (P95 <500ms)
 
 2. **REST API Endpoints** (~40 tests)
@@ -177,11 +177,11 @@ describe('sprint.updateProgress', () => {
    - Cascade deletes
    - Transaction isolation
 
-4. **Markdown Sync Workflow** (~20 tests)
-   - STATUS.md updated on phase progress
-   - DEVELOPMENT_PLAN.md updated on task completion
-   - current-todos.md synced with Task table
-   - Git hooks prevent manual edits
+4. **Database State Management** (~20 tests)
+   - Session records updated on phase progress
+   - Task status updated on completion
+   - Todo records synced with database mutations
+   - UI reflects real-time state changes via WebSocket
 
 **Framework:** Jest + Supertest + Prisma (test database)
 
@@ -200,9 +200,9 @@ describe('POST /mcp/sprint.create', () => {
     expect(response.status).toBe(200);
     expect(response.body.phase.name).toBe('Phase A');
 
-    // Verify markdown sync
-    const statusMd = await fs.readFile('STATUS.md', 'utf-8');
-    expect(statusMd).toContain('Phase A');
+    // Verify database state
+    const phase = await prisma.phase.findUnique({ where: { id: response.body.phase.id } });
+    expect(phase.name).toBe('Phase A');
   });
 });
 ```
@@ -340,7 +340,7 @@ pnpm add -D jest-axe axe-core
 | API Routes            | ≥85%   | Public contracts              |
 | React Components      | ≥80%   | UI rendering and interactions |
 | Utilities             | ≥90%   | Shared logic across features  |
-| Markdown Sync         | ≥95%   | Critical for agent workflows  |
+| Database State Management | ≥95%   | Critical for agent workflows  |
 | Autonomy Level Checks | 100%   | Security-critical paths       |
 
 **New Code Coverage Target:** ≥90% (enforced via PR checks)
@@ -499,19 +499,19 @@ export default function () {
 
 ---
 
-#### Gate 2.2.7: Markdown Sync Performance (NFR-007)
+#### Gate 2.2.7: Database Update Performance (NFR-007)
 
-**Requirement:** <500ms per file generation
+**Requirement:** <500ms per database mutation operation
 
 **Test Method:**
 
-- Generate STATUS.md, DEVELOPMENT_PLAN.md, current-todos.md
-- Measure template rendering + file write time
+- Update Session, Task, and Todo records via MCP tools
+- Measure database transaction + WebSocket emit time
 
 **Acceptance Criteria:**
 
-- ✅ Each file <500ms
-- ✅ Batch sync (5 files) <2.5s
+- ✅ Each update <500ms (P95)
+- ✅ Batch mutations (5 records) <2.5s
 
 **Traceability:** NFR-007, SRS Section 2.1
 
@@ -523,12 +523,12 @@ export default function () {
 
 **Test Method:**
 
-- Update progress 10 times in 3 seconds
-- Verify only 1 markdown sync triggered
+- Update progress 10 times in 3 seconds via MCP tools
+- Verify WebSocket events debounced correctly
 
 **Acceptance Criteria:**
 
-- ✅ Sync debounced to 1 call per 5s window
+- ✅ UI updates debounced to 1 broadcast per 5s window
 - ✅ All updates persisted to database
 
 **Traceability:** NFR-008, SRS Section 2.1
@@ -802,22 +802,22 @@ test('IssueList component has no accessibility violations', async () => {
 
 ---
 
-#### 3.1.3 Markdown Sync Tests (30 tests)
+#### 3.1.3 Database State Management Tests (30 tests)
 
 **Scope:**
 
-- FR-007: Update progress → STATUS.md synced
-- FR-008: Complete task → DEVELOPMENT_PLAN.md synced
-- FR-009: Update todos → current-todos.md synced
-- FR-010: Debounce sync (max 1 per 5 seconds)
+- FR-007: Update progress → Session record updated in DB
+- FR-008: Complete task → Task status updated in DB
+- FR-009: Update todos → Todo records synced in DB
+- FR-010: Debounce UI updates (max 1 WebSocket broadcast per 5 seconds)
 
 **Test Cases:**
 
-- ✅ Update Phase progress → STATUS.md contains updated percentage
-- ✅ Complete Task → DEVELOPMENT_PLAN.md marks task as done
-- ✅ Update multiple tasks in 3 seconds → Only 1 sync triggered
-- ✅ Markdown sync fails → Retry with exponential backoff
-- ✅ Git hook prevents manual markdown edits → Commit rejected
+- ✅ Update Phase progress → Database record contains updated percentage
+- ✅ Complete Task → Database marks task status as COMPLETED
+- ✅ Update multiple tasks in 3 seconds → Only 1 UI broadcast triggered
+- ✅ Database update fails → Retry with exponential backoff
+- ✅ Concurrent updates handled → Optimistic locking prevents conflicts
 - ... (25 more tests)
 
 **Requirements:** FR-007, FR-008, FR-009, FR-010, NFR-007, NFR-008
@@ -836,7 +836,7 @@ test('IssueList component has no accessibility violations', async () => {
 - ✅ NOT_STARTED → IN_PROGRESS → Success
 - ✅ IN_PROGRESS → COMPLETED → Success
 - ✅ COMPLETED → NOT_STARTED → Error (invalid transition)
-- ✅ Status transition triggers markdown sync
+- ✅ Status transition triggers database update and UI refresh
 - ... (16 more tests)
 
 **Requirements:** FR-011, FR-012
@@ -905,11 +905,11 @@ test('IssueList component has no accessibility violations', async () => {
 
 **Test Cases:**
 
-- ✅ Step 1: Create session file → .agent/task/current-session-[timestamp].md created
-- ✅ Step 2: Save plan → current-plan.md and current-todos.md created
-- ✅ Step 3: Invoke sub-agent → AgentAction logged
-- ✅ Step 4: Checkpoint at 15K tokens → Session file updated
-- ✅ Step 5: Completion doc created → STATUS.md updated
+- ✅ Step 1: Create session → Session record created in database
+- ✅ Step 2: Save plan → Plan and Todo records created in database
+- ✅ Step 3: Invoke sub-agent → AgentAction logged in database
+- ✅ Step 4: Checkpoint at 15K tokens → Session record updated in database
+- ✅ Step 5: Completion → Task status updated to COMPLETED in database
 - ✅ Protocol enforcement: Step 2 before Step 1 → Error
 - ... (24 more tests)
 
@@ -922,14 +922,14 @@ test('IssueList component has no accessibility violations', async () => {
 **Scope:**
 
 - FR-031: Checkpoint every 15K tokens
-- FR-032: Update current-session.md at checkpoint
-- FR-033: Update current-todos.md at checkpoint
+- FR-032: Update Session record at checkpoint
+- FR-033: Update Todo records at checkpoint
 
 **Test Cases:**
 
 - ✅ Token usage reaches 15K → Checkpoint triggered
-- ✅ Checkpoint updates current-session.md with progress note
-- ✅ Checkpoint updates current-todos.md with task statuses
+- ✅ Checkpoint updates Session record with progress note in database
+- ✅ Checkpoint updates Todo records with task statuses in database
 - ✅ Multiple checkpoints in single session → All recorded
 - ... (21 more tests)
 
@@ -948,7 +948,7 @@ test('IssueList component has no accessibility violations', async () => {
 
 - ✅ Agent crashes after checkpoint → Resume from checkpoint state
 - ✅ Database transaction fails → Rollback to last committed state
-- ✅ Markdown sync fails → Retry with exponential backoff (max 3 retries)
+- ✅ Database update fails → Retry with exponential backoff (max 3 retries)
 - ... (17 more tests)
 
 **Requirements:** FR-034, FR-035
@@ -960,14 +960,14 @@ test('IssueList component has no accessibility violations', async () => {
 **Scope:**
 
 - FR-036: Invoke sub-agents (explore-codebase, analyze-architecture, etc.)
-- FR-037: Pass context file to sub-agent
-- FR-038: Read sub-agent report
+- FR-037: Pass context data to sub-agent via database
+- FR-038: Read sub-agent report from database
 
 **Test Cases:**
 
 - ✅ Invoke explore-codebase → Returns summary report
-- ✅ Pass current-session.md → Sub-agent has full context
-- ✅ Sub-agent creates report → Report file saved in .agent/task/
+- ✅ Pass Session data → Sub-agent has full context from database
+- ✅ Sub-agent creates report → Research report saved in database (ResearchReport table)
 - ... (12 more tests)
 
 **Requirements:** FR-036, FR-037, FR-038
@@ -1791,7 +1791,7 @@ pnpm lhci autorun
 | knowledge.query         | 150ms          | >200ms          |
 | issues.create           | 280ms          | >350ms          |
 | Dashboard FCP           | 1.8s           | >2.0s           |
-| Markdown sync (5 files) | 1.2s           | >2.5s           |
+| Database batch update (5 records) | 1.2s           | >2.5s           |
 
 **Regression Detection:**
 
@@ -2121,7 +2121,7 @@ pnpm run benchmark
 ✅ NFR-001: MCP Tool Response Time P95 = 320ms (<500ms target)
 ✅ NFR-003: Knowledge Query P95 = 150ms (<200ms target)
 ✅ NFR-005: Dashboard FCP = 1.8s (<2s target)
-✅ NFR-007: Markdown Sync = 380ms (<500ms target)
+✅ NFR-007: Database Update Performance = 380ms (<500ms target)
 ```
 
 **Blocker:** Any NFR failure blocks release
@@ -2202,7 +2202,7 @@ pnpm typecheck
 - [ ] Manual smoke test completed (5-step protocol)
   - [ ] Initialize session → Success
   - [ ] Save plan → Success
-  - [ ] Update progress → Markdown synced
+  - [ ] Update progress → Database updated and UI refreshed
   - [ ] Create issue → Issue visible in dashboard
   - [ ] Query knowledge → Results returned
 - [ ] Database migration rollback tested
@@ -2426,7 +2426,7 @@ This matrix maps Functional Requirements (FR-XXX) to test suites, ensuring compl
 | --------- | ------------------ | ----------------------------- | ------- | ----------- | ------ | ------- | -------- |
 | FR-001    | Create hierarchy   | sprint.create.test.ts         | 20      | 15          | 5      | 40      | 95%      |
 | FR-002    | Update progress    | sprint.updateProgress.test.ts | 15      | 10          | 5      | 30      | 92%      |
-| FR-007    | Markdown sync      | markdown.sync.test.ts         | 10      | 15          | 5      | 30      | 98%      |
+| FR-007    | Database state mgmt | database.state.test.ts        | 10      | 15          | 5      | 30      | 98%      |
 | FR-026    | 5-step protocol    | workflow.protocol.test.ts     | 10      | 10          | 10     | 30      | 100%     |
 | FR-031    | Checkpoints        | workflow.checkpoint.test.ts   | 8       | 10          | 7      | 25      | 90%      |
 | FR-051    | Create issue       | issues.create.test.ts         | 10      | 10          | 5      | 25      | 88%      |
@@ -2454,8 +2454,8 @@ This matrix maps Functional Requirements (FR-XXX) to test suites, ensuring compl
 | NFR-004 | Graph Traversal              | Performance   | knowledge.traverse.test.ts  | P99 <500ms  | ✅ Pass |
 | NFR-005 | Dashboard FCP                | Performance   | lighthouserc.js             | <2s         | ✅ Pass |
 | NFR-006 | Dashboard TTI                | Performance   | lighthouserc.js             | <3s         | ✅ Pass |
-| NFR-007 | Markdown Sync                | Performance   | markdown.sync.test.ts       | <500ms      | ✅ Pass |
-| NFR-008 | Batch Sync Debouncing        | Integration   | markdown.sync.test.ts       | 1 per 5s    | ✅ Pass |
+| NFR-007 | Database Update Performance  | Performance   | database.state.test.ts      | <500ms      | ✅ Pass |
+| NFR-008 | Batch Update Debouncing      | Integration   | database.state.test.ts      | 1 per 5s    | ✅ Pass |
 | NFR-012 | Graceful Degradation         | Integration   | embeddings.fallback.test.ts | Falls back  | ✅ Pass |
 | NFR-014 | Input Validation             | Security      | validation.test.ts          | 42/42 tests | ✅ Pass |
 | NFR-015 | Autonomy Level 2 (Approval)  | Security      | autonomy.test.ts            | 5/5 tests   | ✅ Pass |
