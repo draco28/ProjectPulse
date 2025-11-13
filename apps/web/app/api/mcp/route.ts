@@ -38,6 +38,7 @@ import {
   knowledgeCreateHandler,
   knowledgeRelatedHandler,
   knowledgeGetMetricsHandler,
+  knowledgeExportHandler,
 } from '@/lib/mcp/handlers/knowledge-handler';
 import {
   listKnowledgeResources,
@@ -204,12 +205,15 @@ export async function POST(request: NextRequest) {
         case 'knowledge.getMetrics':
           result = await knowledgeGetMetricsHandler(args);
           break;
+        case 'knowledge.export':
+          result = await knowledgeExportHandler(args);
+          break;
         default:
           throw new MCPError(
             `Unknown tool: ${name}`,
             JSONRPC_ERROR_CODES.METHOD_NOT_FOUND,
             404,
-            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics'] }
+            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export'] }
           );
       }
     } else if (jsonrpcRequest.method === 'tools/list') {
@@ -270,6 +274,21 @@ export async function POST(request: NextRequest) {
               type: 'object',
               properties: {
                 days: { type: 'number', minimum: 1, maximum: 90, default: 7 },
+              },
+            },
+          },
+          {
+            name: 'knowledge.export',
+            description: 'Export knowledge graph to JSON (items, relationships, optional embeddings)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                includeEmbeddings: { type: 'boolean', default: false },
+                includeRelationships: { type: 'boolean', default: true },
+                category: { type: 'string' },
+                tags: { type: 'array', items: { type: 'string' } },
+                since: { type: 'string', description: 'ISO 8601 date' },
+                limit: { type: 'number', minimum: 1, maximum: 10000 },
               },
             },
           },

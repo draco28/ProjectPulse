@@ -133,6 +133,7 @@ export {
   knowledgeCreateHandler,
   knowledgeRelatedHandler,
   knowledgeGetMetricsHandler,
+  knowledgeExportHandler,
 } from './handlers/knowledge-handler';
 
 /**

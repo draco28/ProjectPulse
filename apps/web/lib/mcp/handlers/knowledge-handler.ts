@@ -38,6 +38,7 @@ import {
   type GraphTraversalOptions,
 } from '@/lib/knowledge/graph';
 import { getMetricsSummary } from '@/lib/knowledge/metrics';
+import { prisma } from '@/lib/prisma';
 import { MCPError, JSONRPC_ERROR_CODES } from '../types';
 
 /**
@@ -549,6 +550,39 @@ export async function knowledgeRelatedHandler(
 }
 
 /**
+ * Tool input schema for knowledge.export
+ */
+export interface KnowledgeExportInput {
+  includeEmbeddings?: boolean; // default: false
+  includeRelationships?: boolean; // default: true
+  category?: string;
+  tags?: string[]; // Array of tags to filter by
+  since?: string; // ISO 8601 date
+  limit?: number; // 1-10000
+}
+
+/**
+ * Tool output for knowledge.export
+ */
+export interface KnowledgeExportOutput {
+  metadata: {
+    exportedAt: string;
+    version: string;
+    itemCount: number;
+    relationshipCount: number;
+    includesEmbeddings: boolean;
+    includesRelationships: boolean;
+    filters: {
+      category: string | null;
+      tags: string | null;
+      since: string | null;
+    };
+  };
+  items: any[];
+  relationships: any[];
+}
+
+/**
  * Tool input schema for knowledge.getMetrics
  */
 export interface KnowledgeGetMetricsInput {
@@ -625,6 +659,166 @@ export async function knowledgeGetMetricsHandler(
     console.error('[knowledge.getMetrics] Unexpected error:', error);
     throw new MCPError(
       'Failed to retrieve metrics: ' +
+        (error instanceof Error ? error.message : 'Unknown error'),
+      JSONRPC_ERROR_CODES.INTERNAL_ERROR,
+      500
+    );
+  }
+}
+
+/**
+ * MCP Tool Handler: knowledge.export
+ *
+ * Export knowledge graph to JSON format with optional filtering.
+ * Includes items, relationships, and optionally embeddings.
+ *
+ * US-087: Export knowledge graph
+ *
+ * @param input - Export filter parameters
+ * @returns Export data with metadata
+ * @throws MCPError on validation or export errors
+ *
+ * @example
+ * ```typescript
+ * // Export all items without embeddings
+ * const data = await knowledgeExportHandler({});
+ *
+ * // Export with embeddings and specific category
+ * const data = await knowledgeExportHandler({
+ *   includeEmbeddings: true,
+ *   category: "DevOps",
+ *   limit: 100
+ * });
+ * ```
+ */
+export async function knowledgeExportHandler(
+  input: unknown
+): Promise<KnowledgeExportOutput> {
+  try {
+    // Validate input (all parameters optional)
+    const params = (input || {}) as KnowledgeExportInput;
+
+    // Validate limit if provided
+    if (params.limit !== undefined) {
+      if (typeof params.limit !== 'number' || params.limit < 1 || params.limit > 10000) {
+        throw new MCPError(
+          'Invalid limit parameter: must be number between 1 and 10000',
+          JSONRPC_ERROR_CODES.INVALID_PARAMS,
+          400
+        );
+      }
+    }
+
+    // Validate since date if provided
+    if (params.since !== undefined) {
+      const since = new Date(params.since);
+      if (isNaN(since.getTime())) {
+        throw new MCPError(
+          'Invalid since parameter: must be valid ISO 8601 date',
+          JSONRPC_ERROR_CODES.INVALID_PARAMS,
+          400
+        );
+      }
+    }
+
+    // Build where clause
+    const where: any = {};
+
+    if (params.category) {
+      where.category = params.category;
+    }
+
+    if (params.tags && params.tags.length > 0) {
+      where.tags = { hasSome: params.tags };
+    }
+
+    if (params.since) {
+      where.createdAt = { gte: new Date(params.since) };
+    }
+
+    // Fetch knowledge items
+    const items = await prisma.knowledgeItem.findMany({
+      where,
+      take: params.limit,
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        category: true,
+        tags: true,
+        createdAt: true,
+        updatedAt: true,
+        archivedAt: true,
+        // Conditionally include embeddings
+        ...(params.includeEmbeddings && { embedding: true }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Fetch relationships if requested (default true)
+    const includeRelationships = params.includeRelationships !== false;
+    let relationships: any[] = [];
+
+    if (includeRelationships && items.length > 0) {
+      const itemIds = items.map(item => item.id);
+      relationships = await prisma.knowledgeRelationship.findMany({
+        where: {
+          OR: [
+            { fromId: { in: itemIds } },
+            { toId: { in: itemIds } },
+          ],
+        },
+        select: {
+          id: true,
+          fromId: true,
+          toId: true,
+          relationType: true,
+          weight: true,
+          createdAt: true,
+        },
+      });
+    }
+
+    // Format items for export
+    const formattedItems = items.map(item => ({
+      ...item,
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
+      archivedAt: item.archivedAt?.toISOString() || null,
+      // Convert embedding buffer to array if included
+      ...(params.includeEmbeddings && item.embedding && {
+        embedding: Array.from(item.embedding as any),
+      }),
+    }));
+
+    // Build export output
+    return {
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+        itemCount: items.length,
+        relationshipCount: relationships.length,
+        includesEmbeddings: params.includeEmbeddings || false,
+        includesRelationships,
+        filters: {
+          category: params.category || null,
+          tags: params.tags ? params.tags.join(',') : null,
+          since: params.since || null,
+        },
+      },
+      items: formattedItems,
+      relationships,
+    };
+  } catch (error) {
+    // Re-throw MCPError as-is
+    if (error instanceof MCPError) {
+      throw error;
+    }
+
+    // Wrap unexpected errors
+    console.error('[knowledge.export] Unexpected error:', error);
+    throw new MCPError(
+      'Export failed: ' +
         (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500
