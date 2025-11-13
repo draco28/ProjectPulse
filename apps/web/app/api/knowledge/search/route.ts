@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchKnowledgeSchema } from '@/lib/validations/knowledge';
 import { semanticSearch, fullTextSearch, hybridSearch, SearchError } from '@/lib/knowledge/search';
+import { recordQueryMetric, estimateTokenUsage, type QueryMode } from '@/lib/knowledge/metrics';
 
 /**
  * GET /api/knowledge/search
@@ -90,6 +91,23 @@ export async function GET(request: NextRequest) {
       score: result.score,
       matchType: result.matchType,
     }));
+
+    // Record query performance metrics (async, non-blocking)
+    const tokenUsage = estimateTokenUsage(resultsWithExcerpts);
+    const userAgent = request.headers.get('user-agent') || undefined;
+
+    recordQueryMetric({
+      query,
+      queryMode: mode as QueryMode,
+      latencyMs: duration,
+      resultCount: results.length,
+      tokenUsage,
+      category,
+      userAgent,
+    }).catch(err => {
+      // Log but don't fail the request
+      console.error('[Knowledge Search] Failed to record metrics:', err);
+    });
 
     return NextResponse.json({
       data: {

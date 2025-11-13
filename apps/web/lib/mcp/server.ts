@@ -132,6 +132,7 @@ export {
   knowledgeSearchHandler,
   knowledgeCreateHandler,
   knowledgeRelatedHandler,
+  knowledgeGetMetricsHandler,
 } from './handlers/knowledge-handler';
 
 /**

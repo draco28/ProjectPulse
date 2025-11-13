@@ -77,7 +77,10 @@
       "Bash(pnpm --filter web lint:*)",
       "Bash(pnpm --filter web build:*)",
       "WebSearch",
-      "WebFetch(domain:ref.tools)"
+      "WebFetch(domain:ref.tools)",
+      "Bash(pnpm tsc:*)",
+      "Bash(docker restart:*)",
+      "Bash(docker logs:*)"
     ],
     "deny": [],
     "ask": [

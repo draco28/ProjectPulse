@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database (like Supabase)
+  # PostgreSQL Database (like Supabase) - with pgvector extension
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: projectpulse-postgres-cloud
     environment:
       POSTGRES_USER: postgres

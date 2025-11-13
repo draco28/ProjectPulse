@@ -37,6 +37,7 @@ import {
   knowledgeSearchHandler,
   knowledgeCreateHandler,
   knowledgeRelatedHandler,
+  knowledgeGetMetricsHandler,
 } from '@/lib/mcp/handlers/knowledge-handler';
 import {
   listKnowledgeResources,
@@ -200,12 +201,15 @@ export async function POST(request: NextRequest) {
         case 'knowledge.related':
           result = await knowledgeRelatedHandler(args);
           break;
+        case 'knowledge.getMetrics':
+          result = await knowledgeGetMetricsHandler(args);
+          break;
         default:
           throw new MCPError(
             `Unknown tool: ${name}`,
             JSONRPC_ERROR_CODES.METHOD_NOT_FOUND,
             404,
-            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related'] }
+            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics'] }
           );
       }
     } else if (jsonrpcRequest.method === 'tools/list') {
@@ -257,6 +261,16 @@ export async function POST(request: NextRequest) {
                 minStrength: { type: 'number', minimum: 0, maximum: 1, default: 0.5 },
               },
               required: ['itemId'],
+            },
+          },
+          {
+            name: 'knowledge.getMetrics',
+            description: 'Get query performance metrics summary (latency, query counts, mode distribution)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                days: { type: 'number', minimum: 1, maximum: 90, default: 7 },
+              },
             },
           },
         ],

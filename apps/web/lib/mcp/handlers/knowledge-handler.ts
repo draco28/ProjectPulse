@@ -37,6 +37,7 @@ import {
   GraphError,
   type GraphTraversalOptions,
 } from '@/lib/knowledge/graph';
+import { getMetricsSummary } from '@/lib/knowledge/metrics';
 import { MCPError, JSONRPC_ERROR_CODES } from '../types';
 
 /**
@@ -540,6 +541,90 @@ export async function knowledgeRelatedHandler(
     console.error('[knowledge.related] Unexpected error:', error);
     throw new MCPError(
       'Graph traversal failed: ' +
+        (error instanceof Error ? error.message : 'Unknown error'),
+      JSONRPC_ERROR_CODES.INTERNAL_ERROR,
+      500
+    );
+  }
+}
+
+/**
+ * Tool input schema for knowledge.getMetrics
+ */
+export interface KnowledgeGetMetricsInput {
+  days?: number; // 1-90, default: 7
+}
+
+/**
+ * Tool output for knowledge.getMetrics
+ */
+export interface KnowledgeGetMetricsOutput {
+  period: {
+    days: number;
+    since: Date;
+  };
+  totalQueries: number;
+  avgLatencyMs: number;
+  latencyP95: {
+    semantic: number | null;
+    fulltext: number | null;
+    hybrid: number | null;
+  };
+  modeDistribution: Record<string, number>;
+}
+
+/**
+ * MCP Tool Handler: knowledge.getMetrics
+ *
+ * Get query performance metrics summary for the knowledge base.
+ * Returns latency percentiles, query counts, and mode distribution.
+ *
+ * US-086: Measure query performance
+ *
+ * @param input - Metrics query parameters
+ * @returns Metrics summary
+ * @throws MCPError on validation or query errors
+ *
+ * @example
+ * ```typescript
+ * // Get last 7 days metrics
+ * const metrics = await knowledgeGetMetricsHandler({});
+ *
+ * // Get last 30 days metrics
+ * const metrics = await knowledgeGetMetricsHandler({ days: 30 });
+ * ```
+ */
+export async function knowledgeGetMetricsHandler(
+  input: unknown
+): Promise<KnowledgeGetMetricsOutput> {
+  try {
+    // Validate input (optional parameter)
+    const params = (input || {}) as KnowledgeGetMetricsInput;
+
+    // Validate days parameter if provided
+    const days = params.days || 7;
+    if (typeof days !== 'number' || days < 1 || days > 90) {
+      throw new MCPError(
+        'Invalid days parameter: must be number between 1 and 90',
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
+    // Get metrics summary
+    const summary = await getMetricsSummary(days);
+
+    return summary;
+  } catch (error) {
+    // Re-throw MCPError as-is
+    if (error instanceof MCPError) {
+      throw error;
+    }
+
+    // Wrap unexpected errors
+    console.error('[knowledge.getMetrics] Unexpected error:', error);
+    throw new MCPError(
+      'Failed to retrieve metrics: ' +
         (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500
