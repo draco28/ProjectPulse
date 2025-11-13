@@ -53,7 +53,7 @@ class SkillLRUCache<T> {
     }
 
     // Check TTL
-    if (now - entry.timestamp > this.ttlMs) {
+    if (now - entry.timestamp >= this.ttlMs) {
       this.cache.delete(key);
       this.misses++;
       return null;
@@ -88,7 +88,7 @@ class SkillLRUCache<T> {
     const toDelete: string[] = [];
 
     for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > this.ttlMs) {
+      if (now - entry.timestamp >= this.ttlMs) {
         toDelete.push(key);
       }
     }
