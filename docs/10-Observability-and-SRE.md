@@ -157,12 +157,16 @@ const logger = winston.createLogger({
     winston.format.json()
   ),
   transports: [
-    new winston.transports.File({
-      filename: 'logs/error.log',
+    new winston.transports.CloudWatch({
+      logGroupName: '/projectpulse/application',
+      logStreamName: `${process.env.NODE_ENV}-${Date.now()}`,
+      awsRegion: process.env.AWS_REGION,
       level: 'error',
     }),
-    new winston.transports.File({
-      filename: 'logs/combined.log',
+    new winston.transports.Datadog({
+      apiKey: process.env.DATADOG_API_KEY,
+      service: 'projectpulse-api',
+      hostname: process.env.HOSTNAME,
     }),
   ],
 });
@@ -296,19 +300,26 @@ console.table(slowQueries);
 
 **Local log aggregation** without external services.
 
-#### File-Based Log Rotation
+#### Cloud Log Retention Configuration
 
-```bash
-# Use logrotate for log management
-# /etc/logrotate.d/projectpulse
-/path/to/projectpulse/logs/*.log {
-  daily
-  rotate 7
-  compress
-  delaycompress
-  missingok
-  notifempty
-}
+```yaml
+# CloudWatch Logs retention configuration
+# aws/cloudwatch-logs-config.yml
+LogGroups:
+  - Name: /projectpulse/application
+    RetentionInDays: 30
+
+  - Name: /projectpulse/errors
+    RetentionInDays: 90
+
+  - Name: /projectpulse/audit
+    RetentionInDays: 365
+
+# Automatic archival to S3 after retention period
+ArchiveToS3:
+  Enabled: true
+  Bucket: projectpulse-logs-archive
+  Prefix: logs/
 ```
 
 #### Querying Logs with `jq`
@@ -460,11 +471,11 @@ await prisma.metric.create({
 // lib/analytics/protocol-compliance.ts
 interface ProtocolComplianceMetric {
   sessionId: number;
-  step1_initialize: boolean; // Session file created
-  step2_plan_saved: boolean; // current-plan.md exists
+  step1_initialize: boolean; // Session database record created with metadata
+  step2_plan_saved: boolean; // Plan stored in Session.planContent field
   step3_experts_consulted: boolean; // Expert agents invoked
   step4_checkpoints_hit: boolean; // 15K token checkpoints logged
-  step5_completion_docs: boolean; // COMPLETION_*.md created
+  step5_completion_docs: boolean; // Completion data stored in Session.completionSummary field
   compliancePercent: number; // 0-100%
 }
 
@@ -478,11 +489,11 @@ async function calculateProtocolCompliance(sessionId: number) {
 
   const compliance: ProtocolComplianceMetric = {
     sessionId,
-    step1_initialize: session.sessionFileCreated,
-    step2_plan_saved: session.planSaved,
+    step1_initialize: session.createdAt !== null, // Session DB record exists
+    step2_plan_saved: session.planContent !== null, // Plan stored in DB
     step3_experts_consulted: session.agentActions.some((a) => a.action.includes('expert')),
     step4_checkpoints_hit: session.checkpointCount >= expectedCheckpoints(session.totalTokens),
-    step5_completion_docs: session.completionDocCreated,
+    step5_completion_docs: session.completionSummary !== null, // Completion data in DB
     compliancePercent: 0,
   };
 
@@ -971,66 +982,72 @@ services:
 
 #### Uptime Monitoring Script
 
-```bash
-#!/bin/bash
-# scripts/monitor-uptime.sh
+```typescript
+// scripts/monitor-uptime.ts (stores in database, not file)
+async function recordUptimeCheck() {
+  try {
+    const response = await fetch('http://localhost:3000/api/health');
+    const status = response.status === 200 ? 'UP' : 'DOWN';
 
-LOG_FILE="logs/uptime.log"
+    // Store in database
+    await prisma.uptimeCheck.create({
+      data: {
+        status,
+        httpCode: response.status,
+        responseTimeMs: response.headers.get('x-response-time'),
+        timestamp: new Date(),
+      },
+    });
 
-while true; do
-  STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health)
-  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    if (status === 'DOWN') {
+      await alertManager.sendAlert({
+        severity: AlertSeverity.CRITICAL,
+        title: 'Service Down',
+        message: `Health check failed (HTTP ${response.status})`,
+        timestamp: new Date(),
+      });
+    }
+  } catch (error) {
+    logger.error('Uptime check failed', { error: error.message });
+  }
+}
 
-  if [ "$STATUS" == "200" ]; then
-    echo "$TIMESTAMP,UP,$STATUS" >> $LOG_FILE
-  else
-    echo "$TIMESTAMP,DOWN,$STATUS" >> $LOG_FILE
-    # Send alert
-    echo "⚠️ Service down at $TIMESTAMP (HTTP $STATUS)" | mail -s "Service Down Alert" developer@example.com
-  fi
-
-  sleep 60  # Check every minute
-done
+// Run every minute
+setInterval(recordUptimeCheck, 60000);
 ```
 
 #### Uptime Calculation
 
 ```typescript
 // scripts/calculate-uptime.ts
-import fs from 'fs';
+async function calculateUptime(timeWindow: number) {
+  const startTime = new Date(Date.now() - timeWindow);
 
-interface UptimeRecord {
-  timestamp: string;
-  status: 'UP' | 'DOWN';
-  httpCode: string;
-}
-
-function calculateUptime(logFile: string, timeWindow: number) {
-  const logs = fs.readFileSync(logFile, 'utf-8').split('\n');
-  const startTime = Date.now() - timeWindow;
-
-  let totalChecks = 0;
-  let upChecks = 0;
-
-  logs.forEach((line) => {
-    const [timestamp, status] = line.split(',');
-    const recordTime = new Date(timestamp).getTime();
-
-    if (recordTime >= startTime) {
-      totalChecks++;
-      if (status === 'UP') upChecks++;
-    }
+  const stats = await prisma.uptimeCheck.groupBy({
+    by: ['status'],
+    where: {
+      timestamp: { gte: startTime },
+    },
+    _count: true,
   });
 
+  const totalChecks = stats.reduce((sum, s) => sum + s._count, 0);
+  const upChecks = stats.find((s) => s.status === 'UP')?._count || 0;
+
   const uptime = (upChecks / totalChecks) * 100;
-  console.log(`Uptime: ${uptime.toFixed(3)}%`);
-  console.log(`Up checks: ${upChecks}/${totalChecks}`);
+
+  logger.info('Uptime calculation', {
+    uptime: `${uptime.toFixed(3)}%`,
+    upChecks,
+    totalChecks,
+    timeWindow: `${timeWindow / 1000 / 60 / 60}h`,
+  });
 
   return uptime;
 }
 
-// Calculate last 7 days
-calculateUptime('logs/uptime.log', 7 * 24 * 60 * 60 * 1000);
+// Calculate last 7 days from database
+await calculateUptime(7 * 24 * 60 * 60 * 1000);
 ```
 
 ---
@@ -1382,44 +1399,56 @@ setInterval(checkEmbeddingsService, 5 * 60 * 1000);
 
 ---
 
-### 10.5.5 NFR-013: Graceful Degradation - Markdown Sync Failure
+### 10.5.5 NFR-013: Graceful Degradation - Real-Time WebSocket Updates
 
-**Requirement**: If markdown sync fails → retry with exponential backoff (max 3 retries)
+**Requirement**: If WebSocket connection fails → fall back to polling API with exponential backoff (max 3 retries)
 
-#### Exponential Backoff Implementation
+#### WebSocket Connection Management
+
+**Challenge**: Real-time UI updates depend on WebSocket connections. Network issues can disrupt updates.
+
+**Solution**: Exponential backoff with automatic fallback to HTTP polling
 
 ```typescript
-// lib/utils/exponential-backoff.ts
-export async function withExponentialBackoff<T>(
-  operation: () => Promise<T>,
+// lib/utils/websocket-resilience.ts
+export async function connectWithBackoff(
+  url: string,
   options: {
     maxRetries?: number;
     baseDelayMs?: number;
     maxDelayMs?: number;
   } = {}
-): Promise<T> {
+): Promise<WebSocket> {
   const { maxRetries = 3, baseDelayMs = 1000, maxDelayMs = 10000 } = options;
 
   let lastError: Error;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      return await operation();
+      const ws = new WebSocket(url);
+
+      await new Promise((resolve, reject) => {
+        ws.onopen = resolve;
+        ws.onerror = reject;
+        setTimeout(() => reject(new Error('Connection timeout')), 5000);
+      });
+
+      logger.info('WebSocket connected', { url, attempt });
+      return ws;
     } catch (error) {
       lastError = error;
 
       if (attempt === maxRetries) {
-        logger.error('Operation failed after max retries', {
+        logger.error('WebSocket connection failed after max retries', {
           maxRetries,
           error: error.message,
         });
         throw error;
       }
 
-      // Calculate delay: baseDelay * 2^attempt, capped at maxDelay
       const delay = Math.min(baseDelayMs * Math.pow(2, attempt), maxDelayMs);
 
-      logger.warn('Operation failed, retrying', {
+      logger.warn('WebSocket connection failed, retrying', {
         attempt: attempt + 1,
         maxRetries,
         delayMs: delay,
@@ -1438,86 +1467,148 @@ function sleep(ms: number): Promise<void> {
 }
 ```
 
-#### Markdown Sync with Retry
+#### Fallback to HTTP Polling
 
 ```typescript
-// lib/services/markdown-sync-service.ts
-export async function syncMarkdownToDatabase(filePath: string) {
-  try {
-    const result = await withExponentialBackoff(
-      async () => {
-        // Read markdown file
-        const content = await fs.readFile(filePath, 'utf-8');
+// lib/services/realtime-service.ts
+export class RealtimeService {
+  private ws: WebSocket | null = null;
+  private pollingInterval: NodeJS.Timeout | null = null;
+  private lastUpdateTime: number = Date.now();
 
-        // Parse frontmatter and content
-        const { data: frontmatter, content: body } = matter(content);
+  async initialize(userId: number) {
+    try {
+      // Try WebSocket first
+      this.ws = await connectWithBackoff(`ws://localhost:3000/api/realtime?userId=${userId}`);
 
-        // Update database
-        await prisma.knowledgeEntry.upsert({
-          where: { filePath },
-          create: {
-            filePath,
-            title: frontmatter.title,
-            content: body,
-            metadata: frontmatter,
-          },
-          update: {
-            title: frontmatter.title,
-            content: body,
-            metadata: frontmatter,
-            updatedAt: new Date(),
-          },
-        });
+      this.ws.onmessage = (event) => {
+        const update = JSON.parse(event.data);
+        this.handleUpdate(update);
+      };
 
-        return { success: true };
-      },
-      {
-        maxRetries: 3,
-        baseDelayMs: 1000,
-        maxDelayMs: 5000,
+      this.ws.onclose = () => {
+        logger.warn('WebSocket closed, falling back to polling');
+        this.startPolling(userId);
+      };
+
+      logger.info('Real-time updates via WebSocket', { userId });
+      return { mode: 'websocket', degraded: false };
+    } catch (error) {
+      // Fall back to HTTP polling
+      logger.warn('WebSocket unavailable, falling back to HTTP polling', {
+        error: error.message,
+        userId,
+      });
+
+      this.startPolling(userId);
+
+      await alertManager.sendAlert({
+        severity: AlertSeverity.WARNING,
+        title: 'Real-Time Updates Degraded',
+        message: 'Using HTTP polling. WebSocket temporarily unavailable.',
+        metric: { userId, errorType: error.constructor.name },
+        timestamp: new Date(),
+      });
+
+      return { mode: 'polling', degraded: true };
+    }
+  }
+
+  private startPolling(userId: number) {
+    this.pollingInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/updates?userId=${userId}&since=${this.lastUpdateTime}`);
+        const updates = await response.json();
+
+        updates.forEach((update: any) => this.handleUpdate(update));
+      } catch (error) {
+        logger.error('Polling failed', { error: error.message, userId });
       }
-    );
+    }, 5000); // Poll every 5 seconds
+  }
 
-    logger.info('Markdown sync successful', { filePath });
-    return result;
-  } catch (error) {
-    // After max retries, log error and alert human
-    logger.error('Markdown sync failed after retries', {
-      filePath,
-      error: error.message,
+  private handleUpdate(update: any) {
+    this.lastUpdateTime = Date.now();
+    // Dispatch update to UI components
+    window.dispatchEvent(new CustomEvent('realtime-update', { detail: update }));
+  }
+
+  cleanup() {
+    if (this.ws) {
+      this.ws.close();
+    }
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+  }
+}
+```
+
+#### Service Restoration Monitoring
+
+```typescript
+// lib/health-checks/websocket-service.ts
+async function checkWebSocketService() {
+  try {
+    const testConnection = await connectWithBackoff('ws://localhost:3000/api/realtime', {
+      maxRetries: 1,
+      baseDelayMs: 500,
     });
 
+    testConnection.close();
+
+    logger.info('WebSocket service restored');
+
     await alertManager.sendAlert({
-      severity: AlertSeverity.WARNING,
-      title: 'Markdown Sync Failed',
-      message: `Failed to sync ${filePath} after 3 retries. Manual intervention required.`,
-      metric: { filePath, error: error.message },
+      severity: AlertSeverity.INFO,
+      title: 'Real-Time Updates Restored',
+      message: 'WebSocket connections available again. Switching from polling.',
       timestamp: new Date(),
     });
 
-    // Don't block API response - sync is async
-    return { success: false, error: error.message };
+    return true;
+  } catch (error) {
+    return false;
   }
 }
+
+// Poll every 2 minutes when degraded
+setInterval(checkWebSocketService, 2 * 60 * 1000);
 ```
 
 #### Non-Blocking API Integration
 
 ```typescript
-// app/api/knowledge/sync/route.ts
-export async function POST(request: Request) {
-  const { filePath } = await request.json();
+// app/api/realtime/route.ts
+import { NextRequest } from 'next/server';
 
-  // Start sync in background (don't await)
-  syncMarkdownToDatabase(filePath).catch((error) => {
-    logger.error('Background sync error', { filePath, error });
-  });
+export async function GET(request: NextRequest) {
+  const userId = request.nextUrl.searchParams.get('userId');
 
-  // Return immediately to client
-  return NextResponse.json({
-    message: 'Markdown sync initiated',
-    filePath,
-  });
+  // Upgrade to WebSocket connection
+  const upgrade = request.headers.get('upgrade');
+  if (upgrade !== 'websocket') {
+    return new Response('Expected WebSocket', { status: 426 });
+  }
+
+  // Handle WebSocket upgrade (implementation depends on runtime)
+  // For Next.js with custom server:
+  const { socket, response } = upgradeWebSocket(request);
+
+  socket.onopen = () => {
+    logger.info('WebSocket connection opened', { userId });
+  };
+
+  socket.onmessage = (event) => {
+    // Handle incoming messages from client
+    logger.debug('WebSocket message received', { userId, data: event.data });
+  };
+
+  socket.onclose = () => {
+    logger.info('WebSocket connection closed', { userId });
+  };
+
+  return response;
 }
 ```
 
@@ -1661,8 +1752,9 @@ class IncidentDetector {
    ```
 
 5. **Document incident** (5 min):
-   - Create `docs/incidents/YYYY-MM-DD-service-down.md`
-   - Note root cause, resolution time, actions taken
+   - Create incident record in database via API: `POST /api/incidents`
+   - Record root cause, resolution time, actions taken
+   - System generates PIR automatically
 
 **Total RTO**: <5 minutes
 
@@ -1796,57 +1888,101 @@ class IncidentDetector {
 
 ### 10.6.3 Post-Incident Review (PIR)
 
-#### PIR Template
+#### PIR Database Schema
 
-Create file: `docs/incidents/YYYY-MM-DD-[incident-title].md`
+Store all incident data in PostgreSQL for searchable history:
 
-```markdown
-# Post-Incident Review: [Incident Title]
+```typescript
+// prisma/schema.prisma
+model Incident {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @default(now())
+  severity    String   // "SEV-1" | "SEV-2" | "SEV-3" | "SEV-4"
+  title       String
+  duration    Int      // minutes
+  impact      String   @db.Text
 
-**Date**: YYYY-MM-DD
-**Severity**: SEV-X
-**Duration**: X hours Y minutes
-**Impact**: [Description of user/system impact]
+  // Timeline
+  timeline    Json     // Array of {time, event}
 
-## Timeline
+  // Analysis
+  rootCause   String   @db.Text
+  resolution  String   @db.Text
+  actionItems Json     // Array of {task, assignee, due, status}
 
-| Time  | Event                               |
-| ----- | ----------------------------------- |
-| HH:MM | Incident detected (alert triggered) |
-| HH:MM | Response started                    |
-| HH:MM | Root cause identified               |
-| HH:MM | Fix applied                         |
-| HH:MM | Service restored                    |
-| HH:MM | Incident closed                     |
+  // Lessons learned
+  wentWell    String[] @db.Text[]
+  improvements String[] @db.Text[]
 
-## Root Cause
+  relatedIssues Int[]  // Issue IDs
 
-[Detailed explanation of what caused the incident]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-## Resolution
+  @@index([date])
+  @@index([severity])
+}
+```
 
-[Detailed explanation of how the incident was resolved]
+#### PIR API Endpoints
 
-## Action Items
+```typescript
+// app/api/incidents/route.ts
+export async function POST(request: Request) {
+  const body = await request.json();
 
-- [ ] **Prevent**: [Action to prevent recurrence] - Assigned to: [Name] - Due: [Date]
-- [ ] **Detect**: [Improve detection/alerting] - Assigned to: [Name] - Due: [Date]
-- [ ] **Respond**: [Improve response time] - Assigned to: [Name] - Due: [Date]
-- [ ] **Document**: [Update runbooks] - Assigned to: [Name] - Due: [Date]
+  const incident = await prisma.incident.create({
+    data: {
+      date: new Date(body.date),
+      severity: body.severity,
+      title: body.title,
+      duration: body.duration,
+      impact: body.impact,
+      timeline: body.timeline,
+      rootCause: body.rootCause,
+      resolution: body.resolution,
+      actionItems: body.actionItems,
+      wentWell: body.wentWell,
+      improvements: body.improvements,
+      relatedIssues: body.relatedIssues,
+    },
+  });
 
-## Lessons Learned
+  return NextResponse.json(incident);
+}
 
-**What went well**:
+// app/api/incidents/[id]/route.ts
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const incident = await prisma.incident.findUnique({
+    where: { id: parseInt(params.id) },
+  });
 
-- [Things that worked well during response]
+  return NextResponse.json(incident);
+}
+```
 
-**What could be improved**:
+#### PIR Web UI
 
-- [Things that could be improved]
+View all incidents with filtering and search:
 
-## Related Issues
+```typescript
+// app/incidents/page.tsx
+export default async function IncidentsPage() {
+  const incidents = await prisma.incident.findMany({
+    orderBy: { date: 'desc' },
+    take: 50,
+  });
 
-- #[issue-number]: [Issue title]
+  return (
+    <div>
+      <h1>Incident History</h1>
+      <IncidentList incidents={incidents} />
+    </div>
+  );
+}
 ```
 
 ---
@@ -2372,7 +2508,7 @@ const protocolSteps: ProtocolStep[] = [
       const session = await prisma.session.findUnique({
         where: { id: sessionId },
       });
-      return session?.sessionFileCreated === true;
+      return session !== null && session.createdAt !== null; // DB record exists
     },
   },
   {
@@ -2382,7 +2518,7 @@ const protocolSteps: ProtocolStep[] = [
       const session = await prisma.session.findUnique({
         where: { id: sessionId },
       });
-      return session?.planSaved === true;
+      return session?.planContent !== null; // Plan stored in DB
     },
   },
   {
@@ -2415,12 +2551,12 @@ const protocolSteps: ProtocolStep[] = [
   },
   {
     step: 5,
-    name: 'Create completion docs',
+    name: 'Store completion summary',
     verificationQuery: async (sessionId) => {
       const session = await prisma.session.findUnique({
         where: { id: sessionId },
       });
-      return session?.completionDocCreated === true;
+      return session?.completionSummary !== null; // Completion data in DB
     },
   },
 ];
