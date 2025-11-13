@@ -139,6 +139,20 @@ export {
 } from './handlers/knowledge-handler';
 
 /**
+ * Export skill tool handlers for registration in route handler
+ */
+export {
+  skillListHandler,
+  skillLoadHandler,
+  skillSearchHandler,
+  skillUpdateHandler,
+  skillDeleteHandler,
+  skillExportHandler,
+  skillImportHandler,
+  skillLinkKnowledgeHandler,
+} from './handlers/skill-handler';
+
+/**
  * Export knowledge resource handlers for registration in route handler
  */
 export {

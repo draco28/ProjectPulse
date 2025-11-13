@@ -239,6 +239,7 @@ model Project {
   repository  String? // Git repository URL
 
   issues             Issue[]
+  skills             Skill[] // Sprint 6: Skills lazy-loading system
   onboardingSessions OnboardingSession[]
   workflowRuns       WorkflowRun[]
 
@@ -404,6 +405,9 @@ model KnowledgeItem {
   // Links to issues (existing functionality)
   linkedIssues KnowledgeLink[] @relation("KnowledgeIssue")
 
+  // Links to skills (US-104: Sprint 6)
+  linkedSkills SkillKnowledgeLink[]
+
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   archivedAt DateTime? // Soft delete - archived items hidden from search by default
@@ -517,6 +521,76 @@ model KnowledgeQueryMetric {
   @@index([latencyMs])
 
   @@map("knowledge_query_metrics")
+}
+
+// ============================================================================
+// SKILLS SYSTEM (Sprint 6 - Lazy-Loading)
+// ============================================================================
+// Purpose: Store AI coding skills (patterns, workflows, SOPs) for lazy-loading
+// Token Efficiency: List ~60-80 tokens/10 skills, Load ~180-230 tokens/skill (92% reduction)
+// Multi-tenancy: Scoped by projectId for proper isolation
+
+model Skill {
+  id Int @id @default(autoincrement())
+
+  // Project association (multi-tenancy)
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Core identification (YAML frontmatter fields)
+  slug  String @db.VarChar(100) // URL-safe identifier (unique per project)
+  title String @db.VarChar(200) // Display name
+
+  // Content (markdown body - NOT loaded in list view)
+  content String @db.Text // Skill implementation details, code examples, procedures
+
+  // Frontmatter metadata (loaded in list view for token efficiency)
+  category    String   @db.VarChar(50) // framework, testing, workflow, troubleshooting, etc. (extensible)
+  description String?  @db.Text // Short summary (1-2 sentences, ~50-100 chars)
+  tags        String[] // Keywords for search (e.g., ["react", "hooks", "performance"])
+  frameworks  String[] // Related frameworks/tools (e.g., ["Next.js", "Prisma", "Zod"])
+
+  // Usage tracking (for popularity and LRU cache)
+  usageCount   Int       @default(0) // Increment on each load
+  lastLoadedAt DateTime? // Track last access for auto-unload
+
+  // Audit fields
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Knowledge links (US-104: Link skills to knowledge items)
+  linkedKnowledge SkillKnowledgeLink[]
+
+  // Indexes (7 optimized per Prisma Expert)
+  @@unique([projectId, slug]) // Slug unique per project (allows different projects to have same skill names)
+  @@index([projectId]) // List all skills for a project
+  @@index([projectId, category]) // Filter by category within project
+  @@index([projectId, usageCount(sort: Desc)]) // Popular skills dashboard
+  @@index([projectId, lastLoadedAt(sort: Desc)]) // Recently loaded skills
+  @@index([tags], type: Gin) // Fast tag search (GIN index for arrays)
+  @@index([frameworks], type: Gin) // Fast framework search (GIN index for arrays)
+
+  @@map("skills")
+}
+
+// Many-to-many relationship: Skills ↔ Knowledge Items
+// Purpose: Link skills to relevant knowledge base articles
+model SkillKnowledgeLink {
+  id Int @id @default(autoincrement())
+
+  skillId Skill @relation(fields: [skillIdRef], references: [id], onDelete: Cascade)
+  skillIdRef Int @map("skill_id")
+
+  knowledgeId KnowledgeItem @relation(fields: [knowledgeIdRef], references: [id], onDelete: Cascade)
+  knowledgeIdRef Int @map("knowledge_id")
+
+  createdAt DateTime @default(now())
+
+  @@unique([skillIdRef, knowledgeIdRef])
+  @@index([skillIdRef])
+  @@index([knowledgeIdRef])
+
+  @@map("skill_knowledge_links")
 }
 
 // ============================================================================
