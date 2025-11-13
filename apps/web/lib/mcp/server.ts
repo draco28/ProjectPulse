@@ -135,6 +135,7 @@ export {
   knowledgeGetMetricsHandler,
   knowledgeExportHandler,
   knowledgeImportHandler,
+  knowledgeArchiveHandler,
 } from './handlers/knowledge-handler';
 
 /**

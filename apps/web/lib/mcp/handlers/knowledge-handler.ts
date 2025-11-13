@@ -623,6 +623,25 @@ export interface KnowledgeImportOutput {
 }
 
 /**
+ * Tool input schema for knowledge.archive
+ */
+export interface KnowledgeArchiveInput {
+  itemId: number;
+  unarchive?: boolean; // true = unarchive, false/undefined = archive
+}
+
+/**
+ * Tool output for knowledge.archive
+ */
+export interface KnowledgeArchiveOutput {
+  id: number;
+  title: string;
+  category: string;
+  archivedAt: string | null;
+  action: 'archived' | 'unarchived';
+}
+
+/**
  * Tool input schema for knowledge.getMetrics
  */
 export interface KnowledgeGetMetricsInput {
@@ -1091,6 +1110,123 @@ export async function knowledgeImportHandler(
     console.error('[knowledge.import] Unexpected error:', error);
     throw new MCPError(
       'Import failed: ' +
+        (error instanceof Error ? error.message : 'Unknown error'),
+      JSONRPC_ERROR_CODES.INTERNAL_ERROR,
+      500
+    );
+  }
+}
+
+/**
+ * MCP Tool Handler: knowledge.archive
+ *
+ * Archive or unarchive a knowledge item (soft delete/restore).
+ * Archived items are hidden from search by default.
+ *
+ * US-090: Archive obsolete knowledge items
+ *
+ * @param input - Archive parameters with itemId
+ * @returns Archive result
+ * @throws MCPError on validation or archive errors
+ *
+ * @example
+ * ```typescript
+ * // Archive an item
+ * const result = await knowledgeArchiveHandler({ itemId: 42 });
+ *
+ * // Unarchive an item
+ * const result = await knowledgeArchiveHandler({ itemId: 42, unarchive: true });
+ * ```
+ */
+export async function knowledgeArchiveHandler(
+  input: unknown
+): Promise<KnowledgeArchiveOutput> {
+  try {
+    // Validate input
+    if (!input || typeof input !== 'object') {
+      throw new MCPError(
+        'Invalid input: expected object',
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
+    const params = input as KnowledgeArchiveInput;
+
+    // Validate required fields
+    if (typeof params.itemId !== 'number') {
+      throw new MCPError(
+        'Missing or invalid required field: itemId (number)',
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
+    const unarchive = params.unarchive === true;
+
+    // Check if item exists
+    const existingItem = await prisma.knowledgeItem.findUnique({
+      where: { id: params.itemId },
+      select: { id: true, title: true, category: true, archivedAt: true },
+    });
+
+    if (!existingItem) {
+      throw new MCPError(
+        `Knowledge item ${params.itemId} not found`,
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        404
+      );
+    }
+
+    // Check archive state
+    if (!unarchive && existingItem.archivedAt) {
+      throw new MCPError(
+        `Item ${params.itemId} is already archived`,
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400,
+        { archivedAt: existingItem.archivedAt.toISOString() }
+      );
+    }
+
+    if (unarchive && !existingItem.archivedAt) {
+      throw new MCPError(
+        `Item ${params.itemId} is not archived`,
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
+    // Archive or unarchive
+    const updatedItem = await prisma.knowledgeItem.update({
+      where: { id: params.itemId },
+      data: {
+        archivedAt: unarchive ? null : new Date(),
+      },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        archivedAt: true,
+      },
+    });
+
+    return {
+      id: updatedItem.id,
+      title: updatedItem.title,
+      category: updatedItem.category,
+      archivedAt: updatedItem.archivedAt?.toISOString() || null,
+      action: unarchive ? 'unarchived' : 'archived',
+    };
+  } catch (error) {
+    // Re-throw MCPError as-is
+    if (error instanceof MCPError) {
+      throw error;
+    }
+
+    // Wrap unexpected errors
+    console.error('[knowledge.archive] Unexpected error:', error);
+    throw new MCPError(
+      'Archive operation failed: ' +
         (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500

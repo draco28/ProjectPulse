@@ -40,6 +40,7 @@ import {
   knowledgeGetMetricsHandler,
   knowledgeExportHandler,
   knowledgeImportHandler,
+  knowledgeArchiveHandler,
 } from '@/lib/mcp/handlers/knowledge-handler';
 import {
   listKnowledgeResources,
@@ -212,12 +213,15 @@ export async function POST(request: NextRequest) {
         case 'knowledge.import':
           result = await knowledgeImportHandler(args);
           break;
+        case 'knowledge.archive':
+          result = await knowledgeArchiveHandler(args);
+          break;
         default:
           throw new MCPError(
             `Unknown tool: ${name}`,
             JSONRPC_ERROR_CODES.METHOD_NOT_FOUND,
             404,
-            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export', 'knowledge.import'] }
+            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export', 'knowledge.import', 'knowledge.archive'] }
           );
       }
     } else if (jsonrpcRequest.method === 'tools/list') {
@@ -318,6 +322,18 @@ export async function POST(request: NextRequest) {
                 generateEmbeddings: { type: 'boolean', default: true },
               },
               required: ['files'],
+            },
+          },
+          {
+            name: 'knowledge.archive',
+            description: 'Archive or unarchive a knowledge item (soft delete/restore)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                itemId: { type: 'number' },
+                unarchive: { type: 'boolean', default: false },
+              },
+              required: ['itemId'],
             },
           },
         ],
