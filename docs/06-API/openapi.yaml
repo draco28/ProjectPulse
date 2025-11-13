@@ -55,7 +55,7 @@ tags:
   - name: Sprint Tracking
     description: |
       5-level hierarchy tracking (Phase → Week → Day → Task → Session).
-      Create, update, query progress with auto-rollup and markdown sync.
+      Create, update, query progress with auto-rollup; changes visible in UI/MCP.
       **Tools:** 7 | **FRs:** FR-001 to FR-025
 
   - name: Workflow Orchestration
@@ -261,7 +261,7 @@ paths:
       summary: Start day (auto-creates if not exists)
       description: |
         Start new day within week. Auto-creates if doesn't exist.
-        Updates status to IN_PROGRESS, triggers markdown sync.
+        Updates status to IN_PROGRESS; changes visible in UI/MCP.
 
         **Requirements:** FR-006, FR-007
       tags:
@@ -377,8 +377,8 @@ paths:
       operationId: sprint.session.start
       summary: Start work session
       description: |
-        Start work session for task. Creates context file:
-        `.agent/task/current-session-[YYYYMMDD-HHMM].md`
+        Start work session for task. Creates Session record in database with timestamp, notes, and token usage.
+        Session visible in Development Cycle UI and via MCP tools.
 
         Logs session start in AgentAction table, updates task status to IN_PROGRESS.
 
@@ -419,10 +419,13 @@ paths:
                     type: string
                     format: date-time
                     example: '2025-11-02T14:30:00Z'
-                  contextFile:
+                  taskId:
+                    type: integer
+                    example: 42
+                  sessionNotes:
                     type: string
-                    description: Auto-created context file
-                    example: '.agent/task/current-session-20251102-1430.md'
+                    description: Session notes (markdown stored in DB, accessible via UI/MCP)
+                    example: 'Session started. Task: Implement POST /api/issues.'
 
   /sprint/progress/rollup:
     get:
@@ -562,7 +565,7 @@ paths:
       description: |
         **5-Step Protocol - Step 1: Initialize Session**
 
-        Create workflow record, context file, log action.
+        Create workflow record in database, log action.
         Required before proceeding to Step 2 (Plan).
 
         **Requirements:** FR-026, FR-027
@@ -611,9 +614,19 @@ paths:
                     type: string
                     enum: [PENDING, IN_PROGRESS, COMPLETED]
                     example: 'PENDING'
-                  contextFile:
-                    type: string
-                    example: '.agent/task/current-session-20251102-1430.md'
+                  sessionData:
+                    type: object
+                    description: Session record from database
+                    properties:
+                      sessionId:
+                        type: integer
+                        example: 123
+                      notes:
+                        type: string
+                        example: 'Phase A Week 1 Day 3: Implement issue management API'
+                      progress:
+                        type: number
+                        example: 0.0
 
   /workflow/savePlan:
     post:
@@ -622,7 +635,8 @@ paths:
       description: |
         **5-Step Protocol - Step 2: Create & Save Plan**
 
-        Save plan to `.agent/task/current-plan.md` and todos to `.agent/task/current-todos.md`.
+        Save implementation plan and todos as structured database records.
+        Plan and todos accessible via Development Cycle UI and MCP tools.
         Required before proceeding to Step 3 (Consult Experts).
 
         **Requirements:** FR-028, FR-029
@@ -682,12 +696,14 @@ paths:
               schema:
                 type: object
                 properties:
-                  planFile:
-                    type: string
-                    example: '.agent/task/current-plan.md'
-                  todosFile:
-                    type: string
-                    example: '.agent/task/current-todos.md'
+                  planId:
+                    type: integer
+                    description: Plan record ID in database
+                    example: 789
+                  todosCreated:
+                    type: integer
+                    description: Number of todos saved
+                    example: 12
                   step2Complete:
                     type: boolean
                     example: true
@@ -700,7 +716,7 @@ paths:
         **5-Step Protocol - Step 3: Consult Experts**
 
         Invoke expert sub-agent (react-expert, next-js-expert, prisma-expert).
-        Expert reads context file, creates report, returns recommendations.
+        Expert reads session data from database, creates report record, returns recommendations.
 
         **Requirements:** FR-030, FR-031
       tags:
@@ -744,12 +760,14 @@ paths:
               schema:
                 type: object
                 properties:
-                  expertReportFile:
+                  expertReportId:
+                    type: integer
+                    description: Research report ID (ResearchReport table)
+                    example: 456
+                  reportSummary:
                     type: string
-                    example: '.agent/task/prisma-expert-issue-schema-20251102-1500.md'
-                  recommendations:
-                    type: string
-                    example: 'Use many-to-many relation for labels, add tsvector for full-text search'
+                    description: Expert recommendations summary
+                    example: 'Use many-to-many relation for labels; add tsvector index for full-text search'
                   step3Complete:
                     type: boolean
                     example: true
@@ -761,7 +779,7 @@ paths:
       description: |
         **5-Step Protocol - Step 4: Progress Checkpoints**
 
-        Save checkpoint at 15K token intervals. Updates session file, todos file.
+        Save checkpoint at 15K token intervals. Updates Session record and Todo records in database.
         Required at 15K, 30K, 45K, 60K, 75K, 90K tokens.
 
         **Requirements:** FR-032, FR-033
@@ -803,11 +821,13 @@ paths:
                   checkpointId:
                     type: integer
                     example: 7
-                  sessionFileUpdated:
+                  sessionUpdated:
                     type: boolean
+                    description: Session record updated in database
                     example: true
-                  todosFileUpdated:
+                  todosUpdated:
                     type: boolean
+                    description: Todo records updated in database
                     example: true
 
   /workflow/complete:
@@ -817,7 +837,9 @@ paths:
       description: |
         **5-Step Protocol - Step 5: Post-Completion**
 
-        Update STATUS.md; optionally create a completion doc (auto-archived); review docs/13-Project-Plan.md and docs/12-Backlog.md.
+        Mark workflow complete in database; update progress and session state.
+        Optionally create completion summary record.
+        Changes immediately visible in Development Cycle UI and via MCP tools.
         Optionally invoke synthesize-docs and map-system sub-agents.
 
         **Requirements:** FR-034, FR-035
@@ -853,14 +875,16 @@ paths:
               schema:
                 type: object
                 properties:
-                  completionFile:
-                    type: string
-                    example: 'COMPLETION_PHASE_A.md'
-                  statusUpdated:
+                  workflowComplete:
                     type: boolean
                     example: true
-                  planUpdated:
+                  completionSummaryId:
+                    type: integer
+                    description: Optional DB record for completion summary
+                    example: 123
+                  progressUpdated:
                     type: boolean
+                    description: Task/Session progress updated in DB
                     example: true
                   step5Complete:
                     type: boolean

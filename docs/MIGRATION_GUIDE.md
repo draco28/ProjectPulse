@@ -1,10 +1,10 @@
 # Documentation Migration Guide
 
-**Version:** 2.0 (Industry-Grade Restructure)
-**Migration Date:** 2025-11-02
-**Old Structure:** Single-file DEVELOPMENT_PLAN.md (2,000 lines)
-**New Structure:** 14 documents + 5 ADRs (27,356 lines)
-**Purpose:** Help users navigate from old documentation to new industry-standard structure
+**Version:** 3.0 (Cloud SaaS Architecture)
+**Migration Date:** 2025-11-13
+**Old Structure:** File-based documentation with manual workflows
+**New Structure:** Cloud database with API access + auto-generated exports
+**Purpose:** Guide migration from file-based workflows to cloud-first architecture
 
 ---
 
@@ -47,24 +47,26 @@
 
 ### Documentation Restructure
 
-**Before (v1.5):**
+**Before (v2.0 - File-Based):**
 
-- Single 2,000-line `DEVELOPMENT_PLAN.md` (everything in one file)
-- `PLANNING_PHASES_projectpulse-agent-first.md` (1,950 lines)
-- `IMPLEMENTATION_ROADMAP_projectpulse.md` (1,294 lines)
-- `STATUS.md` (200 lines, only current status)
-- Scattered `COMPLETION_*.md` files (5 files in root)
-- No traceability system (no FR-XXX IDs)
-- No ADRs for architectural decisions
+- File-based documentation requiring manual sync
+- Markdown files as source of truth (`STATUS.md`, `DEVELOPMENT_PLAN.md`)
+- Manual agent workflows (read files → update files → commit)
+- Completion records as markdown files (`COMPLETION_*.md`)
+- No real-time updates (must commit + push for visibility)
+- Limited queryability (grep/find vs SQL)
+- No API access for programmatic queries
 
-**After (v2.0):**
+**After (v3.0 - Cloud SaaS):**
 
-- 14 industry-standard documents (27,356 lines total - 570% of 4,800 target!)
-- Complete FR traceability (FR-001 to FR-125)
-- 5 ADRs documenting key decisions
-- OpenAPI 3.1 specification (42 MCP tools + REST endpoints)
-- Organized by concern (Product, Architecture, Operations, Planning)
-- Historical work preserved in `docs/archive/ui-first-phase/`
+- **Database as source of truth** (PostgreSQL with 10+ Prisma models)
+- **Real-time updates** via WebSocket connections
+- **API-first architecture** (42 MCP tools + REST endpoints)
+- **Query-driven workflows** (SQL vs grep, instant results)
+- **Automated exports** (markdown generation from database)
+- **Dashboard UI** for real-time project visibility
+- Complete FR traceability (FR-001 to FR-125) in database
+- 5 ADRs documenting architectural decisions
 
 ### Statistics
 
@@ -79,9 +81,18 @@
 
 ---
 
-## 2. Old → New File Mapping
+## 2. Migration Path: Files → Cloud Database
 
-### Root Level Files
+> **⚠️ Historical Context (v2.0 - November 2, 2025)**
+> This section originally documented splitting `DEVELOPMENT_PLAN.md` into 14 specialized files.
+> **Current Architecture (v3.0 - November 13, 2025):** Database entities with API access + optional markdown exports.
+> See [Current Cloud Architecture](#current-cloud-architecture-v30) below for the modern approach.
+
+### 2.1 Historical File Restructure (v1.5 → v2.0)
+
+The tables below show the original file-based restructure. This is **historical reference only**.
+
+#### Root Level Files (Historical)
 
 | Old Location                              | Old Lines | New Location                                           | New Lines | What Changed                                          |
 | ----------------------------------------- | --------- | ------------------------------------------------------ | --------- | ----------------------------------------------------- |
@@ -91,7 +102,7 @@
 | **DEVELOPMENT_PLAN.md** (lines 1201-1600) | 400       | [04-Data-and-Model-Spec.md](04-Data-and-Model-Spec.md) | 3,350     | Database schema expanded (10 models → 17 fields each) |
 | **DEVELOPMENT_PLAN.md** (lines 1601-2000) | 400       | [13-Project-Plan.md](13-Project-Plan.md)               | 898       | Timeline restructured (5 phases, 16 weeks, 8 sprints) |
 
-### Planning Documents
+#### Planning Documents (Historical)
 
 | Old Location                                    | Old Lines | New Location                                       | New Lines    | What Changed                             |
 | ----------------------------------------------- | --------- | -------------------------------------------------- | ------------ | ---------------------------------------- |
@@ -99,7 +110,7 @@
 | **PLANNING_PHASES** (key decisions)             | 200       | [architecture/ADRs/](architecture/ADRs/)           | 473 (5 ADRs) | Formal ADRs created (ADR-001 to ADR-005) |
 | **IMPLEMENTATION_ROADMAP_projectpulse.md**      | 1,294     | [13-Project-Plan.md](13-Project-Plan.md)           | 898          | Consolidated into project plan           |
 
-### Architecture Documents
+#### Architecture Documents (Historical)
 
 | Old Location                                    | Old Lines | New Location                                                                                                         | New Lines | What Changed                                                  |
 | ----------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------- |
@@ -110,7 +121,7 @@
 | _(No equivalent)_                               | -         | [architecture/ADRs/ADR-004-single-mcp-server.md](architecture/ADRs/ADR-004-single-mcp-server.md)                     | 104       | New: 41 tools in one server decision                          |
 | _(No equivalent)_                               | -         | [architecture/ADRs/ADR-005-five-level-hierarchy.md](architecture/ADRs/ADR-005-five-level-hierarchy.md)               | 89        | New: Phase→Week→Day→Task→Session hierarchy                    |
 
-### Operations Documents
+#### Operations Documents (Historical)
 
 | Old Location                          | Old Lines | New Location                                                               | New Lines    | What Changed                                        |
 | ------------------------------------- | --------- | -------------------------------------------------------------------------- | ------------ | --------------------------------------------------- |
@@ -122,14 +133,16 @@
 | _(No equivalent)_                     | -         | [10-Observability-and-SRE.md](10-Observability-and-SRE.md)                 | 2,947        | New: Metrics, SLOs, alerts, incident workflow       |
 | _(No equivalent)_                     | -         | [11-Infrastructure-and-Deployment.md](11-Infrastructure-and-Deployment.md) | 3,222        | New: CI/CD, environments, git workflow, migrations  |
 
-### Backlog & Planning
+#### Backlog & Planning (Historical)
 
 | Old Location                                    | Old Lines | New Location                             | New Lines | What Changed                                                        |
 | ----------------------------------------------- | --------- | ---------------------------------------- | --------- | ------------------------------------------------------------------- |
 | **DEVELOPMENT_PLAN.md** (user stories implicit) | -         | [12-Backlog.md](12-Backlog.md)           | 703       | New: 8 epics, 125 user stories (US-001 to US-125), 426 story points |
 | **IMPLEMENTATION_ROADMAP_projectpulse.md**      | 1,294     | [13-Project-Plan.md](13-Project-Plan.md) | 898       | Restructured: 5 phases, 16 weeks, 8 sprints, 426 points             |
 
-### Completion Documents
+#### Completion Documents (Historical)
+
+> **Note:** Before database migration, agents created markdown completion files. Modern workflow uses database records: `POST /api/sessions/{id}/complete`
 
 | Old Location                      | Old Lines | New Location                                                                                                 | New Lines | What Changed                        |
 | --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------ | --------- | ----------------------------------- |
@@ -138,7 +151,7 @@
 
 ---
 
-### Deprecated/Archived (2025-11-04)
+#### Deprecated/Archived (2025-11-04)
 
 | Old Location                           | Action   | New/Canonical Target                   | Reason                                                  |
 | -------------------------------------- | -------- | -------------------------------------- | ------------------------------------------------------- |
@@ -146,7 +159,9 @@
 
 All archived docs are moved under `docs/archive/deprecated/2025-11/` to preserve traceability.
 
-### Archived Completions (2025-11-04)
+#### Archived Completions (2025-11-04)
+
+> **Note:** Historical agent completion artifacts. Modern workflow stores completion data in `Session.completionReport` (JSONB) via API.
 
 | Old Location                                  | Action  | New Location                                                | Reason                                 |
 | --------------------------------------------- | ------- | ----------------------------------------------------------- | -------------------------------------- |
@@ -162,6 +177,91 @@ All archived docs are moved under `docs/archive/deprecated/2025-11/` to preserve
 | docs/COMPLETION_PHASE_5_FINAL_INTEGRATION.md  | Archive | docs/archive/completions/2025-11/COMPLETION_PHASE_5_FINAL_INTEGRATION.md     | Agent completion artifact; archived    |
 | .claude/PHASES_6-8_COMPLETION.md              | Archive | docs/archive/completions/2025-11/PHASES_6-8_COMPLETION.md                    | Agent completion artifact; archived    |
 | .claude/PHASE_5_COMPLETION.md                 | Archive | docs/archive/completions/2025-11/PHASE_5_COMPLETION.md                        | Agent completion artifact; archived    |
+
+---
+
+### 2.2 Current Cloud Architecture (v3.0)
+
+The modern architecture uses **database entities** with **API access** instead of file-based workflows.
+
+#### Files → Database Entity Mapping
+
+| Old File-Based Pattern | New Cloud Pattern | Access Method |
+|------------------------|-------------------|---------------|
+| `STATUS.md` (current status) | Project Dashboard | `/dashboard` or `GET /api/project/status` |
+| `DEVELOPMENT_PLAN.md` (planning) | Database entities: `Phase`, `Week`, `Day`, `Task`, `Session` | MCP tools, REST API, or dashboard UI |
+| `COMPLETION_*.md` (completion files) | `Session.completionReport` (JSONB field) | `GET /api/sessions/{id}/completion` |
+| `docs/completions/` (completion folder) | Database query | `GET /api/sessions/completed?sort=recent` |
+| `02-SRS.md` (requirements) | `Requirement` model | `GET /api/requirements` or export button |
+| `12-Backlog.md` (user stories) | `UserStory` model | `GET /api/backlog` or export button |
+| ADR markdown files | `ArchitectureDecision` model | `GET /api/architecture/adr` or UI decision log |
+
+#### Key Architectural Principles
+
+1. **Database as Source of Truth**
+   - All data stored in PostgreSQL (10+ Prisma models)
+   - Real-time updates via WebSocket
+   - Markdown exports are **generated** from database, not synced **to** database
+
+2. **API-First Data Access**
+   - REST API: `GET /api/{entity}`, `POST /api/{entity}`, etc.
+   - MCP Tools: 42 programmatic tools for agent access
+   - Dashboard UI: Real-time web interface
+
+3. **Optional Markdown Exports**
+   - Export via UI: "Export" button on any entity page
+   - Export via API: `GET /api/export/markdown/{entityType}/{id}`
+   - Export via MCP: `export.toMarkdown(entityType, id, destination)`
+   - Exports are for **backup/version control only** - not source of truth
+
+4. **Real-Time Synchronization**
+   - WebSocket connections for live updates
+   - No manual git commits required for progress tracking
+   - Automatic UI refresh when data changes
+
+#### Migration Example: Session Tracking
+
+**Old Workflow (File-Based):**
+```bash
+# Agent creates markdown file
+echo "# Session Report" > .agent/task/current-session-20251113.md
+echo "Progress: 50%" >> .agent/task/current-session-20251113.md
+
+# Agent commits and pushes
+git add .agent/task/current-session-20251113.md
+git commit -m "docs: update session progress"
+git push
+```
+
+**New Workflow (Cloud Database):**
+```javascript
+// Agent updates via API
+await fetch('/api/sessions/123/checkpoint', {
+  method: 'POST',
+  body: JSON.stringify({
+    tokenCount: 45000,
+    progress: 50,
+    notes: "Completed component implementation"
+  })
+});
+
+// UI updates automatically via WebSocket
+// Optional: Export to markdown for git backup
+await fetch('/api/export/session/123.md');
+```
+
+#### Benefits of Cloud Architecture
+
+| Aspect | File-Based (v2.0) | Cloud Database (v3.0) |
+|--------|-------------------|----------------------|
+| **Real-time updates** | No (requires git push) | Yes (WebSocket) |
+| **Queryability** | Limited (grep/find) | Full (SQL queries) |
+| **Concurrent access** | Merge conflicts | Transaction-safe |
+| **Agent automation** | File I/O + git operations | Simple API calls |
+| **Backup** | Git only | Database + optional markdown exports |
+| **Search** | Text search in files | Structured database queries |
+
+---
 
 ## 3. Reading Paths
 
@@ -180,7 +280,7 @@ All archived docs are moved under `docs/archive/deprecated/2025-11/` to preserve
 
 **Total Time:** ~70 minutes
 
-**Next Steps:** Check [STATUS.md](../STATUS.md) for current phase, start coding!
+**Next Steps:** View [Project Dashboard](/dashboard) for current phase, start coding!
 
 ---
 
@@ -231,10 +331,13 @@ All archived docs are moved under `docs/archive/deprecated/2025-11/` to preserve
 **A:** Read [docs/README.md](README.md) first for overview, then choose a reading path above
 
 **Q: Where is the current project status?**
-**A:** [STATUS.md](../STATUS.md) in the root directory (unchanged from old structure)
+**A:** View the [Project Dashboard](/dashboard) for real-time status, or query via `GET /api/project/status`
 
-**Q: What happened to DEVELOPMENT_PLAN.md?**
-**A:** Split into 14 specialized documents. See [Old → New File Mapping](#2-old--new-file-mapping)
+**Q: How did we migrate from files to database?**
+**A:** Transitioned from file-based workflows to cloud database with API access. See [Old → New File Mapping](#2-old--new-file-mapping)
+
+**Q: Can I still export to markdown?**
+**A:** Yes! Use `GET /api/export/markdown/{entityType}` or the "Export" button in the dashboard UI
 
 **Q: Where is the Week 1-1.5 UI work?**
 **A:** Preserved in [docs/archive/ui-first-phase/](archive/ui-first-phase/) with comprehensive README
@@ -266,7 +369,7 @@ All archived docs are moved under `docs/archive/deprecated/2025-11/` to preserve
 
 **Q: Where are the completion documents?**
 **A:** Week 1-1.5 completions: [archive/ui-first-phase/](archive/ui-first-phase/)
-Future completions will be in `docs/completions/` (not yet created)
+New completions stored in database: `GET /api/sessions/completed` or view in dashboard
 
 ### Architecture Decisions
 
@@ -288,8 +391,8 @@ Future completions will be in `docs/completions/` (not yet created)
 **A:** `theme/THEME_GUIDE.md` (Dark Neumorphic Coral theme, still in root directory)
 
 **Q: Where are the completion documents for each phase?**
-**A:** Old: [archive/ui-first-phase/](archive/ui-first-phase/)
-New: Will be created in `docs/completions/` as phases complete
+**A:** Historical (UI phase): [archive/ui-first-phase/](archive/ui-first-phase/)
+Current: Auto-generated completion reports via `GET /api/sessions/{id}/completion` or dashboard
 
 ---
 
@@ -308,8 +411,8 @@ New: Will be created in `docs/completions/` as phases complete
 3. **Learn System Architecture** (10 min)
    - [03-Architecture.md](03-Architecture.md) → How it works (MCP + Next.js + Prisma)
 
-4. **Check Current Phase** (3 min)
-   - [STATUS.md](../STATUS.md) → What's been done, what's next
+4. **Check Current Phase** (2 min)
+   - [Project Dashboard](/dashboard) → Real-time status, what's been done, what's next
 
 5. **Review Timeline** (5 min)
    - [13-Project-Plan.md](13-Project-Plan.md) → 16-week roadmap, current sprint
@@ -322,11 +425,12 @@ New: Will be created in `docs/completions/` as phases complete
 
 **Resume Development (10 minutes):**
 
-1. **Check Project Status** (3 min)
-   - [STATUS.md](../STATUS.md) → Last completed, current phase
+1. **Check Project Status** (2 min)
+   - [Project Dashboard](/dashboard) → Real-time status, last completed session, current phase
 
-2. **Find Latest Completion** (3 min)
-   - Search `docs/completions/` for most recent completion document
+2. **Find Latest Completion** (2 min)
+   - API: `GET /api/sessions/completed?sort=recent&limit=1`
+   - Or view "Recent Sessions" in dashboard
    - Review what changed since you last worked
 
 3. **Check Current Sprint** (3 min)
@@ -336,7 +440,7 @@ New: Will be created in `docs/completions/` as phases complete
    - [02-SRS.md](02-SRS.md) → Relevant FR-XXX requirements
    - [12-Backlog.md](12-Backlog.md) → Relevant US-XXX user stories
 
-**Next:** Continue from current phase in [STATUS.md](../STATUS.md)
+**Next:** Continue from current phase shown in [Project Dashboard](/dashboard)
 
 ---
 
@@ -497,40 +601,83 @@ grep -r "FR-042" .
 
 ## 7. Change Control
 
-### Making Changes to Documentation
+### Making Changes via API & Database
 
-**Minor Changes (typos, clarifications):**
+**UI-Driven Changes (Recommended):**
 
-- Update relevant doc
-- Commit with message: `docs: fix typo in 02-SRS.md FR-042`
-- No ADR required
+- Update via dashboard web UI (automatic database saves)
+- Changes reflect immediately via WebSocket
+- Export to markdown available via "Export" button
+- No manual commits required
 
-**Major Changes (new requirements, architecture changes):**
+**API-Driven Changes (Programmatic):**
 
-- Create ADR in `architecture/ADRs/ADR-XXX-topic-name.md`
-- Update affected documents (PRD, SRS, Architecture, Backlog)
-- Update traceability references (FR-XXX IDs)
-- Commit with message: `docs: add ADR-006 for [decision]`
+**Minor Changes (status updates, progress tracking):**
+```bash
+# Update session progress
+POST /api/sessions/{id}/checkpoint
+{
+  "tokenCount": 45000,
+  "tasksCompleted": ["task-1", "task-2"],
+  "notes": "Completed component implementation"
+}
+```
 
-**Adding New Requirements:**
+**Major Changes (requirements, architecture decisions):**
+```bash
+# Add new requirement
+POST /api/requirements
+{
+  "id": "FR-126",
+  "title": "WebSocket real-time updates",
+  "priority": "high",
+  "category": "performance"
+}
 
-- Add FR-XXX to [02-SRS.md](02-SRS.md) (next available ID)
-- Add US-XXX to [12-Backlog.md](12-Backlog.md) (map to FR)
-- Add TEST-XXX to [09-Testing-and-QA.md](09-Testing-and-QA.md)
-- Update story points in [13-Project-Plan.md](13-Project-Plan.md)
-- Update OpenAPI if API changes
+# Create ADR
+POST /api/architecture/adr
+{
+  "id": "ADR-006",
+  "title": "WebSocket Transport Layer",
+  "decision": "Use Socket.io for real-time updates",
+  "rationale": "Better browser compatibility than raw WebSockets"
+}
+```
 
-### Document Maintenance Schedule
+**MCP Tool Changes (Agent-Driven):**
+```javascript
+// Agent creates requirement programmatically
+await mcp.tool('project.createRequirement', {
+  id: 'FR-126',
+  title: 'WebSocket real-time updates',
+  category: 'performance'
+});
 
-| Document                                 | Update Frequency | Updated By                       |
-| ---------------------------------------- | ---------------- | -------------------------------- |
-| [STATUS.md](../STATUS.md)                | Daily            | Team/Agent after each completion |
-| [13-Project-Plan.md](13-Project-Plan.md) | Weekly           | PM/Agent at sprint boundaries    |
-| [02-SRS.md](02-SRS.md)                   | Per Phase        | Team when new FRs identified     |
-| [12-Backlog.md](12-Backlog.md)           | Per Sprint       | PM/Agent during sprint planning  |
-| [03-Architecture.md](03-Architecture.md) | As Needed        | Architect when system changes    |
-| [ADRs](architecture/ADRs/)               | As Needed        | Team when major decision made    |
-| Other Docs                               | As Needed        | Team when content changes        |
+// Agent creates ADR
+await mcp.tool('architecture.createADR', {
+  id: 'ADR-006',
+  title: 'WebSocket Transport Layer'
+});
+```
+
+### Database Auto-Updates & Export Schedule
+
+| Entity | Update Method | Frequency | Export Availability |
+| ------ | ------------- | --------- | ------------------- |
+| **Project Status** | WebSocket (real-time) | Continuous | On-demand via `/dashboard` |
+| **Project Plan** | API / UI | Per sprint | `GET /api/export/project-plan.md` |
+| **Requirements (FR)** | API / UI | As needed | `GET /api/export/requirements.md` |
+| **Backlog (US)** | MCP tools | Per sprint | `GET /api/export/backlog.md` |
+| **Architecture (ADR)** | UI Decision Log | As needed | `GET /api/export/adr/{id}.md` |
+
+**Markdown Sync Note:**
+
+All database entities can be exported to markdown for version control:
+- **UI:** "Export" button on any entity page
+- **API:** `GET /api/export/markdown/{entityType}/{id}`
+- **MCP:** `export.toMarkdown(entityType, id, destination)`
+
+Exports are auto-generated from database (database is source of truth).
 
 ---
 
@@ -559,7 +706,7 @@ grep -r "FR-042" .
 ### Next Steps
 
 1. Choose a [Reading Path](#3-reading-paths) based on your role
-2. Check [STATUS.md](../STATUS.md) for current project phase
+2. View [Project Dashboard](/dashboard) for current project phase and real-time status
 3. Start coding following [13-Project-Plan.md](13-Project-Plan.md)!
 
 ---

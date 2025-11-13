@@ -144,7 +144,7 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 
 **Business Value:**
 
-- Agents always know current task context (no manual STATUS.md updates)
+- Agents always know current task context without manual file updates
 - Progress rolls up automatically (Session 100% → Task 50% → Day 25% → Week 12.5% → Phase 3%)
 - Development Cycle page displays progress visualization from database (single source of truth)
 
@@ -165,7 +165,7 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 
 ### EPIC-002: Workflow Orchestration
 
-**Description:** Track and enforce 12+ predefined workflows from CLAUDE.md, ensuring agents follow consistent patterns (5-step protocol, checkpoints, recovery).
+**Description:** Track and enforce 12+ predefined workflows, ensuring agents follow consistent patterns (5-step protocol, checkpoints, recovery).
 
 **Business Value:**
 
@@ -290,7 +290,7 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 
 ### EPIC-006: Wiki
 
-**Description:** Project documentation auto-generation from code. JSDoc/docstrings → `/docs` folder with cross-linking, version control (git-backed), and markdown rendering.
+**Description:** Project documentation auto-generation from code. JSDoc/docstrings → DB-stored markdown pages with cross-linking and database-backed version history (audit/history tables).
 
 **Business Value:**
 
@@ -395,7 +395,7 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 
 ### EPIC-010: Memory Bank System (End User Feature - Cloud-Based)
 
-**Description:** Token-efficient context management for end users' AI agents through cloud-based memory banks stored in ProjectPulse database (virtual .agent/ directory - no local files).
+**Description:** Token-efficient context management for end users' AI agents through cloud-based memory banks stored in the ProjectPulse database (no local files).
 
 **Business Value:**
 
@@ -459,7 +459,7 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 
 ### EPIC-012: Industry-Grade Documentation Generation (Post-MVP)
 
-**Description:** Auto-generate complete professional documentation suite (13+ documents) for user projects, replacing single-file DEVELOPMENT_PLAN.md with industry-standard docs/ folder structure (PRD, SRS, Architecture, API specs, Testing, etc.).
+**Description:** Auto-generate complete professional documentation suite (13+ documents) for user projects as wiki pages stored in the database (PRD, SRS, Architecture, API specs, Testing, etc.).
 
 **Business Value:**
 
@@ -480,41 +480,23 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 **FR Range:** FR-159 to FR-176 (Industry Docs FRs - to be added to SRS)
 **Total Points:** ~95 points
 **MoSCoW:** Should Have (Post-MVP - Sprint 10 or later)
-**Dependencies:** Sprint 2 (MarkdownFile infrastructure with generic architecture)
+**Dependencies:** Sprint 2 (WikiPage schema, TemplateEngine for DB rendering, Consistency Service for UI/MCP updates)
 **Sprint Allocation:** Post-MVP (Sprint 10 estimated - 2 weeks)
 
 **Relationship to Sprint 2:**
 
-Sprint 2 builds the *foundation* (MarkdownFile schema, TemplateEngine, SyncService, Git hooks) with generic, extensible architecture. Sprint 2 ships with 2 document templates (STATUS.md, DEVELOPMENT_PLAN.md). EPIC-012 later adds 13 document templates using the same infrastructure - zero refactoring required if Sprint 2 follows architectural requirements.
+Sprint 2 builds the foundation (WikiPage schema, TemplateEngine for DB rendering, Consistency Service) with generic, extensible architecture. Sprint 2 ships with 2 document templates as wiki pages. EPIC-012 later adds 13 document templates using the same infrastructure — zero refactoring required if Sprint 2 follows architectural requirements.
 
-**Document Suite Generated:**
-
-```
-docs/
-├── 01-PRD.md                      - Product Requirements Document
-├── 02-SRS.md                      - Software Requirements Specification
-├── 03-Architecture.md             - System Design + Diagrams
-├── 04-Data-and-Model-Spec.md      - Database Schema (from Prisma)
-├── 05-AgentOps-Plan.md            - Agent Workflows (from Workflow tables)
-├── 06-API/
-│   └── openapi.yaml               - API Specification (from endpoints)
-├── 07-UI-UX.md                    - User Experience Design
-├── 08-Security-and-Compliance.md  - Security Model
-├── 09-Testing-and-QA.md           - Test Strategy
-├── 10-Observability-and-SRE.md    - Monitoring & SLOs
-├── 11-Infrastructure.md           - Deployment Architecture
-├── 12-Backlog.md                  - User Stories & Epics (from hierarchy)
-└── 13-Project-Plan.md             - Sprint Roadmap (from progress)
-```
+**Documentation Set:** PRD, SRS, Architecture, Data & Model Spec, AgentOps Plan, API Reference, UI/UX, Security & Compliance, Testing & QA, Observability & SRE, Infrastructure, Backlog, Project Plan (stored as wiki pages in the database; rendered in the Web UI).
 
 **Migration Strategy:**
 
 When EPIC-012 is implemented:
-1. Generate docs/ suite for existing projects
-2. Mark STATUS.md and DEVELOPMENT_PLAN.md as `status: 'deprecated'` in MarkdownFile table
-3. Update Git hooks to block STATUS.md/DEVELOPMENT_PLAN.md edits
-4. Agents/users see message: "These files are deprecated. See docs/ folder for professional documentation."
-5. Optional: Keep STATUS.md as lightweight summary (auto-generated from docs/)
+1. Generate wiki pages for existing projects
+2. Mark legacy status and plan files as deprecated in migration metadata
+3. Enforce API-based write paths only (no file-based edits)
+4. Agents/users see message: "Legacy files are deprecated. See project Wiki for documentation."
+5. Optional: Keep a lightweight status summary page (DB-stored wiki)
 
 ---
 
@@ -528,10 +510,10 @@ When EPIC-012 is implemented:
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | -------- | ---------------------- |
 | US-001 | As an agent, I want to create a 5-level hierarchy (Phase/Week/Day/Task/Session) so that I can track progress granularly across all levels | FR-001 | 5      | Must     | -                      |
 | US-002 | As an agent, I want to update progress at any hierarchy level so that progress automatically rolls up to parent levels                    | FR-002 | 3      | Must     | US-001                 |
-| US-003 | As an agent, I want to retrieve the current active task so that I know what to work on next without manual STATUS.md reading              | FR-003 | 2      | Must     | US-001                 |
+| US-003 | As an agent, I want to retrieve the current active task so that I know what to work on next without manual file reading                  | FR-003 | 2      | Must     | US-001                 |
 | US-004 | As an agent, I want to create a new session with timestamp (YYYYMMDD-HHMM) so that each work session is tracked independently             | FR-004 | 2      | Must     | US-001                 |
-| US-005 | As an agent, I want markdown files auto-synced from database so that STATUS.md and DEVELOPMENT_PLAN.md are always accurate                | FR-005 | 8      | Must     | US-001, US-002         |
-| US-006 | As a developer, I want git hooks to prevent manual markdown edits so that database remains single source of truth                         | FR-006 | 5      | Must     | US-005                 |
+| US-005 | As an agent, I want UI and MCP reads to reflect database changes within 500ms so that status and plans are always accurate               | FR-005 | 8      | Must     | US-001, US-002         |
+| US-006 | As a developer, I want write path enforcement via APIs so that all changes follow validation and business rules                          | FR-011 | 5      | Must     | US-005                 |
 | US-007 | As a developer, I want to query hierarchy by filters (status, progress, date range) so that I can find specific work items                | FR-007 | 3      | Should   | US-001                 |
 | US-008 | As an agent, I want to mark a task as complete so that progress automatically updates to 100% and rolls up to parent                      | FR-008 | 2      | Must     | US-002                 |
 | US-009 | As an agent, I want to create a checkpoint with notes and token usage so that I can resume work after context compaction                  | FR-009 | 3      | Must     | US-004                 |
@@ -550,7 +532,7 @@ When EPIC-012 is implemented:
 | US-022 | As an agent, I want to duplicate a task structure so that I can reuse patterns across days/weeks                                          | FR-022 | 3      | Could    | US-001                 |
 | US-023 | As a developer, I want to set task dependencies (Task B blocked by Task A) so that I can enforce sequential work                          | FR-023 | 5      | Should   | US-001                 |
 | US-024 | As an agent, I want to log task events (created, updated, completed) so that I have audit trail for all changes                           | FR-024 | 3      | Should   | US-001, US-002, US-008 |
-| US-025 | As an agent, I want to sync hierarchy state with .agent/task files so that file-based context remains consistent                          | FR-025 | 5      | Must     | US-005                 |
+| US-025 | As an agent, I want hierarchy state consistently available via MCP and reflected in the Development Cycle UI                             | FR-025 | 5      | Must     | US-005                 |
 
 **EPIC-001 Total:** 25 stories, ~87 story points
 
@@ -746,11 +728,11 @@ When EPIC-012 is implemented:
 
 | ID        | User Story                                                                                                               | FR     | Points | Priority | Deps                        |
 | --------- | ------------------------------------------------------------------------------------------------------------------------ | ------ | ------ | -------- | --------------------------- |
-| US-010-01 | As a Claude Code instance, I want a concise project overview file so that I can understand project goals in ≤3K tokens   | FR-146 | 5      | Must     | -                           |
-| US-010-02 | As a Claude Code instance, I want a structured pattern catalog so that I can find implementation patterns in ≤1K tokens  | FR-147 | 8      | Must     | -                           |
-| US-010-03 | As a Claude Code instance, I want a technical stack reference so that I understand dependencies in ≤2K tokens            | FR-148 | 3      | Must     | -                           |
-| US-010-04 | As a Claude Code instance, I want a real-time session state file so that I know current work focus in ≤1K tokens         | FR-149 | 3      | Must     | -                           |
-| US-010-05 | As a Claude Code instance, I want a progress tracking file so that I understand project status in ≤2K tokens             | FR-150 | 3      | Must     | -                           |
+| US-010-01 | As a Claude Code instance, I want a concise Project Brief entry so that I can understand project goals in ≤3K tokens     | FR-146 | 5      | Must     | -                           |
+| US-010-02 | As a Claude Code instance, I want a structured System Patterns catalog so that I can find implementation patterns in ≤1K tokens | FR-147 | 8  | Must     | -                           |
+| US-010-03 | As a Claude Code instance, I want a Tech Context reference so that I understand dependencies in ≤2K tokens               | FR-148 | 3      | Must     | -                           |
+| US-010-04 | As a Claude Code instance, I want a real-time Active Context entry so that I know current work focus in ≤1K tokens       | FR-149 | 3      | Must     | -                           |
+| US-010-05 | As a Claude Code instance, I want a Progress overview entry so that I understand project status in ≤2K tokens           | FR-150 | 3      | Must     | -                           |
 | US-010-06 | As a Claude Code instance, I want an optimized session start workflow so that I load context in ≤10K tokens              | FR-151 | 5      | Must     | US-010-01 through US-010-05 |
 | US-010-07 | As a Claude Code instance, I want to find implementation patterns quickly so that lookups complete in ≤1K tokens         | FR-152 | 3      | Must     | US-010-02                   |
 | US-010-08 | As a Claude Code instance, I want to recover session context after interruption so that recovery completes in ≤6K tokens | FR-153 | 4      | Must     | US-010-04, US-010-05        |
@@ -766,7 +748,7 @@ When EPIC-012 is implemented:
 | US-011-01 | As a Claude Code instance, I want an automated codebase scanning agent so that pattern searches complete in ≤2K main thread tokens          | FR-154 | 8      | Should   | -                    |
 | US-011-02 | As a Claude Code instance, I want an automated architecture analysis agent so that system flow questions complete in ≤2K main thread tokens | FR-155 | 8      | Should   | -                    |
 | US-011-03 | As a Claude Code instance, I want to invoke sub-agents automatically so that research happens without manual orchestration                  | FR-156 | 3      | Should   | US-011-01, US-011-02 |
-| US-011-04 | As a Claude Code instance, I want research reports saved to files so that findings persist across sessions                                  | FR-157 | 3      | Should   | US-011-01, US-011-02 |
+| US-011-04 | As a Claude Code instance, I want research reports saved in the database so that findings persist across sessions                           | FR-157 | 3      | Should   | US-011-01, US-011-02 |
 | US-011-05 | As a Claude Code instance, I want to invoke multiple sub-agents simultaneously so that complex features research faster                     | FR-158 | 2      | Should   | US-011-03            |
 
 **EPIC-011 Total:** 5 stories, ~24 story points
@@ -794,7 +776,7 @@ When EPIC-012 is implemented:
 | US-013-15 | As an agent, I want to extract project data for template rendering so that documentation generation is automated | FR-173 | 8 | Should | US-013-01 |
 | US-013-16 | As a project owner, I want to regenerate docs on project changes so that documentation stays in sync | FR-174 | 3 | Should | US-005 |
 | US-013-17 | As a project owner, I want to export docs suite as PDF/HTML so that I can share with stakeholders | FR-175 | 5 | Could | US-013-01 |
-| US-013-18 | As a project owner, I want to deprecate STATUS.md/DEVELOPMENT_PLAN.md when migrating to docs suite so that transition is clean | FR-176 | 3 | Should | US-013-13 |
+| US-013-18 | As a project owner, I want to deprecate legacy status/plan files when migrating to the wiki so that transition is clean | FR-176 | 3 | Should | US-013-13 |
 
 **EPIC-012 Total:** 18 stories, ~95 story points
 
@@ -828,7 +810,7 @@ When EPIC-012 is implemented:
 | EPIC-001 | US-022    | FR-022: Duplicate Task Structure                       | TEST-022 | Phase B W5  | Not Started |
 | EPIC-001 | US-023    | FR-023: Set Task Dependencies                          | TEST-023 | Phase A W3  | Not Started |
 | EPIC-001 | US-024    | FR-024: Log Task Events                                | TEST-024 | Phase A W2  | Not Started |
-| EPIC-001 | US-025    | FR-025: Sync Hierarchy with .agent/task Files          | TEST-025 | Phase A W2  | Not Started |
+| EPIC-001 | US-025    | FR-025: Ensure hierarchy consistency in UI/MCP         | TEST-025 | Phase A W2  | Not Started |
 | EPIC-002 | US-026    | FR-026: Start Predefined Workflow                      | TEST-026 | Phase A W3  | Not Started |
 | EPIC-002 | US-027    | FR-027: Track Current Workflow Step                    | TEST-027 | Phase A W3  | Not Started |
 | EPIC-002 | US-028    | FR-028: Mark Workflow Step Complete                    | TEST-028 | Phase A W3  | Not Started |

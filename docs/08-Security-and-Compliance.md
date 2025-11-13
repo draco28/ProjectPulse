@@ -81,7 +81,7 @@ ProjectPulse uses the **STRIDE threat modeling framework** to identify and mitig
 | Threat                           | Description                                                           | Likelihood | Impact   | Mitigation                                                        | Status       |
 | -------------------------------- | --------------------------------------------------------------------- | ---------- | -------- | ----------------------------------------------------------------- | ------------ |
 | **T-004: Database Corruption**   | Agent or human corrupts database via invalid operations               | Medium     | Critical | Prisma ORM with strict validation, Zod schemas                    | ✅ Mitigated |
-| **T-005: Markdown Injection**    | Agent or human injects malicious content into auto-generated markdown | Low        | Medium   | Git pre-commit hooks validate markdown, read-only files           | ✅ Mitigated |
+| **T-005: Content Injection**     | Agent or human injects malicious content via API endpoints            | Low        | Medium   | Zod input validation, database constraints, API request sanitization | ✅ Mitigated |
 | **T-006: Progress Rollback**     | Agent accidentally decreases progress percentage                      | Low        | Low      | Progress validation: only allow increases (except admin override) | ✅ Mitigated |
 | **T-007: Foreign Key Violation** | Agent creates orphaned records (Week without Phase)                   | Low        | Medium   | Database foreign key constraints enforced                         | ✅ Mitigated |
 | **T-008: SQL Injection**         | Attacker injects SQL via MCP tool parameters                          | Very Low   | Critical | Prisma ORM (parameterized queries), no raw SQL                    | ✅ Mitigated |
@@ -90,11 +90,11 @@ ProjectPulse uses the **STRIDE threat modeling framework** to identify and mitig
 
 - **Prisma ORM:** All database access via Prisma (parameterized queries), prevents SQL injection
 - **Zod Validation:** All MCP tool inputs validated with Zod schemas before database access
-- **Database as Source of Truth:** Markdown files auto-generated from database, preventing inconsistencies (see [ADR-002](architecture/ADRs/ADR-002-database-as-source-of-truth.md))
-- **Git Hooks:** Pre-commit validation prevents manual edits to protected markdown files
+- **Database Constraints:** PostgreSQL schema constraints and triggers enforce data integrity
+- **API Input Validation:** All API requests validated via Zod schemas before database writes
 - **Foreign Key Constraints:** PostgreSQL enforces referential integrity
 
-**Requirements:** NFR-014 (Input Validation), NFR-019 (Git Hook Enforcement)
+**Requirements:** NFR-014 (Input Validation), NFR-020 (API Security)
 
 ---
 
@@ -133,7 +133,7 @@ ProjectPulse uses the **STRIDE threat modeling framework** to identify and mitig
 | **T-012: Sensitive Data in Logs**              | Secrets, passwords, API keys logged to AgentAction   | Medium     | High     | Redaction filter removes sensitive fields before logging   | ✅ Mitigated |
 | **T-013: Database Connection String Exposure** | DATABASE_URL leaked in error messages or logs        | Low        | Critical | Environment variables only, never logged or exposed in UI  | ✅ Mitigated |
 | **T-014: Embedding API Key Leak**              | OpenAI API key exposed                               | Low        | Medium   | Environment variables, optional (can use local embeddings) | ✅ Mitigated |
-| **T-015: Markdown File Disclosure**            | Sensitive project details in auto-generated markdown | Low        | Low      | Local-only deployment, no public access                    | ✅ Mitigated |
+| **T-015: Data Disclosure via API**            | Sensitive project details exposed via unauthorized API access | Low        | Low      | API authentication, role-based access control (RBAC)        | ✅ Mitigated |
 
 **Key Mitigations:**
 
@@ -156,16 +156,16 @@ ProjectPulse uses the **STRIDE threat modeling framework** to identify and mitig
 | **T-016: MCP Tool Flood**                 | Agent calls 1000+ MCP tools simultaneously, exhausts resources | Low        | Medium | Queue limit: 50 concurrent MCP calls, throttle excess                          | ✅ Mitigated |
 | **T-017: Database Connection Exhaustion** | Too many queries, PostgreSQL connections exhausted             | Low        | Medium | Prisma connection pooling (default 10 connections)                             | ✅ Mitigated |
 | **T-018: Embedding API Rate Limit**       | Too many embedding requests, OpenAI throttles API              | Medium     | Low    | Debounce embedding generation (max 1 per second), fallback to full-text search | ✅ Mitigated |
-| **T-019: Markdown Sync Storm**            | 100+ progress updates trigger 100+ markdown syncs              | Low        | Low    | Debounce sync (max 1 sync per 5 seconds), batch updates                        | ✅ Mitigated |
+| **T-019: Database Write Storm**           | 100+ concurrent progress updates overwhelm database connection pool | Low        | Low    | Connection pooling (max 10 concurrent), request throttling, optimistic updates | ✅ Mitigated |
 | **T-020: Recursive Knowledge Query**      | Agent queries knowledge graph in infinite loop                 | Very Low   | Medium | Max depth 2 hops enforced in knowledge.query()                                 | ✅ Mitigated |
 
 **Key Mitigations:**
 
 - **MCP Tool Queue:** Limit 50 concurrent tool calls, queue excess (FIFO)
 - **Prisma Connection Pooling:** Default 10 connections, prevents exhaustion
-- **Debouncing:**
-  - Markdown sync: max 1 sync per 5 seconds
-  - Embedding generation: max 1 per second
+- **Throttling & Batching:**
+  - Progress updates: Batch multiple updates into single transaction
+  - Embedding generation: max 1 per second (rate limit to OpenAI API)
 - **Timeouts:**
   - MCP tool execution: 10s timeout
   - Database query: 5s timeout
@@ -1215,7 +1215,7 @@ Manual penetration testing quarterly:
 | ------------ | ------------------------------------------------- | --------------- | ------------------------------------------------ |
 | **Critical** | Data loss, corruption, or unauthorized access     | Immediate       | Database corruption, agent deletes all issues    |
 | **High**     | Security vulnerability exploited                  | Within 1 hour   | SQL injection exploit, autonomy bypass           |
-| **Medium**   | Performance degradation, minor data inconsistency | Within 4 hours  | MCP tool queue exhaustion, markdown sync failure |
+| **Medium**   | Performance degradation, minor data inconsistency | Within 4 hours  | MCP tool queue exhaustion, database connection pool exhaustion |
 | **Low**      | Cosmetic issue, no data impact                    | Within 24 hours | UI bug, minor logging error                      |
 
 ---
@@ -1303,7 +1303,7 @@ Manual penetration testing quarterly:
 | ADR-ID      | Decision                    | Security Impact                                  |
 | ----------- | --------------------------- | ------------------------------------------------ |
 | **ADR-001** | Agent-First Architecture    | Requires autonomy levels, audit trail            |
-| **ADR-002** | Database as Source of Truth | Prevents markdown injection, ensures consistency |
+| **ADR-002** | API-First Data Access       | Enforces validation at API layer, ensures data integrity |
 | **ADR-003** | Hybrid Knowledge Graph      | Reduces token exposure risk                      |
 | **ADR-004** | Single MCP Server           | Simplifies security model (one attack surface)   |
 

@@ -12,6 +12,25 @@
 
 This System Requirements Specification (SRS) defines the complete functional and non-functional requirements for ProjectPulse, an agent-first project management platform. All requirements are designed to support AI agents as the primary users (95% interaction via MCP) with humans as secondary users (5% monitoring and manual operations via UI).
 
+### Scope Clarification: Product-Only, No Doc Coding
+
+This SRS defines only end-user and agent-facing system behavior of the ProjectPulse product.
+
+The following are explicitly out of scope for these requirements and MUST NOT be treated as product features:
+
+- Local markdown files used in internal workflows (for example: `STATUS.md`, `DEVELOPMENT_PLAN.md`, `current-todos.md`, `current-session-*.md`, `current-plan.md`)
+- Special folders such as `.agent/` or `.claude/` in user repositories
+- Git hooks that protect or validate these files
+- Any other internal “doc coding” rituals used by the ProjectPulse team
+
+ProjectPulse is implemented as a cloud-based system where:
+
+- PostgreSQL is the single source of truth for all project data
+- A web UI is used by human users
+- An MCP server and tools are used by AI agents
+
+All state that matters to end users and their agents MUST live in the ProjectPulse database and be exposed via Web UI and MCP tools — not via local files in the user’s repository.
+
 **Related Documents:**
 
 - [01-PRD.md](01-PRD.md) - Product Requirements Document
@@ -83,7 +102,9 @@ This System Requirements Specification (SRS) defines the complete functional and
 
 - Updated entity with new progress value
 - Auto-calculated parent progress (average of all children)
-- Markdown sync triggered (STATUS.md, DEVELOPMENT_PLAN.md updated)
+- Updated progress immediately visible in:
+  - Development Cycle page (web UI)
+  - MCP tools that read progress state
 
 **Validation:**
 
@@ -145,7 +166,7 @@ This System Requirements Specification (SRS) defines the complete functional and
 
 #### FR-004: Create Checkpoint
 
-**Description:** Create a checkpoint at 15K token intervals during agent implementation. Updates Session table, calculates progress, triggers markdown sync.
+**Description:** Create a checkpoint at ~15K token intervals during agent implementation. Updates Session table, calculates progress, and updates rolled-up progress.
 
 **Inputs:**
 
@@ -158,7 +179,7 @@ This System Requirements Specification (SRS) defines the complete functional and
 
 - Created Session record with timestamp (YYYYMMDD-HHMM)
 - Updated Task progress (set to input progress value)
-- Markdown sync result: { filesUpdated: string[], success: boolean }
+- Updated rolled-up progress for Day, Week, Phase (via FR-002)
 
 **Validation:**
 
@@ -169,97 +190,57 @@ This System Requirements Specification (SRS) defines the complete functional and
 
 **Side Effects:**
 
-- Triggers markdown sync (FR-005)
+- Progress and session changes are immediately visible in the Development Cycle page (web UI) and via MCP tools
 - Updates parent progress via roll-up (FR-002)
 
 **Priority:** P0 (Critical - Agent workflow requires checkpoints)
 
-**Dependencies:** FR-001 (Task must exist), FR-002 (progress update), FR-005 (markdown sync)
+**Dependencies:** FR-001 (Task must exist), FR-002 (progress update)
 
 **Traceability:**
 
 - PRD: Section 3.4 (Checkpoint update workflow)
 - Architecture: Section 4.5 (Checkpoint creation flow)
-- Tests: TEST-006, TEST-007 (checkpoint creation, markdown sync trigger)
+- Tests: TEST-006, TEST-007 (checkpoint creation, consistency visibility)
 - Backlog: US-007
 
 ---
 
-#### FR-005: Sync Markdown Files
+#### FR-005: Ensure DB/UI/MCP State Consistency
 
-**Description:** Auto-generate markdown files from database state. Database is single source of truth. Markdown files are read-only (enforced by git hooks).
+**Description:** Ensure that any change to sprint/phase tracking state in the database (progress, sessions, tasks) is consistently reflected in all read paths (web UI pages and MCP tool responses) without stale or conflicting views.
 
 **Inputs:**
 
-- trigger: string ("checkpoint" | "progress_update" | "manual")
+- Implicitly triggered by:
+  - Progress updates (FR-002)
+  - Checkpoints (FR-004)
+  - Status transitions (FR-010)
+  - Any CRUD operation on Phase/Week/Day/Task/Session entities
 
 **Outputs:**
 
-- MarkdownFile records created/updated:
-  - STATUS.md (current phase, week, day, task with progress)
-  - DEVELOPMENT_PLAN.md (full hierarchy with all phases/weeks/days/tasks)
-  - current-todos.md (all tasks WHERE status != COMPLETED)
-  - current-session-[timestamp].md (latest session notes)
-  - current-plan.md (latest implementation plan)
-- File write results: { path: string, success: boolean, error?: string }[]
-
-**Template Structure:**
-
-**STATUS.md:**
-
-```markdown
-# Current Status
-
-**Current Phase:** [Phase.name] (Progress: [Phase.progress]%)
-**Current Week:** Week [Week.weekNumber] (Progress: [Week.progress]%)
-**Current Day:** Day [Day.dayNumber] (Progress: [Day.progress]%)
-**Current Task:** [Task.title] (Progress: [Task.progress]%)
-
-**Last Checkpoint:** [Session.timestamp]
-**Token Usage:** [Session.tokenUsage]
-**Notes:** [Session.notes]
-```
-
-**DEVELOPMENT_PLAN.md:**
-
-```markdown
-# Development Plan
-
-[For each Phase]
-
-## Phase [order]: [name]
-
-Progress: [progress]%
-[For each Week in Phase]
-
-### Week [weekNumber]
-
-Progress: [progress]%
-[For each Day in Week]
-
-#### Day [dayNumber]
-
-Progress: [progress]%
-[For each Task in Day]
-
-- [x] [title] (Progress: [progress]%)
-```
+- All relevant read APIs and UI views reflect the latest database state:
+  - Development Cycle page shows updated hierarchy and progress values
+  - MCP tools reading progress (e.g., `sprint.getCurrentTask`, `sprint.getHierarchy`) return updated values
+- No stale cached values beyond acceptable latency thresholds
 
 **Validation:**
 
-- All referenced entities must exist in database
-- Markdown files validated before write (syntax check)
-- Atomic operation (all files updated or none)
+- After write operations, subsequent reads (API/UI) must reflect updated state within defined latency (e.g., <500ms)
+- Consistency checks ensure that:
+  - Progress values shown in UI match values stored in database
+  - MCP tool responses match database values for the same entities
 
-**Priority:** P0 (Critical - Agents rely on these files for context)
+**Priority:** P0 (Critical - Ensures database as single source of truth)
 
-**Dependencies:** FR-001 (hierarchy), FR-002 (progress), FR-004 (checkpoints)
+**Dependencies:** FR-001, FR-002, FR-004
 
 **Traceability:**
 
-- PRD: Section 4.2.1 (Markdown sync mechanism)
-- Architecture: ADR-002 (Database as Source of Truth), Section 4.6 (Sync implementation)
-- Tests: TEST-008, TEST-009, TEST-010 (sync trigger, file generation, validation)
+- PRD: Section 1.3 (Database as single source of truth)
+- Architecture: ADR-002 (Database as Source of Truth)
+- Tests: TEST-008, TEST-009 (UI/MCP consistency checks)
 - Backlog: US-008, US-009
 
 ---
@@ -426,58 +407,55 @@ Progress: [progress]%
 
 ---
 
-#### FR-011: Git Hook Enforcement
+#### FR-011: Write Path Enforcement for Progress & Workflow Data
 
-**Description:** Pre-commit git hook prevents manual edits to auto-generated markdown files.
+**Description:** Ensure that progress and workflow-related data (Phase/Week/Day/Task/Session and workflow state) can only be modified through approved application interfaces (MCP tools and web UI APIs). Prevent unsupported write paths from bypassing validation and business rules.
 
-**Protected Files:**
+**Inputs:**
 
-- STATUS.md
-- DEVELOPMENT_PLAN.md
-- current-todos.md
-- current-session-\*.md
-- current-plan.md
+- Any attempt to modify these entities via API, MCP tools, or admin UI
 
-**Hook Behavior:**
+**Outputs:**
 
-- Check if any protected file is modified
-- If modified, check if modification came from sprint.syncMarkdown() (has special marker in commit message)
-- If manual edit detected: REJECT commit with error message
-- Error message: "Auto-generated file cannot be edited manually. Update via app (sprint.updateProgress or sprint.checkpoint)"
+- Request accepted if it passes validation and business rules
+- Request rejected with error if attempted via unapproved channel or fails validation
 
-**Override:** Admin can force commit with `--no-verify` flag (for emergency fixes)
+**Validation:**
 
-**Priority:** P0 (Critical - Ensures database as source of truth)
+- Updates must go through defined service layer functions
+- Direct modifications via unapproved channels are rejected (or not supported)
+- All writes validated (e.g., input schemas, authorization, state machine rules)
 
-**Dependencies:** FR-005
+**Priority:** P0 (Critical - Protects database as source of truth)
+
+**Dependencies:** FR-001, FR-002, FR-026 to FR-035 (workflow APIs)
 
 **Traceability:**
 
 - Architecture: ADR-002 (Database as source of truth)
-- Tests: TEST-017 (hook validation)
+- Tests: TEST-017 (write path enforcement)
 - Backlog: US-015
 
 ---
 
-#### FR-012: Markdown File Validation
+#### FR-012: Derived View Consistency Validation
 
-**Description:** Validate markdown files after generation to ensure sync accuracy.
+**Description:** Validate that all derived views (e.g., progress dashboards, reports) are consistent with the underlying database state. Ensure that display-level aggregations and percentages match values stored in the database.
 
 **Validation Checks:**
 
-- Markdown syntax is valid (no unclosed tags, valid links)
-- All referenced entities exist in database (e.g., "Phase 1" exists)
-- Progress percentages match database values exactly
-- Timestamps are correctly formatted
+- Calculated progress percentages in the UI match DB values
+- Hierarchy labels (Phase/Week/Day/Task) match DB entities
+- Timestamps and session data shown to users reflect actual DB records
 
 **Outputs:**
 
 - Validation result: { valid: boolean, errors: string[] }
-- If invalid, rollback file write and log error
+- If invalid, flag inconsistency and log error
 
-**Priority:** P1 (High - Ensures data integrity)
+**Priority:** P1 (High - Ensures UI/API correctness)
 
-**Dependencies:** FR-005
+**Dependencies:** FR-001, FR-002, FR-005
 
 **Traceability:**
 
@@ -497,7 +475,7 @@ Progress: [progress]%
 **Outputs:**
 
 - All entities updated with new progress
-- Single markdown sync triggered (not per-entity)
+- Parent progress re-calculated via FR-002
 
 **Validation:**
 
@@ -507,7 +485,7 @@ Progress: [progress]%
 
 **Priority:** P2 (Medium - Optimization for bulk operations)
 
-**Dependencies:** FR-002, FR-005
+**Dependencies:** FR-002
 
 **Traceability:**
 
@@ -609,7 +587,7 @@ Progress: [progress]%
 
 - All entities created in database
 - Progress recalculated via roll-up
-- Markdown sync triggered
+- State visible immediately in UI/MCP (Development Cycle page and sprint MCP tools)
 
 **Validation:**
 
@@ -619,7 +597,7 @@ Progress: [progress]%
 
 **Priority:** P2 (Medium - Disaster recovery)
 
-**Dependencies:** FR-001, FR-002, FR-005, FR-016
+**Dependencies:** FR-001, FR-002, FR-016
 
 **Traceability:**
 
@@ -665,7 +643,7 @@ Progress: [progress]%
 **Outputs:**
 
 - Task.order field updated for all tasks
-- Tasks displayed in new order in UI and markdown
+- Tasks displayed in new order in the web UI and via MCP tool responses
 
 **Priority:** P2 (Medium - UI convenience)
 
@@ -688,8 +666,8 @@ Progress: [progress]%
 
 **Outputs:**
 
+- Markdown stored in database
 - Markdown rendered in UI
-- Plain text stored in database
 - Syntax validation before save
 
 **Priority:** P1 (High - Improves agent notes readability)
@@ -806,20 +784,19 @@ Progress: [progress]%
 
 ---
 
-#### FR-025: Markdown Template Customization
+#### FR-025: Development Cycle View Customization
 
-**Description:** Allow customization of markdown file templates via configuration.
+**Description:** Allow customization of the Development Cycle UI sections and displayed fields via configuration (e.g., show/hide “Blockers” section, reorder columns).
 
 **Inputs:**
 
-- Template files in /config/templates/
-- Variables: {{Phase.name}}, {{Week.progress}}, etc.
-- Custom sections (e.g., add "Blockers" section to STATUS.md)
+- UI configuration (e.g., selected sections, column order, visible fields)
+- Variables mapped to DB fields (e.g., Phase.name, Week.progress)
 
 **Outputs:**
 
-- Markdown files generated from custom templates
-- Validation ensures all variables are valid
+- Development Cycle page renders according to configuration
+- Validation ensures all referenced variables map to valid DB fields
 
 **Priority:** P3 (Low - Post-MVP customization)
 
@@ -2520,12 +2497,11 @@ Progress: [progress]%
 
 #### FR-086: Knowledge Export
 
-**Description:** Export knowledge items to JSON or markdown for backup.
+**Description:** Export knowledge items via JSON for backup.
 
 **Outputs:**
 
 - JSON: All items with embeddings
-- Markdown: All items as .md files (for git versioning)
 
 **Priority:** P2 (Medium - Backup)
 
@@ -2888,12 +2864,12 @@ Progress: [progress]%
 
 #### FR-102: Skill Export/Import
 
-**Description:** Export skills to markdown files, import from files.
+**Description:** Export skills via API (JSON archive) and import from API payloads.
 
 **Outputs:**
 
-- Markdown files with YAML frontmatter
-- Compatible with .claude/skills/ folder structure
+- Downloadable export (JSON with metadata)
+- Import accepts JSON payloads validated against schema
 
 **Priority:** P2 (Medium - Portability)
 
@@ -3188,15 +3164,15 @@ Progress: [progress]%
 
 ---
 
-#### FR-114: Wiki Version Control (Git-Backed)
+#### FR-114: Wiki Version Control (DB-Backed)
 
-**Description:** Store wiki pages as markdown files in /docs folder, track changes via git.
+**Description:** Store wiki pages in the database as records with version history (audit trail). Content is markdown stored in DB and rendered in the Web UI.
 
 **Logic:**
 
-- On wiki create/update: Write to /docs/{slug}.md
-- Commit to git automatically
-- View wiki history via git log
+- On wiki create/update: Persist to `wiki_pages` table (slug, title, contentMarkdown, version, createdBy, updatedBy)
+- Create `wiki_page_versions` record for each change (diffs or full snapshot)
+- View wiki history via UI using DB-stored versions
 
 **Priority:** P2 (Medium - Change tracking)
 
@@ -3211,12 +3187,12 @@ Progress: [progress]%
 
 #### FR-115: Wiki Export
 
-**Description:** Export wiki pages to markdown files for static site generation.
+**Description:** Export wiki pages as a downloadable archive or API response for external consumption.
 
 **Outputs:**
 
-- All pages exported to /docs folder
-- Hierarchy preserved (nested folders)
+- All selected pages included in an export package (zip or streamed JSON)
+- Hierarchy preserved logically (slug paths), with metadata
 
 **Priority:** P2 (Medium - Portability)
 
@@ -3528,17 +3504,17 @@ score = max(0, min(100, score)) // Clamp to 0-100
 
 ### 1.9 Memory Bank System (FR-146 to FR-153)
 
-**Purpose:** Token-efficient context management through structured memory bank files (EPIC-010)
+**Purpose:** Token-efficient context management through structured memory bank entries stored in the database (EPIC-010)
 
 **Related**: Backlog US-010-01 to US-010-08, PRD Section 4.2.10
 
-The Memory Bank System provides structured knowledge files in .agent/ folder for token-efficient context retrieval. Instead of loading full 40K token documentation at session start, agents load targeted 3-10K token memory banks based on current needs.
+The Memory Bank System provides structured knowledge as database entries for token-efficient context retrieval. Instead of loading full 40K token documentation at session start, agents load targeted 3-10K token memory banks based on current needs via MCP tools and UI.
 
 ---
 
-#### FR-146: Create project-brief.md Memory Bank
+#### FR-146: Create Project Brief Memory Bank
 
-**Description**: System SHALL create project-brief.md memory bank file containing project overview, core requirements, goals, success criteria, user personas, and quality standards.
+**Description**: System SHALL create a Project Brief memory bank entry containing project overview, core requirements, goals, success criteria, user personas, and quality standards.
 
 **Inputs**:
 
@@ -3547,7 +3523,7 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 **Outputs**:
 
-- project-brief.md file in .agent/ directory (3K tokens max)
+- `memory_banks` row with type = "project-brief" (target ≤3K tokens)
 - Sections: WHAT (project purpose), WHY (business goals), WHO (user personas), SUCCESS (metrics), CONSTRAINTS
 
 **File Structure**:
@@ -3578,13 +3554,13 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 **Validation**:
 
-- File must be ≤3K tokens (token-efficient)
+- Content must be ≤3K tokens (token-efficient)
 - All required sections must be present
 - Markdown syntax must be valid
 
 **Success Criteria**:
 
-- Session start loads project-brief.md in ≤3K tokens (vs 8K PRD)
+- Session start loads the Project Brief entry in ≤3K tokens (vs 8K PRD)
 - Content accuracy: 95%+ match with actual project goals
 
 **Acceptance Test**: TEST-146
@@ -3592,9 +3568,9 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 ---
 
-#### FR-147: Create system-patterns.md Memory Bank
+#### FR-147: Create System Patterns Memory Bank
 
-**Description**: System SHALL create system-patterns.md memory bank file containing HOW we build (architecture patterns, database patterns, API patterns, testing patterns).
+**Description**: System SHALL create a System Patterns memory bank entry containing HOW we build (architecture patterns, database patterns, API patterns, testing patterns).
 
 **Inputs**:
 
@@ -3603,7 +3579,7 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 **Outputs**:
 
-- system-patterns.md file in .agent/ directory (4K tokens max)
+- `memory_banks` row with type = "system-patterns" (target ≤4K tokens)
 - Sections: Architecture Patterns, Database Patterns, API Patterns, Styling Patterns, Testing Patterns
 
 **File Structure**:
@@ -3634,9 +3610,9 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 **Validation**:
 
-- File must be ≤4K tokens
+- Content must be ≤4K tokens
 - At least 3 pattern categories must be present
-- Patterns must be searchable (grep-friendly headings)
+- Patterns must be searchable via system search (UI/MCP)
 
 **Success Criteria**:
 
@@ -3659,7 +3635,7 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 **Outputs**:
 
-- tech-context.md file in .agent/ directory (2K tokens max)
+- `memory_banks` row with type = "tech-context" (target ≤2K tokens)
 - Sections: Dependencies, Environment Setup, Configuration, Constraints, Browser Support
 
 **File Structure**:
@@ -3712,7 +3688,7 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 **Outputs**:
 
-- active-context.md file in .agent/ directory (1K tokens max)
+- `memory_banks` row with type = "active-context" (target ≤1K tokens)
 - Sections: Current Focus, Recent Changes, Remaining Tasks, Blockers
 
 **File Structure**:
@@ -3753,9 +3729,9 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 ---
 
-#### FR-150: Create progress.md Memory Bank
+#### FR-150: Create Progress Memory Bank
 
-**Description**: System SHALL create progress.md memory bank file tracking what's done, what's left, velocity metrics, and quality gates.
+**Description**: System SHALL create a Progress memory bank entry tracking what's done, what's left, velocity metrics, and quality gates.
 
 **Inputs**:
 
@@ -3764,7 +3740,7 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 **Outputs**:
 
-- progress.md file in .agent/ directory (2K tokens max)
+- `memory_banks` row with type = "progress" (target ≤2K tokens)
 - Sections: What's Done, What's Left, Velocity, Quality Gates, Risks
 
 **File Structure**:
@@ -3795,7 +3771,7 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 **Validation**:
 
-- File must be ≤2K tokens
+- Content must be ≤2K tokens
 - Metrics must be calculated from actual data (not estimates)
 - Quality gates must be measurable
 
@@ -3811,7 +3787,7 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 #### FR-151: Optimized Session Start Workflow
 
-**Description**: System SHALL provide session start workflow that loads project-brief.md + active-context.md + progress.md totaling ≤10K tokens (vs 40K baseline).
+**Description**: System SHALL provide session start workflow that loads Project Brief + Active Context + Progress memory bank entries totaling ≤10K tokens (vs 40K baseline).
 
 **Inputs**:
 
@@ -3821,19 +3797,19 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 **Outputs**:
 
 - loadedContext: { projectBrief, activeContext, progress } (combined ≤10K tokens)
-- loadTime: number (milliseconds to load all files)
+- loadTime: number (milliseconds to load all entries)
 
 **Loading Strategy**:
 
-1. Always load: project-brief.md (3K) + active-context.md (1K) + progress.md (2K) = 6K base
-2. Conditionally load: system-patterns.md (4K) IF agent requests patterns
+1. Always load: project-brief (3K) + active-context (1K) + progress (2K) = 6K base
+2. Conditionally load: system-patterns (4K) IF agent requests patterns
 3. Never auto-load: Full PRD (8K), SRS (12K), Architecture (10K)
 
 **Validation**:
 
 - Total base load must be ≤10K tokens
 - Load time must be ≤2 seconds
-- Files must exist before loading (error if missing)
+- Entries must exist before loading (error if missing)
 
 **Success Criteria**:
 
@@ -3847,23 +3823,22 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 #### FR-152: Fast Pattern Lookup
 
-**Description**: System SHALL provide grep-based pattern lookup within system-patterns.md returning ≤1K tokens (vs 15K full docs).
+**Description**: System SHALL provide fast pattern lookup within the System Patterns memory bank returning ≤1K tokens (vs 15K full docs).
 
 **Inputs**:
 
 - pattern: string (search query, e.g., "API endpoint pattern", "Prisma transaction")
 
-**Outputs**:
+**Outputs:**
 
-- patternSection: string (matching section from system-patterns.md, ≤1K tokens)
-- filePath: string (.agent/system-patterns.md)
-- lineNumbers: { start, end } (section location)
+- patternSection: string (matching section from System Patterns entry, ≤1K tokens)
+- sectionLocation: { start, end } (section location metadata)
 
 **Search Strategy**:
 
-- Use grep/ripgrep to find pattern heading in system-patterns.md
+- Use system search (e.g., DB full-text + semantic search) to find pattern heading in System Patterns content
 - Extract section content (from heading to next heading)
-- Return only matching section (not entire file)
+- Return only matching section (not entire entry)
 
 **Validation**:
 
@@ -3883,7 +3858,7 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 #### FR-153: Context Recovery After Interruption
 
-**Description**: System SHALL provide context recovery workflow loading current-session.md + current-todos.md + progress.md totaling ≤6K tokens (vs 40K baseline).
+**Description**: System SHALL provide context recovery workflow loading latest Session + Todo list + Progress entries totaling ≤6K tokens (vs 40K baseline).
 
 **Inputs**:
 
@@ -3897,10 +3872,10 @@ The Memory Bank System provides structured knowledge files in .agent/ folder for
 
 **Recovery Strategy**:
 
-1. Load current-session-[timestamp].md (2K) - latest session state
-2. Load current-todos.md (2K) - task list with progress percentages
-3. Load progress.md (2K) - overall phase completion
-4. Extract "last action" from session file (resume point)
+1. Load latest Session record for the task (≈2K) - latest session state
+2. Load current Todos for the task (≈2K) - task list with progress percentages
+3. Load Progress entry (≈2K) - overall phase completion
+4. Extract "last action" from session notes (resume point)
 
 **Validation**:
 
@@ -3937,27 +3912,27 @@ The Research Agent Orchestration system provides isolated agent threads for rese
 **Inputs**:
 
 - searchPattern: string (what to find, e.g., "all API routes", "all database models")
-- contextFilePath: string (path to current-session.md for context)
+- sessionId: string (current session context)
 
 **Outputs**:
 
-- reportFilePath: string (path to generated report file, e.g., `.agent/task/explore-api-patterns-[timestamp].md`)
+- reportId: string (database ID of generated report)
 - summary: string (key findings, ≤500 tokens)
 - tokensUsed: number (sub-agent thread token usage, isolated from main)
 
 **Sub-Agent Workflow**:
 
-1. Read contextFilePath to understand current work
+1. Read session context by sessionId to understand current work
 2. Scan codebase using glob + grep patterns
 3. Identify matching files, extract code snippets
-4. Generate comprehensive report (saved to file)
+4. Generate comprehensive report (persisted as a database record)
 5. Return concise summary (≤500 tokens) to main agent
 
 **Validation**:
 
 - Main thread token cost must be ≤2K tokens (invocation + summary)
 - Sub-agent completes scan in isolated thread (20-30K tokens, doesn't affect main)
-- Report must persist to file for future reference
+- Report must persist in the database for future reference
 
 **Success Criteria**:
 
@@ -3976,17 +3951,17 @@ The Research Agent Orchestration system provides isolated agent threads for rese
 **Inputs**:
 
 - flowToTrace: string (e.g., "authentication flow", "search feature")
-- contextFilePath: string (current session context)
+- sessionId: string (current session context)
 
 **Outputs**:
 
-- reportFilePath: string (e.g., `.agent/task/architecture-auth-[timestamp].md`)
+- reportId: string (database ID of generated report)
 - insights: string (architectural summary, ≤500 tokens)
 - tokensUsed: number (isolated thread usage)
 
 **Sub-Agent Workflow**:
 
-1. Read contextFilePath for current work context
+1. Read session context by sessionId for current work context
 2. Trace data flow: UI components → API routes → Database queries
 3. Map dependencies and relationships
 4. Generate architectural diagram (mermaid)
@@ -4047,7 +4022,7 @@ The Research Agent Orchestration system provides isolated agent threads for rese
 
 #### FR-157: Research Report Persistence
 
-**Description**: System SHALL save all sub-agent reports to files in `.agent/task/` directory with timestamps, ensuring reports survive session interruptions.
+**Description**: System SHALL save all sub-agent reports as database records with timestamps, ensuring reports survive session interruptions.
 
 **Inputs**:
 
@@ -4057,20 +4032,18 @@ The Research Agent Orchestration system provides isolated agent threads for rese
 
 **Outputs**:
 
-- filePath: string (e.g., `.agent/task/explore-api-patterns-20251106-1430.md`)
-- fileSize: number (bytes)
+- reportId: string (database ID)
+- sizeEstimate: number (bytes or tokens)
 - created: DateTime
 
-**File Naming Convention**:
+**Record Keys/Indexes**:
 
-- Format: `{reportType}-{topic}-{YYYYMMDD-HHMM}.md`
-- Examples: `explore-api-patterns-20251106-1430.md`, `architecture-auth-20251106-1445.md`
+- Composite key: { reportType, topicName, createdAt }
 
 **Validation**:
 
-- Files must be saved to `.agent/task/` directory
-- Filenames must include timestamps (for uniqueness)
-- Files must be readable in future sessions
+- Records must be persisted with timestamps (for uniqueness)
+- Reports must be readable in future sessions via UI/MCP
 
 **Success Criteria**:
 
@@ -4092,7 +4065,7 @@ The Research Agent Orchestration system provides isolated agent threads for rese
 
 **Outputs**:
 
-- results: Array<{ type, reportPath, summary }> (results from all sub-agents)
+- results: Array<{ type, reportId, summary }> (results from all sub-agents)
 - executionTime: number (total time, should be ~same as slowest agent due to parallelization)
 
 **Parallel Execution Strategy**:
@@ -4106,7 +4079,7 @@ The Research Agent Orchestration system provides isolated agent threads for rese
 
 - Must support at least 2 simultaneous sub-agents
 - Execution time ≈ max(individual times), not sum
-- No race conditions (each writes to separate file)
+- No race conditions (independent report records, transactional writes)
 
 **Success Criteria**:
 
@@ -4178,7 +4151,7 @@ Full specifications for these requirements are documented below.
 
 - Ticket must exist and be in valid completion state
 - At least one file must have been modified during ticket
-- Memory bank directory (.agent/) must be accessible
+- Memory banks must be accessible in the database
 
 **Success Criteria**:
 
@@ -4197,7 +4170,7 @@ Full specifications for these requirements are documented below.
 **Inputs**:
 
 - ticketFiles: string[] (modified files)
-- existingPatterns: Pattern[] (current system-patterns.md content)
+- existingPatterns: Pattern[] (current System Patterns memory bank content)
 
 **Outputs**:
 
@@ -4216,13 +4189,13 @@ Full specifications for these requirements are documented below.
 
 1. Scan ticket files for function/component definitions
 2. Extract code structure and usage patterns
-3. Compare against existing patterns in system-patterns.md
+3. Compare against existing patterns in System Patterns memory bank
 4. Identify genuinely new patterns (not duplicates)
 5. Generate pattern documentation (description + example)
 
 **Validation**:
 
-- Pattern name must be unique in system-patterns.md
+- Pattern name must be unique in System Patterns memory bank
 - Code example must be valid syntax
 - Pattern must appear in at least one ticket file
 
@@ -4237,18 +4210,18 @@ Full specifications for these requirements are documented below.
 
 ---
 
-#### FR-178: system-patterns.md Auto-Update
+#### FR-178: System Patterns Auto-Update
 
-**Description**: System SHALL append new patterns to system-patterns.md when ticket completion introduces genuinely new implementation patterns.
+**Description**: System SHALL append new patterns to the System Patterns memory bank when ticket completion introduces genuinely new implementation patterns.
 
 **Inputs**:
 
 - DetectedPatterns: from FR-177 (new patterns)
-- systemPatternsContent: current system-patterns.md content
+- systemPatternsContent: current System Patterns memory bank content
 
 **Outputs**:
 
-- Updated system-patterns.md file
+- Updated System Patterns memory bank content
 - MemoryBankVersion record (tracking change)
 
 **Update Trigger**:
@@ -4279,7 +4252,7 @@ Full specifications for these requirements are documented below.
 
 **Validation**:
 
-- Pattern name not already in system-patterns.md (no duplicates)
+- Pattern name not already in System Patterns memory bank (no duplicates)
 - Code example has valid syntax highlighting
 - File size must not exceed 50KB (token efficiency)
 
@@ -4294,9 +4267,9 @@ Full specifications for these requirements are documented below.
 
 ---
 
-#### FR-179: progress.md Auto-Update
+#### FR-179: Progress Memory Bank Auto-Update
 
-**Description**: System SHALL update progress.md with completion metrics (story points, velocity, lessons learned) when ticket completes.
+**Description**: System SHALL update the Progress memory bank with completion metrics (story points, velocity, lessons learned) when ticket completes.
 
 **Inputs**:
 
@@ -4306,7 +4279,7 @@ Full specifications for these requirements are documented below.
 
 **Outputs**:
 
-- Updated progress.md file
+- Updated Progress memory bank content
 - MemoryBankVersion record
 
 **Update Trigger**:
@@ -4339,9 +4312,9 @@ Full specifications for these requirements are documented below.
 
 ---
 
-#### FR-180: active-context.md Auto-Update
+#### FR-180: Active Context Memory Bank Auto-Update
 
-**Description**: System SHALL update active-context.md with recent changes (last 5 commits), current sprint status, and blockers.
+**Description**: System SHALL update the Active Context memory bank with recent changes, current sprint status, and blockers.
 
 **Inputs**:
 
@@ -4351,7 +4324,7 @@ Full specifications for these requirements are documented below.
 
 **Outputs**:
 
-- Updated active-context.md file
+- Updated Active Context memory bank content
 - MemoryBankVersion record
 
 **Update Trigger**:
@@ -4455,7 +4428,7 @@ enum PatternCategory {
 **Inputs**:
 
 - memoryBankType: MemoryBankType
-- newContent: string (updated file content)
+- newContent: string (updated content)
 - changeDescription: string (what changed and why)
 - ticketId: string | null (triggering ticket)
 
@@ -4463,7 +4436,6 @@ enum PatternCategory {
 
 - MemoryBankVersion record created
 - MemoryBank.currentVersionId updated to new version
-- File system updated (.agent/{file}.md)
 
 **Validation**:
 
@@ -4473,7 +4445,7 @@ enum PatternCategory {
 
 **Success Criteria**:
 
-- Version creation: <500ms (database + file write)
+- Version creation: <500ms (database write)
 - History retention: Unlimited (all versions preserved)
 - Rollback capability: Can restore any previous version
 
@@ -4535,47 +4507,32 @@ Ticket #2 created:
 
 ---
 
-#### FR-183: Auto-Commit Memory Bank Changes
+#### FR-183: Audit Log Memory Bank Changes
 
-**Description**: System SHALL automatically commit memory bank changes to git with descriptive commit messages referencing the triggering ticket.
+**Description**: System SHALL automatically record memory bank changes in an audit log with references to the triggering ticket.
 
 **Inputs**:
 
-- updatedFiles: string[] (modified .agent/ files)
+- updatedTypes: MemoryBankType[] (updated memory banks)
 - ticketId: string (triggering ticket)
 - changeDescription: string (what changed)
 
 **Outputs**:
 
-- Git commit created with message format: `docs: auto-update memory banks from Ticket #{ticketId}`
-- Commit body includes change description
-
-**Commit Message Format**:
-
-```
-docs: auto-update memory banks from Ticket #{ticketId}
-
-Changes:
-- system-patterns.md: Added useDebounce pattern
-- progress.md: Updated completion metrics (48/120 story points)
-
-Ticket: #{ticketId} ({ticket title})
-```
+- AuditLog record created with fields: { ticketId, changeDescription, updatedTypes, createdAt }
 
 **Validation**:
 
-- At least one file must be modified (no empty commits)
-- Commit must reference valid ticket ID
-- Files must be in .agent/ directory
+- At least one memory bank type must be updated
+- Ticket ID must reference an existing ticket
 
 **Success Criteria**:
 
-- Commit creation: <2 seconds after memory bank update
-- Commit messages: 100% include ticket reference (traceable)
-- Git history: Clean and descriptive (no generic messages)
+- Audit log creation: <2 seconds after memory bank update
+- Audit entries: 100% include ticket reference (traceable)
 
 **Acceptance Test**: TEST-183
-**Related**: US-012-08 (Auto-commit), EPIC-012
+**Related**: US-012-08 (Audit log), EPIC-012
 
 ---
 
@@ -4696,20 +4653,20 @@ The Agent Dashboard provides a single-pane-of-glass view of all agent infrastruc
 
 #### FR-193: Skills & Sub-Agents List Component
 
-**Description**: System SHALL display available skills (.claude/skills/ files), sub-agents (explore-codebase, analyze-architecture, etc.), and recent reports (.agent/task/ files) with metadata and expandable content.
+**Description**: System SHALL display available skills (DB-backed), sub-agents (explore-codebase, analyze-architecture, etc.), and recent reports (DB-backed) with metadata and expandable content.
 
 **Inputs**:
 
-- skills: Skill[] (all .claude/skills/\*.md files)
+- skills: Skill[] (from database)
 - subAgents: SubAgent[] (configured sub-agents)
-- recentReports: Report[] (last 20 .agent/task/ reports)
+- recentReports: Report[] (last 20 reports from database)
 
 **Outputs**:
 
 - Two-section display:
   - **Skills Catalog**: List skills with name, category, last used, token count
   - **Sub-Agents Catalog**: List sub-agents with name, capabilities, invocation count
-  - **Recent Reports**: List reports with filename, timestamp, sub-agent type
+  - **Recent Reports**: List reports with title/ID, timestamp, sub-agent type
 
 **Component Features**:
 
@@ -4721,16 +4678,16 @@ The Agent Dashboard provides a single-pane-of-glass view of all agent infrastruc
 
 **Validation**:
 
-- Skills must exist in .claude/skills/ directory
+- Skills must exist in database
 - Sub-agents must be valid configured agents
 - Recent reports limited to last 20 (pagination if more)
-- Token counts accurate for skill files
+- Token counts accurate for skill entries
 
 **Success Criteria**:
 
 - Discovery efficiency: Developers find relevant skills in <30 seconds
 - Coverage: All skills and sub-agents listed (100% discovery)
-- Report access: Click to open report file (in-dashboard or external)
+- Report access: Click to open report (in-dashboard view)
 
 **Acceptance Test**: TEST-193
 **Related**: US-013-03 (Skills & Sub-Agents List), EPIC-013
@@ -4827,14 +4784,12 @@ interface DashboardMCP {
 
 **Data Sources**:
 
-1. **Database**: Tickets, Checkpoints, MemoryBanks, AgentActivity
-2. **File System**: .agent/ files, .claude/skills/ files, .agent/task/ reports
-3. **Git**: Recent commits (for active-context.md)
+1. **Database**: Tickets, Checkpoints, MemoryBanks, AgentActivity, Skills, Reports
 
 **Validation**:
 
 - All MCP tools must return valid data structures
-- Token counts calculated from actual file content
+- Token counts calculated from stored content
 - Activity feed limited to last 100 activities (performance)
 - File system reads must handle missing files gracefully
 
@@ -4973,7 +4928,7 @@ enum ActivityType {
 - Checkpoint saves (every 15K tokens)
 - Memory bank updates (after ticket completion)
 - Sub-agent invocations (explore-codebase, analyze-architecture, etc.)
-- Skill loads (when agent loads .claude/skills/ file)
+- Skill loads (when agent loads a skill entry)
 
 **Inputs**:
 
@@ -5293,7 +5248,7 @@ The Additional Onboarding Sessions system provides optional deep-dive sessions t
 - OnboardingSession.completedAt = now()
 - OnboardingSession.durationSeconds = (completedAt - startedAt)
 - OnboardingArtifact records created (tech-context.md, dependency wiki pages)
-- File system updated (.agent/tech-context.md, wiki pages)
+- Database updated (tech-context memory bank, wiki pages)
 
 **Validation**:
 
@@ -5530,7 +5485,7 @@ The Additional Onboarding Sessions system provides optional deep-dive sessions t
 
 - OnboardingSession.status = COMPLETED
 - OnboardingArtifact records created
-- File system updated (.agent/project-brief.md, wiki pages)
+- Database updated (project-brief memory bank, wiki pages)
 
 **Validation**:
 
@@ -5755,7 +5710,7 @@ Use App Router for this project.
 
 - OnboardingSession.status = COMPLETED
 - OnboardingArtifact records created
-- File system updated (.agent/system-patterns.md, wiki pages)
+- Database updated (system-patterns memory bank, wiki pages)
 
 **Validation**:
 
@@ -5993,7 +5948,7 @@ US-001: Create 5-level hierarchy (8 points)
 
 - OnboardingSession.status = COMPLETED
 - OnboardingArtifact records created
-- File system updated (.agent/progress.md, wiki pages)
+- Database updated (progress memory bank, wiki pages)
 - ProjectOnboarding.status = COMPLETED (all sessions done)
 
 **Validation**:
@@ -6109,26 +6064,26 @@ US-001: Create 5-level hierarchy (8 points)
 
 ---
 
-#### NFR-007: Markdown Sync Performance
+#### NFR-007: Read-Path Update Performance
 
-**Requirement:** <500ms per file generation
+**Requirement:** <500ms to reflect database writes in UI/MCP reads
 
-**Max Files:** 5 files per sync operation (STATUS.md, DEVELOPMENT_PLAN.md, current-todos.md, current-session.md, current-plan.md)
+**Scope:** Development Cycle page and relevant MCP tools
 
-**Priority:** High (agent workflow depends on fast sync)
+**Priority:** High (agent workflow depends on fast feedback)
 
 **Traceability:**
 
-- PRD: Section 4.2.1 (Markdown sync)
+- PRD: Section 1.3 (Database as single source of truth)
 - Tests: PERF-007
 
 ---
 
 #### NFR-008: Batch Sync Performance
 
-**Requirement:** Batch sync for multiple updates (avoid triggering sync on every progress update)
+**Requirement:** Efficient read-path updates after multiple writes (avoid redundant refresh work)
 
-**Logic:** Debounce sync calls (max 1 sync per 5 seconds)
+**Logic:** Debounce UI/MCP cache invalidations (max 1 refresh per 5 seconds)
 
 **Priority:** High
 
@@ -6195,11 +6150,11 @@ US-001: Create 5-level hierarchy (8 points)
 
 ---
 
-#### NFR-013: Graceful Degradation (Markdown Sync Failure)
+#### NFR-013: Graceful Degradation (Read-Path Consistency)
 
-**Requirement:** If markdown sync fails → retry with exponential backoff (max 3 retries)
+**Requirement:** If read-path cache invalidation is delayed, ensure UI/MCP reads fall back to direct database reads within acceptable latency (<500ms)
 
-**Behavior:** Log error, alert human, but don't block API response
+**Behavior:** Log inconsistency, alert human if persistent, do not block API response
 
 **Priority:** High
 
@@ -6280,19 +6235,17 @@ US-001: Create 5-level hierarchy (8 points)
 
 ---
 
-#### NFR-019: Git Hook Enforcement
+#### NFR-019: Write Path Enforcement
 
-**Requirement:** Pre-commit hook prevents manual markdown edits
+**Requirement:** Only approved application interfaces (MCP tools and web UI APIs) may modify progress/workflow data; unsupported write paths are rejected
 
-**Protected Files:** STATUS.md, DEVELOPMENT_PLAN.md, current-todos.md, current-session-\*.md, current-plan.md
-
-**Override:** Admin can force commit with --no-verify
+**Implementation:** Service-layer validation and authorization checks; audit logs for all writes
 
 **Priority:** Critical
 
 **Traceability:**
 
-- PRD: Section 4.2.1 (Markdown sync), Architecture: ADR-002
+- PRD: Section 1.3 (Database as single source of truth), Architecture: ADR-002
 
 ---
 
@@ -6569,7 +6522,7 @@ US-001: Create 5-level hierarchy (8 points)
 
 ### 4.3 MCP Server: @modelcontextprotocol/sdk
 
-**Transport:** stdio (standard input/output)
+**Transport:** HTTP JSON-RPC (tool calls) + SSE (streams)
 
 **Tools:** 42 MCP tools across 8 features
 
@@ -6584,23 +6537,15 @@ US-001: Create 5-level hierarchy (8 points)
 
 ---
 
-### 4.4 Git Hooks
+### 4.4 Write Path Enforcement
 
-**Pre-Commit Hook:** Prevent manual edits to auto-generated markdown files
-
-**Protected Files:**
-
-- STATUS.md
-- DEVELOPMENT_PLAN.md
-- current-todos.md
-- current-session-\*.md
-- current-plan.md
+**Policy:** Only approved application interfaces (MCP tools and web UI APIs) may modify progress/workflow data; unsupported write paths are rejected.
 
 **Priority:** Critical
 
 **Traceability:**
 
-- FR-011 (Git hook enforcement)
+- FR-011 (Write path enforcement)
 - Architecture: ADR-002 (Database as source of truth)
 
 ---

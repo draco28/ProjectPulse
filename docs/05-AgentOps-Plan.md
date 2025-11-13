@@ -16,14 +16,9 @@
 
 ---
 
-## Important Note on File References
+## Scope Clarification: Product-Only, No Doc Coding
 
-**Cloud-Based Architecture**: All references to `.agent/` folders and files in this document represent **cloud-based features stored in ProjectPulse database**, NOT local files in end users' repositories. For example:
-- `.agent/task/current-session.md` → Stored in `sessions` table
-- `.agent/task/current-plan.md` → Stored in `plans` table
-- `.agent/task/current-todos.md` → Stored in `todos` table
-
-End users' repositories remain completely clean with NO local AI files.
+ProjectPulse is a cloud-based system. All state is persisted in PostgreSQL and exposed via the Web UI and MCP tools. Local repository files (e.g., `.agent/` folders, `STATUS.md`, `current-*.md`) are not used by the product and must not be treated as product behavior.
 
 ## Table of Contents
 
@@ -106,7 +101,7 @@ ProjectPulse provides **42 MCP tools** across **8 functional categories**:
 8. **Agent Personas** (4 tools) - FR-121 to FR-125
 9. **Dashboard** (3 tools) - Cross-cutting
 
-**Architecture:** All tools served from single MCP server via stdio transport
+**Architecture:** All tools served from a single MCP server via HTTP JSON-RPC (tool calls) and SSE (streaming updates)
 
 **Design Decision:** See [ADR-004: Single MCP Server Architecture](architecture/ADRs/ADR-004-single-mcp-server.md)
 
@@ -259,13 +254,13 @@ const phase = await mcp.call('sprint.phase.create', {
 {
   sessionId: number;
   startedAt: Date;
-  contextFile: string; // Auto-created: .agent/task/current-session-20251102-1400.md
+  taskId: number;
 }
 ```
 
 **Auto-Actions:**
 
-- Creates context file: `.agent/task/current-session-[YYYYMMDD-HHMM].md`
+- Inserts Session record (timestamp, type)
 - Logs session start in `AgentAction` table
 - Updates task status to `IN_PROGRESS`
 
@@ -377,7 +372,7 @@ const phase = await mcp.call('sprint.phase.create', {
   workflowId: number;
   currentStep: 1;
   stepStatus: 'PENDING';
-  contextFile: string; // .agent/task/current-session-[timestamp].md
+  sessionId: number;
 }
 ```
 
@@ -414,16 +409,16 @@ const phase = await mcp.call('sprint.phase.create', {
 
 ```typescript
 {
-  planFile: string; // .agent/task/current-plan.md
-  todosFile: string; // .agent/task/current-todos.md
+  planId: number; // Plan entity id
+  todosCreated: number; // Count of created todos
   step2Complete: true;
 }
 ```
 
 **Auto-Actions:**
 
-- Saves plan to `.agent/task/current-plan.md`
-- Saves todos to `.agent/task/current-todos.md`
+- Saves plan as Plan entity (DB)
+- Saves todos as Todo records (DB)
 - Updates workflow step to 2 (COMPLETED)
 - Logs action in `AgentAction` table
 
@@ -450,7 +445,7 @@ const phase = await mcp.call('sprint.phase.create', {
 
 ```typescript
 {
-  expertReportFile: string; // .agent/task/[expert]-[topic]-[timestamp].md
+  expertReportId: string; // Research report record id
   recommendations: string; // Summary of expert advice
   step3Complete: true;
 }
@@ -459,8 +454,8 @@ const phase = await mcp.call('sprint.phase.create', {
 **Auto-Actions:**
 
 - Invokes specified expert sub-agent in isolated thread
-- Sub-agent reads `.agent/task/current-session.md` for context
-- Sub-agent creates report file
+- Sub-agent reads latest Session record for context
+- Sub-agent creates Research Report record (DB)
 - Updates workflow step to 3 (COMPLETED)
 - Logs action in `AgentAction` table
 
@@ -494,8 +489,8 @@ const phase = await mcp.call('sprint.phase.create', {
 
 **Auto-Actions:**
 
-- Updates `.agent/task/current-session-[timestamp].md` with progress
-- Updates `.agent/task/current-todos.md` with task completion status
+- Updates Session record with progress
+- Updates Todo records with completion status
 - Creates checkpoint record in `WorkflowStep` table
 - Logs action in `AgentAction` table
 
@@ -528,8 +523,8 @@ const phase = await mcp.call('sprint.phase.create', {
 ```typescript
 {
   completionFile: string; // COMPLETION_[PHASE].md
-  statusUpdated: boolean; // STATUS.md updated
-  planUpdated: boolean; // Project Plan updated (docs/13-Project-Plan.md)
+  statusUpdated: boolean; // Development Cycle reflects updated status
+  planUpdated: boolean; // Project Plan UI updated
   step5Complete: true;
 }
 ```
@@ -537,8 +532,8 @@ const phase = await mcp.call('sprint.phase.create', {
 **Auto-Actions:**
 
 - Creates `COMPLETION_[PHASE].md` file
-- Updates `STATUS.md` with completion timestamp
-- Updates `STATUS.md` and `docs/13-Project-Plan.md` with next phase
+- Development Cycle reflects completion timestamp
+- Project Plan UI updated with next phase
 - Optionally invokes `synthesize-docs` sub-agent (if new patterns created)
 - Optionally invokes `map-system` sub-agent (if architecture changed)
 - Updates workflow status to `COMPLETED`
@@ -1558,9 +1553,9 @@ stateDiagram-v2
 
 **Actions:**
 
-1. Agent reads `STATUS.md` and `docs/13-Project-Plan.md`
+1. Agent calls `sprint.getCurrentTask()` to read current status
 2. Agent calls `workflow.start({ sessionId, phase, goals })`
-3. System creates `.agent/task/current-session-[YYYYMMDD-HHMM].md`
+3. System creates a Session record with timestamp
 4. System logs action in `AgentAction` table
 
 **Confirmation Required:**
@@ -1572,7 +1567,7 @@ stateDiagram-v2
 **Validation:**
 
 - Session must be created with `sprint.session.start` first
-- Context file must exist and be writable
+- Session record must exist and be writable by agent
 
 **Requirements:** FR-026, FR-027
 
@@ -1587,26 +1582,26 @@ stateDiagram-v2
 1. Agent creates implementation plan (use `ExitPlanMode` if needed)
 2. User approves plan
 3. Agent **IMMEDIATELY** calls `workflow.savePlan({ workflowId, plan, todos })`
-4. System saves plan to `.agent/task/current-plan.md`
-5. System saves todos to `.agent/task/current-todos.md`
+4. System saves plan as a Plan entity (DB)
+5. System saves todos as Todo records (DB)
 
 **Confirmation Required:**
 
 ```
-✅ STEP 2 COMPLETE: Plan saved to current-plan.md, todos saved to current-todos.md
+✅ STEP 2 COMPLETE: Plan and todos saved in database
 ```
 
 **Validation:**
 
 - Plan must be saved BEFORE any implementation starts
 - Todos must have at least 1 task
-- Plan file must exist after call
+- Plan record must exist after call
 
 **Why This Matters:**
 
 - Plans in conversation history are LOST during context compaction
 - Saved plan survives compaction and session interruptions
-- You can always reference `.agent/task/current-plan.md`
+- You can always reference the Plan entity via MCP or UI
 
 **Requirements:** FR-028, FR-029
 
@@ -1621,8 +1616,8 @@ stateDiagram-v2
 1. Agent identifies technical decisions requiring expertise
 2. Agent calls `workflow.consultExpert({ workflowId, expertType, topic, context })`
 3. System invokes expert sub-agent in isolated thread
-4. Expert reads `.agent/task/current-session.md` for context
-5. Expert creates report: `.agent/task/[expert]-[topic]-[timestamp].md`
+4. Expert reads latest Session record for context
+5. Expert creates Research Report record (DB)
 6. Agent reads report file
 7. Agent uses recommendations for implementation
 
@@ -1657,8 +1652,8 @@ stateDiagram-v2
 1. Agent monitors token usage
 2. At 15K, 30K, 45K, 60K, 75K, 90K tokens:
    - Agent calls `workflow.checkpoint({ workflowId, tokenCount, progress })`
-   - System updates `.agent/task/current-session-[timestamp].md`
-   - System updates `.agent/task/current-todos.md`
+   - System updates Session notes (DB)
+   - System updates Todo records
 3. Agent outputs confirmation
 
 **Confirmation Required:**
@@ -1686,9 +1681,9 @@ stateDiagram-v2
 
 **What to Save:**
 
-1. Update `current-session-[timestamp].md` with latest progress
-2. Update `current-todos.md` with task statuses
-3. Update `STATUS.md` at major checkpoints
+1. Update Session record with latest progress
+2. Update Todo records with task statuses
+3. Development Cycle view reflects major checkpoints
 4. Brief note: "💾 Progress saved at [X]K tokens"
 
 **Requirements:** FR-032, FR-033
@@ -1704,7 +1699,7 @@ stateDiagram-v2
 1. Agent completes implementation
 2. Agent calls `workflow.complete({ workflowId, completionSummary, invokeDocAgents: true })`
 3. System creates `COMPLETION_[PHASE].md`
-4. System updates `STATUS.md` and `docs/13-Project-Plan.md`
+4. Development Cycle and Project Plan UI reflect updates
 5. System invokes `synthesize-docs` sub-agent (if `invokeDocAgents: true` and new patterns created)
 6. System invokes `map-system` sub-agent (if `invokeDocAgents: true` and architecture changed)
 7. Agent commits documentation, then code
@@ -1754,10 +1749,10 @@ stateDiagram-v2
 
 ProjectPulse uses **multi-layered context management** to minimize token usage while maximizing agent knowledge:
 
-1. **Memory Bank Files** (.agent/) - Structured context (~3-5K tokens per file)
+1. **Memory Bank Entries** (DB) - Structured context (~3-5K tokens per entry)
 2. **Skills** - Lazy-loaded framework docs (~220 tokens per skill vs 2,500)
 3. **Knowledge Graph** - Hybrid search (~1,200 tokens vs 10,000)
-4. **Session Files** - Active context (.agent/task/)
+4. **Session Records** - Active context (DB)
 
 **Total Token Efficiency:** ~85-90% reduction in context loading
 
@@ -1765,21 +1760,21 @@ ProjectPulse uses **multi-layered context management** to minimize token usage w
 
 ### 4.2 Memory Bank System
 
-**Core Files:**
+**Core Banks:**
 
-1. **project-brief.md** - WHAT and WHY (requirements, goals, personas)
-2. **system-patterns.md** - HOW (architecture, database, API, testing patterns)
-3. **tech-context.md** - Technical stack (dependencies, constraints, troubleshooting)
-4. **active-context.md** - Current focus (what we're working on RIGHT NOW)
-5. **progress.md** - Progress tracking (what's done, what's left, metrics)
+1. **Project Brief** - WHAT and WHY (requirements, goals, personas)
+2. **System Patterns** - HOW (architecture, database, API, testing patterns)
+3. **Tech Context** - Technical stack (dependencies, constraints, troubleshooting)
+4. **Active Context** - Current focus (what we're working on RIGHT NOW)
+5. **Progress** - Progress tracking (what's done, what's left, metrics)
 
 **When to Read:**
 
-- Need project requirements? → project-brief.md
-- Need architectural patterns? → system-patterns.md
-- Need tech stack details? → tech-context.md
-- Need current task context? → active-context.md
-- Need progress overview? → progress.md
+- Need project requirements? → Project Brief
+- Need architectural patterns? → System Patterns
+- Need tech stack details? → Tech Context
+- Need current task context? → Active Context
+- Need progress overview? → Progress
 
 **Token Cost:** ~3-5K tokens per file (vs 30K+ for full context)
 
@@ -1806,10 +1801,10 @@ ProjectPulse uses **multi-layered context management** to minimize token usage w
 
 | Phase Contains                | Skills Auto-Loaded    |
 | ----------------------------- | --------------------- |
-| "API", "endpoint", "route"    | api-patterns.md       |
-| "Component", "UI", "page"     | component-patterns.md |
-| "Database", "Prisma", "query" | database-patterns.md  |
-| "Test", "testing", "coverage" | testing-patterns.md   |
+| "API", "endpoint", "route"    | API patterns          |
+| "Component", "UI", "page"     | Component patterns    |
+| "Database", "Prisma", "query" | Database patterns     |
+| "Test", "testing", "coverage" | Testing patterns      |
 
 **Requirements:** FR-091 to FR-105
 
@@ -1835,19 +1830,19 @@ ProjectPulse uses **multi-layered context management** to minimize token usage w
 
 ---
 
-### 4.5 Session Files
+### 4.5 Session State
 
-**Active Context Files:**
+**Active Context Records:**
 
-1. **current-session-[timestamp].md** - What agent is doing RIGHT NOW
-2. **current-plan.md** - Implementation plan for current task
-3. **current-todos.md** - Task list with progress
+1. **Session record** - What agent is doing RIGHT NOW
+2. **Plan entity** - Implementation plan for current task
+3. **Todo records** - Task list with progress
 
 **Update Schedule:**
 
-- **current-session.md:** Every checkpoint (15K tokens)
-- **current-plan.md:** Once at session start
-- **current-todos.md:** After completing any task
+- **Session record:** Every checkpoint (15K tokens)
+- **Plan entity:** Once at session start
+- **Todos:** After completing any task
 
 **Token Cost:** ~200-500 tokens per session (small, frequently updated)
 
@@ -1903,7 +1898,7 @@ Checkpoints prevent work loss during:
 
 **What Gets Saved:**
 
-1. **.agent/task/current-session-[timestamp].md:**
+1. **Session record:**
 
    ```markdown
    ## 🔄 Checkpoint: 45K tokens (Session Update)
@@ -1925,7 +1920,7 @@ Checkpoints prevent work loss during:
    - Implement real-time updates
    ```
 
-2. **.agent/task/current-todos.md:**
+2. **Todos (DB):**
 
    ```markdown
    # Current Todos
@@ -1944,8 +1939,8 @@ Checkpoints prevent work loss during:
 
 ```
 ✅ CHECKPOINT at 45K tokens: Progress saved
-- Session file updated: current-session-20251102-1430.md
-- Todos file updated: current-todos.md (3/6 complete, 50%)
+- Session updated (id: 123)
+- Todos updated (3/6 complete, 50%)
 - Next checkpoint: 60K tokens
 ```
 
@@ -1957,19 +1952,19 @@ Checkpoints prevent work loss during:
 
 **If context compacts or session interrupted:**
 
-**Step 1:** Read `STATUS.md`
+**Step 1:** Query current status via `sprint.getCurrentTask()`
 
 ```
 → "Phase 3 Day 4, 60% complete, last: CommentForm component"
 ```
 
-**Step 2:** Find latest `.agent/task/current-session-[timestamp].md`
+**Step 2:** Load latest Session for this task
 
 ```
 → "Was implementing CommentList at 16:45"
 ```
 
-**Step 3:** Read `.agent/task/current-todos.md`
+**Step 3:** Read current Todos for this task
 
 ```
 → "5/20 tasks done, CommentList in progress, 14 pending"
@@ -2037,13 +2032,13 @@ if (task.includes('find all') || task.includes('scan repo')) {
   // Invoke explore-codebase sub-agent
   const report = await invokeSubAgent({
     type: 'explore-codebase',
-    context: '.agent/task/current-session-[timestamp].md',
+    sessionId: 123,
     query: 'Find all authentication patterns',
     thoroughness: 'medium', // quick | medium | very thorough
   });
 
   // Sub-agent creates report file
-  // .agent/task/explore-auth-patterns-20251102-1445.md
+  // research report id: rrpt_explore_auth_20251102_1445
 
   // Agent reads report
   const insights = readFile(report.path);
@@ -2077,12 +2072,12 @@ if (task.includes('find all') || task.includes('scan repo')) {
 if (task.includes('how does') || task.includes('trace data flow')) {
   const report = await invokeSubAgent({
     type: 'analyze-architecture',
-    context: '.agent/task/current-session-[timestamp].md',
+    sessionId: 123,
     query: 'Trace data flow from UI → API → Database for issue creation',
   });
 
   // Sub-agent creates report with sequence diagrams
-  // .agent/task/architecture-issue-creation-20251102-1502.md
+  // research report id: rrpt_arch_issue_creation_20251102_1502
 }
 ```
 
@@ -2124,8 +2119,7 @@ await workflow.consultExpert({
   `,
 });
 
-// Expert creates report:
-// .agent/task/react-expert-issueList-20251102-1500.md
+// Expert creates Research Report (stored in DB), e.g., id: rrpt_react_expert_issueList_20251102_1500
 //
 // Report contains:
 // - Component hierarchy (Container → Presentational)
@@ -2231,9 +2225,9 @@ await workflow.complete({
 });
 
 // System invokes synthesize-docs:
-// - Reads .agent/task/current-session-[timestamp].md
+// - Reads latest Session record
 // - Extracts implementation patterns
-// - Generates SOP: .agent/sops/creating-bulk-issues.md
+// - Generates SOP record: creating-bulk-issues
 ```
 
 **Generated SOP Structure:**
@@ -2277,9 +2271,9 @@ Process for creating 10-50 issues from automated scan results.
 ```typescript
 // Invoked by workflow.complete() if architecture changed
 // System automatically:
-// 1. Scans Prisma schema → Updates .agent/system/database-schema.md
-// 2. Scans API routes → Updates .agent/system/api-catalog.md
-// 3. Scans components → Updates .agent/system/component-patterns.md
+// 1. Scans Prisma schema → Updates system documentation (database schema)
+// 2. Scans API routes → Updates system documentation (API catalog)
+// 3. Scans components → Updates system documentation (component patterns)
 ```
 
 **Requirements:** FR-035 (Step 5: Post-Completion)
@@ -2621,7 +2615,7 @@ const session = await mcp.call('sprint.session.start', {
   taskId: 42,
   sessionType: 'IMPLEMENTATION',
 });
-// Returns: { sessionId: 123, contextFile: ".agent/task/current-session-20251102-1430.md" }
+// Returns: { sessionId: 123 }
 
 // Step 2: Initialize workflow
 const workflow = await mcp.call('workflow.start', {
@@ -2675,14 +2669,14 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 **Tier 1: Real-Time Tracking (Every Major Step)**
 
-- Files: `current-session-[timestamp].md`, `current-todos.md`
+- Data: Session record, Todo records
 - Update: Every 15K token checkpoint
 - Purpose: Survive context compaction within active session
 - Token Cost: ~100-200 tokens per update
 
 **Tier 2: Checkpoints (After Significant Milestones)**
 
-- File: `STATUS.md`
+- Data: Progress roll-ups (Task → Day → Week → Phase)
 - Update: After component complete, API working, feature section done
 - Purpose: Track partial phase progress, survive session interruptions
 - Token Cost: ~300-500 tokens per update
@@ -2699,13 +2693,13 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 ```markdown
 Session interrupted at 60% progress...
 
-Step 1: Read STATUS.md
+Step 1: Call sprint.getCurrentTask()
 → "Phase 3 Day 4, 60% complete, last: CommentForm component"
 
-Step 2: Read .agent/task/current-session-20251102-1430.md
+Step 2: Load latest Session for task
 → "Implemented CommentList (lines 1-150), next: CommentForm"
 
-Step 3: Read .agent/task/current-todos.md
+Step 3: Load current Todos for task
 → "5/20 tasks done, CommentForm in progress (30% done)"
 
 Step 4: Resume implementation
@@ -2999,7 +2993,7 @@ GROUP BY action;
 
 - Skills: 92% reduction (2,500 → 220 tokens)
 - Knowledge: 88% reduction (10,000 → 1,200 tokens)
-- Context Files: 85% reduction (30,000 → 5,000 tokens)
+- Session/Plan/Todos: 85% reduction (30,000 → 5,000 tokens)
 - Sub-Agents: 90% reduction (25,000 → 2,500 tokens)
 
 ---
@@ -3009,33 +3003,32 @@ GROUP BY action;
 **Before Starting Implementation:**
 
 - [ ] ✅ Step 1: Session initialized with `workflow.start`
-- [ ] ✅ Context file created: `.agent/task/current-session-[timestamp].md`
+- [ ] ✅ Session record created (id)
 
 **Before Writing Code:**
 
 - [ ] ✅ Step 2: Plan created and saved with `workflow.savePlan`
-- [ ] ✅ Plan file exists: `.agent/task/current-plan.md`
-- [ ] ✅ Todos file exists: `.agent/task/current-todos.md`
+- [ ] ✅ Plan entity exists (id)
+- [ ] ✅ Todos exist (count)
 
 **Before Implementation:**
 
 - [ ] ✅ Step 3: Expert consulted with `workflow.consultExpert`
-- [ ] ✅ Expert report file exists: `.agent/task/[expert]-[topic]-[timestamp].md`
+- [ ] ✅ Research report exists (id)
 
 **During Implementation:**
 
 - [ ] ✅ Step 4: Checkpoints created every 15K tokens
-- [ ] ✅ Session file updated at each checkpoint
-- [ ] ✅ Todos file updated at each checkpoint
+- [ ] ✅ Session updated at each checkpoint
+- [ ] ✅ Todos updated at each checkpoint
 
 **After Implementation:**
 
 - [ ] ✅ Step 5: Workflow completed with `workflow.complete`
-- [ ] ✅ Completion file created: `COMPLETION_[PHASE].md`
-- [ ] ✅ STATUS.md updated
-- [ ] ✅ STATUS.md / Project Plan updated
+- [ ] ✅ Development Cycle reflects completion
+- [ ] ✅ Project Plan UI reflects updates
 - [ ] ✅ Documentation agents invoked (if needed)
-- [ ] ✅ Changes committed to git
+- [ ] ✅ Changes committed to git (app code)
 
 ---
 

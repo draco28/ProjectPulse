@@ -71,8 +71,8 @@ This Data Model & Database Specification defines the complete database schema fo
 
 1. **Database as Single Source of Truth** (ADR-002)
    - All application state stored in PostgreSQL
-   - Markdown files auto-generated from database (read-only)
-   - No dual-write patterns (database → markdown sync)
+   - Optional exports (JSON, markdown) available via API for backup/integration
+   - No dual-write patterns; exports are derivatives, not sources
 
 2. **3NF Normalization with Strategic Denormalization**
    - Normalized structure for data integrity
@@ -352,15 +352,6 @@ erDiagram
         json context
     }
 
-    MarkdownFile {
-        int id PK
-        string path "unique"
-        text content
-        timestamp lastSyncAt
-        enum generatedFromTable
-        int recordId
-    }
-
     AgentAction {
         int id PK
         string tool
@@ -635,11 +626,6 @@ model Session {
 
 - Composite unique on `(taskId, timestamp)`
 - B-tree on `timestamp` (chronological queries)
-
-**Markdown Sync Trigger:**
-
-- On create: Generate `.agent/task/current-session-[timestamp].md`
-- On update: Regenerate session markdown file
 
 ---
 
@@ -1039,7 +1025,7 @@ model KnowledgeItemVersion {
 model Skill {
   id              Int           @id @default(autoincrement())
   name            String        @unique @db.VarChar(100)
-  path            String        @db.VarChar(500) // File path: .claude/skills/...
+  path            String        @db.VarChar(500) // Internal storage path (not user repos)
   triggers        String[]      // Keywords for auto-loading: ["API", "endpoint", "route"]
   description     String?       @db.Text
   tokenEstimate   Int           @default(0) // Estimated tokens when loaded
@@ -1061,7 +1047,7 @@ model Skill {
 **Field Descriptions:**
 
 - `name`: Skill name (unique, e.g., "api-patterns", "database-patterns")
-- `path`: File path to skill file (e.g., ".claude/skills/projectpulse/api-patterns.md")
+- `path`: Internal storage identifier for skill content (e.g., "skills/projectpulse/api-patterns"). Not a path in user repositories.
 - `triggers`: Array of keywords that trigger auto-loading (e.g., ["API", "endpoint", "REST"])
 - `description`: Skill description (what it provides)
 - `tokenEstimate`: Estimated tokens consumed when skill is loaded (~1000-5000)
@@ -1594,66 +1580,15 @@ model PersonaActivation {
 
 ---
 
-### 3.8 System Tables (2 Tables)
+### 3.8 System Tables (1 Table)
 
-**Purpose:** Markdown file sync tracking and agent action telemetry.
+**Purpose:** Agent action telemetry and observability.
 
-**Requirements:** FR-008 (Markdown sync), FR-009 (Telemetry), NFR-028, NFR-029
-
----
-
-#### 3.8.1 MarkdownFile Table
-
-**Requirements:** FR-008 (Markdown sync), ADR-002 (Database as source of truth)
-
-```prisma
-model MarkdownFile {
-  id                  Int           @id @default(autoincrement())
-  path                String        @unique @db.VarChar(500)
-  content             String        @db.Text
-  lastSyncAt          DateTime      @default(now())
-  generatedFromTable  String        @db.VarChar(50) // Table name: "phases", "issues", etc.
-  recordId            Int           // Record ID in source table
-
-  updatedAt           DateTime      @updatedAt
-
-  @@index([path])
-  @@index([generatedFromTable, recordId])
-  @@map("markdown_files")
-}
-```
-
-**Field Descriptions:**
-
-- `path`: File path (unique, e.g., "STATUS.md", ".agent/task/current-session-20251102-2100.md")
-- `content`: Generated markdown content (TEXT)
-- `lastSyncAt`: Timestamp of last sync from database
-- `generatedFromTable`: Source table name (e.g., "phases", "tasks", "issues")
-- `recordId`: Record ID in source table
-
-**Validation Rules:**
-
-- `path`: 1-500 characters, unique
-- `generatedFromTable`: Must be valid table name
-- `recordId`: Must reference existing record in source table (validated at app layer)
-
-**Indexes:**
-
-- Unique B-tree on `path` (file lookup)
-- Composite on `(generatedFromTable, recordId)` (find markdown for database record)
-
-**Sync Trigger Example:**
-
-```typescript
-// When Task.progress updates:
-// 1. Query Task with related Phase/Week/Day
-// 2. Generate STATUS.md content from template
-// 3. Upsert MarkdownFile (path="STATUS.md", content=generated, generatedFromTable="tasks", recordId=taskId)
-```
+**Requirements:** FR-009 (Telemetry), NFR-028 (Observability), NFR-029 (Performance monitoring)
 
 ---
 
-#### 3.8.2 AgentAction Table
+#### 3.8.1 AgentAction Table
 
 **Requirements:** FR-009 (Telemetry), NFR-028 (Observability), NFR-029 (Performance monitoring)
 
@@ -2052,7 +1987,6 @@ enum FindingStatus {
 3. `Skill.name` - Unique
 4. `AgentPersona.name` - Unique
 5. `HealthScanner.name` - Unique
-6. `MarkdownFile.path` - Unique
 
 ---
 
@@ -2182,12 +2116,6 @@ week   Week @relation(fields: [weekId], references: [id], onDelete: Cascade)
 
 - Only allowed transitions: CHECK_STATUS → CREATE_PLAN → CREATE_TODOS → IMPLEMENT → COMPLETE
 - Cannot skip steps (enforced at app layer)
-
-**Markdown Sync (FR-008):**
-
-- On database update, regenerate markdown file
-- Git hooks prevent manual markdown edits
-- `MarkdownFile.lastSyncAt` updated on every sync
 
 ---
 
@@ -2414,13 +2342,6 @@ CREATE INDEX idx_agent_personas_autonomyLevel ON agent_personas(autonomyLevel);
 ```sql
 CREATE INDEX idx_persona_activations_personaId ON persona_activations(personaId);
 CREATE INDEX idx_persona_activations_activatedAt ON persona_activations(activatedAt);
-```
-
-**MarkdownFile:**
-
-```sql
-CREATE UNIQUE INDEX idx_markdown_files_path ON markdown_files(path);
-CREATE INDEX idx_markdown_files_table_record ON markdown_files(generatedFromTable, recordId);
 ```
 
 **AgentAction:**
@@ -2660,7 +2581,7 @@ async function main() {
   await prisma.skill.create({
     data: {
       name: 'api-patterns',
-      path: '.claude/skills/projectpulse/api-patterns.md',
+      path: 'skills/projectpulse/api-patterns', // Internal storage path
       triggers: ['API', 'endpoint', 'REST'],
       description: 'API design patterns and best practices',
       tokenEstimate: 3500,
@@ -3175,7 +3096,6 @@ const isValid = await bcrypt.compare(plainPassword, user.password);
 
 - `AgentAction` table: All mutations logged (tool, input, output, timestamp)
 - `*Version` tables: Version history for Knowledge, Wiki (change description, timestamp)
-- `MarkdownFile` table: Sync history (last sync timestamp, source table/record)
 
 **Audit Queries:**
 
@@ -3188,11 +3108,6 @@ SELECT version, changeDescription, createdAt
 FROM knowledge_item_versions
 WHERE itemId = 42
 ORDER BY version DESC;
-
--- When was this markdown file last synced?
-SELECT lastSyncAt, generatedFromTable, recordId
-FROM markdown_files
-WHERE path = 'STATUS.md';
 ```
 
 **Requirements:** NFR-018 (Audit trail for all changes)

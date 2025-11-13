@@ -47,7 +47,7 @@
 
 - **Token Efficiency:** 92% reduction for skills, 88% reduction for knowledge queries
 - **Agent Autonomy:** >95% workflow completion without human intervention
-- **Database as Source of Truth:** Markdown files auto-generated, preventing drift
+- **Database as Source of Truth:** All state stored in PostgreSQL and exposed via the Web UI and MCP tools
 - **Workflow Orchestration:** 12 predefined workflows enforce consistency across sessions
 
 ---
@@ -88,7 +88,7 @@
 - API response time: P95 <500ms, P99 <1s
 - MCP tool execution: P95 <1s, P99 <2s
 - Knowledge queries: P95 <200ms, P99 <500ms
-- Markdown sync: <500ms per file
+- Read-path updates: UI/MCP reflect DB changes in <500ms
 
 **Agent Autonomy:**
 
@@ -126,7 +126,7 @@
 
 ### Phase A: Foundation & Core Infrastructure (Weeks 1-6, Sprints 1-3)
 
-**Goal:** Establish 5-level hierarchy with auto-markdown sync and workflow orchestration
+**Goal:** Establish 5-level hierarchy with real-time UI/MCP consistency and workflow orchestration
 
 **Duration:** 6 weeks (3 two-week sprints)
 **Story Points:** 206 points (87 Sprint Tracking + 24 Onboarding + 95 Workflow complete)
@@ -136,8 +136,7 @@
 
 - **5-Level Hierarchy:** Phase → Week → Day → Task → Session (all CRUD operations functional)
 - **Progress Roll-Up:** Session 100% → propagates to Task → Day → Week → Phase
-- **Markdown Sync:** STATUS.md, DEVELOPMENT_PLAN.md auto-generated <500ms
-- **Git Hooks:** Pre-commit validation prevents manual markdown edits
+- **Consistency:** UI/MCP reflect progress updates in <500ms
 - **Workflow State Machine:** 12 workflows defined with step tracking
 - **Checkpoint System:** Automatic checkpoints every 15K tokens
 - **5-Step Protocol Enforcement:** Agents cannot skip mandatory steps
@@ -146,14 +145,12 @@
 
 - Next.js 14 App Router (Server/Client Components)
 - Prisma ORM with PostgreSQL 15+
-- MCP Server (stdio transport)
-- Git hooks (pre-commit, commit-msg)
+- MCP Server (HTTP JSON-RPC + SSE)
 
 **Phase Acceptance Criteria:**
 
 - ✅ Can create full hierarchy (Phase → Session) with progress tracking
-- ✅ Progress updates trigger markdown regeneration automatically
-- ✅ Git hooks block manual STATUS.md/DEVELOPMENT_PLAN.md edits
+- ✅ Progress updates visible immediately in UI/MCP
 - ✅ 5-step protocol enforced (agents alerted if step skipped)
 - ✅ Workflow state persists across session interruptions
 - ✅ Checkpoint system operational (saves every 15K tokens)
@@ -163,7 +160,6 @@
 **Risks:**
 
 - MCP protocol learning curve (mitigated: 4-hour timebox, official examples)
-- Windows git hook compatibility (mitigated: Test in Sprint 2, fallback to manual validation)
 
 ---
 
@@ -223,8 +219,8 @@
 
 **Sprint 7: Wiki + Health (2 weeks)**
 
-- **Wiki Auto-Generation:** JSDoc/docstrings → markdown pages with cross-linking
-- **Git-Backed Versioning:** Wiki changes tracked in git (same as code)
+- **Wiki Auto-Generation:** JSDoc/docstrings → DB-stored markdown pages with cross-linking
+- **DB-Backed Versioning:** Wiki changes versioned in database (audit/history tables)
 - **Health Dashboard:** Security + Quality + Accessibility + Tech Debt scores
 - **Scanner Integration:** Semgrep, ESLint, Lighthouse, axe-core
 
@@ -298,7 +294,7 @@
 
 **Week 1: Memory Bank System (EPIC-010)**
 
-- **5 Memory Bank Files:** project-brief.md, system-patterns.md, tech-context.md, active-context.md, progress.md
+- **5 Memory Bank Entries:** Project Brief, System Patterns, Tech Context, Active Context, Progress
 - **Session Start Optimization:** Reduce token overhead from 40K → 10K (75% reduction)
 - **Pattern Lookup Workflow:** Find implementation patterns in ≤1K tokens (93% reduction)
 - **Context Recovery:** Restore session context in ≤6K tokens after interruption
@@ -308,7 +304,7 @@
 - **explore-codebase Sub-Agent:** Automated pattern discovery, convention analysis
 - **analyze-architecture Sub-Agent:** Data flow tracing, dependency mapping, Mermaid diagrams
 - **Sub-Agent Invocation Workflow:** Automatic research without manual orchestration
-- **Report Persistence:** Research reports saved to .agent/task/ (persist across sessions)
+- **Report Persistence:** Research reports stored in database (persist across sessions)
 - **Parallel Research:** Support 2+ sub-agents simultaneously
 
 **Phase Acceptance Criteria:**
@@ -317,21 +313,20 @@
 - ✅ Pattern lookups complete in ≤1K tokens (93% reduction from 15K baseline)
 - ✅ Context recovery completes in ≤6K tokens (85% reduction from 40K baseline)
 - ✅ Research tasks complete in ≤2K tokens in main thread (92% reduction from 25K baseline)
-- ✅ Sub-agent reports saved to .agent/task/ and persist across sessions
+- ✅ Sub-agent reports saved in database and persist across sessions
 - ✅ Support 3+ complex features per 200K token session (3x improvement from baseline)
 
 **Dependencies:**
 
-- Filesystem MCP configured
-- Git MCP configured
-- .agent/ directory structure established
+- MCP server endpoints configured (HTTP JSON-RPC + SSE)
+- Project API keys configured for MCP access
 - Sub-agent architecture implemented
 
 **Risks:**
 
 - Memory bank content accuracy (mitigated: Manual review in Sprint 9, iterative refinement)
 - Sub-agent report quality (mitigated: Validate 90%+ actionable insights target)
-- File system access permissions (mitigated: Test MCP filesystem tool thoroughly)
+- None specific beyond standard API access controls
 
 **Rationale:**
 
@@ -630,13 +625,13 @@ Sprint 1-8 implementation revealed critical architectural gap: Claude Code's 200
 - MCP tools: `createPhase`, `createWeek`, `createDay`, `createTask`, `createSession`
 - Progress roll-up algorithm (Session → Task → Day → Week → Phase)
 - Validation: Foreign keys, progress 0.0-1.0, timestamps
-- MCP server foundation (stdio transport, tool registration)
+- MCP server foundation (HTTP JSON-RPC + SSE, tool registration)
 
 **Tech Stack Setup:**
 
 - Next.js 14 App Router project initialization
 - Prisma + PostgreSQL database setup
-- MCP server scaffold (Node.js, stdio transport)
+- MCP server scaffold (Node.js, HTTP JSON-RPC + SSE)
 - Development environment configuration
 
 **Dependencies:** None (foundation sprint)
@@ -961,7 +956,7 @@ Based on your project documentation (PRD, SRS, Architecture), let's create your 
 
 ## AI Workflow Artifacts
 
-### 1. Memory Bank Files
+### 1. Memory Bank Entries
 
 Create knowledge chunks for quick retrieval:
 
@@ -1123,9 +1118,9 @@ onboarding.submitResponse({
   - Checkpoint recovery (pause/resume)
   - Error handling (template not found, inactive, state validation)
 - ✅ **Documentation:**
-  - Updated `.agent/system/api-catalog.md` (4 workflow endpoints)
-  - Updated `.agent/system/mcp-tools-guide.md` (7 workflow tools)
-  - Created `.agent/system/workflow-templates.md` (12 templates catalog)
+  - Updated system documentation (API catalog) (4 workflow endpoints)
+  - Updated MCP tools guide (7 workflow tools)
+  - Created workflow templates catalog (12 templates)
 
 **Dependencies:** Sprint 2 (onboarding templates for workflow integration)
 
@@ -1305,8 +1300,8 @@ onboarding.submitResponse({
 - Sprint 5.5 created to address this critical gap
 
 **Completion Documents:**
-- `.agent/task/sprint-5-completion-summary.md` - Complete Sprint 5 summary
-- `.agent/task/sprint-5.5-mcp-server-plan.md` - Sprint 5.5 implementation plan
+- Sprint 5 completion summary (internal report)
+- Sprint 5.5 MCP server implementation plan (internal report)
 
 **Next Sprint:** Sprint 5.5 (MCP Server Infrastructure) - Critical gap resolution
 
@@ -1381,7 +1376,7 @@ PostgreSQL Database
 
 **Dependencies:** Sprint 5 (tool specifications created) ✅
 
-**Implementation Plan:** `.agent/task/sprint-5.5-mcp-server-plan.md` (35KB, 1,177 lines)
+**Implementation Plan:** Sprint 5.5 MCP server plan (internal report)
 
 **5-Day Phased Implementation:**
 
@@ -1645,7 +1640,7 @@ Sprint 6 successfully completed all 51 story points, implementing the complete k
 - **JSDoc/Docstring Parser:** TypeScript, JavaScript code comment extraction
 - **Auto-Generation Workflow:** Scan code → Extract docs → Create wiki pages
 - **Cross-Linking:** Internal @see references → hyperlinks
-- **Git-Backed Versioning:** Wiki changes tracked in git (same repo as code)
+- **DB-Backed Versioning:** Wiki changes versioned in database (audit/history tables)
 - **Scanner Integration:** Semgrep (security), ESLint (quality), Lighthouse (a11y), axe-core (a11y)
 - **Health Score Calculation:** Weighted average (40% security, 30% quality, 20% a11y, 10% debt)
 - **Health Dashboard UI:** Scores, trends, scanner findings
@@ -1732,7 +1727,7 @@ Sprint 6 successfully completed all 51 story points, implementing the complete k
   - Implement explore-codebase sub-agent (pattern discovery, convention analysis)
   - Implement analyze-architecture sub-agent (data flow tracing, Mermaid diagrams)
   - Implement sub-agent invocation workflow (automatic research)
-  - Implement report persistence system (.agent/task/ storage)
+  - Implement report persistence system (database storage)
   - Implement parallel research support (2+ sub-agents simultaneously)
 
 **Dependencies:** Sprints 1-8 (codebase must exist to document and explore)
@@ -1873,7 +1868,7 @@ Sprint 6 successfully completed all 51 story points, implementing the complete k
 
 - **Template Registration:** 13 new templates added to Sprint 2's template engine
 - **Data Extractors:** 13 data extraction functions for each document type
-- **Migration Workflow:** Deprecate STATUS.md/DEVELOPMENT_PLAN.md gracefully
+- **Migration Workflow:** Deprecate internal markdown concepts gracefully (non-product)
 - **MCP Tool:** `generateIndustryDocs` command for generating complete docs suite
 
 **Implementation Strategy:**
@@ -1896,7 +1891,7 @@ Sprint 2's generic architecture means ZERO refactoring required:
 - ✅ TemplateEngine (already plugin-based)
 - ✅ DataExtractorRegistry (already extensible)
 - ✅ SyncService (already path-agnostic)
-- ✅ Git hooks (already dynamic via .agent/generated-files.json)
+- ✅ Read-path consistency validated (UI/MCP)
 
 **New Code Only:**
 - 13 template files (~400 lines each = ~5.2K lines total)
@@ -1922,7 +1917,7 @@ Sprint 2's generic architecture means ZERO refactoring required:
 - ✅ All 13 documents generate successfully from test project
 - ✅ Generated docs match quality of ProjectPulse's own docs (manual review)
 - ✅ Documentation stays in sync (regenerate on project changes)
-- ✅ Migration from STATUS.md → docs/ suite works without data loss
+- ✅ Migration from internal files → database/UI works without data loss
 - ✅ Cross-references between documents functional (PRD ↔ SRS ↔ Architecture)
 - ✅ MCP tool `generateIndustryDocs` completes in <5 seconds for 13 files
 
@@ -1932,7 +1927,7 @@ Sprint 2's generic architecture means ZERO refactoring required:
 - Data extraction tests: Verify correct data pulled from database
 - Integration tests: Full generation workflow end-to-end
 - Cross-reference tests: Validate internal links between documents
-- Migration tests: STATUS.md deprecation workflow
+- Migration tests: Legacy markdown deprecation workflow
 
 **Success Metrics:**
 
@@ -2072,7 +2067,7 @@ Different epics have varying complexity levels, affecting the time required per 
 
 - ✅ 5-level hierarchy operational (Phase → Week → Day → Task → Session)
 - ✅ Progress roll-up working (Session 100% → propagates to Phase)
-- ✅ Markdown sync <500ms (STATUS.md, DEVELOPMENT_PLAN.md auto-generated)
+- ✅ Read-path updates <500ms (UI/MCP reflects DB changes)
 - ✅ Git hooks prevent manual markdown edits
 - ✅ 5-step protocol enforced (agents cannot skip steps)
 - ✅ Workflow state persists across sessions
@@ -2109,7 +2104,7 @@ Different epics have varying complexity levels, affecting the time required per 
 - ✅ Pattern lookups complete in ≤1K tokens (93% reduction from 15K baseline)
 - ✅ Context recovery completes in ≤6K tokens (85% reduction from 40K baseline)
 - ✅ Research tasks complete in ≤2K tokens in main thread (92% reduction from 25K baseline)
-- ✅ Sub-agent reports saved to .agent/task/ and persist across sessions
+- ✅ Sub-agent reports saved in database and persist across sessions
 - ✅ Support 3+ complex features per 200K token session (3x improvement from baseline)
 
 ---
@@ -2170,7 +2165,7 @@ Different epics have varying complexity levels, affecting the time required per 
 | Week | Phase   | Milestone Description                                | Key Deliverable                             |
 | ---- | ------- | ---------------------------------------------------- | ------------------------------------------- |
 | 1    | Phase A | Hierarchy CRUD complete, basic progress tracking     | 5-level hierarchy functional                |
-| 2    | Phase A | Markdown sync operational, git hooks enforced        | STATUS.md auto-generated <500ms             |
+| 2    | Phase A | Read-path consistency operational                    | UI/MCP reflect updates <500ms               |
 | 3    | Phase A | Workflow state machine complete, 5-step protocol     | Workflow state persists across sessions     |
 | 4    | Phase A | Checkpoint system operational, workflow recovery     | Checkpoints every 15K tokens                |
 | 5    | Phase B | Workflow orchestration complete (Phase A 100%)       | 12 workflows defined and enforceable        |

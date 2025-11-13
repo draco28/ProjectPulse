@@ -142,6 +142,8 @@ write_file({
 });
 ```
 
+> **Note**: Use filesystem tools for application code files only. Progress tracking and project state are stored in database entities (Task, Session, Phase, etc.) accessed via ProjectPulse MCP tools, not files.
+
 #### `edit_file`
 
 Make line-based edits
@@ -522,7 +524,7 @@ docker_compose_status();
 
 **Server**: `projectpulse` (Custom MCP server for sprint management, workflow orchestration, issue management, knowledge management, and skills system)
 **When to use**: Sprint management, task tracking, workflow orchestration, issue management, knowledge queries, and skills lazy-loading
-**Status**: Active (Sprint 1-6 complete - 33 tools available: 8 sprint + 6 workflow + 6 issue + 7 knowledge + 8 skills - includes markdown sync)
+**Status**: Active (Sprint 1-6 complete - 32 tools available: 8 sprint + 6 workflow + 6 issue + 7 knowledge + 7 skills)
 
 ### Available Tools
 
@@ -2047,8 +2049,8 @@ projectpulse.sprint.getCurrentTask({ includeHistory: true });
 - Prisma nested writes and select patterns for efficiency
 - Generic route pattern reduces code duplication (1 route for 5 entity types)
 - Progress propagation uses incremental transactions to prevent deadlocks
-- See: `.agent/task/prisma-sprint-tools-20251107-0630.md`
-- See: `.agent/task/days-10-12-verification-report.md`
+- Implementation notes tracked in database (Session and Checkpoint entities)
+- Verification results available via `projectpulse.sprint.queryHierarchy` for completed work
 
 ---
 
@@ -2378,67 +2380,6 @@ Efficiency varies by client capability:
 - [Prisma](https://www.prisma.io/)
 
 ---
-
----
-
-#### `projectpulse.markdown.sync`
-
-Sync markdown files from database to filesystem. Generates STATUS.md and other auto-generated documentation from current project state.
-
-**Parameters**:
-
-```typescript
-{
-  category?: "tracking" | "industry_doc" | "memory_bank",  // Filter by category (optional, syncs all if omitted)
-  force?: boolean  // Force sync even if content hash matches (default: false)
-}
-```
-
-**Usage Examples**:
-
-```typescript
-// 1. Sync all markdown files (skip unchanged)
-await markdownSync({});
-
-// 2. Sync only tracking documents (STATUS.md, etc.)
-await markdownSync({ category: "tracking" });
-
-// 3. Force sync all files (ignore content hash)
-await markdownSync({ force: true });
-```
-
-**Response**:
-
-```typescript
-{
-  syncedCount: number,        // Files successfully synced
-  skippedCount: number,       // Files skipped (unchanged)
-  errorCount: number,         // Files that failed
-  duration: number,           // Total duration in milliseconds
-  files: Array<{
-    slug: string,             // Document slug
-    path: string,             // File path
-    status: "synced" | "skipped" | "error",
-    message?: string,         // Status message
-    duration: number          // Per-file duration
-  }>
-}
-```
-
-**When to Use**:
-
-- After updating hierarchy state (progress, tasks, sessions)
-- After completing a sprint or phase
-- Before creating a pull request (ensure docs are current)
-- When STATUS.md is out of sync with database
-
-**Git Hooks Integration**:
-
-Markdown files synced by this tool are protected by git hooks (see [.agent/sops/git-workflow.md](../sops/git-workflow.md#git-hooks-generated-files-protection)).
-
-**Performance**: Target <500ms per file (P95)
-
-**Source**: [apps/mcp-server/src/tools/markdownSync.ts](../../apps/mcp-server/src/tools/markdownSync.ts)
 
 ---
 
@@ -2966,7 +2907,7 @@ projectpulse.skill.linkKnowledge({
 ---
 
 **Last Updated:** 2025-11-13
-**MCP Status:** Core tools configured + ProjectPulse MCP server active (33 tools)
-**Completed:** Sprint 1-6 complete (8 sprint + 6 workflow + 6 issue + 7 knowledge + 8 skills + markdown sync)
+**MCP Status:** Core tools configured + ProjectPulse MCP server active (32 tools)
+**Completed:** Sprint 1-6 complete (8 sprint + 6 workflow + 6 issue + 7 knowledge + 7 skills)
 
 **See also**: [.agent/progress.md](../progress.md) for current project status

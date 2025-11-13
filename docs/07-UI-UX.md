@@ -48,14 +48,14 @@ ProjectPulse is an **agent-first platform** with a dual-purpose UI:
 - **Actionable Insights:** Every metric should have a clear action (approve, reject, override)
 - **Progressive Disclosure:** Show summary by default, details on demand
 - **Agent-Human Harmony:** Clearly distinguish agent actions from human edits
-- **Read-Only Safety:** Markdown files auto-generated (database is source of truth)
+- **Database as Truth:** All state stored in database; UI is read-only view layer
 
 ### 1.2 Dual User Experience
 
 #### Agent Experience (MCP)
 
 - **No Visual Interface:** Agents interact purely via MCP tools (41 tools)
-- **Context Files:** Agents read markdown files for context (STATUS.md, docs/13-Project-Plan.md)
+- **Database Context:** Agents query database via MCP tools for current state (sessions, tasks, progress)
 - **Database Operations:** All CRUD operations via MCP tools → Database → UI reflects changes
 - **Feedback Loop:** Agent actions visible in UI immediately (WebSocket real-time updates)
 
@@ -108,7 +108,7 @@ Agents don't interact with UI directly, but their actions are reflected in real-
 1. **Dashboard:** Task card moves from "Not Started" → "In Progress"
 2. **Sprint View:** Progress bar animates from 0% → 30% → 60% → 100%
 3. **Activity Feed:** Real-time updates: "Agent checkpoint: 15K tokens (30% complete)"
-4. **Markdown Files:** STATUS.md auto-updates with latest progress
+4. **Database Updates:** Session and task progress update in real-time, visible in Development Cycle UI
 5. **Notification Badge:** "Task completed by agent" notification appears
 
 **Human Interaction:** Zero required (agent completes task autonomously)
@@ -118,7 +118,7 @@ Agents don't interact with UI directly, but their actions are reflected in real-
 - **Real-time progress indicators** (WebSocket-powered)
 - **Agent activity timeline** (chronological log of MCP calls)
 - **Checkpoint visualization** (token usage chart, progress timeline)
-- **Auto-generated context files** (markdown files update automatically)
+- **Database-backed state** (session and task data stored in DB, accessible via UI/MCP)
 - **Agent vs Human attribution** (createdBy: "agent" badge on all entities)
 
 **Requirements:** FR-032 to FR-056 (Workflow Orchestration)
@@ -697,12 +697,12 @@ Features:
 │                                                         │
 │ Step 1: Initialize Session                             │
 │ ✅ Status: Complete (5 minutes)                        │
-│ └ Created .agent/task/current-session-[timestamp].md   │
+│ └ Session record created in database (ID: 123)         │
 │                                                         │
 │ Step 2: Create Plan                                    │
 │ ✅ Status: Complete (15 minutes)                       │
-│ └ Saved to .agent/task/current-plan.md                 │
-│ └ Created current-todos.md                             │
+│ └ Plan saved to database (Plan ID: 456)                │
+│ └ 12 todos created in database                         │
 │                                                         │
 │ Step 3: Expert Consultation                            │
 │ ✅ Status: Complete (10 minutes)                       │
@@ -721,7 +721,7 @@ Features:
 │ ✅ All required steps must be completed sequentially    │
 │ ✅ Cannot skip steps 1, 2, 3, 5 (mandatory)            │
 │ ✅ Step 4 requires minimum 15K tokens (checkpoint)     │
-│ ✅ Step 5 must update STATUS.md and commit docs        │
+│ ✅ Step 5 must update session state and task progress in DB │
 │                                                         │
 │ ────────────────── Recovery Options ──────────────────│
 │                                                         │
@@ -873,9 +873,9 @@ Features:
 ```
 1. Agent: workflow.start("5-step-protocol", taskId: 456)
 2. UI: Active card appears, Step 1 highlighted 🔄
-3. Agent: workflow.completeStep(id, 1, {sessionFile: "current-session.md"})
+3. Agent: workflow.completeStep(id, 1, {sessionId: 123, sessionData: {...}})
 4. UI: Step 1 ✅; Step 2 current (40%)
-5. Agent: workflow.completeStep(id, 2, {planFile: "current-plan.md"})
+5. Agent: workflow.completeStep(id, 2, {planId: 456, todosCreated: 12})
 6. Agent: workflow.completeStep(id, 3, {experts: ["react-expert", "next-js-expert"]})
 7. Agent: checkpoint at 30K tokens; timeline shows 🔖
 8. Agent: workflow.completeStep(id, 4, {filesModified: 12})
