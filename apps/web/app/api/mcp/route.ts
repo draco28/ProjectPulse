@@ -43,6 +43,16 @@ import {
   knowledgeArchiveHandler,
 } from '@/lib/mcp/handlers/knowledge-handler';
 import {
+  skillListHandler,
+  skillLoadHandler,
+  skillSearchHandler,
+  skillUpdateHandler,
+  skillDeleteHandler,
+  skillExportHandler,
+  skillImportHandler,
+  skillLinkKnowledgeHandler,
+} from '@/lib/mcp/handlers/skill-handler';
+import {
   listKnowledgeResources,
   readKnowledgeResource,
 } from '@/lib/mcp/resources/knowledge-resource';
@@ -216,12 +226,36 @@ export async function POST(request: NextRequest) {
         case 'knowledge.archive':
           result = await knowledgeArchiveHandler(args);
           break;
+        case 'skill.list':
+          result = await skillListHandler(args);
+          break;
+        case 'skill.load':
+          result = await skillLoadHandler(args);
+          break;
+        case 'skill.search':
+          result = await skillSearchHandler(args);
+          break;
+        case 'skill.update':
+          result = await skillUpdateHandler(args);
+          break;
+        case 'skill.delete':
+          result = await skillDeleteHandler(args);
+          break;
+        case 'skill.export':
+          result = await skillExportHandler(args);
+          break;
+        case 'skill.import':
+          result = await skillImportHandler(args);
+          break;
+        case 'skill.linkKnowledge':
+          result = await skillLinkKnowledgeHandler(args);
+          break;
         default:
           throw new MCPError(
             `Unknown tool: ${name}`,
             JSONRPC_ERROR_CODES.METHOD_NOT_FOUND,
             404,
-            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export', 'knowledge.import', 'knowledge.archive'] }
+            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export', 'knowledge.import', 'knowledge.archive', 'skill.list', 'skill.load', 'skill.search', 'skill.update', 'skill.delete', 'skill.export', 'skill.import', 'skill.linkKnowledge'] }
           );
       }
     } else if (jsonrpcRequest.method === 'tools/list') {
@@ -334,6 +368,141 @@ export async function POST(request: NextRequest) {
                 unarchive: { type: 'boolean', default: false },
               },
               required: ['itemId'],
+            },
+          },
+          {
+            name: 'skill.list',
+            description: 'List skills with frontmatter only (excludes content for token efficiency)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
+                category: { type: 'string', enum: ['framework', 'testing', 'workflow', 'troubleshooting', 'custom'] },
+                tags: { type: 'array', items: { type: 'string' }, maxItems: 10 },
+                frameworks: { type: 'array', items: { type: 'string' }, maxItems: 5 },
+                sortBy: { type: 'string', enum: ['title', 'usageCount', 'lastLoadedAt', 'createdAt', 'updatedAt'], default: 'title' },
+                sortOrder: { type: 'string', enum: ['asc', 'desc'], default: 'asc' },
+                page: { type: 'number', minimum: 1, default: 1 },
+                limit: { type: 'number', minimum: 1, maximum: 50, default: 10 },
+              },
+              required: ['projectId'],
+            },
+          },
+          {
+            name: 'skill.load',
+            description: 'Load full skill content on-demand (includes content field)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
+                slug: { type: 'string', minLength: 1, maxLength: 100 },
+                incrementUsage: { type: 'boolean', default: true, description: 'Track usage count' },
+              },
+              required: ['projectId', 'slug'],
+            },
+          },
+          {
+            name: 'skill.search',
+            description: 'Search skills by keywords, tags, or frameworks (full-text search)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
+                query: { type: 'string', minLength: 1, maxLength: 200 },
+                category: { type: 'string', enum: ['framework', 'testing', 'workflow', 'troubleshooting', 'custom'] },
+                tags: { type: 'array', items: { type: 'string' }, maxItems: 10 },
+                frameworks: { type: 'array', items: { type: 'string' }, maxItems: 5 },
+                limit: { type: 'number', minimum: 1, maximum: 50, default: 10 },
+              },
+              required: ['projectId', 'query'],
+            },
+          },
+          {
+            name: 'skill.update',
+            description: 'Update skill content (partial update supported)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
+                slug: { type: 'string', minLength: 1, maxLength: 100 },
+                updates: {
+                  type: 'object',
+                  properties: {
+                    title: { type: 'string', minLength: 1, maxLength: 200 },
+                    content: { type: 'string', minLength: 10, maxLength: 50000 },
+                    category: { type: 'string', minLength: 1, maxLength: 50 },
+                    description: { type: 'string', maxLength: 500 },
+                    tags: { type: 'array', items: { type: 'string' }, maxItems: 20 },
+                    frameworks: { type: 'array', items: { type: 'string' }, maxItems: 10 },
+                  },
+                },
+              },
+              required: ['projectId', 'slug', 'updates'],
+            },
+          },
+          {
+            name: 'skill.delete',
+            description: 'Delete skill permanently (cascades to skill-knowledge links)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
+                slug: { type: 'string', minLength: 1, maxLength: 100 },
+              },
+              required: ['projectId', 'slug'],
+            },
+          },
+          {
+            name: 'skill.export',
+            description: 'Export skills to markdown ZIP archive (YAML frontmatter format)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
+                category: { type: 'string', enum: ['framework', 'testing', 'workflow', 'troubleshooting', 'custom'] },
+                tags: { type: 'array', items: { type: 'string' }, maxItems: 10 },
+                frameworks: { type: 'array', items: { type: 'string' }, maxItems: 5 },
+              },
+              required: ['projectId'],
+            },
+          },
+          {
+            name: 'skill.import',
+            description: 'Import skills from markdown files with YAML frontmatter (batch up to 50)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
+                files: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      filename: { type: 'string', description: 'Must end with .md' },
+                      content: { type: 'string', description: 'Markdown with YAML frontmatter' },
+                    },
+                    required: ['filename', 'content'],
+                  },
+                  minItems: 1,
+                  maxItems: 50,
+                },
+                overwriteExisting: { type: 'boolean', default: false },
+              },
+              required: ['projectId', 'files'],
+            },
+          },
+          {
+            name: 'skill.linkKnowledge',
+            description: 'Link or unlink skill to/from knowledge item (many-to-many relationship)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
+                skillSlug: { type: 'string', minLength: 1, maxLength: 100 },
+                knowledgeItemId: { type: 'number' },
+                action: { type: 'string', enum: ['link', 'unlink'], default: 'link' },
+              },
+              required: ['projectId', 'skillSlug', 'knowledgeItemId'],
             },
           },
         ],
