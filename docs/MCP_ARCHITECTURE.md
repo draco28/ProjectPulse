@@ -764,7 +764,7 @@ curl -X POST http://192.168.1.15:3000/api/mcp \
   }'
 ```
 
-**Results**: All 3 knowledge tools + resources validated ✅ (see `.agent/task/current-todos.md` for details)
+**Results**: All 3 knowledge tools + resources validated ✅ (validation tracked in database Session records)
 
 ### End-to-End Testing
 
@@ -998,12 +998,11 @@ claude_code_config.json               # Client configuration example (complete)
 
 - [MCP Quick Start Guide](./MCP_QUICK_START.md) - End-user setup instructions
 - [MCP API Reference](./MCP_API_REFERENCE.md) - JSON-RPC API documentation (next)
-- [Sprint 5.5 Implementation Plan](../apps/web/.agent/task/sprint-5.5-mcp-server-plan.md) - Original 5-day plan
 
-### Internal Documentation
+### Implementation History
 
-- [Next.js MCP HTTP Route Research](./.agent/task/nextjs-mcp-http-route-20251112-1420.md) - HTTP transport analysis
-- [Current Session Notes](./.agent/task/current-session-20251112-2240.md) - Implementation progress
+- Sprint 5.5 implementation tracked in database (Phase/Week/Day/Session entities)
+- HTTP transport research and session progress available via `GET /api/sessions?sprint=5.5`
 
 ---
 

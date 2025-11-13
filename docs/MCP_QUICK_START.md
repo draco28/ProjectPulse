@@ -363,7 +363,7 @@ curl -X POST 'http://192.168.1.15:3000/api/mcp' \
 **Documentation**:
 - Full API Reference: `docs/MCP_API_REFERENCE.md` (coming in Day 5)
 - Architecture Details: `docs/MCP_ARCHITECTURE.md` (coming in Day 5)
-- Implementation Plan: `apps/web/.agent/task/sprint-5.5-mcp-server-plan.md`
+- Implementation History: Available via `GET /api/sessions?sprint=5.5` (database query)
 
 **Issues**: Report via GitHub Issues or contact project maintainer
 

@@ -15,9 +15,9 @@ This document describes the complete system architecture of ProjectPulse, an age
 **Architecture Principles:**
 
 1. **Agent-First Design:** MCP tools are the primary interface, UI is secondary
-2. **Database as Source of Truth:** All state in database; end users view data in the web UI. Optional internal markdown export for dogfooding only (see [ADR-002](architecture/ADRs/ADR-002-database-as-source-of-truth.md))
+2. **Database as Source of Truth:** All state in PostgreSQL; exposed via Web UI and MCP tools (no repository file writes)
 3. **Token Efficiency:** 92% reduction for skills, 88% for knowledge queries
-4. **Local-First:** $0 budget, runs entirely on localhost
+4. **Cloud SaaS:** Multi-user deployment with per-project access and API keys
 5. **Stateless Agent Operation:** Persistent state enables context-free execution
 
 **Related Documents:**
@@ -28,7 +28,7 @@ This document describes the complete system architecture of ProjectPulse, an age
 - [04-Data-and-Model-Spec.md](04-Data-and-Model-Spec.md) - Database Schema
 - [12-Backlog.md](12-Backlog.md) - User Stories
 
-> Note: The legacy `DEVELOPMENT_PLAN.md` is retired. For end users, the sources of truth are the database and the web UI (Development Cycle page, Wiki, Issues). Any markdown files (e.g., `STATUS.md`) are internal dogfooding artifacts only, not part of end-user projects.
+> Note: The legacy `DEVELOPMENT_PLAN.md` is retired. For end users, the sources of truth are the database and the web UI (Development Cycle page, Wiki, Issues). Local markdown files are not part of the product.
 
 ---
 
@@ -66,7 +66,8 @@ This document describes the complete system architecture of ProjectPulse, an age
   │                                           │
   │  ┌──────────────┐  ┌──────────────┐      │
   │  │   Web UI     │  │  MCP Server  │      │
-  │  │  (Next.js)   │  │  (stdio)     │      │
+  │  │  (Next.js)   │  │  (HTTP JSON- │      │
+  │  │              │  │  RPC + SSE)  │      │
   │  │              │  │              │      │
   │  │  - /wiki     │  │  - wiki.*    │      │
   │  │  - /kb       │  │  - kb.*      │      │
@@ -123,24 +124,23 @@ C4Context
     Person(developer, "Solo Developer", "Human monitoring and manual operations<br/>Secondary User (5% interaction)")
 
     System_Boundary(devhub, "ProjectPulse") {
-        System(mcp_server, "MCP Server", "41 tools across 9 features<br/>stdio transport")
+    System(mcp_server, "MCP Server", "41 tools across 9 features<br/>HTTP JSON-RPC + SSE streaming")
         System(web_app, "Next.js Web App", "Monitoring dashboard + Manual CRUD<br/>React Server Components")
         SystemDb(database, "PostgreSQL", "Single source of truth<br/>Prisma ORM")
     }
 
     System_Ext(git, "Git Repository", "Version control, branches, commits")
-    System_Ext(filesystem, "File System", "Internal dogfooding-only markdown export (optional)<br/>.agent/ folder, STATUS.md")
+    %% File System removed from product scope
     System_Ext(docker, "Docker", "PostgreSQL container<br/>Development environment")
     System_Ext(embedding_api, "Embedding API", "OpenAI text-embedding-3-small<br/>Optional: local embeddings")
 
-    Rel(agent, mcp_server, "Executes workflows via MCP", "stdio, 41 tools")
+    Rel(agent, mcp_server, "Executes workflows via MCP", "HTTP JSON-RPC + SSE, 41 tools")
     Rel(developer, web_app, "Monitors progress, manual CRUD", "HTTPS")
 
     Rel(mcp_server, database, "CRUD operations", "Prisma queries")
     Rel(web_app, database, "Read/write state", "Prisma queries")
 
-    Rel(mcp_server, filesystem, "Reads internal markdown export (optional)", "Node.js fs")
-    Rel(database, filesystem, "Optional internal markdown export (dogfooding only)", "Post-transaction hooks")
+    %% No filesystem export relationships (DB is SoT)
 
     Rel(mcp_server, git, "git add, commit (via agent)", "shell commands")
     Rel(agent, git, "git checkout, push", "shell commands")
@@ -155,10 +155,10 @@ C4Context
 
 | Actor/System             | Primary Interface      | Purpose                                                 | Volume                     |
 | ------------------------ | ---------------------- | ------------------------------------------------------- | -------------------------- |
-| AI Agent → MCP Server    | stdio, 41 MCP tools    | Execute workflows (5-step protocol)                     | 95% interaction            |
+| AI Agent → MCP Server    | HTTP JSON-RPC + SSE    | Execute workflows (5-step protocol)                     | 95% interaction            |
 | Developer → Web App      | HTTPS, React UI        | Monitor progress, manual CRUD                           | 5% interaction             |
 | MCP Server → Database    | Prisma ORM             | State persistence (Phase, Week, Day, Task, Session)     | ~100 queries/minute        |
-| Database → File System   | Post-transaction hooks | Optional internal markdown export (dogfooding only)     | On state change            |
+| Database → File System   | —                      | —                                                       | —                          |
 | Database → Embedding API | REST API               | Generate embeddings for knowledge items                 | On knowledge create/update |
 
 **Design Decision Reference:** See [ADR-001](architecture/ADRs/ADR-001-agent-first-architecture.md) for agent-first architecture rationale.
@@ -174,15 +174,15 @@ Note: Tool count may expand; 41 represents current scope.
 **Traditional AI Development (Problems):**
 ```
 my-project/
-├── .agent/                 ← Dozens of markdown files
-│   ├── memory-banks/       ← More clutter
-│   ├── task/               ← Even more files
-│   └── sops/               ← Documentation sprawl
-├── .claude/                ← Configuration files
-│   ├── skills/             ← More markdown
-│   └── agents/             ← Agent configs
-├── STATUS.md               ← Progress tracking
-├── DEVELOPMENT_PLAN.md     ← Planning docs
+├── .agent/                 ← Dozens of files (clutter)
+│   ├── memory-banks/
+│   ├── task/
+│   └── sops/
+├── .claude/                ← Config and skills files
+│   ├── skills/
+│   └── agents/
+├── STATUS.md               ← Progress tracking file
+├── DEVELOPMENT_PLAN.md     ← Planning file
 └── src/                    ← Actual code (buried)
 ```
 
@@ -192,22 +192,22 @@ my-project/
 └── src/                    ← ONLY source code!
 
 ProjectPulse Database:
-├── memory_banks table      → Replaces .agent/memory-banks/
-├── skills table            → Replaces .claude/skills/
-├── tickets table           → Replaces .agent/task/
-├── wiki_pages table        → Replaces STATUS.md
-├── plans table             → Replaces current-plan.md
-└── todos table             → Replaces current-todos.md
+├── memory_banks table      → Structured memory banks
+├── skills table            → Skills catalog (DB records)
+├── tickets table           → Sprint tasks and sessions
+├── wiki_pages table        → Wiki content (DB-stored markdown)
+├── plans table             → Implementation plans (DB records)
+└── todos table             → Todos (DB records)
 ```
 
 **What Traditionally Required Local Files → Now in Cloud:**
-- `.agent/memory-banks/project-brief.md` → `memory_banks` table with type='project-brief'
-- `.agent/memory-banks/system-patterns.md` → `memory_banks` table with type='system-patterns'
-- `.agent/task/current-session.md` → `tickets` table with context snapshots
-- `.claude/skills/*.md` → `skills` table with categorized entries
-- `STATUS.md` → Progress tracking page (/cycle)
-- `current-plan.md` → `plans` table with versioning
-- `current-todos.md` → `todos` table with state tracking
+- Project Brief → `memory_banks` table with type='project-brief'
+- System Patterns → `memory_banks` table with type='system-patterns'
+- Session notes → `sessions` table records and snapshots
+- Skills catalog → `skills` table with categorized entries
+- Progress tracking → Development Cycle page (/cycle)
+- Plans → `plans` table with versioning
+- Todos → `todos` table with state tracking
 
 **Benefits:**
 - **Clean Repos**: Zero AI-related files in user repositories
@@ -231,9 +231,9 @@ ProjectPulse Database:
 **Characteristics:**
 
 - **Type:** Any MCP-compatible agent (Claude Code, Cursor AI, Codex, Cascade)
-- **Interface:** MCP stdio transport, 41 tools
+- **Interface:** MCP over HTTP JSON-RPC + SSE, 41 tools
 - **Behavior:** Autonomous workflow execution, stateless operation
-- **Context:** Reads and writes via MCP to the database; may optionally read internal markdown exports in the ProjectPulse repo (dogfooding only)
+- **Context:** Reads and writes via MCP to the database; UI and MCP responses reflect the latest database state
 - **State Persistence:** All progress saved to database (survives context compaction)
 
 **Primary Workflows:**
@@ -242,7 +242,7 @@ ProjectPulse Database:
 2. **Issue Bulk Creation** (see Section 3.3)
 3. **Knowledge Query** (hybrid search) (see Section 3.4)
 4. **Checkpoint Updates** (every 15K tokens) (see Section 8.2)
-5. **Internal Markdown Export** (dogfooding only; optional)
+5. [Removed] Internal markdown export (not a product feature)
 
 **Requirements Fulfilled:**
 
@@ -276,35 +276,13 @@ ProjectPulse Database:
 
 ### 1.4 External Systems
 
-#### 1.4.1 Git Repository
+#### 1.4.1 Git Repository (Out of Scope)
 
-**Purpose:** Version control for codebase and documentation
+ProjectPulse does not write to user repositories. Git operations are handled by users outside the system. No git hooks or repository file generation are part of the product.
 
-**Integration Points:**
+#### 1.4.2 File System (Removed)
 
-- Agent executes git commands via shell (git add, commit, push)
-- MCP tools do NOT execute git directly (agent handles git workflow)
-- Internal only: ProjectPulse repo may commit markdown snapshots for dogfooding. End-user projects do not generate or commit markdown files.
-
-**Git Hooks:**
-
-- **Pre-commit:** Validates markdown files are auto-generated (prevents manual edits)
-- **Post-commit:** Triggers markdown sync if STATUS.md modified manually (fail-safe)
-
-**Requirements:** FR-027 (Workflow step validation)
-
-#### 1.4.2 File System
-
-**Purpose:** Internal dogfooding-only markdown export (optional; not for end users)
-
-**Key Files (Internal Only):**
-
-- `STATUS.md` - Current phase, last task completed (auto-generated)
-- `.agent/task/current-session-[timestamp].md` - Session notes (agent-created, human-editable)
-- `.agent/task/current-todos.md` - Todo list (auto-generated from database)
-- `.agent/task/current-plan.md` - Implementation plan (agent-created, human-editable)
-
-**Design Decision:** See [ADR-002](architecture/ADRs/ADR-002-database-as-source-of-truth.md) for markdown auto-generation rationale.
+Local filesystem exports are not product functionality. All state persists in the database and is exposed via Web UI and MCP tools.
 
 #### 1.4.3 Docker
 
@@ -367,23 +345,22 @@ C4Container
     Person(developer, "Developer", "Secondary user (5%)")
 
     Container_Boundary(devhub, "ProjectPulse") {
-        Container(mcp_server, "MCP Server", "Node.js, TypeScript", "41 MCP tools<br/>stdio transport<br/>Zod validation")
+        Container(mcp_server, "MCP Server", "Node.js, TypeScript", "41 MCP tools<br/>HTTP JSON-RPC + SSE<br/>Zod validation")
 
         Container(web_app, "Next.js App", "React 18, Next.js 14 App Router", "Server Components<br/>Client Components<br/>shadcn/ui")
 
         ContainerDb(database, "PostgreSQL", "PostgreSQL 15, Prisma ORM", "10 tables<br/>pgvector extension<br/>tsvector full-text")
     }
 
-    Container_Ext(filesystem, "File System", "Markdown files (.agent/, STATUS.md)")
+    %% File System (removed from product scope)
 
-    Rel(agent, mcp_server, "MCP stdio", "41 tools")
+    Rel(agent, mcp_server, "MCP HTTP JSON-RPC + SSE", "41 tools")
     Rel(developer, web_app, "HTTPS", "React UI")
 
     Rel(mcp_server, database, "Prisma Client", "CRUD operations")
     Rel(web_app, database, "Prisma Client", "Server Components")
 
-    Rel(mcp_server, filesystem, "Node.js fs", "Read context")
-    Rel(database, filesystem, "Prisma hooks", "Auto-generate markdown")
+    %% No filesystem relationships; DB is the single source of truth
 
     UpdateRelStyle(agent, mcp_server, $lineColor="blue", $textColor="blue")
 ```
@@ -395,7 +372,7 @@ C4Container
 | MCP Server  | Agent workflow execution | Node.js, TypeScript, Zod            | 1 process, ~50MB RAM    |
 | Next.js App | Human monitoring UI      | React 18, Next.js 14 App Router     | 1 process, ~100MB RAM   |
 | PostgreSQL  | Single source of truth   | PostgreSQL 15, Prisma ORM, pgvector | 1 container, ~200MB RAM |
-| File System | Markdown context storage | Node.js fs module                   | N/A                     |
+| File System | —                        | —                                   | —                       |
 
 **Design Decision:** See [ADR-004](architecture/ADRs/ADR-004-single-mcp-server.md) for single MCP server rationale.
 
@@ -413,7 +390,8 @@ C4Container
 
 **Transport:**
 
-- **Protocol:** stdio (standard input/output)
+- **Protocol:** HTTP JSON-RPC
+- **Streaming:** Server-Sent Events (SSE) for long-running operations, progress, and notifications
 - **Format:** JSON-RPC 2.0
 - **Security:** Local process communication (no network exposure)
 
@@ -554,7 +532,7 @@ To support a 41-tool ecosystem efficiently while maintaining universal client co
 │ ProjectPulse MCP Server                │
 │                                        │
 │ ┌────────────────────────────────────┐ │
-│ │ Mode 1: Traditional MCP (stdio)    │ │
+│ │ Mode 1: Traditional MCP (HTTP JSON-RPC) │ │
 │ │  - 41 tools as function calls      │ │
 │ │  - Works with: ALL MCP clients     │ │
 │ │  - Optimizations: Pagination       │ │
@@ -598,7 +576,7 @@ To support a 41-tool ecosystem efficiently while maintaining universal client co
 ### Dual-Mode Architecture – Adapter Pattern
 
 Clarification: There is ONE MCP server with TWO adapter layers, not two servers.
-- Traditional Adapter: Receives `tools/call` over stdio, routes to shared services.
+- Traditional Adapter: Receives `tools/call` over HTTP JSON-RPC, routes to shared services.
 - Code Execution Adapter: Client-side wrappers import modules but still call the same MCP server; wrappers perform local pre/post-processing for efficiency.
 
 ### Functional Parity Guarantee
@@ -616,7 +594,7 @@ Parity Matrix (Week 5 POC – 3 tools):
 
 | Tool | Traditional Mode | Code Execution Mode | Result Parity |
 |------|------------------|---------------------|---------------|
-| create-issue | Direct stdio call | Wrapper imports service | ✅ Identical |
+| create-issue | HTTP JSON-RPC call | Wrapper imports service | ✅ Identical |
 | search-issues | Server-side filter (20/page) | Local filter (all → 10) | ✅ Identical IDs |
 | filter-issues | Server-side logic | Client-side logic | ✅ Identical |
 
@@ -1064,14 +1042,14 @@ C4Component
    - **Purpose:** Update progress percentage or status
    - **Input:** Entity type, ID, new progress (0.0-1.0) or status
    - **Output:** Updated entity, auto-rolled-up parent progress
-   - **Logic:** Validate progress range, calculate parent roll-up, trigger markdown sync
+   - **Logic:** Validate progress range, calculate parent roll-up, update UI/MCP consistency
    - **Requirements:** FR-002 (Update progress)
 
 4. **`sprint.complete({ type, id })`**
    - **Purpose:** Mark entity as 100% complete
    - **Input:** Entity type, ID
    - **Output:** Updated entity (progress=1.0, status=COMPLETED), parent roll-up
-   - **Logic:** Set progress=1.0, status=COMPLETED, roll-up to parent, trigger markdown sync
+   - **Logic:** Set progress=1.0, status=COMPLETED, roll-up to parent; update UI/MCP consistency
    - **Requirements:** FR-004 (Complete task)
 
 5. **`sprint.getProgress({ type, id? })`**
@@ -1082,10 +1060,10 @@ C4Component
    - **Requirements:** FR-005 (View progress tree)
 
 6. **`sprint.archive({ type, id })`**
-   - **Purpose:** Archive completed entity (move to archive/ folder)
+   - **Purpose:** Archive completed entity (soft delete in DB)
    - **Input:** Entity type, ID
-   - **Output:** Success confirmation, archived file path
-   - **Logic:** Mark as archived (soft delete), move markdown files to archive/
+   - **Output:** Success confirmation
+   - **Logic:** Mark as archived (soft delete)
    - **Requirements:** FR-025 (Archive completed work)
 
 **Progress Roll-Up Algorithm:**
@@ -1106,11 +1084,11 @@ function calculateProgress(entity: Phase | Week | Day | Task): number {
 }
 ```
 
-**Markdown Sync Trigger:**
+**Read-Path Consistency:**
 
-- On progress update: Regenerate STATUS.md (current phase, last task completed)
-- On task complete: Regenerate DEVELOPMENT_PLAN.md (update task status)
-- On session create: Create `.agent/task/current-session-[timestamp].md`
+- On progress update: UI and MCP reads reflect new progress (consistency layer)
+- On task complete: Roll-up progress and update UI/MCP views
+- On session create: New Session record persisted (visible in Development Cycle)
 
 **Requirements Fulfilled:** FR-001 to FR-025
 
@@ -1150,12 +1128,12 @@ C4Component
 ```mermaid
 stateDiagram-v2
     [*] --> CHECK_STATUS: Agent starts session
-    CHECK_STATUS --> CREATE_PLAN: Read STATUS.md, get current task
+    CHECK_STATUS --> CREATE_PLAN: Read current task from database
     CREATE_PLAN --> CREATE_TODOS: Plan approved by user
     CREATE_TODOS --> IMPLEMENT: Todos saved to app
     IMPLEMENT --> IMPLEMENT: Checkpoint every 15K tokens
     IMPLEMENT --> COMPLETE: Implementation done
-    COMPLETE --> [*]: Commit & update STATUS.md
+    COMPLETE --> [*]: Mark complete in database and update roll-ups
 
     CHECK_STATUS --> [*]: Error: No current task
     CREATE_PLAN --> [*]: Error: Plan rejected
@@ -1169,7 +1147,7 @@ stateDiagram-v2
    - **Purpose:** Validate current step prerequisites met
    - **Input:** Workflow ID, step name
    - **Output:** Validation result (pass/fail), missing prerequisites
-   - **Logic:** Check step prerequisites (e.g., CREATE_PLAN requires STATUS.md read)
+   - **Logic:** Check step prerequisites (e.g., CREATE_PLAN requires current task loaded)
    - **Requirements:** FR-027 (Validate step)
 
 2. **`workflow.transitionState({ workflowId, fromStep, toStep })`**
@@ -1190,7 +1168,7 @@ stateDiagram-v2
    - **Purpose:** Record checkpoint (every 15K tokens)
    - **Input:** Workflow ID, token usage, progress notes
    - **Output:** Checkpoint ID, auto-updated progress files
-   - **Logic:** Create checkpoint record, trigger markdown sync, update session file
+   - **Logic:** Create checkpoint record, update progress roll-ups, persist session notes
    - **Requirements:** FR-030 (Checkpoint recording)
 
 5. **`workflow.getActiveWorkflow()`**
@@ -1205,8 +1183,8 @@ stateDiagram-v2
 | Step         | Prerequisites                                | Validation                                 |
 | ------------ | -------------------------------------------- | ------------------------------------------ |
 | CHECK_STATUS | None                                         | Always valid (entry point)                 |
-| CREATE_PLAN  | STATUS.md read, current task identified      | Validate task exists                       |
-| CREATE_TODOS | Plan approved, plan saved to current-plan.md | Validate file exists                       |
+| CREATE_PLAN  | Current task identified (from database)      | Validate task exists                       |
+| CREATE_TODOS | Plan approved, plan saved (DB)               | Validate plan record exists                |
 | IMPLEMENT    | Todos created, git branch checked            | Validate todos non-empty, branch != master |
 | COMPLETE     | All todos 100%, tests passed                 | Validate todo completion, test results     |
 
@@ -1475,7 +1453,7 @@ C4Component
 
     ContainerDb(db, "PostgreSQL", "Prisma ORM", "Skill, SkillUsage tables")
 
-    System_Ext(filesystem, "File System", ".claude/skills/ folder")
+    %% Removed filesystem reference (.claude/skills/)
 
     Rel(skills_tools, skills_service, "Calls", "Business logic")
     Rel(skills_service, skills_repo, "Uses", "Data access")
@@ -1581,7 +1559,7 @@ C4Component
 
     ContainerDb(db, "PostgreSQL", "Prisma ORM", "WikiPage, WikiPageVersion tables")
 
-    System_Ext(filesystem, "File System", "docs/ folder, code files")
+    %% Removed filesystem reference (docs/ folder)
 
     Rel(wiki_tools, wiki_service, "Calls", "Business logic")
     Rel(wiki_service, wiki_repo, "Uses", "Data access")
@@ -2482,7 +2460,7 @@ export function useScrollSpy(ids: string[], options?: IntersectionObserverInit) 
 
 **Component Catalog:**
 
-- See [.agent/system/component-patterns.md](.agent/system/component-patterns.md)
+- See component patterns reference (Architecture docs)
 
 ---
 
@@ -2494,7 +2472,7 @@ export function useScrollSpy(ids: string[], options?: IntersectionObserverInit) 
 
 - **explore-codebase**: Scans repo for patterns, returns summary (saves 20-30K tokens in main thread)
 - **analyze-architecture**: Traces system flows across files, returns architectural insights
-- **synthesize-docs**: Generates SOPs and updates .agent/ folder automatically
+- **synthesize-docs**: Generates SOPs and updates documentation entries in the database
 - **map-system**: Updates system documentation (database-schema.md, api-catalog.md, component-patterns.md)
 
 **Invocation Pattern**:
@@ -2503,15 +2481,15 @@ export function useScrollSpy(ids: string[], options?: IntersectionObserverInit) 
 sequenceDiagram
     participant Main as Main Agent
     participant SubAgent as Sub-Agent (Isolated Thread)
-    participant Context as Context File
+    participant DB as Database
 
-    Main->>Context: Write current-session.md
-    Main->>SubAgent: Invoke with context file path
-    SubAgent->>Context: Read current-session.md
+    Main->>DB: Write Session notes
+    Main->>SubAgent: Invoke with sessionId
+    SubAgent->>DB: Read Session notes
     SubAgent->>SubAgent: Execute research task
-    SubAgent->>Context: Write report file
-    SubAgent->>Main: Return report path
-    Main->>Context: Read report file
+    SubAgent->>DB: Write research report record
+    SubAgent->>Main: Return reportId
+    Main->>DB: Read research report record
     Main->>Main: Use findings for implementation
 ```
 
@@ -2559,8 +2537,8 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Agent
-    participant SessionFile as current-session-[timestamp].md (2K)
-    participant TodosFile as current-todos.md (2K)
+    participant Session as Session (DB record)
+    participant Todos as Todos (DB records)
     participant Progress as progress.md (2K)
 
     Agent->>SessionFile: Read latest session state
@@ -2582,10 +2560,10 @@ sequenceDiagram
     participant Agent as AI Agent
     participant MCP as MCP Server
     participant DB as PostgreSQL
-    participant FS as File System
+    participant UI as Web UI
 
     Note over Agent,FS: STEP 1: Check Status
-    Agent->>FS: Read STATUS.md (current phase, task)
+    Agent->>API: Read current phase/task via MCP
     FS-->>Agent: Current task: "Implement Issue API"
     Agent->>MCP: sprint.getCurrentTask()
     MCP->>DB: SELECT * FROM Task WHERE status='IN_PROGRESS'
@@ -2596,14 +2574,14 @@ sequenceDiagram
     Agent->>Agent: Generate implementation plan
     Agent->>User: Present plan for approval
     User->>Agent: Approve plan
-    Agent->>FS: Write .agent/task/current-plan.md
+    Agent->>API: Persist plan via MCP (Plan entity)
     FS-->>Agent: Plan saved
 
     Note over Agent,FS: STEP 3: Create Todos
     Agent->>MCP: sprint.create({ type: 'todos', data: [...] })
     MCP->>DB: INSERT INTO Task (todos)
     DB-->>MCP: Created todos
-    MCP->>FS: Trigger markdown sync (current-todos.md)
+    MCP->>DB: Persist todos; UI/MCP reflect changes
     FS-->>MCP: Markdown generated
     MCP-->>Agent: Todos created
 
@@ -2613,7 +2591,7 @@ sequenceDiagram
         Agent->>MCP: workflow.recordCheckpoint({ tokenUsage, progress })
         MCP->>DB: INSERT INTO Session (tokenUsage, progress)
         DB-->>MCP: Checkpoint recorded
-        MCP->>FS: Update current-session.md
+        MCP->>DB: Create Session record with notes
         FS-->>MCP: Session updated
         MCP-->>Agent: Checkpoint saved
     end
@@ -2624,7 +2602,7 @@ sequenceDiagram
     DB-->>MCP: Task completed
     MCP->>DB: UPDATE parent (Day, Week, Phase) progress
     DB-->>MCP: Progress rolled up
-    MCP->>FS: Trigger markdown sync (STATUS.md, DEVELOPMENT_PLAN.md)
+    MCP->>DB: Update progress; recalc roll-ups; UI/MCP reflect new state
     FS-->>MCP: Markdown regenerated
     MCP-->>Agent: Task complete
     Agent->>Git: git add . && git commit -m "..."
@@ -2633,10 +2611,10 @@ sequenceDiagram
 
 **Key Data Flows:**
 
-1. **Agent → File System:** Read STATUS.md, DEVELOPMENT_PLAN.md for context
+1. **Agent → MCP/API:** Read current hierarchy and progress for context
 2. **Agent → MCP Server:** Execute MCP tools (41 tools)
 3. **MCP Server → Database:** CRUD operations (Prisma Client)
-4. **Database → File System:** Auto-generate markdown (post-transaction hooks)
+4. **Read Path Consistency:** UI/MCP reflect DB changes (cache invalidation/SSE)
 5. **Agent → Git:** Commit changes (not via MCP, direct shell commands)
 
 **Requirements Fulfilled:** FR-032 to FR-056 (Workflow Orchestration)
@@ -2713,128 +2691,30 @@ sequenceDiagram
     participant Agent as AI Agent
     participant MCP as MCP Server
     participant DB as PostgreSQL
-    participant SyncSvc as Markdown Sync Service
-    participant FS as File System
-    participant Git as Git (pre-commit hook)
+    participant Consistency as Consistency Service
+participant Consistency as Consistency Layer
 
     Note over Agent,Git: Agent updates progress
     Agent->>MCP: sprint.update({ type: 'task', id, progress: 0.5 })
     MCP->>DB: UPDATE Task SET progress=0.5
     DB-->>MCP: Task updated
 
-    Note over DB,FS: Post-transaction hook triggers sync
-    DB->>SyncSvc: Trigger markdown sync (Task updated)
-    SyncSvc->>DB: Fetch updated Task with relationships
-    DB-->>SyncSvc: Task { id, title, progress, parent: Day, ... }
-
-    Note over SyncSvc: Generate STATUS.md
-    SyncSvc->>SyncSvc: Render STATUS.md template
-    SyncSvc->>FS: Write STATUS.md
-    FS-->>SyncSvc: File written
-
-    Note over SyncSvc: Generate DEVELOPMENT_PLAN.md
-    SyncSvc->>SyncSvc: Render DEVELOPMENT_PLAN.md template
-    SyncSvc->>FS: Write DEVELOPMENT_PLAN.md
-    FS-->>SyncSvc: File written
-
-    Note over SyncSvc: Generate .agent/task/current-todos.md
-    SyncSvc->>SyncSvc: Render current-todos.md template
-    SyncSvc->>FS: Write .agent/task/current-todos.md
-    FS-->>SyncSvc: File written
-
-    SyncSvc->>DB: INSERT INTO MarkdownFile (path, syncedAt)
-    DB-->>SyncSvc: Sync recorded
-    SyncSvc-->>DB: Sync complete
-
-    Note over Agent,Git: Agent commits changes
-    Agent->>Git: git add STATUS.md DEVELOPMENT_PLAN.md .agent/
-    Git->>Git: Pre-commit hook: Validate markdown files have "Auto-generated" banner
-    Git-->>Agent: Validation passed
-    Agent->>Git: git commit -m "Update task progress"
-    Git-->>Agent: Committed
+    Note over DB,Consistency: Post-transaction: update read-paths
+    DB->>Consistency: Publish progress update event
+    Consistency->>UI: Invalidate caches; refresh Development Cycle view
+    Consistency->>MCP: Stream progress update over SSE (if subscribed)
 ```
 
-**Markdown Templates:**
+**Consistency Layer (read-path refresh):**
 
 ```typescript
-// STATUS.md template
-const statusTemplate = (phase: Phase) => `
-<!-- Auto-generated from database. DO NOT EDIT MANUALLY. -->
-# Project Status
-
-**Current Phase:** ${phase.name} (${(phase.progress * 100).toFixed(1)}%)
-**Last Updated:** ${new Date().toISOString()}
-
-## Progress
-
-- Phase ${phase.order}: ${phase.name} - ${(phase.progress * 100).toFixed(1)}%
-  ${phase.weeks.map((week) => `- Week ${week.weekNumber}: ${week.name} - ${(week.progress * 100).toFixed(1)}%`).join('\n  ')}
-
-## Last Task Completed
-
-${phase.lastCompletedTask?.title ?? 'None'}
-`;
-
-// DEVELOPMENT_PLAN.md template
-const developmentPlanTemplate = (phases: Phase[]) => `
-<!-- Auto-generated from database. DO NOT EDIT MANUALLY. -->
-# Development Plan
-
-${phases
-  .map(
-    (phase) => `
-## Phase ${phase.order}: ${phase.name}
-
-**Progress:** ${(phase.progress * 100).toFixed(1)}%
-**Estimated Hours:** ${phase.estimatedHours}
-
-${phase.weeks
-  .map(
-    (week) => `
-### Week ${week.weekNumber}: ${week.name}
-
-${week.days
-  .map(
-    (day) => `
-#### Day ${day.dayNumber}: ${day.name}
-
-${day.tasks
-  .map(
-    (task) => `
-- [${task.status === 'COMPLETED' ? 'x' : ' '}] ${task.title} (${(task.progress * 100).toFixed(1)}%)
-`
-  )
-  .join('')}
-`
-  )
-  .join('')}
-`
-  )
-  .join('')}
-`
-  )
-  .join('')}
-`;
+// Publish consistency events to refresh UI/MCP read paths
+function publishConsistencyEvent(evt: { entity: string; id: string }) {
+  // Invalidate UI caches; push SSE updates to subscribed MCP clients
+}
 ```
 
-**Pre-Commit Hook Validation:**
-
-```bash
-#!/bin/bash
-# .git/hooks/pre-commit
-
-# Check if markdown files have "Auto-generated" banner
-for file in STATUS.md DEVELOPMENT_PLAN.md .agent/task/current-todos.md; do
-  if git diff --cached --name-only | grep -q "$file"; then
-    if ! head -n 1 "$file" | grep -q "Auto-generated"; then
-      echo "Error: $file missing 'Auto-generated' banner. Markdown files must be generated from database."
-      exit 1
-    fi
-  fi
-done
-```
-
-**Requirements Fulfilled:** FR-006 to FR-008 (Markdown sync)
+**Requirements Fulfilled:** FR-005 (DB/UI/MCP consistency)
 
 **Design Decision:** See [ADR-002](architecture/ADRs/ADR-002-database-as-source-of-truth.md)
 
@@ -2901,38 +2781,27 @@ sequenceDiagram
 
 ### 5.1 Local Development Architecture
 
-**ProjectPulse is designed for local-first development ($0 budget constraint):**
+**ProjectPulse is designed for cloud deployment (SaaS):**
 
 ```mermaid
 C4Deployment
     title Deployment Architecture - Local Development
 
-    Deployment_Node(laptop, "Developer Laptop", "Windows/macOS/Linux") {
-        Deployment_Node(docker, "Docker Desktop", "Docker 24+") {
-            Container(postgres, "PostgreSQL", "PostgreSQL 15 container", "Port 5432")
-        }
-
-        Deployment_Node(node, "Node.js 20+", "Runtime") {
-            Container(mcp_server, "MCP Server", "Node.js process", "stdio transport")
-            Container(web_app, "Next.js App", "Node.js process", "Port 3000")
-        }
-
-        Deployment_Node(filesystem, "File System", "Local disk") {
-            Container(markdown, "Markdown Files", "STATUS.md, DEVELOPMENT_PLAN.md, .agent/")
-            Container(git, "Git Repository", ".git/ folder")
+    Deployment_Node(cloud, "Cloud", "SaaS") {
+        Deployment_Node(cluster, "App Cluster", "Containers/Serverless") {
+            Container(mcp_server, "MCP Server", "Node.js process", "HTTP JSON-RPC + SSE")
+            Container(web_app, "Next.js App", "Node.js process", "HTTPS (UI)")
+            Container(postgres, "PostgreSQL", "Managed PostgreSQL", "Port 5432")
         }
     }
 
     Deployment_Node(ai_agent, "AI Agent Process", "Claude Code, Cursor AI") {
-        Container(agent, "AI Agent", "MCP client", "stdio to MCP Server")
+        Container(agent, "AI Agent", "MCP client", "HTTP JSON-RPC + SSE to MCP Server")
     }
 
-    Rel(agent, mcp_server, "stdio", "MCP protocol")
-    Rel(agent, markdown, "Reads context", "Node.js fs")
+    Rel(agent, mcp_server, "HTTP JSON-RPC + SSE", "MCP protocol")
     Rel(mcp_server, postgres, "TCP 5432", "Prisma Client")
     Rel(web_app, postgres, "TCP 5432", "Prisma Client")
-    Rel(mcp_server, markdown, "Auto-generates", "Node.js fs")
-    Rel(agent, git, "git commands", "shell")
 ```
 
 **Environment Configuration:**
@@ -2981,7 +2850,7 @@ docker-compose up -d
 pnpm prisma migrate dev
 
 # 3. Start MCP Server (runs automatically when agent connects)
-# No manual start needed - agent launches via stdio
+# No manual start needed - agent connects over HTTP JSON-RPC
 
 # 4. Start Next.js App
 pnpm dev # http://localhost:3000
@@ -3005,7 +2874,7 @@ C4Deployment
         }
 
         Deployment_Node(railway, "Railway", "Container hosting") {
-            Container(mcp_server, "MCP Server", "Node.js container", "WebSocket transport")
+            Container(mcp_server, "MCP Server", "Node.js container", "HTTP JSON-RPC + SSE")
         }
 
         Deployment_Node(db_host, "Database Host (Railway/Supabase)") {
@@ -3023,9 +2892,9 @@ C4Deployment
         Container(agentN, "Agent N", "User N")
     }
 
-    Rel(agent1, mcp_server, "WebSocket", "MCP protocol")
-    Rel(agent2, mcp_server, "WebSocket", "MCP protocol")
-    Rel(agentN, mcp_server, "WebSocket", "MCP protocol")
+    Rel(agent1, mcp_server, "HTTP JSON-RPC + SSE", "MCP protocol")
+    Rel(agent2, mcp_server, "HTTP JSON-RPC + SSE", "MCP protocol")
+    Rel(agentN, mcp_server, "HTTP JSON-RPC + SSE", "MCP protocol")
 
     Rel(mcp_server, postgres, "TCP", "Prisma Client")
     Rel(web_app, postgres, "TCP", "Prisma Client")
@@ -3034,7 +2903,7 @@ C4Deployment
 
 **Changes from Local:**
 
-1. **MCP Server Transport:** stdio → WebSocket (multi-user support)
+1. **MCP Server Transport:** HTTP JSON-RPC (tool calls) + SSE (streams)
 2. **Next.js Deployment:** Vercel (serverless functions)
 3. **Database:** Managed PostgreSQL (Railway, Supabase, or AWS RDS)
 4. **Authentication:** Add user accounts, JWT tokens, MCP auth
@@ -3065,18 +2934,24 @@ C4Deployment
 | SQL Injection                     | Prisma ORM (parameterized queries)              | NFR-015 (Input validation)    |
 | XSS (Cross-Site Scripting)        | React auto-escaping, Content Security Policy    | NFR-016 (Output encoding)     |
 | CSRF (Cross-Site Request Forgery) | SameSite cookies, CSRF tokens                   | NFR-017 (CSRF protection)     |
-| Unauthorized MCP Access           | stdio transport (local only, no network)        | NFR-018 (MCP security)        |
-| Markdown Injection                | Validate auto-generated files (pre-commit hook) | NFR-019 (Markdown validation) |
+| Unauthorized MCP Access           | Per-project API keys, HTTP auth middleware      | NFR-018 (MCP security)        |
+| Markdown Injection                | Stored markdown rendered safely in UI           | NFR-019 (Content validation)  |
 | Prototype Pollution               | TypeScript strict mode, Zod validation          | NFR-015 (Input validation)    |
 
-**Authentication & Authorization (Future):**
+**Authentication & Authorization:**
 
-- **Current (MVP):** No authentication (local-only, single user)
-- **Future (Production):**
-  - User authentication: JWT tokens
-  - MCP authentication: Bearer token in MCP transport
-  - Role-based access control (RBAC): Admin, Developer, Read-Only
-  - Workspace isolation: Users can only access their workspace data
+- **UI:** User authentication (OIDC/JWT)
+- **MCP:** Per-project API keys (header-based), scoped permissions, rotation/revocation
+- **RBAC (future):** Admin, Developer, Read-Only
+- **Workspace isolation:** Project-scoped data access (user-owned projects; orgs optional later)
+
+**MCP Authentication Details:**
+
+- Header: `Mcp-Api-Key: <project_api_key>` (required for all MCP requests)
+- Header: `Mcp-Session-Id: <uuid>` (session continuity for JSON-RPC over HTTP)
+- Key lifecycle: create, rotate, revoke via Settings → API Keys (per project)
+- Rate limits: per-key quotas (tool calls/min), burst limits
+- Audit: all MCP requests logged with key ID and project ID
 
 **Secrets Management:**
 
@@ -3303,8 +3178,8 @@ async function trackTokenUsage(operation: string, tokenCost: number) {
 
 **Transport:**
 
-- **Development:** stdio (standard input/output)
-- **Production (Future):** WebSocket (multi-user support)
+- **Tool Calls:** HTTP JSON-RPC
+- **Streaming:** Server-Sent Events (SSE) for long-running operations, progress, and notifications
 
 **Message Format (JSON-RPC 2.0):**
 
@@ -3376,111 +3251,46 @@ async function trackTokenUsage(operation: string, tokenCost: number) {
 
 ---
 
-### 7.2 Git Hooks Integration
+### 7.2 Read-Path Consistency Middleware
 
-**Pre-Commit Hook:**
+**Purpose:** Keep UI and MCP reads consistent with the database after writes.
 
-```bash
-#!/bin/bash
-# .git/hooks/pre-commit
+**Requirements Fulfilled:** FR-027 (Validation), FR-005 (DB/UI/MCP consistency)
 
-echo "Running pre-commit validation..."
-
-# 1. Validate markdown files are auto-generated
-for file in STATUS.md DEVELOPMENT_PLAN.md .agent/task/current-todos.md; do
-  if git diff --cached --name-only | grep -q "$file"; then
-    if ! head -n 1 "$file" | grep -q "Auto-generated"; then
-      echo "❌ Error: $file missing 'Auto-generated' banner"
-      echo "Markdown files must be generated from database, not manually edited"
-      exit 1
-    fi
-  fi
-done
-
-# 2. Run linter (ESLint)
-npm run lint --quiet
-if [ $? -ne 0 ]; then
-  echo "❌ ESLint failed. Fix linting errors before committing."
-  exit 1
-fi
-
-# 3. Run type check (TypeScript)
-npm run type-check
-if [ $? -ne 0 ]; then
-  echo "❌ TypeScript type check failed. Fix type errors before committing."
-  exit 1
-fi
-
-echo "✅ Pre-commit validation passed"
-exit 0
-```
-
-**Post-Commit Hook (Markdown Sync Fail-Safe):**
-
-```bash
-#!/bin/bash
-# .git/hooks/post-commit
-
-# Check if STATUS.md was manually edited (bypass pre-commit)
-if git diff HEAD~1 STATUS.md | grep -q "^-<!-- Auto-generated"; then
-  echo "⚠️ Warning: STATUS.md was manually edited"
-  echo "Triggering markdown sync to restore database consistency..."
-
-  # Trigger markdown sync via MCP tool
-  node -e "const { syncMarkdown } = require('./scripts/sync-markdown.js'); syncMarkdown();"
-
-  echo "✅ Markdown sync complete"
-fi
-```
-
-**Requirements Fulfilled:** FR-027 (Validation), FR-006 to FR-008 (Markdown sync)
-
-**Design Decision:** See [ADR-002](architecture/ADRs/ADR-002-database-as-source-of-truth.md) for markdown validation rationale.
+**Design Decision:** See [ADR-002](architecture/ADRs/ADR-002-database-as-source-of-truth.md)
 
 ---
 
-### 7.3 Markdown Sync Triggers
+### 7.3 Read-Path Consistency Triggers
 
-**Automatic Markdown Sync Events:**
+**Automatic Consistency Events:**
 
-| Event                 | Trigger                          | Files Regenerated                                |
+| Event                 | Trigger                          | Effect                                           |
 | --------------------- | -------------------------------- | ------------------------------------------------ |
-| Task progress updated | sprint.update()                  | STATUS.md, DEVELOPMENT_PLAN.md, current-todos.md |
-| Task completed        | sprint.complete()                | STATUS.md, DEVELOPMENT_PLAN.md                   |
-| Checkpoint recorded   | workflow.recordCheckpoint()      | current-session-[timestamp].md                   |
-| Session created       | Session.create()                 | current-session-[timestamp].md                   |
-| Phase changed         | sprint.update({ type: 'phase' }) | STATUS.md                                        |
+| Task progress updated | sprint.update()                  | UI/MCP show updated progress and roll-ups        |
+| Task completed        | sprint.complete()                | UI/MCP show completion and updated roll-ups      |
+| Checkpoint recorded   | workflow.recordCheckpoint()      | Session/Task progress visible in UI/MCP          |
+| Session created       | Session.create()                 | Session visible in Development Cycle and MCP     |
+| Phase changed         | sprint.update({ type: 'phase' }) | UI/MCP reflect new phase and recalculated status |
 
 **Sync Implementation:**
 
 ```typescript
-// Prisma middleware: Auto-trigger markdown sync
+// Consistency: Ensure UI/MCP reflect latest DB state
 prisma.$use(async (params, next) => {
   const result = await next(params);
 
   // Trigger sync for certain operations
   if (params.model === 'Task' && params.action === 'update') {
-    await syncMarkdownFiles(['STATUS.md', 'DEVELOPMENT_PLAN.md', 'current-todos.md']);
+    await publishConsistencyEvent({ entity: 'Task', id: task.id });
   }
 
   return result;
 });
 
-// Sync function
-async function syncMarkdownFiles(files: string[]) {
-  for (const file of files) {
-    const template = getTemplate(file);
-    const data = await fetchDataForTemplate(file);
-    const content = renderTemplate(template, data);
-    await fs.writeFile(file, content, 'utf-8');
-
-    // Record sync
-    await prisma.markdownFile.upsert({
-      where: { path: file },
-      create: { path: file, content, syncedAt: new Date() },
-      update: { content, syncedAt: new Date() },
-    });
-  }
+// SSE push (optional)
+function pushSSEUpdate(evt: { entity: string; id: string }) {
+  // Broadcast to connected MCP clients
 }
 ```
 
@@ -3501,15 +3311,14 @@ sequenceDiagram
     participant MCP as MCP Server
     participant WorkflowEngine as Workflow Engine
     participant DB as PostgreSQL
-    participant FS as File System
+    participant UI as Web UI
     participant Git
 
     Note over User,Git: Session Start
     User->>Agent: "Implement Issue API feature"
 
     Note over Agent,FS: STEP 1: Check Status
-    Agent->>FS: Read STATUS.md
-    FS-->>Agent: "Current Phase: Phase 3 Week 2 Day 4"
+    Agent->>MCP: sprint.getCurrentTask()
     Agent->>MCP: sprint.getCurrentTask()
     MCP->>DB: SELECT Task WHERE status='IN_PROGRESS'
     DB-->>MCP: Task { id: 123, title: "Implement Issue API" }
@@ -3520,11 +3329,13 @@ sequenceDiagram
     Agent->>User: "Here's the plan: 1) Create Prisma schema, 2) Create API routes, 3) Add validation..."
     User->>Agent: "Approved!"
     Agent->>MCP: workflow.validateStep({ step: 'CREATE_PLAN' })
-    MCP->>WorkflowEngine: Validate prerequisites (STATUS.md read ✅)
+    MCP->>WorkflowEngine: Validate prerequisites (current task loaded ✅)
     WorkflowEngine-->>MCP: Validation passed
     MCP-->>Agent: Step validated
-    Agent->>FS: Write .agent/task/current-plan.md
-    FS-->>Agent: Plan saved
+    Agent->>MCP: plans.create({ taskId: 123, plan: ... })
+    MCP->>DB: INSERT INTO Plan (...)
+    DB-->>MCP: Plan created
+    MCP-->>Agent: Plan saved
 
     Note over Agent,DB: STEP 3: Create Todos
     Agent->>MCP: sprint.create({ type: 'todos', data: [...15 todos...] })
@@ -3532,8 +3343,9 @@ sequenceDiagram
     MCP->>DB: INSERT INTO Task (todos) × 15
     DB-->>MCP: Todos created
     MCP->>DB: COMMIT TRANSACTION
-    MCP->>FS: Trigger markdown sync (current-todos.md)
-    FS-->>MCP: Markdown generated
+    MCP->>DB: INSERT INTO Todo (...)
+    DB-->>MCP: Todos created
+    MCP->>UI: Invalidate Todos view
     MCP-->>Agent: Todos created
 
     Note over Agent,Git: STEP 4: Implement (with checkpoints)
@@ -3542,8 +3354,8 @@ sequenceDiagram
         Agent->>MCP: workflow.recordCheckpoint({ tokenUsage: 15000, progress: 'Completed 3/15 todos' })
         MCP->>DB: INSERT INTO Session (tokenUsage, progress)
         DB-->>MCP: Checkpoint recorded
-        MCP->>FS: Update current-session-[timestamp].md
-        FS-->>MCP: Session updated
+        MCP->>DB: INSERT INTO Session (tokenUsage, progress, notes)
+        DB-->>MCP: Session updated
         MCP-->>Agent: Checkpoint saved
     end
 
@@ -3553,8 +3365,7 @@ sequenceDiagram
     DB-->>MCP: Task completed
     MCP->>DB: UPDATE parent (Day, Week, Phase) progress (roll-up)
     DB-->>MCP: Progress rolled up
-    MCP->>FS: Trigger markdown sync (STATUS.md, DEVELOPMENT_PLAN.md)
-    FS-->>MCP: Markdown regenerated
+    MCP->>UI: Invalidate Development Cycle view
     MCP-->>Agent: Task complete
 
     Agent->>Git: git add .
@@ -3581,8 +3392,7 @@ sequenceDiagram
     participant MCP as MCP Server
     participant WorkflowSvc as Workflow Service
     participant DB as PostgreSQL
-    participant SyncSvc as Markdown Sync Service
-    participant FS as File System
+    participant Consistency as Consistency Service
 
     Note over Agent: Agent reaches 15K tokens
     Agent->>Agent: Check token usage: 15,000 tokens
@@ -3598,25 +3408,13 @@ sequenceDiagram
     WorkflowSvc->>DB: UPDATE Task SET progress=0.2 (3/15 todos)
     DB-->>WorkflowSvc: Task updated
 
-    Note over WorkflowSvc,SyncSvc: Step 3: Trigger markdown sync
-    WorkflowSvc->>SyncSvc: Sync markdown files
-    SyncSvc->>DB: Fetch Task with relationships
-    DB-->>SyncSvc: Task { ..., parent: Day { ..., parent: Week { ... } } }
-
-    SyncSvc->>SyncSvc: Render current-session-[timestamp].md template
-    SyncSvc->>FS: Write current-session-[timestamp].md
-    FS-->>SyncSvc: File written
-
-    SyncSvc->>SyncSvc: Render current-todos.md template
-    SyncSvc->>FS: Write current-todos.md
-    FS-->>SyncSvc: File written
-
-    SyncSvc->>DB: INSERT INTO MarkdownFile (path, syncedAt) × 2
-    DB-->>SyncSvc: Sync recorded
-    SyncSvc-->>WorkflowSvc: Sync complete
+    Note over WorkflowSvc,Consistency: Step 3: Update read paths
+    WorkflowSvc->>Consistency: Publish consistency event
+    Consistency->>UI: Refresh Development Cycle/Todos
+    Consistency->>MCP: Push SSE update (if subscribed)
 
     WorkflowSvc-->>MCP: Checkpoint saved
-    MCP-->>Agent: { checkpointId, filesUpdated: [...] }
+    MCP-->>Agent: { checkpointId }
 
     Note over Agent: Continue implementation
 ```
@@ -3749,9 +3547,10 @@ All architecture decisions are documented in **Architecture Decision Records (AD
    - MCP authentication (bearer tokens)
    - Role-based access control (Admin, Developer, Read-Only)
 
-2. **MCP Transport Change:**
-   - stdio (local) → WebSocket (multi-user)
-   - MCP server as long-running service (not stdio subprocess)
+2. **MCP Transport:**
+   - HTTP JSON-RPC for tool calls
+   - SSE for streaming progress/notifications
+   - MCP server embedded in Next.js (cloud deployment)
 
 3. **Managed Database:**
    - Docker (local) → Managed PostgreSQL (Railway, Supabase, AWS RDS)
@@ -3792,18 +3591,18 @@ All architecture decisions are documented in **Architecture Decision Records (AD
 
 **ProjectPulse** is an agent-first project management platform with a unique architecture optimized for AI agents:
 
-1. **Primary Interface:** MCP tools (41 tools, stdio transport)
+1. **Primary Interface:** MCP tools (41 tools, HTTP JSON-RPC + SSE)
 2. **Secondary Interface:** Next.js web UI (monitoring and manual CRUD)
-3. **Single Source of Truth:** PostgreSQL database (markdown auto-generated)
+3. **Single Source of Truth:** PostgreSQL database (UI/MCP consistency layer)
 4. **Token Efficiency:** 92% reduction for skills, 88% for knowledge queries
 5. **Complete Automation:** Agents execute 5-step protocol autonomously
 
 **Key Architectural Principles:**
 
 - **Agent-First Design:** All features designed for MCP first, UI second
-- **Database as Source of Truth:** Markdown files read-only, auto-generated from database
+- **Database as Source of Truth:** No local repository files; UI/MCP read from the database
 - **Token Efficiency:** Hybrid search, skill loading, progress persistence
-- **Local-First:** $0 budget, runs entirely on localhost
+- **Cloud SaaS:** Multi-user deployment with per-project API keys
 - **Stateless Agent Operation:** Persistent state enables context-free execution
 
 ### 12.2 Requirements Traceability

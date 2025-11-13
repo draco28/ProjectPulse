@@ -7,6 +7,25 @@
 
 ---
 
+## Scope Clarification: Product-Only, No Doc Coding
+
+This PRD defines only end-user and agent-facing features of the ProjectPulse product.
+
+The following are explicitly out of scope for this document and MUST NOT be treated as product features:
+
+- Local markdown files used in internal workflows (for example: `STATUS.md`, `DEVELOPMENT_PLAN.md`, `current-todos.md`, `current-session-*.md`, `current-plan.md`)
+- Special folders such as `.agent/` or `.claude/` in user repositories
+- Git hooks that protect or validate these files
+- Any other internal “doc coding” rituals used by the ProjectPulse team
+
+ProjectPulse, as a product, is a cloud-based system with:
+
+- PostgreSQL database as the single source of truth
+- A web UI for human users
+- An MCP server and tools for AI agents
+
+All state that matters to end users and their agents MUST live in the ProjectPulse database and be exposed via Web UI and MCP tools — not via local files in the user’s repository.
+
 ## 1. Project Overview
 
 ### 1.1 Vision
@@ -16,7 +35,7 @@ ProjectPulse is a **web-based project management platform** that replaces filesy
 - **Web UI for Humans**: Searchable wiki, visual dashboards, issue tracking, knowledge base
 - **MCP API for Agents**: 41 tools for CRUD operations, vector search, progress tracking
 - **Database Storage**: All project data stored in PostgreSQL (docs, issues, knowledge, progress)
-- **Clean Repositories**: User's repo stays free of .agent/ folder clutter
+- **Clean Repositories**: No repository clutter from agent artifacts
 
 **How It Works:**
 1. Developer creates project in ProjectPulse web app
@@ -24,7 +43,7 @@ ProjectPulse is a **web-based project management platform** that replaces filesy
 3. Agent follows guided onboarding prompts from ProjectPulse
 4. Agent stores all data in ProjectPulse database (NOT local files)
 5. Human monitors via web UI (wiki, dashboards, search)
-6. Repository stays clean (no .agent/ folder, no markdown files)
+6. Repository stays clean (no local agent artifacts or generated files)
 
 **Primary Use Case**: Developer creates project → Agent connects via MCP → Agent stores documentation/issues/knowledge in database → Human views via web UI → Repository stays clean.
 
@@ -77,14 +96,14 @@ ProjectPulse provides **prompt templates** that guide AI agents through project 
 **Key Innovation**: ALL context management happens in ProjectPulse cloud, NOT in user repositories.
 
 **Traditional AI Development Problems:**
-- `.agent/` folders → Clutters repository with dozens of files
-- `.claude/` folders → More clutter with skills and configurations
-- `STATUS.md` files → Even more tracking files in repo
+- Local agent-specific folders → Clutter repositories with numerous artifacts
+- Local skill/config folders → Additional clutter and maintenance overhead
+- Local tracking files in repos → Version control noise and drift
 - Lost context on restart → Frustration and repeated work
 - Manual file management → Time wasted organizing AI artifacts
 
 **ProjectPulse Solution (Everything Cloud-Based):**
-- **Memory Banks** → Stored in PostgreSQL database (virtual .agent/ folder)
+- **Memory Banks** → Stored in PostgreSQL database
 - **Agent Personas** → Stored in database, invoked via MCP
 - **Skills/SOPs** → Stored in database, retrieved on-demand
 - **Progress/Plans** → Stored in database, visible in web UI
@@ -125,7 +144,7 @@ ProjectPulse provides **prompt templates** that guide AI agents through project 
 
 **Self-Sufficiency:**
 
-- Database as single source of truth (markdown files auto-generated)
+- Database as single source of truth (all state stored in PostgreSQL and exposed via Web UI and MCP tools)
 - Agent tracks own progress (Sprint/Phase hierarchy updates automatically)
 - Quality enforcement (workflow orchestration ensures consistency)
 - Autonomous decision-making within defined autonomy levels
@@ -161,7 +180,7 @@ ProjectPulse provides **prompt templates** that guide AI agents through project 
 
 2. **Skills (Framework Documentation):**
    - **Agent Need:** Fast retrieval (220 tokens vs 2.5K), keyword-based loading, lazy unload
-   - **Example:** "Implementing Prisma query" → Load `prisma-expert.md` skill → Use → Unload
+   - **Example:** "Implementing Prisma query" → Load `prisma-expert` skill → Use → Unload
 
 3. **Knowledge (RAG + Graph):**
    - **Agent Need:** Smart context retrieval (not full traversal), hybrid search (semantic + full-text), 2-hop graph traversal
@@ -169,7 +188,7 @@ ProjectPulse provides **prompt templates** that guide AI agents through project 
 
 4. **Wiki:**
    - **Agent Need:** Auto-generation from code comments, auto-update on code changes, cross-linking
-   - **Example:** "Update API docs" → Parse JSDoc comments → Generate `/docs/api.md` → Commit
+   - **Example:** "Update API docs" → Parse JSDoc comments → Persist to Wiki in the database (category: "API") → Visible in Web UI and via MCP
 
 5. **Project Health:**
    - **Agent Need:** Auto-categorization (security/quality/a11y/debt), severity scoring, remediation tracking
@@ -184,13 +203,13 @@ ProjectPulse provides **prompt templates** that guide AI agents through project 
    - **Example:** Start 5-step protocol → Track each step → Alert if step 2 (save plan) skipped
 
 8. **Sprint/Phase Tracking:**
-   - **Agent Need:** Automated progress updates (roll-up from session → task → day → week → phase), markdown sync
-   - **Example:** Complete task → Update progress 100% → Auto-update STATUS.md, DEVELOPMENT_PLAN.md
+   - **Agent Need:** Automated progress updates (roll-up from session → task → day → week → phase), real-time UI/MCP sync
+   - **Example:** Complete task → Update progress 100% → Development Cycle view and MCP APIs reflect the new state
 
 **Pain Points Solved:**
 
 - ❌ **Before:** No persistent workflow state across sessions → ✅ **After:** Database tracks all state
-- ❌ **Before:** Manual markdown file updates (drift, inconsistencies) → ✅ **After:** Auto-generated from DB
+- ❌ **Before:** Manual progress tracking spread across files and tools → ✅ **After:** Centralized database-backed Development Cycle and MCP APIs
 - ❌ **Before:** Context retrieval inefficient (full traversal) → ✅ **After:** Smart queries, 88% token reduction
 - ❌ **Before:** Progress not tracked hierarchically → ✅ **After:** 5-level hierarchy with auto-rollup
 - ❌ **Before:** Workflow steps skipped/forgotten → ✅ **After:** Orchestration enforces all 12 workflows
@@ -200,11 +219,11 @@ ProjectPulse provides **prompt templates** that guide AI agents through project 
 ```
 08:00 - Agent starts session → Reads Sprint/Phase tracker (via sprint.getCurrentTask())
 08:05 - Creates plan for "Implement search feature" → Saves to app (workflow.start())
-08:10 - Generates todos → Synced to app (current-todos.md auto-updated)
+08:10 - Generates todos → Saved as structured records in DB → UI and MCP reflect updates
 08:15 - Switches to feature/search branch (git workflow tracked)
-09:00 - Checkpoint 1: Updates progress (15K tokens) → App syncs STATUS.md
+09:00 - Checkpoint 1: Updates progress (15K tokens) → Development Cycle view and MCP responses update
 10:30 - Checkpoint 2: 50% complete → App updates hierarchy
-12:00 - Implementation complete → Marks todos done → App archives plan
+12:00 - Implementation complete → Marks todos done → Plan marked completed in DB
 12:15 - Agent queries Knowledge graph for related patterns (knowledge.query())
 12:30 - Updates Wiki with new search architecture (wiki.update())
 ```
@@ -260,29 +279,31 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 1. **Initialize Session:**
    - MCP Tool: `sprint.getCurrentTask()`
    - Read current phase, week, day, task from database
-   - Create session file: `current-session-[YYYYMMDD-HHMM].md` (auto-generated from DB)
+   - Create a new Session record in the database with timestamp, notes, and token usage. This session is visible on the Development Cycle page and via MCP tools.
 
 2. **Create Implementation Plan:**
    - MCP Tool: `sprint.create(phaseId, planData)`
    - Generate plan in plan mode → Get user approval
-   - Save to database → Auto-generate `current-plan.md`
+   - Save the implementation plan as a structured Plan entity in the database, retrievable via MCP tools and visible in the UI (Plans/Development Cycle).
 
 3. **Create Todo List:**
    - MCP Tools: `sprint.createTodos(taskId, todos[])`
-   - Save todos to database → Auto-generate `current-todos.md`
+   - Save the todo list as structured Todo records in the database, exposed via the Development Cycle / Todos UI and MCP tools.
    - UI TodoWrite synced with database
 
 4. **Implement with Checkpoints:**
    - Every 15K tokens: `sprint.checkpoint({ tokenUsage, progress, notes })`
-   - Auto-update STATUS.md, DEVELOPMENT_PLAN.md from database
-   - Roll up progress: Session (100%) → Task (50%) → Day (25%) → Week (12.5%) → Phase (3%)
+   - Update Session and Task progress in the database
+   - Recalculate rolled-up progress: Session → Task → Day → Week → Phase
+   - Keep the Development Cycle page and MCP responses in sync with the current progress state
 
 5. **Post-Completion:**
    - MCP Tools: `sprint.completeTask(taskId)`, `workflow.completeStep(stepId)`
-   - Archive plan to `.agent/task/archive/`
-   - Commit documentation, then code (separate commits)
+   - Mark the task and associated plan completed in the database
+   - Update workflow state via MCP tools
+   - The Development Cycle page reflects completion
 
-**Success Criteria:** Agent completes entire workflow without skipping steps, all markdown files stay synchronized with database
+**Success Criteria:** Agent completes entire workflow without skipping steps; the database, MCP tools, and UI remain perfectly in sync as the single source of truth
 
 ---
 
@@ -355,14 +376,11 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
    - Day: Auto-calculate from task average
    - Week: Auto-calculate from day average
    - Phase: Auto-calculate from week average
-4. Backend triggers markdown sync:
-   - Regenerate STATUS.md (show current task, 35% progress)
-   - Regenerate DEVELOPMENT_PLAN.md (update phase/week/day/task status)
-   - Regenerate current-session-[timestamp].md (append checkpoint note)
-5. Return success: { markdownSynced: true, filesUpdated: 3 }
+4. The backend updates the Session and Task records, recalculates rolled-up progress (Task → Day → Week → Phase), and ensures the Development Cycle page and MCP responses reflect the new progress state.
+5. Return success: { checkpointSaved: true }
 ```
 
-**Success Criteria:** Checkpoint completes in <500ms, all markdown files updated atomically
+**Success Criteria:** Checkpoint completes in <500ms, and the Development Cycle page and MCP APIs reflect the updated progress state consistently
 
 ---
 
@@ -372,7 +390,7 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 
 | Feature                  | Priority | FR Range             | Description                                                             |
 | ------------------------ | -------- | -------------------- | ----------------------------------------------------------------------- |
-| Sprint/Phase Tracking    | P0       | FR-001 to FR-025     | 5-level hierarchy, auto-markdown sync, progress roll-up                 |
+| Sprint/Phase Tracking    | P0       | FR-001 to FR-025     | 5-level hierarchy, real-time UI/MCP sync, progress roll-up              |
 | Workflow Orchestration   | P0       | FR-032 to FR-056     | Track 12 workflows, enforce consistency, checkpoint recovery            |
 | Issues                   | P0       | FR-051 to FR-070     | CRUD + bulk creation + auto-tagging + context injection                 |
 | Knowledge (RAG + Graph)  | P1       | FR-071 to FR-090     | Hybrid search, semantic embeddings, 2-hop graph traversal               |
@@ -380,7 +398,7 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 | Wiki                     | P2       | FR-106 to FR-115     | Auto-generation from code, cross-linking, version control               |
 | Project Health           | P2       | FR-116 to FR-120     | Security + quality + a11y tracking, auto-categorization                 |
 | Personas                 | P3       | FR-121 to FR-125     | Agent-created sub-agents, project-specific, context-activation          |
-| **Memory Bank System**   | **P0**   | **FR-146 to FR-153** | **Token-efficient context management, 5 structured memory bank files**  |
+| **Memory Bank System**   | **P0**   | **FR-146 to FR-153** | **Token-efficient context management, 5 structured memory bank entries** |
 | **Research Agent Orch.** | **P1**   | **FR-154 to FR-158** | **Isolated sub-agent threads, 92% token reduction, report persistence** |
 | **Ticket System**        | **P3**   | **FR-159 to FR-173** | **Phase 2: Memory bank snapshots for Tasks (Sprint 10+ post-MVP)**      |
 | **Memory Bank Auto-Gen** | **P2**   | **FR-174 to FR-188** | **Auto-update from ticket completion, 5 bank types, snapshot system**   |
@@ -397,7 +415,7 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 
 #### 4.2.1 Sprint/Phase Tracking (P0 - FR-001 to FR-025)
 
-**Purpose:** Hierarchical progress tracking with auto-sync to markdown files
+**Purpose:** Hierarchical progress tracking with real-time UI/MCP sync
 
 **5-Level Hierarchy:**
 
@@ -413,11 +431,10 @@ Project
 **Database as Source of Truth (Critical):**
 
 - All progress tracked in database (Phase, Week, Day, Task, Session tables)
-- Markdown files auto-generated from database (read-only)
-- Git hooks prevent manual markdown edits
-- Agents update database → Database triggers markdown regeneration
+- UI and MCP APIs reflect database changes in real time
+- Progress roll-ups computed and stored in the database
 
-**MCP Tools:** `sprint.create()`, `sprint.updateProgress()`, `sprint.getCurrentTask()`, `sprint.checkpoint()`, `sprint.syncMarkdown()`
+**MCP Tools:** `sprint.create()`, `sprint.updateProgress()`, `sprint.getCurrentTask()`, `sprint.checkpoint()`
 
 **UI:** Interactive hierarchy tree, progress charts, Gantt view
 
@@ -425,7 +442,7 @@ Project
 
 #### 4.2.2 Workflow Orchestration (P0 - FR-032 to FR-056)
 
-**Purpose:** Track and enforce 12+ workflows from CLAUDE.md
+**Purpose:** Track and enforce 12+ predefined workflows (see product documentation)
 
 **UI Presence:** Workflow Orchestration has a standalone top-level page in main navigation (8th page), providing monitoring interface for all 12 predefined workflows.
 
@@ -506,11 +523,11 @@ Project
 
 **Purpose:** Project documentation auto-generation from code
 
-**Auto-Generation:** JSDoc/docstrings → `/docs` folder, cross-linking, version control (git-backed)
+**Auto-Generation:** Parse JSDoc/docstrings, persist and version in the database, with cross-linking and UI rendering
 
 **MCP Tools:** `wiki.create()`, `wiki.update()`, `wiki.read()`, `wiki.search()`, `wiki.autoGenerate()`
 
-**UI:** Wiki pages with hierarchy, rich markdown editor, cross-references
+**UI:** Wiki pages with hierarchy, rich text editor, cross-references
 
 ---
 
@@ -556,7 +573,7 @@ This epic number is intentionally reserved for future features to maintain backw
 
 ---
 
-**Purpose**: Token-efficient context management through structured memory bank files
+**Purpose**: Token-efficient context management through structured memory banks
 
 **The Context Loading Problem**:
 
@@ -569,9 +586,9 @@ Traditional agent workflows load all documentation at session start:
 
 **Solution: Cloud-Based Memory Bank System**
 
-**Important**: Memory banks are stored in ProjectPulse database, NOT as local files in user repositories.
+**Important**: Memory banks are stored in the ProjectPulse database, NOT as local files in user repositories.
 
-Structured memory banks in ProjectPulse cloud (virtual `.agent/` folder):
+Structured memory banks in ProjectPulse cloud:
 
 1. **project-brief** (3K tokens):
    - WHAT the end user is building and WHY
@@ -614,7 +631,7 @@ Structured memory banks in ProjectPulse cloud (virtual `.agent/` folder):
    - **Storage**: `memory_banks` table with type='progress'
    - **Access**: Web UI + MCP tool (`memory.read('progress')`)
 
-**Key Benefit**: End user's repository stays completely clean - no `.agent/` folder needed!
+**Key Benefit**: End user's repository stays completely clean — no local agent artifacts in source control
 
 **Targeted Loading Examples** (via MCP tools):
 
@@ -628,16 +645,16 @@ Need progress overview?             → memory.read('progress') (2K tokens)
 
 **Success Metrics**:
 
-- **Session start**: Load project-brief.md + active-context.md + progress.md = **≤10K tokens** (vs 40K baseline) = **75% reduction**
-- **Pattern lookup**: Grep system-patterns.md for specific pattern = **≤1K tokens** (vs 15K baseline) = **93% reduction**
-- **Context recovery**: Load current-session.md + current-todos.md + progress.md = **≤6K tokens** (vs 40K baseline) = **85% reduction**
+- **Session start**: Load project-brief + active-context + progress entries = ≤10K tokens (vs 40K baseline) = 75% reduction
+- **Pattern lookup**: Search system-patterns for a specific pattern = ≤1K tokens (vs 15K baseline) = 93% reduction
+- **Context recovery**: Load session/todos/progress entries = ≤6K tokens (vs 40K baseline) = 85% reduction
 
 **MCP Tools**:
 
-- `memoryBanks.read()`: Load specific memory bank file
+- `memoryBanks.read()`: Load a specific memory bank entry
 - `memoryBanks.update()`: Update memory bank content
-- `memoryBanks.search()`: Grep for patterns within memory banks
-- `memoryBanks.list()`: List all memory bank files
+- `memoryBanks.search()`: Search for patterns within memory banks
+- `memoryBanks.list()`: List all memory bank entries
 
 **UI**: Memory bank viewer, edit memory banks, search across banks
 
@@ -677,7 +694,7 @@ Isolated agent threads handle research, return concise summaries:
 1. **explore-codebase**:
    - Scans entire repository for patterns, components, architectural elements
    - Returns summary of findings (≤500 tokens)
-   - Saves full report to file for reference
+   - Persists full report in the database for reference
    - Main thread cost: ~2K tokens (invocation + summary)
 
 2. **analyze-architecture**:
@@ -688,13 +705,13 @@ Isolated agent threads handle research, return concise summaries:
 
 3. **synthesize-docs**:
    - Generates SOPs and documentation after feature completion
-   - Updates `.agent/` documentation system automatically
-   - Returns file paths of generated docs
+   - Updates system documentation stored in the database automatically
+   - Returns database record links/IDs for generated docs
    - Main thread cost: ~1K tokens (invocation only)
 
 4. **map-system**:
    - Scans Prisma schema, API routes, React components
-   - Updates `.agent/system/` documentation (database-schema.md, api-catalog.md, component-patterns.md)
+   - Updates system documentation entities (database schema, API catalog, component patterns) in the database
    - Returns summary of changes
    - Main thread cost: ~1K tokens (invocation only)
 
@@ -715,7 +732,7 @@ Main Agent continues implementation (total main thread cost: 2K tokens)
 **Success Metrics**:
 
 - **Research queries**: Complete in ≤2K main thread tokens (vs 25K baseline) = **92% reduction**
-- **Report persistence**: Sub-agent reports saved to files, survive sessions (100% retention)
+- **Report persistence**: Sub-agent reports saved in the database, survive sessions (100% retention)
 - **Parallel execution**: Multiple sub-agents run simultaneously (2+ agents at once)
 
 **MCP Tools**:
@@ -829,7 +846,7 @@ ProjectPulse distinguishes between two types of work items:
 5. Completion:
    Agent: "SearchBar component done, tests passing"
    → Mark Ticket #1 as Complete
-   → Auto-update memory banks (new pattern added to system-patterns.md)
+   → Auto-update memory banks (new pattern added to system-patterns entry)
    → Move to Ticket #2 (next task)
 
 ```
@@ -838,10 +855,10 @@ ProjectPulse distinguishes between two types of work items:
 
 Every ticket includes a **memory bank snapshot** at creation:
 
-- **project-brief.md** state (project context at ticket creation)
-- **system-patterns.md** state (patterns available at ticket creation)
-- **tech-context.md** state (tech stack at ticket creation)
-- **active-context.md** state (sprint context at ticket creation)
+- **project-brief entry** state (project context at ticket creation)
+- **system-patterns entry** state (patterns available at ticket creation)
+- **tech-context entry** state (tech stack at ticket creation)
+- **active-context entry** state (sprint context at ticket creation)
 
 **Why Snapshots Matter**:
 
@@ -856,12 +873,12 @@ Every ticket includes a **memory bank snapshot** at creation:
 
 Day 1: Create Ticket #5 (Implement AuthMiddleware)
 
-- Snapshot: system-patterns.md includes "JWT validation pattern"
+- Snapshot: system-patterns entry includes "JWT validation pattern"
 - Agent starts work, gets interrupted at 15K tokens
 
 Day 3: Agent resumes Ticket #5
 
-- Loads snapshot: system-patterns.md from Day 1
+- Loads snapshot: system-patterns entry from Day 1
 - Continues work using JWT pattern (not confused by new patterns added Day 2)
 - Completes work consistently
 
@@ -935,9 +952,9 @@ System: "Ticket #1 (SearchBar): 60% complete, last checkpoint:
 Without auto-generation:
 
 - Agent completes feature → Memory banks unchanged
-- New patterns discovered → Not documented in system-patterns.md
-- Tech stack evolves → tech-context.md becomes stale
-- Progress made → progress.md not updated
+- New patterns discovered → Not documented in system-patterns entry
+- Tech stack evolves → tech-context entry becomes stale
+- Progress made → progress entry not updated
 - Result: Memory banks drift from reality, agents repeat questions
 
 **Solution: Auto-Update on Ticket Completion**
@@ -945,33 +962,33 @@ Without auto-generation:
 When agent marks ticket as complete:
 
 1. **Analyze Implementation**: What patterns were used? What decisions were made?
-2. **Detect New Knowledge**: Is this pattern already in system-patterns.md? If not, add it.
-3. **Update Memory Banks**: Append new patterns to system-patterns.md, update progress.md metrics
+2. **Detect New Knowledge**: Is this pattern already in the system-patterns entry? If not, add it.
+3. **Update Memory Banks**: Append new patterns to the system-patterns entry, update progress entry metrics
 4. **Version Control**: Commit memory bank changes with ticket reference
 
 **5 Memory Bank Types** (from Project Onboarding):
 
-1. **project-brief.md** (WHAT and WHY):
+1. **project-brief** entry (WHAT and WHY):
    - **Auto-Update Trigger**: Milestone completion (e.g., "Phase 1 complete")
    - **Updates**: Current status section ("Active sprint: Sprint 3", "Completion: 60%")
    - **Frequency**: Weekly or at sprint transitions
 
-2. **system-patterns.md** (HOW we build):
+2. **system-patterns** entry (HOW we build):
    - **Auto-Update Trigger**: Ticket completion (e.g., "SearchBar component done")
    - **Updates**: New patterns section ("SearchBar: Debounced input pattern with useDebounce hook")
    - **Frequency**: After every ticket (most frequently updated)
 
-3. **tech-context.md** (Technical stack):
+3. **tech-context** entry (Technical stack):
    - **Auto-Update Trigger**: Dependency changes (package.json modified)
    - **Updates**: Dependencies section (new versions), troubleshooting section (new issues)
    - **Frequency**: Rare (only when stack changes)
 
-4. **active-context.md** (Current focus):
+4. **active-context** entry (Current focus):
    - **Auto-Update Trigger**: Real-time (every commit)
    - **Updates**: Recent changes section (last 5 commits), active work, blockers
    - **Frequency**: Continuous (most dynamic file)
 
-5. **progress.md** (Progress tracking):
+5. **progress** entry (Progress tracking):
    - **Auto-Update Trigger**: Sprint completion, milestone reached
    - **Updates**: Completion metrics (story points, velocity), lessons learned
    - **Frequency**: Weekly or at sprint transitions
@@ -995,9 +1012,9 @@ Agent scans ticket files:
 - "Search component: Controlled input + real-time suggestions"
 - "Test pattern: RTL with user-event for input simulation"
   ↓
-  Agent checks system-patterns.md: Pattern not found
+  Agent checks system-patterns entry: Pattern not found
   ↓
-  Agent appends to system-patterns.md:
+  Agent appends to system-patterns entry:
   ### Debounced Input Pattern
   **Description**: Delay API calls until user stops typing
   **Example**:
@@ -1011,14 +1028,14 @@ Agent scans ticket files:
 **When to use**: Search inputs, autocomplete, real-time validation
 **When NOT to use**: Instant feedback required (e.g., character counters)
 ↓
-Agent updates progress.md:
+Agent updates progress entry:
 
 - Story points completed: 45 → 48 (+3 for SearchBar)
 - Lessons learned: "useDebounce hook simplified search implementation"
   ↓
-  Git commit: "docs: auto-update memory banks from Ticket #1 (SearchBar)"
+  Audit log entry created: "Auto-update memory banks from Ticket #1 (SearchBar)"
   ↓
-  Next agent session: "Read system-patterns.md" → Finds debounce pattern → Reuses immediately
+  Next agent session: "Read system-patterns entry" → Finds debounce pattern → Reuses immediately
 
 ```
 
@@ -1039,17 +1056,17 @@ Agent updates progress.md:
 
 Day 1: Create Ticket #1 (SearchBar)
 
-- Snapshot: system-patterns.md v1 (no debounce pattern)
+- Snapshot: system-patterns v1 (no debounce pattern)
 - Agent works using v1 (consistent)
 
 Day 2: Ticket #1 complete
 
-- Auto-update: system-patterns.md v2 (adds debounce pattern)
+- Auto-update: system-patterns v2 (adds debounce pattern)
 - Live version now includes debounce
 
 Day 3: Create Ticket #2 (AutocompleteInput)
 
-- Snapshot: system-patterns.md v2 (includes debounce pattern)
+- Snapshot: system-patterns v2 (includes debounce pattern)
 - Agent reuses pattern (knowledge accumulated)
 
 ```
@@ -1057,9 +1074,9 @@ Day 3: Create Ticket #2 (AutocompleteInput)
 **MCP Tools**:
 - `memoryBank.autoUpdate()`: Trigger analysis after ticket completion
 - `memoryBank.analyzeTicket()`: Scan ticket files for new patterns
-- `memoryBank.appendPattern()`: Add new pattern to system-patterns.md
-- `memoryBank.updateProgress()`: Update progress.md metrics
-- `memoryBank.commit()`: Git commit with ticket reference
+- `memoryBank.appendPattern()`: Add new pattern to system-patterns entry
+- `memoryBank.updateProgress()`: Update progress entry metrics
+- `memoryBank.logChange()`: Record change with ticket reference
 
 **UI**: Memory bank viewer (show versions), auto-update log (what changed, why), pattern catalog (searchable)
 
@@ -1070,8 +1087,8 @@ Day 3: Create Ticket #2 (AutocompleteInput)
 
 **Success Criteria**:
 - ✅ Auto-update triggers after ticket completion (no manual intervention)
-- ✅ New patterns detected and added to system-patterns.md (95%+ accuracy)
-- ✅ progress.md updates reflect actual completion (metrics match reality)
+- ✅ New patterns detected and added to system-patterns entry (95%+ accuracy)
+- ✅ Progress entry updates reflect actual completion (metrics match reality)
 - ✅ Memory bank versions tracked (can view history, revert if needed)
 - ✅ Agents reuse accumulated patterns in subsequent tickets (no repeated implementation)
 
@@ -1083,10 +1100,10 @@ Day 3: Create Ticket #2 (AutocompleteInput)
 
 Without a dashboard:
 
-- "What is the agent working on?" → Check git commits (manual)
-- "What memory banks exist?" → Browse .agent/ folder (manual)
-- "What skills are available?" → Grep .claude/skills/ (manual)
-- "What sub-agents can I invoke?" → Read CLAUDE.md (manual)
+- "What is the agent working on?" → View current ticket and checkpoints in the dashboard
+- "What memory banks exist?" → Browse Memory Banks in the dashboard
+- "What skills are available?" → Browse Skills in the dashboard
+- "What sub-agents can I invoke?" → Browse Sub-Agents in the dashboard
 - Result: No central view of agent infrastructure, hard to monitor/debug
 
 **Solution: Agent Dashboard (Single Pane of Glass)**
@@ -1094,9 +1111,9 @@ Without a dashboard:
 **Dashboard Components**:
 
 1. **Memory Banks Viewer** (top-left quadrant):
-   - Display all 5 memory bank files (project-brief, system-patterns, tech-context, active-context, progress)
-   - Show token count per file (e.g., "system-patterns.md: 4,125 tokens")
-   - **Click to expand**: View full file content (syntax-highlighted markdown)
+   - Display all 5 memory bank entries (project-brief, system-patterns, tech-context, active-context, progress)
+   - Show token count per entry (e.g., "system-patterns: 4,125 tokens")
+   - **Click to expand**: View full entry content (rich text rendering)
    - **Version selector**: Toggle between snapshot versions and live version
    - **Last updated**: Timestamp and triggering ticket (e.g., "Updated 2h ago by Ticket #5")
 
@@ -1108,11 +1125,11 @@ Without a dashboard:
    - **Quick actions**: Mark complete, add checkpoint manually, attach notes
 
 3. **Skills & Sub-Agents List** (bottom-left quadrant):
-   - **Skills Catalog**: List all .claude/skills/ files (e.g., "api-patterns.md", "database-patterns.md")
+   - **Skills Catalog**: List all skills stored in the database (e.g., "API patterns", "Database patterns")
    - Show skill metadata (category, last used, token count)
    - **Sub-Agents Catalog**: List available sub-agents (explore-codebase, analyze-architecture, next-js-expert, prisma-expert, react-expert)
    - Show sub-agent capabilities (pattern discovery, data flow tracing, etc.)
-   - **Recent Reports**: List .agent/task/ reports (e.g., "explore-api-patterns-20251105.md")
+   - **Recent Reports**: List recent reports stored in the database (e.g., "Explore API patterns — 2025-11-05")
 
 4. **Agent Activity Feed** (bottom-right quadrant):
    - **Real-time log**: Show agent actions (ticket created, checkpoint saved, memory bank updated, sub-agent invoked)
@@ -1142,7 +1159,7 @@ Confident: Agent is on track, no intervention needed
 
 Developer: "Why did agent implement search this way?"
 ↓
-Opens: Memory Banks Viewer → system-patterns.md
+Opens: Memory Banks Viewer → system-patterns entry
 ↓
 Finds: "Debounced input pattern with useDebounce hook"
 ↓
@@ -1161,7 +1178,7 @@ Opens: Skills & Sub-Agents List
 ↓
 Sees: 12 skills (api-patterns, database-patterns, etc.)
 ↓
-Clicks: "api-patterns.md" → Expands skill content
+Clicks: "API patterns" → Expands skill content
 ↓
 Reads: API endpoint conventions (POST routes, Zod validation, error handling)
 ↓
@@ -1172,13 +1189,13 @@ Understands: How agents implement API features
 **Workflow 4: Debug Agent Behavior**
 ```
 
-Developer: "Agent created duplicate pattern in system-patterns.md"
+Developer: "Agent created duplicate pattern in system-patterns"
 ↓
 Opens: Agent Activity Feed
 ↓
 Filters: "Memory Banks" activity
 ↓
-Sees: Ticket #7 auto-updated system-patterns.md 3h ago
+Sees: Ticket #7 auto-updated system-patterns 3h ago
 ↓
 Opens: Memory Bank Version Selector → View previous version
 ↓
@@ -1214,7 +1231,7 @@ Action: Delete duplicate manually, note issue for improvement
 **Success Criteria**:
 - ✅ Dashboard loads in <2 seconds (all data sources fetched)
 - ✅ Real-time updates within 5 seconds of agent action
-- ✅ Memory banks viewer supports syntax highlighting (readable markdown)
+- ✅ Memory banks viewer supports rich text rendering
 - ✅ Version selector allows comparing snapshots (useful for debugging)
 - ✅ Activity feed filterable and exportable (searchable logs)
 
@@ -1229,7 +1246,7 @@ Session 1 (MVP) creates **minimum viable agent infrastructure**:
 - Executive summary (project overview)
 - Wiki basics (getting-started, architecture)
 - Memory bank seeds (foundation files)
-- CLAUDE.md (basic workflow)
+- Product documentation (basic workflow)
 
 **But agents need more depth for complex projects:**
 
@@ -1262,7 +1279,7 @@ Each session focuses on one aspect, deepening agent understanding progressively.
    - Configuration files: next.config.js, tailwind.config.js, tsconfig.json (purpose and key settings)
    - Build pipeline: How to build, deploy, run locally
 
-3. **Troubleshooting Guides** (enhanced tech-context.md):
+3. **Troubleshooting Guides** (enhanced tech-context entry):
    - Common errors and solutions (port conflicts, database connection issues, build failures)
    - Performance optimization tips (bundle size, caching strategies, query optimization)
    - Debugging workflows (browser dev tools, server logs, database queries)
@@ -1272,7 +1289,7 @@ Each session focuses on one aspect, deepening agent understanding progressively.
    - Polyfills and fallbacks (for older browsers)
    - Feature detection patterns (how to check browser capabilities)
 
-**Output**: Enhanced tech-context.md (2K → 5K tokens), detailed dependency wiki pages
+**Output**: Enhanced tech-context entry (2K → 5K tokens), detailed dependency wiki pages
 
 **MCP Tool**: `onboarding.runSession2()`: Analyze tech stack
 
@@ -1306,7 +1323,7 @@ Each session focuses on one aspect, deepening agent understanding progressively.
    - Map user stories → functional requirements → test cases
    - Example: US-001 → FR-001 → TEST-001 (bidirectional links)
 
-**Output**: Enhanced project-brief.md (requirements section), requirements wiki pages, traceability matrix
+**Output**: Enhanced project-brief entry (requirements section), requirements wiki pages, traceability matrix
 
 **MCP Tool**: `onboarding.runSession3()`: Extract requirements
 
@@ -1323,7 +1340,7 @@ Each session focuses on one aspect, deepening agent understanding progressively.
    - Backend layer: API routes, database models, services (layered architecture diagram)
    - Data flow: User action → Frontend → API → Database → Response (sequence diagram)
 
-2. **Design Patterns Catalog** (enhanced system-patterns.md):
+2. **Design Patterns Catalog** (enhanced system-patterns entry):
    - For each pattern:
      - **Name**: Server Component Pattern, useDebounce Pattern, Prisma Transaction Pattern
      - **Problem**: What problem does this solve?
@@ -1334,14 +1351,14 @@ Each session focuses on one aspect, deepening agent understanding progressively.
 3. **Architectural Decision Records (ADRs)**:
    - Create ADR wiki pages (e.g., "ADR-001-why-app-router.md")
    - Format: Context, Decision, Status, Consequences
-   - Link from architecture.md wiki page
+   - Link from the Architecture wiki page
 
 4. **Data Model Visualization**:
    - Prisma schema → Entity-Relationship Diagram (Mermaid ERD)
    - Show relationships: one-to-many, many-to-many, self-referential
    - Include indexes, constraints, cascade behavior
 
-**Output**: Enhanced system-patterns.md (4K → 8K tokens), architecture wiki pages with diagrams, ADRs
+**Output**: Enhanced system-patterns entry (4K → 8K tokens), architecture wiki pages with diagrams, ADRs
 
 **MCP Tool**: `onboarding.runSession4()`: Map architecture
 
@@ -1377,7 +1394,7 @@ Each session focuses on one aspect, deepening agent understanding progressively.
    - Example: US-001 (Create 5-level hierarchy) → Ticket #1 (Phase model), Ticket #2 (Week model), Ticket #3 (Day model)
    - Link tickets to issues (bidirectional)
 
-**Output**: Enhanced progress.md (backlog section), sprint wiki pages, tickets pre-created
+**Output**: Enhanced progress entry (backlog section), sprint wiki pages, tickets pre-created
 
 **MCP Tool**: `onboarding.runSession5()`: Analyze backlog/sprints
 
@@ -1387,7 +1404,7 @@ Each session focuses on one aspect, deepening agent understanding progressively.
 ```
 
 Session 1 (30-40 seconds):
-Executive summary + wiki basics + memory bank seeds + CLAUDE.md
+Executive summary + wiki basics + memory bank seeds + product documentation
 → Agent can START working immediately
 
 Session 2 (2-3 minutes):
@@ -1485,10 +1502,10 @@ Total: 15-20 minutes for COMPLETE project onboarding
 - Target: >95% of sessions complete all 5 steps
 - Measurement: Complete workflows / total workflows
 
-**Markdown Sync:** 100%
+**System Sync:** 100%
 
-- Target: 0 drift between database and markdown files
-- Measurement: Automated tests verify sync after every DB update
+- Target: 0 drift between database, UI, and MCP responses
+- Measurement: Automated tests verify consistency after every DB update
 
 ### 5.5 Performance Metrics
 
@@ -1576,7 +1593,7 @@ Total: 15-20 minutes for COMPLETE project onboarding
 6. **Cloud Hosting:** Local/self-hosted only (no SaaS version)
 7. **User Authentication:** Solo developer (no login, no user management)
 8. **Custom Workflow Definitions:** 12 predefined workflows only (customization post-MVP)
-9. **Bidirectional Markdown Sync:** DB → markdown only (markdown is read-only, agents can't edit files directly)
+9. **Local File Sync:** Not supported (system uses database-backed state; no local file synchronization)
 10. **Multi-Agent Orchestration:** Single agent at a time (no agent-to-agent communication)
 
 ---

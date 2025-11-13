@@ -185,11 +185,11 @@ PRD (Features) → SRS (FR-XXX) → Architecture (ADR-XXX) → Backlog (US-XXX +
 
 - **Active Documents:** All docs in docs/ root (except archive/)
 - **Historical:** docs/archive/ui-first-phase/
-- **Source of Truth:** STATUS.md for current phase, this documentation pack for complete reference
+- **Source of Truth:** Database for current state (via /dashboard), this documentation pack for specifications
 
 **Update Frequency:**
 
-- Daily: STATUS.md
+- Real-time: Project Dashboard (WebSocket updates)
 - Weekly: 13-Project-Plan.md
 - Per Phase: 02-SRS.md (if new FRs), 12-Backlog.md (if new stories)
 - As Needed: Architecture, ADRs, other docs
