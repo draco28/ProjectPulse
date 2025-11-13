@@ -520,9 +520,9 @@ docker_compose_status();
 
 ## ProjectPulse MCP Server
 
-**Server**: `projectpulse` (Custom MCP server for sprint management, workflow orchestration, and issue management)
-**When to use**: Sprint management, task tracking, workflow orchestration, and issue management
-**Status**: Active (Sprint 1-4 complete - 18 tools available)
+**Server**: `projectpulse` (Custom MCP server for sprint management, workflow orchestration, issue management, knowledge management, and skills system)
+**When to use**: Sprint management, task tracking, workflow orchestration, issue management, knowledge queries, and skills lazy-loading
+**Status**: Active (Sprint 1-6 complete - 33 tools available: 8 sprint + 6 workflow + 6 issue + 7 knowledge + 8 skills - includes markdown sync)
 
 ### Available Tools
 
@@ -2442,8 +2442,531 @@ Markdown files synced by this tool are protected by git hooks (see [.agent/sops/
 
 ---
 
-**Last Updated:** 2025-11-09
-**MCP Status:** Core tools configured + ProjectPulse MCP server active (9 tools)
-**Completed:** Sprint 1 complete (8 tools) + Sprint 2 Week 1 Day 5-6 (markdown sync tool)
+#### `projectpulse.skill.list`
+
+List skills with frontmatter only (token-efficient lazy-loading)
+
+**Parameters**:
+
+```typescript
+{
+  category?: "framework" | "testing" | "workflow" | "troubleshooting",  // Filter by category (optional)
+  search?: string,          // Search in title and description (optional)
+  page?: number,            // Page number (default: 1)
+  limit?: number            // Items per page (default: 20, max: 100)
+}
+```
+
+**Example**:
+
+```typescript
+// List all testing skills
+projectpulse.skill.list({
+  category: 'testing',
+  page: 1,
+  limit: 20,
+});
+
+// Search for specific skills
+projectpulse.skill.list({
+  search: 'jest',
+  limit: 10,
+});
+```
+
+**Returns**:
+
+```typescript
+{
+  skills: Array<{
+    id: number,
+    title: string,
+    description: string,
+    category: string,
+    tags: string[],
+    metadata?: object,
+    createdAt: string,
+    updatedAt: string
+  }>,
+  pagination: {
+    page: number,
+    limit: number,
+    total: number,
+    totalPages: number,
+    hasMore: boolean
+  }
+}
+```
+
+**Token Efficiency**: ~70 tokens per skill (97.2% reduction vs 2,500 token baseline)
+
+**When to use**:
+
+- Browse available skills without loading full content
+- Filter skills by category or search term
+- Get skill metadata for selection
+- Minimize token usage when exploring skills
+
+**Source**: [apps/mcp-server/src/tools/skill/list.ts](../../apps/mcp-server/src/tools/skill/list.ts)
+
+---
+
+#### `projectpulse.skill.load`
+
+Load full skill content including markdown body (on-demand loading)
+
+**Parameters**:
+
+```typescript
+{
+  skillId: number           // Required, skill ID to load
+}
+```
+
+**Example**:
+
+```typescript
+// Load full skill content
+projectpulse.skill.load({
+  skillId: 1,
+});
+```
+
+**Returns**:
+
+```typescript
+{
+  id: number,
+  title: string,
+  description: string,
+  category: string,
+  tags: string[],
+  content: string,          // Full markdown content
+  metadata?: object,
+  linkedKnowledge: Array<{
+    id: number,
+    title: string
+  }>,
+  createdAt: string,
+  updatedAt: string
+}
+```
+
+**Token Efficiency**: ~220 tokens per skill (91.2% reduction vs 2,500 token baseline)
+
+**When to use**:
+
+- Load complete skill content for implementation
+- Access markdown documentation and examples
+- View linked knowledge items
+- After selecting skill from list
+
+**Auto-Unload**: Skills unload after 5 minutes of inactivity (LRU cache with 100-entry limit)
+
+**Source**: [apps/mcp-server/src/tools/skill/load.ts](../../apps/mcp-server/src/tools/skill/load.ts)
+
+---
+
+#### `projectpulse.skill.search`
+
+Search skills by keyword in title, description, and content
+
+**Parameters**:
+
+```typescript
+{
+  query: string,            // Required, search query
+  category?: string,        // Optional category filter
+  limit?: number            // Results limit (default: 10, max: 50)
+}
+```
+
+**Example**:
+
+```typescript
+// Search for testing-related skills
+projectpulse.skill.search({
+  query: 'unit testing',
+  category: 'testing',
+  limit: 10,
+});
+```
+
+**Returns**:
+
+```typescript
+{
+  results: Array<{
+    id: number,
+    title: string,
+    description: string,
+    category: string,
+    tags: string[],
+    matchScore?: number,    // Relevance score
+    excerpt: string         // Matched content snippet
+  }>,
+  total: number,
+  query: string
+}
+```
+
+**When to use**:
+
+- Find skills by keyword or topic
+- Discover relevant skills for specific tasks
+- Full-text search across skill content
+- Ranked results by relevance
+
+**Source**: [apps/mcp-server/src/tools/skill/search.ts](../../apps/mcp-server/src/tools/skill/search.ts)
+
+---
+
+#### `projectpulse.skill.create`
+
+Create a new skill with frontmatter and markdown content
+
+**Parameters**:
+
+```typescript
+{
+  title: string,            // Required, 1-200 chars
+  description: string,      // Required, 1-500 chars
+  content: string,          // Required, markdown content
+  category: "framework" | "testing" | "workflow" | "troubleshooting",  // Required
+  tags?: string[],          // Optional, max 10 tags
+  metadata?: object         // Optional metadata (difficulty, prerequisites, etc.)
+}
+```
+
+**Example**:
+
+```typescript
+// Create new testing skill
+projectpulse.skill.create({
+  title: 'Playwright E2E Testing',
+  description: 'End-to-end testing with Playwright framework',
+  content: '# Playwright E2E Testing\n\n## Setup\n...',
+  category: 'testing',
+  tags: ['playwright', 'e2e', 'automation'],
+  metadata: {
+    difficulty: 'intermediate',
+    prerequisites: ['javascript-basics'],
+  },
+});
+```
+
+**Returns**:
+
+```typescript
+{
+  id: number,
+  title: string,
+  description: string,
+  category: string,
+  tags: string[],
+  content: string,
+  metadata: object,
+  createdAt: string,
+  updatedAt: string
+}
+```
+
+**When to use**:
+
+- Document new implementation patterns
+- Create skill from discovered best practices
+- Add framework-specific techniques
+- Build reusable workflow guides
+
+**Source**: [apps/mcp-server/src/tools/skill/create.ts](../../apps/mcp-server/src/tools/skill/create.ts)
+
+---
+
+#### `projectpulse.skill.update`
+
+Update an existing skill (partial update)
+
+**Parameters**:
+
+```typescript
+{
+  skillId: number,          // Required, skill ID
+  title?: string,           // Optional update
+  description?: string,     // Optional update
+  content?: string,         // Optional update
+  category?: string,        // Optional update
+  tags?: string[],          // Optional update
+  metadata?: object         // Optional update
+}
+```
+
+**Example**:
+
+```typescript
+// Update skill description and tags
+projectpulse.skill.update({
+  skillId: 1,
+  description: 'Updated description with more details',
+  tags: ['jest', 'unit-testing', 'tdd', 'mocking'],
+});
+```
+
+**Returns**:
+
+```typescript
+{
+  id: number,
+  title: string,
+  description: string,
+  category: string,
+  tags: string[],
+  content: string,
+  metadata: object,
+  updatedAt: string
+}
+```
+
+**When to use**:
+
+- Refine skill content based on usage
+- Add new examples or techniques
+- Update metadata (difficulty, prerequisites)
+- Fix errors or outdated information
+
+**Source**: [apps/mcp-server/src/tools/skill/update.ts](../../apps/mcp-server/src/tools/skill/update.ts)
+
+---
+
+#### `projectpulse.skill.delete`
+
+Delete a skill permanently
+
+**Parameters**:
+
+```typescript
+{
+  skillId: number           // Required, skill ID to delete
+}
+```
+
+**Example**:
+
+```typescript
+// Delete obsolete skill
+projectpulse.skill.delete({
+  skillId: 5,
+});
+```
+
+**Returns**:
+
+```typescript
+{
+  success: true,
+  deletedId: number,
+  message: string
+}
+```
+
+**When to use**:
+
+- Remove obsolete or deprecated skills
+- Clean up duplicate skills
+- Remove incorrect or harmful patterns
+- Maintain skill quality
+
+**Warning**: Permanent deletion - consider archiving knowledge items instead
+
+**Source**: [apps/mcp-server/src/tools/skill/delete.ts](../../apps/mcp-server/src/tools/skill/delete.ts)
+
+---
+
+#### `projectpulse.skill.export`
+
+Export skills to JSON format for backup or migration
+
+**Parameters**:
+
+```typescript
+{
+  filters?: {
+    category?: string,      // Filter by category
+    tags?: string[],        // Filter by tags
+    search?: string         // Search term
+  }
+}
+```
+
+**Example**:
+
+```typescript
+// Export all testing skills
+projectpulse.skill.export({
+  filters: {
+    category: 'testing',
+  },
+});
+
+// Export skills matching specific tags
+projectpulse.skill.export({
+  filters: {
+    tags: ['react', 'hooks'],
+  },
+});
+```
+
+**Returns**:
+
+```typescript
+{
+  format: 'json',
+  itemCount: number,
+  exportData: Array<{
+    id: number,
+    title: string,
+    description: string,
+    content: string,
+    category: string,
+    tags: string[],
+    metadata: object,
+    createdAt: string,
+    updatedAt: string
+  }>,
+  timestamp: string
+}
+```
+
+**When to use**:
+
+- Backup skills before major changes
+- Migrate skills between environments
+- Share skills with team members
+- Create skill snapshots
+
+**Source**: [apps/mcp-server/src/tools/skill/export.ts](../../apps/mcp-server/src/tools/skill/export.ts)
+
+---
+
+#### `projectpulse.skill.import`
+
+Import skills from JSON format with validation
+
+**Parameters**:
+
+```typescript
+{
+  items: Array<{
+    title: string,
+    description: string,
+    content: string,
+    category: string,
+    tags?: string[],
+    metadata?: object
+  }>,
+  options?: {
+    skipDuplicates?: boolean,   // Skip duplicate titles (default: false)
+    overwrite?: boolean         // Overwrite existing items (default: false)
+  }
+}
+```
+
+**Example**:
+
+```typescript
+// Import skills from backup
+projectpulse.skill.import({
+  items: [
+    {
+      title: 'Next.js Server Components',
+      description: 'Patterns for React Server Components',
+      content: '# Next.js Server Components\n\n...',
+      category: 'framework',
+      tags: ['nextjs', 'react', 'server-components'],
+    },
+  ],
+  options: {
+    skipDuplicates: true,
+  },
+});
+```
+
+**Returns**:
+
+```typescript
+{
+  imported: number,
+  skipped: number,
+  failed: number,
+  details: Array<{
+    title: string,
+    status: 'imported' | 'skipped' | 'failed',
+    reason?: string
+  }>
+}
+```
+
+**When to use**:
+
+- Restore skills from backup
+- Migrate skills from another environment
+- Bulk import team-shared skills
+- Initialize skills database
+
+**Validation**: All imported skills validated against schema before insertion
+
+**Source**: [apps/mcp-server/src/tools/skill/import.ts](../../apps/mcp-server/src/tools/skill/import.ts)
+
+---
+
+#### `projectpulse.skill.linkKnowledge`
+
+Create bidirectional link between skill and knowledge item
+
+**Parameters**:
+
+```typescript
+{
+  skillId: number,          // Required, skill ID
+  knowledgeId: number       // Required, knowledge item ID
+}
+```
+
+**Example**:
+
+```typescript
+// Link testing skill to testing best practices knowledge
+projectpulse.skill.linkKnowledge({
+  skillId: 1,
+  knowledgeId: 5,
+});
+```
+
+**Returns**:
+
+```typescript
+{
+  linkId: number,
+  skillId: number,
+  knowledgeId: number,
+  createdAt: string
+}
+```
+
+**When to use**:
+
+- Connect implementation skills to theoretical knowledge
+- Link pattern skills to architectural knowledge
+- Create cross-references between resources
+- Build knowledge graph relationships
+
+**Bidirectional**: Link appears in both skill.load() and knowledge.related()
+
+**Source**: [apps/mcp-server/src/tools/skill/linkKnowledge.ts](../../apps/mcp-server/src/tools/skill/linkKnowledge.ts)
+
+---
+
+**Last Updated:** 2025-11-13
+**MCP Status:** Core tools configured + ProjectPulse MCP server active (33 tools)
+**Completed:** Sprint 1-6 complete (8 sprint + 6 workflow + 6 issue + 7 knowledge + 8 skills + markdown sync)
 
 **See also**: [.agent/progress.md](../progress.md) for current project status
