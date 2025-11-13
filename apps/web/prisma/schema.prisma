@@ -404,8 +404,9 @@ model KnowledgeItem {
   // Links to issues (existing functionality)
   linkedIssues KnowledgeLink[] @relation("KnowledgeIssue")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  archivedAt DateTime? // Soft delete - archived items hidden from search by default
 
   // Indexes (note: HNSW vector index created via raw SQL migration)
   @@index([category])
@@ -486,6 +487,36 @@ model KnowledgeItemVersion {
   @@index([itemId, version(sort: Desc)]) // Get latest version efficiently
 
   @@map("knowledge_item_versions")
+}
+
+// Query performance metrics for knowledge base
+model KnowledgeQueryMetric {
+  id Int @id @default(autoincrement())
+
+  // Query details
+  query      String @db.Text
+  queryMode  String @db.VarChar(20) // 'semantic' | 'fulltext' | 'hybrid'
+
+  // Performance metrics
+  latencyMs     Int // Query execution time in milliseconds
+  resultCount   Int // Number of results returned
+  tokenUsage    Int? // Estimated tokens in response (chars / 4)
+
+  // Optional filters applied
+  category String? @db.VarChar(50)
+
+  // Client context
+  userAgent String? @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+
+  // Indexes for analytics dashboard
+  @@index([queryMode])
+  @@index([createdAt(sort: Desc)])
+  @@index([queryMode, createdAt(sort: Desc)])
+  @@index([latencyMs])
+
+  @@map("knowledge_query_metrics")
 }
 
 // ============================================================================
