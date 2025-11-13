@@ -32,10 +32,10 @@ ProjectPulse's infrastructure is optimized for **AI agent workflows**:
 | Principle                | Implementation                                          | Benefit                                    |
 | ------------------------ | ------------------------------------------------------- | ------------------------------------------ |
 | **Local-First**          | Docker Compose, no cloud dependencies                   | $0 cost, full developer control            |
-| **Database as Truth**    | PostgreSQL with pgvector, auto-generated markdown       | Consistency, no manual sync                |
+| **Database as Truth**    | PostgreSQL with pgvector, optional export APIs          | Consistency, single source of truth        |
 | **Stateless Agents**     | All state in database, agents read from context files   | Scalable, fault-tolerant agent execution   |
 | **Containerization**     | Docker containers for database + web app                | Isolated environments, reproducible builds |
-| **GitOps-Ready**         | Git hooks prevent unauthorized markdown edits           | Compliance, audit trail                    |
+| **GitOps-Ready**         | Database constraints + row-level security (RLS)         | Data integrity, audit trail                |
 | **Cloud Migration Path** | Defined strategy for Vercel (frontend) + Railway (data) | Future scalability without rewrite         |
 
 ### Document Scope
@@ -2827,52 +2827,63 @@ git commit -m "feat(issues): add sorting to issue list"
  1 file changed, 45 insertions(+), 10 deletions(-)
 ```
 
-### 11.10.4 Git Hooks for Markdown Sync
+### 11.10.4 Database Integrity & Webhooks
 
 **ADR-002**: Database as Source of Truth (See [architecture/ADRs/ADR-002-database-as-source-of-truth.md](architecture/ADRs/ADR-002-database-as-source-of-truth.md))
 
-**Pre-Commit Validation** (prevent manual markdown edits):
+**Database Constraints** (ensure data integrity):
 
-```bash
-# .husky/pre-commit
-#!/bin/sh
+```sql
+-- Prevent invalid state transitions
+CREATE OR REPLACE FUNCTION validate_task_status_transition()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF OLD.status = 'COMPLETED' AND NEW.status = 'NOT_STARTED' THEN
+    RAISE EXCEPTION 'Cannot transition from COMPLETED to NOT_STARTED';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-# Block manual edits to auto-generated markdown files
-AUTO_GENERATED_FILES=(
-  "STATUS.md"
-  "docs/DEVELOPMENT_PLAN.md"
-  ".agent/task/current-todos.md"
-  ".agent/task/current-plan.md"
-)
+CREATE TRIGGER task_status_transition_check
+BEFORE UPDATE ON "Task"
+FOR EACH ROW
+WHEN (OLD.status IS DISTINCT FROM NEW.status)
+EXECUTE FUNCTION validate_task_status_transition();
 
-for file in "${AUTO_GENERATED_FILES[@]}"; do
-  if git diff --cached --name-only | grep -q "^${file}$"; then
-    echo "❌ ERROR: Cannot commit ${file} (auto-generated from database)"
-    echo "   Edit via app or MCP tools, markdown will auto-sync"
-    exit 1
-  fi
-done
+-- Ensure session token counts are non-negative
+ALTER TABLE "Session" ADD CONSTRAINT session_tokens_positive
+  CHECK (token_count >= 0);
 
-# Allow commit if no auto-generated files staged
-exit 0
+-- Cascade deletes to maintain referential integrity
+ALTER TABLE "Task"
+  ADD CONSTRAINT fk_task_day
+  FOREIGN KEY (day_id) REFERENCES "Day"(id) ON DELETE CASCADE;
 ```
 
-**Post-Commit Hook** (auto-generate markdown):
+**Database Webhooks** (real-time UI synchronization):
 
-```bash
-# .husky/post-commit
-#!/bin/sh
+```typescript
+// prisma/middleware.ts
+import { Prisma } from '@prisma/client';
 
-# Regenerate markdown files after successful commit
-pnpm tsx scripts/sync-markdown.ts
+export const realtimeMiddleware: Prisma.Middleware = async (params, next) => {
+  const result = await next(params);
 
-# Stage updated markdown files
-git add STATUS.md docs/DEVELOPMENT_PLAN.md .agent/task/*.md
+  // Emit WebSocket event on database mutations
+  if (['create', 'update', 'delete'].includes(params.action)) {
+    await emitWebSocketEvent({
+      model: params.model,
+      action: params.action,
+      data: result,
+    });
+  }
 
-# Amend commit with updated markdown (if any changes)
-if ! git diff --cached --quiet; then
-  git commit --amend --no-edit --no-verify
-fi
+  return result;
+};
+
+// Usage in prisma client
+prisma.$use(realtimeMiddleware);
 ```
 
 ### 11.10.5 Pull Request Process
