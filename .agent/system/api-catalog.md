@@ -1,8 +1,8 @@
 # API Endpoint Catalog
 
-**Last Updated**: 2025-11-12
+**Last Updated**: 2025-11-13
 **Base URL**: `http://localhost:3000/api`
-**Status**: Full CRUD + Search + Multi-entity + Sprint Management + Workflow Orchestration (Sprint 3 complete)
+**Status**: Full CRUD + Search + Multi-entity + Sprint Management + Workflow Orchestration + Knowledge Management + Skills System (Sprint 6 complete)
 
 ---
 
@@ -44,6 +44,24 @@
 ### Knowledge Base
 
 - [GET /api/knowledge](#get-apiknowledge) - List knowledge base articles with pagination and filtering
+- [GET /api/knowledge/metrics](#get-apiknowledgemetrics) - Get query metrics and performance data
+- [POST /api/knowledge/export](#post-apiknowledgeexport) - Export knowledge items to JSON/CSV
+- [POST /api/knowledge/import](#post-apiknowledgeimport) - Import knowledge items from JSON
+- [PATCH /api/knowledge/:id/archive](#patch-apiknowledgeidarchive) - Archive a knowledge item
+- [PATCH /api/knowledge/:id/unarchive](#patch-apiknowledgeidunarchive) - Unarchive a knowledge item
+
+### Skills Management
+
+- [GET /api/skills](#get-apiskills) - List skills (frontmatter only, token-efficient)
+- [GET /api/skills/:id](#get-apiskillsid) - Get full skill content
+- [GET /api/skills/search](#get-apiskillssearch) - Search skills by keyword
+- [POST /api/skills](#post-apiskills) - Create a new skill
+- [PATCH /api/skills/:id](#patch-apiskillsid) - Update an existing skill
+- [DELETE /api/skills/:id](#delete-apiskillsid) - Delete a skill
+- [POST /api/skills/export](#post-apiskillsexport) - Export skills to JSON
+- [POST /api/skills/import](#post-apiskillsimport) - Import skills from JSON
+- [POST /api/skills/:id/link-knowledge](#post-apiskillsidlink-knowledge) - Link skill to knowledge item
+- [DELETE /api/skills/:id/unlink-knowledge/:knowledgeId](#delete-apiskillsidunlink-knowledgeknowledgeid) - Unlink from knowledge
 
 ### Wiki Pages
 
@@ -2185,6 +2203,776 @@ Host: localhost:3000
 ```
 
 **Source**: `apps/web/app/api/knowledge/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### GET /api/knowledge/metrics
+
+**Description**: Get query metrics and performance data for knowledge base usage patterns
+
+**Query Parameters**:
+
+- `startDate` (optional): Filter metrics from date (ISO 8601)
+- `endDate` (optional): Filter metrics to date (ISO 8601)
+- `limit` (optional): Number of results (default: 100, max: 1000)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+GET /api/knowledge/metrics?startDate=2025-11-01T00:00:00Z&endDate=2025-11-13T23:59:59Z&limit=100 HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "metrics": [
+      {
+        "id": 1,
+        "queryText": "authentication patterns",
+        "resultCount": 5,
+        "cacheHit": true,
+        "executionTimeMs": 25,
+        "timestamp": "2025-11-13T10:30:00Z"
+      }
+    ],
+    "summary": {
+      "totalQueries": 150,
+      "cacheHitRate": 0.92,
+      "averageExecutionTime": 32.5,
+      "popularQueries": ["authentication", "testing", "deployment"]
+    }
+  }
+}
+```
+
+**Source**: `apps/web/app/api/knowledge/metrics/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/knowledge/export
+
+**Description**: Export knowledge base articles to JSON or CSV format
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  format: "json" | "csv",         // Export format (required)
+  filters?: {
+    tags?: string[],              // Filter by tags
+    search?: string,              // Search term
+    archived?: boolean            // Include archived items (default: false)
+  }
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/knowledge/export HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "format": "json",
+  "filters": {
+    "tags": ["architecture", "patterns"],
+    "archived": false
+  }
+}
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "format": "json",
+    "itemCount": 42,
+    "exportData": [...],
+    "timestamp": "2025-11-13T10:30:00Z"
+  }
+}
+```
+
+**Source**: `apps/web/app/api/knowledge/export/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/knowledge/import
+
+**Description**: Import knowledge base articles from JSON format with validation
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  items: Array<{
+    title: string,              // Required, 1-200 chars
+    content: string,            // Required
+    tags?: string[],            // Optional tags
+    metadata?: object           // Optional metadata
+  }>,
+  options?: {
+    skipDuplicates?: boolean,   // Skip duplicate titles (default: false)
+    overwrite?: boolean         // Overwrite existing items (default: false)
+  }
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/knowledge/import HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "title": "API Design Patterns",
+      "content": "Comprehensive guide to API design...",
+      "tags": ["api", "patterns", "backend"]
+    }
+  ],
+  "options": {
+    "skipDuplicates": true
+  }
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "success": true,
+  "data": {
+    "imported": 1,
+    "skipped": 0,
+    "failed": 0,
+    "items": [...]
+  }
+}
+```
+
+**Source**: `apps/web/app/api/knowledge/import/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### PATCH /api/knowledge/:id/archive
+
+**Description**: Archive a knowledge item (soft delete with restore capability)
+
+**Path Parameters**:
+
+- `id` (number) - Knowledge item ID
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+PATCH /api/knowledge/42/archive HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 42,
+    "title": "Obsolete Pattern",
+    "archived": true,
+    "archivedAt": "2025-11-13T10:30:00Z"
+  }
+}
+```
+
+**Error Responses**:
+
+`404 Not Found` - Knowledge item not found
+
+**Source**: `apps/web/app/api/knowledge/[id]/archive/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### PATCH /api/knowledge/:id/unarchive
+
+**Description**: Restore an archived knowledge item
+
+**Path Parameters**:
+
+- `id` (number) - Knowledge item ID
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+PATCH /api/knowledge/42/unarchive HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 42,
+    "title": "Restored Pattern",
+    "archived": false,
+    "archivedAt": null
+  }
+}
+```
+
+**Error Responses**:
+
+`404 Not Found` - Knowledge item not found
+
+**Source**: `apps/web/app/api/knowledge/[id]/unarchive/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+### Skills Management
+
+#### GET /api/skills
+
+**Description**: List skills with frontmatter only (token-efficient, lazy-loading)
+
+**Query Parameters**:
+
+- `category` (optional): Filter by category (framework, testing, workflow, troubleshooting)
+- `search` (optional): Search in title and description
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 20, max: 100)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+GET /api/skills?category=testing&page=1&limit=20 HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "skills": [
+      {
+        "id": 1,
+        "title": "Jest Testing Patterns",
+        "description": "Comprehensive testing strategies with Jest",
+        "category": "testing",
+        "tags": ["jest", "unit-testing", "tdd"],
+        "metadata": {
+          "difficulty": "intermediate",
+          "prerequisites": ["javascript-basics"]
+        },
+        "createdAt": "2025-11-10T00:00:00Z",
+        "updatedAt": "2025-11-13T10:00:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 15,
+      "totalPages": 1,
+      "hasMore": false
+    }
+  }
+}
+```
+
+**Token Efficiency**: ~70 tokens per skill (97.2% reduction vs 2,500 token baseline)
+
+**Source**: `apps/web/app/api/skills/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### GET /api/skills/:id
+
+**Description**: Get full skill content including markdown body (on-demand loading)
+
+**Path Parameters**:
+
+- `id` (number) - Skill ID
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+GET /api/skills/1 HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Jest Testing Patterns",
+    "description": "Comprehensive testing strategies with Jest",
+    "category": "testing",
+    "tags": ["jest", "unit-testing", "tdd"],
+    "content": "# Jest Testing Patterns\n\n## Overview\n...",
+    "metadata": {
+      "difficulty": "intermediate",
+      "prerequisites": ["javascript-basics"]
+    },
+    "linkedKnowledge": [
+      {
+        "id": 5,
+        "title": "Testing Best Practices"
+      }
+    ],
+    "createdAt": "2025-11-10T00:00:00Z",
+    "updatedAt": "2025-11-13T10:00:00Z"
+  }
+}
+```
+
+**Token Efficiency**: ~220 tokens per skill (91.2% reduction vs 2,500 token baseline)
+
+**Source**: `apps/web/app/api/skills/[id]/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### GET /api/skills/search
+
+**Description**: Search skills by keyword in title, description, and content
+
+**Query Parameters**:
+
+- `q` (required): Search query
+- `category` (optional): Filter by category
+- `limit` (optional): Results limit (default: 10, max: 50)
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+GET /api/skills/search?q=testing&category=testing&limit=10 HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "results": [...],
+    "total": 5,
+    "query": "testing"
+  }
+}
+```
+
+**Source**: `apps/web/app/api/skills/search/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/skills
+
+**Description**: Create a new skill with frontmatter and markdown content
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  title: string,                 // Required, 1-200 chars
+  description: string,           // Required, 1-500 chars
+  content: string,               // Required, markdown content
+  category: "framework" | "testing" | "workflow" | "troubleshooting",  // Required
+  tags?: string[],               // Optional, max 10 tags
+  metadata?: object              // Optional metadata
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/skills HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "title": "Playwright E2E Testing",
+  "description": "End-to-end testing with Playwright",
+  "content": "# Playwright E2E Testing\n\n## Setup\n...",
+  "category": "testing",
+  "tags": ["playwright", "e2e", "automation"]
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 16,
+    "title": "Playwright E2E Testing",
+    ...
+  }
+}
+```
+
+**Source**: `apps/web/app/api/skills/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### PATCH /api/skills/:id
+
+**Description**: Update an existing skill (partial update)
+
+**Path Parameters**:
+
+- `id` (number) - Skill ID
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**: (all fields optional)
+
+```typescript
+{
+  title?: string,
+  description?: string,
+  content?: string,
+  category?: string,
+  tags?: string[],
+  metadata?: object
+}
+```
+
+**Request Example**:
+
+```http
+PATCH /api/skills/1 HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "description": "Updated description",
+  "tags": ["jest", "unit-testing", "tdd", "mocking"]
+}
+```
+
+**Response**: `200 OK`
+
+**Source**: `apps/web/app/api/skills/[id]/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### DELETE /api/skills/:id
+
+**Description**: Delete a skill permanently
+
+**Path Parameters**:
+
+- `id` (number) - Skill ID
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+DELETE /api/skills/1 HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `204 No Content`
+
+**Error Responses**:
+
+`404 Not Found` - Skill not found
+
+**Source**: `apps/web/app/api/skills/[id]/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/skills/export
+
+**Description**: Export skills to JSON format
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  filters?: {
+    category?: string,
+    tags?: string[],
+    search?: string
+  }
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/skills/export HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "filters": {
+    "category": "testing"
+  }
+}
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "success": true,
+  "data": {
+    "format": "json",
+    "itemCount": 5,
+    "exportData": [...],
+    "timestamp": "2025-11-13T10:30:00Z"
+  }
+}
+```
+
+**Source**: `apps/web/app/api/skills/export/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/skills/import
+
+**Description**: Import skills from JSON format with validation
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  items: Array<{
+    title: string,
+    description: string,
+    content: string,
+    category: string,
+    tags?: string[],
+    metadata?: object
+  }>,
+  options?: {
+    skipDuplicates?: boolean,
+    overwrite?: boolean
+  }
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/skills/import HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "items": [...],
+  "options": {
+    "skipDuplicates": true
+  }
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "success": true,
+  "data": {
+    "imported": 5,
+    "skipped": 0,
+    "failed": 0
+  }
+}
+```
+
+**Source**: `apps/web/app/api/skills/import/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### POST /api/skills/:id/link-knowledge
+
+**Description**: Create bidirectional link between skill and knowledge item
+
+**Path Parameters**:
+
+- `id` (number) - Skill ID
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Body**:
+
+```typescript
+{
+  knowledgeId: number           // Required, knowledge item ID
+}
+```
+
+**Request Example**:
+
+```http
+POST /api/skills/1/link-knowledge HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+  "knowledgeId": 5
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "success": true,
+  "data": {
+    "linkId": 10,
+    "skillId": 1,
+    "knowledgeId": 5,
+    "createdAt": "2025-11-13T10:30:00Z"
+  }
+}
+```
+
+**Source**: `apps/web/app/api/skills/[id]/link-knowledge/route.ts`
+**Authentication**: None (to be added)
+
+---
+
+#### DELETE /api/skills/:id/unlink-knowledge/:knowledgeId
+
+**Description**: Remove bidirectional link between skill and knowledge item
+
+**Path Parameters**:
+
+- `id` (number) - Skill ID
+- `knowledgeId` (number) - Knowledge item ID
+
+**Headers**:
+
+```http
+Content-Type: application/json
+```
+
+**Request Example**:
+
+```http
+DELETE /api/skills/1/unlink-knowledge/5 HTTP/1.1
+Host: localhost:3000
+```
+
+**Response**: `204 No Content`
+
+**Error Responses**:
+
+`404 Not Found` - Link not found
+
+**Source**: `apps/web/app/api/skills/[id]/unlink-knowledge/[knowledgeId]/route.ts`
 **Authentication**: None (to be added)
 
 ---
