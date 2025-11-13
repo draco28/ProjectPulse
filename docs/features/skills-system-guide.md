@@ -611,7 +611,7 @@ const imported = await projectpulse.skill.import({
 
 ## 8. MCP Tools Reference
 
-**Complete Documentation**: [.agent/system/mcp-tools-guide.md](./mcp-tools-guide.md#projectpulse-mcp-server)
+**Complete Documentation**: [mcp-tools-guide.md](./mcp-tools-guide.md#projectpulse-mcp-server)
 
 ### Quick Reference
 
@@ -631,7 +631,7 @@ const imported = await projectpulse.skill.import({
 
 ## 9. API Endpoints Reference
 
-**Complete Documentation**: [.agent/system/api-catalog.md](./api-catalog.md#skills-management)
+**Complete Documentation**: [api-reference.md](./api-reference.md#skills-management)
 
 ### Quick Reference
 
@@ -758,9 +758,9 @@ metadata: {
 
 ## See Also
 
-- [MCP Tools Guide](.agent/system/mcp-tools-guide.md) - Complete MCP tool documentation
-- [API Catalog](.agent/system/api-catalog.md) - API endpoint reference
-- [Database Schema](.agent/system/database-schema.md) - Prisma schema details
+- [MCP Tools Guide](./mcp-tools-guide.md) - Complete MCP tool documentation
+- [API Reference](./api-reference.md) - API endpoint reference
+- [Database Schema](./database-schema.md) - Prisma schema details
 - [Sprint 6 Completion](../progress.md#sprint-6) - Implementation details
 
 ---

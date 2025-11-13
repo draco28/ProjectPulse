@@ -710,12 +710,17 @@ The `.agent/` folder exists in THIS repository because we're using our own early
 
 ### Key Documentation
 
-**System References**:
+**Product Feature Docs** (for end users):
 
-- [Database Schema](.agent/system/database-schema.md) - Prisma models
-- [API Catalog](.agent/system/api-catalog.md) - All endpoints
+- [Database Schema](docs/features/database-schema.md) - Prisma models
+- [API Reference](docs/features/api-reference.md) - All endpoints
+- [MCP Tools Guide](docs/features/mcp-tools-guide.md) - MCP tool usage
+- [Skills System Guide](docs/features/skills-system-guide.md) - Token-efficient skills
+- [Workflow Templates](docs/features/workflow-templates.md) - Pre-built workflows
+
+**Internal Dev References** (for agents building ProjectPulse):
+
 - [Component Patterns](.agent/system/component-patterns.md) - React conventions
-- [MCP Tools Guide](.agent/system/mcp-tools-guide.md) - MCP tool usage
 
 **Procedures (SOPs)**:
 
@@ -923,7 +928,7 @@ Me: [Reads analysis, implements fixes]
 - docker-devhub - Container management
 - sequential-thinking - Complex reasoning
 
-**Complete guide**: [.agent/system/mcp-tools-guide.md](.agent/system/mcp-tools-guide.md)
+**Complete guide**: [docs/features/mcp-tools-guide.md](docs/features/mcp-tools-guide.md)
 
 ---
 
@@ -977,7 +982,7 @@ Me: [Reads analysis, implements fixes]
 ### 2. Reference Documentation
 
 ```
-✅ "Follow the API patterns in .agent/system/api-catalog.md"
+✅ "Follow the API patterns in docs/features/api-reference.md"
 ✅ "Use the git workflow from .agent/sops/git-workflow.md"
 ```
 
