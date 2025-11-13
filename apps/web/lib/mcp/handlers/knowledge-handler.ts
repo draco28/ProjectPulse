@@ -39,6 +39,7 @@ import {
 } from '@/lib/knowledge/graph';
 import { getMetricsSummary } from '@/lib/knowledge/metrics';
 import { prisma } from '@/lib/prisma';
+import matter from 'gray-matter';
 import { MCPError, JSONRPC_ERROR_CODES } from '../types';
 
 /**
@@ -583,6 +584,45 @@ export interface KnowledgeExportOutput {
 }
 
 /**
+ * Tool input schema for knowledge.import
+ */
+export interface KnowledgeImportInput {
+  files: Array<{
+    filename: string;
+    content: string; // Markdown with YAML frontmatter
+  }>;
+  generateEmbeddings?: boolean; // default: true
+}
+
+/**
+ * Tool output for knowledge.import
+ */
+export interface KnowledgeImportOutput {
+  summary: {
+    total: number;
+    succeeded: number;
+    failed: number;
+  };
+  imported?: Array<{
+    index: number;
+    filename: string;
+    id: number;
+    title: string;
+    category: string;
+    tags: string[];
+    embeddingProvider: string;
+    embeddingDuration: number;
+  }>;
+  errors?: Array<{
+    index: number;
+    filename: string;
+    error: string;
+    details: string;
+    code?: string;
+  }>;
+}
+
+/**
  * Tool input schema for knowledge.getMetrics
  */
 export interface KnowledgeGetMetricsInput {
@@ -819,6 +859,238 @@ export async function knowledgeExportHandler(
     console.error('[knowledge.export] Unexpected error:', error);
     throw new MCPError(
       'Export failed: ' +
+        (error instanceof Error ? error.message : 'Unknown error'),
+      JSONRPC_ERROR_CODES.INTERNAL_ERROR,
+      500
+    );
+  }
+}
+
+/**
+ * MCP Tool Handler: knowledge.import
+ *
+ * Import knowledge items from markdown files with YAML frontmatter.
+ * Supports batch import (up to 50 files) with automatic embedding generation.
+ *
+ * US-088: Import knowledge from markdown
+ *
+ * @param input - Import parameters with file array
+ * @returns Import summary with successes and errors
+ * @throws MCPError on validation errors
+ *
+ * @example
+ * ```typescript
+ * const result = await knowledgeImportHandler({
+ *   files: [
+ *     {
+ *       filename: "docker-setup.md",
+ *       content: "---\ntitle: Docker Setup\ncategory: DevOps\ntags: [docker]\n---\n# Content..."
+ *     }
+ *   ]
+ * });
+ * ```
+ */
+export async function knowledgeImportHandler(
+  input: unknown
+): Promise<KnowledgeImportOutput> {
+  try {
+    // Validate input
+    if (!input || typeof input !== 'object') {
+      throw new MCPError(
+        'Invalid input: expected object',
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
+    const params = input as KnowledgeImportInput;
+
+    // Validate files array
+    if (!Array.isArray(params.files) || params.files.length === 0) {
+      throw new MCPError(
+        'Invalid or missing files parameter: must be non-empty array',
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
+    // Check batch size limit
+    if (params.files.length > 50) {
+      throw new MCPError(
+        'Too many files: maximum 50 per batch import',
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        413
+      );
+    }
+
+    // Process each file
+    const results: any[] = [];
+    const errors: any[] = [];
+
+    for (let i = 0; i < params.files.length; i++) {
+      const file = params.files[i];
+
+      try {
+        // Validate file structure
+        if (!file || typeof file !== 'object') {
+          errors.push({
+            index: i,
+            filename: file?.filename || `file_${i}`,
+            error: 'Invalid file object',
+            details: 'Each file must have filename and content',
+          });
+          continue;
+        }
+
+        const { filename, content } = file;
+
+        if (!filename || typeof filename !== 'string') {
+          errors.push({
+            index: i,
+            filename: filename || `file_${i}`,
+            error: 'Invalid filename',
+            details: 'filename must be non-empty string',
+          });
+          continue;
+        }
+
+        if (!content || typeof content !== 'string') {
+          errors.push({
+            index: i,
+            filename,
+            error: 'Invalid content',
+            details: 'content must be non-empty string',
+          });
+          continue;
+        }
+
+        // Parse frontmatter with gray-matter
+        let parsed;
+        try {
+          parsed = matter(content);
+        } catch (parseError) {
+          errors.push({
+            index: i,
+            filename,
+            error: 'Frontmatter parsing failed',
+            details: parseError instanceof Error ? parseError.message : 'Invalid YAML format',
+          });
+          continue;
+        }
+
+        const { data: frontmatter, content: markdownContent } = parsed;
+
+        // Validate required frontmatter fields
+        if (!frontmatter.title || typeof frontmatter.title !== 'string') {
+          errors.push({
+            index: i,
+            filename,
+            error: 'Missing or invalid title in frontmatter',
+            details: 'title must be non-empty string',
+          });
+          continue;
+        }
+
+        if (!frontmatter.category || typeof frontmatter.category !== 'string') {
+          errors.push({
+            index: i,
+            filename,
+            error: 'Missing or invalid category in frontmatter',
+            details: 'category must be non-empty string',
+          });
+          continue;
+        }
+
+        // Validate tags (optional, but must be array if present)
+        const tags = frontmatter.tags || [];
+        if (!Array.isArray(tags)) {
+          errors.push({
+            index: i,
+            filename,
+            error: 'Invalid tags in frontmatter',
+            details: 'tags must be array of strings',
+          });
+          continue;
+        }
+
+        // Validate tag items are strings
+        if (tags.some((tag: any) => typeof tag !== 'string')) {
+          errors.push({
+            index: i,
+            filename,
+            error: 'Invalid tags in frontmatter',
+            details: 'All tags must be strings',
+          });
+          continue;
+        }
+
+        // Create knowledge item with auto-embedding
+        const result = await createKnowledgeItem({
+          title: frontmatter.title,
+          content: markdownContent.trim(),
+          category: frontmatter.category,
+          tags,
+        });
+
+        results.push({
+          index: i,
+          filename,
+          id: result.id,
+          title: result.title,
+          category: result.category,
+          tags: result.tags,
+          embeddingProvider: result.embeddingProvider,
+          embeddingDuration: result.embeddingDuration,
+        });
+      } catch (error) {
+        // Handle creation errors
+        if (error instanceof KnowledgeCreationError) {
+          errors.push({
+            index: i,
+            filename: file?.filename || `file_${i}`,
+            error: 'Creation failed',
+            details: error.message,
+            code: error.code,
+          });
+        } else {
+          errors.push({
+            index: i,
+            filename: file?.filename || `file_${i}`,
+            error: 'Unexpected error',
+            details: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+    }
+
+    // Build response
+    const response: KnowledgeImportOutput = {
+      summary: {
+        total: params.files.length,
+        succeeded: results.length,
+        failed: errors.length,
+      },
+    };
+
+    if (results.length > 0) {
+      response.imported = results;
+    }
+
+    if (errors.length > 0) {
+      response.errors = errors;
+    }
+
+    return response;
+  } catch (error) {
+    // Re-throw MCPError as-is
+    if (error instanceof MCPError) {
+      throw error;
+    }
+
+    // Wrap unexpected errors
+    console.error('[knowledge.import] Unexpected error:', error);
+    throw new MCPError(
+      'Import failed: ' +
         (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500

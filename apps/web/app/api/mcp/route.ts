@@ -39,6 +39,7 @@ import {
   knowledgeRelatedHandler,
   knowledgeGetMetricsHandler,
   knowledgeExportHandler,
+  knowledgeImportHandler,
 } from '@/lib/mcp/handlers/knowledge-handler';
 import {
   listKnowledgeResources,
@@ -208,12 +209,15 @@ export async function POST(request: NextRequest) {
         case 'knowledge.export':
           result = await knowledgeExportHandler(args);
           break;
+        case 'knowledge.import':
+          result = await knowledgeImportHandler(args);
+          break;
         default:
           throw new MCPError(
             `Unknown tool: ${name}`,
             JSONRPC_ERROR_CODES.METHOD_NOT_FOUND,
             404,
-            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export'] }
+            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export', 'knowledge.import'] }
           );
       }
     } else if (jsonrpcRequest.method === 'tools/list') {
@@ -290,6 +294,30 @@ export async function POST(request: NextRequest) {
                 since: { type: 'string', description: 'ISO 8601 date' },
                 limit: { type: 'number', minimum: 1, maximum: 10000 },
               },
+            },
+          },
+          {
+            name: 'knowledge.import',
+            description: 'Import knowledge items from markdown files with YAML frontmatter (batch up to 50)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                files: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      filename: { type: 'string' },
+                      content: { type: 'string', description: 'Markdown with YAML frontmatter' },
+                    },
+                    required: ['filename', 'content'],
+                  },
+                  minItems: 1,
+                  maxItems: 50,
+                },
+                generateEmbeddings: { type: 'boolean', default: true },
+              },
+              required: ['files'],
             },
           },
         ],
