@@ -1,123 +1,112 @@
 # Active Context
 
-**Last Updated**: 2025-11-13
-**Current Focus**: Sprint 6 Planning (Next)
-**Recent Completion**: Sprint 5.5 - MCP Server Infrastructure (✅ COMPLETE)
+**Last Updated**: 2025-11-14
+**Current Focus**: Sprint 7 Planning (Tasks & Sessions MVP)
+**Recent Completion**: Sprint 6 - Skills System (✅ COMPLETE) + Documentation Refactoring (✅ COMPLETE)
 
 ---
 
 ## Current State
 
-### What Just Completed (Sprint 5.5)
+### What Just Completed
 
-**Sprint 5.5: MCP Server Infrastructure** ✅ 100% COMPLETE (21/21 points)
+**Sprint 6: Skills System + Knowledge Graph** ✅ 100% COMPLETE (51/51 points)
 
 **Delivered**:
-- HTTP MCP server at `http://192.168.1.15:3000/api/mcp` (JSON-RPC 2.0 over HTTP)
-- 3 knowledge tools: knowledge.search, knowledge.create, knowledge.related
-- Resource system: knowledge://item/{id} for context injection
-- Session management: UUID v4 with 1-hour TTL, in-memory Map
-- Error handling: JSON-RPC error codes with MCPError class
-- Client configuration: claude_code_config.json example
-- Complete documentation: MCP_QUICK_START.md (450+ lines), MCP_ARCHITECTURE.md (286 lines), MCP_API_REFERENCE.md (695 lines)
+- Skills lazy-loading system (92% token reduction: frontmatter ~70 tokens, full content ~250 tokens)
+- LRU cache with 5-minute TTL and automatic cleanup
+- Knowledge metrics, export, import, deduplication, archival
+- 15 MCP tools total (7 knowledge + 8 skills)
+- Multi-tenancy support (projectId scoping)
+- Duplicate detection (semantic similarity >0.95 for knowledge, slug collision for skills)
 
-**Performance**:
-- Session validation: 1-2ms ✅
-- Tool invocation (search): 20-35ms ✅
-- Resource read: 8-15ms ✅
-- All quality gates passed (TypeScript 0 errors)
+**Documentation Refactoring** ✅ 100% COMPLETE (Nov 13-14)
 
-**Files Created**: 8 new files (2,008 lines of production code)
-- `lib/mcp/server.ts` (144 lines) - MCP server singleton
-- `lib/mcp/session-manager.ts` (339 lines) - Session lifecycle
-- `lib/mcp/types.ts` (300 lines) - Error codes & types
-- `app/api/mcp/route.ts` (397 lines) - HTTP route handler
-- `lib/mcp/handlers/knowledge-handler.ts` (~549 lines) - Tool handlers
-- `lib/mcp/resources/knowledge-resource.ts` (~376 lines) - Resource handlers
-- `docs/MCP_QUICK_START.md` (450+ lines) - End-user guide
-- `docs/MCP_ARCHITECTURE.md` (286 lines) - Technical overview
-- `docs/MCP_API_REFERENCE.md` (695 lines) - API documentation
-- `claude_code_config.json` - Client configuration example
+**Delivered**:
+- Eliminated 101 doc-coding references across 18 documents (6 phases)
+- Clarified cloud SaaS vision (database as single source of truth)
+- Separated internal tooling (`.agent/`) from product features
+- Aligned all documentation with database-first architecture
+- Updated: PRD, SRS, Architecture, Data Model, OpenAPI, Testing, Infrastructure, Observability, Security, MCP docs
 
-**Validation**: All 3 tools tested with curl ✅
+**Key Insight**: `.agent/` folder is OUR internal dogfooding tool, NOT an end-user product feature. End users get clean repositories with everything in ProjectPulse database.
 
-### What's Next (Sprint 6)
+### What's Next (Sprint 7)
 
-**Status**: Sprint 5.5 complete, ready for Sprint 6 planning
+**Status**: Sprint 6 complete, documentation refactored, memory banks updated, ready for Sprint 7
 
-**Next Sprint Options**:
-1. Sprint 6 (Issue Management Backend) - 42 points
-2. Sprint 7 (Issue Management UI) - 21 points
-3. Sprint 8 (SSE streaming for MCP) - Enhancement to Sprint 5.5
-
-**Recommendation**: Proceed with Sprint 6 (Issue Management Backend) as planned
+**Sprint 7: Tasks & Sessions MVP** (21 points)
+- Task/Session entities with checkpoint recovery
+- Real-time progress tracking
+- Context snapshots for session resumption
+- MCP tools: task.create, session.start, session.checkpoint
+- UI: Tasks view integrated into Development Cycle page
 
 ---
 
 ## Recent Changes & Commits
 
-### Sprint 5.5 Changes (READY TO COMMIT)
+### Documentation Refactoring (Nov 13-14) ✅ COMMITTED
 
-**New Files** (8):
-1. `lib/mcp/server.ts` - MCP server singleton (144 lines)
-2. `lib/mcp/session-manager.ts` - Session management (339 lines)
-3. `lib/mcp/types.ts` - Error codes & types (300 lines)
-4. `app/api/mcp/route.ts` - HTTP route handler (397 lines)
-5. `lib/mcp/handlers/knowledge-handler.ts` - Tool handlers (~549 lines)
-6. `lib/mcp/resources/knowledge-resource.ts` - Resource handlers (~376 lines)
-7. `docs/MCP_ARCHITECTURE.md` - Technical overview (286 lines)
-8. `docs/MCP_API_REFERENCE.md` - API documentation (695 lines)
+**Commits**:
+- `6204966` - Merge feature/sprint-7-wiki-health: Complete documentation refactoring
+- `4d568c9` - docs: Complete documentation refactoring - 100% doc-coding artifacts eliminated
+- `00298bc` - docs: refactor mcp-tools-guide for cloud SaaS vision (Phase 6b)
+- `4e79fd7` - docs: refactor MIGRATION_GUIDE for cloud SaaS vision (Phase 6a)
+- `7ca33ff` - refactor: Align Security & Compliance spec with cloud SaaS vision (Phase 5b)
 
-**Modified Files** (2):
-1. `claude_code_config.json` - Added projectpulse MCP server config
-2. `docs/MCP_QUICK_START.md` - Updated with Sprint 5.5 completion details
+**Files Modified** (18 documents):
+- PRD, SRS, Architecture, Data Model, OpenAPI
+- Testing & QA, Infrastructure, Observability, Security & Compliance
+- MCP docs (Architecture, Quick Start, API Reference, Tools Guide)
+- Project Plan, Backlog, README
 
-**Documentation**:
-- `.agent/task/current-session-20251112-2240.md` - Session notes (Day 1-5)
-- `.agent/task/current-todos.md` - Task tracking (21/21 complete)
-- `.agent/progress.md` - Updated with Sprint 5.5 completion (next)
-- `.agent/active-context.md` - Updated (this file)
-- `docs/13-Project-Plan.md` - Update Sprint 5.5 status (next)
+**Memory Banks Updated** (Nov 14):
+- `.agent/project-brief.md` - Version 2.0.0 (Cloud SaaS Vision)
+- `.agent/system-patterns.md` - Added architecture principles
+- `.agent/tech-context.md` - Current sprint status (Sprint 7 next)
+- `.agent/active-context.md` - This file (Sprint 6 complete, Sprint 7 next)
 
 ---
 
 ## Remaining Tasks
 
-### Immediate (Step 5 Completion - IN PROGRESS)
-- [x] Create MCP server code (Days 1-4) ✅
-- [x] Create MCP documentation (Day 5) ✅
-- [x] Run quality gates ✅
-- [x] Update .agent/active-context.md ✅ (this file)
-- [ ] Update .agent/progress.md (in progress)
-- [ ] Update docs/13-Project-Plan.md
-- [ ] Commit Sprint 5.5 code and documentation
-
-### Next Sprint (Sprint 6)
-- [ ] Review Sprint 6 plan (Issue Management Backend - 42 points)
-- [ ] Read docs/13-Project-Plan.md Sprint 6 section
-- [ ] Create implementation plan for Sprint 6
-- [ ] Begin Sprint 6 implementation
+### Sprint 7 Planning (CURRENT)
+- [x] Documentation refactoring complete ✅
+- [x] Memory banks updated ✅
+- [ ] Review Sprint 7 requirements (docs/13-Project-Plan.md)
+- [ ] Read Sprint 7 user stories (docs/12-Backlog.md)
+- [ ] Design Task/Session entities with checkpoint recovery
+- [ ] Create Sprint 7 implementation plan
+- [ ] Get user approval
+- [ ] Begin Sprint 7 implementation
 
 ---
 
 ## Current Work Focus
 
-**Status**: Completing Sprint 5.5 Step 5 (update memory banks and commit)
-**Next**: Sprint 6 (Issue Management Backend)
-**Blockers**: None - Sprint 5.5 complete, ready for next sprint
+**Status**: Sprint 7 planning (Tasks & Sessions MVP)
+**Next**: Design database schema for Task/Session entities
+**Blockers**: None - All previous sprints complete, documentation aligned
 
 ---
 
 ## Key Decisions Made
 
-### Sprint 5.5 Decisions (Implemented)
+### Documentation Refactoring (Nov 13-14)
 
-1. **Transport**: HTTP (not stdio) because network service ✅
-2. **Integration**: MCP routes in Next.js App Router (not standalone) ✅
-3. **Session Storage**: In-memory Map (migrate to Redis for production) ✅
-4. **Handler Pattern**: Direct handler functions (not SDK registration) ✅
-5. **Error Handling**: JSON-RPC error codes with MCPError class ✅
-6. **Documentation First**: Created complete docs before end-to-end testing ✅
+1. **Cloud SaaS Vision**: Database as single source of truth (no local files for end users) ✅
+2. **Internal vs Product**: `.agent/` folder is OUR dogfooding tool, NOT product feature ✅
+3. **Repository Cleanliness**: End users get pristine repos (no markdown, no tracking files) ✅
+4. **Architecture Alignment**: All 18 docs now consistent with database-first approach ✅
+
+### Sprint 1-6 Technical Decisions (Reference)
+
+1. **MCP Transport**: HTTP JSON-RPC (not stdio) - network service architecture ✅
+2. **Session Storage**: In-memory Map for MVP (migrate to Redis for production)
+3. **Skills Cache**: LRU with 5-minute TTL, 100 max entries ✅
+4. **Knowledge Search**: Hybrid (0.7 semantic + 0.3 fulltext) with 2-hop graph ✅
+5. **Embeddings**: Ollama nomic-embed-text (768d) with OpenAI fallback ✅
 
 ---
 

@@ -1,7 +1,19 @@
 # System Patterns & Architecture
 
 **Project**: ProjectPulse
-**Last Updated**: 2025-11-06
+**Last Updated**: 2025-11-14 (Cloud SaaS Vision)
+
+---
+
+## Architecture Principles
+
+**Core Philosophy**: Database as single source of truth, exposed via Web UI and MCP tools.
+
+1. **Cloud SaaS Architecture**: Multi-tenant PostgreSQL database (per-project scoping)
+2. **Agent-First Design**: MCP tools are primary interface (95% usage)
+3. **No Local Files**: All state in database, NOT in user repositories
+4. **Real-Time Sync**: Web UI and MCP reflect database changes instantly (<500ms)
+5. **Token Efficiency**: 92% reduction for skills, 88% for knowledge queries
 
 ---
 

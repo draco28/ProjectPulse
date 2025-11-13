@@ -1,43 +1,46 @@
 # Project Brief - ProjectPulse
 
 **Project Name**: ProjectPulse
-**Version**: 1.0.0
-**Last Updated**: 2025-11-06
+**Version**: 2.0.0 (Cloud SaaS Vision)
+**Last Updated**: 2025-11-14
 
 ---
 
 ## Core Mission
 
-Build a **web-based project management platform** that replaces filesystem-based agent workflows with database-backed, UI-accessible project management.
+Build a **cloud SaaS project management platform** where AI agents and humans collaborate via PostgreSQL database as single source of truth—**no local files, no repository clutter**.
 
 **What We're Building:**
 
-- **Web Application** (Next.js + PostgreSQL + MCP API)
-- **Database Storage** (all project data: docs, issues, knowledge, progress)
-- **Web UI for Humans** (wiki, dashboards, search, issue tracking)
-- **MCP API for Agents** (41 tools for CRUD operations)
+- **Cloud Web Application** (Next.js + PostgreSQL + MCP API)
+- **Database as Source of Truth** (all project data stored in PostgreSQL: docs, issues, knowledge, progress)
+- **Web UI for Humans** (wiki, dashboards, search, issue tracking, Development Cycle)
+- **MCP API for Agents** (41 tools for CRUD operations via HTTP JSON-RPC)
 
 **What We're NOT Building:**
 
-- .agent/ folder generator
-- CLAUDE.md file creator
-- Markdown template system for end users (markdown sync is internal tooling for OUR development)
+- `.agent/` folder generator for end users (we use `.agent/` internally for dogfooding, but it's NOT a product feature)
+- CLAUDE.md file creator for end users
+- Markdown template system for end users (all data in database, not local files)
+- File-based workflows (STATUS.md, current-todos.md, etc. are internal tooling only)
 
 **End User Gets:**
 
-A self-hosted web application (local-first) with pages for:
-- Wiki (searchable documentation)
-- Knowledge Base (RAG with semantic search)
-- Issues (bug/feature tracking)
-- Tickets (sprint work items)
-- Development Cycle (hierarchical progress visualization)
-- Dashboard (project overview)
+A cloud-hosted or self-hosted web application with:
+- **Wiki** (searchable documentation stored in database)
+- **Knowledge Base** (RAG with semantic search via pgvector)
+- **Issues** (bug/feature tracking with auto-tagging)
+- **Tickets** (sprint work items with checkpoint recovery)
+- **Development Cycle** (5-level hierarchical progress: Phase → Week → Day → Task → Session)
+- **Dashboard** (project health overview with real-time updates)
+- **MCP Integration** (AI agents access everything via HTTP JSON-RPC)
 
 **End User Does NOT Get:**
 
-- .agent/ folder in their repository
-- CLAUDE.md in their repository
-- Any markdown files in their repository
+- `.agent/` folder in their repository (this is OUR internal dogfooding tool)
+- `CLAUDE.md` in their repository
+- `STATUS.md`, `current-todos.md`, or any markdown tracking files
+- Any local files for project management (everything in database)
 
 ---
 
@@ -243,33 +246,39 @@ Session 3: AI workflow blueprint (memory banks, skills, SOPs)
 
 ---
 
-## Current Status (2025-11-06)
+## Current Status (2025-11-14)
 
-**Overall Progress**: Documentation Phase Complete (100%), Implementation Phase Ready to Start (0%)
+**Overall Progress**:
+- **Documentation**: 100% complete (including Nov 13-14 cloud SaaS refactoring)
+- **Implementation**: 62% complete (315/505 story points)
+- **Sprints Complete**: 7/9 sprints (Sprint 1-6 complete, Sprint 5.5 gap sprint complete)
 
-**Latest Milestone**: Architecture Update Complete (Nov 6, 2025)
+**Latest Milestone**: Documentation Refactoring Complete (Nov 14, 2025)
 
-- 5 new epics documented (EPIC-010 to EPIC-014)
-- 75 new FRs added (FR-146 to FR-220)
-- 37 new user stories (13 MVP, 24 Post-MVP)
-- Sprint 9 added to project plan (18 weeks total)
-- 5,500+ lines of documentation added
-- Audit specification created for future verification
+- Eliminated 101 doc-coding references across 18 documents
+- Clarified cloud SaaS vision (database as source of truth)
+- Separated internal tooling (`.agent/`) from product features
+- Aligned all docs with database-first architecture
 
-**Current Work**: Ready to start Sprint 1 implementation
-**Next Up**:
+**Sprint Completion Summary**:
+- ✅ Sprint 1: Foundation (50/52 points, 96%)
+- ✅ Sprint 2: Wiki + Onboarding (82/82 points, 100%)
+- ✅ Sprint 3: Workflow Orchestration (48/48 points, 100%)
+- ✅ Sprint 4: Issue Management (42/42 points, 100%)
+- ✅ Sprint 5: Knowledge Graph (21/21 points, 100%)
+- ✅ Sprint 5.5: MCP Server Infrastructure (21/21 points, 100%)
+- ✅ Sprint 6: Skills System (51/51 points, 100%)
+- ⏳ Sprint 7: Tasks & Sessions MVP (21 points) - NEXT
 
-1. Merge docs/architecture-pivot-sprint-1-redefinition to master
-2. Create feature/sprint-1-foundation branch
-3. Design Prisma schema for 5-level hierarchy
-4. Implement MCP server scaffold
+**Current Work**: Sprint 7 planning (Tasks & Sessions MVP)
+**Next Up**: Design Task/Session entities with checkpoint recovery
 
-**Branch**: `docs/architecture-pivot-sprint-1-redefinition` (to be merged)
+**Branch**: `master` (all sprints merged)
 **Recent Commits**:
 
-- `b4e2afc` - docs: add comprehensive documentation audit specification
-- `5e154ff` - docs: add Sprint 9 with Memory Banks and Research Agent Orchestration
-- `a1ae4fc` - docs: Update PRD, SRS, and Architecture with 5 new epics (EPIC-010 to EPIC-014)
+- `6204966` - Merge feature/sprint-7-wiki-health: Complete documentation refactoring
+- `4d568c9` - docs: Complete documentation refactoring - 100% doc-coding artifacts eliminated
+- `00298bc` - docs: refactor mcp-tools-guide for cloud SaaS vision
 
 ---
 
