@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { createKnowledgeItemSchema } from '@/lib/validations/knowledge';
-import { createKnowledgeItem, KnowledgeCreationError } from '@/lib/knowledge/create';
+import { createKnowledgeItem, KnowledgeCreationError, DuplicationError } from '@/lib/knowledge/create';
 
 /**
  * GET /api/knowledge
@@ -115,6 +115,11 @@ export async function POST(request: NextRequest) {
   try {
     // Parse and validate request body
     const body = await request.json();
+
+    // Extract allowDuplicates parameter (US-089)
+    const allowDuplicates = body.allowDuplicates === true;
+    delete body.allowDuplicates; // Remove before validation
+
     const validation = createKnowledgeItemSchema.safeParse(body);
 
     if (!validation.success) {
@@ -130,8 +135,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create knowledge item with auto-embedding
-    const result = await createKnowledgeItem(validation.data);
+    // Create knowledge item with auto-embedding (US-089: pass allowDuplicates)
+    const result = await createKnowledgeItem(validation.data, allowDuplicates);
 
     // Return success response
     return NextResponse.json(
@@ -153,6 +158,18 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    // Handle duplicate detection errors (US-089)
+    if (error instanceof DuplicationError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          code: error.code,
+          duplicates: error.duplicates || [],
+        },
+        { status: error.statusCode }
+      );
+    }
+
     // Handle known errors
     if (error instanceof KnowledgeCreationError) {
       return NextResponse.json(
