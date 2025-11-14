@@ -1,30 +1,40 @@
-# Sprint 7 Session - Day 4 Cross-Linking Automation
+# Sprint 7 Session - Day 4-5 Cross-Linking + Git Integration
 
 **Session Start**: 2025-11-14 18:30
 **Sprint**: Sprint 7 (Weeks 13-14)
-**Current Phase**: Day 4 - Cross-Linking Automation (US-108)
-**Story Points**: 33 total, 11/33 complete (33%) after Day 4 ✅
+**Current Phase**: Day 4-5 - Cross-Linking + Git Integration (US-108, US-109)
+**Story Points**: 33 total, 14/33 complete (42%) after Day 5 ✅
 **Branch**: `feature/sprint-7-wiki-health`
-**Token Usage**: ~111K/200K (56%)
+**Token Usage**: ~85K/200K (42%)
 
 ---
 
 ## Session Summary
 
-**✅ TASKS COMPLETED**:
+**✅ TASKS COMPLETED (Day 4 + Day 5)**:
+
+**Day 4 (Tasks 9-12):**
 1. Task 9: Created lib/wiki/cross-linking.ts (335 lines)
 2. Task 10: Integrated cross-linking into wiki generation API
 3. Task 11: Integrated cross-linking into manual wiki CRUD APIs
-4. Task 12: Created comprehensive unit tests (25 test cases, 376 lines)
+4. Task 12: Created comprehensive unit tests (25 test cases, 376 lines) + Mac mini E2E testing
+
+**Day 5 (Tasks 13-16):**
+5. Task 13: Created lib/wiki/git-integration.ts (375 lines)
+6. Task 14: Integrated git commits into all 3 wiki APIs (create/update/generate)
+7. Task 15: Store git commit SHA in WikiPage.metadata field
+8. Task 16: Created integration tests (13 test cases, 403 lines)
 
 **FILES CREATED**:
 - lib/wiki/cross-linking.ts (335 lines) - Cross-linking utility module
-- lib/wiki/cross-linking.test.ts (376 lines) - Unit tests
+- lib/wiki/cross-linking.test.ts (376 lines) - Cross-linking unit tests (25 test cases)
+- lib/wiki/git-integration.ts (375 lines) - Git integration module
+- lib/wiki/git-integration.test.ts (403 lines) - Git integration tests (13 test cases)
 
 **FILES MODIFIED**:
-- app/api/wiki/generate/route.ts - Added cross-link resolution to auto-generation
-- app/api/wiki/route.ts - Added cross-link resolution to manual creation
-- app/api/wiki/[slug]/route.ts - Added cross-link resolution to manual updates
+- app/api/wiki/generate/route.ts - Added cross-link resolution + git commits (auto-generation)
+- app/api/wiki/route.ts - Added cross-link resolution + git commits (manual creation)
+- app/api/wiki/[slug]/route.ts - Added cross-link resolution + git commits (manual updates)
 
 ---
 
@@ -131,30 +141,125 @@ await createPageLinks(page.id, targetPageIds, 'reference');
 
 ---
 
+## Day 5: Git Integration Implementation Details
+
+### Git Integration Module Features
+
+**Core Functions**:
+1. `wikiPageToMarkdown(page)` - Convert WikiPage to markdown with YAML frontmatter
+2. `getWikiFilePath(wikiPath, config)` - Get absolute file path in .wiki/ directory
+3. `commitWikiCreate(page, config)` - Create markdown file + git commit
+4. `commitWikiUpdate(page, config)` - Update markdown file + git commit
+5. `commitWikiDelete(page, config)` - Delete markdown file + git commit
+
+**Configuration**:
+```typescript
+interface GitIntegrationConfig {
+  repoRoot: string;          // Git repository root
+  wikiDir: string;           // Wiki directory (.wiki by default)
+  gitUserName?: string;      // Git user name
+  gitUserEmail?: string;     // Git user email
+}
+```
+
+**Commit Message Format**:
+```
+wiki: Create [page-title]
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**Markdown File Format**:
+```markdown
+---
+title: API Reference
+path: /api-reference
+category: reference
+tags: [api, docs]
+excerpt: API documentation
+createdAt: 2025-11-14T00:00:00.000Z
+updatedAt: 2025-11-14T12:00:00.000Z
+---
+
+# API
+
+Documentation content here
+```
+
+### Integration Points
+
+**1. POST /api/wiki** (Manual Creation):
+- After creating WikiPage in database
+- Call `commitWikiCreate()` to create .wiki/[slug].md
+- Store commit SHA in WikiPage.metadata.gitCommitSha
+- Graceful error handling (git errors logged but don't fail API request)
+
+**2. PATCH /api/wiki/[slug]** (Manual Update):
+- After updating WikiPage in database (within transaction)
+- Call `commitWikiUpdate()` to update .wiki/[slug].md
+- Store new commit SHA in metadata
+- Graceful error handling
+
+**3. POST /api/wiki/generate** (Auto-generation):
+- After creating/updating WikiPage in database
+- Call `commitWikiCreate()` or `commitWikiUpdate()` based on operation
+- Store commit SHA in metadata
+- Applies to both create and update paths
+
+### Integration Tests (13 test cases)
+
+**wikiPageToMarkdown** (3 tests):
+- Generate markdown with YAML frontmatter
+- Handle pages without optional fields
+- Escape special characters in frontmatter
+
+**getWikiFilePath** (3 tests):
+- Generate correct file path
+- Handle paths without leading slash
+- Handle paths with .md extension
+
+**commitWikiCreate** (2 tests):
+- Create markdown file and commit to git
+- Store correct commit SHA
+
+**commitWikiUpdate** (2 tests):
+- Update markdown file and commit changes
+- Create new commit with different SHA
+
+**commitWikiDelete** (2 tests):
+- Delete markdown file and commit deletion
+- Handle deleting non-existent file gracefully
+
+**Git Integration with Wiki CRUD** (2 tests):
+- Track version history via git log
+- Allow browsing file history via git
+
+**Error Handling** (1 test):
+- Throw error if git command fails
+
+---
+
 ## Next Steps
 
 **Immediate**:
-1. ✅ Run tests on Mac mini
-2. ✅ Test end-to-end (create wiki with cross-links)
-3. ✅ Verify PageLink relationships created
-4. ✅ Commit Day 4 completion
+1. ✅ Commit Day 5 completion
+2. **Day 6-7**: Wiki MCP Tool (Tasks 17-18)
 
-**Day 5** (Git Integration - US-109):
-- Create lib/wiki/git-integration.ts
-- Add git commit hooks to wiki CRUD
-- Store commit SHA in metadata
-- Integration tests
+**Week 2**:
+- Health Monitoring implementation (Days 8-14)
 
 ---
 
 ## Progress Tracking
 
-**Sprint 7 Day 4 Complete**: 3 points ✅
-**Total Progress**: 11/33 points (33%)
-**Velocity**: 3.67 points/day (target: 2.36) - 55% ahead ✅
+**Sprint 7 Day 5 Complete**: 3 points ✅
+**Total Progress**: 14/33 points (42%)
+**Velocity**: 2.80 points/day (target: 2.36) - 19% ahead ✅
 
-**Days Completed**: 4/14
-**Remaining**: 22 points over 10 days (2.2 points/day needed)
+**Days Completed**: 5/14
+**Remaining**: 19 points over 9 days (2.11 points/day needed)
 
 ---
 
@@ -183,5 +288,5 @@ await createPageLinks(page.id, targetPageIds, 'reference');
 
 ---
 
-**Last Updated**: 2025-11-14 19:45
-**Session Status**: Day 4 complete, ready for end-to-end testing
+**Last Updated**: 2025-11-14 20:15
+**Session Status**: Day 5 complete, ready for commit

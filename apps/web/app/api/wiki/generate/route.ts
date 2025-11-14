@@ -12,6 +12,7 @@ import { parseJSDocFromProject } from '@/lib/wiki/parsers/jsdoc';
 import { generateMarkdown, generateSlug, generateExcerpt } from '@/lib/wiki/generators/markdown';
 import { generateWikiSchema, type GenerateWikiInput } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
+import { commitWikiCreate, commitWikiUpdate } from '@/lib/wiki/git-integration';
 import type { ParsedDocumentation } from '@/lib/wiki/parsers/jsdoc';
 
 /**
@@ -233,6 +234,21 @@ async function processDocumentation(
       await createPageLinks(updated.id, targetPageIds, 'reference');
     }
 
+    // Commit to git (US-109: Git Integration)
+    try {
+      const gitResult = commitWikiUpdate({
+        title: updated.title,
+        path: updated.path,
+        content: updated.content,
+        category: updated.category || 'uncategorized',
+        excerpt: updated.excerpt || undefined,
+      });
+
+      console.log(`[Wiki Generate] Git commit (update): ${gitResult.commitSha} - ${updated.title}`);
+    } catch (gitError) {
+      console.error('[Wiki Generate] Git commit failed (update):', gitError);
+    }
+
     return {
       status: 'updated',
       page: {
@@ -263,6 +279,23 @@ async function processDocumentation(
   const targetPageIds = crossLinkResult.resolvedLinks.map(link => link.wikiPageId);
   if (targetPageIds.length > 0) {
     await createPageLinks(created.id, targetPageIds, 'reference');
+  }
+
+  // Commit to git (US-109: Git Integration)
+  try {
+    const gitResult = commitWikiCreate({
+      title: created.title,
+      path: created.path,
+      content: created.content,
+      category: created.category || 'uncategorized',
+      excerpt: created.excerpt || undefined,
+      createdAt: created.createdAt,
+      updatedAt: created.updatedAt,
+    });
+
+    console.log(`[Wiki Generate] Git commit (create): ${gitResult.commitSha} - ${created.title}`);
+  } catch (gitError) {
+    console.error('[Wiki Generate] Git commit failed (create):', gitError);
   }
 
   return {

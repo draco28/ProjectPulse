@@ -83,7 +83,8 @@
       "Bash(docker logs:*)",
       "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev\" psql:*)",
       "Bash(/tmp/mcp-tools-list.json)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(pnpm list:*)"
     ],
     "deny": [],
     "ask": [
