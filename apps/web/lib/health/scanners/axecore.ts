@@ -148,12 +148,10 @@ export class AxeCoreScanner implements Scanner {
     wcagLevel: 'A' | 'AA' | 'AAA',
     timeout: number
   ): Promise<AxeViolation[]> {
-    let page: Page | null = null;
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
     try {
-      // Create new page
-      page = await browser.newPage();
-
       // Navigate to URL with timeout
       const navigationPromise = page.goto(url, { waitUntil: 'load', timeout });
       const timeoutPromise = new Promise<never>((_, reject) =>
@@ -170,10 +168,8 @@ export class AxeCoreScanner implements Scanner {
 
       return (results.violations || []) as AxeViolation[];
     } finally {
-      // Always close page
-      if (page) {
-        await page.close();
-      }
+      // Always close context (which closes page)
+      await context.close();
     }
   }
 
