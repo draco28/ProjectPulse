@@ -112,6 +112,7 @@ model Issue {
   LinkedCommit    LinkedCommit[]
   LinkedFile      LinkedFile[]
   SecurityFinding SecurityFinding?
+  HealthFinding   HealthFinding?
   WikiPageLink    WikiPageLink[]
   Label           Label[]
 
@@ -201,13 +202,15 @@ model PageLink {
 }
 
 model Project {
-  id             Int            @id @default(autoincrement())
-  name           String         @unique
-  description    String?
-  repository     String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime
-  Issue          Issue[]
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  description   String?
+  repository    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  Issue         Issue[]
+  HealthScanner HealthScanner[]
+  HealthScore   HealthScore[]
 
   @@index([name])
 }
@@ -463,6 +466,137 @@ model weeks {
   @@index([status])
 }
 
+// Health Monitoring Enums (Sprint 7 Week 2)
+
+// Scanner type enum (4 scanners)
+enum ScannerType {
+  SEMGREP // Security scanner
+  ESLINT // Code quality linter
+  LIGHTHOUSE // Performance analyzer
+  AXECORE // Accessibility checker
+}
+
+// Finding category (maps to scanner type)
+enum FindingCategory {
+  SECURITY // Semgrep findings
+  CODE_QUALITY // ESLint findings
+  PERFORMANCE // Lighthouse findings
+  ACCESSIBILITY // axe-core findings
+}
+
+// Severity levels (standard CVE scale)
+enum FindingSeverity {
+  CRITICAL // Immediate action required
+  HIGH // Fix before release
+  MEDIUM // Address in sprint
+  LOW // Nice to fix
+}
+
+// Finding lifecycle status
+enum FindingStatus {
+  OPEN // New finding
+  IN_PROGRESS // Agent analyzing
+  FIXED // Remediated
+  FALSE_POSITIVE // Not a real issue
+}
+
+// Health Monitoring Models (Sprint 7 Week 2)
+
+// HealthScanner: Track scanner instances and last run times
+model HealthScanner {
+  id        Int         @id @default(autoincrement())
+  name      String // Display name (e.g., "Semgrep Security Scanner")
+  type      ScannerType // Enum: SEMGREP | ESLINT | LIGHTHOUSE | AXECORE
+  projectId Int // Foreign key to Project
+  lastRun   DateTime? // Nullable - null if never run
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  findings HealthFinding[]
+
+  // Constraints & Indexes
+  @@unique([projectId, type]) // Only one scanner of each type per project
+  @@index([projectId]) // Query all scanners for project
+  @@index([type]) // Query by scanner type
+  @@index([lastRun]) // Sort by recent activity
+  @@map("health_scanners")
+}
+
+// HealthFinding: Store scanner findings (generic for all 4 scanner types)
+model HealthFinding {
+  id            Int             @id @default(autoincrement())
+  scannerId     Int // Foreign key to HealthScanner
+  category      FindingCategory // Enum: SECURITY | CODE_QUALITY | PERFORMANCE | ACCESSIBILITY
+  severity      FindingSeverity // Enum: CRITICAL | HIGH | MEDIUM | LOW
+  ruleId        String // Scanner-specific rule ID (e.g., "semgrep.sql-injection")
+  message       String          @db.Text // Finding description (can be long)
+  filePath      String // File where finding was detected
+  lineNumber    Int? // Line number (nullable for non-code findings)
+  codeSnippet   String?         @db.Text // Optional code context (max 5000 chars)
+  status        FindingStatus   @default(OPEN) // Enum: OPEN | IN_PROGRESS | FIXED | FALSE_POSITIVE
+  falsePositive Boolean         @default(false) // Exclude from health score
+
+  // Agent analysis fields (FR-119)
+  agentAnalysis String? @db.Text // Agent's assessment
+  proposedFix   String? @db.Text // Suggested remediation
+
+  // Issue linkage (FR-119 remediation workflow)
+  issueId Int? @unique // Optional link to Issue model
+
+  // Timestamps
+  scanDate  DateTime  @default(now()) // When finding was detected
+  fixedAt   DateTime? // When status changed to FIXED
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  scanner HealthScanner @relation(fields: [scannerId], references: [id], onDelete: Cascade)
+  issue   Issue?        @relation(fields: [issueId], references: [id], onDelete: SetNull)
+
+  // Performance indexes (8 strategic indexes for sub-50ms queries)
+  @@index([scannerId]) // Query findings for scanner
+  @@index([scannerId, category]) // Filter by category
+  @@index([scannerId, severity]) // Filter by severity
+  @@index([scannerId, status]) // Filter by status
+  @@index([scannerId, falsePositive]) // Exclude false positives
+  @@index([scannerId, scanDate(sort: Desc)]) // Recent findings first
+  @@index([scannerId, filePath, status]) // Group by file (hotspots)
+  @@index([scannerId, ruleId, falsePositive]) // Rule violation analysis
+  @@map("health_findings")
+}
+
+// HealthScore: Store calculated health scores (historical trend tracking)
+model HealthScore {
+  id        Int @id @default(autoincrement())
+  projectId Int // Foreign key to Project
+
+  // Scores (0-100 scale, integer for simplicity)
+  overallScore       Int // Weighted average of 4 category scores
+  securityScore      Int // Calculated from SECURITY findings
+  qualityScore       Int // Calculated from CODE_QUALITY findings
+  performanceScore   Int // Calculated from PERFORMANCE findings
+  accessibilityScore Int // Calculated from ACCESSIBILITY findings
+
+  // Metadata
+  calculatedAt DateTime @default(now()) // When score was calculated
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Performance indexes (for trend analysis)
+  @@index([projectId]) // Query scores for project
+  @@index([projectId, calculatedAt]) // Trend analysis (time series)
+  @@index([calculatedAt(sort: Desc)]) // Recent scores first
+  @@map("health_scores")
+}
+
+// Development Cycle Status Enum
 enum Status {
   NOT_STARTED
   IN_PROGRESS
