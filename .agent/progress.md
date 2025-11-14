@@ -1101,7 +1101,7 @@ Next review: End of Sprint 1 implementation (2 weeks after start)
   - ✅ Syntax validated successfully
   - Deliverable: projectpulse.wiki.generate MCP tool operational
 
-**Week 2: Health Monitoring (Days 8-14)** ✅ PARTIALLY COMPLETE (11/17 points - 65%)
+**Week 2: Health Monitoring (Days 8-14)** ✅ PARTIALLY COMPLETE (16/19 points - 84%)
 
 - Day 8-9: Health Scanner Foundation (✅ 100% COMPLETE - 8 points)
   - ✅ **Task 19-20: Database Foundation** (3 points)
@@ -1146,9 +1146,29 @@ Next review: End of Sprint 1 implementation (2 weeks after start)
     - Playwright browsers installed on Mac mini
     - axe-core: Found 1 real violation (heading-order) ✅
     - Lighthouse: Unit tests pass (manual test blocked by tsx ESM issue, not critical)
-- Day 11: Health Score Calculation (⏸️ NEXT - 5 points)
-- Day 12: Health MCP Tools (⏸️ DEFERRED - 3 points)
-- Day 13: Health Dashboard UI (⏸️ DEFERRED - 3 points)
+- Day 11: Health Score Calculation (✅ 100% COMPLETE - 5 points)
+  - ✅ **Task 31: Scoring Types** (0.5 points)
+    - types.ts (206 lines): CategoryScores, HealthScoreData, ScoreWeights, SeverityPoints
+    - Constants: DEFAULT_SCORE_WEIGHTS (40/30/20/10), DEFAULT_SEVERITY_POINTS (10/5/2/1)
+    - MAX_POINTS_PER_CATEGORY = 500 (stable scoring baseline)
+  - ✅ **Task 32: Calculator Implementation** (2 points)
+    - calculator.ts (288 lines): calculateHealthScore, assignGrade, helper functions
+    - Weighted formula: (security*0.40 + quality*0.30 + a11y*0.20 + debt*0.10) * 100
+    - Grade thresholds: A (90+), B (80-89), C (70-79), D (60-69), F (<60)
+  - ✅ **Task 33: Comprehensive Tests** (2 points)
+    - calculator.test.ts (545 lines, 22 test cases - 220% over requirement)
+    - Edge cases: zero findings, all critical, only LOW severity
+    - Grade boundaries: All 6 exact boundaries tested
+    - Category weights: Mathematical proof of 40/30/20/10 weights
+    - Severity weights: Verified CRITICAL=10x LOW, CRITICAL=2x HIGH
+    - Real-world scenarios: Semgrep (83.84, B), ESLint (71.68, C), Combined (54.48, F), Perfect (100.00, A)
+  - ✅ **Task 34: Exports & Integration** (0.5 points)
+    - index.ts (51 lines): Clean exports with JSDoc examples
+    - Manual integration test: 4/4 scenarios passed with exact matches ✅
+  - ✅ **Verification**: TypeScript 0 errors, all 22 tests passing (0.565s)
+  - **Total**: 1,239 lines (types 206 + calculator 288 + tests 545 + index 51 + test script 149)
+- Day 12: Health MCP Tools (⏸️ NEXT - 3 points)
+- Day 13: Health Dashboard UI (⏸️ DEFERRED - 0 points - polish)
 - Day 14: Integration Testing + Documentation (⏸️ DEFERRED - 0 points - polish)
 
 **Key Deliverables Completed** (Day 1-9):
