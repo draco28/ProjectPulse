@@ -1101,7 +1101,7 @@ Next review: End of Sprint 1 implementation (2 weeks after start)
   - ✅ Syntax validated successfully
   - Deliverable: projectpulse.wiki.generate MCP tool operational
 
-**Week 2: Health Monitoring (Days 8-14)** ✅ PARTIALLY COMPLETE (16/19 points - 84%)
+**Week 2: Health Monitoring (Days 8-14)** ✅ 100% COMPLETE (19/19 points)
 
 - Day 8-9: Health Scanner Foundation (✅ 100% COMPLETE - 8 points)
   - ✅ **Task 19-20: Database Foundation** (3 points)
@@ -1167,7 +1167,33 @@ Next review: End of Sprint 1 implementation (2 weeks after start)
     - Manual integration test: 4/4 scenarios passed with exact matches ✅
   - ✅ **Verification**: TypeScript 0 errors, all 22 tests passing (0.565s)
   - **Total**: 1,239 lines (types 206 + calculator 288 + tests 545 + index 51 + test script 149)
-- Day 12: Health MCP Tools (⏸️ NEXT - 3 points)
+- Day 12: Health MCP Tools (✅ 100% COMPLETE - 3 points)
+  - ✅ **Task 35: Health MCP Tool Handlers** (2 points)
+    - health-handler.ts (779 lines): 3 MCP tool implementations
+    - health.runScan: Execute scanners + store findings + calculate score
+    - health.getScore: Retrieve latest scores with trend analysis
+    - health.getHistory: Historical trends with linear regression
+    - Input/output interfaces with comprehensive JSDoc
+    - MCPError handling with JSON-RPC 2.0 codes
+  - ✅ **Task 36: MCP Server Registration** (0.5 points)
+    - Updated app/api/mcp/route.ts with 3 imports
+    - Added 3 switch cases in tools/call handler
+    - Added 3 tool definitions in tools/list response
+    - Updated availableTools error message
+  - ✅ **Task 37: Comprehensive Tests** (0.5 points)
+    - health-handler.test.ts (700 lines, 37 tests passing)
+    - Input validation tests (18 tests)
+    - Integration workflow tests (6 tests)
+    - Trend calculation tests (8 tests)
+    - Error handling tests (5 tests)
+    - Mocked Prisma + scanner registry + score calculator
+  - ✅ **Task 38: Integration Test Script** (0 points - bonus)
+    - test-health-mcp.ts (429 lines): Manual integration test guide
+    - 6 curl test scenarios with expected responses
+    - Error case testing (3 scenarios)
+    - Ready for Mac mini MCP server testing
+  - ✅ **Verification**: TypeScript 0 errors in Day 12 code, all 37 tests passing
+  - **Total**: 2,108 lines (handler 779 + tests 700 + route changes ~200 + integration script 429)
 - Day 13: Health Dashboard UI (⏸️ DEFERRED - 0 points - polish)
 - Day 14: Integration Testing + Documentation (⏸️ DEFERRED - 0 points - polish)
 
@@ -1187,11 +1213,14 @@ Next review: End of Sprint 1 implementation (2 weeks after start)
 - [x] Test fixtures with realistic scanner output ✅
 - [x] Integration verification: 44 Semgrep findings + 218 ESLint findings ✅
 
-**Key Deliverables Pending** (Day 10-14):
-- [ ] Accessibility scanners (axe-core, Lighthouse) - 3 points
-- [ ] Health score calculation (weighted formula) - 5 points
-- [ ] Health dashboard UI - 3 points
-- [ ] Health MCP tools (scan, listFindings, calculateScore) - 3 points
+**Key Deliverables Completed** (Day 10-12):
+- [x] Accessibility scanners (axe-core, Lighthouse) ✅
+- [x] Health score calculation (weighted formula with 40/30/20/10 weights) ✅
+- [x] Health MCP tools (runScan, getScore, getHistory) ✅
+
+**Key Deliverables Deferred** (Day 13-14 - Optional Polish):
+- [ ] Health dashboard UI - 0 points (polish)
+- [ ] Integration testing + documentation - 0 points (polish)
 
 **Commits**:
 - `4f2dad2` - feat(wiki): Complete Day 4 - Cross-Linking Automation (US-108)

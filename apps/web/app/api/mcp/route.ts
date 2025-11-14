@@ -53,6 +53,11 @@ import {
   skillLinkKnowledgeHandler,
 } from '@/lib/mcp/handlers/skill-handler';
 import {
+  healthRunScanHandler,
+  healthGetScoreHandler,
+  healthGetHistoryHandler,
+} from '@/lib/mcp/handlers/health-handler';
+import {
   listKnowledgeResources,
   readKnowledgeResource,
 } from '@/lib/mcp/resources/knowledge-resource';
@@ -250,12 +255,21 @@ export async function POST(request: NextRequest) {
         case 'skill.linkKnowledge':
           result = await skillLinkKnowledgeHandler(args);
           break;
+        case 'health.runScan':
+          result = await healthRunScanHandler(args);
+          break;
+        case 'health.getScore':
+          result = await healthGetScoreHandler(args);
+          break;
+        case 'health.getHistory':
+          result = await healthGetHistoryHandler(args);
+          break;
         default:
           throw new MCPError(
             `Unknown tool: ${name}`,
             JSONRPC_ERROR_CODES.METHOD_NOT_FOUND,
             404,
-            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export', 'knowledge.import', 'knowledge.archive', 'skill.list', 'skill.load', 'skill.search', 'skill.update', 'skill.delete', 'skill.export', 'skill.import', 'skill.linkKnowledge'] }
+            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export', 'knowledge.import', 'knowledge.archive', 'skill.list', 'skill.load', 'skill.search', 'skill.update', 'skill.delete', 'skill.export', 'skill.import', 'skill.linkKnowledge', 'health.runScan', 'health.getScore', 'health.getHistory'] }
           );
       }
     } else if (jsonrpcRequest.method === 'tools/list') {
@@ -503,6 +517,61 @@ export async function POST(request: NextRequest) {
                 action: { type: 'string', enum: ['link', 'unlink'], default: 'link' },
               },
               required: ['projectId', 'skillSlug', 'knowledgeItemId'],
+            },
+          },
+          {
+            name: 'health.runScan',
+            description: 'Execute health scanners, store findings, and calculate health scores',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID to scan' },
+                scannerTypes: {
+                  type: 'array',
+                  items: { type: 'string', enum: ['SEMGREP', 'ESLINT', 'AXECORE', 'LIGHTHOUSE'] },
+                  minItems: 1,
+                  description: 'Scanner types to execute (1+ required)',
+                },
+                projectPath: { type: 'string', description: 'Absolute path to project directory' },
+                options: {
+                  type: 'object',
+                  properties: {
+                    include: { type: 'array', items: { type: 'string' }, description: 'File patterns to include (glob)' },
+                    exclude: { type: 'array', items: { type: 'string' }, description: 'File patterns to exclude (glob)' },
+                  },
+                },
+              },
+              required: ['projectId', 'scannerTypes', 'projectPath'],
+            },
+          },
+          {
+            name: 'health.getScore',
+            description: 'Retrieve latest health scores with optional trend analysis',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID to get scores for' },
+                limit: { type: 'number', minimum: 1, maximum: 10, default: 1, description: 'Number of scores to return' },
+              },
+              required: ['projectId'],
+            },
+          },
+          {
+            name: 'health.getHistory',
+            description: 'Analyze historical health score trends with time-series data and metrics',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID to analyze' },
+                days: { type: 'number', minimum: 1, maximum: 90, default: 7, description: 'Days of history to retrieve' },
+                category: {
+                  type: 'string',
+                  enum: ['overall', 'security', 'quality', 'performance', 'accessibility'],
+                  default: 'overall',
+                  description: 'Category to analyze',
+                },
+              },
+              required: ['projectId'],
             },
           },
         ],
