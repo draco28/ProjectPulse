@@ -12,7 +12,15 @@
 
 ### When Starting a Session
 
-**Always read in this order:**
+**🚨 ALWAYS READ THIS FIRST:**
+
+**0. [.agent/QUICK_REFERENCE.md](QUICK_REFERENCE.md) - ⭐ SERVER CONFIG & TROUBLESHOOTING ⭐**
+   - Mac mini server locations (192.168.1.15)
+   - Service ports, connection strings
+   - Common mistakes to avoid
+   - Troubleshooting checklist
+
+**Then read in this order:**
 
 1. [.agent/active-context.md](active-context.md) - Current focus and blockers
 2. [.agent/progress.md](progress.md) - Progress & metrics snapshot
