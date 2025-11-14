@@ -6,6 +6,7 @@
  * Maps ESLint findings to HealthFinding records with CODE_QUALITY category.
  */
 
+// @ts-ignore - eslint types not properly exported
 import { ESLint } from 'eslint';
 import { FindingCategory, FindingSeverity, ScannerType } from '@prisma/client';
 import type {
@@ -220,20 +221,20 @@ export class ESLintScanner implements Scanner {
     const contextLines: string[] = [];
 
     // Add line before (if exists)
-    if (line > 1 && lines[line - 2]) {
-      contextLines.push(lines[line - 2]);
+    if (line > 1 && lines[line - 2] !== undefined) {
+      contextLines.push(lines[line - 2] || '');
     }
 
     // Add problem line with marker
-    if (lines[line - 1]) {
-      contextLines.push(lines[line - 1]);
+    if (lines[line - 1] !== undefined) {
+      contextLines.push(lines[line - 1] || '');
       // Add marker showing where the issue is
       contextLines.push(' '.repeat(column - 1) + '^');
     }
 
     // Add line after (if exists)
-    if (line < lines.length && lines[line]) {
-      contextLines.push(lines[line]);
+    if (line < lines.length && lines[line] !== undefined) {
+      contextLines.push(lines[line] || '');
     }
 
     return contextLines.join('\n').trim() || undefined;

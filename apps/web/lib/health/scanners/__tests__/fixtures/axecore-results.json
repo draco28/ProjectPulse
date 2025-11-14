@@ -1,0 +1,149 @@
+{
+  "violations": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "help": "Elements must have sufficient color contrast",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.7/color-contrast",
+      "description": "Ensures the contrast between foreground and background colors meets WCAG 2 AA contrast ratio thresholds",
+      "nodes": [
+        {
+          "html": "<button class=\"btn-primary\">Click me</button>",
+          "target": ["button.btn-primary"],
+          "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.2:1 (foreground color: #6c757d, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+        },
+        {
+          "html": "<a href=\"/about\" class=\"text-muted\">About</a>",
+          "target": ["a.text-muted"],
+          "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.8:1"
+        }
+      ]
+    },
+    {
+      "id": "label",
+      "impact": "critical",
+      "help": "Form elements must have labels",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.7/label",
+      "description": "Ensures every form element has a label",
+      "nodes": [
+        {
+          "html": "<input type=\"text\" name=\"search\" placeholder=\"Search...\">",
+          "target": ["input[name='search']"],
+          "failureSummary": "Fix any of the following:\n  Form element does not have an implicit (wrapped) <label>\n  Form element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty"
+        }
+      ]
+    },
+    {
+      "id": "aria-required-attr",
+      "impact": "critical",
+      "help": "[role='combobox'] elements must have required ARIA attributes",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.7/aria-required-attr",
+      "description": "Ensures elements with ARIA roles have all required ARIA attributes",
+      "nodes": [
+        {
+          "html": "<div role=\"combobox\" tabindex=\"0\">Select...</div>",
+          "target": ["div[role='combobox']"],
+          "failureSummary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded\n  Required ARIA attribute not present: aria-controls"
+        }
+      ]
+    },
+    {
+      "id": "image-alt",
+      "impact": "critical",
+      "help": "Images must have alternate text",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.7/image-alt",
+      "description": "Ensures <img> elements have alternate text or a role of none or presentation",
+      "nodes": [
+        {
+          "html": "<img src=\"/logo.png\">",
+          "target": ["img"],
+          "failureSummary": "Fix any of the following:\n  Element does not have an alt attribute\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+        }
+      ]
+    },
+    {
+      "id": "link-name",
+      "impact": "serious",
+      "help": "Links must have discernible text",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.7/link-name",
+      "description": "Ensures links have discernible text",
+      "nodes": [
+        {
+          "html": "<a href=\"/settings\"><svg>...</svg></a>",
+          "target": ["a[href='/settings']"],
+          "failureSummary": "Fix all of the following:\n  Element is in tab order and does not have accessible text"
+        }
+      ]
+    },
+    {
+      "id": "heading-order",
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.7/heading-order",
+      "description": "Ensures the order of headings is semantically correct",
+      "nodes": [
+        {
+          "html": "<h4>Section Title</h4>",
+          "target": ["h4"],
+          "failureSummary": "Fix any of the following:\n  Heading order invalid"
+        }
+      ]
+    },
+    {
+      "id": "landmark-one-main",
+      "impact": "moderate",
+      "help": "Document should have one main landmark",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.7/landmark-one-main",
+      "description": "Ensures the document has at most one main landmark",
+      "nodes": [
+        {
+          "html": "<html lang=\"en\">",
+          "target": ["html"],
+          "failureSummary": "Fix any of the following:\n  Document does not have a main landmark"
+        }
+      ]
+    },
+    {
+      "id": "region",
+      "impact": "moderate",
+      "help": "All page content should be contained by landmarks",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.7/region",
+      "description": "Ensures all page content is contained by landmarks",
+      "nodes": [
+        {
+          "html": "<div class=\"container\">Content here</div>",
+          "target": [".container"],
+          "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+        }
+      ]
+    },
+    {
+      "id": "button-name",
+      "impact": "critical",
+      "help": "Buttons must have discernible text",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.7/button-name",
+      "description": "Ensures buttons have discernible text",
+      "nodes": [
+        {
+          "html": "<button><svg>...</svg></button>",
+          "target": ["button"],
+          "failureSummary": "Fix any of the following:\n  Element does not have inner text that is visible to screen readers\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+        }
+      ]
+    },
+    {
+      "id": "meta-viewport",
+      "impact": "minor",
+      "help": "Zooming and scaling should not be disabled",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.7/meta-viewport",
+      "description": "Ensures <meta name=\"viewport\"> does not disable text scaling and zooming",
+      "nodes": [
+        {
+          "html": "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no\">",
+          "target": ["meta[name='viewport']"],
+          "failureSummary": "Fix any of the following:\n  user-scalable=no on <meta> tag disables zooming on mobile devices"
+        }
+      ]
+    }
+  ]
+}

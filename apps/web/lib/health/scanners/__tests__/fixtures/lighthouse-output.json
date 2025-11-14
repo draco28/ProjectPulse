@@ -1,0 +1,140 @@
+{
+  "lhr": {
+    "audits": {
+      "aria-required-attr": {
+        "id": "aria-required-attr",
+        "title": "[aria-*] attributes do not match their roles",
+        "description": "Each ARIA `role` supports a specific subset of `aria-*` attributes. Mismatching these invalidates the `aria-*` attributes. [Learn more](https://web.dev/aria-required-attr/).",
+        "score": 0,
+        "scoreDisplayMode": "binary",
+        "details": {
+          "items": [
+            {
+              "node": {
+                "selector": "div[role='combobox']",
+                "snippet": "<div role=\"combobox\" tabindex=\"0\">Select...</div>"
+              }
+            }
+          ]
+        }
+      },
+      "image-alt": {
+        "id": "image-alt",
+        "title": "Image elements do not have [alt] attributes",
+        "description": "Informative elements should aim for short, descriptive alternate text. Decorative elements can be ignored with an empty alt attribute. [Learn more](https://web.dev/image-alt/).",
+        "score": 0.5,
+        "scoreDisplayMode": "binary",
+        "details": {
+          "items": [
+            {
+              "node": {
+                "selector": "img.logo",
+                "snippet": "<img src=\"/logo.png\" class=\"logo\">"
+              }
+            }
+          ]
+        }
+      },
+      "button-name": {
+        "id": "button-name",
+        "title": "Buttons do not have an accessible name",
+        "description": "When a button doesn't have an accessible name, screen readers announce it as \"button\", making it unusable for users who rely on screen readers. [Learn more](https://web.dev/button-name/).",
+        "score": 0,
+        "scoreDisplayMode": "binary",
+        "details": {
+          "items": [
+            {
+              "node": {
+                "selector": "button.icon-button",
+                "snippet": "<button class=\"icon-button\"><svg>...</svg></button>"
+              }
+            }
+          ]
+        }
+      },
+      "color-contrast": {
+        "id": "color-contrast",
+        "title": "Background and foreground colors do not have a sufficient contrast ratio",
+        "description": "Low-contrast text is difficult or impossible for many users to read. [Learn more](https://web.dev/color-contrast/).",
+        "score": 0.8,
+        "scoreDisplayMode": "binary"
+      },
+      "link-name": {
+        "id": "link-name",
+        "title": "Links do not have a discernible name",
+        "description": "Link text (and alternate text for images, when used as links) that is discernible, unique, and focusable improves the navigation experience for screen reader users. [Learn more](https://web.dev/link-name/).",
+        "score": 0.67,
+        "scoreDisplayMode": "numeric",
+        "details": {
+          "items": [
+            {
+              "node": {
+                "selector": "a.icon-link",
+                "snippet": "<a href=\"/settings\" class=\"icon-link\"><svg>...</svg></a>"
+              }
+            }
+          ]
+        }
+      },
+      "document-title": {
+        "id": "document-title",
+        "title": "Document has a `<title>` element",
+        "description": "The title gives screen reader users an overview of the page, and search engine users rely on it heavily to determine if a page is relevant to their search. [Learn more](https://web.dev/document-title/).",
+        "score": 1,
+        "scoreDisplayMode": "binary"
+      },
+      "html-has-lang": {
+        "id": "html-has-lang",
+        "title": "`<html>` element has a `[lang]` attribute",
+        "description": "If a page doesn't specify a lang attribute, a screen reader assumes that the page is in the default language that the user chose when setting up the screen reader. If the page isn't actually in that language, then the screen reader might not announce the page's text correctly. [Learn more](https://web.dev/html-has-lang/).",
+        "score": 1,
+        "scoreDisplayMode": "binary"
+      },
+      "meta-viewport": {
+        "id": "meta-viewport",
+        "title": "`[user-scalable=\"no\"]` is used in the `<meta name=\"viewport\">` element or the `[maximum-scale]` attribute is less than 5",
+        "description": "Disabling zooming is problematic for users with low vision who rely on screen magnification to properly see the contents of a web page. [Learn more](https://web.dev/meta-viewport/).",
+        "score": 0.5,
+        "scoreDisplayMode": "binary"
+      },
+      "label": {
+        "id": "label",
+        "title": "Form elements do not have associated labels",
+        "description": "Labels ensure that form controls are announced properly by assistive technologies, like screen readers. [Learn more](https://web.dev/label/).",
+        "score": 0.33,
+        "scoreDisplayMode": "numeric",
+        "details": {
+          "items": [
+            {
+              "node": {
+                "selector": "input[name='search']",
+                "snippet": "<input type=\"text\" name=\"search\" placeholder=\"Search...\">"
+              }
+            }
+          ]
+        }
+      },
+      "heading-order": {
+        "id": "heading-order",
+        "title": "Heading elements are not in a sequentially-descending order",
+        "description": "Properly ordered headings that do not skip levels convey the semantic structure of the page, making it easier to navigate and understand when using assistive technologies. [Learn more](https://web.dev/heading-order/).",
+        "score": 0,
+        "scoreDisplayMode": "binary"
+      },
+      "bypass": {
+        "id": "bypass",
+        "title": "The page does not contain a heading, skip link, or landmark region",
+        "description": "Adding ways to bypass repetitive content lets keyboard users navigate the page more efficiently. [Learn more](https://web.dev/bypass/).",
+        "score": null,
+        "scoreDisplayMode": "manual"
+      },
+      "accesskeys": {
+        "id": "accesskeys",
+        "title": "`[accesskey]` values are unique",
+        "description": "Access keys let users quickly focus a part of the page. For proper navigation, each access key must be unique. [Learn more](https://web.dev/accesskeys/).",
+        "score": null,
+        "scoreDisplayMode": "notApplicable"
+      }
+    }
+  }
+}

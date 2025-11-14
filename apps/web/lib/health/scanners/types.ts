@@ -120,13 +120,18 @@ export type SeverityMapper<T> = (scannerSeverity: T) => FindingSeverity;
  * Common scanner error types
  */
 export class ScannerError extends Error {
+  public scannerType: ScannerType;
+  public override cause?: Error;
+
   constructor(
     message: string,
-    public scannerType: ScannerType,
-    public cause?: Error
+    scannerType: ScannerType,
+    cause?: Error
   ) {
     super(message);
     this.name = 'ScannerError';
+    this.scannerType = scannerType;
+    this.cause = cause;
   }
 }
 

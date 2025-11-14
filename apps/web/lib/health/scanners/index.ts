@@ -1,6 +1,7 @@
 /**
  * Health monitoring scanners - Central exports
  * Sprint 7 Day 8-9 - Health Scanner Foundation
+ * Updated Day 10 - Added accessibility scanners
  *
  * This module provides a unified interface for all scanner implementations.
  */
@@ -8,11 +9,15 @@
 export * from './types';
 export * from './semgrep';
 export * from './eslint';
+export * from './axecore';
+export * from './lighthouse';
 
 import { ScannerType } from '@prisma/client';
 import type { Scanner } from './types';
 import { createSemgrepScanner } from './semgrep';
 import { createESLintScanner } from './eslint';
+import { createAxeCoreScanner } from './axecore';
+import { createLighthouseScanner } from './lighthouse';
 
 /**
  * Scanner registry - maps scanner types to factory functions
@@ -20,9 +25,8 @@ import { createESLintScanner } from './eslint';
 const scannerRegistry = new Map<ScannerType, () => Scanner>([
   [ScannerType.SEMGREP, createSemgrepScanner],
   [ScannerType.ESLINT, createESLintScanner],
-  // Future scanners:
-  // [ScannerType.LIGHTHOUSE, createLighthouseScanner],
-  // [ScannerType.AXECORE, createAxeCoreScanner],
+  [ScannerType.LIGHTHOUSE, createLighthouseScanner],
+  [ScannerType.AXECORE, createAxeCoreScanner],
 ]);
 
 /**
