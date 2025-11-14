@@ -23,8 +23,11 @@ export default defineConfig({
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    /* Base URL to use in actions like `await page.goto('/')`.
+     * Default: Docker container on Mac mini (http://192.168.1.15:3000)
+     * Override: Set BASE_URL environment variable for CI/CD or other environments
+     */
+    baseURL: process.env.BASE_URL || 'http://192.168.1.15:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -61,12 +64,9 @@ export default defineConfig({
     },
   ],
 
-  /* Run local dev server unless targeting external base URL (e.g., Mac mini runtime) */
-  webServer: process.env.EXTERNAL_BASE_URL
-    ? undefined
-    : {
-        command: 'pnpm dev',
-        url: process.env.BASE_URL || 'http://localhost:3000',
-        reuseExistingServer: !process.env.CI,
-      },
+  /* Docker-first architecture: Tests always run against Docker container
+   * No local dev server needed - Docker container is always available
+   * CI/CD: Override BASE_URL for GitHub Actions or other CI environments
+   */
+  // webServer: undefined (Docker container always running, no local dev server needed)
 });
