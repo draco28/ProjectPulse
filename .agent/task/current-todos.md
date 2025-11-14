@@ -1,13 +1,13 @@
 # Sprint 7 Task List - Wiki Auto-Generation + Health Monitoring
 
 **Created**: 2025-11-14 00:49
-**Last Updated**: 2025-11-14 20:15
-**Progress**: 12/39 tasks complete (31%) - Task 17 next (Day 6-7)
-**Story Points**: 11/30 points complete (37%) - Day 1-4 COMPLETE ✅, Day 5 SKIPPED
+**Last Updated**: 2025-11-14 20:30
+**Progress**: 14/39 tasks complete (36%) - Task 19 next (Day 8-9)
+**Story Points**: 13/30 points complete (43%) - Day 1-7 COMPLETE ✅, Day 5 SKIPPED
 
 ---
 
-## ✅ Completed Tasks (12)
+## ✅ Completed Tasks (14)
 
 ### Day 1-2: JSDoc Parser Foundation (COMPLETE ✅)
 - [x] **Task 1**: Install @microsoft/tsdoc parser dependency
@@ -73,6 +73,20 @@
   - PageLink relationships working
   - Status: ✅ Complete
 
+### Day 6-7: Wiki MCP Tool (COMPLETE ✅)
+- [x] **Task 17**: Create projectpulse.wiki.generate MCP tool
+  - Created apps/mcp-server/src/tools/wikiGenerate.ts (196 lines)
+  - Zod schema with projectPath, filePatterns, category, overwriteExisting
+  - Calls POST /api/wiki/generate endpoint
+  - Returns formatted summary with pages created/updated/skipped
+  - Status: ✅ Complete
+
+- [x] **Task 18**: Register wiki.generate MCP tool in server
+  - Added import to apps/mcp-server/src/tools/index.ts
+  - Registered in loadTools() array
+  - Syntax validated successfully
+  - Status: ✅ Complete
+
 ---
 
 ## ⏸️ Skipped Tasks (4) - US-109 Dogfooding Feature
@@ -91,13 +105,9 @@
 
 ---
 
-## 📋 Pending Tasks (26)
+## 📋 Pending Tasks (24)
 
-### Day 6-7: Wiki MCP Tool (2 tasks) - NEXT UP ⬅️
-- [ ] **Task 17**: Create projectpulse.wiki.generate MCP tool
-- [ ] **Task 18**: Register wiki.generate MCP tool in server
-
-### Day 8-9: Health Scanner Foundation (5 tasks)
+### Day 8-9: Health Scanner Foundation (5 tasks) - NEXT UP ⬅️
 - [ ] **Task 19**: Create Prisma models: HealthScanner, HealthFinding, HealthScore
 - [ ] **Task 20**: Create health_monitoring_foundation migration
 - [ ] **Task 21**: Implement Semgrep scanner (lib/health/scanners/semgrep.ts)
@@ -138,12 +148,12 @@
 
 ## 📊 Progress Summary
 
-**Week 1: Wiki Auto-Generation** (11 points - adjusted)
+**Week 1: Wiki Auto-Generation** (13 points - adjusted)
 - Day 1-2: JSDoc Parser (4 points) - ✅ 100% complete
 - Day 3: Wiki Generation API (4 points) - ✅ 100% complete
 - Day 4: Cross-Linking (3 points) - ✅ 100% complete
 - Day 5: Git Integration (3 points) - ⏸️ SKIPPED (US-109 redundant/dogfooding)
-- Day 6-7: MCP Tool (2 points) - 0% complete
+- Day 6-7: MCP Tool (2 points) - ✅ 100% complete
 
 **Week 2: Health Monitoring** (19 points)
 - Day 8-9: Scanner Foundation (8 points) - 0% complete
@@ -168,5 +178,5 @@
 
 **Velocity**: 3.67 points/day (55% ahead of 2.36 target) 🚀
 
-**Last Updated**: 2025-11-14 20:15
-**Status**: Day 1-4 COMPLETE ✅, Day 5 SKIPPED ⏸️, Day 6-7 NEXT ⬅️
+**Last Updated**: 2025-11-14 20:30
+**Status**: Week 1 (Wiki Auto-Generation) COMPLETE ✅ - Week 2 (Health Monitoring) NEXT ⬅️

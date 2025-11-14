@@ -13,6 +13,7 @@ import { wikiCreateTool } from './wikiCreate.js';
 import { wikiSearchTool } from './wikiSearch.js';
 import { wikiUpdateTool } from './wikiUpdate.js';
 import { wikiAnalyticsTopPagesTool } from './wikiAnalyticsTopPages.js';
+import { wikiGenerateTool } from './wikiGenerate.js';
 import { onboardingGetPromptTool } from './onboarding/getPrompt.js';
 import { onboardingSubmitResponseTool } from './onboarding/submitResponse.js';
 import { workflowListTool } from './workflow/list.js';
@@ -42,6 +43,7 @@ const loadTools = (): ToolDefinition[] => [
   wikiSearchTool,
   wikiUpdateTool,
   wikiAnalyticsTopPagesTool,
+  wikiGenerateTool,
   onboardingGetPromptTool,
   onboardingSubmitResponseTool,
   issueCreateTool,
