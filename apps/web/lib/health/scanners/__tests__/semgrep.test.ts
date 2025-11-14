@@ -9,19 +9,43 @@ import { ScannerError, ScannerTimeoutError } from '../types';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { jest } from '@jest/globals';
-import * as cp from 'child_process';
+import { spawn } from 'child_process';
+import { EventEmitter } from 'events';
 
 // Test fixtures directory
 const FIXTURES_DIR = path.join(__dirname, 'fixtures');
 
 // Mock child_process
-jest.mock('child_process');
+jest.mock('child_process', () => ({
+  spawn: jest.fn(),
+}));
+
+// Helper to create mock spawn process
+function createMockSpawn(stdout: string, stderr: string = '', exitCode: number = 0) {
+  const mockProcess = new EventEmitter() as any;
+  mockProcess.stdout = new EventEmitter();
+  mockProcess.stderr = new EventEmitter();
+  mockProcess.kill = jest.fn();
+
+  // Simulate async process execution
+  process.nextTick(() => {
+    mockProcess.stdout.emit('data', Buffer.from(stdout));
+    if (stderr) {
+      mockProcess.stderr.emit('data', Buffer.from(stderr));
+    }
+    mockProcess.emit('close', exitCode);
+  });
+
+  return mockProcess;
+}
 
 describe('SemgrepScanner', () => {
   let scanner: SemgrepScanner;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
 
   beforeEach(() => {
     scanner = new SemgrepScanner();
+    jest.clearAllMocks();
   });
 
   describe('Valid Semgrep Output Parsing', () => {
@@ -29,12 +53,9 @@ describe('SemgrepScanner', () => {
       // Load fixture
       const fixturePath = path.join(FIXTURES_DIR, 'semgrep-output.json');
       const fixtureContent = await fs.readFile(fixturePath, 'utf-8');
-      const semgrepOutput = JSON.parse(fixtureContent);
 
-      // Mock exec to return fixture output
-      jest.spyOn(require('child_process'), 'exec').mockImplementation((cmd, opts, callback) => {
-        callback(null, { stdout: JSON.stringify(semgrepOutput), stderr: '' });
-      });
+      // Mock spawn to return fixture output
+      mockSpawn.mockReturnValue(createMockSpawn(fixtureContent));
 
       // Execute scan
       const result = await scanner.scan('/fake/project/path');
@@ -104,9 +125,7 @@ describe('SemgrepScanner', () => {
         errors: [],
       };
 
-      jest.spyOn(require('child_process'), 'exec').mockImplementation((cmd, opts, callback) => {
-        callback(null, { stdout: JSON.stringify(fixture), stderr: '' });
-      });
+      mockSpawn.mockReturnValue(createMockSpawn(JSON.stringify(fixture)));
 
       const result = await scanner.scan('/fake/path');
 
@@ -118,11 +137,8 @@ describe('SemgrepScanner', () => {
     it('should generate accurate summary with counts by severity', async () => {
       const fixturePath = path.join(FIXTURES_DIR, 'semgrep-output.json');
       const fixtureContent = await fs.readFile(fixturePath, 'utf-8');
-      const semgrepOutput = JSON.parse(fixtureContent);
 
-      jest.spyOn(require('child_process'), 'exec').mockImplementation((cmd, opts, callback) => {
-        callback(null, { stdout: JSON.stringify(semgrepOutput), stderr: '' });
-      });
+      mockSpawn.mockReturnValue(createMockSpawn(fixtureContent));
 
       const result = await scanner.scan('/fake/path');
 
@@ -141,10 +157,8 @@ describe('SemgrepScanner', () => {
 
   describe('Malformed Output Handling', () => {
     it('should throw ScannerError when Semgrep JSON is malformed', async () => {
-      // Mock exec to return invalid JSON
-      jest.spyOn(require('child_process'), 'exec').mockImplementation((cmd, opts, callback) => {
-        callback(null, { stdout: '{ invalid json }}', stderr: '' });
-      });
+      // Mock spawn to return invalid JSON
+      mockSpawn.mockReturnValue(createMockSpawn('{ invalid json }}'));
 
       // Should throw ScannerError
       await expect(scanner.scan('/fake/path')).rejects.toThrow(ScannerError);
@@ -158,9 +172,7 @@ describe('SemgrepScanner', () => {
         paths: { scanned: [] }
       };
 
-      jest.spyOn(require('child_process'), 'exec').mockImplementation((cmd, opts, callback) => {
-        callback(null, { stdout: JSON.stringify(emptyOutput), stderr: '' });
-      });
+      mockSpawn.mockReturnValue(createMockSpawn(JSON.stringify(emptyOutput)));
 
       const result = await scanner.scan('/fake/path');
 
@@ -172,65 +184,73 @@ describe('SemgrepScanner', () => {
 
   describe('Timeout Handling', () => {
     it('should throw ScannerTimeoutError when scan exceeds timeout', async () => {
-      // Mock exec to delay and never complete within timeout
-      jest.spyOn(require('child_process'), 'exec').mockImplementation((cmd, opts, callback) => {
-        // Simulate long-running process
-        setTimeout(() => {
-          callback(null, { stdout: '{}', stderr: '' });
-        }, 10000); // 10 seconds (exceeds 1-second timeout)
-      });
+      // Mock spawn with delayed process that never completes
+      const mockProcess = new EventEmitter() as any;
+      mockProcess.stdout = new EventEmitter();
+      mockProcess.stderr = new EventEmitter();
+      mockProcess.kill = jest.fn();
 
-      // Execute scan with 1-second timeout
-      await expect(scanner.scan('/fake/path', { timeout: 1000 })).rejects.toThrow(ScannerTimeoutError);
-    }, 15000); // Increase Jest timeout for this test
+      // Don't emit 'close' event - simulates timeout
+      mockSpawn.mockReturnValue(mockProcess);
+
+      // Execute scan with 100ms timeout
+      await expect(scanner.scan('/fake/path', { timeout: 100 })).rejects.toThrow(ScannerTimeoutError);
+    }, 5000);
   });
 
   describe('Scanner Configuration', () => {
     it('should use custom rule configuration when specified', async () => {
-      let capturedCommand = '';
+      let capturedArgs: string[] = [];
 
-      jest.spyOn(require('child_process'), 'exec').mockImplementation((cmd, opts, callback) => {
-        capturedCommand = cmd;
-        callback(null, { stdout: '{"results":[],"errors":[]}', stderr: '' });
+      mockSpawn.mockImplementationOnce((cmd, args) => {
+        capturedArgs = args as string[];
+        return createMockSpawn('{"results":[],"errors":[]}') as any;
       });
 
       await scanner.scan('/fake/path', { ruleConfig: 'p/security-audit' });
 
-      expect(capturedCommand).toContain('--config p/security-audit');
+      expect(capturedArgs).toContain('--config');
+      expect(capturedArgs).toContain('p/security-audit');
     });
 
     it('should apply exclude patterns to command', async () => {
-      let capturedCommand = '';
+      let capturedArgs: string[] = [];
 
-      jest.spyOn(require('child_process'), 'exec').mockImplementation((cmd, opts, callback) => {
-        capturedCommand = cmd;
-        callback(null, { stdout: '{"results":[],"errors":[]}', stderr: '' });
+      mockSpawn.mockImplementationOnce((cmd, args) => {
+        capturedArgs = args as string[];
+        return createMockSpawn('{"results":[],"errors":[]}') as any;
       });
 
       await scanner.scan('/fake/path', {
         exclude: ['node_modules/**', '*.test.ts']
       });
 
-      expect(capturedCommand).toContain('--exclude node_modules/**');
-      expect(capturedCommand).toContain('--exclude *.test.ts');
+      expect(capturedArgs).toContain('--exclude');
+      expect(capturedArgs).toContain('node_modules/**');
+      expect(capturedArgs).toContain('*.test.ts');
     });
   });
 
   describe('Error Scenarios', () => {
     it('should throw ScannerNotFoundError when semgrep command not found', async () => {
-      jest.spyOn(require('child_process'), 'exec').mockImplementation((cmd, opts, callback) => {
-        const error = new Error('semgrep: command not found');
-        callback(error, { stdout: '', stderr: '' });
+      const mockProcess = new EventEmitter() as any;
+      mockProcess.stdout = new EventEmitter();
+      mockProcess.stderr = new EventEmitter();
+      mockProcess.kill = jest.fn();
+
+      process.nextTick(() => {
+        const error = new Error('spawn semgrep ENOENT') as any;
+        error.code = 'ENOENT';
+        mockProcess.emit('error', error);
       });
+
+      mockSpawn.mockReturnValue(mockProcess);
 
       await expect(scanner.scan('/fake/path')).rejects.toThrow('semgrep');
     });
 
     it('should wrap generic errors in ScannerError', async () => {
-      jest.spyOn(require('child_process'), 'exec').mockImplementation((cmd, opts, callback) => {
-        const error = new Error('Unknown error occurred');
-        callback(error, { stdout: '', stderr: '' });
-      });
+      mockSpawn.mockReturnValue(createMockSpawn('', 'Unknown error occurred', 1));
 
       await expect(scanner.scan('/fake/path')).rejects.toThrow(ScannerError);
       await expect(scanner.scan('/fake/path')).rejects.toThrow('Semgrep scan failed');

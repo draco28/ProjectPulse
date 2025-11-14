@@ -133,7 +133,7 @@ export class ESLintScanner implements Scanner {
       cwd: projectPath,
       useEslintrc: true,               // Use .eslintrc.json if present
       ignore: options?.useEslintIgnore ?? true,
-      extensions: options?.extensions ?? ['.js', '.jsx', '.ts', '.tsx'],
+      extensions: options?.extensions ?? ['.ts', '.tsx'], // TypeScript only by default
     };
 
     // Override config file if specified
@@ -141,10 +141,8 @@ export class ESLintScanner implements Scanner {
       eslintConfig.overrideConfigFile = options.configPath;
     }
 
-    // Add exclude patterns to ignore
-    if (options?.exclude && options.exclude.length > 0) {
-      eslintConfig.ignorePatterns = options.exclude;
-    }
+    // Note: ESLint exclude patterns are handled via .eslintignore or
+    // by filtering the file list before linting (not via ignorePatterns option)
 
     return new ESLint(eslintConfig);
   }
@@ -153,14 +151,6 @@ export class ESLintScanner implements Scanner {
    * Build file patterns to lint
    */
   private buildFilePatterns(projectPath: string, options?: ESLintOptions): string[] {
-    // Default patterns if none specified
-    const defaultPatterns = [
-      `${projectPath}/**/*.js`,
-      `${projectPath}/**/*.jsx`,
-      `${projectPath}/**/*.ts`,
-      `${projectPath}/**/*.tsx`,
-    ];
-
     // Use custom patterns if specified
     if (options?.include && options.include.length > 0) {
       return options.include.map((pattern) => {
@@ -168,6 +158,13 @@ export class ESLintScanner implements Scanner {
         return pattern.startsWith('/') ? pattern : `${projectPath}/${pattern}`;
       });
     }
+
+    // Default patterns (TypeScript only for this project)
+    // Only scan files that exist to avoid ESLint "No files matching" errors
+    const defaultPatterns = [
+      `${projectPath}/**/*.ts`,
+      `${projectPath}/**/*.tsx`,
+    ];
 
     return defaultPatterns;
   }

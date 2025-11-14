@@ -6,8 +6,7 @@
  * Maps Semgrep findings to HealthFinding records with SECURITY category.
  */
 
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 import { FindingCategory, FindingSeverity, ScannerType } from '@prisma/client';
 import type {
   Scanner,
@@ -17,8 +16,6 @@ import type {
   SeverityMapper,
 } from './types';
 import { createSummary, ScannerError, ScannerNotFoundError, ScannerTimeoutError } from './types';
-
-const execAsync = promisify(exec);
 
 /**
  * Semgrep severity levels (from Semgrep JSON output)
@@ -107,11 +104,11 @@ export class SemgrepScanner implements Scanner {
     const ruleConfig = options?.ruleConfig ?? 'auto'; // Default: auto-detect rules
 
     try {
-      // Build Semgrep command
-      const command = this.buildCommand(projectPath, ruleConfig, options);
+      // Build Semgrep command args
+      const args = this.buildCommandArgs(projectPath, ruleConfig, options);
 
       // Execute Semgrep with timeout
-      const { stdout, stderr } = await this.executeWithTimeout(command, timeout);
+      const stdout = await this.executeWithTimeout(args, timeout);
 
       // Parse JSON output
       const output = this.parseOutput(stdout);
@@ -136,7 +133,7 @@ export class SemgrepScanner implements Scanner {
       }
 
       // Check if Semgrep is not installed
-      if ((error as Error).message.includes('command not found')) {
+      if ((error as Error).message.includes('command not found') || (error as Error).message.includes('ENOENT')) {
         throw new ScannerNotFoundError(this.scannerType, 'semgrep');
       }
 
@@ -150,11 +147,10 @@ export class SemgrepScanner implements Scanner {
   }
 
   /**
-   * Build Semgrep CLI command
+   * Build Semgrep CLI command arguments
    */
-  private buildCommand(projectPath: string, ruleConfig: string, options?: SemgrepOptions): string {
-    const parts = [
-      'semgrep',
+  private buildCommandArgs(projectPath: string, ruleConfig: string, options?: SemgrepOptions): string[] {
+    const args = [
       '--config', ruleConfig,
       '--json',                    // JSON output for parsing
       '--quiet',                   // Suppress progress messages
@@ -173,41 +169,63 @@ export class SemgrepScanner implements Scanner {
     ];
 
     exclude.forEach((pattern) => {
-      parts.push('--exclude', pattern);
+      args.push('--exclude', pattern);
     });
 
     // Add project path
-    parts.push(projectPath);
+    args.push(projectPath);
 
-    return parts.join(' ');
+    return args;
   }
 
   /**
-   * Execute command with timeout
+   * Execute Semgrep with spawn and timeout
    */
   private async executeWithTimeout(
-    command: string,
+    args: string[],
     timeout: number
-  ): Promise<{ stdout: string; stderr: string }> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    try {
-      const result = await execAsync(command, {
-        signal: controller.signal,
-        maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large outputs
+  ): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const process = spawn('semgrep', args, {
+        stdio: ['ignore', 'pipe', 'pipe'], // stdin ignored, stdout/stderr captured
       });
-      clearTimeout(timeoutId);
-      return result;
-    } catch (error) {
-      clearTimeout(timeoutId);
 
-      if ((error as Error).name === 'AbortError') {
-        throw new ScannerTimeoutError(this.scannerType, timeout);
-      }
+      let stdout = '';
+      let stderr = '';
 
-      throw error;
-    }
+      // Capture stdout
+      process.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      // Capture stderr
+      process.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      // Setup timeout
+      const timeoutId = setTimeout(() => {
+        process.kill();
+        reject(new ScannerTimeoutError(this.scannerType, timeout));
+      }, timeout);
+
+      // Handle process completion
+      process.on('close', (code) => {
+        clearTimeout(timeoutId);
+
+        if (code === 0) {
+          resolve(stdout);
+        } else {
+          reject(new Error(`Semgrep exited with code ${code}: ${stderr}`));
+        }
+      });
+
+      // Handle process errors (e.g., command not found)
+      process.on('error', (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      });
+    });
   }
 
   /**
