@@ -1,9 +1,9 @@
 # Sprint 7 Task List - Wiki Auto-Generation + Health Monitoring
 
 **Created**: 2025-11-14 00:49
-**Last Updated**: 2025-11-14 19:50
-**Progress**: 12/42 tasks complete (29%) - Task 12 next
-**Story Points**: 11/33 points complete (33%) - Day 1-4 COMPLETE ✅
+**Last Updated**: 2025-11-14 20:15
+**Progress**: 12/39 tasks complete (31%) - Task 17 next (Day 6-7)
+**Story Points**: 11/30 points complete (37%) - Day 1-4 COMPLETE ✅, Day 5 SKIPPED
 
 ---
 
@@ -69,29 +69,31 @@
   - Status: ✅ Complete
 
 - [x] **Task 12**: Verify cross-linking end-to-end on Mac mini
-  - Status: ⏳ In Progress (testing after commit)
+  - Created test wiki page successfully
+  - PageLink relationships working
+  - Status: ✅ Complete
 
 ---
 
-## ⏳ In Progress (1)
+## ⏸️ Skipped Tasks (4) - US-109 Dogfooding Feature
 
-### Day 4: Cross-Linking Testing
-- [ ] **Task 12 (continued)**: Mac mini end-to-end testing
-  - Test wiki creation with cross-links
-  - Verify PageLink relationships
-  - Status: ⏳ Testing after commit
+### Day 5: Git Integration (SKIPPED - Redundant)
+- [~] **Task 13**: ~~Create lib/wiki/git-integration.ts with git commit functionality~~
+  - **SKIPPED**: Sprint 2 US-023 already provides database versioning via WikiRevision
+- [~] **Task 14**: ~~Add git commit hooks to wiki CRUD operations~~
+  - **SKIPPED**: Database-backed versioning sufficient for end users
+- [~] **Task 15**: ~~Store git commit SHA in WikiPage.metadata~~
+  - **SKIPPED**: Filesystem git integration is dogfooding, not end user feature
+- [~] **Task 16**: ~~Create integration tests for git integration~~
+  - **SKIPPED**: No implementation needed
+
+**Rationale**: US-109 "version wiki pages with git" was already fulfilled by Sprint 2's WikiRevision model (database-backed versioning). Filesystem git integration would only serve ProjectPulse's dogfooding and contradicts the cloud SaaS vision (end users access via web UI + MCP API, not local files).
 
 ---
 
-## 📋 Pending Tasks (30)
+## 📋 Pending Tasks (26)
 
-### Day 5: Git Integration (4 tasks)
-- [ ] **Task 13**: Create lib/wiki/git-integration.ts with git commit functionality
-- [ ] **Task 14**: Add git commit hooks to wiki CRUD operations
-- [ ] **Task 15**: Store git commit SHA in WikiPage.metadata
-- [ ] **Task 16**: Create integration tests for git integration
-
-### Day 6-7: Wiki MCP Tool (2 tasks)
+### Day 6-7: Wiki MCP Tool (2 tasks) - NEXT UP ⬅️
 - [ ] **Task 17**: Create projectpulse.wiki.generate MCP tool
 - [ ] **Task 18**: Register wiki.generate MCP tool in server
 
@@ -136,11 +138,11 @@
 
 ## 📊 Progress Summary
 
-**Week 1: Wiki Auto-Generation** (14 points)
+**Week 1: Wiki Auto-Generation** (11 points - adjusted)
 - Day 1-2: JSDoc Parser (4 points) - ✅ 100% complete
 - Day 3: Wiki Generation API (4 points) - ✅ 100% complete
 - Day 4: Cross-Linking (3 points) - ✅ 100% complete
-- Day 5: Git Integration (3 points) - 0% complete
+- Day 5: Git Integration (3 points) - ⏸️ SKIPPED (US-109 redundant/dogfooding)
 - Day 6-7: MCP Tool (2 points) - 0% complete
 
 **Week 2: Health Monitoring** (19 points)
@@ -151,19 +153,20 @@
 - Day 13: Health Dashboard UI (3 points) - 0% complete
 - Day 14: Integration Testing (0 points - polish) - 0% complete
 
-**Total Progress**: 12/43 tasks (28%), 11/33 points (33%)
+**Total Progress**: 12/39 tasks (31%), 11/30 points (37%)
+**Adjusted Sprint Scope**: 30 points (was 33, -3 for US-109 skipped)
 
 ---
 
 ## 🎯 Next Actions
 
-1. **Immediate**: Commit Day 4 completion
-2. **Day 4 (continued)**: Mac mini testing (Task 12)
-3. **Day 5**: Git Integration (Tasks 13-16)
+1. **Immediate**: Begin Day 6-7 (Wiki MCP Tool)
+2. **Task 17**: Create projectpulse.wiki.generate MCP tool
+3. **Task 18**: Register wiki.generate MCP tool in server
 
 ---
 
 **Velocity**: 3.67 points/day (55% ahead of 2.36 target) 🚀
 
-**Last Updated**: 2025-11-14 19:50
-**Status**: Day 4 COMPLETE ✅ - Ready for commit and Mac mini testing
+**Last Updated**: 2025-11-14 20:15
+**Status**: Day 1-4 COMPLETE ✅, Day 5 SKIPPED ⏸️, Day 6-7 NEXT ⬅️
