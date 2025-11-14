@@ -81,15 +81,18 @@ export function WikiSearchBar({ searchParams }: WikiSearchBarProps) {
     <div className="neu-raised smooth-transition flex flex-col gap-4 rounded-3xl p-4 sm:flex-row sm:items-center">
       {/* Search Input */}
       <div className="relative flex-1">
-        <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
-          <Search className="h-5 w-5 text-slate" aria-hidden="true" />
-        </div>
+        {!search && (
+          <Search
+            className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate"
+            aria-hidden="true"
+          />
+        )}
         <input
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search wiki pages..."
+          placeholder="     Search wiki pages..."
           className="neu-pressed w-full rounded-xl py-3 pl-12 pr-12 text-white placeholder-slate focus:border-coral focus:ring-2 focus:ring-coral/20 bg-dark-pressed border-0"
           aria-label="Search wiki pages"
         />

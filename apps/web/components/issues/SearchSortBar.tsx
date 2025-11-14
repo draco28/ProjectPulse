@@ -71,13 +71,15 @@ export function SearchSortBar({ searchParams }: SearchSortBarProps) {
       <div className="flex items-center gap-4">
         {/* Search Input */}
         <div className="relative flex-1">
-          <Search
-            className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate"
-            aria-hidden="true"
-          />
+          {!searchValue && (
+            <Search
+              className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate"
+              aria-hidden="true"
+            />
+          )}
           <input
             type="text"
-            placeholder="Search issues..."
+            placeholder="     Search issues..."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             className="neu-pressed smooth-transition w-full rounded-2xl py-3 pl-11 pr-4 text-white focus:outline-none"

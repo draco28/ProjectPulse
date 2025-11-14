@@ -1,15 +1,7 @@
 'use client';
 
 import { useOptimistic, useTransition } from 'react';
-import {
-  Server,
-  Database,
-  FlaskConical,
-  PaintBucket,
-  Bot,
-  Loader2,
-  LucideIcon,
-} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toggleAgentStatus } from '@/app/agents/actions';
 
 interface AgentCardProps {
@@ -22,6 +14,22 @@ interface AgentCardProps {
     personality: string | null;
   };
 }
+
+const getAgentEmoji = (name: string, expertise: string[]): string => {
+  const lowerName = name.toLowerCase();
+
+  if (lowerName.includes('review')) return '🔍';
+  if (lowerName.includes('bug')) return '🐛';
+  if (lowerName.includes('architect') || lowerName.includes('architecture')) return '🏗️';
+  if (lowerName.includes('security') || lowerName.includes('audit')) return '🛡️';
+  if (lowerName.includes('doc')) return '📝';
+  if (lowerName.includes('test')) return '🧪';
+
+  if (expertise.includes('testing')) return '🧪';
+  if (expertise.includes('security')) return '🛡️';
+
+  return '🤖';
+};
 
 export function AgentCard({ agent }: AgentCardProps) {
   const [isPending, startTransition] = useTransition();
@@ -48,69 +56,70 @@ export function AgentCard({ agent }: AgentCardProps) {
     });
   };
 
-  // Agent icon based on expertise
-  const getAgentIcon = (expertise: string[]): LucideIcon => {
-    if (expertise.includes('frontend') || expertise.includes('react')) return Bot;
-    if (expertise.includes('backend') || expertise.includes('api')) return Server;
-    if (expertise.includes('database') || expertise.includes('prisma')) return Database;
-    if (expertise.includes('testing')) return FlaskConical;
-    if (expertise.includes('design') || expertise.includes('ui')) return PaintBucket;
-    return Bot;
-  };
-
-  // Color theme based on status
   const isActive = optimisticAgent.isActive;
 
   return (
     <div
-      className={`neu-raised smooth-transition relative overflow-hidden rounded-3xl p-6 ${
+      className={`neu-raised agent-card smooth-transition relative overflow-hidden rounded-3xl p-6 ${
         isActive ? 'ring-2 ring-coral/50' : ''
       }`}
     >
-      {/* Status Badge */}
-      <div className="mb-4 flex items-center justify-between">
-        <div
-          className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
-            isActive ? 'bg-green-500/10 text-green-500' : 'bg-slate/10 text-slate'
-          }`}
-        >
-          <div className={`h-2 w-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-slate'}`}></div>
-          {isActive ? 'Active' : 'Inactive'}
+      {/* Header: Avatar, name, status, toggle */}
+      <div className="mb-6 flex items-start justify-between">
+        <div className="flex items-start gap-4">
+          <div className="icon-coral flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl text-3xl shadow-lg">
+            {getAgentEmoji(optimisticAgent.name, optimisticAgent.expertise)}
+          </div>
+          <div>
+            <div className="mb-2 flex items-center gap-3">
+              <h3 className="text-xl font-bold text-white">{optimisticAgent.name}</h3>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                  isActive
+                    ? 'bg-coral/20 text-coral border border-coral/30'
+                    : 'neu-pressed text-slate'
+                }`}
+              >
+                {isActive ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+            <p className="mb-3 text-sm text-slate">
+              {optimisticAgent.description ?? 'No description provided'}
+            </p>
+            {/* Expertise Tags */}
+            <div className="flex flex-wrap gap-2">
+              {optimisticAgent.expertise.slice(0, 5).map((skill, index) => (
+                <span
+                  key={index}
+                  className="skill-badge neu-pressed rounded-full px-3 py-1 text-xs font-semibold text-slate"
+                >
+                  {skill}
+                </span>
+              ))}
+              {optimisticAgent.expertise.length > 5 && (
+                <span className="skill-badge neu-pressed rounded-full px-3 py-1 text-xs font-semibold text-slate">
+                  +{optimisticAgent.expertise.length - 5} more
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Toggle Switch */}
         <button
           onClick={handleToggle}
           disabled={isPending}
-          className={`smooth-transition relative h-6 w-11 rounded-full ${
+          className={`smooth-transition relative h-7 w-12 rounded-full ${
             isActive ? 'bg-coral' : 'bg-black/20'
           } ${isPending ? 'opacity-50' : ''}`}
+          aria-label={isActive ? 'Deactivate agent' : 'Activate agent'}
         >
           <div
-            className={`smooth-transition absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-md ${
-              isActive ? 'left-5' : 'left-0.5'
+            className={`smooth-transition absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-md ${
+              isActive ? 'left-6' : 'left-0.5'
             }`}
           ></div>
         </button>
-      </div>
-
-      {/* Agent Info */}
-      <div className="mb-4 flex items-start gap-4">
-        {/* Icon */}
-        <div className="neu-raised flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl">
-          {(() => {
-            const AgentIcon = getAgentIcon(optimisticAgent.expertise);
-            return <AgentIcon className="h-7 w-7 text-coral" aria-hidden="true" />;
-          })()}
-        </div>
-
-        {/* Name and Description */}
-        <div className="flex-1">
-          <h3 className="mb-1 text-lg font-bold text-white">{optimisticAgent.name}</h3>
-          <p className="line-clamp-2 text-sm text-slate">
-            {optimisticAgent.description ?? 'No description provided'}
-          </p>
-        </div>
       </div>
 
       {/* Personality */}
@@ -120,21 +129,30 @@ export function AgentCard({ agent }: AgentCardProps) {
         </div>
       )}
 
-      {/* Expertise Tags */}
-      <div className="flex flex-wrap gap-2">
-        {optimisticAgent.expertise.slice(0, 5).map((skill, index) => (
-          <span
-            key={index}
-            className="rounded-full bg-black/20 px-3 py-1 text-xs font-semibold text-slate"
-          >
-            {skill}
-          </span>
-        ))}
-        {optimisticAgent.expertise.length > 5 && (
-          <span className="rounded-full bg-black/20 px-3 py-1 text-xs font-semibold text-slate">
-            +{optimisticAgent.expertise.length - 5} more
-          </span>
-        )}
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="neu-pressed rounded-2xl p-3">
+            <div className="mb-1 text-2xl font-bold text-coral">--</div>
+            <div className="text-xs text-slate">Reviews Done</div>
+          </div>
+          <div className="neu-pressed rounded-2xl p-3">
+            <div className="mb-1 text-2xl font-bold text-white">--</div>
+            <div className="text-xs text-slate">Issues Found</div>
+          </div>
+          <div className="neu-pressed rounded-2xl p-3">
+            <div className="mb-1 text-2xl font-bold text-green-400">--</div>
+            <div className="text-xs text-slate">Time Saved</div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <button className="flex-1 rounded-2xl bg-coral-gradient coral-gradient px-4 py-2 text-sm font-medium text-white shadow-lg">
+            Configure
+          </button>
+          <button className="flex-1 neu-raised rounded-2xl px-4 py-2 text-sm text-white">
+            View Analytics
+          </button>
+        </div>
       </div>
 
       {/* Loading Overlay */}

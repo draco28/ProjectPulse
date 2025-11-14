@@ -20,6 +20,7 @@ import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [modalSearch, setModalSearch] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Lock body scroll when search modal is open
@@ -67,7 +68,7 @@ export function Header() {
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate" />
               <input
                 type="text"
-                placeholder="Search or press Cmd+K..."
+                placeholder="     Search or press Cmd+K..."
                 onClick={() => setIsSearchOpen(true)}
                 className="neu-pressed smooth-transition w-full cursor-pointer rounded-2xl border-0 bg-transparent py-3 pl-11 pr-20 text-white placeholder:text-slate focus:outline-none"
                 readOnly
@@ -106,16 +107,23 @@ export function Header() {
           <div className="fixed inset-x-4 top-20 z-50 mx-auto max-w-2xl md:top-32">
             <div className="neu-raised smooth-transition rounded-3xl p-6 shadow-2xl">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate" />
+                {!modalSearch && (
+                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate" />
+                )}
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Search issues, knowledge, wiki..."
+                  placeholder="     Search issues, knowledge, wiki..."
+                  value={modalSearch}
+                  onChange={(e) => setModalSearch(e.target.value)}
                   className="neu-pressed smooth-transition w-full rounded-2xl border-0 bg-transparent py-3 pl-11 pr-12 text-white placeholder:text-slate focus:outline-none"
                   autoFocus
                 />
                 <button
-                  onClick={() => setIsSearchOpen(false)}
+                  onClick={() => {
+                    setIsSearchOpen(false);
+                    setModalSearch('');
+                  }}
                   className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl text-slate hover:text-white"
                   aria-label="Close search"
                 >

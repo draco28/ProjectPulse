@@ -6,7 +6,6 @@ import { FloatingBackground } from '@/components/FloatingBackground';
 import { ScoreCardsGrid } from '@/components/health/ScoreCardsGrid';
 import { VulnerabilityBreakdown } from '@/components/health/VulnerabilityBreakdown';
 import { ScannerStatusCards } from '@/components/health/ScannerStatusCards';
-import { TrendGraph } from '@/components/health/TrendGraph';
 import { FindingsTable } from '@/components/health/FindingsTable';
 import { SecurityTimeline } from '@/components/health/SecurityTimeline';
 import { ComplianceStatus } from '@/components/health/ComplianceStatus';
@@ -319,27 +318,15 @@ export default async function HealthPage() {
                 lastScanTime={formatLastScan(latestScore.calculatedAt)}
               />
 
-              {/* Middle Section: 2-Column Layout */}
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                {/* Left Column: Vulnerability Breakdown + Scanner Status */}
-                <div className="space-y-4 lg:col-span-1">
-                  <VulnerabilityBreakdown
-                    critical={vulnerabilityCounts.critical}
-                    high={vulnerabilityCounts.high}
-                    medium={vulnerabilityCounts.medium}
-                    low={vulnerabilityCounts.low}
-                  />
-                  <ScannerStatusCards scanners={scanners} />
-                </div>
-
-                {/* Right Column: Trend Graph */}
-                <div className="lg:col-span-2">
-                  <TrendGraph data={historicalScores} />
-                </div>
-              </div>
-
-              {/* Bottom Section: Timeline + Compliance */}
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {/* Middle Section: Key Health Panels (4-up grid) */}
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                <VulnerabilityBreakdown
+                  critical={vulnerabilityCounts.critical}
+                  high={vulnerabilityCounts.high}
+                  medium={vulnerabilityCounts.medium}
+                  low={vulnerabilityCounts.low}
+                />
+                <ScannerStatusCards scanners={scanners} />
                 <SecurityTimeline events={timelineEvents} maxEvents={5} />
                 <ComplianceStatus standards={complianceStandards} />
               </div>

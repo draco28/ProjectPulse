@@ -22,24 +22,32 @@ const nextConfig = {
   },
 
   // Headers for security
+  // Note: X-Frame-Options is only set in production so that local / in-IDE
+  // previews can embed the app during development, while keeping framing
+  // disabled in deployed environments for security.
   async headers() {
+    const headers = [
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
+      {
+        key: 'Referrer-Policy',
+        value: 'strict-origin-when-cross-origin',
+      },
+    ];
+
+    if (process.env.NODE_ENV === 'production') {
+      headers.push({
+        key: 'X-Frame-Options',
+        value: 'DENY',
+      });
+    }
+
     return [
       {
         source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-        ],
+        headers,
       },
     ];
   },
