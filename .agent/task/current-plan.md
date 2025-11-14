@@ -1,720 +1,453 @@
-# Day 12 Implementation Plan: Health MCP Tools
+# Sprint 8: Integration & Polish - Implementation Plan
 
-**Sprint 7, Day 12 - US-111, US-112, US-113**
-**Date**: 2025-11-14
-**Points**: 3 (1 point per tool)
-**Status**: Ready for implementation
+**Created:** 2025-11-14 20:32
+**Sprint:** Sprint 8 (Weeks 15-16)
+**Duration:** 2 weeks (10 working days)
+**Story Points:** 48 points
+**Status:** Active
 
 ---
 
 ## Overview
 
-Implement 3 MCP tools for health monitoring that enable AI agents to execute scanners, retrieve scores, and analyze trends:
+**Goal:** Validate MVP completion through comprehensive integration testing, security audit, documentation review, and production readiness preparation.
 
-1. **health.runScan** - Execute health scanners and save findings + calculate scores
-2. **health.getScore** - Retrieve latest health score(s) with optional trend analysis
-3. **health.getHistory** - Retrieve historical score trends with analytics
+**Current Progress:** 345/422 MVP points (82% complete)
 
-These tools complete the health monitoring system (Days 8-11 provided scanners and scoring).
+**Sprint 8 Will Complete:** 393/422 points (93% complete)
 
 ---
 
-## Architecture Context
+## Phase Breakdown
 
-### Existing System
+### **Week 1: Testing & Quality Assurance (Days 1-5) - 18 points**
 
-**Scanners (Day 8-10)**:
-- Semgrep (SECURITY), ESLint (CODE_QUALITY), axe-core (ACCESSIBILITY), Lighthouse (PERFORMANCE)
-- Interface: `Scanner.scan(projectPath, options?) → Promise<ScanResult>`
-- Registry: `getScanner(type: ScannerType)` returns instance
+#### Day 1-2: E2E Testing - Health Dashboard (5 points)
 
-**Score Calculation (Day 11)**:
-- `calculateHealthScore(findings: FindingData[]) → HealthScoreData`
-- Returns: overallScore, securityScore, qualityScore, performanceScore, accessibilityScore, grade
-- Formula: weighted average (40% security, 30% quality, 20% accessibility, 10% performance)
+**Objective:** Create comprehensive Playwright tests for health dashboard
 
-**Database Models**:
-- HealthScanner: id, name, type, projectId, lastRun (unique[projectId, type])
-- HealthFinding: id, scannerId, category, severity, ruleId, message, filePath, status, falsePositive
-- HealthScore: id, projectId, scores (4 categories), calculatedAt (for trend tracking)
+**Tasks:**
+1. Create `apps/web/tests/e2e/health.spec.ts`
+2. Test user flows:
+   - Navigate to `/health` page
+   - Verify overall health score display
+   - Verify grade (A-F) and trend indicator
+   - Test finding filters (category, severity, scanner)
+   - Verify 30-day trend graph rendering
+   - Validate ISR caching (revalidate: 3600s)
+3. Test health dashboard components (6 components):
+   - HealthScoreCard
+   - HealthGrade
+   - TrendIndicator
+   - FindingsTable
+   - FindingFilters
+   - TrendGraph
+4. Test MCP tool integration:
+   - `health.runScan` execution
+   - `health.getScore` data retrieval
+   - `health.getHistory` trend data
 
-### MCP Handler Pattern (from knowledge-handler.ts)
-
-```typescript
-// 1. Define input/output interfaces
-export interface ToolNameInput {
-  field1: string;
-  field2?: number; // optional
-}
-
-export interface ToolNameOutput {
-  result: string;
-  metadata: object;
-}
-
-// 2. Implement handler
-export async function toolNameHandler(input: unknown): Promise<ToolNameOutput> {
-  try {
-    // Validate input
-    if (!input || typeof input !== 'object') {
-      throw new MCPError('Invalid input', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
-    }
-    
-    // Validate fields
-    const params = input as ToolNameInput;
-    if (!params.field1 || typeof params.field1 !== 'string') {
-      throw new MCPError('Missing field1', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
-    }
-    
-    // Execute operation
-    const result = await someService.doWork(params);
-    
-    // Return formatted response
-    return {
-      result: result.value,
-      metadata: { duration: elapsed }
-    };
-  } catch (error) {
-    if (error instanceof MCPError) throw error;
-    console.error('[tool.name] Error:', error);
-    throw new MCPError(
-      `Operation failed: ${error instanceof Error ? error.message : 'Unknown'}`,
-      JSONRPC_ERROR_CODES.INTERNAL_ERROR,
-      500
-    );
-  }
-}
-
-// 3. Register in route.ts
-case 'tool.name':
-  result = await toolNameHandler(args);
-  break;
-```
+**Success Criteria:**
+- ✅ All health dashboard user flows covered
+- ✅ ISR caching verified (page revalidates every 3600s)
+- ✅ All 6 components tested
+- ✅ MCP tool integration validated
 
 ---
 
-## Implementation Details
+#### Day 3: E2E Testing - Wiki & Knowledge (5 points)
 
-### Tool 1: health.runScan
+**Objective:** Extend existing E2E tests for wiki and knowledge features
 
-**Purpose**: Execute health scanners, store findings, calculate scores, track history
+**Tasks:**
+1. Extend `apps/web/tests/e2e/wiki.spec.ts`:
+   - Wiki auto-generation from JSDoc comments
+   - Cross-linking syntax (`@wiki/slug`, `[[slug]]`)
+   - Revision history viewing
+   - Revert to previous revision
+   - Full-text search with tsvector ranking
+   - Category filtering
 
-**Input Schema**:
-```json
-{
-  "projectId": { "type": "integer", "description": "Project ID" },
-  "scannerTypes": {
-    "type": "array",
-    "items": { "type": "string", "enum": ["SEMGREP", "ESLINT", "AXECORE", "LIGHTHOUSE"] },
-    "description": "Scanner types to execute (minimum 1)"
-  },
-  "projectPath": {
-    "type": "string",
-    "description": "Absolute path to project directory"
-  }
-}
-```
+2. Extend `apps/web/tests/e2e/knowledge.spec.ts`:
+   - Graph traversal (2-hop relationship discovery)
+   - Hybrid search (0.7 semantic + 0.3 fulltext)
+   - Knowledge item linking (REFERENCES, CONTRADICTS, EXTENDS)
+   - Semantic-only search (pgvector)
+   - Full-text-only search (tsvector)
 
-**Processing Steps**:
-
-1. **Validation** (10-20 lines)
-   - Validate projectId is number, >0
-   - Validate scannerTypes is non-empty array of valid enum values
-   - Validate projectPath is string, non-empty
-   - Query project record (ensure it exists)
-
-2. **Scanner Execution** (50-80 lines)
-   ```typescript
-   const results = [];
-   for (const scannerType of scannerTypes) {
-     try {
-       // Get/create HealthScanner record
-       const scanner = await prisma.healthScanner.upsert({
-         where: { projectId_type: { projectId, type: scannerType } },
-         update: { lastRun: new Date() },
-         create: { projectId, type: scannerType, name: `${scannerType} Scanner` }
-       });
-       
-       // Execute scanner
-       const scanResult = await getScanner(scannerType).scan(projectPath);
-       
-       // Map findings and batch insert
-       const findings = scanResult.findings.map(f => ({
-         scannerId: scanner.id,
-         category: mapScannerTypeToCategory(scannerType),
-         severity: f.severity,
-         ruleId: f.ruleId,
-         message: f.message,
-         filePath: f.filePath,
-         lineNumber: f.lineNumber,
-         codeSnippet: f.codeSnippet,
-         scanDate: new Date()
-       }));
-       
-       await prisma.healthFinding.createMany({ data: findings });
-       
-       results.push({
-         type: scannerType,
-         totalFindings: findings.length,
-         bySeverity: scanResult.summary.bySeverity
-       });
-     } catch (error) {
-       // Log error, continue with other scanners
-       results.push({
-         type: scannerType,
-         error: error.message
-       });
-     }
-   }
-   ```
-
-3. **Score Calculation** (30-50 lines)
-   ```typescript
-   // Fetch all findings (excluding false positives)
-   const allFindings = await prisma.healthFinding.findMany({
-     where: {
-       scanner: { projectId },
-       falsePositive: false
-     }
-   });
-   
-   // Convert to FindingData[] format expected by calculateHealthScore
-   const findingData = allFindings.map(f => ({
-     ruleId: f.ruleId,
-     severity: f.severity,
-     message: f.message,
-     filePath: f.filePath,
-     lineNumber: f.lineNumber,
-     codeSnippet: f.codeSnippet
-   }));
-   
-   const scoreData = calculateHealthScore(findingData);
-   
-   // Save score
-   const savedScore = await prisma.healthScore.create({
-     data: {
-       projectId,
-       overallScore: scoreData.score,
-       securityScore: scoreData.securityScore,
-       qualityScore: scoreData.qualityScore,
-       performanceScore: scoreData.performanceScore,
-       accessibilityScore: scoreData.accessibilityScore,
-       calculatedAt: new Date()
-     }
-   });
-   ```
-
-**Output Schema**:
-```json
-{
-  "projectId": 4,
-  "scannersRun": [
-    {
-      "type": "SEMGREP",
-      "totalFindings": 44,
-      "bySeverity": { "critical": 9, "high": 14, "medium": 21, "low": 0 }
-    },
-    {
-      "type": "ESLINT",
-      "totalFindings": 218,
-      "bySeverity": { "critical": 0, "high": 12, "medium": 206, "low": 0 }
-    }
-  ],
-  "healthScore": {
-    "overallScore": 78,
-    "securityScore": 72,
-    "qualityScore": 81,
-    "performanceScore": 85,
-    "accessibilityScore": 79,
-    "grade": "C"
-  },
-  "duration": 87500
-}
-```
-
-**Error Handling**:
-- INVALID_PARAMS (400): Missing/invalid projectId, invalid scanner types, invalid projectPath
-- NOT_FOUND (404): projectId doesn't exist
-- INTERNAL_ERROR (500): Scanner execution timeout, database failures
+**Success Criteria:**
+- ✅ Wiki auto-generation workflow tested end-to-end
+- ✅ Cross-linking validated (both syntaxes)
+- ✅ Knowledge graph traversal tested (2-hop max)
+- ✅ Hybrid search weights validated (0.7/0.3 split)
 
 ---
 
-### Tool 2: health.getScore
+#### Day 4: E2E Testing - Issue Management (5 points)
 
-**Purpose**: Retrieve current/recent health scores with optional trend analysis
+**Objective:** Test issue bulk operations and auto-tagging
 
-**Input Schema**:
-```json
-{
-  "projectId": { "type": "integer", "description": "Project ID" },
-  "limit": { "type": "integer", "minimum": 1, "maximum": 10, "default": 1, "description": "Number of scores to return" }
-}
-```
+**Tasks:**
+1. Create `apps/web/tests/e2e/issues-bulk.spec.ts`:
+   - Bulk issue creation (10-50 issues in single transaction)
+   - Auto-tagging validation (≥80% accuracy target)
+   - Context injection (code snippets, file:line references)
+   - Issue filtering (status, severity, tags, assignee)
+   - Issue search (full-text + semantic)
+   - Link issues to tasks
 
-**Processing Steps**:
+2. Run all E2E tests on Mac mini:
+   - Set `BASE_URL=http://192.168.1.15:3000`
+   - Set `EXTERNAL_BASE_URL=1`
+   - Execute full E2E test suite (6+ test files)
 
-1. **Validation** (5-10 lines)
-   - Validate projectId is number, >0
-   - Validate limit is 1-10
-   - Verify projectId exists
-
-2. **Score Retrieval** (20-30 lines)
-   ```typescript
-   const scores = await prisma.healthScore.findMany({
-     where: { projectId },
-     orderBy: { calculatedAt: 'desc' },
-     take: limit,
-     select: {
-       id: true,
-       overallScore: true,
-       securityScore: true,
-       qualityScore: true,
-       performanceScore: true,
-       accessibilityScore: true,
-       calculatedAt: true
-     }
-   });
-   
-   // Reverse to chronological order (oldest → newest)
-   scores.reverse();
-   ```
-
-3. **Trend Calculation** (if limit > 1) (40-60 lines)
-   ```typescript
-   if (scores.length > 1) {
-     const newest = scores[scores.length - 1];
-     const oldest = scores[0];
-     const change = newest.overallScore - oldest.overallScore;
-     
-     const trend = {
-       direction: change > 2 ? 'improving' : change < -2 ? 'declining' : 'stable',
-       change: Math.round(change),
-       period: `${scores.length} scores`
-     };
-   }
-   ```
-
-**Output Schema**:
-```json
-{
-  "projectId": 4,
-  "scores": [
-    {
-      "id": 1,
-      "overallScore": 78,
-      "securityScore": 72,
-      "qualityScore": 81,
-      "performanceScore": 85,
-      "accessibilityScore": 79,
-      "calculatedAt": "2025-11-14T10:30:00Z"
-    }
-  ],
-  "trend": {
-    "direction": "improving",
-    "change": 5,
-    "period": "1 score"
-  }
-}
-```
-
-**Error Handling**:
-- INVALID_PARAMS (400): Invalid projectId or limit
-- NOT_FOUND (404): projectId doesn't exist, no scores found
+**Success Criteria:**
+- ✅ Bulk creation creates 10-50 issues in <2 seconds
+- ✅ Auto-tagging achieves ≥80% accuracy
+- ✅ Context injection includes file:line and code snippets
+- ✅ All E2E tests pass on Mac mini runtime
 
 ---
 
-### Tool 3: health.getHistory
+#### Day 5: Test Suite Validation & Fixes (3 points)
 
-**Purpose**: Analyze historical score trends over time with metrics
+**Objective:** Run complete test suite and fix any failures
 
-**Input Schema**:
-```json
-{
-  "projectId": { "type": "integer", "description": "Project ID" },
-  "days": { "type": "integer", "minimum": 1, "maximum": 90, "default": 7, "description": "Days of history" },
-  "category": {
-    "type": "string",
-    "enum": ["overall", "SECURITY", "CODE_QUALITY", "PERFORMANCE", "ACCESSIBILITY"],
-    "default": "overall",
-    "description": "Category to analyze"
-  }
-}
-```
+**Tasks:**
+1. Run unit tests:
+   - 38 test files (326 tests total)
+   - Target: 100% passing
 
-**Processing Steps**:
+2. Run integration tests:
+   - API endpoint tests
+   - Database integration tests
+   - Target: 100% passing
 
-1. **Validation** (10-15 lines)
-   - Validate projectId, days (1-90), category enum
-   - Verify projectId exists
-   - Calculate date threshold: `new Date(Date.now() - days * 86400000)`
+3. Run E2E tests:
+   - 6+ test files (health, wiki, knowledge, issues, dashboard, security, agents)
+   - Target: 100% passing
 
-2. **History Retrieval** (20-30 lines)
-   ```typescript
-   const threshold = new Date(Date.now() - params.days * 86400000);
-   
-   const history = await prisma.healthScore.findMany({
-     where: {
-       projectId,
-       calculatedAt: { gte: threshold }
-     },
-     select: {
-       calculatedAt: true,
-       overallScore: category === 'overall',
-       securityScore: category === 'SECURITY' || category === 'overall',
-       qualityScore: category === 'CODE_QUALITY' || category === 'overall',
-       performanceScore: category === 'PERFORMANCE' || category === 'overall',
-       accessibilityScore: category === 'ACCESSIBILITY' || category === 'overall'
-     },
-     orderBy: { calculatedAt: 'asc' }
-   });
-   ```
+4. Fix failing tests:
+   - Analyze failures
+   - Fix code or update tests
+   - Re-run until 100% passing
 
-3. **Trend Metrics Calculation** (50-80 lines)
-   ```typescript
-   // Extract score values based on category
-   const scores = history.map(h => 
-     category === 'overall' ? h.overallScore :
-     category === 'SECURITY' ? h.securityScore :
-     category === 'CODE_QUALITY' ? h.qualityScore :
-     category === 'PERFORMANCE' ? h.performanceScore :
-     h.accessibilityScore
-   );
-   
-   // Calculate metrics
-   const average = scores.reduce((a, b) => a + b, 0) / scores.length;
-   const min = Math.min(...scores);
-   const max = Math.max(...scores);
-   
-   // Linear regression: slope = (n*Σxy - Σx*Σy) / (n*Σx² - (Σx)²)
-   const n = scores.length;
-   let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
-   for (let i = 0; i < n; i++) {
-     const x = i;
-     const y = scores[i];
-     sumX += x;
-     sumY += y;
-     sumXY += x * y;
-     sumX2 += x * x;
-   }
-   const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-   
-   const trend = {
-     average: Math.round(average * 10) / 10,
-     min,
-     max,
-     slope: Math.round(slope * 100) / 100,
-     direction: Math.abs(slope) < 0.1 ? 'stable' : slope > 0 ? 'improving' : 'declining'
-   };
-   ```
+5. Verify test coverage:
+   - Unit tests: ≥80% line coverage
+   - Integration tests: 100% API endpoints
+   - E2E tests: 100% critical user flows
 
-**Output Schema**:
-```json
-{
-  "projectId": 4,
-  "category": "overall",
-  "period": {
-    "days": 7,
-    "from": "2025-11-07T10:30:00Z",
-    "to": "2025-11-14T10:30:00Z"
-  },
-  "history": [
-    { "date": "2025-11-07T10:30:00Z", "score": 75 },
-    { "date": "2025-11-08T10:30:00Z", "score": 76 },
-    { "date": "2025-11-14T10:30:00Z", "score": 78 }
-  ],
-  "trend": {
-    "average": 76.3,
-    "min": 75,
-    "max": 78,
-    "slope": 0.43,
-    "direction": "improving"
-  }
-}
-```
-
-**Error Handling**:
-- INVALID_PARAMS (400): Invalid projectId, days, or category
-- NOT_FOUND (404): projectId doesn't exist, no history in date range
+**Success Criteria:**
+- ✅ All tests passing (unit + integration + E2E)
+- ✅ Test coverage targets met
+- ✅ No flaky tests (all tests deterministic)
 
 ---
 
-## File Structure
+### **Week 2: Security, Documentation & Production (Days 6-10) - 30 points**
 
-### Files to Create
+#### Day 6: Code Quality & Security Audit (8 points)
 
-**`apps/web/lib/mcp/handlers/health-handler.ts`** (~450 lines)
-```typescript
-// Imports
-import { prisma } from '@/lib/prisma';
-import { getScanner, getAvailableScanners } from '@/lib/health/scanners';
-import { calculateHealthScore } from '@/lib/health/scoring';
-import { MCPError, JSONRPC_ERROR_CODES } from '../types';
-import { ScannerType, FindingCategory, FindingSeverity } from '@prisma/client';
+**Objective:** Comprehensive security and quality audit of Sprint 7 code
 
-// Input/Output Interfaces (120 lines)
-export interface HealthRunScanInput { ... }
-export interface HealthRunScanOutput { ... }
-export interface HealthGetScoreInput { ... }
-export interface HealthGetScoreOutput { ... }
-export interface HealthGetHistoryInput { ... }
-export interface HealthGetHistoryOutput { ... }
+**Tasks:**
+1. **Semgrep Security Scan:**
+   - Run Semgrep on Sprint 7 code:
+     - `apps/web/lib/health/scanners/*.ts`
+     - `apps/web/lib/health/scoring/*.ts`
+     - `apps/web/app/health/page.tsx`
+     - `apps/web/components/health/*.tsx`
+     - `apps/web/lib/wiki/auto-generate.ts`
+   - Target: <10 critical findings
+   - Document findings and remediation plan
 
-// Handler Functions (300 lines)
-export async function healthRunScanHandler(input: unknown): Promise<HealthRunScanOutput> { ... }
-export async function healthGetScoreHandler(input: unknown): Promise<HealthGetScoreOutput> { ... }
-export async function healthGetHistoryHandler(input: unknown): Promise<HealthGetHistoryOutput> { ... }
+2. **ESLint Security Rules:**
+   - Run ESLint with security plugin
+   - Target: 0 critical security errors
+   - Fix any violations
 
-// Helper Functions (30 lines)
-function mapScannerTypeToCategory(type: ScannerType): FindingCategory { ... }
-function calculateTrendMetrics(scores: number[]): TrendMetrics { ... }
-```
+3. **Accessibility Testing:**
+   - Run axe-core against all pages
+   - Run Lighthouse accessibility audits
+   - Target: WCAG 2.1 AA compliance (≥90 Lighthouse score)
+   - Fix accessibility violations
 
-**`apps/web/lib/mcp/handlers/__tests__/health-handler.test.ts`** (~300 lines)
-```typescript
-// Unit tests
-describe('healthRunScanHandler', () => {
-  test('validates required fields', () => { ... });
-  test('executes scanners and saves findings', () => { ... });
-  test('calculates health score after scan', () => { ... });
-  test('handles scanner execution failure gracefully', () => { ... });
-});
+4. **Performance Audits:**
+   - Lighthouse performance audits
+   - Target: ≥90 performance score
+   - Optimize if needed
 
-describe('healthGetScoreHandler', () => {
-  test('retrieves latest score', () => { ... });
-  test('calculates trend for multiple scores', () => { ... });
-  test('returns empty array when no scores exist', () => { ... });
-});
-
-describe('healthGetHistoryHandler', () => {
-  test('filters history by days', () => { ... });
-  test('calculates trend metrics correctly', () => { ... });
-  test('supports category filtering', () => { ... });
-});
-```
-
-### Files to Modify
-
-**`apps/web/app/api/mcp/route.ts`**
-
-1. Add imports (after line 54):
-```typescript
-import {
-  healthRunScanHandler,
-  healthGetScoreHandler,
-  healthGetHistoryHandler,
-} from '@/lib/mcp/handlers/health-handler';
-```
-
-2. Add switch cases (in tools/call section, after skill tools):
-```typescript
-case 'health.runScan':
-  result = await healthRunScanHandler(args);
-  break;
-case 'health.getScore':
-  result = await healthGetScoreHandler(args);
-  break;
-case 'health.getHistory':
-  result = await healthGetHistoryHandler(args);
-  break;
-```
-
-3. Add tool definitions (in tools/list response, after skill tools):
-```typescript
-{
-  name: 'health.runScan',
-  description: 'Execute health scanners and calculate health scores',
-  inputSchema: { ... }
-},
-{
-  name: 'health.getScore',
-  description: 'Retrieve current health scores with trend analysis',
-  inputSchema: { ... }
-},
-{
-  name: 'health.getHistory',
-  description: 'Retrieve historical score trends and analytics',
-  inputSchema: { ... }
-}
-```
-
-4. Update error message (line 259) to include new tools in availableTools list
+**Success Criteria:**
+- ✅ Semgrep: 0 critical vulnerabilities
+- ✅ ESLint: 0 critical security errors
+- ✅ Accessibility: WCAG 2.1 AA compliance
+- ✅ Performance: Lighthouse ≥90 score
 
 ---
 
-## Testing Strategy
+#### Day 7: MVP Acceptance Validation (10 points)
 
-### Unit Tests (50% coverage, required)
-- Input validation for all required/optional fields
-- Type coercion and boundary conditions (days: 1, 90, 91)
-- Enum validation (scannerTypes, category)
+**Objective:** Validate all 345 completed story points and exit criteria
 
-### Integration Tests (50% coverage, required)
-- End-to-end scan workflow (select → execute → save → score)
-- Multiple scanner execution (2+ scanners in single call)
-- Trend calculation with sample historical data
-- Partial failure handling (1 scanner fails, others succeed)
+**Tasks:**
+1. **Story Point Validation:**
+   - Sprint 1: 50/52 points (96%) - US-005, US-006 deferred, US-007 partial
+   - Sprint 2: 82/82 points (100%)
+   - Sprint 3: 48/48 points (100%)
+   - Sprint 4: 42/42 points (100%)
+   - Sprint 5: 21/21 points (100%)
+   - Sprint 5.5: 21/21 points (100%)
+   - Sprint 6: 51/51 points (100%)
+   - Sprint 7: 30/30 points (100%)
+   - **Total: 345/422 points (82%)**
 
-### Test Fixtures
-- Mock ScanResult with realistic finding counts (44 Semgrep, 218 ESLint)
-- Sample HealthScore records for trend (7, 14, 30-day windows)
-- Edge cases: empty findings, single score, all critical, all low
+2. **Exit Criteria Validation:**
+   - ✅ All Must Have stories implemented
+   - ✅ All Should Have stories for Sprints 1-7 completed
+   - ✅ All tests passing (TEST-001 to TEST-125)
+   - ✅ Performance targets met (all NFRs)
+   - ✅ Agent autonomy >95% validated
+   - ✅ Zero critical bugs (P0 severity)
 
-### Manual Testing (Post-Implementation)
-1. Execute via MCP Inspector: curl POST /api/mcp with JSON-RPC request
-2. Verify database: SELECT * FROM health_findings, health_scores
-3. Performance: Measure latency for each tool
-4. Error scenarios: invalid projectId, nonexistent scanners, etc.
+3. **Performance Benchmark Validation:**
+   - MCP tool latency: <50ms P95 ✅ (20-35ms measured)
+   - API response time: <100ms P95 ✅
+   - Database queries: <100ms P95 ✅ (<50ms measured)
+   - Health scans: <90s Semgrep ✅ (85.47s measured)
+   - Knowledge hybrid search: <200ms P95 ✅ (45-75ms measured)
+   - Skills cache hit: <5ms ✅ (1-2ms measured)
 
----
+4. **Agent Autonomy Validation:**
+   - Test agent completing workflows without intervention
+   - Target: >95% success rate
 
-## Success Criteria
-
-### Functional Requirements
-- [x] health.runScan executes 1+ scanners and stores findings
-- [x] health.runScan calculates score after findings saved
-- [x] health.runScan returns execution summary with counts
-- [x] health.getScore returns latest score(s) with timestamps
-- [x] health.getScore calculates trend when limit > 1
-- [x] health.getHistory returns time-series data (oldest → newest)
-- [x] health.getHistory includes trend metrics (average, min, max, slope, direction)
-- [x] All 3 tools registered in /api/mcp route
-- [x] All 3 tools listed in tools/list response with inputSchema
-
-### Data Integrity
-- [x] HealthScanner records created/updated with lastRun timestamp
-- [x] HealthFinding records include all required fields (category, severity, etc.)
-- [x] HealthScore records save all 4 category scores + overall
-- [x] False positives excluded from score calculation (WHERE falsePositive = false)
-- [x] Foreign key relationships maintained (scanner → finding → project)
-
-### Error Handling
-- [x] INVALID_PARAMS for missing/invalid projectId
-- [x] INVALID_PARAMS for empty scannerTypes array
-- [x] INVALID_PARAMS for invalid enum values (scanner types, category)
-- [x] INVALID_PARAMS for days out of range
-- [x] NOT_FOUND for nonexistent projectId
-- [x] NOT_FOUND for no scores in history range
-- [x] INTERNAL_ERROR for scanner execution failures
-- [x] Graceful degradation (partial success if 1 of N scanners fails)
-
-### Performance
-- [x] health.runScan: <5 seconds (dominated by scanner execution time)
-- [x] health.getScore: <50ms (simple database query)
-- [x] health.getHistory: <100ms (aggregate query with 30-90 day window)
-- [x] Batch insert findings (not N individual inserts)
-- [x] Index usage verified for projectId queries (EXPLAIN ANALYZE)
-
-### Code Quality
-- [x] TypeScript: 0 errors (strict mode)
-- [x] ESLint: All rules passing
-- [x] Input/Output interfaces documented with JSDoc
-- [x] Following knowledge-handler pattern (input validation, error handling)
-- [x] Consistent naming (health.X convention)
-
-### Documentation
-- [x] Tool descriptions match actual behavior
-- [x] JSON Schema inputSchema matches handler validation
-- [x] Example usage in handler comments
-- [x] Updated .agent/system/api-catalog.md (3 health endpoints)
-- [x] Updated .agent/system/mcp-tools-guide.md (3 health tools)
+**Success Criteria:**
+- ✅ All 345 story points verified complete
+- ✅ All exit criteria met
+- ✅ All performance benchmarks passing
+- ✅ Agent autonomy >95% validated
 
 ---
 
-## Deliverables
+#### Day 8: Documentation Review (5 points)
 
-### Code
-1. `apps/web/lib/mcp/handlers/health-handler.ts` - 3 tool handlers + types
-2. `apps/web/lib/mcp/handlers/__tests__/health-handler.test.ts` - test suite
-3. `apps/web/app/api/mcp/route.ts` - route registration (modified)
+**Objective:** Update all documentation for Sprint 7 features
 
-### Documentation
-1. Updated .agent/system/api-catalog.md (3 endpoints documented)
-2. Updated .agent/system/mcp-tools-guide.md (3 tools documented)
-3. Handler JSDoc comments with examples
+**Tasks:**
+1. **Update OpenAPI Spec (`docs/06-API/openapi.yaml`):**
+   - POST `/api/health/scan` - Execute health scanners
+   - GET `/api/health/score` - Retrieve latest health score
+   - GET `/api/health/history` - Historical health trends
+   - POST `/api/wiki/generate` - Auto-generate wiki from code
+   - GET `/api/health` - Health dashboard page data
 
-### Testing
-1. 14+ unit tests (input validation, error handling)
-2. 6+ integration tests (end-to-end workflows)
-3. Manual E2E test via MCP Inspector (curl + JSON-RPC)
+2. **Update MCP Tools Guide (`.agent/system/mcp-tools-guide.md`):**
+   - `health.runScan` - Execute scanners, calculate score
+   - `health.getScore` - Retrieve latest scores with trends
+   - `health.getHistory` - Historical trends with regression
+   - `wiki.generate` - Auto-generate wiki from JSDoc
 
-### Quality Gates
-- TypeScript: 0 errors
-- ESLint: All critical rules passing
-- Tests: 20+/20 passing
-- Build: Production build succeeds
+3. **Create Health Monitoring User Guide:**
+   - How to interpret health scores
+   - Understanding health grades (A-F)
+   - Reading trend indicators
+   - Understanding scanner findings
+   - Severity levels explained
+   - Remediation workflows
 
----
+4. **Review Architecture Documentation:**
+   - Update component diagrams (health components, wiki components)
+   - Update data flow diagrams (health score calculation)
+   - Update MCP architecture (35 total tools documented)
 
-## Key Implementation Notes
-
-### Database Queries
-- Use `prisma.healthFinding.createMany()` for batch inserts (not loops)
-- Filter with `falsePositive: false` in score calculation queries
-- Use `select` to fetch only needed fields
-- Index on (projectId, calculatedAt) for trend queries
-
-### Finding Mapping
-Semgrep + ESLint findings → code-related categories (SECURITY, CODE_QUALITY)
-axe-core + Lighthouse findings → ACCESSIBILITY + PERFORMANCE categories
-
-Map using scanner type and finding message content if needed:
-```typescript
-function mapScannerTypeToCategory(type: ScannerType): FindingCategory {
-  switch (type) {
-    case ScannerType.SEMGREP: return FindingCategory.SECURITY;
-    case ScannerType.ESLINT: return FindingCategory.CODE_QUALITY;
-    case ScannerType.AXECORE: return FindingCategory.ACCESSIBILITY;
-    case ScannerType.LIGHTHOUSE: return FindingCategory.PERFORMANCE;
-  }
-}
-```
-
-### Score Calculation
-- Collect all findings for project (excluding false positives)
-- Convert to FindingData[] format: { ruleId, severity, message, filePath, lineNumber, codeSnippet }
-- Call calculateHealthScore(findings) → HealthScoreData
-- Save to database with timestamp
-
-### Error Recovery
-If scanner execution fails:
-- Catch ScannerError
-- Log error with scanner type
-- Include error in response
-- Continue with other scanners (partial success)
-- Still calculate score with findings from successful scanners
+**Success Criteria:**
+- ✅ All Sprint 7 API endpoints documented in OpenAPI spec
+- ✅ All Sprint 7 MCP tools documented with examples
+- ✅ Health monitoring user guide complete
+- ✅ Architecture docs updated and accurate
 
 ---
 
-## Blockers & Dependencies
+#### Day 9: Bug Fixes & Production Readiness (5 points)
 
-None - all dependencies already implemented:
-- ✅ Scanner registry (getScanner, ScannerType)
-- ✅ Score calculation (calculateHealthScore)
-- ✅ Database models (HealthScanner, HealthFinding, HealthScore)
-- ✅ MCP handler pattern (knowledge-handler.ts example)
-- ✅ Route infrastructure (app/api/mcp/route.ts)
+**Objective:** Address bugs and prepare for production deployment
+
+**Tasks:**
+1. **Bug Fixes:**
+   - Address any bugs discovered during testing
+   - Address any findings from security audit
+   - Fix any performance issues identified
+
+2. **Health Check Verification:**
+   - Verify `http://192.168.1.15:3000/api/health` returns healthy
+   - Verify all services responding correctly
+   - Test health check under load
+
+3. **Error Handling Validation:**
+   - Verify comprehensive error handling across all endpoints
+   - Test error boundaries in UI components
+   - Verify error logging configured
+
+4. **Logging & Monitoring Configuration:**
+   - Verify logging configured for all critical operations
+   - Configure monitoring alerts (future)
+   - Verify observability setup
+
+5. **Production Deployment Checklist:**
+   - Mac mini → Cloud migration strategy
+   - Environment configuration (env vars)
+   - Database migration plan
+   - Docker compose validation (`docker-compose.cloud.yml`)
+
+**Success Criteria:**
+- ✅ All bugs fixed (0 critical bugs)
+- ✅ Health checks verified
+- ✅ Error handling comprehensive
+- ✅ Production deployment checklist complete
 
 ---
 
-## Estimated Effort
+#### Day 10: Final Validation & Sign-Off (2 points)
 
-- **File Creation**: 1-2 hours (health-handler.ts, tests)
-- **Route Integration**: 15-30 minutes (imports, switch cases, tool defs)
-- **Testing & Verification**: 1-2 hours (unit tests, E2E manual tests)
-- **Documentation**: 30-45 minutes (handler comments, api-catalog update)
+**Objective:** Final regression testing and Sprint 8 sign-off
 
-**Total**: 3-5 hours (fits in 1 day sprint: ideal for Day 12)
+**Tasks:**
+1. **Full Regression Test Suite:**
+   - Run all unit tests (326 tests)
+   - Run all integration tests
+   - Run all E2E tests (6+ files)
+   - Target: 100% passing
+
+2. **Quality Gates Validation:**
+   - ✅ Unit tests: ≥80% coverage
+   - ✅ E2E tests: 100% critical flows covered
+   - ✅ Security: 0 critical vulnerabilities
+   - ✅ Performance: All NFR targets met
+   - ✅ Accessibility: WCAG 2.1 AA compliance
+   - ✅ Documentation: 100% complete
+
+3. **Sprint 8 Completion Documentation:**
+   - Create Sprint 8 completion document
+   - Document lessons learned
+   - Document patterns discovered
+   - Archive session files
+
+4. **Git Commit & Push:**
+   - Commit all Sprint 8 changes
+   - Push to `feature/sprint-8-integration-polish`
+   - Prepare for merge to master
+
+**Success Criteria:**
+- ✅ All quality gates passed
+- ✅ Sprint 8 completion documented
+- ✅ Code committed and pushed
+- ✅ Ready for merge to master
 
 ---
 
-## Success Definition
+## Success Metrics
 
-When Day 12 is complete:
-1. 3 health tools are callable via /api/mcp (tools/call)
-2. 3 health tools appear in tools/list response
-3. Tools execute correctly with real scanner data
-4. Database stores findings and scores properly
-5. All 3 tools pass unit + integration tests
-6. Zero TypeScript errors
-7. Documentation updated in system docs
+### Quality Gates (All Must Pass)
 
+1. **Testing:**
+   - Unit tests: ≥80% line coverage
+   - Integration tests: 100% API endpoints covered
+   - E2E tests: 100% critical user flows covered
+
+2. **Security:**
+   - Semgrep: 0 critical vulnerabilities
+   - npm audit: 0 high-severity vulnerabilities
+   - WCAG 2.1 AA: Compliance validated
+
+3. **Performance:**
+   - All NFR targets met (P95 latencies)
+   - No database queries >100ms
+   - ISR cache hit rate >80% for cached pages
+
+4. **Code Quality:**
+   - TypeScript: 0 errors (strict mode)
+   - ESLint: 0 critical errors
+   - Code review: All Sprint 7 code reviewed
+
+5. **Documentation:**
+   - All API endpoints documented in OpenAPI spec
+   - All MCP tools documented with examples
+   - User guides complete for Sprint 7 features
+
+---
+
+## Expert Consultation (Step 3)
+
+**Required Consultations:**
+- **devhub-testing:** E2E test strategy and Playwright best practices
+- **devhub-auditor:** Security audit and code quality review
+
+---
+
+## Deliverables Checklist
+
+- [ ] Health dashboard E2E tests (`tests/e2e/health.spec.ts`)
+- [ ] Wiki auto-generation E2E tests (extended `tests/e2e/wiki.spec.ts`)
+- [ ] Knowledge graph E2E tests (extended `tests/e2e/knowledge.spec.ts`)
+- [ ] Issue bulk operations E2E tests (`tests/e2e/issues-bulk.spec.ts`)
+- [ ] Security audit report (Semgrep + axe-core)
+- [ ] Accessibility audit report (WCAG 2.1 AA)
+- [ ] Performance audit report (Lighthouse)
+- [ ] Updated OpenAPI spec (`docs/06-API/openapi.yaml`)
+- [ ] Updated MCP tools guide (`.agent/system/mcp-tools-guide.md`)
+- [ ] Health monitoring user guide (new file)
+- [ ] Production readiness checklist (new file)
+- [ ] Sprint 8 completion document
+
+---
+
+## Risks & Mitigations
+
+| Risk | Severity | Mitigation |
+|------|----------|------------|
+| E2E tests discover integration bugs | High | Weekly integration testing already done; allocate buffer for fixes |
+| Performance bottlenecks in production | Medium | Database query optimization, indexing strategy validated |
+| Health scanners produce false positives | Medium | Manual review of findings, tune scanner rules |
+| Documentation drift | Low | Automated API spec generation from code |
+| Time overrun (48 points in 2 weeks) | Medium | Prioritize Must Have → Should Have → Could Have |
+
+---
+
+## Post-Completion Workflow (Step 5)
+
+After Sprint 8 complete:
+
+1. Update `.agent/active-context.md` and `.agent/progress.md`
+2. Update `docs/13-Project-Plan.md` (mark Sprint 8 complete: 393/422 points)
+3. Invoke `synthesize-docs` sub-agent for Sprint 8 patterns (if any)
+4. Invoke `map-system` sub-agent if architecture changed
+5. Create Sprint 8 completion document (use COMPLETION_TEMPLATE.md)
+6. Commit documentation changes
+7. Commit code changes
+8. Push to remote
+9. Merge `feature/sprint-8-integration-polish` to `master`
+10. Archive session files to `docs/archive/completions/`
+
+---
+
+## Dependencies
+
+**Required:**
+- All Sprints 1-7 complete ✅
+- Sprint 5.5 complete ✅
+- Mac mini services running at `http://192.168.1.15:3000` ✅
+- Playwright browsers installed on Mac mini
+- Semgrep CLI installed
+- Lighthouse CLI installed
+
+**Verified:**
+- Health dashboard functional (`/health`) ✅
+- Database: 4 scanners, 31 historical scores, 8 findings ✅
+- All tests passing (326 unit tests) ✅
+- TypeScript: 0 errors ✅
+
+---
+
+_Created: 2025-11-14 20:32_
+_Status: Active_
+_Next Review: Day 5 (mid-sprint checkpoint)_

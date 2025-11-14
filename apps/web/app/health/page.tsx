@@ -3,10 +3,13 @@ import { prisma } from '@/lib/prisma';
 import { Activity } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
-import { HealthOverviewCard } from '@/components/health/HealthOverviewCard';
-import { CategoryBreakdown } from '@/components/health/CategoryBreakdown';
+import { ScoreCardsGrid } from '@/components/health/ScoreCardsGrid';
+import { VulnerabilityBreakdown } from '@/components/health/VulnerabilityBreakdown';
+import { ScannerStatusCards } from '@/components/health/ScannerStatusCards';
 import { TrendGraph } from '@/components/health/TrendGraph';
 import { FindingsTable } from '@/components/health/FindingsTable';
+import { SecurityTimeline } from '@/components/health/SecurityTimeline';
+import { ComplianceStatus } from '@/components/health/ComplianceStatus';
 
 // ISR: Revalidate every hour (health scans run infrequently)
 export const revalidate = 3600;
@@ -39,21 +42,36 @@ interface HealthData {
     filePath: string;
     lineNumber: number | null;
     status: string;
+    scanDate: Date;
     scanner: {
       name: string;
       type: string;
     };
   }>;
+  scanners: Array<{
+    id: number;
+    name: string;
+    type: string;
+    status: 'ACTIVE' | 'INACTIVE' | 'ERROR';
+    lastRunAt: Date | null;
+    findingsCount: number;
+  }>;
+  vulnerabilityCounts: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
   trend: 'improving' | 'declining' | 'stable';
 }
 
 /**
  * Fetch health data for project
- * Parallel queries: Latest score + historical scores + findings
+ * Parallel queries: Latest score + historical scores + findings + scanners
  */
 async function getHealthData(projectId: number): Promise<HealthData> {
-  // Parallel fetch: 3 queries run simultaneously
-  const [latestScore, historicalScores, findings] = await Promise.all([
+  // Parallel fetch: 4 queries run simultaneously
+  const [latestScore, historicalScores, findings, scanners] = await Promise.all([
     // Query 1: Latest health score
     prisma.healthScore.findFirst({
       where: { projectId },
@@ -99,6 +117,7 @@ async function getHealthData(projectId: number): Promise<HealthData> {
         filePath: true,
         lineNumber: true,
         status: true,
+        scanDate: true,
         scanner: {
           select: {
             name: true,
@@ -112,6 +131,22 @@ async function getHealthData(projectId: number): Promise<HealthData> {
         { scanDate: 'desc' },
       ],
       take: 100, // Limit for performance
+    }),
+
+    // Query 4: Scanners with findings count
+    prisma.healthScanner.findMany({
+      where: { projectId },
+      include: {
+        _count: {
+          select: {
+            findings: {
+              where: {
+                status: { in: ['OPEN', 'IN_PROGRESS'] },
+              },
+            },
+          },
+        },
+      },
     }),
   ]);
 
@@ -127,10 +162,39 @@ async function getHealthData(projectId: number): Promise<HealthData> {
     else trend = 'stable';
   }
 
+  // Calculate vulnerability counts by severity
+  const vulnerabilityCounts = {
+    critical: findings.filter((f) => f.severity === 'CRITICAL').length,
+    high: findings.filter((f) => f.severity === 'HIGH').length,
+    medium: findings.filter((f) => f.severity === 'MEDIUM').length,
+    low: findings.filter((f) => f.severity === 'LOW').length,
+  };
+
+  // Transform scanners data (derive status from lastRun)
+  const scannersData = scanners.map((s) => {
+    // Derive status: ACTIVE if run within 24 hours, otherwise INACTIVE
+    const now = new Date();
+    const lastRunMs = s.lastRun ? now.getTime() - s.lastRun.getTime() : Infinity;
+    const hoursSinceLastRun = lastRunMs / (1000 * 60 * 60);
+    const status: 'ACTIVE' | 'INACTIVE' | 'ERROR' =
+      hoursSinceLastRun < 24 ? 'ACTIVE' : 'INACTIVE';
+
+    return {
+      id: s.id,
+      name: s.name,
+      type: s.type,
+      status,
+      lastRunAt: s.lastRun,
+      findingsCount: s._count.findings,
+    };
+  });
+
   return {
     latestScore,
     historicalScores,
     findings,
+    scanners: scannersData,
+    vulnerabilityCounts,
     trend,
   };
 }
@@ -143,7 +207,8 @@ export default async function HealthPage() {
   // Hardcode project ID = 7 for now (future: from context/params)
   const projectId = 7;
 
-  const { latestScore, historicalScores, findings, trend } = await getHealthData(projectId);
+  const { latestScore, historicalScores, findings, scanners, vulnerabilityCounts, trend } =
+    await getHealthData(projectId);
 
   // Handle no data case (never scanned)
   if (!latestScore) {
@@ -180,6 +245,51 @@ export default async function HealthPage() {
     );
   }
 
+  // Format last scan time as relative (e.g., "2h ago")
+  const formatLastScan = (timestamp: Date): string => {
+    const now = new Date();
+    const diffMs = now.getTime() - timestamp.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
+
+  // Create timeline events from recent findings
+  const timelineEvents = findings.slice(0, 5).map((finding) => ({
+    id: finding.id,
+    type: 'alert' as const,
+    title: finding.ruleId || 'Security Finding',
+    description: finding.message.substring(0, 80) + '...',
+    timestamp: finding.scanDate,
+    severity: finding.severity as 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW',
+  }));
+
+  // Hardcoded compliance data (future: calculate from findings)
+  const complianceStandards = [
+    {
+      name: 'OWASP Top 10',
+      description: 'Web application security risks',
+      status: (vulnerabilityCounts.critical === 0 ? 'compliant' : 'partial') as 'compliant' | 'partial' | 'non-compliant',
+      percentage: Math.max(0, 100 - vulnerabilityCounts.critical * 10),
+    },
+    {
+      name: 'CWE Top 25',
+      description: 'Most dangerous software weaknesses',
+      status: (vulnerabilityCounts.critical + vulnerabilityCounts.high < 5 ? 'partial' : 'non-compliant') as 'compliant' | 'partial' | 'non-compliant',
+      percentage: Math.max(0, 100 - (vulnerabilityCounts.critical + vulnerabilityCounts.high) * 5),
+    },
+    {
+      name: 'SOC 2',
+      description: 'Security and availability controls',
+      status: (latestScore.securityScore >= 80 ? 'compliant' : 'partial') as 'compliant' | 'partial' | 'non-compliant',
+      percentage: latestScore.securityScore,
+    },
+  ];
+
   return (
     <>
       <FloatingBackground />
@@ -189,44 +299,49 @@ export default async function HealthPage() {
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="mb-1 text-3xl font-bold text-white">Project Health</h2>
-                <p className="text-sm text-slate-400">
-                  Last updated: {latestScore.calculatedAt.toLocaleString()} • {findings.length}{' '}
-                  findings
-                </p>
-              </div>
-              <button
-                className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"
-                aria-label="Run new health scan"
-              >
-                <Activity className="h-5 w-5" aria-hidden="true" />
-                <span>Run New Scan</span>
-              </button>
+            <div>
+              <h2 className="mb-1 text-3xl font-bold text-white">Project Health</h2>
+              <p className="text-sm text-slate-400">
+                Last updated: {latestScore.calculatedAt.toLocaleString()} • {findings.length}{' '}
+                findings
+              </p>
             </div>
           </header>
 
           {/* Main Content */}
           <main className="flex-1 overflow-auto">
-            <div className="space-y-6">
-              {/* Grid Layout: Overview + Category on left, Trend Graph on right */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                {/* Left Column: Overview + Category Breakdown */}
-                <div className="space-y-6 lg:col-span-1">
-                  <HealthOverviewCard score={latestScore.overallScore} trend={trend} />
-                  <CategoryBreakdown
-                    securityScore={latestScore.securityScore}
-                    qualityScore={latestScore.qualityScore}
-                    performanceScore={latestScore.performanceScore}
-                    accessibilityScore={latestScore.accessibilityScore}
+            <div className="space-y-4">
+              {/* Top Section: 4-Card Score Grid */}
+              <ScoreCardsGrid
+                overallScore={latestScore.overallScore}
+                criticalCount={vulnerabilityCounts.critical}
+                highPriorityCount={vulnerabilityCounts.high}
+                lastScanTime={formatLastScan(latestScore.calculatedAt)}
+              />
+
+              {/* Middle Section: 2-Column Layout */}
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                {/* Left Column: Vulnerability Breakdown + Scanner Status */}
+                <div className="space-y-4 lg:col-span-1">
+                  <VulnerabilityBreakdown
+                    critical={vulnerabilityCounts.critical}
+                    high={vulnerabilityCounts.high}
+                    medium={vulnerabilityCounts.medium}
+                    low={vulnerabilityCounts.low}
                   />
+                  <ScannerStatusCards scanners={scanners} />
                 </div>
 
                 {/* Right Column: Trend Graph */}
                 <div className="lg:col-span-2">
                   <TrendGraph data={historicalScores} />
                 </div>
+              </div>
+
+              {/* Bottom Section: Timeline + Compliance */}
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <SecurityTimeline events={timelineEvents} maxEvents={5} />
+                <ComplianceStatus standards={complianceStandards} />
               </div>
 
               {/* Findings Table with Filters */}

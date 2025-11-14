@@ -28,7 +28,7 @@ export function HealthFilter({ filters, onFilterChange }: HealthFilterProps) {
       <select
         value={filters.category}
         onChange={(e) => handleChange('category', e.target.value)}
-        className="neu-pressed rounded-xl border-0 bg-transparent px-3 py-2 text-sm text-white focus:ring-2 focus:ring-coral-400"
+        className="neu-raised smooth-transition hover:bg-dark-card cursor-pointer rounded-xl border-0 bg-transparent px-4 py-2 text-sm text-white focus:ring-2 focus:ring-coral-400"
       >
         <option value="all">All Categories</option>
         <option value="SECURITY">Security</option>
@@ -41,7 +41,7 @@ export function HealthFilter({ filters, onFilterChange }: HealthFilterProps) {
       <select
         value={filters.severity}
         onChange={(e) => handleChange('severity', e.target.value)}
-        className="neu-pressed rounded-xl border-0 bg-transparent px-3 py-2 text-sm text-white focus:ring-2 focus:ring-coral-400"
+        className="neu-raised smooth-transition hover:bg-dark-card cursor-pointer rounded-xl border-0 bg-transparent px-4 py-2 text-sm text-white focus:ring-2 focus:ring-coral-400"
       >
         <option value="all">All Severities</option>
         <option value="CRITICAL">Critical</option>
@@ -54,7 +54,7 @@ export function HealthFilter({ filters, onFilterChange }: HealthFilterProps) {
       <select
         value={filters.scanner}
         onChange={(e) => handleChange('scanner', e.target.value)}
-        className="neu-pressed rounded-xl border-0 bg-transparent px-3 py-2 text-sm text-white focus:ring-2 focus:ring-coral-400"
+        className="neu-raised smooth-transition hover:bg-dark-card cursor-pointer rounded-xl border-0 bg-transparent px-4 py-2 text-sm text-white focus:ring-2 focus:ring-coral-400"
       >
         <option value="all">All Scanners</option>
         <option value="SEMGREP">Semgrep</option>

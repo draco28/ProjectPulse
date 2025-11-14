@@ -90,7 +90,7 @@ export function FindingsTable({ findings }: FindingsTableProps) {
   };
 
   return (
-    <div className="neu-raised rounded-3xl p-6">
+    <div className="neu-raised rounded-3xl p-6" data-testid="findings-table">
       {/* Header with Title and Filters */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-bold uppercase text-white">

@@ -30,7 +30,7 @@ export function TrendGraph({ data }: TrendGraphProps) {
   const average = scores.length > 0 ? Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length) : 0;
 
   return (
-    <div className="neu-raised rounded-3xl p-6">
+    <div className="neu-raised rounded-3xl p-6" data-testid="trend-graph">
       <div className="mb-4 flex items-center gap-2">
         <TrendingUp className="h-5 w-5 text-coral-400" />
         <h2 className="text-sm font-bold uppercase text-white">30-Day Trend</h2>

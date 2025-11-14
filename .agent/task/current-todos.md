@@ -1,215 +1,92 @@
-# Current Todos: Sprint 7 Day 11 - Health Score Calculation
+# Sprint 8 Todo List
 
-**Session**: 2025-11-14
-**Sprint**: 7 (Week 2, Day 11)
-**Story Points**: 5
-**Progress**: 7/7 tasks (100%)
-
----
-
-## Task List
-
-### 1. Create types.ts - Scoring Interfaces
-**Status**: [x] Complete
-**Estimated Time**: 30 min
-**Lines of Code**: ~80
-**Priority**: P0 (blocking)
-
-**Details**:
-- Create `apps/web/lib/health/scoring/types.ts`
-- Define `CategoryScores` interface (4 category scores)
-- Define `HealthScoreData` interface (overall score + categories + grade + statistics)
-- Define `ScoreWeights` interface (category weights: 40% security, 30% quality, 20% a11y, 10% debt)
-- Define `SeverityPoints` interface (CRITICAL=10, HIGH=5, MEDIUM=2, LOW=1)
-- Define `FindingStatistics` interface (total, by severity, by category)
-- Add JSDoc comments for all interfaces
-- Import FindingCategory, FindingSeverity from scanner types
-
-**Success Criteria**:
-- ✅ All interfaces exported
-- ✅ JSDoc comments complete
-- ✅ TypeScript compiles with 0 errors
+**Created:** 2025-11-14 20:32
+**Sprint:** Sprint 8 - Integration & Polish
+**Total Points:** 48 points
+**Progress:** 0/48 (0%)
 
 ---
 
-### 2. Create calculator.ts - Core Calculation Logic
-**Status**: [x] Complete
-**Estimated Time**: 2h
-**Lines of Code**: ~200
-**Priority**: P0 (blocking)
+## Week 1: Testing & Quality Assurance (18 points)
 
-**Details**:
-- Create `apps/web/lib/health/scoring/calculator.ts`
-- Implement `calculateCategoryScore(findings, maxPenalty)` - Calculate score for one category
-- Implement `calculateHealthScore(findings)` - Main entry point, returns HealthScoreData
-- Implement `assignGrade(score)` - Convert score to letter grade (A-F)
-- Implement `calculateFindingStatistics(findings)` - Count findings by severity/category
-- Define constants: SEVERITY_POINTS, CATEGORY_WEIGHTS, MAX_PENALTY_PER_CATEGORY
-- Apply weighted formula: `score = 100 - (security_penalty * 0.4 + quality_penalty * 0.3 + a11y_penalty * 0.2 + debt_penalty * 0.1)`
-- Handle edge cases (empty findings, negative scores clamped to 0)
-- Add JSDoc comments with examples for all functions
+### Day 1-2: Health Dashboard E2E Tests (5 points)
+- [ ] Create `tests/e2e/health.spec.ts` (1 point)
+- [ ] Test health dashboard navigation and score display (1 point)
+- [ ] Test finding filters (category, severity, scanner) (1 point)
+- [ ] Test 30-day trend graph and ISR caching (1 point)
+- [ ] Test MCP tool integration (health.runScan, getScore, getHistory) (1 point)
 
-**Success Criteria**:
-- ✅ All functions exported
-- ✅ JSDoc comments with examples
-- ✅ TypeScript compiles with 0 errors
-- ✅ Edge cases handled gracefully
+### Day 3: Wiki & Knowledge E2E Tests (5 points)
+- [ ] Extend wiki tests: auto-generation from JSDoc (1.5 points)
+- [ ] Extend wiki tests: cross-linking validation (1 point)
+- [ ] Extend knowledge tests: graph traversal (2-hop) (1.5 points)
+- [ ] Extend knowledge tests: hybrid search validation (1 point)
 
----
+### Day 4: Issue Management E2E Tests (5 points)
+- [ ] Create `tests/e2e/issues-bulk.spec.ts` (1 point)
+- [ ] Test bulk issue creation (10-50 issues) (2 points)
+- [ ] Test auto-tagging (≥80% accuracy) (1 point)
+- [ ] Test context injection (file:line, code snippets) (1 point)
 
-### 3. Create calculator.test.ts - Comprehensive Unit Tests
-**Status**: [x] Complete
-**Estimated Time**: 2h
-**Lines of Code**: ~400
-**Priority**: P0 (blocking)
-
-**Details**:
-- Create `apps/web/lib/health/scoring/__tests__/calculator.test.ts`
-- Test: Zero findings → score=100, grade=A
-- Test: All critical findings → score=0-10, grade=F
-- Test: Mixed severity → correct weighted calculation
-- Test: Grade boundaries (90+=A, 80-89=B, 70-79=C, 60-69=D, <60=F)
-- Test: Real-world scenario (mix of all scanners)
-- Test: Category-specific penalties (security, quality, a11y, debt)
-- Test: Finding statistics accuracy (total, by severity, by category)
-- Test: Edge cases (null findings, empty arrays, negative scores)
-- Minimum 10+ comprehensive tests
-- Use fixtures from Day 8-9 scanner tests
-
-**Success Criteria**:
-- ✅ 10+ comprehensive tests written
-- ✅ All tests passing
-- ✅ Edge cases covered
-- ✅ Real-world scenario tested
-- ✅ Coverage > 90%
+### Day 5: Test Suite Validation & Fixes (3 points)
+- [ ] Run all unit tests (326 tests) (0.5 points)
+- [ ] Run all integration tests (0.5 points)
+- [ ] Run all E2E tests (6+ files) (0.5 points)
+- [ ] Fix failing tests and verify coverage (1.5 points)
 
 ---
 
-### 4. Create index.ts - Export All Scoring Functions
-**Status**: [x] Complete
-**Estimated Time**: 15 min
-**Lines of Code**: ~10
-**Priority**: P1
+## Week 2: Security, Documentation & Production (30 points)
 
-**Details**:
-- Create `apps/web/lib/health/scoring/index.ts`
-- Export all from `./types`
-- Export all from `./calculator`
-- Verify all exports working
+### Day 6: Code Quality & Security Audit (8 points)
+- [ ] Run Semgrep security scan on Sprint 7 code (2 points)
+- [ ] Run ESLint with security rules (1 point)
+- [ ] Run axe-core accessibility tests (2 points)
+- [ ] Run Lighthouse performance audits (1 point)
+- [ ] Document findings and create remediation plan (2 points)
 
-**Success Criteria**:
-- ✅ All exports working
-- ✅ TypeScript compiles with 0 errors
+### Day 7: MVP Acceptance Validation (10 points)
+- [ ] Verify all 345 story points complete (3 points)
+- [ ] Validate all exit criteria met (2 points)
+- [ ] Benchmark performance targets (3 points)
+- [ ] Validate agent autonomy >95% (2 points)
 
----
+### Day 8: Documentation Review (5 points)
+- [ ] Update OpenAPI spec with Sprint 7 endpoints (1.5 points)
+- [ ] Update MCP tools guide (health + wiki tools) (1.5 points)
+- [ ] Create health monitoring user guide (1 point)
+- [ ] Review and update architecture documentation (1 point)
 
-### 5. Run Unit Tests - Verify All Passing
-**Status**: [x] Complete
-**Estimated Time**: 15 min
-**Priority**: P0
+### Day 9: Bug Fixes & Production Readiness (5 points)
+- [ ] Fix bugs from testing/audit (2 points)
+- [ ] Verify health checks and error handling (1 point)
+- [ ] Configure logging and monitoring (1 point)
+- [ ] Prepare production deployment checklist (1 point)
 
-**Details**:
-- Run: `cd apps/web && pnpm test lib/health/scoring/__tests__/calculator.test.ts`
-- Verify all 10+ tests passing
-- Check coverage > 90%
-- Fix any failing tests
-
-**Success Criteria**:
-- ✅ All 10+ tests passing
-- ✅ 0 test failures
-- ✅ Coverage > 90%
-
----
-
-### 6. TypeScript Check - Verify 0 Errors
-**Status**: [x] Complete
-**Estimated Time**: 15 min
-**Priority**: P0
-
-**Details**:
-- Run: `cd apps/web && pnpm type-check`
-- Verify 0 TypeScript errors
-- Verify strict mode enabled
-- Fix any type errors
-
-**Success Criteria**:
-- ✅ 0 TypeScript errors
-- ✅ Strict mode enabled
-- ✅ All types correctly inferred
+### Day 10: Final Validation & Sign-Off (2 points)
+- [ ] Run full regression test suite (0.5 points)
+- [ ] Validate all quality gates (0.5 points)
+- [ ] Create Sprint 8 completion document (0.5 points)
+- [ ] Git commit and push (0.5 points)
 
 ---
 
-### 7. Manual Integration Test - Test with Real Scan Data
-**Status**: [x] Complete
-**Estimated Time**: 30 min
-**Priority**: P1
+## Progress Tracking
 
-**Details**:
-- Use fixtures from Day 8-9 scanner tests
-- Create test script to run calculation with mixed findings
-- Verify output is reasonable (score 70-90, grade B/C, category scores > 60)
-- Verify no runtime errors
-- Verify output format matches Prisma model
-
-**Success Criteria**:
-- ✅ Real data produces reasonable scores
-- ✅ No runtime errors
-- ✅ Output matches expected format
-- ✅ Statistics are accurate
+**Completed:** 0/48 points (0%)
+**In Progress:** 0 tasks
+**Pending:** 28 tasks
 
 ---
 
-## Progress Summary
+## Checkpoints
 
-**Total Tasks**: 7
-**Completed**: 7
-**In Progress**: 0
-**Pending**: 0
-
-**Progress**: 7/7 tasks (100%)
-
-**Estimated Total Time**: 6 hours
-**Story Points**: 5
+- [ ] **15K tokens:** Update this file with progress
+- [ ] **30K tokens:** Update this file with progress
+- [ ] **45K tokens:** Update this file with progress
+- [ ] **60K tokens:** Update this file with progress
 
 ---
 
-## Protocol Steps
-
-- [x] STEP 1: Session initialized
-- [x] STEP 2: Plan saved (current-plan.md, current-todos.md)
-- [x] STEP 3: Expert consultation (not needed - straightforward calculation logic)
-- [x] STEP 4: Implementation + Checkpoints
-- [ ] STEP 5: Post-completion workflow (in progress)
-
----
-
-## Dependencies
-
-**Scanner Types** (already exist):
-- FindingCategory: 'security' | 'quality' | 'accessibility' | 'technical-debt'
-- FindingSeverity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
-- Finding interface with category, severity, message, source, etc.
-
-**Prisma Model** (already exists):
-- HealthScore model in schema.prisma (lines 1100-1130)
-- Fields: overallScore, categoryScores (JSON), grade, etc.
-
----
-
-## Blocking Issues
-
-None currently.
-
----
-
-## Notes
-
-- Weighted formula: 40% security, 30% quality, 20% accessibility, 10% technical debt
-- Severity points: CRITICAL=10, HIGH=5, MEDIUM=2, LOW=1
-- Grade scale: 90+=A, 80-89=B, 70-79=C, 60-69=D, <60=F
-- Real scan data should produce scores in 70-90 range for healthy codebase
-
----
-
-**Created**: 2025-11-14
-**Last Updated**: 2025-11-14
+_Last Updated: 2025-11-14 20:32_
+_Next Update: After first task completion_
