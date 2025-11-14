@@ -1,7 +1,7 @@
 # Active Context
 
-**Last Updated**: 2025-11-14 18:45
-**Current Focus**: Sprint 7 COMPLETE - All 30 points delivered ✅
+**Last Updated**: 2025-11-14 22:00
+**Current Focus**: Sprint 7 Day 13 NEXT - Health Dashboard UI (US-119)
 **Recent Completion**: Day 12 Complete - Health MCP Tools (US-120) ✅
 
 ---
@@ -26,7 +26,7 @@
 
 ### What's In Progress
 
-**Sprint 7: Wiki Auto-Generation + Health Monitoring** ✅ (30 points - 100% COMPLETE)
+**Sprint 7: Wiki Auto-Generation + Health Monitoring** ⏳ (30 points - 63% IN PROGRESS)
 
 **Week 1: Wiki Auto-Generation** (11 points - DEFERRED)
 - Day 1-2: JSDoc parser with @microsoft/tsdoc (US-107 part 1: 4 points) - DEFERRED
@@ -34,12 +34,19 @@
 - Day 4-5: Real-time update detection (US-108: 3 points) - DEFERRED
 - Day 6-7: MCP tool (wiki.generate) - DEFERRED
 
-**Week 2: Health Monitoring** ✅ (19 points - 100% complete)
+**Week 2: Health Monitoring** ⏳ (19 points - 70% IN PROGRESS)
 - ✅ Day 8-9: Scanner foundation (Semgrep, ESLint) - 8 points
 - ✅ Day 10: Accessibility scanners (axe-core, Lighthouse) - 3 points
 - ✅ Day 11: Health score calculation - 5 points
-- ✅ Day 12: Health MCP tools (runScan, getScore, getHistory) - 3 points ← **JUST COMPLETED**
-- Day 13-14: Dashboard UI + polish - 0 points (optional polish, not required)
+- ✅ Day 12: Health MCP tools (runScan, getScore, getHistory) - 3 points
+- ⏳ **Day 13: Health Dashboard UI (US-119) - NEXT** - 0 points assigned BUT REQUIRED EXIT CRITERIA
+  - Transform Security page → Project Health page
+  - Display overall health score + grade (A-F)
+  - Show category breakdowns (Security 40%, Quality 30%, A11y 20%, Debt 10%)
+  - Trend visualization (improving/declining/stable)
+  - Scanner findings table with filters
+  - Historical score tracking
+- Day 14: Integration testing + polish - 0 points (true optional polish)
 
 ---
 
@@ -92,26 +99,47 @@
 
 ## Remaining Tasks
 
-### Sprint 7: All Core Tasks COMPLETE ✅
+### Sprint 7: Day 13 Required for Completion ⏳
 
-**Optional Polish (Days 13-14 - 0 points):**
-- [ ] Health dashboard UI (nice-to-have, not required)
-- [ ] Additional integration testing (covered by manual curl script)
+**Day 13: Health Dashboard UI (US-119) - REQUIRED EXIT CRITERIA:**
+- [ ] **Page Location**: Transform `app/(dashboard)/security/page.tsx` → `app/(dashboard)/health/page.tsx`
+- [ ] **API Route**: Create `GET /api/projects/[id]/health` endpoint
+- [ ] **Health Overview Card**:
+  - Overall score (0-100) with grade badge (A-F)
+  - Trend indicator (↑ improving / ↓ declining / → stable)
+  - Last scan timestamp
+- [ ] **Category Breakdown Chart**:
+  - Security (40%) - bar with score
+  - Quality (30%) - bar with score
+  - Accessibility (20%) - bar with score
+  - Technical Debt (10%) - bar with score
+- [ ] **Historical Trend Graph**:
+  - Line chart: Score over time (last 30 days)
+  - Data from HealthScore table
+- [ ] **Scanner Findings Table**:
+  - Columns: Category, Severity, Message, File, Line, Scanner Type
+  - Filters: Category, Severity, Scanner Type
+  - Pagination (50 per page)
+  - Click to view code snippet
+- [ ] **Integration**: Connect to MCP tools (health.getScore, health.getHistory)
+- [ ] **Navigation**: Update sidebar (Security → Health)
+
+**Day 14: Optional Polish (0 points):**
+- [ ] Additional integration testing (already covered by manual curl script)
 - [ ] Additional documentation (comprehensive comments already in place)
 
 **Next Sprint Planning:**
-- Review Sprint 7 completion metrics
-- Plan Sprint 8 or next priority work
-- No blockers, system fully functional
+- After Day 13 complete → Sprint 7 closure
+- Plan Sprint 8 (Integration & Polish)
 
 ---
 
 ## Current Work Focus
 
-**Status**: Sprint 7 COMPLETE (30/30 points - 100%) ✅
-**Completed**: All health monitoring features (scanners, scoring, MCP tools)
-**Next**: Ready for Sprint 8 or next priority work
-**Blockers**: None - All core functionality implemented and tested
+**Status**: Sprint 7 Day 13 NEXT - Health Dashboard UI ⏳
+**Completed**: Backend complete (scanners, scoring, MCP tools - 19/30 points)
+**Next**: Day 13 - Health Dashboard UI (REQUIRED exit criteria)
+**Blockers**: None - Backend ready, need UI implementation
 
 ---
 
