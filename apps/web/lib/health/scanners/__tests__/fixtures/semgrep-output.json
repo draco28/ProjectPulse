@@ -1,0 +1,113 @@
+{
+  "results": [
+    {
+      "check_id": "javascript.lang.security.audit.xss.direct-response",
+      "path": "apps/web/app/api/users/route.ts",
+      "start": {
+        "line": 42,
+        "col": 10
+      },
+      "end": {
+        "line": 42,
+        "col": 45
+      },
+      "extra": {
+        "message": "Potential XSS vulnerability: user input directly in HTTP response without sanitization",
+        "severity": "ERROR",
+        "lines": "  return Response.json({ message: req.query.name });",
+        "metadata": {
+          "category": "security",
+          "cwe": ["CWE-79"],
+          "owasp": ["A7:2017-Cross-Site Scripting (XSS)"]
+        }
+      }
+    },
+    {
+      "check_id": "javascript.lang.security.audit.sql-injection.pg-sqli",
+      "path": "apps/web/lib/database/queries.ts",
+      "start": {
+        "line": 128,
+        "col": 5
+      },
+      "end": {
+        "line": 128,
+        "col": 67
+      },
+      "extra": {
+        "message": "Potential SQL injection: user input concatenated into SQL query",
+        "severity": "ERROR",
+        "lines": "    const query = `SELECT * FROM users WHERE id = ${userId}`;",
+        "metadata": {
+          "category": "security",
+          "cwe": ["CWE-89"],
+          "owasp": ["A1:2017-Injection"]
+        }
+      }
+    },
+    {
+      "check_id": "javascript.lang.security.audit.hardcoded-credentials",
+      "path": "apps/web/lib/config/database.ts",
+      "start": {
+        "line": 12,
+        "col": 23
+      },
+      "end": {
+        "line": 12,
+        "col": 56
+      },
+      "extra": {
+        "message": "Hardcoded credential detected in source code",
+        "severity": "WARNING",
+        "lines": "  const password = 'supersecret123';",
+        "metadata": {
+          "category": "security",
+          "cwe": ["CWE-798"]
+        }
+      }
+    },
+    {
+      "check_id": "javascript.lang.best-practice.use-strict-equality",
+      "path": "apps/web/lib/utils/validation.ts",
+      "start": {
+        "line": 56,
+        "col": 7
+      },
+      "end": {
+        "line": 56,
+        "col": 17
+      },
+      "extra": {
+        "message": "Use === instead of == for comparison",
+        "severity": "INFO",
+        "lines": "  if (value == null) return false;",
+        "metadata": {
+          "category": "best-practice"
+        }
+      }
+    },
+    {
+      "check_id": "typescript.lang.security.audit.unsafe-this-binding",
+      "path": "apps/web/components/UserCard.tsx",
+      "start": {
+        "line": 89,
+        "col": 20
+      },
+      "end": {
+        "line": 89,
+        "col": 41
+      },
+      "extra": {
+        "message": "Unsafe 'this' binding in arrow function may cause unexpected behavior",
+        "severity": "WARNING"
+      }
+    }
+  ],
+  "errors": [],
+  "paths": {
+    "scanned": [
+      "apps/web/app/",
+      "apps/web/lib/",
+      "apps/web/components/"
+    ]
+  }
+}

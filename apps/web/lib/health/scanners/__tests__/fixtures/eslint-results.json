@@ -1,0 +1,76 @@
+[
+  {
+    "filePath": "/Users/draco/projects/AI_HUB/apps/web/lib/utils/format.ts",
+    "messages": [
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "message": "'formatDate' is defined but never used",
+        "line": 23,
+        "column": 14,
+        "nodeType": "Identifier",
+        "source": "  const formatDate = (date: Date) => date.toISOString();"
+      },
+      {
+        "ruleId": "@typescript-eslint/no-explicit-any",
+        "severity": 1,
+        "message": "Unexpected any. Specify a different type.",
+        "line": 45,
+        "column": 28,
+        "nodeType": "TSAnyKeyword",
+        "source": "  function processData(data: any) {"
+      }
+    ],
+    "errorCount": 1,
+    "warningCount": 1,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "source": "// File contents for code snippet extraction\nfunction exampleFunction() {\n  const unused = 'test';\n  const formatDate = (date: Date) => date.toISOString();\n  return 'result';\n}\n\nfunction processData(data: any) {\n  return data.map(item => item.value);\n}\n"
+  },
+  {
+    "filePath": "/Users/draco/projects/AI_HUB/apps/web/components/Button.tsx",
+    "messages": [
+      {
+        "ruleId": "react-hooks/exhaustive-deps",
+        "severity": 1,
+        "message": "React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.",
+        "line": 67,
+        "column": 8,
+        "nodeType": "ArrayExpression",
+        "source": "  useEffect(() => { fetchData(); }, []);"
+      },
+      {
+        "ruleId": "no-console",
+        "severity": 1,
+        "message": "Unexpected console statement.",
+        "line": 102,
+        "column": 5,
+        "nodeType": "MemberExpression",
+        "source": "    console.log('Debug:', result);"
+      }
+    ],
+    "errorCount": 0,
+    "warningCount": 2,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "source": "// React component source\nimport { useEffect } from 'react';\n\nexport function Button() {\n  const fetchData = () => {};\n  useEffect(() => { fetchData(); }, []);\n  const handleClick = () => {\n    console.log('Debug:', result);\n  };\n  return <button onClick={handleClick}>Click</button>;\n}\n"
+  },
+  {
+    "filePath": "/Users/draco/projects/AI_HUB/apps/web/lib/validation.ts",
+    "messages": [
+      {
+        "ruleId": null,
+        "severity": 2,
+        "message": "Parsing error: Unexpected token )",
+        "line": 15,
+        "column": 1,
+        "nodeType": null,
+        "source": ")"
+      }
+    ],
+    "errorCount": 1,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0
+  }
+]

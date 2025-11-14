@@ -242,6 +242,8 @@ model Project {
   skills             Skill[] // Sprint 6: Skills lazy-loading system
   onboardingSessions OnboardingSession[]
   workflowRuns       WorkflowRun[]
+  healthScanners     HealthScanner[] // Sprint 7: Health monitoring system
+  healthScores       HealthScore[] // Sprint 7: Health scores
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -290,9 +292,10 @@ model Issue {
   // Security findings
   securityFinding SecurityFinding?
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  closedAt  DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  closedAt      DateTime?
+  HealthFinding HealthFinding?
 
   @@index([status])
   @@index([priority])
@@ -380,9 +383,9 @@ model LinkedCommit {
 model KnowledgeItem {
   id Int @id @default(autoincrement())
 
-  title    String   @db.VarChar(200)
-  content  String   @db.Text
-  category String   @db.VarChar(50)
+  title    String @db.VarChar(200)
+  content  String @db.Text
+  category String @db.VarChar(50)
 
   // Tags (array with GIN index for fast filtering)
   tags String[]
@@ -417,7 +420,6 @@ model KnowledgeItem {
   @@index([tags], type: Gin)
   @@index([contentTsvector], type: Gin)
   @@index([createdAt(sort: Desc)])
-
   @@map("knowledge_items")
 }
 
@@ -458,13 +460,11 @@ model KnowledgeRelationship {
 
   // Prevent duplicate relationships
   @@unique([fromId, toId, relationType])
-
   // Indexes for graph traversal performance
   @@index([fromId])
   @@index([toId])
   @@index([relationType])
   @@index([fromId, relationType]) // Composite for filtered traversal
-
   @@map("knowledge_relationships")
 }
 
@@ -485,11 +485,9 @@ model KnowledgeItemVersion {
 
   // Unique constraint: one version number per item
   @@unique([itemId, version])
-
   // Indexes for version queries
   @@index([itemId])
   @@index([itemId, version(sort: Desc)]) // Get latest version efficiently
-
   @@map("knowledge_item_versions")
 }
 
@@ -498,13 +496,13 @@ model KnowledgeQueryMetric {
   id Int @id @default(autoincrement())
 
   // Query details
-  query      String @db.Text
-  queryMode  String @db.VarChar(20) // 'semantic' | 'fulltext' | 'hybrid'
+  query     String @db.Text
+  queryMode String @db.VarChar(20) // 'semantic' | 'fulltext' | 'hybrid'
 
   // Performance metrics
-  latencyMs     Int // Query execution time in milliseconds
-  resultCount   Int // Number of results returned
-  tokenUsage    Int? // Estimated tokens in response (chars / 4)
+  latencyMs   Int // Query execution time in milliseconds
+  resultCount Int // Number of results returned
+  tokenUsage  Int? // Estimated tokens in response (chars / 4)
 
   // Optional filters applied
   category String? @db.VarChar(50)
@@ -519,7 +517,6 @@ model KnowledgeQueryMetric {
   @@index([createdAt(sort: Desc)])
   @@index([queryMode, createdAt(sort: Desc)])
   @@index([latencyMs])
-
   @@map("knowledge_query_metrics")
 }
 
@@ -569,7 +566,6 @@ model Skill {
   @@index([projectId, lastLoadedAt(sort: Desc)]) // Recently loaded skills
   @@index([tags], type: Gin) // Fast tag search (GIN index for arrays)
   @@index([frameworks], type: Gin) // Fast framework search (GIN index for arrays)
-
   @@map("skills")
 }
 
@@ -578,18 +574,17 @@ model Skill {
 model SkillKnowledgeLink {
   id Int @id @default(autoincrement())
 
-  skillId Skill @relation(fields: [skillIdRef], references: [id], onDelete: Cascade)
-  skillIdRef Int @map("skill_id")
+  skillId    Skill @relation(fields: [skillIdRef], references: [id], onDelete: Cascade)
+  skillIdRef Int   @map("skill_id")
 
-  knowledgeId KnowledgeItem @relation(fields: [knowledgeIdRef], references: [id], onDelete: Cascade)
-  knowledgeIdRef Int @map("knowledge_id")
+  knowledgeId    KnowledgeItem @relation(fields: [knowledgeIdRef], references: [id], onDelete: Cascade)
+  knowledgeIdRef Int           @map("knowledge_id")
 
   createdAt DateTime @default(now())
 
   @@unique([skillIdRef, knowledgeIdRef])
   @@index([skillIdRef])
   @@index([knowledgeIdRef])
-
   @@map("skill_knowledge_links")
 }
 
@@ -947,9 +942,9 @@ model IssueModuleOption {
 }
 
 model OnboardingSession {
-  id            Int       @id @default(autoincrement())
-  projectId     Int
-  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id        Int     @id @default(autoincrement())
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   sessionNumber Int
   response      Json?     @db.JsonB
@@ -957,8 +952,8 @@ model OnboardingSession {
   startedAt     DateTime?
   completedAt   DateTime?
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([projectId, sessionNumber])
   @@index([projectId])
@@ -967,15 +962,15 @@ model OnboardingSession {
 }
 
 model OnboardingTemplate {
-  id             Int      @id @default(autoincrement())
+  id             Int     @id @default(autoincrement())
   sessionNumber  Int
   name           String
-  promptTemplate String   @db.Text
-  variables      Json     @db.JsonB
-  isActive       Boolean  @default(true)
+  promptTemplate String  @db.Text
+  variables      Json    @db.JsonB
+  isActive       Boolean @default(true)
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([sessionNumber, isActive])
   @@index([sessionNumber])
@@ -991,50 +986,180 @@ model WorkflowTemplate {
   name        String   @unique
   description String   @db.Text
   category    String
-  steps       Json     @db.JsonB  // Array of step definitions
+  steps       Json     @db.JsonB // Array of step definitions
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  runs        WorkflowRun[]
+  runs WorkflowRun[]
 }
 
 model WorkflowRun {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   templateId  Int
   projectId   Int?
-  status      String   // "pending", "running", "completed", "failed", "paused"
-  currentStep Int      @default(1)
-  context     Json     @db.JsonB  // Execution context (JSONB)
-  startedAt   DateTime @default(now())
+  status      String // "pending", "running", "completed", "failed", "paused"
+  currentStep Int       @default(1)
+  context     Json      @db.JsonB // Execution context (JSONB)
+  startedAt   DateTime  @default(now())
   completedAt DateTime?
   pausedAt    DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  template    WorkflowTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  project     Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  steps       WorkflowStep[]
+  template WorkflowTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  project  Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  steps    WorkflowStep[]
 
   @@index([templateId, status])
   @@index([projectId, status])
 }
 
 model WorkflowStep {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   runId       Int
   stepNumber  Int
   name        String
-  status      String   // "pending", "running", "completed", "failed", "skipped"
-  result      Json?    @db.JsonB  // Step execution result (JSONB)
+  status      String // "pending", "running", "completed", "failed", "skipped"
+  result      Json?     @db.JsonB // Step execution result (JSONB)
   startedAt   DateTime?
   completedAt DateTime?
-  error       String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  error       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  run         WorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  run WorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
 
   @@unique([runId, stepNumber])
   @@index([runId, status])
+}
+
+// ============================================================================
+// HEALTH MONITORING (Sprint 7 Week 2)
+// ============================================================================
+
+// Scanner type enum (4 scanners)
+enum ScannerType {
+  SEMGREP // Security scanner
+  ESLINT // Code quality linter
+  LIGHTHOUSE // Performance analyzer
+  AXECORE // Accessibility checker
+}
+
+// Finding category (maps to scanner type)
+enum FindingCategory {
+  SECURITY // Semgrep findings
+  CODE_QUALITY // ESLint findings
+  PERFORMANCE // Lighthouse findings
+  ACCESSIBILITY // axe-core findings
+}
+
+// Severity levels (standard CVE scale)
+enum FindingSeverity {
+  CRITICAL // Immediate action required
+  HIGH // Fix before release
+  MEDIUM // Address in sprint
+  LOW // Nice to fix
+}
+
+// Finding lifecycle status
+enum FindingStatus {
+  OPEN // New finding
+  IN_PROGRESS // Agent analyzing
+  FIXED // Remediated
+  FALSE_POSITIVE // Not a real issue
+}
+
+// HealthScanner: Track scanner instances and last run times
+model HealthScanner {
+  id        Int         @id @default(autoincrement())
+  name      String // Display name (e.g., "Semgrep Security Scanner")
+  type      ScannerType // Enum: SEMGREP | ESLINT | LIGHTHOUSE | AXECORE
+  projectId Int // Foreign key to Project
+  lastRun   DateTime? // Nullable - null if never run
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  findings HealthFinding[]
+
+  // Constraints & Indexes
+  @@unique([projectId, type]) // Only one scanner of each type per project
+  @@index([projectId]) // Query all scanners for project
+  @@index([type]) // Query by scanner type
+  @@index([lastRun]) // Sort by recent activity
+  @@map("health_scanners")
+}
+
+// HealthFinding: Store scanner findings (generic for all 4 scanner types)
+model HealthFinding {
+  id            Int             @id @default(autoincrement())
+  scannerId     Int // Foreign key to HealthScanner
+  category      FindingCategory // Enum: SECURITY | CODE_QUALITY | PERFORMANCE | ACCESSIBILITY
+  severity      FindingSeverity // Enum: CRITICAL | HIGH | MEDIUM | LOW
+  ruleId        String // Scanner-specific rule ID (e.g., "semgrep.sql-injection")
+  message       String          @db.Text // Finding description (can be long)
+  filePath      String // File where finding was detected
+  lineNumber    Int? // Line number (nullable for non-code findings)
+  codeSnippet   String?         @db.Text // Optional code context (max 5000 chars)
+  status        FindingStatus   @default(OPEN) // Enum: OPEN | IN_PROGRESS | FIXED | FALSE_POSITIVE
+  falsePositive Boolean         @default(false) // Exclude from health score
+
+  // Agent analysis fields (FR-119)
+  agentAnalysis String? @db.Text // Agent's assessment
+  proposedFix   String? @db.Text // Suggested remediation
+
+  // Issue linkage (FR-119 remediation workflow)
+  issueId Int? @unique // Optional link to Issue model
+
+  // Timestamps
+  scanDate  DateTime  @default(now()) // When finding was detected
+  fixedAt   DateTime? // When status changed to FIXED
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  scanner HealthScanner @relation(fields: [scannerId], references: [id], onDelete: Cascade)
+  issue   Issue?        @relation(fields: [issueId], references: [id], onDelete: SetNull)
+
+  // Performance indexes (8 strategic indexes for sub-50ms queries)
+  @@index([scannerId]) // Query findings for scanner
+  @@index([scannerId, category]) // Filter by category
+  @@index([scannerId, severity]) // Filter by severity
+  @@index([scannerId, status]) // Filter by status
+  @@index([scannerId, falsePositive]) // Exclude false positives
+  @@index([scannerId, scanDate(sort: Desc)]) // Recent findings first
+  @@index([scannerId, filePath, status]) // Group by file (hotspots)
+  @@index([scannerId, ruleId, falsePositive]) // Rule violation analysis
+  @@map("health_findings")
+}
+
+// HealthScore: Store calculated health scores (historical trend tracking)
+model HealthScore {
+  id        Int @id @default(autoincrement())
+  projectId Int // Foreign key to Project
+
+  // Scores (0-100 scale, integer for simplicity)
+  overallScore       Int // Weighted average of 4 category scores
+  securityScore      Int // Calculated from SECURITY findings
+  qualityScore       Int // Calculated from CODE_QUALITY findings
+  performanceScore   Int // Calculated from PERFORMANCE findings
+  accessibilityScore Int // Calculated from ACCESSIBILITY findings
+
+  // Metadata
+  calculatedAt DateTime @default(now()) // When score was calculated
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Performance indexes (for trend analysis)
+  @@index([projectId]) // Query scores for project
+  @@index([projectId, calculatedAt]) // Trend analysis (time series)
+  @@index([calculatedAt(sort: Desc)]) // Recent scores first
+  @@map("health_scores")
 }
