@@ -11,6 +11,7 @@ import { prisma } from '@/lib/prisma';
 import { parseJSDocFromProject } from '@/lib/wiki/parsers/jsdoc';
 import { generateMarkdown, generateSlug, generateExcerpt } from '@/lib/wiki/generators/markdown';
 import { generateWikiSchema, type GenerateWikiInput } from '@/lib/validations/wiki';
+import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
 import type { ParsedDocumentation } from '@/lib/wiki/parsers/jsdoc';
 
 /**
@@ -167,6 +168,28 @@ async function processDocumentation(
   const slug = generateSlug(doc.filePath);
   const title = doc.fileName.replace(/\.(ts|tsx|js|jsx)$/, '');
 
+  // Resolve cross-links in markdown content (US-108)
+  const crossLinkResult = await resolveCrossLinks(markdown, slug);
+
+  // Log warnings for unresolved links
+  if (crossLinkResult.unresolvedLinks.length > 0) {
+    console.warn(
+      `[Wiki Generation] Unresolved cross-links in ${doc.filePath}:`,
+      crossLinkResult.unresolvedLinks.map(l => l.slug).join(', ')
+    );
+  }
+
+  // Log circular references
+  if (crossLinkResult.circularReferences.length > 0) {
+    console.warn(
+      `[Wiki Generation] Circular references detected in ${doc.filePath}:`,
+      crossLinkResult.circularReferences.join(', ')
+    );
+  }
+
+  // Use processed content with resolved cross-links
+  const processedContent = crossLinkResult.content;
+
   // Check if page already exists
   const existing = await prisma.wikiPage.findUnique({
     where: { path: slug },
@@ -189,7 +212,7 @@ async function processDocumentation(
     const updated = await prisma.wikiPage.update({
       where: { id: existing.id },
       data: {
-        content: markdown,
+        content: processedContent,
         excerpt,
         updatedAt: new Date(),
         revisions: { increment: 1 },
@@ -199,6 +222,16 @@ async function processDocumentation(
         sourceFiles: [doc.filePath],
       },
     });
+
+    // Update PageLink relationships
+    // 1. Delete old links
+    await deletePageLinks(updated.id);
+
+    // 2. Create new links
+    const targetPageIds = crossLinkResult.resolvedLinks.map(link => link.wikiPageId);
+    if (targetPageIds.length > 0) {
+      await createPageLinks(updated.id, targetPageIds, 'reference');
+    }
 
     return {
       status: 'updated',
@@ -215,7 +248,7 @@ async function processDocumentation(
   const created = await prisma.wikiPage.create({
     data: {
       title,
-      content: markdown,
+      content: processedContent,
       excerpt,
       category,
       path: slug,
@@ -225,6 +258,12 @@ async function processDocumentation(
       sourceFiles: [doc.filePath],
     },
   });
+
+  // Create PageLink relationships for new page
+  const targetPageIds = crossLinkResult.resolvedLinks.map(link => link.wikiPageId);
+  if (targetPageIds.length > 0) {
+    await createPageLinks(created.id, targetPageIds, 'reference');
+  }
 
   return {
     status: 'created',

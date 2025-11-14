@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { updateWikiPageSchema } from '@/lib/validations/wiki';
+import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
 
 /**
  * GET /api/wiki/:slug
@@ -223,9 +224,24 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
       };
 
       if (partialUpdate.title !== undefined) updateData.title = partialUpdate.title;
-      if (partialUpdate.content !== undefined) updateData.content = partialUpdate.content;
       if (partialUpdate.category !== undefined) updateData.category = partialUpdate.category;
       if (partialUpdate.excerpt !== undefined) updateData.excerpt = partialUpdate.excerpt;
+
+      // Resolve cross-links if content is being updated (US-108)
+      let crossLinkResult: Awaited<ReturnType<typeof resolveCrossLinks>> | null = null;
+      if (partialUpdate.content !== undefined) {
+        crossLinkResult = await resolveCrossLinks(partialUpdate.content, slugPath);
+
+        // Log warnings
+        if (crossLinkResult.unresolvedLinks.length > 0) {
+          console.warn(
+            `[Wiki Update] Unresolved cross-links in ${slugPath}:`,
+            crossLinkResult.unresolvedLinks.map((l) => l.slug).join(', ')
+          );
+        }
+
+        updateData.content = crossLinkResult.content;
+      }
 
       const page = await tx.wikiPage.update({
         where: { id: existing.id },
@@ -241,6 +257,18 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
           updatedAt: true,
         },
       });
+
+      // Update PageLink relationships if content changed
+      if (crossLinkResult) {
+        // Delete old links
+        await deletePageLinks(page.id);
+
+        // Create new links
+        const targetPageIds = crossLinkResult.resolvedLinks.map((link) => link.wikiPageId);
+        if (targetPageIds.length > 0) {
+          await createPageLinks(page.id, targetPageIds, 'reference');
+        }
+      }
 
       return page;
     });
