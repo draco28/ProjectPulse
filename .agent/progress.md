@@ -1101,7 +1101,7 @@ Next review: End of Sprint 1 implementation (2 weeks after start)
   - ✅ Syntax validated successfully
   - Deliverable: projectpulse.wiki.generate MCP tool operational
 
-**Week 2: Health Monitoring (Days 8-14)** ✅ PARTIALLY COMPLETE (8/17 points - 47%)
+**Week 2: Health Monitoring (Days 8-14)** ✅ PARTIALLY COMPLETE (11/17 points - 65%)
 
 - Day 8-9: Health Scanner Foundation (✅ 100% COMPLETE - 8 points)
   - ✅ **Task 19-20: Database Foundation** (3 points)
@@ -1129,8 +1129,24 @@ Next review: End of Sprint 1 implementation (2 weeks after start)
   - **Critical Fix**: Refactored Semgrep from exec() to spawn() for proper glob pattern handling
   - **Verification**: TypeScript 0 errors in scanner code ✅
 
-- Day 10: Accessibility Scanners (⏸️ DEFERRED - 3 points)
-- Day 11: Health Score Calculation (⏸️ DEFERRED - 5 points)
+- Day 10: Accessibility Scanners (✅ 100% COMPLETE - 3 points)
+  - ✅ **Task 26-27: Scanner Implementation** (2 points)
+    - axecore.ts (197 lines): Playwright + AxeBuilder DOM analysis
+    - lighthouse.ts (210 lines): Node.js API with Chrome launcher
+    - Fixed browser context handling (newContext() required by @axe-core/playwright)
+    - Total: 407 lines of production code
+  - ✅ **Task 28-29: Unit Tests** (1 point)
+    - axecore.test.ts (230 lines, 12 test cases)
+    - lighthouse.test.ts (250 lines, 15 test cases)
+    - Test fixtures with realistic violation data
+  - ✅ **Task 30: Scanner Registry Update** (0 points)
+    - Added AXECORE and LIGHTHOUSE to registry (4 scanners total)
+    - Updated exports in index.ts
+  - ✅ **Manual Testing** (verification)
+    - Playwright browsers installed on Mac mini
+    - axe-core: Found 1 real violation (heading-order) ✅
+    - Lighthouse: Unit tests pass (manual test blocked by tsx ESM issue, not critical)
+- Day 11: Health Score Calculation (⏸️ NEXT - 5 points)
 - Day 12: Health MCP Tools (⏸️ DEFERRED - 3 points)
 - Day 13: Health Dashboard UI (⏸️ DEFERRED - 3 points)
 - Day 14: Integration Testing + Documentation (⏸️ DEFERRED - 0 points - polish)
