@@ -4,7 +4,6 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { updateWikiPageSchema } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
-import { commitWikiUpdate } from '@/lib/wiki/git-integration';
 
 /**
  * GET /api/wiki/:slug
@@ -273,22 +272,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
 
       return page;
     });
-
-    // Commit to git (US-109: Git Integration)
-    try {
-      const gitResult = commitWikiUpdate({
-        title: updatedPage.title,
-        path: updatedPage.path,
-        content: updatedPage.content,
-        category: updatedPage.category || 'uncategorized',
-        excerpt: updatedPage.excerpt || undefined,
-      });
-
-      console.log(`[Wiki Update] Git commit: ${gitResult.commitSha} - ${gitResult.message}`);
-    } catch (gitError) {
-      // Log git errors but don't fail the API request
-      console.error('[Wiki Update] Git commit failed:', gitError);
-    }
 
     revalidatePath('/wiki');
     revalidatePath(`/wiki/${params.slug}`);

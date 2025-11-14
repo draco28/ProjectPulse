@@ -4,7 +4,6 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { createWikiPageSchema, normalizePath } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks } from '@/lib/wiki/cross-linking';
-import { commitWikiCreate } from '@/lib/wiki/git-integration';
 
 /**
  * POST /api/wiki
@@ -98,24 +97,6 @@ export async function POST(request: NextRequest) {
     const targetPageIds = crossLinkResult.resolvedLinks.map((link) => link.wikiPageId);
     if (targetPageIds.length > 0) {
       await createPageLinks(newPage.id, targetPageIds, 'reference');
-    }
-
-    // Commit to git (US-109: Git Integration)
-    try {
-      const gitResult = commitWikiCreate({
-        title: newPage.title,
-        path: newPage.path,
-        content: newPage.content,
-        category: newPage.category || 'uncategorized',
-        excerpt: newPage.excerpt || undefined,
-        createdAt: newPage.createdAt,
-        updatedAt: newPage.updatedAt,
-      });
-
-      console.log(`[Wiki Create] Git commit: ${gitResult.commitSha} - ${gitResult.message}`);
-    } catch (gitError) {
-      // Log git errors but don't fail the API request
-      console.error('[Wiki Create] Git commit failed:', gitError);
     }
 
     // Revalidate wiki list and detail pages (next-js-expert recommendation)

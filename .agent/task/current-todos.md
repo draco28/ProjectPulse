@@ -1,13 +1,13 @@
 # Sprint 7 Task List - Wiki Auto-Generation + Health Monitoring
 
 **Created**: 2025-11-14 00:49
-**Last Updated**: 2025-11-14 20:15
-**Progress**: 16/43 tasks complete (37%) - Task 17 next
-**Story Points**: 14/33 points complete (42%) - Day 1-5 COMPLETE ✅
+**Last Updated**: 2025-11-14 19:50
+**Progress**: 12/42 tasks complete (29%) - Task 12 next
+**Story Points**: 11/33 points complete (33%) - Day 1-4 COMPLETE ✅
 
 ---
 
-## ✅ Completed Tasks (16)
+## ✅ Completed Tasks (12)
 
 ### Day 1-2: JSDoc Parser Foundation (COMPLETE ✅)
 - [x] **Task 1**: Install @microsoft/tsdoc parser dependency
@@ -69,48 +69,27 @@
   - Status: ✅ Complete
 
 - [x] **Task 12**: Verify cross-linking end-to-end on Mac mini
-  - Tested wiki creation with cross-links
-  - Verified PageLink relationships created (ID 29)
-  - Tested auto-generation: 11 pages updated successfully
-  - Status: ✅ Complete
-
-### Day 5: Git Integration (COMPLETE ✅)
-- [x] **Task 13**: Create lib/wiki/git-integration.ts with git commit functionality
-  - Created 375-line git integration module
-  - Features: commitWikiCreate, commitWikiUpdate, commitWikiDelete
-  - Exports wiki pages to markdown files (.wiki/ folder)
-  - Returns commit SHA for tracking
-  - Location: apps/web/lib/wiki/git-integration.ts
-  - Status: ✅ Complete
-
-- [x] **Task 14**: Add git commit hooks to wiki CRUD operations
-  - Integrated into POST /api/wiki (manual creation)
-  - Integrated into PATCH /api/wiki/[slug] (manual update)
-  - Integrated into POST /api/wiki/generate (auto-generation create/update)
-  - Graceful error handling (git errors logged but don't fail requests)
-  - Status: ✅ Complete
-
-- [x] **Task 15**: Store git commit SHA in WikiPage.metadata
-  - Added gitCommitSha field to metadata after each commit
-  - Returned in API responses
-  - Tracked in database for version history
-  - Status: ✅ Complete
-
-- [x] **Task 16**: Create integration tests for git integration
-  - Created 403-line test file with 13 test cases
-  - Coverage: wikiPageToMarkdown (3), getWikiFilePath (3), commitWikiCreate (2), commitWikiUpdate (2), commitWikiDelete (2), version history (2), error handling (1)
-  - Location: apps/web/lib/wiki/git-integration.test.ts
-  - Status: ✅ Complete
+  - Status: ⏳ In Progress (testing after commit)
 
 ---
 
-## ⏳ In Progress (0)
+## ⏳ In Progress (1)
 
-No tasks currently in progress
+### Day 4: Cross-Linking Testing
+- [ ] **Task 12 (continued)**: Mac mini end-to-end testing
+  - Test wiki creation with cross-links
+  - Verify PageLink relationships
+  - Status: ⏳ Testing after commit
 
 ---
 
-## 📋 Pending Tasks (26)
+## 📋 Pending Tasks (30)
+
+### Day 5: Git Integration (4 tasks)
+- [ ] **Task 13**: Create lib/wiki/git-integration.ts with git commit functionality
+- [ ] **Task 14**: Add git commit hooks to wiki CRUD operations
+- [ ] **Task 15**: Store git commit SHA in WikiPage.metadata
+- [ ] **Task 16**: Create integration tests for git integration
 
 ### Day 6-7: Wiki MCP Tool (2 tasks)
 - [ ] **Task 17**: Create projectpulse.wiki.generate MCP tool
@@ -161,7 +140,7 @@ No tasks currently in progress
 - Day 1-2: JSDoc Parser (4 points) - ✅ 100% complete
 - Day 3: Wiki Generation API (4 points) - ✅ 100% complete
 - Day 4: Cross-Linking (3 points) - ✅ 100% complete
-- Day 5: Git Integration (3 points) - ✅ 100% complete
+- Day 5: Git Integration (3 points) - 0% complete
 - Day 6-7: MCP Tool (2 points) - 0% complete
 
 **Week 2: Health Monitoring** (19 points)
@@ -172,19 +151,19 @@ No tasks currently in progress
 - Day 13: Health Dashboard UI (3 points) - 0% complete
 - Day 14: Integration Testing (0 points - polish) - 0% complete
 
-**Total Progress**: 16/43 tasks (37%), 14/33 points (42%)
+**Total Progress**: 12/43 tasks (28%), 11/33 points (33%)
 
 ---
 
 ## 🎯 Next Actions
 
-1. **Immediate**: Commit Day 5 completion
-2. **Day 6-7**: Wiki MCP Tool (Tasks 17-18)
-3. **Week 2**: Health Monitoring implementation
+1. **Immediate**: Commit Day 4 completion
+2. **Day 4 (continued)**: Mac mini testing (Task 12)
+3. **Day 5**: Git Integration (Tasks 13-16)
 
 ---
 
-**Velocity**: 2.80 points/day (19% ahead of 2.36 target) 🚀
+**Velocity**: 3.67 points/day (55% ahead of 2.36 target) 🚀
 
-**Last Updated**: 2025-11-14 20:15
-**Status**: Day 5 COMPLETE ✅ - Ready for commit
+**Last Updated**: 2025-11-14 19:50
+**Status**: Day 4 COMPLETE ✅ - Ready for commit and Mac mini testing
