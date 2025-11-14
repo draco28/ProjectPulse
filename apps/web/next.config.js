@@ -45,11 +45,27 @@ const nextConfig = {
   },
 
   // Webpack configuration for monorepo
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': __dirname,
     };
+
+    // Externalize browser-based scanner dependencies for server-side rendering
+    // These are loaded dynamically only when the specific scanners are used
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push(
+        'electron',
+        '@playwright/test',
+        'playwright',
+        '@axe-core/playwright',
+        'lighthouse',
+        'chrome-launcher',
+        'chromium'
+      );
+    }
+
     return config;
   },
 };

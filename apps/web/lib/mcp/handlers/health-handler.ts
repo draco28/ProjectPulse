@@ -233,7 +233,7 @@ export async function healthRunScanHandler(
         });
 
         // Get scanner instance
-        const scanner = getScanner(scannerType);
+        const scanner = await getScanner(scannerType);
 
         // Execute scan
         const scanResult = await scanner.scan(params.projectPath, {
