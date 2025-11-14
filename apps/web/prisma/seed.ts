@@ -2104,6 +2104,196 @@ pnpm prisma migrate status
   console.log(`✓ Created ${securityFindings.length} security findings\n`);
 
   // ========================================================================
+  // HEALTH MONITORING (Sprint 7)
+  // ========================================================================
+  console.log('🏥 Creating health monitoring data...');
+
+  // Create Health Scanners (4 types)
+  const healthScanners = await Promise.all([
+    prisma.healthScanner.create({
+      data: {
+        name: 'Semgrep Security Scanner',
+        type: 'SEMGREP',
+        projectId: project.id,
+        lastRun: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      },
+    }),
+    prisma.healthScanner.create({
+      data: {
+        name: 'ESLint Code Quality',
+        type: 'ESLINT',
+        projectId: project.id,
+        lastRun: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+    prisma.healthScanner.create({
+      data: {
+        name: 'Axe Accessibility Scanner',
+        type: 'AXECORE',
+        projectId: project.id,
+        lastRun: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+    prisma.healthScanner.create({
+      data: {
+        name: 'Lighthouse Performance',
+        type: 'LIGHTHOUSE',
+        projectId: project.id,
+        lastRun: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+  ]);
+
+  // Create Historical Health Scores (last 30 days for trend graph)
+  const healthScores = [];
+  const daysBack = 30;
+  for (let i = daysBack; i >= 0; i--) {
+    const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+    // Simulate improving trend: start at 75, gradually improve to 85
+    const baseScore = 75 + (daysBack - i) * 0.33;
+    // Add some random variation
+    const variation = Math.random() * 4 - 2; // ±2 points
+    const overallScore = Math.min(100, Math.max(0, Math.round(baseScore + variation)));
+
+    const score = await prisma.healthScore.create({
+      data: {
+        projectId: project.id,
+        overallScore,
+        securityScore: Math.round(overallScore * 0.92), // Slightly lower
+        qualityScore: Math.round(overallScore * 1.05), // Slightly higher
+        performanceScore: Math.round(overallScore * 0.88), // Lower
+        accessibilityScore: Math.round(overallScore * 1.03), // Higher
+        calculatedAt: date,
+      },
+    });
+    healthScores.push(score);
+  }
+
+  // Create Health Findings (sample from each scanner)
+  const healthFindings = await Promise.all([
+    // SEMGREP Security Findings
+    prisma.healthFinding.create({
+      data: {
+        scannerId: healthScanners[0].id,
+        category: 'SECURITY',
+        severity: 'CRITICAL',
+        ruleId: 'semgrep.sql-injection',
+        message: 'Potential SQL injection vulnerability detected',
+        filePath: 'apps/web/lib/db/queries.ts',
+        lineNumber: 42,
+        codeSnippet: 'const query = `SELECT * FROM users WHERE id = ${userId}`',
+        status: 'OPEN',
+        scanDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+    prisma.healthFinding.create({
+      data: {
+        scannerId: healthScanners[0].id,
+        category: 'SECURITY',
+        severity: 'HIGH',
+        ruleId: 'semgrep.xss-vulnerability',
+        message: 'Unescaped user input in HTML context',
+        filePath: 'apps/web/components/UserProfile.tsx',
+        lineNumber: 28,
+        codeSnippet: '<div dangerouslySetInnerHTML={{ __html: userBio }} />',
+        status: 'OPEN',
+        scanDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+    // ESLINT Quality Findings
+    prisma.healthFinding.create({
+      data: {
+        scannerId: healthScanners[1].id,
+        category: 'CODE_QUALITY',
+        severity: 'MEDIUM',
+        ruleId: 'eslint.no-unused-vars',
+        message: "'unusedFunction' is defined but never used",
+        filePath: 'apps/web/lib/utils/helpers.ts',
+        lineNumber: 15,
+        codeSnippet: 'function unusedFunction() { return null; }',
+        status: 'OPEN',
+        scanDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+    prisma.healthFinding.create({
+      data: {
+        scannerId: healthScanners[1].id,
+        category: 'CODE_QUALITY',
+        severity: 'LOW',
+        ruleId: 'eslint.prefer-const',
+        message: "'data' is never reassigned. Use 'const' instead",
+        filePath: 'apps/web/app/api/health/route.ts',
+        lineNumber: 67,
+        codeSnippet: 'let data = await fetchData();',
+        status: 'OPEN',
+        scanDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+    // AXECORE Accessibility Findings
+    prisma.healthFinding.create({
+      data: {
+        scannerId: healthScanners[2].id,
+        category: 'ACCESSIBILITY',
+        severity: 'MEDIUM',
+        ruleId: 'axe.color-contrast',
+        message: 'Element has insufficient color contrast ratio',
+        filePath: 'apps/web/components/Button.tsx',
+        lineNumber: 12,
+        codeSnippet: '<button className="text-gray-400 bg-gray-300">',
+        status: 'OPEN',
+        scanDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+    prisma.healthFinding.create({
+      data: {
+        scannerId: healthScanners[2].id,
+        category: 'ACCESSIBILITY',
+        severity: 'HIGH',
+        ruleId: 'axe.aria-required-attr',
+        message: 'Required ARIA attribute not present',
+        filePath: 'apps/web/components/Modal.tsx',
+        lineNumber: 45,
+        codeSnippet: '<div role="dialog">',
+        status: 'OPEN',
+        scanDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+    // LIGHTHOUSE Performance Findings
+    prisma.healthFinding.create({
+      data: {
+        scannerId: healthScanners[3].id,
+        category: 'PERFORMANCE',
+        severity: 'MEDIUM',
+        ruleId: 'lighthouse.largest-contentful-paint',
+        message: 'Largest Contentful Paint exceeds 2.5s',
+        filePath: 'apps/web/app/page.tsx',
+        lineNumber: 1,
+        codeSnippet: '// LCP: 3.2s',
+        status: 'OPEN',
+        scanDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+    prisma.healthFinding.create({
+      data: {
+        scannerId: healthScanners[3].id,
+        category: 'PERFORMANCE',
+        severity: 'LOW',
+        ruleId: 'lighthouse.unused-javascript',
+        message: 'Reduce unused JavaScript',
+        filePath: 'apps/web/components/Chart.tsx',
+        lineNumber: 1,
+        codeSnippet: '// 45KB unused',
+        status: 'OPEN',
+        scanDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+    }),
+  ]);
+
+  console.log(`✓ Created ${healthScanners.length} health scanners`);
+  console.log(`✓ Created ${healthScores.length} health scores (30-day history)`);
+  console.log(`✓ Created ${healthFindings.length} health findings\n`);
+
+  // ========================================================================
   // AGENT PERSONAS
   // ========================================================================
   console.log('🤖 Creating agent personas...');
@@ -2435,6 +2625,9 @@ Format:
   console.log(`   - Knowledge Items: ${knowledgeItems.length}`);
   console.log(`   - Wiki Pages: ${rootPages.length + childPages.length}`);
   console.log(`   - Security Findings: ${securityFindings.length} (2 open, 1 false positive)`);
+  console.log(`   - Health Scanners: 4 (SEMGREP, ESLINT, AXECORE, LIGHTHOUSE)`);
+  console.log(`   - Health Scores: 31 (30-day trend data)`);
+  console.log(`   - Health Findings: 8 (across all categories)`);
   console.log(`   - Agent Personas: ${personas.length}`);
   console.log(`   - Workflow Templates: ${workflowTemplates.length}`);
   console.log(`   - Comments: 3`);
