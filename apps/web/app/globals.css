@@ -276,6 +276,15 @@
     transform: translateY(-2px);
   }
 
+  /* Variant: raised card without hover lift (for non-interactive panels) */
+  .neu-no-hover:hover {
+    box-shadow:
+        8px 8px 16px var(--shadow-dark),
+        -8px -8px 16px var(--shadow-light),
+        inset 0 1px 0 var(--border-subtle);
+    transform: none;
+  }
+
   /* Pressed/Inset Effect - For inputs and pressed states */
   .neu-pressed {
     background: var(--dark-pressed);
