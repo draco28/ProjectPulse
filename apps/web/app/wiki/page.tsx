@@ -105,54 +105,41 @@ async function getWikiPages(searchParams: SearchParams) {
   const offset = (page - 1) * perPage;
 
   if (searchTerm) {
-    const categoryFilterSql = categoryFilter.length
-      ? Prisma.sql`AND "category" = ANY(${categoryFilter})`
-      : Prisma.sql``;
+    // TODO (Sprint 8 Day 4): Implement proper tsvector full-text search with content_tsv column
+    // For now, use LIKE-based search as fallback (same pattern as /api/wiki route)
 
-    const rankedPages = await prisma.$queryRaw<
-      Array<{
-        id: number;
-        title: string;
-        path: string;
-        category: string | null;
-        excerpt: string | null;
-        updatedAt: Date;
-        highlight: string | null;
-        rank: number;
-      }>
-    >(Prisma.sql`
-      SELECT
-        "id",
-        "title",
-        "path",
-        "category",
-        "excerpt",
-        "updatedAt",
-        ts_headline(
-          'english',
-          "content",
-          plainto_tsquery('english', ${searchTerm}),
-          'MaxFragments=2, MinWords=5, MaxWords=20, StartSel=**, StopSel=**'
-        ) AS highlight,
-        ts_rank_cd("content_tsv", plainto_tsquery('english', ${searchTerm})) AS rank
-      FROM "WikiPage"
-      WHERE "content_tsv" @@ plainto_tsquery('english', ${searchTerm})
-      ${categoryFilterSql}
-      ORDER BY rank DESC, "updatedAt" DESC
-      LIMIT ${perPage} OFFSET ${offset};
-    `);
+    // Build search where clause with category filter
+    const searchWhere: Prisma.WikiPageWhereInput = {
+      ...(categoryFilter.length > 0 ? { category: { in: categoryFilter } } : {}),
+      OR: [
+        { title: { contains: searchTerm, mode: 'insensitive' } },
+        { content: { contains: searchTerm, mode: 'insensitive' } },
+      ],
+    };
 
-    const countResult = await prisma.$queryRaw<Array<{ count: number }>>(Prisma.sql`
-      SELECT COUNT(*)::int AS count
-      FROM "WikiPage"
-      WHERE "content_tsv" @@ plainto_tsquery('english', ${searchTerm})
-      ${categoryFilterSql};
-    `);
+    // Fetch pages with search filter
+    const [pages, totalCount] = await Promise.all([
+      prisma.wikiPage.findMany({
+        where: searchWhere,
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          category: true,
+          path: true,
+          excerpt: true,
+          updatedAt: true,
+        },
+        orderBy: { updatedAt: 'desc' }, // Default to newest when searching
+        take: perPage,
+        skip: offset,
+      }),
+      prisma.wikiPage.count({ where: searchWhere }),
+    ]);
 
-    const totalCount = countResult[0]?.count ?? 0;
-
+    // Fetch analytics for found pages
     const analytics = await prisma.wikiPageAnalytics.findMany({
-      where: { wikiPageId: { in: rankedPages.map((page) => page.id) } },
+      where: { wikiPageId: { in: pages.map((page) => page.id) } },
       select: {
         wikiPageId: true,
         viewCount: true,
@@ -163,18 +150,35 @@ async function getWikiPages(searchParams: SearchParams) {
     });
     const analyticsMap = new Map(analytics.map((entry) => [entry.wikiPageId, entry]));
 
-    const mapped: WikiListResult[] = rankedPages.map((page) => {
+    // Create simple highlight by showing excerpt around search term
+    const mapped: WikiListResult[] = pages.map((page) => {
       const stats = analyticsMap.get(page.id);
       const totalVotes = (stats?.positiveVotes ?? 0) + (stats?.negativeVotes ?? 0);
       const helpfulRatio = totalVotes ? Math.round(((stats?.positiveVotes ?? 0) / totalVotes) * 100) : null;
+
+      // Simple highlight: find search term and show context
+      let highlight = page.excerpt || '';
+      if (!highlight) {
+        const lowerContent = page.content.toLowerCase();
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        const index = lowerContent.indexOf(lowerSearchTerm);
+        if (index !== -1) {
+          const start = Math.max(0, index - 50);
+          const end = Math.min(page.content.length, index + searchTerm.length + 100);
+          highlight = (start > 0 ? '...' : '') + page.content.slice(start, end) + (end < page.content.length ? '...' : '');
+        } else {
+          highlight = page.content.slice(0, 150) + '...';
+        }
+      }
+
       return {
         id: page.id,
         title: page.title,
-        excerpt: page.excerpt || '',
+        excerpt: highlight,
         category: page.category,
         path: page.path,
         updatedAt: page.updatedAt,
-        highlight: page.highlight,
+        highlight: null, // No fancy highlighting without tsvector
         stats: stats
           ? {
               views: stats.viewCount,

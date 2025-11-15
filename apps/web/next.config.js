@@ -21,12 +21,12 @@ const nextConfig = {
     ],
   },
 
-  // Headers for security
+  // Headers for security and performance
   // Note: X-Frame-Options is only set in production so that local / in-IDE
   // previews can embed the app during development, while keeping framing
   // disabled in deployed environments for security.
   async headers() {
-    const headers = [
+    const securityHeaders = [
       {
         key: 'X-Content-Type-Options',
         value: 'nosniff',
@@ -38,16 +38,77 @@ const nextConfig = {
     ];
 
     if (process.env.NODE_ENV === 'production') {
-      headers.push({
+      securityHeaders.push({
         key: 'X-Frame-Options',
         value: 'DENY',
       });
     }
 
     return [
+      // Security headers for all routes
       {
         source: '/(.*)',
-        headers,
+        headers: securityHeaders,
+      },
+      // Cache static assets aggressively (1 year)
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Cache JavaScript chunks (1 year with immutable)
+      {
+        source: '/_next/static/chunks/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Cache CSS files (1 year with immutable)
+      {
+        source: '/_next/static/css/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Cache media files (1 year)
+      {
+        source: '/_next/static/media/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Cache optimized images (1 week)
+      {
+        source: '/_next/image:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=604800, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      // Cache public assets (1 week)
+      {
+        source: '/(.*)\\.(ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot)$',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=604800, stale-while-revalidate=86400',
+          },
+        ],
       },
     ];
   },
