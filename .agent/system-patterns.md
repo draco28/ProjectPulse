@@ -844,7 +844,22 @@ async function completeStep(executionId: number, stepNumber: number) {
 
 ---
 
-## Git-Based Cross-Machine Communication
+## Git-Based Cross-Machine Communication (LEGACY)
+
+> ⚠️ LEGACY PATTERN – WINDOWS + MAC MINI SPLIT
+>
+> This section describes a Git-based communication pattern between a Windows
+> dev machine and the Mac mini runtime using
+> `.agent/task/mac-mini-instructions.md` as an instruction queue. It is kept
+> **only for historical reference**.
+>
+> **Current reality:** All development and runtime happen directly on the
+> **Mac mini** using Docker containers. There is no Windows dev machine in the
+> active workflow, and no cross-machine Git handoff.
+>
+> For current environment details, use:
+> - `.agent/sops/mac-mini-cloud-architecture.md`
+> - `.agent/archive/windows-workflows-index.md`
 
 **Pattern**: Use Git commits as async message queue between Claude Code instances on different machines
 

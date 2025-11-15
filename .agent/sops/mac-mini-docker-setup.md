@@ -1,3 +1,17 @@
+> ⚠️ LEGACY ARCHITECTURE – WINDOWS + MAC MINI SPLIT
+>
+> This guide describes an older setup where the Mac mini only hosted PostgreSQL
+> and **Windows** was the primary development machine (Next.js dev server,
+> MCP server, tests). It is kept **only for historical reference**.
+>
+> **Current reality:** All development and runtime happen directly on the
+> **Mac mini** using Docker containers (Next.js, PostgreSQL, MCP) on a single
+> machine. Do **not** follow this guide for current work.
+>
+> Use instead:
+> - `.agent/sops/mac-mini-cloud-architecture.md` – current Mac-mini-only setup
+> - `.agent/archive/windows-workflows-index.md` – index of legacy Windows flows
+
 # Mac Mini as Remote Docker Host - Setup Guide
 
 **Version**: 1.0

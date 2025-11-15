@@ -1,3 +1,17 @@
+> ⚠️ LEGACY MIGRATION GUIDE – WINDOWS → MAC MINI (DISTRIBUTED)
+>
+> This guide describes migrating from a Windows Docker/WSL2 setup to a
+> "Mac mini cloud" where Windows remains the editor and Mac mini runs
+> services. It is kept **only for historical reference**.
+>
+> **Current reality:** All development and runtime happen directly on the
+> **Mac mini** using Docker containers. There is no Windows dev machine in the
+> active workflow.
+>
+> Use instead:
+> - `.agent/sops/mac-mini-cloud-architecture.md` – current Mac-mini-only setup
+> - `.agent/archive/windows-workflows-index.md` – index of legacy Windows flows
+
 # Migration Guide: Windows Docker → Mac Mini Cloud Runtime
 
 **Created**: 2025-11-09

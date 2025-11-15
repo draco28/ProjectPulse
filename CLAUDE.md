@@ -37,16 +37,25 @@ curl http://192.168.1.15:3000/api/health
 
 **See**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
 
-### 2. Port Configuration (Optional - Only if running locally on Windows)
+### 2. Docker Services (Mac mini Runtime)
+
+> Default assumption: all runtime services (Next.js, PostgreSQL, MCP) run in
+> Docker on the **Mac mini itself**. Do **not** start extra local dev servers
+> (`pnpm dev`) unless explicitly requested and you know they will not conflict
+> with Docker.
 
 ```bash
-pnpm dev
-# ✅ MUST show: "ready started server on 0.0.0.0:3000"
+# On Mac mini, check containers
+docker compose -f docker-compose.cloud.yml ps
 ```
 
-**Note**: Usually you won't run pnpm dev on Windows. Access Mac mini: `http://192.168.1.15:3000`
+**If services down or unhealthy:**
+- Ask the user to run: `docker compose -f docker-compose.cloud.yml up -d`
+- Then re-run the health check from Step 1.
 
-**See**: [.agent/sops/port-troubleshooting.md](.agent/sops/port-troubleshooting.md)
+**See**:
+- [docs/11-Infrastructure-and-Deployment.md](docs/11-Infrastructure-and-Deployment.md)
+- [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
 
 ### 3. Git Branch
 
@@ -64,29 +73,28 @@ git checkout -b feature/your-feature
 
 ## 🖥️ Mac Mini Cloud Architecture
 
-**IMPORTANT**: Services run on Mac mini (local network), NOT on Windows.
+**IMPORTANT**: All development and runtime now happen on the **Mac mini**
+itself (local network, Docker). Windows-based dev workflows are legacy only.
 
 ### Architecture Overview
 
-ProjectPulse uses a distributed development setup:
+ProjectPulse now uses a **single-machine Mac mini runtime**:
 
 ```
 ┌─────────────────────────────────────┐
-│ Windows (192.168.1.x)               │
-│  - Windsurf (code editor)           │
-│  - Browser → http://192.168.1.15:3000│
-│  - Git push/pull                    │
-│  - NO Docker, NO local services     │
-└──────────────┬──────────────────────┘
-               │
-               │ Git + HTTP
-               │
-┌──────────────▼──────────────────────┐
 │ Mac mini (192.168.1.15)             │
+│  - Editor (Windsurf / VS Code)      │
+│  - Browser                          │
 │  - Docker Compose (all services)    │
-│  - PostgreSQL :5432                 │
-│  - Next.js :3000                    │
-│  - MCP Server (stdio)               │
+│      • PostgreSQL :5432             │
+│      • Next.js :3000                │
+│      • MCP Server (stdio)           │
+└─────────────────────────────────────┘
+
+Optional:
+┌─────────────────────────────────────┐
+│ Other devices on LAN                │
+│  - Browser → http://192.168.1.15:3000│
 └─────────────────────────────────────┘
 ```
 
@@ -111,46 +119,47 @@ ProjectPulse uses a distributed development setup:
 - **Mac mini runtime (preferred)**: `docker-compose.cloud.yml` (run on Mac mini)
 - **CI/local fallback (legacy)**: `docker-compose.yml` (use only for CI or explicit local runs)
 
-### When to Use Mac Mini vs Windows
+### Where to Do Work (Mac mini vs Other Devices)
 
-**🚨 CRITICAL RULE: Mac mini ONLY for server-side operations**
-
-The Mac mini runs the Next.js server and database accessible at `http://192.168.1.15:3000`. **Most work happens on Windows** where code is edited and tested by calling the Mac mini API endpoints.
-
-**Windows (Primary Development - Do 95% of work here)**:
+**Mac mini (Primary Development – do essentially 100% of work here)**:
 - ✅ **All code editing** (Read, Edit, Write tools)
 - ✅ **All Git operations** (commits, pushes, branch management)
-- ✅ **API testing** (curl to `http://192.168.1.15:3000/api/*`)
-- ✅ **MCP tool testing** (calls Mac mini API endpoints)
-- ✅ **TypeScript compilation checks** (pnpm type-check)
+- ✅ **API testing** (`curl http://localhost:3000/api/*` or via MCP)
+- ✅ **MCP tool testing** (tools call the Mac mini API endpoints)
+- ✅ **TypeScript checks** (`pnpm type-check`, `pnpm lint`, etc.)
 - ✅ **Documentation updates**
-- ✅ **File operations** (creating configs, scripts, etc.)
-- ✅ **Testing** (unit tests, integration tests calling Mac mini)
+- ✅ **Testing** (unit, integration, E2E against Docker runtime)
+- ✅ **Docker management** (restart, logs, rebuild, migrations)
 
-**Mac mini (Server Operations ONLY - Use sparingly)**:
-- ✅ **Docker container management** (restart, logs, rebuild)
-- ✅ **Database migrations** (npx prisma migrate dev, db push)
-- ✅ **Prisma client regeneration** (npx prisma generate)
-- ✅ **Server process debugging** (check Next.js server logs)
-- ✅ **Critical server-side issues** (network constraints, connection issues)
+**Other devices (Optional, Browser Only)**:
+- ✅ Open `http://192.168.1.15:3000` in a browser to view ProjectPulse.
 
-**❌ NEVER delegate to Mac mini**:
-- ❌ Testing API endpoints (test FROM Windows BY calling Mac mini)
-- ❌ Checking TypeScript errors (run on Windows)
-- ❌ Running MCP tools (run on Windows, they call Mac mini)
-- ❌ Creating/editing files (do on Windows)
-- ❌ Git operations (do on Windows)
-- ❌ Any work that can be done on Windows
-
-**Why this matters**: If you transfer work to Mac mini that could be done on Windows, you force changing configuration from network-accessible (`192.168.1.15:3000`) to localhost, defeating the purpose of having a dedicated development server.
+Windows dev workflows are now considered **legacy**. For historical
+documentation of that split architecture, see:
+- `.agent/archive/windows-workflows-index.md`
 
 **Complete Setup Guide**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
 
 ---
 
-## 🔄 Communicating with Mac Mini Claude Code
+## 🔄 Communicating with Mac Mini Claude Code (LEGACY)
 
-**⚠️ Use sparingly - Only for critical server-side operations**
+> ⚠️ LEGACY PATTERN – WINDOWS ↔ MAC MINI GIT HANDOFF
+>
+> This section describes a Git-based communication workflow between a Windows
+> Claude Code instance and a Mac mini Claude Code instance using
+> `.agent/task/mac-mini-instructions.md` as an instruction queue. It assumes
+> two machines and is kept **only for historical reference**.
+>
+> **Current reality:** All development and runtime happen directly on the
+> **Mac mini** using Docker. There is no active Windows dev machine or
+> cross-machine handoff in the normal workflow.
+>
+> For the current setup, use:
+> - `.agent/sops/mac-mini-cloud-architecture.md`
+> - `.agent/archive/windows-workflows-index.md`
+
+**⚠️ Use sparingly - Only for historical reference or reconstructing old flows**
 
 ### The Problem
 
