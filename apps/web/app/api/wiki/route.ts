@@ -132,38 +132,76 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '10', 10), 1), 50);
     const offset = Math.max(parseInt(searchParams.get('offset') || '0', 10), 0);
 
-    // Build where clause
+    // Build where clause for non-search queries
     const where = category ? { category } : {};
 
     if (search) {
-      // Temporary fallback: Use Prisma LIKE search until tsvector is implemented
-      // TODO: Implement proper full-text search with content_tsv column
-      const searchWhere: Prisma.WikiPageWhereInput = {
-        ...(category ? { category } : {}),
-        OR: [
-          { title: { contains: search, mode: 'insensitive' } },
-          { content: { contains: search, mode: 'insensitive' } },
-          { excerpt: { contains: search, mode: 'insensitive' } },
-        ],
-      };
+      const searchTerm = search;
+      const tsQuery = Prisma.sql`plainto_tsquery('english', ${searchTerm})`;
+      const categoryCondition = category
+        ? Prisma.sql`AND "category" = ${category}`
+        : Prisma.sql``;
 
-      const pages = await prisma.wikiPage.findMany({
-        where: searchWhere,
-        select: {
-          id: true,
-          title: true,
-          path: true,
-          category: true,
-          excerpt: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-        orderBy: { updatedAt: 'desc' },
-        take: limit,
-        skip: offset,
-      });
+      const [rows, countRows] = await Promise.all([
+        prisma.$queryRaw<
+          Array<{
+            id: number;
+            title: string;
+            path: string;
+            category: string | null;
+            excerpt: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            highlight: string | null;
+            rank: number;
+          }>
+        >(
+          Prisma.sql`
+            SELECT
+              "id",
+              "title",
+              "path",
+              "category",
+              "excerpt",
+              "createdAt",
+              "updatedAt",
+              ts_headline(
+                'english',
+                "content",
+                ${tsQuery},
+                'MaxFragments=2, MinWords=5, MaxWords=20, StartSel=**, StopSel=**'
+              ) AS highlight,
+              ts_rank_cd("content_tsv", ${tsQuery}) AS rank
+            FROM "WikiPage"
+            WHERE "content_tsv" @@ ${tsQuery}
+            ${categoryCondition}
+            ORDER BY rank DESC, "updatedAt" DESC
+            LIMIT ${limit} OFFSET ${offset};
+          `,
+        ),
+        prisma.$queryRaw<Array<{ count: number }>>(
+          Prisma.sql`
+            SELECT COUNT(*)::int AS count
+            FROM "WikiPage"
+            WHERE "content_tsv" @@ ${tsQuery}
+            ${categoryCondition};
+          `,
+        ),
+      ]);
 
-      const total = await prisma.wikiPage.count({ where: searchWhere });
+      const total = countRows[0]?.count ?? 0;
+
+      const pages = rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        path: row.path,
+        category: row.category,
+        excerpt: row.excerpt ?? row.highlight ?? null,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        // Expose highlight for consumers that want to render emphasis
+        highlight: row.highlight,
+      }));
 
       return NextResponse.json({
         pages,
@@ -176,7 +214,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch pages without search
+    // Fetch pages without search (simple Prisma query)
     const pages = await prisma.wikiPage.findMany({
       where,
       select: {

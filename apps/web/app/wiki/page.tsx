@@ -105,80 +105,88 @@ async function getWikiPages(searchParams: SearchParams) {
   const offset = (page - 1) * perPage;
 
   if (searchTerm) {
-    // TODO (Sprint 8 Day 4): Implement proper tsvector full-text search with content_tsv column
-    // For now, use LIKE-based search as fallback (same pattern as /api/wiki route)
+    const tsQuery = Prisma.sql`plainto_tsquery('english', ${searchTerm})`;
+    const categoryCondition =
+      categoryFilter.length > 0
+        ? Prisma.sql`AND "category" = ANY(${categoryFilter})`
+        : Prisma.sql``;
 
-    // Build search where clause with category filter
-    const searchWhere: Prisma.WikiPageWhereInput = {
-      ...(categoryFilter.length > 0 ? { category: { in: categoryFilter } } : {}),
-      OR: [
-        { title: { contains: searchTerm, mode: 'insensitive' } },
-        { content: { contains: searchTerm, mode: 'insensitive' } },
-      ],
-    };
-
-    // Fetch pages with search filter
-    const [pages, totalCount] = await Promise.all([
-      prisma.wikiPage.findMany({
-        where: searchWhere,
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          category: true,
-          path: true,
-          excerpt: true,
-          updatedAt: true,
-        },
-        orderBy: { updatedAt: 'desc' }, // Default to newest when searching
-        take: perPage,
-        skip: offset,
-      }),
-      prisma.wikiPage.count({ where: searchWhere }),
+    const [rows, countRows] = await Promise.all([
+      prisma.$queryRaw<
+        Array<{
+          id: number;
+          title: string;
+          path: string;
+          category: string | null;
+          excerpt: string | null;
+          createdAt: Date;
+          updatedAt: Date;
+          highlight: string | null;
+          rank: number;
+        }>
+      >(
+        Prisma.sql`
+          SELECT
+            "id",
+            "title",
+            "path",
+            "category",
+            "excerpt",
+            "createdAt",
+            "updatedAt",
+            ts_headline(
+              'english',
+              "content",
+              ${tsQuery},
+              'MaxFragments=2, MinWords=5, MaxWords=20, StartSel=**, StopSel=**'
+            ) AS highlight,
+            ts_rank_cd("content_tsv", ${tsQuery}) AS rank
+          FROM "WikiPage"
+          WHERE "content_tsv" @@ ${tsQuery}
+          ${categoryCondition}
+          ORDER BY rank DESC, "updatedAt" DESC
+          LIMIT ${perPage} OFFSET ${offset};
+        `,
+      ),
+      prisma.$queryRaw<Array<{ count: number }>>(
+        Prisma.sql`
+          SELECT COUNT(*)::int AS count
+          FROM "WikiPage"
+          WHERE "content_tsv" @@ ${tsQuery}
+          ${categoryCondition};
+        `,
+      ),
     ]);
 
-    // Fetch analytics for found pages
-    const analytics = await prisma.wikiPageAnalytics.findMany({
-      where: { wikiPageId: { in: pages.map((page) => page.id) } },
-      select: {
-        wikiPageId: true,
-        viewCount: true,
-        positiveVotes: true,
-        negativeVotes: true,
-        popularity: true,
-      },
-    });
+    const totalCount = countRows[0]?.count ?? 0;
+
+    const analytics = rows.length
+      ? await prisma.wikiPageAnalytics.findMany({
+          where: { wikiPageId: { in: rows.map((row) => row.id) } },
+          select: {
+            wikiPageId: true,
+            viewCount: true,
+            positiveVotes: true,
+            negativeVotes: true,
+            popularity: true,
+          },
+        })
+      : [];
     const analyticsMap = new Map(analytics.map((entry) => [entry.wikiPageId, entry]));
 
-    // Create simple highlight by showing excerpt around search term
-    const mapped: WikiListResult[] = pages.map((page) => {
-      const stats = analyticsMap.get(page.id);
+    const pages: WikiListResult[] = rows.map((row) => {
+      const stats = analyticsMap.get(row.id);
       const totalVotes = (stats?.positiveVotes ?? 0) + (stats?.negativeVotes ?? 0);
       const helpfulRatio = totalVotes ? Math.round(((stats?.positiveVotes ?? 0) / totalVotes) * 100) : null;
 
-      // Simple highlight: find search term and show context
-      let highlight = page.excerpt || '';
-      if (!highlight) {
-        const lowerContent = page.content.toLowerCase();
-        const lowerSearchTerm = searchTerm.toLowerCase();
-        const index = lowerContent.indexOf(lowerSearchTerm);
-        if (index !== -1) {
-          const start = Math.max(0, index - 50);
-          const end = Math.min(page.content.length, index + searchTerm.length + 100);
-          highlight = (start > 0 ? '...' : '') + page.content.slice(start, end) + (end < page.content.length ? '...' : '');
-        } else {
-          highlight = page.content.slice(0, 150) + '...';
-        }
-      }
-
       return {
-        id: page.id,
-        title: page.title,
-        excerpt: highlight,
-        category: page.category,
-        path: page.path,
-        updatedAt: page.updatedAt,
-        highlight: null, // No fancy highlighting without tsvector
+        id: row.id,
+        title: row.title,
+        excerpt: row.highlight ?? row.excerpt ?? '',
+        category: row.category,
+        path: row.path,
+        updatedAt: row.updatedAt,
+        highlight: row.highlight,
         stats: stats
           ? {
               views: stats.viewCount,
@@ -190,7 +198,7 @@ async function getWikiPages(searchParams: SearchParams) {
     });
 
     return {
-      pages: mapped,
+      pages,
       totalCount,
       currentPage: page,
       totalPages: Math.ceil(totalCount / perPage),

@@ -273,9 +273,8 @@ test.describe('Wiki Full-Text Search', () => {
     // Search term should be highlighted in results (e.g., <mark> tag)
     const highlightedTerms = page.locator('mark, .highlight, [data-highlight="true"]');
     const count = await highlightedTerms.count();
-
-    // Should have at least one highlighted term
-    expect(count).toBeGreaterThanOrEqual(0); // May be 0 if no highlighting implemented yet
+    expect(count).toBeGreaterThan(0);
+    await expect(highlightedTerms.first()).toContainText(/config/i);
   });
 
   test('should rank search results by tsvector relevance', async ({ page }) => {
