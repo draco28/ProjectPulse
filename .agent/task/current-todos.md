@@ -1,92 +1,216 @@
-# Sprint 8 Todo List
+# Sprint 8 Day 4 - Search & Performance Enhancement
 
-**Created:** 2025-11-14 20:32
-**Sprint:** Sprint 8 - Integration & Polish
-**Total Points:** 48 points
-**Progress:** 0/48 (0%)
-
----
-
-## Week 1: Testing & Quality Assurance (18 points)
-
-### Day 1-2: Health Dashboard E2E Tests (5 points)
-- [ ] Create `tests/e2e/health.spec.ts` (1 point)
-- [ ] Test health dashboard navigation and score display (1 point)
-- [ ] Test finding filters (category, severity, scanner) (1 point)
-- [ ] Test 30-day trend graph and ISR caching (1 point)
-- [ ] Test MCP tool integration (health.runScan, getScore, getHistory) (1 point)
-
-### Day 3: Wiki & Knowledge E2E Tests (5 points)
-- [ ] Extend wiki tests: auto-generation from JSDoc (1.5 points)
-- [ ] Extend wiki tests: cross-linking validation (1 point)
-- [ ] Extend knowledge tests: graph traversal (2-hop) (1.5 points)
-- [ ] Extend knowledge tests: hybrid search validation (1 point)
-
-### Day 4: Issue Management E2E Tests (5 points)
-- [ ] Create `tests/e2e/issues-bulk.spec.ts` (1 point)
-- [ ] Test bulk issue creation (10-50 issues) (2 points)
-- [ ] Test auto-tagging (≥80% accuracy) (1 point)
-- [ ] Test context injection (file:line, code snippets) (1 point)
-
-### Day 5: Test Suite Validation & Fixes (3 points)
-- [ ] Run all unit tests (326 tests) (0.5 points)
-- [ ] Run all integration tests (0.5 points)
-- [ ] Run all E2E tests (6+ files) (0.5 points)
-- [ ] Fix failing tests and verify coverage (1.5 points)
+**Created:** 2025-11-15
+**Story Points:** 3-5 points
+**Status:** 0/8 complete (0%)
+**Estimated Time:** 3.5-5.5 hours
 
 ---
 
-## Week 2: Security, Documentation & Production (30 points)
+## Phase 1: Database Migration (CRITICAL - 30 min)
 
-### Day 6: Code Quality & Security Audit (8 points)
-- [ ] Run Semgrep security scan on Sprint 7 code (2 points)
-- [ ] Run ESLint with security rules (1 point)
-- [ ] Run axe-core accessibility tests (2 points)
-- [ ] Run Lighthouse performance audits (1 point)
-- [ ] Document findings and create remediation plan (2 points)
+### Task 1: Add content_tsv column to WikiPage table
 
-### Day 7: MVP Acceptance Validation (10 points)
-- [ ] Verify all 345 story points complete (3 points)
-- [ ] Validate all exit criteria met (2 points)
-- [ ] Benchmark performance targets (3 points)
-- [ ] Validate agent autonomy >95% (2 points)
+**Priority:** HIGH (prerequisite for all search work)
+**Status:** ⏳ NOT STARTED
 
-### Day 8: Documentation Review (5 points)
-- [ ] Update OpenAPI spec with Sprint 7 endpoints (1.5 points)
-- [ ] Update MCP tools guide (health + wiki tools) (1.5 points)
-- [ ] Create health monitoring user guide (1 point)
-- [ ] Review and update architecture documentation (1 point)
+**Steps:**
+1. Update Prisma schema with `content_tsv` field
+2. Create migration: `npx prisma migrate dev --name add_wiki_content_tsvector`
+3. Migration SQL should include:
+   - ADD COLUMN content_tsv tsvector
+   - UPDATE existing rows with to_tsvector()
+   - CREATE GIN index on content_tsv
+   - CREATE trigger to auto-update on INSERT/UPDATE
+4. Test migration applies cleanly
+5. Verify column exists with correct type
+6. Verify trigger works on content updates
 
-### Day 9: Bug Fixes & Production Readiness (5 points)
-- [ ] Fix bugs from testing/audit (2 points)
-- [ ] Verify health checks and error handling (1 point)
-- [ ] Configure logging and monitoring (1 point)
-- [ ] Prepare production deployment checklist (1 point)
+**Files:**
+- `apps/web/prisma/schema.prisma`
+- New migration file in `apps/web/prisma/migrations/`
 
-### Day 10: Final Validation & Sign-Off (2 points)
-- [ ] Run full regression test suite (0.5 points)
-- [ ] Validate all quality gates (0.5 points)
-- [ ] Create Sprint 8 completion document (0.5 points)
-- [ ] Git commit and push (0.5 points)
+**Success Criteria:**
+- [ ] Migration applies without errors
+- [ ] `content_tsv` column exists as tsvector type
+- [ ] GIN index created successfully
+- [ ] Trigger auto-updates `content_tsv` on changes
+- [ ] Existing wiki pages have populated `content_tsv`
 
 ---
 
-## Progress Tracking
+## Phase 2: Implement tsvector Search (HIGH - 2-3 hours)
 
-**Completed:** 0/48 points (0%)
-**In Progress:** 0 tasks
-**Pending:** 28 tasks
+### Task 2: Replace LIKE fallback in /app/api/wiki/route.ts
+
+**Priority:** HIGH
+**Status:** ⏳ NOT STARTED
+
+**Steps:**
+1. Replace LIKE-based search with tsvector query
+2. Add ts_rank_cd() for relevance ranking
+3. Add ts_headline() for search highlighting
+4. Update response to include highlight field
+5. Test with various search queries
+
+**Files:**
+- `apps/web/app/api/wiki/route.ts` (lines 138-148)
+
+**Success Criteria:**
+- [ ] Search uses `content_tsv @@ plainto_tsquery()`
+- [ ] Results ranked by ts_rank_cd()
+- [ ] Highlights generated with ts_headline()
+- [ ] Stemming works ("running" matches "run")
+- [ ] Search performance <100ms
 
 ---
 
-## Checkpoints
+### Task 3: Replace LIKE fallback in /app/wiki/page.tsx
 
-- [ ] **15K tokens:** Update this file with progress
-- [ ] **30K tokens:** Update this file with progress
-- [ ] **45K tokens:** Update this file with progress
-- [ ] **60K tokens:** Update this file with progress
+**Priority:** HIGH
+**Status:** ⏳ NOT STARTED
+
+**Steps:**
+1. Replace LIKE-based search with tsvector query (same pattern as Task 2)
+2. Add ts_rank_cd() for relevance ranking
+3. Add ts_headline() for search highlighting
+4. Update WikiListResult type to include highlight
+5. Pass highlight to WikiCard component
+
+**Files:**
+- `apps/web/app/wiki/page.tsx` (lines 107-199)
+
+**Success Criteria:**
+- [ ] Search uses tsvector (same as API route)
+- [ ] Results ranked by relevance
+- [ ] Highlights displayed in UI
+- [ ] Search works with category filters
 
 ---
 
-_Last Updated: 2025-11-14 20:32_
-_Next Update: After first task completion_
+### Task 4: Verify E2E test "should search wiki pages" passes
+
+**Priority:** HIGH
+**Status:** ⏳ NOT STARTED
+
+**Steps:**
+1. Restart dev server to load new code
+2. Run: `pnpm --filter web test:e2e apps/web/tests/e2e/wiki.spec.ts --grep "should search wiki pages"`
+3. Verify test passes (currently fails with 0 results)
+4. Check search returns >0 results
+5. Verify results contain search term
+
+**Success Criteria:**
+- [ ] Test passes ✅
+- [ ] Search returns relevant results
+- [ ] Search terms highlighted in results
+
+---
+
+## Phase 3: Performance Optimization (MEDIUM - 1-2 hours, OPTIONAL)
+
+### Task 5: Enable React Compiler (Next.js 15+)
+
+**Priority:** MEDIUM
+**Status:** ⏳ NOT STARTED
+
+**Steps:**
+1. Update `next.config.js` experimental settings
+2. Add `reactCompiler: true`
+3. Test build and dev mode
+4. Measure performance impact
+
+**Files:**
+- `apps/web/next.config.js`
+
+**Success Criteria:**
+- [ ] React Compiler enabled
+- [ ] Build succeeds
+- [ ] No runtime errors
+- [ ] Measurable performance improvement
+
+---
+
+### Task 6: Add loading states for perceived performance
+
+**Priority:** MEDIUM
+**Status:** ⏳ NOT STARTED
+
+**Steps:**
+1. Create `app/wiki/loading.tsx` with skeleton UI
+2. Create `app/knowledge/loading.tsx` with skeleton UI
+3. Test loading states display during navigation
+4. Verify smooth transition to content
+
+**Files:**
+- `apps/web/app/wiki/loading.tsx` (new)
+- `apps/web/app/knowledge/loading.tsx` (new)
+
+**Success Criteria:**
+- [ ] Loading skeletons display immediately
+- [ ] Smooth transition to content
+- [ ] Reduced perceived load time
+
+---
+
+### Task 7: Prefetch critical routes
+
+**Priority:** MEDIUM
+**Status:** ⏳ NOT STARTED
+
+**Steps:**
+1. Add `prefetch` prop to most-visited wiki pages
+2. Add `prefetch` to navigation links
+3. Test prefetching in network tab
+4. Verify faster navigation
+
+**Files:**
+- Various Link components
+
+**Success Criteria:**
+- [ ] Critical pages prefetched
+- [ ] Faster navigation on second click
+- [ ] Network tab shows prefetch requests
+
+---
+
+### Task 8: Verify performance targets met
+
+**Priority:** HIGH
+**Status:** ⏳ NOT STARTED
+
+**Steps:**
+1. Run E2E performance tests
+2. Verify first page load <3s (currently 3.6s)
+3. Verify cached load <1.5s (currently 1.67s)
+4. Document performance metrics
+
+**Success Criteria:**
+- [ ] First page load: <3s ✅
+- [ ] Cached load: <1.5s ✅
+- [ ] E2E performance tests pass
+
+---
+
+## Summary
+
+**Total Tasks:** 8
+**Critical:** 4 (Tasks 1-4)
+**High Priority:** 1 (Task 8)
+**Medium Priority:** 3 (Tasks 5-7)
+
+**Must Complete Today:**
+- ✅ Task 1: Database migration
+- ✅ Task 2-3: tsvector implementation
+- ✅ Task 4: Verify tests pass
+
+**Optional (if time permits):**
+- Task 5-7: Performance optimizations
+- Task 8: Performance verification
+
+**Next Task:** Task 1 - Add content_tsv column to WikiPage table
+
+---
+
+**Reference:** `.agent/task/sprint-8-day-4-todos.md` (full detailed plan)
+**Last Updated:** 2025-11-15
