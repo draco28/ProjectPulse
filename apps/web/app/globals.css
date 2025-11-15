@@ -669,6 +669,15 @@
     }
   }
 
+  /* Neumorphic float effect for cards */
+  .neu-float {
+    @apply smooth-transition;
+  }
+
+  .neu-float:hover {
+    transform: translateY(-4px);
+  }
+
   /* Hexagon shape */
   .hexagon-shape {
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
