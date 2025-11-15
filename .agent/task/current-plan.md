@@ -1,453 +1,296 @@
-# Sprint 8: Integration & Polish - Implementation Plan
+# Sprint 8 Day 3 Continued: Add 36 New E2E Tests
 
-**Created:** 2025-11-14 20:32
-**Sprint:** Sprint 8 (Weeks 15-16)
-**Duration:** 2 weeks (10 working days)
-**Story Points:** 48 points
-**Status:** Active
-
----
-
-## Overview
-
-**Goal:** Validate MVP completion through comprehensive integration testing, security audit, documentation review, and production readiness preparation.
-
-**Current Progress:** 345/422 MVP points (82% complete)
-
-**Sprint 8 Will Complete:** 393/422 points (93% complete)
+**Created:** 2025-11-15
+**Session:** 20251115-0002
+**Objective:** Add 36 new E2E tests for Wiki & Knowledge features
+**Prerequisites:** ✅ Baseline stable (30/31 passing, 97%)
 
 ---
 
-## Phase Breakdown
+## Implementation Plan
 
-### **Week 1: Testing & Quality Assurance (Days 1-5) - 18 points**
+### Phase 1: Wiki Auto-Generation Tests (6 tests)
 
-#### Day 1-2: E2E Testing - Health Dashboard (5 points)
+**File:** `apps/web/tests/e2e/wiki.spec.ts`
 
-**Objective:** Create comprehensive Playwright tests for health dashboard
+**New Tests:**
+1. **Generate wiki from JSDoc comments**
+   - Test POST /api/wiki/generate endpoint
+   - Verify wiki page created with auto-generated content
+   - Check sourceFiles metadata populated
 
-**Tasks:**
-1. Create `apps/web/tests/e2e/health.spec.ts`
-2. Test user flows:
-   - Navigate to `/health` page
-   - Verify overall health score display
-   - Verify grade (A-F) and trend indicator
-   - Test finding filters (category, severity, scanner)
-   - Verify 30-day trend graph rendering
-   - Validate ISR caching (revalidate: 3600s)
-3. Test health dashboard components (6 components):
-   - HealthScoreCard
-   - HealthGrade
-   - TrendIndicator
-   - FindingsTable
-   - FindingFilters
-   - TrendGraph
-4. Test MCP tool integration:
-   - `health.runScan` execution
-   - `health.getScore` data retrieval
-   - `health.getHistory` trend data
+2. **Handle duplicate detection**
+   - Generate wiki for same file twice
+   - Verify duplicate detection (by title or path)
+   - Check error message or skip behavior
+
+3. **Verify cross-linking automation**
+   - Generate wiki with @wiki/slug references in JSDoc
+   - Verify PageLink records created
+   - Check [[slug]] syntax resolution
+
+4. **Test markdown generation quality**
+   - Verify JSDoc @param, @returns, @example blocks formatted correctly
+   - Check code blocks have proper syntax highlighting hints
+   - Verify headings hierarchy (# for function name, ## for sections)
+
+5. **Test file pattern matching**
+   - Generate with glob pattern (e.g., "**/*.ts")
+   - Verify multiple files scanned
+   - Check only matching files included
+
+6. **Test error handling**
+   - Generate with invalid project path
+   - Generate with no JSDoc comments
+   - Verify error messages returned
 
 **Success Criteria:**
-- ✅ All health dashboard user flows covered
-- ✅ ISR caching verified (page revalidates every 3600s)
-- ✅ All 6 components tested
-- ✅ MCP tool integration validated
+- All 6 tests passing
+- Wiki generation workflow verified end-to-end
+- Error cases handled gracefully
 
 ---
 
-#### Day 3: E2E Testing - Wiki & Knowledge (5 points)
+### Phase 2: Wiki Revisions & Rollbacks (8 tests)
 
-**Objective:** Extend existing E2E tests for wiki and knowledge features
+**File:** `apps/web/tests/e2e/wiki.spec.ts`
 
-**Tasks:**
-1. Extend `apps/web/tests/e2e/wiki.spec.ts`:
-   - Wiki auto-generation from JSDoc comments
-   - Cross-linking syntax (`@wiki/slug`, `[[slug]]`)
-   - Revision history viewing
-   - Revert to previous revision
-   - Full-text search with tsvector ranking
-   - Category filtering
+**New Tests:**
+1. **Create revisions on edit**
+   - Edit existing wiki page
+   - Verify WikiRevision record created
+   - Check revision contains previous content
 
-2. Extend `apps/web/tests/e2e/knowledge.spec.ts`:
-   - Graph traversal (2-hop relationship discovery)
-   - Hybrid search (0.7 semantic + 0.3 fulltext)
-   - Knowledge item linking (REFERENCES, CONTRADICTS, EXTENDS)
-   - Semantic-only search (pgvector)
-   - Full-text-only search (tsvector)
+2. **View revision history**
+   - Navigate to wiki page
+   - Click "View History" or similar
+   - Verify revision timeline displayed
+
+3. **Revert to previous version**
+   - View revision history
+   - Click "Revert" on old revision
+   - Verify content restored
+
+4. **Diff viewer functionality**
+   - View two revisions side-by-side
+   - Verify additions highlighted (green)
+   - Verify deletions highlighted (red)
+
+5. **Revision metadata tracking**
+   - Check revision shows author name
+   - Check revision shows timestamp
+   - Check revision shows change summary (if applicable)
+
+6. **Changelog generation**
+   - Verify changelog field populated on edit
+   - Check changelog visible in revision history
+   - Verify empty changelog handled gracefully
+
+7. **Concurrent edit handling**
+   - Simulate two users editing same page
+   - Verify both revisions created
+   - Check no data loss
+
+8. **Revision permissions** (basic check)
+   - Verify revision history accessible
+   - Check revert action visible
+   - Verify no unauthorized access (if auth implemented)
 
 **Success Criteria:**
-- ✅ Wiki auto-generation workflow tested end-to-end
-- ✅ Cross-linking validated (both syntaxes)
-- ✅ Knowledge graph traversal tested (2-hop max)
-- ✅ Hybrid search weights validated (0.7/0.3 split)
+- All 8 tests passing
+- Revision system verified working
+- Rollback functionality tested
 
 ---
 
-#### Day 4: E2E Testing - Issue Management (5 points)
+### Phase 3: Knowledge Graph Traversal (10 tests)
 
-**Objective:** Test issue bulk operations and auto-tagging
+**File:** `apps/web/tests/e2e/knowledge.spec.ts`
 
-**Tasks:**
-1. Create `apps/web/tests/e2e/issues-bulk.spec.ts`:
-   - Bulk issue creation (10-50 issues in single transaction)
-   - Auto-tagging validation (≥80% accuracy target)
-   - Context injection (code snippets, file:line references)
-   - Issue filtering (status, severity, tags, assignee)
-   - Issue search (full-text + semantic)
-   - Link issues to tasks
+**New Tests:**
+1. **1-hop relationship discovery**
+   - Click knowledge item with relationships
+   - Verify "Related Knowledge" section visible
+   - Check directly related items displayed
 
-2. Run all E2E tests on Mac mini:
-   - Set `BASE_URL=http://192.168.1.15:3000`
-   - Set `EXTERNAL_BASE_URL=1`
-   - Execute full E2E test suite (6+ test files)
+2. **2-hop relationship discovery**
+   - Click knowledge item
+   - Verify 2-hop relationships shown (if UI supports)
+   - Check relationship path displayed
+
+3. **Relationship strength filtering**
+   - View knowledge graph
+   - Filter by strength threshold (e.g., >0.7)
+   - Verify weak relationships hidden
+
+4. **Bidirectional relationship display**
+   - Create relationship A → B
+   - Navigate to B
+   - Verify reverse relationship B ← A visible
+
+5. **Path tracking**
+   - View multi-hop path (A → B → C)
+   - Verify path breadcrumbs or trail displayed
+   - Check path clickable for navigation
+
+6. **Circular relationship detection**
+   - Create circular relationship (A → B → C → A)
+   - Verify no infinite loop in traversal
+   - Check circular path displayed correctly
+
+7. **Orphaned node handling**
+   - Create knowledge item with no relationships
+   - Verify "No related items" message
+   - Check no errors thrown
+
+8. **Graph visualization data**
+   - Navigate to knowledge graph view (if exists)
+   - Verify nodes and edges rendered
+   - Check graph responsive to clicks
+
+9. **Relationship type filtering**
+   - Filter by relationship type (REFERENCES, EXTENDS, CONTRADICTS)
+   - Verify only matching relationships shown
+   - Check filter state persists in URL
+
+10. **Graph depth limits**
+    - Configure max depth (e.g., 2 hops)
+    - Verify graph stops at limit
+    - Check no performance issues with deep graphs
 
 **Success Criteria:**
-- ✅ Bulk creation creates 10-50 issues in <2 seconds
-- ✅ Auto-tagging achieves ≥80% accuracy
-- ✅ Context injection includes file:line and code snippets
-- ✅ All E2E tests pass on Mac mini runtime
+- All 10 tests passing
+- Graph traversal verified
+- Edge cases handled
 
 ---
 
-#### Day 5: Test Suite Validation & Fixes (3 points)
+### Phase 4: Hybrid Search Modes (8 tests)
 
-**Objective:** Run complete test suite and fix any failures
+**File:** `apps/web/tests/e2e/knowledge.spec.ts`
 
-**Tasks:**
-1. Run unit tests:
-   - 38 test files (326 tests total)
-   - Target: 100% passing
+**New Tests:**
+1. **Semantic-only search mode**
+   - Switch search mode to "Semantic"
+   - Enter query
+   - Verify results ranked by vector similarity
 
-2. Run integration tests:
-   - API endpoint tests
-   - Database integration tests
-   - Target: 100% passing
+2. **Fulltext-only search mode**
+   - Switch search mode to "Fulltext"
+   - Enter query
+   - Verify results ranked by ts_rank
 
-3. Run E2E tests:
-   - 6+ test files (health, wiki, knowledge, issues, dashboard, security, agents)
-   - Target: 100% passing
+3. **Hybrid search (default)**
+   - Use default search mode
+   - Enter query
+   - Verify results use weighted combination (0.7 semantic + 0.3 fulltext)
 
-4. Fix failing tests:
-   - Analyze failures
-   - Fix code or update tests
-   - Re-run until 100% passing
+4. **Search mode indicator display**
+   - Switch between modes
+   - Verify active mode highlighted in UI
+   - Check mode persists in URL param
 
-5. Verify test coverage:
-   - Unit tests: ≥80% line coverage
-   - Integration tests: 100% API endpoints
-   - E2E tests: 100% critical user flows
+5. **Result ranking verification**
+   - Search with all 3 modes
+   - Verify result order differs
+   - Check most relevant results at top
+
+6. **Search performance benchmarks**
+   - Measure search response time
+   - Verify <200ms for typical queries
+   - Check large result sets don't timeout
+
+7. **Empty query handling**
+   - Submit empty search
+   - Verify no results or all results shown
+   - Check no errors thrown
+
+8. **Search result highlighting**
+   - Search for keyword
+   - Verify keyword highlighted in snippets
+   - Check highlights visible and accessible
 
 **Success Criteria:**
-- ✅ All tests passing (unit + integration + E2E)
-- ✅ Test coverage targets met
-- ✅ No flaky tests (all tests deterministic)
+- All 8 tests passing
+- All 3 search modes verified
+- Performance targets met
 
 ---
 
-### **Week 2: Security, Documentation & Production (Days 6-10) - 30 points**
+### Phase 5: Cross-Linking & Relationships (4 tests)
 
-#### Day 6: Code Quality & Security Audit (8 points)
+**File:** `apps/web/tests/e2e/knowledge.spec.ts`
 
-**Objective:** Comprehensive security and quality audit of Sprint 7 code
+**New Tests:**
+1. **Create knowledge relationships**
+   - Navigate to knowledge item
+   - Click "Add Relationship"
+   - Select relationship type and target item
+   - Verify relationship created
 
-**Tasks:**
-1. **Semgrep Security Scan:**
-   - Run Semgrep on Sprint 7 code:
-     - `apps/web/lib/health/scanners/*.ts`
-     - `apps/web/lib/health/scoring/*.ts`
-     - `apps/web/app/health/page.tsx`
-     - `apps/web/components/health/*.tsx`
-     - `apps/web/lib/wiki/auto-generate.ts`
-   - Target: <10 critical findings
-   - Document findings and remediation plan
+2. **Display relationship types**
+   - View knowledge item with relationships
+   - Verify relationship types displayed (REFERENCES, EXTENDS, CONTRADICTS)
+   - Check type icons or labels visible
 
-2. **ESLint Security Rules:**
-   - Run ESLint with security plugin
-   - Target: 0 critical security errors
-   - Fix any violations
+3. **Navigate through relationship graph**
+   - Click related knowledge item
+   - Navigate to target item
+   - Verify navigation path tracked
 
-3. **Accessibility Testing:**
-   - Run axe-core against all pages
-   - Run Lighthouse accessibility audits
-   - Target: WCAG 2.1 AA compliance (≥90 Lighthouse score)
-   - Fix accessibility violations
-
-4. **Performance Audits:**
-   - Lighthouse performance audits
-   - Target: ≥90 performance score
-   - Optimize if needed
+4. **Detect duplicate knowledge items**
+   - Create knowledge item with similar title
+   - Verify duplicate detection warning
+   - Check semantic similarity threshold (>0.95)
 
 **Success Criteria:**
-- ✅ Semgrep: 0 critical vulnerabilities
-- ✅ ESLint: 0 critical security errors
-- ✅ Accessibility: WCAG 2.1 AA compliance
-- ✅ Performance: Lighthouse ≥90 score
+- All 4 tests passing
+- Relationship creation verified
+- Duplicate detection working
 
 ---
 
-#### Day 7: MVP Acceptance Validation (10 points)
+## Test Resilience Patterns (From Baseline Session)
 
-**Objective:** Validate all 345 completed story points and exit criteria
+**Critical Learnings:**
+1. **Flexible selectors**: Use `textContent()` instead of `getByRole('link', { name: /exact/i })`
+2. **Proper scoping**: Scope to `main`, `body`, or semantic regions
+3. **Explicit timeouts**: Add 10s+ timeout for async operations
+4. **Reality-based**: Verify actual content, not assumed UI
+5. **Process cleanup**: Always kill concurrent processes before running
 
-**Tasks:**
-1. **Story Point Validation:**
-   - Sprint 1: 50/52 points (96%) - US-005, US-006 deferred, US-007 partial
-   - Sprint 2: 82/82 points (100%)
-   - Sprint 3: 48/48 points (100%)
-   - Sprint 4: 42/42 points (100%)
-   - Sprint 5: 21/21 points (100%)
-   - Sprint 5.5: 21/21 points (100%)
-   - Sprint 6: 51/51 points (100%)
-   - Sprint 7: 30/30 points (100%)
-   - **Total: 345/422 points (82%)**
-
-2. **Exit Criteria Validation:**
-   - ✅ All Must Have stories implemented
-   - ✅ All Should Have stories for Sprints 1-7 completed
-   - ✅ All tests passing (TEST-001 to TEST-125)
-   - ✅ Performance targets met (all NFRs)
-   - ✅ Agent autonomy >95% validated
-   - ✅ Zero critical bugs (P0 severity)
-
-3. **Performance Benchmark Validation:**
-   - MCP tool latency: <50ms P95 ✅ (20-35ms measured)
-   - API response time: <100ms P95 ✅
-   - Database queries: <100ms P95 ✅ (<50ms measured)
-   - Health scans: <90s Semgrep ✅ (85.47s measured)
-   - Knowledge hybrid search: <200ms P95 ✅ (45-75ms measured)
-   - Skills cache hit: <5ms ✅ (1-2ms measured)
-
-4. **Agent Autonomy Validation:**
-   - Test agent completing workflows without intervention
-   - Target: >95% success rate
-
-**Success Criteria:**
-- ✅ All 345 story points verified complete
-- ✅ All exit criteria met
-- ✅ All performance benchmarks passing
-- ✅ Agent autonomy >95% validated
-
----
-
-#### Day 8: Documentation Review (5 points)
-
-**Objective:** Update all documentation for Sprint 7 features
-
-**Tasks:**
-1. **Update OpenAPI Spec (`docs/06-API/openapi.yaml`):**
-   - POST `/api/health/scan` - Execute health scanners
-   - GET `/api/health/score` - Retrieve latest health score
-   - GET `/api/health/history` - Historical health trends
-   - POST `/api/wiki/generate` - Auto-generate wiki from code
-   - GET `/api/health` - Health dashboard page data
-
-2. **Update MCP Tools Guide (`.agent/system/mcp-tools-guide.md`):**
-   - `health.runScan` - Execute scanners, calculate score
-   - `health.getScore` - Retrieve latest scores with trends
-   - `health.getHistory` - Historical trends with regression
-   - `wiki.generate` - Auto-generate wiki from JSDoc
-
-3. **Create Health Monitoring User Guide:**
-   - How to interpret health scores
-   - Understanding health grades (A-F)
-   - Reading trend indicators
-   - Understanding scanner findings
-   - Severity levels explained
-   - Remediation workflows
-
-4. **Review Architecture Documentation:**
-   - Update component diagrams (health components, wiki components)
-   - Update data flow diagrams (health score calculation)
-   - Update MCP architecture (35 total tools documented)
-
-**Success Criteria:**
-- ✅ All Sprint 7 API endpoints documented in OpenAPI spec
-- ✅ All Sprint 7 MCP tools documented with examples
-- ✅ Health monitoring user guide complete
-- ✅ Architecture docs updated and accurate
-
----
-
-#### Day 9: Bug Fixes & Production Readiness (5 points)
-
-**Objective:** Address bugs and prepare for production deployment
-
-**Tasks:**
-1. **Bug Fixes:**
-   - Address any bugs discovered during testing
-   - Address any findings from security audit
-   - Fix any performance issues identified
-
-2. **Health Check Verification:**
-   - Verify `http://192.168.1.15:3000/api/health` returns healthy
-   - Verify all services responding correctly
-   - Test health check under load
-
-3. **Error Handling Validation:**
-   - Verify comprehensive error handling across all endpoints
-   - Test error boundaries in UI components
-   - Verify error logging configured
-
-4. **Logging & Monitoring Configuration:**
-   - Verify logging configured for all critical operations
-   - Configure monitoring alerts (future)
-   - Verify observability setup
-
-5. **Production Deployment Checklist:**
-   - Mac mini → Cloud migration strategy
-   - Environment configuration (env vars)
-   - Database migration plan
-   - Docker compose validation (`docker-compose.cloud.yml`)
-
-**Success Criteria:**
-- ✅ All bugs fixed (0 critical bugs)
-- ✅ Health checks verified
-- ✅ Error handling comprehensive
-- ✅ Production deployment checklist complete
-
----
-
-#### Day 10: Final Validation & Sign-Off (2 points)
-
-**Objective:** Final regression testing and Sprint 8 sign-off
-
-**Tasks:**
-1. **Full Regression Test Suite:**
-   - Run all unit tests (326 tests)
-   - Run all integration tests
-   - Run all E2E tests (6+ files)
-   - Target: 100% passing
-
-2. **Quality Gates Validation:**
-   - ✅ Unit tests: ≥80% coverage
-   - ✅ E2E tests: 100% critical flows covered
-   - ✅ Security: 0 critical vulnerabilities
-   - ✅ Performance: All NFR targets met
-   - ✅ Accessibility: WCAG 2.1 AA compliance
-   - ✅ Documentation: 100% complete
-
-3. **Sprint 8 Completion Documentation:**
-   - Create Sprint 8 completion document
-   - Document lessons learned
-   - Document patterns discovered
-   - Archive session files
-
-4. **Git Commit & Push:**
-   - Commit all Sprint 8 changes
-   - Push to `feature/sprint-8-integration-polish`
-   - Prepare for merge to master
-
-**Success Criteria:**
-- ✅ All quality gates passed
-- ✅ Sprint 8 completion documented
-- ✅ Code committed and pushed
-- ✅ Ready for merge to master
+**Implementation Guidelines:**
+- Avoid strict mode violations (scope selectors properly)
+- Use regex patterns for flexible text matching
+- Add explicit waits for debounced operations
+- Check element existence before assertions
+- Handle conditional features gracefully (test.skip() if not implemented)
 
 ---
 
 ## Success Metrics
 
-### Quality Gates (All Must Pass)
-
-1. **Testing:**
-   - Unit tests: ≥80% line coverage
-   - Integration tests: 100% API endpoints covered
-   - E2E tests: 100% critical user flows covered
-
-2. **Security:**
-   - Semgrep: 0 critical vulnerabilities
-   - npm audit: 0 high-severity vulnerabilities
-   - WCAG 2.1 AA: Compliance validated
-
-3. **Performance:**
-   - All NFR targets met (P95 latencies)
-   - No database queries >100ms
-   - ISR cache hit rate >80% for cached pages
-
-4. **Code Quality:**
-   - TypeScript: 0 errors (strict mode)
-   - ESLint: 0 critical errors
-   - Code review: All Sprint 7 code reviewed
-
-5. **Documentation:**
-   - All API endpoints documented in OpenAPI spec
-   - All MCP tools documented with examples
-   - User guides complete for Sprint 7 features
+**Target:** 67 total E2E tests (31 existing + 36 new)
+**Pass Rate:** 100% (all tests passing or properly skipping)
+**Execution Time:** <2min total
+**TypeScript Errors:** 0
 
 ---
 
-## Expert Consultation (Step 3)
+## Rollback Plan
 
-**Required Consultations:**
-- **devhub-testing:** E2E test strategy and Playwright best practices
-- **devhub-auditor:** Security audit and code quality review
+If tests fail due to missing features:
+1. Use `test.skip()` for unimplemented features
+2. Document why test was skipped
+3. Continue with remaining tests
+4. Report skipped tests to user
 
----
-
-## Deliverables Checklist
-
-- [ ] Health dashboard E2E tests (`tests/e2e/health.spec.ts`)
-- [ ] Wiki auto-generation E2E tests (extended `tests/e2e/wiki.spec.ts`)
-- [ ] Knowledge graph E2E tests (extended `tests/e2e/knowledge.spec.ts`)
-- [ ] Issue bulk operations E2E tests (`tests/e2e/issues-bulk.spec.ts`)
-- [ ] Security audit report (Semgrep + axe-core)
-- [ ] Accessibility audit report (WCAG 2.1 AA)
-- [ ] Performance audit report (Lighthouse)
-- [ ] Updated OpenAPI spec (`docs/06-API/openapi.yaml`)
-- [ ] Updated MCP tools guide (`.agent/system/mcp-tools-guide.md`)
-- [ ] Health monitoring user guide (new file)
-- [ ] Production readiness checklist (new file)
-- [ ] Sprint 8 completion document
+If tests break baseline:
+1. Revert changes to test files
+2. Investigate root cause
+3. Fix issue before proceeding
 
 ---
 
-## Risks & Mitigations
-
-| Risk | Severity | Mitigation |
-|------|----------|------------|
-| E2E tests discover integration bugs | High | Weekly integration testing already done; allocate buffer for fixes |
-| Performance bottlenecks in production | Medium | Database query optimization, indexing strategy validated |
-| Health scanners produce false positives | Medium | Manual review of findings, tune scanner rules |
-| Documentation drift | Low | Automated API spec generation from code |
-| Time overrun (48 points in 2 weeks) | Medium | Prioritize Must Have → Should Have → Could Have |
-
----
-
-## Post-Completion Workflow (Step 5)
-
-After Sprint 8 complete:
-
-1. Update `.agent/active-context.md` and `.agent/progress.md`
-2. Update `docs/13-Project-Plan.md` (mark Sprint 8 complete: 393/422 points)
-3. Invoke `synthesize-docs` sub-agent for Sprint 8 patterns (if any)
-4. Invoke `map-system` sub-agent if architecture changed
-5. Create Sprint 8 completion document (use COMPLETION_TEMPLATE.md)
-6. Commit documentation changes
-7. Commit code changes
-8. Push to remote
-9. Merge `feature/sprint-8-integration-polish` to `master`
-10. Archive session files to `docs/archive/completions/`
-
----
-
-## Dependencies
-
-**Required:**
-- All Sprints 1-7 complete ✅
-- Sprint 5.5 complete ✅
-- Mac mini services running at `http://192.168.1.15:3000` ✅
-- Playwright browsers installed on Mac mini
-- Semgrep CLI installed
-- Lighthouse CLI installed
-
-**Verified:**
-- Health dashboard functional (`/health`) ✅
-- Database: 4 scanners, 31 historical scores, 8 findings ✅
-- All tests passing (326 unit tests) ✅
-- TypeScript: 0 errors ✅
-
----
-
-_Created: 2025-11-14 20:32_
-_Status: Active_
-_Next Review: Day 5 (mid-sprint checkpoint)_
+**Plan Reviewed:** 2025-11-15
+**Ready to Implement:** ✅ Baseline stable, plan complete
