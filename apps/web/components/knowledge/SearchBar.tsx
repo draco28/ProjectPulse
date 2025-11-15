@@ -13,7 +13,9 @@ export function SearchBar({ initialSearch = '' }: SearchBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [searchMode, setSearchMode] = useState('hybrid'); // hybrid, fulltext, semantic
+  const [searchMode, setSearchMode] = useState(
+    searchParams?.get('mode') || 'hybrid' // Read from URL or default to hybrid
+  );
 
   // Debounce search query (300ms delay)
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -40,8 +42,11 @@ export function SearchBar({ initialSearch = '' }: SearchBarProps) {
 
   const handleModeChange = (mode: string) => {
     setSearchMode(mode);
-    // TODO: Implement different search modes (hybrid/fulltext/semantic)
-    // For now, just visual state change
+
+    // Update URL with new search mode
+    const params = new URLSearchParams(searchParams?.toString());
+    params.set('mode', mode);
+    router.push(`/knowledge?${params.toString()}`);
   };
 
   return (
