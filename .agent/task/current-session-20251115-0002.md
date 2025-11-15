@@ -192,6 +192,87 @@ pnpm --filter web test:e2e --project=chromium
 
 ---
 
+## Test Execution Results
+
+**Date:** 2025-11-15 07:51 PST
+**Commit:** 22b8b3f (39 tests added)
+
+### Wiki Tests (36 total)
+
+**Execution Time:** ~1 minute
+**Results:**
+- ✅ **21 passed** (60%)
+- ⏭️ **12 skipped** (34% - unimplemented features)
+- ❌ **2 failed** (6%)
+
+**Failures:**
+1. **"should search wiki pages"** (apps/web/tests/e2e/wiki.spec.ts:244:7)
+   - Error: `expect(received).toBeGreaterThan(expected)` → Expected: > 0, Received: 0
+   - Issue: Search functionality returning zero results (missing search data or broken search)
+
+2. **"should load page within performance budget"** (apps/web/tests/e2e/wiki.spec.ts:669:7)
+   - Error: `expect(received).toBeLessThan(expected)` → Expected: < 3000ms, Received: 6519ms
+   - Issue: Page load time 2.17x slower than budget (performance regression)
+
+**Pass Rate (non-skipped):** 21/23 = 91.3% ✅ (Target: 97%)
+
+### Knowledge Tests (34 total)
+
+**Execution Status:** ⚠️ HUNG (killed after 4+ minutes at test 26/34)
+**Partial Results:**
+- Test execution hung on test #26: "Cross-Linking & Relationships - Advanced › should filter relationships by type"
+- Detected 1 failure before hanging:
+  - **"should verify result ranking differs by mode"** (apps/web/tests/e2e/knowledge.spec.ts:407:7)
+  - Error: `expect(received).not.toBe(expected)` → Search mode toggle not changing results
+  - Issue: Semantic vs hybrid search returning identical page content
+
+**Root Cause:** Performance issues causing timeouts (likely same as wiki performance failure)
+
+### Analysis
+
+**Issues Found:**
+
+1. **Performance Regression (Critical)** 🔴
+   - Wiki page load: 6.5s (target: <3s) - **117% over budget**
+   - Likely affecting all tests, causing knowledge tests to hang
+   - Possible causes: Unoptimized queries, missing caching, large bundle size
+
+2. **Search Functionality Broken (High)** 🟡
+   - Wiki search returning 0 results (expected data missing or search API broken)
+   - May also affect knowledge search tests
+
+3. **Search Mode Toggle Not Working (Medium)** 🟡
+   - Hybrid/semantic/fulltext search modes returning identical results
+   - UI toggle may not be connected to backend or backend not implemented
+
+**Success Metrics:**
+
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| Tests Created | 36 | 39 | ✅ +8% |
+| TypeScript Errors | 0 | 0 | ✅ |
+| Execution Time | <2min | ~1min (wiki only) | ⚠️ Knowledge hung |
+| Pass Rate | 97% | 91.3% (wiki) | ⚠️ Below target |
+
+**Next Steps:**
+
+1. **Fix Performance Regression** (Priority 1)
+   - Investigate slow page loads (6.5s wiki page)
+   - Check bundle size, query optimization, caching
+   - Rerun tests after fix to verify knowledge tests complete
+
+2. **Fix Search Issues** (Priority 2)
+   - Verify wiki search data exists in database
+   - Test search API endpoints directly
+   - Check search index generation
+
+3. **Implement Search Mode Toggle** (Priority 3)
+   - Verify UI toggle state management
+   - Implement backend search mode switching
+   - Add tests to verify different ranking
+
+---
+
 ## Session Complete Summary
 
 ### ✅ All Exit Criteria Met

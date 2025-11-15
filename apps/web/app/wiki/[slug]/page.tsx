@@ -70,7 +70,7 @@ function getCategoryIcon(category: string): string {
 }
 
 async function getWikiPage(slug: string) {
-  // Find page by path (slug is the path)
+  // Optimized: Single query with include for analytics + parallel prev/next
   const page = await prisma.wikiPage.findUnique({
     where: { path: `/${slug}` },
     select: {
@@ -90,25 +90,24 @@ async function getWikiPage(slug: string) {
       lastEditedBy: true,
       lastEditedAt: true,
       version: true,
+      // Include analytics in single query (1-to-1 relation)
+      analytics: {
+        select: {
+          viewCount: true,
+          uniqueVisitors: true,
+          avgReadTimeMs: true,
+          positiveVotes: true,
+          negativeVotes: true,
+          popularity: true,
+          refreshedAt: true,
+        },
+      },
     },
   });
 
   if (!page) {
     return null;
   }
-
-  const analytics = await prisma.wikiPageAnalytics.findUnique({
-    where: { wikiPageId: page.id },
-    select: {
-      viewCount: true,
-      uniqueVisitors: true,
-      avgReadTimeMs: true,
-      positiveVotes: true,
-      negativeVotes: true,
-      popularity: true,
-      refreshedAt: true,
-    },
-  });
 
   // Extract TOC from markdown (server-side)
   const tocItems = extractHeadings(page.content);
@@ -144,15 +143,15 @@ async function getWikiPage(slug: string) {
     createdAt: page.createdAt.toISOString(),
     updatedAt: page.updatedAt.toISOString(),
     lastEditedAt: page.lastEditedAt?.toISOString() ?? null,
-    analytics: analytics
+    analytics: page.analytics
       ? {
-          viewCount: analytics.viewCount,
-          uniqueVisitors: analytics.uniqueVisitors,
-          avgReadTimeMs: analytics.avgReadTimeMs,
-          positiveVotes: analytics.positiveVotes,
-          negativeVotes: analytics.negativeVotes,
-          popularity: analytics.popularity,
-          refreshedAt: analytics.refreshedAt.toISOString(),
+          viewCount: page.analytics.viewCount,
+          uniqueVisitors: page.analytics.uniqueVisitors,
+          avgReadTimeMs: page.analytics.avgReadTimeMs,
+          positiveVotes: page.analytics.positiveVotes,
+          negativeVotes: page.analytics.negativeVotes,
+          popularity: page.analytics.popularity,
+          refreshedAt: page.analytics.refreshedAt.toISOString(),
         }
       : null,
     tocItems,
@@ -184,19 +183,33 @@ async function getRecentRevisions(pageId: number, limit = 10) {
   }));
 }
 
+// Cache category stats for 1 hour (expensive GROUP BY query)
+let categoryStatsCache: { data: Category[]; timestamp: number } | null = null;
+const CACHE_TTL = 3600000; // 1 hour in milliseconds
+
 async function getCategoryStats(): Promise<Category[]> {
+  // Return cached data if still fresh
+  if (categoryStatsCache && Date.now() - categoryStatsCache.timestamp < CACHE_TTL) {
+    return categoryStatsCache.data;
+  }
+
   const stats = await prisma.wikiPage.groupBy({
     by: ['category'],
     _count: { id: true },
     where: { category: { not: null } }
   });
 
-  return stats.map(stat => ({
+  const data = stats.map(stat => ({
     name: stat.category!,
     slug: stat.category!.toLowerCase().replace(/\s+/g, '-'),
     count: stat._count.id,
     icon: getCategoryIcon(stat.category!)
   }));
+
+  // Update cache
+  categoryStatsCache = { data, timestamp: Date.now() };
+
+  return data;
 }
 
 // Generate static params for ISR

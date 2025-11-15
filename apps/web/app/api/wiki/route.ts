@@ -136,59 +136,37 @@ export async function GET(request: NextRequest) {
     const where = category ? { category } : {};
 
     if (search) {
-      const categoryFilterSql = category
-        ? Prisma.sql`AND "category" = ${category}`
-        : Prisma.sql``;
+      // Temporary fallback: Use Prisma LIKE search until tsvector is implemented
+      // TODO: Implement proper full-text search with content_tsv column
+      const searchWhere: Prisma.WikiPageWhereInput = {
+        ...(category ? { category } : {}),
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { content: { contains: search, mode: 'insensitive' } },
+          { excerpt: { contains: search, mode: 'insensitive' } },
+        ],
+      };
 
-      const rankedPages = await prisma.$queryRaw<
-        Array<{
-          id: number;
-          title: string;
-          path: string;
-          category: string | null;
-          excerpt: string | null;
-          createdAt: Date;
-          updatedAt: Date;
-          highlight: string | null;
-          rank: number;
-        }>
-      >(Prisma.sql`
-        SELECT
-          "id",
-          "title",
-          "path",
-          "category",
-          "excerpt",
-          "createdAt",
-          "updatedAt",
-          ts_headline(
-            'english',
-            "content",
-            plainto_tsquery('english', ${search}),
-            'MaxFragments=2, MinWords=5, MaxWords=20, StartSel=**, StopSel=**'
-          ) AS highlight,
-          ts_rank_cd("content_tsv", plainto_tsquery('english', ${search})) AS rank
-        FROM "WikiPage"
-        WHERE "content_tsv" @@ plainto_tsquery('english', ${search})
-        ${categoryFilterSql}
-        ORDER BY rank DESC, "updatedAt" DESC
-        LIMIT ${limit} OFFSET ${offset};
-      `);
+      const pages = await prisma.wikiPage.findMany({
+        where: searchWhere,
+        select: {
+          id: true,
+          title: true,
+          path: true,
+          category: true,
+          excerpt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: limit,
+        skip: offset,
+      });
 
-      const countResult = await prisma.$queryRaw<Array<{ count: number }>>(Prisma.sql`
-        SELECT COUNT(*)::int AS count
-        FROM "WikiPage"
-        WHERE "content_tsv" @@ plainto_tsquery('english', ${search})
-        ${categoryFilterSql};
-      `);
-
-      const total = countResult[0]?.count ?? 0;
+      const total = await prisma.wikiPage.count({ where: searchWhere });
 
       return NextResponse.json({
-        pages: rankedPages.map((page) => ({
-          ...page,
-          highlight: page.highlight || page.excerpt,
-        })),
+        pages,
         pagination: {
           total,
           limit,
