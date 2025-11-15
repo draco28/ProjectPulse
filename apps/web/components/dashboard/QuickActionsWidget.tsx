@@ -11,7 +11,7 @@
  */
 'use client';
 
-import { Plus, Book, Shield } from 'lucide-react';
+import { Plus, Book, Bot } from 'lucide-react';
 
 export function QuickActionsWidget() {
   return (
@@ -23,7 +23,7 @@ export function QuickActionsWidget() {
           aria-label="Create new issue"
         >
           <Plus className="h-5 w-5" aria-hidden="true" />
-          <span>New Issue</span>
+          <span>Create Issue</span>
         </button>
         <button
           className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-slate hover:text-white"
@@ -34,10 +34,10 @@ export function QuickActionsWidget() {
         </button>
         <button
           className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-slate hover:text-white"
-          aria-label="Run security scan"
+          aria-label="Run agent"
         >
-          <Shield className="h-5 w-5" aria-hidden="true" />
-          <span>Security Scan</span>
+          <Bot className="h-5 w-5" aria-hidden="true" />
+          <span>Run Agent</span>
         </button>
       </div>
     </div>

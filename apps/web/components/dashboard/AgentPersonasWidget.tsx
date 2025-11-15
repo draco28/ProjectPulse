@@ -34,7 +34,7 @@ export function AgentPersonasWidget({ agents }: AgentPersonasWidgetProps) {
 
   return (
     <div className="neu-raised smooth-transition rounded-3xl p-6">
-      <h3 className="mb-4 text-lg font-bold text-white">Agent Personas</h3>
+      <h3 className="mb-4 text-lg font-bold text-white">Active Agents</h3>
       <div className="space-y-3">
         {displayedAgents.map((agent, index) => (
           <div
@@ -47,7 +47,9 @@ export function AgentPersonasWidget({ agents }: AgentPersonasWidgetProps) {
             <div className="flex-1">
               <p className="text-sm font-semibold text-white">{agent.name}</p>
               <p className="text-xs text-slate">
-                {agent.status === 'active' ? 'Active' : 'Available'}
+                {agent.status === 'active' && 'Active'}
+                {agent.status === 'idle' && 'Idle'}
+                {agent.status === 'offline' && 'Offline'}
               </p>
             </div>
             {agent.status === 'active' && (
