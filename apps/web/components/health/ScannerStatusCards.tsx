@@ -72,7 +72,7 @@ export function ScannerStatusCards({ scanners }: ScannerStatusCardsProps) {
   };
 
   return (
-    <div className="neu-raised rounded-3xl p-6">
+    <div className="neu-raised rounded-3xl p-6" data-testid="scanner-status-cards">
       <h2 className="mb-6 text-sm font-bold uppercase text-white">Scanner Status</h2>
 
       <div className="space-y-4">
@@ -86,6 +86,7 @@ export function ScannerStatusCards({ scanners }: ScannerStatusCardsProps) {
             <div
               key={scanner.id}
               className="neu-pressed smooth-transition group relative overflow-hidden rounded-2xl p-4 hover:scale-105"
+              data-testid={`scanner-card-${scanner.type.toLowerCase()}`}
             >
               {/* Gradient background */}
               <div

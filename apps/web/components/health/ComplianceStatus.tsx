@@ -45,7 +45,7 @@ export function ComplianceStatus({ standards }: ComplianceStatusProps) {
   };
 
   return (
-    <div className="neu-raised rounded-3xl p-6">
+    <div className="neu-raised rounded-3xl p-6" data-testid="compliance-status">
       <div className="mb-6 flex items-center gap-2">
         <Shield className="h-5 w-5 text-coral-400" aria-hidden="true" />
         <h2 className="text-sm font-bold uppercase text-white">Compliance Status</h2>
@@ -60,6 +60,7 @@ export function ComplianceStatus({ standards }: ComplianceStatusProps) {
             <div
               key={standard.name}
               className="neu-pressed smooth-transition rounded-2xl p-4 hover:scale-105"
+              data-testid="compliance-standard"
             >
               <div className="mb-3 flex items-start justify-between">
                 {/* Standard info */}
@@ -81,7 +82,7 @@ export function ComplianceStatus({ standards }: ComplianceStatusProps) {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-400">Compliance</span>
-                  <span className="font-semibold text-white">{standard.percentage}%</span>
+                  <span className="font-semibold text-white" data-testid="compliance-percentage">{standard.percentage}%</span>
                 </div>
 
                 <div className="neu-pressed h-3 overflow-hidden rounded-full">
