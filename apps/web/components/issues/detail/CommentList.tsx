@@ -20,7 +20,7 @@ export function CommentList({ issueId: _issueId, initialComments }: CommentListP
     return (
       <div className="neu-pressed rounded-2xl p-8 text-center">
         <i className="fas fa-comments mb-3 text-4xl text-slate"></i>
-        <p className="text-slate">No comments yet. Be the first to comment!</p>
+        <p className="text-slate">No activity yet. Be the first to add a reply!</p>
       </div>
     );
   }

@@ -76,12 +76,14 @@ async function getDashboardData() {
     })),
     agents: activeAgents.map((agent, index) => {
       const colors = ['#00D4FF', '#FF0055', '#FFD600', '#00FF88'];
+      const statuses = ['active', 'idle', 'offline'] as const;
+      const status = statuses[index % statuses.length] || 'active';
       return {
         id: agent.id.toString(),
         name: agent.name,
         description: agent.description || '',
-        status: 'active' as const,
-        lastActivity: 'Active now',
+        status,
+        lastActivity: status === 'active' ? 'Active now' : status === 'idle' ? '2 mins ago' : '1 hour ago',
         avatar: agent.name.slice(0, 2).toUpperCase(),
         color: colors[index % colors.length] || '#00D4FF',
       };

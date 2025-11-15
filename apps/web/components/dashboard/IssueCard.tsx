@@ -55,7 +55,7 @@ export function IssueCard({ issue }: IssueCardProps) {
   const priorityInfo = priorityConfig[issue.priority];
 
   return (
-    <div className="glass-dark smooth-transition cursor-pointer rounded-2xl p-5 hover:shadow-lg">
+    <div className="glass-dark neu-float cursor-pointer rounded-2xl p-5 hover:shadow-lg">
       <div className="flex items-start gap-4">
         {/* Icon Container */}
         <div className="icon-coral flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl shadow-lg">
@@ -77,6 +77,13 @@ export function IssueCard({ issue }: IssueCardProps) {
             <span className="rounded-full bg-coral px-3 py-1 text-xs font-semibold text-white shadow-md">
               {issue.category}
             </span>
+            {/* Pulse Indicator for Active Issues */}
+            {issue.isActive && (
+              <div className="pulse-indicator ml-1">
+                <div className="pulse-dot" />
+                <div className="pulse-ring" />
+              </div>
+            )}
           </div>
 
           {/* Title */}

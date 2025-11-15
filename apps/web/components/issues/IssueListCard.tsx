@@ -115,11 +115,11 @@ export function IssueListCard({ issue }: IssueListCardProps) {
           </div>
 
           {/* Title */}
-          <Link href={`/issues/${issue.id}`} className="smooth-transition block hover:text-coral">
-            <h3 className={cn('mb-2 text-lg font-bold text-white', isClosed && 'line-through')}>
+          <h3 className={cn('mb-2 text-lg font-bold text-white', isClosed && 'line-through')}>
+            <Link href={`/issues/${issue.id}`} className="smooth-transition hover:text-coral">
               {issue.title}
-            </h3>
-          </Link>
+            </Link>
+          </h3>
 
           {/* Description */}
           <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-slate">

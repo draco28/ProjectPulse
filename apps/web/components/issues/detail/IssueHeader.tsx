@@ -182,7 +182,7 @@ export function IssueHeader({
             <span className="flex items-center gap-2">
               <User className="h-4 w-4" aria-hidden="true" />
               <span>
-                Opened by <strong className="text-white">{assignee || 'Unassigned'}</strong>
+                Created by <strong className="text-white">{assignee || 'Unassigned'}</strong>
               </span>
             </span>
             <span className="flex items-center gap-2">

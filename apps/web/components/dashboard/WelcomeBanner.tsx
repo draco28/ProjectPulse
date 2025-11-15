@@ -22,8 +22,10 @@ interface WelcomeBannerProps {
 export function WelcomeBanner({ userName: _userName = 'Developer' }: WelcomeBannerProps) {
   // Get time-based greeting on client-side only to avoid hydration mismatch
   const [greeting, setGreeting] = useState('Good morning');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const hour = new Date().getHours();
     const timeGreeting =
       hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -37,7 +39,9 @@ export function WelcomeBanner({ userName: _userName = 'Developer' }: WelcomeBann
 
       {/* Content */}
       <div className="relative z-10">
-        <h2 className="mb-2 text-4xl font-bold text-white">{greeting}! 👋</h2>
+        <h2 className="mb-2 text-4xl font-bold text-white" suppressHydrationWarning>
+          {mounted ? greeting : 'Good morning'}! 👋
+        </h2>
         <p className="mb-6 text-lg text-slate">Here&apos;s your project pulse for Moksha DevHub</p>
         <button className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white">
           <Plus className="h-5 w-5" />

@@ -136,7 +136,7 @@ export function QuickActions({ issueId, issueTitle }: QuickActionsProps) {
       <div className="mt-4 rounded-2xl border border-dashed border-[#2A2A2A] p-3 text-center">
         <p className="flex items-center justify-center gap-2 text-xs text-slate">
           <Lightbulb className="h-4 w-4 text-coral" aria-hidden="true" />
-          More quick actions coming soon
+          Additional shortcuts coming soon
         </p>
       </div>
     </div>

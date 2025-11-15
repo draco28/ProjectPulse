@@ -149,7 +149,7 @@ export function Sidebar() {
                 href={item.href}
                 className={cn(
                   'smooth-transition flex items-center gap-3 rounded-2xl px-5 py-4',
-                  isActive ? 'coral-gradient text-white' : 'neu-raised text-slate hover:text-white'
+                  isActive ? 'bg-accent-primary/20 text-white' : 'neu-raised text-slate hover:text-white'
                 )}
               >
                 <Icon className="h-5 w-5" />

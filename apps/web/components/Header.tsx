@@ -14,13 +14,14 @@
 
 'use client';
 
-import { Search, Bell, X } from 'lucide-react';
+import { Search, Bell, X, Sun, Moon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [modalSearch, setModalSearch] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Lock body scroll when search modal is open
@@ -67,15 +68,15 @@ export function Header() {
             <div className="relative">
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate" />
               <input
-                type="text"
-                placeholder="     Search or press Cmd+K..."
+                type="search"
+                placeholder="Search issues, knowledge, wiki..."
                 onClick={() => setIsSearchOpen(true)}
                 className="neu-pressed smooth-transition w-full cursor-pointer rounded-2xl border-0 bg-transparent py-3 pl-11 pr-20 text-white placeholder:text-slate focus:outline-none"
                 readOnly
               />
-              <span className="neu-raised absolute right-4 top-1/2 -translate-y-1/2 rounded-xl px-3 py-1.5 font-mono text-xs font-semibold text-slate">
+              <kbd className="neu-raised absolute right-4 top-1/2 -translate-y-1/2 rounded-xl px-3 py-1.5 font-mono text-xs font-semibold text-slate">
                 ⌘K
-              </span>
+              </kbd>
             </div>
           </div>
 
@@ -88,6 +89,15 @@ export function Header() {
             >
               <Bell className="h-5 w-5" />
               <span className="pulse-glow absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-coral" />
+            </button>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="neu-raised smooth-transition flex h-12 w-12 items-center justify-center rounded-2xl text-slate hover:text-white"
+              aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
           </div>
         </div>
