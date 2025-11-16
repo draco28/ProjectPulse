@@ -1,7 +1,7 @@
 # Claude Code Integration Guide - ProjectPulse
 
-**Version**: 2.0 (Context-Optimized)
-**Last Updated**: 2025-10-26
+**Version**: 2.1 (Protocol-Enforced)
+**Last Updated**: 2025-11-10
 
 ---
 
@@ -73,30 +73,7 @@ git checkout -b feature/your-feature
 
 ## 🖥️ Mac Mini Cloud Architecture
 
-**IMPORTANT**: All development and runtime now happen on the **Mac mini**
-itself (local network, Docker). Windows-based dev workflows are legacy only.
-
-### Architecture Overview
-
-ProjectPulse now uses a **single-machine Mac mini runtime**:
-
-```
-┌─────────────────────────────────────┐
-│ Mac mini (192.168.1.15)             │
-│  - Editor (Windsurf / VS Code)      │
-│  - Browser                          │
-│  - Docker Compose (all services)    │
-│      • PostgreSQL :5432             │
-│      • Next.js :3000                │
-│      • MCP Server (stdio)           │
-└─────────────────────────────────────┘
-
-Optional:
-┌─────────────────────────────────────┐
-│ Other devices on LAN                │
-│  - Browser → http://192.168.1.15:3000│
-└─────────────────────────────────────┘
-```
+**All development happens on Mac mini (192.168.1.15) using Docker.**
 
 ### Service URLs
 
@@ -104,91 +81,22 @@ Optional:
 - **API Health**: http://192.168.1.15:3000/api/health
 - **Database**: `postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev`
 
-### Environment Profiles
+### Compose Files
 
-| Environment | NEXT_PUBLIC_APP_URL | DATABASE_URL | Usage |
-|-------------|---------------------|--------------|-------|
-| **Mac mini (Current)** | `http://192.168.1.15:3000` | `postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev` | Primary development runtime |
-| **CI/GitHub Actions** | `http://localhost:3000` | `postgresql://postgres:postgres@localhost:5432/projectpulse_test` | Automated testing |
-| **Future Production** | `https://app.projectpulse.com` | Supabase/Railway connection string | Cloud deployment |
+- **Mac mini runtime**: `docker-compose.cloud.yml` (primary)
+- **CI/local fallback**: `docker-compose.yml` (automated testing only)
 
-**Note**: For Playwright E2E tests targeting Mac mini from Windows, set `BASE_URL=http://192.168.1.15:3000` and `EXTERNAL_BASE_URL=1` in your test environment.
+### Workflow
 
-### Compose Files (Quick Reference)
+**All work happens on Mac mini:**
+- Code editing (Read, Edit, Write tools)
+- Git operations (commits, pushes, branches)
+- Testing (unit, integration, E2E)
+- Docker management (restart, logs, migrations)
 
-- **Mac mini runtime (preferred)**: `docker-compose.cloud.yml` (run on Mac mini)
-- **CI/local fallback (legacy)**: `docker-compose.yml` (use only for CI or explicit local runs)
+**Complete Setup**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
 
-### Where to Do Work (Mac mini vs Other Devices)
-
-**Mac mini (Primary Development – do essentially 100% of work here)**:
-- ✅ **All code editing** (Read, Edit, Write tools)
-- ✅ **All Git operations** (commits, pushes, branch management)
-- ✅ **API testing** (`curl http://localhost:3000/api/*` or via MCP)
-- ✅ **MCP tool testing** (tools call the Mac mini API endpoints)
-- ✅ **TypeScript checks** (`pnpm type-check`, `pnpm lint`, etc.)
-- ✅ **Documentation updates**
-- ✅ **Testing** (unit, integration, E2E against Docker runtime)
-- ✅ **Docker management** (restart, logs, rebuild, migrations)
-
-**Other devices (Optional, Browser Only)**:
-- ✅ Open `http://192.168.1.15:3000` in a browser to view ProjectPulse.
-
-Windows dev workflows are now considered **legacy**. For historical
-documentation of that split architecture, see:
-- `.agent/archive/windows-workflows-index.md`
-
-**Complete Setup Guide**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
-
----
-
-## 🔄 Communicating with Mac Mini Claude Code (LEGACY)
-
-> ⚠️ LEGACY PATTERN – WINDOWS ↔ MAC MINI GIT HANDOFF
->
-> This section describes a Git-based communication workflow between a Windows
-> Claude Code instance and a Mac mini Claude Code instance using
-> `.agent/task/mac-mini-instructions.md` as an instruction queue. It assumes
-> two machines and is kept **only for historical reference**.
->
-> **Current reality:** All development and runtime happen directly on the
-> **Mac mini** using Docker. There is no active Windows dev machine or
-> cross-machine handoff in the normal workflow.
->
-> For the current setup, use:
-> - `.agent/sops/mac-mini-cloud-architecture.md`
-> - `.agent/archive/windows-workflows-index.md`
-
-**⚠️ Use sparingly - Only for historical reference or reconstructing old flows**
-
-### The Problem
-
-Windows Claude Code and Mac mini Claude Code are separate instances. Manually copy-pasting prompts between machines is tedious.
-
-### The Solution: Git-Based Communication
-
-Use `.agent/task/mac-mini-instructions.md` as an instruction queue **ONLY** for server-side operations that cannot be done from Windows (Docker operations, database migrations, server debugging).
-
-### Quick Workflow
-
-**On Windows** (when you need Mac mini to do something):
-1. I write instructions to `.agent/task/mac-mini-instructions.md`
-2. I commit: `git commit -m "task: [description] for Mac mini"`
-3. I push: `git push origin feature/sprint-1-foundation`
-4. You tell Mac mini: "Pull git and execute mac-mini-instructions"
-
-**On Mac mini** (when you say "pull git and work as instructed"):
-1. Mac mini Claude Code pulls: `git pull origin feature/sprint-1-foundation`
-2. Reads: `.agent/task/mac-mini-instructions.md`
-3. Executes instructions step by step
-4. Updates file with results
-5. Commits and pushes back
-
-**Windows pulls to see results**.
-
-**Complete Protocol**: [.agent/sops/mac-mini-communication-protocol.md](.agent/sops/mac-mini-communication-protocol.md)
-
-**Protocol Overview**: [.agent/task/README-mac-mini-communication.md](.agent/task/README-mac-mini-communication.md)
+**Legacy Workflows**: For deprecated Windows/Mac cross-machine communication, see [.agent/archive/windows-mac-communication-legacy.md](.agent/archive/windows-mac-communication-legacy.md)
 
 ---
 
@@ -201,9 +109,11 @@ Use `.agent/task/mac-mini-instructions.md` as an instruction queue **ONLY** for 
 **How it works:**
 
 1. You copy-paste a starter prompt at session start
-2. I must complete all 5 protocol steps
+2. I must complete all protocol steps
 3. I must confirm each step explicitly
 4. Missing confirmation = workflow violation (you call me out)
+
+**⚠️ CRITICAL UPDATE (2025-11-10)**: Protocol violations log added to enforce compliance. Before starting ANY session, read the Protocol Violations Log in [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md) to see what went wrong and the 9-point checklist that MUST be satisfied.
 
 **📋 Full Protocol:** [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md)
 **🚀 Quick Start Guide:** [SESSION_START_QUICK_GUIDE.md](SESSION_START_QUICK_GUIDE.md)
@@ -227,6 +137,7 @@ ENFORCE:
 - ✅ Step 2: Save plan BEFORE code
 - ✅ Step 3: Consult experts
 - ✅ Step 4: Checkpoints every 15K tokens
+- ✅ Step 4.5: Verification gate (evidence-based)
 - ✅ Step 5: Post-completion workflow
 
 Confirm each step explicitly. If you skip ANY step, I will stop you.
@@ -761,21 +672,15 @@ The `.agent/` folder exists in THIS repository because we're using our own early
 
 **map-system**: "Update system documentation"
 
-**file-editor**: Bulk file operations (3+ files) or Edit tool failures
-
-- Efficient bulk file editing using sed/bash
-- Saves 70-90K tokens in main thread
-- Handles Edit tool failures reliably
-- Creates automatic backups before modifications
-
-**file-editor**: Bulk file operations (3+ files) or Edit tool failures
-
-- Efficient bulk file editing using sed/bash
-- Saves 70-90K tokens in main thread
-- Handles Edit tool failures reliably
-- Creates automatic backups before modifications
 - Scans Prisma/API/components
 - Refreshes .agent/system/ docs
+
+**file-editor**: Bulk file operations (3+ files) or Edit tool failures
+
+- Efficient bulk file editing using sed/bash
+- Saves 70-90K tokens in main thread
+- Handles Edit tool failures reliably
+- Creates automatic backups before modifications
 
 **You don't need to request these explicitly - I must invoke them per protocol Step 3 (experts) or Step 5 (documentation).**
 
@@ -941,44 +846,6 @@ Me: [Reads analysis, implements fixes]
 
 ---
 
-## Token Optimization
-
-### How .agent/ System Saves Tokens
-
-**Before** (Old CLAUDE.md approach):
-
-- CLAUDE.md: ~360 lines = ~10K tokens
-- Full context always loaded
-- Research clutters main thread
-- Total: 30-40K tokens per task
-
-**After** (New .agent/ approach):
-
-- CLAUDE.md: ~150 lines = ~3K tokens (70% reduction)
-- Read only relevant docs via index
-- Sub-agents handle research in isolated threads
-- Total: 5-10K tokens per task (75% reduction)
-
-### Sub-Agent Token Savings
-
-**Example**: "How does authentication work?"
-
-**Without sub-agent**:
-
-1. Read 15 files in main thread (15K tokens)
-2. Grep across codebase (5K tokens)
-3. Analyze and respond (5K tokens)
-4. **Total in main thread**: 25K tokens
-
-**With analyze-architecture sub-agent**:
-
-1. Sub-agent reads 15 files (15K tokens in isolated thread)
-2. Sub-agent greps and analyzes (10K tokens in isolated thread)
-3. Sub-agent returns summary (2K tokens to main thread)
-4. **Total in main thread**: 2K tokens (92% reduction!)
-
----
-
 ## Best Practices
 
 ### 1. Be Specific
@@ -1070,6 +937,7 @@ Initialize or update .agent/ documentation system
 - [ ] (Optional local) pnpm dev only if explicitly running locally on Windows
 - [ ] On feature branch (not master)
 - [ ] Read .agent/active-context.md, .agent/progress.md and docs/13-Project-Plan.md
+- [ ] **CRITICAL**: Read .agent/MANDATORY_SESSION_PROTOCOL.md Protocol Violations Log
 - [ ] Check .agent/README.md for task context
 ```
 
@@ -1113,6 +981,10 @@ Initialize or update .agent/ documentation system
 3. [docs/13-Project-Plan.md](docs/13-Project-Plan.md) - Implementation roadmap
 4. [docs/README.md](docs/README.md) - Complete documentation index
 
+**Protocol Enforcement**:
+
+- [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md) - **READ PROTOCOL VIOLATIONS LOG**
+
 **Procedures**:
 
 - [.agent/sops/](.agent/sops/) - All SOPs
@@ -1123,55 +995,6 @@ Initialize or update .agent/ documentation system
 - [.agent/system/](.agent/system/) - Technical references
 
 ---
-
-## Key Differences from v1.0
-
-### What Changed?
-
-**1. Context Optimization**
-
-- Leaner CLAUDE.md (360 → 150 lines)
-- Documentation split into .agent/ folder
-- Sub-agents for research tasks
-
-**2. Sub-Agent System**
-
-- explore-codebase - Repo scanning
-- analyze-architecture - System flow analysis
-- synthesize-docs - SOP generation
-- map-system - System doc updates
-
-**3. Structured Documentation**
-
-- .agent/README.md - Doc index
-- .agent/sops/ - Procedures
-- .agent/system/ - Technical references
-- .agent/task/ - Implementation plans
-
-**4. Removed**
-
-- Orchestrator sections (you use direct chat)
-- Session management (not needed)
-- Detailed examples (moved to SOPs)
-- Troubleshooting (moved to SOPs)
-
-### What Stayed the Same?
-
-- Your workflow (.agent/active-context.md/.agent/progress.md → docs/13-Project-Plan.md → work)
-- Git workflow rules
-- Port configuration checks
-- Gemini integration for deep analysis
-- Agent specializations (architect, fullstack, etc.)
-
----
-
-**Ready to code?**
-
-1. Check pre-work checklist
-2. Start conversation with me
-3. I'll handle sub-agents, documentation, and context optimization automatically
-
-🚀 **Happy coding with optimized context!**
 
 ## UI & Frontend Design (SuperDesign)
 
@@ -1184,5 +1007,47 @@ Initialize or update .agent/ documentation system
 **Output**: Standalone HTML files in `.superdesign/design_iterations/` folder
 
 **Note**: For React components in ProjectPulse, use [ui-generation-workflow.md](.claude/skills/projectpulse/ui-generation-workflow.md) instead.
+
+---
+
+## Protocol Violations Log Reference
+
+**CRITICAL**: Before starting ANY session, read the Protocol Violations Log in [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md).
+
+### What to Check
+
+1. **Violation History** - See what went wrong on 2025-11-10
+2. **Future Session Checklist** - 9-point checklist MUST be satisfied before claiming any step "complete"
+3. **Enforcement Mechanism** - This log persists across sessions and context resets
+
+### Key Lesson from 2025-11-10 Violation
+
+- Claiming "protocol complete" without evidence = violation
+- User will stop you and demand RIGHT NOW execution
+- Without file updates, enforcement cannot persist
+- Required confirmations are NOT optional - they are proof of execution
+
+### If User Says "You Did Not Do Step X"
+
+1. You violated the protocol
+2. Execute step X RIGHT NOW with full documentation
+3. Update session file with evidence
+4. Provide required confirmation
+
+### Future Session Checklist (9 Points)
+
+Before claiming ANY protocol step complete, verify:
+
+1. **Session file created** - `.agent/task/current-session-[timestamp].md` exists
+2. **Plan saved** - `.agent/task/current-plan.md` contains approved plan
+3. **Todos saved** - `.agent/task/current-todos.md` tracks all tasks
+4. **Expert consultations** - Sub-agents invoked with documented reports
+5. **Progress checkpoints** - Files updated at 15K token intervals
+6. **Verification evidence** - Concrete proof for each requirement (ls, tsc, curl, tests)
+7. **Documentation updated** - .agent/active-context.md, .agent/progress.md, docs/13-Project-Plan.md
+8. **Sub-agents invoked** - synthesize-docs and map-system if applicable
+9. **Git commits** - Documentation first, then code
+
+**If you cannot provide ALL these updates, the step is NOT complete.**
 
 ---
