@@ -109,7 +109,8 @@ export function AgentCard({ agent }: AgentCardProps) {
         <button
           onClick={handleToggle}
           disabled={isPending}
-          className={`smooth-transition relative h-7 w-12 rounded-full ${
+          data-testid="agent-toggle"
+          className={`smooth-transition relative h-7 w-12 flex-shrink-0 rounded-full ${
             isActive ? 'bg-coral' : 'bg-black/20'
           } ${isPending ? 'opacity-50' : ''}`}
           aria-label={isActive ? 'Deactivate agent' : 'Activate agent'}

@@ -25,47 +25,43 @@ test.describe('Agent Personas Page', () => {
     // Wait for agent cards to load
     await page.waitForSelector('.agent-card', { timeout: 10000 });
 
-    // Seeded agent names
-    await expect(page.getByText('Code Reviewer')).toBeVisible();
-    await expect(page.getByText('Debugging Assistant')).toBeVisible();
-    await expect(page.getByText('Documentation Writer')).toBeVisible();
+    // Seeded agent names (using case-insensitive regex)
+    await expect(page.getByText(/code reviewer/i)).toBeVisible();
+    await expect(page.getByText(/debugging assistant/i)).toBeVisible();
+    await expect(page.getByText(/documentation writer/i)).toBeVisible();
   });
 
-  test.skip('should toggle agent status with optimistic UI', async ({ page }) => {
+  test('should toggle agent status with optimistic UI', async ({ page }) => {
     // Wait for agent cards to load
     await page.waitForSelector('.agent-card', { timeout: 10000 });
     
-    // Find the Code Reviewer card and its toggle switch (simplified selector)
+    // Find the Code Reviewer card using data-testid
     const codeReviewerCard = page.locator('.agent-card').filter({ hasText: 'Code Reviewer' });
-    const toggleSwitch = codeReviewerCard.locator('button[aria-label]').first();
+    const toggleButton = codeReviewerCard.getByTestId('agent-toggle');
 
     // Verify initial state is Inactive
     await expect(codeReviewerCard.getByText('Inactive')).toBeVisible();
 
-    // Scroll card into view first, then click toggle
-    await codeReviewerCard.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(500); // Wait for scroll animation
-    await toggleSwitch.click({ force: true });
+    // Click to activate
+    await toggleButton.click();
 
     // Status badge should change to "Active" (optimistic UI)
     await expect(codeReviewerCard.getByText('Active')).toBeVisible({ timeout: 10000 });
 
     // Toggle back off to restore original state
-    await toggleSwitch.click();
+    await toggleButton.click();
     await expect(codeReviewerCard.getByText('Inactive')).toBeVisible({ timeout: 10000 });
   });
 
-  test.skip('should persist agent state across page reloads', async ({ page }) => {
+  test('should persist agent state across page reloads', async ({ page }) => {
     // Wait for agent cards to load
     await page.waitForSelector('.agent-card', { timeout: 10000 });
     
     // Activate Debugging Assistant
     const debuggerCard = page.locator('.agent-card').filter({ hasText: 'Debugging Assistant' });
-    const toggleSwitch = debuggerCard.locator('button[aria-label]').first();
+    const toggleButton = debuggerCard.getByTestId('agent-toggle');
 
-    await debuggerCard.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(500);
-    await toggleSwitch.click({ force: true });
+    await toggleButton.click();
     await expect(debuggerCard.getByText('Active')).toBeVisible({ timeout: 10000 });
 
     // Reload page
@@ -78,10 +74,8 @@ test.describe('Agent Personas Page', () => {
     await expect(reloadedCard.getByText('Active')).toBeVisible();
 
     // Clean up: toggle back off
-    const reloadedToggle = reloadedCard.locator('button[aria-label]').first();
-    await reloadedCard.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(500);
-    await reloadedToggle.click({ force: true });
+    const reloadedToggle = reloadedCard.getByTestId('agent-toggle');
+    await reloadedToggle.click();
     await expect(reloadedCard.getByText('Inactive')).toBeVisible({ timeout: 10000 });
   });
 });
