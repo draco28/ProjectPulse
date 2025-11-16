@@ -28,6 +28,7 @@ import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { ThemeSwitcher } from './ThemeSwitcher';
 
 interface NavItem {
   icon: typeof Home;
@@ -189,6 +190,9 @@ export function Sidebar() {
             </Link>
           </div>
         </nav>
+
+        {/* Theme Switcher */}
+        <ThemeSwitcher />
 
         {/* User Profile */}
         <div className="neu-raised smooth-transition rounded-3xl p-4">
