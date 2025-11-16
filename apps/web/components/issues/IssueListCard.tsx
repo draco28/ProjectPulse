@@ -22,7 +22,7 @@ import Link from 'next/link';
 import { MoreVertical, User, Clock, MessageSquare, Paperclip } from 'lucide-react';
 
 type Priority = 'critical' | 'high' | 'medium' | 'low';
-type Status = 'open' | 'in_progress' | 'closed';
+type Status = 'open' | 'in-progress' | 'closed';
 
 interface IssueListCardProps {
   issue: {
@@ -48,7 +48,7 @@ const PRIORITY_CONFIG: Record<Priority, { label: string; className: string }> = 
 
 const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
   open: { label: 'Open', className: 'bg-green-500 text-white shadow-md' },
-  in_progress: { label: 'In Progress', className: 'bg-yellow-500 text-white shadow-md' },
+  'in-progress': { label: 'In Progress', className: 'bg-yellow-500 text-white shadow-md' },
   closed: { label: 'Closed', className: 'neu-pressed text-slate' },
 };
 

@@ -213,5 +213,47 @@ Baseline (474 passed) may have been run against **different database state** tha
 
 ---
 
-**Last Updated**: 2025-11-16 (Test analysis complete)
-**Status**: Awaiting decision on next steps
+### [Continued] CRITICAL BUG FIX: Issue Detail Status Mismatch
+
+**Root Cause Found**: Status value type mismatch causing React runtime error
+
+**Problem**:
+- Database stores `'in-progress'` (hyphenated) from Prisma seed script
+- React components expected `'in_progress'` (underscore) in TypeScript types
+- Type assertions in page.tsx (`as 'in_progress'`) masked compile-time error
+- Runtime crash: "Element type is invalid" when trying to render issue detail pages
+
+**Investigation**:
+1. User reported: "when i click on an issue then i see errors not issue detail page"
+2. Error message: Component expected string/class/function but got undefined
+3. Traced to IssueActions component - icon/label lookup failed with invalid status value
+4. Checked database schema: Issue.status is String (not enum), allows any value
+5. Found seed script uses 'in-progress', components expected 'in_progress'
+
+**Fix Applied (Commit 16ed209)**:
+Files Modified:
+- `components/issues/detail/IssueActions.tsx`:
+  - Changed type from `'in_progress'` → `'in-progress'`
+  - Updated transitions map, labels map, icons map
+- `components/issues/detail/IssueHeader.tsx`:
+  - Changed type from `'in_progress'` → `'in-progress'`
+  - Updated status styles map
+  - Fixed formatStatus helper (replace hyphens, not underscores)
+- `components/issues/detail/RelatedIssues.tsx`:
+  - Changed type from `'in_progress'` → `'in-progress'`
+  - Updated placeholder data and status colors map
+- `app/issues/[id]/page.tsx`:
+  - Fixed type assertions from `'in_progress'` → `'in-progress'`
+  - Applied to both IssueHeader and IssueActions props
+
+**Expected Impact**:
+- ✅ Unlocks ~95 issue-detail E2E tests (navigation + rendering)
+- ✅ Expected improvement: 39.2% → ~60-70% pass rate (+20-30%)
+- ✅ Fixes critical user-facing bug (issue detail page crashes)
+
+**Test Run #3 Status**: Currently running (started after fix committed)
+
+---
+
+**Last Updated**: 2025-11-16 (Critical bug fix committed)
+**Status**: Test run #3 in progress

@@ -19,7 +19,7 @@ import { z } from 'zod';
  * Maps to IssueStatusOption model in database
  */
 export interface StatusOption {
-  value: string; // e.g., "open", "in_progress", "closed"
+  value: string; // e.g., "open", "in-progress", "closed"
   label: string; // e.g., "Open", "In Progress", "Closed"
   colorClass?: string; // Tailwind class: "text-blue-600"
 }
@@ -165,7 +165,7 @@ export type FilterOption = StatusOption | PriorityOption | ModuleOption | LabelO
  * Filter counts map (used in FilterSidebar)
  */
 export interface FilterCounts {
-  status: Record<string, number>; // { "open": 5, "in_progress": 3, "closed": 2 }
+  status: Record<string, number>; // { "open": 5, "in-progress": 3, "closed": 2 }
   priority: Record<string, number>; // { "critical": 1, "high": 4, "medium": 3, "low": 2 }
   module: Record<string, number>; // { "combat": 2, "animation": 3, "core": 2, "ui": 3 }
 }
