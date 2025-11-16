@@ -39,7 +39,7 @@ interface RelatedIssuesProps {
 interface PlaceholderRelatedIssue {
   id: number;
   title: string;
-  status: 'open' | 'in_progress' | 'closed';
+  status: 'open' | 'in-progress' | 'closed';
   priority: 'critical' | 'high' | 'medium' | 'low';
   createdAt: string;
   relationReason: string;
@@ -65,7 +65,7 @@ const PLACEHOLDER_RELATED_ISSUES: PlaceholderRelatedIssue[] = [
   {
     id: 38,
     title: 'Sword swing animation delay issue',
-    status: 'in_progress',
+    status: 'in-progress',
     priority: 'medium',
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
     relationReason: 'Similar labels',
@@ -90,7 +90,7 @@ const PLACEHOLDER_RELATED_ISSUES: PlaceholderRelatedIssue[] = [
 function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
     open: 'bg-green-500/20 text-green-400',
-    in_progress: 'bg-blue-500/20 text-blue-400',
+    'in-progress': 'bg-blue-500/20 text-blue-400',
     closed: 'bg-gray-500/20 text-gray-400',
   };
   return (colors[status] || colors.open) as string;
@@ -165,7 +165,7 @@ export function RelatedIssues({ currentIssueId, projectId, labels, module }: Rel
 
                 <div className="flex items-center gap-3 text-xs">
                   <span className={`rounded-full px-2 py-0.5 ${getStatusColor(issue.status)}`}>
-                    {issue.status.replace('_', ' ')}
+                    {issue.status.replace(/-/g, ' ')}
                   </span>
                   <time className="text-slate" dateTime={issue.createdAt}>
                     {format(new Date(issue.createdAt), 'MMM d')}

@@ -207,7 +207,7 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
           <IssueHeader
             id={issue.id}
             title={issue.title}
-            status={issue.status as 'open' | 'in_progress' | 'closed'}
+            status={issue.status as 'open' | 'in-progress' | 'closed'}
             priority={issue.priority as 'critical' | 'high' | 'medium' | 'low'}
             module={issue.module}
             projectName={issue.project.name}
@@ -244,7 +244,7 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
               <div className="flex items-center justify-end">
                 <IssueActions
                   issueId={serializedIssue.id}
-                  currentStatus={issue.status as 'open' | 'in_progress' | 'closed'}
+                  currentStatus={issue.status as 'open' | 'in-progress' | 'closed'}
                 />
               </div>
 
