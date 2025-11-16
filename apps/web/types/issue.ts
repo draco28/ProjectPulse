@@ -143,7 +143,7 @@ export interface IssueDetailProps {
   id: string; // Converted from number
   title: string;
   description: string | null;
-  status: 'open' | 'in_progress' | 'closed'; // Narrowed from string
+  status: 'open' | 'in-progress' | 'closed'; // Narrowed from string
   priority: 'critical' | 'high' | 'medium' | 'low'; // Narrowed from string
   module: string | null;
   assignee: string | null;
@@ -258,5 +258,5 @@ export interface CreateCommentRequest {
  * Status update request body
  */
 export interface UpdateStatusRequest {
-  status: 'open' | 'in_progress' | 'closed';
+  status: 'open' | 'in-progress' | 'closed';
 }

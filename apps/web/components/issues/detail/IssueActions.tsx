@@ -33,10 +33,10 @@ import { RotateCw, Play, Check, MoreVertical } from 'lucide-react';
 
 interface IssueActionsProps {
   issueId: string;
-  currentStatus: 'open' | 'in_progress' | 'closed';
+  currentStatus: 'open' | 'in-progress' | 'closed';
 }
 
-type StatusOption = 'open' | 'in_progress' | 'closed';
+type StatusOption = 'open' | 'in-progress' | 'closed';
 
 // ============================================================================
 // HELPERS
@@ -47,8 +47,8 @@ type StatusOption = 'open' | 'in_progress' | 'closed';
  */
 function getNextStatus(current: StatusOption): StatusOption {
   const transitions: Record<StatusOption, StatusOption> = {
-    open: 'in_progress',
-    in_progress: 'closed',
+    open: 'in-progress',
+    'in-progress': 'closed',
     closed: 'open',
   };
   return transitions[current];
@@ -61,7 +61,7 @@ function getStatusButtonText(current: StatusOption): string {
   const nextStatus = getNextStatus(current);
   const labels: Record<StatusOption, string> = {
     open: 'Reopen',
-    in_progress: 'Start Progress',
+    'in-progress': 'Start Progress',
     closed: 'Close',
   };
   return labels[nextStatus];
@@ -73,7 +73,7 @@ function getStatusButtonText(current: StatusOption): string {
 function getStatusButtonIcon(nextStatus: StatusOption) {
   const icons = {
     open: RotateCw,
-    in_progress: Play,
+    'in-progress': Play,
     closed: Check,
   };
   return icons[nextStatus];

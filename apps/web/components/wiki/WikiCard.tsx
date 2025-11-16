@@ -98,15 +98,23 @@ export const WikiCard = memo(function WikiCard({ page }: WikiCardProps) {
   );
 });
 
-function renderHighlightedText(text: string) {
+function renderHighlightedText(text: string): React.ReactNode {
   const segments = text.split('**');
-  return segments.map((segment, index) =>
-    index % 2 === 1 ? (
-      <mark key={index} className="bg-coral/20 text-white">
-        {segment}
-      </mark>
-    ) : (
-      <span key={index}>{segment}</span>
-    )
+  return (
+    <>
+      {segments.map((segment, index) =>
+        index % 2 === 1 ? (
+          <mark
+            key={`highlight-${index}`}
+            className="bg-coral/20 text-white font-semibold"
+            data-highlight="true"
+          >
+            {segment}
+          </mark>
+        ) : (
+          <span key={`text-${index}`}>{segment}</span>
+        )
+      )}
+    </>
   );
 }

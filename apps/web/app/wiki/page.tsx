@@ -105,76 +105,88 @@ async function getWikiPages(searchParams: SearchParams) {
   const offset = (page - 1) * perPage;
 
   if (searchTerm) {
-    const categoryFilterSql = categoryFilter.length
-      ? Prisma.sql`AND "category" = ANY(${categoryFilter})`
-      : Prisma.sql``;
+    const tsQuery = Prisma.sql`plainto_tsquery('english', ${searchTerm})`;
+    const categoryCondition =
+      categoryFilter.length > 0
+        ? Prisma.sql`AND "category" = ANY(${categoryFilter})`
+        : Prisma.sql``;
 
-    const rankedPages = await prisma.$queryRaw<
-      Array<{
-        id: number;
-        title: string;
-        path: string;
-        category: string | null;
-        excerpt: string | null;
-        updatedAt: Date;
-        highlight: string | null;
-        rank: number;
-      }>
-    >(Prisma.sql`
-      SELECT
-        "id",
-        "title",
-        "path",
-        "category",
-        "excerpt",
-        "updatedAt",
-        ts_headline(
-          'english',
-          "content",
-          plainto_tsquery('english', ${searchTerm}),
-          'MaxFragments=2, MinWords=5, MaxWords=20, StartSel=**, StopSel=**'
-        ) AS highlight,
-        ts_rank_cd("content_tsv", plainto_tsquery('english', ${searchTerm})) AS rank
-      FROM "WikiPage"
-      WHERE "content_tsv" @@ plainto_tsquery('english', ${searchTerm})
-      ${categoryFilterSql}
-      ORDER BY rank DESC, "updatedAt" DESC
-      LIMIT ${perPage} OFFSET ${offset};
-    `);
+    const [rows, countRows] = await Promise.all([
+      prisma.$queryRaw<
+        Array<{
+          id: number;
+          title: string;
+          path: string;
+          category: string | null;
+          excerpt: string | null;
+          createdAt: Date;
+          updatedAt: Date;
+          highlight: string | null;
+          rank: number;
+        }>
+      >(
+        Prisma.sql`
+          SELECT
+            "id",
+            "title",
+            "path",
+            "category",
+            "excerpt",
+            "createdAt",
+            "updatedAt",
+            ts_headline(
+              'english',
+              "content",
+              ${tsQuery},
+              'MaxFragments=2, MinWords=5, MaxWords=20, StartSel=**, StopSel=**'
+            ) AS highlight,
+            ts_rank_cd("content_tsv", ${tsQuery}) AS rank
+          FROM "WikiPage"
+          WHERE "content_tsv" @@ ${tsQuery}
+          ${categoryCondition}
+          ORDER BY rank DESC, "updatedAt" DESC
+          LIMIT ${perPage} OFFSET ${offset};
+        `,
+      ),
+      prisma.$queryRaw<Array<{ count: number }>>(
+        Prisma.sql`
+          SELECT COUNT(*)::int AS count
+          FROM "WikiPage"
+          WHERE "content_tsv" @@ ${tsQuery}
+          ${categoryCondition};
+        `,
+      ),
+    ]);
 
-    const countResult = await prisma.$queryRaw<Array<{ count: number }>>(Prisma.sql`
-      SELECT COUNT(*)::int AS count
-      FROM "WikiPage"
-      WHERE "content_tsv" @@ plainto_tsquery('english', ${searchTerm})
-      ${categoryFilterSql};
-    `);
+    const totalCount = countRows[0]?.count ?? 0;
 
-    const totalCount = countResult[0]?.count ?? 0;
-
-    const analytics = await prisma.wikiPageAnalytics.findMany({
-      where: { wikiPageId: { in: rankedPages.map((page) => page.id) } },
-      select: {
-        wikiPageId: true,
-        viewCount: true,
-        positiveVotes: true,
-        negativeVotes: true,
-        popularity: true,
-      },
-    });
+    const analytics = rows.length
+      ? await prisma.wikiPageAnalytics.findMany({
+          where: { wikiPageId: { in: rows.map((row) => row.id) } },
+          select: {
+            wikiPageId: true,
+            viewCount: true,
+            positiveVotes: true,
+            negativeVotes: true,
+            popularity: true,
+          },
+        })
+      : [];
     const analyticsMap = new Map(analytics.map((entry) => [entry.wikiPageId, entry]));
 
-    const mapped: WikiListResult[] = rankedPages.map((page) => {
-      const stats = analyticsMap.get(page.id);
+    const pages: WikiListResult[] = rows.map((row) => {
+      const stats = analyticsMap.get(row.id);
       const totalVotes = (stats?.positiveVotes ?? 0) + (stats?.negativeVotes ?? 0);
       const helpfulRatio = totalVotes ? Math.round(((stats?.positiveVotes ?? 0) / totalVotes) * 100) : null;
+
       return {
-        id: page.id,
-        title: page.title,
-        excerpt: page.excerpt || '',
-        category: page.category,
-        path: page.path,
-        updatedAt: page.updatedAt,
-        highlight: page.highlight,
+        id: row.id,
+        title: row.title,
+        excerpt: row.highlight ?? row.excerpt ?? '',
+        category: row.category,
+        path: row.path,
+        updatedAt: row.updatedAt,
+        highlight: row.highlight,
         stats: stats
           ? {
               views: stats.viewCount,
@@ -186,7 +198,7 @@ async function getWikiPages(searchParams: SearchParams) {
     });
 
     return {
-      pages: mapped,
+      pages,
       totalCount,
       currentPage: page,
       totalPages: Math.ceil(totalCount / perPage),

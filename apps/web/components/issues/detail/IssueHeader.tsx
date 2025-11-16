@@ -11,7 +11,7 @@
  * Props:
  * - id: Issue ID number
  * - title: Issue title
- * - status: open | in_progress | closed
+ * - status: open | in-progress | closed
  * - priority: critical | high | medium | low
  * - module: Combat | Animation | etc (optional)
  * - projectName: Associated project name
@@ -42,7 +42,7 @@ import {
 interface IssueHeaderProps {
   id: number;
   title: string;
-  status: 'open' | 'in_progress' | 'closed';
+  status: 'open' | 'in-progress' | 'closed';
   priority: 'critical' | 'high' | 'medium' | 'low';
   module: string | null;
   projectName: string;
@@ -74,7 +74,7 @@ function getPriorityStyles(priority: string): string {
 function getStatusStyles(status: string): string {
   const styles: Record<string, string> = {
     open: 'bg-green-500 text-white',
-    in_progress: 'bg-blue-500 text-white',
+    'in-progress': 'bg-blue-500 text-white',
     closed: 'bg-gray-500 text-white',
   };
   return (styles[status] || styles.open) as string;
@@ -99,10 +99,10 @@ function getModuleStyles(module: string | null): string {
 }
 
 /**
- * Format status for display (convert underscores to spaces, title case)
+ * Format status for display (convert hyphens to spaces, title case)
  */
 function formatStatus(status: string): string {
-  return status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  return status.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 // ============================================================================
@@ -182,7 +182,7 @@ export function IssueHeader({
             <span className="flex items-center gap-2">
               <User className="h-4 w-4" aria-hidden="true" />
               <span>
-                Opened by <strong className="text-white">{assignee || 'Unassigned'}</strong>
+                Created by <strong className="text-white">{assignee || 'Unassigned'}</strong>
               </span>
             </span>
             <span className="flex items-center gap-2">

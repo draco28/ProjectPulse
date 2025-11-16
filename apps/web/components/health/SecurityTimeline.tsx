@@ -62,7 +62,7 @@ export function SecurityTimeline({ events, maxEvents = 5 }: SecurityTimelineProp
   };
 
   return (
-    <div className="neu-raised rounded-3xl p-6">
+    <div className="neu-raised rounded-3xl p-6" data-testid="security-timeline">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-sm font-bold uppercase text-white">Security Activity</h2>
         <Clock className="h-5 w-5 text-slate-400" aria-hidden="true" />
@@ -75,7 +75,7 @@ export function SecurityTimeline({ events, maxEvents = 5 }: SecurityTimelineProp
           const isLast = index === displayEvents.length - 1;
 
           return (
-            <div key={event.id} className="relative pl-8">
+            <div key={event.id} className="relative pl-8" data-testid="timeline-event">
               {/* Timeline line */}
               {!isLast && (
                 <div className="absolute left-3 top-8 h-full w-px bg-gradient-to-b from-slate-700 to-transparent"></div>

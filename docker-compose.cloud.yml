@@ -32,6 +32,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/projectpulse_dev
       - NEXT_PUBLIC_API_URL=http://0.0.0.0:3000
       - NODE_ENV=development
+      - DEFAULT_PROJECT_ID=8
     ports:
       - "3000:3000"
     volumes:

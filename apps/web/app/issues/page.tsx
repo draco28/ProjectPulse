@@ -219,7 +219,7 @@ export default async function IssuesPage({
                         description: issue.description || '',
                         priority: issue.priority as 'critical' | 'high' | 'medium' | 'low',
                         module: issue.module || 'Unknown',
-                        status: issue.status as 'open' | 'in_progress' | 'closed',
+                        status: issue.status as 'open' | 'in-progress' | 'closed',
                         assignee: issue.assignee || 'Unassigned',
                         createdAt: issue.createdAt,
                         commentsCount: issue.comments.length,

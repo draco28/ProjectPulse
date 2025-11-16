@@ -12,7 +12,7 @@ const EnhancedCodeBlock = dynamic(() => import('./EnhancedCodeBlock').then((mod)
       <div className="mt-2 h-4 w-1/2 rounded bg-slate/20"></div>
     </div>
   ),
-  ssr: false, // Code highlighting only needed client-side
+  ssr: true, // Enable SSR to prevent hydration mismatch
 });
 
 interface TOCItem {

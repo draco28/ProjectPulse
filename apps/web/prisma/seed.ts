@@ -267,7 +267,7 @@ async function main() {
   // STATUS OPTIONS
   const statusOptions = [
     { value: 'open', label: 'Open', order: 0, colorClass: 'text-blue-600' },
-    { value: 'in_progress', label: 'In Progress', order: 1, colorClass: 'text-yellow-600' },
+    { value: 'in-progress', label: 'In Progress', order: 1, colorClass: 'text-yellow-600' },
     { value: 'closed', label: 'Closed', order: 2, colorClass: 'text-green-600' },
   ];
 
@@ -448,7 +448,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
   await prisma.issueStatusOption.createMany({
     data: [
       { value: 'open', label: 'Open', order: 1 },
-      { value: 'in_progress', label: 'In Progress', order: 2 },
+      { value: 'in-progress', label: 'In Progress', order: 2 },
       { value: 'blocked', label: 'Blocked', order: 3 },
       { value: 'closed', label: 'Closed', order: 4 },
     ],

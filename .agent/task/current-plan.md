@@ -1,453 +1,821 @@
-# Sprint 8: Integration & Polish - Implementation Plan
+# Sprint 8.5 Phase 1: Development Cycle UI + Roadmap Materialization
 
-**Created:** 2025-11-14 20:32
-**Sprint:** Sprint 8 (Weeks 15-16)
-**Duration:** 2 weeks (10 working days)
-**Story Points:** 48 points
-**Status:** Active
-
----
-
-## Overview
-
-**Goal:** Validate MVP completion through comprehensive integration testing, security audit, documentation review, and production readiness preparation.
-
-**Current Progress:** 345/422 MVP points (82% complete)
-
-**Sprint 8 Will Complete:** 393/422 points (93% complete)
+**Phase**: Sprint 8.5 Phase 1 of 4
+**Story Points**: 9 points
+**Duration**: 2.5 days
+**Status**: READY TO START
+**Created**: 2025-11-17
+**Dependencies**: None (Session 3 infrastructure exists)
 
 ---
 
-## Phase Breakdown
+## Executive Summary
 
-### **Week 1: Testing & Quality Assurance (Days 1-5) - 18 points**
+### Goal
+Create `/roadmap` page to visualize 5-level hierarchy (Phase → Week → Day → Task → Session) with progress tracking, PLUS add materialization tool to populate hierarchy from Session 3.
 
-#### Day 1-2: E2E Testing - Health Dashboard (5 points)
+### Why Critical
+- Sprint 9 Memory Banks need visual roadmap reference
+- Sprint 11 Auto-Docs need queryable roadmap structure
+- Humans need to monitor agent progress
+- **NEW**: Session 3 creates Roadmap (JSON) but NOT Phase/Week/Day records
+- **BLOCKER**: Without materialization, Development Cycle UI shows empty tree
 
-**Objective:** Create comprehensive Playwright tests for health dashboard
+### Key Challenge
+Two parallel roadmap systems:
+1. **Roadmap table** (JSON) - Created by Session 3, used by Blueprint View
+2. **Phase/Week/Day/Task tables** (normalized) - Used by Development Cycle UI
 
-**Tasks:**
-1. Create `apps/web/tests/e2e/health.spec.ts`
-2. Test user flows:
-   - Navigate to `/health` page
-   - Verify overall health score display
-   - Verify grade (A-F) and trend indicator
-   - Test finding filters (category, severity, scanner)
-   - Verify 30-day trend graph rendering
-   - Validate ISR caching (revalidate: 3600s)
-3. Test health dashboard components (6 components):
-   - HealthScoreCard
-   - HealthGrade
-   - TrendIndicator
-   - FindingsTable
-   - FindingFilters
-   - TrendGraph
-4. Test MCP tool integration:
-   - `health.runScan` execution
-   - `health.getScore` data retrieval
-   - `health.getHistory` trend data
-
-**Success Criteria:**
-- ✅ All health dashboard user flows covered
-- ✅ ISR caching verified (page revalidates every 3600s)
-- ✅ All 6 components tested
-- ✅ MCP tool integration validated
+**Solution**: Add `projectpulse.roadmap.materialize()` MCP tool in Session 3 to bridge the gap.
 
 ---
 
-#### Day 3: E2E Testing - Wiki & Knowledge (5 points)
+## Implementation Plan
 
-**Objective:** Extend existing E2E tests for wiki and knowledge features
+### Part A: Roadmap Materialization (NEW - 1 point, 3-4 hours)
 
-**Tasks:**
-1. Extend `apps/web/tests/e2e/wiki.spec.ts`:
-   - Wiki auto-generation from JSDoc comments
-   - Cross-linking syntax (`@wiki/slug`, `[[slug]]`)
-   - Revision history viewing
-   - Revert to previous revision
-   - Full-text search with tsvector ranking
-   - Category filtering
+#### Step 1: Database Schema Migration
 
-2. Extend `apps/web/tests/e2e/knowledge.spec.ts`:
-   - Graph traversal (2-hop relationship discovery)
-   - Hybrid search (0.7 semantic + 0.3 fulltext)
-   - Knowledge item linking (REFERENCES, CONTRADICTS, EXTENDS)
-   - Semantic-only search (pgvector)
-   - Full-text-only search (tsvector)
+**File**: `apps/web/prisma/migrations/YYYYMMDD_add_dev_session_fk/migration.sql`
 
-**Success Criteria:**
-- ✅ Wiki auto-generation workflow tested end-to-end
-- ✅ Cross-linking validated (both syntaxes)
-- ✅ Knowledge graph traversal tested (2-hop max)
-- ✅ Hybrid search weights validated (0.7/0.3 split)
+**Purpose**: Add foreign key relationships to DevelopmentSession for linking to hierarchy
 
----
+**Migration SQL**:
+```sql
+-- Add FK columns
+ALTER TABLE "DevelopmentSession" ADD COLUMN "phaseId" TEXT;
+ALTER TABLE "DevelopmentSession" ADD COLUMN "weekId" TEXT;
+ALTER TABLE "DevelopmentSession" ADD COLUMN "dayId" TEXT;
+ALTER TABLE "DevelopmentSession" ADD COLUMN "taskId" TEXT;
 
-#### Day 4: E2E Testing - Issue Management (5 points)
+-- Add foreign key constraints
+ALTER TABLE "DevelopmentSession" ADD CONSTRAINT "DevelopmentSession_phaseId_fkey"
+  FOREIGN KEY ("phaseId") REFERENCES "Phase"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
-**Objective:** Test issue bulk operations and auto-tagging
+ALTER TABLE "DevelopmentSession" ADD CONSTRAINT "DevelopmentSession_weekId_fkey"
+  FOREIGN KEY ("weekId") REFERENCES "Week"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
-**Tasks:**
-1. Create `apps/web/tests/e2e/issues-bulk.spec.ts`:
-   - Bulk issue creation (10-50 issues in single transaction)
-   - Auto-tagging validation (≥80% accuracy target)
-   - Context injection (code snippets, file:line references)
-   - Issue filtering (status, severity, tags, assignee)
-   - Issue search (full-text + semantic)
-   - Link issues to tasks
+ALTER TABLE "DevelopmentSession" ADD CONSTRAINT "DevelopmentSession_dayId_fkey"
+  FOREIGN KEY ("dayId") REFERENCES "Day"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
-2. Run all E2E tests on Mac mini:
-   - Set `BASE_URL=http://192.168.1.15:3000`
-   - Set `EXTERNAL_BASE_URL=1`
-   - Execute full E2E test suite (6+ test files)
+ALTER TABLE "DevelopmentSession" ADD CONSTRAINT "DevelopmentSession_taskId_fkey"
+  FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
-**Success Criteria:**
-- ✅ Bulk creation creates 10-50 issues in <2 seconds
-- ✅ Auto-tagging achieves ≥80% accuracy
-- ✅ Context injection includes file:line and code snippets
-- ✅ All E2E tests pass on Mac mini runtime
+-- Add indexes for query performance
+CREATE INDEX "DevelopmentSession_phaseId_idx" ON "DevelopmentSession"("phaseId");
+CREATE INDEX "DevelopmentSession_weekId_idx" ON "DevelopmentSession"("weekId");
+CREATE INDEX "DevelopmentSession_dayId_idx" ON "DevelopmentSession"("dayId");
+CREATE INDEX "DevelopmentSession_taskId_idx" ON "DevelopmentSession"("taskId");
+```
 
----
+**Prisma Schema Update**:
+```prisma
+model DevelopmentSession {
+  // ... existing fields ...
 
-#### Day 5: Test Suite Validation & Fixes (3 points)
+  // NEW: Foreign key relationships
+  phaseId String?
+  phase   Phase?  @relation(fields: [phaseId], references: [id], onDelete: SetNull)
 
-**Objective:** Run complete test suite and fix any failures
+  weekId  String?
+  week    Week?   @relation(fields: [weekId], references: [id], onDelete: SetNull)
 
-**Tasks:**
-1. Run unit tests:
-   - 38 test files (326 tests total)
-   - Target: 100% passing
+  dayId   String?
+  day     Day?    @relation(fields: [dayId], references: [id], onDelete: SetNull)
 
-2. Run integration tests:
-   - API endpoint tests
-   - Database integration tests
-   - Target: 100% passing
+  taskId  String?
+  task    Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+}
+```
 
-3. Run E2E tests:
-   - 6+ test files (health, wiki, knowledge, issues, dashboard, security, agents)
-   - Target: 100% passing
-
-4. Fix failing tests:
-   - Analyze failures
-   - Fix code or update tests
-   - Re-run until 100% passing
-
-5. Verify test coverage:
-   - Unit tests: ≥80% line coverage
-   - Integration tests: 100% API endpoints
-   - E2E tests: 100% critical user flows
-
-**Success Criteria:**
-- ✅ All tests passing (unit + integration + E2E)
-- ✅ Test coverage targets met
-- ✅ No flaky tests (all tests deterministic)
+**Acceptance**:
+- [ ] Migration file created
+- [ ] Schema updated with FK columns
+- [ ] Foreign key constraints enforced
+- [ ] Indexes created for performance
+- [ ] `npx prisma migrate dev` runs successfully
+- [ ] DevelopmentSession can link to Phase/Week/Day/Task
 
 ---
 
-### **Week 2: Security, Documentation & Production (Days 6-10) - 30 points**
+#### Step 2: Materialization MCP Tool
 
-#### Day 6: Code Quality & Security Audit (8 points)
+**File**: `apps/mcp-server/src/tools/roadmap/materializeTool.ts` (~150 lines)
 
-**Objective:** Comprehensive security and quality audit of Sprint 7 code
+**Purpose**: Convert Roadmap.phases JSON → Phase/Week/Day records
 
-**Tasks:**
-1. **Semgrep Security Scan:**
-   - Run Semgrep on Sprint 7 code:
-     - `apps/web/lib/health/scanners/*.ts`
-     - `apps/web/lib/health/scoring/*.ts`
-     - `apps/web/app/health/page.tsx`
-     - `apps/web/components/health/*.tsx`
-     - `apps/web/lib/wiki/auto-generate.ts`
-   - Target: <10 critical findings
-   - Document findings and remediation plan
+**Algorithm**:
+```typescript
+export const materializeRoadmapTool = {
+  name: 'projectpulse.roadmap.materialize',
+  description: 'Convert Roadmap JSON phases to normalized Phase/Week/Day records',
+  inputSchema: z.object({
+    roadmapId: z.string(),
+  }),
 
-2. **ESLint Security Rules:**
-   - Run ESLint with security plugin
-   - Target: 0 critical security errors
-   - Fix any violations
+  async handler({ roadmapId }) {
+    // 1. Fetch Roadmap record
+    const roadmap = await prisma.roadmap.findUnique({
+      where: { id: roadmapId },
+    });
 
-3. **Accessibility Testing:**
-   - Run axe-core against all pages
-   - Run Lighthouse accessibility audits
-   - Target: WCAG 2.1 AA compliance (≥90 Lighthouse score)
-   - Fix accessibility violations
+    if (!roadmap) throw new Error('Roadmap not found');
 
-4. **Performance Audits:**
-   - Lighthouse performance audits
-   - Target: ≥90 performance score
-   - Optimize if needed
+    const phases = roadmap.phases as Array<{
+      id: number;
+      name: string;
+      duration: string; // "2 weeks"
+      goals: string[];
+      deliverables: string[];
+      status: string;
+    }>;
 
-**Success Criteria:**
-- ✅ Semgrep: 0 critical vulnerabilities
-- ✅ ESLint: 0 critical security errors
-- ✅ Accessibility: WCAG 2.1 AA compliance
-- ✅ Performance: Lighthouse ≥90 score
+    const createdIds = { phaseIds: [], weekIds: [], dayIds: [] };
 
----
+    // 2. Create Phase records
+    for (const phaseJson of phases) {
+      const startDate = new Date(); // Or calculate from timeline
+      const weekCount = parseInt(phaseJson.duration.match(/(\d+)\s*week/)?.[1] || '2');
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + (weekCount * 7));
 
-#### Day 7: MVP Acceptance Validation (10 points)
+      const phase = await prisma.phase.create({
+        data: {
+          title: phaseJson.name,
+          description: phaseJson.goals.join('\n'),
+          status: 'NOT_STARTED',
+          progress: 0,
+          startDate,
+          endDate,
+        },
+      });
 
-**Objective:** Validate all 345 completed story points and exit criteria
+      createdIds.phaseIds.push(phase.id);
 
-**Tasks:**
-1. **Story Point Validation:**
-   - Sprint 1: 50/52 points (96%) - US-005, US-006 deferred, US-007 partial
-   - Sprint 2: 82/82 points (100%)
-   - Sprint 3: 48/48 points (100%)
-   - Sprint 4: 42/42 points (100%)
-   - Sprint 5: 21/21 points (100%)
-   - Sprint 5.5: 21/21 points (100%)
-   - Sprint 6: 51/51 points (100%)
-   - Sprint 7: 30/30 points (100%)
-   - **Total: 345/422 points (82%)**
+      // 3. Create Week records
+      for (let w = 1; w <= weekCount; w++) {
+        const weekStart = new Date(startDate);
+        weekStart.setDate(weekStart.getDate() + ((w - 1) * 7));
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
 
-2. **Exit Criteria Validation:**
-   - ✅ All Must Have stories implemented
-   - ✅ All Should Have stories for Sprints 1-7 completed
-   - ✅ All tests passing (TEST-001 to TEST-125)
-   - ✅ Performance targets met (all NFRs)
-   - ✅ Agent autonomy >95% validated
-   - ✅ Zero critical bugs (P0 severity)
+        const week = await prisma.week.create({
+          data: {
+            title: `Week ${w}`,
+            status: 'NOT_STARTED',
+            progress: 0,
+            startDate: weekStart,
+            endDate: weekEnd,
+            phaseId: phase.id,
+          },
+        });
 
-3. **Performance Benchmark Validation:**
-   - MCP tool latency: <50ms P95 ✅ (20-35ms measured)
-   - API response time: <100ms P95 ✅
-   - Database queries: <100ms P95 ✅ (<50ms measured)
-   - Health scans: <90s Semgrep ✅ (85.47s measured)
-   - Knowledge hybrid search: <200ms P95 ✅ (45-75ms measured)
-   - Skills cache hit: <5ms ✅ (1-2ms measured)
+        createdIds.weekIds.push(week.id);
 
-4. **Agent Autonomy Validation:**
-   - Test agent completing workflows without intervention
-   - Target: >95% success rate
+        // 4. Create Day records (5 days per week, Mon-Fri)
+        for (let d = 1; d <= 5; d++) {
+          const dayStart = new Date(weekStart);
+          dayStart.setDate(dayStart.getDate() + (d - 1));
 
-**Success Criteria:**
-- ✅ All 345 story points verified complete
-- ✅ All exit criteria met
-- ✅ All performance benchmarks passing
-- ✅ Agent autonomy >95% validated
+          const day = await prisma.day.create({
+            data: {
+              title: `Day ${d}`,
+              status: 'NOT_STARTED',
+              progress: 0,
+              startDate: dayStart,
+              weekId: week.id,
+            },
+          });
 
----
+          createdIds.dayIds.push(day.id);
+        }
+      }
+    }
 
-#### Day 8: Documentation Review (5 points)
+    return {
+      success: true,
+      ...createdIds,
+      message: `Created ${createdIds.phaseIds.length} phases, ${createdIds.weekIds.length} weeks, ${createdIds.dayIds.length} days`,
+    };
+  },
+};
+```
 
-**Objective:** Update all documentation for Sprint 7 features
+**Error Handling**:
+- Roadmap not found → throw error
+- Invalid duration format → default to 2 weeks
+- Database constraint violation → rollback transaction
 
-**Tasks:**
-1. **Update OpenAPI Spec (`docs/06-API/openapi.yaml`):**
-   - POST `/api/health/scan` - Execute health scanners
-   - GET `/api/health/score` - Retrieve latest health score
-   - GET `/api/health/history` - Historical health trends
-   - POST `/api/wiki/generate` - Auto-generate wiki from code
-   - GET `/api/health` - Health dashboard page data
-
-2. **Update MCP Tools Guide (`.agent/system/mcp-tools-guide.md`):**
-   - `health.runScan` - Execute scanners, calculate score
-   - `health.getScore` - Retrieve latest scores with trends
-   - `health.getHistory` - Historical trends with regression
-   - `wiki.generate` - Auto-generate wiki from JSDoc
-
-3. **Create Health Monitoring User Guide:**
-   - How to interpret health scores
-   - Understanding health grades (A-F)
-   - Reading trend indicators
-   - Understanding scanner findings
-   - Severity levels explained
-   - Remediation workflows
-
-4. **Review Architecture Documentation:**
-   - Update component diagrams (health components, wiki components)
-   - Update data flow diagrams (health score calculation)
-   - Update MCP architecture (35 total tools documented)
-
-**Success Criteria:**
-- ✅ All Sprint 7 API endpoints documented in OpenAPI spec
-- ✅ All Sprint 7 MCP tools documented with examples
-- ✅ Health monitoring user guide complete
-- ✅ Architecture docs updated and accurate
+**Acceptance**:
+- [ ] Tool implemented and tested
+- [ ] Creates Phase/Week/Day records from JSON
+- [ ] Returns created IDs
+- [ ] Handles errors gracefully
+- [ ] Transaction-safe (rollback on error)
+- [ ] Unit tests passing (3-4 tests)
 
 ---
 
-#### Day 9: Bug Fixes & Production Readiness (5 points)
+#### Step 3: Register Tool + Update Session 3
 
-**Objective:** Address bugs and prepare for production deployment
+**File 1**: `apps/mcp-server/src/index.ts`
+```typescript
+import { materializeRoadmapTool } from './tools/roadmap/materializeTool.js';
 
-**Tasks:**
-1. **Bug Fixes:**
-   - Address any bugs discovered during testing
-   - Address any findings from security audit
-   - Fix any performance issues identified
+// In tools array:
+const tools = [
+  // ... existing tools ...
+  materializeRoadmapTool,
+];
+```
 
-2. **Health Check Verification:**
-   - Verify `http://192.168.1.15:3000/api/health` returns healthy
-   - Verify all services responding correctly
-   - Test health check under load
+**File 2**: `apps/mcp-server/src/tools/onboarding/bootstrapTool.ts`
+```typescript
+// After creating Roadmap
+const roadmap = await prisma.roadmap.create({ /* ... */ });
 
-3. **Error Handling Validation:**
-   - Verify comprehensive error handling across all endpoints
-   - Test error boundaries in UI components
-   - Verify error logging configured
+// NEW: Materialize hierarchy
+const materialized = await materializeRoadmapTool.handler({
+  roadmapId: roadmap.id
+});
 
-4. **Logging & Monitoring Configuration:**
-   - Verify logging configured for all critical operations
-   - Configure monitoring alerts (future)
-   - Verify observability setup
+// Store IDs in Session 3 response
+await prisma.onboardingSession.update({
+  where: { id: sessionId },
+  data: {
+    response: {
+      ...existingResponse,
+      roadmapMaterialized: true,
+      createdPhaseIds: materialized.phaseIds,
+      createdWeekIds: materialized.weekIds,
+      createdDayIds: materialized.dayIds,
+    },
+  },
+});
+```
 
-5. **Production Deployment Checklist:**
-   - Mac mini → Cloud migration strategy
-   - Environment configuration (env vars)
-   - Database migration plan
-   - Docker compose validation (`docker-compose.cloud.yml`)
-
-**Success Criteria:**
-- ✅ All bugs fixed (0 critical bugs)
-- ✅ Health checks verified
-- ✅ Error handling comprehensive
-- ✅ Production deployment checklist complete
-
----
-
-#### Day 10: Final Validation & Sign-Off (2 points)
-
-**Objective:** Final regression testing and Sprint 8 sign-off
-
-**Tasks:**
-1. **Full Regression Test Suite:**
-   - Run all unit tests (326 tests)
-   - Run all integration tests
-   - Run all E2E tests (6+ files)
-   - Target: 100% passing
-
-2. **Quality Gates Validation:**
-   - ✅ Unit tests: ≥80% coverage
-   - ✅ E2E tests: 100% critical flows covered
-   - ✅ Security: 0 critical vulnerabilities
-   - ✅ Performance: All NFR targets met
-   - ✅ Accessibility: WCAG 2.1 AA compliance
-   - ✅ Documentation: 100% complete
-
-3. **Sprint 8 Completion Documentation:**
-   - Create Sprint 8 completion document
-   - Document lessons learned
-   - Document patterns discovered
-   - Archive session files
-
-4. **Git Commit & Push:**
-   - Commit all Sprint 8 changes
-   - Push to `feature/sprint-8-integration-polish`
-   - Prepare for merge to master
-
-**Success Criteria:**
-- ✅ All quality gates passed
-- ✅ Sprint 8 completion documented
-- ✅ Code committed and pushed
-- ✅ Ready for merge to master
+**Acceptance**:
+- [ ] Tool registered in MCP server
+- [ ] Session 3 calls materialize automatically
+- [ ] Phase/Week/Day records exist after Session 3
+- [ ] IDs stored in Session 3 response
 
 ---
 
-## Success Metrics
+### Part B: Development Cycle UI (8 points, ~16 hours)
 
-### Quality Gates (All Must Pass)
+#### Step 4: Page + Empty State (2 hours)
 
-1. **Testing:**
-   - Unit tests: ≥80% line coverage
-   - Integration tests: 100% API endpoints covered
-   - E2E tests: 100% critical user flows covered
+**File 1**: `apps/web/app/roadmap/page.tsx` (Server Component, ~150 lines)
 
-2. **Security:**
-   - Semgrep: 0 critical vulnerabilities
-   - npm audit: 0 high-severity vulnerabilities
-   - WCAG 2.1 AA: Compliance validated
+```typescript
+import { prisma } from '@/lib/db';
+import { RoadmapTree } from '@/components/roadmap/RoadmapTree';
+import { CurrentPositionBanner } from '@/components/roadmap/CurrentPositionBanner';
+import { RoadmapFilters } from '@/components/roadmap/RoadmapFilters';
+import { EmptyRoadmapState } from '@/components/roadmap/EmptyRoadmapState';
 
-3. **Performance:**
-   - All NFR targets met (P95 latencies)
-   - No database queries >100ms
-   - ISR cache hit rate >80% for cached pages
+export default async function RoadmapPage() {
+  // Fetch all phases with nested includes
+  const phases = await prisma.phase.findMany({
+    include: {
+      weeks: {
+        include: {
+          days: {
+            include: {
+              tasks: {
+                include: {
+                  sessions: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { startDate: 'asc' },
+  });
 
-4. **Code Quality:**
-   - TypeScript: 0 errors (strict mode)
-   - ESLint: 0 critical errors
-   - Code review: All Sprint 7 code reviewed
+  // Get current position (latest IN_PROGRESS task)
+  const currentTask = await prisma.task.findFirst({
+    where: { status: 'IN_PROGRESS' },
+    include: {
+      day: {
+        include: {
+          week: {
+            include: {
+              phase: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
 
-5. **Documentation:**
-   - All API endpoints documented in OpenAPI spec
-   - All MCP tools documented with examples
-   - User guides complete for Sprint 7 features
+  // Handle empty state
+  if (phases.length === 0) {
+    return <EmptyRoadmapState />;
+  }
+
+  return (
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Development Cycle</h1>
+
+      {currentTask && (
+        <CurrentPositionBanner currentTask={currentTask} />
+      )}
+
+      <RoadmapFilters />
+
+      <RoadmapTree phases={phases} />
+    </div>
+  );
+}
+```
+
+**File 2**: `apps/web/components/roadmap/EmptyRoadmapState.tsx` (~40 lines)
+
+```typescript
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+
+export function EmptyRoadmapState() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[400px] p-6">
+      <h2 className="text-2xl font-bold mb-4">No Roadmap Yet</h2>
+      <p className="text-muted-foreground mb-6 text-center max-w-md">
+        Complete onboarding Session 3 to generate your project roadmap with phases, weeks, and days.
+      </p>
+      <Button asChild>
+        <Link href="/onboarding">Start Onboarding</Link>
+      </Button>
+    </div>
+  );
+}
+```
+
+**Acceptance**:
+- [ ] Page accessible at `/roadmap`
+- [ ] Empty state shows when no phases
+- [ ] Data fetches correctly with nested includes
+- [ ] Loading states implemented
+- [ ] Error boundaries in place
 
 ---
 
-## Expert Consultation (Step 3)
+#### Step 5: Tree Component (2 hours)
 
-**Required Consultations:**
-- **devhub-testing:** E2E test strategy and Playwright best practices
-- **devhub-auditor:** Security audit and code quality review
+**File**: `apps/web/components/roadmap/RoadmapTree.tsx` (Client, ~100 lines)
+
+```typescript
+'use client';
+
+import { useState } from 'react';
+import { PhaseCard } from './PhaseCard';
+
+interface RoadmapTreeProps {
+  phases: PhaseWithNested[];
+}
+
+export function RoadmapTree({ phases }: RoadmapTreeProps) {
+  const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
+
+  const togglePhase = (phaseId: string) => {
+    setExpandedPhases((prev) => {
+      const next = new Set(prev);
+      if (next.has(phaseId)) {
+        next.delete(phaseId);
+      } else {
+        next.add(phaseId);
+      }
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      {phases.map((phase) => (
+        <PhaseCard
+          key={phase.id}
+          phase={phase}
+          isExpanded={expandedPhases.has(phase.id)}
+          onToggle={() => togglePhase(phase.id)}
+        />
+      ))}
+    </div>
+  );
+}
+```
+
+**Acceptance**:
+- [ ] Tree renders hierarchy
+- [ ] Expand/collapse works
+- [ ] State management correct
+- [ ] Keyboard navigation (optional)
 
 ---
 
-## Deliverables Checklist
+#### Step 6: Hierarchy Card Components (3-4 hours)
 
-- [ ] Health dashboard E2E tests (`tests/e2e/health.spec.ts`)
-- [ ] Wiki auto-generation E2E tests (extended `tests/e2e/wiki.spec.ts`)
-- [ ] Knowledge graph E2E tests (extended `tests/e2e/knowledge.spec.ts`)
-- [ ] Issue bulk operations E2E tests (`tests/e2e/issues-bulk.spec.ts`)
-- [ ] Security audit report (Semgrep + axe-core)
-- [ ] Accessibility audit report (WCAG 2.1 AA)
-- [ ] Performance audit report (Lighthouse)
-- [ ] Updated OpenAPI spec (`docs/06-API/openapi.yaml`)
-- [ ] Updated MCP tools guide (`.agent/system/mcp-tools-guide.md`)
-- [ ] Health monitoring user guide (new file)
-- [ ] Production readiness checklist (new file)
-- [ ] Sprint 8 completion document
+**Pattern**: All cards follow same structure:
+- Card header with title + status badge
+- Progress bar (0-100%)
+- Meta info (child count, dates)
+- Click to expand children
+
+**File 1**: `apps/web/components/roadmap/PhaseCard.tsx` (~80 lines)
+**File 2**: `apps/web/components/roadmap/WeekCard.tsx` (~70 lines)
+**File 3**: `apps/web/components/roadmap/DayCard.tsx` (~70 lines)
+**File 4**: `apps/web/components/roadmap/TaskCard.tsx` (~60 lines)
+
+**Example (PhaseCard.tsx)**:
+```typescript
+'use client';
+
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { WeekCard } from './WeekCard';
+
+interface PhaseCardProps {
+  phase: PhaseWithWeeks;
+  isExpanded: boolean;
+  onToggle: () => void;
+}
+
+export function PhaseCard({ phase, isExpanded, onToggle }: PhaseCardProps) {
+  const statusColors = {
+    NOT_STARTED: 'bg-gray-500',
+    IN_PROGRESS: 'bg-blue-500',
+    COMPLETE: 'bg-green-500',
+    BLOCKED: 'bg-red-500',
+  };
+
+  return (
+    <Card className="p-4">
+      <div
+        className="flex items-center justify-between cursor-pointer"
+        onClick={onToggle}
+      >
+        <div className="flex items-center gap-3">
+          {isExpanded ? <ChevronDown /> : <ChevronRight />}
+          <h3 className="text-lg font-semibold">{phase.title}</h3>
+          <Badge className={statusColors[phase.status]}>
+            {phase.status}
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground">
+            {phase.weeks.length} weeks
+          </span>
+          <span className="text-sm font-medium">{phase.progress}%</span>
+        </div>
+      </div>
+
+      <Progress value={phase.progress} className="mt-3" />
+
+      {isExpanded && (
+        <div className="mt-4 space-y-2">
+          {phase.weeks.map((week) => (
+            <WeekCard key={week.id} week={week} />
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+```
+
+**Acceptance**:
+- [ ] All 4 cards implemented
+- [ ] Consistent styling
+- [ ] Progress visualization works
+- [ ] Click to expand works
+- [ ] Status badges display correctly
 
 ---
 
-## Risks & Mitigations
+#### Step 7: Current Position Banner (1.5 hours)
 
-| Risk | Severity | Mitigation |
-|------|----------|------------|
-| E2E tests discover integration bugs | High | Weekly integration testing already done; allocate buffer for fixes |
-| Performance bottlenecks in production | Medium | Database query optimization, indexing strategy validated |
-| Health scanners produce false positives | Medium | Manual review of findings, tune scanner rules |
-| Documentation drift | Low | Automated API spec generation from code |
-| Time overrun (48 points in 2 weeks) | Medium | Prioritize Must Have → Should Have → Could Have |
+**File**: `apps/web/components/roadmap/CurrentPositionBanner.tsx` (~60 lines)
+
+```typescript
+import { Card } from '@/components/ui/card';
+import { MapPin } from 'lucide-react';
+
+interface CurrentPositionBannerProps {
+  currentTask: TaskWithHierarchy;
+}
+
+export function CurrentPositionBanner({ currentTask }: CurrentPositionBannerProps) {
+  const { day, week, phase } = currentTask;
+
+  return (
+    <Card className="p-4 mb-6 bg-accent-primary/10">
+      <div className="flex items-center gap-2 mb-2">
+        <MapPin className="h-5 w-5 text-accent-primary" />
+        <h2 className="text-lg font-semibold">You Are Here</h2>
+      </div>
+
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span>{phase.title}</span>
+        <span>→</span>
+        <span>{week.title}</span>
+        <span>→</span>
+        <span>{day.title}</span>
+        <span>→</span>
+        <span className="font-medium text-foreground">{currentTask.title}</span>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4 mt-4">
+        <div>
+          <p className="text-xs text-muted-foreground">Phase Progress</p>
+          <p className="text-lg font-semibold">{phase.progress}%</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Week Progress</p>
+          <p className="text-lg font-semibold">{week.progress}%</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Day Progress</p>
+          <p className="text-lg font-semibold">{day.progress}%</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Task Progress</p>
+          <p className="text-lg font-semibold">{currentTask.progress}%</p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+```
+
+**Acceptance**:
+- [ ] Banner shows current position
+- [ ] Breadcrumb navigates correctly
+- [ ] Progress indicators display
+- [ ] Handles null case (no active task)
 
 ---
 
-## Post-Completion Workflow (Step 5)
+#### Step 8: Roadmap Filters (2 hours)
 
-After Sprint 8 complete:
+**File**: `apps/web/components/roadmap/RoadmapFilters.tsx` (~50 lines)
 
-1. Update `.agent/active-context.md` and `.agent/progress.md`
-2. Update `docs/13-Project-Plan.md` (mark Sprint 8 complete: 393/422 points)
-3. Invoke `synthesize-docs` sub-agent for Sprint 8 patterns (if any)
-4. Invoke `map-system` sub-agent if architecture changed
-5. Create Sprint 8 completion document (use COMPLETION_TEMPLATE.md)
-6. Commit documentation changes
-7. Commit code changes
-8. Push to remote
-9. Merge `feature/sprint-8-integration-polish` to `master`
-10. Archive session files to `docs/archive/completions/`
+```typescript
+'use client';
+
+import { Select } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
+
+export function RoadmapFilters() {
+  const [status, setStatus] = useState<string[]>([]);
+  const [progressRange, setProgressRange] = useState([0, 100]);
+
+  return (
+    <div className="flex gap-4 mb-6">
+      <Select
+        multiple
+        value={status}
+        onChange={setStatus}
+        placeholder="Filter by status"
+      >
+        <option value="IN_PROGRESS">In Progress</option>
+        <option value="COMPLETE">Complete</option>
+        <option value="BLOCKED">Blocked</option>
+        <option value="PENDING">Pending</option>
+      </Select>
+
+      <div className="flex-1">
+        <label className="text-sm mb-2 block">Progress Range</label>
+        <Slider
+          min={0}
+          max={100}
+          step={5}
+          value={progressRange}
+          onValueChange={setProgressRange}
+        />
+      </div>
+
+      <Button variant="outline" onClick={() => {
+        setStatus([]);
+        setProgressRange([0, 100]);
+      }}>
+        Reset
+      </Button>
+    </div>
+  );
+}
+```
+
+**Acceptance**:
+- [ ] Filters work correctly
+- [ ] Tree updates on filter change
+- [ ] Multiple filters combinable
+- [ ] Reset button clears filters
+
+---
+
+#### Step 9: Navigation Integration (30 min)
+
+**File**: `apps/web/components/Sidebar.tsx` (~5 lines added)
+
+```typescript
+import { Map } from 'lucide-react';
+
+// Add to navigation items:
+{
+  href: '/roadmap',
+  icon: Map,
+  label: 'Development Cycle',
+  badge: null,
+}
+```
+
+**Acceptance**:
+- [ ] Link visible in sidebar
+- [ ] Navigates to `/roadmap`
+- [ ] Active state works
+- [ ] Icon displays correctly
+
+---
+
+### Part C: Testing (3-4 hours)
+
+#### Step 10: E2E Tests
+
+**File**: `apps/web/tests/e2e/roadmap.spec.ts` (5-7 tests)
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('Development Cycle Roadmap', () => {
+  test('should display page layout', async ({ page }) => {
+    await page.goto('/roadmap');
+    await expect(page.locator('h1')).toContainText('Development Cycle');
+  });
+
+  test('should show empty state when no roadmap', async ({ page }) => {
+    // Assuming no phases exist
+    await page.goto('/roadmap');
+    await expect(page.getByText('No Roadmap Yet')).toBeVisible();
+    await expect(page.getByText('Start Onboarding')).toBeVisible();
+  });
+
+  test('should display phase cards', async ({ page }) => {
+    // Assuming phases exist
+    await page.goto('/roadmap');
+    await expect(page.getByText(/Phase \d+/)).toBeVisible();
+    await expect(page.getByText(/\d+%/)).toBeVisible();
+  });
+
+  test('should expand/collapse phases', async ({ page }) => {
+    await page.goto('/roadmap');
+    const phaseCard = page.locator('[data-testid="phase-card"]').first();
+    await phaseCard.click();
+    await expect(page.getByText('Week 1')).toBeVisible();
+    await phaseCard.click();
+    await expect(page.getByText('Week 1')).not.toBeVisible();
+  });
+
+  test('should show current position banner', async ({ page }) => {
+    await page.goto('/roadmap');
+    await expect(page.getByText('You Are Here')).toBeVisible();
+  });
+
+  test('should filter by status', async ({ page }) => {
+    await page.goto('/roadmap');
+    await page.selectOption('select[name="status"]', 'IN_PROGRESS');
+    await expect(page.getByText('COMPLETE')).not.toBeVisible();
+  });
+});
+```
+
+**Acceptance**:
+- [ ] 5-7 tests created
+- [ ] All tests passing
+- [ ] Coverage >80%
+
+---
+
+#### Step 11: Integration Testing (1 hour)
+
+**Manual Tests**:
+1. Complete Session 3 → verify Phase/Week/Day records created
+2. Navigate to `/roadmap` → verify tree displays
+3. Agent calls `sprint.checkpoint` → verify UI updates
+4. Expand all levels → verify nested data loads
+
+**Checklist**:
+- [ ] Session 3 → roadmap flow works
+- [ ] Phase/Week/Day records exist
+- [ ] Agent updates reflected in UI
+- [ ] No console errors
+- [ ] Performance <3s page load
+
+---
+
+## Success Criteria
+
+### Functional Requirements
+- ✅ `/roadmap` page accessible from sidebar
+- ✅ Phase/Week/Day/Task/Session hierarchy displayed
+- ✅ Progress bars show completion percentage
+- ✅ Status badges show current state
+- ✅ Tree expands/collapses correctly
+- ✅ "You are here" banner shows current position
+- ✅ Filters work (status, progress)
+- ✅ Empty state handles no-roadmap case
+
+### Technical Requirements
+- ✅ Session 3 creates Phase/Week/Day records automatically
+- ✅ Materialization tool tested
+- ✅ Server Components for data fetching
+- ✅ Client Components for interactivity
+- ✅ Proper error handling
+- ✅ Database queries optimized (nested includes)
+- ✅ FK relationships enable session-to-hierarchy linking
+
+### Testing Requirements
+- ✅ 5-7 E2E tests passing
+- ✅ Manual integration tests passed
+- ✅ No regression in existing tests
+- ✅ Performance targets met (<3s page load)
 
 ---
 
 ## Dependencies
 
-**Required:**
-- All Sprints 1-7 complete ✅
-- Sprint 5.5 complete ✅
-- Mac mini services running at `http://192.168.1.15:3000` ✅
-- Playwright browsers installed on Mac mini
-- Semgrep CLI installed
-- Lighthouse CLI installed
+**External**:
+- ✅ Phase/Week/Day/Task/Session models exist (Sprint 1)
+- ✅ API endpoint `/api/hierarchy/query` functional (Sprint 1)
+- ✅ MCP tools exist (`sprint.checkpoint`, `sprint.updateProgress`)
+- ✅ OnboardingSession stores Session 3 data (Sprint 2)
+- ✅ Roadmap model with phases JSON (Sprint 2)
 
-**Verified:**
-- Health dashboard functional (`/health`) ✅
-- Database: 4 scanners, 31 historical scores, 8 findings ✅
-- All tests passing (326 unit tests) ✅
-- TypeScript: 0 errors ✅
+**Internal**:
+- Part A must complete before Part B (materialization enables UI)
+- Part B components build on each other (Page → Tree → Cards → Banner → Filters)
+- Part C tests require Parts A+B complete
 
 ---
 
-_Created: 2025-11-14 20:32_
-_Status: Active_
-_Next Review: Day 5 (mid-sprint checkpoint)_
+## File Inventory
+
+### New Files (15 total)
+
+**MCP/Backend** (3 files):
+1. `apps/web/prisma/migrations/*/migration.sql`
+2. `apps/mcp-server/src/tools/roadmap/materializeTool.ts`
+3. `apps/mcp-server/src/tools/roadmap/__tests__/materializeTool.test.ts`
+
+**Frontend** (9 files):
+4. `apps/web/app/roadmap/page.tsx`
+5. `apps/web/components/roadmap/EmptyRoadmapState.tsx`
+6. `apps/web/components/roadmap/RoadmapTree.tsx`
+7. `apps/web/components/roadmap/PhaseCard.tsx`
+8. `apps/web/components/roadmap/WeekCard.tsx`
+9. `apps/web/components/roadmap/DayCard.tsx`
+10. `apps/web/components/roadmap/TaskCard.tsx`
+11. `apps/web/components/roadmap/CurrentPositionBanner.tsx`
+12. `apps/web/components/roadmap/RoadmapFilters.tsx`
+
+**Tests** (3 files):
+13. `apps/web/tests/e2e/roadmap.spec.ts`
+14. `apps/mcp-server/src/tools/__tests__/materializeTool.test.ts`
+15. `apps/mcp-server/src/tools/__tests__/getBlueprintTool.test.ts`
+
+### Modified Files (3 total)
+1. `apps/mcp-server/src/index.ts` - Register materializeTool
+2. `apps/mcp-server/src/tools/onboarding/bootstrapTool.ts` - Call materialize
+3. `apps/web/components/Sidebar.tsx` - Add Development Cycle link
+
+---
+
+## Risks & Mitigations
+
+| Risk | Impact | Mitigation | Status |
+|------|--------|------------|--------|
+| Session 3 data structure changes | HIGH | Well-defined in 3-session-onboarding-REFERENCE.md | ✅ Mitigated |
+| Materialization fails during Session 3 | HIGH | Transaction rollback, clear error messages | ⚠️ Need testing |
+| UI complexity exceeds estimate | MEDIUM | Reuse existing components (StatCard patterns) | ✅ Mitigated |
+| Performance issues with large hierarchies | MEDIUM | Implement pagination/lazy loading if needed | ⚠️ Monitor |
+| Empty state not handled | LOW | Implemented in Step 4 | ✅ Mitigated |
+
+---
+
+## Next Steps After Phase 1
+
+- **Phase 2**: Blueprint MCP Tool (agents query Session 3 data)
+- **Phase 3**: Agent AI Hub Tabs (skills, workflows, config management)
+- **Phase 4**: MCP Read Tools (efficient hierarchy queries)
+
+---
+
+**Plan Created**: 2025-11-17
+**Source**: sprint8.5-plan.md + 3-session-onboarding-REFERENCE.md analysis
+**Review Cycle**: Daily checkpoints at 15K tokens

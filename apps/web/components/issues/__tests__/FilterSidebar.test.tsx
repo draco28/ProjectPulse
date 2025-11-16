@@ -49,7 +49,7 @@ describe('FilterSidebar', () => {
   const mockFilterOptions: FiltersDTO = {
     status: [
       { value: 'open', label: 'Open', colorClass: 'text-blue-600' },
-      { value: 'in_progress', label: 'In Progress', colorClass: 'text-yellow-600' },
+      { value: 'in-progress', label: 'In Progress', colorClass: 'text-yellow-600' },
       { value: 'closed', label: 'Closed', colorClass: 'text-green-600' },
     ],
     priority: [
@@ -79,7 +79,7 @@ describe('FilterSidebar', () => {
   const mockFilterCounts = {
     status: {
       open: 5,
-      in_progress: 3,
+      'in-progress': 3,
       closed: 2,
     },
     priority: {

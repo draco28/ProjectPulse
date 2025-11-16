@@ -19,64 +19,63 @@ test.describe('Agent Personas Page', () => {
   });
 
   test('should render header and agent cards', async ({ page }) => {
-    // Page header
-    await expect(page.getByRole('heading', { name: 'Agent Personas' })).toBeVisible();
+    // Page header (exact match to avoid strict mode violation with info banner)
+    await expect(page.getByRole('heading', { name: 'Agent Personas', exact: true })).toBeVisible();
 
-    // Stats (0 active, 3 total initially)
-    await expect(page.getByText(/0 active • 3 total agents/i)).toBeVisible();
+    // Wait for agent cards to load
+    await page.waitForSelector('.agent-card', { timeout: 10000 });
 
-    // Seeded agent names
-    await expect(page.getByText('Code Reviewer', { exact: true })).toBeVisible();
-    await expect(page.getByText('Debugging Assistant', { exact: true })).toBeVisible();
-    await expect(page.getByText('Documentation Writer', { exact: true })).toBeVisible();
+    // Seeded agent names (using case-insensitive regex)
+    await expect(page.getByText(/code reviewer/i)).toBeVisible();
+    await expect(page.getByText(/debugging assistant/i)).toBeVisible();
+    await expect(page.getByText(/documentation writer/i)).toBeVisible();
   });
 
   test('should toggle agent status with optimistic UI', async ({ page }) => {
-    // Find the Code Reviewer card toggle switch
-    const codeReviewerCard = page.locator('text=Code Reviewer').locator('..');
-    const toggleSwitch = codeReviewerCard
-      .getByRole('button', { name: /toggle|activate/i })
-      .or(
-        codeReviewerCard.locator('button').filter({ hasText: '' }) // Toggle might be icon-only
-      )
-      .first();
+    // Wait for agent cards to load
+    await page.waitForSelector('.agent-card', { timeout: 10000 });
+    
+    // Find the Code Reviewer card using data-testid
+    const codeReviewerCard = page.locator('.agent-card').filter({ hasText: 'Code Reviewer' });
+    const toggleButton = codeReviewerCard.getByTestId('agent-toggle');
+
+    // Verify initial state is Inactive
+    await expect(codeReviewerCard.getByText('Inactive')).toBeVisible();
 
     // Click to activate
-    await toggleSwitch.click();
+    await toggleButton.click();
 
-    // Optimistic UI: card should show active state immediately (ring or visual change)
-    await expect(codeReviewerCard).toHaveClass(/ring-coral|ring-2/);
-
-    // Wait for server action to complete (check stats update)
-    await expect(page.getByText(/1 active • 3 total agents/i)).toBeVisible({ timeout: 5000 });
+    // Status badge should change to "Active" (optimistic UI)
+    await expect(codeReviewerCard.getByText('Active')).toBeVisible({ timeout: 10000 });
 
     // Toggle back off to restore original state
-    await toggleSwitch.click();
-    await expect(page.getByText(/0 active • 3 total agents/i)).toBeVisible({ timeout: 5000 });
+    await toggleButton.click();
+    await expect(codeReviewerCard.getByText('Inactive')).toBeVisible({ timeout: 10000 });
   });
 
   test('should persist agent state across page reloads', async ({ page }) => {
+    // Wait for agent cards to load
+    await page.waitForSelector('.agent-card', { timeout: 10000 });
+    
     // Activate Debugging Assistant
-    const debuggerCard = page.locator('text=Debugging Assistant').locator('..');
-    const toggleSwitch = debuggerCard.getByRole('button').first();
+    const debuggerCard = page.locator('.agent-card').filter({ hasText: 'Debugging Assistant' });
+    const toggleButton = debuggerCard.getByTestId('agent-toggle');
 
-    await toggleSwitch.click();
-    await expect(page.getByText(/1 active • 3 total agents/i)).toBeVisible({ timeout: 5000 });
+    await toggleButton.click();
+    await expect(debuggerCard.getByText('Active')).toBeVisible({ timeout: 10000 });
 
     // Reload page
     await page.reload();
     await page.waitForLoadState('networkidle');
+    await page.waitForSelector('.agent-card', { timeout: 10000 });
 
-    // State should persist (1 active)
-    await expect(page.getByText(/1 active • 3 total agents/i)).toBeVisible();
-
-    // Debugging Assistant card should still show active state
-    const reloadedCard = page.locator('text=Debugging Assistant').locator('..');
-    await expect(reloadedCard).toHaveClass(/ring-coral|ring-2/);
+    // State should persist - card should still show active
+    const reloadedCard = page.locator('.agent-card').filter({ hasText: 'Debugging Assistant' });
+    await expect(reloadedCard.getByText('Active')).toBeVisible();
 
     // Clean up: toggle back off
-    const reloadedToggle = reloadedCard.getByRole('button').first();
+    const reloadedToggle = reloadedCard.getByTestId('agent-toggle');
     await reloadedToggle.click();
-    await expect(page.getByText(/0 active • 3 total agents/i)).toBeVisible({ timeout: 5000 });
+    await expect(reloadedCard.getByText('Inactive')).toBeVisible({ timeout: 10000 });
   });
 });

@@ -4,6 +4,84 @@
 **Status:** Production Ready ✅
 
 ---
+## CURRENT Quick Start – Mac mini Docker (Single Machine)
+
+> **Current reality:** All development and runtime happen directly on the
+> **Mac mini** using Docker (Next.js, PostgreSQL, MCP server). Do **not** use
+> Windows Docker/WSL or separate Windows dev machines for ProjectPulse.
+
+### Prerequisites (Mac mini)
+
+- macOS on Mac mini (with Terminal access)
+- [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop)
+- Node.js 20+ and `pnpm` installed on the Mac mini
+- Git installed
+
+### Step 1: Clone and Install
+
+```bash
+# On Mac mini
+git clone <your-repo-url> AI_HUB
+cd AI_HUB
+
+# Install dependencies
+pnpm install
+```
+
+### Step 2: Configure Environment
+
+```bash
+cp .env.example .env
+
+# Edit .env (see docs/11-Infrastructure-and-Deployment.md for full details)
+# Key values:
+# NEXT_PUBLIC_APP_URL="http://192.168.1.15:3000"  # Mac mini LAN IP
+# DATABASE_URL="postgresql://projectpulse:...@postgres:5432/projectpulse_db"
+```
+
+### Step 3: Start Docker Services
+
+```bash
+# On Mac mini
+docker compose -f docker-compose.cloud.yml up -d
+
+# Check status
+docker compose -f docker-compose.cloud.yml ps
+```
+
+### Step 4: Verify Health
+
+```bash
+# From Mac mini host
+curl http://localhost:3000/api/health
+
+# From another device on LAN (optional)
+curl http://192.168.1.15:3000/api/health
+```
+
+Expected JSON:
+
+```json
+{"status":"healthy","database":"connected"}
+```
+
+### Step 5: Open ProjectPulse
+
+- On Mac mini: open `http://localhost:3000` in a browser.
+- From other devices: open `http://192.168.1.15:3000`.
+
+> **Important:** Do **not** run `pnpm dev` by default. Assume the Docker
+> containers are the primary runtime. Only start a local dev server if you
+> have a very specific reason and know it will not conflict with Docker.
+
+---
+
+## Legacy Quick Start – Windows 11 + Docker Desktop (Archived)
+
+> ⚠️ This section describes the **old** Windows-based workflow where Windows
+> was the primary dev machine and the Mac mini was optional for LAN access.
+> It is kept only for historical reference. For the current setup, use the
+> Mac mini Docker quick start above.
 
 ## ✅ Prerequisites Checklist
 

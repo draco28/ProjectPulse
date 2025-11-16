@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
-import { Activity } from 'lucide-react';
+import { Activity, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { ScoreCardsGrid } from '@/components/health/ScoreCardsGrid';
@@ -203,8 +203,49 @@ async function getHealthData(projectId: number): Promise<HealthData> {
  * Server Component with ISR (1-hour cache)
  */
 export default async function HealthPage() {
-  // Hardcode project ID = 7 for now (future: from context/params)
-  const projectId = 7;
+  // Dynamic project lookup with optional env override for testing
+  const envProjectId = process.env.DEFAULT_PROJECT_ID;
+
+  let projectId: number;
+  if (envProjectId) {
+    // Use env variable if provided (e.g., for E2E tests)
+    projectId = parseInt(envProjectId, 10);
+  } else {
+    // Dynamic lookup: use first available project
+    const project = await prisma.project.findFirst({
+      select: { id: true }
+    });
+
+    if (!project) {
+      // No projects exist - show onboarding message
+      return (
+        <>
+          <FloatingBackground />
+          <div className="flex h-screen overflow-hidden">
+            <Sidebar />
+
+            <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
+              <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
+                <h2 className="text-3xl font-bold text-white">Project Health</h2>
+              </header>
+
+              <main className="flex-1 overflow-auto">
+                <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
+                  <Activity className="mb-4 h-16 w-16 text-slate-400" aria-hidden="true" />
+                  <h3 className="mb-2 text-xl font-semibold text-white">No Projects Found</h3>
+                  <p className="text-slate-400">
+                    Create a project to start tracking health metrics.
+                  </p>
+                </div>
+              </main>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    projectId = project.id;
+  }
 
   const { latestScore, historicalScores, findings, scanners, vulnerabilityCounts, trend } =
     await getHealthData(projectId);
@@ -244,6 +285,29 @@ export default async function HealthPage() {
     );
   }
 
+  // Calculate health grade (A-F) from overall score
+  const getHealthGrade = (score: number): string => {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  };
+
+  // Get trend icon component
+  const getTrendIcon = (trend: 'improving' | 'declining' | 'stable') => {
+    if (trend === 'improving') return TrendingUp;
+    if (trend === 'declining') return TrendingDown;
+    return Minus;
+  };
+
+  // Get trend color
+  const getTrendColor = (trend: 'improving' | 'declining' | 'stable'): string => {
+    if (trend === 'improving') return 'text-green-400';
+    if (trend === 'declining') return 'text-red-400';
+    return 'text-slate-400';
+  };
+
   // Format last scan time as relative (e.g., "2h ago")
   const formatLastScan = (timestamp: Date): string => {
     const now = new Date();
@@ -256,6 +320,11 @@ export default async function HealthPage() {
     if (diffHours < 24) return `${diffHours}h ago`;
     return `${diffDays}d ago`;
   };
+
+  const healthGrade = getHealthGrade(latestScore.overallScore);
+  const TrendIcon = getTrendIcon(trend);
+  const trendColor = getTrendColor(trend);
+  const trendText = trend.charAt(0).toUpperCase() + trend.slice(1);
 
   // Create timeline events from recent findings
   const timelineEvents = findings.slice(0, 5).map((finding) => ({
@@ -298,12 +367,44 @@ export default async function HealthPage() {
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
-            <div>
-              <h2 className="mb-1 text-3xl font-bold text-white">Project Health</h2>
-              <p className="text-sm text-slate-400">
-                Last updated: {latestScore.calculatedAt.toLocaleString()} • {findings.length}{' '}
-                findings
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="mb-1 text-3xl font-bold text-white">Project Health</h2>
+                <p className="text-sm text-slate-400">
+                  Last updated: {latestScore.calculatedAt.toLocaleString()} • {findings.length}{' '}
+                  findings
+                </p>
+              </div>
+
+              {/* Grade Badge & Trend Indicator */}
+              <div className="flex items-center gap-4">
+                {/* Health Grade Badge */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-400">Grade:</span>
+                  <div
+                    className={`neu-raised flex h-12 w-12 items-center justify-center rounded-2xl text-2xl font-bold ${
+                      healthGrade === 'A'
+                        ? 'text-green-400'
+                        : healthGrade === 'B'
+                          ? 'text-blue-400'
+                          : healthGrade === 'C'
+                            ? 'text-yellow-400'
+                            : healthGrade === 'D'
+                              ? 'text-orange-400'
+                              : 'text-red-400'
+                    }`}
+                    data-testid="health-grade"
+                  >
+                    {healthGrade}
+                  </div>
+                </div>
+
+                {/* Trend Indicator */}
+                <div className="flex items-center gap-2" data-testid="trend-indicator">
+                  <TrendIcon className={`h-6 w-6 ${trendColor}`} data-testid="trend-icon" aria-hidden="true" />
+                  <span className={`text-sm font-semibold ${trendColor}`}>{trendText}</span>
+                </div>
+              </div>
             </div>
           </header>
 

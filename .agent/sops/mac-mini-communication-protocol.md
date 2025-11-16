@@ -1,3 +1,18 @@
+> ⚠️ LEGACY ARCHITECTURE – WINDOWS + MAC MINI SPLIT
+>
+> This SOP describes a Git-based communication workflow between **Windows**
+> Claude Code and **Mac mini** Claude Code, using
+> `.agent/task/mac-mini-instructions.md` as a handoff file. It assumes two
+> machines and is kept **only for historical reference**.
+>
+> **Current reality:** All development and runtime happen directly on the
+> **Mac mini** using Docker containers. There is no Windows dev machine or
+> cross-machine handoff in the normal workflow.
+>
+> Use instead:
+> - `.agent/sops/mac-mini-cloud-architecture.md` – current Mac-mini-only setup
+> - `.agent/archive/windows-workflows-index.md` – index of legacy Windows flows
+
 # SOP: Communicating with Mac Mini Claude Code
 
 **Version**: 1.0

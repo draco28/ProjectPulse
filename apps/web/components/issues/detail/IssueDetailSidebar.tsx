@@ -28,29 +28,7 @@ export function IssueDetailSidebar({
 }: IssueDetailSidebarProps) {
   return (
     <div className="w-80 space-y-4 overflow-auto">
-      {/* Quick Actions */}
-      <div className="neu-raised smooth-transition rounded-3xl p-6">
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-white">
-          Quick Actions
-        </h3>
-        <div className="space-y-2">
-          <button className="neu-raised smooth-transition flex w-full items-center gap-2 rounded-2xl px-4 py-2 text-sm text-white hover:text-white">
-            <i className="fas fa-eye w-5"></i>
-            <span>Watch Issue</span>
-          </button>
-          <button
-            className="neu-raised smooth-transition flex w-full items-center gap-2 rounded-2xl px-4 py-2 text-sm text-white hover:text-white"
-            onClick={() => copyToClipboard(window.location.href)}
-          >
-            <i className="fas fa-link w-5"></i>
-            <span>Copy Link</span>
-          </button>
-          <button className="neu-raised smooth-transition flex w-full items-center gap-2 rounded-2xl px-4 py-2 text-sm text-white hover:text-white">
-            <i className="fas fa-code-branch w-5"></i>
-            <span>Create Branch</span>
-          </button>
-        </div>
-      </div>
+      {/* Quick Actions section removed - now handled by QuickActions component in left sidebar */}
 
       {/* Issue Details */}
       <div className="neu-raised smooth-transition rounded-3xl p-6">

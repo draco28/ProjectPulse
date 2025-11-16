@@ -1,3 +1,18 @@
+> ⚠️ LEGACY COMMUNICATION PROTOCOL – WINDOWS ↔ MAC MINI
+>
+> This README describes a Git-based communication protocol between **Windows**
+> Claude Code and **Mac mini** Claude Code, using
+> `.agent/task/mac-mini-instructions.md` as a shared instruction file. It is
+> kept **only for historical reference**.
+>
+> **Current reality:** All development and runtime happen directly on the
+> **Mac mini** using Docker containers. There is no Windows dev machine or
+> cross-machine handoff in the normal workflow.
+>
+> Use instead:
+> - `.agent/sops/mac-mini-cloud-architecture.md` – current Mac-mini-only setup
+> - `.agent/archive/windows-workflows-index.md` – index of legacy Windows flows
+
 # Windows ↔ Mac Mini Communication Protocol
 
 **Version**: 1.0

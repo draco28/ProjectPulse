@@ -80,7 +80,12 @@ export function FindingRow({ finding }: FindingRowProps) {
   const { icon: severityIcon, color, bg } = getSeverityStyle(finding.severity);
 
   return (
-    <div className="neu-pressed group rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5">
+    <div
+      className="neu-pressed group rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5"
+      data-testid="finding-card"
+      role="article"
+      aria-label={`${finding.severity} ${finding.category} finding: ${finding.message}`}
+    >
       <div className="flex items-start gap-4">
         {/* Category Icon */}
         <div className="neu-raised flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl">

@@ -30,7 +30,7 @@ export function StatCard({ title, value, icon: Icon, trend, iconClassName }: Sta
   const trendNegative = trend && trend.value < 0;
 
   return (
-    <div className="neu-raised smooth-transition rounded-3xl p-6">
+    <div className="neu-raised neu-float smooth-transition rounded-3xl p-6">
       <div className="mb-4 flex items-center justify-between">
         <div
           className={cn(

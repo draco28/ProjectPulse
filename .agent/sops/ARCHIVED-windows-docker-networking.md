@@ -1,7 +1,10 @@
-> 🚫 ARCHIVED — Superseded by Mac mini Cloud Runtime
-> Do NOT use Windows Docker/WSL for ProjectPulse development. All services run on the Mac mini (192.168.1.15).
-> Use: docker-compose.cloud.yml on the Mac mini, and follow Git-based communication.
-> See: .agent/sops/mac-mini-cloud-architecture.md and .agent/sops/mac-mini-communication-protocol.md
+> 🚫 ARCHIVED — Superseded by Mac-mini-only Docker Runtime
+> Do NOT use Windows Docker/WSL for ProjectPulse development. All services now
+> run on a single Mac mini (Docker: Next.js, PostgreSQL, MCP).
+> Use: `docker-compose.cloud.yml` on the Mac mini; do not attempt any Windows
+> Docker workflows.
+> See: `.agent/sops/mac-mini-cloud-architecture.md` (current) and
+> `.agent/archive/windows-workflows-index.md` (legacy Windows docs)
 
 # Windows Docker Desktop + WSL2 Networking Troubleshooting
 

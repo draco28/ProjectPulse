@@ -41,16 +41,31 @@ curl http://192.168.1.15:3000/api/health
 
 **See**: `.agent/sops/mac-mini-cloud-architecture.md`
 
-### 2. Port Configuration (Optional - Only if running locally on Windows)
+### 2. Docker Services (Mac mini Runtime)
+
+> Default assumption: all runtime services (Next.js, PostgreSQL, MCP) run in
+> Docker on the **Mac mini itself**. Do **not** start extra local dev servers
+> (`pnpm dev`) unless explicitly requested and you know they will not conflict
+> with Docker.
 
 ```bash
-pnpm dev
-# ✅ MUST show: "ready started server on 0.0.0.0:3000"
+# On Mac mini, check containers
+docker compose -f docker-compose.cloud.yml ps
 ```
 
-**Note**: Usually you won't run pnpm dev on Windows. Access Mac mini: `http://192.168.1.15:3000`
+If services down or unhealthy:
 
-See `.agent/sops/port-troubleshooting.md` for recovery steps.
+Start services on Mac mini: docker compose -f docker-compose.cloud.yml up -d
+Then re-run the health check from Step 1.
+See:
+
+docs/11-Infrastructure-and-Deployment.md
+.agent/sops/mac-mini-cloud-architecture.md
+
+
+
+
+
 
 ### 3. Git Branch
 
@@ -318,8 +333,8 @@ Cascade must:
 
 ```markdown
 - [ ] Mac mini health OK: curl http://192.168.1.15:3000/api/health returns healthy
-- [ ] 192.168.1.15:3000 loads application (from Windows)
-- [ ] (Optional local) pnpm dev only if explicitly running locally on Windows
+- [ ] http://192.168.1.15:3000 loads application (from any other device, optional)
+- [ ] No extra local dev servers running (`pnpm dev`) unless explicitly requested
 - [ ] On feature branch (not master)
 - [ ] Read .agent/active-context.md, .agent/progress.md and docs/13-Project-Plan.md
 - [ ] Read .agent/MANDATORY_SESSION_PROTOCOL.md Protocol Violations Log
@@ -337,7 +352,7 @@ Cascade must:
 
 - [ ] MCP tools configured and working
 - [ ] Access to `.agent/` documentation verified
-- [ ] `pnpm dev` runs successfully
+- [ ] Docker services healthy (`docker compose -f docker-compose.cloud.yml ps`)
 - [ ] Actively working on the correct feature branch
 - [ ] `STATUS.md` and `docs/13-Project-Plan.md` reviewed
 

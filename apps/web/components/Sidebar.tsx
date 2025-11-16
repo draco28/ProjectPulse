@@ -28,6 +28,7 @@ import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { ThemeSwitcher } from './ThemeSwitcher';
 
 interface NavItem {
   icon: typeof Home;
@@ -149,7 +150,7 @@ export function Sidebar() {
                 href={item.href}
                 className={cn(
                   'smooth-transition flex items-center gap-3 rounded-2xl px-5 py-4',
-                  isActive ? 'coral-gradient text-white' : 'neu-raised text-slate hover:text-white'
+                  isActive ? 'bg-accent-primary/20 text-white' : 'neu-raised text-slate hover:text-white'
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -190,11 +191,19 @@ export function Sidebar() {
           </div>
         </nav>
 
+        {/* Theme Switcher */}
+        <ThemeSwitcher />
+
         {/* User Profile */}
         <div className="neu-raised smooth-transition rounded-3xl p-4">
           <div className="flex items-center gap-3">
-            <div className="icon-coral flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-lg">
+            <div className="icon-coral relative flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-lg">
               DV
+              {/* Online status indicator */}
+              <span
+                className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background bg-green-400"
+                title="Online"
+              />
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-white">Developer</p>
