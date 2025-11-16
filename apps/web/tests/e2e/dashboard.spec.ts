@@ -26,6 +26,9 @@ test.describe('Dashboard Page', () => {
   });
 
   test('should display the welcome banner', async ({ page }) => {
+    // Wait briefly for client-side greeting hydration (WelcomeBanner uses client-only rendering)
+    await page.waitForTimeout(100);
+
     // Check welcome banner is visible with greeting
     const banner = page.locator('text=/Good (morning|afternoon|evening)/');
     await expect(banner).toBeVisible();

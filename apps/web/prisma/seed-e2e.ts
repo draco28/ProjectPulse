@@ -27,6 +27,12 @@ async function main() {
     prisma.project.deleteMany(),
   ]);
 
+  // Reset auto-increment sequences to start from 1
+  console.log('🔄 Resetting ID sequences...');
+  await prisma.$executeRaw`ALTER SEQUENCE "Issue_id_seq" RESTART WITH 1;`;
+  await prisma.$executeRaw`ALTER SEQUENCE "Project_id_seq" RESTART WITH 1;`;
+  await prisma.$executeRaw`ALTER SEQUENCE "Label_id_seq" RESTART WITH 1;`;
+
   // Create test project
   const project = await prisma.project.create({
     data: {
@@ -47,22 +53,10 @@ async function main() {
   // Create issues with EXACT titles tests expect
   console.log('📝 Creating issues...');
 
-  const issue1 = await prisma.issue.create({
-    data: {
-      title: 'Authentication flow not handling session timeout',
-      description: 'Session timeout not being handled correctly in auth flow',
-      status: 'open',
-      priority: 'critical',
-      module: 'Authentication',
-      projectId: project.id,
-      assignee: 'Test User',
-      labels: {
-        connect: [{ id: labels[0].id }],
-      },
-    },
-  });
+  // Strategy: Create auth issue LAST (after all other issues) so it appears in dashboard's
+  // "recent issues" section which shows top 5 by createdAt DESC
 
-  // Create 11 more issues for dashboard (total 12 for "Open Issues" stat)
+  // Create 11 open issues first (IDs 1-11)
   const issuesData = [
     { title: 'Add dark mode toggle', priority: 'high', module: 'UI' },
     { title: 'Fix pagination bug', priority: 'medium', module: 'Core' },
@@ -91,9 +85,10 @@ async function main() {
     });
   }
 
-  // Create 28 closed issues for "Completed" stat
-  console.log('✅ Creating completed issues...');
-  for (let i = 1; i <= 28; i++) {
+  // Create 24 closed issues for "Completed" stat (IDs 12-35)
+  // We'll create 4 more issues after this with varied priorities for test coverage
+  console.log('✅ Creating completed issues (first batch)...');
+  for (let i = 1; i <= 24; i++) {
     await prisma.issue.create({
       data: {
         title: `Completed issue ${i}`,
@@ -106,6 +101,77 @@ async function main() {
       },
     });
   }
+
+  // Create 4 more CLOSED issues with varied priorities (IDs 36-39)
+  // These ensure all priority badge variants (Critical/High/Medium/Low) appear in top 5 recent
+  console.log('✅ Creating final closed issues with varied priorities...');
+
+  await prisma.issue.create({
+    data: {
+      title: 'Performance regression in API endpoints',
+      description: 'API response times increased significantly - RESOLVED',
+      status: 'closed',
+      priority: 'high',
+      module: 'Performance',
+      projectId: project.id,
+      assignee: 'Test User',
+    },
+  });
+
+  await prisma.issue.create({
+    data: {
+      title: 'Update documentation for new features',
+      description: 'Documentation updated to reflect recent changes',
+      status: 'closed',
+      priority: 'medium',
+      module: 'Documentation',
+      projectId: project.id,
+      assignee: 'Test User',
+    },
+  });
+
+  await prisma.issue.create({
+    data: {
+      title: 'Minor UI alignment issue in footer',
+      description: 'Footer text alignment fixed',
+      status: 'closed',
+      priority: 'low',
+      module: 'UI',
+      projectId: project.id,
+      assignee: 'Test User',
+    },
+  });
+
+  await prisma.issue.create({
+    data: {
+      title: 'Optimize database connection pooling',
+      description: 'Connection pool settings tuned and optimized',
+      status: 'closed',
+      priority: 'high',
+      module: 'Database',
+      projectId: project.id,
+      assignee: 'Test User',
+    },
+  });
+
+  // Create "Authentication flow" issue LAST (ID 40)
+  // This ensures it appears in "recent issues" section (dashboard shows 5 most recent by createdAt DESC)
+  // Set to 'in-progress' so pulse indicator appears for E2E test
+  console.log('📝 Creating test-expected authentication issue...');
+  const authIssue = await prisma.issue.create({
+    data: {
+      title: 'Authentication flow not handling session timeout',
+      description: 'Session timeout not being handled correctly in auth flow',
+      status: 'in-progress',
+      priority: 'critical',
+      module: 'Authentication',
+      projectId: project.id,
+      assignee: 'Test User',
+      labels: {
+        connect: [{ id: labels[0].id }],
+      },
+    },
+  });
 
   // Create 47 knowledge items for "Knowledge Items" stat
   console.log('📚 Creating knowledge items...');
@@ -186,7 +252,13 @@ async function main() {
   - 40 issues (12 open, 28 closed)
   - 47 knowledge items
   - 3 security findings
-  - 3 agent personas`);
+  - 3 agent personas
+
+  ✅ Recent 5 issues (IDs 36-40) include all priority variants:
+    - Critical (auth issue #40)
+    - High (#36, #39)
+    - Medium (#37)
+    - Low (#38)`);
 }
 
 main()
