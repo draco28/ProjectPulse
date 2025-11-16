@@ -272,9 +272,9 @@ test.describe('Issue Detail Page', () => {
     await page.locator('.issue-card h3 a').first().click();
     await page.waitForURL(/\/issues\/\d+/);
 
-    // Check for neumorphic classes (neu-raised, neu-pressed, glass-dark)
-    await expect(page.locator('[class*="neu-raised"]').first()).toBeVisible();
-    await expect(page.locator('[class*="neu-pressed"]').first()).toBeVisible();
+    // Check for neumorphic classes in main content (avoid mobile menu)
+    await expect(page.locator('main [class*="neu-raised"]').first()).toBeVisible();
+    await expect(page.locator('main [class*="neu-pressed"]').first()).toBeVisible();
   });
 
   test('should be responsive on mobile', async ({ page }) => {

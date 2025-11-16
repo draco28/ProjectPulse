@@ -107,9 +107,12 @@ test.describe('Dashboard Page', () => {
   });
 
   test('should display notification indicator', async ({ page }) => {
-    // Check notification bell icon is present
-    const notificationButton = page.locator('button').filter({ has: page.locator('svg') });
-    await expect(notificationButton.first()).toBeVisible();
+    // Check notification bell icon is present (scope to header to avoid mobile menu)
+    const notificationButton = page.locator('header button[aria-label="Notifications"]');
+    await expect(notificationButton).toBeVisible();
+    
+    // Verify pulse indicator is present
+    await expect(notificationButton.locator('.pulse-glow')).toBeVisible();
   });
 
   test('should toggle theme using quick toggle button', async ({ page }) => {
