@@ -1,29 +1,31 @@
-# Sprint 8 Master Plan: Integration & Polish
+# Sprint 8 Day 6: MVP Feature Completion
 
-**Sprint Duration:** Weeks 15-16 (2 weeks)
-**Story Points:** 48 points total
-**Current Progress:** 33/48 points (69% complete)
-**Status:** ⏳ IN PROGRESS - Day 4
-**Last Updated:** 2025-11-15
+**Sprint Duration:** Day 6
+**Story Points:** 8-10 points
+**Current Progress:** 0/10 points (0% complete)
+**Status:** ⏳ IN PROGRESS - Day 6
+**Last Updated:** 2025-11-16
 
 ---
 
-## Sprint Goal
+## Day 6 Goal
 
-Validate MVP completion, integration testing, performance optimization, and production readiness.
+Complete missing MVP dashboard features to unlock additional test passes.
 
 **Key Objectives:**
-- ✅ End-to-end workflows across all 8 features
-- ✅ E2E test coverage for critical paths
-- ⏳ Performance optimization (database, queries, caching)
-- ⏳ Bug fixes from integration testing
-- ⏳ Documentation completion
-- ⏳ MVP acceptance criteria validation
-- ⏳ Production readiness checklist
+- ⏳ Theme Switcher in Sidebar (2 points)
+- ⏳ Notification Indicator (1 point)
+- ⏳ Agent Toggle Switch (1 point)
+- ⏳ Dashboard Active Link State (1 point)
+- ⏳ Quick Actions Widget (1 point, optional)
+- ⏳ Documentation updates (2 points)
+- ⏳ Git commits (1 point)
+
+**Expected Impact:** 80/147 → 100/147 tests passing (~68% pass rate)
 
 ---
 
-## Sprint 8 Breakdown by Day
+## Implementation Plan
 
 ### ✅ Day 1-2: Health Dashboard E2E Tests (COMPLETE)
 
