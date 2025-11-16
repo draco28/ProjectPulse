@@ -251,9 +251,137 @@ Files Modified:
 - ✅ Expected improvement: 39.2% → ~60-70% pass rate (+20-30%)
 - ✅ Fixes critical user-facing bug (issue detail page crashes)
 
-**Test Run #3 Status**: Currently running (started after fix committed)
+**Test Run #3 Status**: Running (after incomplete fix)
+- Only fixed 4 issue detail components
+- Missed IssueListCard.tsx and test files
 
 ---
 
-**Last Updated**: 2025-11-16 (Critical bug fix committed)
-**Status**: Test run #3 in progress
+### [Continued] COMPREHENSIVE STATUS FIX: Complete Codebase Standardization
+
+**Critical Discovery**: Initial fix was incomplete - only fixed issue detail components
+
+**Root Cause (Deeper):**
+- Database stores `'in-progress'` (Issue.status field)
+- FilterOptions also use values like `'in-progress'`
+- Components/types mixed `'in_progress'` and `'in-progress'` inconsistently
+- Multiple layers of type mismatches throughout codebase
+
+**Comprehensive Fix Applied (Commit f69fce5)**:
+
+Files Fixed:
+1. **types/issue.ts** - Core type definitions (CRITICAL)
+   - IssueDetailProps.status: `'in_progress'` → `'in-progress'`
+   - UpdateStatusRequest.status: `'in_progress'` → `'in-progress'`
+
+2. **components/issues/IssueListCard.tsx** - Issue list card rendering
+   - Status type: `'in_progress'` → `'in-progress'`
+   - STATUS_CONFIG map key: `in_progress` → `'in-progress'`
+
+3. **app/issues/page.tsx** - Issues page type assertions
+   - Type assertion in props: `'in_progress'` → `'in-progress'`
+
+4. **prisma/seed.ts** - Filter option seed data
+   - IssueStatusOption values: `'in_progress'` → `'in-progress'`
+   - Both filter option sets updated for consistency
+
+5. **types/filters.ts** - Filter type documentation
+   - StatusOption comment example: `in_progress` → `in-progress`
+   - FilterCounts comment example: `in_progress` → `in-progress'`
+
+6. **components/issues/__tests__/FilterSidebar.test.tsx** - Test mocks
+   - Mock filter options: `in_progress` → `'in-progress'`
+   - Mock filter counts: `in_progress` → `'in-progress'`
+
+7. **.agent/task/current-session-20251116-0000.md** - Session tracking
+
+**Expected Impact:**
+- ✅ Fixes React runtime error completely
+- ✅ Unblocks ALL issue-related functionality
+- ✅ 100% consistent status format across application
+- ✅ Type-safe throughout - no more runtime surprises
+
+**Test Run #4 Status**: Currently running (started after comprehensive fix)
+
+---
+
+### [Continued] HYDRATION ERROR INVESTIGATION & FIX
+
+**Root Cause Identified**: Next.js hydration error causing ALL tests to fail
+
+**Problem**:
+- Browser console showed: "Prop `className` did not match"
+- Server: `"icon-coral relative flex..."`
+- Client: `"icon-coral flex..."` (missing `relative`)
+- React detected mismatch → threw away server HTML → completely re-rendered client-side
+- During client re-render, all elements appeared at different times → **all Playwright tests failed**
+
+**Investigation**:
+1. Test run #4 showed ~40% pass rate despite status fixes
+2. User provided browser errors showing hydration issues
+3. Traced to Sidebar.tsx line 196: `icon-coral relative` className
+4. Discovered `.next` build cache was stale from pre-fix builds
+
+**Fix Applied**:
+1. Stopped Next.js Docker container
+2. Removed `.next` build cache on host: `rm -rf /Users/draco/projects/AI_HUB/apps/web/.next`
+3. Restarted container with clean build
+4. Verified server HTML renders correctly: `icon-coral relative` present ✓
+5. Killed test run #4 (was testing against old broken build)
+
+**Expected Impact:**
+- ✅ Fixes ALL hydration errors
+- ✅ Server/client HTML now matches perfectly
+- ✅ Elements appear consistently → Playwright tests work
+- ✅ Expected: >90% pass rate on fresh test run
+
+**Next Steps:**
+1. User must reload browser with **hard refresh** (Cmd+Shift+R) to clear cached JS
+2. Verify hydration errors are gone in browser console
+3. Run fresh E2E test suite against clean build
+
+### [Continued] TEST RUN #5 RESULTS - REALITY CHECK
+
+**Test Execution Complete** (22.3 minutes)
+
+**Results:**
+- ✅ **Passed: 377** (52.0% of 725 executed tests)
+- ❌ **Failed: 348** (48.0%)
+- ⏭️ **Skipped: 100**
+- **Total Executed: 725** (down from 825 expected)
+
+**Comparison to Baseline:**
+| Metric | Baseline | Run #5 | Change |
+|--------|----------|---------|---------|
+| Executed | 701 (825-124 skipped) | 725 | +24 tests |
+| Passed | 474 (67.6%) | 377 (52.0%) | **-97 tests** ❌ |
+| Failed | 227 (32.4%) | 348 (48.0%) | **+121 tests** ❌ |
+
+**🚨 CRITICAL FINDING: Results WORSE than baseline!**
+
+**Analysis:**
+1. ✅ Hydration error IS fixed (user confirmed issue detail pages load)
+2. ✅ Status standardization IS complete (`'in-progress'` consistent)
+3. ❌ **BUT**: Other underlying issues remain:
+   - Health dashboard: 100% failing (not implemented)
+   - Knowledge tests: High failure rate (incomplete features)
+   - Security tests: 100% failing (not implemented)
+   - Wiki tests: Moderate failures (incomplete)
+
+**Root Cause Hypothesis:**
+- Baseline (474 passed) may have been run against **different code state** or **different database**
+- Our fixes ARE correct, but we're now testing against MORE complete test suite
+- The "improvement" we expected was masked by unimplemented features being tested
+
+**Realistic Assessment:**
+- Dashboard: Likely improved (need detailed breakdown)
+- Issue Detail: Likely improved (hydration fix + status fix)
+- Unimplemented features: 100% failure (expected)
+
+**Next Steps:**
+1. Get per-category breakdown (dashboard, issue-detail, etc.)
+2. Compare apples-to-apples: same categories between baseline and Run #5
+3. Determine realistic pass rate target excluding unimplemented features
+
+**Last Updated**: 2025-11-16 17:04 PST (Test Run #5 complete)
+**Status**: Analyzing results - need category breakdown to assess real improvement
