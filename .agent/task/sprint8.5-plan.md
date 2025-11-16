@@ -2,12 +2,13 @@
 
 **Sprint ID**: Sprint 8.5
 **Type**: Critical MVP Gap Filling
-**Duration**: 6-7 days (1.5 weeks)
-**Story Points**: 26 points
+**Duration**: 6.5 days (1.5 weeks)
+**Story Points**: 24 points
 **Start Date**: 2025-11-17 (after Sprint 8 closure at 82%)
 **Owner**: Development Team
 **Status**: APPROVED - Ready for Execution
 **Created**: 2025-11-16
+**Last Updated**: 2025-11-17 (architectural decisions finalized)
 
 ---
 
@@ -17,7 +18,7 @@
 
 Sprint 8 focused on human UI polish (theme switcher, notification indicators) instead of agent-critical infrastructure. Sprint 9-11 **assume** certain MVP features exist:
 - Development Cycle UI (to visualize Phase/Week/Day hierarchy)
-- Session 3 Blueprint View (to display agent configuration from onboarding)
+- Roadmap materialization (to populate hierarchy from Session 3)
 - MCP Read Tools (for agents to query their own data)
 
 **These features are MISSING**, blocking the agent-first workflow.
@@ -25,10 +26,10 @@ Sprint 8 focused on human UI polish (theme switcher, notification indicators) in
 ### Solution: Sprint 8.5
 
 Fill critical MVP gaps with agent-first features:
-1. **Development Cycle UI** (8 points) - Visualize 5-level hierarchy
-2. **Session 3 Blueprint View** (5 points) - Display agent configuration
+1. **Development Cycle UI + Materialization** (9 points) - Visualize hierarchy + populate from Session 3
+2. **Blueprint MCP Tool** (2 points) - Enable agent self-query (no UI)
 3. **Agent AI Hub Tabs** (8 points) - Manage skills/workflows
-4. **MCP Read Tools** (5 points) - Enable agent self-query
+4. **MCP Read Tools** (5 points) - Efficient hierarchy queries
 
 ### Success Criteria
 
@@ -39,7 +40,7 @@ Fill critical MVP gaps with agent-first features:
 - ✅ Human can monitor agent progress in Development Cycle UI
 
 **MVP Completion**:
-- ✅ 91% → 93% (384.5 → 393 points)
+- ✅ 91% → 93% (384.5 → 391 points)
 - ✅ Sprint 9 unblocked (memory banks can reference roadmap)
 - ✅ Sprint 11 unblocked (auto-docs can generate from roadmap)
 
@@ -59,6 +60,7 @@ Fill critical MVP gaps with agent-first features:
 
 **Critical Gaps** ❌:
 - NO Development Cycle UI page
+- NO roadmap materialization tool (Session 3 creates JSON, not Phase/Week/Day records)
 - NO Session 3 blueprint MCP read tool
 - NO Agent AI Hub tabs (Skills, Workflows, Config)
 - NO current position MCP query tool
@@ -70,21 +72,24 @@ Fill critical MVP gaps with agent-first features:
 
 ---
 
-## Phase 1: Development Cycle UI (8 points, 2 days)
+## Phase 1: Development Cycle UI + Materialization (9 points, 2.5 days)
 
 ### Overview
 
-**Goal**: Create `/roadmap` page to visualize the 5-level hierarchy (Phase → Week → Day → Task → Session) with progress tracking.
+**Goal**: Create `/roadmap` page to visualize the 5-level hierarchy (Phase → Week → Day → Task → Session) with progress tracking, PLUS add materialization tool to populate hierarchy from Session 3.
 
 **Why Critical**:
 - Sprint 9 Memory Banks need visual roadmap for "active-context.md"
 - Sprint 11 Auto-Docs need to query roadmap structure
 - Humans need to monitor agent progress (secondary but required)
+- **NEW REQUIREMENT**: Session 3 creates Roadmap (JSON) but NOT Phase/Week/Day records
+- **BLOCKER**: Without materialization, Development Cycle UI shows empty tree
 
 **Dependencies**:
 - ✅ Database schema complete (Phase/Week/Day/Task/Session models)
 - ✅ API endpoint exists (`GET /api/hierarchy/query`)
 - ✅ MCP tools exist (`sprint.phase.create`, `sprint.checkpoint`)
+- ✅ OnboardingSession stores Session 3 in `response.projectContextJson`
 
 ---
 
@@ -155,6 +160,34 @@ Fill critical MVP gaps with agent-first features:
    - Add "Development Cycle" navigation link
    - Icon: Map from lucide-react
 
+10. **NEW MCP Tool**: `apps/mcp-server/src/tools/roadmap/materializeTool.ts` (~150 lines)
+    - Read Roadmap.phases JSON from database
+    - Create Phase records (1 per phase in JSON)
+    - Parse duration string ("2 weeks" → 2)
+    - Create Week records (N weeks per phase)
+    - Create Day records (5 days per week, Mon-Fri)
+    - Return created IDs for agent reference
+    - Transaction-safe (rollback on error)
+
+11. **NEW Schema Migration**: `apps/web/prisma/migrations/YYYYMMDD_add_dev_session_fk/migration.sql` (~30 lines)
+    - Add phaseId, weekId, dayId, taskId columns to DevelopmentSession
+    - Add foreign key constraints to Phase/Week/Day/Task tables
+    - Add indexes for query performance
+    - Enable agents to link sessions to hierarchy
+
+12. **NEW Empty State**: `apps/web/components/roadmap/EmptyRoadmapState.tsx` (~40 lines)
+    - Display when no Phase records exist
+    - Message: "Complete onboarding Session 3 to generate your roadmap"
+    - CTA button: "Start Onboarding" → `/onboarding`
+    - Helpful instructions for first-time users
+
+13. **Update**: `apps/mcp-server/src/index.ts` (~3 lines)
+    - Register materializeTool in tools array
+
+14. **Update**: `apps/mcp-server/src/tools/onboarding/bootstrapTool.ts` (~10 lines)
+    - After creating Roadmap, call materialize(roadmapId)
+    - Store returned phase/week/day IDs in Session 3 response
+
 ---
 
 ### Testing Strategy
@@ -193,36 +226,46 @@ test('should filter by status', async ({ page }) => {
 ### Acceptance Checklist
 
 #### Phase 1 Complete When:
+- [ ] **Materialization Tool**: MCP tool creates Phase/Week/Day records from Roadmap JSON
+- [ ] **Schema Migration**: DevelopmentSession has FK relationships to hierarchy
+- [ ] **Session 3 Integration**: Materialization called automatically after roadmap creation
 - [ ] `/roadmap` page created and accessible
-- [ ] All 9 components implemented
+- [ ] **Empty State**: Shown when no Phase records exist
+- [ ] All 9 UI components implemented (page, tree, 4 cards, banner, filters, sidebar)
 - [ ] Phase cards display with progress bars
 - [ ] Tree expands/collapses correctly
 - [ ] "You Are Here" banner shows current task
 - [ ] Sidebar has "Development Cycle" link
 - [ ] E2E tests: 5-7 tests passing
+- [ ] **Integration Test**: Complete Session 3 → Phase/Week/Day records exist → UI displays
 - [ ] Manual test: Agent calls `sprint.checkpoint` → UI updates
 
-**Story Points**: 8 points
-**Estimated Time**: 2 days
+**Story Points**: 9 points (8 UI + 1 materialization)
+**Estimated Time**: 2.5 days
 **Priority**: P0 (CRITICAL - blocks Sprint 9)
 
 ---
 
-## Phase 2: Session 3 Blueprint View (5 points, 1.5 days)
+## Phase 2: Blueprint MCP Tool (2 points, 0.5 days)
 
 ### Overview
 
-**Goal**: Enable agents to read Session 3 blueprint data via MCP + display in UI.
+**Goal**: Enable agents to query Session 3 blueprint data via MCP (NO UI component).
 
 **Why Critical**:
-- Session 3 stores roadmap/tech stack/agent config but NO read access
-- Agents are "write-only" - cannot query their own configuration
-- Onboarding workflow is useless without retrieval
+- Agents need to recall their onboarding configuration (tech stack, roadmap, budget)
+- Session 3 stores data but NO read access exists
+- Onboarding workflow is write-only without retrieval
+
+**Why NO UI**:
+- Roadmap data → Already shown in Development Cycle UI (Phase 1)
+- Agent data → Already shown in Agent AI Hub (Phase 3)
+- Blueprint is static snapshot; users need live state (shown in other UIs)
+- MCP tool enables agent queries without UI clutter
 
 **Dependencies**:
 - ✅ OnboardingSession model stores Session 3 in `response` JSONB
-- ✅ `/agents` page exists (enhance with blueprint tab)
-- ⚠️ Needs Phase 1 patterns (card components, progress bars)
+- ✅ project-context.json structure defined in 3-session-onboarding-REFERENCE.md
 
 ---
 
@@ -232,18 +275,10 @@ test('should filter by status', async ({ page }) => {
 
 **Acceptance Criteria**:
 1. MCP tool `projectpulse.blueprint.get(projectId)` returns Session 3 JSON
-2. Tool returns roadmap phases, tech stack, agent persona, skills, workflows
+2. Tool returns: roadmap phases, tech stack, agent persona, skills, workflows, timeline, budget
 3. Tool is callable from Claude Code MCP client
 4. Returns error if Session 3 not completed
-
-**US-8.5-004**: As a **human user**, I want to **view the Session 3 blueprint** so that **I can see what the agent configured during onboarding**.
-
-**Acceptance Criteria**:
-1. `/agents` page has new "Project Blueprint" tab
-2. Tab displays roadmap phases from Session 3
-3. Tab displays tech stack choices
-4. Tab displays agent persona selection
-5. Tab displays skills/workflows configured
+5. NO UI component created (data displayed in Dev Cycle UI + Agent AI Hub)
 
 ---
 
@@ -252,8 +287,8 @@ test('should filter by status', async ({ page }) => {
 #### Files to Create
 
 1. **MCP Tool**: `apps/mcp-server/src/tools/onboarding/getBlueprintTool.ts` (~80 lines)
-   - Query OnboardingSession where sessionNumber = 3
-   - Parse response JSONB
+   - Query OnboardingSession where sessionType = "bootstrap"
+   - Parse response.projectContextJson
    - Return formatted blueprint data
    - Error handling for missing/incomplete sessions
 
@@ -263,24 +298,14 @@ test('should filter by status', async ({ page }) => {
    - Return JSON response
    - 404 if not found
 
-3. **Component**: `apps/web/components/agents/BlueprintView.tsx` (Client, ~120 lines)
-   - Display roadmap phases (cards with progress)
-   - Display tech stack (badges)
-   - Display agent config (persona, skills, workflows)
-   - Responsive layout
-
-4. **Component**: `apps/web/components/agents/BlueprintRoadmapCard.tsx` (Client, ~60 lines)
-   - Display single phase from blueprint
-   - Show weeks, story points
-   - Progress visualization
-
-5. **Update**: `apps/web/app/agents/page.tsx` (~30 lines added)
-   - Fetch Session 3 onboarding data
-   - Add "Project Blueprint" tab
-   - Conditional rendering (show only if Session 3 complete)
-
-6. **Update**: `apps/mcp-server/src/index.ts` (~3 lines)
+3. **Update**: `apps/mcp-server/src/index.ts` (~3 lines)
    - Register getBlueprintTool in tools array
+
+**REMOVED** (no longer needed):
+- ❌ BlueprintView.tsx component
+- ❌ BlueprintRoadmapCard.tsx component
+- ❌ "Project Blueprint" tab in /agents page
+- ❌ E2E tests for Blueprint UI
 
 ---
 
@@ -293,7 +318,8 @@ describe('projectpulse.blueprint.get', () => {
   it('should return Session 3 blueprint', async () => {
     const result = await getBlueprintTool.handler({ projectId: 1 });
     const blueprint = JSON.parse(result.content[0].text);
-    expect(blueprint.roadmap.phases).toHaveLength(3);
+    expect(blueprint.roadmap.phases).toBeDefined();
+    expect(blueprint.techStack).toBeDefined();
   });
 
   it('should throw if Session 3 not found', async () => {
@@ -301,17 +327,15 @@ describe('projectpulse.blueprint.get', () => {
       getBlueprintTool.handler({ projectId: 999 })
     ).rejects.toThrow('Session 3 blueprint not found');
   });
-});
-```
 
-**E2E Test**: Extend `apps/web/tests/e2e/agents.spec.ts` (1-2 tests)
-
-```typescript
-test('should display blueprint tab', async ({ page }) => {
-  await page.goto('/agents');
-  await page.click('text=Project Blueprint');
-  await expect(page.getByText('Roadmap')).toBeVisible();
-  await expect(page.getByText('Next.js')).toBeVisible();
+  it('should return project-context.json structure', async () => {
+    const result = await getBlueprintTool.handler({ projectId: 1 });
+    const blueprint = JSON.parse(result.content[0].text);
+    expect(blueprint).toHaveProperty('metadata');
+    expect(blueprint).toHaveProperty('techStack');
+    expect(blueprint).toHaveProperty('phases');
+    expect(blueprint).toHaveProperty('timeline');
+  });
 });
 ```
 
@@ -323,15 +347,14 @@ test('should display blueprint tab', async ({ page }) => {
 - [ ] MCP tool `projectpulse.blueprint.get` implemented
 - [ ] Tool registered in MCP server index
 - [ ] API endpoint `GET /api/onboarding/blueprint` implemented
-- [ ] BlueprintView component created
-- [ ] `/agents` page has "Project Blueprint" tab
-- [ ] Tab shows roadmap, tech stack, agent config
 - [ ] MCP integration tests: 3-4 tests passing
-- [ ] E2E test: Blueprint tab visible
+- [ ] Tool callable from Claude Code
+- [ ] Returns correct project-context.json structure
+- [ ] No UI components created (verified)
 
-**Story Points**: 5 points
-**Estimated Time**: 1.5 days
-**Priority**: P0 (CRITICAL - enables agent session resumption)
+**Story Points**: 2 points (down from 5)
+**Estimated Time**: 0.5 days (down from 1.5 days)
+**Priority**: P1 (CRITICAL for agents, not for UI)
 
 ---
 
@@ -545,28 +568,29 @@ describe('projectpulse.sprint.getPhaseProgress', () => {
 ## Sprint 8.5 Summary
 
 ### Total Scope
-- **Story Points**: 26 points
-- **Duration**: 6-7 days (1.5 weeks)
+- **Story Points**: 24 points (down from 26)
+- **Duration**: 6.5 days (1.5 weeks)
 - **Phases**: 4 phases (sequential)
-- **New Files**: ~25 files
-- **Updated Files**: ~5 files
+- **New Files**: ~22 files (down from ~25)
+- **Updated Files**: ~6 files
 
 ### Phase Breakdown
 | Phase | Focus | Points | Days | Priority | Status |
 |-------|-------|--------|------|----------|--------|
-| 1 | Development Cycle UI | 8 | 2 | P0 | PENDING |
-| 2 | Session 3 Blueprint | 5 | 1.5 | P0 | PENDING |
+| 1 | Development Cycle UI + Materialization | 9 | 2.5 | P0 | PENDING |
+| 2 | Blueprint MCP Tool (no UI) | 2 | 0.5 | P1 | PENDING |
 | 3 | Agent AI Hub Tabs | 8 | 2 | P1 | PENDING |
 | 4 | MCP Read Tools | 5 | 1.5 | P1 | PENDING |
 
 ### Success Criteria
 - ✅ Agent can complete full onboarding workflow (Sessions 1-3)
+- ✅ Session 3 automatically populates Phase/Week/Day hierarchy via materialization
 - ✅ Agent can query Session 3 blueprint via MCP
 - ✅ Agent can get current position in 1 call (vs 5)
 - ✅ Human can view roadmap in Development Cycle UI
 - ✅ Human can view agent configuration in Agent AI Hub
 - ✅ Sprint 9 unblocked (memory banks can reference roadmap)
-- ✅ MVP: 91% → 93% (384.5 → 393 points)
+- ✅ MVP: 91% → 93% (384.5 → 391 points)
 
 ### Testing Targets
 - **E2E Tests**: 15-20 new tests
@@ -641,11 +665,13 @@ describe('projectpulse.sprint.getPhaseProgress', () => {
 - ✅ MCP server infrastructure operational (27 tools)
 
 ### Internal (Between Phases)
-- Phase 2 → Phase 1: Blueprint view patterns depend on roadmap patterns
-- Phase 3 → Phase 2: Agent tabs depend on blueprint data structure
-- Phase 4 → Phase 1: MCP tools depend on API endpoints
+- Phase 1: Must complete first (materialization enables other features)
+- Phase 2: Independent (MCP tool only, no UI dependencies)
+- Phase 3: Independent (Agent AI Hub UI, no dependencies on Phase 1-2)
+- Phase 4: Depends on Phase 1 (MCP tools query hierarchy created by materialization)
 
-**Critical Path**: Phase 1 → Phase 2 → Phase 3 → Phase 4 (must be sequential)
+**Critical Path**: Phase 1 → Phase 4 (materialization enables hierarchy queries)
+**Parallel Work**: Phases 2-3 can run concurrently with Phase 1 if needed
 
 ---
 

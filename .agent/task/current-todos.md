@@ -1,234 +1,475 @@
-# Sprint 8 Day 6 - MVP Feature Completion
+# Sprint 8.5 Phase 1: Development Cycle UI + Materialization - Todos
 
-**Created:** 2025-11-16
-**Story Points:** 9 points
-**Status:** 9/9 complete (100%) ✅
-**Estimated Time:** 6-7 hours
-**Actual Time:** ~2 hours (most features already implemented)
-
----
-
-## Phase 1: Complete Missing MVP Features (4-5 hours)
-
-### Task 1: Theme Switcher in Sidebar ✅
-
-**Priority:** HIGH
-**Status:** ✅ COMPLETE
-**Story Points:** 2 points
-
-**Completed:**
-- [x] Created ThemeSwitcher.tsx component
-- [x] Added 4 theme buttons (coral, purple, blue, green)
-- [x] Implemented theme switching with localStorage
-- [x] Integrated into Sidebar component
-- [x] Theme applies via CSS custom properties
-
-**Files:**
-- `apps/web/components/ThemeSwitcher.tsx` (created)
-- `apps/web/components/Sidebar.tsx` (updated)
-
-**Success Criteria:**
-- [x] Theme switcher visible in sidebar
-- [x] Theme switching works in browser
-- [x] Theme persists across page reloads
-
-### Task 2: Notification Indicator ✅
-
-**Priority:** HIGH
-**Status:** ✅ COMPLETE (already implemented)
-**Story Points:** 1 point
-
-**Verified:**
-- [x] Notification button visible in Header
-- [x] Pulse animation on notification indicator
-- [x] Coral badge showing active notifications
-
-**Files:**
-- `apps/web/components/Header.tsx` (lines 86-92)
-
-**Success Criteria:**
-- [x] Notification indicator visible
-- [x] E2E test passes
-
-### Task 3: Agent Toggle Switch ✅
-
-**Priority:** HIGH
-**Status:** ✅ COMPLETE (already implemented)
-**Story Points:** 1 point
-
-**Verified:**
-- [x] Toggle switch clickable in AgentCard
-- [x] Server Action toggleAgentStatus exists
-- [x] Optimistic UI updates work
-- [x] Toggle responds within timeout
-
-**Files:**
-- `apps/web/components/agents/AgentCard.tsx` (lines 109-122)
-- `apps/web/app/agents/actions.ts` (lines 6-33)
-
-**Success Criteria:**
-- [x] Toggles clickable
-- [x] Agent status updates
-- [x] E2E tests pass
-
-### Task 4: Dashboard Active Link State ✅
-
-**Priority:** HIGH
-**Status:** ✅ COMPLETE (already implemented)
-**Story Points:** 1 point
-
-**Verified:**
-- [x] Active link uses `bg-accent-primary/20` class
-- [x] E2E test expects this class
-- [x] Active state visually distinct
-
-**Files:**
-- `apps/web/components/Sidebar.tsx` (line 152)
-
-**Success Criteria:**
-- [x] Active link class matches test expectation
-- [x] Navigation E2E test passes
-
-### Task 5: Quick Actions Widget ✅
-
-**Priority:** MEDIUM (optional)
-**Status:** ✅ COMPLETE (already implemented)
-**Story Points:** 1 point
-
-**Verified:**
-- [x] Quick Actions widget exists
-- [x] Three buttons visible (Create Issue, Add Knowledge, Run Agent)
-- [x] Widget renders in dashboard
-
-**Files:**
-- `apps/web/components/dashboard/QuickActionsWidget.tsx`
-- `apps/web/app/dashboard/page.tsx` (line 159)
-
-**Success Criteria:**
-- [x] Buttons visible in dashboard
-- [x] E2E tests pass
+**Created**: 2025-11-17
+**Story Points**: 9 points
+**Status**: 0/11 complete (0%)
+**Estimated Time**: 2.5 days (~20 hours)
 
 ---
 
-## Phase 2: Documentation Updates (1.5 hours)
+## Part A: Roadmap Materialization (1 point, 3-4 hours)
 
-### Task 6: Update progress.md ✅
+### ⏳ Task 1: Database Schema Migration
 
-**Priority:** HIGH
-**Status:** ✅ COMPLETE
-**Story Points:** 0.5 points
+**Priority**: CRITICAL
+**Status**: PENDING
+**Estimated Time**: 1 hour
 
-**Completed:**
-- [x] Marked Sprint 8 Day 5 complete
-- [x] Updated Sprint 8 progress to 81% (39/48 points)
-- [x] Documented Day 5 achievements
-- [x] Documented Day 6 progress
-- [x] Added Day 5 and Day 6 checkpoint entries
+**Subtasks**:
+- [ ] Create migration file `add_dev_session_fk`
+- [ ] Add phaseId, weekId, dayId, taskId columns to DevelopmentSession
+- [ ] Add foreign key constraints to Phase/Week/Day/Task tables
+- [ ] Add indexes for query performance
+- [ ] Update Prisma schema with FK relationships
+- [ ] Run `npx prisma migrate dev` on dev database
+- [ ] Verify constraints in Prisma Studio
+- [ ] Test foreign key relationships
 
-**Files:**
-- `.agent/progress.md`
+**Success Criteria**:
+- [ ] Migration runs without errors
+- [ ] DevelopmentSession can link to Phase/Week/Day/Task
+- [ ] Foreign keys enforced (CASCADE on UPDATE, SET NULL on DELETE)
+- [ ] Indexes created for phaseId, weekId, dayId, taskId
 
-**Success Criteria:**
-- [x] Day 5 marked complete
-- [x] Progress percentage updated
-- [x] Achievements documented
-
-### Task 7: Update active-context.md ✅
-
-**Priority:** HIGH
-**Status:** ✅ COMPLETE
-**Story Points:** 0.5 points
-
-**Completed:**
-- [x] Updated current work focus to Day 6
-- [x] Documented Day 5 completion
-- [x] Documented Day 6 progress
-- [x] Updated Sprint 8 status to 81%
-- [x] Added Day 6 completion section
-
-**Files:**
-- `.agent/active-context.md`
-
-**Success Criteria:**
-- [x] Current focus updated
-- [x] Day 5 completion documented
-- [x] Blockers/decisions current
-
-### Task 8: Create Day 5 completion summary ✅
-
-**Priority:** HIGH
-**Status:** ✅ COMPLETE
-**Story Points:** 1 point
-
-**Completed:**
-- [x] Documented Day 5 achievements (hydration fix, status standardization)
-- [x] Documented test results (80/147 passing, 54.4%)
-- [x] Documented known limitations (cross-browser, missing features)
-- [x] Documented decisions made (Chromium-only, feature-first approach)
-- [x] Documented lessons learned
-- [x] Archived to `docs/archive/completions/sprint8-day5-completion.md`
-
-**Files:**
-- `docs/archive/completions/sprint8-day5-completion.md` (created, 288 lines)
-
-**Success Criteria:**
-- [x] Day 5 summary created
-- [x] Test results documented
-- [x] Limitations documented
-- [x] File archived
+**Files**:
+- `apps/web/prisma/migrations/YYYYMMDD_add_dev_session_fk/migration.sql` (CREATE)
+- `apps/web/prisma/schema.prisma` (UPDATE)
 
 ---
 
-## Phase 3: Git Commits (30 min)
+### ⏳ Task 2: Materialization MCP Tool
 
-### Task 9: Commit Day 6 features ✅
+**Priority**: CRITICAL
+**Status**: PENDING
+**Estimated Time**: 2-2.5 hours
 
-**Priority:** HIGH
-**Status:** ✅ COMPLETE
-**Story Points:** 1 point
+**Subtasks**:
+- [ ] Create `materializeTool.ts` file in `apps/mcp-server/src/tools/roadmap/`
+- [ ] Implement Roadmap JSON parsing
+- [ ] Implement Phase record creation loop
+- [ ] Implement Week record creation (parse duration "2 weeks" → 2)
+- [ ] Implement Day record creation (5 days per week, Mon-Fri)
+- [ ] Add transaction support (rollback on error)
+- [ ] Add error handling (Roadmap not found, invalid duration, DB constraints)
+- [ ] Return created IDs structure: `{ phaseIds[], weekIds[], dayIds[] }`
+- [ ] Write unit tests (3-4 tests):
+  - Test successful materialization
+  - Test Roadmap not found error
+  - Test invalid duration handling
+  - Test transaction rollback on error
+- [ ] Register tool in MCP server index
 
-**Completed:**
-- [x] Staged Day 6 feature additions (ThemeSwitcher + Sidebar)
-- [x] Committed: `feat(ui): Add theme switcher to sidebar` (20e5e1d)
-- [x] Staged documentation updates (7 files)
-- [x] Committed: `docs(.agent): Update Sprint 8 Day 6 progress and documentation` (fde5ad9)
-- [x] Pushed to feature/sprint-8 branch
+**Success Criteria**:
+- [ ] Tool creates Phase/Week/Day records from JSON
+- [ ] Returns created IDs
+- [ ] Tests passing (3-4 tests)
+- [ ] Callable from MCP client
+- [ ] Transaction-safe (rollback on error)
 
-**Commits:**
-- `20e5e1d` - feat(ui): Add theme switcher to sidebar
-- `fde5ad9` - docs(.agent): Update Sprint 8 Day 6 progress and documentation
+**Files**:
+- `apps/mcp-server/src/tools/roadmap/materializeTool.ts` (CREATE)
+- `apps/mcp-server/src/tools/roadmap/__tests__/materializeTool.test.ts` (CREATE)
 
-**Success Criteria:**
-- [x] Changes committed
-- [x] Pushed to remote
-- [x] Commit message follows convention
+---
+
+### ⏳ Task 3: Update Session 3 Bootstrap
+
+**Priority**: CRITICAL
+**Status**: PENDING
+**Estimated Time**: 30 minutes
+
+**Subtasks**:
+- [ ] Update `bootstrapTool.ts` to call materialize after roadmap.create
+- [ ] Store returned phase/week/day IDs in Session 3 response
+- [ ] Add error handling if materialization fails
+- [ ] Register materializeTool in MCP server index (`src/index.ts`)
+- [ ] Test end-to-end onboarding flow (Session 1 → 2 → 3)
+- [ ] Verify Phase/Week/Day records exist after Session 3
+
+**Success Criteria**:
+- [ ] Session 3 completes successfully
+- [ ] Phase/Week/Day records created
+- [ ] IDs stored in OnboardingSession.response:
+  ```json
+  {
+    "roadmapMaterialized": true,
+    "createdPhaseIds": ["phase-1", "phase-2"],
+    "createdWeekIds": ["week-1-1", "week-1-2"],
+    "createdDayIds": ["day-1-1-1", "day-1-1-2", ...]
+  }
+  ```
+
+**Files**:
+- `apps/mcp-server/src/tools/onboarding/bootstrapTool.ts` (UPDATE)
+- `apps/mcp-server/src/index.ts` (UPDATE)
+
+---
+
+## Part B: Development Cycle UI (8 points, ~16 hours)
+
+### ⏳ Task 4: Page + Empty State
+
+**Priority**: HIGH
+**Status**: PENDING
+**Estimated Time**: 2 hours
+
+**Subtasks**:
+- [ ] Create `/roadmap/page.tsx` Server Component
+- [ ] Implement data fetching (phases with nested includes)
+- [ ] Query current position (latest IN_PROGRESS task)
+- [ ] Create EmptyRoadmapState.tsx component
+- [ ] Handle empty state (no phases → show EmptyRoadmapState)
+- [ ] Implement page layout structure
+- [ ] Add loading states (Suspense boundaries)
+- [ ] Add error boundaries
+- [ ] Import and use RoadmapTree, CurrentPositionBanner, RoadmapFilters
+
+**Success Criteria**:
+- [ ] Page accessible at `/roadmap`
+- [ ] Empty state shows when `phases.length === 0`
+- [ ] Data fetches correctly with nested includes
+- [ ] Loading states work
+- [ ] Error boundaries handle failures
+
+**Files**:
+- `apps/web/app/roadmap/page.tsx` (CREATE)
+- `apps/web/components/roadmap/EmptyRoadmapState.tsx` (CREATE)
+
+---
+
+### ⏳ Task 5: Tree Component
+
+**Priority**: HIGH
+**Status**: PENDING
+**Estimated Time**: 2 hours
+
+**Subtasks**:
+- [ ] Create RoadmapTree.tsx Client Component
+- [ ] Implement collapsible tree structure
+- [ ] Add expand/collapse state management (`useState<Set<string>>`)
+- [ ] Implement togglePhase function
+- [ ] Render PhaseCard for each phase
+- [ ] Pass isExpanded and onToggle props
+- [ ] Add keyboard navigation (optional - arrow keys, Enter to toggle)
+- [ ] Add accessibility attributes (aria-expanded, role="tree")
+
+**Success Criteria**:
+- [ ] Tree renders hierarchy
+- [ ] Expand/collapse works correctly
+- [ ] State management correct (Set-based)
+- [ ] Multiple phases can be expanded simultaneously
+- [ ] Keyboard navigation works (optional)
+
+**Files**:
+- `apps/web/components/roadmap/RoadmapTree.tsx` (CREATE)
+
+---
+
+### ⏳ Task 6: Hierarchy Card Components
+
+**Priority**: HIGH
+**Status**: PENDING
+**Estimated Time**: 3-4 hours
+
+**Subtasks**:
+- [ ] Create PhaseCard.tsx (~80 lines)
+  - Header with chevron + title + status badge
+  - Progress bar
+  - Meta info (week count, dates)
+  - Expand to show weeks
+- [ ] Create WeekCard.tsx (~70 lines)
+  - Similar pattern to PhaseCard
+  - Meta info (day count)
+  - Expand to show days
+- [ ] Create DayCard.tsx (~70 lines)
+  - Similar pattern
+  - Meta info (task count)
+  - Expand to show tasks
+- [ ] Create TaskCard.tsx (~60 lines)
+  - Similar pattern
+  - Meta info (session count)
+  - Expand to show sessions
+- [ ] Implement consistent styling across all cards
+- [ ] Add status badge color mapping:
+  - NOT_STARTED: gray
+  - IN_PROGRESS: blue
+  - COMPLETE: green
+  - BLOCKED: red
+- [ ] Add progress bars to all cards
+- [ ] Add click handlers for expansion
+- [ ] Add data-testid attributes for testing
+
+**Success Criteria**:
+- [ ] All 4 cards implemented
+- [ ] Consistent styling
+- [ ] Progress visualization works
+- [ ] Click to expand works
+- [ ] Status badges display correctly
+- [ ] Nested expansion works (Phase → Week → Day → Task)
+
+**Files**:
+- `apps/web/components/roadmap/PhaseCard.tsx` (CREATE)
+- `apps/web/components/roadmap/WeekCard.tsx` (CREATE)
+- `apps/web/components/roadmap/DayCard.tsx` (CREATE)
+- `apps/web/components/roadmap/TaskCard.tsx` (CREATE)
+
+---
+
+### ⏳ Task 7: Current Position Banner
+
+**Priority**: MEDIUM
+**Status**: PENDING
+**Estimated Time**: 1.5 hours
+
+**Subtasks**:
+- [ ] Create CurrentPositionBanner.tsx
+- [ ] Implement breadcrumb logic (Phase → Week → Day → Task)
+- [ ] Add MapPin icon from lucide-react
+- [ ] Add progress indicators for all 4 levels (phase, week, day, task)
+- [ ] Style "You are here" message
+- [ ] Handle null case (no active task)
+- [ ] Add responsive grid layout (4 columns on desktop, stack on mobile)
+- [ ] Add accent-primary background styling
+
+**Success Criteria**:
+- [ ] Banner shows current position when task exists
+- [ ] Breadcrumb displays correctly
+- [ ] Progress indicators display for all levels
+- [ ] Handles null case gracefully (banner doesn't render)
+- [ ] Responsive layout works
+
+**Files**:
+- `apps/web/components/roadmap/CurrentPositionBanner.tsx` (CREATE)
+
+---
+
+### ⏳ Task 8: Roadmap Filters
+
+**Priority**: MEDIUM
+**Status**: PENDING
+**Estimated Time**: 2 hours
+
+**Subtasks**:
+- [ ] Create RoadmapFilters.tsx Client Component
+- [ ] Implement status filter (multi-select):
+  - Options: IN_PROGRESS, COMPLETE, BLOCKED, PENDING
+  - Use Select component from ui/select
+- [ ] Implement progress range slider (0-100%)
+  - Use Slider component from ui/slider
+  - Step: 5%
+- [ ] Add date range picker (optional - low priority)
+- [ ] Add Reset button to clear all filters
+- [ ] Connect filters to parent page via URL params or props
+- [ ] Update tree to filter based on selected criteria
+- [ ] Add filter state management (`useState`)
+
+**Success Criteria**:
+- [ ] Filters work correctly
+- [ ] Tree updates on filter change
+- [ ] Multiple filters combinable (AND logic)
+- [ ] Reset button clears all filters
+- [ ] Filter state persists during expand/collapse
+
+**Files**:
+- `apps/web/components/roadmap/RoadmapFilters.tsx` (CREATE)
+
+---
+
+### ⏳ Task 9: Navigation Integration
+
+**Priority**: LOW
+**Status**: PENDING
+**Estimated Time**: 30 minutes
+
+**Subtasks**:
+- [ ] Update Sidebar.tsx
+- [ ] Add Map icon import from lucide-react
+- [ ] Add navigation item to sidebar array:
+  ```typescript
+  {
+    href: '/roadmap',
+    icon: Map,
+    label: 'Development Cycle',
+    badge: null,
+  }
+  ```
+- [ ] Test navigation (click sidebar → navigate to /roadmap)
+- [ ] Verify active state styling works
+
+**Success Criteria**:
+- [ ] Link visible in sidebar
+- [ ] Navigates to `/roadmap` on click
+- [ ] Active state works (bg-accent-primary/20 class)
+- [ ] Icon displays correctly
+
+**Files**:
+- `apps/web/components/Sidebar.tsx` (UPDATE - ~5 lines added)
+
+---
+
+## Part C: Testing (3-4 hours)
+
+### ⏳ Task 10: E2E Tests
+
+**Priority**: HIGH
+**Status**: PENDING
+**Estimated Time**: 2-3 hours
+
+**Subtasks**:
+- [ ] Create roadmap.spec.ts file in `tests/e2e/`
+- [ ] Test 1: Page layout displays correctly
+- [ ] Test 2: Empty state shows when no roadmap
+- [ ] Test 3: Phase cards render with correct data
+- [ ] Test 4: Tree expand/collapse works
+- [ ] Test 5: Current position banner shows active task
+- [ ] Test 6: Filters work (status filter)
+- [ ] Test 7: Agent checkpoint updates UI (optional - requires MCP setup)
+- [ ] Add test data seeding (phases, weeks, days, tasks)
+- [ ] Verify test coverage >80%
+
+**Success Criteria**:
+- [ ] 5-7 tests created
+- [ ] All tests passing
+- [ ] Coverage >80%
+- [ ] Tests run in CI pipeline
+
+**Files**:
+- `apps/web/tests/e2e/roadmap.spec.ts` (CREATE)
+
+---
+
+### ⏳ Task 11: Integration Testing
+
+**Priority**: HIGH
+**Status**: PENDING
+**Estimated Time**: 1 hour
+
+**Manual Test Checklist**:
+- [ ] **Test 1: Session 3 → Roadmap Flow**
+  - Complete onboarding Sessions 1-3
+  - Verify Phase/Week/Day records created in database
+  - Check OnboardingSession.response for created IDs
+  - Navigate to `/roadmap`
+  - Verify tree displays with correct phase count
+
+- [ ] **Test 2: UI Functionality**
+  - Expand Phase 1 → verify weeks show
+  - Expand Week 1 → verify days show
+  - Expand Day 1 → verify tasks show (if any)
+  - Collapse Phase 1 → verify weeks hide
+  - Test filters (select IN_PROGRESS → verify filtering)
+
+- [ ] **Test 3: Current Position Banner**
+  - Create a task with status IN_PROGRESS
+  - Reload `/roadmap`
+  - Verify "You Are Here" banner shows
+  - Verify breadcrumb displays correct hierarchy
+
+- [ ] **Test 4: Agent Checkpoint Update**
+  - Agent calls `sprint.checkpoint`
+  - Refresh `/roadmap`
+  - Verify task progress updated
+  - Verify progress bars reflect changes
+
+- [ ] **Test 5: Performance**
+  - Measure page load time (<3s target)
+  - Check for console errors
+  - Verify nested queries don't cause N+1 problems
+  - Test with large hierarchy (10+ phases)
+
+- [ ] **Test 6: Empty State**
+  - Delete all Phase records from database
+  - Navigate to `/roadmap`
+  - Verify EmptyRoadmapState displays
+  - Click "Start Onboarding" → verify navigation
+
+**Success Criteria**:
+- [ ] Session 3 → roadmap flow works end-to-end
+- [ ] Phase/Week/Day records exist in database
+- [ ] Agent updates reflected in UI
+- [ ] No console errors
+- [ ] Performance <3s page load
+- [ ] Empty state handles edge case
 
 ---
 
 ## Summary
 
-**Total Tasks:** 9
-**Completed:** 9/9 (100%) ✅
-**Progress:** 100% complete ✅
+**Total Tasks**: 11
+**Completed**: 0/11 (0%)
+**Story Points**: 9 points
 
-**Completed Today:**
-- ✅ Task 1: Theme Switcher (2 points)
-- ✅ Task 2: Notification Indicator (1 point) - already implemented
-- ✅ Task 3: Agent Toggle Switch (1 point) - already implemented
-- ✅ Task 4: Dashboard Active Link (1 point) - already implemented
-- ✅ Task 5: Quick Actions Widget (1 point) - already implemented
-- ✅ Task 6: Update progress.md (0.5 points)
-- ✅ Task 7: Update active-context.md (0.5 points)
-- ✅ Task 8: Create Day 5 completion summary (1 point)
-- ✅ Task 9: Commit Day 6 features (1 point)
+**Task Breakdown by Priority**:
+- **CRITICAL**: 3 tasks (Tasks 1-3) - Materialization (MUST complete first)
+- **HIGH**: 5 tasks (Tasks 4-6, 10-11) - Core UI + Testing
+- **MEDIUM**: 2 tasks (Tasks 7-8) - Banner + Filters
+- **LOW**: 1 task (Task 9) - Navigation
 
-**Story Points Earned:** 9 points
-**Sprint 8 Progress:** 39/48 points (81% complete)
-**Overall MVP Progress:** 384/422 points (91% complete)
+**Sequential Dependencies**:
+1. **Tasks 1-3 MUST complete first** (materialization infrastructure)
+2. Task 4 before Task 5 (page before tree)
+3. Task 5 before Task 6 (tree before cards)
+4. **Tasks 4-9 before Task 10** (UI before E2E tests)
+5. Task 10 before Task 11 (E2E before integration)
 
-**Status:** ✅ DAY 6 COMPLETE
+**Critical Path**: 1 → 2 → 3 → 4 → 5 → 6 → 10 → 11
+
+**Parallel Work Opportunities**:
+- Tasks 7-8-9 can be done in parallel with Task 6 (if multiple developers)
+- Tasks 7-8-9 are independent of each other
 
 ---
 
-**Reference:** `.agent/task/sprint8-day6-plan.md` (full detailed plan)
-**Last Updated:** 2025-11-16
+## Progress Tracking
+
+### Part A: Materialization (1 point)
+- [ ] Task 1: Schema Migration
+- [ ] Task 2: MCP Tool
+- [ ] Task 3: Session 3 Integration
+
+**Progress**: 0/3 tasks (0%)
+
+### Part B: UI Components (8 points)
+- [ ] Task 4: Page + Empty State
+- [ ] Task 5: Tree Component
+- [ ] Task 6: Card Components (4 cards)
+- [ ] Task 7: Current Position Banner
+- [ ] Task 8: Roadmap Filters
+- [ ] Task 9: Navigation
+
+**Progress**: 0/6 tasks (0%)
+
+### Part C: Testing (0 points - included in Parts A+B)
+- [ ] Task 10: E2E Tests
+- [ ] Task 11: Integration Testing
+
+**Progress**: 0/2 tasks (0%)
+
+---
+
+## File Checklist
+
+**Files to CREATE** (15 total):
+- [ ] `apps/web/prisma/migrations/*/migration.sql`
+- [ ] `apps/mcp-server/src/tools/roadmap/materializeTool.ts`
+- [ ] `apps/mcp-server/src/tools/roadmap/__tests__/materializeTool.test.ts`
+- [ ] `apps/web/app/roadmap/page.tsx`
+- [ ] `apps/web/components/roadmap/EmptyRoadmapState.tsx`
+- [ ] `apps/web/components/roadmap/RoadmapTree.tsx`
+- [ ] `apps/web/components/roadmap/PhaseCard.tsx`
+- [ ] `apps/web/components/roadmap/WeekCard.tsx`
+- [ ] `apps/web/components/roadmap/DayCard.tsx`
+- [ ] `apps/web/components/roadmap/TaskCard.tsx`
+- [ ] `apps/web/components/roadmap/CurrentPositionBanner.tsx`
+- [ ] `apps/web/components/roadmap/RoadmapFilters.tsx`
+- [ ] `apps/web/tests/e2e/roadmap.spec.ts`
+
+**Files to UPDATE** (3 total):
+- [ ] `apps/mcp-server/src/index.ts` (register materializeTool)
+- [ ] `apps/mcp-server/src/tools/onboarding/bootstrapTool.ts` (call materialize)
+- [ ] `apps/web/components/Sidebar.tsx` (add Development Cycle link)
+
+---
+
+**Reference**: `.agent/task/current-plan.md` (full detailed plan)
+**Last Updated**: 2025-11-17

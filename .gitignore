@@ -251,6 +251,9 @@ config.local.json
 debug/
 .debug/
 
+# Reference templates (not part of project)
+Starter_template/
+
 # ============================================================================
 # KEEP THESE FILES
 # ============================================================================
