@@ -40,21 +40,28 @@ model Phase {
   startDate DateTime
   endDate   DateTime?
 
+  // Hierarchy - Parent (Sprint 8.5: Link to Roadmap after materialization)
+  roadmapId String?
+  roadmap   Roadmap? @relation(fields: [roadmapId], references: [id], onDelete: SetNull)
+
   // Hierarchy - Children
-  weeks Week[]
+  weeks Week[] // Sprint 8: Week relationship (will be migrated to Sprint → Week in Task 0.3)
+  sprints Sprint[] // Sprint 8.5: NEW 5th level - Phase → Sprint → Week → Day → Task
 
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Indexes for performance
+  @@index([roadmapId]) // Sprint 8.5: Query phases by roadmap
   @@index([startDate, endDate])
   @@index([status])
   @@index([startDate, endDate, status])
   @@map("phases")
 }
 
-model Week {
+// Sprint 8.5: NEW 5th level in hierarchy (Phase → Sprint → Week → Day → Task)
+model Sprint {
   id String @id @default(cuid())
 
   // Core fields
@@ -72,7 +79,7 @@ model Week {
   phase   Phase  @relation(fields: [phaseId], references: [id], onDelete: Cascade)
 
   // Hierarchy - Children
-  days Day[]
+  weeks Week[]
 
   // Metadata
   createdAt DateTime @default(now())
@@ -80,10 +87,50 @@ model Week {
 
   // Indexes for performance
   @@index([phaseId])
+  @@index([phaseId, startDate]) // Composite index recommended by prisma-expert
   @@index([startDate, endDate])
   @@index([status])
   @@index([phaseId, status])
   @@index([phaseId, startDate, endDate, status])
+  @@map("sprints")
+}
+
+model Week {
+  id String @id @default(cuid())
+
+  // Core fields
+  title       String
+  description String? @db.Text
+  status      Status  @default(NOT_STARTED)
+  progress    Int     @default(0) // 0-100, validated in application
+
+  // Time window
+  startDate DateTime
+  endDate   DateTime?
+
+  // Hierarchy - Parent
+  phaseId String // Sprint 8: Legacy parent (will be removed in Task 0.3 after data migration)
+  phase   Phase  @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+
+  sprintId String? // Sprint 8.5: NEW parent (optional during migration, required after Task 0.3)
+  sprint   Sprint? @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+
+  // Hierarchy - Children
+  days Day[]
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes for performance
+  @@index([phaseId]) // Sprint 8: Legacy parent (will be removed in Task 0.3)
+  @@index([sprintId]) // Sprint 8.5: NEW parent index
+  @@index([startDate, endDate])
+  @@index([status])
+  @@index([phaseId, status]) // Sprint 8: Legacy composite (will be removed in Task 0.3)
+  @@index([sprintId, status]) // Sprint 8.5: NEW composite index
+  @@index([phaseId, startDate, endDate, status]) // Sprint 8: Legacy (will be removed in Task 0.3)
+  @@index([sprintId, startDate, endDate, status]) // Sprint 8.5: NEW full composite
   @@map("weeks")
 }
 
@@ -244,6 +291,8 @@ model Project {
   workflowRuns       WorkflowRun[]
   healthScanners     HealthScanner[] // Sprint 7: Health monitoring system
   healthScores       HealthScore[] // Sprint 7: Health scores
+  roadmap            Roadmap? // Sprint 8.5: Development roadmap (one-to-one)
+  developmentSessions DevelopmentSession[] // Sprint 8.5: Agent work tracking (plan + todos for CurrentWorkModal)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -953,6 +1002,9 @@ model OnboardingSession {
   startedAt     DateTime?
   completedAt   DateTime?
 
+  // Sprint 8.5: Document generation (backward relation)
+  documents Document[] // One session can generate multiple documents
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -976,6 +1028,103 @@ model OnboardingTemplate {
   @@unique([sessionNumber, isActive])
   @@index([sessionNumber])
   @@map("onboarding_templates")
+}
+
+// ============================================================================
+// DOCUMENT STORAGE (Sprint 8.5 Phase 1)
+// ============================================================================
+// Purpose: Store Session 2 generated documents (15 industry docs)
+// Storage: Markdown content in Document table (NOT files in repo)
+// Usage: Session 2 calls MCP → saves docs → Session 3 parses 13-Project-Plan.md
+
+model Document {
+  id                  String            @id @default(cuid())
+  onboardingSessionId Int               // ✅ CRITICAL FIX: Int matches OnboardingSession.id (was String in draft)
+  onboardingSession   OnboardingSession @relation(fields: [onboardingSessionId], references: [id], onDelete: Cascade)
+
+  // Document details
+  filename    String // "01-PRD.md", "13-Project-Plan.md"
+  content     String @db.Text // Full markdown content (Session 2 generates this, ~100KB total for 15 docs)
+  wordCount   Int // Word count for analytics
+  generatedAt DateTime @default(now()) // When document was generated
+
+  // Wiki integration and categorization
+  category String? // "planning" | "architecture" | "implementation" | "operations"
+  tags     String[] @default([]) // Keywords for search
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Performance indexes
+  @@index([onboardingSessionId]) // List documents for session
+  @@index([filename]) // Search by filename (Session 3 needs this)
+  @@unique([onboardingSessionId, filename]) // Prevent duplicate filenames per session
+  @@map("documents")
+}
+
+// ============================================================================
+// DEVELOPMENT ROADMAP (Sprint 8.5 Phase 1)
+// ============================================================================
+// Purpose: Store parsed roadmap structure as JSON before materialization
+// Flow: Session 3 parses 13-Project-Plan.md → creates Roadmap JSON → materializes to Phase/Sprint/Week/Day
+// 5-Level Hierarchy: Phase → Sprint → Week → Day → Task
+
+model Roadmap {
+  id            String   @id @default(cuid())
+  projectId     Int      @unique  // ✅ CRITICAL: Int to match Project.id (not String)
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Nested JSON structure with phases → sprints → weeks
+  // Example: { "phases": [ { "name": "Phase A", "sprints": [ { "name": "Sprint 1", "weeks": "Weeks 1-2", ... } ] } ] }
+  phases        Json     @db.JsonB
+
+  // Current position tracking (string references to entities)
+  currentPhase  String?  // "Phase A: Foundation"
+  currentSprint String?  // "Sprint 2: Wiki System"
+  currentWeek   String?  // "Week 4"
+  currentDay    String?  // "Tuesday"
+
+  // Relationships
+  phases_rel    Phase[]  // After materialization: Roadmap → Phase[] (one-to-many)
+
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Performance indexes
+  // Note: GIN index for JSONB will be created via raw SQL migration (Prisma limitation)
+  // See migration file: CREATE INDEX roadmaps_phases_gin_idx ON roadmaps USING GIN (phases);
+  @@map("roadmaps")
+}
+
+// Sprint 8.5: Development Session - Agent work tracking
+// Stores current plan + todos for CurrentWorkModal display
+model DevelopmentSession {
+  id          String   @id @default(cuid())
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Session context
+  phase       String   // "Sprint 2 - Week 4", "Phase 1: Foundation"
+  goals       String[] @default([])
+
+  // Agent work tracking
+  plan        String?  @db.Text // Implementation plan (markdown)
+  todos       Json?    @db.JsonB // Array: [{ content, status, priority }]
+  progress    String?  @db.Text // Progress log
+
+  // Status
+  status      String   @default("IN_PROGRESS") // "IN_PROGRESS" | "COMPLETED"
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@index([projectId, status])
+  @@index([projectId, createdAt])
+  @@map("development_sessions")
 }
 
 // ============================================================================
