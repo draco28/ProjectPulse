@@ -12,6 +12,7 @@
 
 import { Layers, Calendar } from 'lucide-react';
 import type { RoadmapPhase } from '@/types/roadmap';
+import { formatDateRange } from '@/lib/date-utils';
 
 interface PhaseCardProps {
   phase: RoadmapPhase;
@@ -108,10 +109,7 @@ export function PhaseCard({ phase }: PhaseCardProps) {
       {/* Date Range */}
       <div className="flex items-center gap-2 text-xs text-slate">
         <Calendar className="h-3.5 w-3.5" />
-        <span>
-          {new Date(phase.startDate).toLocaleDateString()} →{' '}
-          {phase.endDate ? new Date(phase.endDate).toLocaleDateString() : 'Ongoing'}
-        </span>
+        <span>{formatDateRange(phase.startDate, phase.endDate)}</span>
       </div>
     </div>
   );

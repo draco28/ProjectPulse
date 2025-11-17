@@ -13,6 +13,7 @@
 
 import { useEffect, useState } from 'react';
 import { X, Target, CheckCircle2, FileText, TrendingUp } from 'lucide-react';
+import { formatDateTime } from '@/lib/date-utils';
 
 interface DevelopmentSession {
   id: string;
@@ -217,8 +218,8 @@ export function CurrentWorkModal({ projectId, isOpen, onClose }: CurrentWorkModa
 
               {/* Timestamps */}
               <div className="text-xs text-slate border-t border-border-subtle pt-4">
-                <p>Created: {new Date(session.createdAt).toLocaleString()}</p>
-                <p>Updated: {new Date(session.updatedAt).toLocaleString()}</p>
+                <p>Created: {formatDateTime(session.createdAt)}</p>
+                <p>Updated: {formatDateTime(session.updatedAt)}</p>
               </div>
             </div>
           )}

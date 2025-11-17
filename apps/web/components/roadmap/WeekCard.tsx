@@ -11,6 +11,7 @@
 
 import { Calendar } from 'lucide-react';
 import type { RoadmapWeek } from '@/types/roadmap';
+import { formatDateRange } from '@/lib/date-utils';
 
 interface WeekCardProps {
   week: RoadmapWeek;
@@ -56,8 +57,7 @@ export function WeekCard({ week }: WeekCardProps) {
 
       {/* Date Range */}
       <div className="text-xs text-slate mb-2 ml-10.5">
-        {new Date(week.startDate).toLocaleDateString()} -{' '}
-        {week.endDate ? new Date(week.endDate).toLocaleDateString() : 'Ongoing'}
+        {formatDateRange(week.startDate, week.endDate)}
       </div>
 
       {/* Days Count */}

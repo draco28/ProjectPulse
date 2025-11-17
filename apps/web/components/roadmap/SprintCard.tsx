@@ -12,6 +12,7 @@
 
 import { Target } from 'lucide-react';
 import type { RoadmapSprint } from '@/types/roadmap';
+import { formatDateRange } from '@/lib/date-utils';
 
 interface SprintCardProps {
   sprint: RoadmapSprint;
@@ -85,8 +86,7 @@ export function SprintCard({ sprint }: SprintCardProps) {
 
       {/* Date Range */}
       <div className="text-xs text-slate">
-        {new Date(sprint.startDate).toLocaleDateString()} →{' '}
-        {sprint.endDate ? new Date(sprint.endDate).toLocaleDateString() : 'Ongoing'}
+        {formatDateRange(sprint.startDate, sprint.endDate)}
       </div>
     </div>
   );
