@@ -29,6 +29,8 @@ import { issueUpdateTool } from './issues/update.js';
 import { issueSearchTool } from './issues/search.js';
 import { issueAddCommentTool } from './issues/addComment.js';
 import { issueSetStatusTool } from './issues/setStatus.js';
+import { materializeRoadmapTool } from './roadmap/materializeTool.js';
+import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -59,6 +61,9 @@ const loadTools = (): ToolDefinition[] => [
   workflowPauseTool,
   workflowResumeTool,
   workflowCompleteTool,
+  // Sprint 8.5 Phase 1: Roadmap materialization tools
+  materializeRoadmapTool,
+  getCurrentPositionTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {
