@@ -20,6 +20,7 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { FilterableRoadmapTree } from '@/components/roadmap/FilterableRoadmapTree';
 import { CurrentPositionBanner } from '@/components/roadmap/CurrentPositionBanner';
+import { EmptyRoadmapState } from '@/components/roadmap/EmptyRoadmapState';
 
 /**
  * Fetch roadmap with complete 5-level hierarchy
@@ -39,9 +40,28 @@ async function getRoadmap(projectId: number) {
                     select: {
                       id: true,
                       title: true,
+                      description: true,
                       status: true,
                       progress: true,
                       startDate: true,
+                      endDate: true,
+                      weekId: true,
+                      createdAt: true,
+                      updatedAt: true,
+                      tasks: {
+                        select: {
+                          id: true,
+                          title: true,
+                          description: true,
+                          status: true,
+                          progress: true,
+                          sessions: {
+                            select: {
+                              id: true,
+                            },
+                          },
+                        },
+                      },
                     },
                   },
                 },
@@ -67,17 +87,7 @@ export default async function RoadmapPage() {
   const roadmap = await getRoadmap(projectId);
 
   if (!roadmap) {
-    return (
-      <div className="neu-raised rounded-3xl p-12 text-center max-w-2xl mx-auto">
-        <div className="icon-coral flex h-16 w-16 items-center justify-center rounded-2xl mx-auto mb-4">
-          <Map className="h-8 w-8 text-white" />
-        </div>
-        <h1 className="text-2xl font-bold text-white mb-4">No Roadmap Found</h1>
-        <p className="text-slate">
-          This project doesn't have a roadmap yet. Complete the onboarding process to generate one.
-        </p>
-      </div>
-    );
+    return <EmptyRoadmapState />;
   }
 
   return (

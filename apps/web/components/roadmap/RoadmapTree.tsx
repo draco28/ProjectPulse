@@ -16,6 +16,8 @@ import { ChevronDown, ChevronRight, Map } from 'lucide-react';
 import { PhaseCard } from './PhaseCard';
 import { SprintCard } from './SprintCard';
 import { WeekCard } from './WeekCard';
+import { DayCard } from './DayCard';
+import { TaskCard } from './TaskCard';
 import type { RoadmapWithRelations } from '@/types/roadmap';
 import type { RoadmapFilterState} from './RoadmapFilters';
 
@@ -28,6 +30,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
   const [expandedSprints, setExpandedSprints] = useState<Set<string>>(new Set());
   const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
 
   // Filter helper function
   const matchesFilters = (item: { title: string; description?: string | null; status: string }) => {
@@ -103,6 +106,18 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
         next.delete(weekId);
       } else {
         next.add(weekId);
+      }
+      return next;
+    });
+  };
+
+  const toggleDay = (dayId: string) => {
+    setExpandedDays(prev => {
+      const next = new Set(prev);
+      if (next.has(dayId)) {
+        next.delete(dayId);
+      } else {
+        next.add(dayId);
       }
       return next;
     });
@@ -220,40 +235,21 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
                                   </div>
                                 </div>
 
-                                {/* Days (collapsible) */}
+                                {/* Days (collapsible) - Sprint 8.5: Full 5-level hierarchy */}
                                 {isWeekExpanded && week.days && (
                                   <div className="ml-12 space-y-2 mt-3 mb-4">
-                                    {week.days.map((day) => (
-                                      <div
-                                        key={day.id}
-                                        className="glass-dark smooth-transition rounded-xl p-3 hover:bg-white/5"
-                                      >
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center gap-3">
-                                            <div className="h-6 w-6 rounded-lg neu-pressed flex items-center justify-center flex-shrink-0">
-                                              <span className="text-xs text-slate font-bold">
-                                                {day.title.charAt(0)}
-                                              </span>
-                                            </div>
-                                            <span className="text-sm font-medium text-white">{day.title}</span>
-                                            <span className="text-xs text-slate">
-                                              {new Date(day.startDate).toLocaleDateString()}
-                                            </span>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            <div className="w-20 neu-pressed rounded-full h-1 overflow-hidden">
-                                              <div
-                                                className="h-1 rounded-full bg-coral smooth-transition"
-                                                style={{ width: `${day.progress}%` }}
-                                              />
-                                            </div>
-                                            <span className="text-xs px-2 py-1 bg-dark-pressed text-slate rounded-full font-medium">
-                                              {day.status.replace('_', ' ')}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))}
+                                    {week.days.map((day) => {
+                                      const isDayExpanded = expandedDays.has(day.id);
+                                      
+                                      return (
+                                        <DayCard
+                                          key={day.id}
+                                          day={day}
+                                          isExpanded={isDayExpanded}
+                                          onToggle={() => toggleDay(day.id)}
+                                        />
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>
