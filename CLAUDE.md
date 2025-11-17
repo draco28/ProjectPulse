@@ -297,28 +297,6 @@ Implementation Complete:
 12. I commit everything
 ```
 
-### What You'll See
-
-When I invoke sub-agents, you'll see messages like:
-
-```
-"Invoking analyze-architecture sub-agent to trace data flow...
-Passing context file: .agent/task/current-session-20251026-1430.md
-
-[Sub-agent works in isolated thread]
-
-Sub-agent complete. Reading report: .agent/task/architecture-issues-20251026-1445.md
-
-Key insights from report:
-- Current API routes use Zod validation
-- Response format: { data, error }
-- Follow pattern from /api/preferences
-
-Implementing POST /api/issues following these patterns..."
-```
-
----
-
 ## 3-Tier Persistence Strategy (REQUIRED PER PROTOCOL)
 
 **Comprehensive progress tracking - REQUIRED by Steps 1, 2, and 4**
@@ -786,45 +764,6 @@ Me: "This needs Next.js routing + React optimization expertise.
 
 ---
 
-## Legacy Specialized Agents (Orchestrator-Based - Not Used)
-
-The following agents exist but are **NOT used** in your current workflow:
-
-- devhub-architect - Architecture decisions (use next-js-expert/prisma-expert/react-expert instead)
-- devhub-fullstack - Full-stack implementation (I do implementation directly)
-- devhub-testing - Test creation (use testing-patterns skill instead)
-- devhub-auditor - Code review (manual review preferred)
-- devhub-mcp-specialist - MCP integration (as needed)
-
----
-
-## Gemini Integration (Deep Analysis)
-
-### When to Use Gemini
-
-I'll suggest Gemini CLI when you request:
-
-- "Analyze entire codebase..."
-- "Review all files..."
-- "System-wide migration..."
-- Any analysis requiring >200K tokens
-
-### The Workflow
-
-```
-You: "Analyze entire codebase for tech debt"
-
-Me: "This needs Gemini's 1M context.
-     Run: analyze-with-gemini 'Analyze entire codebase for tech debt'
-     Then tell me to read the results!"
-
-[You run command in terminal]
-
-You: "Read the Gemini analysis file"
-
-Me: [Reads analysis, implements fixes]
-```
-
 **Complete Guide**: [SIMPLE_GEMINI_WORKFLOW.md](SIMPLE_GEMINI_WORKFLOW.md)
 
 ---
@@ -833,13 +772,6 @@ Me: [Reads analysis, implements fixes]
 
 **Current tools available**:
 
-- memory - Knowledge graph
-- filesystem - File operations
-- git - Version control
-- gitkraken - GitHub integration
-- postgres - Database queries
-- playwright - Browser automation
-- docker-devhub - Container management
 - sequential-thinking - Complex reasoning
 
 **Complete guide**: [docs/features/mcp-tools-guide.md](docs/features/mcp-tools-guide.md)
@@ -994,21 +926,6 @@ Initialize or update .agent/ documentation system
 
 - [.agent/system/](.agent/system/) - Technical references
 
----
-
-## UI & Frontend Design (SuperDesign)
-
-**For standalone HTML/design prototypes**, the SuperDesign workflow is available.
-
-**Complete Guide**: [.claude/skills/projectpulse/superdesign-ui-generator.md](.claude/skills/projectpulse/superdesign-ui-generator.md)
-
-**When to use**: When asked to "design UI prototype", "create HTML mockup", or specifically "use SuperDesign workflow"
-
-**Output**: Standalone HTML files in `.superdesign/design_iterations/` folder
-
-**Note**: For React components in ProjectPulse, use [ui-generation-workflow.md](.claude/skills/projectpulse/ui-generation-workflow.md) instead.
-
----
 
 ## Protocol Violations Log Reference
 
