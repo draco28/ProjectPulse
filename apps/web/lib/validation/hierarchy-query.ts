@@ -11,8 +11,9 @@ import { z } from 'zod';
 
 /**
  * Entity level enum (which hierarchy level to query)
+ * Sprint 8.5: Added 'sprint' for 5-level hierarchy (Phase → Sprint → Week → Day → Task)
  */
-export const EntityLevelSchema = z.enum(['phase', 'week', 'day', 'task', 'session']);
+export const EntityLevelSchema = z.enum(['phase', 'sprint', 'week', 'day', 'task', 'session']);
 
 /**
  * Status filter schema (matches Prisma Status enum)

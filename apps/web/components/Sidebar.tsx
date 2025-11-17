@@ -21,6 +21,7 @@ import {
   Heart,
   Menu,
   X,
+  Map,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -41,6 +42,7 @@ interface NavItem {
 
 const navigationItems: NavItem[] = [
   { icon: Home, label: 'Dashboard', href: '/dashboard', pulse: true },
+  { icon: Map, label: 'Roadmap', href: '/roadmap' },
   { icon: ListTodo, label: 'Issues', href: '/issues', badge: 12 },
   { icon: Lightbulb, label: 'Knowledge', href: '/knowledge' },
   { icon: Book, label: 'Wiki', href: '/wiki' },
