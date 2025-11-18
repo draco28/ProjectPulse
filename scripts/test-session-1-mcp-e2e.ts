@@ -84,10 +84,15 @@ async function runMCPE2ETest() {
   console.log('Project ID:', PROJECT_ID);
   console.log('Target: Complete 10-phase onboarding + executive summary\n');
   
-  // Connect to MCP server via stdio
+  // Connect to MCP server via stdio (local process)
   const transport = new StdioClientTransport({
-    command: 'docker',
-    args: ['exec', '-i', 'projectpulse-mcp-cloud', 'node', 'dist/index.js']
+    command: 'node',
+    args: ['/Users/draco/projects/AI_HUB/apps/mcp-server/dist/index.js'],
+    env: {
+      ...process.env,
+      PROJECTPULSE_API_URL: 'http://192.168.1.15:3000',
+      NODE_ENV: 'development'
+    }
   });
   
   const client = new Client({
