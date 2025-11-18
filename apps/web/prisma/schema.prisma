@@ -1071,6 +1071,37 @@ model OnboardingSession {
   @@map("onboarding_sessions")
 }
 
+// Sprint 8.6: Onboarding Questions for Session 1 (10-phase strategic planning)
+model OnboardingQuestion {
+  id        String @id @default(cuid())
+  
+  // Phase organization (1-10)
+  phase     Int    // 1-10 (Phase 1: Product Manager, Phase 2: Strategic Planning, etc.)
+  subsection String // "1.1 User Personas", "1.2 Core Features", etc.
+  questionNumber Int    // 1-N within subsection
+  
+  // Question content
+  questionText String @db.Text
+  placeholder String? @db.Text // Example answer
+  helpText String? @db.Text // Additional guidance
+  
+  // Validation
+  validationType String? // "text", "number", "array", "url", "email"
+  isRequired Boolean @default(true)
+  minLength Int? // For text validation
+  maxLength Int? // For text validation
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Indexes
+  @@unique([phase, subsection, questionNumber])
+  @@index([phase])
+  @@index([phase, subsection])
+  @@map("onboarding_questions")
+}
+
 model OnboardingTemplate {
   id             Int     @id @default(autoincrement())
   sessionNumber  Int

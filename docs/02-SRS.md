@@ -809,6 +809,351 @@ All state that matters to end users and their agents MUST live in the ProjectPul
 
 ---
 
+#### FR-026: Development Cycle UI
+
+**ID:** FR-026
+**Epic:** EPIC-001 (Sprint/Phase Tracking)
+**Priority:** Must Have (P0)
+**Sprint:** Sprint 8.5 Phase 1
+
+**Description:** Visual roadmap page at `/roadmap` displaying 5-level hierarchy tree (Phase → Sprint → Week → Day → Task) with collapsible navigation and progress visualization.
+
+**Inputs:**
+
+- projectId: number (from session context)
+- filters: { status?: TrackingStatus[], progressRange?: [number, number] }
+
+**Outputs:**
+
+- Hierarchical tree displaying:
+  - Phase cards with sprint children
+  - Sprint cards with week children (new Sprint layer in hierarchy)
+  - Week cards with day children
+  - Day cards with task children
+  - Task cards with session history
+- Progress bars at each level (0-100%)
+- "You Are Here" breadcrumb showing current position
+- Status badges (IN_PROGRESS, BLOCKED, PENDING, COMPLETE)
+- Collapsible tree structure
+
+**UI Components:**
+
+- RoadmapTree (main tree component)
+- PhaseCard, SprintCard, WeekCard, DayCard, TaskCard
+- CurrentPositionBanner (breadcrumb navigation)
+- RoadmapFilters (status and progress range filters)
+- EmptyRoadmapState (when no Phase records exist)
+
+**Performance:**
+
+- ISR caching (revalidate: 3600s)
+- Lazy loading for trees with >100 nodes
+- React.memo on card components
+
+**Acceptance Criteria:**
+
+- Displays full 5-level hierarchy tree
+- Collapsible/expandable nodes
+- Progress bars update in real-time via database
+- "You are here" breadcrumb highlights current position
+- Filters work (status, progress range)
+- Empty state displays when no roadmap exists
+- Page loads in <2s for projects with <100 tasks
+
+**Dependencies:** FR-001 (hierarchy must exist), FR-027 (materialization)
+
+**Traceability:**
+
+- PRD: Section 4.2.1 (Development Cycle UI)
+- Architecture: Section 5.X (Roadmap UI components)
+- Tests: TEST-033, TEST-034 (UI rendering, interaction)
+- Backlog: US-8.5-001
+
+---
+
+#### FR-027: Roadmap Materialization
+
+**ID:** FR-027
+**Epic:** EPIC-001 (Sprint/Phase Tracking)
+**Priority:** Must Have (P0)
+**Sprint:** Sprint 8.5 Phase 1
+
+**Description:** Convert Roadmap JSON to normalized database records (Phase, Sprint, Week, Day). Parses 13-Project-Plan.md from Document table, extracts structure, and creates hierarchy records.
+
+**Inputs:**
+
+- roadmapId: string (ID of Roadmap record with phases JSON)
+- projectId: number (for security validation)
+
+**Outputs:**
+
+- Phase records created (extracted from Roadmap.phases JSON)
+- Sprint records created (new intermediate level between Phase and Week)
+- Week records created (linked to Sprint, not Phase)
+- Day records created (5 days per week by default)
+- Return object: { phases: number, sprints: number, weeks: number, days: number, total: number, ids: { phases: string[], sprints: string[], weeks: string[], days: string[] } }
+
+**Workflow:**
+
+1. Session 2: Agent generates 13-Project-Plan.md → Stored in Document table
+2. Session 3: Parse 13-Project-Plan.md → Extract Phase/Sprint/Week structure
+3. Session 3: Create Roadmap record with phases JSON
+4. Session 3: Call materialize tool → Create normalized records
+5. Session 3: Create DevelopmentSession record (onboarding summary)
+
+**Markdown Parsing:**
+
+- Supports 3 markdown format variations:
+  1. `### Sprint 1 (Weeks 1-2): Name - 20 points`
+  2. `### Sprint 1: Name (Weeks 1-2) - 20 points`
+  3. `### Sprint 1 (Weeks 1-2): Name` (no points)
+- Extracts: sprint number, name, weeks range, story points (optional)
+- Handles multiple phases with nested sprints
+
+**Validation:**
+
+- Roadmap must belong to projectId (security - prevent cross-project access)
+- Roadmap.phases JSON must be valid structure
+- Transaction-safe: All-or-nothing (rollback on error)
+- Duplicate protection: Cannot materialize same roadmap twice
+
+**Acceptance Criteria:**
+
+- Parses all 3 markdown format variations
+- Creates Phase/Sprint/Week/Day records in database
+- Returns detailed counts and IDs
+- Transaction-safe (rollback on error)
+- Handles 2-4 phases, 1-10 sprints, 1-20 weeks
+- Performance: Completes in <10s for 20 weeks
+
+**Dependencies:** FR-001 (hierarchy models), FR-028 (Document model exists)
+
+**Traceability:**
+
+- PRD: Section 4.2.1 (Roadmap materialization)
+- Architecture: Section 5.X (Materialization algorithm)
+- Tests: TEST-035, TEST-036, TEST-037 (materialization, parsing variations, E2E onboarding)
+- Backlog: US-8.5-002
+
+---
+
+#### FR-028: Blueprint MCP Tool
+
+**ID:** FR-028
+**Epic:** EPIC-003 (Onboarding System)
+**Priority:** Must Have (P0)
+**Sprint:** Sprint 8.5 Phase 2
+
+**Description:** MCP tool to retrieve Session 3 blueprint data (project-context.json) containing roadmap, tech stack, agent persona, skills, workflows, timeline, and budget.
+
+**Inputs:**
+
+- projectId: number (required - from MCP context)
+
+**Outputs:**
+
+- Session 3 blueprint JSON:
+  ```json
+  {
+    "projectContext": "...",
+    "roadmap": { "phases": [...] },
+    "techStack": [...],
+    "agentPersona": { "name": "...", "expertise": [...] },
+    "skills": [...],
+    "workflows": [...],
+    "timeline": { "startDate": "...", "endDate": "..." },
+    "budget": { "hours": number, "budget": number }
+  }
+  ```
+
+**MCP Tool Signature:**
+
+- Tool name: `projectpulse.blueprint.get`
+- Input schema: `{ projectId: number }`
+- Output: ProjectContextJson object
+
+**Behavior:**
+
+- Query `OnboardingSession` where `sessionNumber = 3` and `projectId = projectId`
+- Return `projectContextJson` field
+- Return 404 error if Session 3 not completed
+- NO UI component (data displayed in Development Cycle page and Agent AI Hub)
+
+**Validation:**
+
+- projectId must exist
+- Session 3 must be completed
+- projectContextJson must not be null
+
+**Acceptance Criteria:**
+
+- MCP tool returns Session 3 blueprint data
+- Returns 404 if Session 3 not completed
+- Security: Only returns data for specified projectId
+- Performance: Query completes in <100ms
+- NO UI component created (data reused in other UIs)
+
+**Dependencies:** FR-027 (Session 3 creates blueprint)
+
+**Traceability:**
+
+- PRD: Section 1.2 (3-Session onboarding flow - Session 3)
+- Architecture: Section 5.X (Blueprint MCP tool)
+- Tests: TEST-038, TEST-039 (blueprint retrieval, error handling)
+- Backlog: US-8.5-003
+
+---
+
+#### FR-029: Current Position MCP Tool
+
+**ID:** FR-029
+**Epic:** EPIC-001 (Sprint/Phase Tracking)
+**Priority:** Must Have (P0)
+**Sprint:** Sprint 8.5 Phase 4
+
+**Description:** MCP tool to get agent's current position in 5-level hierarchy (Phase → Sprint → Week → Day → Task) in a single database query, replacing 5 sequential calls.
+
+**Problem:**
+
+- Old approach: 5 sequential MCP calls to get Phase → Sprint → Week → Day → Task (5K tokens, 500ms latency)
+- New approach: 1 MCP call with nested query (1K tokens, 150ms latency)
+- **Token reduction**: 80% (5K → 1K tokens)
+- **Latency reduction**: 70% (500ms → 150ms)
+
+**Inputs:**
+
+- projectId: number (required - security)
+
+**Outputs:**
+
+- Nested hierarchy:
+  ```json
+  {
+    "phase": { "id": "...", "name": "...", "progress": 0.75 },
+    "sprint": { "id": "...", "name": "...", "storyPoints": 52, "progress": 0.80 },
+    "week": { "id": "...", "weekNumber": 3, "progress": 0.90 },
+    "day": { "id": "...", "dayNumber": 2, "progress": 1.0 },
+    "task": { "id": "...", "title": "...", "description": "...", "progress": 0.50 },
+    "taskId": "..."
+  }
+  ```
+
+**MCP Tool Signature:**
+
+- Tool name: `projectpulse.sprint.getCurrentPosition`
+- Input schema: `{ projectId: number }`
+- Output: CurrentPositionHierarchy object
+
+**Database Query:**
+
+- Find first Task where `status = IN_PROGRESS` and `project.id = projectId`
+- Include nested relations: `task.day.week.sprint.phase`
+- Single query with Prisma nested includes
+
+**Acceptance Criteria:**
+
+- Returns current Phase/Sprint/Week/Day/Task in 1 call
+- 80% token reduction (1K vs 5K baseline)
+- 70% latency reduction (150ms vs 500ms baseline)
+- Security: Validates projectId (prevent cross-project data leakage)
+- Returns null if no IN_PROGRESS task exists
+
+**Dependencies:** FR-001 (hierarchy), FR-027 (Sprint layer exists)
+
+**Traceability:**
+
+- PRD: Section 3.1 (5-Step Protocol - Initialize Session)
+- Architecture: Section 5.X (Current Position MCP tool)
+- Tests: TEST-040, TEST-041, TEST-042 (retrieval, performance, security)
+- Backlog: US-8.5-004
+
+---
+
+#### FR-030: Phase Progress MCP Tool
+
+**ID:** FR-030
+**Epic:** EPIC-001 (Sprint/Phase Tracking)
+**Priority:** Must Have (P0)
+**Sprint:** Sprint 8.5 Phase 4
+
+**Description:** MCP tool to get full phase progress with all nested children (Phase → Sprints → Weeks → Days → Tasks) in a single database query.
+
+**Problem:**
+
+- Old approach: Query phase → Loop sprints → Loop weeks → Loop days → Loop tasks (20K tokens, 3s latency)
+- New approach: 1 query with full nested tree (2K tokens, 500ms latency)
+- **Token reduction**: 90% (20K → 2K tokens)
+- **Latency reduction**: 85% (3s → 500ms)
+
+**Inputs:**
+
+- phaseId: string (required)
+- projectId: number (required - security validation)
+
+**Outputs:**
+
+- Nested tree:
+  ```json
+  {
+    "phase": { "id": "...", "name": "...", "progress": 0.75 },
+    "sprints": [
+      {
+        "id": "...", "name":  "...", "storyPoints": 52, "progress": 0.80,
+        "weeks": [
+          {
+            "id": "...", "weekNumber": 1, "progress": 0.90,
+            "days": [
+              {
+                "id": "...", "dayNumber": 1, "progress": 1.0,
+                "tasks": [
+                  { "id": "...", "title": "...", "progress": 1.0, "status": "COMPLETE" }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  ```
+
+**MCP Tool Signature:**
+
+- Tool name: `projectpulse.sprint.getPhaseProgress`
+- Input schema: `{ phaseId: string, projectId: number }`
+- Output: PhaseProgressTree object
+
+**Database Query:**
+
+- Find Phase where `id = phaseId` and `project.id = projectId`
+- Include nested: `phase.sprints.weeks.days.tasks`
+- Single query with deep Prisma includes
+
+**Security:**
+
+- Validates phaseId belongs to projectId
+- Returns 404 (not 403) to prevent information leakage
+- Prevents User A from accessing User B's phases
+
+**Acceptance Criteria:**
+
+- Returns full nested tree in 1 call
+- 90% token reduction (2K vs 20K baseline)
+- 85% latency reduction (500ms vs 3s baseline)
+- Security: projectId validation prevents cross-project access
+- Returns 404 if phase not found or belongs to different project
+
+**Dependencies:** FR-001 (hierarchy), FR-027 (Sprint layer exists)
+
+**Traceability:**
+
+- PRD: Section 2.1 (Agent persona - efficient context retrieval)
+- Architecture: Section 5.X (Phase Progress MCP tool)
+- Tests: TEST-043, TEST-044, TEST-045 (retrieval, performance, security)
+- Backlog: US-8.5-005
+
+---
+
 ### 1.2 Web UI Pages (Overview)
 
 **Purpose:** Provide a human-accessible web interface for all project data stored in the database.
