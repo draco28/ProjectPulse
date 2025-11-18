@@ -297,6 +297,7 @@ model Project {
   skills             Skill[] // Sprint 6: Skills lazy-loading system
   onboardingSessions OnboardingSession[]
   workflowRuns       WorkflowRun[]
+  workflowTemplates  WorkflowTemplate[] // Sprint 8.5 Phase 3: Project-scoped workflow templates
   healthScanners     HealthScanner[] // Sprint 7: Health monitoring system
   healthScores       HealthScore[] // Sprint 7: Health scores
   roadmap            Roadmap? // Sprint 8.5: Development roadmap (one-to-one)
@@ -304,6 +305,7 @@ model Project {
   currentPlan        CurrentPlan? // Sprint 8.5 Phase 2: Current work plan
   currentTodos       CurrentTodos? // Sprint 8.5 Phase 2: Current todos list
   agentPersonas      AgentPersona[] // Sprint 8.5 Phase 3: Project-scoped agent personas
+  sops               SOP[] // Sprint 8.5 Phase 3E: SOPs for this project
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -646,6 +648,42 @@ model SkillKnowledgeLink {
   @@index([skillIdRef])
   @@index([knowledgeIdRef])
   @@map("skill_knowledge_links")
+}
+
+// ============================================================================
+// SOPS SYSTEM (Sprint 8.5 Phase 3E)
+// ============================================================================
+// Purpose: Store Standard Operating Procedures for project-specific workflows
+// Multi-tenancy: Scoped by projectId for proper isolation
+model SOP {
+  id Int @id @default(autoincrement())
+
+  // Project association (multi-tenancy)
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Core identification
+  title       String @db.VarChar(200) // SOP title
+  slug        String @db.VarChar(100) // URL-safe identifier (unique per project)
+  description String @db.Text         // Short summary (1-2 sentences)
+
+  // Content (markdown)
+  content String @db.Text // Full SOP content in markdown format
+
+  // Metadata
+  category String   @db.VarChar(50) // Category for grouping (e.g., "Development", "Testing", "Deployment")
+  tags     String[] // Keywords for search (e.g., ["git", "workflow", "branching"])
+
+  // Audit fields
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes (5 optimized for common queries)
+  @@unique([projectId, slug]) // Slug unique per project
+  @@index([projectId]) // List all SOPs for a project
+  @@index([projectId, category]) // Filter by category within project
+  @@index([tags], type: Gin) // Fast tag search (GIN index for arrays)
+  @@map("sops")
 }
 
 // ============================================================================
@@ -1206,7 +1244,12 @@ model CurrentTodos {
 
 model WorkflowTemplate {
   id          Int      @id @default(autoincrement())
-  name        String   @unique
+  
+  // Project association (Sprint 8.5 Phase 3: Make workflows project-scoped)
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  name        String
   description String   @db.Text
   category    String
   steps       Json     @db.JsonB // Array of step definitions
@@ -1215,6 +1258,13 @@ model WorkflowTemplate {
   updatedAt   DateTime @updatedAt
 
   runs WorkflowRun[]
+  
+  // Change unique constraint: name unique per project (not globally)
+  @@unique([projectId, name])
+  // Add indexes for project-scoped queries
+  @@index([projectId])
+  @@index([projectId, category])
+  @@index([projectId, isActive])
 }
 
 model WorkflowRun {

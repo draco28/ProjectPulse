@@ -6,6 +6,7 @@ import { AgentCard } from '@/components/agents/AgentCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SkillsLibrarySection } from '@/components/agent-hub/SkillsLibrarySection';
 import { WorkflowsLibrarySection } from '@/components/agent-hub/WorkflowsLibrarySection';
+import { SOPsLibrarySection } from '@/components/agent-hub/SOPsLibrarySection';
 
 export const dynamic = 'force-dynamic'; // Real-time agent status
 
@@ -63,8 +64,13 @@ async function getSkills() {
 }
 
 async function getWorkflows() {
-  // TODO: Add projectId filter when WorkflowTemplate schema is updated
+  // TODO: Get projectId from auth/session when available
+  const projectId = 1; // Default project for MVP
+
   const workflows = await prisma.workflowTemplate.findMany({
+    where: {
+      projectId: projectId, // Sprint 8.5 Phase 3: Filter workflows by project
+    },
     select: {
       id: true,
       name: true,
@@ -77,6 +83,33 @@ async function getWorkflows() {
   });
 
   return workflows;
+}
+
+async function getSOPs() {
+  // TODO: Get projectId from auth/session when available
+  const projectId = 1; // Default project for MVP
+
+  const sops = await prisma.sOP.findMany({
+    where: {
+      projectId: projectId,
+    },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      description: true,
+      category: true,
+      tags: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    orderBy: [
+      { category: 'asc' },
+      { title: 'asc' },
+    ],
+  });
+
+  return sops;
 }
 
 async function getAgentStats() {
@@ -92,11 +125,12 @@ async function getAgentStats() {
 }
 
 export default async function AgentsPage() {
-  const [agents, stats, skills, workflows] = await Promise.all([
+  const [agents, stats, skills, workflows, sops] = await Promise.all([
     getAgents(),
     getAgentStats(),
     getSkills(),
     getWorkflows(),
+    getSOPs(),
   ]);
 
   return (
@@ -244,13 +278,9 @@ export default async function AgentsPage() {
                   <WorkflowsLibrarySection workflows={workflows} />
                 </TabsContent>
 
-                {/* SOPs Tab - Placeholder */}
+                {/* SOPs Tab */}
                 <TabsContent value="sops" className="space-y-4">
-                  <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
-                    <div className="text-4xl mb-4">📋</div>
-                    <h3 className="mb-2 text-xl font-bold text-white">SOPs Library</h3>
-                    <p className="text-slate">Standard operating procedures available to all agents (Coming soon)</p>
-                  </div>
+                  <SOPsLibrarySection sops={sops} />
                 </TabsContent>
               </Tabs>
             </div>
