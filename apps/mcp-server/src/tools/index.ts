@@ -32,6 +32,7 @@ import { issueAddCommentTool } from './issues/addComment.js';
 import { issueSetStatusTool } from './issues/setStatus.js';
 import { materializeRoadmapTool } from './roadmap/materializeTool.js';
 import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
+import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -66,6 +67,8 @@ const loadTools = (): ToolDefinition[] => [
   // Sprint 8.5 Phase 1: Roadmap materialization tools
   materializeRoadmapTool,
   getCurrentPositionTool,
+  // Sprint 8.5 Phase 4: Roadmap read tools
+  getPhaseProgressTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {

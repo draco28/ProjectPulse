@@ -192,15 +192,18 @@ export const getCurrentPositionTool: ToolDefinition = {
     try {
       context.logger.info('Getting current position', { projectId: params.projectId });
       
-      const position = await getCurrentPosition(params.projectId);
+      // Sprint 8.5 Phase 4: Follow MCP pattern (MCP server → Next.js API → Database)
+      const response = await context.httpClient.get(
+        `/api/roadmap/current-position?projectId=${params.projectId}`
+      );
 
-      if (!position.task) {
+      if (!response.task) {
         context.logger.info('No active task found', { projectId: params.projectId });
       } else {
         context.logger.info('Current position retrieved', {
           projectId: params.projectId,
-          taskId: position.task.id,
-          phase: position.phase?.title,
+          taskId: response.task.id,
+          phase: response.phase?.title,
         });
       }
 
@@ -208,7 +211,7 @@ export const getCurrentPositionTool: ToolDefinition = {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(position, null, 2),
+            text: JSON.stringify(response, null, 2),
           },
         ],
       };
