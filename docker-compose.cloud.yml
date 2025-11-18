@@ -56,7 +56,8 @@ services:
     container_name: projectpulse-mcp-cloud
     working_dir: /app
     # Run HTTP transport server (production-ready, cloud-deployable)
-    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && cd apps/mcp-server && pnpm build && node dist/index-http.js"
+    # Sprint 8.5 Phase 1: Generate Prisma client first, then build shared package, then MCP server
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && cd apps/web && pnpm prisma generate && cd ../../packages/roadmap-tools && pnpm build && cd ../../apps/mcp-server && pnpm build && node dist/index-http.js"
     environment:
       - PROJECTPULSE_API_URL=http://nextjs:3000
       - NODE_ENV=production

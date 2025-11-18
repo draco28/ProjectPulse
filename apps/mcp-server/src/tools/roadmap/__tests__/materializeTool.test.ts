@@ -9,8 +9,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { PrismaClient } from '@prisma/client';
-import { materializeRoadmap } from '../materializeTool';
-import type { ParsedRoadmap } from '../parseProjectPlan';
+import { materializeRoadmap } from '@projectpulse/roadmap-tools';
+import type { ParsedRoadmap } from '@projectpulse/roadmap-tools';
 
 const prisma = new PrismaClient();
 

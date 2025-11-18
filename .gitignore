@@ -266,3 +266,4 @@ Starter_template/
 !Dockerfile
 !scripts/init-db.sql
 !prisma/schema.prisma
+tiny-fullstack-practice-app.md

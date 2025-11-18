@@ -130,11 +130,8 @@ export async function POST(request: NextRequest) {
     // Sprint 8.5 Phase 1: Roadmap Materialization after Session 3
     if (sessionNumber === 3) {
       try {
-        // Dynamic import to avoid circular dependencies
-        // @ts-ignore - Cross-package import from monorepo, types available at runtime
-        const { parseProjectPlan } = await import('../../../../mcp-server/src/tools/roadmap/parseProjectPlan.js');
-        // @ts-ignore - Cross-package import from monorepo, types available at runtime
-        const { materializeRoadmap } = await import('../../../../mcp-server/src/tools/roadmap/materializeTool.js');
+        // Import from shared package (Sprint 8.5 Phase 1 - Architectural Fix)
+        const { parseProjectPlan, materializeRoadmap } = await import('@projectpulse/roadmap-tools');
 
         // Find 13-Project-Plan.md document
         const projectPlanDoc = await prisma.document.findFirst({
@@ -163,7 +160,7 @@ export async function POST(request: NextRequest) {
           const roadmap = await prisma.roadmap.create({
             data: {
               projectId,
-              phases: parsedRoadmap, // JSONB field
+              phases: parsedRoadmap as any, // JSONB field - cast for Prisma
             },
           });
           console.log('[Session 3] Created Roadmap record:', roadmap.id);
@@ -223,7 +220,7 @@ export async function POST(request: NextRequest) {
 
             // Extract todos from first sprint
             const firstSprint = firstPhase?.sprints?.[0];
-            const todos = firstSprint?.weeks?.[0]?.days?.slice(0, 5).map((day: any) => ({
+            const todos = (firstSprint?.weeks?.[0] as any)?.days?.slice(0, 5).map((day: any) => ({
               content: day.focus || day.name,
               status: 'pending',
               priority: 'medium',

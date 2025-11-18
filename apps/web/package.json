@@ -29,6 +29,7 @@
     "@microsoft/tsdoc": "0.16.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@prisma/client": "^5.9.1",
+    "@projectpulse/roadmap-tools": "workspace:*",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",

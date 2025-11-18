@@ -11,6 +11,9 @@ packages:
   # Docker MCP Server (already exists for Docker management)
   - 'apps/mcp-docker'
 
+  # Shared packages
+  - 'packages/*'
+
   # Future packages (placeholder for Phase 2+)
   # - 'packages/shared-types'
   # - 'packages/ui-components'
