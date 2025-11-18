@@ -118,6 +118,10 @@ model Week {
   // Hierarchy - Children
   days Day[]
 
+  // Current Work Tracking (Sprint 8.5 Phase 2)
+  currentPlans  CurrentPlan[] // Sprint 8.5 Phase 2: Current plans pointing to this week
+  currentTodos CurrentTodos[] // Sprint 8.5 Phase 2: Current todos pointing to this week
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -153,6 +157,10 @@ model Day {
 
   // Hierarchy - Children
   tasks Task[]
+
+  // Current Work Tracking (Sprint 8.5 Phase 2)
+  currentPlans  CurrentPlan[] // Sprint 8.5 Phase 2: Current plans pointing to this day
+  currentTodos CurrentTodos[] // Sprint 8.5 Phase 2: Current todos pointing to this day
 
   // Metadata
   createdAt DateTime @default(now())
@@ -293,6 +301,8 @@ model Project {
   healthScores       HealthScore[] // Sprint 7: Health scores
   roadmap            Roadmap? // Sprint 8.5: Development roadmap (one-to-one)
   developmentSessions DevelopmentSession[] // Sprint 8.5: Agent work tracking (plan + todos for CurrentWorkModal)
+  currentPlan        CurrentPlan? // Sprint 8.5 Phase 2: Current work plan
+  currentTodos       CurrentTodos? // Sprint 8.5 Phase 2: Current todos list
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1125,6 +1135,60 @@ model DevelopmentSession {
   @@index([projectId, status])
   @@index([projectId, createdAt])
   @@map("development_sessions")
+}
+
+// ============================================================================
+// CURRENT WORK TRACKING (Sprint 8.5 Phase 2)
+// ============================================================================
+// Purpose: Track what agent is currently working on (visible in Roadmap UI)
+// Updated: Whenever agent begins a new week/day
+// Display: Roadmap UI tabs - "Current Plan" and "Current Todos"
+
+model CurrentPlan {
+  id        String   @id @default(cuid())
+  projectId Int      @unique // One current plan per project
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Plan content
+  content   String   @db.Text // Markdown plan for current week/day
+  goals     String[] @default([])
+
+  // Pointer to Roadmap (which week/day are we working on?)
+  weekId    String?  // Current week being worked on
+  dayId     String?  // Current day being worked on
+  week      Week?    @relation(fields: [weekId], references: [id], onDelete: SetNull)
+  day       Day?     @relation(fields: [dayId], references: [id], onDelete: SetNull)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([weekId, dayId])
+  @@map("current_plans")
+}
+
+model CurrentTodos {
+  id        String   @id @default(cuid())
+  projectId Int      @unique // One current todos per project
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Todos content
+  todos     Json     @db.JsonB // Array: [{ content, status, priority, completedAt? }]
+
+  // Pointer to Roadmap (same week/day as CurrentPlan)
+  weekId    String?
+  dayId     String?
+  week      Week?    @relation(fields: [weekId], references: [id], onDelete: SetNull)
+  day       Day?     @relation(fields: [dayId], references: [id], onDelete: SetNull)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([weekId, dayId])
+  @@map("current_todos")
 }
 
 // ============================================================================

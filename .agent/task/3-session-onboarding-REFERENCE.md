@@ -343,7 +343,7 @@ Session 3: Bootstrap & Configuration (AI workflow setup)
 
 **MCP Tool**: `projectpulse.onboarding.saveAnswers(phase, answers)`
 
-**Stored in**: `OnboardingSession.response` (JSONB field)
+**Stored in**: `OnboardingSession.response.projectContextJson` (JSONB field - THE single source of truth)
 
 ```json
 {
@@ -394,7 +394,7 @@ Session 3: Bootstrap & Configuration (AI workflow setup)
 
 **MCP Tool**: `projectpulse.onboarding.generateExecutiveSummary()` - Synthesizes all answers into Executive Summary
 
-**Storage**: PostgreSQL `OnboardingSession` table, `response` JSONB column
+**Storage**: PostgreSQL `OnboardingSession` table, `response.projectContextJson` JSONB field (single source of truth)
 
 ---
 
@@ -831,7 +831,9 @@ Generate the following 15 documentation files in markdown format:
 
 **MCP Tool**: `projectpulse.onboarding.getProjectContext()`
 
-**Agent fetches**: `OnboardingSession.response.projectContextJson` from ProjectPulse DB
+**Returns**: `OnboardingSession.response.projectContextJson` (JSONB field - complete project configuration from Sessions 1 & 2)
+
+**Agent fetches**: Complete project context from ProjectPulse DB
 
 **Validation Checks**:
 - ✅ `metadata.projectName` populated (not `"[PROJECT_NAME]"`)
@@ -871,6 +873,8 @@ Ready to configure ProjectPulse! Starting automated setup...
 
 #### **Step 2: Create Memory Bank Records (ProjectPulse DB)**
 
+**🚨 CRITICAL**: Memory Bank stored in **ProjectPulse database**, NOT as files in user's repo
+
 **MCP Tool**: `projectpulse.memory.create(type, content)`
 
 **Agent creates 5 MemoryBank records** (NOT files in repo):
@@ -902,7 +906,9 @@ Ready to configure ProjectPulse! Starting automated setup...
 
 **Total**: ~8K tokens (5 DB records)
 
+**Storage**: `MemoryBank` table (Prisma model exists in schema)
 **Visible in**: Agent AI Hub UI → Memory Bank tab
+**User's Repo**: CLEAN ✅ (NO `.agent/` folder, NO memory bank files)
 
 ---
 
@@ -912,7 +918,9 @@ Ready to configure ProjectPulse! Starting automated setup...
 
 **3.1 Generate `CLAUDE.md` for user's repo**
 
-**Template**: `claude-md-template-PRODUCTPULSE.md` (see file for full template)
+**Template**: `.agent/task/claude-md-template-PRODUCTPULSE.md` (modified with current-plan/current-todos workflow)
+
+**🚨 WHY THIS IS CRITICAL**: If CLAUDE.md doesn't clearly instruct agents to use ProjectPulse DB, they will fall back to creating files in `.agent/` folder, cluttering user's repo and failing the product vision.
 
 **Key sections in generated CLAUDE.md**:
 1. **Pre-work Checklist**: Check ProjectPulse connection (via `projectpulse.health.check()`)
@@ -926,11 +934,14 @@ Ready to configure ProjectPulse! Starting automated setup...
 4. **Documentation**: Read from DB (via `projectpulse.docs.read(filename)`)
 5. **Agent Personas**: Access via `projectpulse.agent.list()` and `.get()`
 6. **Roadmap**: Track via `projectpulse.roadmap.getCurrent()`
-7. **Best Practices**: Emphasizes DB-first, clean repo (NO `.agent/` folder)
+7. **Current Work Tracking**: Use `projectpulse.roadmap.updateCurrentPlan()` and `projectpulse.roadmap.updateCurrentTodos()` when starting each week/day
+8. **Best Practices**: Emphasizes DB-first, clean repo (NO `.agent/` folder, NO `.agent/task/current-*.md` files)
 
 **Critical warnings in CLAUDE.md**:
+- ❌ "DO NOT create `.agent/` folder"
 - ❌ "DO NOT read `.agent/active-context.md` - use `projectpulse.memory.read()`"
-- ❌ "DO NOT write `current-plan.md` - use `projectpulse.session.savePlan()`"
+- ❌ "DO NOT write `.agent/task/current-plan.md` - use `projectpulse.roadmap.updateCurrentPlan()`"
+- ❌ "DO NOT write `.agent/task/current-todos.md` - use `projectpulse.roadmap.updateCurrentTodos()`"
 - ❌ "DO NOT look for `docs/` folder - use `projectpulse.docs.read()`"
 
 **Full template**: [`.agent/task/claude-md-template-PRODUCTPULSE.md`](.agent/task/claude-md-template-PRODUCTPULSE.md)
@@ -1018,7 +1029,9 @@ projectpulse.agent.create(
 
 **Total agents created**: 12-18 (depending on tech stack)
 
+**Storage**: `AgentPersona` table (Prisma model exists in schema)
 **Visible in**: Agent AI Hub UI → Agents tab
+**User's Repo**: CLEAN ✅ (NO `.claude/agents/` folder, NO agent files)
 
 ---
 
@@ -1051,7 +1064,9 @@ projectpulse.skill.create(
 
 **Total skills created**: 7-15 (depending on project type)
 
+**Storage**: `Skill` table (Prisma model exists in schema)
 **Visible in**: Agent AI Hub UI → Skills tab
+**User's Repo**: CLEAN ✅ (NO `.claude/skills/` folder, NO skill files)
 
 ---
 
@@ -1080,51 +1095,171 @@ projectpulse.sop.create(
 
 **Total SOPs created**: 3-8 (depending on project needs)
 
+**Storage**: `SOP` table (Prisma model exists in schema)
 **Visible in**: Agent AI Hub UI → SOPs tab
+**User's Repo**: CLEAN ✅ (NO `.agent/sops/` folder, NO SOP files)
 
 ---
 
-#### **Step 7: Create Roadmap Record (ProjectPulse DB)**
+#### **Step 7: Parse, Create, and Materialize Roadmap (ProjectPulse DB)**
 
-**MCP Tool**: `projectpulse.roadmap.create(phases, currentPhase)`
+**Purpose**: Transform 13-Project-Plan.md into queryable 5-level hierarchy (Phase → Sprint → Week → Day → Task)
 
-**Source**: `13-Project-Plan.md` document (from Session 2) + `project-context.json.phases[]`
+---
 
-**Roadmap structure**:
+**7.1 Parse 13-Project-Plan.md**
+
+**MCP Tool**: `projectpulse.roadmap.parseProjectPlan(documentId)`
+
+**Source**: Fetches `13-Project-Plan.md` from Document table (created in Session 2)
+
+**Output**: Structured JSON with phases, sprints, weeks
 ```json
 {
   "phases": [
     {
-      "id": 1,
-      "name": "Foundation & Authentication",
+      "name": "Phase 1: Foundation",
       "duration": "2 weeks",
-      "goals": ["Set up environment", "Implement auth", "Create UI structure"],
-      "deliverables": ["User auth", "Protected routes", "Basic layout"],
-      "status": "pending"
+      "sprints": [
+        {
+          "name": "Sprint 1",
+          "weeks": "Weeks 1-2",
+          "goals": ["Set up environment", "Implement auth"],
+          "deliverables": ["User auth", "Protected routes"]
+        }
+      ]
     }
-    // ... more phases from project-context.json
-  ],
+  ]
+}
+```
+
+---
+
+**7.2 Create Roadmap Record**
+
+**MCP Tool**: `projectpulse.roadmap.create(projectId, phases, currentPhase)`
+
+**Storage**: Creates Roadmap record with phases JSON
+
+```json
+{
+  "id": "roadmap_xyz",
+  "projectId": 1,
+  "phases": { /* parsed JSON from 7.1 */ },
   "currentPhase": "Phase 1: Foundation & Authentication",
   "currentSprint": null,
+  "currentWeek": null,
   "currentDay": null
 }
 ```
 
-**MCP Call**:
+**Returns**: `{ roadmapId }`
+
+---
+
+**7.3 Materialize JSON to Database Records** 🚨 CRITICAL
+
+**MCP Tool**: `projectpulse.roadmap.materialize(roadmapId)`
+
+**Purpose**: Convert Roadmap.phases JSON → normalized Phase/Sprint/Week/Day/Task records
+
+**What it creates**:
+
+1. **Phase Records** (top level)
+   - One record per phase from JSON
+   - Linked to Roadmap via `roadmapId`
+   - Fields: title, description, status, progress, startDate, endDate
+
+2. **Sprint Records** (2nd level)
+   - One record per sprint from JSON
+   - Linked to Phase via `phaseId`
+   - Fields: title, description, status, progress, startDate, endDate
+
+3. **Week Records** (3rd level)
+   - One record per week from JSON
+   - Linked to Sprint via `sprintId`
+   - Fields: title, description, status, progress, startDate, endDate
+
+4. **Day Records** (4th level)
+   - 5 records per week (Monday-Friday)
+   - Linked to Week via `weekId`
+   - Fields: title, description, status, progress, startDate, endDate
+
+5. **Task Records** (5th level, optional)
+   - If tasks defined in JSON, create Task records
+   - Linked to Day via `dayId`
+   - Fields: title, description, status, progress, startDate, endDate
+
+**Database Structure After Materialization**:
 ```
-projectpulse.roadmap.create(phases, "Phase 1: Foundation & Authentication")
+Roadmap (JSON phases)
+  └─ Phase records (Phase.roadmapId → Roadmap.id)
+      └─ Sprint records (Sprint.phaseId → Phase.id)
+          └─ Week records (Week.sprintId → Sprint.id)
+              └─ Day records (Day.weekId → Week.id)
+                  └─ Task records (Task.dayId → Day.id)
 ```
 
-**Visible in**: Roadmap UI page (`/roadmap`)
+**Returns**: 
+```json
+{
+  "phaseIds": ["phase_1", "phase_2"],
+  "sprintIds": ["sprint_1", "sprint_2"],
+  "weekIds": ["week_1", "week_2"],
+  "dayIds": ["day_1", "day_2", "day_3"],
+  "taskIds": []
+}
+```
+
+**Why This Matters**:
+- ✅ Enables Roadmap UI to display 5-level tree (Phase → Sprint → Week → Day → Task)
+- ✅ Enables agents to track specific Week/Day they're working on (CurrentPlan.weekId, CurrentPlan.dayId)
+- ✅ Enables progress tracking at each level (Week.progress, Day.progress)
+- ✅ Enables queries like "get all weeks in Sprint 2" or "get all days in Week 3"
+
+---
+
+**7.4 Update Roadmap Position Tracking**
+
+After materialization, update Roadmap with current position:
+
+```typescript
+projectpulse.roadmap.updateCurrentPhase("Phase 1: Foundation")
+projectpulse.roadmap.updateCurrentSprint("Sprint 1")
+projectpulse.roadmap.updateCurrentWeek("Week 1")
+projectpulse.roadmap.updateCurrentDay("Day 1")
+```
+
+This sets up tracking for agents to know their starting point.
+
+---
+
+**MCP Call Summary for Step 7**:
+```typescript
+// Session 3 calls these in sequence:
+const { phases } = await projectpulse.roadmap.parseProjectPlan(documentId)
+const { roadmapId } = await projectpulse.roadmap.create(projectId, phases, "Phase 1")
+const { phaseIds, sprintIds, weekIds, dayIds } = await projectpulse.roadmap.materialize(roadmapId)
+await projectpulse.roadmap.updateCurrentPosition(roadmapId, phaseIds[0], sprintIds[0], weekIds[0], dayIds[0])
+```
+
+**Visible in**: Roadmap UI page (`/roadmap`) displays the materialized 5-level hierarchy
 
 **Dynamic updates**: When agents start work, they call:
 - `projectpulse.roadmap.updateCurrentPhase()`
 - `projectpulse.roadmap.updateCurrentSprint()`
+- `projectpulse.roadmap.updateCurrentWeek()`
 - `projectpulse.roadmap.updateCurrentDay()`
 
 ---
 
-#### **Step 8: Create DevelopmentSession Record (Onboarding Summary)**
+#### **Step 8: Create Current Work Tracking + Development Session**
+
+**Purpose**: Initialize agent's first work session with current-plan and current-todos
+
+---
+
+**8.1 Create DevelopmentSession Record (Onboarding Summary)**
 
 **MCP Tool**: `projectpulse.session.create(phase, goals, plan, status)`
 
@@ -1137,25 +1272,133 @@ projectpulse.roadmap.create(phases, "Phase 1: Foundation & Authentication")
     "Generate CLAUDE.md and AGENTS.md",
     "Create Memory Bank records",
     "Set up agent personas and skills",
-    "Initialize roadmap"
+    "Initialize roadmap",
+    "Create initial current-plan and current-todos"
   ],
-  "plan": "Session 1: Answered 98 strategic questions\nSession 2: Generated 15 industry docs (35K words)\nSession 3: Configured ProjectPulse with Memory Bank, Agents, Skills, SOPs, Roadmap",
-  "progress": "Onboarding completed successfully:\n- Memory Bank: 5 records created\n- Agents: [N] personas configured\n- Skills: [N] patterns added\n- SOPs: [N] procedures documented\n- Roadmap: [N] phases loaded\n- Files in repo: CLAUDE.md, AGENTS.md",
+  "plan": "Session 1: Answered 98 strategic questions\nSession 2: Generated 15 industry docs (35K words)\nSession 3: Configured ProjectPulse with Memory Bank, Agents, Skills, SOPs, Roadmap, Current Work Tracking",
+  "progress": "Onboarding completed successfully:\n- Memory Bank: 5 records created\n- Agents: [N] personas configured\n- Skills: [N] patterns added\n- SOPs: [N] procedures documented\n- Roadmap: [N] phases loaded\n- Current Work: Initial plan and todos created for Week 1, Day 1\n- Files in repo: CLAUDE.md, AGENTS.md",
   "status": "completed"
 }
 ```
 
-**MCP Call**:
-```
-projectpulse.session.create(
-  phase: "Session 3: Project Bootstrap",
-  goals: [...],
-  plan: "...",
-  status: "completed"
-)
+**Storage**: `DevelopmentSession` table
+**Visible in**: Agent AI Hub UI → Sessions tab (or Roadmap UI history)
+
+---
+
+**8.2 Create Initial CurrentPlan Record**
+
+**MCP Tool**: `projectpulse.roadmap.updateCurrentPlan(projectId, weekId, dayId, { content, goals })`
+
+**Source**: First week/day from `project-context.json.phases[0]`
+
+**How to get Week/Day IDs**:
+```typescript
+// From Step 7.3 materialization results
+const { weekIds, dayIds } = materializationResults
+const firstWeekId = weekIds[0]  // Week 1
+const firstDayId = dayIds[0]    // Week 1, Day 1 (Monday)
+
+// Use these IDs for CurrentPlan
+projectpulse.roadmap.updateCurrentPlan(projectId, firstWeekId, firstDayId, {
+  content: "Phase 1 Week 1 Day 1: Project setup and environment configuration...",
+  goals: ["Initialize repository", "Set up development environment", "Configure dependencies"]
+})
 ```
 
-**Visible in**: Agent AI Hub UI → Sessions tab
+**Content example**:
+```json
+{
+  "content": "Phase 1 Week 1 Day 1: Project setup and environment configuration\n\n## Overview\nBegin foundational work by setting up the development environment and project structure.\n\n## Tasks\n- Initialize Git repository\n- Install dependencies (npm install)\n- Configure environment variables (.env.local)\n- Set up database connection\n- Create initial directory structure",
+  "goals": [
+    "Initialize repository",
+    "Set up development environment",
+    "Configure dependencies"
+  ]
+}
+```
+
+**Pointer**: Points to first Week and first Day records created by Step 7.3 materialization
+
+**Database relationship**:
+- `CurrentPlan.weekId` → Foreign key to `Week.id` (from Step 7.3 materialization)
+- `CurrentPlan.dayId` → Foreign key to `Day.id` (from Step 7.3 materialization)
+- Without materialization, these Week/Day records don't exist
+
+**Storage**: `CurrentPlan` table (new model - one record per project)
+**Visible in**: Roadmap UI → "Current Plan" tab
+**User's Repo**: CLEAN ✅ (NO `.agent/task/current-plan.md` file)
+
+---
+
+**8.3 Create Initial CurrentTodos Record**
+
+**MCP Tool**: `projectpulse.roadmap.updateCurrentTodos(projectId, weekId, dayId, { todos })`
+
+**Source**: First day tasks from `project-context.json.phases[0]` or derived from goals
+
+**Content example**:
+```json
+{
+  "todos": [
+    {
+      "content": "Initialize Git repository (git init)",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "content": "Install dependencies (npm install / pnpm install)",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "content": "Create .env.local with DATABASE_URL and other variables",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "content": "Test database connection (npm run db:test)",
+      "status": "pending",
+      "priority": "medium"
+    },
+    {
+      "content": "Create src/ directory structure (components/, lib/, app/)",
+      "status": "pending",
+      "priority": "medium"
+    }
+  ]
+}
+```
+
+**Pointer**: Points to same Week/Day as CurrentPlan
+
+**Storage**: `CurrentTodos` table (new model - one record per project)
+**Visible in**: Roadmap UI → "Current Todos" tab
+**User's Repo**: CLEAN ✅ (NO `.agent/task/current-todos.md` file)
+
+---
+
+**8.4 Update Roadmap Current Position**
+
+The `updateCurrentPlan()` and `updateCurrentTodos()` MCP calls automatically:
+- Mark first Week/Day as `status = IN_PROGRESS`
+- Update `Roadmap.currentWeek` and `Roadmap.currentDay`
+- Set up tracking pointer for agent's next work session
+
+**Agent workflow after onboarding**:
+
+When agent completes Week 1 Day 1 work:
+```
+1. Agent calls: projectpulse.roadmap.completeCurrentWork(projectId)
+   → Marks Day 1 as COMPLETED
+   → Returns: { nextWeek: Week 1, nextDay: Day 2 }
+
+2. Agent creates new current-plan/todos for Day 2:
+   projectpulse.roadmap.updateCurrentPlan(projectId, week1Id, day2Id, {...})
+   projectpulse.roadmap.updateCurrentTodos(projectId, week1Id, day2Id, {...})
+   → Marks Day 2 as IN_PROGRESS
+   → Roadmap UI auto-updates
+```
 
 ---
 
@@ -1169,6 +1412,8 @@ projectpulse.session.create(
 - ✅ Skill: [N] records created
 - ✅ SOP: [N] records created
 - ✅ Roadmap: 1 record created with [N] phases
+- ✅ CurrentPlan: Initial plan created for Week 1, Day 1
+- ✅ CurrentTodos: Initial todos created for Week 1, Day 1
 - ✅ DevelopmentSession: Onboarding session record created
 
 **Report to User**:
@@ -1190,6 +1435,7 @@ Your project **[PROJECT_NAME]** is now ready for AI-native development with Proj
 - ✅ SOPs: [N] procedures created
   - security-checklist, git-workflow, [...]
 - ✅ Roadmap: [N] phases loaded from Project Plan
+- ✅ Current Work: Initial plan and todos for Week 1, Day 1
 - ✅ Session: Onboarding record created
 
 ### Your Repository
@@ -1224,6 +1470,8 @@ You're ready to build! To start your first development session:
 - **Skills**: Agent AI Hub → Skills tab
 - **SOPs**: Agent AI Hub → SOPs tab
 - **Roadmap**: Roadmap UI (`/roadmap` page)
+- **Current Plan**: Roadmap UI → "Current Plan" tab
+- **Current Todos**: Roadmap UI → "Current Todos" tab
 - **Docs**: Wiki page (15 industry docs from Session 2)
 - **Blueprint**: Agent AI Hub → Blueprint View (Session 3 config)
 
@@ -1433,10 +1681,14 @@ projectpulse.skill.read(name)
 projectpulse.sop.create(name, category, content)
 projectpulse.sop.read(name)
 
-projectpulse.roadmap.create(phases, currentPhase)
+projectpulse.roadmap.parseProjectPlan(documentId)          // Step 7.1: Parse 13-Project-Plan.md
+projectpulse.roadmap.create(projectId, phases, currentPhase) // Step 7.2: Create Roadmap record
+projectpulse.roadmap.materialize(roadmapId)                // Step 7.3: Materialize JSON → DB records
+projectpulse.roadmap.updateCurrentPosition(roadmapId, phaseId, sprintId, weekId, dayId) // Step 7.4
 projectpulse.roadmap.getCurrent()
 projectpulse.roadmap.updateCurrentPhase(phase)
 projectpulse.roadmap.updateCurrentSprint(sprint)
+projectpulse.roadmap.updateCurrentWeek(week)
 projectpulse.roadmap.updateCurrentDay(day)
 
 projectpulse.session.create(phase, goals, plan, status)
