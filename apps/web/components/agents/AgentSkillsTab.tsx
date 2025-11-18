@@ -156,12 +156,12 @@ export function AgentSkillsTab({ agent }: AgentSkillsTabProps) {
 
       {/* Info Banner */}
       <div className="neu-inset rounded-lg p-4 text-sm space-y-2">
-        <p className="font-medium">💡 How Skills Work</p>
+        <p className="font-medium">💡 Configured Skills</p>
         <p className="text-muted-foreground leading-relaxed">
-          This agent can autonomously load these skills when needed via the MCP
-          tool <code className="bg-background px-1.5 py-0.5 rounded">projectpulse.skill.load(slug)</code>.
-          Skills contain detailed patterns, code examples, and procedures - similar to
-          Claude Code&apos;s <code className="bg-background px-1.5 py-0.5 rounded">.claude/skills/</code> folder.
+          These are skills this agent is <strong>configured to use</strong> (agent preferences). 
+          Note: <strong>All project skills</strong> are available to all agents via MCP tool{' '}
+          <code className="bg-background px-1.5 py-0.5 rounded">projectpulse.skill.load(slug)</code>. 
+          View all project skills in the <strong>Skills Library</strong> tab.
         </p>
       </div>
     </div>

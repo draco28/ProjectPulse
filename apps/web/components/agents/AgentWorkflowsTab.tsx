@@ -149,14 +149,14 @@ export function AgentWorkflowsTab({ agent }: AgentWorkflowsTabProps) {
 
       {/* Info Banner */}
       <div className="neu-inset rounded-lg p-4 text-sm space-y-2">
-        <p className="font-medium">🔁 About Workflows</p>
+        <p className="font-medium">🔁 Configured Workflows</p>
         <p className="text-muted-foreground leading-relaxed">
-          Workflows are multi-step processes that {agent.name} can execute.
-          These are filtered to match the agent&apos;s expertise:{' '}
+          These workflows are <strong>configured for this agent</strong> based on expertise:{' '}
           <span className="font-medium">
             {agent.expertise.join(', ') || 'None'}
-          </span>
-          .
+          </span>.
+          Note: <strong>All project workflows</strong> are available to all agents. 
+          View all workflows in the <strong>Workflows Library</strong> tab.
         </p>
       </div>
     </div>

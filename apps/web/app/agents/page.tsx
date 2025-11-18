@@ -3,6 +3,9 @@ import { Plus, Info, Bot } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { AgentCard } from '@/components/agents/AgentCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SkillsLibrarySection } from '@/components/agent-hub/SkillsLibrarySection';
+import { WorkflowsLibrarySection } from '@/components/agent-hub/WorkflowsLibrarySection';
 
 export const dynamic = 'force-dynamic'; // Real-time agent status
 
@@ -31,6 +34,51 @@ async function getAgents() {
   return agents;
 }
 
+async function getSkills() {
+  // TODO: Get projectId from auth/session when available
+  const projectId = 1; // Default project for MVP
+
+  const skills = await prisma.skill.findMany({
+    where: {
+      projectId: projectId,
+    },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      description: true,
+      category: true,
+      tags: true,
+      frameworks: true,
+      usageCount: true,
+      lastLoadedAt: true,
+    },
+    orderBy: [
+      { usageCount: 'desc' }, // Most used first
+      { title: 'asc' },
+    ],
+  });
+
+  return skills;
+}
+
+async function getWorkflows() {
+  // TODO: Add projectId filter when WorkflowTemplate schema is updated
+  const workflows = await prisma.workflowTemplate.findMany({
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      category: true,
+      steps: true,
+      isActive: true,
+    },
+    orderBy: { name: 'asc' },
+  });
+
+  return workflows;
+}
+
 async function getAgentStats() {
   // TODO: Get projectId from auth/session when available
   const projectId = 1; // Default project for MVP
@@ -44,7 +92,12 @@ async function getAgentStats() {
 }
 
 export default async function AgentsPage() {
-  const [agents, stats] = await Promise.all([getAgents(), getAgentStats()]);
+  const [agents, stats, skills, workflows] = await Promise.all([
+    getAgents(),
+    getAgentStats(),
+    getSkills(),
+    getWorkflows(),
+  ]);
 
   return (
     <>
@@ -57,8 +110,8 @@ export default async function AgentsPage() {
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="mb-1 text-3xl font-bold text-white">Agent Personas</h2>
-                <p className="text-sm text-slate">Manage your AI-powered development assistants</p>
+                <h2 className="mb-1 text-3xl font-bold text-white">Agent AI Hub</h2>
+                <p className="text-sm text-slate">Manage agents, skills, workflows, and SOPs for your project</p>
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -92,19 +145,29 @@ export default async function AgentsPage() {
                 <div className="flex items-start gap-4">
                   <Info className="h-6 w-6 text-blue-500" aria-hidden="true" />
                   <div>
-                    <h3 className="mb-1 font-semibold text-white">What are Agent Personas?</h3>
+                    <h3 className="mb-1 font-semibold text-white">About Agent AI Hub</h3>
                     <p className="text-sm text-slate">
-                      Agent Personas are specialized AI assistants with unique expertise and
-                      personalities. Toggle agents on/off to customize your DevHub experience.
-                      Active agents will participate in conversations and provide specialized
-                      assistance.
+                      The Agent AI Hub manages all AI resources for your project: Agent Personas (specialized sub-agents), 
+                      Skills (reusable patterns), Workflows (multi-step processes), and SOPs (standard procedures). 
+                      All resources are project-specific and available to any agent via MCP.
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {/* Tabbed Navigation */}
+              <Tabs defaultValue="personas" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="personas">Agent Personas</TabsTrigger>
+                  <TabsTrigger value="skills">Skills</TabsTrigger>
+                  <TabsTrigger value="workflows">Workflows</TabsTrigger>
+                  <TabsTrigger value="sops">SOPs</TabsTrigger>
+                </TabsList>
+
+                {/* Agent Personas Tab */}
+                <TabsContent value="personas" className="space-y-4">
+                  {/* Stats Cards */}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {/* Active Agents */}
                 <div className="neu-raised neu-no-hover smooth-transition rounded-3xl p-6">
                   <div className="mb-4 flex items-center justify-between">
@@ -151,24 +214,45 @@ export default async function AgentsPage() {
                 </div>
               </div>
 
-              {/* Agent Cards */}
-              {agents.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                  {agents.map((agent) => (
-                    <AgentCard key={agent.id} agent={agent} />
-                  ))}
-                </div>
-              ) : (
-                <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
-                  <Bot className="mb-4 h-16 w-16 text-slate" aria-hidden="true" />
-                  <h3 className="mb-2 text-xl font-bold text-white">No Agents Found</h3>
-                  <p className="mb-4 text-slate">Create your first agent to get started</p>
-                  <button className="coral-gradient smooth-transition rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
-                    <Plus className="mr-2 h-5 w-5" aria-hidden="true" />
-                    Create Agent
-                  </button>
-                </div>
-              )}
+                  {/* Agent Cards */}
+                  {agents.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                      {agents.map((agent) => (
+                        <AgentCard key={agent.id} agent={agent} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
+                      <Bot className="mb-4 h-16 w-16 text-slate" aria-hidden="true" />
+                      <h3 className="mb-2 text-xl font-bold text-white">No Agents Found</h3>
+                      <p className="mb-4 text-slate">Create your first agent to get started</p>
+                      <button className="coral-gradient smooth-transition rounded-2xl px-6 py-3 font-semibold text-white shadow-lg">
+                        <Plus className="mr-2 h-5 w-5" aria-hidden="true" />
+                        Create Agent
+                      </button>
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Skills Tab */}
+                <TabsContent value="skills" className="space-y-4">
+                  <SkillsLibrarySection skills={skills} />
+                </TabsContent>
+
+                {/* Workflows Tab */}
+                <TabsContent value="workflows" className="space-y-4">
+                  <WorkflowsLibrarySection workflows={workflows} />
+                </TabsContent>
+
+                {/* SOPs Tab - Placeholder */}
+                <TabsContent value="sops" className="space-y-4">
+                  <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
+                    <div className="text-4xl mb-4">📋</div>
+                    <h3 className="mb-2 text-xl font-bold text-white">SOPs Library</h3>
+                    <p className="text-slate">Standard operating procedures available to all agents (Coming soon)</p>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </main>
         </div>

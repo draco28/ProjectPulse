@@ -53,7 +53,7 @@ const navigationItems: NavItem[] = [
     badge: 3,
     badgeVariant: 'warning',
   },
-  { icon: Users, label: 'Agent Personas', href: '/agents' },
+  { icon: Users, label: 'Agent AI Hub', href: '/agents' },
 ];
 
 export function Sidebar() {
