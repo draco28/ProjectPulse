@@ -2333,6 +2333,7 @@ When reviewing code:
 
     prisma.agentPersona.create({
       data: {
+        projectId: project.id, // Link to project
         name: 'Debugging Assistant',
         slug: 'debugger',
         icon: '🐛',
@@ -2359,6 +2360,7 @@ When reviewing code:
 
     prisma.agentPersona.create({
       data: {
+        projectId: project.id, // Link to project
         name: 'Documentation Writer',
         slug: 'docs-writer',
         icon: '📝',
