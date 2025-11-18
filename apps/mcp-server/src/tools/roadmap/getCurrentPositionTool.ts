@@ -27,12 +27,10 @@ export interface CurrentPosition {
     title: string;
     status: string;
     progress: number;
-    storyPoints: number;
   } | null;
   week: {
     id: string;
     title: string;
-    weekNumber: number;
     status: string;
     progress: number;
   } | null;
@@ -115,27 +113,25 @@ export async function getCurrentPosition(projectId: number): Promise<CurrentPosi
   const day = currentTask.day;
   const week = day.week;
   const sprint = week.sprint;
-  const phase = sprint.phase;
+  const phase = sprint?.phase || null;
 
   // Return full hierarchy breadcrumb
   return {
-    phase: {
+    phase: phase ? {
       id: phase.id,
       title: phase.title,
       status: phase.status,
       progress: phase.progress,
-    },
-    sprint: {
+    } : null,
+    sprint: sprint ? {
       id: sprint.id,
       title: sprint.title,
       status: sprint.status,
       progress: sprint.progress,
-      storyPoints: sprint.storyPoints,
-    },
+    } : null,
     week: {
       id: week.id,
       title: week.title,
-      weekNumber: week.weekNumber,
       status: week.status,
       progress: week.progress,
     },
@@ -188,20 +184,22 @@ export const getCurrentPositionTool: ToolDefinition = {
     required: ['projectId'],
   },
 
-  async execute(params: GetCurrentPositionInput, context: ToolContext) {
+  async execute(params: unknown, context: ToolContext) {
+    const validated = getCurrentPositionSchema.parse(params);
+    
     try {
-      context.logger.info('Getting current position', { projectId: params.projectId });
+      context.logger.info('Getting current position', { projectId: validated.projectId });
       
       // Sprint 8.5 Phase 4: Follow MCP pattern (MCP server → Next.js API → Database)
       const response = await context.httpClient.get(
-        `/api/roadmap/current-position?projectId=${params.projectId}`
-      );
+        `/api/roadmap/current-position?projectId=${validated.projectId}`
+      ) as any;
 
       if (!response.task) {
-        context.logger.info('No active task found', { projectId: params.projectId });
+        context.logger.info('No active task found', { projectId: validated.projectId });
       } else {
         context.logger.info('Current position retrieved', {
-          projectId: params.projectId,
+          projectId: validated.projectId,
           taskId: response.task.id,
           phase: response.phase?.title,
         });
@@ -218,7 +216,6 @@ export const getCurrentPositionTool: ToolDefinition = {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       context.logger.error('Failed to get current position', {
-        projectId: params.projectId,
         error: errorMessage,
       });
       

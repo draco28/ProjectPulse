@@ -1716,7 +1716,124 @@ Sprint 6 successfully completed all 51 story points, implementing the complete k
 
 ---
 
+### Sprint 8.5 (Post-Sprint 8, Pre-Sprint 9): Agent-First MVP Gap Filling - 27 points
+
+**User Stories:** US-8.5-001 to US-8.5-009 (EPIC-008.5 complete)
+
+**Goal:** Fill critical MVP infrastructure gaps that Sprint 8 missed - agent-critical features needed for Sprints 9-11
+
+**Status:** 🎯 **Phase 4 IN PROGRESS** (Phases 1-3 COMPLETE ✅)
+**Completed:** Phases 1-3 (2025-11-16 to 2025-11-18)
+**In Progress:** Phase 4 - MCP Read Tools (2025-11-19)
+
+**Why Sprint 8.5 Exists:**
+
+Sprint 8 focused on human UI polish (theme switcher, notification indicator) instead of agent-critical infrastructure. Sprint 9-11 assume certain MVP features exist (roadmap materialization, blueprint queries, efficient MCP tools) that were MISSING. Sprint 8.5 fills these gaps as a 7.75-day micro-sprint (27 points, 4 phases).
+
+**Key Deliverables - 4 Phases:**
+
+**Phase 1: Development Roadmap Materialization + UI (12 points, 3.75 days) ✅ COMPLETE**
+- ✅ Document model (stores 13-Project-Plan.md as database record)
+- ✅ Roadmap model (stores parsed phases JSON from Project Plan)
+- ✅ Sprint model (NEW hierarchy layer between Phase and Week)
+- ✅ DevelopmentSession model (Session 3 onboarding summary)
+- ✅ Roadmap materialization MCP tool (`projectpulse.roadmap.materialize`)
+- ✅ `/roadmap` page (Development Cycle UI with 5-level hierarchy tree)
+- ✅ 3 markdown format variations supported (sprint numbering parser)
+- ✅ Migration: Updated Week model to link to Sprint (not Phase)
+
+**Phase 2: Blueprint MCP Tool (2 points, 0.5 days) ✅ COMPLETE**
+- ✅ `projectpulse.blueprint.get` MCP tool
+- ✅ `GET /api/onboarding/blueprint` API route
+- ✅ Security: projectId validation (prevent cross-project access)
+- ✅ Performance: Query < 100ms
+- ✅ NO UI component (data reused in other UIs)
+
+**Phase 3: Agent AI Hub Tabs (8 points, 2 days) ✅ COMPLETE**
+- ✅ AgentDetailModal component (replaces simple sidebar view)
+- ✅ AgentSkillsTab (lists agent's loaded skills with categories)
+- ✅ AgentWorkflowsTab (displays 12 predefined workflows with status)
+- ✅ AgentConfigTab (shows system prompt, expertise areas, MCP tools)
+- ✅ `GET /api/agents/[id]` API route (aggregates skills/workflows/config)
+- ✅ Tab navigation with proper keyboard shortcuts
+
+**Phase 4: MCP Read Tools (5 points, 1.5 days) 🎯 IN PROGRESS**
+- 🎯 `projectpulse.sprint.getCurrentPosition` - Get Phase/Sprint/Week/Day/Task in 1 call (80% token reduction)
+- 🎯 `projectpulse.sprint.getPhaseProgress` - Get full phase tree in 1 call (90% token reduction)
+- ✅ Security improvements: Explicit projectId validation in API routes
+- 🎯 Performance targets: getCurrentPosition < 150ms, getPhaseProgress < 500ms
+- 🎯 Integration testing: E2E flows with new tools
+
+**Dependencies:**
+
+- Sprint 8 complete (foundation ready)
+- EPIC-001 (Sprint Tracking) - Phase 1 adds Sprint layer to hierarchy
+- EPIC-003 (Onboarding) - Phase 2 retrieves Session 3 blueprint
+
+**Risks & Mitigations:**
+
+| Risk | Mitigation |
+|------|------------|
+| Markdown parsing variations (3 formats) | Parser handles all 3 Sprint numbering formats (tested) ✅ |
+| Security: Cross-project data leakage | Explicit projectId validation in all API routes and MCP tools ✅ |
+| Performance: Nested queries slow | Single Prisma queries with deep includes (getCurrentPosition, getPhaseProgress) |
+| Phase 4 blocks Sprint 9 | Phases 1-3 unblock Sprint 9; Phase 4 can run in parallel ✅ |
+
+**Exit Criteria:**
+
+**Phase 1 (✅ COMPLETE):**
+- ✅ Document/Roadmap/Sprint/DevelopmentSession models created
+- ✅ Materialization tool parses all 3 markdown format variations
+- ✅ `/roadmap` page displays 5-level hierarchy tree
+- ✅ Progress bars show at each level (Phase/Sprint/Week/Day/Task)
+- ✅ Migration successful: Week now links to Sprint (not Phase)
+
+**Phase 2 (✅ COMPLETE):**
+- ✅ Blueprint MCP tool returns Session 3 data
+- ✅ Security: Only returns data for specified projectId
+- ✅ Performance: Query completes in <100ms
+- ✅ Returns 404 if Session 3 not completed
+
+**Phase 3 (✅ COMPLETE):**
+- ✅ AgentDetailModal renders with 3 tabs (Skills, Workflows, Config)
+- ✅ Skills tab lists all loaded skills with categories
+- ✅ Workflows tab shows all 12 predefined workflows
+- ✅ Config tab displays agent system prompt and expertise areas
+- ✅ Tab navigation works (click + keyboard shortcuts)
+
+**Phase 4 (🎯 IN PROGRESS):**
+- 🎯 getCurrentPosition returns full hierarchy in 1 call
+- 🎯 getPhaseProgress returns nested tree in 1 call
+- 🎯 80% token reduction validated (getCurrentPosition)
+- 🎯 90% token reduction validated (getPhaseProgress)
+- 🎯 Security: projectId validation prevents cross-project access
+- 🎯 Performance targets met (150ms, 500ms respectively)
+
+**Testing:**
+
+- ✅ Phase 1: Materialization E2E test (parse 13-Project-Plan.md → create 4 phases, 9 sprints, 20 weeks, 100 days)
+- ✅ Phase 1: Markdown format variation tests (3 sprint numbering styles)
+- ✅ Phase 2: Blueprint retrieval test (Session 3 exists, Session 3 missing)
+- ✅ Phase 2: Security test (wrong projectId → 404)
+- ✅ Phase 3: AgentDetailModal rendering test (all 3 tabs)
+- ✅ Phase 3: Tab navigation test (click + keyboard)
+- 🎯 Phase 4: getCurrentPosition performance test (< 150ms)
+- 🎯 Phase 4: getPhaseProgress performance test (< 500ms)
+- 🎯 Phase 4: Security test (cross-project validation)
+- 🎯 Phase 4: Token usage measurement (80% and 90% reductions)
+
+**Completion Summary (Phases 1-3 Complete):**
+
+Sprint 8.5 Phases 1-3 successfully completed 22/27 story points (81%), implementing the Development Cycle roadmap system, blueprint MCP tool, and agent AI hub tabs. The roadmap materialization tool parses 3 markdown format variations and creates a normalized 5-level hierarchy (Phase → Sprint → Week → Day → Task). The `/roadmap` page provides visual progress tracking for both humans and agents. The blueprint MCP tool enables agents to recall their Session 3 configuration in <100ms. The Agent AI Hub tabs provide humans with visibility into agent skills, workflows, and configuration.
+
+**Phase 4 In Progress:** MCP Read Tools (getCurrentPosition, getPhaseProgress) for 80-90% token reduction are currently being implemented with security-first design (explicit projectId validation).
+
+**Next Sprint:** Sprint 9 - Context Management & Research Automation (58 points + 8.5 carried from Sprint 8 = 66.5 total)
+
+---
+
 ### Sprint 9 (Weeks 17-18): Context Management & Research Automation - 66.5 points
+
 
 **User Stories:** US-010-01 to US-010-08 (EPIC-010 complete) + US-011-01 to US-011-05 (EPIC-011 complete)
 

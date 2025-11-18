@@ -99,7 +99,7 @@ This Data Model & Database Specification defines the complete database schema fo
 
 **Database Scale:**
 
-- **Tables:** 25 core tables
+- **Tables:** 29 core tables (25 original + 4 Sprint 8.5 additions)
 - **Enums:** 8 custom enums
 - **Indexes:** ~60 indexes (B-tree, GIN, vector)
 - **Relationships:** 30+ foreign keys (one-to-many, many-to-many, self-referential)
@@ -375,7 +375,7 @@ erDiagram
 
 ## 3. Core Entity Models
 
-### 3.1 Sprint/Phase Tracking (5 Tables)
+### 3.1 Sprint/Phase Tracking (9 Tables)
 
 **Purpose:** Five-level hierarchical progress tracking (Project → Phase → Week → Day → Task → Session) with auto-sync to markdown files.
 
@@ -444,7 +444,7 @@ model Phase {
 ```prisma
 model Week {
   id              Int      @id @default(autoincrement())
-  phaseId         Int
+  sprintId        String
   weekNumber      Int
   progress        Decimal  @default(0.0) @db.Decimal(4, 3)
   status          TrackingStatus @default(NOT_STARTED)
@@ -453,11 +453,11 @@ model Week {
   updatedAt       DateTime @updatedAt
 
   // Relationships
-  phase           Phase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  sprint          Sprint   @relation(fields: [sprintId], references: [id], onDelete: Cascade)
   days            Day[]
 
-  @@unique([phaseId, weekNumber])
-  @@index([phaseId])
+  @@unique([sprintId, weekNumber])
+  @@index([sprintId])
   @@index([status])
   @@map("weeks")
 }
@@ -465,21 +465,21 @@ model Week {
 
 **Field Descriptions:**
 
-- `phaseId`: Foreign key to Phase (CASCADE delete)
-- `weekNumber`: Week number within phase (1, 2, 3...)
+- `sprintId`: Foreign key to Sprint (CASCADE delete) - UPDATED from phaseId
+- `weekNumber`: Week number within sprint (1, 2, 3...)
 - `progress`: Calculated from Day progress (average of all days)
 - `status`: Week status (inherits from children or set manually)
 
 **Validation Rules:**
 
-- `weekNumber`: Must be unique within Phase (composite unique constraint)
-- `phaseId`: Must reference existing Phase
+- `weekNumber`: Must be unique within Sprint (composite unique constraint) - UPDATED
+- `sprintId`: Must reference existing Sprint - UPDATED from phaseId
 - `progress`: Auto-calculated from Day.progress average
 
 **Indexes:**
 
-- Composite unique on `(phaseId, weekNumber)`
-- B-tree on `phaseId` (foreign key index for joins)
+- Composite unique on `(sprintId, weekNumber)` - UPDATED from (phaseId, weekNumber)
+- B-tree on `sprintId` (foreign key index for joins) - UPDATED from phaseId
 
 ---
 
@@ -626,6 +626,198 @@ model Session {
 
 - Composite unique on `(taskId, timestamp)`
 - B-tree on `timestamp` (chronological queries)
+
+---
+
+#### 3.1.6 Sprint Model (NEW - Sprint 8.5 Phase 1)
+
+**Requirements:** FR-027 (Roadmap Materialization)
+
+```prisma
+model Sprint {
+  id              String   @id @default(cuid())
+  phaseId         String
+  sprintNumber    Int
+  name            String   @db.VarChar(200)
+  storyPoints     Int?
+  startWeek       Int
+  endWeek         Int
+  progress        Decimal  @default(0.0) @db.Decimal(4, 3)
+  status          TrackingStatus @default(NOT_STARTED)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  phase           Phase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  weeks           Week[]
+
+  @@unique([phaseId, sprintNumber])
+  @@index([phaseId])
+  @@index([status])
+  @@map("sprints")
+}
+```
+
+**Field Descriptions:**
+
+- `phaseId`: Foreign key to Phase (CASCADE delete)
+- `sprintNumber`: Sprint number within phase (1, 2, 3...)
+- `name`: Sprint name extracted from markdown (e.g., "Database & API Foundation")
+- `storyPoints`: Estimated story points (optional, parsed from markdown)
+- `startWeek`, `endWeek`: Week range (e.g., 1-2 means Weeks 1-2)
+- `progress`: Calculated from Week progress (average of all weeks)
+
+**Validation Rules:**
+
+- `sprintNumber`: Must be unique within Phase (composite unique constraint)
+- `phaseId`: Must reference existing Phase
+- `startWeek <= endWeek`: Week range must be valid
+
+**Indexes:**
+
+- Composite unique on `(phaseId, sprintNumber)`
+- B-tree on `phaseId` (foreign key index)
+- B-tree on `status`
+
+---
+
+#### 3.1.7 Document Model (NEW - Sprint 8.5 Phase 1)
+
+**Requirements:** FR-027 (Roadmap Materialization)
+
+```prisma
+model Document {
+  id              String   @id @default(cuid())
+  projectId       Int
+  filename        String   @db.VarChar(200)
+  content         String   @db.Text
+  category        String   @db.VarChar(50)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, filename])
+  @@index([projectId])
+  @@index([category])
+  @@map("documents")
+}
+```
+
+**Field Descriptions:**
+
+- `projectId`: Foreign key to Project
+- `filename`: Document filename (e.g., "13-Project-Plan.md")
+- `content`: Full document content (TEXT, typically markdown)
+- `category`: Document category (e.g., "project-plan", "roadmap")
+
+**Validation Rules:**
+
+- `filename`: Must be unique within project (1-200 chars)
+- `content`: Required (min 1 character)
+- `category`: Required (1-50 chars)
+
+**Indexes:**
+
+- Composite unique on `(projectId, filename)`
+- B-tree on `projectId` (foreign key)
+- B-tree on `category` (filter by category)
+
+---
+
+#### 3.1.8 Roadmap Model (NEW - Sprint 8.5 Phase 1)
+
+**Requirements:** FR-027 (Roadmap Materialization)
+
+```prisma
+model Roadmap {
+  id              String   @id @default(cuid())
+  projectId       Int
+  phases          Json
+  totalWeeks      Int
+  materialized    Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId])
+  @@index([projectId])
+  @@index([materialized])
+  @@map("roadmaps")
+}
+```
+
+**Field Descriptions:**
+
+- `projectId`: Foreign key to Project (one roadmap per project)
+- `phases`: JSON array of parsed phase structure from Project Plan
+- `totalWeeks`: Total weeks extracted from roadmap
+- `materialized`: Whether roadmap has been converted to Phase/Sprint/Week/Day records
+
+**Validation Rules:**
+
+- `projectId`: Must be unique (one roadmap per project)
+- `phases`: Must be valid JSON
+- `totalWeeks`: Must be > 0
+
+**Indexes:**
+
+- Unique on `projectId`
+- B-tree on `materialized` (filter unmaterialized roadmaps)
+
+---
+
+#### 3.1.9 DevelopmentSession Model (NEW - Sprint 8.5 Phase 1)
+
+**Requirements:** FR-027 (Roadmap Materialization)
+
+```prisma
+model DevelopmentSession {
+  id              String   @id @default(cuid())
+  projectId       Int
+  sessionNumber   Int
+  sessionType     String   @db.VarChar(50)
+  summary         String?  @db.Text
+  completed       Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, sessionNumber])
+  @@index([projectId])
+  @@index([completed])
+  @@map("development_sessions")
+}
+```
+
+**Field Descriptions:**
+
+- `projectId`: Foreign key to Project
+- `sessionNumber`: Session number (1, 2, 3 for onboarding)
+- `sessionType`: Type of session (e.g., "onboarding", "materialization")
+- `summary`: Session summary (optional TEXT)
+- `completed`: Whether session is complete
+
+**Validation Rules:**
+
+- `sessionNumber`: Must be unique within project
+- `projectId`: Must reference existing Project
+- `sessionType`: Required (1-50 chars)
+
+**Indexes:**
+
+- Composite unique on `(projectId, sessionNumber)`
+- B-tree on `projectId` (foreign key)
+- B-tree on `completed` (filter completed sessions)
 
 ---
 

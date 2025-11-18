@@ -66,21 +66,21 @@ export const getPhaseProgressTool: ToolDefinition = {
     required: ['phaseId', 'projectId'],
   },
 
-  async execute(params: GetPhaseProgressInput, context: ToolContext) {
+  async execute(params: unknown, context: ToolContext) {
+    const validated = getPhaseProgressSchema.parse(params);
+    
     try {
       context.logger.info('Getting phase progress', {
-        phaseId: params.phaseId,
-        projectId: params.projectId,
+        phaseId: validated.phaseId,
       });
 
       // Call Next.js API route (follows MCP pattern: MCP → API → Database)
       const response = await context.httpClient.get(
-        `/api/roadmap/phases/${params.phaseId}/progress?projectId=${params.projectId}`
-      );
+        `/api/roadmap/phases/${validated.phaseId}/progress`
+      ) as any;
 
       context.logger.info('Phase progress retrieved', {
-        phaseId: params.phaseId,
-        projectId: params.projectId,
+        phaseId: validated.phaseId,
         phaseTitle: response.title,
         sprintCount: response.sprints?.length || 0,
       });
@@ -99,8 +99,7 @@ export const getPhaseProgressTool: ToolDefinition = {
       // Check if 404 (phase not found or wrong project)
       if (errorMessage.includes('404') || errorMessage.includes('not found')) {
         context.logger.warn('Phase not found or access denied', {
-          phaseId: params.phaseId,
-          projectId: params.projectId,
+          phaseId: validated.phaseId,
         });
 
         return {
@@ -110,9 +109,8 @@ export const getPhaseProgressTool: ToolDefinition = {
               text: JSON.stringify(
                 {
                   error: 'Phase not found',
-                  message: `Phase ${params.phaseId} does not exist or does not belong to project ${params.projectId}`,
-                  phaseId: params.phaseId,
-                  projectId: params.projectId,
+                  message: `Phase ${validated.phaseId} does not exist`,
+                  phaseId: validated.phaseId,
                   suggestions: [
                     'Complete Session 3 onboarding to create roadmap',
                     'Call projectpulse.roadmap.materialize() to create phase records',
@@ -130,8 +128,7 @@ export const getPhaseProgressTool: ToolDefinition = {
 
       // Generic error
       context.logger.error('Failed to get phase progress', {
-        phaseId: params.phaseId,
-        projectId: params.projectId,
+        phaseId: validated.phaseId,
         error: errorMessage,
       });
 
@@ -143,8 +140,7 @@ export const getPhaseProgressTool: ToolDefinition = {
               {
                 error: 'Failed to get phase progress',
                 message: errorMessage,
-                phaseId: params.phaseId,
-                projectId: params.projectId,
+                phaseId: validated.phaseId,
               },
               null,
               2

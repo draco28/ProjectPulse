@@ -89,9 +89,9 @@ See [ADR-001: Agent-First Architecture](architecture/ADRs/ADR-001-agent-first-ar
 
 ### 2.1 Overview
 
-ProjectPulse provides **42 MCP tools** across **8 functional categories**:
+ProjectPulse provides **46 MCP tools** across **8 functional categories** (42 original + 4 Sprint 8.5 additions):
 
-1. **Sprint/Phase Tracking** (7 tools) - FR-001 to FR-025
+1. **Sprint/Phase Tracking** (11 tools) - FR-001 to FR-025, FR-027 to FR-030 (Sprint 8.5)
 2. **Workflow Orchestration** (5 tools) - FR-032 to FR-056
 3. **Issues Management** (5 tools) - FR-051 to FR-070
 4. **Knowledge Graph** (5 tools) - FR-071 to FR-090
@@ -344,6 +344,243 @@ const phase = await mcp.call('sprint.phase.create', {
 ```
 
 **Requirements:** FR-015
+
+---
+
+#### Tool: `projectpulse.roadmap.materialize` (Sprint 8.5)
+
+**Description:** Convert Roadmap JSON to normalized Phase/Sprint/Week/Day database records
+
+**Inputs:**
+
+```typescript
+{
+  roadmapId: string; // CUID  
+  projectId: number;
+}
+```
+
+**Outputs:**
+
+```typescript
+{
+  success: true;
+  counts: {
+    phases: 4;
+    sprints: 9;
+    weeks: 20;
+    days: 100;
+  };
+  ids: {
+    phases: string[]; // CUIDs
+    sprints: string[];
+    weeks: number[];
+    days: number[];
+  };
+}
+```
+
+**Auto-Actions:**
+
+- Validates roadmap exists and is not already materialized
+- Parses phases JSON structure
+- Creates Phase records (with Sprint relationships)
+- Creates Sprint records (NEW layer between Phase and Week)
+- Creates Week records (linked to Sprint, not Phase)
+- Creates Day records (5 days per week)
+- Sets `materialized` flag to true
+- Logs action in `AgentAction` table
+
+**Token Estimate:** ~500 tokens  
+**Latency Target:** <5000ms (parsing + DB writes)  
+**Requirements:** FR-027
+
+---
+
+#### Tool: `projectpulse.blueprint.get` (Sprint 8.5)
+
+**Description:** Retrieve Session 3 blueprint (project context JSON) for agents to recall onboarding configuration
+
+**Inputs:**
+
+```typescript
+{
+  projectId: number;
+}
+```
+
+**Outputs:**
+
+```typescript
+{
+  projectContext: string; // Project description
+  roadmap: {
+    phases: Array<{
+      number: number;
+      name: string;
+      sprints: Array<...>;
+    }>;
+  };
+  techStack: string[]; // Technologies chosen
+  agentPersona: {
+    name: string;
+    expertise: string[];
+  };
+  skills: string[]; // Skills to load
+  workflows: string[]; // Workflows to use
+  timeline: {
+    startDate: string;
+    endDate: string;
+  };
+  budget: {
+    hours: number;
+    budget: number;
+  };
+}
+```
+
+**Auto-Actions:**
+
+- Queries `DevelopmentSession` table for Session 3 record
+- Returns 404 if Session 3 not completed
+- Validates `projectId` to prevent cross-project access
+- Logs action in `AgentAction` table
+
+**Token Estimate:** ~2000 tokens  
+**Latency Target:** <100ms  
+**Security:** Explicit projectId validation  
+**Requirements:** FR-028
+
+---
+
+#### Tool: `projectpulse.sprint.getCurrentPosition` (Sprint 8.5)
+
+**Description:** Get agent's current position in 5-level hierarchy in 1 call (80% token reduction vs 5 separate queries)
+
+**Inputs:**
+
+```typescript
+{
+  projectId: number;
+}
+```
+
+**Outputs:**
+
+```typescript
+{
+  phase: {
+    id: string;
+    name: string;
+    progress: 0.75; // 0.0-1.0
+  };
+  sprint: {
+    id: string;
+    name: string;
+    storyPoints: 52;
+    progress: 0.80;
+  };
+  week: {
+    id: number;
+    weekNumber: 3;
+    progress: 0.90;
+  };
+  day: {
+    id: number;
+    dayNumber: 2;
+    progress: 1.0;
+  };
+  task: {
+    id: number;
+    title: string;
+    description: string;
+    progress: 0.50;
+  };
+  taskId: number; // Current IN_PROGRESS task
+}
+```
+
+**Auto-Actions:**
+
+- Single Prisma query with deep includes (Phase → Sprint → Week → Day → Task)
+- Filters for status=IN_PROGRESS to find current task
+- Returns null for task if no IN_PROGRESS task exists
+- Validates projectId to prevent cross-project access
+- Logs action in `AgentAction` table
+
+**Token Estimate:** ~1000 tokens (vs 5000 baseline = 80% reduction)  
+**Latency Target:** <150ms  
+**Security:** Explicit projectId validation prevents cross-project leakage  
+**Requirements:** FR-029
+
+---
+
+#### Tool: `projectpulse.sprint.getPhaseProgress` (Sprint 8.5)
+
+**Description:** Get full phase progress tree in 1 call (90% token reduction vs querying each level separately)
+
+**Inputs:**
+
+```typescript
+{
+  phaseId: string;
+  projectId: number;
+}
+```
+
+**Outputs:**
+
+```typescript
+{
+  phase: {
+    id: string;
+    name: string;
+    progress: 0.75;
+  };
+  sprints: [
+    {
+      id: string;
+      name: string;
+      storyPoints: 52;
+      progress: 0.80;
+      weeks: [
+        {
+          id: number;
+          weekNumber: 1;
+          progress: 0.90;
+          days: [
+            {
+              id: number;
+              dayNumber: 1;
+              progress: 1.0;
+              tasks: [
+                {
+                  id: number;
+                  title: string;
+                  progress: 1.0;
+                  status: "COMPLETED";
+                }
+              ];
+            }
+          ];
+        }
+      ];
+    }
+  ];
+}
+```
+
+**Auto-Actions:**
+
+- Single Prisma query with deep nested includes (all levels)
+- Validates phaseId belongs to projectId (security)
+- Returns full tree structure for visualization
+- Logs action in `AgentAction` table
+
+**Token Estimate:** ~2000 tokens (vs 20000 baseline = 90% reduction)  
+**Latency Target:** <500ms  
+**Security:** Validates phaseId belongs to projectId to prevent cross-project access  
+**Requirements:** FR-030
 
 ---
 

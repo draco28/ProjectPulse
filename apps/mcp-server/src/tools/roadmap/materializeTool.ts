@@ -11,7 +11,9 @@
 import { z } from 'zod';
 import { materializeRoadmap } from '@projectpulse/roadmap-tools';
 import type { MaterializationResult } from '@projectpulse/roadmap-tools';
-import { prisma } from '../../lib/db.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 /**
  * MCP Tool: projectpulse.roadmap.materialize
@@ -27,17 +29,34 @@ import { prisma } from '../../lib/db.js';
  * - Session 3 onboarding (bootstrapTool) - automatic after Roadmap creation
  * - Manual materialization if needed
  */
+const materializeRoadmapSchema = z.object({
+  roadmapId: z.string().describe('Roadmap ID to materialize (UUID)'),
+  projectId: z.number().int().positive().describe('Project ID for security validation'),
+});
+
 export const materializeRoadmapTool = {
   name: 'projectpulse.roadmap.materialize',
   description:
     'Materialize Roadmap JSON to Phase/Sprint/Week/Day records. Creates 5-level hierarchy for roadmap navigation and progress tracking.',
 
-  inputSchema: z.object({
-    roadmapId: z.string().describe('Roadmap ID to materialize (UUID)'),
-    projectId: z.number().int().positive().describe('Project ID for security validation'),
-  }),
+  schema: materializeRoadmapSchema,
+  inputSchema: {
+    type: 'object' as const,
+    properties: {
+      roadmapId: {
+        type: 'string' as const,
+        description: 'Roadmap ID to materialize (UUID)',
+      },
+      projectId: {
+        type: 'number' as const,
+        description: 'Project ID for security validation',
+      },
+    },
+    required: ['roadmapId', 'projectId'],
+  },
 
-  async handler({ roadmapId, projectId }: { roadmapId: string; projectId: number }) {
+  async execute(params: unknown) {
+    const { roadmapId, projectId } = materializeRoadmapSchema.parse(params);
     try {
       // 1. Security: Validate roadmapId belongs to projectId
       const roadmap = await prisma.roadmap.findUnique({
@@ -53,7 +72,7 @@ export const materializeRoadmapTool = {
         return {
           content: [
             {
-              type: 'text',
+              type: 'text' as const,
               text: JSON.stringify(
                 {
                   success: false,
@@ -73,7 +92,7 @@ export const materializeRoadmapTool = {
         return {
           content: [
             {
-              type: 'text',
+              type: 'text' as const,
               text: JSON.stringify(
                 {
                   success: false,
@@ -99,7 +118,7 @@ export const materializeRoadmapTool = {
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: JSON.stringify(
               {
                 success: true,
@@ -134,7 +153,7 @@ export const materializeRoadmapTool = {
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: JSON.stringify(
               {
                 success: false,

@@ -44,8 +44,8 @@ app.get('/health', (req, res) => {
 // MCP Streamable HTTP endpoint
 app.post('/mcp', async (req, res) => {
   const transport = new StreamableHTTPServerTransport({
-    endpoint: '/mcp',
-  });
+    // Note: endpoint property removed in newer SDK versions
+  } as any);
 
   try {
     await server.connect(transport);
