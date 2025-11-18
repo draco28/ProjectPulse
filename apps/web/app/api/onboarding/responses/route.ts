@@ -77,12 +77,12 @@ export async function POST(request: NextRequest) {
       try {
         console.log('[Session 2] Creating Document records from response');
         
-        // Check if response contains documentsGenerated array
+        // Check if response contains any document data
         const responseData = data as any;
         
         // Create 13-Project-Plan.md document (critical for Session 3)
-        // Extract from response.projectContextJson or response.documentsGenerated
-        if (responseData.documentsGenerated || responseData.projectContextJson) {
+        // Extract from response.projectPlanContent OR response.documentsGenerated OR response.projectContextJson
+        if (responseData.projectPlanContent || responseData.documentsGenerated || responseData.projectContextJson) {
           
           // Create 13-Project-Plan.md (Session 3 dependency)
           await prisma.document.create({
