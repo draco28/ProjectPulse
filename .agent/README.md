@@ -20,6 +20,11 @@
    - Common mistakes to avoid
    - Troubleshooting checklist
 
+**0b. [.agent/system/infrastructure-state.md](system/infrastructure-state.md) - ⭐ INFRASTRUCTURE STATE ⭐**
+   - Current Docker setup (which compose file is active)
+   - Session management (Redis vs in-memory)
+   - Build process and deployment
+
 **Then read in this order:**
 
 1. [.agent/active-context.md](active-context.md) - Current focus and blockers
@@ -194,6 +199,7 @@ Auto-updated snapshots of system architecture, schemas, and patterns.
 - [api-catalog.md](system/api-catalog.md) - All API endpoints and their contracts
 - [component-patterns.md](system/component-patterns.md) - React component conventions
 - [mcp-tools-guide.md](system/mcp-tools-guide.md) - MCP tool usage examples
+- **[infrastructure-state.md](system/infrastructure-state.md)** - ⭐ **Current infrastructure (Docker, Redis, Kubernetes)**
 
 ### `sops/` - Standard Operating Procedures
 
