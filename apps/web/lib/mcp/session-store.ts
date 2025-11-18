@@ -7,13 +7,43 @@
 
 import Redis from 'ioredis';
 import { randomUUID } from 'crypto';
+import type { MCPSession } from './types';
 
-export interface MCPSession {
+/**
+ * Internal session data structure for Redis storage
+ * Uses number timestamps for efficient JSON serialization
+ */
+export interface SessionData {
   id: string;
   projectId: number;
   createdAt: number;
   lastAccessedAt: number;
   expiresAt: number;
+}
+
+/**
+ * Convert SessionData (Redis) to MCPSession (application)
+ */
+function toMCPSession(data: SessionData): MCPSession {
+  return {
+    id: data.id,
+    createdAt: new Date(data.createdAt),
+    lastAccessedAt: new Date(data.lastAccessedAt),
+    metadata: { projectId: data.projectId },
+  };
+}
+
+/**
+ * Convert MCPSession (application) to SessionData (Redis)
+ */
+function toSessionData(session: MCPSession, projectId: number): SessionData {
+  return {
+    id: session.id,
+    projectId,
+    createdAt: session.createdAt.getTime(),
+    lastAccessedAt: session.lastAccessedAt.getTime(),
+    expiresAt: session.lastAccessedAt.getTime() + 3600000,
+  };
 }
 
 export class RedisSessionStore {
@@ -44,7 +74,7 @@ export class RedisSessionStore {
     const sessionId = randomUUID();
     const now = Date.now();
     
-    const session: MCPSession = {
+    const data: SessionData = {
       id: sessionId,
       projectId,
       createdAt: now,
@@ -55,27 +85,47 @@ export class RedisSessionStore {
     await this.redis.setex(
       `session:${sessionId}`,
       this.TTL_SECONDS,
-      JSON.stringify(session)
+      JSON.stringify(data)
     );
     
-    return session;
+    return toMCPSession(data);
   }
 
-  async getSession(sessionId: string): Promise<MCPSession | null> {
-    const data = await this.redis.get(`session:${sessionId}`);
-    if (!data) return null;
+  async createSessionWithId(sessionId: string, projectId: number): Promise<MCPSession> {
+    const now = Date.now();
     
-    const session: MCPSession = JSON.parse(data);
+    const data: SessionData = {
+      id: sessionId,
+      projectId,
+      createdAt: now,
+      lastAccessedAt: now,
+      expiresAt: now + (this.TTL_SECONDS * 1000),
+    };
     
-    // Update last accessed time
-    session.lastAccessedAt = Date.now();
     await this.redis.setex(
       `session:${sessionId}`,
       this.TTL_SECONDS,
-      JSON.stringify(session)
+      JSON.stringify(data)
     );
     
-    return session;
+    return toMCPSession(data);
+  }
+
+  async getSession(sessionId: string): Promise<MCPSession | null> {
+    const raw = await this.redis.get(`session:${sessionId}`);
+    if (!raw) return null;
+    
+    const data: SessionData = JSON.parse(raw);
+    
+    // Update last accessed time
+    data.lastAccessedAt = Date.now();
+    await this.redis.setex(
+      `session:${sessionId}`,
+      this.TTL_SECONDS,
+      JSON.stringify(data)
+    );
+    
+    return toMCPSession(data);
   }
 
   async deleteSession(sessionId: string): Promise<void> {
@@ -96,15 +146,17 @@ export class RedisSessionStore {
     const sessions = await Promise.all(
       keys.map(async (key) => {
         try {
-          const data = await this.redis.get(key);
-          return data ? JSON.parse(data) as MCPSession : null;
+          const raw = await this.redis.get(key);
+          if (!raw) return null;
+          const data: SessionData = JSON.parse(raw);
+          return data.projectId === projectId ? toMCPSession(data) : null;
         } catch {
           return null;
         }
       })
     );
     
-    return sessions.filter(s => s && s.projectId === projectId) as MCPSession[];
+    return sessions.filter(s => s !== null) as MCPSession[];
   }
 
   async getActiveSessionCount(): Promise<number> {
@@ -133,7 +185,7 @@ export class RedisSessionStore {
  * and don't support horizontal scaling.
  */
 export class InMemorySessionStore {
-  private sessions: Map<string, MCPSession> = new Map();
+  private sessions: Map<string, SessionData> = new Map();
   private readonly TTL_MS = 3600000; // 1 hour
   private cleanupInterval: NodeJS.Timeout;
 
@@ -148,7 +200,7 @@ export class InMemorySessionStore {
     const sessionId = randomUUID();
     const now = Date.now();
     
-    const session: MCPSession = {
+    const data: SessionData = {
       id: sessionId,
       projectId,
       createdAt: now,
@@ -156,21 +208,36 @@ export class InMemorySessionStore {
       expiresAt: now + this.TTL_MS,
     };
     
-    this.sessions.set(sessionId, session);
-    return session;
+    this.sessions.set(sessionId, data);
+    return toMCPSession(data);
+  }
+
+  async createSessionWithId(sessionId: string, projectId: number): Promise<MCPSession> {
+    const now = Date.now();
+    
+    const data: SessionData = {
+      id: sessionId,
+      projectId,
+      createdAt: now,
+      lastAccessedAt: now,
+      expiresAt: now + this.TTL_MS,
+    };
+    
+    this.sessions.set(sessionId, data);
+    return toMCPSession(data);
   }
 
   async getSession(sessionId: string): Promise<MCPSession | null> {
-    const session = this.sessions.get(sessionId);
-    if (!session) return null;
+    const data = this.sessions.get(sessionId);
+    if (!data) return null;
     
-    if (session.expiresAt < Date.now()) {
+    if (data.expiresAt < Date.now()) {
       this.sessions.delete(sessionId);
       return null;
     }
     
-    session.lastAccessedAt = Date.now();
-    return session;
+    data.lastAccessedAt = Date.now();
+    return toMCPSession(data);
   }
 
   async deleteSession(sessionId: string): Promise<void> {
@@ -186,9 +253,9 @@ export class InMemorySessionStore {
 
   async getActiveSessions(projectId: number): Promise<MCPSession[]> {
     const now = Date.now();
-    return Array.from(this.sessions.values()).filter(
-      s => s.projectId === projectId && s.expiresAt > now
-    );
+    return Array.from(this.sessions.values())
+      .filter(data => data.projectId === projectId && data.expiresAt > now)
+      .map(data => toMCPSession(data));
   }
 
   async getActiveSessionCount(): Promise<number> {
@@ -206,8 +273,8 @@ export class InMemorySessionStore {
 
   private cleanup(): void {
     const now = Date.now();
-    for (const [sessionId, session] of this.sessions.entries()) {
-      if (session.expiresAt < now) {
+    for (const [sessionId, data] of this.sessions.entries()) {
+      if (data.expiresAt < now) {
         this.sessions.delete(sessionId);
       }
     }
