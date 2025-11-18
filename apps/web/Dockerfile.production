@@ -1,0 +1,57 @@
+# Stage 1: Dependencies
+FROM node:20-bullseye-slim AS deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/roadmap-tools/package.json ./packages/roadmap-tools/
+RUN corepack enable && pnpm install --frozen-lockfile
+
+# Stage 2: Build shared packages
+FROM node:20-bullseye-slim AS shared-builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY packages/roadmap-tools ./packages/roadmap-tools
+RUN cd packages/roadmap-tools && npx tsc
+
+# Stage 3: Generate Prisma Client
+FROM node:20-bullseye-slim AS prisma
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY apps/web/prisma ./apps/web/prisma
+RUN cd apps/web && npx prisma generate
+
+# Stage 4: Build Next.js
+FROM node:20-bullseye-slim AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=shared-builder /app/packages/roadmap-tools/dist ./packages/roadmap-tools/dist
+COPY --from=shared-builder /app/packages/roadmap-tools/package.json ./packages/roadmap-tools/
+COPY --from=prisma /app/node_modules/.prisma ./node_modules/.prisma
+COPY apps/web ./apps/web
+COPY packages/roadmap-tools/src ./packages/roadmap-tools/src
+COPY packages/roadmap-tools/tsconfig.json ./packages/roadmap-tools/
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN cd apps/web && npx next build
+
+# Stage 5: Production runtime
+FROM node:20-bullseye-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy Next.js standalone build
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+
+# Copy shared package
+COPY --from=builder --chown=nextjs:nodejs /app/packages/roadmap-tools/dist ./packages/roadmap-tools/dist
+COPY --from=builder --chown=nextjs:nodejs /app/packages/roadmap-tools/package.json ./packages/roadmap-tools/
+
+USER nextjs
+EXPOSE 3000
+ENV PORT=3000
+CMD ["node", "apps/web/server.js"]
