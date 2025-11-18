@@ -17,10 +17,11 @@ import { wikiGenerateTool } from './wikiGenerate.js';
 import { onboardingGetPromptTool } from './onboarding/getPrompt.js';
 import { onboardingSubmitResponseTool } from './onboarding/submitResponse.js';
 import { blueprintGetTool } from './onboarding/getBlueprintTool.js';
-// Sprint 8.6 Phase 1: Session 1 onboarding tools
+// Sprint 8.6 Phase 1: Session 1 onboarding tools (Agent-Side AI)
 import { getQuestionsTool } from './onboarding/getQuestionsTool.js';
 import { saveAnswersTool } from './onboarding/saveAnswersTool.js';
-import { generateExecutiveSummaryTool } from './onboarding/generateExecutiveSummaryTool.js';
+import { getExecutiveSummaryPromptTool } from './onboarding/getExecutiveSummaryPromptTool.js';
+import { storeExecutiveSummaryTool } from './onboarding/storeExecutiveSummaryTool.js';
 import { workflowListTool } from './workflow/list.js';
 import { workflowStartTool } from './workflow/start.js';
 import { workflowExecuteStepTool } from './workflow/executeStep.js';
@@ -55,10 +56,11 @@ const loadTools = (): ToolDefinition[] => [
   onboardingGetPromptTool,
   onboardingSubmitResponseTool,
   blueprintGetTool,
-  // Sprint 8.6 Phase 1: Session 1 tools
+  // Sprint 8.6 Phase 1: Session 1 tools (Agent-Side AI)
   getQuestionsTool,
   saveAnswersTool,
-  generateExecutiveSummaryTool,
+  getExecutiveSummaryPromptTool,
+  storeExecutiveSummaryTool,
   issueCreateTool,
   issueBulkCreateTool,
   issueUpdateTool,

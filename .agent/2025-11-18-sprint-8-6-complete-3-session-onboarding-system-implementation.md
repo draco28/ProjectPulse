@@ -47,9 +47,27 @@ Session 3: AI Workflow Bootstrap
 
 - **Backend**: Next.js 14 App Router API routes
 - **Database**: PostgreSQL 16 with Prisma ORM
-- **AI Integration**: OpenAI GPT-4 (or Claude 3.5 Sonnet via Anthropic API)
+- **AI Integration**: ~~OpenAI GPT-4~~ **NONE** - Agent uses their own AI provider (privacy-first, zero-cost)
 - **MCP Tools**: Custom tools for agent-driven onboarding
 - **File System**: Node.js fs module for CLAUDE.md/AGENTS.md creation
+
+### Architectural Decision (2025-11-19)
+
+**IMPORTANT CHANGE**: The onboarding system has been redesigned to use **agent-side AI generation** instead of server-side AI.
+
+**Why**: 
+- Privacy: User data never leaves their AI provider
+- Cost: $0 for us (vs $1.50/user with OpenAI)
+- Context: Agent gets ALL 96 answers in one prompt (solves 200K context issue)
+- Flexibility: Works with any AI provider (Claude, GPT, Gemini, etc.)
+
+**How it works**:
+1. Agent collects user answers and stores in our DB
+2. Agent calls our API to get prompt template WITH all answers
+3. Agent generates content with THEIR AI provider
+4. Agent stores generated content in our DB
+
+See `.agent/specs/2025-11-18-3-session-onboarding-redesign-agent-side-ai-generation-zero-in-house-llm.md` for full redesign spec.
 
 ---
 
@@ -62,20 +80,25 @@ Session 3: AI Workflow Bootstrap
    - Questions table OR JSON configuration file
    - Support for subsections and question metadata
 
-2. **API Routes** (5 points)
-   - `GET /api/onboarding/questions?projectId={id}&phase={1-10}`
-   - `POST /api/onboarding/answers` (save phase answers)
-   - `POST /api/onboarding/executive-summary` (generate summary)
+2. **API Routes** (5 points) - **AGENT-SIDE AI**
+   - `GET /api/onboarding/questions?projectId={id}&phase={1-10}` (unchanged)
+   - `POST /api/onboarding/answers` (save phase answers) (unchanged)
+   - ~~`POST /api/onboarding/executive-summary` (generate summary)~~ → CHANGED
+   - `GET /api/onboarding/executive-summary-prompt` (NEW - return prompt template)
+   - `POST /api/onboarding/executive-summary` (MODIFIED - store agent-generated summary)
 
-3. **MCP Tools** (3 points)
-   - `projectpulse.onboarding.getQuestions(phase)`
-   - `projectpulse.onboarding.saveAnswers(phase, answers)`
-   - `projectpulse.onboarding.generateExecutiveSummary()`
+3. **MCP Tools** (3 points) - **AGENT-SIDE AI**
+   - `projectpulse.onboarding.getQuestions(phase)` (unchanged)
+   - `projectpulse.onboarding.saveAnswers(phase, answers)` (unchanged)
+   - ~~`projectpulse.onboarding.generateExecutiveSummary()`~~ → REMOVED
+   - `projectpulse.onboarding.getExecutiveSummaryPrompt()` (NEW - get prompt with all 96 answers)
+   - `projectpulse.onboarding.storeExecutiveSummary()` (NEW - store agent-generated summary)
 
-4. **AI Executive Summary Generation** (2 points)
-   - OpenAI integration for summary synthesis
-   - Prompt template for executive summary
-   - ~500 word target output
+4. **Executive Summary System** (2 points) - **AGENT-SIDE AI**
+   - ~~OpenAI integration for summary synthesis~~ → REMOVED (privacy/cost)
+   - Prompt template generation with ALL 96 Q&A pairs included
+   - Agent generates ~500 words with their own AI provider
+   - ProjectPulse stores result and generates project-context.json
 
 ### Implementation Details
 

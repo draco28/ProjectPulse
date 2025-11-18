@@ -1,16 +1,23 @@
 /**
  * POST /api/onboarding/executive-summary
  * 
- * Sprint 8.6 Phase 1 - Session 1 Executive Summary Generation
+ * Sprint 8.6 Phase 1 - Session 1 Executive Summary Storage (Agent-Side AI)
  * 
- * Generate AI executive summary from all 10 phases of answers
- * Uses OpenAI GPT-4 to synthesize answers into cohesive vision
+ * Store agent-generated executive summary from their own AI provider.
+ * This endpoint NO LONGER generates summaries - it just stores them.
+ * 
+ * Agent workflow:
+ * 1. GET /api/onboarding/executive-summary-prompt (get prompt template)
+ * 2. Agent generates summary with their AI provider
+ * 3. POST /api/onboarding/executive-summary (store summary - this endpoint)
  * 
  * Request Body:
  * - projectId: number (required) - Project ID
+ * - executiveSummary: string (required) - Agent-generated summary (100-5000 chars)
+ * - wordCount: number (optional) - Word count (calculated if not provided)
  * 
  * Response:
- * - 200: Executive summary generated (~500 words)
+ * - 200: Executive summary stored successfully
  * - 400: Validation error or Session 1 incomplete
  * - 404: Session 1 not found
  * - 500: Server error
@@ -19,15 +26,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import OpenAI from 'openai';
 
 const requestSchema = z.object({
-  projectId: z.number().int().positive('Project ID must be positive')
-});
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || ''
+  projectId: z.number().int().positive('Project ID must be positive'),
+  executiveSummary: z.string()
+    .min(100, 'Executive summary must be at least 100 characters')
+    .max(5000, 'Executive summary must not exceed 5000 characters'),
+  wordCount: z.number().int().positive().optional()
 });
 
 export async function POST(request: NextRequest) {
@@ -45,7 +50,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const { projectId } = validation.data;
+    const { projectId, executiveSummary, wordCount: providedWordCount } = validation.data;
     
     // Fetch Session 1 data
     const session = await prisma.onboardingSession.findUnique({
@@ -63,64 +68,16 @@ export async function POST(request: NextRequest) {
     
     const sessionData = session.response as any;
     const planningAnswers = sessionData.planningAnswers || {};
-    const completedPhases = sessionData.completedPhases || [];
     
-    // Check if all 10 phases complete
-    if (completedPhases.length < 10) {
-      return NextResponse.json(
-        {
-          error: 'All 10 phases must be complete before generating executive summary',
-          completedPhases: completedPhases.length,
-          requiredPhases: 10,
-          missingPhases: Array.from({ length: 10 }, (_, i) => i + 1).filter(
-            (p) => !completedPhases.includes(p)
-          )
-        },
-        { status: 400 }
-      );
-    }
+    // Calculate word count if not provided
+    const wordCount = providedWordCount || executiveSummary.split(/\s+/).filter((w) => w.length > 0).length;
     
-    // Generate executive summary
-    let executiveSummary: string;
-    let wordCount: number;
+    console.log(`[Session 1] Storing agent-generated executive summary: ${wordCount} words`);
     
-    if (process.env.OPENAI_API_KEY) {
-      // Use OpenAI for real generation
-      console.log('[Session 1] Generating executive summary with OpenAI...');
-      
-      const prompt = generateExecutiveSummaryPrompt(planningAnswers);
-      
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a product strategist and technical writer. Generate a concise executive summary (~500 words) synthesizing all planning answers into a cohesive project vision. Focus on: product name, target users, core problem, solution, key features (3-5), tech stack, timeline, budget, and success metrics.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 800
-      });
-      
-      executiveSummary = completion.choices[0].message.content || '';
-      wordCount = executiveSummary.split(/\s+/).filter((w) => w.length > 0).length;
-    } else {
-      // Fallback: Generate basic summary from answers
-      console.log('[Session 1] OpenAI key not configured, using fallback summary generation');
-      executiveSummary = generateFallbackExecutiveSummary(planningAnswers);
-      wordCount = executiveSummary.split(/\s+/).filter((w) => w.length > 0).length;
-    }
-    
-    console.log(`[Session 1] Executive summary generated: ${wordCount} words`);
-    
-    // Generate project-context.json
+    // Generate project-context.json from planning answers
     const projectContextJson = generateProjectContextJson(planningAnswers, executiveSummary);
     
-    // Update session with executive summary
+    // Update session with agent-generated executive summary
     const now = new Date();
     await prisma.onboardingSession.update({
       where: { id: session.id },
@@ -130,36 +87,25 @@ export async function POST(request: NextRequest) {
           executiveSummary,
           executiveSummaryWordCount: wordCount,
           projectContextJson,
-          executiveSummaryGeneratedAt: now.toISOString()
+          executiveSummaryGeneratedAt: now.toISOString(),
+          generatedBy: 'agent' // Mark as agent-generated
         },
         status: 'complete',
         completedAt: now
       }
     });
     
-    console.log('[Session 1] Session marked complete with executive summary');
+    console.log('[Session 1] Session marked complete with agent-generated executive summary');
     
     return NextResponse.json({
       success: true,
-      executiveSummary,
+      stored: true,
       wordCount,
       projectContextJson
     });
     
   } catch (error) {
     console.error('[POST /api/onboarding/executive-summary] Error:', error);
-    
-    // Check for OpenAI-specific errors
-    if (error instanceof OpenAI.APIError) {
-      return NextResponse.json(
-        {
-          error: 'OpenAI API error',
-          message: error.message,
-          status: error.status
-        },
-        { status: 500 }
-      );
-    }
     
     return NextResponse.json(
       {
@@ -172,42 +118,11 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Generate prompt for OpenAI executive summary
- */
-function generateExecutiveSummaryPrompt(planningAnswers: any): string {
-  const phases = Object.keys(planningAnswers)
-    .filter((key) => key.startsWith('phase'))
-    .sort()
-    .map((key) => {
-      const phaseNum = key.replace('phase', '');
-      return `**Phase ${phaseNum}**:\n${JSON.stringify(planningAnswers[key], null, 2)}`;
-    })
-    .join('\n\n');
-  
-  return `
-Generate an executive summary for a software project based on these 10 phases of planning answers:
-
-${phases}
-
-Synthesize into a cohesive ~500 word executive summary covering:
-
-1. **Product Overview**: Product name, type, and target users
-2. **Problem & Solution**: Core problem being solved and how
-3. **Key Features**: 3-5 most important features for MVP
-4. **Tech Stack**: Frontend, backend, database, hosting
-5. **Timeline & Resources**: Development timeline, team size, hours/week
-6. **Budget**: Development costs and monthly operating costs
-7. **Success Metrics**: How success will be measured
-8. **Unique Value**: What makes this product different
-9. **Risks**: Top 2-3 technical or business risks
-10. **Launch Plan**: MVP launch strategy and target date
-
-Write in a professional, concise style. Focus on strategic vision, not implementation details.
-  `.trim();
-}
-
-/**
- * Generate project-context.json from planning answers
+ * Generate project-context.json from planning answers and executive summary
+ * 
+ * This extracts structured data from the 10 phases of planning answers
+ * and combines it with the agent-generated executive summary to create
+ * a complete project context object for Session 2 and Session 3 to use.
  */
 function generateProjectContextJson(planningAnswers: any, executiveSummary: string): any {
   // Extract data from phase answers
@@ -381,32 +296,4 @@ function extractFeatures(phase1: any): any[] {
     phase: 1,
     status: 'NOT_STARTED'
   }));
-}
-
-/**
- * Fallback executive summary generation (when OpenAI not available)
- */
-function generateFallbackExecutiveSummary(planningAnswers: any): string {
-  const phase1 = planningAnswers.phase1 || {};
-  const phase2 = planningAnswers.phase2 || {};
-  
-  const projectName = extractProjectName(phase1, '');
-  const targetUsers = extractTargetUsers(phase1).join(', ') || 'developers and teams';
-  const features = extractFeatures(phase1).map((f) => f.name).join(', ');
-  
-  return `
-${projectName} is a software application designed for ${targetUsers}. The product addresses key challenges in modern software development by providing innovative solutions and streamlined workflows.
-
-**Core Features**: The MVP includes ${features}. These features were selected based on user feedback and market analysis to deliver maximum value in the shortest time.
-
-**Technical Approach**: The project will be built using modern web technologies as specified in the planning phase. The architecture prioritizes scalability, security, and developer experience.
-
-**Timeline & Resources**: Development is planned over multiple phases, with a focus on iterative delivery and continuous improvement. The team will work systematically through each phase, validating assumptions and gathering feedback.
-
-**Success Metrics**: Success will be measured through user adoption, feature completion rates, and overall product quality. The goal is to launch an MVP that demonstrates clear value and sets the foundation for future growth.
-
-**Next Steps**: With planning complete, the team is ready to begin implementation following the defined roadmap. The first phase will focus on foundational infrastructure and core features.
-
-This executive summary is generated from planning answers collected during Session 1. For best results, configure OPENAI_API_KEY for AI-powered summary generation.
-  `.trim();
 }
