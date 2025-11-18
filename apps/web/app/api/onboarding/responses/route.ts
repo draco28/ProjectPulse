@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { submitResponseSchema, type SubmitResponseResponse } from '@/lib/validations/onboarding';
 
 /**
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const { projectId, sessionNumber, data } = validation.data;
 
     // Verify project exists
-    const project = await db.project.findUnique({
+    const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     // Upsert onboarding session
     const now = new Date();
-    const session = await db.onboardingSession.upsert({
+    const session = await prisma.onboardingSession.upsert({
       where: {
         projectId_sessionNumber: {
           projectId,
@@ -72,6 +72,61 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Sprint 8.5: Session 2 Document Creation
+    if (sessionNumber === 2) {
+      try {
+        console.log('[Session 2] Creating Document records from response');
+        
+        // Check if response contains documentsGenerated array
+        const responseData = data as any;
+        
+        // Create 13-Project-Plan.md document (critical for Session 3)
+        // Extract from response.projectContextJson or response.documentsGenerated
+        if (responseData.documentsGenerated || responseData.projectContextJson) {
+          
+          // Create 13-Project-Plan.md (Session 3 dependency)
+          await prisma.document.create({
+            data: {
+              onboardingSessionId: session.id,
+              filename: '13-Project-Plan.md',
+              content: responseData.projectPlanContent || 
+                       '# Project Implementation Plan\n\n[Generated from Session 2]',
+              wordCount: responseData.projectPlanWordCount || 0,
+              category: 'planning',
+              tags: ['roadmap', 'planning', 'session-2'],
+            },
+          });
+          
+          console.log('[Session 2] Created 13-Project-Plan.md document');
+          
+          // Optional: Create other documents if provided
+          if (responseData.documentsGenerated && Array.isArray(responseData.documentsGenerated)) {
+            for (const doc of responseData.documentsGenerated) {
+              // Skip 13-Project-Plan.md (already created)
+              if (doc.filename === '13-Project-Plan.md') continue;
+              
+              await prisma.document.create({
+                data: {
+                  onboardingSessionId: session.id,
+                  filename: doc.filename,
+                  content: doc.content,
+                  wordCount: doc.wordCount || 0,
+                  category: doc.category || 'planning',
+                  tags: doc.tags || [],
+                },
+              });
+            }
+            
+            console.log(`[Session 2] Created ${responseData.documentsGenerated.length} documents total`);
+          }
+        }
+      } catch (docError) {
+        console.error('[Session 2] Document creation failed:', docError);
+        // Non-blocking: Continue even if document creation fails
+        // Session 3 will use fallback logic
+      }
+    }
+
     // Sprint 8.5 Phase 1: Roadmap Materialization after Session 3
     if (sessionNumber === 3) {
       try {
@@ -82,7 +137,7 @@ export async function POST(request: NextRequest) {
         const { materializeRoadmap } = await import('../../../../mcp-server/src/tools/roadmap/materializeTool.js');
 
         // Find 13-Project-Plan.md document
-        const projectPlanDoc = await db.document.findFirst({
+        const projectPlanDoc = await prisma.document.findFirst({
           where: {
             onboardingSession: {
               projectId,
@@ -105,7 +160,7 @@ export async function POST(request: NextRequest) {
           });
 
           // Create Roadmap record with phases JSON
-          const roadmap = await db.roadmap.create({
+          const roadmap = await prisma.roadmap.create({
             data: {
               projectId,
               phases: parsedRoadmap, // JSONB field
@@ -118,7 +173,7 @@ export async function POST(request: NextRequest) {
           console.log('[Session 3] Materialization complete:', materializationResult.counts);
 
           // Update session response with roadmap data
-          await db.onboardingSession.update({
+          await prisma.onboardingSession.update({
             where: { id: session.id },
             data: {
               response: {
@@ -179,7 +234,7 @@ export async function POST(request: NextRequest) {
             ];
 
             // Create DevelopmentSession record
-            const devSession = await db.developmentSession.create({
+            const devSession = await prisma.developmentSession.create({
               data: {
                 projectId,
                 phase: 'Session 3: Onboarding Complete',
@@ -195,7 +250,7 @@ export async function POST(request: NextRequest) {
             console.log('[Session 3] DevelopmentSession created:', devSession.id);
 
             // Update session response with devSession reference
-            await db.onboardingSession.update({
+            await prisma.onboardingSession.update({
               where: { id: session.id },
               data: {
                 response: {
@@ -225,7 +280,7 @@ export async function POST(request: NextRequest) {
     let nextSession: number | null = null;
     if (sessionNumber < 3) {
       // Check if next session already exists
-      const existingNextSession = await db.onboardingSession.findUnique({
+      const existingNextSession = await prisma.onboardingSession.findUnique({
         where: {
           projectId_sessionNumber: {
             projectId,

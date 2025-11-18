@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { getPromptSchema, type GetPromptResponse } from '@/lib/validations/onboarding';
 
 /**
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const { projectId, sessionNumber: requestedSession } = validation.data;
 
     // Verify project exists
-    const project = await db.project.findUnique({
+    const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
 
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       targetSessionNumber = requestedSession;
     } else {
       // Compute next incomplete session
-      const sessions = await db.onboardingSession.findMany({
+      const sessions = await prisma.onboardingSession.findMany({
         where: { projectId },
         orderBy: { sessionNumber: 'asc' },
       });
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch active template for target session
-    const template = await db.onboardingTemplate.findUnique({
+    const template = await prisma.onboardingTemplate.findUnique({
       where: {
         sessionNumber_isActive: {
           sessionNumber: targetSessionNumber,
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch prior session responses to prefill variables
-    const priorSessions = await db.onboardingSession.findMany({
+    const priorSessions = await prisma.onboardingSession.findMany({
       where: {
         projectId,
         sessionNumber: { lt: targetSessionNumber },

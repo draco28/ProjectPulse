@@ -94,6 +94,13 @@ test.describe('Dashboard Page', () => {
     // Click on Issues
     await page.locator('a:has-text("Issues")').click();
     await expect(page).toHaveURL('/issues');
+
+    // Click on Roadmap
+    await page.locator('a:has-text("Roadmap")').click();
+    await expect(page).toHaveURL('/roadmap');
+    
+    // Verify roadmap page loads (check for header)
+    await expect(page.locator('h1:has-text("Development Roadmap")')).toBeVisible();
   });
 
   test('should display search bar in header', async ({ page }) => {

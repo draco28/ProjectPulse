@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 /**
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     const { projectId } = validation.data;
 
     // Query OnboardingSession for Session 3 (Bootstrap)
-    const session = await db.onboardingSession.findFirst({
+    const session = await prisma.onboardingSession.findFirst({
       where: {
         projectId,
         sessionNumber: 3, // Session 3 = Bootstrap
