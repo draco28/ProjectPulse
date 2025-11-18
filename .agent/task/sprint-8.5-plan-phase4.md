@@ -5,7 +5,13 @@
 **Duration**: 1.5 days (~12 hours)
 **Status**: PENDING (blocked by Phase 1)
 **Created**: 2025-11-17
-**Dependencies**: Phase 1 complete (queries Phase/Sprint/Week/Day hierarchy)
+**Dependencies**: 
+- ✅ Sprint 8 hierarchy (Phase/Week/Day/Task/Session models)
+- ✅ OnboardingSession stores Session 3 data
+- ⚠️ **Blocked by**: Phase 1 Parts 0+A+B+C complete (materialized hierarchy must exist)
+  - Part 0: Creates Phase/Sprint/Week/Day/Task models
+  - Part A: Materialization tool populates records from Roadmap JSON
+  - Without materialized records, getCurrentPosition and getPhaseProgress return empty/null
 
 ---
 
@@ -137,7 +143,16 @@ export const getCurrentPositionTool = {
             text: JSON.stringify(
               {
                 currentPosition: null,
-                message: 'No active task found. Start working on a task first.',
+                error: 'No active task found',
+                message: 'No IN_PROGRESS task exists for this project',
+                suggestions: [
+                  'Complete Session 3 onboarding to create your roadmap',
+                  'Call projectpulse.task.create() to create a new task',
+                  'Call projectpulse.task.start() to mark a task as IN_PROGRESS',
+                  'Verify you are using the correct projectId'
+                ],
+                projectId: projectId,
+                timestamp: new Date().toISOString(),
               },
               null,
               2
@@ -342,11 +357,17 @@ export const getPhaseProgressTool = {
   description: 'Get full phase progress with nested sprints, weeks, days, and tasks',
   inputSchema: z.object({
     phaseId: z.string(),
+    projectId: z.number().int().positive(),
   }),
 
-  async handler({ phaseId }) {
-    const phase = await prisma.phase.findUnique({
-      where: { id: phaseId },
+  async handler({ phaseId, projectId }) {
+    const phase = await prisma.phase.findFirst({
+      where: { 
+        id: phaseId,
+        roadmap: {
+          projectId: projectId
+        }
+      },
       include: {
         sprints: {
           include: {
@@ -372,7 +393,9 @@ export const getPhaseProgressTool = {
     });
 
     if (!phase) {
-      throw new Error(`Phase not found: ${phaseId}`);
+      throw new Error(
+        `Phase ${phaseId} not found or does not belong to project ${projectId}`
+      );
     }
 
     return {
@@ -413,8 +436,35 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const phase = await prisma.phase.findUnique({
-    where: { id: params.id },
+  // Extract projectId from query parameters
+  const searchParams = request.nextUrl.searchParams;
+  const projectId = searchParams.get('projectId');
+
+  // Validate projectId is provided
+  if (!projectId) {
+    return NextResponse.json(
+      { error: 'projectId query parameter is required' },
+      { status: 400 }
+    );
+  }
+
+  // Parse projectId to number
+  const projectIdNum = parseInt(projectId, 10);
+  if (isNaN(projectIdNum)) {
+    return NextResponse.json(
+      { error: 'projectId must be a valid number' },
+      { status: 400 }
+    );
+  }
+
+  // Query phase with project ownership validation
+  const phase = await prisma.phase.findFirst({
+    where: { 
+      id: params.id,
+      roadmap: {
+        projectId: projectIdNum
+      }
+    },
     include: {
       sprints: {
         include: {
@@ -432,9 +482,13 @@ export async function GET(
     },
   });
 
+  // Return 404 if phase not found or doesn't belong to project
   if (!phase) {
     return NextResponse.json(
-      { error: 'Phase not found' },
+      { 
+        error: 'Phase not found',
+        message: `Phase ${params.id} does not exist or does not belong to project ${projectIdNum}`
+      },
       { status: 404 }
     );
   }
@@ -463,7 +517,10 @@ import { getPhaseProgressTool } from '../sprint/getPhaseProgressTool';
 
 describe('projectpulse.sprint.getPhaseProgress', () => {
   it('should return nested tree', async () => {
-    const result = await getPhaseProgressTool.handler({ phaseId: '1' });
+    const result = await getPhaseProgressTool.handler({ 
+      phaseId: 'phase_1', 
+      projectId: 1 
+    });
     const phase = JSON.parse(result.content[0].text);
     
     expect(phase.sprints).toBeInstanceOf(Array);
@@ -471,7 +528,10 @@ describe('projectpulse.sprint.getPhaseProgress', () => {
   });
 
   it('should include all children', async () => {
-    const result = await getPhaseProgressTool.handler({ phaseId: '1' });
+    const result = await getPhaseProgressTool.handler({ 
+      phaseId: 'phase_1', 
+      projectId: 1 
+    });
     const phase = JSON.parse(result.content[0].text);
     
     expect(phase.sprints[0].weeks[0].days).toBeDefined();
@@ -480,16 +540,31 @@ describe('projectpulse.sprint.getPhaseProgress', () => {
 
   it('should throw 404 if phase not found', async () => {
     await expect(
-      getPhaseProgressTool.handler({ phaseId: '999' })
-    ).rejects.toThrow('Phase not found');
+      getPhaseProgressTool.handler({ phaseId: 'phase_999', projectId: 1 })
+    ).rejects.toThrow('Phase phase_999 not found or does not belong to project 1');
+  });
+
+  it('should throw if phase belongs to different project', async () => {
+    // Assuming phase_1 belongs to project 1
+    await expect(
+      getPhaseProgressTool.handler({ phaseId: 'phase_1', projectId: 999 })
+    ).rejects.toThrow('Phase phase_1 not found or does not belong to project 999');
+  });
+
+  it('should validate projectId is positive integer', async () => {
+    await expect(
+      getPhaseProgressTool.handler({ phaseId: 'phase_1', projectId: -1 })
+    ).rejects.toThrow(); // Zod validation error
   });
 });
 ```
 
 **Acceptance**:
-- [ ] 2-3 tests passing
+- [ ] 5 tests passing (up from 3)
 - [ ] Tests verify nested structure
-- [ ] Tests cover 404 case
+- [ ] Tests cover 404 case (phase not found)
+- [ ] Tests cover cross-project access denial (security)
+- [ ] Tests cover projectId validation (positive integer)
 
 **Files**:
 - `apps/mcp-server/src/tools/__tests__/getPhaseProgressTool.test.ts` (CREATE)
@@ -552,16 +627,19 @@ const tools = [
 ## Success Criteria
 
 ### Phase 4 Complete When:
-- [ ] MCP tool `getCurrentPosition` implemented
-- [ ] MCP tool `getPhaseProgress` implemented
+- [ ] MCP tool `getCurrentPosition` implemented with projectId validation
+- [ ] MCP tool `getPhaseProgress` implemented with projectId validation
 - [ ] Both tools registered in MCP server index
 - [ ] API route `/api/sprint/current-position` implemented
-- [ ] API route `/api/phases/[id]/progress` implemented
-- [ ] MCP integration tests: 4-5 tests passing
+- [ ] API route `/api/phases/[id]/progress` implemented with projectId validation
+- [ ] MCP integration tests: 4-5 tests passing (including cross-project denial tests)
 - [ ] Tools callable from Claude Code
 - [ ] Latency <1s for P95
 - [ ] No N+1 query problems (verified with Prisma query logging)
 - [ ] 80% token reduction achieved (measured)
+- [ ] **Verified**: Phase 1 materialized records exist (at least 1 Phase/Sprint/Week/Day/Task)
+- [ ] **Integration test**: Agent completes Session 3 → Phase 4 tools return data (not empty)
+- [ ] **Security test**: Cross-project access is denied (User A cannot access User B's phases)
 
 ---
 
@@ -583,7 +661,11 @@ const tools = [
 ## Dependencies
 
 ### External
-- **Phase 1 complete** - Phase/Sprint/Week/Day hierarchy must exist
+- **Phase 1 Parts 0+A+B+C complete** - Materialized Phase/Sprint/Week/Day hierarchy must exist in database
+  - Part 0: Schema models created (Phase, Sprint, Week, Day, Task, DevelopmentSession)
+  - Part A: Materialization tool (`projectpulse.roadmap.materialize`) creates records
+  - Part B+C: UI displays hierarchy (validates records exist)
+  - **Critical**: Phase 4 queries these materialized records, NOT Roadmap.phases JSON
 - **Prisma nested includes** - Must support 5-level nested queries
 - **Task status tracking** - IN_PROGRESS tasks must exist
 
