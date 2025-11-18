@@ -51,10 +51,18 @@ export async function createAgent(data: {
     let attempts = 0;
     const maxAttempts = 10;
 
+    // TODO: Get projectId from auth/session when available
+    const projectId = 1; // Default project for MVP
+    
     while (attempts < maxAttempts) {
-      // Check if slug already exists
+      // Check if slug already exists (now scoped to project)
       const existing = await prisma.agentPersona.findUnique({
-        where: { slug },
+        where: { 
+          projectId_slug: {
+            projectId: projectId,
+            slug: slug,
+          }
+        },
         select: { id: true },
       });
 
@@ -77,6 +85,7 @@ export async function createAgent(data: {
 
     const agent = await prisma.agentPersona.create({
       data: {
+        projectId: projectId, // Sprint 8.5 Phase 3: Agents are project-scoped
         name: data.name,
         slug: slug,
         description: data.description,

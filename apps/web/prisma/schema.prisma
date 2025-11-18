@@ -303,6 +303,7 @@ model Project {
   developmentSessions DevelopmentSession[] // Sprint 8.5: Agent work tracking (plan + todos for CurrentWorkModal)
   currentPlan        CurrentPlan? // Sprint 8.5 Phase 2: Current work plan
   currentTodos       CurrentTodos? // Sprint 8.5 Phase 2: Current todos list
+  agentPersonas      AgentPersona[] // Sprint 8.5 Phase 3: Project-scoped agent personas
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -865,15 +866,19 @@ model Setting {
 model AgentPersona {
   id Int @id @default(autoincrement())
 
-  name        String  @unique
-  slug        String  @unique // For slash commands: /code-reviewer
+  // Project scope (Sprint 8.5 Phase 3: Agents are project-scoped)
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  name        String // No longer globally unique
+  slug        String // No longer globally unique
   icon        String? // Emoji or icon name
   description String? @db.Text
 
   // System prompt
   systemPrompt String @db.Text
 
-  // Skills/capabilities
+  // Skills/capabilities (slugs that agent can autonomously load)
   skills String[] // e.g., ["debugging", "security", "architecture"]
 
   // MCP tools this persona can use
@@ -904,9 +909,13 @@ model AgentPersona {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Indexes
+  @@unique([projectId, name]) // Name unique per project
+  @@unique([projectId, slug]) // Slug unique per project
+  @@index([projectId])
+  @@index([projectId, isActive])
   @@index([slug])
   @@index([isBuiltIn])
-  @@index([isActive])
 }
 
 model PromptTemplate {

@@ -7,7 +7,13 @@ import { AgentCard } from '@/components/agents/AgentCard';
 export const dynamic = 'force-dynamic'; // Real-time agent status
 
 async function getAgents() {
+  // TODO: Get projectId from auth/session when available
+  const projectId = 1; // Default project for MVP
+  
   const agents = await prisma.agentPersona.findMany({
+    where: {
+      projectId: projectId, // Sprint 8.5 Phase 3: Filter agents by project
+    },
     orderBy: [
       { isActive: 'desc' }, // Active agents first
       { name: 'asc' },
@@ -26,9 +32,12 @@ async function getAgents() {
 }
 
 async function getAgentStats() {
+  // TODO: Get projectId from auth/session when available
+  const projectId = 1; // Default project for MVP
+  
   const [total, active] = await Promise.all([
-    prisma.agentPersona.count(),
-    prisma.agentPersona.count({ where: { isActive: true } }),
+    prisma.agentPersona.count({ where: { projectId: projectId } }),
+    prisma.agentPersona.count({ where: { projectId: projectId, isActive: true } }),
   ]);
 
   return { total, active };

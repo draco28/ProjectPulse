@@ -211,10 +211,12 @@ async function main() {
   }
 
   // Create agent personas (with exact names tests expect)
+  // Sprint 8.5 Phase 3: Agents are now project-scoped
   console.log('🤖 Creating agent personas...');
   await Promise.all([
     prisma.agentPersona.create({
       data: {
+        projectId: project.id, // Link to project
         name: 'Code Reviewer',
         slug: 'code-reviewer',
         description: 'Code review and quality expert',
@@ -225,6 +227,7 @@ async function main() {
     }),
     prisma.agentPersona.create({
       data: {
+        projectId: project.id, // Link to project
         name: 'Bug Hunter',
         slug: 'bug-hunter',
         description: 'Bug detection and fixing expert',
@@ -235,6 +238,7 @@ async function main() {
     }),
     prisma.agentPersona.create({
       data: {
+        projectId: project.id, // Link to project
         name: 'DevHub Architect',
         slug: 'devhub-architect',
         description: 'Architecture and design expert',

@@ -2298,9 +2298,11 @@ pnpm prisma migrate status
   // ========================================================================
   console.log('🤖 Creating agent personas...');
 
+  // Sprint 8.5 Phase 3: Agents are now project-scoped
   const personas = await Promise.all([
     prisma.agentPersona.create({
       data: {
+        projectId: project.id, // Link to project
         name: 'Code Reviewer',
         slug: 'code-reviewer',
         icon: '🔍',
