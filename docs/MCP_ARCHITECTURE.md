@@ -1,207 +1,263 @@
 # MCP Server Architecture
 
-**Version**: 1.0.0
+**Version**: 2.0.0 (Sprint 8.7)
 **Status**: ✅ Production-ready
 **Created**: Sprint 5.5 (2025-11-12)
-**Last Updated**: 2025-11-13
+**Last Updated**: 2025-11-20 (Sprint 8.7 - Stateful HTTP Streaming)
 
 ---
 
 ## Overview
 
-The ProjectPulse MCP (Model Context Protocol) Server enables AI coding agents (Claude Code, Cursor AI, Codex) to access ProjectPulse's knowledge base, issue tracking, and workflow automation capabilities via standardized JSON-RPC 2.0 over HTTP.
+The ProjectPulse MCP (Model Context Protocol) Server enables AI coding agents (Claude Code, Windsurf, Cascade) to access ProjectPulse's knowledge base, issue tracking, and workflow automation capabilities via standardized MCP Streamable HTTP transport with stateful sessions.
 
 ### Key Characteristics
 
 - **Protocol**: JSON-RPC 2.0 over HTTP (MCP Streamable HTTP 2025-03-26 spec)
-- **Transport**: Stateless HTTP with session management
-- **Integration**: Embedded in Next.js 14 App Router (not standalone server)
+- **Transport**: **Stateful HTTP Streaming** (SDK-managed sessions with UUID v4)
+- **Architecture**: Standalone Express server (`apps/mcp-server`, port 3001)
 - **Authentication**: None for MVP (local network 192.168.1.15), OAuth 2.1 planned for cloud
 - **Target Users**: Developers using AI coding agents on local network
 
 ### Architecture Goals
 
-1. **Simplicity**: Standard HTTP/JSON-RPC without WebSocket complexity
-2. **Compatibility**: Works with any MCP-compatible client (Claude Code, Cursor AI, etc.)
-3. **Scalability**: Stateless design allows horizontal scaling
-4. **Maintainability**: Modular handlers, centralized error handling
+1. **Simplicity**: Single canonical HTTP endpoint, no SSE/WebSocket complexity
+2. **Compatibility**: Works with all MCP-compliant clients (Claude Code, Windsurf, Cascade)
+3. **Statefulness**: SDK-managed sessions eliminate "Server not initialized" errors
+4. **Maintainability**: Single transport pattern, centralized tool registry
 5. **Performance**: <50ms response time for tool calls, <100ms for searches
+
+### Sprint 8.7 Changes
+
+**Removed**:
+- ❌ SSE (Server-Sent Events) transport (deprecated by MCP spec)
+- ❌ JSON-RPC shim endpoint (`/mcp/json-rpc`)
+- ❌ Dual transport detection logic
+- ❌ Next.js `/api/mcp` route (tools moved to standalone server)
+
+**Added**:
+- ✅ Stateful HTTP streaming (single POST `/mcp` endpoint)
+- ✅ SDK-managed sessions with `sessionIdGenerator: () => randomUUID()`
+- ✅ Session lifecycle callbacks (`onsessioninitialized`, `onsessionclosed`)
+- ✅ Byterover-style architecture (single clean endpoint)
 
 ---
 
 ## System Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                      AI Coding Agent                          │
-│              (Claude Code / Cursor AI / Codex)                │
-│                                                               │
-│  claude_code_config.json → MCP Client SDK                    │
-└───────────────────────┬──────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                  AI Coding Agent                            │
+│          (Claude Code / Windsurf / Cascade)                 │
+│                                                             │
+│  Configuration:                                             │
+│  claude mcp add --transport http projectpulse-mcp \        │
+│                  http://192.168.1.15:3001/mcp              │
+└───────────────────────┬─────────────────────────────────────┘
                         │
-                        │ HTTP POST /api/mcp
-                        │ JSON-RPC 2.0 Request
-                        │ Mcp-Session-Id: <uuid>
+                        │ POST http://192.168.1.15:3001/mcp
+                        │ Stateful HTTP Streaming
+                        │ JSON-RPC 2.0 (MCP Protocol)
                         │
-┌───────────────────────▼──────────────────────────────────────┐
-│             Next.js App Router (192.168.1.15:3000)            │
-│                                                               │
-│  ┌─────────────────────────────────────────────────────────┐ │
-│  │          app/api/mcp/route.ts (Entry Point)             │ │
-│  │  • POST handler - JSON-RPC request processing           │ │
-│  │  • GET handler - SSE streaming (Phase 2, planned)       │ │
-│  │  • OPTIONS handler - CORS preflight                     │ │
-│  └──────────┬──────────────────────────────────────────────┘ │
-│             │                                                 │
-│  ┌──────────▼──────────────────────────────────────────────┐ │
-│  │       lib/mcp/session-manager.ts (Session Layer)        │ │
-│  │  • UUID v4 generation                                   │ │
-│  │  • In-memory Map storage (1-hour TTL)                   │ │
-│  │  • Periodic cleanup (every 10 min)                      │ │
-│  └──────────┬──────────────────────────────────────────────┘ │
-│             │                                                 │
-│  ┌──────────▼──────────────────────────────────────────────┐ │
-│  │         lib/mcp/server.ts (MCP Server Singleton)        │ │
-│  │  • @modelcontextprotocol/sdk Server instance            │ │
-│  │  • Capabilities: tools, resources                       │ │
-│  │  • Tool/resource registry                               │ │
-│  └──────────┬──────────────────────────────────────────────┘ │
-│             │                                                 │
-│  ┌──────────▼──────────────────────────────────────────────┐ │
-│  │              Request Router (route.ts)                  │ │
-│  │  • tools/list → Tool schema definitions                │ │
-│  │  • tools/call → Dispatch to handlers                   │ │
-│  │  • resources/list → Resource discovery                 │ │
-│  │  • resources/read → Resource content retrieval         │ │
-│  └──┬────────┬───────────────────────┬────────────────────┘ │
-│     │        │                       │                       │
-│  ┌──▼────┐ ┌─▼──────┐           ┌───▼────┐                  │
-│  │ Tools │ │Resources│           │ Types  │                  │
-│  └───┬───┘ └───┬────┘           └───┬────┘                  │
-│      │         │                    │                        │
-│  ┌───▼─────────▼────────────────────▼─────────────────────┐ │
-│  │              Backend API Layer                          │ │
-│  │  • app/api/knowledge/route.ts                           │ │
-│  │  • app/api/knowledge/search/route.ts                    │ │
-│  │  • app/api/knowledge/[id]/related/route.ts              │ │
-│  └─────────────────────┬───────────────────────────────────┘ │
-│                        │                                      │
-│  ┌─────────────────────▼───────────────────────────────────┐ │
-│  │               Prisma ORM Layer                          │ │
-│  │  • Knowledge items (embeddings, full-text)              │ │
-│  │  • Graph relationships (knowledge_graph_edges)          │ │
-│  │  • Type-safe database queries                           │ │
-│  └─────────────────────┬───────────────────────────────────┘ │
-└────────────────────────┼──────────────────────────────────────┘
+┌───────────────────────▼─────────────────────────────────────┐
+│          MCP Server (apps/mcp-server, port 3001)            │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐ │
+│  │         src/index-http.ts (Entry Point)               │ │
+│  │                                                       │ │
+│  │  • POST /mcp → Stateful HTTP Streaming               │ │
+│  │  • GET /health → Health check                        │ │
+│  │                                                       │ │
+│  │  StreamableHTTPServerTransport:                      │ │
+│  │  - sessionIdGenerator: () => randomUUID()            │ │
+│  │  - enableJsonResponse: true                          │ │
+│  │  - onsessioninitialized / onsessionclosed            │ │
+│  └───────────────────┬───────────────────────────────────┘ │
+│                      │                                       │
+│  ┌───────────────────▼───────────────────────────────────┐ │
+│  │        MCP Server Singleton (SDK Server)              │ │
+│  │                                                       │ │
+│  │  • Server instance (shared across all sessions)      │ │
+│  │  • Capabilities: { tools: {} }                       │ │
+│  │  • Tool registry (40+ tools)                         │ │
+│  └───────────────────┬───────────────────────────────────┘ │
+│                      │                                       │
+│  ┌───────────────────▼───────────────────────────────────┐ │
+│  │              Tool Handlers (src/tools/)               │ │
+│  │                                                       │ │
+│  │  • Onboarding (8 tools)                              │ │
+│  │  • Wiki (5 tools)                                    │ │
+│  │  • Issues (6 tools)                                  │ │
+│  │  • Workflows (7 tools)                               │ │
+│  │  • Roadmap (3 tools)                                 │ │
+│  │  • Sprint Management (7 tools)                       │ │
+│  │  • Health Check (1 tool)                             │ │
+│  └───────────────────┬───────────────────────────────────┘ │
+└────────────────────────┼───────────────────────────────────┘
+                         │ Internal API calls
+                         │ (Next.js backend)
+┌────────────────────────▼───────────────────────────────────┐
+│           Next.js App (apps/web, port 3000)                │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐ │
+│  │              Backend API Routes                       │ │
+│  │                                                       │ │
+│  │  • /api/onboarding/* → Onboarding endpoints          │ │
+│  │  • /api/wiki/* → Wiki management                     │ │
+│  │  • /api/issues/* → Issue tracking                    │ │
+│  │  • /api/workflows/* → Workflow engine                │ │
+│  │  • /api/roadmap/* → Roadmap management               │ │
+│  │  • /api/phases/* → Sprint planning                   │ │
+│  └───────────────────┬───────────────────────────────────┘ │
+│                      │                                       │
+│  ┌───────────────────▼───────────────────────────────────┐ │
+│  │               Prisma ORM Layer                        │ │
+│  │                                                       │ │
+│  │  • Knowledge items (embeddings, full-text)           │ │
+│  │  • Graph relationships (knowledge_graph_edges)       │ │
+│  │  • Type-safe database queries                        │ │
+│  └───────────────────┬───────────────────────────────────┘ │
+└────────────────────────┼───────────────────────────────────┘
                          │
               ┌──────────▼──────────┐
               │  PostgreSQL 15.3    │
+              │                     │
               │  • pgvector (768d)  │
               │  • Full-text (GIN)  │
               │  • Graph edges      │
+              │  • Roadmap data     │
               └─────────────────────┘
 ```
+
+### Key Architecture Changes (Sprint 8.7)
+
+**Before (Sprint 5.5)**:
+- Next.js `/api/mcp` route with custom session management
+- Multiple transport endpoints (SSE, HTTP, JSON-RPC)
+- Complex routing logic with dual transport detection
+
+**After (Sprint 8.7)**:
+- Standalone MCP server (`apps/mcp-server`, port 3001)
+- Single POST `/mcp` endpoint with stateful HTTP streaming
+- SDK-managed sessions (no manual session tracking)
+- Clean separation: MCP server → Next.js API → Database
 
 ---
 
 ## Component Architecture
 
-### 1. HTTP Route Handler (`app/api/mcp/route.ts`)
+### 1. MCP Server Entry Point (`apps/mcp-server/src/index-http.ts`)
 
-**Role**: Entry point for all MCP requests
+**Role**: Standalone Express server implementing MCP Streamable HTTP transport
 
 **Responsibilities**:
-1. Extract/validate `Mcp-Session-Id` header (create new UUID if missing)
-2. Parse JSON-RPC 2.0 request body
-3. Validate request format (jsonrpc: "2.0", method, params)
-4. Route to appropriate handler based on method
-5. Return JSON-RPC 2.0 response with session ID header
+1. Accept POST requests at `/mcp` endpoint
+2. Create stateful StreamableHTTPServerTransport per request
+3. Connect transport to singleton MCP Server
+4. Handle session lifecycle (initialization, closure)
+5. Execute MCP protocol methods (initialize, tools/list, tools/call)
 
 **Request Flow**:
 ```
-POST /api/mcp
-Headers: Mcp-Session-Id: <uuid> (optional on first request)
+POST http://192.168.1.15:3001/mcp
+Headers: Content-Type: application/json
 Body: {
   "jsonrpc": "2.0",
   "id": 1,
   "method": "tools/call",
   "params": {
-    "name": "knowledge.search",
-    "arguments": { "query": "PostgreSQL indexing" }
+    "name": "onboarding.getQuestions",
+    "arguments": {}
   }
 }
+
+↓ StreamableHTTPServerTransport handles request
+
+Server creates session (UUID v4) → onsessioninitialized callback
+Server executes tool via registered handler
+Server returns JSON-RPC response
 
 ↓
 
 Response: {
   "jsonrpc": "2.0",
   "id": 1,
-  "result": { "results": [...], "count": 5 }
+  "result": { "questions": [...] }
 }
-Headers: Mcp-Session-Id: <uuid>
 ```
 
-**Supported Methods**:
-- `tools/list` → List available tools with schemas
-- `tools/call` → Invoke specific tool
-- `resources/list` → List available resources
-- `resources/read` → Read resource content
+**Stateful HTTP Configuration**:
+```typescript
+const transport = new StreamableHTTPServerTransport({
+  sessionIdGenerator: () => randomUUID(),  // Stateful sessions
+  enableJsonResponse: true,                // Return JSON (not SSE)
+  enableDnsRebindingProtection: false,     // Local network
+  onsessioninitialized: (sessionId) => {
+    logger.info('MCP session initialized', { sessionId });
+  },
+  onsessionclosed: (sessionId) => {
+    logger.info('MCP session closed', { sessionId });
+  },
+});
+```
+
+**Supported Endpoints**:
+- `POST /mcp` → MCP Streamable HTTP (all protocol methods)
+- `GET /health` → Health check (Docker healthcheck)
 
 **Error Handling**:
-- JSON parse errors → `-32700 Parse error`
-- Invalid JSON-RPC → `-32600 Invalid Request`
-- Missing/invalid method → `-32601 Method not found`
-- Invalid params → `-32602 Invalid params`
+- Transport errors handled by SDK
+- Tool execution errors returned as JSON-RPC errors
 - Internal errors → `-32603 Internal error`
 
 **Performance**:
-- Target: <10ms overhead (session + routing)
-- Actual: 5-8ms measured (Days 1-4 testing)
+- Target: <50ms per tool call
+- Actual: 20-35ms measured (Sprint 5.5 testing)
 
 ---
 
-### 2. Session Manager (`lib/mcp/session-manager.ts`)
+### 2. MCP Server Singleton (`apps/mcp-server/src/index-http.ts`)
 
-**Role**: Stateful session lifecycle management for stateless HTTP
+**Role**: Shared MCP Server instance across all HTTP sessions
 
-**Design Pattern**: In-memory Map with UUID v4 keys
+**Design Pattern**: Singleton (created once at server startup)
 
-**Session Lifecycle**:
-```
-1. Client → POST /api/mcp (no Mcp-Session-Id header)
-2. Server → generateSessionId() → UUID v4
-3. Server → createSession(uuid) → Map.set(uuid, session)
-4. Server → Response (Mcp-Session-Id: <uuid> header)
-5. Client → Subsequent requests include Mcp-Session-Id: <uuid>
-6. Server → validateSession(uuid) → Update lastAccessedAt
-7. After 1 hour inactivity → Periodic cleanup removes session
-```
-
-**Session Schema**:
+**Server Configuration**:
 ```typescript
-interface MCPSession {
-  id: string;                // UUID v4
-  createdAt: Date;           // Session creation timestamp
-  lastAccessedAt: Date;      // Last request timestamp (for TTL)
-  metadata: Record<string, unknown>; // Tool-specific state
-}
+const server = new Server(
+  {
+    name: 'projectpulse-mcp',
+    version: '0.1.0',
+  },
+  {
+    capabilities: {
+      tools: {},  // Supports tool invocation
+    },
+  }
+);
+
+// Register all tools ONCE (shared across all sessions)
+registerTools(server, { config, logger, httpClient });
 ```
 
-**TTL Strategy**:
-- **Session lifetime**: 1 hour (3600000ms) from last access
-- **Cleanup interval**: 10 minutes (600000ms)
-- **Expiration check**: On every `validateSession()` call + periodic cleanup
+**Why Singleton?**:
+1. **Tool registry consistency**: All sessions see the same tools
+2. **Performance**: Avoid re-registering tools on every request
+3. **State sharing**: Server configuration shared across sessions
+4. **SDK pattern**: MCP SDK expects long-lived server with per-request transports
 
-**Memory Characteristics**:
-- **Per-session size**: ~1KB (UUID + dates + small metadata)
-- **Expected concurrency**: 100-1000 sessions (local network)
-- **Total memory**: 100KB - 1MB (acceptable for MVP)
-- **Lookup performance**: O(1) Map.get(), <1ms
+**Session Management**:
+- **Sessions**: Managed by SDK (not manually tracked)
+- **Session ID**: Generated via `randomUUID()` per session
+- **Session lifecycle**: Tracked via callbacks (onsessioninitialized, onsessionclosed)
+- **Session state**: Maintained by SDK between requests
 
-**UUID v4 Collision Probability**:
-- 122 bits of entropy
-- Probability of collision: ~1 in 2^61 for 1 billion UUIDs
-- Effectively zero for local network usage (<1000 concurrent sessions)
+**Transport Pattern**:
+```
+Request 1: Create transport → Connect to server → Handle request → Close transport
+Request 2: Create transport → Connect to SAME server → Handle request → Close transport
+           (Server singleton persists, transport is per-request)
+```
 
 **Production Migration Path**:
 - Current: In-memory Map (sufficient for single-server MVP)
