@@ -2,22 +2,177 @@
 
 **For:** New Users & Developers
 **Level:** Beginner-Friendly (Assumes no prior Docker/DevOps knowledge)
-**Last Updated:** 2025-11-18
+**Last Updated:** 2025-11-19 (Sprint 8.6)
+
+---
+
+## 🎯 Current Active Setup (as of Sprint 8.6)
+
+**What You Have Running RIGHT NOW:**
+
+```
+Mac Mini (192.168.1.15) - Running 24/7
+├── Compose File: docker-compose.cloud.yml (ACTIVE)
+├── PostgreSQL:5432 ✅ Healthy (database)
+├── Next.js:3000 ✅ Running (web app)
+└── MCP Server:3001 ✅ Healthy (AI agent API)
+    ├── Transport: SSE over HTTP
+    ├── External Agents: Claude Code + Cascade connected
+    ├── Active Sessions: 3 (validated working)
+    └── Tools: 35 ProjectPulse MCP tools
+```
+
+**Session Storage:** In-memory (Redis available but not active)
+**External Agent URL:** `http://192.168.1.15:3001/mcp`
+**Validation:** ✅ Multi-agent tested (Claude Code + Cascade)
+
+**Key Fact:** Even though it's called "development" compose file, this setup **IS your production environment** because:
+- ✅ Runs continuously (24/7 on Mac mini)
+- ✅ External agents connect to it
+- ✅ Handles real workloads
+- ✅ Production-ready MCP transport (SSE)
+
+The "development" label refers to **build optimization** (volume mounts for hot reload), NOT external accessibility or stability.
 
 ---
 
 ## 📚 Table of Contents
 
-1. [What is Infrastructure?](#what-is-infrastructure)
-2. [Understanding Docker (Simple Explanation)](#understanding-docker-simple-explanation)
-3. [Our Infrastructure Setup](#our-infrastructure-setup)
-4. [Development vs Production](#development-vs-production)
-5. [Multi-Stage Docker Builds Explained](#multi-stage-docker-builds-explained)
-6. [Session Management (Redis)](#session-management-redis)
-7. [Three Docker Compose Files Explained](#three-docker-compose-files-explained)
-8. [Current Architecture](#current-architecture)
-9. [Common Operations](#common-operations)
-10. [Troubleshooting](#troubleshooting)
+1. [Current Active Setup](#-current-active-setup-as-of-sprint-86) ⭐ **START HERE**
+2. [What Changed in Sprint 8.6](#-what-changed-in-sprint-86)
+3. [Understanding "Development" vs "Production"](#-understanding-development-vs-production)
+4. [What is Infrastructure?](#what-is-infrastructure)
+5. [Understanding Docker (Simple Explanation)](#understanding-docker-simple-explanation)
+6. [Our Infrastructure Setup](#our-infrastructure-setup)
+7. [Development vs Production](#development-vs-production)
+8. [Multi-Stage Docker Builds Explained](#multi-stage-docker-builds-explained)
+9. [Session Management (Redis)](#session-management-redis)
+10. [Three Docker Compose Files Explained](#three-docker-compose-files-explained)
+11. [Current Architecture](#current-architecture)
+12. [Common Operations](#common-operations)
+13. [Troubleshooting](#troubleshooting)
+
+---
+
+## 🚀 What Changed in Sprint 8.6?
+
+**Problem Solved:** External AI agents (Claude Code, Cascade) couldn't connect to the MCP server running in Docker on Mac mini.
+
+### Before Sprint 8.6 ❌
+
+```
+MCP Server Configuration:
+├── Transport: stdio (standard input/output)
+├── Docker Issue: stdin closes when container starts
+├── Result: Endless restart loop
+└── External Agents: ❌ Cannot connect
+```
+
+### After Sprint 8.6 ✅
+
+```
+MCP Server Configuration:
+├── Transport: SSE (Server-Sent Events) over HTTP
+├── Port: 3001 exposed to network
+├── Endpoints: GET/POST /mcp for session management
+├── Docker: Stable, no restarts
+└── External Agents: ✅ Claude Code + Cascade validated
+```
+
+### Key Implementation Changes
+
+1. **Transport Switch:** stdio → SSE/HTTP
+   - File: `apps/mcp-server/src/index-http.ts`
+   - Protocol: Dual endpoints (GET establishes SSE stream, POST sends messages)
+
+2. **Session Management:** Query parameter routing
+   - Session ID sent via `?sessionId=xxx` (not headers)
+   - Map-based storage: `sessions.set(transport.sessionId, transport)`
+
+3. **Docker Config:** Updated command
+   - Before: `node dist/index.js` (stdio, broken)
+   - After: `node dist/index-http.js` (SSE, working)
+
+4. **Health Check:** Node-based HTTP request
+   - No dependency on wget/curl (not in slim image)
+   - Returns active session count
+
+### Validation Results
+
+| Agent | Status | Config Location | Sessions |
+|-------|--------|----------------|----------|
+| **Claude Code** | ✅ Working | `~/.claude.json` | 1 |
+| **Cascade (Windsurf)** | ✅ Working | `~/.codeium/windsurf/mcp_config.json` | 3 |
+
+**Total Active Sessions:** 3 (confirmed via health check)
+
+**Documentation:** See [docs/features/mcp-multi-agent-setup.md](docs/features/mcp-multi-agent-setup.md) for complete setup guide.
+
+---
+
+## 💡 Understanding "Development" vs "Production"
+
+**This is the source of confusion!** Let's clarify the terminology:
+
+### The Confusing Labels
+
+| Label | What It Actually Means | What You Might Think It Means |
+|-------|----------------------|------------------------------|
+| **"Development"** (docker-compose.cloud.yml) | Volume mounts for code hot-reload | "Not for real use, testing only" |
+| **"Production"** (docker-compose.production.yml) | Optimized images, Redis, no volume mounts | "The real deployment" |
+
+### The Reality for YOU
+
+**Your Mac Mini Setup = Your Production Environment**
+
+Even though you're using `docker-compose.cloud.yml` (labeled "development"), this **IS your production** because:
+- ✅ Runs 24/7 on dedicated hardware
+- ✅ External agents (Claude Code, Cascade) connect to it
+- ✅ Handles real workloads (MCP tools, wiki, issues, etc.)
+- ✅ Stable and validated (3 active sessions)
+
+The "development" label only means:
+- 📂 Source code is volume-mounted (not baked into image)
+- 🔄 Hot reload enabled (changes reflect immediately)
+- 💾 In-memory sessions (no Redis overhead)
+
+### When to Use "Production" Setup (docker-compose.production.yml)
+
+**Future Use Case:** Deploying to cloud (AWS/GCP/Azure) or Kubernetes
+
+**Why not use it now?**
+- ❌ Slower iteration (must rebuild images for each change)
+- ❌ Redis overhead not needed (Mac mini is stable, single-server)
+- ❌ Optimized images unnecessary (Mac mini has plenty of resources)
+- ❌ More complex setup (requires .env.production configuration)
+
+**When to switch:**
+- When deploying to cloud hosting
+- When scaling horizontally (multiple servers)
+- When you need session persistence across server restarts
+- When security hardening is critical (non-root users, minimal images)
+
+### Quick Mental Model
+
+```
+Your Setup:
+"Development" docker-compose.cloud.yml
+    ↓
+Mac Mini (dedicated server)
+    ↓
+Running 24/7 with external agents
+    ↓
+= YOUR PRODUCTION ENVIRONMENT
+
+Future Cloud Setup:
+"Production" docker-compose.production.yml
+    ↓
+AWS/GCP/Kubernetes
+    ↓
+Multiple servers, load balancing
+    ↓
+= TRUE PRODUCTION DEPLOYMENT
+```
 
 ---
 
@@ -459,32 +614,54 @@ curl http://192.168.1.15:3000/api/health
 
 Different use cases need different configurations.
 
-### 1. `docker-compose.yml` (Legacy/CI)
+### Quick Comparison Table (Sprint 8.6 Status)
 
-**Purpose:** Automated testing, local fallback
-**Used by:** CI/CD pipelines, Windows laptops (if no Mac mini)
-
-**Characteristics:**
-- Exposes ports to 0.0.0.0 (less secure)
-- No MCP server
-- Simpler configuration
-
-**When to use:**
-- Running tests in GitHub Actions
-- Quick local testing on Windows (without Mac mini access)
-- **NOT used on Mac mini anymore**
+| Feature | docker-compose.yml | docker-compose.cloud.yml | docker-compose.production.yml |
+|---------|-------------------|-------------------------|-------------------------------|
+| **Status** | ❌ Legacy | ✅ **ACTIVE NOW** | ⚪ Ready (not active) |
+| **Purpose** | CI/Testing | **Mac Mini Runtime** | Future cloud deployment |
+| **Used On** | GitHub Actions | **Mac Mini 24/7** | Kubernetes/Cloud |
+| **MCP Transport** | None (no MCP) | **SSE/HTTP** ✅ | SSE/HTTP |
+| **External Agents** | ❌ N/A | ✅ **Working** (3 sessions) | ✅ Supported |
+| **Source Code** | Volume mount | Volume mount | Baked into image |
+| **Hot Reload** | ✅ Yes | ✅ Yes | ❌ No (must rebuild) |
+| **Redis** | ❌ No | ❌ No | ✅ Yes |
+| **MCP Server Port** | N/A | **3001** | 3001 |
+| **Image Size** | 800MB | 800MB | 300MB (optimized) |
+| **Sessions** | In-memory | **In-memory** | Redis (persistent) |
+| **Security** | Basic | Basic | Hardened (non-root) |
+| **Sprint 8.6 Changes** | None | **SSE transport added** | SSE transport ready |
 
 ---
 
-### 2. `docker-compose.cloud.yml` (Development - ACTIVE)
+### 1. `docker-compose.yml` (Legacy/CI) ❌
 
-**Purpose:** Daily development on Mac Mini
-**Used by:** You, every day
+**Purpose:** Automated testing, local fallback
+**Status:** **NOT USED** on Mac mini
+
+**Characteristics:**
+- Exposes ports to 0.0.0.0 (less secure)
+- No MCP server service
+- Simpler configuration
+
+**When to use:**
+- Running tests in GitHub Actions CI/CD
+- Quick local testing on Windows (without Mac mini access)
+- **⚠️ NOT recommended for development** (use cloud.yml instead)
+
+---
+
+### 2. `docker-compose.cloud.yml` (Mac Mini Runtime) ✅ **ACTIVE**
+
+**Purpose:** Your production environment (despite "development" label)
+**Status:** **RUNNING 24/7** on Mac mini
+**Used by:** You (daily) + External AI agents (Claude Code, Cascade)
 
 **Characteristics:**
 - ✅ Volume mounts for hot reload
-- ✅ MCP server included
-- ✅ In-memory sessions (fast)
+- ✅ **MCP server with SSE/HTTP transport** (Sprint 8.6)
+- ✅ **External agents connect successfully** (3 active sessions)
+- ✅ In-memory sessions (fast, no Redis overhead)
 - ✅ Debug mode enabled
 
 **Start Command:**
@@ -493,61 +670,64 @@ docker compose -f docker-compose.cloud.yml up -d
 ```
 
 **When to use:**
-- Writing new features
-- Debugging issues
-- Testing changes before committing
+- ✅ Daily development (you use this every day)
+- ✅ External AI agents connecting to MCP server
+- ✅ Testing changes before committing
+- ✅ **This is your current production setup**
+
+**Sprint 8.6 Changes:**
+- ✅ Added SSE/HTTP transport for MCP server
+- ✅ Changed image from alpine to bullseye-slim (OpenSSL fix)
+- ✅ Exposed port 3001 for external agent connectivity
+- ✅ Multi-agent validated (Claude Code + Cascade)
 
 ---
 
-### 3. `docker-compose.production.yml` (Production)
+### 3. `docker-compose.production.yml` (Future Cloud) ⚪
 
-**Purpose:** Production builds, cloud deployment
-**Used by:** Testing before deploy, Kubernetes
+**Purpose:** Future cloud deployment (AWS/GCP/Kubernetes)
+**Status:** **NOT ACTIVE** (ready but not deployed)
+**Used by:** Future use when deploying to cloud
 
 **Characteristics:**
-- ✅ Multi-stage Dockerfiles
-- ✅ Redis for sessions
-- ✅ Optimized images (300MB)
+- ✅ Multi-stage Dockerfiles (60% smaller images)
+- ✅ Redis for session persistence
+- ✅ Optimized images (~300MB vs 800MB)
 - ✅ Security hardened (non-root users)
 - ✅ Resource limits set
+- ✅ **MCP server with SSE/HTTP transport** (same as cloud.yml)
 
 **Start Command:**
 ```bash
+cp .env.production.example .env.production
+# Edit .env.production with your values
 docker compose -f docker-compose.production.yml up --build
 ```
 
 **When to use:**
-- Testing production build locally
-- Before deploying to AWS/GCP/Azure
-- Verifying multi-stage builds work
+- Testing production build locally before cloud deployment
+- Deploying to AWS/GCP/Azure or Kubernetes
+- When you need Redis session persistence (horizontal scaling)
+- When optimized images are required (bandwidth/cost)
 
----
-
-### Quick Comparison Table
-
-| Feature | docker-compose.yml | docker-compose.cloud.yml | docker-compose.production.yml |
-|---------|-------------------|-------------------------|----------------------------|
-| **Purpose** | CI/Testing | Development | Production |
-| **Used On** | GitHub Actions | Mac Mini | Kubernetes/Cloud |
-| **Source Code** | Volume mount | Volume mount | Baked into image |
-| **Hot Reload** | ✅ Yes | ✅ Yes | ❌ No (must rebuild) |
-| **Redis** | ❌ No | ❌ No | ✅ Yes |
-| **MCP Server** | ❌ No | ✅ Yes | ✅ Yes |
-| **Image Size** | 800MB | 800MB | 300MB |
-| **Sessions** | In-memory | In-memory | Redis (persistent) |
-| **Security** | Basic | Basic | Hardened |
+**Why not use now?**
+- ❌ Slower iteration (must rebuild for each change)
+- ❌ Redis overhead not needed (Mac mini is stable)
+- ❌ More complex setup (requires production secrets)
+- ❌ Your current setup (cloud.yml) already works perfectly
 
 ---
 
 ## Current Architecture
 
-### Active Setup (As of 2025-11-18)
+### Active Setup (As of Sprint 8.6 - 2025-11-19)
 
-**Primary Environment:** Development on Mac Mini
-**Active File:** `docker-compose.cloud.yml`
+**Primary Environment:** Mac Mini (Your Production)
+**Active File:** `docker-compose.cloud.yml` ✅
+**MCP Transport:** SSE over HTTP
 
 ```
-Mac Mini (192.168.1.15)
+Mac Mini (192.168.1.15) - Running 24/7
 ├── PostgreSQL:5432 (pgvector/pgvector:pg15)
 │   └── Volume: postgres_data (persistent)
 │
@@ -556,15 +736,25 @@ Mac Mini (192.168.1.15)
 │   ├── Hot Reload: ✅ Enabled
 │   └── Sessions: InMemorySessionStore
 │
-└── MCP Server:3001 (node:20-alpine)
+└── MCP Server:3001 (node:20-bullseye-slim) ⭐ NEW
     ├── Volume Mount: ./apps/mcp-server → /app
-    ├── Connects to: Next.js API
-    └── Tools: 36 MCP tools registered
+    ├── Transport: SSE over HTTP (Sprint 8.6)
+    ├── External URL: http://192.168.1.15:3001/mcp
+    ├── Active Sessions: 3 (Claude Code + Cascade)
+    └── Tools: 35 ProjectPulse MCP tools
 ```
 
-### Recent Changes (Sprint 8.5)
+### Recent Changes
 
-**Phase 1 (Commit: ed93b21):**
+**Sprint 8.6 - MCP Connectivity (Commit: 0c80bae):** ⭐ **LATEST**
+- ✅ Implemented SSE/HTTP transport for MCP server
+- ✅ Fixed session ID routing (query parameters)
+- ✅ Changed image from alpine to bullseye-slim
+- ✅ Multi-agent validated (Claude Code + Cascade)
+- ✅ Exposed port 3001 for external connectivity
+- ✅ Created comprehensive multi-agent setup guide
+
+**Sprint 8.5 Phase 1 (Commit: ed93b21):**
 - Created `packages/roadmap-tools/` shared package
 - Eliminated code duplication (220+ lines)
 
@@ -580,6 +770,29 @@ Mac Mini (192.168.1.15)
 - Created `InMemorySessionStore` fallback
 - Updated session-manager to auto-detect environment
 - Added Redis health check to `/api/health`
+
+---
+
+## Quick Decision Matrix (Sprint 8.6)
+
+**Common Questions & Answers:**
+
+| Question/Request | Answer | Command/Action |
+|-----------------|--------|----------------|
+| "Which setup am I using?" | **docker-compose.cloud.yml** | `docker ps` to verify |
+| "Can external agents connect?" | **YES** ✅ (3 active sessions) | Check: `curl http://192.168.1.15:3001/health` |
+| "What MCP transport?" | **SSE over HTTP** (port 3001) | Endpoint: `http://192.168.1.15:3001/mcp` |
+| "Is Redis running?" | **NO** (in-memory sessions) | Health: `curl http://192.168.1.15:3000/api/health` |
+| "Is this production?" | **YES** (your production environment) | Running 24/7, external agents work |
+| "Start development" | Use `docker-compose.cloud.yml` | `docker compose -f docker-compose.cloud.yml up -d` |
+| "Restart MCP server" | Restart cloud.yml MCP container | `docker restart projectpulse-mcp-cloud` |
+| "Test production build" | Use `docker-compose.production.yml` | `docker compose -f docker-compose.production.yml up --build` |
+| "Deploy to Kubernetes" | Use `k8s/*.yaml` | `./scripts/k8s-deploy.sh` |
+| "Add a new service" | Edit `docker-compose.cloud.yml` | Add service → restart |
+| "Check MCP sessions" | MCP health endpoint | `curl http://192.168.1.15:3001/health` |
+| "Check session type" | Next.js health endpoint | `curl http://192.168.1.15:3000/api/health` |
+| "View MCP logs" | Docker logs command | `docker logs -f projectpulse-mcp-cloud` |
+| "Rebuild images" | Depends on compose file | Add `--build` flag to up command |
 
 ---
 
