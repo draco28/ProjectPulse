@@ -1,8 +1,8 @@
 # ProjectPulse Infrastructure State
 
 **For:** AI Agents (Technical Reference)
-**Last Updated:** 2025-11-18 (Commit: e61a95e)
-**Status:** Production-ready architecture complete
+**Last Updated:** 2025-11-19 (Commit: 0c80bae - Sprint 8.6)
+**Status:** Production-ready with multi-agent MCP connectivity
 
 ---
 
@@ -17,7 +17,10 @@
 Services Running:
 ├── postgres:5432      (pgvector/pgvector:pg15)
 ├── nextjs:3000        (node:20-bullseye-slim, volume mounted)
-└── mcp-server:3001    (node:20-alpine, volume mounted)
+└── mcp-server:3001    (node:20-bullseye-slim, volume mounted)
+    ├── Transport: SSE over HTTP (Sprint 8.6)
+    ├── External URL: http://192.168.1.15:3001/mcp
+    └── Active Sessions: 3 (Claude Code + Cascade validated)
 ```
 
 ---
@@ -41,6 +44,67 @@ Services Running:
 3. cd packages/roadmap-tools && pnpm build
 4. cd apps/mcp-server && pnpm build
 ```
+
+---
+
+### Sprint 8.6 - MCP Connectivity Fix (Commit: 0c80bae)
+
+**Created:** Multi-agent MCP connectivity via SSE transport
+
+**Problem Solved:**
+External AI agents (Claude Code, Cascade) couldn't connect to MCP server running in Docker on Mac mini.
+
+**Root Causes:**
+1. stdio transport incompatible with Docker (stdin closes on detached containers)
+2. Session ID routing incorrect (headers vs query parameters)
+3. Docker health check failing (wget not in slim image)
+
+**Solution Implemented:**
+- File: `apps/mcp-server/src/index-http.ts` (SSE transport)
+- Transport: StreamableHTTP → SSE (deprecated but universally supported)
+- Session Management: Map-based storage with query parameter routing
+- Docker Image: alpine → bullseye-slim (OpenSSL compatibility)
+- Health Check: Node-based HTTP request (no external dependencies)
+
+**Key Technical Changes:**
+```typescript
+// Session storage
+const sessions = new Map<string, SSEServerTransport>();
+
+// GET /mcp - Establish SSE stream
+app.get('/mcp', async (_req, res) => {
+  const transport = new SSEServerTransport('/mcp', res, {
+    enableDnsRebindingProtection: false,
+  });
+
+  await server.connect(transport); // auto-calls start()
+  sessions.set(transport.sessionId, transport);
+
+  transport.onclose = () => sessions.delete(transport.sessionId);
+});
+
+// POST /mcp - Handle client messages
+app.post('/mcp', async (req, res) => {
+  const sessionId = req.query.sessionId as string; // From URL query!
+  const transport = sessions.get(sessionId);
+  await transport.handlePostMessage(req, res, req.body);
+});
+```
+
+**Validation:**
+- ✅ Claude Code: 1 active session
+- ✅ Cascade (Windsurf): 3 concurrent sessions
+- ✅ Health check: `{"status":"healthy","transport":"sse","activeSessions":3}`
+- ✅ Multi-agent compatibility confirmed
+
+**Documentation:**
+- Created: `docs/features/mcp-multi-agent-setup.md` (513 lines)
+- Updated: `apps/mcp-server/README.md` (comprehensive dual-transport guide)
+
+**SSE Deprecation Note:**
+- SSE deprecated as of MCP spec 2025-03-26
+- Still fully functional, will work 12+ months minimum
+- Migration to Streamable HTTP deferred (SSE has better client support)
 
 ---
 
@@ -204,17 +268,19 @@ nextjs:
     DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/projectpulse_dev
     
 mcp-server:
-  image: node:20-alpine
+  image: node:20-bullseye-slim  # Changed from alpine (Sprint 8.6)
   ports: ["3001:3001"]
   volumes: ["./:/app", "mcp_node_modules:/app/apps/mcp-server/node_modules"]
-  command: node dist/index-http.js
+  command: node dist/index-http.js  # SSE transport (Sprint 8.6)
   environment:
     PROJECTPULSE_API_URL: http://nextjs:3000
+    MCP_PORT: 3001
 ```
 
 Characteristics:
 - ✅ Volume mounts (hot reload enabled)
-- ✅ MCP Server included
+- ✅ MCP Server with SSE/HTTP transport (Sprint 8.6)
+- ✅ External agent connectivity (Claude Code + Cascade validated)
 - ✅ Debug mode active
 - ❌ No Redis (in-memory sessions)
 - ❌ No multi-stage builds (faster iteration)
@@ -620,6 +686,9 @@ scripts/
 | Request | Active File | Command |
 |---------|-------------|---------|
 | "Start development" | `docker-compose.cloud.yml` | `docker compose -f docker-compose.cloud.yml up -d` |
+| "Check MCP sessions" | MCP health endpoint | `curl http://192.168.1.15:3001/health` |
+| "View MCP logs" | Docker logs | `docker logs -f projectpulse-mcp-cloud` |
+| "Restart MCP server" | Docker restart | `docker restart projectpulse-mcp-cloud` |
 | "Test production build" | `docker-compose.production.yml` | `docker compose -f docker-compose.production.yml up --build` |
 | "Deploy to Kubernetes" | `k8s/*.yaml` | `./scripts/k8s-deploy.sh` |
 | "Add a new service" | `docker-compose.cloud.yml` | Add service → restart |
@@ -638,6 +707,7 @@ scripts/
 **Kubernetes:** Manifests ready, not deployed yet
 
 **Recent Updates:**
+- ✅ Sprint 8.6: MCP connectivity fix (SSE transport, multi-agent validated)
 - ✅ Sprint 8.5 Phase 1: Shared package created
 - ✅ Production Dockerfiles: Multi-stage builds complete
 - ✅ Redis integration: Session persistence ready
@@ -652,6 +722,6 @@ scripts/
 
 ---
 
-**Last Commit:** e61a95e (Redis integration complete)
-**Last Updated:** 2025-11-18
+**Last Commit:** 0c80bae (Sprint 8.6 - MCP connectivity complete)
+**Last Updated:** 2025-11-19
 **Maintained By:** AI agents + User
