@@ -3579,6 +3579,351 @@ interface ApiError {
 
 ---
 
+## Onboarding API
+
+### Overview
+
+The Onboarding API provides endpoints for the 3-session onboarding workflow. All endpoints use **agent-side AI generation** - the server provides prompts, agents generate content, agents store results.
+
+**Base Path**: `/api/onboarding`
+
+**Sessions**:
+1. Strategic Planning (10 phases, 96 questions)
+2. Documentation Generation (15 documents)
+3. AI Workflow Bootstrap (personas, skills, workflows, roadmap)
+
+---
+
+### Session 1: Strategic Planning
+
+#### GET /api/onboarding/questions
+
+Get questions for a specific phase (1-10)
+
+**Query Parameters**:
+- `projectId` (required): number - Project ID
+- `phase` (required): number - Phase number (1-10)
+
+**Response**: 200 OK
+```json
+{
+  "phase": 1,
+  "phaseName": "Product Manager - Foundation",
+  "subsections": [
+    {
+      "id": "pm-foundation",
+      "name": "Foundation",
+      "questions": [
+        {
+          "id": "pm-foundation-q1",
+          "questionNumber": 1,
+          "text": "What problem does your project solve?",
+          "placeholder": "Describe the core problem...",
+          "isRequired": true
+        }
+      ]
+    }
+  ],
+  "totalQuestions": 11
+}
+```
+
+**Errors**:
+- `400` - Invalid projectId or phase number
+- `404` - Project not found
+
+---
+
+#### POST /api/onboarding/answers
+
+Save answers for a specific phase
+
+**Request Body**:
+```json
+{
+  "projectId": 1,
+  "phase": 1,
+  "answers": {
+    "pm-foundation-q1": "User's answer here",
+    "pm-foundation-q2": "Another answer"
+  }
+}
+```
+
+**Response**: 200 OK
+```json
+{
+  "success": true,
+  "completedPhases": [1],
+  "phase": 1,
+  "nextPhase": 2,
+  "readyForExecutiveSummary": false
+}
+```
+
+**Errors**:
+- `400` - Missing required fields or invalid phase
+- `404` - Project not found
+
+---
+
+#### GET /api/onboarding/executive-summary-prompt
+
+Get executive summary generation prompt (agent-side AI)
+
+**Query Parameters**:
+- `projectId` (required): number - Project ID
+
+**Response**: 200 OK
+```json
+{
+  "systemPrompt": "You are an expert product strategist...",
+  "userPrompt": "Phase 1: Product Manager - Foundation\n\nQ1: What problem does your project solve?\nA: [user's answer]\n\n...",
+  "temperature": 0.7,
+  "wordCountTarget": 500,
+  "metadata": {
+    "totalQuestions": 96,
+    "completedPhases": 10,
+    "userPromptCharacters": 15234
+  },
+  "requiredSections": [
+    "Problem Statement",
+    "Solution Overview",
+    "Key Features",
+    "Tech Stack",
+    "Success Metrics"
+  ]
+}
+```
+
+**Errors**:
+- `400` - All 10 phases must be complete
+- `404` - Project not found
+
+---
+
+#### POST /api/onboarding/executive-summary
+
+Store agent-generated executive summary
+
+**Request Body**:
+```json
+{
+  "projectId": 1,
+  "executiveSummary": "TaskFlow is an AI-powered task management platform...",
+  "wordCount": 485
+}
+```
+
+**Response**: 200 OK
+```json
+{
+  "success": true,
+  "stored": true,
+  "wordCount": 485,
+  "projectContextJson": {
+    "metadata": {
+      "projectName": "TaskFlow",
+      "generatedAt": "2025-11-19T12:00:00Z"
+    },
+    "summary": "..."
+  }
+}
+```
+
+**Errors**:
+- `400` - Missing executiveSummary or invalid format
+- `404` - Project not found
+
+---
+
+### Session 2: Documentation Generation
+
+#### GET /api/onboarding/document-prompts
+
+Get all 15 document generation prompts (agent-side AI)
+
+**Query Parameters**:
+- `projectId` (required): number - Project ID
+
+**Response**: 200 OK
+```json
+{
+  "totalDocuments": 15,
+  "estimatedTotalWords": 32500,
+  "documentPrompts": [
+    {
+      "filename": "01-PRD.md",
+      "title": "Product Requirements Document",
+      "category": "planning",
+      "wordCountTarget": 2500,
+      "systemPrompt": "You are an expert product manager...",
+      "userPrompt": "Based on the following project context:\n\n..."
+    }
+  ]
+}
+```
+
+**Errors**:
+- `400` - Session 1 must be complete
+- `404` - Project not found
+
+---
+
+#### POST /api/onboarding/documents
+
+Store agent-generated document
+
+**Request Body**:
+```json
+{
+  "projectId": 1,
+  "filename": "01-PRD.md",
+  "content": "# Product Requirements Document\n\n...",
+  "category": "planning",
+  "wordCount": 2485
+}
+```
+
+**Response**: 200 OK
+```json
+{
+  "success": true,
+  "stored": true,
+  "filename": "01-PRD.md",
+  "progress": {
+    "stored": 1,
+    "total": 15
+  },
+  "session2Complete": false
+}
+```
+
+**After 15th document**:
+```json
+{
+  "success": true,
+  "stored": true,
+  "filename": "15-Success-Metrics.md",
+  "progress": {
+    "stored": 15,
+    "total": 15
+  },
+  "session2Complete": true
+}
+```
+
+**Errors**:
+- `400` - Missing required fields or invalid category
+- `404` - Project not found
+
+---
+
+#### GET /api/onboarding/documents
+
+List all stored documents
+
+**Query Parameters**:
+- `projectId` (required): number - Project ID
+
+**Response**: 200 OK
+```json
+{
+  "totalDocuments": 3,
+  "documents": [
+    {
+      "id": 1,
+      "filename": "01-PRD.md",
+      "content": "# Product Requirements Document...",
+      "wordCount": 2485,
+      "category": "planning",
+      "generatedAt": "2025-11-19T12:00:00Z"
+    }
+  ],
+  "session2Complete": false
+}
+```
+
+**Errors**:
+- `404` - Project not found
+
+---
+
+### Session 3: AI Workflow Bootstrap
+
+#### POST /api/onboarding/bootstrap
+
+Bootstrap complete AI workflow (template-based, NO AI generation)
+
+**Request Body**:
+```json
+{
+  "projectId": 1,
+  "repoPath": "/Users/yourname/projects/myproject"
+}
+```
+
+**Response**: 200 OK
+```json
+{
+  "success": true,
+  "session3Complete": true,
+  "created": {
+    "agentPersonas": 4,
+    "skills": 8,
+    "workflows": 3,
+    "sops": 5,
+    "roadmap": {
+      "id": "roadmap-uuid",
+      "phases": 3,
+      "weeks": 16
+    },
+    "currentPlan": true,
+    "currentTodos": true,
+    "files": {
+      "claudeMd": true,
+      "agentsMd": true
+    }
+  }
+}
+```
+
+**Errors**:
+- `400` - Session 1 or 2 not complete
+- `400` - Invalid repository path or not writable
+- `404` - Project not found
+- `500` - File write error
+
+---
+
+### Architecture Notes
+
+**Agent-Side AI Pattern**:
+- Server provides prompt templates
+- Agent generates content with their AI provider
+- Agent posts generated content back to server
+- Server validates, stores, and manages database state
+
+**Why Not Server-Side?**:
+- Privacy: User data stays with user's AI provider
+- Cost: Zero AI API costs on server
+- Context: Agent can use full context (no 200K token limit)
+- Flexibility: Works with any AI provider
+
+**Token Estimates**:
+- Session 1 prompt: ~5K tokens
+- Session 2 prompts: 15 × ~1.5K tokens = ~22.5K tokens
+- Total: ~27.5K tokens for complete onboarding
+
+---
+
+**See Also**:
+- [User Onboarding Guide](../guides/onboarding-user-guide.md)
+- [Agent Integration Guide](../guides/onboarding-agent-guide.md)
+- [MCP Tools Guide](./mcp-tools-guide.md)
+
+---
+
 ## Testing
 
 ### Manual Testing
