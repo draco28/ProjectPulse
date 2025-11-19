@@ -26,6 +26,8 @@ import { storeExecutiveSummaryTool } from './onboarding/storeExecutiveSummaryToo
 import { getDocumentPromptsTool } from './onboarding/getDocumentPromptsTool.js';
 import { storeDocumentTool } from './onboarding/storeDocumentTool.js';
 import { listDocumentsTool } from './onboarding/listDocumentsTool.js';
+// Sprint 8.6 Phase 3: Session 3 bootstrap tool (Template-Based)
+import { bootstrapTool } from './onboarding/bootstrapTool.js';
 import { workflowListTool } from './workflow/list.js';
 import { workflowStartTool } from './workflow/start.js';
 import { workflowExecuteStepTool } from './workflow/executeStep.js';
@@ -69,6 +71,8 @@ const loadTools = (): ToolDefinition[] => [
   getDocumentPromptsTool,
   storeDocumentTool,
   listDocumentsTool,
+  // Sprint 8.6 Phase 3: Session 3 bootstrap tool (Template-Based)
+  bootstrapTool,
   issueCreateTool,
   issueBulkCreateTool,
   issueUpdateTool,
