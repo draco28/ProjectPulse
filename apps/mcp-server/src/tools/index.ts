@@ -22,6 +22,10 @@ import { getQuestionsTool } from './onboarding/getQuestionsTool.js';
 import { saveAnswersTool } from './onboarding/saveAnswersTool.js';
 import { getExecutiveSummaryPromptTool } from './onboarding/getExecutiveSummaryPromptTool.js';
 import { storeExecutiveSummaryTool } from './onboarding/storeExecutiveSummaryTool.js';
+// Sprint 8.6 Phase 2: Session 2 document generation tools (Agent-Side AI)
+import { getDocumentPromptsTool } from './onboarding/getDocumentPromptsTool.js';
+import { storeDocumentTool } from './onboarding/storeDocumentTool.js';
+import { listDocumentsTool } from './onboarding/listDocumentsTool.js';
 import { workflowListTool } from './workflow/list.js';
 import { workflowStartTool } from './workflow/start.js';
 import { workflowExecuteStepTool } from './workflow/executeStep.js';
@@ -61,6 +65,10 @@ const loadTools = (): ToolDefinition[] => [
   saveAnswersTool,
   getExecutiveSummaryPromptTool,
   storeExecutiveSummaryTool,
+  // Sprint 8.6 Phase 2: Session 2 tools (Agent-Side AI)
+  getDocumentPromptsTool,
+  storeDocumentTool,
+  listDocumentsTool,
   issueCreateTool,
   issueBulkCreateTool,
   issueUpdateTool,
