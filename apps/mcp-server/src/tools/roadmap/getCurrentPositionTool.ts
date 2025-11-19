@@ -170,7 +170,7 @@ type GetCurrentPositionInput = z.infer<typeof getCurrentPositionSchema>;
  * 80% token reduction, 70% latency reduction
  */
 export const getCurrentPositionTool: ToolDefinition = {
-  name: 'projectpulse.sprint.getCurrentPosition',
+  name: 'projectpulse_sprint_getCurrentPosition',
   description: 'Get current position in development hierarchy (Phase → Sprint → Week → Day → Task) in 1 query',
   schema: getCurrentPositionSchema,
   inputSchema: {

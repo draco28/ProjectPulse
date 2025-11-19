@@ -44,7 +44,7 @@ type WikiUpdateResponse = {
 };
 
 export const wikiUpdateTool: ToolDefinition = {
-  name: 'projectpulse.wiki.update',
+  name: 'projectpulse_wiki_update',
   description:
     'Update an existing wiki page in ProjectPulse. Supports partial updates, changelog summaries, and actor metadata so WikiRevision entries can be audited. Path identifies the page and cannot be changed (see TD-001 for future slug refactor).',
   schema: inputSchema,

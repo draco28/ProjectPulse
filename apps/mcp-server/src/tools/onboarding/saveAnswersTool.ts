@@ -29,7 +29,7 @@ const saveAnswersSchema = z.object({
 type SaveAnswersInput = z.infer<typeof saveAnswersSchema>;
 
 export const saveAnswersTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.saveAnswers',
+  name: 'projectpulse_onboarding_saveAnswers',
   description: 'Save user answers for a specific phase (1-10). Tracks progress across Session 1: Strategic Planning. Returns next phase number and readiness for executive summary generation.',
   schema: saveAnswersSchema,
   inputSchema: {

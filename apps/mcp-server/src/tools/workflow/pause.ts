@@ -19,7 +19,7 @@ const inputSchema = z.object({
 type WorkflowPauseInput = z.infer<typeof inputSchema>;
 
 export const workflowPauseTool: ToolDefinition = {
-  name: 'projectpulse.workflow.pause',
+  name: 'projectpulse_workflow_pause',
   description:
     'Pause a running workflow and create a checkpoint for recovery. Use this when you need to stop work temporarily and want to resume later. The checkpoint will capture the current workflow state, allowing you to continue from where you left off.',
   schema: inputSchema,

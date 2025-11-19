@@ -35,7 +35,7 @@ const materializeRoadmapSchema = z.object({
 });
 
 export const materializeRoadmapTool = {
-  name: 'projectpulse.roadmap.materialize',
+  name: 'projectpulse_roadmap_materialize',
   description:
     'Materialize Roadmap JSON to Phase/Sprint/Week/Day records. Creates 5-level hierarchy for roadmap navigation and progress tracking.',
 

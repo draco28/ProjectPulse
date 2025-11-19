@@ -21,7 +21,7 @@ type AnalyticsResponse = {
 };
 
 export const wikiAnalyticsTopPagesTool: ToolDefinition = {
-  name: 'projectpulse.wiki.analytics.summary',
+  name: 'projectpulse_wiki_analytics_summary',
   description:
     'Fetch wiki analytics summary: top pages by views, trending tags, and global helpful ratio. Use this to prioritize documentation improvements.',
   schema: inputSchema,

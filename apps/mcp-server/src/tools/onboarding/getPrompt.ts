@@ -119,7 +119,7 @@ async function handler(
 // ============================================================================
 
 export const onboardingGetPromptTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.getPrompt',
+  name: 'projectpulse_onboarding_getPrompt',
   description:
     'Retrieve onboarding prompt template for a specific session. If sessionNumber is omitted, returns next incomplete session. Pre-fills variables from prior sessions.',
   schema: getPromptSchema,

@@ -126,7 +126,7 @@ async function handler(
 // ============================================================================
 
 export const onboardingSubmitResponseTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.submitResponse',
+  name: 'projectpulse_onboarding_submitResponse',
   description:
     'Submit user/agent responses for a specific onboarding session. Updates session status to "complete" and returns next session number (2, 3, or null if all complete).',
   schema: submitResponseSchema,

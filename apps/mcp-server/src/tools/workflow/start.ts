@@ -29,7 +29,7 @@ type WorkflowStartResponse = {
 };
 
 export const workflowStartTool: ToolDefinition = {
-  name: 'projectpulse.workflow.start',
+  name: 'projectpulse_workflow_start',
   description:
     'Start a new workflow run from a template. Returns the run ID and first step details. Use workflow.list to find available templates before starting. The workflow will be initialized in "pending" status and ready to execute steps.',
   schema: inputSchema,

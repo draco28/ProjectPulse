@@ -58,7 +58,7 @@ async function handler(input: IssueBulkCreateInput, context: ToolContext): Promi
 }
 
 export const issueBulkCreateTool: ToolDefinition = {
-  name: 'projectpulse.issue.bulkCreate',
+  name: 'projectpulse_issue_bulkCreate',
   description:
     'Bulk create 1-50 issues in a single request (used for scanner findings or checklist imports). Auto-tagging and context metadata supported.',
   schema: bulkCreateSchema,

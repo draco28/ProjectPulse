@@ -56,7 +56,7 @@ async function handler(input: SprintGetCurrentTaskInput, context: ToolContext): 
 }
 
 export const sprintGetCurrentTaskTool: ToolDefinition = {
-  name: 'projectpulse.sprint.getCurrentTask',
+  name: 'projectpulse_sprint_getCurrentTask',
   description: 'Retrieve the currently active task (status=IN_PROGRESS) with full hierarchical context (phase, week, day). Returns null if no task is active.',
   schema: sprintGetCurrentTaskSchema,
   inputSchema: {

@@ -85,7 +85,7 @@ async function handler(input: IssueSearchInput, context: ToolContext): Promise<s
 }
 
 export const issueSearchTool: ToolDefinition = {
-  name: 'projectpulse.issue.search',
+  name: 'projectpulse_issue_search',
   description:
     'Search issues with advanced filters (status, priority, module, tags, assignee, free-text). Returns pagination metadata plus summary of each issue.',
   schema: issueSearchSchema,

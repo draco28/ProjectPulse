@@ -42,7 +42,7 @@ type BootstrapInput = z.infer<typeof bootstrapSchema>;
 // ============================================================================
 
 export const bootstrapTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.bootstrap',
+  name: 'projectpulse_onboarding_bootstrap',
   description: `Complete Session 3 onboarding: AI workflow bootstrap.
 
 Creates all project-specific AI workflow artifacts:

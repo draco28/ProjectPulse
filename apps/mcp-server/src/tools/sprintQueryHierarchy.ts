@@ -200,7 +200,7 @@ async function handler(
 // ============================================================================
 
 export const sprintQueryHierarchyTool: ToolDefinition = {
-  name: 'projectpulse.sprint.queryHierarchy',
+  name: 'projectpulse_sprint_queryHierarchy',
 
   description: `Query hierarchy entities with filters (status, progress). Use for reporting and finding specific work items.
 

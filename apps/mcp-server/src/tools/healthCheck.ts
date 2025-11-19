@@ -13,7 +13,7 @@ type HealthResponse = {
 };
 
 export const healthCheckTool: ToolDefinition = {
-  name: 'projectpulse.health_check',
+  name: 'projectpulse_health_check',
   description: 'Ping the ProjectPulse Next.js API /api/health endpoint to verify connectivity.',
   schema: inputSchema,
   inputSchema: {

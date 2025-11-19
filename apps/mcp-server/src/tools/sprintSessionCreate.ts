@@ -177,7 +177,7 @@ async function handler(
 // ============================================================================
 
 export const sprintSessionCreateTool: ToolDefinition = {
-  name: 'projectpulse.sprint.session.create',
+  name: 'projectpulse_sprint_session_create',
 
   description: `Create a new work session within a task. Sessions are the most granular unit of work tracking.
 

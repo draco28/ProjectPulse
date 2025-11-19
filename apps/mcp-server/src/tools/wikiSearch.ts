@@ -42,7 +42,7 @@ type WikiSearchResponse = {
 };
 
 export const wikiSearchTool: ToolDefinition = {
-  name: 'projectpulse.wiki.search',
+  name: 'projectpulse_wiki_search',
   description:
     'Search wiki pages in ProjectPulse by query string. Searches both title and content. Optionally filter by category. Use this to find existing documentation, check if a topic is already covered, or discover related wiki pages.',
   schema: inputSchema,

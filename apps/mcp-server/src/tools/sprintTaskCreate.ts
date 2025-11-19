@@ -169,7 +169,7 @@ async function handler(
 // ============================================================================
 
 export const sprintTaskCreateTool: ToolDefinition = {
-  name: 'projectpulse.sprint.task.create',
+  name: 'projectpulse_sprint_task_create',
 
   description: `Create a new task within a day. Tasks are the core work units in the sprint hierarchy.
 

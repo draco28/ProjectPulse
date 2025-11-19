@@ -39,7 +39,7 @@ async function handler(input: IssueSetStatusInput, context: ToolContext): Promis
 }
 
 export const issueSetStatusTool: ToolDefinition = {
-  name: 'projectpulse.issue.setStatus',
+  name: 'projectpulse_issue_setStatus',
   description: 'Update the workflow status of an issue (open, in_progress, blocked, closed, etc.).',
   schema: issueSetStatusSchema,
   inputSchema: {

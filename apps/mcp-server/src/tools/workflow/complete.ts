@@ -18,7 +18,7 @@ const inputSchema = z.object({
 type WorkflowCompleteInput = z.infer<typeof inputSchema>;
 
 export const workflowCompleteTool: ToolDefinition = {
-  name: 'projectpulse.workflow.complete',
+  name: 'projectpulse_workflow_complete',
   description:
     'Mark a workflow run as completed or failed. Provide a final status and optional summary. Use this after all steps are done or if the workflow cannot be completed. This finalizes the workflow and prevents further modifications.',
   schema: inputSchema,

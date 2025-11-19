@@ -19,7 +19,7 @@ describe('MCP Skill Tools', () => {
 
   describe('skill.list', () => {
     const toolDefinition: Tool = {
-      name: 'skill.list',
+      name: 'skill_list',
       description: 'List skills with frontmatter only (token-efficient)',
       inputSchema: {
         type: 'object',
@@ -140,7 +140,7 @@ describe('MCP Skill Tools', () => {
 
   describe('skill.load', () => {
     const toolDefinition: Tool = {
-      name: 'skill.load',
+      name: 'skill_load',
       description: 'Load full skill content including markdown (220 tokens)',
       inputSchema: {
         type: 'object',
@@ -205,7 +205,7 @@ describe('MCP Skill Tools', () => {
 
   describe('skill.search', () => {
     const toolDefinition: Tool = {
-      name: 'skill.search',
+      name: 'skill_search',
       description: 'Full-text search across skills (title, description, content, tags)',
       inputSchema: {
         type: 'object',
@@ -284,7 +284,7 @@ describe('MCP Skill Tools', () => {
 
   describe('skill.create', () => {
     const toolDefinition: Tool = {
-      name: 'skill.create',
+      name: 'skill_create',
       description: 'Create a new skill with markdown content',
       inputSchema: {
         type: 'object',
@@ -386,7 +386,7 @@ describe('MCP Skill Tools', () => {
 
   describe('skill.update', () => {
     const toolDefinition: Tool = {
-      name: 'skill.update',
+      name: 'skill_update',
       description: 'Update existing skill (partial update)',
       inputSchema: {
         type: 'object',
@@ -448,7 +448,7 @@ describe('MCP Skill Tools', () => {
 
   describe('skill.delete', () => {
     const toolDefinition: Tool = {
-      name: 'skill.delete',
+      name: 'skill_delete',
       description: 'Delete a skill by ID',
       inputSchema: {
         type: 'object',
@@ -498,7 +498,7 @@ describe('MCP Skill Tools', () => {
 
   describe('skill.export', () => {
     const toolDefinition: Tool = {
-      name: 'skill.export',
+      name: 'skill_export',
       description: 'Export skills in JSON or CSV format',
       inputSchema: {
         type: 'object',
@@ -582,7 +582,7 @@ describe('MCP Skill Tools', () => {
 
   describe('skill.import', () => {
     const toolDefinition: Tool = {
-      name: 'skill.import',
+      name: 'skill_import',
       description: 'Bulk import skills from array',
       inputSchema: {
         type: 'object',

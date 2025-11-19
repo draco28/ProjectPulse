@@ -34,7 +34,7 @@ async function handler(input: IssueCreateInput, context: ToolContext): Promise<s
 }
 
 export const issueCreateTool: ToolDefinition = {
-  name: 'projectpulse.issue.create',
+  name: 'projectpulse_issue_create',
   description:
     'Create a single issue with optional auto-tagging context (files + metadata). Use for ad-hoc bugs or feature requests discovered by the agent.',
   schema: issueCreateSchema,

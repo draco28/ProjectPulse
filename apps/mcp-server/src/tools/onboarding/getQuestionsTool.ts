@@ -25,7 +25,7 @@ const getQuestionsSchema = z.object({
 type GetQuestionsInput = z.infer<typeof getQuestionsSchema>;
 
 export const getQuestionsTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.getQuestions',
+  name: 'projectpulse_onboarding_getQuestions',
   description: 'Get onboarding questions for a specific phase (1-10). Part of Session 1: Strategic Planning with 10 phases of questions.',
   schema: getQuestionsSchema,
   inputSchema: {

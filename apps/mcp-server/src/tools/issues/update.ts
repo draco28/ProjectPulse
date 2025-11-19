@@ -53,7 +53,7 @@ async function handler(input: IssueUpdateInput, context: ToolContext): Promise<s
 }
 
 export const issueUpdateTool: ToolDefinition = {
-  name: 'projectpulse.issue.update',
+  name: 'projectpulse_issue_update',
   description:
     'Update an existing issue (status, priority, module, labels, custom fields, or context metadata). Does not change comments; use issue.addComment for notes.',
   schema: issueUpdateSchema,

@@ -18,7 +18,7 @@ const inputSchema = z.object({
 type WorkflowResumeInput = z.infer<typeof inputSchema>;
 
 export const workflowResumeTool: ToolDefinition = {
-  name: 'projectpulse.workflow.resume',
+  name: 'projectpulse_workflow_resume',
   description:
     'Resume a paused workflow from a checkpoint. Restores the workflow state and allows you to continue execution from where you left off. If checkpointId is not provided, resumes from the current paused state.',
   schema: inputSchema,

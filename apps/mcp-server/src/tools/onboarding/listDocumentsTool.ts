@@ -20,7 +20,7 @@ const listDocumentsSchema = z.object({
 type ListDocumentsInput = z.infer<typeof listDocumentsSchema>;
 
 export const listDocumentsTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.listDocuments',
+  name: 'projectpulse_onboarding_listDocuments',
   description: 'List all stored documents from Session 2. Returns metadata (filename, wordCount, category) but NOT full content. Use this to verify all 15 documents were stored successfully and check Session 2 status.',
   schema: listDocumentsSchema,
   inputSchema: {

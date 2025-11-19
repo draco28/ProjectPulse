@@ -151,7 +151,7 @@ async function handler(
 // ============================================================================
 
 export const sprintPhaseCreateTool: ToolDefinition = {
-  name: 'projectpulse.sprint.phase.create',
+  name: 'projectpulse_sprint_phase_create',
   description: 'Create a new sprint phase with automatic week generation. Weeks are auto-created based on durationWeeks (default: 4).',
   schema: sprintPhaseCreateSchema,
   inputSchema: {

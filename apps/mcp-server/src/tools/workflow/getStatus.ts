@@ -43,7 +43,7 @@ type WorkflowGetStatusResponse = {
 };
 
 export const workflowGetStatusTool: ToolDefinition = {
-  name: 'projectpulse.workflow.getStatus',
+  name: 'projectpulse_workflow_getStatus',
   description:
     'Get detailed status of a workflow run including current step, progress, and all step statuses. Use this to check workflow progress, diagnose issues, or resume after a pause.',
   schema: inputSchema,

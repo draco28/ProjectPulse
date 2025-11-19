@@ -37,7 +37,7 @@ const storeDocumentSchema = z.object({
 type StoreDocumentInput = z.infer<typeof storeDocumentSchema>;
 
 export const storeDocumentTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.storeDocument',
+  name: 'projectpulse_onboarding_storeDocument',
   description: 'Store ONE agent-generated document (after agent generated it with their own AI). Call this 15 times (once per document). Returns progress (e.g., "3/15 complete"). Session 2 automatically completes after 15th document.',
   schema: storeDocumentSchema,
   inputSchema: {

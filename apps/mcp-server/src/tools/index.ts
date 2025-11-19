@@ -45,7 +45,7 @@ import { materializeRoadmapTool } from './roadmap/materializeTool.js';
 import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
 import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
 
-const loadTools = (): ToolDefinition[] => [
+export const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
   sprintPhaseCreateTool,
   sprintGetCurrentTaskTool,
