@@ -48,23 +48,59 @@ app.use(express.json());
 // Middleware: Fix Accept headers for client compatibility
 // Note: Claude Code and Factory Droid don't send required text/event-stream
 // This middleware transparently adds the missing header for MCP SDK compatibility
+//
+// ROOT CAUSE IDENTIFIED: MCP SDK reads from req.rawHeaders, not req.headers!
+// - req.headers is Express's parsed object (mutable)
+// - req.rawHeaders is Node.js HTTP parser array (immutable, set before middleware)
+// - SDK validation uses raw headers, so we must modify the rawHeaders array
 app.use('/mcp', (req, _res, next) => {
   const accept = req.headers.accept || '';
-  
-  // MCP SDK requires: Accept: application/json, text/event-stream
-  if (!accept.includes('text/event-stream')) {
+
+  // MCP SDK requires BOTH: application/json AND text/event-stream
+  const needsJson = !accept.includes('application/json');
+  const needsStream = !accept.includes('text/event-stream');
+
+  if (needsJson || needsStream) {
     const originalAccept = accept;
-    req.headers.accept = accept 
-      ? `${accept}, text/event-stream`
-      : 'application/json, text/event-stream';
-    
-    logger.debug('Added text/event-stream to Accept header', {
+    let fixedAccept = accept || '';
+
+    // Add missing content types
+    if (needsJson && needsStream) {
+      // Neither present - add both
+      fixedAccept = fixedAccept
+        ? `${fixedAccept}, application/json, text/event-stream`
+        : 'application/json, text/event-stream';
+    } else if (needsJson) {
+      // Only JSON missing
+      fixedAccept = fixedAccept
+        ? `${fixedAccept}, application/json`
+        : 'application/json';
+    } else {
+      // Only stream missing
+      fixedAccept = fixedAccept
+        ? `${fixedAccept}, text/event-stream`
+        : 'text/event-stream';
+    }
+
+    // Fix 1: Update req.headers (for Express/middleware compatibility)
+    req.headers.accept = fixedAccept;
+
+    // Fix 2: Update req.rawHeaders array (SDK reads from here!)
+    // rawHeaders is ['Header-Name', 'value', 'Another-Header', 'value', ...]
+    for (let i = 0; i < req.rawHeaders.length; i += 2) {
+      if (req.rawHeaders[i]?.toLowerCase() === 'accept') {
+        req.rawHeaders[i + 1] = fixedAccept;
+        break;
+      }
+    }
+
+    logger.debug('Fixed Accept header in both req.headers and req.rawHeaders', {
       original: originalAccept || '(empty)',
-      fixed: req.headers.accept,
+      fixed: fixedAccept,
       userAgent: req.headers['user-agent'],
     });
   }
-  
+
   next();
 });
 
@@ -127,6 +163,22 @@ app.post('/mcp', async (req, res) => {
   });
 
   try {
+    // DIAGNOSTIC: Log what headers the SDK will see
+    const rawHeadersObj: Record<string, string> = {};
+    for (let i = 0; i < req.rawHeaders.length; i += 2) {
+      const key = req.rawHeaders[i];
+      const value = req.rawHeaders[i + 1];
+      if (key && value) {
+        rawHeadersObj[key.toLowerCase()] = value;
+      }
+    }
+
+    logger.debug('Headers before SDK handleRequest', {
+      'req.headers.accept': req.headers.accept,
+      'req.rawHeaders.accept': rawHeadersObj['accept'] || '(not found)',
+      'headers match': req.headers.accept === rawHeadersObj['accept']
+    });
+
     // Connect singleton server to this transport
     await server.connect(transport);
     logger.debug('Stateful HTTP transport connected');
