@@ -109,6 +109,86 @@ Successfully transformed ProjectPulse MCP server from a complex multi-transport 
 
 ---
 
+### Phase 4: Accept Header Middleware (Critical Fix) ✅
+
+**Problem Discovered**:
+- Claude Code HTTP client returns HTTP 406 "Not Acceptable" 
+- Initial middleware modified `req.headers.accept` but issue persisted
+- Factory Droid has identical issue (documented in bug report)
+
+**Critical Discovery** (by Claude Code):
+- MCP SDK reads from `req.rawHeaders` (Node.js HTTP parser array)
+- MCP SDK does NOT read from `req.headers` (Express parsed object)
+- SDK bypasses Express middleware and validates headers using raw array
+- Our middleware was fixing the wrong layer!
+
+**Root Cause Deep Dive**:
+```typescript
+// Node.js HTTP Parser
+req.rawHeaders = ['Accept', '*/*', 'Content-Type', 'application/json']
+// ↓ Express parses into object
+req.headers = { accept: '*/*', 'content-type': 'application/json' }
+
+// Our middleware (Phase 4 initial)
+req.headers.accept = 'application/json, text/event-stream'; // ✅ Fixed
+// But req.rawHeaders still has '*/*'! // ❌ SDK reads this!
+
+// SDK validation
+const accept = req.rawHeaders[1]; // Gets '*/*' (unchanged!)
+if (!accept.includes('text/event-stream')) return 406; // ❌ Fails
+```
+
+**Complete Solution**:
+```typescript
+app.use('/mcp', (req, _res, next) => {
+  const accept = req.headers.accept || '';
+  const needsJson = !accept.includes('application/json');
+  const needsStream = !accept.includes('text/event-stream');
+  
+  if (needsJson || needsStream) {
+    // Build fixed Accept header with BOTH required types
+    let fixedAccept = buildFixedHeader(accept, needsJson, needsStream);
+    
+    // Fix 1: Update Express headers object
+    req.headers.accept = fixedAccept;
+    
+    // Fix 2: Update Node.js rawHeaders array (SDK reads this!)
+    for (let i = 0; i < req.rawHeaders.length; i += 2) {
+      if (req.rawHeaders[i]?.toLowerCase() === 'accept') {
+        req.rawHeaders[i + 1] = fixedAccept; // ✅ SDK sees this
+        break;
+      }
+    }
+  }
+  next();
+});
+```
+
+**Testing Results** (Claude Code verification):
+- ✅ Health check tool: Working
+- ✅ Onboarding tools: MCP protocol working
+- ✅ No HTTP 406 errors
+- ✅ curl with `*/*`: 40 tools returned
+- ✅ curl with `application/json`: 40 tools returned
+
+**Client Compatibility**:
+- ✅ Claude Code HTTP: **UNBLOCKED**
+- ✅ Factory Droid HTTP: Expected to work
+- ✅ Windsurf HTTP: Should work
+- ✅ All compliant clients: Continue working
+
+**Technical Insight**:
+This is a subtle but critical detail for middleware-based header manipulation with the MCP SDK. The SDK's decision to read from `rawHeaders` instead of `headers` bypasses the entire Express middleware layer for header validation.
+
+**Files Changed**:
+- `apps/mcp-server/src/index-http.ts`: 62 insertions, 10 deletions
+
+**Commits**:
+- `350f5d4`: Initial middleware (req.headers only)
+- `58e665c`: Complete fix (req.headers + req.rawHeaders)
+
+---
+
 ## Architecture Evolution
 
 ### Before Sprint 8.7
