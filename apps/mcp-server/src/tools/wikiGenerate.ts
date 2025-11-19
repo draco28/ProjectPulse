@@ -57,7 +57,7 @@ type WikiGenerateResponse = {
 };
 
 export const wikiGenerateTool: ToolDefinition = {
-  name: 'projectpulse.wiki.generate',
+  name: 'projectpulse_wiki_generate',
   description:
     'Auto-generate wiki pages from JSDoc/docstring comments in source code. Scans TypeScript, JavaScript, or Python files for documentation comments, extracts function/class descriptions, parameters, return types, and examples, then creates wiki pages in the database. Supports cross-linking via @see tags. Use this to keep API documentation synchronized with code.',
   schema: inputSchema,

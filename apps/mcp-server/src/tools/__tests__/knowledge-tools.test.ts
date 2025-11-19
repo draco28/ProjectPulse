@@ -19,7 +19,7 @@ describe('MCP Knowledge Tools', () => {
 
   describe('knowledge.query (with metrics tracking)', () => {
     const toolDefinition: Tool = {
-      name: 'knowledge.query',
+      name: 'knowledge_query',
       description: 'Query knowledge base with automatic metrics tracking',
       inputSchema: {
         type: 'object',
@@ -132,7 +132,7 @@ describe('MCP Knowledge Tools', () => {
 
   describe('knowledge.metrics (query metrics)', () => {
     const toolDefinition: Tool = {
-      name: 'knowledge.metrics',
+      name: 'knowledge_metrics',
       description: 'Get knowledge query metrics and analytics',
       inputSchema: {
         type: 'object',
@@ -256,7 +256,7 @@ describe('MCP Knowledge Tools', () => {
 
   describe('knowledge.export', () => {
     const toolDefinition: Tool = {
-      name: 'knowledge.export',
+      name: 'knowledge_export',
       description: 'Export knowledge items in JSON or CSV format',
       inputSchema: {
         type: 'object',
@@ -371,7 +371,7 @@ describe('MCP Knowledge Tools', () => {
 
   describe('knowledge.import', () => {
     const toolDefinition: Tool = {
-      name: 'knowledge.import',
+      name: 'knowledge_import',
       description: 'Bulk import knowledge items',
       inputSchema: {
         type: 'object',
@@ -484,7 +484,7 @@ describe('MCP Knowledge Tools', () => {
 
   describe('knowledge.archive', () => {
     const toolDefinition: Tool = {
-      name: 'knowledge.archive',
+      name: 'knowledge_archive',
       description: 'Archive a knowledge item by ID',
       inputSchema: {
         type: 'object',
@@ -570,7 +570,7 @@ describe('MCP Knowledge Tools', () => {
 
   describe('knowledge.unarchive', () => {
     const toolDefinition: Tool = {
-      name: 'knowledge.unarchive',
+      name: 'knowledge_unarchive',
       description: 'Unarchive a knowledge item by ID',
       inputSchema: {
         type: 'object',

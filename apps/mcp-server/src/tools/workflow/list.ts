@@ -34,7 +34,7 @@ type WorkflowListResponse = {
 };
 
 export const workflowListTool: ToolDefinition = {
-  name: 'projectpulse.workflow.list',
+  name: 'projectpulse_workflow_list',
   description:
     'List available workflow templates in ProjectPulse. Optionally filter by category (development, project-management, knowledge) or active status. Use this to discover available workflows before starting a new workflow run.',
   schema: inputSchema,

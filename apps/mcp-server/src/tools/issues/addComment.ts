@@ -46,7 +46,7 @@ async function handler(input: IssueAddCommentInput, context: ToolContext): Promi
 }
 
 export const issueAddCommentTool: ToolDefinition = {
-  name: 'projectpulse.issue.addComment',
+  name: 'projectpulse_issue_addComment',
   description: 'Add a progress note or clarification comment to an existing issue.',
   schema: issueAddCommentSchema,
   inputSchema: {

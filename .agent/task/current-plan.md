@@ -1,237 +1,249 @@
-# Implementation Plan - Sprint 8.6: MCP Connection Fix
-
-**Phase:** Sprint 8.6
-**Goal:** Fix the critical issue where external agents cannot connect to the Mac mini MCP server.
-**Status:** ✅ **COMPLETE**
-**Created:** 2025-11-19 17:15 UTC
-**Completed:** 2025-11-19 18:15 UTC
-
-## Problem Analysis
-
-- **Symptoms:** Claude Code and external agents failed to connect to MCP server.
-- **Infrastructure:** Docker on Mac mini (192.168.1.15), MCP Server on port 3001.
-- **Root Causes Identified:**
-  1. ✅ **Fixed**: SSE transport using deprecated API incorrectly (calling `start()` after `connect()`)
-  2. ✅ **Fixed**: Session ID extraction from headers instead of query parameters
-  3. ✅ **Fixed**: File corruption during development (restored from git)
-
-## Solution Implemented
-
-### Transport Protocol: SSE (Server-Sent Events)
-
-**Why SSE?**
-- Streamable HTTP was tested first - **failed to connect**
-- SSE transport - **successful connection** with Claude Code and Cascade
-- Multi-agent compatibility validated
-
-### Key Changes Made
-
-1. **Switched from StreamableHTTP to SSE Transport**
-   - File: `apps/mcp-server/src/index-http.ts`
-   - Transport: `StreamableHTTPServerTransport` → `SSEServerTransport`
-   - Protocol: Dual endpoints (GET for SSE stream, POST for messages)
-
-2. **Fixed Session ID Handling**
-   - **Before**: Looking for `mcp-session-id` header (wrong!)
-   - **After**: Extract `sessionId` from URL query parameter
-   - Code: `const sessionId = req.query.sessionId as string;`
-
-3. **Fixed Double Start Bug**
-   - **Before**: Calling both `server.connect()` and `transport.start()`
-   - **After**: Only call `server.connect()` (auto-calls `start()`)
-
-4. **Session Management**
-   - Store sessions in Map: `sessions.set(transport.sessionId, transport)`
-   - Route POST requests by sessionId query param
-   - Proper cleanup on session close
-
-## Validation Results
-
-### Multi-Agent Testing ✅
-
-#### Claude Code (Anthropic)
-- **Status**: ✅ Working
-- **Config**: `~/.claude.json` with `type: "sse"`
-- **Evidence**: 1 active session confirmed via health check
-- **Tools**: All 40 tools accessible
-
-#### Cascade (Windsurf/Codeium)
-- **Status**: ✅ Working
-- **Config**: `~/.codeium/windsurf/mcp_config.json`
-- **Evidence**: Multiple SSE sessions in Docker logs
-- **Tools**: All 40 tools visible and registered
-- **Session Count**: Peak 3 concurrent sessions
-
-### Docker Logs Evidence
-
-```
-[mcp-server] [INFO] Tools registered {"count":40}
-[mcp-server] [INFO] ProjectPulse MCP server started (SSE)
-[mcp-server] [INFO] SSE connection established
-[mcp-server] [INFO] MCP SSE session started {"sessionId":"413ff582...","totalSessions":1}
-[mcp-server] [INFO] SSE connection established
-[mcp-server] [INFO] MCP SSE session started {"sessionId":"4715d768...","totalSessions":3}
-```
-
-### Health Check
-
-```bash
-curl http://192.168.1.15:3001/health
-```
-
-**Response**:
-```json
-{
-  "status": "healthy",
-  "version": "0.1.0",
-  "transport": "sse",
-  "toolCount": 35,
-  "activeSessions": 3
-}
-```
-
-## Success Criteria - ALL MET ✅
-
-- [x] **Multi-agent compatibility**: 2+ agents connected successfully
-- [x] **MCP Server starts without errors**: Running for hours, stable
-- [x] **Session management working**: Multiple concurrent sessions handled
-- [x] **Tools accessible**: All 40 tools registered and invocable
-- [x] **Docker health check passes**: Health endpoint returns correct status
-- [x] **No connection drops**: Sessions managed cleanly (start/close tracked)
-
-## Technical Implementation Details
-
-### File Changes
-
-**File**: `apps/mcp-server/src/index-http.ts` (172 lines)
-
-**Imports**:
-```typescript
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
-```
-
-**Session Storage**:
-```typescript
-const sessions = new Map<string, SSEServerTransport>();
-```
-
-**GET /mcp Endpoint** (Lines 61-111):
-- Creates SSE transport
-- Connects server (auto-calls start())
-- Stores session in map
-- Sets up cleanup handlers
-
-**POST /mcp Endpoint** (Lines 115-152):
-- Extracts sessionId from query params
-- Routes to correct transport
-- Handles message via `transport.handlePostMessage()`
-
-**Health Check** (Lines 50-58):
-- Returns status, version, transport type
-- Shows active session count
-
-### Protocol Flow
-
-1. **Client → Server**: GET `/mcp`
-2. **Server → Client**: SSE stream with `endpoint` event containing `?sessionId=xxx`
-3. **Client extracts**: `sessionId` from URL
-4. **Client → Server**: POST `/mcp?sessionId=xxx` with JSON-RPC messages
-5. **Server routes**: Uses `sessionId` to find correct transport in sessions Map
-6. **Transport handles**: Message processing via MCP SDK
-
-## Documentation Created
-
-**File**: `docs/features/mcp-multi-agent-setup.md`
-
-**Contents**:
-- Multi-agent configuration guide
-- All 40 tools documented
-- Troubleshooting section
-- Validated agents list
-- Architecture notes
-- Future migration path (SSE → Streamable HTTP)
-
-## Known Limitations & Future Work
-
-### SSE Deprecation
-
-**Status**: SSE transport deprecated in MCP spec 2025-03-26
-**Impact**: Still fully functional, will work for 12+ months minimum
-**Action Required**: None immediately
-**Future**: Monitor MCP SDK releases, plan migration to Streamable HTTP in late 2025/2026
-
-### Migration Path (When Needed)
-
-1. Update `index-http.ts` to use `StreamableHTTPServerTransport`
-2. Simplify to single endpoint (vs GET/POST split)
-3. Update agent configs (minimal changes)
-4. Test with both Claude Code and Cascade
-
-### Resources Not Implemented
-
-**Issue**: Cascade reports "server projectpulse does not support resources"
-**Status**: ✅ Expected behavior - not a bug
-**Explanation**: MCP Resources not implemented yet, only Tools
-**Impact**: None - all tools work perfectly
-**Future**: May implement Resources for configuration/context injection
-
-## Lessons Learned
-
-1. **Read MCP SDK source code** - Spec wasn't clear about session ID location (query vs headers)
-2. **SSE vs StreamableHTTP** - Despite SSE being deprecated, it has better client support
-3. **Multi-agent testing validates architecture** - 2+ agents prove implementation is correct
-4. **File corruption during development** - Always commit working code before major changes
-5. **Protocol flow debugging** - Docker logs were critical for diagnosing session issues
-
-## Next Steps
-
-### Immediate (Sprint 8.6 Wrap-up)
-1. [x] Document multi-agent setup ✅
-2. [x] Update plan to complete status ✅
-3. [ ] Commit SSE implementation to git
-4. [ ] Update `.agent/progress.md` with Sprint 8.6 completion
-5. [ ] Test additional agents (optional): Cursor, Continue.dev
-
-### Short-Term (Sprint 8.7+)
-- Focus on product features (Session 1 onboarding tools are accessible)
-- Monitor SSE stability over time
-- Document any connection issues if they arise
-
-### Long-Term (2026)
-- Plan migration to Streamable HTTP when SSE support is removed
-- Keep bridge pattern as fallback option
-- Monitor MCP SDK deprecation timeline
-
-## Retrospective
-
-### What Went Well ✅
-- Multi-agent validation caught early issues
-- Docker logs provided clear debugging trail
-- SSE protocol worked despite deprecation
-- Session management architecture is solid
-
-### What Didn't Go Well ❌
-- Multiple trial-and-error attempts before finding root cause
-- File corruption during development (index-http.ts became 0 bytes)
-- Didn't check MCP SDK source initially (relied on specs)
-- Wasted time on headers when solution was query parameters
-
-### Improvements for Future
-- Always check SDK source code, not just specs
-- Commit working code before major refactors
-- Use Plan mode subagent earlier for research
-- Test with 2+ agents from the start
-
-## Deployment Status
-
-**Production Environment**: Mac mini Docker (192.168.1.15)
-**Container**: `projectpulse-mcp-cloud`
-**Uptime**: Stable, no restarts
-**Active Connections**: Claude Code + Cascade working simultaneously
-
----
-
-**Plan Status**: ✅ COMPLETE
-**Deliverable**: Multi-agent MCP connectivity via SSE transport
-**Validation**: 2 agents (Claude Code, Cascade) tested and working
-**Documentation**: Complete setup guide created
+ # Implementation Plan – Stateful HTTP Streamable MCP (ByteRover Alignment)
+ 
+ **Phase:** Post–Sprint 8.6
+ **Goal:** Replace multi-transport MCP setup (SSE + stateless HTTP + Next.js `/api/mcp`) with a **single, canonical stateful HTTP Streamable MCP server**, mirroring ByteRover’s `--transport http` behavior.
+ 
+ ---
+ 
+ ## 1. Target Architecture
+ 
+ - **Single MCP entrypoint (for agents):**
+   - URL: `http://192.168.1.15:3001/mcp`
+   - Transport: **HTTP – Streamable HTTP (stateful)** via `StreamableHTTPServerTransport`.
+ - **Server implementation:** `apps/mcp-server/src/index-http.ts`
+   - Singleton `Server` instance from `@modelcontextprotocol/sdk/server`.
+   - Tools registered once via existing `registerTools`.
+   - Express app with:
+     - `GET /health` – operational health.
+     - `POST /mcp` – **only** MCP endpoint.
+ - **Client configuration examples:**
+   - Claude Code:
+     - `claude mcp add --transport http projectpulse-mcp http://192.168.1.15:3001/mcp`
+   - Windsurf / Cascade MCP config:
+     - `serverUrl: "http://192.168.1.15:3001/mcp"`.
+ 
+ **Non-goals for this plan:**
+ 
+ - No SSE transport (`SSEServerTransport`) for agents.
+ - No WebSocket transport (can be a future enhancement, not required to match ByteRover).
+ - No MCP responsibilities in Next.js `/api/mcp`.
+ 
+ ---
+ 
+ ## 2. Current-State Inventory
+ 
+ **MCP server (apps/mcp-server):**
+ 
+ - `src/index-http.ts` (current):
+   - `GET /mcp` → SSE (`SSEServerTransport`).
+   - `POST /mcp?sessionId=...` → SSE POST messages via `handlePostMessage`.
+   - `POST /mcp` (no `sessionId`) → **stateless** `StreamableHTTPServerTransport`.
+   - `POST /mcp/json-rpc` → manual JSON-RPC shim for compatibility.
+ - `src/index.ts`:
+   - Stdio transport (`StdioServerTransport`) for local Claude Code.
+ 
+ **Embedded Next.js route (apps/web):**
+ 
+ - `app/api/mcp/route.ts`:
+   - `POST /api/mcp` – custom JSON-RPC 2.0 tools/resources router (not a true MCP transport).
+   - `GET /api/mcp` – 501 placeholder for SSE.
+ 
+ **Problem with this state:**
+ 
+ - Multiple overlapping “MCP-like” surfaces (`/mcp` SSE + stateless HTTP, `/api/mcp` custom HTTP).
+ - Streamable HTTP is configured **stateless**, so MCP clients that expect initialization to persist see "Server not initialized" behavior.
+ - Harder to reason about and document for agents compared to ByteRover’s single HTTP endpoint.
+ 
+ ---
+ 
+ ## 3. High-Level Migration Strategy
+ 
+ 1. **Converge on one canonical MCP endpoint:** `POST /mcp` on `apps/mcp-server` (port 3001).
+ 2. **Switch HTTP transport to stateful mode:** configure `StreamableHTTPServerTransport` with a `sessionIdGenerator` and session lifecycle callbacks.
+ 3. **Decommission legacy surfaces:**
+    - Remove SSE (`GET /mcp` + `POST /mcp?sessionId=...`).
+    - Remove `/mcp/json-rpc` shim.
+    - Remove MCP responsibilities from Next.js `/api/mcp`.
+ 4. **Align docs + Docker:** ensure `docker-compose.cloud.yml` and docs reference only the HTTP MCP endpoint.
+ 5. **Validate with real MCP clients:** Claude Code + Windsurf using `--transport http`.
+ 6. **Add automated HTTP MCP tests:** minimal E2E coverage for `initialize`, `tools/list`, `tools/call`.
+ 
+ ---
+ 
+ ## 4. Detailed Implementation Steps
+ 
+ ### 4.1 Simplify `index-http.ts` Routes
+ 
+ **Files:**
+ 
+ - `apps/mcp-server/src/index-http.ts`
+ 
+ **Steps:**
+ 
+ 1. **Keep:**
+    - Express initialization (`const app = express();`).
+    - `app.use(express.json());` middleware.
+    - `GET /health` endpoint (update `transport` field later).
+ 2. **Remove / deprecate:**
+    - `SSEServerTransport` import.
+    - `sseSessions` map and related logic.
+    - `GET /mcp` SSE handler.
+    - SSE branch in `POST /mcp` that checks `req.query.sessionId` and calls `transport.handlePostMessage`.
+    - `POST /mcp/json-rpc` manual JSON-RPC shim.
+ 3. **Leave a single MCP route:**
+    - `app.post('/mcp', async (req, res) => { ... })` that always uses Streamable HTTP.
+ 
+ **Success condition:** `index-http.ts` exposes exactly:
+ 
+ - `GET /health`.
+ - `POST /mcp` (Streamable HTTP only).
+ 
+ ### 4.2 Configure Streamable HTTP as Stateful
+ 
+ **Goal:** Use the MCP SDK’s own session mechanism rather than trying to manage sessions manually.
+ 
+ **Key design points:**
+ 
+ - Reuse **singleton** MCP `Server` instance (already in `index-http.ts`).
+ - Create a **new `StreamableHTTPServerTransport` per request** (SDK requirement).
+ - Configure it with:
+   - `sessionIdGenerator: () => randomUUID()`.
+   - `enableJsonResponse: true`.
+   - `onsessioninitialized` / `onsessionclosed` callbacks for logging.
+ 
+ **Implementation sketch inside `POST /mcp`:**
+ 
+ - Create transport **per request**:
+   - `const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: () => randomUUID(), enableJsonResponse: true, enableDnsRebindingProtection: false, onsessioninitialized, onsessionclosed });`
+ - Connect and handle:
+   - `await server.connect(transport);`
+   - `await transport.handleRequest(req, res, req.body);`
+   - `await transport.close();`
+ 
+ **Logging / observability:**
+ 
+ - In `onsessioninitialized(sessionId)`: log session creation and maybe client info from the `initialize` params.
+ - In `onsessionclosed(sessionId)`: log closure.
+ - In the route handler, log `method` and `id` (taken from raw JSON-RPC request) for quick debugging.
+ 
+ **Success condition:**
+ 
+ - MCP clients can:
+   - Send `initialize` once.
+   - Send `tools/list`.
+   - Send representative `tools/call` (e.g. health/diagnostic tool).
+ 
+ ### 4.3 Decommission `/api/mcp` as an MCP Surface
+ 
+ **Files:**
+ 
+ - `apps/web/app/api/mcp/route.ts`
+ - `docs/MCP_ARCHITECTURE.md`
+ 
+ **Options:**
+ 
+ - **Recommended:**
+   - Remove or rename the route so it is no longer `/api/mcp`.
+   - If keep functionality, rebrand it as an internal HTTP API (e.g. `/api/internal/mcp-proxy`) and clearly mark it as **non-MCP**.
+ 
+ **Documentation changes:**
+ 
+ - Update architecture diagrams in `docs/MCP_ARCHITECTURE.md` to show:
+   - Agents → `apps/mcp-server` → `POST /mcp` (HTTP MCP).
+   - Next.js app only calls regular REST APIs, not MCP.
+ 
+ **Success condition:** there is a single, unambiguous MCP endpoint in the system (`/mcp` on port 3001).
+ 
+ ### 4.4 Docker & Health Check Alignment
+ 
+ **Files:**
+ 
+ - `docker-compose.cloud.yml`
+ - `apps/mcp-server/README.md`
+ 
+ **Steps:**
+ 
+ 1. Verify Docker command uses HTTP index:
+    - `command: sh -c "pnpm install --prod=false && pnpm build && node dist/index-http.js"`.
+ 2. Update health response in `GET /health`:
+    - `transport: 'http'` or `'streamable-http'` (no more `'sse'` / `'hybrid'`).
+ 3. Confirm Docker healthcheck script still points to `/health` and expects HTTP 200.
+ 
+ **Success condition:** container reports healthy and logs reflect **HTTP** transport only.
+ 
+ ### 4.5 Client Configuration & E2E Validation
+ 
+ **Claude Code:**
+ 
+ - Configure:
+   - `claude mcp add --transport http projectpulse-mcp http://192.168.1.15:3001/mcp`
+ - Validate:
+   - `claude mcp list` shows `projectpulse-mcp`.
+   - Inside Claude Code, list tools and invoke:
+     - `tools/list`.
+     - A few core tools (e.g., onboarding tools, issue tools).
+ 
+ **Windsurf / Cascade:**
+ 
+ - Configure in Windsurf MCP settings:
+   - Name: `projectpulse-mcp`.
+   - URL: `http://192.168.1.15:3001/mcp`.
+ - Validate:
+   - Tools appear in MCP panel.
+   - Tool calls succeed without timeouts or "Server not initialized".
+ 
+ **Success condition:** both Claude Code and Windsurf operate exclusively against the HTTP MCP endpoint, with working tools and stable sessions.
+ 
+ ### 4.6 Automated HTTP MCP Tests
+ 
+ **Files (to create):**
+ 
+ - `apps/mcp-server/tests/e2e/http-client.ts`
+ - `apps/mcp-server/tests/e2e/http-mcp.test.ts`
+ 
+ **Test client responsibilities:**
+ 
+ - Use Node `http`/`fetch` to:
+   - Send `initialize` to `POST /mcp`.
+   - Send `tools/list`.
+   - Send representative `tools/call` (e.g. health/diagnostic tool).
+ 
+ **Test cases:**
+ 
+ 1. `initialize` returns valid MCP response with server info.
+ 2. `tools/list` returns non-empty tool array.
+ 3. `tools/call` succeeds for at least one well-known tool.
+ 
+ **CI integration:**
+ 
+ - Add NPM script in `apps/mcp-server/package.json`:
+   - `"test:mcp-http": "vitest run apps/mcp-server/tests/e2e/http-mcp.test.ts"` (or similar).
+ - Ensure CI runs this after `pnpm build`.
+ 
+ **Success condition:** tests pass locally and in CI, providing regression coverage for the HTTP MCP path.
+ 
+ ---
+ 
+ ## 5. Rollout & Fallback Plan
+ 
+ **Rollout steps:**
+ 
+ 1. Implement and test HTTP-only `index-http.ts` locally.
+ 2. Run E2E tests (Session 1 workflow) through HTTP MCP using the new test client.
+ 3. Deploy to Mac mini Docker.
+ 4. Validate with Claude Code + Windsurf.
+ 
+ **Fallback:**
+ 
+ - Keep the previous SSE-based implementation in git history (branch `backup/mcp-sse-working` or equivalent).
+ - If issues arise during HTTP rollout, revert `index-http.ts` and Docker command to the last-known-good SSE version while investigating.
+ 
+ ---
+ 
+ ## 6. Success Criteria (Stateful HTTP MCP)
+ 
+ - [ ] **Single MCP endpoint**: only `POST /mcp` is documented and used for MCP traffic.
+ - [ ] **Stateful HTTP transport**: MCP clients can `initialize` once and then call tools without "Server not initialized" errors.
+ - [ ] **Multi-agent compatibility**: at least Claude Code and Windsurf confirmed working with `--transport http`.
+ - [ ] **Clean architecture**: Next.js `/api/mcp` is not part of MCP protocol; all MCP logic lives in `apps/mcp-server`.
+ - [ ] **Automated tests**: basic HTTP MCP E2E suite passing in CI.

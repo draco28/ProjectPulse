@@ -45,7 +45,7 @@ type GetPhaseProgressInput = z.infer<typeof getPhaseProgressSchema>;
  * Security: Validates phase belongs to projectId (prevents cross-project access)
  */
 export const getPhaseProgressTool: ToolDefinition = {
-  name: 'projectpulse.roadmap.getPhaseProgress',
+  name: 'projectpulse_roadmap_getPhaseProgress',
   description:
     'Get full phase progress with nested sprints, weeks, days, and tasks. Single query replaces 10+ sequential queries (90% token reduction, 85% latency reduction).',
 

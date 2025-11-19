@@ -37,7 +37,7 @@ type UpdateProgressInput = z.infer<typeof UpdateProgressSchema>;
  * Tool definition for sprint.updateProgress
  */
 export const updateProgressTool: ToolDefinition = {
-  name: 'sprint.updateProgress',
+  name: 'sprint_updateProgress',
   description: 'Update entity progress with automatic parent roll-up propagation. When you update a session to 100%, its parent task, day, week, and phase all recalculate automatically.',
   schema: UpdateProgressSchema,
   inputSchema: {

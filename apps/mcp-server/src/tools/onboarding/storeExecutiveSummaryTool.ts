@@ -31,7 +31,7 @@ const storeExecutiveSummarySchema = z.object({
 type StoreExecutiveSummaryInput = z.infer<typeof storeExecutiveSummarySchema>;
 
 export const storeExecutiveSummaryTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.storeExecutiveSummary',
+  name: 'projectpulse_onboarding_storeExecutiveSummary',
   description: 'Store agent-generated executive summary (after agent generated it with their own AI). This completes Session 1 and generates project-context.json for Session 2.',
   schema: storeExecutiveSummarySchema,
   inputSchema: {

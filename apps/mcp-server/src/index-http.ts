@@ -16,7 +16,7 @@ import express from 'express';
 import { config } from './config.js';
 import { createLogger } from './logger.js';
 import { createHttpClient } from './httpClient.js';
-import { registerTools } from './tools/index.js';
+import { registerTools, loadTools } from './tools/index.js';
 
 const logger = createLogger(config.logLevel);
 const httpClient = createHttpClient(config, logger);
@@ -53,10 +53,135 @@ app.get('/health', (_req, res) => {
     status: 'healthy',
     version: '0.1.0',
     transport: 'hybrid',
-    transports: ['sse', 'streamable-http'],
+    transports: ['sse', 'streamable-http', 'json-rpc'],
     toolCount: 40,
     activeSSESessions: sseSessions.size,
   });
+});
+
+// JSON-RPC endpoint for Factory Droid compatibility  
+// Simple stateless JSON-RPC 2.0 over HTTP (no special Accept headers required)
+// Note: This endpoint provides a workaround for Factory Droid's HTTP client
+// which doesn't send the required "text/event-stream" Accept header for Streamable HTTP
+app.post('/mcp/json-rpc', async (req, res) => {
+  try {
+    logger.info('Handling JSON-RPC request', { method: req.body?.method });
+
+    const request = req.body;
+
+    // Validate JSON-RPC 2.0 format
+    if (!request || request.jsonrpc !== '2.0' || !request.method) {
+      return res.status(400).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32600,
+          message: 'Invalid Request: Must be JSON-RPC 2.0 format',
+        },
+        id: request?.id || null,
+      });
+    }
+
+    // Handle MCP protocol methods with simple responses
+    // This is intentionally simple - no transport overhead, just direct responses
+    let result;
+
+    // Check if this is a notification (no id field or id is null/undefined)
+    const isNotification = request.id === null || request.id === undefined;
+
+    if (isNotification) {
+      // Notifications don't require a JSON-RPC response, just acknowledge with 200 OK
+      logger.debug('JSON-RPC notification received', { method: request.method });
+      
+      // Handle specific notifications if needed
+      switch (request.method) {
+        case 'notifications/initialized':
+          logger.info('Client initialization completed');
+          break;
+        case 'notifications/cancelled':
+          logger.info('Client cancelled request', { params: request.params });
+          break;
+        default:
+          logger.debug('Unhandled notification', { method: request.method });
+      }
+      
+      // For notifications, return empty 200 OK (no body needed for JSON-RPC notifications)
+      res.writeHead(200, { 'Content-Length': '0' });
+      return res.end();
+    }
+
+    // Handle requests (have id field, require response)
+    switch (request.method) {
+      case 'initialize':
+        result = {
+          protocolVersion: '2024-11-05',
+          capabilities: { tools: {} },
+          serverInfo: {
+            name: 'projectpulse-mcp',
+            version: '0.1.0',
+          },
+        };
+        break;
+
+      case 'tools/list':
+        // Load tools directly (same tools that are registered with the MCP server)
+        const tools = loadTools();
+        result = {
+          tools: tools.map(tool => ({
+            name: tool.name,
+            description: tool.description,
+            inputSchema: tool.inputSchema,
+          })),
+        };
+        break;
+
+      case 'resources/list':
+        result = { resources: [] };
+        break;
+
+      case 'prompts/list':
+        result = { prompts: [] };
+        break;
+
+      case 'ping':
+        result = {}; // Simple pong response
+        break;
+
+      default:
+        return res.status(400).json({
+          jsonrpc: '2.0',
+          error: {
+            code: -32601,
+            message: `Method not found: ${request.method}`,
+          },
+          id: request.id,
+        });
+    }
+
+    res.json({
+      jsonrpc: '2.0',
+      result,
+      id: request.id,
+    });
+
+    logger.debug('JSON-RPC request completed', { method: request.method });
+  } catch (error) {
+    logger.error('JSON-RPC request failed', {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
+    if (!res.headersSent) {
+      res.status(500).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32603,
+          message: 'Internal error',
+          data: error instanceof Error ? error.message : 'Unknown error',
+        },
+        id: req.body?.id || null,
+      });
+    }
+  }
 });
 
 // MCP SSE endpoint - GET establishes SSE stream

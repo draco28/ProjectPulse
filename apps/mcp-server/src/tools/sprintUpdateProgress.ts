@@ -171,7 +171,7 @@ async function handler(
 // ============================================================================
 
 export const sprintUpdateProgressTool: ToolDefinition = {
-  name: 'projectpulse.sprint.updateProgress',
+  name: 'projectpulse_sprint_updateProgress',
 
   description: `Update progress for any sprint entity (session/task/day/week/phase) and automatically propagate to parent entities.
 

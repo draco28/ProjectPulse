@@ -33,7 +33,7 @@ type WorkflowExecuteStepResponse = {
 };
 
 export const workflowExecuteStepTool: ToolDefinition = {
-  name: 'projectpulse.workflow.executeStep',
+  name: 'projectpulse_workflow_executeStep',
   description:
     'Execute the current step in a workflow run. Marks the current step as completed and advances to the next step. Optionally provide step result data to be stored. Returns next step details or workflow completion status.',
   schema: inputSchema,

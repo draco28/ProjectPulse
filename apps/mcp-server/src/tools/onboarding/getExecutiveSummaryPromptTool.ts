@@ -25,7 +25,7 @@ const getExecutiveSummaryPromptSchema = z.object({
 type GetExecutiveSummaryPromptInput = z.infer<typeof getExecutiveSummaryPromptSchema>;
 
 export const getExecutiveSummaryPromptTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.getExecutiveSummaryPrompt',
+  name: 'projectpulse_onboarding_getExecutiveSummaryPrompt',
   description: 'Get prompt template with ALL 96 answers for generating executive summary with agent\'s own AI provider. This tool does NOT generate summaries - it returns a prompt template for the agent to use with their LLM.',
   schema: getExecutiveSummaryPromptSchema,
   inputSchema: {

@@ -105,7 +105,9 @@
       "Bash(docker stop:*)",
       "Bash(node /tmp/test-session1-mcp.mjs:*)",
       "Bash(node dist/index.js:*)",
-      "Bash(timeout 3 curl -s http://192.168.1.15:3001/mcp)"
+      "Bash(timeout 3 curl -s http://192.168.1.15:3001/mcp)",
+      "Bash(NEXT_PUBLIC_API_URL=http://192.168.1.15:3000 pnpm exec playwright test:*)",
+      "Bash(MCP_URL=http://192.168.1.15:3001 TEST_PROJECT_ID=8 npx tsx:*)"
     ],
     "deny": [],
     "ask": [

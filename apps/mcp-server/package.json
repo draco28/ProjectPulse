@@ -25,7 +25,7 @@
   "author": "ProjectPulse",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.22.0",
     "@prisma/client": "^5.9.1",
     "@projectpulse/roadmap-tools": "workspace:*",
     "express": "^5.1.0",

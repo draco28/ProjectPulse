@@ -25,7 +25,7 @@ const getDocumentPromptsSchema = z.object({
 type GetDocumentPromptsInput = z.infer<typeof getDocumentPromptsSchema>;
 
 export const getDocumentPromptsTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.getDocumentPrompts',
+  name: 'projectpulse_onboarding_getDocumentPrompts',
   description: 'Get all 15 document prompt templates with project context injected. Agent will generate documents with their own AI provider using these prompts. Returns systemPrompt + userPrompt for each document. NO server-side AI generation.',
   schema: getDocumentPromptsSchema,
   inputSchema: {

@@ -41,7 +41,7 @@ type WikiCreateResponse = {
 };
 
 export const wikiCreateTool: ToolDefinition = {
-  name: 'projectpulse.wiki.create',
+  name: 'projectpulse_wiki_create',
   description:
     'Create a new wiki page in ProjectPulse. Wiki pages are documentation pages organized by category (getting-started, guides, reference, troubleshooting). Use this to create onboarding guides, technical references, or troubleshooting documentation.',
   schema: inputSchema,

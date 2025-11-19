@@ -101,7 +101,7 @@ describe('parseProjectPlan', () => {
     const doc = await prisma.document.create({
       data: {
         onboardingSessionId: testOnboardingSessionId,
-        filename: '13-Project-Plan.md',
+        filename: '13-Project-Plan_md',
         content: sampleMarkdown,
         wordCount: sampleMarkdown.split(/\s+/).length,
         category: 'planning',
@@ -181,7 +181,7 @@ describe('parseProjectPlan', () => {
     const wrongDoc = await prisma.document.create({
       data: {
         onboardingSessionId: testOnboardingSessionId,
-        filename: 'wrong-file.md',
+        filename: 'wrong-file_md',
         content: sampleMarkdown,
         wordCount: 100,
         category: 'planning',

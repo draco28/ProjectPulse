@@ -153,7 +153,7 @@ async function handler(
 // ============================================================================
 
 export const sprintCheckpointCreateTool: ToolDefinition = {
-  name: 'projectpulse.sprint.checkpoint.create',
+  name: 'projectpulse_sprint_checkpoint_create',
 
   description: `Create a checkpoint to save agent progress every 15K tokens.
 

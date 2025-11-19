@@ -161,7 +161,7 @@ async function handler(
 // ============================================================================
 
 export const blueprintGetTool: ToolDefinition = {
-  name: 'projectpulse.blueprint.get',
+  name: 'projectpulse_blueprint_get',
   description:
     'Retrieve Session 3 blueprint data containing project context, tech stack, roadmap phases, timeline, and budget. Use this to recall onboarding configuration.',
   schema: getBlueprintSchema,
