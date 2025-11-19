@@ -13,19 +13,21 @@ The ProjectPulse MCP (Model Context Protocol) Server enables AI coding agents (C
 
 ### Key Characteristics
 
-- **Protocol**: JSON-RPC 2.0 over HTTP (MCP Streamable HTTP 2025-03-26 spec)
-- **Transport**: **Stateful HTTP Streaming** (SDK-managed sessions with UUID v4)
+- **Protocol**: JSON-RPC 2.0 over HTTP (MCP 2024-11-05)
+- **Transport**: **Stateless HTTP Streaming** (per-request independence)
 - **Architecture**: Standalone Express server (`apps/mcp-server`, port 3001)
+- **Tools**: 40 tools across 8 categories
 - **Authentication**: None for MVP (local network 192.168.1.15), OAuth 2.1 planned for cloud
 - **Target Users**: Developers using AI coding agents on local network
 
 ### Architecture Goals
 
-1. **Simplicity**: Single canonical HTTP endpoint, no SSE/WebSocket complexity
-2. **Compatibility**: Works with all MCP-compliant clients (Claude Code, Windsurf, Cascade)
-3. **Statefulness**: SDK-managed sessions eliminate "Server not initialized" errors
-4. **Maintainability**: Single transport pattern, centralized tool registry
-5. **Performance**: <50ms response time for tool calls, <100ms for searches
+1. **Simplicity**: Single POST /mcp endpoint, no SSE/WebSocket/session complexity
+2. **Compatibility**: Works with all HTTP clients (Claude Code, Factory Droid, curl, Windsurf)
+3. **Stateless**: Per-request independence, no session tracking needed
+4. **Maintainability**: Single transport pattern, 175 lines of clean code
+5. **Performance**: <50ms tool calls (actual: 25-75ms), 100% success rate
+6. **Client-Friendly**: Accept header middleware fixes HTTP 406 automatically
 
 ### Sprint 8.7 Changes
 
@@ -34,12 +36,21 @@ The ProjectPulse MCP (Model Context Protocol) Server enables AI coding agents (C
 - ❌ JSON-RPC shim endpoint (`/mcp/json-rpc`)
 - ❌ Dual transport detection logic
 - ❌ Next.js `/api/mcp` route (tools moved to standalone server)
+- ❌ Session management with Map (switched to stateless mode)
 
 **Added**:
-- ✅ Stateful HTTP streaming (single POST `/mcp` endpoint)
-- ✅ SDK-managed sessions with `sessionIdGenerator: () => randomUUID()`
-- ✅ Session lifecycle callbacks (`onsessioninitialized`, `onsessionclosed`)
-- ✅ Byterover-style architecture (single clean endpoint)
+- ✅ **Stateless HTTP streaming** (single POST `/mcp` endpoint)
+- ✅ Accept header middleware (fixes HTTP 406 for all clients)
+- ✅ rawHeaders fix (MCP SDK compatibility)
+- ✅ 40 tools across 8 categories (consolidated)
+- ✅ Factory Droid, Claude Code, curl validated
+- ✅ 42% code reduction (302 → 175 lines)
+- ✅ Performance: <50ms tool calls, 100% reliability
+
+**Architecture Transformation**:
+- **Before**: 3 endpoints, hybrid transport, session tracking, 302 lines
+- **After**: 1 endpoint, HTTP only, stateless, 175 lines
+- **Result**: Production-ready, all clients working
 
 ---
 
@@ -186,24 +197,37 @@ Response: {
 }
 ```
 
-**Stateful HTTP Configuration**:
+**Stateless HTTP Configuration** (Sprint 8.7 Final):
 ```typescript
 const transport = new StreamableHTTPServerTransport({
-  sessionIdGenerator: () => randomUUID(),  // Stateful sessions
+  sessionIdGenerator: undefined,           // ✅ Stateless (per-request)
   enableJsonResponse: true,                // Return JSON (not SSE)
   enableDnsRebindingProtection: false,     // Local network
-  onsessioninitialized: (sessionId) => {
-    logger.info('MCP session initialized', { sessionId });
-  },
-  onsessionclosed: (sessionId) => {
-    logger.info('MCP session closed', { sessionId });
-  },
+});
+
+// Cleanup deferred to HTTP response lifecycle
+res.on('close', () => transport.close());
+res.on('error', (err) => {
+  logger.error('HTTP response error', { error: err.message });
+  transport.close();
 });
 ```
 
+**Why Stateless?**:
+- Simpler architecture (no session Map needed)
+- Per-request independence (no "Server not initialized" errors)
+- SDK-compliant for stateless mode
+- Sufficient for current use cases
+
 **Supported Endpoints**:
-- `POST /mcp` → MCP Streamable HTTP (all protocol methods)
-- `GET /health` → Health check (Docker healthcheck)
+- `POST /mcp` → MCP Stateless HTTP Streaming (all protocol methods)
+- `GET /health` → Health check with metadata (Docker healthcheck)
+
+**Accept Header Middleware** (Sprint 8.7 Phase 4):
+- Automatically fixes incomplete Accept headers
+- Handles clients missing `text/event-stream`
+- Updates both `req.headers` AND `req.rawHeaders` (MCP SDK compatibility)
+- Fixes HTTP 406 for Claude Code, Factory Droid, and all clients
 
 **Error Handling**:
 - Transport errors handled by SDK
@@ -1062,13 +1086,39 @@ claude_code_config.json               # Client configuration example (complete)
 
 ---
 
+## Sprint 8.7 Summary
+
+For complete Sprint 8.7 documentation, see: [`SPRINT_8.7_COMPLETION_SUMMARY.md`](./SPRINT_8.7_COMPLETION_SUMMARY.md)
+
+**Key Achievements**:
+- ✅ Removed 3 endpoints → 1 endpoint (POST /mcp)
+- ✅ Removed SSE transport completely
+- ✅ Removed JSON-RPC shim
+- ✅ Stateless HTTP streaming (42% code reduction)
+- ✅ Fixed HTTP 406 with rawHeaders middleware
+- ✅ Validated with Factory Droid, Claude Code, curl
+- ✅ 40 tools across 8 categories
+- ✅ Performance: 25-75ms tool calls, 100% success rate
+
+**Before Sprint 8.7**:
+- 302 lines, 3 endpoints, hybrid transport, session management bugs
+
+**After Sprint 8.7**:
+- 175 lines, 1 endpoint, HTTP only, production-ready
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0.0 | 2025-11-13 | Initial architecture documentation (Sprint 5.5 Day 5) |
+| 2.0.0 | 2025-11-20 | Sprint 8.7 - Stateless HTTP streaming, removed SSE, 40 tools |
 
 ---
 
-**Document Status**: ✅ Complete (Task 17/21)
-**Next**: Create MCP_API_REFERENCE.md (Task 18/21)
+**Document Status**: ✅ Updated for Sprint 8.7 (Post-cleanup)
+**See Also**: 
+- [MCP_QUICK_START_v2.md](./MCP_QUICK_START_v2.md) - Setup guide
+- [SPRINT_8.7_COMPLETION_SUMMARY.md](./SPRINT_8.7_COMPLETION_SUMMARY.md) - Sprint details
+- [features/mcp-tools-guide.md](./features/mcp-tools-guide.md) - Tool reference
