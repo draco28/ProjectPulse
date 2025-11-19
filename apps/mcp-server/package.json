@@ -8,11 +8,13 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "tsx src/index.ts",
+    "dev:http": "tsx src/index-http.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
+    "start:http": "node dist/index-http.js",
     "lint": "eslint . --ext .ts --max-warnings=0",
     "type-check": "tsc --noEmit",
-    "test": "tsx --test src/__tests__/bootstrap.test.ts"
+    "test": "tsx --test src/__tests__/**/*.test.ts src/tools/__tests__/**/*.test.ts"
   },
   "keywords": [
     "projectpulse",
@@ -24,9 +26,13 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "@prisma/client": "^5.9.1",
+    "@projectpulse/roadmap-tools": "workspace:*",
+    "express": "^5.1.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/express": "^5.0.5",
     "@types/node": "^20.11.16",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",

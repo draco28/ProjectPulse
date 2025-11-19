@@ -6,14 +6,14 @@ info:
   description: |
     **ProjectPulse MCP API Specification**
 
-    Complete API specification for the ProjectPulse Model Context Protocol (MCP) server. This API exposes 41 tools across 9 functional categories, enabling AI agents to manage software development workflows with 95% automation.
+    Complete API specification for the ProjectPulse Model Context Protocol (MCP) server. This API exposes 45 tools across 9 functional categories, enabling AI agents to manage software development workflows with 95% automation.
 
     **Architecture:** Agent-First (95% MCP automation, 5% UI monitoring)
     **Primary Users:** AI Agents (Claude Code, Cursor AI, Codex)
     **Secondary Users:** Solo/small team developers (monitoring, overrides)
 
     **Key Features:**
-    - 41 MCP tools organized into 9 categories
+    - 45 MCP tools organized into 9 categories
     - Complete CRUD operations for all entities
     - Token-optimized responses (92% reduction for skills, 88% for knowledge)
     - Autonomy levels (0-4) for security control
@@ -54,9 +54,9 @@ security:
 tags:
   - name: Sprint Tracking
     description: |
-      5-level hierarchy tracking (Phase → Week → Day → Task → Session).
+      5-level hierarchy tracking (Phase → Sprint → Week → Day → Task → Session).
       Create, update, query progress with auto-rollup; changes visible in UI/MCP.
-      **Tools:** 7 | **FRs:** FR-001 to FR-025
+      **Tools:** 11 | **FRs:** FR-001 to FR-025, FR-026 to FR-030
 
   - name: Workflow Orchestration
     description: |
@@ -557,6 +557,122 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Session'
+
+  /onboarding/blueprint:
+    get:
+      operationId: onboarding.blueprint.get
+      summary: Get project blueprint (Sprint 8.5)
+      description: |
+        Retrieve the Session 3 blueprint data (memory banks, skills, SOPs) for agent initialization.
+        Used by `projectpulse.blueprint.get` MCP tool.
+
+        **Requirements:** FR-028
+      tags:
+        - Sprint Tracking
+      security:
+        - autonomyLevel: [0]
+      responses:
+        '200':
+          description: Blueprint data retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  memoryBanks:
+                    type: array
+                    items:
+                      type: object
+                  skills:
+                    type: array
+                    items:
+                      type: object
+                  sops:
+                    type: array
+                    items:
+                      type: object
+
+  /sprint/current-position:
+    get:
+      operationId: sprint.currentPosition.get
+      summary: Get current hierarchy position (Sprint 8.5)
+      description: |
+        Efficiently retrieve the agent's current position in the 5-level hierarchy.
+        Returns Phase, Sprint, Week, Day, Task context in a single call.
+        Reduces token usage by 80% compared to multiple queries.
+
+        **Requirements:** FR-029
+      tags:
+        - Sprint Tracking
+      security:
+        - autonomyLevel: [0]
+      responses:
+        '200':
+          description: Current position retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phase:
+                    $ref: '#/components/schemas/Phase'
+                  sprint:
+                    $ref: '#/components/schemas/Sprint'
+                  week:
+                    $ref: '#/components/schemas/Week'
+                  day:
+                    $ref: '#/components/schemas/Day'
+                  task:
+                    $ref: '#/components/schemas/Task'
+                  session:
+                    $ref: '#/components/schemas/Session'
+
+  /sprint/phase/{phaseId}/progress:
+    get:
+      operationId: sprint.phase.progress.get
+      summary: Get phase progress tree (Sprint 8.5)
+      description: |
+        Retrieve the full progress tree for a specific phase.
+        Includes rolled-up progress for Sprints, Weeks, Days, and Tasks.
+        Optimized for Development Cycle UI visualization.
+
+        **Requirements:** FR-030
+      tags:
+        - Sprint Tracking
+      security:
+        - autonomyLevel: [0]
+      parameters:
+        - name: phaseId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Phase ID (CUID)
+      responses:
+        '200':
+          description: Phase progress tree retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phaseId:
+                    type: string
+                  progress:
+                    type: number
+                  sprints:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sprintId:
+                          type: string
+                        progress:
+                          type: number
+                        weeks:
+                          type: array
+                          items:
+                            type: object
 
   /workflow/start:
     post:

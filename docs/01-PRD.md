@@ -277,8 +277,9 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 **Steps:**
 
 1. **Initialize Session:**
-   - MCP Tool: `sprint.getCurrentTask()`
-   - Read current phase, week, day, task from database
+   - MCP Tool: `sprint.getCurrentPosition()` (new - replaces getCurrentTask)
+   - Read current Phase/Sprint/Week/Day/Task from database in 1 call (80% token reduction)
+   - View position in Development Cycle UI (/roadmap)
    - Create a new Session record in the database with timestamp, notes, and token usage. This session is visible on the Development Cycle page and via MCP tools.
 
 2. **Create Implementation Plan:**
@@ -391,6 +392,7 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 | Feature                  | Priority | FR Range             | Description                                                             |
 | ------------------------ | -------- | -------------------- | ----------------------------------------------------------------------- |
 | Sprint/Phase Tracking    | P0       | FR-001 to FR-025     | 5-level hierarchy, real-time UI/MCP sync, progress roll-up              |
+| Development Cycle UI     | P0       | FR-026 to FR-030     | Roadmap visualization, materialization, efficient position queries      |
 | Workflow Orchestration   | P0       | FR-032 to FR-056     | Track 12 workflows, enforce consistency, checkpoint recovery            |
 | Issues                   | P0       | FR-051 to FR-070     | CRUD + bulk creation + auto-tagging + context injection                 |
 | Knowledge (RAG + Graph)  | P1       | FR-071 to FR-090     | Hybrid search, semantic embeddings, 2-hop graph traversal               |
@@ -422,21 +424,30 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 ```
 Project
 └── Phase 1 (e.g., "Foundation & Core Infrastructure")
-    └── Week 1 (e.g., "Database Schema & Migrations")
-        └── Day 1 (e.g., "Prisma Schema Setup")
-            └── Task 1 (e.g., "Create Phase/Week/Day models")
-                └── Session 1 (e.g., "20251102-1430")
+    └── Sprint 1 (e.g., "Database & API Foundation - 52 points")
+        └── Week 1 (e.g., "Database Schema & Migrations")
+            └── Day 1 (e.g., "Prisma Schema Setup")
+                └── Task 1 (e.g., "Create Phase/Week/Day models")
+                    └── Session 1 (e.g., "20251102-1430")
 ```
 
 **Database as Source of Truth (Critical):**
 
-- All progress tracked in database (Phase, Week, Day, Task, Session tables)
+- All progress tracked in database (Phase, Sprint, Week, Day, Task, Session tables)
 - UI and MCP APIs reflect database changes in real time
 - Progress roll-ups computed and stored in the database
 
-**MCP Tools:** `sprint.create()`, `sprint.updateProgress()`, `sprint.getCurrentTask()`, `sprint.checkpoint()`
+**Roadmap Materialization:**
 
-**UI:** Interactive hierarchy tree, progress charts, Gantt view
+- Session 2 creates `Document` record with 13-Project-Plan.md content
+- Session 3 parses markdown → creates `Roadmap` record with phases JSON
+- Materialization tool converts JSON → normalized Phase/Sprint/Week/Day records
+- UI at `/roadmap` displays hierarchical tree
+- MCP tool: `projectpulse.roadmap.materialize`
+
+**MCP Tools:** `sprint.create()`, `sprint.updateProgress()`, `sprint.getCurrentPosition()`, `sprint.checkpoint()`
+
+**UI:** Development Cycle page (/roadmap) with interactive hierarchy tree, progress charts, Gantt view
 
 ---
 
@@ -444,7 +455,7 @@ Project
 
 **Purpose:** Track and enforce 12+ predefined workflows (see product documentation)
 
-**UI Presence:** Workflow Orchestration has a standalone top-level page in main navigation (8th page), providing monitoring interface for all 12 predefined workflows.
+**UI Presence:** Development Cycle + Workflow Orchestration have standalone top-level pages in main navigation (8th and 9th pages), providing monitoring and visualization interfaces.
 
 **12 Predefined Workflows:**
 

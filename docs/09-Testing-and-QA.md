@@ -1355,7 +1355,209 @@ test('IssueList component has no accessibility violations', async () => {
 
 ---
 
+### 3.9 Sprint 8.5 Tests (FR-026 to FR-030)
+
+**Total Tests:** 13 tests (5 unit, 5 integration, 3 E2E)
+
+#### 3.9.1 Development Cycle UI Rendering Test (TEST-033)
+
+**Scope:** FR-026 (Development Cycle UI)
+
+**Test Case:**
+- ✅ `/roadmap` page displays 5-level hierarchy tree
+- ✅ Collapsible/expandable nodes work (click + keyboard)
+- ✅ Progress bars show at all levels (Phase, Sprint, Week, Day, Task)
+- ✅ "You Are Here" breadcrumb shows current position
+
+**Framework:** Playwright E2E
+
+---
+
+#### 3.9.2 Development Cycle Filter Tests (TEST-034)
+
+**Scope:** FR-026 (Development Cycle UI)
+
+**Test Case:**
+- ✅ Status filter works (All, In Progress, Completed, Blocked)
+- ✅ Progress range slider filters correctly (0-100%)
+- ✅ Date range picker filters by start/end dates
+- ✅ Empty state displays when no roadmap exists
+
+**Framework:** Jest + React Testing Library
+
+---
+
+#### 3.9.3 Roadmap Materialization E2E Test (TEST-035)
+
+**Scope:** FR-027 (Roadmap Materialization)
+
+**Test Case:**
+- ✅ Parse 13-Project-Plan.md → create Phase/Sprint/Week/Day records
+- ✅ Validate transaction safety (all-or-nothing)
+- ✅ Test duplicate protection (re-materialization idempotency)
+- ✅ Verify 5-level hierarchy integrity
+
+**Expected Results:**
+- 4 phases, 9 sprints, 20 weeks, 100 days created
+- Week model linked to Sprint (not Phase)
+
+**Framework:** Jest + Prisma (test database)
+
+---
+
+#### 3.9.4 Markdown Format Variation Tests (TEST-036)
+
+**Scope:** FR-027 (Roadmap Materialization)
+
+**Test Cases:**
+- ✅ Format 1: `### Sprint 1 (Weeks 1-2): Name - 20 points`
+- ✅ Format 2: `### Sprint 1: Name (Weeks 1-2) - 20 points`
+- ✅ Format 3: `### Sprint 1 (Weeks 1-2): Name`
+
+**Acceptance:** Parser handles all 3 formats correctly
+
+**Framework:** Jest (unit test)
+
+---
+
+#### 3.9.5 Onboarding E2E with Materialization (TEST-037)
+
+**Scope:** FR-027 (Roadmap Materialization)
+
+**Test Flow:**
+1. Session 2 → Document creation (13-Project-Plan.md)
+2. Session 3 → Roadmap parsing + materialization
+3. Verify Phase/Sprint/Week/Day records created in database
+
+**Framework:** Playwright E2E
+
+---
+
+#### 3.9.6 Blueprint MCP Tool - Happy Path (TEST-038)
+
+**Scope:** FR-028 (Blueprint MCP Tool)
+
+**Test Case:**
+- ✅ Call `projectpulse.blueprint.get` with valid projectId
+- ✅ Verify Session 3 data returned (roadmap, techStack, persona)
+- ✅ Check performance < 100ms
+
+**Expected Output:**
+```json
+{
+  "projectContext": "...",
+  "roadmap": { "phases": [...] },
+  "techStack": [...],
+  "agentPersona": { "name": "...", "expertise": [...] }
+}
+```
+
+**Framework:** Jest + Supertest (integration)
+
+---
+
+#### 3.9.7 Blueprint MCP Tool - Error Cases (TEST-039)
+
+**Scope:** FR-028 (Blueprint MCP Tool)
+
+**Test Cases:**
+- ✅ Session 3 not completed → 404
+- ✅ Wrong projectId → 404
+- ✅ Invalid projectId (string instead of number) → 400
+
+**Framework:** Jest + Supertest (integration)
+
+---
+
+#### 3.9.8 getCurrentPosition Performance Test (TEST-040)
+
+**Scope:** FR-029 (Current Position MCP Tool)
+
+**Test Case:**
+- ✅ Single query returns full hierarchy (Phase → Sprint → Week → Day → Task)
+- ✅ Validate latency < 150ms (P95)
+- ✅ Verify 80% token reduction (1K vs 5K baseline)
+
+**Framework:** Jest + Prisma
+
+---
+
+#### 3.9.9 getCurrentPosition Security Test (TEST-041)
+
+**Scope:** FR-029 (Current Position MCP Tool)
+
+**Test Case:**
+- ✅ Validate projectId prevents cross-project access
+- ✅ Test with User A accessing User B's project → 404
+- ✅ Verify explicit projectId validation in API route
+
+**Framework:** Jest + Supertest (integration)
+
+---
+
+#### 3.9.10 getCurrentPosition - No Active Task (TEST-042)
+
+**Scope:** FR-029 (Current Position MCP Tool)
+
+**Test Case:**
+- ✅ No IN_PROGRESS task exists
+- ✅ Verify null return for task (not error)
+- ✅ Phase/Sprint/Week/Day still returned
+
+**Framework:** Jest + Prisma
+
+---
+
+#### 3.9.11 getPhaseProgress Performance Test (TEST-043)
+
+**Scope:** FR-030 (Phase Progress MCP Tool)
+
+**Test Case:**
+- ✅ Single query returns nested tree (Phase + all Sprints/Weeks/Days/Tasks)
+- ✅ Validate latency < 500ms (P95)
+- ✅ Verify 90% token reduction (2K vs 20K baseline)
+
+**Framework:** Jest + Prisma
+
+---
+
+#### 3.9.12 getPhaseProgress Security Test (TEST-044)
+
+**Scope:** FR-030 (Phase Progress MCP Tool)
+
+**Test Case:**
+- ✅ Validate phaseId belongs to projectId
+- ✅ Test cross-project access → 404 (not 403)
+- ✅ Verify explicit validation in API route
+
+**Framework:** Jest + Supertest (integration)
+
+---
+
+#### 3.9.13 getPhaseProgress - Invalid Phase (TEST-045)
+
+**Scope:** FR-030 (Phase Progress MCP Tool)
+
+**Test Cases:**
+- ✅ Phase not found → 404
+- ✅ Phase belongs to different project → 404
+- ✅ Invalid phaseId format (non-CUID) → 400
+
+**Framework:** Jest + Supertest (integration)
+
+---
+
+**Sprint 8.5 Test Summary:**
+- **Total:** 13 tests
+- **Unit:** 5 tests (format variations, error cases)
+- **Integration:** 5 tests (MCP tools, security, performance)
+- **E2E:** 3 tests (UI rendering, materialization workflow)
+- **Requirements Coverage:** FR-026 to FR-030 (100%)
+
+---
+
 ## 4. Test Data Management
+
 
 ### 4.1 Overview
 

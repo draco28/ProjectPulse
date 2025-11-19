@@ -16,6 +16,18 @@ import { wikiAnalyticsTopPagesTool } from './wikiAnalyticsTopPages.js';
 import { wikiGenerateTool } from './wikiGenerate.js';
 import { onboardingGetPromptTool } from './onboarding/getPrompt.js';
 import { onboardingSubmitResponseTool } from './onboarding/submitResponse.js';
+import { blueprintGetTool } from './onboarding/getBlueprintTool.js';
+// Sprint 8.6 Phase 1: Session 1 onboarding tools (Agent-Side AI)
+import { getQuestionsTool } from './onboarding/getQuestionsTool.js';
+import { saveAnswersTool } from './onboarding/saveAnswersTool.js';
+import { getExecutiveSummaryPromptTool } from './onboarding/getExecutiveSummaryPromptTool.js';
+import { storeExecutiveSummaryTool } from './onboarding/storeExecutiveSummaryTool.js';
+// Sprint 8.6 Phase 2: Session 2 document generation tools (Agent-Side AI)
+import { getDocumentPromptsTool } from './onboarding/getDocumentPromptsTool.js';
+import { storeDocumentTool } from './onboarding/storeDocumentTool.js';
+import { listDocumentsTool } from './onboarding/listDocumentsTool.js';
+// Sprint 8.6 Phase 3: Session 3 bootstrap tool (Template-Based)
+import { bootstrapTool } from './onboarding/bootstrapTool.js';
 import { workflowListTool } from './workflow/list.js';
 import { workflowStartTool } from './workflow/start.js';
 import { workflowExecuteStepTool } from './workflow/executeStep.js';
@@ -29,6 +41,9 @@ import { issueUpdateTool } from './issues/update.js';
 import { issueSearchTool } from './issues/search.js';
 import { issueAddCommentTool } from './issues/addComment.js';
 import { issueSetStatusTool } from './issues/setStatus.js';
+import { materializeRoadmapTool } from './roadmap/materializeTool.js';
+import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
+import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
 
 const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -46,6 +61,18 @@ const loadTools = (): ToolDefinition[] => [
   wikiGenerateTool,
   onboardingGetPromptTool,
   onboardingSubmitResponseTool,
+  blueprintGetTool,
+  // Sprint 8.6 Phase 1: Session 1 tools (Agent-Side AI)
+  getQuestionsTool,
+  saveAnswersTool,
+  getExecutiveSummaryPromptTool,
+  storeExecutiveSummaryTool,
+  // Sprint 8.6 Phase 2: Session 2 tools (Agent-Side AI)
+  getDocumentPromptsTool,
+  storeDocumentTool,
+  listDocumentsTool,
+  // Sprint 8.6 Phase 3: Session 3 bootstrap tool (Template-Based)
+  bootstrapTool,
   issueCreateTool,
   issueBulkCreateTool,
   issueUpdateTool,
@@ -59,6 +86,11 @@ const loadTools = (): ToolDefinition[] => [
   workflowPauseTool,
   workflowResumeTool,
   workflowCompleteTool,
+  // Sprint 8.5 Phase 1: Roadmap materialization tools
+  materializeRoadmapTool,
+  getCurrentPositionTool,
+  // Sprint 8.5 Phase 4: Roadmap read tools
+  getPhaseProgressTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {

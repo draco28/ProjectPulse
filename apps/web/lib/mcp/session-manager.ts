@@ -2,54 +2,75 @@
  * MCP Session Manager
  *
  * Sprint 5.5 - MCP Server Infrastructure
- * Created: 2025-11-12
+ * Updated: 2025-11-18 - Redis Integration
  *
- * Manages MCP session lifecycle with UUID v4 session IDs and TTL-based expiration.
- * Uses in-memory Map storage for MVP (migrate to Redis/database for production).
+ * Manages MCP session lifecycle with Redis (production) or in-memory (development) storage.
+ * Automatically detects environment and uses appropriate backend.
  *
  * Session Lifecycle:
  * 1. Client sends request without Mcp-Session-Id → Generate new UUID
  * 2. Server returns session ID in Mcp-Session-Id header
  * 3. Client includes session ID in subsequent requests
- * 4. Sessions expire after 1 hour of inactivity
- * 5. Periodic cleanup removes expired sessions
+ * 4. Sessions expire after 1 hour of inactivity (TTL-based)
+ * 5. Redis: Auto-expiration via TTL, InMemory: Background cleanup
  *
- * @see apps/web/.agent/task/nextjs-mcp-http-route-20251112-1420.md
+ * Production (NODE_ENV=production + REDIS_URL set):
+ * - Uses RedisSessionStore for persistent, scalable sessions
+ * - Multiple Next.js instances share Redis
+ * - Sessions survive container restarts
+ *
+ * Development (NODE_ENV=development or no REDIS_URL):
+ * - Uses InMemorySessionStore for zero-dependency local dev
+ * - Sessions lost on restart (acceptable for development)
  */
 
 import { randomUUID } from 'crypto';
 import type { MCPSession } from './types';
+import { RedisSessionStore, InMemorySessionStore } from './session-store';
 
 /**
- * Session expiration: 1 hour (3600000ms)
- *
- * Sessions are removed if not accessed within this time period.
- * This prevents memory leaks from abandoned sessions.
+ * Module-level session store instance (lazy initialized)
  */
-const SESSION_TTL = 3600000; // 1 hour
+let store: RedisSessionStore | InMemorySessionStore | null = null;
 
 /**
- * Cleanup interval: 10 minutes (600000ms)
- *
- * Background job runs every 10 minutes to remove expired sessions.
+ * Store type for monitoring
  */
-const CLEANUP_INTERVAL = 600000; // 10 minutes
+let storeType: 'redis' | 'memory' = 'memory';
 
 /**
- * In-memory session store (MVP only)
- *
- * Production: Replace with Redis (for distributed systems) or database (for persistence).
- *
- * Memory footprint: ~1KB per session (UUID + dates + small metadata)
- * Expected max sessions: 100-1000 concurrent (local network usage)
- * Total memory: 100KB - 1MB (acceptable for MVP)
+ * Default project ID (TODO: Extract from session context in future)
+ * 
+ * Currently all sessions use DEFAULT_PROJECT_ID for single-project mode.
+ * Future: Multi-tenant support will extract projectId from authenticated context.
  */
-const sessions = new Map<string, MCPSession>();
+const DEFAULT_PROJECT_ID = parseInt(process.env.DEFAULT_PROJECT_ID || '8', 10);
 
 /**
- * Cleanup timer reference
+ * Initialize session store (lazy initialization)
+ * 
+ * Detects environment and creates appropriate store:
+ * - Production + REDIS_URL → RedisSessionStore (persistent, scalable)
+ * - Development or no REDIS_URL → InMemorySessionStore (local, temporary)
  */
-let cleanupTimer: NodeJS.Timeout | null = null;
+function getStore(): RedisSessionStore | InMemorySessionStore {
+  if (store) return store;
+
+  const redisUrl = process.env.REDIS_URL;
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (redisUrl && isProduction) {
+    console.log('[SessionManager] Initializing Redis session store');
+    store = new RedisSessionStore(redisUrl);
+    storeType = 'redis';
+  } else {
+    console.log('[SessionManager] Initializing in-memory session store (development)');
+    store = new InMemorySessionStore();
+    storeType = 'memory';
+  }
+
+  return store;
+}
 
 /**
  * Generate a new session ID (UUID v4).
@@ -86,85 +107,43 @@ export function isValidSessionId(sessionId: string): boolean {
  *
  * Creates new session if ID not found or invalid.
  * Updates lastAccessedAt timestamp for existing sessions.
- * Removes expired sessions automatically.
+ * Removes expired sessions automatically (via TTL or store cleanup).
+ *
+ * Maintains backward compatibility with existing functional API.
  *
  * @param sessionId - UUID v4 session identifier
  * @returns Session object (existing or newly created)
  *
  * @example
  * ```typescript
- * // First request (no session ID)
- * const session1 = await validateSession('new-generated-uuid');
- * // Returns new session
+ * // First request (invalid or no session ID)
+ * const session1 = await validateSession('invalid-id');
+ * // Returns new session with valid UUID
  *
  * // Subsequent request (with session ID)
- * const session2 = await validateSession('new-generated-uuid');
+ * const session2 = await validateSession(session1.id);
  * // Returns same session, lastAccessedAt updated
  * ```
  */
 export async function validateSession(sessionId: string): Promise<MCPSession> {
-  // Validate session ID format
+  const sessionStore = getStore();
+
+  // Invalid format → create new
   if (!isValidSessionId(sessionId)) {
     console.warn(`[Session] Invalid session ID format: ${sessionId}`);
-    // Create new session with valid UUID
-    return createSession();
+    return await sessionStore.createSession(DEFAULT_PROJECT_ID);
   }
 
-  // Check if session exists
-  const existingSession = sessions.get(sessionId);
-
-  if (existingSession) {
-    // Check expiration
-    const now = Date.now();
-    const sessionAge = now - existingSession.lastAccessedAt.getTime();
-
-    if (sessionAge > SESSION_TTL) {
-      // Session expired - delete and create new
-      sessions.delete(sessionId);
-      console.warn(
-        `[Session] Expired session ${sessionId} (age: ${Math.round(sessionAge / 1000)}s)`
-      );
-      return createSession();
-    }
-
-    // Update last accessed time (session is still valid)
-    existingSession.lastAccessedAt = new Date();
-    sessions.set(sessionId, existingSession);
-
-    return existingSession;
+  // Try to get existing session
+  const session = await sessionStore.getSession(sessionId);
+  
+  if (session) {
+    return session;
   }
 
-  // Session not found - create new with provided ID
-  return createSession(sessionId);
-}
-
-/**
- * Create a new session.
- *
- * @param sessionId - Optional session ID (generates UUID if not provided)
- * @returns New session object
- *
- * @internal
- */
-function createSession(sessionId?: string): MCPSession {
-  const id = sessionId || generateSessionId();
-  const now = new Date();
-
-  const session: MCPSession = {
-    id,
-    createdAt: now,
-    lastAccessedAt: now,
-    metadata: {}, // Tool-specific state can be stored here
-  };
-
-  sessions.set(id, session);
-
-  console.log(`[Session] Created new session: ${id}`);
-
-  // Start cleanup timer if not already running
-  startCleanup();
-
-  return session;
+  // Not found → create new with provided ID
+  console.warn(`[Session] Session not found: ${sessionId}, creating new`);
+  return await sessionStore.createSessionWithId(sessionId, DEFAULT_PROJECT_ID);
 }
 
 /**
@@ -174,34 +153,30 @@ function createSession(sessionId?: string): MCPSession {
  * This is only for internal testing/debugging.
  *
  * @param sessionId - Session ID to retrieve
- * @returns Session object or undefined
+ * @returns Session object or null
  *
  * @internal
  */
-export function getSession(sessionId: string): MCPSession | undefined {
-  return sessions.get(sessionId);
+export async function getSession(sessionId: string): Promise<MCPSession | null> {
+  const sessionStore = getStore();
+  return await sessionStore.getSession(sessionId);
 }
 
 /**
  * Delete session by ID.
  *
  * @param sessionId - Session ID to delete
- * @returns True if session was deleted, false if not found
+ * @returns True if session was deleted
  *
  * @example
  * ```typescript
- * const deleted = deleteSession('550e8400-e29b-41d4-a716-446655440000');
+ * const deleted = await deleteSession('550e8400-e29b-41d4-a716-446655440000');
  * ```
  */
-export function deleteSession(sessionId: string): boolean {
-  const existed = sessions.has(sessionId);
-  sessions.delete(sessionId);
-
-  if (existed) {
-    console.log(`[Session] Deleted session: ${sessionId}`);
-  }
-
-  return existed;
+export async function deleteSession(sessionId: string): Promise<boolean> {
+  const sessionStore = getStore();
+  await sessionStore.deleteSession(sessionId);
+  return true;
 }
 
 /**
@@ -213,8 +188,9 @@ export function deleteSession(sessionId: string): boolean {
  *
  * @internal
  */
-export function getAllSessions(): MCPSession[] {
-  return Array.from(sessions.values());
+export async function getAllSessions(): Promise<MCPSession[]> {
+  const sessionStore = getStore();
+  return await sessionStore.getActiveSessions(DEFAULT_PROJECT_ID);
 }
 
 /**
@@ -222,8 +198,9 @@ export function getAllSessions(): MCPSession[] {
  *
  * @returns Number of active sessions
  */
-export function getSessionCount(): number {
-  return sessions.size;
+export async function getSessionCount(): Promise<number> {
+  const sessionStore = getStore();
+  return await sessionStore.getActiveSessionCount();
 }
 
 /**
@@ -231,79 +208,26 @@ export function getSessionCount(): number {
  *
  * @internal
  */
-export function clearAllSessions(): void {
-  const count = sessions.size;
-  sessions.clear();
-  console.log(`[Session] Cleared all sessions (${count} removed)`);
+export async function clearAllSessions(): Promise<void> {
+  const sessionStore = getStore();
+  const sessions = await sessionStore.getActiveSessions(DEFAULT_PROJECT_ID);
+  await Promise.all(sessions.map(s => sessionStore.deleteSession(s.id)));
+  console.log(`[Session] Cleared all sessions (${sessions.length} removed)`);
 }
 
 /**
- * Remove expired sessions (passive cleanup).
+ * Remove expired sessions (manual cleanup).
  *
- * Called periodically by cleanup timer.
- * Also callable manually for testing.
+ * Note: Redis handles TTL automatically, InMemory has background cleanup.
+ * This is a no-op for compatibility with legacy code.
  *
- * @returns Number of sessions removed
+ * @returns Number of sessions removed (always 0 - handled by store)
  */
-export function removeExpiredSessions(): number {
-  const now = Date.now();
-  let removedCount = 0;
-
-  for (const [sessionId, session] of sessions.entries()) {
-    const sessionAge = now - session.lastAccessedAt.getTime();
-
-    if (sessionAge > SESSION_TTL) {
-      sessions.delete(sessionId);
-      removedCount++;
-      console.log(
-        `[Session] Removed expired session ${sessionId} (age: ${Math.round(sessionAge / 1000)}s)`
-      );
-    }
-  }
-
-  if (removedCount > 0) {
-    console.log(`[Session] Cleanup removed ${removedCount} expired sessions`);
-  }
-
-  return removedCount;
-}
-
-/**
- * Start periodic cleanup timer.
- *
- * Runs every 10 minutes to remove expired sessions.
- * Idempotent - safe to call multiple times.
- *
- * @internal
- */
-function startCleanup(): void {
-  if (cleanupTimer) {
-    return; // Already running
-  }
-
-  cleanupTimer = setInterval(() => {
-    removeExpiredSessions();
-  }, CLEANUP_INTERVAL);
-
-  // Prevent timer from keeping Node.js process alive
-  cleanupTimer.unref();
-
-  console.log(
-    `[Session] Cleanup timer started (interval: ${CLEANUP_INTERVAL / 1000}s)`
-  );
-}
-
-/**
- * Stop periodic cleanup timer (for testing/shutdown).
- *
- * @internal
- */
-export function stopCleanup(): void {
-  if (cleanupTimer) {
-    clearInterval(cleanupTimer);
-    cleanupTimer = null;
-    console.log('[Session] Cleanup timer stopped');
-  }
+export async function removeExpiredSessions(): Promise<number> {
+  // Redis handles TTL automatically
+  // InMemory handles cleanup via internal timer
+  // This is a no-op for compatibility
+  return 0;
 }
 
 /**
@@ -311,28 +235,51 @@ export function stopCleanup(): void {
  *
  * For monitoring and debugging.
  *
- * @returns Session manager statistics
+ * @returns Session manager statistics including store type
  */
-export function getSessionStats() {
-  const now = Date.now();
-  const activeSessions = Array.from(sessions.values());
+export async function getSessionStats() {
+  const sessionStore = getStore();
+  const sessions = await sessionStore.getActiveSessions(DEFAULT_PROJECT_ID);
 
-  const stats = {
-    totalSessions: sessions.size,
-    expiredSessions: activeSessions.filter(
-      (s) => now - s.lastAccessedAt.getTime() > SESSION_TTL
-    ).length,
-    oldestSession: activeSessions.reduce(
-      (oldest, session) =>
-        !oldest || session.createdAt < oldest.createdAt ? session : oldest,
+  return {
+    storeType,
+    totalSessions: sessions.length,
+    expiredSessions: 0, // Handled by TTL
+    oldestSession: sessions.reduce(
+      (oldest, s) => (!oldest || s.createdAt < oldest.createdAt ? s : oldest),
       null as MCPSession | null
     ),
-    newestSession: activeSessions.reduce(
-      (newest, session) =>
-        !newest || session.createdAt > newest.createdAt ? session : newest,
+    newestSession: sessions.reduce(
+      (newest, s) => (!newest || s.createdAt > newest.createdAt ? s : newest),
       null as MCPSession | null
     ),
   };
-
-  return stats;
 }
+
+/**
+ * Health check for session store.
+ *
+ * Returns health status and store type.
+ *
+ * @returns Health check result
+ */
+export async function healthCheck(): Promise<{ healthy: boolean; type: string }> {
+  const sessionStore = getStore();
+  const healthy = await sessionStore.healthCheck();
+  return { healthy, type: storeType };
+}
+
+/**
+ * Graceful shutdown.
+ *
+ * Disconnects from session store and cleans up resources.
+ */
+export async function shutdown(): Promise<void> {
+  if (store) {
+    await store.disconnect();
+    store = null;
+  }
+}
+
+// Legacy exports for compatibility
+export { startCleanup, stopCleanup } from './session-store-compat';

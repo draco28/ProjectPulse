@@ -934,7 +934,321 @@ Features:
 
 ---
 
+### 3.4 Development Cycle Page Specification (Sprint 8.5 Phase 1)
+
+**Route:** `/roadmap`  
+**Purpose:** Visual roadmap display with 5-level hierarchy tree (Phase → Sprint → Week → Day → Task)  
+**Priority:** P0 (Must Have - Sprint 8.5)  
+**Sprint:** Sprint 8.5 Phase 1
+
+**Related Requirements:**
+- **Functional Requirements:** FR-026 (Development Cycle UI), FR-027 (Roadmap Materialization)
+- **User Stories:** US-8.5-001 (Development Cycle UI)
+- **Database Models:** Phase, Sprint, Week, Day, Task, Roadmap
+
+---
+
+#### 3.4.1 Layout Structure
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ [Top Navigation Bar]                                         │
+├─────────────────────────────────────────────────────────────┤
+│ 🗺️ Development Cycle                 [Filters ▼] [Export]   │
+│                                                              │
+│ ┌────────────────────────────────────────────────────────┐  │
+│ │ 📍 You Are Here                                         │  │
+│ │ Phase A > Sprint 1 > Week 2 > Day 3 > Task: API Models │  │
+│ │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━  65%                      │  │
+│ └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│ Phase A: Foundation & Core Infrastructure        [85%] ▼   │
+│  ├─ Sprint 1: Database & API Foundation (Weeks 1-2) [100%] │
+│  │   ├─ Week 1                                     [100%]  │
+│  │   │   ├─ Day 1: Database setup                 [100%]  │
+│  │   │   ├─ Day 2: Prisma models                  [100%]  │
+│  │   └─ Week 2                                     [100%]  │
+│  ├─ Sprint 2: Workflow Orchestration (Weeks 3-4)   [80%] ▼│
+│  │   ├─ Week 3                                      [90%]  │
+│  │   │   ├─ Day 1: Workflow state machine          [100%] │
+│  │   │   ├─ Day 2: 5-step protocol                [100%]  │
+│  │   │   ├─ Day 3: Checkpoint system         [IN PROGRESS]│
+│  │   │   │   ├─ Task: API endpoints                [75%]  │
+│  │   │   │   ├─ Task: MCP tools             [IN PROGRESS] │
+│  │   │   │   └─ Task: Testing                     [0%]    │
+│  │   └─ Week 4                                      [70%]  │
+│  └─ Sprint 3: Issues Management (Weeks 5-6)        [0%]    │
+│                                                              │
+│ Phase B: Advanced Features                         [45%] ▼ │
+│  ├─ Sprint 4: Knowledge Graph (Weeks 7-8)          [60%]   │
+│  └─ Sprint 5: Skills System (Weeks 9-10)           [30%]   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### 3.4.2 Components
+
+**1. Current Position Banner ("You Are Here")**
+
+- Breadcrumb navigation showing current location in hierarchy
+- Full path: Phase > Sprint > Week > Day > Task
+- Progress bar showing overall task completion
+- Click any level to navigate to that view
+- Coral highlight on current level
+
+**2. Hierarchical Tree View**
+
+- **Phase Cards:**
+  - Phase name with description
+  - Progress percentage (0-100%)
+  - Collapsible/expandable (click to toggle)
+  - Color-coded status: green (>80%), yellow (60-80%), red (<60%)
+  
+- **Sprint Cards (NEW in Sprint 8.5):**
+  - Sprint number and name
+  - Story points estimate
+  - Week range (e.g., "Weeks 1-2")
+  - Progress percentage calculated from weeks
+  - Indented under parent Phase
+  
+- **Week Cards:**
+  - Week number within sprint
+  - Progress percentage calculated from days
+  - Indented under parent Sprint (not Phase anymore)
+  
+- **Day Cards:**
+  - Day number within week (1-5)
+  - Progress percentage calculated from tasks
+  - Indented under parent Week
+  
+- **Task Cards:**
+  - Task title and description
+  - Progress percentage (manual or from sessions)
+  - Status badge (NOT_STARTED, IN_PROGRESS, COMPLETED, BLOCKED)
+  - Link to task detail view
+  - Indented under parent Day
+
+**3. Filters Panel**
+
+- Status filter: All, In Progress, Completed, Blocked
+- Progress range slider: 0-100%
+- Date range picker: Start date - End date
+- Phase selector: Dropdown to jump to specific phase
+
+**4. Empty State**
+
+- Displayed when no phases exist
+- Message: "No roadmap found. Complete Session 3 onboarding to materialize your roadmap."
+- Call-to-action button: "Start Onboarding"
+
+---
+
+#### 3.4.3 Interactions
+
+**1. Expand/Collapse Nodes**
+
+- Click on card header to expand/collapse children
+- Keyboard: Arrow Up/Down to navigate, Space to toggle
+- State persisted in localStorage (remembers expanded nodes)
+
+**2. Progress Bars**
+
+- Real-time progress updates via WebSocket
+- Animated transitions (300ms ease-in-out)
+- Tooltip on hover showing exact percentage and counts (e.g., "3/5 tasks completed, 60%")
+
+**3. Breadcrumb Navigation**
+
+- Click any level in "You Are Here" banner to navigate
+- Example: Click "Sprint 1" → scrolls to and highlights Sprint 1 card
+
+**4. Filters**
+
+- Apply filters button triggers re-render
+- Reset filters button clears all selections
+- Filtered count badge (e.g., "Showing 5 of 20 items")
+
+---
+
+#### 3.4.4 Performance
+
+- **ISR Caching:** Revalidate every 60 minutes (roadmap rarely changes)
+- **Lazy Loading:** Load only expanded nodes (virtualization for >100 tasks)
+- **React.memo:** Memoize card components to prevent unnecessary re-renders
+- **WebSocket:** Real-time progress updates instead of polling
+
+---
+
+#### 3.4.5 Accessibility (WCAG 2.1 AA)
+
+- Keyboard navigation: Tab through cards, Enter to view details, Space to expand/collapse
+- ARIA attributes:
+  - `role="tree"` on hierarchy container
+  - `role="treeitem"` on each card
+  - `aria-expanded="true/false"` on collapsible cards
+  - `aria-current="location"` on current task in breadcrumb
+- Screen reader announcements for progress updates
+- Focus management: Focus stays on expanded node after collapse
+
+---
+
+#### 3.4.6 Acceptance Criteria
+
+- ✅ Display 5-level hierarchy tree (Phase → Sprint → Week → Day → Task)
+- ✅ "You Are Here" breadcrumb shows current position
+- ✅ Progress bars at all levels (calculated from children)
+-✅ Collapsible/expandable nodes with state persistence
+- ✅ Filters work (status, progress range, date range)
+- ✅ Empty state when no roadmap exists
+- ✅ WCAG 2.1 AA compliance
+- ✅ Performance: Initial load < 2s, lazy loading for >100 nodes
+
+---
+
+### 3.5 Agent Detail Modal Component (Sprint 8.5 Phase 3)
+
+**Purpose:** Display agent skills, workflows, and configuration in tabbed modal  
+**Priority:** P0 (Must Have - Sprint 8.5 Phase 3)  
+**Sprint:** Sprint 8.5 Phase 3
+
+**Related Requirements:**
+- **Functional Requirements:** FR-026 (Agent AI Hub tabs)
+- **User Stories:** US-8.5-006 (View Agent Skills), US-8.5-007 (View Agent Workflows), US-8.5-008 (View Agent Config)
+- **API Endpoint:** `GET /api/agents/{id}` (aggregates skills/workflows/config)
+
+---
+
+#### 3.5.1 Modal Layout
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [X] Close                        Agent Detail: Claude Code   │
+├──────────────────────────────────────────────────────────────┤
+│ [Skills] [Workflows] [Configuration]                         │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  Skills Tab (Active)                                          │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │ React Patterns (Category: Framework)                     │ │
+│  │ • Server Components vs Client Components                 │ │
+│  │ • useEffect patterns                                     │ │
+│  │ • Custom hooks                                           │ │
+│  │ Status: Loaded | Last Used: 2h ago | Token Cost: 220    │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │ Next.js 14 App Router (Category: Framework)              │ │
+│  │ • Route groups and layouts                               │ │
+│  │ • Server actions                                         │ │
+│  │ • Metadata API                                           │ │
+│  │ Status: Not Loaded | Token Cost: 180                    │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                                                               │
+│  Total Skills: 12 | Loaded: 3 | Token Usage: 660/5000       │
+│                                                               │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### 3.5.2 Tab Specifications
+
+**Tab 1: Skills**
+
+- Lists all agent's loaded skills with categories
+- Skill card showing:
+  - Skill name and category
+  - Brief description or key concepts (bulleted list)
+  - Status: Loaded or Not Loaded
+  - Last used timestamp
+  - Token cost estimate
+- Groups skills by category (Framework, Testing, Database, etc.)
+- Search bar to filter skills by name
+- Total token usage summary at bottom
+
+**Tab 2: Workflows**
+
+- Displays all 12 predefined workflows
+- Workflow card showing:
+  - Workflow name (e.g., "5-Step Mandatory Protocol")
+  - Current status: Active, Completed, or Not Started
+  - Last execution timestamp
+  - Success/failure indicator
+  - Number of times executed
+- Grid layout (2 columns on desktop, 1 on mobile)
+- Click workflow to view full execution history
+
+**Tab 3: Configuration**
+
+- Shows agent's configuration settings:
+  - System Prompt (collapsible, first 3 lines visible)
+  - Expertise Areas (tags: React, Next.js, Prisma, TypeScript)
+  - MCP Tools Enabled (list of 46 tools, grouped by category)
+  - Autonomy Level (L1: Notify Only, L2: Ask Approval, L3: Full Autonomy)
+  - Token Budget (current: 45K / 200K)
+- Read-only display (editing not supported in Sprint 8.5)
+
+---
+
+#### 3.5.3 Interactions
+
+**1. Tab Switching**
+
+- Click tab to switch (animated transition, 200ms)
+- Keyboard shortcuts:
+  - Ctrl+1: Skills tab
+  - Ctrl+2: Workflows tab
+  - Ctrl+3: Configuration tab
+- Active tab highlighted with coral underline
+
+**2. Modal Controls**
+
+- Close button (X icon) or Esc key to close
+- Click outside modal to close (with confirmation if unsaved changes)
+- Modal trap focus (Tab cycles through interactive elements inside modal)
+
+**3. Skill/Workflow Click**
+
+- Click skill card → View skill details in slide-out panel
+- Click workflow card → View workflow execution history
+
+---
+
+#### 3.5.4 Accessibility (WCAG 2.1 AA)
+
+- Tab navigation: `role="tablist"` with `role="tab"` and `aria-selected`
+- Keyboard: Tab through tabs, Enter to select, Esc to close modal
+- Focus trap: Focus cycles within modal, returns to trigger element on close
+- Screen reader announcements:
+  - "Agent Detail Modal" announced on open
+  - Tab changes announced (e.g., "Skills tab selected")
+- Aria-live region for token usage updates
+
+---
+
+#### 3.5.5 Performance
+
+- Lazy load tab content (only fetch data when tab activated)
+- Cache skills/workflows/config data (5-minute TTL)
+- Virtualize skills list if >50 skills (react-window)
+
+---
+
+#### 3.5.6 Acceptance Criteria
+
+- ✅ Display 3 tabs: Skills, Workflows, Configuration
+- ✅ Skills tab shows loaded skills with categories, token usage
+- ✅ Workflows tab shows all 12 workflows with status
+- ✅ Config tab displays system prompt, expertise, MCP tools, autonomy level
+- ✅ Tab switching works (click + keyboard shortcuts Ctrl+1/2/3)
+- ✅ Close modal works (X button, Esc key, click outside)
+- ✅ WCAG 2.1 AA compliance (focus trap, keyboard navigation, aria-live)
+- ✅ Performance: Tab content lazy loads, skills list virtualized if >50 items
+
+---
+
 ## 4. UI Components & Patterns
+
 
 ### 4.1 Core Components
 

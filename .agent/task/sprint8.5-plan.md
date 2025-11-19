@@ -2,13 +2,13 @@
 
 **Sprint ID**: Sprint 8.5
 **Type**: Critical MVP Gap Filling
-**Duration**: 6.5 days (1.5 weeks)
-**Story Points**: 24 points
+**Duration**: 7.75 days (1.5-2 weeks)
+**Story Points**: 27 points
 **Start Date**: 2025-11-17 (after Sprint 8 closure at 82%)
 **Owner**: Development Team
 **Status**: APPROVED - Ready for Execution
 **Created**: 2025-11-16
-**Last Updated**: 2025-11-17 (architectural decisions finalized)
+**Last Updated**: 2025-11-17 (estimates corrected after gap analysis)
 
 ---
 
@@ -26,10 +26,14 @@ Sprint 8 focused on human UI polish (theme switcher, notification indicators) in
 ### Solution: Sprint 8.5
 
 Fill critical MVP gaps with agent-first features:
-1. **Development Cycle UI + Materialization** (9 points) - Visualize hierarchy + populate from Session 3
-2. **Blueprint MCP Tool** (2 points) - Enable agent self-query (no UI)
-3. **Agent AI Hub Tabs** (8 points) - Manage skills/workflows
-4. **MCP Read Tools** (5 points) - Efficient hierarchy queries
+1. **Development Roadmap Materialization + UI** (12 points, 3.75 days) - 5-level hierarchy + materialization + UI
+2. **Blueprint MCP Tool** (2 points, 0.5 days) - Enable agent self-query (no UI)
+3. **Agent AI Hub Tabs** (8 points, 2 days) - Manage skills/workflows
+4. **MCP Read Tools** (5 points, 1.5 days) - Efficient hierarchy queries
+
+**Total**: 27 points, 7.75 days
+
+**Detailed Phase Plans**: See `.agent/task/sprint-8.5-plan-phase*.md` files for complete implementation details.
 
 ### Success Criteria
 
@@ -40,7 +44,7 @@ Fill critical MVP gaps with agent-first features:
 - ✅ Human can monitor agent progress in Development Cycle UI
 
 **MVP Completion**:
-- ✅ 91% → 93% (384.5 → 391 points)
+- ✅ 91% → 93% (384.5 → 394 points with corrected estimates)
 - ✅ Sprint 9 unblocked (memory banks can reference roadmap)
 - ✅ Sprint 11 unblocked (auto-docs can generate from roadmap)
 
@@ -72,24 +76,39 @@ Fill critical MVP gaps with agent-first features:
 
 ---
 
-## Phase 1: Development Cycle UI + Materialization (9 points, 2.5 days)
+## Phase 1: Development Roadmap Materialization + UI (12 points, 3.75 days)
 
 ### Overview
 
-**Goal**: Create `/roadmap` page to visualize the 5-level hierarchy (Phase → Week → Day → Task → Session) with progress tracking, PLUS add materialization tool to populate hierarchy from Session 3.
+**Goal**: Create complete roadmap system with:
+- 5-level hierarchy (Phase → Sprint → Week → Day → Task)
+- Session 2 → 13-Project-Plan.md content in Document table
+- Session 3 → Roadmap record with phases JSON
+- Materialization → JSON → normalized Phase/Sprint/Week/Day records
+- UI → `/roadmap` page displays hierarchical tree
+- CurrentWorkModal → displays DevelopmentSession.plan + .todos
 
 **Why Critical**:
 - Sprint 9 Memory Banks need visual roadmap for "active-context.md"
 - Sprint 11 Auto-Docs need to query roadmap structure
 - Humans need to monitor agent progress (secondary but required)
-- **NEW REQUIREMENT**: Session 3 creates Roadmap (JSON) but NOT Phase/Week/Day records
-- **BLOCKER**: Without materialization, Development Cycle UI shows empty tree
+- **BLOCKER**: Without complete flow, Session 3 → Roadmap → UI chain breaks
+
+**Part 0: Database Schema** (4 hours, 5 tasks):
+- Task 0.0: Document model (from 3-session reference) - 30 min
+- Task 0.1: Roadmap model with projectId Int fix - 30 min
+- Task 0.2: Sprint model (5-level hierarchy) - 1 hour
+- Task 0.3: API compatibility migration (fix Sprint 8 routes) - 30 min
+- Task 0.4: DevelopmentSession model (from 3-session reference) - 30 min
 
 **Dependencies**:
-- ✅ Database schema complete (Phase/Week/Day/Task/Session models)
-- ✅ API endpoint exists (`GET /api/hierarchy/query`)
-- ✅ MCP tools exist (`sprint.phase.create`, `sprint.checkpoint`)
-- ✅ OnboardingSession stores Session 3 in `response.projectContextJson`
+- ✅ Sprint 8 hierarchy (Phase/Week/Day/Task/Session models)
+- ✅ OnboardingSession stores Session 3 data
+- ⚠️ Needs Document model (stores 13-Project-Plan.md content)
+- ⚠️ Needs DevelopmentSession model (stores agent plan/todos)
+- ⚠️ Needs API migration (Sprint 8 routes break with Sprint layer)
+
+**Detailed Plan**: See `.agent/task/sprint-8.5-plan-phase1.md` for complete 17-task breakdown
 
 ---
 
@@ -240,9 +259,11 @@ test('should filter by status', async ({ page }) => {
 - [ ] **Integration Test**: Complete Session 3 → Phase/Week/Day records exist → UI displays
 - [ ] Manual test: Agent calls `sprint.checkpoint` → UI updates
 
-**Story Points**: 9 points (8 UI + 1 materialization)
-**Estimated Time**: 2.5 days
+**Story Points**: 12 points (3 schema + 8 UI + 1 materialization)
+**Estimated Time**: 3.75 days (~30 hours)
 **Priority**: P0 (CRITICAL - blocks Sprint 9)
+**Detailed Plan**: `.agent/task/sprint-8.5-plan-phase1.md`
+**Detailed Todos**: `.agent/task/sprint-8.5-plan-phase1-todos.md`
 
 ---
 
@@ -266,6 +287,9 @@ test('should filter by status', async ({ page }) => {
 **Dependencies**:
 - ✅ OnboardingSession model stores Session 3 in `response` JSONB
 - ✅ project-context.json structure defined in 3-session-onboarding-REFERENCE.md
+- ⚠️ **Blocked by**: Phase 1 Part 0 Task 0.0 (Document model must exist)
+
+**Detailed Plan**: See `.agent/task/sprint-8.5-plan-phase2.md` for complete implementation details
 
 ---
 
@@ -353,8 +377,9 @@ describe('projectpulse.blueprint.get', () => {
 - [ ] No UI components created (verified)
 
 **Story Points**: 2 points (down from 5)
-**Estimated Time**: 0.5 days (down from 1.5 days)
+**Estimated Time**: 0.5 days (~4 hours)
 **Priority**: P1 (CRITICAL for agents, not for UI)
+**Detailed Plan**: `.agent/task/sprint-8.5-plan-phase2.md`
 
 ---
 
@@ -373,7 +398,9 @@ describe('projectpulse.blueprint.get', () => {
 - ✅ AgentPersona model has skills[], tools[], rules[]
 - ✅ Skill model exists
 - ✅ WorkflowTemplate model exists
-- ⚠️ Needs Phase 2 Blueprint View patterns
+- ✅ **Independent**: No dependencies on Phase 1-2 (can run parallel)
+
+**Detailed Plan**: See `.agent/task/sprint-8.5-plan-phase3.md` for complete implementation details
 
 ---
 
@@ -465,8 +492,9 @@ test('should filter skills by category', async ({ page }) => {
 - [ ] E2E tests: 5-7 tests passing
 
 **Story Points**: 8 points
-**Estimated Time**: 2 days
+**Estimated Time**: 2 days (~16 hours)
 **Priority**: P1 (High - improves agent management UX)
+**Detailed Plan**: `.agent/task/sprint-8.5-plan-phase3.md`
 
 ---
 
@@ -484,7 +512,9 @@ test('should filter skills by category', async ({ page }) => {
 **Dependencies**:
 - ✅ Database schema supports nested queries
 - ✅ API endpoint `/api/hierarchy/query` exists
-- ⚠️ Needs Phase 1 understanding of hierarchy
+- ⚠️ **Blocked by**: Phase 1 complete (MCP tools query Phase/Sprint/Week/Day hierarchy)
+
+**Detailed Plan**: See `.agent/task/sprint-8.5-plan-phase4.md` for complete implementation details
 
 ---
 
@@ -560,37 +590,40 @@ describe('projectpulse.sprint.getPhaseProgress', () => {
 - [ ] Tools callable from Claude Code
 
 **Story Points**: 5 points
-**Estimated Time**: 1.5 days
+**Estimated Time**: 1.5 days (~12 hours)
 **Priority**: P1 (High - improves agent efficiency)
+**Detailed Plan**: `.agent/task/sprint-8.5-plan-phase4.md`
 
 ---
 
 ## Sprint 8.5 Summary
 
 ### Total Scope
-- **Story Points**: 24 points (down from 26)
-- **Duration**: 6.5 days (1.5 weeks)
-- **Phases**: 4 phases (sequential)
-- **New Files**: ~22 files (down from ~25)
-- **Updated Files**: ~6 files
+- **Story Points**: 27 points (corrected from 24)
+- **Duration**: 7.75 days (1.5-2 weeks)
+- **Phases**: 4 phases (Phase 1 sequential Part 0 → A → B → C, others flexible)
+- **New Files**: ~30 files (up from ~22)
+- **Updated Files**: ~10 files
 
 ### Phase Breakdown
-| Phase | Focus | Points | Days | Priority | Status |
-|-------|-------|--------|------|----------|--------|
-| 1 | Development Cycle UI + Materialization | 9 | 2.5 | P0 | PENDING |
-| 2 | Blueprint MCP Tool (no UI) | 2 | 0.5 | P1 | PENDING |
-| 3 | Agent AI Hub Tabs | 8 | 2 | P1 | PENDING |
-| 4 | MCP Read Tools | 5 | 1.5 | P1 | PENDING |
+| Phase | Focus | Points | Days | Priority | Dependencies | Status |
+|-------|-------|--------|------|----------|--------------|--------|
+| 1 | Roadmap Materialization + UI | 12 | 3.75 | P0 | Sprint 8 hierarchy | PENDING |
+| 2 | Blueprint MCP Tool (no UI) | 2 | 0.5 | P1 | Phase 1 Part 0 (Document model) | PENDING |
+| 3 | Agent AI Hub Tabs | 8 | 2 | P1 | None (independent) | PENDING |
+| 4 | MCP Read Tools | 5 | 1.5 | P1 | Phase 1 complete (queries hierarchy) | PENDING |
+
+**Detailed Plans**: All phases have detailed plan files in `.agent/task/sprint-8.5-plan-phase*.md`
 
 ### Success Criteria
-- ✅ Agent can complete full onboarding workflow (Sessions 1-3)
-- ✅ Session 3 automatically populates Phase/Week/Day hierarchy via materialization
-- ✅ Agent can query Session 3 blueprint via MCP
-- ✅ Agent can get current position in 1 call (vs 5)
-- ✅ Human can view roadmap in Development Cycle UI
-- ✅ Human can view agent configuration in Agent AI Hub
+- ✅ Agent completes Session 1-3 → Document table stores docs
+- ✅ Session 3 creates Roadmap → materialization creates Phase/Sprint/Week/Day
+- ✅ Agent can query blueprint via MCP (`projectpulse.blueprint.get`)
+- ✅ Agent can get current position in 1 call (`sprint.getCurrentPosition`)
+- ✅ Human can view roadmap in `/roadmap` UI
+- ✅ Human can view agent config in Agent AI Hub
 - ✅ Sprint 9 unblocked (memory banks can reference roadmap)
-- ✅ MVP: 91% → 93% (384.5 → 391 points)
+- ✅ MVP: 91% → 93% (384.5 → 394 points with corrected estimates)
 
 ### Testing Targets
 - **E2E Tests**: 15-20 new tests
@@ -665,13 +698,20 @@ describe('projectpulse.sprint.getPhaseProgress', () => {
 - ✅ MCP server infrastructure operational (27 tools)
 
 ### Internal (Between Phases)
-- Phase 1: Must complete first (materialization enables other features)
-- Phase 2: Independent (MCP tool only, no UI dependencies)
-- Phase 3: Independent (Agent AI Hub UI, no dependencies on Phase 1-2)
-- Phase 4: Depends on Phase 1 (MCP tools query hierarchy created by materialization)
+- **Phase 1**: MUST complete first (creates Document, Roadmap, Sprint, DevelopmentSession models)
+- **Phase 2**: Depends on Phase 1 Part 0 (needs Document model to read 13-Project-Plan.md)
+- **Phase 3**: Independent (UI only, uses existing AgentPersona model)
+- **Phase 4**: Depends on Phase 1 (MCP tools query Phase/Sprint/Week/Day hierarchy)
 
-**Critical Path**: Phase 1 → Phase 4 (materialization enables hierarchy queries)
-**Parallel Work**: Phases 2-3 can run concurrently with Phase 1 if needed
+**Critical Path**: Phase 1 Part 0 → Phase 1 Parts A-C → Phase 2 → Phase 4
+**Parallel Work**: Phase 3 can run parallel with Phase 2
+
+**Gap Fixes in Phase 1 Part 0**:
+- Document model (Session 2 content storage)
+- Roadmap.projectId type fix (String → Int)
+- Sprint model (5-level hierarchy)
+- API compatibility (Sprint 8 routes migration)
+- DevelopmentSession model (agent plan/todos storage)
 
 ---
 

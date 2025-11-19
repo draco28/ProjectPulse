@@ -2298,9 +2298,11 @@ pnpm prisma migrate status
   // ========================================================================
   console.log('🤖 Creating agent personas...');
 
+  // Sprint 8.5 Phase 3: Agents are now project-scoped
   const personas = await Promise.all([
     prisma.agentPersona.create({
       data: {
+        projectId: project.id, // Link to project
         name: 'Code Reviewer',
         slug: 'code-reviewer',
         icon: '🔍',
@@ -2331,6 +2333,7 @@ When reviewing code:
 
     prisma.agentPersona.create({
       data: {
+        projectId: project.id, // Link to project
         name: 'Debugging Assistant',
         slug: 'debugger',
         icon: '🐛',
@@ -2357,6 +2360,7 @@ When reviewing code:
 
     prisma.agentPersona.create({
       data: {
+        projectId: project.id, // Link to project
         name: 'Documentation Writer',
         slug: 'docs-writer',
         icon: '📝',
@@ -2438,6 +2442,7 @@ Format:
 
   const workflowTemplates = [
     {
+      projectId: project.id, // Sprint 8.5 Phase 3: Add projectId for project-scoped workflows
       name: 'Feature Implementation',
       description: 'Complete workflow for implementing a new feature from planning to deployment',
       category: 'development',
@@ -2455,6 +2460,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Bug Fix',
       description: 'Systematic workflow for investigating and fixing bugs',
       category: 'development',
@@ -2470,6 +2476,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Refactoring',
       description: 'Safe refactoring workflow with comprehensive testing',
       category: 'development',
@@ -2484,6 +2491,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Documentation Update',
       description: 'Workflow for creating or updating project documentation',
       category: 'development',
@@ -2496,6 +2504,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Test Coverage Improvement',
       description: 'Systematic workflow for improving test coverage',
       category: 'development',
@@ -2509,6 +2518,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Database Migration',
       description: 'Safe database schema migration workflow',
       category: 'development',
@@ -2525,6 +2535,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Sprint Planning',
       description: 'Setup new sprint with phases, weeks, days, and tasks',
       category: 'project-management',
@@ -2538,6 +2549,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Sprint Review',
       description: 'Complete sprint review and generate completion report',
       category: 'project-management',
@@ -2550,6 +2562,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Progress Checkpoint',
       description: 'Create progress checkpoint during active work',
       category: 'project-management',
@@ -2561,6 +2574,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Wiki Page Creation',
       description: 'Structured workflow for creating comprehensive wiki pages',
       category: 'knowledge',
@@ -2573,6 +2587,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Knowledge Search',
       description: 'Comprehensive search across multiple knowledge sources',
       category: 'knowledge',
@@ -2584,6 +2599,7 @@ Format:
       ],
     },
     {
+      projectId: project.id,
       name: 'Onboarding New Project',
       description: 'Complete 3-session project onboarding workflow',
       category: 'knowledge',
@@ -2601,7 +2617,12 @@ Format:
 
   for (const template of workflowTemplates) {
     await prisma.workflowTemplate.upsert({
-      where: { name: template.name },
+      where: {
+        projectId_name: {
+          projectId: template.projectId,
+          name: template.name,
+        },
+      },
       update: {
         description: template.description,
         category: template.category,
@@ -2613,6 +2634,174 @@ Format:
   }
 
   console.log(`✓ Created ${workflowTemplates.length} workflow templates\n`);
+
+  // ========================================================================
+  // SOPS (Sprint 8.5 Phase 3E)
+  // ========================================================================
+  console.log('📋 Creating sample SOPs...');
+
+  const sops = await Promise.all([
+    prisma.sOP.create({
+      data: {
+        projectId: project.id,
+        title: 'Git Branching Strategy',
+        slug: 'git-branching-strategy',
+        description: 'Standard git workflow for feature development, hotfixes, and releases',
+        content: `# Git Branching Strategy
+
+## Branch Types
+
+### Main Branches
+- \`master\` - Production-ready code
+- \`develop\` - Integration branch for features
+
+### Supporting Branches
+- \`feature/*\` - New features
+- \`hotfix/*\` - Emergency production fixes
+- \`release/*\` - Release preparation
+
+## Workflow
+
+1. Create feature branch from \`develop\`:
+   \`\`\`bash
+   git checkout develop
+   git pull origin develop
+   git checkout -b feature/my-feature
+   \`\`\`
+
+2. Commit changes regularly:
+   \`\`\`bash
+   git add .
+   git commit -m "feat: add new feature"
+   \`\`\`
+
+3. Push and create PR:
+   \`\`\`bash
+   git push -u origin feature/my-feature
+   \`\`\`
+
+4. After review, merge to develop
+5. Delete feature branch
+
+## Rules
+- Never commit directly to master
+- Always create PRs for code review
+- Keep commits atomic and well-described
+- Rebase feature branches regularly`,
+        category: 'Development',
+        tags: ['git', 'workflow', 'branching', 'version-control'],
+      },
+    }),
+
+    prisma.sOP.create({
+      data: {
+        projectId: project.id,
+        title: 'API Endpoint Development',
+        slug: 'api-endpoint-development',
+        description: 'Standard procedure for creating new API endpoints with validation and error handling',
+        content: `# API Endpoint Development
+
+## Steps
+
+### 1. Define Route
+Create file: \`app/api/[resource]/route.ts\`
+
+### 2. Implement Handler
+\`\`\`typescript
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const validated = schema.parse(body);
+    const result = await prisma.resource.create({ data: validated });
+    return Response.json(result, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return Response.json({ error: error.errors }, { status: 400 });
+    }
+    return Response.json({ error: 'Internal error' }, { status: 500 });
+  }
+}
+\`\`\`
+
+### 3. Add Validation
+- Use Zod for input validation
+- Validate all user input
+- Return 400 for validation errors
+
+### 4. Error Handling
+- Catch all errors
+- Log errors with context
+- Return appropriate status codes
+- Never expose internal errors to client
+
+### 5. Testing
+- Write unit tests
+- Test error cases
+- Test edge cases
+- Document in OpenAPI spec`,
+        category: 'Development',
+        tags: ['api', 'validation', 'error-handling', 'backend'],
+      },
+    }),
+
+    prisma.sOP.create({
+      data: {
+        projectId: project.id,
+        title: 'Component Testing Checklist',
+        slug: 'component-testing-checklist',
+        description: 'Comprehensive testing checklist for React components',
+        content: `# Component Testing Checklist
+
+## Unit Tests (Jest + React Testing Library)
+
+### Rendering
+- [ ] Component renders without crashing
+- [ ] Renders with required props
+- [ ] Renders with optional props
+- [ ] Handles missing props gracefully
+
+### User Interactions
+- [ ] Button clicks trigger correct handlers
+- [ ] Form inputs update state
+- [ ] Form submission works correctly
+- [ ] Keyboard navigation works
+
+### Conditional Rendering
+- [ ] Shows loading state
+- [ ] Shows error state
+- [ ] Shows empty state
+- [ ] Shows success state
+
+### Accessibility
+- [ ] Has proper ARIA labels
+- [ ] Keyboard accessible
+- [ ] Screen reader friendly
+- [ ] Focus management works
+
+## E2E Tests (Playwright)
+
+### User Flows
+- [ ] Complete user journey works
+- [ ] Navigation between pages
+- [ ] Form submission end-to-end
+- [ ] Error handling in UI
+
+### Cross-browser
+- [ ] Works in Chrome
+- [ ] Works in Firefox
+- [ ] Works in Safari
+
+### Responsive
+- [ ] Works on mobile viewport
+- [ ] Works on tablet viewport
+- [ ] Works on desktop viewport`,
+        category: 'Testing',
+        tags: ['testing', 'react', 'components', 'quality'],
+      },
+    }),
+  ]);
+
+  console.log(`✓ Created ${sops.length} sample SOPs\n`);
 
   // ========================================================================
   // SUMMARY
@@ -2630,6 +2819,7 @@ Format:
   console.log(`   - Health Findings: 8 (across all categories)`);
   console.log(`   - Agent Personas: ${personas.length}`);
   console.log(`   - Workflow Templates: ${workflowTemplates.length}`);
+  console.log(`   - SOPs: ${sops.length}`);
   console.log(`   - Comments: 3`);
   console.log('\n🎉 Ready to use!');
 }

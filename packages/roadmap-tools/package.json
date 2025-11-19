@@ -1,0 +1,28 @@
+{
+  "name": "@projectpulse/roadmap-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared roadmap parsing and materialization tools",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.9.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "typescript": "^5.4.2"
+  }
+}

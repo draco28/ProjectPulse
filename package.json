@@ -58,6 +58,7 @@
   "author": "draco28 <praveensingh2897@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^15.5.2",
     "prettier": "^3.6.2",

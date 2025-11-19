@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: projectpulse
+  labels:
+    app: projectpulse
+    environment: production

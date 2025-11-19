@@ -1,8 +1,9 @@
 'use client';
 
-import { useOptimistic, useTransition } from 'react';
+import { useState, useOptimistic, useTransition } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toggleAgentStatus } from '@/app/agents/actions';
+import { AgentDetailModal } from './AgentDetailModal';
 
 interface AgentCardProps {
   agent: {
@@ -32,6 +33,7 @@ const getAgentEmoji = (name: string, expertise: string[]): string => {
 };
 
 export function AgentCard({ agent }: AgentCardProps) {
+  const [modalOpen, setModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   // useOptimistic for instant UI feedback
@@ -40,7 +42,8 @@ export function AgentCard({ agent }: AgentCardProps) {
     (state, newStatus: boolean) => ({ ...state, isActive: newStatus })
   );
 
-  const handleToggle = () => {
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when toggling
     startTransition(async () => {
       // Optimistic update (instant UI change)
       setOptimisticAgent(!optimisticAgent.isActive);
@@ -59,11 +62,14 @@ export function AgentCard({ agent }: AgentCardProps) {
   const isActive = optimisticAgent.isActive;
 
   return (
-    <div
-      className={`neu-raised agent-card smooth-transition relative overflow-hidden rounded-3xl p-6 ${
-        isActive ? 'ring-2 ring-coral/50' : ''
-      }`}
-    >
+    <>
+      <div
+        className={`neu-raised agent-card smooth-transition relative overflow-hidden rounded-3xl p-6 cursor-pointer hover:shadow-lg ${
+          isActive ? 'ring-2 ring-coral/50' : ''
+        }`}
+        onClick={() => setModalOpen(true)}
+        data-testid="agent-card"
+      >
       {/* Header: Avatar, name, status, toggle */}
       <div className="mb-6 flex items-start justify-between">
         <div className="flex items-start gap-4">
@@ -147,10 +153,19 @@ export function AgentCard({ agent }: AgentCardProps) {
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
-          <button className="flex-1 rounded-2xl bg-coral-gradient coral-gradient px-4 py-2 text-sm font-medium text-white shadow-lg">
+          <button 
+            className="flex-1 rounded-2xl bg-coral-gradient coral-gradient px-4 py-2 text-sm font-medium text-white shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              setModalOpen(true);
+            }}
+          >
             Configure
           </button>
-          <button className="flex-1 neu-raised rounded-2xl px-4 py-2 text-sm text-white">
+          <button 
+            className="flex-1 neu-raised rounded-2xl px-4 py-2 text-sm text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
             View Analytics
           </button>
         </div>
@@ -163,5 +178,13 @@ export function AgentCard({ agent }: AgentCardProps) {
         </div>
       )}
     </div>
+
+    {/* Agent Detail Modal */}
+    <AgentDetailModal
+      agentId={agent.id}
+      open={modalOpen}
+      onOpenChange={setModalOpen}
+    />
+  </>
   );
 }

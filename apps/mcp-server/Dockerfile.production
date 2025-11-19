@@ -1,0 +1,59 @@
+# Stage 1: Dependencies
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/mcp-server/package.json ./apps/mcp-server/
+COPY packages/roadmap-tools/package.json ./packages/roadmap-tools/
+RUN corepack enable && pnpm install --frozen-lockfile
+
+# Stage 2: Build shared packages
+FROM node:20-alpine AS shared-builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY packages/roadmap-tools ./packages/roadmap-tools
+RUN cd packages/roadmap-tools && npx tsc
+
+# Stage 3: Generate Prisma Client
+FROM node:20-alpine AS prisma
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY apps/web/prisma ./apps/web/prisma
+RUN cd apps/web && npx prisma generate
+
+# Stage 4: Build MCP Server
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=shared-builder /app/packages/roadmap-tools/dist ./packages/roadmap-tools/dist
+COPY --from=shared-builder /app/packages/roadmap-tools/package.json ./packages/roadmap-tools/
+COPY --from=prisma /app/node_modules/.prisma ./node_modules/.prisma
+COPY apps/mcp-server ./apps/mcp-server
+COPY packages/roadmap-tools/src ./packages/roadmap-tools/src
+COPY packages/roadmap-tools/tsconfig.json ./packages/roadmap-tools/
+RUN cd apps/mcp-server && npx tsc -p tsconfig.build.json
+
+# Stage 5: Production runtime
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S mcp -u 1001
+
+# Copy built MCP server
+COPY --from=builder --chown=mcp:nodejs /app/apps/mcp-server/dist ./apps/mcp-server/dist
+
+# Copy node_modules (only production dependencies)
+COPY --from=deps --chown=mcp:nodejs /app/node_modules ./node_modules
+
+# Copy shared package
+COPY --from=builder --chown=mcp:nodejs /app/packages/roadmap-tools/dist ./packages/roadmap-tools/dist
+COPY --from=builder --chown=mcp:nodejs /app/packages/roadmap-tools/package.json ./packages/roadmap-tools/
+
+# Copy Prisma client
+COPY --from=prisma --chown=mcp:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+
+USER mcp
+EXPOSE 3001
+ENV PORT=3001
+CMD ["node", "apps/mcp-server/dist/index-http.js"]

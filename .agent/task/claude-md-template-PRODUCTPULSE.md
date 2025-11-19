@@ -110,14 +110,24 @@ const activeContext = await projectpulse.memory.read("active-context")
 const progress = await projectpulse.memory.read("progress")
 const projectPlan = await projectpulse.docs.read("13-Project-Plan.md")
 
+// Get current roadmap position
+const roadmap = await projectpulse.roadmap.getCurrent(projectId)
+// Returns: { currentPhase, currentSprint, currentWeek, currentDay, phases: [...] }
+
+// Get current plan and todos
+const currentPlan = await projectpulse.roadmap.getCurrentPlan(projectId)
+const currentTodos = await projectpulse.roadmap.getCurrentTodos(projectId)
+
 // Create session in ProjectPulse
 const sessionId = await projectpulse.session.create({
-  phase: activeContext.currentPhase,
-  goals: activeContext.currentGoals
+  phase: roadmap.currentPhase,
+  week: roadmap.currentWeek,
+  day: roadmap.currentDay,
+  goals: currentPlan.goals
 })
 ```
 
-**Confirm**: "✅ STEP 1 COMPLETE: Session initialized from ProjectPulse DB"
+**Confirm**: "✅ STEP 1 COMPLETE: Session initialized from ProjectPulse DB at [Phase/Week/Day]"
 
 ---
 
@@ -166,13 +176,24 @@ const prismaExpert = await projectpulse.agent.get("prisma-expert")
 ```typescript
 // At 15K, 30K, 45K, 60K tokens - update ProjectPulse DB
 await projectpulse.session.updateProgress(sessionId, {
-  completedTasks: 5,
-  currentTask: "Implementing user authentication",
-  tokensUsed: 30000
+  completedTasks: ["Implemented login endpoint", "Added tests"],
+  currentTask: "JWT validation middleware",
+  tokensUsed: 30000,
+  blockers: []
 })
+
+// If all current todos complete for this week/day
+const currentTodos = await projectpulse.roadmap.getCurrentTodos(projectId)
+const allComplete = currentTodos.todos.every(t => t.status === "completed")
+
+if (allComplete) {
+  // Mark current week/day complete and move to next
+  const { nextWeek, nextDay } = await projectpulse.roadmap.completeCurrentWork(projectId)
+  // Agent should then create new current-plan/todos for next work
+}
 ```
 
-**Confirm**: "✅ CHECKPOINT at [X]K tokens: Progress saved to ProjectPulse DB"
+**Confirm**: "✅ CHECKPOINT at [X]K tokens: Progress saved, Week [N] Day [M] status updated"
 
 **DO NOT** write checkpoint updates to files - use ProjectPulse DB!
 
@@ -185,27 +206,102 @@ await projectpulse.session.updateProgress(sessionId, {
 // Update Memory Bank in ProjectPulse DB
 await projectpulse.memory.update("active-context", {
   currentPhase: "Phase 2: Core Features",
-  recentCompletions: ["User authentication completed"],
+  currentWeek: "Week 5",
+  currentDay: "Day 1",
+  recentCompletions: ["User authentication system completed"],
   blockers: []
 })
 
 await projectpulse.memory.update("progress", {
-  phase1Complete: true,
-  phase2Started: true,
-  velocity: "12 points/week"
+  completedWeeks: 4,
+  velocity: "12 tasks/week",
+  milestonesReached: ["MVP Auth Complete"]
 })
 
 // Complete session in ProjectPulse DB
 await projectpulse.session.complete(sessionId, {
-  summary: "Implemented user authentication with tests",
-  achievements: ["Auth flow", "Protected routes", "Session management"],
-  nextSteps: ["Begin Phase 2 features"]
+  summary: "Completed Week 4 authentication work",
+  achievements: ["Login flow", "JWT middleware", "Tests"],
+  nextSteps: ["Begin Week 5: API routes"]
+})
+
+// If starting new week/day, create new current-plan/todos
+if (startingNewWeek) {
+  const roadmap = await projectpulse.roadmap.getCurrent(projectId)
+  const { nextWeek, nextDay } = await projectpulse.roadmap.completeCurrentWork(projectId)
+  
+  await projectpulse.roadmap.updateCurrentPlan(projectId, nextWeek.id, nextDay.id, {
+    content: "Week 5 Day 1: API endpoint implementation\n\n## Goals\n...",
+    goals: ["Create POST /api/users", "Add validation"]
+  })
+  
+  await projectpulse.roadmap.updateCurrentTodos(projectId, nextWeek.id, nextDay.id, {
+    todos: [
+      { content: "Implement POST /api/users", status: "pending", priority: "high" },
+      { content: "Add Zod validation", status: "pending", priority: "high" }
+    ]
+  })
+}
+```
+
+**Confirm**: "✅ STEP 5 COMPLETE: Session completed, roadmap updated to Week [N] Day [M]"
+
+**DO NOT** update `.agent/active-context.md` or `.agent/progress.md` - they don't exist!
+
+---
+
+## 📋 Current Work Tracking (Roadmap UI)
+
+**Purpose**: Track what you're currently working on (visible in Roadmap UI tabs)
+
+### Current Plan & Todos
+
+**When to update**: At the start of each new week/day of work
+
+**MCP Tools**:
+
+```typescript
+// When starting new week/day work
+projectpulse.roadmap.updateCurrentPlan(projectId, weekId, dayId, {
+  content: "Week 2 Day 3: Implement user authentication\n\n## Overview\n...",
+  goals: ["Complete login flow", "Add JWT middleware", "Write tests"]
+})
+
+projectpulse.roadmap.updateCurrentTodos(projectId, weekId, dayId, {
+  todos: [
+    { content: "POST /api/login endpoint", status: "pending", priority: "high" },
+    { content: "JWT validation middleware", status: "pending", priority: "high" },
+    { content: "Login integration tests", status: "pending", priority: "medium" }
+  ]
 })
 ```
 
-**Confirm**: "✅ STEP 5 COMPLETE: All updates saved to ProjectPulse DB"
+**When work completes**:
+```typescript
+// Mark current week/day complete
+projectpulse.roadmap.completeCurrentWork(projectId)
+// This automatically:
+// ✅ Marks current week/day as COMPLETED
+// ✅ Moves roadmap pointer to next week/day
+// ✅ Returns next week/day info for creating new plan/todos
+// ✅ Updates Roadmap UI position
 
-**DO NOT** update `.agent/active-context.md` or `.agent/progress.md` - they don't exist!
+// Then create new current-plan/todos for next work
+const { nextWeek, nextDay } = await projectpulse.roadmap.completeCurrentWork(projectId)
+projectpulse.roadmap.updateCurrentPlan(projectId, nextWeek.id, nextDay.id, {...})
+projectpulse.roadmap.updateCurrentTodos(projectId, nextWeek.id, nextDay.id, {...})
+```
+
+**View in Roadmap UI**:
+- Roadmap page has two tabs: **"Current Plan"** and **"Current Todos"**
+- Click to open detailed view of what you're working on
+- Auto-updates when you move to next week/day
+- Shows which week/day is currently in progress
+
+**🚨 CRITICAL**: 
+- ❌ DO NOT create `.agent/task/current-plan.md` files
+- ❌ DO NOT create `.agent/task/current-todos.md` files
+- ✅ Always use `projectpulse.roadmap.updateCurrentPlan()` and `updateCurrentTodos()`
 
 ---
 

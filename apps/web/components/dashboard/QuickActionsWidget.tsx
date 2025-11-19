@@ -8,18 +8,59 @@
  * - neu-raised container with rounded-3xl
  * - coral-gradient primary button
  * - neu-raised secondary buttons
+ * - Dynamic onboarding link (prominent when incomplete, reference when complete)
  */
-'use client';
 
-import { Plus, Book, Bot } from 'lucide-react';
+import { Plus, Book, Bot, Rocket, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
 
-export function QuickActionsWidget() {
+interface QuickActionsWidgetProps {
+  onboardingStatus?: {
+    completedSessions: number; // 0-3
+    isComplete: boolean;
+  };
+}
+
+export function QuickActionsWidget({ onboardingStatus }: QuickActionsWidgetProps) {
   return (
     <div className="neu-raised smooth-transition rounded-3xl p-6">
       <h3 className="mb-4 text-lg font-bold text-white">Quick Actions</h3>
       <div className="space-y-3">
+        {/* Onboarding Action - Show if incomplete (Primary coral button) */}
+        {onboardingStatus && !onboardingStatus.isComplete && (
+          <Link
+            href="/onboarding"
+            className="coral-gradient smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-white hover:opacity-90"
+            aria-label="Complete project setup"
+          >
+            <Rocket className="h-5 w-5" aria-hidden="true" />
+            <span>
+              {onboardingStatus.completedSessions === 0
+                ? 'Start Setup'
+                : `Continue Setup (${onboardingStatus.completedSessions}/3)`}
+            </span>
+          </Link>
+        )}
+
+        {/* Onboarding Complete - Reference link (green border) */}
+        {onboardingStatus?.isComplete && (
+          <Link
+            href="/onboarding"
+            className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-green-400 hover:text-green-300 border border-green-500/20"
+            aria-label="View onboarding summary"
+          >
+            <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+            <span>Setup Complete</span>
+          </Link>
+        )}
+
+        {/* Create Issue - Primary action when setup complete, secondary otherwise */}
         <button
-          className="coral-gradient smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-white"
+          className={
+            onboardingStatus?.isComplete
+              ? 'coral-gradient smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-white'
+              : 'neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-slate hover:text-white'
+          }
           aria-label="Create new issue"
         >
           <Plus className="h-5 w-5" aria-hidden="true" />

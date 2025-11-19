@@ -124,7 +124,7 @@ C4Context
     Person(developer, "Solo Developer", "Human monitoring and manual operations<br/>Secondary User (5% interaction)")
 
     System_Boundary(devhub, "ProjectPulse") {
-    System(mcp_server, "MCP Server", "41 tools across 9 features<br/>HTTP JSON-RPC + SSE streaming")
+    System(mcp_server, "MCP Server", "Execute workflows via MCP tools (45 tools across 9 features)<br/>HTTP JSON-RPC + SSE streaming")
         System(web_app, "Next.js Web App", "Monitoring dashboard + Manual CRUD<br/>React Server Components")
         SystemDb(database, "PostgreSQL", "Single source of truth<br/>Prisma ORM")
     }
@@ -134,7 +134,7 @@ C4Context
     System_Ext(docker, "Docker", "PostgreSQL container<br/>Development environment")
     System_Ext(embedding_api, "Embedding API", "OpenAI text-embedding-3-small<br/>Optional: local embeddings")
 
-    Rel(agent, mcp_server, "Executes workflows via MCP", "HTTP JSON-RPC + SSE, 41 tools")
+    Rel(agent, mcp_server, "Executes workflows via MCP", "HTTP JSON-RPC + SSE, 45 tools")
     Rel(developer, web_app, "Monitors progress, manual CRUD", "HTTPS")
 
     Rel(mcp_server, database, "CRUD operations", "Prisma queries")
@@ -163,7 +163,7 @@ C4Context
 
 **Design Decision Reference:** See [ADR-001](architecture/ADRs/ADR-001-agent-first-architecture.md) for agent-first architecture rationale.
 
-Note: Tool count may expand; 41 represents current scope.
+Note: Tool count may expand; 45 represents current scope.
 
 ---
 
@@ -212,7 +212,7 @@ ProjectPulse Database:
 **Benefits:**
 - **Clean Repos**: Zero AI-related files in user repositories
 - **Centralized**: All context in one searchable location
-- **Persistent**: Survives git operations, branch switches
+- **MCP API for Agents**: 45 tools for CRUD operations, vector search, progress tracking
 - **Shareable**: Multiple agents can access same context
 - **Versioned**: Full history of all changes
 - **No Conflicts**: No merge conflicts from AI files
@@ -231,7 +231,7 @@ ProjectPulse Database:
 **Characteristics:**
 
 - **Type:** Any MCP-compatible agent (Claude Code, Cursor AI, Codex, Cascade)
-- **Interface:** MCP over HTTP JSON-RPC + SSE, 41 tools
+- **Interface:** MCP over HTTP JSON-RPC + SSE, 45 tools
 - **Behavior:** Autonomous workflow execution, stateless operation
 - **Context:** Reads and writes via MCP to the database; UI and MCP responses reflect the latest database state
 - **State Persistence:** All progress saved to database (survives context compaction)
@@ -345,7 +345,7 @@ C4Container
     Person(developer, "Developer", "Secondary user (5%)")
 
     Container_Boundary(devhub, "ProjectPulse") {
-        Container(mcp_server, "MCP Server", "Node.js, TypeScript", "41 MCP tools<br/>HTTP JSON-RPC + SSE<br/>Zod validation")
+        Container(mcp_server, "MCP Server", "Node.js, TypeScript", "45 MCP tools<br/>HTTP JSON-RPC + SSE<br/>Zod validation")
 
         Container(web_app, "Next.js App", "React 18, Next.js 14 App Router", "Server Components<br/>Client Components<br/>shadcn/ui")
 
@@ -354,7 +354,7 @@ C4Container
 
     %% File System (removed from product scope)
 
-    Rel(agent, mcp_server, "MCP HTTP JSON-RPC + SSE", "41 tools")
+    Rel(agent, mcp_server, "MCP HTTP JSON-RPC + SSE", "45 tools")
     Rel(developer, web_app, "HTTPS", "React UI")
 
     Rel(mcp_server, database, "Prisma Client", "CRUD operations")
@@ -400,13 +400,17 @@ C4Container
 ```typescript
 // Tool namespace structure
 const tools = {
-  // Sprint/Phase Tracking (6 tools)
+  // Sprint/Phase Tracking (11 tools)
   "sprint.getCurrentTask": ...,
   "sprint.create": ...,
   "sprint.update": ...,
   "sprint.complete": ...,
   "sprint.getProgress": ...,
   "sprint.archive": ...,
+  "sprint.getCurrentPosition": ..., // NEW (Sprint 8.5)
+  "sprint.getPhaseProgress": ...,   // NEW (Sprint 8.5)
+  "roadmap.materialize": ...,       // NEW (Sprint 8.5)
+  "blueprint.get": ...,             // NEW (Sprint 8.5)
 
   // Workflow Orchestration (5 tools)
   "workflow.validateStep": ...,
@@ -523,7 +527,7 @@ type MCPError = {
 
 **Critical Requirement**: ProjectPulse MCP server must support **all MCP clients** equally, not just Claude Code.
 
-To support a 41-tool ecosystem efficiently while maintaining universal client compatibility, ProjectPulse implements a **dual-mode MCP server** that adapts to client capabilities:
+To support a 45-tool ecosystem efficiently while maintaining universal client compatibility, ProjectPulse implements a **dual-mode MCP server** that adapts to client capabilities:
 
 **Architecture Overview:**
 
@@ -533,7 +537,7 @@ To support a 41-tool ecosystem efficiently while maintaining universal client co
 │                                        │
 │ ┌────────────────────────────────────┐ │
 │ │ Mode 1: Traditional MCP (HTTP JSON-RPC) │ │
-│ │  - 41 tools as function calls      │ │
+│ │  - 45 tools as function calls      │ │
 │ │  - Works with: ALL MCP clients     │ │
 │ │  - Optimizations: Pagination       │ │
 │ └────────────────────────────────────┘ │
@@ -582,7 +586,7 @@ Clarification: There is ONE MCP server with TWO adapter layers, not two servers.
 ### Functional Parity Guarantee
 
 All MCP clients receive identical functionality:
-- Same 41 tools, same business logic and results
+- Same 45 tools, same business logic and results
 - Same privacy protections (tokenization)
 - Same data access (Prisma operations)
 

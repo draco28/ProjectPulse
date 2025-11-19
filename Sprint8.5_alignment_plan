@@ -1,0 +1,226 @@
+COMPLETE ALIGNMENT CONFIRMED
+Your Vision (WHAT)
+Session 2: Create 13-Project-Plan.md
+Following our dogfooding structure (docs/13-Project-Plan.md):
+# Project Implementation Plan
+
+## Phase A: Foundation & Core Infrastructure (Weeks 1-6, Sprints 1-3)
+
+### Sprint 1 (Weeks 1-2): Foundation Setup - 52 points
+**Goal:** Establish database and MCP infrastructure
+**Deliverables:**
+- Prisma schema with Phase/Sprint/Week/Day/Task models
+- MCP server foundation
+- Progress roll-up algorithm
+
+### Sprint 2 (Weeks 3-4): Wiki System - 58 points
+**Goal:** Build wiki pages and onboarding prompts
+...
+
+## Phase B: Core Features (Weeks 7-8, Sprint 4)
+
+### Sprint 4 (Weeks 7-8): Issues Backend - 62 points
+...
+Storage: Document table (like other 14 docs)
+Session 3: Parse 13-Project-Plan.md → Create Roadmap Record
+HOW (My Job):
+Agent calls MCP: projectpulse.onboarding.getDocument("13-Project-Plan.md")
+Parse markdown to extract roadmap structure:
+Phase A
+  ├─ Sprint 1 (Weeks 1-2)
+  │   ├─ Week 1 (Days 1-5)
+  │   └─ Week 2 (Days 6-10)
+  ├─ Sprint 2 (Weeks 3-4)
+  └─ Sprint 3 (Weeks 5-6)
+Phase B
+  └─ Sprint 4 (Weeks 7-8)
+Create Roadmap record with JSON structure:
+{
+  "phases": [
+    {
+      "name": "Phase A: Foundation & Core Infrastructure",
+      "duration": "6 weeks",
+      "sprints": [
+        {
+          "name": "Sprint 1: Foundation Setup",
+          "duration": "2 weeks",
+          "goals": ["Establish database", "MCP infrastructure"],
+          "deliverables": ["Prisma schema", "MCP server"],
+          "storyPoints": 52,
+          "weeks": [
+            { "number": 1, "startDate": "2025-11-20", "endDate": "2025-11-24" },
+            { "number": 2, "startDate": "2025-11-27", "endDate": "2025-12-01" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+Store via MCP: projectpulse.roadmap.create(phases, "Phase A")
+Sprint 8.5 Phase 1: Materialize Roadmap → Normalized Tables
+Convert:
+Roadmap.phases JSON
+    ↓
+Phase records (Phase A, Phase B)
+    ↓
+Sprint records (Sprint 1, Sprint 2, Sprint 3, Sprint 4)
+    ↓
+Week records (Week 1-8, Mon-Fri for each)
+    ↓
+Day records (40 days total, 5 per week)
+Database after materialization:
+SELECT * FROM phases;
+-- id | name                          | roadmapId
+-- 1  | Phase A: Foundation           | 1
+-- 2  | Phase B: Core Features        | 1
+
+SELECT * FROM sprints;
+-- id | name                  | phaseId | duration
+-- 1  | Sprint 1: Setup       | 1       | 2 weeks
+-- 2  | Sprint 2: Wiki        | 1       | 2 weeks
+-- 3  | Sprint 3: Workflows   | 1       | 2 weeks
+-- 4  | Sprint 4: Issues      | 2       | 2 weeks
+
+SELECT * FROM weeks;
+-- id | number | sprintId | startDate  | endDate
+-- 1  | 1      | 1        | 2025-11-20 | 2025-11-24
+-- 2  | 2      | 1        | 2025-11-27 | 2025-12-01
+-- ...
+
+SELECT * FROM days;
+-- id | name    | weekId | date
+-- 1  | Monday  | 1      | 2025-11-20
+-- 2  | Tuesday | 1      | 2025-11-21
+-- ...
+Roadmap UI: Display Hierarchical Tree
+📦 Phase A: Foundation & Core Infrastructure (6 weeks) [60% complete]
+  │
+  ├─ 📅 Sprint 1: Foundation Setup (2 weeks) [100% complete] ✅
+  │   ├─ 📆 Week 1 (Nov 20-24) [100%]
+  │   │   ├─ Monday: Database schema design ✅
+  │   │   ├─ Tuesday: MCP server setup ✅
+  │   │   └─ ...
+  │   └─ 📆 Week 2 (Nov 27-Dec 1) [100%]
+  │
+  ├─ 📅 Sprint 2: Wiki System (2 weeks) [70% complete] 🔄
+  │   ├─ 📆 Week 3 (Dec 4-8) [100%]
+  │   └─ 📆 Week 4 (Dec 11-15) [40%] ← Currently here
+  │       ├─ Monday: Wiki editor ✅
+  │       ├─ Tuesday: MCP tools 🔄 ← Current Day
+  │       │   └─ 📋 View Current Plan/Todos ← Click to open modal
+  │       ├─ Wednesday: Testing ⏸️
+  │       └─ ...
+  │
+  └─ 📅 Sprint 3: Workflows (pending)
+
+📦 Phase B: Core Features (2 weeks) [0% complete]
+  └─ 📅 Sprint 4: Issues Backend (pending)
+Current Position Banner:
+Currently: Phase A → Sprint 2 → Week 4 → Tuesday
+Progress: 60% Phase A | 70% Sprint 2 | 40% Week 4
+
+[View Current Plan] [View Todos]  ← Opens DevelopmentSession modal
+Current Work Integration
+When agent starts Week 4:
+// Agent calls MCP:
+projectpulse.session.create({
+  phase: "Sprint 2 - Week 4",
+  goals: ["Complete wiki editor", "Implement MCP tools", "Write tests"],
+  plan: "### Implementation Plan\n1. Finish WikiEditor component...",
+  todos: [
+    { content: "WikiEditor: Add save button", status: "completed" },
+    { content: "WikiEditor: Preview mode", status: "in_progress" },
+    { content: "MCP tool: wiki.create", status: "pending" }
+  ]
+})
+Roadmap UI shows:
+Badge on Week 4: "📋 Active Session"
+Click → Modal displays:
+┌─────────────────────────────────────────┐
+│ Current Plan: Sprint 2 - Week 4         │
+├─────────────────────────────────────────┤
+│ ### Implementation Plan                 │
+│ 1. Finish WikiEditor component...       │
+│                                         │
+│ ### Todos (2/3 complete)                │
+│ ✅ WikiEditor: Add save button          │
+│ 🔄 WikiEditor: Preview mode             │
+│ ⏸️ MCP tool: wiki.create               │
+└─────────────────────────────────────────┘
+🎯 Phase 1 Plan Adjustments (Updated for Full Alignment)
+Part 0: Database Schema (NEW - 3 hours)
+Add Sprint model:
+model Phase {
+  id        Int      @id @default(autoincrement())
+  name      String   // "Phase A: Foundation"
+  duration  String   // "6 weeks"
+  sprints   Sprint[]
+  
+  roadmapId Int?
+  roadmap   Roadmap? @relation(...)
+}
+
+model Sprint {
+  id       Int    @id @default(autoincrement())
+  name     String // "Sprint 1: Setup"
+  duration String // "2 weeks"
+  weeks    Week[]
+  
+  phaseId  Int
+  phase    Phase  @relation(...)
+}
+
+model Week {
+  id       Int   @id @default(autoincrement())
+  number   Int   // 1, 2, 3...
+  days     Day[]
+  
+  sprintId Int
+  sprint   Sprint @relation(...)
+}
+
+// Day, Task unchanged
+Part A: Roadmap Parsing + Materialization (5-6 hours)
+Task A.1: Markdown Parser (NEW)
+Parse 13-Project-Plan.md structure
+Extract: Phase name, Sprint name, duration, goals, deliverables
+Build nested JSON structure
+Task A.2: Roadmap Creation (Session 3)
+Read Document table for 13-Project-Plan.md
+Parse markdown → JSON
+Create Roadmap record with phases JSON
+Task A.3: Materialization Algorithm
+Parse Roadmap.phases JSON
+Create Phase records
+For each phase, create Sprint records
+For each sprint, create Week records (based on duration)
+For each week, create 5 Day records (Mon-Fri)
+Task A.4: MCP Tools
+projectpulse.roadmap.materialize(roadmapId)
+projectpulse.roadmap.getCurrentPosition() → { phase, sprint, week, day }
+Part B: Roadmap UI (18-20 hours)
+5-Level Hierarchy:
+PhaseCard
+  ├─ SprintCard
+  │   ├─ WeekCard
+  │   │   ├─ DayCard
+  │   │   │   └─ TaskCard
+Current Work Modal (NEW - 2 hours):
+"View Current Plan" button in Current Position Banner
+Modal: CurrentWorkModal.tsx
+Fetches: DevelopmentSession.plan and .todos
+Displays plan (markdown) + todos (checklist)
+Part C: Testing (4-5 hours)
+Integration Tests:
+Session 2 → generates 13-Project-Plan.md
+Session 3 → parses doc → creates Roadmap
+Materialization → creates Phase/Sprint/Week/Day
+UI → displays full hierarchy
+Agent → creates DevelopmentSession → modal shows plan/todos
+✅ Final Confirmation
+Hierarchy: Phase → Sprint → Week → Day → Task (5 levels) ✅
+Session 2: Creates 13-Project-Plan.md ✅
+Session 3: Parses doc → Roadmap record ✅
+Materialization: Roadmap.phases JSON → Normalized tables ✅
+UI: Hierarchical tree with current position ✅
+Current Work: DevelopmentSession plan/todos visible in modal ✅ Timeline: 3.5 days (12 story points) Is this EXACTLY what you want? Please confirm and I'll update the Phase 1 plan!

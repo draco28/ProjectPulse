@@ -363,7 +363,50 @@ Enable agents to track progress via MCP tools and humans to monitor via Developm
 
 ---
 
+### EPIC-008.5: Sprint 8.5 - Agent-First MVP Gap Filling
+
+**Description:** Critical MVP infrastructure gaps that Sprint 8 missed. Fills agent-critical features needed for Sprints 9-11: Development Cycle visualization, roadmap materialization, blueprint queries, agent configuration UI, and efficient MCP position queries.
+
+**Why Sprint 8.5 Exists:**
+
+Sprint 8 focused on human UI polish (theme switcher, notification indicators) instead of agent-critical infrastructure. Sprint 9-11 assume certain MVP features exist (roadmap materialization, blueprint queries, efficient MCP tools) that were MISSING. Sprint 8.5 fills these gaps.
+
+**Business Value:**
+
+- **Roadmap Visualization**: Humans can see 5-level hierarchy (Phase → Sprint → Week → Day → Task) in `/roadmap` UI
+- **Roadmap Materialization**: Session 3 onboarding creates queryable hierarchy in database (not just JSON)
+- **Blueprint MCP Tool**: Agents recall Session 3 config without manual file reading (tech stack, roadmap, timeline)
+- **Agent AI Hub**: Humans can view agent skills, workflows, and configuration in dedicated UI tabs
+- **Efficient MCP Queries**: Agents get current position in 1 call vs 5 calls (80% token reduction, 70% latency reduction)
+
+**Success Criteria:**
+
+- Development Cycle page displays 5-level hierarchy tree with progress bars
+- Session 1-3 onboarding materializes Roadmap JSON → Phase/Sprint/Week/Day records
+- Blueprint MCP tool returns Session 3 data in <100ms
+- Agent AI Hub displays skills/workflows/config in modal with tabs
+- getCurrentPosition returns full hierarchy in 1 call (80% token savings)
+- getPhaseProgress returns nested tree in 1 call (90% token savings)
+
+**4 Phases:**
+
+1. **Phase 1: Roadmap Materialization + UI** (12 points, 3.75 days) - Document/Roadmap/Sprint/DevelopmentSession models, materialization tool, `/roadmap` page
+2. **Phase 2: Blueprint MCP Tool** (2 points, 0.5 days) - `projectpulse.blueprint.get` tool, NO UI component
+3. **Phase 3: Agent AI Hub Tabs** (8 points, 2 days) - AgentDetailModal with Skills/Workflows/Config tabs
+4. **Phase 4: MCP Read Tools** (5 points, 1.5 days) - `getCurrentPosition` and `getPhaseProgress` tools for efficient queries
+
+**Story Range:** US-8.5-001 to US-8.5-009 (9 stories)
+**FR Range:** FR-026 to FR-030 (5 new functional requirements)
+**Total Points:** 27 points
+**MoSCoW:** Must Have (P0 - blocks Sprint 9-11)
+**Dependencies:** EPIC-001 (sprint tracking), EPIC-003 (onboarding)
+**Sprint Allocation:** Sprint 8.5 (post-Sprint 8, pre-Sprint 9)
+**Status:** Phase 4 IN PROGRESS (Phases 1-3 COMPLETE)
+
+---
+
 ### EPIC-009: Production Infrastructure & Deployment
+
 
 **Description:** Production-ready infrastructure for cloud deployment, including HTTP transport for MCP server, API key management, monitoring, and scaling capabilities.
 
@@ -694,7 +737,23 @@ When EPIC-012 is implemented:
 
 ---
 
-### 3.8 EPIC-008: Personas (US-121 to US-125)
+---
+
+### 3.8.5 EPIC-008.5: Sprint 8.5 - Agent-First MVP Gap Filling (US-8.5-001 to US-8.5-009)
+
+| ID | User Story | FR | Points | Priority | Deps |
+|----|------------|-----|--------|----------|------|
+| US-8.5-001 | As a human user, I want to view the project roadmap at `/roadmap` so that I can see the current Phase/Sprint/Week/Day/Task status | FR-026 | 5 | Must | US-001 |
+| US-8.5-002 | As the system, I want to materialize Roadmap JSON to normalized database records so that agents can query hierarchy efficiently | FR-027 | 3 | Must | US-001 |
+| US-8.5-003 | As an AI agent, I want to query my Session 3 blueprint via MCP so that I can recall the roadmap/config I defined during onboarding | FR-028 | 2 | Must | US-028 |
+| US-8.5-004 | As an AI agent, I want to get my current position in 1 MCP call so that I minimize token usage (80% reduction) | FR-029 | 3 | Must | US-8.5-002 |
+| US-8.5-005 | As an AI agent, I want to get full phase progress in 1 MCP call so that I see all weeks/days/tasks at once (90% token reduction) | FR-030 | 2 | Must | US-8.5-002 |
+| US-8.5-006 | As a human user, I want to view agent skills in a dedicated tab so that I can see what frameworks/patterns the agent knows | FR-026 | 3 | Should | US-121 |
+| US-8.5-007 | As a human user, I want to view agent workflows in a dedicated tab so that I can understand agent process patterns | FR-026 | 3 | Should | US-032 |
+| US-8.5-008 | As a human user, I want to view agent configuration (system prompt, rules, expertise, tools) so that I understand agent capabilities | FR-026 | 2 | Should | US-121 |
+| US-8.5-009 | As the system, I want to store agent's current work (plan + todos) in DevelopmentSession so that context is preserved across interruptions | FR-027 | 4 | Must | US-028 |
+
+**EPIC-008.5 Total:** 9 stories, ~27 story points
 
 ---
 

@@ -53,7 +53,7 @@ function buildWhereClause(filters: {
  * Query hierarchy entities with filters.
  *
  * Query parameters:
- * - level: "phase" | "week" | "day" | "task" | "session" (required)
+ * - level: "phase" | "sprint" | "week" | "day" | "task" | "session" (required)
  * - status[]: Status filter (can pass multiple, e.g., ?status=IN_PROGRESS&status=BLOCKED)
  * - progressMin: Minimum progress (0-100)
  * - progressMax: Maximum progress (0-100)
@@ -121,12 +121,50 @@ export async function GET(request: NextRequest) {
               startDate: true,
               endDate: true,
               createdAt: true,
+              // Sprint 8.5: Include roadmap parent context
+              roadmap: {
+                select: {
+                  id: true,
+                  currentPhase: true,
+                },
+              },
             },
             orderBy: { startDate: 'desc' },
             skip,
             take: limit,
           }),
           prisma.phase.count({ where: where as Prisma.PhaseWhereInput }),
+        ]);
+        break;
+      }
+
+      // Sprint 8.5: NEW - Sprint level query
+      case 'sprint': {
+        [entities, total] = await Promise.all([
+          prisma.sprint.findMany({
+            where: where as Prisma.SprintWhereInput,
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              status: true,
+              progress: true,
+              startDate: true,
+              endDate: true,
+              createdAt: true,
+              // Parent context
+              phase: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
+            orderBy: { startDate: 'desc' },
+            skip,
+            take: limit,
+          }),
+          prisma.sprint.count({ where: where as Prisma.SprintWhereInput }),
         ]);
         break;
       }
@@ -144,11 +182,17 @@ export async function GET(request: NextRequest) {
               startDate: true,
               endDate: true,
               createdAt: true,
-              // Parent context
-              phase: {
+              // Sprint 8.5: Parent context via Sprint → Phase (5-level hierarchy)
+              sprint: {
                 select: {
                   id: true,
                   title: true,
+                  phase: {
+                    select: {
+                      id: true,
+                      title: true,
+                    },
+                  },
                 },
               },
             },
@@ -174,15 +218,21 @@ export async function GET(request: NextRequest) {
               startDate: true,
               endDate: true,
               createdAt: true,
-              // Parent context
+              // Sprint 8.5: Parent context via Week → Sprint → Phase (5-level hierarchy)
               week: {
                 select: {
                   id: true,
                   title: true,
-                  phase: {
+                  sprint: {
                     select: {
                       id: true,
                       title: true,
+                      phase: {
+                        select: {
+                          id: true,
+                          title: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -210,7 +260,7 @@ export async function GET(request: NextRequest) {
               startDate: true,
               endDate: true,
               createdAt: true,
-              // Parent context
+              // Sprint 8.5: Parent context via Day → Week → Sprint → Phase (5-level hierarchy)
               day: {
                 select: {
                   id: true,
@@ -219,10 +269,16 @@ export async function GET(request: NextRequest) {
                     select: {
                       id: true,
                       title: true,
-                      phase: {
+                      sprint: {
                         select: {
                           id: true,
                           title: true,
+                          phase: {
+                            select: {
+                              id: true,
+                              title: true,
+                            },
+                          },
                         },
                       },
                     },
@@ -252,7 +308,7 @@ export async function GET(request: NextRequest) {
               startDate: true,
               endDate: true,
               createdAt: true,
-              // Parent context
+              // Sprint 8.5: Parent context via Task → Day → Week → Sprint → Phase (5-level hierarchy)
               task: {
                 select: {
                   id: true,
@@ -265,10 +321,16 @@ export async function GET(request: NextRequest) {
                         select: {
                           id: true,
                           title: true,
-                          phase: {
+                          sprint: {
                             select: {
                               id: true,
                               title: true,
+                              phase: {
+                                select: {
+                                  id: true,
+                                  title: true,
+                                },
+                              },
                             },
                           },
                         },

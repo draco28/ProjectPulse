@@ -1,8 +1,14 @@
 # Mac Mini as Local Cloud - Complete Setup Guide
 
-**Version**: 1.0
-**Last Updated**: 2025-11-08
+**Version**: 2.0
+**Last Updated**: 2025-11-18
 **Purpose**: Configure Mac mini as complete local cloud (Vercel + Supabase replacement)
+
+**⚠️ NOTE:** This document is now superseded by:
+- **[INFRASTRUCTURE.md](/INFRASTRUCTURE.md)** - User-friendly guide (beginner level)
+- **[.agent/system/infrastructure-state.md](../.agent/system/infrastructure-state.md)** - AI agent technical reference
+
+**This document remains for historical context. Use the new guides above for current information.**
 
 ---
 
