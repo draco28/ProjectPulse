@@ -72,52 +72,46 @@ app.get('/health', (_req, res) => {
  * Compatible with: Claude Code, Windsurf, Cascade, and all MCP-compliant clients
  */
 app.post('/mcp', async (req, res) => {
+  logger.info('Handling stateful HTTP MCP request', {
+    method: req.body?.method,
+    hasBody: !!req.body,
+  });
+
+  // Create transport for this request (STATELESS mode)
+  // Note: Stateless mode works correctly for separate HTTP POST requests
+  // For true session persistence across requests, implement session Map (future enhancement)
+  const transport = new StreamableHTTPServerTransport({
+    // Stateless mode: undefined sessionIdGenerator for per-request independence
+    sessionIdGenerator: undefined,
+    
+    // Return JSON responses (not SSE streams)
+    enableJsonResponse: true,
+    
+    // Disable DNS rebinding protection for local network
+    enableDnsRebindingProtection: false,
+  });
+
+  // Defer cleanup to HTTP response lifecycle (SDK pattern)
+  // This prevents premature stream termination
+  res.on('close', () => {
+    transport.close();
+    logger.debug('Stateful HTTP transport closed (response ended)');
+  });
+
+  res.on('error', (error) => {
+    logger.error('HTTP response error', { error: error.message });
+    transport.close();
+  });
+
   try {
-    logger.info('Handling stateful HTTP MCP request', {
-      method: req.body?.method,
-      hasBody: !!req.body,
-    });
+    // Connect singleton server to this transport
+    await server.connect(transport);
+    logger.debug('Stateful HTTP transport connected');
 
-    // Create transport for this request with STATEFUL configuration
-    const transport = new StreamableHTTPServerTransport({
-      // Enable stateful sessions with UUID v4
-      sessionIdGenerator: () => randomUUID(),
-      
-      // Return JSON responses (not SSE streams)
-      enableJsonResponse: true,
-      
-      // Disable DNS rebinding protection for local network
-      enableDnsRebindingProtection: false,
-      
-      // Session lifecycle callbacks for observability
-      onsessioninitialized: (sessionId) => {
-        logger.info('MCP session initialized', {
-          sessionId,
-          clientInfo: req.body?.params?.clientInfo,
-          protocolVersion: req.body?.params?.protocolVersion,
-        });
-      },
-      
-      onsessionclosed: (sessionId) => {
-        logger.info('MCP session closed', { sessionId });
-      },
-    });
-
-    try {
-      // Connect singleton server to this transport
-      await server.connect(transport);
-      logger.debug('Stateful HTTP transport connected');
-
-      // Handle the MCP request (initialize, tools/list, tools/call, etc.)
-      await transport.handleRequest(req, res, req.body);
-      logger.debug('Stateful HTTP request handled successfully');
-
-    } finally {
-      // Cleanup: Close transport after request completes
-      // Note: Session state is maintained by the SDK between requests
-      await transport.close();
-      logger.debug('Stateful HTTP transport closed');
-    }
+    // Handle the MCP request (initialize, tools/list, tools/call, etc.)
+    // SDK will stream response asynchronously - do NOT close transport here
+    await transport.handleRequest(req, res, req.body);
+    logger.debug('Stateful HTTP request handled successfully');
 
   } catch (error) {
     logger.error('Failed to handle stateful HTTP request', {
