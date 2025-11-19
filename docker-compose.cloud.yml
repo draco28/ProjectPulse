@@ -52,12 +52,12 @@ services:
   # Development: stdio transport for local Claude Code
   # Architecture: AI agents connect via HTTP POST to /mcp endpoint with OAuth/API keys
   mcp-server:
-    image: node:20-alpine
+    image: node:20-bullseye-slim
     container_name: projectpulse-mcp-cloud
     working_dir: /app
-    # Run stdio transport server for development
-    # Install all workspace deps, then run pre-built MCP server
-    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && cd apps/mcp-server && node dist/index.js"
+    # Run HTTP transport server for production
+    # Install ALL deps (including devDeps for build), generate Prisma client, build MCP server, then run with HTTP transport
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install --no-frozen-lockfile --ignore-scripts --prod=false && cd apps/web && npx prisma@5.22.0 generate && cd /app/apps/mcp-server && pnpm build && node dist/index-http.js || tail -f /dev/null"
     environment:
       - PROJECTPULSE_API_URL=http://nextjs:3000
       - NODE_ENV=production
@@ -73,7 +73,7 @@ services:
       - nextjs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\""]
       interval: 30s
       timeout: 10s
       retries: 3

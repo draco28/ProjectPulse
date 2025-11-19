@@ -7,6 +7,7 @@ const envSchema = z.object({
     .default('http://localhost:3000')
     .transform((value) => value.replace(/\/$/, '')), // normalize trailing slash
   logLevel: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  mcpPort: z.number().int().positive().default(3001),
 });
 
 export type AppConfig = z.infer<typeof envSchema>;
@@ -14,6 +15,7 @@ export type AppConfig = z.infer<typeof envSchema>;
 type LoadConfigInput = {
   apiBaseUrl?: string;
   logLevel?: string;
+  mcpPort?: number;
 };
 
 export const loadConfig = (input: LoadConfigInput = {}): AppConfig =>
@@ -24,6 +26,7 @@ export const loadConfig = (input: LoadConfigInput = {}): AppConfig =>
       process.env.NEXT_PUBLIC_APP_URL ??
       'http://localhost:3000',
     logLevel: (input.logLevel ?? process.env.MCP_LOG_LEVEL ?? 'info').toLowerCase(),
+    mcpPort: input.mcpPort ?? parseInt(process.env.MCP_PORT || '3001', 10),
   });
 
 export const config = loadConfig();
