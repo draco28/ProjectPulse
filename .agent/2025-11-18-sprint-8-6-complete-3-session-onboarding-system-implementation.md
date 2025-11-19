@@ -306,37 +306,36 @@ export async function POST(request: NextRequest) {
 
 ---
 
-#### 1.4 API Route: POST /api/onboarding/executive-summary
+#### 1.4 API Route: GET /api/onboarding/executive-summary-prompt (NEW - Agent-Side)
 
-**File**: `apps/web/app/api/onboarding/executive-summary/route.ts`
+**File**: `apps/web/app/api/onboarding/executive-summary-prompt/route.ts`
 
 **Request**:
-```json
-{
-  "projectId": 1
-}
+```
+GET /api/onboarding/executive-summary-prompt?projectId=1
 ```
 
 **Response**:
 ```json
 {
-  "success": true,
-  "executiveSummary": "TaskFlow is an AI-powered task management platform designed for solo developers and small dev teams. The core problem is that developers waste 10-15 hours per week on manual task tracking...",
-  "wordCount": 487,
-  "projectContextJson": { /* complete project-context.json */ }
+  "systemPrompt": "You are a product strategist and technical writer...",
+  "userPrompt": "Generate an executive summary for this software project:\n\n## Phase 1: Product Manager - Foundation\n\n**Q1: Who are the primary users?**\nA: Solo developers and small dev teams...\n\n[... ALL 96 Q&A pairs included ...]",
+  "requiredSections": ["Product Vision", "Target Users", ...],
+  "wordCountTarget": 500,
+  "temperature": 0.7,
+  "metadata": {
+    "totalQuestions": 96,
+    "completedPhases": 10,
+    "userPromptCharacters": 15847
+  }
 }
 ```
 
-**Implementation**:
+**Implementation** (Agent-Side AI - No OpenAI):
 ```typescript
-import { OpenAI } from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-export async function POST(request: NextRequest) {
-  const { projectId } = await request.json();
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const projectId = parseInt(searchParams.get('projectId'), 10);
   
   // Fetch Session 1 data
   const session = await prisma.onboardingSession.findUnique({
@@ -346,55 +345,140 @@ export async function POST(request: NextRequest) {
   });
   
   if (!session || !session.response) {
-    return NextResponse.json({ error: 'Session 1 not found or incomplete' }, { status: 404 });
+    return NextResponse.json({ error: 'Session 1 not found' }, { status: 404 });
   }
   
-  const planningAnswers = session.response.planningAnswers;
+  const sessionData = session.response as any;
+  const planningAnswers = sessionData.planningAnswers || {};
+  const completedPhases = sessionData.completedPhases || [];
   
   // Check if all 10 phases complete
-  const completedPhases = session.response.completedPhases || [];
   if (completedPhases.length < 10) {
-    return NextResponse.json({ 
-      error: 'All 10 phases must be complete before generating executive summary',
-      completedPhases: completedPhases.length 
+    return NextResponse.json({
+      error: 'All 10 phases must be complete',
+      completedPhases: completedPhases.length,
+      missingPhases: [...]
     }, { status: 400 });
   }
   
-  // Generate executive summary using OpenAI
-  const prompt = generateExecutiveSummaryPrompt(planningAnswers);
-  
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4-turbo-preview',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a product strategist. Generate a concise executive summary (~500 words) synthesizing all planning answers into a cohesive project vision.'
-      },
-      {
-        role: 'user',
-        content: prompt
-      }
-    ],
-    temperature: 0.7,
-    max_tokens: 800
+  // Fetch all questions to build Q&A format
+  const allQuestions = await prisma.onboardingQuestion.findMany({
+    orderBy: [{ phase: 'asc' }, { subsection: 'asc' }, { questionNumber: 'asc' }]
   });
   
-  const executiveSummary = completion.choices[0].message.content;
-  const wordCount = executiveSummary.split(/\s+/).length;
+  // Build user prompt with ALL 96 Q&A pairs
+  let userPrompt = 'Generate an executive summary for this software project:\n\n';
+  
+  for (let phaseNum = 1; phaseNum <= 10; phaseNum++) {
+    const phaseAnswers = planningAnswers[`phase${phaseNum}`] || {};
+    const phaseQuestions = allQuestions.filter((q) => q.phase === phaseNum);
+    
+    userPrompt += `## Phase ${phaseNum}: ${PHASE_NAMES[phaseNum]}\n\n`;
+    
+    for (const question of phaseQuestions) {
+      const answer = phaseAnswers[question.id] || '(Not answered)';
+      userPrompt += `**Q${question.questionNumber}: ${question.questionText}**\n`;
+      userPrompt += `A: ${answer}\n\n`;
+    }
+  }
+  
+  userPrompt += `---\n\nGenerate a ~500 word executive summary covering:\n`;
+  userPrompt += `- Product name, type, and target users\n`;
+  userPrompt += `- Core problem and solution\n`;
+  userPrompt += `- Key features (3-5)\n`;
+  userPrompt += `- Tech stack\n`;
+  userPrompt += `- Timeline and budget\n`;
+  userPrompt += `- Success metrics\n`;
+  
+  const systemPrompt = 'You are a product strategist and technical writer. Generate a concise executive summary (~500 words) synthesizing all planning answers into a cohesive project vision.';
+  
+  return NextResponse.json({
+    systemPrompt,
+    userPrompt,
+    requiredSections: [...],
+    wordCountTarget: 500,
+    temperature: 0.7,
+    allAnswers: planningAnswers,
+    metadata: {
+      totalQuestions: allQuestions.length,
+      completedPhases: completedPhases.length,
+      userPromptCharacters: userPrompt.length
+    }
+  });
+}
+```
+
+---
+
+#### 1.4.2 API Route: POST /api/onboarding/executive-summary (MODIFIED - Storage Only)
+
+**File**: `apps/web/app/api/onboarding/executive-summary/route.ts`
+
+**Request**:
+```json
+{
+  "projectId": 1,
+  "executiveSummary": "TaskFlow is an AI-powered task management platform...",
+  "wordCount": 487
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "stored": true,
+  "wordCount": 487,
+  "projectContextJson": { /* complete project-context.json */ }
+}
+```
+
+**Implementation** (Agent-Side AI - Storage Only):
+```typescript
+const requestSchema = z.object({
+  projectId: z.number().int().positive(),
+  executiveSummary: z.string().min(100).max(5000),
+  wordCount: z.number().int().positive().optional()
+});
+
+export async function POST(request: NextRequest) {
+  const body = await request.json();
+  const validation = requestSchema.safeParse(body);
+  
+  if (!validation.success) {
+    return NextResponse.json({ error: 'Invalid request', details: validation.error }, { status: 400 });
+  }
+  
+  const { projectId, executiveSummary, wordCount: providedWordCount } = validation.data;
+  
+  // Fetch Session 1 data
+  const session = await prisma.onboardingSession.findUnique({
+    where: { projectId_sessionNumber: { projectId, sessionNumber: 1 } }
+  });
+  
+  if (!session) {
+    return NextResponse.json({ error: 'Session 1 not found' }, { status: 404 });
+  }
+  
+  const sessionData = session.response as any;
+  const planningAnswers = sessionData.planningAnswers || {};
+  
+  // Calculate word count if not provided
+  const wordCount = providedWordCount || executiveSummary.split(/\s+/).length;
   
   // Generate project-context.json
   const projectContextJson = generateProjectContextJson(planningAnswers, executiveSummary);
   
-  // Update session with executive summary
+  // Update session with agent-generated summary
   await prisma.onboardingSession.update({
     where: { id: session.id },
     data: {
       response: {
-        ...session.response,
+        ...sessionData,
         executiveSummary,
         executiveSummaryWordCount: wordCount,
         projectContextJson,
-        completedAt: new Date().toISOString()
+        generatedBy: 'agent' // Mark as agent-generated
       },
       status: 'complete',
       completedAt: new Date()
@@ -403,76 +487,20 @@ export async function POST(request: NextRequest) {
   
   return NextResponse.json({
     success: true,
-    executiveSummary,
+    stored: true,
     wordCount,
     projectContextJson
   });
 }
 
-function generateExecutiveSummaryPrompt(planningAnswers: any): string {
-  return `
-Generate an executive summary for a software project based on these planning answers:
-
-**Phase 1: Product Foundation**
-${JSON.stringify(planningAnswers.phase1, null, 2)}
-
-**Phase 2: Strategic Planning**
-${JSON.stringify(planningAnswers.phase2, null, 2)}
-
-**Phase 3-10**: [Include all phases]
-
-Synthesize into a ~500 word executive summary covering:
-- Product name, type, target users
-- Core problem and solution
-- Key features (3-5)
-- Tech stack
-- Timeline and budget
-- Success metrics
-  `.trim();
-}
-
-function generateProjectContextJson(planningAnswers: any, executiveSummary: string) {
-  // Extract structured data from answers
-  return {
-    metadata: {
-      projectName: planningAnswers.phase1.productName,
-      projectType: planningAnswers.phase1.productType,
-      domain: planningAnswers.phase1.domain,
-      targetUsers: planningAnswers.phase1.targetUsers,
-      valueProposition: planningAnswers.phase1.valueProposition,
-      version: '1.0.0',
-      lastUpdated: new Date().toISOString(),
-      createdBy: 'onboarding-session-1'
-    },
-    techStack: {
-      frontend: planningAnswers.phase2.frontend,
-      backend: planningAnswers.phase2.backend,
-      database: planningAnswers.phase2.database,
-      hosting: planningAnswers.phase9.hosting,
-      // ... extract all tech stack details
-    },
-    phases: extractPhases(planningAnswers),
-    timeline: {
-      startDate: planningAnswers.phase2.startDate,
-      estimatedDuration: planningAnswers.phase2.estimatedDuration,
-      targetLaunch: planningAnswers.phase9.targetLaunch
-    },
-    budget: {
-      development: planningAnswers.phase9.developmentBudget,
-      monthly_operating: planningAnswers.phase9.monthlyBudget
-    },
-    features: extractFeatures(planningAnswers.phase1),
-    planningAnswers: planningAnswers,
-    executiveSummary: executiveSummary
-  };
-}
+// generateProjectContextJson() helper (same as before, extracts structured data)
 ```
 
 ---
 
-#### 1.5 MCP Tools
+#### 1.5 MCP Tools (Agent-Side AI)
 
-**File**: `apps/mcp-server/src/tools/onboarding/getQuestionsTool.ts`
+**File**: `apps/mcp-server/src/tools/onboarding/getQuestionsTool.ts` (UNCHANGED)
 
 ```typescript
 export const getQuestionsTool: ToolDefinition = {
@@ -482,14 +510,6 @@ export const getQuestionsTool: ToolDefinition = {
     projectId: z.number().int().positive(),
     phase: z.number().int().min(1).max(10)
   }),
-  inputSchema: {
-    type: 'object',
-    properties: {
-      projectId: { type: 'number', description: 'Project ID' },
-      phase: { type: 'number', description: 'Phase number (1-10)' }
-    },
-    required: ['projectId', 'phase']
-  },
   
   async execute(params, context) {
     const response = await context.httpClient.get(
@@ -497,18 +517,13 @@ export const getQuestionsTool: ToolDefinition = {
     );
     
     return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(response, null, 2)
-        }
-      ]
+      content: [{ type: 'text', text: JSON.stringify(response, null, 2) }]
     };
   }
 };
 ```
 
-**File**: `apps/mcp-server/src/tools/onboarding/saveAnswersTool.ts`
+**File**: `apps/mcp-server/src/tools/onboarding/saveAnswersTool.ts` (UNCHANGED)
 
 ```typescript
 export const saveAnswersTool: ToolDefinition = {
@@ -521,74 +536,128 @@ export const saveAnswersTool: ToolDefinition = {
   }),
   
   async execute(params, context) {
-    const response = await context.httpClient.post(
-      '/api/onboarding/answers',
-      params
-    );
-    
+    const response = await context.httpClient.post('/api/onboarding/answers', params);
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(response, null, 2)
-      }]
+      content: [{ type: 'text', text: JSON.stringify(response, null, 2) }]
     };
   }
 };
 ```
 
-**File**: `apps/mcp-server/src/tools/onboarding/generateExecutiveSummaryTool.ts`
+**File**: `apps/mcp-server/src/tools/onboarding/getExecutiveSummaryPromptTool.ts` (NEW - Agent-Side)
 
 ```typescript
-export const generateExecutiveSummaryTool: ToolDefinition = {
-  name: 'projectpulse.onboarding.generateExecutiveSummary',
-  description: 'Generate executive summary from all 10 phases of answers',
+export const getExecutiveSummaryPromptTool: ToolDefinition = {
+  name: 'projectpulse.onboarding.getExecutiveSummaryPrompt',
+  description: 'Get prompt template with ALL 96 answers for generating executive summary with agent\'s own AI provider. Returns a prompt for the agent to use with their LLM.',
   schema: z.object({
     projectId: z.number().int().positive()
   }),
   
   async execute(params, context) {
-    const response = await context.httpClient.post(
-      '/api/onboarding/executive-summary',
-      params
+    context.logger.info('Fetching executive summary prompt template', { projectId: params.projectId });
+    
+    const response = await context.httpClient.get(
+      `/api/onboarding/executive-summary-prompt?projectId=${params.projectId}`
     );
     
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(response, null, 2)
-      }]
+      content: [{ type: 'text', text: JSON.stringify(response, null, 2) }]
     };
   }
 };
 ```
+
+**File**: `apps/mcp-server/src/tools/onboarding/storeExecutiveSummaryTool.ts` (NEW - Agent-Side)
+
+```typescript
+export const storeExecutiveSummaryTool: ToolDefinition = {
+  name: 'projectpulse.onboarding.storeExecutiveSummary',
+  description: 'Store agent-generated executive summary (after agent generated it with their own AI). Completes Session 1 and generates project-context.json.',
+  schema: z.object({
+    projectId: z.number().int().positive(),
+    executiveSummary: z.string().min(100).max(5000),
+    wordCount: z.number().int().positive().optional()
+  }),
+  
+  async execute(params, context) {
+    context.logger.info('Storing agent-generated executive summary', {
+      projectId: params.projectId,
+      wordCount: params.wordCount || 'auto-calculate'
+    });
+    
+    const response = await context.httpClient.post('/api/onboarding/executive-summary', {
+      projectId: params.projectId,
+      executiveSummary: params.executiveSummary,
+      wordCount: params.wordCount
+    });
+    
+    return {
+      content: [{ type: 'text', text: JSON.stringify(response, null, 2) }]
+    };
+  }
+};
+```
+
+~~**File**: `apps/mcp-server/src/tools/onboarding/generateExecutiveSummaryTool.ts` (DELETED)~~
 
 **Registration**: `apps/mcp-server/src/tools/index.ts`
 
 ```typescript
 import { getQuestionsTool } from './onboarding/getQuestionsTool.js';
 import { saveAnswersTool } from './onboarding/saveAnswersTool.js';
-import { generateExecutiveSummaryTool } from './onboarding/generateExecutiveSummaryTool.js';
+import { getExecutiveSummaryPromptTool } from './onboarding/getExecutiveSummaryPromptTool.js'; // NEW
+import { storeExecutiveSummaryTool } from './onboarding/storeExecutiveSummaryTool.js'; // NEW
 
-// Add to tools array
 const loadTools = (): ToolDefinition[] => [
   // ... existing tools
   getQuestionsTool,
   saveAnswersTool,
-  generateExecutiveSummaryTool,
+  getExecutiveSummaryPromptTool, // NEW - Agent gets prompt
+  storeExecutiveSummaryTool, // NEW - Agent stores result
+  // generateExecutiveSummaryTool, // REMOVED - Old server-side generation
 ];
+```
+
+**Agent Workflow (Agent-Side AI)**:
+```typescript
+// Step 1-10: Complete all phases (unchanged)
+for (let phase = 1; phase <= 10; phase++) {
+  const questions = await mcp.call('projectpulse.onboarding.getQuestions', { projectId: 1, phase });
+  const answers = await collectAnswers(questions);
+  await mcp.call('projectpulse.onboarding.saveAnswers', { projectId: 1, phase, answers });
+}
+
+// Step 11: Get prompt template WITH all answers
+const promptData = await mcp.call('projectpulse.onboarding.getExecutiveSummaryPrompt', { projectId: 1 });
+
+// Step 12: Agent generates summary with THEIR AI (Claude, GPT, Gemini, etc.)
+const executiveSummary = await myAI.generate({
+  system: promptData.systemPrompt,
+  user: promptData.userPrompt,
+  temperature: promptData.temperature
+});
+
+// Step 13: Store agent-generated summary
+await mcp.call('projectpulse.onboarding.storeExecutiveSummary', {
+  projectId: 1,
+  executiveSummary: executiveSummary,
+  wordCount: executiveSummary.split(/\s+/).length
+});
+// Session 1 now complete! ✅
 ```
 
 ---
 
-### Testing Phase 1
+### Testing Phase 1 (Agent-Side AI)
 
 **Unit Tests**:
 ```bash
-# Test questions API
+# Test questions API (unchanged)
 GET /api/onboarding/questions?projectId=1&phase=1
-# Expect: 11 questions in 4 subsections
+# Expect: 10 questions in 3 subsections
 
-# Test answers API
+# Test answers API (unchanged)
 POST /api/onboarding/answers
 {
   "projectId": 1,
@@ -597,41 +666,91 @@ POST /api/onboarding/answers
 }
 # Expect: Success, nextPhase: 2
 
-# Test executive summary
-POST /api/onboarding/executive-summary
-{ "projectId": 1 }
-# Expect: 400 (not all phases complete)
+# Test prompt template generation (NEW)
+GET /api/onboarding/executive-summary-prompt?projectId=1
+# Expect: 400 (not all phases complete yet)
 
 # Complete all 10 phases, then:
+GET /api/onboarding/executive-summary-prompt?projectId=1
+# Expect: 200 with systemPrompt, userPrompt (with ALL 96 Q&A pairs), metadata
+
+# Test storage endpoint (NEW)
 POST /api/onboarding/executive-summary
-{ "projectId": 1 }
-# Expect: 200 with ~500 word summary
+{
+  "projectId": 1,
+  "executiveSummary": "TaskFlow is an AI-powered task management platform...",
+  "wordCount": 487
+}
+# Expect: 200 with success: true, stored: true, projectContextJson
 ```
 
-**MCP Integration Test**:
+**MCP Integration Test (Agent-Side AI)**:
 ```typescript
-// Test via MCP server
-const questions = await mcp.call('projectpulse.onboarding.getQuestions', {
-  projectId: 1,
-  phase: 1
-});
-console.log(questions.subsections.length); // Should be 4
+// Step 1-10: Complete all phases (unchanged)
+for (let phase = 1; phase <= 10; phase++) {
+  const questions = await mcp.call('projectpulse.onboarding.getQuestions', {
+    projectId: 1,
+    phase
+  });
+  console.log(questions.subsections.length); // Verify questions returned
+  
+  await mcp.call('projectpulse.onboarding.saveAnswers', {
+    projectId: 1,
+    phase,
+    answers: { /* ... */ }
+  });
+}
 
-await mcp.call('projectpulse.onboarding.saveAnswers', {
-  projectId: 1,
-  phase: 1,
-  answers: { ... }
-});
-
-const summary = await mcp.call('projectpulse.onboarding.generateExecutiveSummary', {
+// Step 11: Get prompt template (NEW)
+const promptData = await mcp.call('projectpulse.onboarding.getExecutiveSummaryPrompt', {
   projectId: 1
 });
-console.log(summary.executiveSummary); // Should be ~500 words
+console.log(promptData.metadata.totalQuestions); // Should be 96
+console.log(promptData.userPrompt.length); // Should be ~15000 chars
+
+// Step 12: Agent generates with their own AI (NOT our backend!)
+const executiveSummary = await claude.generate({ // Or GPT, Gemini, etc.
+  system: promptData.systemPrompt,
+  user: promptData.userPrompt
+});
+
+// Step 13: Store agent-generated summary (NEW)
+const result = await mcp.call('projectpulse.onboarding.storeExecutiveSummary', {
+  projectId: 1,
+  executiveSummary: executiveSummary,
+  wordCount: executiveSummary.split(/\s+/).length
+});
+console.log(result.success); // Should be true
+console.log(result.projectContextJson); // Should have complete context
+```
+
+**Verification**:
+```sql
+-- Check Session 1 complete with agent-generated summary
+SELECT 
+  status, 
+  (response->>'executiveSummary')::text AS summary,
+  (response->>'executiveSummaryWordCount')::int AS word_count,
+  (response->>'generatedBy')::text AS generated_by
+FROM onboarding_sessions
+WHERE project_id = 1 AND session_number = 1;
+
+-- Expected:
+-- status: 'complete'
+-- summary: ~500 words
+-- word_count: ~500
+-- generated_by: 'agent' (NEW - proves agent-side generation)
 ```
 
 ---
 
-## Phase 2: Session 2 - 15 Industry Documents Generation (15 points)
+## Phase 2: Session 2 - 15 Industry Documents Generation (15 points) - AGENT-SIDE AI
+
+**IMPORTANT**: Session 2 uses the SAME agent-side AI pattern as Session 1:
+- Agent gets prompt templates for each document
+- Agent generates documents with THEIR AI provider
+- Agent stores generated documents in our DB
+- NO server-side AI generation (privacy-first, zero-cost)
 
 ### Deliverables
 
@@ -640,22 +759,29 @@ console.log(summary.executiveSummary); // Should be ~500 words
    - Context extraction from Session 1 answers
    - Document metadata (category, word count targets)
 
-2. **API Routes** (5 points)
-   - `POST /api/onboarding/generate-documents` (generate all 15 docs with AI)
-   - `GET /api/onboarding/documents?projectId={id}` (list generated docs)
+2. **API Routes** (5 points) - **AGENT-SIDE AI**
+   - ~~`POST /api/onboarding/generate-documents`~~ → REMOVED (was server-side)
+   - `GET /api/onboarding/document-prompts?projectId={id}` (NEW - returns all 15 prompts)
+   - `POST /api/onboarding/documents` (NEW - stores agent-generated docs)
+   - `GET /api/onboarding/documents?projectId={id}` (list stored docs)
 
-3. **MCP Tools** (2 points)
-   - `projectpulse.onboarding.generateDocuments()`
-   - `projectpulse.onboarding.listDocuments()`
+3. **MCP Tools** (2 points) - **AGENT-SIDE AI**
+   - ~~`projectpulse.onboarding.generateDocuments()`~~ → REMOVED (was server-side)
+   - `projectpulse.onboarding.getDocumentPrompts()` (NEW - get prompts for agent)
+   - `projectpulse.onboarding.storeDocuments()` (NEW - store agent-generated docs)
+   - `projectpulse.onboarding.listDocuments()` (list stored docs)
 
-4. **AI Document Generation** (5 points)
-   - OpenAI integration for each document type
-   - Prompt engineering for industry-grade output
+4. **Agent-Side Document Generation** (5 points)
+   - ~~OpenAI integration~~ → REMOVED (privacy/cost)
+   - Prompt template library for 15 document types
+   - Agent generates with their own AI provider
    - ~30K words total across 15 documents
 
 ### Implementation Details
 
-#### 2.1 Document Generation Prompt Templates
+**NOTE**: Section 2 implementation details below show the prompt template library (Section 2.1), which is STILL USED but now for agent-side generation instead of server-side. Sections 2.2+ need to be updated to show the NEW agent-side API routes (GET prompts, POST storage) instead of the OLD server-side generation routes.
+
+#### 2.1 Document Generation Prompt Templates (UNCHANGED - Still Used for Agent-Side)
 
 **File**: `apps/web/lib/onboarding/document-prompts.ts`
 
@@ -797,7 +923,44 @@ Generate ~2000 words with 2-4 phases, 2-4 sprints per phase.
 
 ---
 
-#### 2.2 API Route: POST /api/onboarding/generate-documents
+#### 2.2 API Routes (AGENT-SIDE AI - TO BE IMPLEMENTED)
+
+**CRITICAL**: The section below (2.2-2.4) shows the OLD server-side OpenAI generation approach. This needs to be REPLACED with agent-side implementation following the same pattern as Session 1:
+
+**NEW Agent-Side Pattern (To Be Implemented)**:
+1. `GET /api/onboarding/document-prompts` - Returns all 15 prompt templates
+2. `POST /api/onboarding/documents` - Stores agent-generated documents
+3. `GET /api/onboarding/documents` - Lists stored documents
+
+**Agent Workflow** (To Be Implemented):
+```typescript
+// Step 1: Get all document prompts
+const prompts = await mcp.call('projectpulse.onboarding.getDocumentPrompts', { projectId: 1 });
+// Returns: Array of 15 prompts with systemPrompt, userPrompt, metadata
+
+// Step 2: Agent generates each document with THEIR AI
+for (const prompt of prompts.documentPrompts) {
+  const document = await myAI.generate({
+    system: prompt.systemPrompt,
+    user: prompt.userPrompt
+  });
+  
+  // Step 3: Store each generated document
+  await mcp.call('projectpulse.onboarding.storeDocument', {
+    projectId: 1,
+    filename: prompt.filename,
+    content: document,
+    category: prompt.category,
+    wordCount: document.split(/\s+/).length
+  });
+}
+```
+
+---
+
+**OLD Implementation (To Be Replaced)**:
+
+#### 2.2 API Route: POST /api/onboarding/generate-documents (OLD - Server-Side)
 
 **File**: `apps/web/app/api/onboarding/generate-documents/route.ts`
 
@@ -2431,16 +2594,18 @@ function generateMockAnswers(questions: any) {
 
 ## Dependencies & Prerequisites
 
-### External Dependencies
+### External Dependencies (AGENT-SIDE AI)
 
 **Already Installed**:
-- ✅ OpenAI SDK (`openai`)
+- ~~❌ OpenAI SDK (`openai`)~~ → **REMOVED** (agent-side AI, not server-side)
 - ✅ Prisma ORM
 - ✅ Next.js 14
 - ✅ Zod validation
 
-**May Need to Add**:
-- OpenAI API key in `.env` (if not already set)
+**No AI SDKs Required**:
+- ✅ **Agent uses their own AI provider** (Claude, GPT, Gemini, etc.)
+- ✅ **Zero cost for us** (no OpenAI API key needed)
+- ✅ **Privacy-first** (user data never sent to our LLM providers)
 
 ### Internal Dependencies
 
@@ -2464,33 +2629,37 @@ function generateMockAnswers(questions: any) {
 
 ---
 
-## Environment Variables
+## Environment Variables (AGENT-SIDE AI)
 
 ```bash
 # .env
-OPENAI_API_KEY=sk-...  # Required for Session 1 & 2 AI generation
+# OPENAI_API_KEY=sk-...  # REMOVED - Not needed (agent-side AI)
 DATABASE_URL=postgresql://...  # Existing
 NEXT_PUBLIC_MCP_URL=http://192.168.1.15:3001  # Existing
 ```
 
+**Note**: No AI API keys required in our environment. Agent uses their own AI provider credentials.
+
 ---
 
-## Risks & Mitigation
+## Risks & Mitigation (AGENT-SIDE AI)
 
-### Risk 1: OpenAI API Rate Limits
-**Impact**: Document generation may fail if rate limited  
+### Risk 1: Agent May Generate Inconsistent Content
+**Impact**: Different agents (Claude, GPT, Gemini) may produce varying quality/formats  
 **Mitigation**: 
-- Implement exponential backoff
-- Generate documents sequentially (not in parallel)
-- Add delay between requests (1-2 seconds)
+- Provide VERY detailed prompt templates with explicit format requirements
+- Include markdown structure examples in prompts
+- Validate stored content structure server-side
+- Provide regeneration capability if format incorrect
 
-### Risk 2: AI-Generated Content Quality
-**Impact**: Documents may not meet industry standards  
+### Risk 2: Agent-Generated Content Quality
+**Impact**: Agent may not follow prompt instructions accurately  
 **Mitigation**:
-- Test prompts extensively
-- Use GPT-4 Turbo (better quality)
-- Provide detailed context in prompts
-- Allow regeneration if quality poor
+- Test prompt templates with multiple AI providers
+- Include specific section headings and examples
+- Provide word count targets in prompts
+- Allow regeneration with refined prompts
+- Add validation rules (min/max word count, required sections)
 
 ### Risk 3: File System Writes
 **Impact**: CLAUDE.md/AGENTS.md writes may fail (permissions)  
