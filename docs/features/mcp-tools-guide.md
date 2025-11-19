@@ -36,7 +36,7 @@
 
 **ProjectPulse Tools**:
 
-- [projectpulse](#projectpulse-mcp-server) - Sprint and task management (8 tools active)
+- [projectpulse](#projectpulse-mcp-server) - Sprint management, onboarding, wiki, issues, workflows (40 tools active)
 
 ---
 
@@ -522,9 +522,21 @@ docker_compose_status();
 
 ## ProjectPulse MCP Server
 
-**Server**: `projectpulse` (Custom MCP server for sprint management, workflow orchestration, issue management, knowledge management, and skills system)
-**When to use**: Sprint management, task tracking, workflow orchestration, issue management, knowledge queries, and skills lazy-loading
-**Status**: Active (Sprint 1-6 complete - 32 tools available: 8 sprint + 6 workflow + 6 issue + 7 knowledge + 7 skills)
+**Server**: `projectpulse` (Sprint 8.7 - Stateless HTTP Streaming)  
+**URL**: `http://192.168.1.15:3001/mcp`  
+**Transport**: HTTP (stateless streaming)  
+**Protocol**: MCP 2024-11-05  
+**Tools**: 40 tools across 8 categories  
+**Status**: ✅ Production Ready (Validated 2025-11-20)
+
+**When to use**: Sprint management, onboarding workflows, wiki documentation, issue tracking, workflow orchestration, roadmap planning, blueprint management
+
+**Architecture Update (Sprint 8.7)**:
+- Single POST `/mcp` endpoint (stateless HTTP)
+- Removed SSE transport and JSON-RPC shim
+- Fixed HTTP 406 with rawHeaders middleware
+- Validated with Factory Droid, Claude Code, curl
+- See [MCP_ARCHITECTURE.md](../MCP_ARCHITECTURE.md) v2.0.0
 
 ### Available Tools
 
@@ -2907,7 +2919,7 @@ projectpulse.skill.linkKnowledge({
 ---
 
 **Last Updated:** 2025-11-13
-**MCP Status:** Core tools configured + ProjectPulse MCP server active (32 tools)
+**MCP Status:** Core tools configured + ProjectPulse MCP server active (40 tools - Sprint 8.7)
 **Completed:** Sprint 1-6 complete (8 sprint + 6 workflow + 6 issue + 7 knowledge + 7 skills)
 
 **See also**: [.agent/progress.md](../progress.md) for current project status

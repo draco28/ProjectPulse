@@ -1,22 +1,27 @@
 # MCP Multi-Agent Setup Guide
 
-**Status**: ✅ Production Ready (Validated 2025-11-19)
-**Transport**: Hybrid (SSE + Streamable HTTP)
+**Status**: ✅ Production Ready (Sprint 8.7)
+**Transport**: HTTP (stateless streaming)
 **Server**: `http://192.168.1.15:3001/mcp`
-**Tools**: 40 ProjectPulse tools across 9 categories
+**Protocol**: MCP 2024-11-05
+**Tools**: 40 ProjectPulse tools across 8 categories
+**Last Updated**: 2025-11-20
 
-## Validated Agents
+## Validated Agents (Sprint 8.7)
 
 The following AI agents have been **tested and confirmed working** with the ProjectPulse MCP server:
 
 | Agent | Status | Config Location | Tested Date | Transport |
 |-------|--------|----------------|-------------|-----------|
-| **Factory Droid** | ✅ Working | `~/.factory/mcp.json` | 2025-11-19 | Streamable HTTP |
-| **Claude Code** | ✅ Working | `~/.claude.json` | 2025-11-19 | SSE |
-| **Cascade (Windsurf)** | ✅ Working | `~/.codeium/windsurf/mcp_config.json` | 2025-11-19 | SSE |
-| **Cursor IDE** | ⚪ Not Tested | `~/.cursor/mcp.json` | - | - |
-| **Continue.dev** | ⚪ Not Tested | `.continue/mcpServers/` | - | - |
-| **Cline** | ⚪ Not Tested | VS Code global settings | - | - |
+| **Factory Droid** | ✅ Working | `~/.factory/mcp.json` | 2025-11-20 | HTTP |
+| **Claude Code** | ✅ Working | `~/.claude.json` | 2025-11-20 | HTTP |
+| **curl** | ✅ Working | Direct HTTP requests | 2025-11-20 | HTTP |
+| **Cascade (Windsurf)** | ⚪ Not Tested | `~/.codeium/windsurf/mcp_config.json` | - | HTTP |
+| **Cursor IDE** | ⚪ Not Tested | `~/.cursor/mcp.json` | - | HTTP |
+| **Continue.dev** | ⚪ Not Tested | `.continue/mcpServers/` | - | HTTP |
+| **Cline** | ⚪ Not Tested | VS Code global settings | - | HTTP |
+
+**Note**: All clients now use HTTP transport. SSE was removed in Sprint 8.7.
 
 ---
 
@@ -29,7 +34,7 @@ The following AI agents have been **tested and confirmed working** with the Proj
 curl http://192.168.1.15:3001/health
 
 # Expected response:
-# {"status":"healthy","version":"0.1.0","transport":"sse","toolCount":35,"activeSessions":N}
+# {"status":"healthy","version":"0.1.0","transport":"http","toolCount":40,"endpoint":"/mcp"}
 ```
 
 ### 2. Configure Your Agent
@@ -68,15 +73,19 @@ Choose your agent and follow the configuration below:
 
 ### Claude Code
 
-**Config File**: `~/.claude.json` (project-specific section)
+**Method**: CLI Command (Recommended)
 
-**Location in file**: Under your project path key (`"/Users/draco/projects/AI_HUB"`), add to `mcpServers`:
+```bash
+claude mcp add --transport http projectpulse http://192.168.1.15:3001/mcp
+```
+
+**Alternative - Manual Config**: Edit `~/.claude.json`
 
 ```json
 {
   "mcpServers": {
     "projectpulse": {
-      "type": "sse",
+      "type": "http",
       "url": "http://192.168.1.15:3001/mcp"
     }
   }
@@ -86,6 +95,8 @@ Choose your agent and follow the configuration below:
 **Restart**: Completely quit Claude Code (Command+Q) and reopen.
 
 **Verify**: Open a conversation and check MCP tools are available.
+
+**Status**: ✅ Validated (2025-11-20, Sprint 8.7 Phase 4)
 
 ---
 
@@ -379,175 +390,150 @@ curl http://192.168.1.15:3001/health | jq .
 {
   "status": "healthy",
   "version": "0.1.0",
-  "transport": "sse",
-  "toolCount": 35,
-  "activeSessions": 2
+  "transport": "http",
+  "toolCount": 40,
+  "endpoint": "/mcp"
 }
 ```
 
 **Fields**:
 - `status`: "healthy" = server running correctly
-- `transport`: "sse" = using SSE protocol
-- `toolCount`: Should be 35-40 (number of registered tools)
-- `activeSessions`: Number of currently connected clients
+- `transport`: "http" = stateless HTTP streaming (Sprint 8.7)
+- `toolCount`: 40 registered tools across 8 categories
+- `endpoint`: MCP endpoint path (/mcp)
 
 ---
 
 ## Multi-Agent Testing Results
 
 ### Test Environment
-- **Date**: 2025-11-19
+- **Date**: 2025-11-20 (Sprint 8.7 Validation)
 - **Server**: Mac mini (192.168.1.15:3001)
-- **Transport**: SSE (deprecated but working)
+- **Transport**: HTTP (stateless streaming)
 - **Docker**: `projectpulse-mcp-cloud` container
 
 ### Validation Results
 
+#### Factory Droid ✅
+- **Connection**: Successful
+- **Protocol**: HTTP (stateless streaming)
+- **Tools**: All 40 tools visible and invocable
+- **Validation**: Health check, onboarding, workflows all working
+- **Date**: 2025-11-20 (Sprint 8.7 Phase 4)
+- **Performance**: 25-75ms tool invocation
+
 #### Claude Code ✅
 - **Connection**: Successful
-- **Session ID**: Auto-discovered from SSE endpoint event
+- **Protocol**: HTTP (stateless streaming)
 - **Tools**: All 40 tools visible and invocable
-- **Stability**: No connection drops observed
-- **Evidence**: `activeSessions: 1` in health check
+- **Validation**: Health check and onboarding verified
+- **Date**: 2025-11-20 (Sprint 8.7 Phase 4)
+- **Status**: HTTP 406 issue fixed with rawHeaders middleware
 
-#### Cascade (Windsurf) ✅
+#### curl ✅
 - **Connection**: Successful
-- **Session ID**: Auto-discovered from SSE endpoint event
-- **Tools**: All 40 tools visible (confirmed via code inspection)
-- **Stability**: Multiple sessions (start/close) working correctly
-- **Evidence**: Docker logs show `totalSessions: 3`, multiple session IDs
+- **Protocol**: Direct HTTP POST requests
+- **Tools**: All 40 tools accessible
+- **Validation**: Initialize, tools/list, tools/call all working
+- **Date**: 2025-11-20 (Sprint 8.7)
 
-**Concurrent Sessions**: Both agents connected simultaneously without issues (peak: 3 sessions).
+**Concurrent Testing**: Multiple agents (Factory Droid, Claude Code) can connect simultaneously without issues.
 
 ---
 
-## Architecture Notes
+## Architecture Notes (Sprint 8.7)
 
-### Hybrid Transport System
+### Single HTTP Transport
 
-**Why Dual Transport?**
+**Why HTTP Only?**
 
-ProjectPulse MCP server implements **both SSE and Streamable HTTP transports simultaneously** because different AI agents use different protocols:
-
-- **SSE (Server-Sent Events)**: Used by Claude Code, Cascade
-  - Two-step protocol: GET establishes stream → POST sends messages with sessionId
-  - Stateful: Server maintains session state
-  - Deprecated as of MCP spec 2025-03-26, but widely supported
-
-- **Streamable HTTP**: Used by Factory Droid
-  - Single-step protocol: POST directly with request body
-  - Stateless: Each request is independent
-  - Modern MCP standard
-
-**Detection Logic**:
-
-```typescript
-POST /mcp:
-  - If sessionId query parameter exists → Route to SSE handler
-  - If no sessionId → Route to Streamable HTTP handler
-```
+Sprint 8.7 removed SSE transport completely and standardized on stateless HTTP streaming:
 
 **Benefits**:
-- ✅ All agents work without config changes
-- ✅ No breaking changes to existing integrations
-- ✅ Future-proof with modern standard
-- ✅ Transparent to clients
+- ✅ Simpler architecture (1 endpoint vs 3)
+- ✅ 42% code reduction (302 → 175 lines)
+- ✅ All major clients work (Factory Droid, Claude Code, curl)
+- ✅ No session management complexity
+- ✅ Modern MCP standard (2024-11-05)
+- ✅ HTTP 406 issue fixed automatically
 
-### SSE Transport Protocol Flow (Legacy)
+**HTTP Protocol Flow**:
 
-1. **Client**: Sends GET request to `/mcp`
-2. **Server**: Establishes SSE stream, sends `endpoint` event:
-   ```
-   event: endpoint
-   data: /mcp?sessionId=abc123
-   ```
-3. **Client**: Extracts `sessionId` from URL
-4. **Client**: Sends POST requests to `/mcp?sessionId=abc123` with JSON-RPC messages
-5. **Server**: Routes POST to correct transport using `sessionId` query parameter
+1. **Client**: Sends POST request to `/mcp` with JSON-RPC body
+2. **Middleware**: Fixes Accept headers if needed (rawHeaders update)
+3. **Server**: Creates StreamableHTTPServerTransport for this request
+4. **Server**: Connects transport → handles request → response streams
+5. **Cleanup**: Transport closed after HTTP response completes (res.on('close'))
+6. **Response**: Returns JSON-RPC response with tool results
 
-### Streamable HTTP Transport Flow (Modern)
+**Key Features**:
+- Single endpoint simplicity (`POST /mcp`)
+- Stateless per-request design
+- Accept header middleware (fixes HTTP 406 with rawHeaders)
+- HTTP lifecycle cleanup
+- 42% smaller (302 → 175 lines)
 
-1. **Client**: Sends POST request to `/mcp` with JSON-RPC body (no sessionId)
-2. **Server**: Detects no sessionId → creates StreamableHTTPServerTransport
-3. **Server**: Connects transport → handles request → closes transport (stateless)
-4. **Response**: Returns via SSE stream or JSON (based on Accept headers)
+**See**: [MCP_ARCHITECTURE.md](../MCP_ARCHITECTURE.md) v2.0.0 for detailed implementation
 
-### Implementation Details
+---
 
-**File**: `apps/mcp-server/src/index-http.ts`
+### Sprint 8.7 Architecture Transformation
 
-**Key Code Sections**:
+**What Changed**:
 
-```typescript
-// Import both transports
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+**Removed**:
+- ❌ SSE transport (GET /mcp endpoint)
+- ❌ JSON-RPC shim (/mcp/json-rpc)
+- ❌ Session management Map
+- ❌ Dual transport detection
 
-// SSE sessions (stateful)
-const sseSessions = new Map<string, SSEServerTransport>();
+**Added**:
+- ✅ Accept header middleware (rawHeaders fix)
+- ✅ HTTP lifecycle cleanup pattern
+- ✅ Stateless mode configuration
 
-// GET /mcp - Establish SSE stream
-app.get('/mcp', async (_req, res) => {
-  const transport = new SSEServerTransport('/mcp', res, {
-    enableDnsRebindingProtection: false,
-  });
+**Results**:
+- 302 lines → 175 lines (42% reduction)
+- 3 endpoints → 1 endpoint
+- All clients working (Factory Droid, Claude Code, curl)
+- 100% reliability, <50ms tool calls
 
-  await server.connect(transport);
-  sseSessions.set(transport.sessionId, transport);
+---
 
-  transport.onclose = () => sseSessions.delete(transport.sessionId);
-  transport.onerror = (error) => { /* log and cleanup */ };
-});
+### Migration from Sprint 8.6 (SSE/Hybrid)
 
-// POST /mcp - Dual transport handler
-app.post('/mcp', async (req, res) => {
-  const sessionId = req.query.sessionId as string;
-
-  // CASE 1: SSE Message (has sessionId)
-  if (sessionId) {
-    const transport = sseSessions.get(sessionId);
-    if (!transport) {
-      return res.status(404).json({ error: 'Session not found' });
-    }
-    await transport.handlePostMessage(req, res, req.body);
-    return;
-  }
-
-  // CASE 2: Streamable HTTP Request (no sessionId - stateless)
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined, // Stateless mode
-    enableDnsRebindingProtection: false,
-  });
-
-  try {
-    await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
-  } finally {
-    await transport.close(); // Cleanup after each request
-  }
-});
+**Old Configuration** (Sprint 8.6):
+```json
+{
+  "type": "sse",
+  "url": "http://192.168.1.15:3001/mcp"
+}
 ```
 
-**Session Storage**: `Map<string, SSEServerTransport>` stores active sessions.
+**New Configuration** (Sprint 8.7):
+```json
+{
+  "type": "http",
+  "url": "http://192.168.1.15:3001/mcp"
+}
+```
+
+**Action Required**: Change `type` from "sse" to "http", endpoint stays the same.
 
 ---
 
 ## Future Considerations
 
-### SSE Deprecation Timeline
+### Sprint 9 Enhancements
 
-**Current Status**: SSE transport deprecated as of MCP spec 2025-03-26, but:
-- ✅ Still fully functional
-- ✅ Supported by all major agents
-- ✅ Will work for 12+ months minimum
+**Planned Improvements**:
+- OAuth 2.1 authentication for cloud deployment
+- Rate limiting (per-client quotas)
+- Automated test suite (E2E tests for all 40 tools)
+- Load testing (50+ concurrent clients)
+- Observability (metrics, tracing)
 
-**Migration Path**: When SSE support is removed from SDKs (likely late 2025/2026), migrate to Streamable HTTP transport. Migration is straightforward:
-
-1. Replace `SSEServerTransport` with `StreamableHTTPServerTransport`
-2. Update to single-endpoint architecture (vs GET/POST split)
-3. Update agent configs (minimal changes)
-
-**Timeline**: No urgency. Monitor MCP SDK release notes for removal announcements.
+**See**: [SPRINT_8.7_COMPLETION_SUMMARY.md](../SPRINT_8.7_COMPLETION_SUMMARY.md) for details
 
 ---
 
@@ -556,12 +542,12 @@ app.post('/mcp', async (req, res) => {
 To add support for a new agent:
 
 1. **Find MCP config location** for the agent
-2. **Add server configuration** following this pattern:
+2. **Add server configuration**:
    ```json
    {
      "mcpServers": {
        "projectpulse": {
-         "type": "sse" | "http" | "streamable-http",
+         "type": "http",
          "url": "http://192.168.1.15:3001/mcp"
        }
      }
@@ -570,8 +556,8 @@ To add support for a new agent:
 3. **Restart the agent**
 4. **Test connection**:
    - Check agent's MCP/plugin settings
-   - Ask agent: "List MCP tools"
-   - Verify Docker logs show new session
+   - Test: `projectpulse.projectpulse_health_check()`
+   - Verify: Health returns 40 tools
 5. **Document results** in this file
 
 ---
@@ -594,7 +580,7 @@ If you test ProjectPulse MCP server with a new agent:
 3. Submit results to update this guide
 4. Add agent to "Validated Agents" table above
 
-**Last Updated**: 2025-11-19
-**Validation Count**: 3 agents (Factory Droid, Claude Code, Cascade)
-**Transport Architecture**: Hybrid (SSE + Streamable HTTP)
-**Active Sessions**: Up to 3 concurrent SSE sessions tested
+**Last Updated**: 2025-11-20 (Sprint 8.7)
+**Validation Count**: 3 agents (Factory Droid, Claude Code, curl)
+**Transport Architecture**: HTTP (stateless streaming)
+**Concurrent Testing**: Multiple agents tested simultaneously
