@@ -1,7 +1,7 @@
 # MCP Multi-Agent Setup Guide
 
 **Status**: ✅ Production Ready (Validated 2025-11-19)
-**Transport**: SSE (Server-Sent Events)
+**Transport**: Hybrid (SSE + Streamable HTTP)
 **Server**: `http://192.168.1.15:3001/mcp`
 **Tools**: 40 ProjectPulse tools across 9 categories
 
@@ -9,13 +9,14 @@
 
 The following AI agents have been **tested and confirmed working** with the ProjectPulse MCP server:
 
-| Agent | Status | Config Location | Tested Date |
-|-------|--------|----------------|-------------|
-| **Claude Code** | ✅ Working | `~/.claude.json` | 2025-11-19 |
-| **Cascade (Windsurf)** | ✅ Working | `~/.codeium/windsurf/mcp_config.json` | 2025-11-19 |
-| **Cursor IDE** | ⚪ Not Tested | `~/.cursor/mcp.json` | - |
-| **Continue.dev** | ⚪ Not Tested | `.continue/mcpServers/` | - |
-| **Cline** | ⚪ Not Tested | VS Code global settings | - |
+| Agent | Status | Config Location | Tested Date | Transport |
+|-------|--------|----------------|-------------|-----------|
+| **Factory Droid** | ✅ Working | `~/.factory/mcp.json` | 2025-11-19 | Streamable HTTP |
+| **Claude Code** | ✅ Working | `~/.claude.json` | 2025-11-19 | SSE |
+| **Cascade (Windsurf)** | ✅ Working | `~/.codeium/windsurf/mcp_config.json` | 2025-11-19 | SSE |
+| **Cursor IDE** | ⚪ Not Tested | `~/.cursor/mcp.json` | - | - |
+| **Continue.dev** | ⚪ Not Tested | `.continue/mcpServers/` | - | - |
+| **Cline** | ⚪ Not Tested | VS Code global settings | - | - |
 
 ---
 
@@ -38,6 +39,32 @@ Choose your agent and follow the configuration below:
 ---
 
 ## Agent-Specific Configurations
+
+### Factory Droid
+
+**Config File**: `~/.factory/mcp.json`
+
+**Configuration**:
+
+```json
+{
+  "mcpServers": {
+    "projectpulse": {
+      "type": "http",
+      "url": "http://192.168.1.15:3001/mcp",
+      "disabled": false
+    }
+  }
+}
+```
+
+**Restart**: Quit current Factory Droid session (Ctrl+C) and start new session with `droid`.
+
+**Verify**: Factory Droid should auto-connect on startup and show ProjectPulse tools.
+
+**Transport**: Uses Streamable HTTP (modern MCP standard).
+
+---
 
 ### Claude Code
 
@@ -396,7 +423,37 @@ curl http://192.168.1.15:3001/health | jq .
 
 ## Architecture Notes
 
-### SSE Transport Protocol Flow
+### Hybrid Transport System
+
+**Why Dual Transport?**
+
+ProjectPulse MCP server implements **both SSE and Streamable HTTP transports simultaneously** because different AI agents use different protocols:
+
+- **SSE (Server-Sent Events)**: Used by Claude Code, Cascade
+  - Two-step protocol: GET establishes stream → POST sends messages with sessionId
+  - Stateful: Server maintains session state
+  - Deprecated as of MCP spec 2025-03-26, but widely supported
+
+- **Streamable HTTP**: Used by Factory Droid
+  - Single-step protocol: POST directly with request body
+  - Stateless: Each request is independent
+  - Modern MCP standard
+
+**Detection Logic**:
+
+```typescript
+POST /mcp:
+  - If sessionId query parameter exists → Route to SSE handler
+  - If no sessionId → Route to Streamable HTTP handler
+```
+
+**Benefits**:
+- ✅ All agents work without config changes
+- ✅ No breaking changes to existing integrations
+- ✅ Future-proof with modern standard
+- ✅ Transparent to clients
+
+### SSE Transport Protocol Flow (Legacy)
 
 1. **Client**: Sends GET request to `/mcp`
 2. **Server**: Establishes SSE stream, sends `endpoint` event:
@@ -408,6 +465,13 @@ curl http://192.168.1.15:3001/health | jq .
 4. **Client**: Sends POST requests to `/mcp?sessionId=abc123` with JSON-RPC messages
 5. **Server**: Routes POST to correct transport using `sessionId` query parameter
 
+### Streamable HTTP Transport Flow (Modern)
+
+1. **Client**: Sends POST request to `/mcp` with JSON-RPC body (no sessionId)
+2. **Server**: Detects no sessionId → creates StreamableHTTPServerTransport
+3. **Server**: Connects transport → handles request → closes transport (stateless)
+4. **Response**: Returns via SSE stream or JSON (based on Accept headers)
+
 ### Implementation Details
 
 **File**: `apps/mcp-server/src/index-http.ts`
@@ -415,30 +479,52 @@ curl http://192.168.1.15:3001/health | jq .
 **Key Code Sections**:
 
 ```typescript
-// Line 61-111: GET /mcp - Establish SSE stream
+// Import both transports
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+
+// SSE sessions (stateful)
+const sseSessions = new Map<string, SSEServerTransport>();
+
+// GET /mcp - Establish SSE stream
 app.get('/mcp', async (_req, res) => {
   const transport = new SSEServerTransport('/mcp', res, {
     enableDnsRebindingProtection: false,
   });
 
-  await server.connect(transport); // auto-calls start()
-  sessions.set(transport.sessionId, transport);
+  await server.connect(transport);
+  sseSessions.set(transport.sessionId, transport);
 
-  // Cleanup handlers
-  transport.onclose = () => sessions.delete(transport.sessionId);
+  transport.onclose = () => sseSessions.delete(transport.sessionId);
   transport.onerror = (error) => { /* log and cleanup */ };
 });
 
-// Line 115-152: POST /mcp - Receive client messages
+// POST /mcp - Dual transport handler
 app.post('/mcp', async (req, res) => {
-  const sessionId = req.query.sessionId as string; // From URL query
-  const transport = sessions.get(sessionId);
+  const sessionId = req.query.sessionId as string;
 
-  if (!transport) {
-    return res.status(404).json({ error: 'Session not found' });
+  // CASE 1: SSE Message (has sessionId)
+  if (sessionId) {
+    const transport = sseSessions.get(sessionId);
+    if (!transport) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    await transport.handlePostMessage(req, res, req.body);
+    return;
   }
 
-  await transport.handlePostMessage(req, res, req.body);
+  // CASE 2: Streamable HTTP Request (no sessionId - stateless)
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: undefined, // Stateless mode
+    enableDnsRebindingProtection: false,
+  });
+
+  try {
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
+  } finally {
+    await transport.close(); // Cleanup after each request
+  }
 });
 ```
 
@@ -509,5 +595,6 @@ If you test ProjectPulse MCP server with a new agent:
 4. Add agent to "Validated Agents" table above
 
 **Last Updated**: 2025-11-19
-**Validation Count**: 2 agents (Claude Code, Cascade)
-**Active Sessions**: Up to 3 concurrent tested
+**Validation Count**: 3 agents (Factory Droid, Claude Code, Cascade)
+**Transport Architecture**: Hybrid (SSE + Streamable HTTP)
+**Active Sessions**: Up to 3 concurrent SSE sessions tested

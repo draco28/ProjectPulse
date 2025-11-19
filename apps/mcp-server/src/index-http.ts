@@ -11,6 +11,7 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
 import { config } from './config.js';
 import { createLogger } from './logger.js';
@@ -36,8 +37,8 @@ const server = new Server(
 // Register all tools ONCE (shared across all HTTP sessions)
 registerTools(server, { config, logger, httpClient });
 
-// Session management: Map of session ID -> transport
-const sessions = new Map<string, SSEServerTransport>();
+// SSE session management: Map of session ID -> transport
+const sseSessions = new Map<string, SSEServerTransport>();
 
 // Create Express app
 const app = express();
@@ -51,9 +52,10 @@ app.get('/health', (_req, res) => {
   res.json({
     status: 'healthy',
     version: '0.1.0',
-    transport: 'sse',
-    toolCount: 35,
-    activeSessions: sessions.size,
+    transport: 'hybrid',
+    transports: ['sse', 'streamable-http'],
+    toolCount: 40,
+    activeSSESessions: sseSessions.size,
   });
 });
 
@@ -72,18 +74,18 @@ app.get('/mcp', async (_req, res) => {
     await server.connect(transport);
 
     // Store session for POST message routing
-    sessions.set(transport.sessionId, transport);
+    sseSessions.set(transport.sessionId, transport);
     logger.info('MCP SSE session started', {
       sessionId: transport.sessionId,
-      totalSessions: sessions.size
+      totalSessions: sseSessions.size
     });
 
     // Clean up on close
     transport.onclose = () => {
-      sessions.delete(transport.sessionId);
+      sseSessions.delete(transport.sessionId);
       logger.info('MCP SSE session closed', {
         sessionId: transport.sessionId,
-        remainingSessions: sessions.size
+        remainingSessions: sseSessions.size
       });
     };
 
@@ -92,7 +94,7 @@ app.get('/mcp', async (_req, res) => {
         sessionId: transport.sessionId,
         error: error.message
       });
-      sessions.delete(transport.sessionId);
+      sseSessions.delete(transport.sessionId);
     };
 
   } catch (error) {
@@ -110,31 +112,55 @@ app.get('/mcp', async (_req, res) => {
   }
 });
 
-// MCP SSE endpoint - POST receives client messages
-// The SSE client sends the session ID as a query parameter (?sessionId=xxx)
+// MCP endpoint - POST handles both SSE messages and Streamable HTTP requests
+// DUAL TRANSPORT DETECTION:
+// - If sessionId query parameter exists → SSE message (stateful)
+// - If no sessionId → Streamable HTTP request (stateless)
 app.post('/mcp', async (req, res) => {
   try {
     // Extract session ID from URL query parameter (sent by SSE client)
     const sessionId = req.query.sessionId as string;
 
-    if (!sessionId) {
-      logger.warn('POST message missing session ID', {
-        query: req.query,
-        url: req.url
-      });
-      return res.status(400).json({ error: 'Missing sessionId query parameter' });
+    // CASE 1: SSE Message (has sessionId query parameter)
+    if (sessionId) {
+      logger.debug('Handling SSE message', { sessionId });
+
+      // Find the transport for this session
+      const transport = sseSessions.get(sessionId);
+
+      if (!transport) {
+        logger.warn('POST message for unknown SSE session', { sessionId });
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      // Handle the message via SSE transport
+      await transport.handlePostMessage(req, res, req.body);
+      return;
     }
 
-    // Find the transport for this session
-    const transport = sessions.get(sessionId);
+    // CASE 2: Streamable HTTP Request (no sessionId - stateless)
+    logger.info('Handling Streamable HTTP request');
 
-    if (!transport) {
-      logger.warn('POST message for unknown session', { sessionId });
-      return res.status(404).json({ error: 'Session not found' });
+    // Create a new transport for this request (stateless mode)
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // Stateless mode
+      enableDnsRebindingProtection: false,
+    });
+
+    try {
+      // Connect server to this transport
+      await server.connect(transport);
+      logger.debug('Streamable HTTP transport connected');
+
+      // Handle the request
+      await transport.handleRequest(req, res, req.body);
+      logger.debug('Streamable HTTP request handled');
+
+    } finally {
+      // Cleanup (Streamable HTTP is stateless - close after each request)
+      await transport.close();
+      logger.debug('Streamable HTTP transport closed');
     }
-
-    // Handle the message
-    await transport.handlePostMessage(req, res, req.body);
 
   } catch (error) {
     logger.error('Failed to handle POST message', {
