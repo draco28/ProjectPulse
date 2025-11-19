@@ -145,6 +145,7 @@ app.post('/mcp', async (req, res) => {
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined, // Stateless mode
       enableDnsRebindingProtection: false,
+      enableJsonResponse: true, // Return JSON instead of SSE stream for HTTP clients
     });
 
     try {
