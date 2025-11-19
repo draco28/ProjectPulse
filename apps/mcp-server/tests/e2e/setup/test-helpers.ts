@@ -27,6 +27,19 @@ export function logTestStep(step: string, status: 'start' | 'success' | 'error' 
 }
 
 /**
+ * Log MCP transport type being used
+ * @param transport - Transport type ('sse' or 'http-stream')
+ */
+export function logTransportType(transport: 'sse' | 'http-stream'): void {
+  const icon = transport === 'http-stream' ? '🚀' : '📡';
+  const color = '\x1b[35m'; // Magenta
+  const reset = '\x1b[0m';
+  const label = transport === 'http-stream' ? 'HTTP Streamable' : 'SSE (Legacy)';
+
+  console.log(`${color}${icon} Transport: ${label}${reset}`);
+}
+
+/**
  * Assert that a value is defined (not null or undefined)
  */
 export function assertDefined<T>(

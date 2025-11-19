@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
     // Find 13-Project-Plan.md document from Session 2
     const projectPlanDoc = await prisma.document.findFirst({
       where: {
-        onboardingSessionId: session2.id,
+        onboardingSessionId: session1.id,  // Documents are linked to session1, not session2
         filename: {
           contains: '13-Project-Plan'
         }

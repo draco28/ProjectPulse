@@ -21,6 +21,7 @@ import {
 } from '../setup/fixtures.js';
 import {
   logTestStep,
+  logTransportType,
   assertDefined,
   assertEqual,
   assertGreaterThanOrEqual,
@@ -29,23 +30,23 @@ import {
   countWords,
 } from '../setup/test-helpers.js';
 
-const { MCP_URL, TEST_PROJECT_ID } = TEST_CONSTANTS;
+const { MCP_URL, TEST_PROJECT_ID, TRANSPORT_TYPE } = TEST_CONSTANTS;
 
 describe('Session 2: Document Generation (MCP Tool E2E)', () => {
   test('Generate and store all 15 documents', async () => {
     const timer = new TestTimer();
-    const client = new MCPTestClient(MCP_URL);
+    const client = new MCPTestClient(MCP_URL, TRANSPORT_TYPE);
 
     try {
       await client.connect();
+      logTransportType(TRANSPORT_TYPE);
       logTestStep(`Connected (session: ${client.getSessionId()})`, 'success');
 
-      // Step 1: Get all 15 document prompts (90s timeout for large response)
+      // Step 1: Get all 15 document prompts (HTTP stream handles large responses)
       logTestStep('Fetching document prompts...');
 
       const promptsData = await client.callToolJSON<{
-        totalDocuments: number;
-        documents: Array<{
+        documentPrompts: Array<{
           filename: string;
           title: string;
           category: string;
@@ -53,34 +54,34 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
           userPrompt: string;
           wordCountTarget: number;
         }>;
-        estimatedTotalWords: number;
       }>('projectpulse_onboarding_getDocumentPrompts', {
         projectId: TEST_PROJECT_ID,
-      }, 90000); // 90 second timeout for large response
+      }); // Default 30s timeout - HTTP stream should handle 31KB easily
 
       assertEqual(
-        promptsData.totalDocuments,
+        promptsData.documentPrompts.length,
         15,
         'Should have 15 document prompts'
       );
-      assertEqual(
-        promptsData.documents.length,
-        15,
-        'Should have 15 document objects'
+
+      // Calculate total estimated words
+      const estimatedTotalWords = promptsData.documentPrompts.reduce(
+        (sum, doc) => sum + doc.wordCountTarget,
+        0
       );
       assertGreaterThanOrEqual(
-        promptsData.estimatedTotalWords,
+        estimatedTotalWords,
         20000,
         'Total word count should be substantial'
       );
 
       logTestStep(
-        `Fetched ${promptsData.totalDocuments} document prompts (estimated ${promptsData.estimatedTotalWords} words total)`,
+        `Fetched ${promptsData.documentPrompts.length} document prompts (estimated ${estimatedTotalWords} words total)`,
         'success'
       );
 
       // Verify critical documents exist
-      const filenames = promptsData.documents.map((d) => d.filename);
+      const filenames = promptsData.documentPrompts.map((d) => d.filename);
       assert(
         filenames.some((f) => f.includes('PRD')),
         'Should include PRD'
@@ -93,7 +94,7 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
       // Step 2: Store each document
       let documentsStored = 0;
 
-      for (const docPrompt of promptsData.documents) {
+      for (const docPrompt of promptsData.documentPrompts) {
         logTestStep(`Generating ${docPrompt.filename}...`);
 
         // Simulate agent generating document with AI
@@ -111,11 +112,19 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
         // Store document
         const storeData = await client.callToolJSON<{
           success: boolean;
-          filename: string;
+          stored: boolean;
+          document: {
+            id: string;
+            filename: string;
+            wordCount: number;
+            category: string;
+            generatedAt: string;
+          };
           progress: {
             documentsStored: number;
             totalDocuments: number;
             percentComplete: number;
+            isComplete: boolean;
           };
         }>('projectpulse_onboarding_storeDocument', {
           projectId: TEST_PROJECT_ID,
@@ -127,7 +136,7 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
 
         assertEqual(storeData.success, true, 'Store should succeed');
         assertEqual(
-          storeData.filename,
+          storeData.document.filename,
           docPrompt.filename,
           'Filename should match'
         );
@@ -209,10 +218,11 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
   });
 
   test('Should prevent Session 2 without Session 1 complete', async () => {
-    const client = new MCPTestClient(MCP_URL);
+    const client = new MCPTestClient(MCP_URL, TRANSPORT_TYPE);
 
     try {
       await client.connect();
+      logTransportType(TRANSPORT_TYPE);
       logTestStep('Testing Session 1 prerequisite validation...');
 
       // Use a different project ID without Session 1
@@ -244,10 +254,11 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
   });
 
   test('Should validate required fields when storing documents', async () => {
-    const client = new MCPTestClient(MCP_URL);
+    const client = new MCPTestClient(MCP_URL, TRANSPORT_TYPE);
 
     try {
       await client.connect();
+      logTransportType(TRANSPORT_TYPE);
       logTestStep('Testing document validation...');
 
       // Try to store document without required fields

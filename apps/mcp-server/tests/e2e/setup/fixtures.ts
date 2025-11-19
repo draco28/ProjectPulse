@@ -326,4 +326,8 @@ export const TEST_CONSTANTS = {
   TEST_TIMEOUT_MS: 60000, // 60 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY_MS: 1000,
+
+  // HTTP Streamable Transport Configuration (Phase 2)
+  HTTP_STREAM_ENABLED: process.env.HTTP_STREAM_ENABLED !== 'false', // Default: true (use HTTP stream)
+  TRANSPORT_TYPE: (process.env.TRANSPORT_TYPE as 'sse' | 'http-stream') || 'http-stream', // Default: http-stream
 };

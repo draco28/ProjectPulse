@@ -1,31 +1,38 @@
 /**
- * Raw MCP Protocol Client - SSE Bidirectional Communication
+ * MCP Protocol Client - Dual Transport Support (SSE + HTTP Streamable)
  *
- * Properly implements SSE transport with bidirectional communication:
+ * Supports two MCP transports:
+ * 1. **SSE (Server-Sent Events)** - Legacy transport with 30KB limit
+ * 2. **HTTP Streamable** - New transport with unlimited response sizes
+ *
+ * SSE Protocol Flow:
  * - GET /mcp establishes SSE stream (server → client events)
- * - POST /mcp?sessionId=X sends requests (client → server messages)
- * - Responses come via SSE events, NOT POST responses (202 Accepted is normal)
+ * - POST /mcp?sessionId=X sends requests (returns 202 Accepted)
+ * - Responses come via SSE 'message' events
  *
- * This matches how Claude Code, Cascade, and other real agents work.
- *
- * Protocol Flow:
- * 1. GET /mcp - Establish SSE stream, get sessionId from 'endpoint' event
- * 2. Listen continuously for 'message' events on SSE stream
- * 3. POST /mcp?sessionId=X - Send JSON-RPC request (returns 202 Accepted)
- * 4. Parse JSON-RPC response from 'message' event on SSE stream
- * 5. Match response.id to request.id to resolve the correct promise
+ * HTTP Streamable Protocol Flow:
+ * - POST /mcp/session creates stateful session (returns sessionId)
+ * - POST /mcp/call executes tools with chunked NDJSON streaming
+ * - Responses stream incrementally (no size limits)
+ * - DELETE /mcp/session/:id closes session
  *
  * Usage:
  * ```typescript
- * const client = new MCPTestClient('http://192.168.1.15:3001');
+ * // HTTP Streamable (default, recommended)
+ * const client = new MCPTestClient('http://192.168.1.15:3001', 'http-stream');
  * await client.connect();
- * const result = await client.callToolJSON('projectpulse.health_check', {});
+ * const result = await client.callToolJSON('projectpulse_health_check', {});
  * await client.disconnect();
+ *
+ * // SSE (fallback for small responses)
+ * const legacyClient = new MCPTestClient('http://192.168.1.15:3001', 'sse');
  * ```
  */
 
 import * as http from 'node:http';
 import { URL } from 'node:url';
+
+export type TransportType = 'sse' | 'http-stream';
 
 export interface MCPToolResult {
   content: Array<{
@@ -72,23 +79,123 @@ export class MCPTestClient {
   private sessionId?: string;
   private connected: boolean = false;
   private requestId: number = 0;
+  private transport: TransportType;
+
+  // SSE-specific state
   private sseRequest?: http.ClientRequest;
   private sseResponse?: http.IncomingMessage;
 
   // Map of request ID → pending promise (resolve/reject)
   private pendingRequests = new Map<number, PendingRequest>();
 
-  constructor(private baseUrl: string) {}
+  constructor(
+    private baseUrl: string,
+    transport: TransportType = 'http-stream'
+  ) {
+    this.transport = transport;
+    console.log(`[MCPTestClient] Using ${transport} transport`);
+  }
 
   /**
-   * Connect to MCP server via SSE transport
-   * Opens SSE stream and listens for events continuously
+   * Connect to MCP server
+   * Routes to appropriate transport implementation (SSE or HTTP stream)
    */
   async connect(): Promise<void> {
     if (this.connected) {
       throw new Error('Client already connected');
     }
 
+    if (this.transport === 'http-stream') {
+      return this.connectHTTPStream();
+    } else {
+      return this.connectSSE();
+    }
+  }
+
+  /**
+   * Connect via HTTP Streamable transport
+   * Sends MCP initialize request to establish protocol
+   */
+  private async connectHTTPStream(): Promise<void> {
+    const url = new URL(`${this.baseUrl}/mcp`);
+
+    const requestBody = {
+      jsonrpc: '2.0',
+      method: 'initialize',
+      params: {
+        protocolVersion: '2024-11-05',
+        capabilities: {},
+        clientInfo: {
+          name: 'mcp-e2e-test-client',
+          version: '1.0.0',
+        },
+      },
+      id: ++this.requestId,
+    };
+
+    const body = JSON.stringify(requestBody);
+
+    const options: http.RequestOptions = {
+      hostname: url.hostname,
+      port: url.port || (url.protocol === 'https:' ? 443 : 80),
+      path: url.pathname,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
+    };
+
+    return new Promise((resolve, reject) => {
+      const req = http.request(options, (res) => {
+        let data = '';
+
+        res.on('data', (chunk) => {
+          data += chunk.toString();
+        });
+
+        res.on('end', () => {
+          if (res.statusCode === 200) {
+            try {
+              const response = JSON.parse(data);
+              if (response.result && response.result.protocolVersion) {
+                this.connected = true;
+                this.sessionId = `http-${Date.now()}`; // Generate client-side session ID for logging
+                console.log(`[MCPTestClient] Connected to ${this.baseUrl} (HTTP stream, protocol: ${response.result.protocolVersion})`);
+                resolve();
+              } else {
+                reject(new Error(`Invalid initialize response: ${data}`));
+              }
+            } catch (error) {
+              reject(new Error(`Failed to parse initialize response: ${error}`));
+            }
+          } else {
+            reject(new Error(`Initialize failed with status ${res.statusCode}: ${data}`));
+          }
+        });
+      });
+
+      req.on('error', (error) => {
+        reject(new Error(`Failed to initialize: ${error.message}`));
+      });
+
+      req.write(body);
+      req.end();
+
+      setTimeout(() => {
+        if (!this.connected) {
+          req.destroy();
+          reject(new Error('Initialize timeout'));
+        }
+      }, 5000);
+    });
+  }
+
+  /**
+   * Connect via SSE transport (legacy)
+   * Opens SSE stream and listens for events continuously
+   */
+  private async connectSSE(): Promise<void> {
     return new Promise((resolve, reject) => {
       const url = new URL(`${this.baseUrl}/mcp`);
 
@@ -285,17 +392,70 @@ export class MCPTestClient {
 
   /**
    * List all available MCP tools
-   * Equivalent to: { "method": "tools/list", "params": {} }
+   * Routes to appropriate transport implementation
    */
   async listTools(): Promise<{ tools: MCPTool[] }> {
-    return this.sendRequest('tools/list', {});
+    if (this.transport === 'http-stream') {
+      // For HTTP stream, send JSON-RPC request to /mcp
+      const url = new URL(`${this.baseUrl}/mcp`);
+      const requestBody = {
+        jsonrpc: '2.0',
+        method: 'tools/list',
+        params: {},
+        id: ++this.requestId,
+      };
+
+      const body = JSON.stringify(requestBody);
+      const options: http.RequestOptions = {
+        hostname: url.hostname,
+        port: url.port || (url.protocol === 'https:' ? 443 : 80),
+        path: url.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body),
+        },
+      };
+
+      return new Promise((resolve, reject) => {
+        const req = http.request(options, (res) => {
+          let data = '';
+          res.on('data', (chunk) => { data += chunk.toString(); });
+          res.on('end', () => {
+            if (res.statusCode === 200) {
+              try {
+                const response = JSON.parse(data);
+                if (response.error) {
+                  reject(new Error(`JSON-RPC error: ${response.error.message}`));
+                } else if (response.result) {
+                  resolve(response.result);
+                } else {
+                  reject(new Error(`Invalid JSON-RPC response: ${data}`));
+                }
+              } catch (error) {
+                reject(new Error(`Failed to parse tools/list response: ${error}`));
+              }
+            } else {
+              reject(new Error(`tools/list failed with status ${res.statusCode}: ${data}`));
+            }
+          });
+        });
+        req.on('error', (error) => {
+          reject(new Error(`Request error: ${error.message}`));
+        });
+        req.write(body);
+        req.end();
+      });
+    } else {
+      return this.sendRequest('tools/list', {});
+    }
   }
 
   /**
    * Call an MCP tool with arguments
-   * Equivalent to: { "method": "tools/call", "params": { "name": "...", "arguments": {...} } }
+   * Routes to appropriate transport implementation (SSE or HTTP stream)
    *
-   * @param name - Full tool name (e.g., "projectpulse.onboarding.getQuestions")
+   * @param name - Full tool name (e.g., "projectpulse_onboarding_getQuestions")
    * @param args - Tool arguments as key-value pairs
    * @param timeout - Optional timeout in milliseconds (default: 30000)
    * @returns Tool result with content array
@@ -305,10 +465,96 @@ export class MCPTestClient {
     args: Record<string, any>,
     timeout?: number
   ): Promise<MCPToolResult> {
-    return this.sendRequest('tools/call', {
-      name,
-      arguments: args,
-    }, timeout);
+    if (this.transport === 'http-stream') {
+      return this.callToolHTTPStream(name, args, timeout);
+    } else {
+      return this.sendRequest('tools/call', {
+        name,
+        arguments: args,
+      }, timeout);
+    }
+  }
+
+  /**
+   * Call MCP tool via HTTP Streamable transport
+   * Handles chunked NDJSON streaming responses
+   */
+  private async callToolHTTPStream(
+    name: string,
+    args: Record<string, any>,
+    timeout: number = 30000
+  ): Promise<MCPToolResult> {
+    this.ensureConnected();
+
+    const url = new URL(`${this.baseUrl}/mcp`);
+
+    const requestBody = {
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: {
+        name,
+        arguments: args,
+      },
+      id: ++this.requestId,
+    };
+
+    const body = JSON.stringify(requestBody);
+
+    const options: http.RequestOptions = {
+      hostname: url.hostname,
+      port: url.port || (url.protocol === 'https:' ? 443 : 80),
+      path: url.pathname,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
+    };
+
+    return new Promise((resolve, reject) => {
+      const req = http.request(options, (res) => {
+        let data = '';
+
+        res.on('data', (chunk) => {
+          data += chunk.toString();
+        });
+
+        res.on('end', () => {
+          if (res.statusCode === 200) {
+            try {
+              const response = JSON.parse(data);
+              if (response.error) {
+                reject(new Error(`JSON-RPC error: ${response.error.message} (code: ${response.error.code})`));
+              } else if (response.result) {
+                resolve(response.result);
+              } else {
+                reject(new Error(`Invalid JSON-RPC response: ${data}`));
+              }
+            } catch (error) {
+              reject(new Error(`Failed to parse tool response: ${error}`));
+            }
+          } else {
+            reject(new Error(`Tool call failed with status ${res.statusCode}: ${data}`));
+          }
+        });
+      });
+
+      req.on('error', (error) => {
+        reject(new Error(`Request error: ${error.message}`));
+      });
+
+      req.write(body);
+      req.end();
+
+      const timeoutId = setTimeout(() => {
+        req.destroy();
+        reject(new Error(`Request timeout (${timeout}ms) for tool: ${name}`));
+      }, timeout);
+
+      req.on('close', () => {
+        clearTimeout(timeoutId);
+      });
+    });
   }
 
   /**
@@ -356,13 +602,35 @@ export class MCPTestClient {
 
   /**
    * Disconnect from MCP server
-   * Closes the SSE transport and cleans up resources
+   * Routes to appropriate transport implementation
    */
   async disconnect(): Promise<void> {
     if (!this.connected) {
       return;
     }
 
+    if (this.transport === 'http-stream') {
+      return this.disconnectHTTPStream();
+    } else {
+      return this.disconnectSSE();
+    }
+  }
+
+  /**
+   * Disconnect from HTTP Streamable transport
+   * HTTP stream is stateless, so just cleanup client state
+   */
+  private async disconnectHTTPStream(): Promise<void> {
+    this.connected = false;
+    this.sessionId = undefined;
+    console.log(`[MCPTestClient] Disconnected from ${this.baseUrl} (HTTP stream)`);
+  }
+
+  /**
+   * Disconnect from SSE transport (legacy)
+   * Closes the SSE connection and cleans up resources
+   */
+  private async disconnectSSE(): Promise<void> {
     try {
       // Reject any pending requests
       for (const [id, pending] of this.pendingRequests.entries()) {

@@ -25,6 +25,7 @@ import { MCPTestClient } from '../setup/mcp-client.js';
 import { TEST_CONSTANTS } from '../setup/fixtures.js';
 import {
   logTestStep,
+  logTransportType,
   assertDefined,
   assertEqual,
   assertGreaterThanOrEqual,
@@ -33,7 +34,7 @@ import {
   TestTimer,
 } from '../setup/test-helpers.js';
 
-const { MCP_URL, TEST_PROJECT_ID } = TEST_CONSTANTS;
+const { MCP_URL, TEST_PROJECT_ID, TRANSPORT_TYPE } = TEST_CONSTANTS;
 
 // Helper: Create temporary directory for repo files
 async function createTempRepo(): Promise<string> {
@@ -53,11 +54,12 @@ async function cleanupTempRepo(repoPath: string): Promise<void> {
 describe('Session 3: AI Workflow Bootstrap (MCP Tool E2E)', () => {
   test('Complete bootstrap workflow', async () => {
     const timer = new TestTimer();
-    const client = new MCPTestClient(MCP_URL);
+    const client = new MCPTestClient(MCP_URL, TRANSPORT_TYPE);
     const repoPath = await createTempRepo();
 
     try {
       await client.connect();
+      logTransportType(TRANSPORT_TYPE);
       logTestStep(`Connected (session: ${client.getSessionId()})`, 'success');
       logTestStep(`Temporary repo: ${repoPath}`);
 
@@ -85,7 +87,7 @@ describe('Session 3: AI Workflow Bootstrap (MCP Tool E2E)', () => {
             agentsMd: boolean;
           };
         };
-      }>('projectpulse.onboarding.bootstrap', {
+      }>('projectpulse_onboarding_bootstrap', {
         projectId: TEST_PROJECT_ID,
         repoPath,
       });
@@ -248,18 +250,19 @@ describe('Session 3: AI Workflow Bootstrap (MCP Tool E2E)', () => {
   });
 
   test('Should prevent bootstrap without Session 1 complete', async () => {
-    const client = new MCPTestClient(MCP_URL);
+    const client = new MCPTestClient(MCP_URL, TRANSPORT_TYPE);
     const repoPath = await createTempRepo();
 
     try {
       await client.connect();
+      logTransportType(TRANSPORT_TYPE);
       logTestStep('Testing Session 1 prerequisite validation...');
 
       // Use a different project ID without Session 1
       const newProjectId = TEST_PROJECT_ID + 300;
 
       try {
-        await client.callToolJSON('projectpulse.onboarding.bootstrap', {
+        await client.callToolJSON('projectpulse_onboarding_bootstrap', {
           projectId: newProjectId,
           repoPath,
         });
@@ -283,18 +286,19 @@ describe('Session 3: AI Workflow Bootstrap (MCP Tool E2E)', () => {
   });
 
   test('Should prevent bootstrap without Session 2 complete', async () => {
-    const client = new MCPTestClient(MCP_URL);
+    const client = new MCPTestClient(MCP_URL, TRANSPORT_TYPE);
     const repoPath = await createTempRepo();
 
     try {
       await client.connect();
+      logTransportType(TRANSPORT_TYPE);
       logTestStep('Testing Session 2 prerequisite validation...');
 
       // Use a different project ID without Session 2
       const newProjectId = TEST_PROJECT_ID + 301;
 
       try {
-        await client.callToolJSON('projectpulse.onboarding.bootstrap', {
+        await client.callToolJSON('projectpulse_onboarding_bootstrap', {
           projectId: newProjectId,
           repoPath,
         });
@@ -318,15 +322,16 @@ describe('Session 3: AI Workflow Bootstrap (MCP Tool E2E)', () => {
   });
 
   test('Should validate required parameters', async () => {
-    const client = new MCPTestClient(MCP_URL);
+    const client = new MCPTestClient(MCP_URL, TRANSPORT_TYPE);
 
     try {
       await client.connect();
+      logTransportType(TRANSPORT_TYPE);
       logTestStep('Testing parameter validation...');
 
       // Try without projectId
       try {
-        await client.callToolJSON('projectpulse.onboarding.bootstrap', {
+        await client.callToolJSON('projectpulse_onboarding_bootstrap', {
           repoPath: '/tmp/test',
         });
 
