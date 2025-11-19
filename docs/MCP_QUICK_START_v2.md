@@ -239,6 +239,32 @@ docker-compose -f docker-compose.cloud.yml up -d mcp-server
 
 ---
 
+### Error: "HTTP 406 Not Acceptable" (FIXED)
+
+**Issue**: Claude Code and Factory Droid HTTP clients don't send the required `Accept: application/json, text/event-stream` header.
+
+**Server Fix**: ✅ **AUTOMATICALLY FIXED** as of Sprint 8.7 Phase 4
+
+ProjectPulse MCP server now includes middleware that transparently adds the missing header for client compatibility.
+
+**Status**: 
+- ✅ Claude Code HTTP transport works
+- ✅ Factory Droid HTTP transport should work (untested)
+- ✅ All MCP-compliant clients continue to work
+- ✅ No user action required
+
+**Technical Details**:
+The server detects when clients send incomplete Accept headers and automatically adds `text/event-stream`. This is logged at DEBUG level if you want to verify:
+
+```bash
+# Enable debug logging
+export LOG_LEVEL=debug
+node dist/index-http.js
+# Look for: "Added text/event-stream to Accept header"
+```
+
+---
+
 ### Error: "Tool not found"
 
 **Cause**: Typo in tool name or outdated tool list

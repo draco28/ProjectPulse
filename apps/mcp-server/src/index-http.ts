@@ -45,6 +45,29 @@ const PORT = config.mcpPort;
 // Middleware: Parse JSON bodies (CRITICAL - must be before routes)
 app.use(express.json());
 
+// Middleware: Fix Accept headers for client compatibility
+// Note: Claude Code and Factory Droid don't send required text/event-stream
+// This middleware transparently adds the missing header for MCP SDK compatibility
+app.use('/mcp', (req, _res, next) => {
+  const accept = req.headers.accept || '';
+  
+  // MCP SDK requires: Accept: application/json, text/event-stream
+  if (!accept.includes('text/event-stream')) {
+    const originalAccept = accept;
+    req.headers.accept = accept 
+      ? `${accept}, text/event-stream`
+      : 'application/json, text/event-stream';
+    
+    logger.debug('Added text/event-stream to Accept header', {
+      original: originalAccept || '(empty)',
+      fixed: req.headers.accept,
+      userAgent: req.headers['user-agent'],
+    });
+  }
+  
+  next();
+});
+
 // Health check endpoint (for Docker health checks)
 app.get('/health', (_req, res) => {
   res.json({
