@@ -32,6 +32,7 @@ async function getDashboardData() {
     securityFindingsCount,
     recentIssues,
     activeAgents,
+    onboardingSessions,
   ] = await Promise.all([
     prisma.issue.count({ where: { status: 'open' } }),
     prisma.issue.count({ where: { status: 'in-progress' } }),
@@ -52,7 +53,17 @@ async function getDashboardData() {
       where: { isBuiltIn: true },
       orderBy: { name: 'asc' },
     }),
+    // Fetch onboarding status for QuickActions widget
+    prisma.onboardingSession.findMany({
+      where: { projectId: 1 }, // TODO: Get from auth/session
+      select: {
+        sessionNumber: true,
+        status: true,
+      },
+    }),
   ]);
+
+  const completedCount = onboardingSessions.filter((s) => s.status === 'complete').length;
 
   return {
     stats: {
@@ -88,6 +99,10 @@ async function getDashboardData() {
         color: colors[index % colors.length] || '#00D4FF',
       };
     }),
+    onboarding: {
+      completedSessions: completedCount,
+      isComplete: completedCount === 3,
+    },
   };
 }
 
@@ -155,8 +170,8 @@ export default async function DashboardPage() {
 
         {/* Right Column - Widgets (1/3) */}
         <div className="space-y-4">
-          {/* Quick Actions */}
-          <QuickActionsWidget />
+          {/* Quick Actions - with onboarding status */}
+          <QuickActionsWidget onboardingStatus={data.onboarding} />
 
           {/* Agent Personas */}
           <AgentPersonasWidget agents={data.agents} />
