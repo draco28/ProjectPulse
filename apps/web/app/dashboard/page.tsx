@@ -42,8 +42,8 @@ async function getDashboardData(projectId: number) {
     prisma.issue.count({ where: { projectId, status: 'open' } }),
     prisma.issue.count({ where: { projectId, status: 'in-progress' } }),
     prisma.issue.count({ where: { projectId, status: 'closed' } }),
-    prisma.knowledgeItem.count(),
-    prisma.securityFinding.count({ where: { status: 'open' } }),
+    prisma.knowledgeItem.count({ where: { projectId } }),
+    prisma.securityFinding.count({ where: { projectId, status: 'open' } }),
     prisma.issue.findMany({
       where: { projectId },
       take: 5,
@@ -231,7 +231,7 @@ export default async function DashboardPage({
         {/* Right Column - Widgets (1/3) */}
         <div className="space-y-4">
           {/* Quick Actions - with onboarding status */}
-          <QuickActionsWidget onboardingStatus={data.onboarding} />
+          <QuickActionsWidget onboardingStatus={data.onboarding} projectId={projectId} />
 
           {/* Agent Personas */}
           <AgentPersonasWidget agents={data.agents} />

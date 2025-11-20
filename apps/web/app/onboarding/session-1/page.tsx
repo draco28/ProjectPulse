@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PhaseNavigator } from '@/components/onboarding/PhaseNavigator';
@@ -39,6 +39,9 @@ interface QuestionsData {
 
 export default function Session1Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const projectIdParam = searchParams.get('project');
+  const projectId = projectIdParam ? parseInt(projectIdParam, 10) : 1;
   const [currentPhase, setCurrentPhase] = useState(1);
   const [questionsData, setQuestionsData] = useState<QuestionsData | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -46,8 +49,6 @@ export default function Session1Page() {
   const [completedPhases, setCompletedPhases] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
-
-  const projectId = 1; // TODO: Get from auth/session
 
   // Fetch questions for current phase
   useEffect(() => {

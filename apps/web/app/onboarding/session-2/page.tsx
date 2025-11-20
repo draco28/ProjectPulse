@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,6 +37,9 @@ interface Document {
 
 export default function Session2Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const projectIdParam = searchParams.get('project');
+  const projectId = projectIdParam ? parseInt(projectIdParam, 10) : 1;
   const [prompts, setPrompts] = useState<DocumentPrompt[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(true);
@@ -45,8 +48,6 @@ export default function Session2Page() {
   const [showPromptDialog, setShowPromptDialog] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [activeTab, setActiveTab] = useState<string>('all');
-
-  const projectId = 1; // TODO: Get from auth/session
 
   // Fetch document prompts
   useEffect(() => {
@@ -174,7 +175,7 @@ export default function Session2Page() {
           <ProgressBar value={progress} showPercentage />
           <div className="mt-4 flex gap-4">
             <Button
-              onClick={() => router.push('/onboarding/session-2/documents')}
+              onClick={() => router.push(`/onboarding/session-2/documents?project=${projectId}`)}
               variant="outline"
               disabled={documents.length === 0}
             >

@@ -32,11 +32,11 @@ async function getDocuments(projectId: number) {
 }
 
 interface PageProps {
-  searchParams: { doc?: string };
+  searchParams: { doc?: string; project?: string };
 }
 
 export default async function DocumentsViewerPage({ searchParams }: PageProps) {
-  const projectId = 1; // TODO: Get from auth/session
+  const projectId = searchParams.project ? parseInt(searchParams.project, 10) : 1;
   const documents = await getDocuments(projectId);
 
   if (documents.length === 0) {
@@ -46,7 +46,9 @@ export default async function DocumentsViewerPage({ searchParams }: PageProps) {
           <CardContent className="p-6">
             <p className="text-slate">No documents generated yet.</p>
             <Button asChild className="mt-4">
-              <Link href="/onboarding/session-2">Back to Document Generation</Link>
+              <Link href={`/onboarding/session-2?project=${projectId}`}>
+                Back to Document Generation
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -120,7 +122,7 @@ export default async function DocumentsViewerPage({ searchParams }: PageProps) {
                         {docs.map((doc) => (
                           <Link
                             key={doc.id}
-                            href={`/onboarding/session-2/documents?doc=${encodeURIComponent(doc.filename)}`}
+                            href={`/onboarding/session-2/documents?project=${projectId}&doc=${encodeURIComponent(doc.filename)}`}
                             className={`block px-3 py-2 rounded-md text-sm transition-colors ${
                               selectedDoc?.id === doc.id
                                 ? 'bg-coral-500 text-white'

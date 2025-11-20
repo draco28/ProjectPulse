@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -51,13 +51,14 @@ interface BootstrapResult {
 
 export default function Session3Page() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const projectIdParam = searchParams.get('project');
+  const projectId = projectIdParam ? parseInt(projectIdParam, 10) : 1;
   const [repoPath, setRepoPath] = useState('');
   const [isBootstrapping, setIsBootstrapping] = useState(false);
   const [bootstrapResult, setBootstrapResult] = useState<BootstrapResult | null>(null);
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
-
-  const projectId = 1; // TODO: Get from auth/session
 
   const handleBootstrap = async () => {
     if (!repoPath.trim()) {

@@ -35,9 +35,12 @@ async function getOnboardingStatus(projectId: number) {
   };
 }
 
-export default async function OnboardingPage() {
-  // TODO: Get projectId from auth/session
-  const projectId = 1;
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: { project?: string };
+}) {
+  const projectId = searchParams.project ? parseInt(searchParams.project, 10) : 1;
 
   const status = await getOnboardingStatus(projectId);
 
@@ -89,16 +92,16 @@ export default async function OnboardingPage() {
             </p>
             <div className="flex gap-4">
               <Button asChild>
-                <Link href="/dashboard">
+                <Link href={`/dashboard?project=${projectId}`}>
                   Go to Dashboard
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/agents">View Agent Personas</Link>
+                <Link href={`/agents?project=${projectId}`}>View Agent Personas</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/roadmap">View Roadmap</Link>
+                <Link href={`/roadmap?project=${projectId}`}>View Roadmap</Link>
               </Button>
             </div>
           </CardContent>
@@ -118,7 +121,7 @@ export default async function OnboardingPage() {
                 ? 'in_progress'
                 : 'not_started'
           }
-          href="/onboarding/session-1"
+          href={`/onboarding/session-1?project=${projectId}`}
           icon={FileQuestion}
         />
 
@@ -133,7 +136,7 @@ export default async function OnboardingPage() {
                 ? 'in_progress'
                 : 'not_started'
           }
-          href="/onboarding/session-2"
+          href={`/onboarding/session-2?project=${projectId}`}
           disabled={!status.session1 || status.session1.status !== 'complete'}
           icon={FileText}
         />
@@ -149,7 +152,7 @@ export default async function OnboardingPage() {
                 ? 'in_progress'
                 : 'not_started'
           }
-          href="/onboarding/session-3"
+          href={`/onboarding/session-3?project=${projectId}`}
           disabled={!status.session2 || status.session2.status !== 'complete'}
           icon={Rocket}
         />

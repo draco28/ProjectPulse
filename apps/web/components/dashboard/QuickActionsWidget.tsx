@@ -19,9 +19,12 @@ interface QuickActionsWidgetProps {
     completedSessions: number; // 0-3
     isComplete: boolean;
   };
+  projectId?: number;
 }
 
-export function QuickActionsWidget({ onboardingStatus }: QuickActionsWidgetProps) {
+export function QuickActionsWidget({ onboardingStatus, projectId }: QuickActionsWidgetProps) {
+  const onboardingHref = projectId ? `/onboarding?project=${projectId}` : '/onboarding';
+
   return (
     <div className="neu-raised smooth-transition rounded-3xl p-6">
       <h3 className="mb-4 text-lg font-bold text-white">Quick Actions</h3>
@@ -29,7 +32,7 @@ export function QuickActionsWidget({ onboardingStatus }: QuickActionsWidgetProps
         {/* Onboarding Action - Show if incomplete (Primary coral button) */}
         {onboardingStatus && !onboardingStatus.isComplete && (
           <Link
-            href="/onboarding"
+            href={onboardingHref}
             className="coral-gradient smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-white hover:opacity-90"
             aria-label="Complete project setup"
           >
@@ -45,7 +48,7 @@ export function QuickActionsWidget({ onboardingStatus }: QuickActionsWidgetProps
         {/* Onboarding Complete - Reference link (green border) */}
         {onboardingStatus?.isComplete && (
           <Link
-            href="/onboarding"
+            href={onboardingHref}
             className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-green-400 hover:text-green-300 border border-green-500/20"
             aria-label="View onboarding summary"
           >

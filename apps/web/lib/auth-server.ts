@@ -52,3 +52,60 @@ export async function requireUser() {
 
   return user;
 }
+
+/**
+ * Get first project owned by user
+ * Used as fallback when ?project param is missing
+ */
+export async function getFirstOwnedProjectId(userId: string): Promise<number | null> {
+  const project = await prisma.project.findFirst({
+    where: { ownerId: userId },
+    select: { id: true },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  return project?.id ?? null;
+}
+
+/**
+ * Verify user owns the project
+ * Throws error if unauthorized
+ */
+export async function verifyProjectOwnership(projectId: number, userId: string): Promise<void> {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { ownerId: true },
+  });
+
+  if (!project || project.ownerId !== userId) {
+    throw new Error('Unauthorized: Project not found or access denied');
+  }
+}
+
+/**
+ * Get project with ownership check
+ * Returns project if authorized, null if not found or unauthorized
+ */
+export async function getAuthorizedProject(
+  projectId: number | undefined,
+  userId: string
+): Promise<{ id: number; name: string } | null> {
+  // If no projectId provided, get first owned project
+  const resolvedId = projectId ?? (await getFirstOwnedProjectId(userId));
+
+  if (!resolvedId) {
+    return null; // No projects
+  }
+
+  // Verify ownership
+  const project = await prisma.project.findUnique({
+    where: { id: resolvedId },
+    select: { id: true, name: true, ownerId: true },
+  });
+
+  if (!project || project.ownerId !== userId) {
+    return null; // Unauthorized
+  }
+
+  return { id: project.id, name: project.name };
+}

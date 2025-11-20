@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,13 +20,14 @@ import { Loader2, Sparkles, PenTool, ArrowRight } from 'lucide-react';
 
 export default function ExecutiveSummaryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const projectIdParam = searchParams.get('project');
+  const projectId = projectIdParam ? parseInt(projectIdParam, 10) : 1;
   const [promptData, setPromptData] = useState<any>(null);
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
   const [showPromptDialog, setShowPromptDialog] = useState(false);
   const [manualSummary, setManualSummary] = useState('');
   const [isPending, startTransition] = useTransition();
-
-  const projectId = 1; // TODO: Get from auth/session
 
   // Fetch executive summary prompt
   useEffect(() => {
