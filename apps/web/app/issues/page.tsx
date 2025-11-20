@@ -6,7 +6,9 @@
  */
 
 import { Metadata } from 'next';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
 import { IssuesPageClient } from '@/components/issues/IssuesPageClient';
@@ -15,6 +17,7 @@ import { IssueListCard } from '@/components/issues/IssueListCard';
 import { Pagination } from '@/components/issues/Pagination';
 import { prisma } from '@/lib/prisma';
 import { getFilterOptions } from '@/lib/filters';
+import { getCurrentUser, getAuthorizedProject } from '@/lib/auth-server';
 
 export const metadata: Metadata = {
   title: 'Issues | ProjectPulse',
@@ -28,10 +31,12 @@ interface SearchParams {
   search?: string;
   sort?: string;
   page?: string;
+  project?: string;
   [key: string]: string | undefined;
 }
 
 type WhereClause = {
+  projectId: number;
   status?: { in: string[] };
   priority?: { in: string[] };
   module?: { in: string[] };
@@ -41,7 +46,7 @@ type WhereClause = {
   }>;
 };
 
-async function getIssues(searchParams: SearchParams) {
+async function getIssues(projectId: number, searchParams: SearchParams) {
   // Parse filters from URL
   const statusFilter = searchParams.status?.split(',').filter(Boolean) || [];
   const priorityFilter = searchParams.priority?.split(',').filter(Boolean) || [];
@@ -51,8 +56,8 @@ async function getIssues(searchParams: SearchParams) {
   const page = parseInt(searchParams.page || '1', 10);
   const perPage = 10;
 
-  // Build where clause
-  const where: WhereClause = {};
+  // Build where clause with projectId
+  const where: WhereClause = { projectId };
 
   if (statusFilter.length > 0) {
     where.status = { in: statusFilter };
@@ -125,19 +130,22 @@ async function getIssues(searchParams: SearchParams) {
   };
 }
 
-async function getFilterCounts() {
-  // Get counts for each filter option
+async function getFilterCounts(projectId: number) {
+  // Get counts for each filter option scoped to project
   const [statusCounts, priorityCounts, moduleCounts] = await Promise.all([
     prisma.issue.groupBy({
       by: ['status'],
+      where: { projectId },
       _count: true,
     }),
     prisma.issue.groupBy({
       by: ['priority'],
+      where: { projectId },
       _count: true,
     }),
     prisma.issue.groupBy({
       by: ['module'],
+      where: { projectId },
       _count: true,
     }),
   ]);
@@ -162,25 +170,45 @@ export default async function IssuesPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  // Auth check
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
   const params = await searchParams;
+  
+  // Get projectId from query or first owned project
+  const projectIdParam = params.project ? parseInt(params.project, 10) : undefined;
+  const project = await getAuthorizedProject(projectIdParam, user.id);
+  
+  if (!project) redirect('/app');
+
   const [{ issues, totalCount, currentPage, totalPages, perPage }, filterCounts, filterOptions] =
-    await Promise.all([getIssues(params), getFilterCounts(), getFilterOptions()]);
+    await Promise.all([getIssues(project.id, params), getFilterCounts(project.id), getFilterOptions()]);
 
   return (
     <>
       <FloatingBackground />
 
       <div className="content-wrapper flex h-screen overflow-hidden">
-        <Sidebar />
+        <Sidebar projectId={project.id} />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
+            <div className="mb-4">
+              <Link
+                href={`/dashboard?project=${project.id}`}
+                className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Link>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="mb-1 text-3xl font-bold text-white">Issues</h2>
-                <p className="text-sm text-slate">Track and manage project issues</p>
+                <p className="text-sm text-slate">{project.name} - Track and manage project issues</p>
               </div>
               <button
                 className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"

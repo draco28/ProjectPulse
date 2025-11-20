@@ -860,6 +860,7 @@ issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
     // 1. Getting Started (root, getting-started category)
     prisma.wikiPage.create({
       data: {
+        projectId: project.id,
         title: 'Getting Started with ProjectPulse',
         path: '/getting-started',
         category: 'getting-started',
@@ -1025,6 +1026,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the dashboard.
     // 2. Configuration (root, getting-started category)
     prisma.wikiPage.create({
       data: {
+        projectId: project.id,
         title: 'Configuration',
         path: '/configuration',
         category: 'getting-started',
@@ -1225,16 +1227,97 @@ import { Issue, WikiPage, KnowledgeItem } from '@prisma/client';
 **Last Updated**: 2025-11-10
 **Version**: 1.0`,
       },
-    }),
 
-    // 3. Development Guides (parent page)
-    prisma.wikiPage.create({
-      data: {
-        title: 'Development Guides',
-        path: '/guides',
-        category: 'guides',
-        orderIndex: 2,
-        content: `# Development Guides
+// 2. Docker Setup Guide (child page)
+prisma.wikiPage.create({
+  data: {
+    projectId: project.id,
+    title: 'Docker Setup Guide',
+    path: '/guides/docker-setup',
+    category: 'guides',
+    orderIndex: 1,
+    content: `# Docker Setup Guide
+
+ProjectPulse uses Docker for PostgreSQL and Redis.
+
+## Prerequisites
+
+* Docker Desktop (Windows, Mac)
+* Docker Engine (Linux)
+
+## Setup
+
+1. **Create a new directory** for your project:
+   \`\`\`bash
+   mkdir projectpulse
+   cd projectpulse
+   \`\`\`
+
+2. **Create a \`docker-compose.yml\` file**:
+   \`\`\`yml
+   version: '3.8'
+   services:
+     db:
+       image: postgres:16-alpine
+       restart: always
+       environment:
+         POSTGRES_USER: postgres
+         POSTGRES_PASSWORD: postgres123
+         POSTGRES_DB: projectpulse_dev
+       ports:
+         - "5432:5432"
+       volumes:
+         - db-data:/var/lib/postgresql/data
+
+     redis:
+       image: redis:7-alpine
+       restart: always
+       ports:
+         - "6379:6379"
+
+   volumes:
+     db-data:
+   \`\`\`
+
+3. **Start containers**:
+   \`\`\`bash
+   docker-compose up -d
+   \`\`\`
+
+4. **Verify containers are running**:
+   \`\`\`bash
+   docker ps
+   # Should show: postgres:16-alpine and redis:7-alpine containers
+   \`\`\`
+
+5. **Connect to PostgreSQL**:
+   \`\`\`bash
+   docker exec -it projectpulse-db-1 psql -U postgres -d projectpulse_dev
+   \`\`\`
+
+---
+
+## Next Steps
+
+- [Database Migrations Guide](/guides/database-migrations) - Learn migration workflow
+- [API Documentation](/reference/api) - Configure API access
+
+---
+
+**Last Updated**: 2025-11-10
+**Version**: 1.0`,
+  },
+}),
+
+// 3. Development Guides (parent page)
+prisma.wikiPage.create({
+  data: {
+    projectId: project.id,
+    title: 'Development Guides',
+    path: '/guides',
+    category: 'guides',
+    orderIndex: 2,
+    content: `# Development Guides
 
 Comprehensive guides for developing with ProjectPulse.
 
@@ -1257,17 +1340,18 @@ Want to add a guide? See our [Contributing Guidelines](https://github.com/draco2
 
 **Last Updated**: 2025-11-10
 **Version**: 1.0`,
-      },
-    }),
+  },
+}),
 
-    // 4. API Documentation (root, reference category)
-    prisma.wikiPage.create({
-      data: {
-        title: 'API Documentation',
-        path: '/reference/api',
-        category: 'reference',
-        orderIndex: 3,
-        content: `# API Documentation
+// 4. API Documentation (root, reference category)
+prisma.wikiPage.create({
+  data: {
+    projectId: project.id,
+    title: 'API Documentation',
+    path: '/reference/api',
+    category: 'reference',
+    orderIndex: 3,
+    content: `# API Documentation
 
 ProjectPulse provides a RESTful API for programmatic access to issues, knowledge base, and wiki pages.
 
@@ -1496,17 +1580,18 @@ GET /api/issues?cursor=<last-id>&limit=20
 
 **Last Updated**: 2025-11-10
 **Version**: 1.0`,
-      },
-    }),
+  },
+}),
 
-    // 5. Troubleshooting (root, troubleshooting category)
-    prisma.wikiPage.create({
-      data: {
-        title: 'Troubleshooting',
-        path: '/troubleshooting',
-        category: 'troubleshooting',
-        orderIndex: 4,
-        content: `# Troubleshooting
+// 5. Troubleshooting (root, troubleshooting category)
+prisma.wikiPage.create({
+  data: {
+    projectId: project.id,
+    title: 'Troubleshooting',
+    path: '/troubleshooting',
+    category: 'troubleshooting',
+    orderIndex: 4,
+    content: `# Troubleshooting
 
 Common issues and solutions for ProjectPulse.
 
@@ -1741,6 +1826,7 @@ pnpm prisma migrate reset
     // Docker Setup Guide (child of Development Guides)
     prisma.wikiPage.create({
       data: {
+        projectId: project.id,
         title: 'Docker Setup Guide',
         path: '/guides/docker-setup',
         category: 'guides',
@@ -2085,6 +2171,7 @@ pnpm prisma migrate status
   const securityFindings = await Promise.all([
     prisma.securityFinding.create({
       data: {
+        projectId: project.id,
         ruleId: 'javascript.express.security.audit.express-check-csrf-before-method-override',
         severity: 'WARNING',
         message:
@@ -2098,6 +2185,7 @@ pnpm prisma migrate status
 
     prisma.securityFinding.create({
       data: {
+        projectId: project.id,
         ruleId: 'typescript.react.security.audit.react-dangerouslysetinnerhtml',
         severity: 'ERROR',
         message: 'Detected usage of dangerouslySetInnerHTML. This can lead to XSS vulnerabilities.',
@@ -2110,6 +2198,7 @@ pnpm prisma migrate status
 
     prisma.securityFinding.create({
       data: {
+        projectId: project.id,
         ruleId: 'javascript.lang.security.audit.sqli.node-postgres-sqli',
         severity: 'ERROR',
         message: 'Detected possible SQL injection. Use parameterized queries.',
