@@ -6,7 +6,9 @@
  */
 
 import { Metadata } from 'next';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Prisma } from '@prisma/client';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
@@ -15,6 +17,7 @@ import { WikiSearchBar } from '@/components/wiki/WikiSearchBar';
 import { WikiCard } from '@/components/wiki/WikiCard';
 import { Pagination } from '@/components/issues/Pagination';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser, getAuthorizedProject } from '@/lib/auth-server';
 
 // ISR: Revalidate every hour (same as wiki detail page)
 export const revalidate = 3600;
@@ -29,10 +32,12 @@ interface SearchParams {
   search?: string;
   sort?: string;
   page?: string;
+  project?: string;
   [key: string]: string | undefined;
 }
 
 type WhereClause = {
+  projectId: number;
   category?: { in: string[] };
   OR?: Array<{
     title?: { contains: string; mode: 'insensitive' };
@@ -55,7 +60,7 @@ type WikiListResult = {
   };
 };
 
-async function getWikiPages(searchParams: SearchParams) {
+async function getWikiPages(projectId: number, searchParams: SearchParams) {
   // Parse filters from URL
   const categoryFilter = searchParams.category?.split(',').filter(Boolean) || [];
   const searchTerm = searchParams.search || '';
@@ -63,8 +68,8 @@ async function getWikiPages(searchParams: SearchParams) {
   const page = parseInt(searchParams.page || '1', 10);
   const perPage = 10;
 
-  // Build where clause
-  const where: WhereClause = {};
+  // Build where clause with projectId
+  const where: WhereClause = { projectId };
 
   // Category filter (OR logic for multiple categories)
   if (categoryFilter.length > 0) {
@@ -267,11 +272,12 @@ async function getWikiPages(searchParams: SearchParams) {
   };
 }
 
-async function getCategoryStats() {
+async function getCategoryStats(projectId: number) {
   const categoryCounts = await prisma.wikiPage.groupBy({
     by: ['category'],
     _count: true,
     where: {
+      projectId,
       category: { not: null },
     },
   });
@@ -288,25 +294,45 @@ export default async function WikiPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  // Auth check
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
   const params = await searchParams;
+  
+  // Get projectId from query or first owned project
+  const projectIdParam = params.project ? parseInt(params.project, 10) : undefined;
+  const project = await getAuthorizedProject(projectIdParam, user.id);
+  
+  if (!project) redirect('/app');
+
   const [{ pages, totalCount, currentPage, totalPages, perPage }, categoryStats] =
-    await Promise.all([getWikiPages(params), getCategoryStats()]);
+    await Promise.all([getWikiPages(project.id, params), getCategoryStats(project.id)]);
 
   return (
     <>
       <FloatingBackground />
 
       <div className="content-wrapper flex h-screen overflow-hidden">
-        <Sidebar />
+        <Sidebar projectId={project.id} />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
+            <div className="mb-4">
+              <Link
+                href={`/dashboard?project=${project.id}`}
+                className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Link>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="mb-1 text-3xl font-bold text-white">Wiki</h2>
-                <p className="text-sm text-slate">Documentation, guides, and references</p>
+                <p className="text-sm text-slate">{project.name} - Documentation, guides, and references</p>
               </div>
               <button
                 className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"

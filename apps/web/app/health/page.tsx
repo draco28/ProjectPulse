@@ -1,8 +1,11 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { Activity, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Activity, TrendingUp, TrendingDown, Minus, ArrowLeft } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
+import { getCurrentUser, getAuthorizedProject } from '@/lib/auth-server';
 import { ScoreCardsGrid } from '@/components/health/ScoreCardsGrid';
 import { VulnerabilityBreakdown } from '@/components/health/VulnerabilityBreakdown';
 import { ScannerStatusCards } from '@/components/health/ScannerStatusCards';
@@ -202,50 +205,24 @@ async function getHealthData(projectId: number): Promise<HealthData> {
  * Health Dashboard Page
  * Server Component with ISR (1-hour cache)
  */
-export default async function HealthPage() {
-  // Dynamic project lookup with optional env override for testing
-  const envProjectId = process.env.DEFAULT_PROJECT_ID;
+export default async function HealthPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ project?: string }>;
+}) {
+  // Auth check
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
 
-  let projectId: number;
-  if (envProjectId) {
-    // Use env variable if provided (e.g., for E2E tests)
-    projectId = parseInt(envProjectId, 10);
-  } else {
-    // Dynamic lookup: use first available project
-    const project = await prisma.project.findFirst({
-      select: { id: true }
-    });
+  const params = await searchParams;
+  
+  // Get projectId from query or first owned project
+  const projectIdParam = params.project ? parseInt(params.project, 10) : undefined;
+  const project = await getAuthorizedProject(projectIdParam, user.id);
+  
+  if (!project) redirect('/app');
 
-    if (!project) {
-      // No projects exist - show onboarding message
-      return (
-        <>
-          <FloatingBackground />
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-
-            <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
-              <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
-                <h2 className="text-3xl font-bold text-white">Project Health</h2>
-              </header>
-
-              <main className="flex-1 overflow-auto">
-                <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
-                  <Activity className="mb-4 h-16 w-16 text-slate-400" aria-hidden="true" />
-                  <h3 className="mb-2 text-xl font-semibold text-white">No Projects Found</h3>
-                  <p className="text-slate-400">
-                    Create a project to start tracking health metrics.
-                  </p>
-                </div>
-              </main>
-            </div>
-          </div>
-        </>
-      );
-    }
-
-    projectId = project.id;
-  }
+  const projectId = project.id;
 
   const { latestScore, historicalScores, findings, scanners, vulnerabilityCounts, trend } =
     await getHealthData(projectId);
@@ -256,11 +233,20 @@ export default async function HealthPage() {
       <>
         <FloatingBackground />
         <div className="flex h-screen overflow-hidden">
-          <Sidebar />
+          <Sidebar projectId={project.id} />
 
           <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
             <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
-              <h2 className="text-3xl font-bold text-white">Project Health</h2>
+              <div className="mb-4">
+                <Link
+                  href={`/dashboard?project=${project.id}`}
+                  className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Dashboard
+                </Link>
+              </div>
+              <h2 className="text-3xl font-bold text-white">{project.name} - Project Health</h2>
             </header>
 
             <main className="flex-1 overflow-auto">
@@ -362,11 +348,20 @@ export default async function HealthPage() {
     <>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar />
+        <Sidebar projectId={project.id} />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
+            <div className="mb-4">
+              <Link
+                href={`/dashboard?project=${project.id}`}
+                className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Link>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="mb-1 text-3xl font-bold text-white">Project Health</h2>
