@@ -12,11 +12,14 @@
  * Run: node --test apps/mcp-server/tests/e2e/onboarding/session2-document-generation.test.ts
  */
 
-import { test, describe } from 'node:test';
+import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
 import { MCPTestClient } from '../setup/mcp-client.js';
 import {
   generateMockDocument,
+  generateUniqueProjectId,
+  createTestProject,
+  cleanupProjectData,
   TEST_CONSTANTS,
 } from '../setup/fixtures.js';
 import {
@@ -30,10 +33,22 @@ import {
   countWords,
 } from '../setup/test-helpers.js';
 
-const { MCP_URL, TEST_PROJECT_ID, TRANSPORT_TYPE } = TEST_CONSTANTS;
+const { MCP_URL, TRANSPORT_TYPE } = TEST_CONSTANTS;
 
 describe('Session 2: Document Generation (MCP Tool E2E)', () => {
-  test('Generate and store all 15 documents', async () => {
+  let testProjectId: number;
+
+  beforeEach(async () => {
+    testProjectId = generateUniqueProjectId();
+    console.log(`🔧 Test using project ID: ${testProjectId}`);
+    await createTestProject(testProjectId);
+  });
+
+  afterEach(async () => {
+    await cleanupProjectData(testProjectId);
+  });
+
+  test.skip('Generate and store all 15 documents (MOVED TO full-onboarding-workflow.test.ts)', async () => {
     const timer = new TestTimer();
     const client = new MCPTestClient(MCP_URL, TRANSPORT_TYPE);
 
@@ -55,7 +70,7 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
           wordCountTarget: number;
         }>;
       }>('projectpulse_onboarding_getDocumentPrompts', {
-        projectId: TEST_PROJECT_ID,
+        projectId: testProjectId,
       }); // Default 30s timeout - HTTP stream should handle 31KB easily
 
       assertEqual(
@@ -127,7 +142,7 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
             isComplete: boolean;
           };
         }>('projectpulse_onboarding_storeDocument', {
-          projectId: TEST_PROJECT_ID,
+          projectId: testProjectId,
           filename: docPrompt.filename,
           content: mockContent,
           category: docPrompt.category,
@@ -167,7 +182,7 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
           generatedAt: string;
         }>;
       }>('projectpulse_onboarding_listDocuments', {
-        projectId: TEST_PROJECT_ID,
+        projectId: testProjectId,
       });
 
       assertEqual(
@@ -226,7 +241,7 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
       logTestStep('Testing Session 1 prerequisite validation...');
 
       // Use a different project ID without Session 1
-      const newProjectId = TEST_PROJECT_ID + 200;
+      const newProjectId = testProjectId + 200;
 
       try {
         await client.callToolJSON(
@@ -264,7 +279,7 @@ describe('Session 2: Document Generation (MCP Tool E2E)', () => {
       // Try to store document without required fields
       try {
         await client.callToolJSON('projectpulse_onboarding_storeDocument', {
-          projectId: TEST_PROJECT_ID,
+          projectId: testProjectId,
           // Missing filename, content, category
         });
 

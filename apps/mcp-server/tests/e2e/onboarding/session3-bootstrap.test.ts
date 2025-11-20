@@ -16,13 +16,18 @@
  * Run: node --test apps/mcp-server/tests/e2e/onboarding/session3-bootstrap.test.ts
  */
 
-import { test, describe } from 'node:test';
+import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { MCPTestClient } from '../setup/mcp-client.js';
-import { TEST_CONSTANTS } from '../setup/fixtures.js';
+import {
+  generateUniqueProjectId,
+  createTestProject,
+  cleanupProjectData,
+  TEST_CONSTANTS,
+} from '../setup/fixtures.js';
 import {
   logTestStep,
   logTransportType,
@@ -34,7 +39,7 @@ import {
   TestTimer,
 } from '../setup/test-helpers.js';
 
-const { MCP_URL, TEST_PROJECT_ID, TRANSPORT_TYPE } = TEST_CONSTANTS;
+const { MCP_URL, TRANSPORT_TYPE } = TEST_CONSTANTS;
 
 // Helper: Create temporary directory for repo files
 async function createTempRepo(): Promise<string> {
@@ -52,7 +57,19 @@ async function cleanupTempRepo(repoPath: string): Promise<void> {
 }
 
 describe('Session 3: AI Workflow Bootstrap (MCP Tool E2E)', () => {
-  test('Complete bootstrap workflow', async () => {
+  let testProjectId: number;
+
+  beforeEach(async () => {
+    testProjectId = generateUniqueProjectId();
+    console.log(`🔧 Test using project ID: ${testProjectId}`);
+    await createTestProject(testProjectId);
+  });
+
+  afterEach(async () => {
+    await cleanupProjectData(testProjectId);
+  });
+
+  test.skip('Complete bootstrap workflow (MOVED TO full-onboarding-workflow.test.ts)', async () => {
     const timer = new TestTimer();
     const client = new MCPTestClient(MCP_URL, TRANSPORT_TYPE);
     const repoPath = await createTempRepo();
@@ -88,7 +105,7 @@ describe('Session 3: AI Workflow Bootstrap (MCP Tool E2E)', () => {
           };
         };
       }>('projectpulse_onboarding_bootstrap', {
-        projectId: TEST_PROJECT_ID,
+        projectId: testProjectId,
         repoPath,
       });
 
@@ -259,7 +276,7 @@ describe('Session 3: AI Workflow Bootstrap (MCP Tool E2E)', () => {
       logTestStep('Testing Session 1 prerequisite validation...');
 
       // Use a different project ID without Session 1
-      const newProjectId = TEST_PROJECT_ID + 300;
+      const newProjectId = testProjectId + 300;
 
       try {
         await client.callToolJSON('projectpulse_onboarding_bootstrap', {
@@ -295,7 +312,7 @@ describe('Session 3: AI Workflow Bootstrap (MCP Tool E2E)', () => {
       logTestStep('Testing Session 2 prerequisite validation...');
 
       // Use a different project ID without Session 2
-      const newProjectId = TEST_PROJECT_ID + 301;
+      const newProjectId = testProjectId + 301;
 
       try {
         await client.callToolJSON('projectpulse_onboarding_bootstrap', {

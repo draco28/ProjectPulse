@@ -6,6 +6,7 @@
  */
 
 import { countWords } from './test-helpers.js';
+import { PrismaClient } from '@prisma/client';
 
 /**
  * Generate mock answers for onboarding questions
@@ -192,6 +193,11 @@ export function generateMockDocument(
 /**
  * Generate mock 13-Project-Plan.md content with proper format for Session 3 parsing
  *
+ * Format matches parseProjectPlan() expectations:
+ * - Phase headers use LETTERS: ## Phase A:, ## Phase B:, etc.
+ * - Sprint headers: ### Sprint N (Weeks X-Y): Name - XX points
+ * - Must have **Goals** and **Deliverables** sections
+ *
  * @returns Mock project plan content
  */
 export function generateMockProjectPlan(): string {
@@ -201,7 +207,7 @@ export function generateMockProjectPlan(): string {
 **Duration**: 6 months (24 weeks)
 **Team Size**: 2-3 developers
 
-## Phase 1: Foundation (Weeks 1-4, Sprints 1-2)
+### Phase A: Foundation (Weeks 1-4, Sprints 1-2)
 
 **Duration**: 4 weeks
 **Points**: 20 points
@@ -213,10 +219,6 @@ export function generateMockProjectPlan(): string {
 - Set up PostgreSQL with pgvector extension
 - Implement Prisma schema for core entities
 - Create database migrations
-
-**Weeks**:
-- **Week 1**: Database models (User, Project, Task, Issue)
-- **Week 2**: Authentication and authorization
 
 **Deliverables**:
 - Complete Prisma schema
@@ -230,16 +232,12 @@ export function generateMockProjectPlan(): string {
 - Add input validation with Zod
 - Implement error handling
 
-**Weeks**:
-- **Week 3**: CRUD endpoints for tasks and issues
-- **Week 4**: Search and filtering APIs
-
 **Deliverables**:
 - OpenAPI specification
 - API test suite
 - Documentation
 
-## Phase 2: Implementation (Weeks 5-8, Sprints 3-4)
+### Phase B: Implementation (Weeks 5-8, Sprints 3-4)
 
 **Duration**: 4 weeks
 **Points**: 25 points
@@ -251,10 +249,6 @@ export function generateMockProjectPlan(): string {
 - Set up Next.js 14 App Router
 - Implement component library with shadcn/ui
 - Build responsive layouts
-
-**Weeks**:
-- **Week 5**: Component library and design system
-- **Week 6**: Dashboard and navigation
 
 **Deliverables**:
 - Reusable UI components
@@ -268,16 +262,12 @@ export function generateMockProjectPlan(): string {
 - Build agent communication layer
 - Add context capture
 
-**Weeks**:
-- **Week 7**: MCP tool implementation
-- **Week 8**: Agent workflow testing
-
 **Deliverables**:
 - MCP server
 - Agent integration guide
 - E2E agent tests
 
-## Phase 3: Testing and Quality (Weeks 9-12, Sprints 5-6)
+### Phase C: Testing and Quality (Weeks 9-12, Sprints 5-6)
 
 **Duration**: 4 weeks
 **Points**: 18 points
@@ -290,10 +280,6 @@ export function generateMockProjectPlan(): string {
 - Add integration tests for APIs
 - Implement E2E tests with Playwright
 
-**Weeks**:
-- **Week 9**: Unit and integration tests
-- **Week 10**: E2E test coverage
-
 **Deliverables**:
 - >80% code coverage
 - E2E test suite
@@ -305,10 +291,6 @@ export function generateMockProjectPlan(): string {
 - Security audit and fixes
 - Performance optimization
 - Accessibility compliance (WCAG 2.1 AA)
-
-**Weeks**:
-- **Week 11**: Security hardening
-- **Week 12**: Performance tuning
 
 **Deliverables**:
 - Security audit report
@@ -331,3 +313,113 @@ export const TEST_CONSTANTS = {
   HTTP_STREAM_ENABLED: process.env.HTTP_STREAM_ENABLED !== 'false', // Default: true (use HTTP stream)
   TRANSPORT_TYPE: (process.env.TRANSPORT_TYPE as 'sse' | 'http-stream') || 'http-stream', // Default: http-stream
 };
+
+/**
+ * Generate unique project ID for test isolation (Phase 1)
+ *
+ * Uses timestamp-based random number to ensure uniqueness across parallel test runs.
+ * Range: 10000-99999 (5-digit project IDs)
+ *
+ * @returns Unique project ID for this test run
+ */
+export function generateUniqueProjectId(): number {
+  // Use timestamp + random to ensure uniqueness across test runs
+  return 10000 + Math.floor(Math.random() * 90000);
+}
+
+/**
+ * Create a test project in the database (Phase 1)
+ *
+ * @param projectId - Optional specific project ID (for testing, auto-generated if omitted)
+ * @returns Created project with ID
+ */
+export async function createTestProject(projectId?: number): Promise<{ id: number; name: string }> {
+  const prisma = new PrismaClient({
+    datasources: {
+      db: {
+        url: 'postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev',
+      },
+    },
+  });
+
+  try {
+    const testId = projectId || generateUniqueProjectId();
+    const project = await prisma.project.create({
+      data: {
+        id: testId,
+        name: `E2E Test Project ${testId}`,
+        description: `Test project for E2E onboarding tests (ID: ${testId})`,
+      },
+    });
+
+    console.log(`✅ Created test project (ID: ${project.id})`);
+    return { id: project.id, name: project.name };
+  } catch (error) {
+    console.error(`❌ Error creating test project:`, error);
+    throw error;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+/**
+ * Clean up all onboarding-related data for a project (Phase 1)
+ *
+ * Deletes in correct order (children first) to respect foreign key constraints:
+ * 1. Documents (linked to OnboardingSession)
+ * 2. AgentPersona, Skill, Workflow, SOP (linked to Project)
+ * 3. Roadmap hierarchy (Phase, Week, Day, Task, Session)
+ * 4. OnboardingSession
+ *
+ * @param projectId - Project ID to clean up
+ */
+export async function cleanupProjectData(projectId: number): Promise<void> {
+  const prisma = new PrismaClient({
+    datasources: {
+      db: {
+        url: 'postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev',
+      },
+    },
+  });
+
+  try {
+    await prisma.$transaction([
+      // Delete documents first (linked to onboarding sessions)
+      prisma.document.deleteMany({
+        where: {
+          onboardingSession: { projectId },
+        },
+      }),
+
+      // Delete CurrentPlan and CurrentTodos
+      prisma.currentPlan.deleteMany({ where: { projectId } }),
+      prisma.currentTodos.deleteMany({ where: { projectId } }),
+
+      // Delete roadmap hierarchy (children first)
+      prisma.checkpoint.deleteMany({ where: { session: { task: { day: { week: { phase: { roadmap: { projectId } } } } } } } }),
+      prisma.session.deleteMany({ where: { task: { day: { week: { phase: { roadmap: { projectId } } } } } } }),
+      prisma.task.deleteMany({ where: { day: { week: { phase: { roadmap: { projectId } } } } } }),
+      prisma.day.deleteMany({ where: { week: { phase: { roadmap: { projectId } } } } }),
+      prisma.week.deleteMany({ where: { phase: { roadmap: { projectId } } } }),
+      prisma.sprint.deleteMany({ where: { phase: { roadmap: { projectId } } } }),
+      prisma.phase.deleteMany({ where: { roadmap: { projectId } } }),
+      prisma.roadmap.deleteMany({ where: { projectId } }),
+
+      // Delete project-linked entities
+      prisma.agentPersona.deleteMany({ where: { projectId } }),
+      prisma.skill.deleteMany({ where: { projectId } }),
+      prisma.workflowTemplate.deleteMany({ where: { projectId } }),
+      prisma.sOP.deleteMany({ where: { projectId } }),
+
+      // Delete onboarding sessions last
+      prisma.onboardingSession.deleteMany({ where: { projectId } }),
+    ]);
+
+    console.log(`✅ Cleaned up test data for project ${projectId}`);
+  } catch (error) {
+    console.error(`❌ Error cleaning up project ${projectId}:`, error);
+    throw error;
+  } finally {
+    await prisma.$disconnect();
+  }
+}

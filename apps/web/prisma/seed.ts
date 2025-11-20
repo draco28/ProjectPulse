@@ -10,6 +10,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { seedOnboardingPromptTemplates } from './seeds/onboarding-prompt-templates';
 
 const prisma = new PrismaClient();
 
@@ -429,6 +430,10 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
     });
   }
   console.log(`✓ Seeded ${onboardingTemplates.length} onboarding templates\n`);
+  
+  // Sprint 9 Refactor: Seed OnboardingPromptTemplates (database-driven prompts)
+  await seedOnboardingPromptTemplates(prisma);
+  console.log(''); // Extra newline for formatting
 
   // ========================================================================
   // LABELS

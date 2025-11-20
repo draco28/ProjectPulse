@@ -13,12 +13,15 @@
  * Run: node --test apps/mcp-server/tests/e2e/onboarding/session1-strategic-planning.test.ts
  */
 
-import { test, describe } from 'node:test';
+import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
 import { MCPTestClient } from '../setup/mcp-client.js';
 import {
   generateMockAnswers,
   generateMockExecutiveSummary,
+  generateUniqueProjectId,
+  createTestProject,
+  cleanupProjectData,
   TEST_CONSTANTS,
 } from '../setup/fixtures.js';
 import {
@@ -31,10 +34,22 @@ import {
   countWords,
 } from '../setup/test-helpers.js';
 
-const { MCP_URL, TEST_PROJECT_ID } = TEST_CONSTANTS;
+const { MCP_URL } = TEST_CONSTANTS;
 
 describe('Session 1: Strategic Planning (MCP Tool E2E)', () => {
-  test('Complete 10-phase Q&A workflow + Executive Summary', async () => {
+  let testProjectId: number;
+
+  beforeEach(async () => {
+    testProjectId = generateUniqueProjectId();
+    console.log(`🔧 Test using project ID: ${testProjectId}`);
+    await createTestProject(testProjectId);
+  });
+
+  afterEach(async () => {
+    await cleanupProjectData(testProjectId);
+  });
+
+  test.skip('Complete 10-phase Q&A workflow + Executive Summary (MOVED TO full-onboarding-workflow.test.ts)', async () => {
     const timer = new TestTimer();
     const client = new MCPTestClient(MCP_URL);
 
@@ -69,7 +84,7 @@ describe('Session 1: Strategic Planning (MCP Tool E2E)', () => {
           }>;
           totalQuestions: number;
         }>('projectpulse_onboarding_getQuestions', {
-          projectId: TEST_PROJECT_ID,
+          projectId: testProjectId,
           phase,
         });
 
@@ -117,7 +132,7 @@ describe('Session 1: Strategic Planning (MCP Tool E2E)', () => {
           completedPhases: number;
           readyForExecutiveSummary?: boolean;
         }>('projectpulse_onboarding_saveAnswers', {
-          projectId: TEST_PROJECT_ID,
+          projectId: testProjectId,
           phase,
           answers,
         });
@@ -169,7 +184,7 @@ describe('Session 1: Strategic Planning (MCP Tool E2E)', () => {
           completedPhases: number;
         };
       }>('projectpulse_onboarding_getExecutiveSummaryPrompt', {
-        projectId: TEST_PROJECT_ID,
+        projectId: testProjectId,
       });
 
       assertDefined(promptData.systemPrompt, 'Should have system prompt');
@@ -207,7 +222,7 @@ describe('Session 1: Strategic Planning (MCP Tool E2E)', () => {
         wordCount: number;
         projectContextJson: any;
       }>('projectpulse_onboarding_storeExecutiveSummary', {
-        projectId: TEST_PROJECT_ID,
+        projectId: testProjectId,
         executiveSummary: mockSummary,
         wordCount,
       });
@@ -258,7 +273,7 @@ describe('Session 1: Strategic Planning (MCP Tool E2E)', () => {
       logTestStep('Testing prerequisite validation...');
 
       // Use a different project ID to avoid conflicts
-      const newProjectId = TEST_PROJECT_ID + 100;
+      const newProjectId = testProjectId + 100;
 
       // Try to get executive summary prompt without completing phases
       try {
@@ -300,7 +315,7 @@ describe('Session 1: Strategic Planning (MCP Tool E2E)', () => {
         const questionsData = await client.callToolJSON<any>(
           'projectpulse_onboarding_getQuestions',
           {
-            projectId: TEST_PROJECT_ID,
+            projectId: testProjectId,
             phase,
           }
         );
@@ -323,7 +338,7 @@ describe('Session 1: Strategic Planning (MCP Tool E2E)', () => {
         const answers = generateMockAnswers(allQuestions);
 
         await client.callToolJSON('projectpulse_onboarding_saveAnswers', {
-          projectId: TEST_PROJECT_ID,
+          projectId: testProjectId,
           phase,
           answers,
         });
@@ -332,7 +347,7 @@ describe('Session 1: Strategic Planning (MCP Tool E2E)', () => {
       // Try to store a very short summary (should fail validation)
       try {
         await client.callToolJSON('projectpulse_onboarding_storeExecutiveSummary', {
-          projectId: TEST_PROJECT_ID,
+          projectId: testProjectId,
           executiveSummary: 'Too short',
           wordCount: 2,
         });
