@@ -310,6 +310,11 @@ model Project {
   currentTodos        CurrentTodos? // Sprint 8.5 Phase 2: Current todos list
   agentPersonas       AgentPersona[] // Sprint 8.5 Phase 3: Project-scoped agent personas
   sops                SOP[] // Sprint 8.5 Phase 3E: SOPs for this project
+  
+  // Sprint 8.9: Additional project-scoped entities
+  knowledgeItems      KnowledgeItem[]
+  securityFindings    SecurityFinding[]
+  wikiPages           WikiPage[]
 
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt
@@ -451,6 +456,10 @@ model LinkedCommit {
 model KnowledgeItem {
   id Int @id @default(autoincrement())
 
+  // Sprint 8.9: Project scoping for multi-user isolation
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   title    String @db.VarChar(200)
   content  String @db.Text
   category String @db.VarChar(50)
@@ -484,6 +493,8 @@ model KnowledgeItem {
   archivedAt DateTime? // Soft delete - archived items hidden from search by default
 
   // Indexes (note: HNSW vector index created via raw SQL migration)
+  @@index([projectId])
+  @@index([projectId, category])
   @@index([category])
   @@index([tags], type: Gin)
   @@index([contentTsvector], type: Gin)
@@ -699,6 +710,10 @@ model SOP {
 model WikiPage {
   id Int @id @default(autoincrement())
 
+  // Sprint 8.9: Project scoping for multi-user isolation
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   title   String
   content String  @db.Text
   excerpt String? @db.Text // Short description for list views
@@ -750,6 +765,9 @@ model WikiPage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([projectId])
+  @@index([projectId, path])
+  @@index([projectId, category])
   @@index([path])
   @@index([parentId])
   @@index([orderIndex])
@@ -858,6 +876,10 @@ enum WikiEventType {
 model SecurityFinding {
   id Int @id @default(autoincrement())
 
+  // Sprint 8.9: Project scoping for multi-user isolation
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   // Semgrep data
   ruleId      String
   severity    String // ERROR, WARNING, INFO
@@ -880,6 +902,9 @@ model SecurityFinding {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([projectId])
+  @@index([projectId, status])
+  @@index([projectId, severity])
   @@index([ruleId])
   @@index([severity])
   @@index([status])
