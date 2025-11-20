@@ -1,7 +1,10 @@
 import { prisma } from '@/lib/prisma';
-import { Plus, Info, Bot } from 'lucide-react';
+import { Plus, Info, Bot, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
+import { getCurrentUser, getAuthorizedProject } from '@/lib/auth-server';
 import { AgentCard } from '@/components/agents/AgentCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SkillsLibrarySection } from '@/components/agent-hub/SkillsLibrarySection';
@@ -10,13 +13,10 @@ import { SOPsLibrarySection } from '@/components/agent-hub/SOPsLibrarySection';
 
 export const dynamic = 'force-dynamic'; // Real-time agent status
 
-async function getAgents() {
-  // TODO: Get projectId from auth/session when available
-  const projectId = 1; // Default project for MVP
-  
+async function getAgents(projectId: number) {
   const agents = await prisma.agentPersona.findMany({
     where: {
-      projectId: projectId, // Sprint 8.5 Phase 3: Filter agents by project
+      projectId,
     },
     orderBy: [
       { isActive: 'desc' }, // Active agents first
@@ -35,13 +35,10 @@ async function getAgents() {
   return agents;
 }
 
-async function getSkills() {
-  // TODO: Get projectId from auth/session when available
-  const projectId = 1; // Default project for MVP
-
+async function getSkills(projectId: number) {
   const skills = await prisma.skill.findMany({
     where: {
-      projectId: projectId,
+      projectId,
     },
     select: {
       id: true,
@@ -63,13 +60,10 @@ async function getSkills() {
   return skills;
 }
 
-async function getWorkflows() {
-  // TODO: Get projectId from auth/session when available
-  const projectId = 1; // Default project for MVP
-
+async function getWorkflows(projectId: number) {
   const workflows = await prisma.workflowTemplate.findMany({
     where: {
-      projectId: projectId, // Sprint 8.5 Phase 3: Filter workflows by project
+      projectId,
     },
     select: {
       id: true,
@@ -85,13 +79,10 @@ async function getWorkflows() {
   return workflows;
 }
 
-async function getSOPs() {
-  // TODO: Get projectId from auth/session when available
-  const projectId = 1; // Default project for MVP
-
+async function getSOPs(projectId: number) {
   const sops = await prisma.sOP.findMany({
     where: {
-      projectId: projectId,
+      projectId,
     },
     select: {
       id: true,
@@ -112,40 +103,62 @@ async function getSOPs() {
   return sops;
 }
 
-async function getAgentStats() {
-  // TODO: Get projectId from auth/session when available
-  const projectId = 1; // Default project for MVP
-  
+async function getAgentStats(projectId: number) {
   const [total, active] = await Promise.all([
-    prisma.agentPersona.count({ where: { projectId: projectId } }),
+    prisma.agentPersona.count({ where: { projectId } }),
     prisma.agentPersona.count({ where: { projectId: projectId, isActive: true } }),
   ]);
 
   return { total, active };
 }
 
-export default async function AgentsPage() {
+export default async function AgentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ project?: string }>;
+}) {
+  // Auth check
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
+  const params = await searchParams;
+  
+  // Get projectId from query or first owned project
+  const projectIdParam = params.project ? parseInt(params.project, 10) : undefined;
+  const project = await getAuthorizedProject(projectIdParam, user.id);
+  
+  if (!project) redirect('/app');
+
   const [agents, stats, skills, workflows, sops] = await Promise.all([
-    getAgents(),
-    getAgentStats(),
-    getSkills(),
-    getWorkflows(),
-    getSOPs(),
+    getAgents(project.id),
+    getAgentStats(project.id),
+    getSkills(project.id),
+    getWorkflows(project.id),
+    getSOPs(project.id),
   ]);
 
   return (
     <>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar />
+        <Sidebar projectId={project.id} />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 px-6 py-4 md:px-8">
           {/* Header */}
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
+            <div className="mb-4">
+              <Link
+                href={`/dashboard?project=${project.id}`}
+                className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Link>
+            </div>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="mb-1 text-3xl font-bold text-white">Agent AI Hub</h2>
-                <p className="text-sm text-slate">Manage agents, skills, workflows, and SOPs for your project</p>
+                <p className="text-sm text-slate">{project.name} - Manage agents, skills, workflows, and SOPs</p>
               </div>
               <div className="flex items-center gap-3">
                 <button

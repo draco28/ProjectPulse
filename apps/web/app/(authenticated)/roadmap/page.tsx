@@ -15,9 +15,11 @@
  */
 
 import { Suspense } from 'react';
-import { Map } from 'lucide-react';
+import { Map, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { getCurrentUser, getAuthorizedProject } from '@/lib/auth-server';
 import { FilterableRoadmapTree } from '@/components/roadmap/FilterableRoadmapTree';
 import { CurrentPositionBanner } from '@/components/roadmap/CurrentPositionBanner';
 import { EmptyRoadmapState } from '@/components/roadmap/EmptyRoadmapState';
@@ -78,13 +80,26 @@ async function getRoadmap(projectId: number) {
 }
 
 /**
- * Roadmap Page - Server Component
+ * Roadmap Page Component
  */
-export default async function RoadmapPage() {
-  // TODO: Get projectId from session/auth
-  const projectId = 1; // Hardcoded for MVP
+export default async function RoadmapPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ project?: string }>;
+}) {
+  // Auth check
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
 
-  const roadmap = await getRoadmap(projectId);
+  const params = await searchParams;
+  
+  // Get projectId from query or first owned project
+  const projectIdParam = params.project ? parseInt(params.project, 10) : undefined;
+  const project = await getAuthorizedProject(projectIdParam, user.id);
+  
+  if (!project) redirect('/app');
+
+  const roadmap = await getRoadmap(project.id);
 
   if (!roadmap) {
     return <EmptyRoadmapState />;
