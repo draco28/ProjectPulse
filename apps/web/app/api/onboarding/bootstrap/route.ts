@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         select: {
           id: true,
           status: true,
-          response: true
+          projectContextJson: true  // Sprint 9 Refactor: use projectContextJson instead of response
         }
       }),
       prisma.onboardingSession.findUnique({
@@ -108,10 +108,10 @@ export async function POST(request: NextRequest) {
     }
     
     console.log('[POST /api/onboarding/bootstrap] Sessions 1 & 2 verified ✅');
-    
+
     // 3. Extract project context from Session 1
-    const projectContextJson = session1.response as any;
-    const projectContext = projectContextJson.projectContextJson || projectContextJson;
+    // Sprint 9 Refactor: projectContextJson is now flat field, not nested in response
+    const projectContext = (session1.projectContextJson as any) || {};
     const projectName = projectContext.metadata?.projectName || 'Unknown Project';
     const projectType = projectContext.metadata?.projectType || 'web application';
     
@@ -142,11 +142,12 @@ export async function POST(request: NextRequest) {
     
     // 8. Materialize roadmap from 13-Project-Plan.md
     console.log('[POST /api/onboarding/bootstrap] Starting roadmap materialization...');
-    
+
     // Find 13-Project-Plan.md document from Session 2
+    // Sprint 9 Refactor: Documents are now linked to Session 2
     const projectPlanDoc = await prisma.document.findFirst({
       where: {
-        onboardingSessionId: session1.id,  // Documents are linked to session1, not session2
+        onboardingSessionId: session2.id,  // Documents are linked to Session 2
         filename: {
           contains: '13-Project-Plan'
         }

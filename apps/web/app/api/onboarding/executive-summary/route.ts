@@ -52,46 +52,52 @@ export async function POST(request: NextRequest) {
     
     const { projectId, executiveSummary, wordCount: providedWordCount } = validation.data;
     
-    // Fetch Session 1 data
+    // Fetch Session 1 data (Sprint 9 Refactored Schema)
     const session = await prisma.onboardingSession.findUnique({
       where: {
         projectId_sessionNumber: { projectId, sessionNumber: 1 }
+      },
+      select: {
+        id: true,
+        planningAnswers: true,
+        projectContextJson: true,
+        status: true
       }
     });
-    
-    if (!session || !session.response) {
+
+    if (!session || !session.planningAnswers) {
       return NextResponse.json(
-        { error: 'Session 1 not found or empty' },
+        { error: 'Session 1 not found or incomplete. Ensure all 10 phases are complete.' },
         { status: 404 }
       );
     }
-    
-    const sessionData = session.response as any;
-    const planningAnswers = sessionData.planningAnswers || {};
-    
+
+    const planningAnswers = session.planningAnswers as any;
+
     // Calculate word count if not provided
     const wordCount = providedWordCount || executiveSummary.split(/\s+/).filter((w) => w.length > 0).length;
-    
+
     console.log(`[Session 1] Storing agent-generated executive summary: ${wordCount} words`);
-    
+
     // Generate project-context.json from planning answers
     const projectContextJson = generateProjectContextJson(planningAnswers, executiveSummary);
-    
-    // Update session with agent-generated executive summary
+
+    // Update session with agent-generated executive summary (Sprint 9 Refactored)
     const now = new Date();
+    const currentMetrics = (session as any).metrics || { tokensUsed: 0, phasesComplete: 10 };
+
     await prisma.onboardingSession.update({
       where: { id: session.id },
       data: {
-        response: {
-          ...sessionData,
-          executiveSummary,
-          executiveSummaryWordCount: wordCount,
-          projectContextJson,
-          executiveSummaryGeneratedAt: now.toISOString(),
-          generatedBy: 'agent' // Mark as agent-generated
-        },
+        projectContextJson,
         status: 'complete',
-        completedAt: now
+        completedAt: now,
+        metrics: {
+          ...currentMetrics,
+          executiveSummaryWordCount: wordCount,
+          executiveSummaryGeneratedAt: now.toISOString(),
+          generatedBy: 'agent'
+        }
       }
     });
     

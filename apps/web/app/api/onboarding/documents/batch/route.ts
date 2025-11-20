@@ -143,10 +143,13 @@ export async function POST(request: NextRequest) {
       filenames: createdDocs.map(d => d.filename)
     });
     
-    // 5. Update metrics
+    // 5. Update metrics and mark complete if all 15 documents stored
     const currentMetrics = (session.metrics as any) || { tokensUsed: 0, batchesComplete: 0 };
     const batchesComplete = (currentMetrics.batchesComplete || 0) + 1;
-    
+    const totalDocuments = session.documents.length + documents.length;
+    const progress = Math.round((totalDocuments / 15) * 100);
+    const isComplete = totalDocuments >= 15;
+
     await prisma.onboardingSession.update({
       where: { id: session.id },
       data: {
@@ -154,13 +157,17 @@ export async function POST(request: NextRequest) {
           ...currentMetrics,
           batchesComplete,
           lastBatchAt: new Date().toISOString()
-        }
+        },
+        status: isComplete ? 'complete' : 'in_progress',
+        completedAt: isComplete ? new Date() : undefined
       }
     });
-    
+
+    if (isComplete) {
+      console.log('[POST /api/onboarding/documents/batch] Session 2 marked complete (15 documents stored)');
+    }
+
     // 6. Calculate progress
-    const totalDocuments = session.documents.length + documents.length;
-    const progress = Math.round((totalDocuments / 15) * 100);
     
     console.log('[POST /api/onboarding/documents/batch] Batch stored successfully', {
       projectId,

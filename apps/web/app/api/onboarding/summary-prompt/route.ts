@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
     const metadata = {
       totalQuestions: 96,
       totalPhases: 10,
-      phasesComplete: metrics.phasesComplete,
+      completedPhases: metrics.phasesComplete,
       userPromptCharacters: userPrompt.length,
       estimatedTokens: Math.ceil(userPrompt.length / 3) // Rough estimate: 1 token ≈ 3 chars
     };

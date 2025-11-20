@@ -194,24 +194,25 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // Fetch Session 1 to get the onboardingSessionId for documents
-    const session1 = await prisma.onboardingSession.findUnique({
+    // Fetch Session 2 to get the onboardingSessionId for documents
+    // Sprint 9 Refactor: Documents are now linked to Session 2, not Session 1
+    const session2 = await prisma.onboardingSession.findUnique({
       where: {
-        projectId_sessionNumber: { projectId, sessionNumber: 1 }
+        projectId_sessionNumber: { projectId, sessionNumber: 2 }
       }
     });
-    
-    if (!session1) {
+
+    if (!session2) {
       return NextResponse.json(
-        { error: 'Session 1 not found' },
+        { error: 'Session 2 not found or no documents stored yet' },
         { status: 404 }
       );
     }
-    
+
     // Fetch all documents for this project's Session 2
     const documents = await prisma.document.findMany({
       where: {
-        onboardingSessionId: session1.id
+        onboardingSessionId: session2.id
       },
       select: {
         id: true,
@@ -227,21 +228,14 @@ export async function GET(request: NextRequest) {
       }
     });
     
-    // Fetch Session 2 status
-    const session2 = await prisma.onboardingSession.findUnique({
-      where: {
-        projectId_sessionNumber: { projectId, sessionNumber: 2 }
-      }
-    });
-    
     const totalWordCount = documents.reduce((sum, doc) => sum + doc.wordCount, 0);
-    
+
     return NextResponse.json({
       documents,
       totalDocuments: documents.length,
       totalWordCount,
-      status: session2?.status || 'not_started',
-      session2Id: session2?.id
+      status: session2.status,
+      session2Id: session2.id
     });
     
   } catch (error) {

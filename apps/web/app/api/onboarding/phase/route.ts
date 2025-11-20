@@ -171,9 +171,10 @@ export async function POST(request: NextRequest) {
       success: true,
       projectId,
       phase,
-      phasesComplete,
+      completedPhases: phasesComplete,
       progress,
       nextPhase,
+      readyForExecutiveSummary: phase === 10,
       message: `Phase ${phase} saved ✅. ${nextPhase ? `Proceed to Phase ${nextPhase}.` : 'All phases complete! Call finalizeSummary.'}`
     });
     
