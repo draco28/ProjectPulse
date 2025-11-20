@@ -22,6 +22,23 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # Redis Cache (for rate limiting and sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: projectpulse-redis-cloud
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - projectpulse
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   # Next.js Frontend (like Vercel)
   nextjs:
     image: node:20-bullseye-slim
@@ -33,6 +50,10 @@ services:
       - NEXT_PUBLIC_API_URL=http://0.0.0.0:3000
       - NODE_ENV=development
       - DEFAULT_PROJECT_ID=8
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NEXTAUTH_SECRET=dev-secret-change-in-production
+      - NEXTAUTH_URL=http://192.168.1.15:3000
     ports:
       - "3000:3000"
     volumes:
@@ -44,6 +65,8 @@ services:
       - projectpulse
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
 
@@ -85,6 +108,7 @@ networks:
 
 volumes:
   postgres_data:
+  redis_data:
   nextjs_node_modules:
   web_node_modules:
   mcp_node_modules:
