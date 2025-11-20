@@ -22,12 +22,31 @@ import { getQuestionsTool } from './onboarding/getQuestionsTool.js';
 import { saveAnswersTool } from './onboarding/saveAnswersTool.js';
 import { getExecutiveSummaryPromptTool } from './onboarding/getExecutiveSummaryPromptTool.js';
 import { storeExecutiveSummaryTool } from './onboarding/storeExecutiveSummaryTool.js';
+// Sprint 9 Refactor: Session 1 refactored tools
+import { getPhasedQuestionsTool } from './onboarding/getPhasedQuestionsTool.js';
+import { savePhaseTool } from './onboarding/savePhaseTool.js';
+import { finalizeSummaryTool } from './onboarding/finalizeSummaryTool.js';
+import { checkTokenBudgetTool } from './onboarding/checkTokenBudgetTool.js';
 // Sprint 8.6 Phase 2: Session 2 document generation tools (Agent-Side AI)
 import { getDocumentPromptsTool } from './onboarding/getDocumentPromptsTool.js';
 import { storeDocumentTool } from './onboarding/storeDocumentTool.js';
 import { listDocumentsTool } from './onboarding/listDocumentsTool.js';
+// Sprint 9 Refactor: Session 2 refactored tools
+import { getDocBatchPromptTool } from './onboarding/getDocBatchPromptTool.js';
+import { storeBatchTool } from './onboarding/storeBatchTool.js';
 // Sprint 8.6 Phase 3: Session 3 bootstrap tool (Template-Based)
 import { bootstrapTool } from './onboarding/bootstrapTool.js';
+// Sprint 9 Refactor: Session 3 refactored tools
+import { getBootstrapPromptTool } from './onboarding/getBootstrapPromptTool.js';
+import { writeMinimalTool } from './repo/writeMinimalTool.js';
+// Week 3 Enhancement: Batch create tools for Session 3 bootstrap
+import { createAgentPersonaBatchTool } from './batch/createAgentPersonaBatchTool.js';
+import { createSkillBatchTool } from './batch/createSkillBatchTool.js';
+import { createWorkflowTemplateBatchTool } from './batch/createWorkflowTemplateBatchTool.js';
+import { createSOPBatchTool } from './batch/createSOPBatchTool.js';
+// Week 3 Enhancement: Observability tools for agent action logging
+import { logStepTool } from './observability/logStepTool.js';
+import { completeSessionTool } from './observability/completeSessionTool.js';
 import { workflowListTool } from './workflow/list.js';
 import { workflowStartTool } from './workflow/start.js';
 import { workflowExecuteStepTool } from './workflow/executeStep.js';
@@ -62,17 +81,36 @@ export const loadTools = (): ToolDefinition[] => [
   onboardingGetPromptTool,
   onboardingSubmitResponseTool,
   blueprintGetTool,
-  // Sprint 8.6 Phase 1: Session 1 tools (Agent-Side AI)
+  // Sprint 8.6 Phase 1: Session 1 tools (Agent-Side AI - Legacy, kept for backward compat)
   getQuestionsTool,
   saveAnswersTool,
   getExecutiveSummaryPromptTool,
   storeExecutiveSummaryTool,
-  // Sprint 8.6 Phase 2: Session 2 tools (Agent-Side AI)
+  // Sprint 9 Refactor: Session 1 refactored tools (New)
+  getPhasedQuestionsTool,
+  savePhaseTool,
+  finalizeSummaryTool,
+  checkTokenBudgetTool,
+  // Sprint 8.6 Phase 2: Session 2 tools (Agent-Side AI - Legacy, kept for backward compat)
   getDocumentPromptsTool,
   storeDocumentTool,
   listDocumentsTool,
-  // Sprint 8.6 Phase 3: Session 3 bootstrap tool (Template-Based)
+  // Sprint 9 Refactor: Session 2 refactored tools (New)
+  getDocBatchPromptTool,
+  storeBatchTool,
+  // Sprint 8.6 Phase 3: Session 3 bootstrap tool (Template-Based - Legacy)
   bootstrapTool,
+  // Sprint 9 Refactor: Session 3 refactored tools (New)
+  getBootstrapPromptTool,
+  writeMinimalTool,
+  // Week 3 Enhancement: Batch create tools for Session 3 bootstrap (New)
+  createAgentPersonaBatchTool,
+  createSkillBatchTool,
+  createWorkflowTemplateBatchTool,
+  createSOPBatchTool,
+  // Week 3 Enhancement: Observability tools (New)
+  logStepTool,
+  completeSessionTool,
   issueCreateTool,
   issueBulkCreateTool,
   issueUpdateTool,
