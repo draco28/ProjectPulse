@@ -111,53 +111,74 @@ NEXTAUTH_URL="http://192.168.1.15:3000"
 DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev"
 ```
 
+### Phase 3 – Public Auth Pages & APIs 
+**Date:** 2025-11-21  
+**Status:** Complete  
+**Commit:** `4b1ebed`
+
+**Completed:**
+- `/login` page with signup/login toggle
+- `/api/auth/signup` route with validation
+- Redis rate limiting (5 attempts / 15min)
+- Neumorphic/shadcn theme consistency
+- Error handling and auto-login after signup
+
+### Phase 4 – Route Protection 
+**Date:** 2025-11-21  
+**Status:** Complete  
+**Commit:** `4b1ebed`
+
+**Completed:**
+- `middleware.ts` protecting all routes
+- JWT token verification
+- Redirect to /login with callbackUrl
+
+### Phase 5 – User Dashboard (`/app`) 
+**Date:** 2025-11-21  
+**Status:** Complete  
+**Commit:** `4b1ebed`
+
+**Completed:**
+- `/app` page listing projects
+- Onboarding progress per project
+- Create new project modal
+- Navigate to project dashboard
+- Sign out button
+
+### Phase 6 – Project Dashboard Integration 
+**Date:** 2025-11-21  
+**Status:** In Progress → Partial Complete
+
+**Completed:**
+- Dashboard accepts `?project=X` query param
+- Ownership verification (redirect to /app if unauthorized)
+- "Back to Projects" link added
+- All queries scoped to projectId
+- Onboarding widget shows proper status
+
+**Pending:**
+- Other pages (issues, wiki, agents) still need project scoping
+- Can be done in Phase 7 or post-MVP
+
 ---
 
 ## Next Steps
-
-### Phase 3 – Public Auth Pages & APIs
-**Estimated:** 2-3 hours
-
-Tasks:
-- [ ] Create `/login` page with sign in and sign up forms
-- [ ] Create `/api/auth/signup` route for registration
-- [ ] Implement Redis rate limiting (5 attempts / 15min)
-- [ ] Use existing neumorphic/shadcn theme
-- [ ] Handle errors and redirects
-
-### Phase 4 – Route Protection & Ownership
-**Estimated:** 1-2 hours
-
-Tasks:
-- [ ] Create `middleware.ts` for protected routes
-- [ ] Add ownership checks in project loaders
-- [ ] Test redirect flows
-
-### Phase 5 – User Dashboard (`/app`)
-**Estimated:** 3-4 hours
-
-Tasks:
-- [ ] Create `/app` page listing projects
-- [ ] Show onboarding status per project
-- [ ] "New Project" flow
-- [ ] Use existing dashboard components
-
-### Phase 6 – Project Dashboard Integration
-**Estimated:** 1-2 hours
-
-Tasks:
-- [ ] Wire existing dashboard to auth
-- [ ] Add "Back to Projects" link
-- [ ] Onboarding CTAs
 
 ### Phase 7 – Testing & Deployment
 **Estimated:** 2-3 hours
 
 Tasks:
-- [ ] E2E tests
-- [ ] Manual smoke tests
-- [ ] Docker rebuild
-- [ ] Production verification
+- Manual smoke tests:
+  - Signup flow
+  - Login flow
+  - Create project
+  - Open project dashboard
+  - Verify ownership checks
+- Fix any bugs found
+- Decision: Add project scoping to other pages or keep global?
+- Docker rebuild and test
+- Update .env with proper secrets
+- Production verification
 
 ---
 

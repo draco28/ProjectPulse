@@ -1,5 +1,6 @@
 /**
  * Dashboard Page - Server Component
+ * Sprint 8.9: Now with auth and project ownership
  *
  * Fetches real data from PostgreSQL via Prisma:
  * - Issue statistics
@@ -9,20 +10,23 @@
  * - Active agent personas
  */
 
+import { redirect } from 'next/navigation';
 import { WelcomeBanner } from '@/components/dashboard/WelcomeBanner';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { IssueCard } from '@/components/dashboard/IssueCard';
 import { QuickActionsWidget } from '@/components/dashboard/QuickActionsWidget';
 import { AgentPersonasWidget } from '@/components/dashboard/AgentPersonasWidget';
-import { ListTodo, Lightbulb, Shield, CheckCircle2 } from 'lucide-react';
+import { ListTodo, Lightbulb, Shield, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { PrismaClient } from '@prisma/client';
+import { getCurrentUser } from '@/lib/auth-server';
+import Link from 'next/link';
 
 // Singleton pattern for PrismaClient to avoid too many connections
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 const prisma = globalForPrisma.prisma || new PrismaClient();
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
-async function getDashboardData() {
+async function getDashboardData(projectId: number) {
   // Fetch all data in parallel for performance
   const [
     openIssuesCount,
@@ -33,13 +37,15 @@ async function getDashboardData() {
     recentIssues,
     activeAgents,
     onboardingSessions,
+    project,
   ] = await Promise.all([
-    prisma.issue.count({ where: { status: 'open' } }),
-    prisma.issue.count({ where: { status: 'in-progress' } }),
-    prisma.issue.count({ where: { status: 'closed' } }),
+    prisma.issue.count({ where: { projectId, status: 'open' } }),
+    prisma.issue.count({ where: { projectId, status: 'in-progress' } }),
+    prisma.issue.count({ where: { projectId, status: 'closed' } }),
     prisma.knowledgeItem.count(),
     prisma.securityFinding.count({ where: { status: 'open' } }),
     prisma.issue.findMany({
+      where: { projectId },
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -50,22 +56,27 @@ async function getDashboardData() {
       },
     }),
     prisma.agentPersona.findMany({
-      where: { isBuiltIn: true },
+      where: { projectId, isActive: true },
       orderBy: { name: 'asc' },
     }),
     // Fetch onboarding status for QuickActions widget
     prisma.onboardingSession.findMany({
-      where: { projectId: 1 }, // TODO: Get from auth/session
+      where: { projectId },
       select: {
         sessionNumber: true,
         status: true,
       },
+    }),
+    prisma.project.findUnique({
+      where: { id: projectId },
+      select: { id: true, name: true, ownerId: true },
     }),
   ]);
 
   const completedCount = onboardingSessions.filter((s) => s.status === 'complete').length;
 
   return {
+    project,
     stats: {
       openIssues: openIssuesCount + inProgressIssuesCount,
       knowledgeItems: knowledgeItemsCount,
@@ -106,11 +117,60 @@ async function getDashboardData() {
   };
 }
 
-export default async function DashboardPage() {
-  const data = await getDashboardData();
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { project?: string };
+}) {
+  // Get current user
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect('/login');
+  }
+
+  // Get projectId from query param or use first owned project
+  let projectId: number;
+  if (searchParams.project) {
+    projectId = parseInt(searchParams.project, 10);
+  } else {
+    // Get user's first project
+    const firstProject = await prisma.project.findFirst({
+      where: { ownerId: user.id },
+      select: { id: true },
+    });
+
+    if (!firstProject) {
+      // No projects - redirect to /app to create one
+      redirect('/app');
+    }
+
+    projectId = firstProject.id;
+  }
+
+  // Verify ownership
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { id: true, name: true, ownerId: true },
+  });
+
+  if (!project || project.ownerId !== user.id) {
+    // Unauthorized or project doesn't exist - redirect to /app
+    redirect('/app');
+  }
+
+  const data = await getDashboardData(projectId);
 
   return (
     <div className="space-y-4">
+      {/* Back to Projects Link */}
+      <Link
+        href="/app"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Projects
+      </Link>
+
       {/* Welcome Banner */}
       <WelcomeBanner />
 
