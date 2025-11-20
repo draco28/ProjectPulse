@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
         description: true,
         skills: true,
         tools: true,
-        activationTriggers: true
+        activationConditions: true
       }
     });
     

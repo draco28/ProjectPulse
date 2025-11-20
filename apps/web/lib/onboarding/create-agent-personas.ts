@@ -401,7 +401,7 @@ export async function createAgentPersonas(
           skills: def.skills,
           tools: def.tools,
           autoActivate: def.autoActivate,
-          activationTriggers: def.activationTriggers
+          activationConditions: { triggers: def.activationTriggers } as any
         }
       });
       created++;

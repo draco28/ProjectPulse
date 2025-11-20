@@ -295,7 +295,7 @@ export function generateAGENTSmd(
 **Tools**: ${agent.tools.join(', ')}
 
 **When to invoke**:
-${agent.activationTriggers.map((trigger: string) => `- ${trigger}`).join('\n')}
+${((agent.activationConditions as any)?.triggers || []).map((trigger: string) => `- ${trigger}`).join('\n')}
 
 **How to use**:
 \`\`\`typescript

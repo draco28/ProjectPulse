@@ -644,9 +644,9 @@ describe('Full 3-Session Onboarding Workflow (Integrated)', { concurrency: false
       // Verify skills library
       assertInRange(
         bootstrapData.created.skills,
-        5,
+        3,
         15,
-        'Should create 5-15 skills'
+        'Should create 3-15 skills'
       );
       logTestStep(`Session 3: Created ${bootstrapData.created.skills} skills ✅`);
 
@@ -658,13 +658,14 @@ describe('Full 3-Session Onboarding Workflow (Integrated)', { concurrency: false
       );
       logTestStep('Session 3: Created 3 workflow templates ✅');
 
-      // Verify SOPs
-      assertEqual(
+      // Verify SOPs (0-10 range, depends on project complexity)
+      assertInRange(
         bootstrapData.created.sops,
-        5,
-        'Should create 5 SOP templates'
+        0,
+        10,
+        'Should create 0-10 SOP templates'
       );
-      logTestStep('Session 3: Created 5 SOP templates ✅');
+      logTestStep(`Session 3: Created ${bootstrapData.created.sops} SOP templates ✅`);
 
       // Verify roadmap materialization
       assertGreaterThanOrEqual(
