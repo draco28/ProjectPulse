@@ -34,8 +34,8 @@ export async function parseProjectPlan(documentId: string): Promise<ParsedRoadma
   const markdown = doc.content;
   const phases: ParsedRoadmap['phases'] = [];
 
-  // Parse Phase headers: ## Phase A: Name (Weeks X-Y, Sprints X-Y)
-  const phaseRegex = /^## (Phase [A-Z]: .+?) \(Weeks (\d+)-(\d+), Sprints (\d+)-(\d+)\)/gm;
+  // Parse Phase headers: ### Phase A: Name (Weeks X-Y, Sprints X-Y)
+  const phaseRegex = /^### (Phase [A-Z]: .+?) \(Weeks (\d+)-(\d+), Sprints (\d+)-(\d+)\)/gm;
 
   let phaseMatch;
   while ((phaseMatch = phaseRegex.exec(markdown)) !== null) {
@@ -51,7 +51,7 @@ export async function parseProjectPlan(documentId: string): Promise<ParsedRoadma
 
     // Get phase content substring
     const phaseStartIndex = phaseMatch.index;
-    const nextPhaseMatch = markdown.substring(phaseStartIndex + 1).search(/^## Phase /m);
+    const nextPhaseMatch = markdown.substring(phaseStartIndex + 1).search(/^### Phase /m);
     const phaseEndIndex = nextPhaseMatch === -1
       ? markdown.length
       : phaseStartIndex + 1 + nextPhaseMatch;
