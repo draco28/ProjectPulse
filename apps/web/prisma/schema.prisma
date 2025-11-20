@@ -293,6 +293,10 @@ model Project {
   description String? @db.Text
   repository  String? // Git repository URL
 
+  // Sprint 8.9: User ownership
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
   issues              Issue[]
   skills              Skill[] // Sprint 6: Skills lazy-loading system
   onboardingSessions  OnboardingSession[]
@@ -312,6 +316,7 @@ model Project {
   OnboardingPromptTemplate OnboardingPromptTemplate[]
 
   @@index([name])
+  @@index([ownerId])
 }
 
 // ============================================================================
@@ -1069,6 +1074,12 @@ model OnboardingSession {
   startedAt   DateTime?
   completedAt DateTime?
 
+  // Sprint 8.9: Optional user linkage for UI-level queries
+  // Note: OnboardingSession always scopes to projectId for MCP tools.
+  // userId is used only for UI queries like "sessions started by this user"
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
   // Sprint 8.5: Document generation (backward relation)
   documents Document[] // One session can generate multiple documents
 
@@ -1078,6 +1089,7 @@ model OnboardingSession {
   @@unique([projectId, sessionNumber])
   @@index([projectId])
   @@index([projectId, status])
+  @@index([userId])
   @@map("onboarding_sessions")
 }
 
@@ -1511,4 +1523,37 @@ model HealthScore {
   @@index([projectId, calculatedAt]) // Trend analysis (time series)
   @@index([calculatedAt(sort: Desc)]) // Recent scores first
   @@map("health_scores")
+}
+
+// ============================================================================
+// USER AUTHENTICATION & DASHBOARD (Sprint 8.9)
+// ============================================================================
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String   // bcrypt hash
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  projects           Project[]
+  authSessions       AuthSession[] // Optional: NextAuth DB sessions (unused with JWT strategy)
+  onboardingSessions OnboardingSession[]
+
+  @@map("users")
+}
+
+// Optional: NextAuth DB sessions (currently using JWT strategy, so this table is unused but kept for future flexibility)
+// Named AuthSession to avoid conflict with existing Session model (sprint tracking)
+model AuthSession {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_sessions")
 }

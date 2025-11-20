@@ -11,6 +11,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { seedOnboardingPromptTemplates } from './seeds/onboarding-prompt-templates';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -49,6 +50,20 @@ async function main() {
   await prisma.project.deleteMany();
   await prisma.setting.deleteMany();
   console.log('✓ Cleanup complete\n');
+
+  // ========================================================================
+  // USER (Sprint 8.9: Authentication)
+  // ========================================================================
+  console.log('👤 Creating default user...');
+  const defaultUser = await prisma.user.create({
+    data: {
+      email: 'dev@projectpulse.local',
+      name: 'Developer',
+      passwordHash: await bcrypt.hash('dev123456', 10),
+      isActive: true,
+    },
+  });
+  console.log(`✓ Created user: ${defaultUser.email} (password: dev123456)\n`);
 
   // ========================================================================
   // SPRINT HIERARCHY (5-LEVEL TASK TRACKING)
@@ -354,6 +369,7 @@ async function main() {
       description:
         'Unified development hub with issue tracking, knowledge base, and AI agent personas',
       repository: 'https://github.com/draco28/ProjectPulse',
+      ownerId: defaultUser.id, // Sprint 8.9: Link project to default user
     },
   });
   console.log(`✓ Created project: ${project.name}\n`);
