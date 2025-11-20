@@ -1,494 +1,199 @@
-# E2E Test Infrastructure Improvement Plan
+# Sprint 8.7 Onboarding Test & Deployment Plan
 
-**Sprint**: 8.7 Phase 2+
-**Created**: 2025-11-19
-**Status**: Approved, Ready to Execute
-
-## Context
-
-Sprint 8.7 Phase 2 successfully migrated E2E tests from SSE to HTTP streamable transport, resolving the critical 30KB response limit bug. However, several test infrastructure improvements remain:
-
-**Current Test Results**:
-- Individual test runs: Session 1 (2/3), Session 2 (3/3), Session 3 (3/4)
-- Combined test suite: 6/10 passing (60%)
-- Root cause: Test data pollution when tests share TEST_PROJECT_ID=3
-
-**Remaining Work**: 4 phases to achieve 100% test reliability
+**Session**: 2025-11-20 00:30 UTC
+**Sprint**: Sprint 8.7 (Onboarding Refactor)
+**Branch**: sprint-8.7
+**Tag**: v8.7.0-onboarding-refactor
+**Token Budget**: 200K tokens
 
 ---
 
-## Phase 1: Test Isolation & Cleanup Hooks
+## Objective
 
-**Goal**: Fix test suite pollution (6/10 passing together → 10/10 passing)
+Complete end-to-end testing of the 3-session onboarding system and deploy Sprint 8.7 to production.
 
-**Estimated Time**: 3-4 hours
+---
 
-### Problem Analysis
+## Phase 1: Pre-Test Verification (5 min)
 
-- Tests share TEST_PROJECT_ID=3, causing data pollution
-- Session 1 creates onboarding sessions
-- Session 2 creates documents (linked to session1.id)
-- Running all tests together causes duplicate data failures
+### Goals
+- Verify infrastructure health before testing
+- Confirm git branch state
+- Validate database connectivity
 
-### Files to Modify
-
-1. **`apps/mcp-server/tests/e2e/setup/fixtures.ts`**
-   - Add `generateUniqueProjectId()` function
-   - Export cleanup helper function
-
-2. **`apps/mcp-server/tests/e2e/setup/cleanup-test-data.ts`**
-   - Expand to clean ALL onboarding-related tables
-   - Add cascade delete for Documents, Roadmap, Personas, Skills, Workflows, SOPs
-
-3. **Test files** (session1, session2, session3):
-   - Add beforeEach hook to generate unique project ID
-   - Add afterEach hook to cleanup test data
-   - Use testProjectId instead of TEST_CONSTANTS.TEST_PROJECT_ID
-
-### Implementation Strategy
-
-**Recommended Approach**: Unique Project IDs per Test
-
-```typescript
-// fixtures.ts - add this function
-export function generateUniqueProjectId(): number {
-  // Use timestamp + random to ensure uniqueness across test runs
-  return 10000 + Math.floor(Math.random() * 90000);
-}
-
-export async function cleanupProjectData(projectId: number): Promise<void> {
-  const prisma = new PrismaClient({
-    datasources: {
-      db: { url: 'postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev' }
-    }
-  });
-
-  try {
-    await prisma.$transaction([
-      // Delete in correct order (children first)
-      prisma.document.deleteMany({ where: {
-        onboardingSession: { projectId }
-      }}),
-      prisma.agentPersona.deleteMany({ where: { projectId } }),
-      prisma.skill.deleteMany({ where: { projectId } }),
-      prisma.workflow.deleteMany({ where: { projectId } }),
-      prisma.sop.deleteMany({ where: { projectId } }),
-      prisma.roadmap.deleteMany({ where: { projectId } }),
-      prisma.onboardingSession.deleteMany({ where: { projectId } }),
-    ]);
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-```
-
-**Test Pattern**:
-
-```typescript
-// session1-strategic-planning.test.ts
-describe('Session 1', () => {
-  let testProjectId: number;
-
-  beforeEach(() => {
-    testProjectId = generateUniqueProjectId();
-  });
-
-  afterEach(async () => {
-    await cleanupProjectData(testProjectId);
-  });
-
-  test('Complete 10-phase workflow', async () => {
-    // Use testProjectId instead of TEST_CONSTANTS.TEST_PROJECT_ID
-    const result = await client.callToolJSON('projectpulse_onboarding_getQuestions', {
-      projectId: testProjectId,
-      phase: 1
-    });
-  });
-});
-```
+### Tasks
+1. Check Docker services health (nextjs-cloud, mcp-cloud, postgres-cloud)
+2. Test database connectivity at 192.168.1.15:5432
+3. Verify git branch is sprint-8.7 with 7 commits ahead
 
 ### Success Criteria
-
-- ✅ All 10/10 tests pass when run together as suite
-- ✅ Tests can run in any order without failures
-- ✅ Database state is clean before each test
-- ✅ No test data pollution between runs
+- All Docker containers running
+- Database connection successful
+- Git status clean (except untracked test files)
 
 ---
 
-## Phase 2: Fix Session 3 Project Plan Mock Data Format
+## Phase 2: Complete Onboarding E2E Test (30-45 min)
 
-**Goal**: Resolve "Invalid phases structure in roadmap" error
+### Goals
+- Test Session 1: Strategic Planning (10 phases + executive summary)
+- Test Session 2: Document Generation (15 documents via 4 batches)
+- Test Session 3: Bootstrap (personas, skills, workflows, SOPs, roadmap)
 
-**Estimated Time**: 1-2 hours
+### Session 1: Strategic Planning
+1. Create test project (projectId)
+2. Execute 10 phases using `projectpulse_onboarding_getPhasedQuestions` and `projectpulse_onboarding_savePhase`
+3. Generate executive summary using `projectpulse_onboarding_finalizeSummary`
+4. Store summary using `projectpulse_onboarding_storeExecutiveSummary`
+5. Verify projectContextJson has all 96 Q&A pairs + summary
 
-### Problem Analysis
+### Session 2: Document Generation
+1. Generate 4 batches using `projectpulse_onboarding_getDocBatchPrompt`
+2. Store each batch using `projectpulse_onboarding_storeBatch`:
+   - Batch 1: Planning (PRD, SRS, Backlog, Project Plan)
+   - Batch 2: Architecture (Architecture, Data Model, API Spec)
+   - Batch 3: Implementation (UI/UX, Security, Testing)
+   - Batch 4: Operations (Deployment, Observability, Performance, Team Onboarding, Maintenance)
+3. Verify 15 documents in database linked to OnboardingSession
 
-From Next.js logs:
-```
-Error: Invalid phases structure in roadmap cmi6nokbq00016wy4atedw238
-    at materializeRoadmap (packages/roadmap-tools/dist/materializeRoadmap.js:73:15)
-```
-
-The `parseProjectPlan()` function expects a specific format that `generateMockProjectPlan()` doesn't match.
-
-### Expected Format
-
-From `packages/roadmap-tools/src/parseProjectPlan.ts` and `docs/13-Project-Plan.md`:
-
-```markdown
-## Phase A: Foundation (Weeks 1-4, Sprints 1-2)
-
-### Sprint 1 (Weeks 1-2): Database Setup - 8 points
-
-**Goals**:
-- Set up PostgreSQL with pgvector extension
-- Implement Prisma schema for core entities
-
-**Deliverables**:
-- Complete Prisma schema
-- Migration files
-```
-
-Key requirements:
-1. Phase must use letter ("Phase A", not "Phase 1")
-2. Sprint header: `### Sprint N (Weeks X-Y): Name - XX points`
-3. Must have **Goals** and **Deliverables** sections
-4. Parser expects specific structure for ParsedRoadmap interface
-
-### Files to Modify
-
-**`apps/mcp-server/tests/e2e/setup/fixtures.ts`** (lines 197-318)
-- Replace `generateMockProjectPlan()` function
-- Match format from `docs/13-Project-Plan.md`
-
-### Implementation
-
-```typescript
-export function generateMockProjectPlan(): string {
-  return `# Project Implementation Plan
-
-**Project**: TaskFlow AI-Powered Project Management
-**Duration**: 8 weeks
-**Team Size**: 2-3 developers
-
-## Phase A: Foundation (Weeks 1-4, Sprints 1-2)
-
-**Duration**: 4 weeks
-**Points**: 20 points
-**Goal**: Establish database schema and API foundation
-
-### Sprint 1 (Weeks 1-2): Database Setup - 8 points
-
-**Goals**:
-- Set up PostgreSQL with pgvector extension
-- Implement Prisma schema for core entities
-- Create database migrations
-
-**Deliverables**:
-- Complete Prisma schema
-- Migration files
-- Seed data
-
-### Sprint 2 (Weeks 3-4): Core API - 12 points
-
-**Goals**:
-- Build REST API endpoints
-- Add input validation with Zod
-- Implement error handling
-
-**Deliverables**:
-- OpenAPI specification
-- API test suite
-- Documentation
-
-## Phase B: Implementation (Weeks 5-8, Sprints 3-4)
-
-**Duration**: 4 weeks
-**Points**: 25 points
-**Goal**: Build user interface and agent integration
-
-### Sprint 3 (Weeks 5-6): Frontend Foundation - 13 points
-
-**Goals**:
-- Set up Next.js 14 App Router
-- Implement component library with shadcn/ui
-- Build responsive layouts
-
-**Deliverables**:
-- Reusable UI components
-- Responsive layouts
-- Storybook documentation
-
-### Sprint 4 (Weeks 7-8): Agent Integration - 12 points
-
-**Goals**:
-- Implement MCP server
-- Build agent communication layer
-- Add context capture
-
-**Deliverables**:
-- MCP server
-- Agent integration guide
-- E2E agent tests
-`;
-}
-```
-
-### Validation Steps
-
-1. Update `generateMockProjectPlan()` in fixtures.ts
-2. Run Session 2 tests to generate documents with new format
-3. Run Session 3 bootstrap test
-4. Verify `parseProjectPlan()` succeeds
-5. Verify `materializeRoadmap()` creates Phase/Sprint/Week/Day hierarchy
+### Session 3: Bootstrap
+1. Call `projectpulse_onboarding_bootstrap` with projectId and temp repo path
+2. Verify database records created:
+   - 3-10 agent personas
+   - 5-15 skills
+   - 3 workflow templates
+   - 5 SOPs
+   - Roadmap with 5-level hierarchy (Phase → Sprint → Week → Day → Task)
+3. Verify files written to temp repo:
+   - CLAUDE.md
+   - AGENTS.md
 
 ### Success Criteria
-
-- ✅ `parseProjectPlan()` successfully parses mock data
-- ✅ Bootstrap test creates Phase/Sprint/Week/Day hierarchy
-- ✅ No "Invalid phases structure" errors
-- ✅ At least 2 phases, 4 sprints, 8 weeks materialized
+- Session 1: 100% progress, executive summary stored
+- Session 2: 100% progress, 15 documents created
+- Session 3: 100% progress, all artifacts created, files written
+- No errors during execution
 
 ---
 
-## Phase 3: Performance Benchmarking
+## Phase 3: Error Scenario Testing (15 min)
 
-**Goal**: Document SSE vs HTTP stream performance differences
+### Goals
+- Test prerequisite validation
+- Test idempotency
+- Test error handling
 
-**Estimated Time**: 2-3 hours
+### Test Cases
+1. **Session 2 without Session 1**
+   - Attempt to call `getDocBatchPrompt` without completing Session 1
+   - Expected: 400 error with message about missing Session 1
 
-### Context
+2. **Session 3 without Session 2**
+   - Attempt to call `bootstrap` without completing Session 2
+   - Expected: 400 error with message about missing 15 documents
 
-From `MCP_SSE_LARGE_RESPONSE_BUG.md`:
-- SSE works for <15KB responses
-- SSE fails silently for >30KB responses (90s+ timeout)
-- HTTP stream handles unlimited response sizes
+3. **Duplicate Session 1**
+   - Call Session 1 phases again on completed project
+   - Expected: Idempotent update, no duplicate records
 
-### Files to Create
-
-1. **`apps/mcp-server/tests/e2e/benchmarks/transport-comparison.test.ts`** (new)
-2. **`apps/mcp-server/tests/e2e/benchmarks/README.md`** (new)
-
-### Benchmark Scenarios
-
-```typescript
-const scenarios = [
-  {
-    name: 'Small (1KB)',
-    tool: 'projectpulse_health_check',
-    expectedSize: 1000
-  },
-  {
-    name: 'Medium (15KB)',
-    tool: 'projectpulse_onboarding_getQuestions',
-    expectedSize: 15000
-  },
-  {
-    name: 'Large (31KB)',
-    tool: 'projectpulse_onboarding_getDocumentPrompts',
-    expectedSize: 31000
-  },
-  {
-    name: 'Very Large (100KB+)',
-    tool: 'projectpulse_wiki_search',
-    expectedSize: 100000
-  },
-];
-
-for (const scenario of scenarios) {
-  describe(scenario.name, () => {
-    test('SSE transport', async () => {
-      const client = new MCPTestClient(MCP_URL, 'sse');
-      const startTime = Date.now();
-
-      try {
-        await client.connect();
-        const result = await client.callToolJSON(scenario.tool, {});
-        const latency = Date.now() - startTime;
-        logBenchmark('SSE', scenario.name, latency, 'success');
-      } catch (error) {
-        const latency = Date.now() - startTime;
-        logBenchmark('SSE', scenario.name, latency, 'timeout');
-      }
-    });
-
-    test('HTTP stream transport', async () => {
-      const client = new MCPTestClient(MCP_URL, 'http-stream');
-      const startTime = Date.now();
-
-      await client.connect();
-      const result = await client.callToolJSON(scenario.tool, {});
-      const latency = Date.now() - startTime;
-      logBenchmark('HTTP Stream', scenario.name, latency, 'success');
-    });
-  });
-}
-```
-
-### Metrics to Measure
-
-- Latency (P50, P95, P99)
-- Throughput (requests/second)
-- Reliability (success rate %)
-- Response size vs performance correlation
-
-### Expected Results
-
-| Scenario | SSE Latency | HTTP Stream Latency | Winner |
-|----------|-------------|---------------------|--------|
-| Small (1KB) | 50ms | 45ms | HTTP Stream |
-| Medium (15KB) | 150ms | 120ms | HTTP Stream |
-| Large (31KB) | TIMEOUT (90s+) | 200ms | HTTP Stream ✅ |
-| Very Large (100KB+) | TIMEOUT | 500ms | HTTP Stream ✅ |
-
-**Recommendation**: Use HTTP Stream as default transport
+4. **Invalid Repo Path**
+   - Call `bootstrap` with non-existent repo path
+   - Expected: 500 error with clear message about invalid path
 
 ### Success Criteria
-
-- ✅ Benchmark suite runs successfully
-- ✅ Results documented with clear metrics
-- ✅ Recommendation provided for default transport
-- ✅ Known limitations documented for each transport
+- All error cases return appropriate HTTP status codes
+- Error messages are clear and actionable
+- No database corruption from failed operations
 
 ---
 
-## Phase 4: Documentation Updates
+## Phase 4: Cleanup Test Data (5 min)
 
-**Goal**: Update documentation to reflect dual transport architecture
+### Goals
+- Verify cascade delete behavior
+- Clean up test project
 
-**Estimated Time**: 1-2 hours
-
-### Files to Modify
-
-1. **`apps/mcp-server/tests/e2e/README.md`**
-   - Add transport selection guide
-   - Update known issues
-   - Add troubleshooting section
-
-2. **`apps/mcp-server/tests/e2e/E2E_TEST_RESULTS_SUMMARY.md`**
-   - Update with Phase 1 & 2 results
-   - Document 10/10 passing achievement
-
-3. **`apps/mcp-server/tests/e2e/MCP_SSE_LARGE_RESPONSE_BUG.md`**
-   - Mark as RESOLVED
-   - Keep as historical reference
-
-### New README Sections
-
-#### Transport Selection
-
-```markdown
-## Transport Selection
-
-ProjectPulse MCP server supports two transports:
-
-### HTTP Streamable (Recommended - Default)
-- ✅ Handles responses of any size (no 30KB limit)
-- ✅ Stateless (no session management overhead)
-- ✅ NDJSON streaming for incremental responses
-- ✅ Better performance for large responses
-- 🔧 Requires MCP SDK ≥1.0.0
-
-**When to use**: Production, large responses (>15KB), reliability critical
-
-### SSE (Legacy)
-- ⚠️ Limited to ~30KB responses
-- ⚠️ Stateful (requires session management)
-- ✅ Compatible with older MCP clients
-- ✅ Works for small responses (<15KB)
-
-**When to use**: Backward compatibility, small responses only
-
-### Environment Variables
-
-```bash
-# Use HTTP stream (default)
-TRANSPORT_TYPE=http-stream node --test apps/mcp-server/tests/e2e/**/*.test.ts
-
-# Use SSE (legacy)
-TRANSPORT_TYPE=sse node --test apps/mcp-server/tests/e2e/**/*.test.ts
-```
-
-## Known Issues
-
-### ✅ RESOLVED: Large Response Timeout (Sprint 8.7)
-**Issue**: SSE transport fails for responses >30KB
-**Solution**: Use HTTP stream transport (default since Sprint 8.7)
-**Reference**: MCP_SSE_LARGE_RESPONSE_BUG.md
-
-### ✅ RESOLVED: Test Suite Pollution (Sprint 8.7 Phase 1)
-**Issue**: Tests failed when run together due to shared TEST_PROJECT_ID
-**Solution**: Unique project IDs per test with cleanup hooks
-**Status**: Fixed in Phase 1
-
-## Troubleshooting
-
-### Issue: "Transport timeout for large responses"
-**Cause**: Using SSE transport with >30KB response
-**Fix**: Switch to HTTP stream transport (default)
-
-### Issue: "Tests pass individually but fail in suite"
-**Cause**: Test data pollution (shared project ID)
-**Fix**: Use beforeEach/afterEach cleanup hooks (Phase 1)
-```
+### Tasks
+1. Delete test project using `DELETE /api/projects/:id`
+2. Verify cascade deletes:
+   - OnboardingSession deleted
+   - All 15 Documents deleted
+   - All AgentPersonas deleted
+   - All Skills deleted
+   - All WorkflowTemplates deleted
+   - All SOPs deleted
+   - All Roadmap hierarchy deleted
 
 ### Success Criteria
-
-- ✅ Documentation clearly explains both transports
-- ✅ Known issues section is up-to-date
-- ✅ Troubleshooting guide covers common problems
-- ✅ Examples show how to switch transports
+- Test project fully removed from database
+- No orphaned records
+- Foreign key constraints respected
 
 ---
 
-## Dependencies & Execution Order
+## Phase 5: Production Deployment (10 min)
 
-### Dependency Graph
+### Goals
+- Push sprint-8.7 branch to remote
+- Tag release as v8.7.0-onboarding-refactor
+- Verify production health
+- Smoke test on production
 
-```
-Phase 1 (Isolation) ────► Phase 4 (Documentation)
-                             ▲
-Phase 2 (Mock Data) ─────────┘
-                             ▲
-Phase 3 (Benchmarks) ────────┘
-```
+### Tasks
+1. Push branch: `git push origin sprint-8.7`
+2. Create tag: `git tag v8.7.0-onboarding-refactor`
+3. Push tag: `git push origin v8.7.0-onboarding-refactor`
+4. Verify Docker stack on Mac mini (192.168.1.15)
+5. Smoke test: Health check endpoint
+6. Smoke test: Create real project and test Session 1 Phase 1
 
-### Recommended Execution Order
-
-1. **Phase 2** (1-2 hours) - Quick win, unblocks Session 3 test
-2. **Phase 1** (3-4 hours) - Critical for test reliability
-3. **Phase 3** (2-3 hours) - Validate transport performance
-4. **Phase 4** (1-2 hours) - Document everything
-
-**Total Estimated Time**: 7-11 hours
-
----
-
-## Summary
-
-### Changes Overview
-
-| Phase | Files Modified | Files Created | LOC Changed |
-|-------|----------------|---------------|-------------|
-| Phase 1 | 5 (test files + fixtures + cleanup) | 0 | ~150 |
-| Phase 2 | 1 (fixtures.ts) | 0 | ~50 |
-| Phase 3 | 0 | 2 (benchmark + README) | ~300 |
-| Phase 4 | 3 (READMEs) | 0 | ~200 |
-| **Total** | **7** | **2** | **~700** |
-
-### Final Success Criteria
-
-- ✅ All 10/10 E2E tests pass in suite
-- ✅ Session 3 bootstrap test completes successfully
-- ✅ Performance benchmarks document transport differences
-- ✅ Documentation reflects current architecture
-- ✅ Test infrastructure is maintainable and reliable
+### Success Criteria
+- Branch and tag pushed successfully
+- Production Docker containers healthy
+- Health check returns 200
+- Real onboarding workflow starts successfully
 
 ---
 
-## Notes
+## Quality Gates
 
-**Status**: Plan approved 2025-11-19
-**Ready to execute**: Phase 2 (recommended first)
-**Context preserved**: For session compaction recovery
+### Before Deployment
+- [ ] All E2E tests pass
+- [ ] Error scenarios handled correctly
+- [ ] Test data cleaned up
+- [ ] No uncommitted changes (except test files to discard)
+
+### After Deployment
+- [ ] Production health check passes
+- [ ] Smoke test completes
+- [ ] No errors in Docker logs
+- [ ] MCP tools accessible
+
+---
+
+## Rollback Plan
+
+If deployment fails:
+1. Revert tag: `git tag -d v8.7.0-onboarding-refactor && git push origin :refs/tags/v8.7.0-onboarding-refactor`
+2. Reset branch: `git reset --hard HEAD~7`
+3. Restart Docker: `docker-compose restart nextjs-cloud mcp-cloud`
+4. Investigate and fix issues
+5. Re-test before redeploying
+
+---
+
+## Checkpoints
+
+Token checkpoints every 15K tokens:
+- 15K: Phase 1 complete
+- 30K: Session 1 complete
+- 45K: Session 2 complete
+- 60K: Session 3 complete
+- 75K: Error scenarios complete
+- 90K: Deployment complete
+
+---
+
+**Plan Status**: APPROVED ✅
+**Ready to Execute**: YES ✅
+**Protocol Step 2**: COMPLETE ✅
