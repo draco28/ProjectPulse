@@ -56,9 +56,19 @@ const navigationItems: NavItem[] = [
   { icon: Users, label: 'Agent AI Hub', href: '/agents' },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  projectId?: number;
+}
+
+export function Sidebar({ projectId }: SidebarProps = {}) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Helper to build href with projectId
+  const buildHref = (path: string) => {
+    if (!projectId) return path;
+    return `${path}?project=${projectId}`;
+  };
 
   // Custom hooks
   const drawerRef = useFocusTrap(isMobileMenuOpen);
@@ -149,7 +159,7 @@ export function Sidebar() {
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={buildHref(item.href)}
                 className={cn(
                   'smooth-transition flex items-center gap-3 rounded-2xl px-5 py-4',
                   isActive ? 'bg-accent-primary/20 text-white' : 'neu-raised text-slate hover:text-white'
