@@ -142,7 +142,7 @@ export default function UserDashboard() {
       <FloatingBackground />
 
       {/* Main Content */}
-      <div className="min-h-screen p-6">
+      <div className="content-wrapper min-h-screen p-6">
         <div className="mx-auto max-w-6xl">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">

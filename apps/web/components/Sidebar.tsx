@@ -30,27 +30,35 @@ import { cn } from '@/lib/utils';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { ThemeSwitcher } from './ThemeSwitcher';
+import { useSidebarCounts } from '@/hooks/useSidebarCounts';
 
 interface NavItem {
   icon: typeof Home;
   label: string;
   href: string;
-  badge?: number;
+  badgeKey?: 'issues' | 'health' | 'knowledge' | 'wiki';
   badgeVariant?: 'default' | 'destructive' | 'warning';
   pulse?: boolean;
+}
+
+interface SidebarCounts {
+  issues?: number;
+  health?: number;
+  knowledge?: number;
+  wiki?: number;
 }
 
 const navigationItems: NavItem[] = [
   { icon: Home, label: 'Dashboard', href: '/dashboard', pulse: true },
   { icon: Map, label: 'Roadmap', href: '/roadmap' },
-  { icon: ListTodo, label: 'Issues', href: '/issues', badge: 12 },
-  { icon: Lightbulb, label: 'Knowledge', href: '/knowledge' },
-  { icon: Book, label: 'Wiki', href: '/wiki' },
+  { icon: ListTodo, label: 'Issues', href: '/issues', badgeKey: 'issues' },
+  { icon: Lightbulb, label: 'Knowledge', href: '/knowledge', badgeKey: 'knowledge' },
+  { icon: Book, label: 'Wiki', href: '/wiki', badgeKey: 'wiki' },
   {
     icon: Activity,
     label: 'Health',
     href: '/health',
-    badge: 3,
+    badgeKey: 'health',
     badgeVariant: 'warning',
   },
   { icon: Users, label: 'Agent AI Hub', href: '/agents' },
@@ -58,9 +66,16 @@ const navigationItems: NavItem[] = [
 
 interface SidebarProps {
   projectId?: number;
+  counts?: SidebarCounts;
 }
 
-export function Sidebar({ projectId }: SidebarProps = {}) {
+export function Sidebar({ projectId: propProjectId, counts: propCounts }: SidebarProps = {}) {
+  // Fetch counts client-side from URL params
+  const { counts: fetchedCounts, projectId: urlProjectId } = useSidebarCounts();
+  
+  // Use prop values if provided, otherwise use fetched values
+  const projectId = propProjectId ?? urlProjectId;
+  const counts = propCounts ?? fetchedCounts;
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
@@ -118,11 +133,11 @@ export function Sidebar({ projectId }: SidebarProps = {}) {
       <aside
         ref={drawerRef}
         className={cn(
-          'flex flex-col gap-4 p-4',
+          'sidebar-container flex flex-col gap-4 p-4',
           // Desktop: fixed width, always visible
           'md:w-64',
           // Mobile: full drawer behavior
-          'fixed inset-y-0 left-0 z-50 w-80 bg-background transition-transform duration-300 md:static md:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 w-80 bg-background transition-transform duration-300 md:static md:translate-x-0 md:bg-transparent md:shadow-none md:border-none',
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         )}
         aria-label="Main navigation"
@@ -170,7 +185,7 @@ export function Sidebar({ projectId }: SidebarProps = {}) {
                 {item.pulse && isActive && (
                   <div className="pulse-glow ml-auto h-2 w-2 rounded-full bg-white" />
                 )}
-                {item.badge && (
+                {item.badgeKey && counts && counts[item.badgeKey] !== undefined && counts[item.badgeKey]! > 0 && (
                   <span
                     className={cn(
                       'ml-auto rounded-full px-2.5 py-1 text-xs font-semibold shadow-md',
@@ -179,7 +194,7 @@ export function Sidebar({ projectId }: SidebarProps = {}) {
                         : 'bg-coral text-white'
                     )}
                   >
-                    {item.badge}
+                    {counts[item.badgeKey]}
                   </span>
                 )}
               </Link>
