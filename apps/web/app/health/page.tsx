@@ -5,7 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { Activity, TrendingUp, TrendingDown, Minus, ArrowLeft } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
-import { getCurrentUser, getAuthorizedProject } from '@/lib/auth-server';
+import { getCurrentUser } from '@/lib/auth-server';
+import { getActiveProjectForUser } from '@/lib/project-context';
 import { ScoreCardsGrid } from '@/components/health/ScoreCardsGrid';
 import { VulnerabilityBreakdown } from '@/components/health/VulnerabilityBreakdown';
 import { ScannerStatusCards } from '@/components/health/ScannerStatusCards';
@@ -216,13 +217,7 @@ export default async function HealthPage({
 
   const params = await searchParams;
   
-  // Get projectId from query or first owned project
-  const projectIdParam = params.project ? parseInt(params.project, 10) : undefined;
-  const project = await getAuthorizedProject(projectIdParam, user.id);
-  
-  if (!project) redirect('/app');
-
-  const projectId = project.id;
+  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
   const { latestScore, historicalScores, findings, scanners, vulnerabilityCounts, trend } =
     await getHealthData(projectId);
@@ -233,7 +228,7 @@ export default async function HealthPage({
       <>
         <FloatingBackground />
         <div className="flex h-screen overflow-hidden">
-          <Sidebar projectId={project.id} />
+          <Sidebar projectId={projectId} />
 
           <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
             <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
@@ -348,14 +343,14 @@ export default async function HealthPage({
     <>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar projectId={project.id} />
+        <Sidebar projectId={projectId} />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
             <div className="mb-4">
               <Link
-                href={`/dashboard?project=${project.id}`}
+                href={`/dashboard?project=${projectId}`}
                 className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />

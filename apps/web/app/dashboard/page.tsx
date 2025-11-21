@@ -27,6 +27,13 @@ const prisma = globalForPrisma.prisma || new PrismaClient();
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 async function getDashboardData(projectId: number) {
+  // Time windows for trend calculations
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
   // Fetch all data in parallel for performance
   const [
     openIssuesCount,
@@ -38,7 +45,16 @@ async function getDashboardData(projectId: number) {
     activeAgents,
     onboardingSessions,
     project,
+    issuesCreatedLast7,
+    issuesCreatedPrev7,
+    knowledgeCreatedLast30,
+    knowledgeCreatedPrev30,
+    findingsCreatedLast7,
+    findingsCreatedPrev7,
+    issuesClosedLast7,
+    issuesClosedPrev7,
   ] = await Promise.all([
+    // Current snapshot counts
     prisma.issue.count({ where: { projectId, status: 'open' } }),
     prisma.issue.count({ where: { projectId, status: 'in-progress' } }),
     prisma.issue.count({ where: { projectId, status: 'closed' } }),
@@ -71,9 +87,71 @@ async function getDashboardData(projectId: number) {
       where: { id: projectId },
       select: { id: true, name: true, ownerId: true },
     }),
+    // Historical windows for trends (issues created)
+    prisma.issue.count({
+      where: {
+        projectId,
+        createdAt: { gte: weekAgo },
+      },
+    }),
+    prisma.issue.count({
+      where: {
+        projectId,
+        createdAt: { gte: twoWeeksAgo, lt: weekAgo },
+      },
+    }),
+    // Knowledge items created
+    prisma.knowledgeItem.count({
+      where: {
+        projectId,
+        createdAt: { gte: monthAgo },
+      },
+    }),
+    prisma.knowledgeItem.count({
+      where: {
+        projectId,
+        createdAt: { gte: twoMonthsAgo, lt: monthAgo },
+      },
+    }),
+    // Security findings created
+    prisma.securityFinding.count({
+      where: {
+        projectId,
+        createdAt: { gte: weekAgo },
+      },
+    }),
+    prisma.securityFinding.count({
+      where: {
+        projectId,
+        createdAt: { gte: twoWeeksAgo, lt: weekAgo },
+      },
+    }),
+    // Issues closed (completed) by updatedAt window
+    prisma.issue.count({
+      where: {
+        projectId,
+        status: 'closed',
+        updatedAt: { gte: weekAgo },
+      },
+    }),
+    prisma.issue.count({
+      where: {
+        projectId,
+        status: 'closed',
+        updatedAt: { gte: twoWeeksAgo, lt: weekAgo },
+      },
+    }),
   ]);
 
   const completedCount = onboardingSessions.filter((s) => s.status === 'complete').length;
+
+  const trends = {
+    // Positive = more activity in current window vs previous
+    openIssues: issuesCreatedLast7 - issuesCreatedPrev7,
+    knowledgeItems: knowledgeCreatedLast30 - knowledgeCreatedPrev30,
+    securityFindings: findingsCreatedLast7 - findingsCreatedPrev7,
+    completed: issuesClosedLast7 - issuesClosedPrev7,
+  };
 
   return {
     project,
@@ -83,6 +161,7 @@ async function getDashboardData(projectId: number) {
       securityFindings: securityFindingsCount,
       completed: closedIssuesCount,
     },
+    trends,
     recentIssues: recentIssues.map((issue) => ({
       id: issue.id.toString(),
       title: issue.title,
@@ -159,6 +238,13 @@ export default async function DashboardPage({
   }
 
   const data = await getDashboardData(projectId);
+  const hasTrendActivity =
+    data.trends.openIssues !== 0 ||
+    data.trends.knowledgeItems !== 0 ||
+    data.trends.securityFindings !== 0 ||
+    data.trends.completed !== 0;
+
+  const trendLabel = hasTrendActivity ? 'vs previous period' : 'no data yet';
 
   return (
     <div className="space-y-4">
@@ -180,26 +266,26 @@ export default async function DashboardPage({
           title="Open Issues"
           value={data.stats.openIssues}
           icon={ListTodo}
-          trend={{ value: 12, label: 'from last week' }}
+          trend={{ value: data.trends.openIssues, label: trendLabel }}
         />
         <StatCard
           title="Knowledge Items"
           value={data.stats.knowledgeItems}
           icon={Lightbulb}
-          trend={{ value: 8, label: 'from last month' }}
+          trend={{ value: data.trends.knowledgeItems, label: trendLabel }}
         />
         <StatCard
           title="Security Findings"
           value={data.stats.securityFindings}
           icon={Shield}
-          trend={{ value: -15, label: 'from last week' }}
+          trend={{ value: data.trends.securityFindings, label: trendLabel }}
           iconClassName="icon-slate"
         />
         <StatCard
           title="Completed"
           value={data.stats.completed}
           icon={CheckCircle2}
-          trend={{ value: 23, label: 'from last week' }}
+          trend={{ value: data.trends.completed, label: trendLabel }}
           iconClassName="icon-slate"
         />
       </div>

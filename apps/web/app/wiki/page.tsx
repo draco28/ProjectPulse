@@ -17,7 +17,8 @@ import { WikiSearchBar } from '@/components/wiki/WikiSearchBar';
 import { WikiCard } from '@/components/wiki/WikiCard';
 import { Pagination } from '@/components/issues/Pagination';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser, getAuthorizedProject } from '@/lib/auth-server';
+import { getCurrentUser } from '@/lib/auth-server';
+import { getActiveProjectForUser } from '@/lib/project-context';
 
 // ISR: Revalidate every hour (same as wiki detail page)
 export const revalidate = 3600;
@@ -147,7 +148,8 @@ async function getWikiPages(projectId: number, searchParams: SearchParams) {
             ) AS highlight,
             ts_rank_cd("content_tsv", ${tsQuery}) AS rank
           FROM "WikiPage"
-          WHERE "content_tsv" @@ ${tsQuery}
+          WHERE "projectId" = ${projectId}
+            AND "content_tsv" @@ ${tsQuery}
           ${categoryCondition}
           ORDER BY rank DESC, "updatedAt" DESC
           LIMIT ${perPage} OFFSET ${offset};
@@ -157,7 +159,8 @@ async function getWikiPages(projectId: number, searchParams: SearchParams) {
         Prisma.sql`
           SELECT COUNT(*)::int AS count
           FROM "WikiPage"
-          WHERE "content_tsv" @@ ${tsQuery}
+          WHERE "projectId" = ${projectId}
+            AND "content_tsv" @@ ${tsQuery}
           ${categoryCondition};
         `,
       ),
@@ -300,21 +303,17 @@ export default async function WikiPage({
 
   const params = await searchParams;
   
-  // Get projectId from query or first owned project
-  const projectIdParam = params.project ? parseInt(params.project, 10) : undefined;
-  const project = await getAuthorizedProject(projectIdParam, user.id);
-  
-  if (!project) redirect('/app');
+  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
   const [{ pages, totalCount, currentPage, totalPages, perPage }, categoryStats] =
-    await Promise.all([getWikiPages(project.id, params), getCategoryStats(project.id)]);
+    await Promise.all([getWikiPages(projectId, params), getCategoryStats(projectId)]);
 
   return (
     <>
       <FloatingBackground />
 
       <div className="content-wrapper flex h-screen overflow-hidden">
-        <Sidebar projectId={project.id} />
+        <Sidebar projectId={projectId} />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
@@ -322,7 +321,7 @@ export default async function WikiPage({
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
             <div className="mb-4">
               <Link
-                href={`/dashboard?project=${project.id}`}
+                href={`/dashboard?project=${projectId}`}
                 className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />

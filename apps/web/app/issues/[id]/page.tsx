@@ -11,7 +11,7 @@
  */
 
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Paperclip, Plus, MessageSquare } from 'lucide-react';
@@ -19,6 +19,8 @@ import { prisma } from '@/lib/prisma';
 import { serializeIssueDetail } from '@/types/issue';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
+import { getCurrentUser } from '@/lib/auth-server';
+import { getActiveProjectForUser } from '@/lib/project-context';
 // New Day 5 Components
 import { IssueHeader } from '@/components/issues/detail/IssueHeader';
 import { QuickActions } from '@/components/issues/detail/QuickActions';
@@ -181,15 +183,28 @@ async function getIssueDetail(id: number) {
 // PAGE COMPONENT
 // ============================================================================
 
-export default async function IssueDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function IssueDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ project?: string }> }) {
   const { id } = await params;
   const issueId = parseInt(id, 10);
+
+  // Auth check
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
 
   // Fetch issue with all relations
   const issue = await getIssueDetail(issueId);
 
   if (!issue) {
     notFound();
+  }
+
+  // Verify project ownership
+  const params2 = await searchParams;
+  const { projectId } = await getActiveProjectForUser(user.id, params2.project);
+  
+  if (issue.projectId !== projectId) {
+    // Issue belongs to different project - redirect to correct project or 404
+    redirect(`/issues/${issueId}?project=${issue.projectId}`);
   }
 
   // Serialize for client components (Dates → ISO strings, numbers → strings)
@@ -199,7 +214,7 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
     <>
       <FloatingBackground />
       <div className="content-wrapper flex h-screen overflow-hidden">
-        <Sidebar />
+        <Sidebar projectId={projectId} />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">

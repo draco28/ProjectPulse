@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
-import { getCurrentUser, getAuthorizedProject } from '@/lib/auth-server';
+import { getCurrentUser } from '@/lib/auth-server';
+import { getActiveProjectForUser } from '@/lib/project-context';
 import { AgentCard } from '@/components/agents/AgentCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SkillsLibrarySection } from '@/components/agent-hub/SkillsLibrarySection';
@@ -123,32 +124,28 @@ export default async function AgentsPage({
 
   const params = await searchParams;
   
-  // Get projectId from query or first owned project
-  const projectIdParam = params.project ? parseInt(params.project, 10) : undefined;
-  const project = await getAuthorizedProject(projectIdParam, user.id);
-  
-  if (!project) redirect('/app');
+  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
   const [agents, stats, skills, workflows, sops] = await Promise.all([
-    getAgents(project.id),
-    getAgentStats(project.id),
-    getSkills(project.id),
-    getWorkflows(project.id),
-    getSOPs(project.id),
+    getAgents(projectId),
+    getAgentStats(projectId),
+    getSkills(projectId),
+    getWorkflows(projectId),
+    getSOPs(projectId),
   ]);
 
   return (
     <>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar projectId={project.id} />
+        <Sidebar projectId={projectId} />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 px-6 py-4 md:px-8">
           {/* Header */}
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
             <div className="mb-4">
               <Link
-                href={`/dashboard?project=${project.id}`}
+                href={`/dashboard?project=${projectId}`}
                 className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />

@@ -19,7 +19,8 @@ import { Map, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
-import { getCurrentUser, getAuthorizedProject } from '@/lib/auth-server';
+import { getCurrentUser } from '@/lib/auth-server';
+import { getActiveProjectForUser } from '@/lib/project-context';
 import { FilterableRoadmapTree } from '@/components/roadmap/FilterableRoadmapTree';
 import { CurrentPositionBanner } from '@/components/roadmap/CurrentPositionBanner';
 import { EmptyRoadmapState } from '@/components/roadmap/EmptyRoadmapState';
@@ -93,13 +94,9 @@ export default async function RoadmapPage({
 
   const params = await searchParams;
   
-  // Get projectId from query or first owned project
-  const projectIdParam = params.project ? parseInt(params.project, 10) : undefined;
-  const project = await getAuthorizedProject(projectIdParam, user.id);
-  
-  if (!project) redirect('/app');
+  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
-  const roadmap = await getRoadmap(project.id);
+  const roadmap = await getRoadmap(projectId);
 
   if (!roadmap) {
     return <EmptyRoadmapState />;

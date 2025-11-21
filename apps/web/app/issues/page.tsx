@@ -17,7 +17,8 @@ import { IssueListCard } from '@/components/issues/IssueListCard';
 import { Pagination } from '@/components/issues/Pagination';
 import { prisma } from '@/lib/prisma';
 import { getFilterOptions } from '@/lib/filters';
-import { getCurrentUser, getAuthorizedProject } from '@/lib/auth-server';
+import { getCurrentUser } from '@/lib/auth-server';
+import { getActiveProjectForUser } from '@/lib/project-context';
 
 export const metadata: Metadata = {
   title: 'Issues | ProjectPulse',
@@ -176,21 +177,17 @@ export default async function IssuesPage({
 
   const params = await searchParams;
   
-  // Get projectId from query or first owned project
-  const projectIdParam = params.project ? parseInt(params.project, 10) : undefined;
-  const project = await getAuthorizedProject(projectIdParam, user.id);
-  
-  if (!project) redirect('/app');
+  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
   const [{ issues, totalCount, currentPage, totalPages, perPage }, filterCounts, filterOptions] =
-    await Promise.all([getIssues(project.id, params), getFilterCounts(project.id), getFilterOptions()]);
+    await Promise.all([getIssues(projectId, params), getFilterCounts(projectId), getFilterOptions()]);
 
   return (
     <>
       <FloatingBackground />
 
       <div className="content-wrapper flex h-screen overflow-hidden">
-        <Sidebar projectId={project.id} />
+        <Sidebar projectId={projectId} />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
@@ -198,7 +195,7 @@ export default async function IssuesPage({
           <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
             <div className="mb-4">
               <Link
-                href={`/dashboard?project=${project.id}`}
+                href={`/dashboard?project=${projectId}`}
                 className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />

@@ -6,20 +6,24 @@ import { FloatingBackground } from '@/components/FloatingBackground';
 import { SecurityScoreMeter } from '@/components/security/SecurityScoreMeter';
 import { VulnerabilityCard } from '@/components/security/VulnerabilityCard';
 import { VulnerabilityFilter } from '@/components/security/VulnerabilityFilter';
+import { getCurrentUser } from '@/lib/auth-server';
+import { redirect } from 'next/navigation';
+import { getActiveProjectForUser } from '@/lib/project-context';
 
 interface PageProps {
   searchParams: {
     severity?: string; // 'ERROR' | 'WARNING' | 'INFO'
     status?: string; // 'open' | 'fixed' | 'false_positive'
+    project?: string;
   };
 }
 
 export const dynamic = 'force-dynamic'; // Real-time security data
 
 // Calculate security score from findings
-async function calculateSecurityScore() {
+async function calculateSecurityScore(projectId: number) {
   const findings = await prisma.securityFinding.findMany({
-    where: { status: 'open' }, // Only count open issues
+    where: { status: 'open', projectId }, // Only count open issues
     select: { severity: true },
   });
 
@@ -38,13 +42,14 @@ async function calculateSecurityScore() {
 }
 
 // Get vulnerability breakdown
-async function getVulnerabilityStats() {
+async function getVulnerabilityStats(projectId: number) {
   const findings = await prisma.securityFinding.groupBy({
     by: ['severity'],
     _count: {
       id: true,
     },
     where: {
+      projectId,
       status: 'open',
     },
   });
@@ -57,10 +62,10 @@ async function getVulnerabilityStats() {
   };
 }
 
-async function getSecurityFindings(searchParams: PageProps['searchParams']) {
+async function getSecurityFindings(projectId: number, searchParams: PageProps['searchParams']) {
   const { severity, status = 'open' } = searchParams;
 
-  const where: Prisma.SecurityFindingWhereInput = {};
+  const where: Prisma.SecurityFindingWhereInput = { projectId };
 
   if (severity) {
     where.severity = severity;
@@ -105,18 +110,23 @@ async function getSecurityFindings(searchParams: PageProps['searchParams']) {
 }
 
 export default async function SecurityPage({ searchParams }: PageProps) {
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
+  const { project, projectId } = await getActiveProjectForUser(user.id, searchParams.project);
+
   // Parallel queries for performance
   const [securityScore, stats, findings] = await Promise.all([
-    calculateSecurityScore(),
-    getVulnerabilityStats(),
-    getSecurityFindings(searchParams),
+    calculateSecurityScore(projectId),
+    getVulnerabilityStats(projectId),
+    getSecurityFindings(projectId, searchParams),
   ]);
 
   return (
     <>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar />
+        <Sidebar projectId={projectId} />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}

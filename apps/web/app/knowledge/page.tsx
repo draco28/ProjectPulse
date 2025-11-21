@@ -6,22 +6,26 @@ import { FloatingBackground } from '@/components/FloatingBackground';
 import { ArticleCard } from '@/components/knowledge/ArticleCard';
 import { TagFilter } from '@/components/knowledge/TagFilter';
 import { SearchBar } from '@/components/knowledge/SearchBar';
+import { getCurrentUser } from '@/lib/auth-server';
+import { redirect } from 'next/navigation';
+import { getActiveProjectForUser } from '@/lib/project-context';
 
 interface PageProps {
   searchParams: {
     search?: string;
     tag?: string;
     sort?: string;
+    project?: string;
   };
 }
 
 export const dynamic = 'force-dynamic'; // Real-time search requires fresh data
 
-async function getKnowledgeArticles(searchParams: PageProps['searchParams']) {
+async function getKnowledgeArticles(projectId: number, searchParams: PageProps['searchParams']) {
   const { search = '', tag, sort = 'newest' } = searchParams;
 
   // Build where clause
-  const where: Prisma.KnowledgeItemWhereInput = {};
+  const where: Prisma.KnowledgeItemWhereInput = { projectId };
 
   // Full-text search (if search query provided)
   if (search) {
@@ -61,6 +65,7 @@ async function getKnowledgeArticles(searchParams: PageProps['searchParams']) {
 
   // Get all unique tags for filter
   const allArticles = await prisma.knowledgeItem.findMany({
+    where: { projectId },
     select: { tags: true },
   });
 
@@ -83,7 +88,12 @@ async function getKnowledgeArticles(searchParams: PageProps['searchParams']) {
 }
 
 export default async function KnowledgeBasePage({ searchParams }: PageProps) {
-  const { articles, allTags, totalCount } = await getKnowledgeArticles(searchParams);
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
+  const { project, projectId } = await getActiveProjectForUser(user.id, searchParams.project);
+
+  const { articles, allTags, totalCount } = await getKnowledgeArticles(projectId, searchParams);
 
   const { search = '', tag } = searchParams;
 
@@ -91,7 +101,7 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
     <>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar />
+        <Sidebar projectId={projectId} />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
