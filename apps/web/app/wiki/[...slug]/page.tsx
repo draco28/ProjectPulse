@@ -14,9 +14,9 @@ import { parseContributors, parseTags, type Contributor } from '@/lib/validation
 import NextLink from 'next/link';
 
 interface PageProps {
-  params: {
-    slug: string;
-  };
+  params: Promise<{
+    slug: string[];
+  }>;
 }
 
 // ISR: Revalidate every hour (3600 seconds)
@@ -75,6 +75,7 @@ async function getWikiPage(slug: string) {
     where: { path: `/${slug}` },
     select: {
       id: true,
+      projectId: true, // Need projectId for Sidebar
       title: true,
       content: true,
       excerpt: true,
@@ -220,12 +221,17 @@ export async function generateStaticParams() {
   });
 
   return pages.map((page) => ({
-    slug: page.path.replace(/^\//, ''), // Remove leading slash
+    slug: page.path.replace(/^\//, '').split('/'), // Remove leading slash and split segments
   }));
 }
 
 export default async function WikiPage({ params }: PageProps) {
-  const page = await getWikiPage(params.slug);
+  const resolvedParams = await params;
+  // Handle nested slugs (e.g., ['my-project', 'getting-started'])
+  const slugArray = resolvedParams.slug;
+  const slugPath = Array.isArray(slugArray) ? slugArray.join('/') : slugArray;
+  
+  const page = await getWikiPage(slugPath);
 
   if (!page) {
     notFound();
@@ -253,7 +259,8 @@ export default async function WikiPage({ params }: PageProps) {
       <WikiViewTracker slug={normalizedSlug} />
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar />
+        {/* Inject projectId from the wiki page record to ensure Sidebar highlights correctly */}
+        <Sidebar projectId={page.projectId} />
 
         <div className="content-wrapper flex flex-1 gap-4 overflow-hidden p-4">
           {/* Left Sidebar: Quick Navigation */}
@@ -270,7 +277,8 @@ export default async function WikiPage({ params }: PageProps) {
                 <ol className="flex items-center gap-2 text-slate">
                   <li>
                     <NextLink
-                      href="/wiki"
+                      // Pass project ID in query param when navigating back to list
+                      href={`/wiki?project=${page.projectId}`}
                       className="hover:text-white smooth-transition"
                     >
                       Wiki

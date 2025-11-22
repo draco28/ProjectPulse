@@ -42,7 +42,12 @@ export async function middleware(request: NextRequest) {
 
   // Enforce project context on project-scoped routes
   const requiresProject = projectRoutes.some((route) => pathname.startsWith(route));
-  if (requiresProject) {
+  
+  // Exception: Wiki detail pages (e.g., /wiki/project-slug/page-slug) derive context from the URL path
+  // We allow these to bypass the query param check because the page component will resolve the project
+  const isWikiDetailPage = pathname.startsWith('/wiki/') && pathname.split('/').length > 2;
+  
+  if (requiresProject && !isWikiDetailPage) {
     const projectId = searchParams.get('project');
     if (!projectId) {
       // Redirect to project selector when project context is missing
