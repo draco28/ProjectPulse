@@ -135,7 +135,8 @@
       "mcp__projectpulse__projectpulse_health_check",
       "Bash(TRANSPORT_TYPE=http-stream node --test:*)",
       "Bash(tee:*)",
-      "Bash(timeout 10 bash -c 'sleep 3 && curl -s \"\"http://192.168.1.15:3000/api/health\"\"')"
+      "Bash(timeout 10 bash -c 'sleep 3 && curl -s \"\"http://192.168.1.15:3000/api/health\"\"')",
+      "Bash(git revert:*)"
     ],
     "deny": [],
     "ask": [
