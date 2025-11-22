@@ -73,7 +73,11 @@ export function useGlobalShortcuts() {
           break;
         case ',':
           e.preventDefault();
-          router.push('/settings');
+          if (projectId) {
+            router.push(`/projects/${projectId}/settings`);
+          } else {
+            router.push('/app');
+          }
           break;
         case '/':
           e.preventDefault();

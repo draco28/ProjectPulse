@@ -123,8 +123,37 @@ export function ProjectSettingsClient({ project, tokens, mcpEndpoint }: ProjectS
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert('Copied to clipboard!');
+    // Fallback for HTTP contexts where navigator.clipboard is unavailable
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          alert('Copied to clipboard!');
+        })
+        .catch(() => {
+          fallbackCopyToClipboard(text);
+        });
+    } else {
+      fallbackCopyToClipboard(text);
+    }
+  };
+
+  const fallbackCopyToClipboard = (text: string) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert('Copied to clipboard!');
+    } catch (err) {
+      alert('Failed to copy. Please copy manually: ' + text);
+    }
+    document.body.removeChild(textArea);
   };
 
   const formatDate = (date: Date | null) => {

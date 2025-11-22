@@ -11,7 +11,7 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 const publicPaths = ['/login', '/api/auth/signup', '/api/health'];
-const publicApiPrefixes = ['/api/auth/'];
+const publicApiPrefixes = ['/api/auth/', '/api/agent-auth/'];
 const projectRoutes = ['/dashboard', '/issues', '/wiki', '/knowledge', '/health', '/agents', '/roadmap'];
 
 export async function middleware(request: NextRequest) {

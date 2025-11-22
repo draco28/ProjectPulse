@@ -257,7 +257,11 @@ export function createCommands(router: any, projectId?: number): CommandCategory
           shortcut: '⌘,',
           keywords: ['settings', 'preferences', 'config', 'options'],
           action: () => {
-            router.push('/settings');
+            if (projectId) {
+              router.push(`/projects/${projectId}/settings`);
+            } else {
+              router.push('/app');
+            }
           },
         },
         {
