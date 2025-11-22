@@ -29,17 +29,97 @@ This guide shows you how to connect your AI coding agent (Claude Code, Windsurf,
 
 ---
 
+## Authentication
+
+**IMPORTANT:** Before connecting your agent, you must generate a project-scoped bearer token.
+
+### Generate Your Token
+
+1. **Navigate to Project Settings:**
+   - Open ProjectPulse: `http://192.168.1.15:3000`
+   - Log in and go to `/app` (user dashboard)
+   - Click on your project
+   - Click "Settings" tab (or go to `/projects/[id]/settings`)
+
+2. **Create Token:**
+   - Find the **"Agent Tokens"** section
+   - Click **"Generate New Token"**
+   - Enter a descriptive name (e.g., "Claude Code - MacBook Pro")
+   - Set expiry days (recommended: 30-90 days)
+   - Click **"Generate"**
+   - **CRITICAL:** Copy the token immediately (shown only once!)
+
+3. **Store Securely:**
+   - Save token in password manager
+   - Never commit to git
+   - Treat like a password
+
+**For detailed setup instructions, troubleshooting, and security best practices, see:**
+👉 **[Complete Authentication Setup Guide](guides/mcp-authentication-setup.md)**
+
+### Quick Security Checklist
+
+- ✅ Use descriptive token names (e.g., "Claude Code - MacBook Pro")
+- ✅ Set expiration dates (30-90 days recommended)
+- ✅ Copy token immediately (one-time display)
+- ✅ Store in password manager (never in git)
+- ✅ Revoke unused tokens regularly
+- ❌ Never share tokens between agents/devices
+- ❌ Never commit tokens to version control
+
+---
+
 ## Quick Setup
+
+**Note:** The configuration examples below show placeholder tokens. Replace with your actual token from the Authentication step above.
 
 ### Option 1: Claude Code (Recommended)
 
-**Step 1: Add MCP Server**
+**Step 1: Add MCP Server with Bearer Token**
 
-```bash
-claude mcp add --transport http projectpulse-mcp http://192.168.1.15:3001/mcp
+Edit `~/.claude.json` to add the MCP server configuration:
+
+```json
+{
+  "mcpServers": {
+    "projectpulse": {
+      "type": "http",
+      "url": "http://192.168.1.15:3001/mcp",
+      "headers": {
+        "Authorization": "Bearer <your_token_here>"
+      }
+    }
+  }
+}
 ```
 
-**Step 2: Verify Connection**
+**IMPORTANT:** Also add to project-scoped config in the same file:
+
+```json
+{
+  "projects": {
+    "/your/project/path": {
+      "mcpServers": {
+        "projectpulse": {
+          "type": "http",
+          "url": "http://192.168.1.15:3001/mcp",
+          "headers": {
+            "Authorization": "Bearer <your_token_here>"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Replace `<your_token_here>` with the token you generated in the Authentication section.
+
+**Step 2: Restart Claude Code**
+
+Fully quit Claude Code (Cmd+Q on Mac) and reopen.
+
+**Step 3: Verify Connection**
 
 ```bash
 claude mcp list
@@ -77,12 +157,25 @@ Claude will call `onboarding.getQuestions` tool.
 2. Go to Settings → MCP Servers
 3. Click "Add Server"
 
-**Step 2: Configure Server**
+**Step 2: Configure Server with Bearer Token**
 
-Fill in the form:
-- **Name**: `projectpulse-mcp`
-- **Transport**: `HTTP`
-- **URL**: `http://192.168.1.15:3001/mcp`
+Edit `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "projectpulse": {
+      "disabled": false,
+      "serverUrl": "http://192.168.1.15:3001/mcp",
+      "headers": {
+        "Authorization": "Bearer <your_token_here>"
+      }
+    }
+  }
+}
+```
+
+Replace `<your_token_here>` with the token you generated in the Authentication section.
 
 **Step 3: Save and Connect**
 
@@ -118,11 +211,16 @@ Add:
   "mcpServers": {
     "projectpulse": {
       "transport": "http",
-      "url": "http://192.168.1.15:3001/mcp"
+      "url": "http://192.168.1.15:3001/mcp",
+      "headers": {
+        "Authorization": "Bearer <your_token_here>"
+      }
     }
   }
 }
 ```
+
+Replace `<your_token_here>` with the token you generated in the Authentication section.
 
 **Step 2: Restart Cascade**
 

@@ -51,6 +51,29 @@ Before any agent can call ProjectPulse tools, it must authenticate with a **proj
 
 You will use this token in an `Authorization: Bearer <token>` header from each agent.
 
+**Token Management Tips:**
+
+After generating your token:
+
+1. **Store Securely:**
+   - Use a password manager (1Password, LastPass, Bitwarden)
+   - Add entry: "ProjectPulse MCP Token - [Agent Name]"
+   - Store token value, creation date, expiry date
+
+2. **Monitor Usage:**
+   - Check "Last Used" column in Settings regularly
+   - Revoke tokens that haven't been used in 30+ days
+   - Rotate tokens every 90 days (security best practice)
+
+3. **Troubleshooting:**
+   - If you see 401 errors, verify token hasn't expired
+   - Check token is correctly copied (no extra spaces)
+   - Ensure "Bearer " prefix is included in header
+   - For Claude Code: Ensure bearer token is in BOTH global `mcpServers` AND project-scoped `projects[path].mcpServers` configs
+
+**For Complete Documentation:**
+See [MCP Authentication Setup Guide](../guides/mcp-authentication-setup.md) for detailed workflow, security best practices, and troubleshooting.
+
 ### 3. Configure Your Agent
 
 Choose your agent and follow the configuration below:
@@ -95,6 +118,9 @@ Replace `<project_token>` with the token you generated in `/projects/[id]/settin
     "projectpulse": {
       "type": "http",
       "url": "http://192.168.1.15:3001/mcp",
+      "headers": {
+        "Authorization": "Bearer <your_token_here>"
+      },
       "disabled": false
     }
   }

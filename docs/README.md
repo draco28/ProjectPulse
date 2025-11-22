@@ -100,14 +100,36 @@ ProjectPulse is an agent-first project management platform designed for AI agent
 14. **[13-Project-Plan.md](13-Project-Plan.md)** - Implementation Roadmap
     - 16-week timeline, 5 phases, estimates, risks, success criteria
 
+### Setup & Configuration Guides
+
+15. **[guides/mcp-authentication-setup.md](guides/mcp-authentication-setup.md)** - MCP Authentication Setup
+    - Generate and configure bearer tokens for agent MCP access
+    - Step-by-step token generation, agent configuration examples
+    - Security best practices, token management, troubleshooting
+
+16. **[MCP_QUICK_START_v2.md](MCP_QUICK_START_v2.md)** - MCP Quick Start
+    - Quick setup for Claude Code, Windsurf, Cascade
+    - HTTP streaming transport configuration
+    - Tool verification and testing
+
+17. **[features/mcp-multi-agent-setup.md](features/mcp-multi-agent-setup.md)** - Multi-Agent Setup
+    - Configure multiple agents with validated configurations
+    - Agent-specific setup instructions
+    - Bearer token configuration patterns
+
+18. **[guides/onboarding-user-guide.md](guides/onboarding-user-guide.md)** - Onboarding User Guide
+    - Complete project onboarding workflow
+    - Strategic planning, documentation generation
+    - AI workflow bootstrap
+
 ### Guides & Migration
 
-15. **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Documentation Migration Guide
+19. **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Documentation Migration Guide
     - Old → New file mapping, 3 reading paths, navigation FAQs, quick start guides
 
 ### Archive
 
-16. **[archive/ui-first-phase/](archive/ui-first-phase/)** - Historical Work
+20. **[archive/ui-first-phase/](archive/ui-first-phase/)** - Historical Work
     - Week 1-1.5 UI-first development (100% complete, 40-50% reusable)
 
 ---
