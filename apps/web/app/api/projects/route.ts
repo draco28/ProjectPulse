@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth-server';
+import { cloneWikiTemplates } from '@/lib/wiki/system-templates';
 
 const createProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').max(100, 'Name too long').trim(),
@@ -134,6 +135,9 @@ export async function POST(request: Request) {
         updatedAt: true,
       },
     });
+
+    // Clone default wiki templates (non-blocking, but awaited for simplicity in this route)
+    await cloneWikiTemplates(project.id, project.name);
 
     return NextResponse.json({ project }, { status: 201 });
   } catch (error: any) {
