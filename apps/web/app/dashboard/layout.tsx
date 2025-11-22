@@ -13,7 +13,7 @@
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { FloatingBackground } from '@/components/FloatingBackground';
-import { CommandPalette } from '@/components/command-palette';
+// import { CommandPalette } from '@/components/command-palette';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -29,8 +29,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Floating Background */}
       <FloatingBackground />
 
-      {/* Command Palette */}
-      <CommandPalette />
+      {/* Command Palette - Temporarily disabled */}
+      {/* <CommandPalette /> */}
 
       {/* Content Wrapper */}
       <div className="content-wrapper flex h-screen overflow-hidden">
