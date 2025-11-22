@@ -12,9 +12,10 @@ import { getToken } from 'next-auth/jwt';
 
 const publicPaths = ['/login', '/api/auth/signup', '/api/health'];
 const publicApiPrefixes = ['/api/auth/'];
+const projectRoutes = ['/dashboard', '/issues', '/wiki', '/knowledge', '/health', '/agents', '/roadmap'];
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
 
   // Allow public paths
   if (publicPaths.includes(pathname)) {
@@ -37,6 +38,16 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Enforce project context on project-scoped routes
+  const requiresProject = projectRoutes.some((route) => pathname.startsWith(route));
+  if (requiresProject) {
+    const projectId = searchParams.get('project');
+    if (!projectId) {
+      // Redirect to project selector when project context is missing
+      return NextResponse.redirect(new URL('/app', request.url));
+    }
   }
 
   // Allow authenticated requests

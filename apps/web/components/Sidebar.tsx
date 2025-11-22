@@ -204,7 +204,7 @@ export function Sidebar({ projectId: propProjectId, counts: propCounts }: Sideba
           {/* Settings at bottom of nav */}
           <div className="mt-auto">
             <Link
-              href={projectId ? `/projects/${projectId}/settings` : '/settings'}
+              href={projectId ? `/projects/${projectId}/settings` : '/app'}
               className={cn(
                 'smooth-transition flex items-center gap-3 rounded-2xl px-5 py-4',
                 pathname.includes('/settings')

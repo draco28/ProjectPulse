@@ -14,6 +14,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { FloatingBackground } from '@/components/FloatingBackground';
 // import { CommandPalette } from '@/components/command-palette';
+import { CommandPalette } from '@/components/command-palette/CommandPalette';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -31,6 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Command Palette - Temporarily disabled */}
       {/* <CommandPalette /> */}
+      <CommandPalette />
 
       {/* Content Wrapper */}
       <div className="content-wrapper flex h-screen overflow-hidden">

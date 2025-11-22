@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { ThemeProvider } from '@/lib/theme-provider';
 import { SessionProvider } from '@/components/SessionProvider';
 // import { CommandPaletteProvider } from '@/components/command-palette';
+import { CommandPaletteProvider } from '@/components/command-palette/CommandPaletteProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -23,7 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SessionProvider>
           <ThemeProvider>
             {/* CommandPaletteProvider temporarily disabled - causing webpack errors */}
-            {children}
+            <CommandPaletteProvider>
+              {children}
+            </CommandPaletteProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>

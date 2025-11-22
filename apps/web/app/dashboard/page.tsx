@@ -298,12 +298,12 @@ export default async function DashboardPage({
             <div className="border-b border-white/5 p-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold text-white">Recent Issues</h3>
-                <a
-                  href="/issues"
+                <Link
+                  href={`/issues?project=${projectId}`}
                   className="hover:text-coralLight smooth-transition text-sm font-semibold text-coral"
                 >
                   View all →
-                </a>
+                </Link>
               </div>
             </div>
             <div className="space-y-4 p-6">
