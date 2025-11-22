@@ -204,10 +204,10 @@ export function Sidebar({ projectId: propProjectId, counts: propCounts }: Sideba
           {/* Settings at bottom of nav */}
           <div className="mt-auto">
             <Link
-              href="/settings"
+              href={projectId ? `/projects/${projectId}/settings` : '/settings'}
               className={cn(
                 'smooth-transition flex items-center gap-3 rounded-2xl px-5 py-4',
-                pathname === '/settings'
+                pathname.includes('/settings')
                   ? 'coral-gradient text-white'
                   : 'neu-raised text-slate hover:text-white'
               )}
