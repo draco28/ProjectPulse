@@ -1371,7 +1371,7 @@ PostgreSQL Database
 
 1. **Transport:** HTTP (Streamable HTTP 2025-03-26) - network service, not stdio
 2. **Integration:** Add MCP routes to existing Next.js app (not standalone server)
-3. **Auth:** None for local network (OAuth 2.1 for cloud deployment later)
+3. **Auth:** Project-scoped bearer tokens for local Mac-mini agents (Sprint 9), OAuth 2.1 reserved for external cloud deployment
 4. **Protocol:** Streamable HTTP spec for cost-efficiency and network compatibility
 
 **Dependencies:** Sprint 5 (tool specifications created) ✅

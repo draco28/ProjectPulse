@@ -316,12 +316,42 @@ model Project {
   securityFindings    SecurityFinding[]
   wikiPages           WikiPage[]
 
+  // Sprint 9: Agent OAuth & Settings
+  tokens        ProjectToken[]
+  mcpWriteFiles Boolean @default(false) // Allow MCP to write helper files (CLAUDE.md, AGENTS.md) to repo
+
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt
   OnboardingPromptTemplate OnboardingPromptTemplate[]
 
   @@index([name])
   @@index([ownerId])
+}
+
+// ============================================================================
+// AGENT OAUTH & PROJECT SETTINGS (Sprint 9)
+// ============================================================================
+// Purpose: Project-scoped agent bearer tokens for MCP access
+// Security: Opaque tokens (hashed with bcrypt), validated per request
+// Multi-tenancy: Each project can have multiple agent tokens (per persona/client)
+
+model ProjectToken {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  name      String   // Human-friendly label (e.g., "Frontend Claude", "Backend Claude")
+  tokenHash String   // bcrypt hash of opaque token (plaintext never stored)
+  expiresAt DateTime?
+  lastUsedAt DateTime?
+  isRevoked Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, name]) // One token per name per project
+  @@index([projectId, isRevoked, expiresAt]) // Fast validation queries
+  @@map("project_tokens")
 }
 
 // ============================================================================

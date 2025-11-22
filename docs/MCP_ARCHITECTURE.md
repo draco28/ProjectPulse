@@ -17,7 +17,7 @@ The ProjectPulse MCP (Model Context Protocol) Server enables AI coding agents (C
 - **Transport**: **Stateless HTTP Streaming** (per-request independence)
 - **Architecture**: Standalone Express server (`apps/mcp-server`, port 3001)
 - **Tools**: 40 tools across 8 categories
-- **Authentication**: None for MVP (local network 192.168.1.15), OAuth 2.1 planned for cloud
+- **Authentication**: Project-scoped bearer tokens (local Mac-mini, Sprint 9), OAuth 2.1 reserved for external cloud deployment
 - **Target Users**: Developers using AI coding agents on local network
 
 ### Architecture Goals

@@ -2910,7 +2910,7 @@ C4Deployment
 1. **MCP Server Transport:** HTTP JSON-RPC (tool calls) + SSE (streams)
 2. **Next.js Deployment:** Vercel (serverless functions)
 3. **Database:** Managed PostgreSQL (Railway, Supabase, or AWS RDS)
-4. **Authentication:** Add user accounts, JWT tokens, MCP auth
+4. **Authentication:** Add user accounts, JWT tokens for web UI, and project-scoped MCP bearer tokens for agents
 5. **Multi-tenancy:** Workspace isolation, user permissions
 
 **Estimated Costs (100 users):**
@@ -2949,10 +2949,9 @@ C4Deployment
 - **RBAC (future):** Admin, Developer, Read-Only
 - **Workspace isolation:** Project-scoped data access (user-owned projects; orgs optional later)
 
-**MCP Authentication Details:**
+**MCP Authentication Details (Sprint 9, Mac-mini cloud):**
 
-- Header: `Mcp-Api-Key: <project_api_key>` (required for all MCP requests)
-- Header: `Mcp-Session-Id: <uuid>` (session continuity for JSON-RPC over HTTP)
+- Header: `Authorization: Bearer <project_token>` (required for all MCP requests)
 - Key lifecycle: create, rotate, revoke via Settings → API Keys (per project)
 - Rate limits: per-key quotas (tool calls/min), burst limits
 - Audit: all MCP requests logged with key ID and project ID

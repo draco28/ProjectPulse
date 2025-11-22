@@ -1,11 +1,12 @@
 # MCP Multi-Agent Setup Guide
 
-**Status**: ✅ Production Ready (Sprint 8.7)
+**Status**: ✅ Production Ready (Sprint 9 - Agent OAuth enabled)
 **Transport**: HTTP (stateless streaming)
 **Server**: `http://192.168.1.15:3001/mcp`
 **Protocol**: MCP 2024-11-05
 **Tools**: 40 ProjectPulse tools across 8 categories
-**Last Updated**: 2025-11-20
+**Auth**: Project-scoped bearer tokens per project (generated via `/projects/[id]/settings`)
+**Last Updated**: 2025-11-22
 
 ## Validated Agents (Sprint 8.7)
 
@@ -37,13 +38,50 @@ curl http://192.168.1.15:3001/health
 # {"status":"healthy","version":"0.1.0","transport":"http","toolCount":40,"endpoint":"/mcp"}
 ```
 
-### 2. Configure Your Agent
+### 2. Generate a Project Token
+
+Before any agent can call ProjectPulse tools, it must authenticate with a **project-scoped bearer token**:
+
+1. Open ProjectPulse at `http://192.168.1.15:3000` and log in.
+2. Navigate to your project Settings page: `/projects/[id]/settings`.
+3. In the **Agent Tokens** section, click **"Generate New Token"**.
+4. Choose a descriptive name (for the agent) and expiry, then generate.
+5. **Copy the token immediately** – it will only be shown once.
+6. Treat this token like a password; store it securely.
+
+You will use this token in an `Authorization: Bearer <token>` header from each agent.
+
+### 3. Configure Your Agent
 
 Choose your agent and follow the configuration below:
 
 ---
 
 ## Agent-Specific Configurations
+
+### Common HTTP Config Pattern (All Agents)
+
+Most agents that support HTTP MCP servers accept a JSON config with optional headers. The common pattern for ProjectPulse with Sprint 9 tokens is:
+
+```json
+{
+  "mcpServers": {
+    "projectpulse": {
+      "type": "http",
+      "url": "http://192.168.1.15:3001/mcp",
+      "headers": {
+        "Authorization": "Bearer <project_token>"
+      }
+    }
+  }
+}
+```
+
+Replace `<project_token>` with the token you generated in `/projects/[id]/settings`.
+
+> If your client does not expose a headers field directly in its UI, you can usually edit the underlying JSON config file to add this block manually. See the client-specific notes below.
+
+---
 
 ### Factory Droid
 

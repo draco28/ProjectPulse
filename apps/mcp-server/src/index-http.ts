@@ -104,6 +104,69 @@ app.use('/mcp', (req, _res, next) => {
   next();
 });
 
+// Middleware: Agent Bearer Auth (Sprint 9)
+// Validates agent tokens via web app and attaches projectId to request
+//
+// NOTE: Currently, validated projectId is attached to req.agentAuth but not
+// automatically passed to tool context. Tools that require project scoping
+// should accept projectId as a parameter, which the web app APIs will validate
+// against the token's projectId for defense-in-depth security.
+//
+// TODO (Future): Refactor tool execution to pass req.agentAuth.projectId
+// as part of ToolContext so tools can use validated projectId directly.
+app.use('/mcp', async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    logger.warn('MCP request missing bearer token', {
+      path: req.path,
+      method: req.method,
+    });
+    return res.status(401).json({
+      jsonrpc: '2.0',
+      error: {
+        code: -32001,
+        message: 'Unauthorized: Missing bearer token',
+      },
+      id: null,
+    });
+  }
+
+  const rawToken = authHeader.slice('Bearer '.length);
+
+  try {
+    // Validate token via web app (MCP never hits DB directly)
+    const agentAuth = await httpClient.post<{ projectId: number; tokenId: number; name: string }>(
+      '/api/agent-auth/validate',
+      { token: rawToken }
+    );
+    
+    // Attach agent auth to request for tools
+    (req as any).agentAuth = agentAuth; // { projectId, tokenId, name }
+    
+    logger.debug('Agent authenticated', {
+      projectId: agentAuth.projectId,
+      tokenName: agentAuth.name,
+    });
+    
+    return next();
+  } catch (error: any) {
+    logger.warn('Agent auth failed', {
+      error: error.message,
+      status: error.response?.status,
+    });
+    
+    return res.status(401).json({
+      jsonrpc: '2.0',
+      error: {
+        code: -32001,
+        message: 'Unauthorized: Invalid or expired token',
+      },
+      id: null,
+    });
+  }
+});
+
 // Health check endpoint (for Docker health checks)
 app.get('/health', (_req, res) => {
   res.json({

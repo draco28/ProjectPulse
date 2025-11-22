@@ -401,7 +401,7 @@ claude mcp add --transport http projectpulse-mcp http://192.168.1.15:3001/mcp
 ### Sprint 9 Enhancements
 
 1. **Session Map Implementation**: For multi-turn workflows
-2. **Authentication**: OAuth 2.1 for cloud deployment
+2. **Authentication**: Project-scoped bearer tokens for Mac-mini agents (implemented), OAuth 2.1 reserved for external cloud deployment
 3. **Rate Limiting**: Redis-based per-client limits
 4. **Observability**: OpenTelemetry tracing
 5. **Automated Tests**: E2E test suite with vitest
