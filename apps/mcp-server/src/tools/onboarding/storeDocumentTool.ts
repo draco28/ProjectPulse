@@ -31,14 +31,15 @@ const storeDocumentSchema = z.object({
   wordCount: z.number()
     .int('Word count must be an integer')
     .positive('Word count must be positive')
-    .optional()
+    .optional(),
+  overwrite: z.boolean().optional().describe('Set to true to update an existing document instead of failing')
 });
 
 type StoreDocumentInput = z.infer<typeof storeDocumentSchema>;
 
 export const storeDocumentTool: ToolDefinition = {
   name: 'projectpulse_onboarding_storeDocument',
-  description: 'Store ONE agent-generated document (after agent generated it with their own AI). Call this 15 times (once per document). Returns progress (e.g., "3/15 complete"). Session 2 automatically completes after 15th document.',
+  description: 'Store ONE agent-generated document. Call this 15 times. Returns progress. Use overwrite=true to update existing documents.',
   schema: storeDocumentSchema,
   inputSchema: {
     type: 'object',
@@ -53,7 +54,7 @@ export const storeDocumentTool: ToolDefinition = {
       },
       content: {
         type: 'string',
-        description: 'Full markdown content (500-50000 characters, ~2000 words recommended per document)'
+        description: 'Full markdown content (500-50000 characters)'
       },
       category: {
         type: 'string',
@@ -63,6 +64,10 @@ export const storeDocumentTool: ToolDefinition = {
       wordCount: {
         type: 'number',
         description: 'Word count (optional, will be calculated if not provided)'
+      },
+      overwrite: {
+        type: 'boolean',
+        description: 'Set to true to update an existing document instead of failing with 409 Conflict'
       }
     },
     required: ['projectId', 'filename', 'content', 'category']
@@ -76,6 +81,7 @@ export const storeDocumentTool: ToolDefinition = {
         projectId: validated.projectId,
         filename: validated.filename,
         wordCount: validated.wordCount || 'auto-calculate',
+        overwrite: validated.overwrite || false,
         contentLength: validated.content.length
       });
       
@@ -84,7 +90,8 @@ export const storeDocumentTool: ToolDefinition = {
         filename: validated.filename,
         content: validated.content,
         category: validated.category,
-        wordCount: validated.wordCount
+        wordCount: validated.wordCount,
+        overwrite: validated.overwrite
       }) as any;
       
       context.logger.info('Document stored successfully', {

@@ -52,12 +52,20 @@ export default async function OnboardingPage({
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-white mb-4">Project Onboarding</h1>
-        <p className="text-lg text-slate max-w-3xl">
-          Complete your project setup in 3 sessions to unlock AI-assisted development with
-          agent personas, skills, and workflows.
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold text-white mb-4">Project Onboarding</h1>
+          <p className="text-lg text-slate max-w-3xl">
+            Complete your project setup in 3 sessions to unlock AI-assisted development with
+            agent personas, skills, and workflows.
+          </p>
+        </div>
+        <Button variant="outline" asChild>
+          <Link href={`/dashboard?project=${projectId}`}>
+            <ArrowRight className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Link>
+        </Button>
       </div>
 
       {/* Overall Progress */}
