@@ -19,6 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 // Session 3 library imports
 import { detectTechStack } from '@/lib/onboarding/tech-stack-detection';
@@ -209,9 +210,29 @@ export async function POST(request: NextRequest) {
       console.warn('[POST /api/onboarding/bootstrap] Some repository files failed to write:', filesWritten);
     }
     
-    // 12. Create Session 3 record
-    const session3 = await prisma.onboardingSession.create({
-      data: {
+    // 12. Upsert Session 3 record (Sprint 9 Fix: Idempotency)
+    // Use upsert to prevent conflicts with MCP agent's parallel usage
+    const session3 = await prisma.onboardingSession.upsert({
+      where: {
+        projectId_sessionNumber: { projectId, sessionNumber: 3 }
+      },
+      update: {
+        status: 'complete',
+        response: {
+          techStack,
+          agentPersonasCreated: agentPersonasCount,
+          skillsCreated: skillsCount,
+          workflowsCreated: workflows,
+          sopsCreated: sops,
+          roadmapId: null,
+          roadmapStats: null,
+          currentPlanCreated: false,
+          currentTodosCreated: false,
+          filesWritten
+        },
+        completedAt: new Date()
+      },
+      create: {
         projectId,
         sessionNumber: 3,
         status: 'complete',
@@ -235,6 +256,10 @@ export async function POST(request: NextRequest) {
     console.log('[POST /api/onboarding/bootstrap] Session 3 complete! ✅', {
       sessionId: session3.id
     });
+    
+    // Revalidate paths to update dashboard immediately
+    revalidatePath('/onboarding');
+    revalidatePath('/dashboard');
     
     // 13. Return success response
     return NextResponse.json({

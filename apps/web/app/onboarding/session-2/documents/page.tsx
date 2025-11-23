@@ -93,7 +93,7 @@ export default async function DocumentsViewerPage({ searchParams }: PageProps) {
           <p className="text-slate">{documents.length} of 15 documents generated</p>
         </div>
         <Button variant="outline" asChild>
-          <Link href="/onboarding/session-2">
+          <Link href={`/onboarding/session-2?project=${projectId}`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Generation
           </Link>

@@ -147,19 +147,24 @@ export async function POST(request: NextRequest) {
     };
     
     // 6. Update session in database
+    const isComplete = phase === 10;
+    
     await prisma.onboardingSession.update({
       where: { id: session.id },
       data: {
         planningAnswers: updatedAnswers,
         projectContextJson: updatedContext,
-        metrics: updatedMetrics
+        metrics: updatedMetrics,
+        status: isComplete ? 'complete' : 'in_progress',
+        completedAt: isComplete ? new Date() : undefined
       }
     });
     
     console.log('[POST /api/onboarding/phase] Phase answers saved', {
       projectId,
       phase,
-      phasesComplete: phase
+      phasesComplete: phase,
+      isComplete
     });
     
     // 7. Calculate progress

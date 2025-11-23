@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { syncOnboardingToWiki } from '@/lib/wiki/sync-onboarding';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -165,6 +166,12 @@ export async function POST(request: NextRequest) {
 
     if (isComplete) {
       console.log('[POST /api/onboarding/documents/batch] Session 2 marked complete (15 documents stored)');
+      
+      // Sync documents to Wiki (Sprint 9 Fix)
+      // Fire and forget to avoid blocking response
+      syncOnboardingToWiki(projectId).catch(err => 
+        console.error('[POST /api/onboarding/documents/batch] Failed to sync wiki:', err)
+      );
     }
 
     // 6. Calculate progress

@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { syncOnboardingToWiki } from '@/lib/wiki/sync-onboarding';
 
 // ============================================================================
 // POST: Store Document
@@ -136,6 +137,10 @@ export async function POST(request: NextRequest) {
     
     if (isComplete) {
       console.log('[Session 2] All 15 documents stored - Session 2 COMPLETE! ✅');
+      // Sync to Wiki (Sprint 9 Fix)
+      syncOnboardingToWiki(projectId).catch(err => 
+        console.error('[POST /api/onboarding/documents] Failed to sync wiki:', err)
+      );
     }
     
     return NextResponse.json({

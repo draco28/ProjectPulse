@@ -14,7 +14,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function submitAnswers(projectId: number, phase: number, answers: Record<string, string>) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/onboarding/answers`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/onboarding/phase`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ projectId, phase, answers }),

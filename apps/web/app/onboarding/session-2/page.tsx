@@ -144,6 +144,13 @@ export default function Session2Page() {
       ? prompts
       : prompts.filter((p) => p.category === activeTab);
 
+  // Helper to get counts for tabs
+  const getCounts = (category: string) => {
+    const required = prompts.filter((p) => p.category === category).length;
+    const generated = documents.filter((d) => d.category === category).length;
+    return { generated, required };
+  };
+
   if (isLoadingPrompts || isLoadingDocs) {
     return (
       <div className="container mx-auto py-8 px-4 max-w-7xl flex items-center justify-center min-h-[60vh]">
@@ -191,16 +198,16 @@ export default function Session2Page() {
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="all">All ({prompts.length})</TabsTrigger>
           <TabsTrigger value="planning">
-            Planning ({prompts.filter((p) => p.category === 'planning').length})
+            Planning ({getCounts('planning').generated}/{getCounts('planning').required})
           </TabsTrigger>
           <TabsTrigger value="architecture">
-            Architecture ({prompts.filter((p) => p.category === 'architecture').length})
+            Architecture ({getCounts('architecture').generated}/{getCounts('architecture').required})
           </TabsTrigger>
           <TabsTrigger value="implementation">
-            Implementation ({prompts.filter((p) => p.category === 'implementation').length})
+            Implementation ({getCounts('implementation').generated}/{getCounts('implementation').required})
           </TabsTrigger>
           <TabsTrigger value="operations">
-            Operations ({prompts.filter((p) => p.category === 'operations').length})
+            Operations ({getCounts('operations').generated}/{getCounts('operations').required})
           </TabsTrigger>
         </TabsList>
       </Tabs>
