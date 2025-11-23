@@ -50,6 +50,31 @@ export default function Session1Page() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
 
+  // Hydrate state from DB (Sprint 9 Fix)
+  useEffect(() => {
+    async function hydrateState() {
+      try {
+        const res = await fetch(`/api/onboarding/phase-state?projectId=${projectId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.currentPhase) {
+            setCurrentPhase(data.currentPhase);
+            setCompletedPhases(data.completedPhases || []);
+            
+            // Pre-fill answers if we have them for the current phase
+            if (data.answers) {
+              const currentPhaseAnswers = data.answers[`phase${data.currentPhase}`] || {};
+              setAnswers(currentPhaseAnswers);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error hydrating session state:', error);
+      }
+    }
+    hydrateState();
+  }, [projectId]);
+
   // Fetch questions for current phase
   useEffect(() => {
     async function fetchQuestions() {

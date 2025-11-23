@@ -67,13 +67,14 @@ export async function storeDocument(
   filename: string,
   content: string,
   category: string,
-  wordCount: number
+  wordCount: number,
+  overwrite: boolean = false
 ) {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/onboarding/documents`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId, filename, content, category, wordCount }),
+      body: JSON.stringify({ projectId, filename, content, category, wordCount, overwrite }),
     });
 
     if (!response.ok) {

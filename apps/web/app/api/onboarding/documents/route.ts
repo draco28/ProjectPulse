@@ -23,7 +23,8 @@ const storeDocumentSchema = z.object({
     .min(500, 'Content must be at least 500 characters')
     .max(50000, 'Content must not exceed 50000 characters'),
   category: z.enum(['planning', 'architecture', 'implementation', 'operations']),
-  wordCount: z.number().int().positive().optional()
+  wordCount: z.number().int().positive().optional(),
+  overwrite: z.boolean().optional().default(false)
 });
 
 export async function POST(request: NextRequest) {
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const { projectId, filename, content, category, wordCount: providedWordCount } = validation.data;
+    const { projectId, filename, content, category, wordCount: providedWordCount, overwrite } = validation.data;
     
     // Verify Session 1 is complete
     const session1 = await prisma.onboardingSession.findUnique({
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Check for duplicate filename
+    // Check for existing document
     const existingDoc = await prisma.document.findFirst({
       where: {
         onboardingSessionId: session1.id,
@@ -68,35 +69,51 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    if (existingDoc) {
-      return NextResponse.json(
-        {
-          error: 'Document with this filename already exists',
-          filename,
-          existingDocId: existingDoc.id,
-          hint: 'Use a different filename or delete the existing document first'
-        },
-        { status: 409 }
-      );
-    }
-    
     // Calculate word count if not provided
     const wordCount = providedWordCount || content.split(/\s+/).filter(w => w.length > 0).length;
     
-    console.log(`[Session 2] Storing document: ${filename} (${wordCount} words)`);
-    
-    // Create Document record
-    const document = await prisma.document.create({
-      data: {
-        onboardingSessionId: session1.id,
-        filename,
-        content,
-        wordCount,
-        category,
-        tags: ['onboarding', 'session-2', category],
-        generatedAt: new Date()
+    let document;
+
+    if (existingDoc) {
+      if (!overwrite) {
+        return NextResponse.json(
+          {
+            error: 'Document with this filename already exists',
+            filename,
+            existingDocId: existingDoc.id,
+            hint: 'Use a different filename or set overwrite=true'
+          },
+          { status: 409 }
+        );
       }
-    });
+
+      // Update existing document
+      console.log(`[Session 2] Overwriting document: ${filename} (${wordCount} words)`);
+      document = await prisma.document.update({
+        where: { id: existingDoc.id },
+        data: {
+          content,
+          wordCount,
+          category,
+          tags: ['onboarding', 'session-2', category],
+          generatedAt: new Date()
+        }
+      });
+    } else {
+      // Create new Document record
+      console.log(`[Session 2] Storing new document: ${filename} (${wordCount} words)`);
+      document = await prisma.document.create({
+        data: {
+          onboardingSessionId: session1.id,
+          filename,
+          content,
+          wordCount,
+          category,
+          tags: ['onboarding', 'session-2', category],
+          generatedAt: new Date()
+        }
+      });
+    }
     
     // Count total documents stored
     const documentsStored = await prisma.document.count({

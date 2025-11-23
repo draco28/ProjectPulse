@@ -51,6 +51,12 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
 6. **Out of Scope** - What is explicitly NOT included in MVP?
 7. **Assumptions and Constraints** - What assumptions are we making? What are the constraints?
 
+# STRICT REQUIREMENTS
+- Minimum Word Count: 2000 words (I will count).
+- Include at least one Mermaid diagram (e.g., user flow or context diagram).
+- Traceability: Every requirement must link to a business goal.
+- Tone: Professional, actionable, and specific.
+
 Generate ~2000 words in markdown format with clear headings, bullet points, and actionable requirements.
     `.trim()
   },
@@ -86,6 +92,12 @@ ${ctx.executiveSummary || 'No executive summary available'}
 5. **Data Requirements** - What data needs to be stored? What are the relationships?
 6. **External Interfaces** - APIs, third-party integrations, external services
 
+# STRICT REQUIREMENTS
+- Minimum Word Count: 2500 words.
+- Include at least two Mermaid diagrams (e.g., sequence diagram, state diagram).
+- Use unique identifiers for requirements (e.g., FR-001, NFR-002).
+- Ensure traceability: Each FR traces to PRD features.
+
 Generate ~2500 words in markdown format with detailed technical specifications.
     `.trim()
   },
@@ -115,6 +127,12 @@ ${JSON.stringify(ctx.features || [], null, 2)}
    - Dependencies (what must be done first)
 5. **User Stories** - For each backlog item, write user story
 6. **Acceptance Criteria** - Clear definition of done for each item
+
+# STRICT REQUIREMENTS
+- Minimum Word Count: 1500 words.
+- Format as a table or structured list for easy reading.
+- Include story point estimates (Fibonacci: 1, 2, 3, 5, 8, 13).
+- Ensure traceability: Each story traces to SRS FRs.
 
 Generate ~1500 words in markdown format with prioritized backlog items.
     `.trim()
@@ -263,6 +281,12 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
    - Environment setup (dev, staging, prod)
 8. **Integration Points** - Third-party services, webhooks, external APIs
 
+# STRICT REQUIREMENTS
+- Minimum Word Count: 1800 words.
+- Include C4 Context, Container, and Component diagrams (Mermaid).
+- Justify every tech stack decision with "Why vs Alternatives".
+- Address scalability and performance explicitly.
+
 Generate ~1800 words in markdown with mermaid diagram descriptions where appropriate.
     `.trim()
   },
@@ -296,6 +320,12 @@ ${JSON.stringify(ctx.features || [], null, 2)}
 4. **Data Validation Rules** - Required fields, formats, ranges
 5. **Migration Strategy** - How to handle schema changes
 6. **Seeding Strategy** - Initial data requirements
+
+# STRICT REQUIREMENTS
+- Minimum Word Count: 1500 words.
+- Include a comprehensive ER Diagram (Mermaid).
+- Provide exact SQL or Prisma schema definitions for core models.
+- Define indexes for performance critical queries.
 
 Generate ~1500 words in markdown format with clear model definitions.
     `.trim()
@@ -334,6 +364,12 @@ ${JSON.stringify(ctx.features || [], null, 2)}
 4. **Error Handling** - Standard error response format
 5. **Rate Limiting** - Limits and throttling strategy
 6. **Pagination** - How to handle large result sets
+
+# STRICT REQUIREMENTS
+- Minimum Word Count: 2000 words.
+- Use OpenAPI/Swagger style definitions for endpoints.
+- Include comprehensive Error Code table.
+- Define specific JSON payloads for critical actions.
 
 Generate ~2000 words in markdown format with clear API contracts.
     `.trim()
@@ -376,6 +412,12 @@ ${ctx.metadata?.targetUsers || 'General users'}
 5. **Layout Patterns** - Grid system, spacing, responsive breakpoints
 6. **Accessibility** - WCAG 2.1 AA compliance, keyboard navigation
 7. **User Flows** - Key user journeys (signup, login, main tasks)
+
+# STRICT REQUIREMENTS
+- Minimum Word Count: 1800 words.
+- Include visual descriptions of components (e.g., "Blue #007bff button with 4px radius").
+- Provide a User Flow Diagram (Mermaid) for the primary journey.
+- Explicit Accessibility Checklist (Contrast, Aria labels).
 
 Generate ~1800 words in markdown format with visual descriptions.
     `.trim()
@@ -420,6 +462,12 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
    - Request validation
 6. **Security Checklist** - Pre-deployment security verification
 
+# STRICT REQUIREMENTS
+- Minimum Word Count: 1500 words.
+- Include a Sequence Diagram (Mermaid) for the Login Flow.
+- Define specific RBAC roles and their permissions matrix.
+- List 10 specific security headers to configure.
+
 Generate ~1500 words in markdown format with security implementation details.
     `.trim()
   },
@@ -457,6 +505,12 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
    - CI/CD integration
 6. **Manual Testing** - When needed, checklist
 7. **Performance Testing** - Load testing, stress testing
+
+# STRICT REQUIREMENTS
+- Minimum Word Count: 1500 words.
+- Define exact tools for each testing layer (Unit, Integration, E2E).
+- Provide code examples of a Unit Test and an E2E Test in the chosen framework.
+- Create a "Test Data Strategy" section (Seeding vs Mocking).
 
 Generate ~1500 words in markdown format with testing implementation details.
     `.trim()
@@ -497,6 +551,12 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
    - Recovery procedures
    - Disaster recovery plan
 6. **Support Workflow** - How to handle user issues
+
+# STRICT REQUIREMENTS
+- Minimum Word Count: 1000 words.
+- Create a specific "Weekly/Monthly Maintenance Schedule" table.
+- Define specific "Red Flag" metrics that require immediate attention.
+- Include a "Disaster Recovery" step-by-step plan.
 
 Generate ~1000 words in markdown format with practical maintenance procedures.
     `.trim()
@@ -545,6 +605,12 @@ Generate a Deployment Guide for ${ctx.metadata?.projectName || 'the project'}.
 5. **Deployment Checklist** - Pre-deployment verification
 6. **Rollback Procedure** - How to revert a bad deployment
 
+# STRICT REQUIREMENTS
+- Minimum Word Count: 1500 words.
+- Provide exact CLI commands for deployment.
+- Include a diagram of the CI/CD pipeline (Mermaid).
+- List specific Environment Variables required for production.
+
 Generate ~1500 words in markdown format with step-by-step deployment instructions.
     `.trim()
   },
@@ -584,6 +650,12 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
    - Performance dashboard
    - Business metrics dashboard
 6. **Incident Response** - What to do when alerts fire
+
+# STRICT REQUIREMENTS
+- Minimum Word Count: 1200 words.
+- Define specific "Golden Signals" (Latency, Traffic, Errors, Saturation) for this app.
+- Provide a JSON example of a structured log entry.
+- Define 5 specific Alert Rules with thresholds.
 
 Generate ~1200 words in markdown format with monitoring best practices.
     `.trim()
@@ -627,6 +699,12 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
    - Performance metrics
    - Bottleneck identification
 6. **Optimization Checklist** - Pre-launch performance verification
+
+# STRICT REQUIREMENTS
+- Minimum Word Count: 1200 words.
+- Set specific numeric targets (e.g., LCP < 2.5s, TTFB < 200ms).
+- Provide code examples for specific optimizations (e.g., \`next/image\` usage, SQL indexing).
+- Define a caching strategy for API endpoints.
 
 Generate ~1200 words in markdown format with actionable optimization strategies.
     `.trim()

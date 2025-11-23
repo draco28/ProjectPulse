@@ -176,7 +176,7 @@ export default async function DocumentsViewerPage({ searchParams }: PageProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-invert prose-sm max-w-none">
+                <div className="prose prose-invert prose-sm max-w-none overflow-x-auto">
                   <ReactMarkdown>{selectedDoc.content}</ReactMarkdown>
                 </div>
               </CardContent>

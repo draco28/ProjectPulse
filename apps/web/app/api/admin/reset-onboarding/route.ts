@@ -1,0 +1,62 @@
+/**
+ * POST /api/admin/reset-onboarding
+ * 
+ * Resets onboarding state for a project by deleting all OnboardingSessions.
+ * This allows restarting the onboarding wizard (Session 1-3) without deleting the project.
+ * 
+ * Usage:
+ * curl -X POST /api/admin/reset-onboarding -H "Content-Type: application/json" -d '{"projectId": 3}'
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+
+const requestSchema = z.object({
+  projectId: z.number().int().positive()
+});
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const validation = requestSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Invalid request', details: validation.error.errors },
+        { status: 400 }
+      );
+    }
+
+    const { projectId } = validation.data;
+
+    console.log(`[Reset] Resetting onboarding for project ${projectId}...`);
+
+    // 1. Delete Onboarding Sessions (Cascades to Documents)
+    const deletedSessions = await prisma.onboardingSession.deleteMany({
+      where: { projectId }
+    });
+
+    // 2. Optional: Delete Project Plan / Roadmap artifacts if you want a FULL clean slate
+    // For now, we just reset the wizard state.
+    
+    // 3. Optional: Reset Agent Personas? 
+    // Usually we want to keep them if they were manually tweaked, but for a full reset test:
+    // await prisma.agentPersona.deleteMany({ where: { projectId } });
+
+    console.log(`[Reset] Deleted ${deletedSessions.count} sessions for project ${projectId}`);
+
+    return NextResponse.json({
+      success: true,
+      message: `Reset onboarding for project ${projectId}`,
+      deletedSessions: deletedSessions.count
+    });
+    
+  } catch (error) {
+    console.error('[Reset] Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to reset onboarding', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
+  }
+}

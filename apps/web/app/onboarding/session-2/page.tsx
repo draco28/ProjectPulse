@@ -170,6 +170,14 @@ export default function Session2Page() {
         </p>
       </div>
 
+      {/* Error State */}
+      {!isLoadingPrompts && prompts.length === 0 && (
+        <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+          <p className="font-semibold">Failed to load document templates.</p>
+          <p className="text-sm mt-1">Please ensure Session 1 is complete and try refreshing the page.</p>
+        </div>
+      )}
+
       {/* Progress Card */}
       <Card className="neu-raised mb-8">
         <CardHeader>

@@ -13,6 +13,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FileQuestion, FileText, Rocket, CheckCircle2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 async function getOnboardingStatus(projectId: number) {
   const sessions = await prisma.onboardingSession.findMany({
     where: { projectId },
