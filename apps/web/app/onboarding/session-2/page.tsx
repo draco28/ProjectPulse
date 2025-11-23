@@ -15,7 +15,8 @@ import { DocumentCard } from '@/components/onboarding/DocumentCard';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { PromptDialog } from '@/components/onboarding/PromptDialog';
 import { storeDocument } from '@/app/onboarding/actions';
-import { Loader2, FileText, Sparkles } from 'lucide-react';
+import { Loader2, FileText, Sparkles, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 interface DocumentPrompt {
   filename: string;
@@ -161,13 +162,21 @@ export default function Session2Page() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-white mb-4">Documentation Generation</h1>
-        <p className="text-lg text-slate">
-          Generate 15 industry-standard documents (~30,000 words total) to establish complete
-          project documentation.
-        </p>
+      {/* Page Header with Back Button */}
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold text-white mb-4">Documentation Generation</h1>
+          <p className="text-lg text-slate">
+            Generate 15 industry-standard documents (~30,000 words total) to establish complete
+            project documentation.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link href={`/onboarding?project=${projectId}`}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Onboarding
+          </Link>
+        </Button>
       </div>
 
       {/* Error State */}

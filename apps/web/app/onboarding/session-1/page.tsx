@@ -15,6 +15,7 @@ import { PhaseNavigator } from '@/components/onboarding/PhaseNavigator';
 import { QuestionCard } from '@/components/onboarding/QuestionCard';
 import { submitAnswers } from '@/app/onboarding/actions';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 interface Question {
   id: string;
@@ -185,6 +186,17 @@ export default function Session1Page() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
+      {/* Page Header with Back Button */}
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-white">Strategic Planning</h1>
+        <Button variant="outline" size="sm" asChild>
+          <Link href={`/onboarding?project=${projectId}`}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Onboarding
+          </Link>
+        </Button>
+      </div>
+
       {/* Progress Navigator */}
       <PhaseNavigator
         currentPhase={currentPhase}

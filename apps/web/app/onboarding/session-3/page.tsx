@@ -24,6 +24,7 @@ import {
   Map,
   ArrowRight,
   FolderOpen,
+  ArrowLeft,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -230,13 +231,21 @@ export default function Session3Page() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-white mb-4">AI Workflow Bootstrap</h1>
-        <p className="text-lg text-slate">
-          Set up agent personas, skills, workflows, and SOPs tailored to your tech stack and
-          project needs.
-        </p>
+      {/* Page Header with Back Button */}
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold text-white mb-4">AI Workflow Bootstrap</h1>
+          <p className="text-lg text-slate">
+            Set up agent personas, skills, workflows, and SOPs tailored to your tech stack and
+            project needs.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link href={`/onboarding?project=${projectId}`}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Onboarding
+          </Link>
+        </Button>
       </div>
 
       {/* Info Card */}
