@@ -487,9 +487,9 @@ Sprint 8 focused on human UI polish (theme switcher, notification indicators) in
 **Story Range:** US-011-01 to US-011-05 (5 stories)
 **FR Range:** FR-154 to FR-158 (Research Agent FRs from PRD Section 4.2.10)
 **Total Points:** ~24 points
-**MoSCoW:** Must Have (Critical - core product feature for end users)
+**MoSCoW:** Should Have (Important, but explicitly **post-MVP**)
 **Dependencies:** PostgreSQL database, MCP server, personas.* tools implementation, Agent invocation system
-**Sprint Allocation:** Sprint 9 Week 2
+**Sprint Allocation:** **Post-MVP (Sprints 10-11)** – Research Agent Orchestration is deferred to keep Sprint 9 focused on Memory Banks + Knowledge Base integration.
 
 **Scope Reduction Rationale:**
 
@@ -978,11 +978,11 @@ When EPIC-012 is implemented:
 | EPIC-010 | US-010-06 | FR-151: Implement Memory Bank Loading Workflow         | TEST-151 | Sprint 9 W2 | Not Started |
 | EPIC-010 | US-010-07 | FR-152: Implement Pattern Lookup Workflow              | TEST-152 | Sprint 9 W2 | Not Started |
 | EPIC-010 | US-010-08 | FR-153: Implement Context Recovery Workflow            | TEST-153 | Sprint 9 W2 | Not Started |
-| EPIC-011 | US-011-01 | FR-154: Implement explore-codebase Sub-Agent           | TEST-154 | Sprint 9 W2 | Not Started |
-| EPIC-011 | US-011-02 | FR-155: Implement analyze-architecture Sub-Agent       | TEST-155 | Sprint 9 W2 | Not Started |
-| EPIC-011 | US-011-03 | FR-156: Implement Sub-Agent Invocation Workflow        | TEST-156 | Sprint 9 W2 | Not Started |
-| EPIC-011 | US-011-04 | FR-157: Implement Report Persistence System            | TEST-157 | Sprint 9 W2 | Not Started |
-| EPIC-011 | US-011-05 | FR-158: Implement Parallel Research Support            | TEST-158 | Sprint 9 W2 | Not Started |
+| EPIC-011 | US-011-01 | FR-154: Implement explore-codebase Sub-Agent           | TEST-154 | Post-MVP (Sprints 10-11) | Not Started |
+| EPIC-011 | US-011-02 | FR-155: Implement analyze-architecture Sub-Agent       | TEST-155 | Post-MVP (Sprints 10-11) | Not Started |
+| EPIC-011 | US-011-03 | FR-156: Implement Sub-Agent Invocation Workflow        | TEST-156 | Post-MVP (Sprints 10-11) | Not Started |
+| EPIC-011 | US-011-04 | FR-157: Implement Report Persistence System            | TEST-157 | Post-MVP (Sprints 10-11) | Not Started |
+| EPIC-011 | US-011-05 | FR-158: Implement Parallel Research Support            | TEST-158 | Post-MVP (Sprints 10-11) | Not Started |
 
 **Total:** 138 user stories mapped to 138 FRs and 138 tests
 
@@ -1003,9 +1003,9 @@ When EPIC-012 is implemented:
 | EPIC-007  | Project Health               | 5           | 19           | Could Have  | Phase D W13 (1 sprint)             |
 | EPIC-008  | Personas                     | 5           | 12           | Won't Have  | Post-MVP                           |
 | EPIC-010  | Memory Bank System           | 8           | 34           | Must Have   | Sprint 9 W1-2                      |
-| EPIC-011  | Research Agent Orchestration | 5           | 24           | Should Have | Sprint 9 W2                        |
+| EPIC-011  | Research Agent Orchestration | 5           | 24           | Should Have | Post-MVP (Sprints 10-11)           |
 | EPIC-012  | Industry-Grade Documentation | 18          | 95           | Should Have | Post-MVP (Sprint 10, 2 weeks)      |
-| **Total** | **11 Epics**                 | **156**     | **579**      | -           | **9 sprints MVP + Sprint 10**      |
+| **Total** | **11 Epics**                 | **156**     | **579**      | -           | **9 sprints MVP + Sprints 10-11**  |
 
 **MVP Scope (Must + Should):** 118 stories, 422 points, 9 sprints (18 weeks)
 **Post-MVP (EPIC-012):** 18 stories, 95 points, 1 sprint (2 weeks)

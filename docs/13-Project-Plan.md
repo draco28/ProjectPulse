@@ -282,13 +282,13 @@
 
 ---
 
-### Phase E: Context Management & Research Automation (Sprint 9, Weeks 17-18)
+### Phase E: Context Management & Knowledge Base Integration (Sprint 9, Weeks 17-18)
 
-**Goal:** Token-efficient context management and automated codebase research
+**Goal:** Token-efficient context management and agent-first Knowledge Base integration; **defer Research Agent Orchestration to Sprints 10-11 (post-MVP)**.
 
 **Duration:** 2 weeks (1 two-week sprint)
-**Story Points:** 58 points (34 Memory Banks + 24 Research Orchestration)
-**Epics:** EPIC-010 (100%), EPIC-011 (100%)
+**Story Points:** 58 points (34 Memory Banks + 24 Knowledge Base integration slice)
+**Epics:** EPIC-010 (100%) + EPIC-004 (Knowledge agent-only slice); EPIC-011 (Research Agent Orchestration) moved to Sprints 10-11.
 
 **Key Deliverables:**
 
@@ -299,54 +299,53 @@
 - **Pattern Lookup Workflow:** Find implementation patterns in ≤1K tokens (93% reduction)
 - **Context Recovery:** Restore session context in ≤6K tokens after interruption
 
-**Week 2: Research Agent Orchestration (EPIC-011)**
+**Week 2: Agent-First Knowledge Base Integration (EPIC-004 slice)**
 
-- **explore-codebase Sub-Agent:** Automated pattern discovery, convention analysis
-- **analyze-architecture Sub-Agent:** Data flow tracing, dependency mapping, Mermaid diagrams
-- **Sub-Agent Invocation Workflow:** Automatic research without manual orchestration
-- **Report Persistence:** Research reports stored in database (persist across sessions)
-- **Parallel Research:** Support 2+ sub-agents simultaneously
+- **MCP Knowledge Tools Exposure:** Register Knowledge tools (search, create, related, export, import, archive, metrics) in the external MCP server so end-user agents can store and retrieve knowledge items.
+- **Project-Scoped RAG Queries:** Ensure Knowledge search and graph traversal APIs are fully project-scoped and meet existing latency targets (<200ms P95, <1,500 tokens/query).
+- **Agent-Only Write Semantics:** Confirm `/knowledge` behaves as a read-only Knowledge cards view for humans, while all writes happen via MCP tools (agent-only paths).
+- **UI Honesty:** Update `/knowledge` copy and affordances to clearly reflect agent-managed Knowledge instead of manual editing.
 
 **Phase Acceptance Criteria:**
 
 - ✅ Session start completes in ≤10K tokens (75% reduction from 40K baseline)
 - ✅ Pattern lookups complete in ≤1K tokens (93% reduction from 15K baseline)
 - ✅ Context recovery completes in ≤6K tokens (85% reduction from 40K baseline)
-- ✅ Research tasks complete in ≤2K tokens in main thread (92% reduction from 25K baseline)
-- ✅ Sub-agent reports saved in database and persist across sessions
-- ✅ Support 3+ complex features per 200K token session (3x improvement from baseline)
+- ✅ Knowledge queries via MCP tools achieve <200ms P95 latency and <1,500 tokens/query on representative workloads
+- ✅ `/knowledge` page renders Knowledge cards backed by the same KnowledgeItem data agents use, with agent-only write semantics enforced
 
 **Dependencies:**
 
 - MCP server endpoints configured (HTTP JSON-RPC + SSE)
 - Project API keys configured for MCP access
-- Sub-agent architecture implemented
+- Core Knowledge graph + search infrastructure (EPIC-004) implemented in earlier sprints
 
 **Risks:**
 
 - Memory bank content accuracy (mitigated: Manual review in Sprint 9, iterative refinement)
-- Sub-agent report quality (mitigated: Validate 90%+ actionable insights target)
-- None specific beyond standard API access controls
+- Knowledge base / Memory Bank alignment (mitigated: use database as single source of truth, avoid ad-hoc files)
 
 **Rationale:**
 
-Sprint 1-8 implementation revealed critical architectural gap: Claude Code's 200K token limit prevents loading complete documentation context. Full system context (~150K tokens) exceeds practical limits, causing context compaction, knowledge loss, and reduced productivity (1 feature per session). Memory Bank System solves this through token-efficient structured knowledge files. Research Agent Orchestration eliminates token waste on codebase exploration by isolating research in sub-agent threads.
+Sprint 1-8 implementation revealed critical architectural gap: Claude Code's 200K token limit prevents loading complete documentation context. Full system context (~150K tokens) exceeds practical limits, causing context compaction, knowledge loss, and reduced productivity (1 feature per session). Memory Bank System solves this through token-efficient structured knowledge stored in the database. Finalizing the agent-only Knowledge Base ensures agents have fast, RAG/graph-powered retrieval for those Memory Banks and other project knowledge. **Research Agent Orchestration remains important but is deferred to Sprints 10-11 to keep Sprint 9 focused and shippable.**
 
 **FR Traceability:**
 
-- US-010-01 (FR-146): Create project-brief.md Memory Bank
-- US-010-02 (FR-147): Create system-patterns.md Memory Bank
-- US-010-03 (FR-148): Create tech-context.md Memory Bank
-- US-010-04 (FR-149): Create active-context.md Memory Bank
-- US-010-05 (FR-150): Create progress.md Memory Bank
-- US-010-06 (FR-151): Implement Memory Bank Loading Workflow
-- US-010-07 (FR-152): Implement Pattern Lookup Workflow
-- US-010-08 (FR-153): Implement Context Recovery Workflow
-- US-011-01 (FR-154): Implement explore-codebase Sub-Agent
-- US-011-02 (FR-155): Implement analyze-architecture Sub-Agent
-- US-011-03 (FR-156): Implement Sub-Agent Invocation Workflow
-- US-011-04 (FR-157): Implement Report Persistence System
-- US-011-05 (FR-158): Implement Parallel Research Support
+- **Included in Sprint 9 (Phase E):**
+  - US-010-01 (FR-146): Create project-brief.md Memory Bank
+  - US-010-02 (FR-147): Create system-patterns.md Memory Bank
+  - US-010-03 (FR-148): Create tech-context.md Memory Bank
+  - US-010-04 (FR-149): Create active-context.md Memory Bank
+  - US-010-05 (FR-150): Create progress.md Memory Bank
+  - US-010-06 (FR-151): Implement Memory Bank Loading Workflow
+  - US-010-07 (FR-152): Implement Pattern Lookup Workflow
+  - US-010-08 (FR-153): Implement Context Recovery Workflow
+- **Deferred to Sprints 10-11 (Post-MVP, EPIC-011):**
+  - US-011-01 (FR-154): Implement explore-codebase Sub-Agent
+  - US-011-02 (FR-155): Implement analyze-architecture Sub-Agent
+  - US-011-03 (FR-156): Implement Sub-Agent Invocation Workflow
+  - US-011-04 (FR-157): Implement Report Persistence System
+  - US-011-05 (FR-158): Implement Parallel Research Support
 
 ---
 
@@ -1828,49 +1827,48 @@ Sprint 8.5 Phases 1-3 successfully completed 22/27 story points (81%), implement
 
 **Phase 4 In Progress:** MCP Read Tools (getCurrentPosition, getPhaseProgress) for 80-90% token reduction are currently being implemented with security-first design (explicit projectId validation).
 
-**Next Sprint:** Sprint 9 - Context Management & Research Automation (58 points + 8.5 carried from Sprint 8 = 66.5 total)
+**Next Sprint:** Sprint 9 - Context Management & Knowledge Base Integration (58 points + 8.5 carried from Sprint 8 = 66.5 total)
 
 ---
 
-### Sprint 9 (Weeks 17-18): Context Management & Research Automation - 66.5 points
+### Sprint 9 (Weeks 17-18): Context Management & Knowledge Base Integration - 66.5 points
 
 
-**User Stories:** US-010-01 to US-010-08 (EPIC-010 complete) + US-011-01 to US-011-05 (EPIC-011 complete)
+**User Stories:** US-010-01 to US-010-08 (EPIC-010 complete) + selected EPIC-004 Knowledge stories (agent-only Knowledge Base slice). **US-011-01 to US-011-05 (EPIC-011) are explicitly moved to Sprints 10-11.**
 
 **Sprint 8 Carry-Over:** 8.5 points (agent toggle fix, performance optimization, polish)
 
-**Goal:** Token-efficient context management and automated codebase research + Complete Sprint 8 deferred items
+**Goal:** Token-efficient context management (Memory Banks) and agent-first Knowledge Base integration + Complete Sprint 8 deferred items; **Research Agent Orchestration (EPIC-011) is explicitly deferred to Sprints 10-11.**
 
 **Key Deliverables:**
 
-- **Memory Bank System (34 points):**
-  - Create 5 Memory Bank files: project-brief.md, system-patterns.md, tech-context.md, active-context.md, progress.md
+-- **Memory Bank System (34 points):**
+  - Create 5 Memory Bank entries in the database: project-brief, system-patterns, tech-context, active-context, progress
   - Implement Memory Bank loading workflow (session start optimization)
   - Implement Pattern Lookup workflow (find patterns in ≤1K tokens)
   - Implement Context Recovery workflow (restore session in ≤6K tokens)
 
-- **Research Agent Orchestration (24 points):**
-  - Implement explore-codebase sub-agent (pattern discovery, convention analysis)
-  - Implement analyze-architecture sub-agent (data flow tracing, Mermaid diagrams)
-  - Implement sub-agent invocation workflow (automatic research)
-  - Implement report persistence system (database storage)
-  - Implement parallel research support (2+ sub-agents simultaneously)
+-- **Knowledge Base Integration (24 points):**
+  - Expose Knowledge search/create/related/import/export/archive/metrics via external MCP tools for end-user agents
+  - Ensure Knowledge graph + search are project-scoped and meet latency/token targets
+  - Align `/knowledge` UI with agent-only write model and Knowledge cards display
+  - Add tests and metrics for Knowledge MCP tools and core flows
 
-**Dependencies:** Sprints 1-8 (codebase must exist to document and explore)
+**Dependencies:** Sprints 1-8 (codebase must exist to document, index, and surface via Knowledge Base and Memory Banks)
 
 **Risks:**
 
 - Memory bank content accuracy (mitigated: Manual review, iterative refinement)
-- Sub-agent report quality (mitigated: Validate 90%+ actionable insights)
-- File system access permissions (mitigated: Test MCP filesystem tool)
+- Knowledge base & Memory Bank drift (mitigated: use database as single source of truth, avoid ad-hoc files)
+
 
 **Exit Criteria:**
 
 - ✅ Session start completes in ≤10K tokens (75% reduction from 40K baseline)
 - ✅ Pattern lookups complete in ≤1K tokens (93% reduction from 15K baseline)
 - ✅ Context recovery completes in ≤6K tokens (85% reduction from 40K baseline)
-- ✅ Research tasks complete in ≤2K tokens in main thread (92% reduction)
-- ✅ Sub-agent reports persist across sessions
+- ✅ Knowledge queries via MCP tools meet latency/token targets (P95 <200ms, <1,500 tokens/query)
+- ✅ `/knowledge` page reflects agent-managed Knowledge cards consistent with database state
 
 **Testing:**
 
@@ -2368,7 +2366,7 @@ EPIC-004 (Knowledge) → EPIC-006 (Wiki) [cross-linking via graph]
 EPIC-003 (Issues) → EPIC-007 (Health) [creates issues from scanner findings]
 
 All EPICs → Sprint 8 Integration [end-to-end validation]
-          → Sprint 9 Context Optimization [EPIC-010, EPIC-011]
+          → Sprint 9 Context Optimization [EPIC-010 + Knowledge Base integration]
 ```
 
 **Key Dependencies:**
@@ -2378,7 +2376,7 @@ All EPICs → Sprint 8 Integration [end-to-end validation]
 3. **EPIC-004 → EPIC-005:** Skills reuse knowledge graph indexing patterns
 4. **EPIC-004 → EPIC-006:** Wiki cross-linking uses knowledge graph relationships
 5. **EPIC-003 → EPIC-007:** Health scanners create issues automatically (bulk creation)
-6. **Sprints 1-8 → Sprint 9:** Memory Banks document existing system patterns, sub-agents explore implemented codebase
+6. **Sprints 1-8 → Sprint 9:** Memory Banks document existing system patterns, Knowledge Base exposes them to agents via MCP tools
 
 **No Blocking Dependencies:** All features can progress in parallel within phases. Sprint 9 can proceed in parallel with late-stage Sprint 8 work.
 
