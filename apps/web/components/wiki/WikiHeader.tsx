@@ -66,7 +66,7 @@ export function WikiHeader({
           )}
         </div>
         <Link
-          href={`${path}/edit`}
+          href={`/wiki/edit${path.startsWith('/') ? path : '/' + path}`}
           className="px-4 py-2 neu-raised hover:bg-darkCard rounded-xl smooth-transition text-sm whitespace-nowrap"
         >
           <Edit className="inline-block mr-2 h-4 w-4" aria-hidden="true" />

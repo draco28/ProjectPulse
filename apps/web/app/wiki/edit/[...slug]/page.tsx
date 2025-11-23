@@ -4,13 +4,14 @@ import { WikiEditor } from '@/components/wiki/WikiEditor';
 import { UpdateWikiPageInput } from '@/lib/validations/wiki';
 
 interface WikiEditPageProps {
-  params: {
-    path: string[];
-  };
+  params: Promise<{
+    slug: string[];
+  }>;
 }
 
 export default async function WikiEditPage({ params }: WikiEditPageProps) {
-  const path = params.path.join('/');
+  const { slug } = await params;
+  const path = slug.join('/');
   // Normalize path for DB lookup (add leading slash if needed)
   const dbPath = path.startsWith('/') ? path : `/${path}`;
   
