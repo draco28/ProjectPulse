@@ -158,6 +158,12 @@ export async function POST(request: NextRequest) {
       syncOnboardingToWiki(projectId).catch(err => 
         console.error('[POST /api/onboarding/documents] Failed to sync wiki:', err)
       );
+    } else if (overwrite) {
+      // If overwriting, also trigger sync to update Wiki (Sprint 9 Update: allow updates after completion)
+      console.log('[Session 2] Overwriting document - Triggering Wiki Sync');
+      syncOnboardingToWiki(projectId).catch(err => 
+        console.error('[POST /api/onboarding/documents] Failed to sync wiki on overwrite:', err)
+      );
     }
     
     return NextResponse.json({
