@@ -94,10 +94,13 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
       phaseOrder++;
 
       // Create Phase record
+      // Hard fallback to ensure title is never undefined
+      const phaseTitle = phaseData.title || phaseData.name || `Phase ${phaseOrder}`;
+      
       const phase = await tx.phase.create({
         data: {
           roadmapId: roadmap.id,
-          title: phaseData.name,
+          title: phaseTitle,
           description: `Phase ${phaseOrder}`,
           status: 'NOT_STARTED' as const,
           progress: 0,

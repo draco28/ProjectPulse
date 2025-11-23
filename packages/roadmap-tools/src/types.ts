@@ -4,15 +4,16 @@
 
 export interface ParsedRoadmap {
   phases: Array<{
-    name: string;
-    duration: string;
+    title?: string; // Make optional to support both
+    name?: string; // Make optional to support both
+    duration?: string;
     sprints: Array<{
       name: string;
-      duration: string;
-      weeks: string;
+      duration?: string;
+      weeks?: string;
       goals: string[];
       deliverables: string[];
-      storyPoints: number;
+      storyPoints?: number;
     }>;
   }>;
 }

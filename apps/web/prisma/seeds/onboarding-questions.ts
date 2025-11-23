@@ -1076,7 +1076,7 @@ const questions: QuestionData[] = [
   },
 ];
 
-export async function seedOnboardingQuestions() {
+export async function seedOnboardingQuestions(prisma: PrismaClient) {
   console.log('🌱 Seeding onboarding questions...');
   
   let created = 0;
