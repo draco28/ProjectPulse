@@ -46,12 +46,19 @@ export async function GET(request: NextRequest) {
     const session1 = await prisma.onboardingSession.findUnique({
       where: {
         projectId_sessionNumber: { projectId, sessionNumber: 1 }
+      },
+      select: {
+        id: true,
+        status: true,
+        projectContextJson: true,
+        metrics: true,
+        response: true // Include for backward compatibility if needed
       }
     });
     
-    if (!session1 || !session1.response) {
+    if (!session1) {
       return NextResponse.json(
-        { error: 'Session 1 not found or empty' },
+        { error: 'Session 1 not found' },
         { status: 404 }
       );
     }
@@ -68,8 +75,8 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const sessionData = session1.response as any;
-    const projectContext = sessionData.projectContextJson;
+    // Sprint 9: Use projectContextJson directly (preferred) or fall back to response.projectContextJson
+    const projectContext = (session1.projectContextJson as any) || (session1.response as any)?.projectContextJson;
     
     if (!projectContext) {
       return NextResponse.json(
@@ -113,6 +120,12 @@ export async function GET(request: NextRequest) {
       }))
     });
     
+    // Get word count from metrics (preferred) or response (deprecated)
+    const executiveSummaryWordCount = 
+      (session1.metrics as any)?.executiveSummaryWordCount || 
+      (session1.response as any)?.executiveSummaryWordCount || 
+      0;
+
     return NextResponse.json({
       documentPrompts,
       totalDocuments: documentPrompts.length,
@@ -122,7 +135,7 @@ export async function GET(request: NextRequest) {
         projectType: projectContext.metadata?.projectType || 'Unknown',
         session1Complete: true,
         projectContextAvailable: true,
-        executiveSummaryWordCount: sessionData.executiveSummaryWordCount || 0
+        executiveSummaryWordCount
       }
     });
     
