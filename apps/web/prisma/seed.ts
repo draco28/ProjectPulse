@@ -11,6 +11,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { seedOnboardingPromptTemplates } from './seeds/onboarding-prompt-templates';
+import { seedOnboardingQuestions } from './seeds/onboarding-questions';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -49,21 +50,33 @@ async function main() {
   await prisma.wikiPage.deleteMany();
   await prisma.project.deleteMany();
   await prisma.setting.deleteMany();
+  // Clean Onboarding Data
+  await prisma.onboardingSession.deleteMany();
+  await prisma.onboardingTemplate.deleteMany();
+  // NOTE: We deliberately DO NOT clean OnboardingQuestion and OnboardingPromptTemplate
+  // to avoid churn on stable reference data. The seed functions use upsert.
+  await prisma.user.deleteMany();
   console.log('✓ Cleanup complete\n');
 
   // ========================================================================
   // USER (Sprint 8.9: Authentication)
   // ========================================================================
   console.log('👤 Creating default user...');
-  const defaultUser = await prisma.user.create({
-    data: {
+  const passwordHash = await bcrypt.hash('dev123456', 10);
+  const defaultUser = await prisma.user.upsert({
+    where: { email: 'dev@projectpulse.local' },
+    update: {
+      passwordHash, // Update password to ensure we know it
+      isActive: true,
+    },
+    create: {
       email: 'dev@projectpulse.local',
       name: 'Developer',
-      passwordHash: await bcrypt.hash('dev123456', 10),
+      passwordHash,
       isActive: true,
     },
   });
-  console.log(`✓ Created user: ${defaultUser.email} (password: dev123456)\n`);
+  console.log(`✓ Created/Updated user: ${defaultUser.email} (password: dev123456)\n`);
 
   // ========================================================================
   // SPRINT HIERARCHY (5-LEVEL TASK TRACKING)
@@ -373,8 +386,16 @@ async function main() {
     },
   });
   console.log(`✓ Created project: ${project.name}\n`);
-  await prisma.onboardingSession.deleteMany();
-  await prisma.onboardingTemplate.deleteMany();
+
+  // Seed Onboarding Questions (Session 1)
+  console.log('🧩 Seeding Onboarding Questions...');
+  await seedOnboardingQuestions(prisma);
+  
+  // Seed Onboarding Prompt Templates (Session 1, 2, 3)
+  console.log('🧩 Seeding Onboarding Prompt Templates...');
+  await seedOnboardingPromptTemplates(prisma);
+  
+  // DEPRECATED: Old OnboardingTemplate model (kept for backward compatibility until full migration)
   const onboardingTemplates = [
     {
       sessionNumber: 1,
@@ -448,7 +469,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
   console.log(`✓ Seeded ${onboardingTemplates.length} onboarding templates\n`);
   
   // Sprint 9 Refactor: Seed OnboardingPromptTemplates (database-driven prompts)
-  await seedOnboardingPromptTemplates(prisma);
+  // Already seeded above
   console.log(''); // Extra newline for formatting
 
   // ========================================================================
@@ -1227,87 +1248,7 @@ import { Issue, WikiPage, KnowledgeItem } from '@prisma/client';
 **Last Updated**: 2025-11-10
 **Version**: 1.0`,
       },
-
-// 2. Docker Setup Guide (child page)
-prisma.wikiPage.create({
-  data: {
-    projectId: project.id,
-    title: 'Docker Setup Guide',
-    path: '/guides/docker-setup',
-    category: 'guides',
-    orderIndex: 1,
-    content: `# Docker Setup Guide
-
-ProjectPulse uses Docker for PostgreSQL and Redis.
-
-## Prerequisites
-
-* Docker Desktop (Windows, Mac)
-* Docker Engine (Linux)
-
-## Setup
-
-1. **Create a new directory** for your project:
-   \`\`\`bash
-   mkdir projectpulse
-   cd projectpulse
-   \`\`\`
-
-2. **Create a \`docker-compose.yml\` file**:
-   \`\`\`yml
-   version: '3.8'
-   services:
-     db:
-       image: postgres:16-alpine
-       restart: always
-       environment:
-         POSTGRES_USER: postgres
-         POSTGRES_PASSWORD: postgres123
-         POSTGRES_DB: projectpulse_dev
-       ports:
-         - "5432:5432"
-       volumes:
-         - db-data:/var/lib/postgresql/data
-
-     redis:
-       image: redis:7-alpine
-       restart: always
-       ports:
-         - "6379:6379"
-
-   volumes:
-     db-data:
-   \`\`\`
-
-3. **Start containers**:
-   \`\`\`bash
-   docker-compose up -d
-   \`\`\`
-
-4. **Verify containers are running**:
-   \`\`\`bash
-   docker ps
-   # Should show: postgres:16-alpine and redis:7-alpine containers
-   \`\`\`
-
-5. **Connect to PostgreSQL**:
-   \`\`\`bash
-   docker exec -it projectpulse-db-1 psql -U postgres -d projectpulse_dev
-   \`\`\`
-
----
-
-## Next Steps
-
-- [Database Migrations Guide](/guides/database-migrations) - Learn migration workflow
-- [API Documentation](/reference/api) - Configure API access
-
----
-
-**Last Updated**: 2025-11-10
-**Version**: 1.0`,
-  },
-}),
+    }),
 
 // 3. Development Guides (parent page)
 prisma.wikiPage.create({
@@ -1818,9 +1759,13 @@ pnpm prisma migrate reset
   ]);
 
   console.log(`✓ Created ${rootPages.length} root-level wiki pages\n`);
+  console.log('Root pages:', rootPages.map((p, i) => `${i}: ${p?.title}`).join(', '));
 
   // HIERARCHICAL PAGES (children of "Development Guides")
-  const guidesParent = rootPages[2]; // Development Guides
+  const guidesParent = rootPages.find(p => p?.title === 'Development Guides');
+  if (!guidesParent) {
+    throw new Error('Could not find "Development Guides" parent page');
+  }
 
   const childPages = await Promise.all([
     // Docker Setup Guide (child of Development Guides)
@@ -1935,6 +1880,7 @@ See [Troubleshooting Guide](/troubleshooting) for common Docker issues.
     // Database Migrations Guide (child of Development Guides)
     prisma.wikiPage.create({
       data: {
+        projectId: project.id,
         title: 'Database Migrations Guide',
         path: '/guides/database-migrations',
         category: 'guides',

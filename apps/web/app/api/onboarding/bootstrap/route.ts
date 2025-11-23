@@ -29,7 +29,7 @@ import { createInitialCurrentWork } from '@/lib/onboarding/create-current-work';
 import { writeRepoFiles } from '@/lib/onboarding/generate-repo-files';
 
 // Roadmap tools (Sprint 8.5)
-import { parseProjectPlan, materializeRoadmap } from '@projectpulse/roadmap-tools';
+import { parseProjectPlan } from '@projectpulse/roadmap-tools';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -141,7 +141,10 @@ export async function POST(request: NextRequest) {
     console.log(`[POST /api/onboarding/bootstrap] Created ${workflows} workflows, ${sops} SOPs ✅`);
     
     // 8. Materialize roadmap from 13-Project-Plan.md
-    console.log('[POST /api/onboarding/bootstrap] Starting roadmap materialization...');
+    // DEPRECATED: Roadmap materialization decoupled from Session 3 (Sprint 9 Fix)
+    // We still parse the plan to get metadata if needed, but we DO NOT create roadmap records
+    // or materialize them here. That will happen in a separate, manual step later.
+    console.log('[POST /api/onboarding/bootstrap] Finding 13-Project-Plan.md for context...');
 
     // Find 13-Project-Plan.md document from Session 2
     // Sprint 9 Refactor: Documents are now linked to Session 2
@@ -159,55 +162,27 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    if (!projectPlanDoc) {
-      return NextResponse.json(
-        { error: '13-Project-Plan.md document not found. Session 2 may be incomplete.' },
-        { status: 404 }
-      );
+    if (projectPlanDoc) {
+      console.log('[POST /api/onboarding/bootstrap] Found 13-Project-Plan.md', {
+        docId: projectPlanDoc.id,
+        filename: projectPlanDoc.filename
+      });
+      
+      // We parse it just to log/verify it's valid, but we don't use the output for DB creation
+      try {
+        // Sprint 9 Refactor: Only parsing for validation, not using the output
+        await parseProjectPlan(projectPlanDoc.id);
+        console.log('[POST /api/onboarding/bootstrap] Project plan parsed successfully (metadata only)');
+      } catch (e) {
+        console.warn('[POST /api/onboarding/bootstrap] Failed to parse project plan (non-fatal)', e);
+      }
+    } else {
+      console.warn('[POST /api/onboarding/bootstrap] 13-Project-Plan.md not found. Skipping context parsing.');
     }
     
-    console.log('[POST /api/onboarding/bootstrap] Found 13-Project-Plan.md', {
-      docId: projectPlanDoc.id,
-      filename: projectPlanDoc.filename
-    });
-    
-    // Parse project plan to extract roadmap structure
-    const parsedRoadmap = await parseProjectPlan(projectPlanDoc.id);
-    
-    console.log('[POST /api/onboarding/bootstrap] Project plan parsed', {
-      phases: parsedRoadmap.phases.length,
-      totalSprints: parsedRoadmap.phases.reduce((sum, phase) => sum + phase.sprints.length, 0)
-    });
-    
-    // Create Roadmap record with parsed JSON
-    const roadmap = await prisma.roadmap.create({
-      data: {
-        projectId,
-        phases: parsedRoadmap as any, // Store as JSONB
-        currentPhase: parsedRoadmap.phases[0]?.name || null,
-        currentSprint: parsedRoadmap.phases[0]?.sprints[0]?.name || null,
-        currentWeek: null
-      }
-    });
-    
-    console.log('[POST /api/onboarding/bootstrap] Roadmap record created', {
-      roadmapId: roadmap.id
-    });
-    
-    // Materialize roadmap (create Phase/Sprint/Week/Day records)
-    const materializationResult = await materializeRoadmap(roadmap.id);
-    
-    console.log('[POST /api/onboarding/bootstrap] Roadmap materialized ✅', {
-      phases: materializationResult.counts.phases,
-      sprints: materializationResult.counts.sprints,
-      weeks: materializationResult.counts.weeks,
-      days: materializationResult.counts.days
-    });
-    
-    // 9. Create CurrentPlan & CurrentTodos
-    await createInitialCurrentWork(projectId, roadmap.id);
-    
-    console.log('[POST /api/onboarding/bootstrap] Initial current work created ✅');
+    // SKIPPED: Roadmap Record Creation
+    // SKIPPED: Roadmap Materialization
+    // SKIPPED: CurrentPlan & CurrentTodos (depends on roadmap)
     
     // 10. Fetch created agent personas for CLAUDE.md/AGENTS.md
     const agentPersonas = await prisma.agentPersona.findMany({
@@ -246,15 +221,10 @@ export async function POST(request: NextRequest) {
           skillsCreated: skillsCount,
           workflowsCreated: workflows,
           sopsCreated: sops,
-          roadmapId: roadmap.id,
-          roadmapStats: {
-            phases: materializationResult.counts.phases,
-            sprints: materializationResult.counts.sprints,
-            weeks: materializationResult.counts.weeks,
-            days: materializationResult.counts.days
-          },
-          currentPlanCreated: true,
-          currentTodosCreated: true,
+          roadmapId: null,
+          roadmapStats: null,
+          currentPlanCreated: false,
+          currentTodosCreated: false,
           filesWritten
         },
         startedAt: new Date(),
@@ -276,18 +246,12 @@ export async function POST(request: NextRequest) {
         skills: skillsCount,
         workflows,
         sops,
-        roadmap: {
-          id: roadmap.id,
-          phases: materializationResult.counts.phases,
-          sprints: materializationResult.counts.sprints,
-          weeks: materializationResult.counts.weeks,
-          days: materializationResult.counts.days
-        },
-        currentPlan: true,
-        currentTodos: true,
+        roadmap: null,
+        currentPlan: false,
+        currentTodos: false,
         files: filesWritten
       },
-      message: 'Session 3 complete! Your project is fully configured for AI-assisted development.'
+      message: 'Session 3 complete! Your project is fully configured for AI-assisted development. (Roadmap generation skipped)'
     }, { status: 201 });
     
   } catch (error) {
