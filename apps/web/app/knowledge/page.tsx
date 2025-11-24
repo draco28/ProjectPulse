@@ -19,6 +19,13 @@ interface PageProps {
   };
 }
 
+interface MemoryBankView {
+  type: string;
+  summaryTokens: number | null;
+  updatedAt: string;
+  preview: string;
+}
+
 export const dynamic = 'force-dynamic'; // Real-time search requires fresh data
 
 async function getKnowledgeArticles(projectId: number, searchParams: PageProps['searchParams']) {
@@ -87,6 +94,26 @@ async function getKnowledgeArticles(projectId: number, searchParams: PageProps['
   };
 }
 
+async function getProjectMemoryBanks(projectId: number): Promise<MemoryBankView[]> {
+  const banks = await prisma.memoryBank.findMany({
+    where: { projectId },
+    orderBy: { type: 'asc' },
+    select: {
+      type: true,
+      summaryTokens: true,
+      updatedAt: true,
+      content: true,
+    },
+  });
+
+  return banks.map((bank) => ({
+    type: String(bank.type),
+    summaryTokens: bank.summaryTokens,
+    updatedAt: bank.updatedAt.toISOString(),
+    preview: bank.content.length > 240 ? `${bank.content.substring(0, 240)}...` : bank.content,
+  }));
+}
+
 export default async function KnowledgeBasePage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
@@ -95,7 +122,11 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
 
   const { articles, allTags, totalCount } = await getKnowledgeArticles(projectId, searchParams);
 
+  const memoryBanks = await getProjectMemoryBanks(projectId);
+
   const { search = '', tag } = searchParams;
+
+   const hasSearch = search.trim().length > 0;
 
   return (
     <>
@@ -140,8 +171,42 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
               <TagFilter allTags={allTags} selectedTag={tag} />
 
               {/* Knowledge Grid */}
-              {articles.length > 0 ? (
+              {(articles.length > 0 || (!hasSearch && memoryBanks.length > 0)) ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {/* Pinned Memory Bank cards (visible only when not searching) */}
+                  {!hasSearch &&
+                    memoryBanks.map((bank) => (
+                      <div
+                        key={bank.type}
+                        className="knowledge-card neu-raised smooth-transition hover:shadow-neumorphic-hover rounded-3xl p-6"
+                      >
+                        <div className="mb-4 flex items-start justify-between">
+                          <div className="icon-coral flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg">
+                            <span className="text-xs font-semibold text-white">MB</span>
+                          </div>
+                          <span className="neu-pressed flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-xs font-semibold text-coral">
+                            ~{bank.summaryTokens ?? 0} tokens
+                          </span>
+                        </div>
+
+                        <h3 className="mb-2 text-lg font-bold text-white">
+                          Memory Bank: {bank.type}
+                        </h3>
+
+                        <p className="mb-4 text-sm leading-relaxed text-slate">
+                          {bank.preview || 'This memory bank is currently empty.'}
+                        </p>
+
+                        <div className="flex items-center justify-between text-[11px] text-slate">
+                          <span>Updated {new Date(bank.updatedAt).toLocaleString()}</span>
+                          <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide">
+                            Memory Bank
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                  {/* Regular Knowledge article cards */}
                   {articles.map((article) => (
                     <ArticleCard key={article.id} article={article} />
                   ))}
