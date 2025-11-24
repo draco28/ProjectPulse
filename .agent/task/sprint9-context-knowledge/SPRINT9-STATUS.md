@@ -21,6 +21,7 @@
 
 ## Notes
 
+- 2025-11-23: Phase 0 – Docs & Alignment **in progress**. Sprint 9 specs for MemoryBanks, Knowledge MCP tools, and project-scoped behavior have been refined and saved under `.agent/task/sprint9-context-knowledge/`.
 - This status document should be the single place to track day-to-day Sprint 9 progress.
 - When updating, include:
   - Date.

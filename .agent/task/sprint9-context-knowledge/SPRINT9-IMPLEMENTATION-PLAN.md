@@ -37,18 +37,19 @@ Exit criteria:
 **Objective:** Implement DB schema and basic persistence for the 5 Memory Bank types.
 
 Tasks:
-- [ ] Design Memory Bank schema in `docs/02-DATABASE-SCHEMA.md` and/or inline in Prisma schema comments:
-  - Define models (exact naming TBD):
-    - MemoryBank (type, projectId, metadata, createdAt, updatedAt).
-    - MemoryBankEntry or fields for the 5 logical banks: project-brief, system-patterns, tech-context, active-context, progress.
-  - Ensure structures support:
-    - Efficient retrieval by projectId and bank type.
-    - Versioning or updatedAt timestamps for recovery.
-- [ ] Update Prisma schema in `apps/web/prisma/schema.prisma` to include Memory Bank models.
+- [ ] Define a `MemoryBank` Prisma model in `apps/web/prisma/schema.prisma`:
+  - `id Int @id @default(autoincrement())`
+  - `projectId Int` (FK → Project)
+  - `type` (string or enum: PROJECT_BRIEF, SYSTEM_PATTERNS, TECH_CONTEXT, ACTIVE_CONTEXT, PROGRESS)
+  - `content String @db.Text` (Markdown bank content)
+  - `summaryTokens Int?` (optional cached token estimate)
+  - `createdAt` / `updatedAt` timestamps and `@@unique([projectId, type])`.
+- [ ] Update `docs/02-DATABASE-SCHEMA.md` to mirror the new `MemoryBank` model, treating `schema.prisma` as the source of truth.
+- [ ] Implement a small "system MemoryBank templates" helper (e.g. `cloneMemoryBanks(projectId)`), modelled after `cloneWikiTemplates`, and store template banks in the existing System Project.
+- [ ] Wire `cloneMemoryBanks` into `POST /api/projects` so that every new project gets all 5 MemoryBank rows at creation time.
 - [ ] Run migrations and regenerate client in `apps/web`:
   - `pnpm prisma migrate dev --name memory-bank-system`
   - `pnpm prisma generate`
-- [ ] Add seed logic (if needed) for initial Memory Bank entries for test projects.
 
 Exit criteria:
 - Prisma schema compiles and migrations run cleanly.
@@ -85,15 +86,19 @@ Tasks:
 - [ ] Inventory existing Knowledge handlers in the Next.js app:
   - `apps/web/lib/mcp/handlers/knowledge-handler.ts`.
   - `apps/web/lib/knowledge/*.ts` (search, graph, create, deduplication, export/import, archive).
-- [ ] In `apps/mcp-server`, add tools that proxy to the web APIs for:
-  - knowledge.search (hybrid / semantic / full-text search).
-  - knowledge.create (agent-only writes, with duplicate detection and embeddings).
-  - knowledge.related (graph traversal up to configured hops).
-  - knowledge.export / knowledge.import.
-  - knowledge.archive / unarchive.
-  - knowledge.getMetrics (usage and performance metrics).
+- [ ] In `apps/mcp-server`, add `knowledge.*` tools that proxy to the web APIs:
+  - `knowledge.search` → `GET /api/knowledge/search` (include `projectId` and query params).
+  - `knowledge.create` → `POST /api/knowledge` (body includes `projectId`, title, content, category, tags).
+  - `knowledge.related` → call into the graph service (and/or a small helper route) with `projectId`.
+  - `knowledge.export` / `knowledge.import` → `/api/knowledge/export` and `/api/knowledge/import`.
+  - `knowledge.archive` / unarchive → `/api/knowledge/[id]/archive` (PATCH/DELETE).
+  - `knowledge.getMetrics` → `GET /api/knowledge/metrics`.
+- [ ] Ensure every `knowledge.*` MCP tool input schema includes a `projectId: number` and that this `projectId` is forwarded to the corresponding web API.
+- [ ] Update Knowledge services and APIs so all queries are project-scoped:
+  - Thread `projectId` through `semanticSearch`, `fullTextSearch`, `hybridSearch`, and `findRelatedKnowledgeItems` and filter queries by `projectId`.
+  - Require `projectId` in the relevant `/api/knowledge/*` handlers and add `where: { projectId }` to Prisma calls.
 - [ ] Register the new tools in the MCP server index so external clients can discover them.
-- [ ] Respect existing security and project scoping rules: all calls must include and validate `projectId`.
+- [ ] Document a future hardening step (post–Sprint 9): propagate the validated `agentAuth.projectId` from the HTTP MCP server to web APIs (e.g. header) and assert that request `projectId` matches the token’s `projectId`.
 
 Exit criteria:
 - External MCP tools for Knowledge are available and correctly call the Next.js APIs.

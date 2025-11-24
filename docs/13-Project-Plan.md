@@ -1874,7 +1874,6 @@ Sprint 8.5 Phases 1-3 successfully completed 22/27 story points (81%), implement
 
 - Token measurement: Verify all token reduction targets met
 - Memory Bank loading tests: Validate structured content loads correctly
-- Sub-agent integration tests: Verify research reports actionable
 - Context recovery scenario tests: Session interruption → successful recovery
 
 ---
@@ -1957,6 +1956,7 @@ Sprint 8.5 Phases 1-3 successfully completed 22/27 story points (81%), implement
 - Integration tests: Task creation with snapshot → resumption workflow
 - Performance tests: Snapshot operations meet latency targets
 - Backward compatibility tests: Existing tasks without snapshots work correctly
+- Sub-agent integration tests: Verify research reports actionable
 
 **Success Metrics:**
 

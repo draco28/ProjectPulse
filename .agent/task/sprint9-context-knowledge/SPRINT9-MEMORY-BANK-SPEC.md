@@ -85,16 +85,16 @@ For each project, we maintain five logical banks.
 
 ## 3. Data Model & Storage
 
-> Exact Prisma model names and fields should be finalized in `docs/02-DATABASE-SCHEMA.md` and implemented in `apps/web/prisma/schema.prisma`.
+> Exact Prisma model names and fields are implemented first in `apps/web/prisma/schema.prisma` and then mirrored into `docs/02-DATABASE-SCHEMA.md` for documentation.
 
 ### 3.1 Suggested Models
 
 - **MemoryBank**
-  - `id` (cuid)
-  - `projectId` (FK → Project)
+  - `id` (Int, primary key, `@id @default(autoincrement())`)
+  - `projectId` (Int FK → Project)
   - `type` (enum: PROJECT_BRIEF, SYSTEM_PATTERNS, TECH_CONTEXT, ACTIVE_CONTEXT, PROGRESS)
-  - `content` (text) – canonical serialized representation (Markdown or structured JSON-as-text).
-  - `summaryTokens` (int) – approximate token count for quick budgeting.
+  - `content` (text) – canonical **Markdown** representation of the bank content.
+  - `summaryTokens` (int, optional) – approximate token count for quick budgeting.
   - `createdAt` / `updatedAt` (timestamps)
 
 - Optional: **MemoryBankSnapshot** (for future Sprint 10 work) is documented in `docs/architecture/…` and does not need to be implemented in Sprint 9 beyond what is required for basic operations.
@@ -103,6 +103,12 @@ For each project, we maintain five logical banks.
 
 - Each `(projectId, type)` should have at most one **active** MemoryBank row at a time.
 - Token budgets per bank should be enforced at generation/update time (soft limit with logs when exceeded).
+
+### 3.3 Storage Format & UI Integration
+
+- MemoryBank `content` is stored as Markdown in the database; MCP tools and agents operate on Markdown, while responses may wrap this content in structured JSON (e.g. separate sections per bank).
+- MemoryBanks are surfaced on the `/knowledge` page as a dedicated “Memory Banks” section so admins can inspect and, where allowed, edit bank content.
+- A dedicated **System Templates** project holds the canonical default MemoryBank rows; when a new project is created, one row per `(projectId, type)` is cloned into that project (mirroring the existing wiki system-templates pattern).
 
 ---
 
@@ -152,11 +158,14 @@ For each project, we maintain five logical banks.
 
 ## 6. Integration Points
 
+- **System templates & project creation:**
+  - A dedicated system project holds template MemoryBank rows; when a new project is created, these are cloned into per-project MemoryBanks (one row per `(projectId, type)`), similar to the existing wiki system-templates mechanism.
 - **Onboarding MCP tools:**
-  - Session 1–3 flows can call Memory Bank tools for summarization and context loading.
+  - Session 1–3 flows can call Memory Bank tools for summarization and context loading and can also rewrite the default banks once onboarding is complete.
 - **Roadmap & sprint tools:**
   - Progress Memory Bank can be updated from sprint completion scripts or MCP tools that summarize recent work.
-- **Knowledge Base:**
+- **Knowledge Base & UI:**
+  - Memory Banks are surfaced on the `/knowledge` page as a read-mostly “Memory Banks” section, giving humans visibility into what agents are using.
   - Memory Banks should be conceptually aligned with Knowledge items (e.g. system patterns may be linked to Knowledge graph nodes), but the source of truth remains the DB; no direct coupling is required in Sprint 9.
 
 ---

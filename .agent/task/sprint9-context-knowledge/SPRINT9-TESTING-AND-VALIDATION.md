@@ -13,6 +13,7 @@ This document defines the test strategy and concrete checks for the Sprint 9 wor
 
 - **Schema & basic CRUD**
   - Prisma models for Memory Banks compile and migrate successfully.
+  - Newly created projects automatically receive all 5 bank types via the system MemoryBank templates helper.
   - Create/read/update operations for all 5 bank types succeed for a test project.
 
 - **Session Start Workflow**

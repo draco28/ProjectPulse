@@ -49,19 +49,21 @@ Sprint 9 focuses on closing these gaps.
 
 ### 3.1 External MCP Tools for Knowledge
 
-- Implement Knowledge tools in `apps/mcp-server` that proxy to the existing Next.js APIs/MCP handlers:
-  - `knowledge.search`
-  - `knowledge.create`
-  - `knowledge.related`
-  - `knowledge.export`
-  - `knowledge.import`
-  - `knowledge.archive` / unarchive
-  - `knowledge.getMetrics`
+- Implement Knowledge tools in `apps/mcp-server` that proxy to the existing Next.js HTTP APIs (and underlying services):
+  - `knowledge.search` → `GET /api/knowledge/search`
+  - `knowledge.create` → `POST /api/knowledge`
+  - `knowledge.related` → graph traversal via `findRelatedKnowledgeItems` (exposed either through an internal handler or a small `/api/knowledge/related` helper if needed)
+  - `knowledge.export` → `GET /api/knowledge/export`
+  - `knowledge.import` → `POST /api/knowledge/import`
+  - `knowledge.archive` / unarchive → `PATCH /api/knowledge/[id]/archive` / `DELETE /api/knowledge/[id]/archive`
+  - `knowledge.getMetrics` → `GET /api/knowledge/metrics`
 
 - Requirements:
-  - Tools must be **discoverable** in the MCP server index.
-  - All operations must require and validate `projectId` (no cross-project leaks).
+  - Tools must be **discoverable** in the MCP server index with the short names above (e.g. `knowledge.create`).
+  - Every `knowledge.*` tool input schema must include a `projectId: number` parameter, and this `projectId` must be forwarded to the corresponding web API (query string or JSON body).
+  - Web APIs for Knowledge must accept `projectId` and filter all Prisma queries by it (e.g. `where: { projectId }`) so that results are always project-scoped.
   - Errors and input validation should mirror the web MCP handlers where reasonable.
+  - As a future hardening step (post–Sprint 9), the HTTP MCP server can forward the validated `agentAuth.projectId` (from `/api/agent-auth/validate`) to the web app (e.g. via `X-Agent-Project-Id`), and web APIs should assert that `projectId` in the payload matches the token’s project.
 
 ### 3.2 Project-Scoped RAG & Graph Queries
 
@@ -72,6 +74,7 @@ Sprint 9 focuses on closing these gaps.
   - P95 latency < 200ms.
   - Token usage < 1,500 tokens/query in typical use.
 - Implementation notes:
+  - Update `semanticSearch`, `fullTextSearch`, `hybridSearch`, and `findRelatedKnowledgeItems` so they all accept a `projectId` argument and constrain their SQL/Prisma queries to that project.
   - Add metrics collection (if not already present) so `knowledge.getMetrics` can report latency and token usage (as far as observable).
   - Prefer existing observability patterns (logs, DB metrics) instead of inventing new infrastructure.
 
@@ -81,10 +84,9 @@ Sprint 9 focuses on closing these gaps.
   - All create/update/archive operations happen via MCP tools in response to agent behavior.
   - Human users browse Knowledge cards but do not directly mutate Knowledge in unsupported ways.
 
-- `/knowledge` UI changes (if needed):
-  - Review the "Add Knowledge" or similar CTA and decide one of:
-    - A human-facing explanation that Knowledge is curated by agents.
-    - A guided flow that effectively proxies through `knowledge.create` with constrained inputs, still preserving agent semantics.
+- `/knowledge` UI changes:
+  - Keep an "Add Knowledge" (or similar) CTA, but implement it as a **guided flow** that thinly wraps `knowledge.create` with constrained inputs (title, content, category, tags) rather than arbitrary edits.
+  - Add inline copy to make it clear that Knowledge is primarily curated by agents; human edits are advanced and go through the same validation as MCP-created items.
   - Ensure search mode toggles and filters align with the modes provided by `knowledge.search`.
 
 - Documentation:
