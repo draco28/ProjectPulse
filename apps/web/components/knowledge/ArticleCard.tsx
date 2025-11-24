@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Network,
@@ -26,10 +26,14 @@ interface ArticleCardProps {
     views: number;
     relevance: number;
   };
+  // projectId removed - reads from URL via useSearchParams() to avoid hydration mismatch
 }
 
-// Memoize to prevent re-renders when parent re-renders
-export const ArticleCard = React.memo(function ArticleCard({ article }: ArticleCardProps) {
+// Removed React.memo to avoid hydration issues with URL-derived state
+export function ArticleCard({ article }: ArticleCardProps) {
+  // Read project from URL directly - consistent with TagFilter/SearchBar pattern
+  const searchParams = useSearchParams();
+  const projectId = searchParams?.get('project') || '';
   const timeAgo = formatDistanceToNow(new Date(article.updatedAt), {
     addSuffix: true,
   });
@@ -55,7 +59,7 @@ export const ArticleCard = React.memo(function ArticleCard({ article }: ArticleC
   };
 
   return (
-    <Link href={`/knowledge/${article.id}`}>
+    <Link href={`/knowledge/${article.id}${projectId ? `?project=${projectId}` : ''}`}>
       <div className="knowledge-card neu-raised smooth-transition hover:shadow-neumorphic-hover rounded-3xl p-6">
         {/* Icon and Relevance Score */}
         <div className="mb-4 flex items-start justify-between">
@@ -107,7 +111,4 @@ export const ArticleCard = React.memo(function ArticleCard({ article }: ArticleC
       </div>
     </Link>
   );
-});
-
-// Custom comparison: only re-render if article ID or updatedAt changes
-ArticleCard.displayName = 'ArticleCard';
+}

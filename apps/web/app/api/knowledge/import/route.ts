@@ -51,6 +51,20 @@ import { createKnowledgeItem, KnowledgeCreationError } from '@/lib/knowledge/cre
  */
 export async function POST(request: NextRequest) {
   try {
+    // Parse projectId from query params (multi-tenancy requirement)
+    const searchParams = request.nextUrl.searchParams;
+    const projectId = parseInt(searchParams.get('projectId') || '0', 10);
+
+    if (!projectId || projectId < 1) {
+      return NextResponse.json(
+        {
+          error: 'Valid projectId is required',
+          details: 'Provide projectId as query parameter',
+        },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
 
     // Validate request body
@@ -189,8 +203,9 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Create knowledge item with auto-embedding
+        // Create knowledge item with auto-embedding (include projectId for multi-tenancy)
         const result = await createKnowledgeItem({
+          projectId,
           title: frontmatter.title,
           content: markdownContent.trim(),
           category: frontmatter.category,

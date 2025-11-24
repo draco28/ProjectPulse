@@ -70,7 +70,7 @@ export async function createKnowledgeItem(
   data: CreateKnowledgeItemInput,
   allowDuplicates: boolean = false
 ): Promise<CreateKnowledgeItemResult> {
-  const { title, content, category, tags } = data;
+  const { projectId, title, content, category, tags } = data;
 
   try {
     // Generate embedding from title + content (weighted combination)
@@ -82,6 +82,7 @@ export async function createKnowledgeItem(
     // US-089: Check for duplicates (unless explicitly allowed)
     if (!allowDuplicates) {
       const deduplicationResult = await findDuplicates({
+        projectId,
         title,
         embedding: embeddingResult.embedding,
         category,
@@ -104,6 +105,7 @@ export async function createKnowledgeItem(
     const embeddingVector = `[${embeddingResult.embedding.join(',')}]`;
 
     // Insert into database using raw query (Prisma doesn't support vector type natively)
+    // Populate contentTsvector with title (weight A) + content (weight B) for fulltext search
     const result = await prisma.$queryRaw<Array<{
       id: number;
       title: string;
@@ -114,6 +116,7 @@ export async function createKnowledgeItem(
       updatedAt: Date;
     }>>`
       INSERT INTO knowledge_items (
+        "projectId",
         title,
         content,
         category,
@@ -124,12 +127,14 @@ export async function createKnowledgeItem(
         "updatedAt"
       )
       VALUES (
+        ${projectId},
         ${title},
         ${content},
         ${category},
         ${tags}::text[],
         ${embeddingVector}::vector(768),
-        to_tsvector('english', ''),
+        setweight(to_tsvector('english', ${title}), 'A') ||
+        setweight(to_tsvector('english', ${content}), 'B'),
         NOW(),
         NOW()
       )

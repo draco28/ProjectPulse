@@ -40,6 +40,15 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
 
+    // CRITICAL: Parse and validate projectId for multi-tenancy isolation
+    const projectId = parseInt(searchParams.get('projectId') || '0', 10);
+    if (!projectId || projectId < 1) {
+      return NextResponse.json(
+        { error: 'Valid projectId is required' },
+        { status: 400 }
+      );
+    }
+
     // Parse query parameters
     const includeEmbeddings = searchParams.get('includeEmbeddings') === 'true';
     const includeRelationships = searchParams.get('includeRelationships') !== 'false'; // default true
@@ -48,8 +57,10 @@ export async function GET(request: NextRequest) {
     const sinceParam = searchParams.get('since');
     const limitParam = searchParams.get('limit');
 
-    // Build where clause
-    const where: any = {};
+    // Build where clause with projectId for multi-tenancy
+    const where: any = {
+      projectId, // CRITICAL: Multi-tenancy filter
+    };
 
     if (category) {
       where.category = category;

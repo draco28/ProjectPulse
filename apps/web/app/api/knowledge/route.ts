@@ -148,7 +148,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create knowledge item with auto-embedding (US-089: pass allowDuplicates)
+    // Extract allowDuplicates from body (US-089: defaults to false for dedup checks)
+    const allowDuplicates = body.allowDuplicates === true;
+
+    // Create knowledge item with auto-embedding
     const result = await createKnowledgeItem(validation.data, allowDuplicates);
 
     // Return success response

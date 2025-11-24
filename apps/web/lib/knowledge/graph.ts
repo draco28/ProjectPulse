@@ -129,36 +129,37 @@ export async function findRelatedKnowledgeItems(
       );
     }
 
-    // Build relationship type filter
+    // Build relationship type filter (using correct Prisma column name: relationType)
     const typeFilter = relationshipTypes && relationshipTypes.length > 0
-      ? `AND type = ANY(ARRAY[${relationshipTypes.map(t => `'${t.replace(/'/g, "''")}'`).join(', ')}])`
+      ? `AND "relationType" = ANY(ARRAY[${relationshipTypes.map(t => `'${t.replace(/'/g, "''")}'`).join(', ')}])`
       : '';
 
     // ========================================
     // STEP 1: Find 1-hop relationships
     // ========================================
+    // NOTE: Using Prisma column names (fromId, toId, relationType, weight) not snake_case
     const oneHopSql = `
       WITH direct_relations AS (
         SELECT
-          kr.to_knowledge_id AS related_id,
-          kr.type AS relationship_type,
-          kr.strength,
+          kr."toId" AS related_id,
+          kr."relationType" AS relationship_type,
+          kr."weight"::float AS strength,
           1 AS depth
         FROM knowledge_relationships kr
-        WHERE kr.from_knowledge_id = ${itemId}
-          AND kr.strength >= ${minStrength}
+        WHERE kr."fromId" = ${itemId}
+          AND kr."weight" >= ${minStrength}
           ${typeFilter}
 
         UNION
 
         SELECT
-          kr.from_knowledge_id AS related_id,
-          kr.type AS relationship_type,
-          kr.strength,
+          kr."fromId" AS related_id,
+          kr."relationType" AS relationship_type,
+          kr."weight"::float AS strength,
           1 AS depth
         FROM knowledge_relationships kr
-        WHERE kr.to_knowledge_id = ${itemId}
-          AND kr.strength >= ${minStrength}
+        WHERE kr."toId" = ${itemId}
+          AND kr."weight" >= ${minStrength}
           ${typeFilter}
       )
       SELECT
@@ -213,34 +214,35 @@ export async function findRelatedKnowledgeItems(
       return [];
     }
 
+    // NOTE: Using Prisma column names (fromId, toId, relationType, weight) not snake_case
     const twoHopSql = `
       WITH two_hop_relations AS (
         SELECT
-          kr.to_knowledge_id AS related_id,
-          kr.type AS relationship_type,
-          kr.strength,
-          kr.from_knowledge_id AS intermediate_id,
+          kr."toId" AS related_id,
+          kr."relationType" AS relationship_type,
+          kr."weight"::float AS strength,
+          kr."fromId" AS intermediate_id,
           2 AS depth
         FROM knowledge_relationships kr
-        WHERE kr.from_knowledge_id = ANY(ARRAY[${oneHopIds.join(', ')}])
-          AND kr.to_knowledge_id != ${itemId}
-          AND kr.to_knowledge_id != ALL(ARRAY[${oneHopIds.join(', ')}])
-          AND kr.strength >= ${minStrength * 0.8}
+        WHERE kr."fromId" = ANY(ARRAY[${oneHopIds.join(', ')}])
+          AND kr."toId" != ${itemId}
+          AND kr."toId" != ALL(ARRAY[${oneHopIds.join(', ')}])
+          AND kr."weight" >= ${minStrength * 0.8}
           ${typeFilter}
 
         UNION
 
         SELECT
-          kr.from_knowledge_id AS related_id,
-          kr.type AS relationship_type,
-          kr.strength,
-          kr.to_knowledge_id AS intermediate_id,
+          kr."fromId" AS related_id,
+          kr."relationType" AS relationship_type,
+          kr."weight"::float AS strength,
+          kr."toId" AS intermediate_id,
           2 AS depth
         FROM knowledge_relationships kr
-        WHERE kr.to_knowledge_id = ANY(ARRAY[${oneHopIds.join(', ')}])
-          AND kr.from_knowledge_id != ${itemId}
-          AND kr.from_knowledge_id != ALL(ARRAY[${oneHopIds.join(', ')}])
-          AND kr.strength >= ${minStrength * 0.8}
+        WHERE kr."toId" = ANY(ARRAY[${oneHopIds.join(', ')}])
+          AND kr."fromId" != ${itemId}
+          AND kr."fromId" != ALL(ARRAY[${oneHopIds.join(', ')}])
+          AND kr."weight" >= ${minStrength * 0.8}
           ${typeFilter}
       )
       SELECT
@@ -384,24 +386,25 @@ export async function getRelationshipStats(itemId: number): Promise<{
   incoming: number;
 }> {
   try {
+    // NOTE: Using Prisma column names (fromId, toId, relationType) not snake_case
     const sqlQuery = `
       SELECT
-        type,
+        "relationType" AS type,
         'outgoing' AS direction,
         COUNT(*) AS count
       FROM knowledge_relationships
-      WHERE from_knowledge_id = ${itemId}
-      GROUP BY type
+      WHERE "fromId" = ${itemId}
+      GROUP BY "relationType"
 
       UNION ALL
 
       SELECT
-        type,
+        "relationType" AS type,
         'incoming' AS direction,
         COUNT(*) AS count
       FROM knowledge_relationships
-      WHERE to_knowledge_id = ${itemId}
-      GROUP BY type
+      WHERE "toId" = ${itemId}
+      GROUP BY "relationType"
     `;
 
     const stats = await prisma.$queryRawUnsafe<Array<{

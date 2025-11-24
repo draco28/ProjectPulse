@@ -48,7 +48,7 @@ export const knowledgeImportTool: ToolDefinition = {
 
   async execute(params: unknown, context: ToolContext) {
     const validated = inputSchema.parse(params);
-    
+
     context.logger.info('Importing knowledge items', {
       projectId: validated.projectId,
       itemCount: validated.items.length,
@@ -56,9 +56,25 @@ export const knowledgeImportTool: ToolDefinition = {
     });
 
     try {
+      // Convert items to markdown files with YAML frontmatter (API expected format)
+      const files = validated.items.map((item, index) => {
+        const frontmatter = [
+          '---',
+          `title: ${item.title}`,
+          `category: ${item.category}`,
+          `tags: [${item.tags.map(t => `"${t}"`).join(', ')}]`,
+          '---',
+        ].join('\n');
+
+        return {
+          filename: `import-${index + 1}.md`,
+          content: `${frontmatter}\n\n${item.content}`,
+        };
+      });
+
       const response = await context.httpClient.post(
-        '/api/knowledge/import',
-        validated
+        `/api/knowledge/import?projectId=${validated.projectId}`,
+        { files, generateEmbeddings: true }
       ) as any;
 
       context.logger.info('Knowledge import completed', {

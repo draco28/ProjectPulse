@@ -11,7 +11,26 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 const publicPaths = ['/login', '/api/auth/signup', '/api/health'];
-const publicApiPrefixes = ['/api/auth/', '/api/agent-auth/', '/api/onboarding/', '/api/batch/', '/api/admin/'];
+const publicApiPrefixes = [
+  '/api/auth/',
+  '/api/agent-auth/',
+  '/api/onboarding/',
+  '/api/batch/',
+  '/api/admin/',
+];
+
+// MCP-accessible API base paths (authenticated at MCP layer via project token)
+// These are checked with startsWith OR exact match to handle both /api/knowledge and /api/knowledge/*
+const mcpApiPaths = [
+  '/api/knowledge',
+  '/api/wiki',
+  '/api/memory',
+  '/api/hierarchy',
+  '/api/roadmap',
+  '/api/sprint',
+  '/api/issues',
+  '/api/workflow',
+];
 const projectRoutes = ['/dashboard', '/issues', '/wiki', '/knowledge', '/health', '/agents', '/roadmap'];
 
 export async function middleware(request: NextRequest) {
@@ -24,6 +43,11 @@ export async function middleware(request: NextRequest) {
 
   // Allow public API routes
   if (publicApiPrefixes.some((prefix) => pathname.startsWith(prefix))) {
+    return NextResponse.next();
+  }
+
+  // Allow MCP-accessible API routes (exact match or startsWith for nested routes)
+  if (mcpApiPaths.some((path) => pathname === path || pathname.startsWith(path + '/'))) {
     return NextResponse.next();
   }
 

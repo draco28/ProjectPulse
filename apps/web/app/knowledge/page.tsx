@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { Prisma } from '@prisma/client';
 import Link from 'next/link';
 import { Plus, Search } from 'lucide-react';
@@ -210,10 +211,14 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
                       </Link>
                     ))}
 
-                  {/* Regular Knowledge article cards */}
-                  {articles.map((article) => (
-                    <ArticleCard key={article.id} article={article} />
-                  ))}
+                  {/* Regular Knowledge article cards - Suspense required for useSearchParams */}
+                  <Suspense fallback={
+                    <div className="neu-raised animate-pulse rounded-3xl p-6 h-48" />
+                  }>
+                    {articles.map((article) => (
+                      <ArticleCard key={article.id} article={article} />
+                    ))}
+                  </Suspense>
                 </div>
               ) : (
                 <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">

@@ -21,6 +21,7 @@ export interface DuplicateCandidate {
 }
 
 export interface DeduplicationOptions {
+  projectId: number; // Required for multi-tenancy scoping
   title: string;
   embedding?: number[]; // 768-dim vector from embedding service
   category?: string; // Optional category filter
@@ -44,6 +45,7 @@ export async function findDuplicates(
   options: DeduplicationOptions
 ): Promise<DeduplicationResult> {
   const {
+    projectId,
     title,
     embedding,
     category,
@@ -56,6 +58,7 @@ export async function findDuplicates(
   // Strategy 1: Exact title match (case-insensitive)
   const exactMatches = await prisma.knowledgeItem.findMany({
     where: {
+      projectId, // Multi-tenancy: scope to project
       title: {
         equals: title,
         mode: 'insensitive',
@@ -92,8 +95,11 @@ export async function findDuplicates(
       const embeddingStr = `[${embedding.join(',')}]`;
       const excludedIds = candidates.map(c => c.id);
 
-      // Build WHERE clause parts
-      const whereClauses: string[] = ['archived_at IS NULL'];
+      // Build WHERE clause parts (always include projectId for multi-tenancy)
+      const whereClauses: string[] = [
+        `"projectId" = ${projectId}`, // Multi-tenancy: scope to project
+        '"archivedAt" IS NULL',
+      ];
       if (excludedIds.length > 0) {
         whereClauses.push(`id NOT IN (${excludedIds.join(',')})`);
       }
@@ -111,7 +117,7 @@ export async function findDuplicates(
           category: string;
           tags: string[];
           similarity: number;
-          created_at: Date;
+          createdAt: Date;
         }>
       >(`
         SELECT
@@ -120,7 +126,7 @@ export async function findDuplicates(
           category,
           tags,
           1 - (embedding <=> '${embeddingStr}'::vector) AS similarity,
-          created_at
+          "createdAt"
         FROM knowledge_items
         WHERE ${whereClause}
         ORDER BY similarity DESC
@@ -136,7 +142,7 @@ export async function findDuplicates(
           tags: match.tags,
           similarity: Number(match.similarity),
           matchType: 'semantic_high',
-          createdAt: match.created_at,
+          createdAt: match.createdAt,
         });
       }
     } catch (error) {
