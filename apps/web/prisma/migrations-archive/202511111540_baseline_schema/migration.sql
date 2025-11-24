@@ -1,0 +1,3 @@
+-- Baseline migration for existing ProjectPulse schema prior to wiki versioning changes.
+-- This migration intentionally contains no statements because the database
+-- is already provisioned via earlier manual steps / db push operations.

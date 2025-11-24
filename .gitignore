@@ -233,6 +233,8 @@ secrets/
 *.dump
 *.sql
 !scripts/init-db.sql
+!apps/web/prisma/migrations/**/*.sql
+!apps/web/prisma/migrations-archive/**/*.sql
 
 # ============================================================================
 # MISC
