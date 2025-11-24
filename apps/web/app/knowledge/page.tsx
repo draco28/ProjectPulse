@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import Link from 'next/link';
 import { Plus, Search } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { Sidebar } from '@/components/Sidebar';
@@ -176,34 +177,37 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
                   {/* Pinned Memory Bank cards (visible only when not searching) */}
                   {!hasSearch &&
                     memoryBanks.map((bank) => (
-                      <div
+                      <Link
                         key={bank.type}
-                        className="knowledge-card neu-raised smooth-transition hover:shadow-neumorphic-hover rounded-3xl p-6"
+                        href={`/memory-banks/${encodeURIComponent(bank.type)}?project=${projectId}`}
+                        className="block"
                       >
-                        <div className="mb-4 flex items-start justify-between">
-                          <div className="icon-coral flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg">
-                            <span className="text-xs font-semibold text-white">MB</span>
+                        <div className="knowledge-card neu-raised smooth-transition hover:shadow-neumorphic-hover rounded-3xl p-6">
+                          <div className="mb-4 flex items-start justify-between">
+                            <div className="icon-coral flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg">
+                              <span className="text-xs font-semibold text-white">MB</span>
+                            </div>
+                            <span className="neu-pressed flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-xs font-semibold text-coral">
+                              ~{bank.summaryTokens ?? 0} tokens
+                            </span>
                           </div>
-                          <span className="neu-pressed flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-xs font-semibold text-coral">
-                            ~{bank.summaryTokens ?? 0} tokens
-                          </span>
+
+                          <h3 className="mb-2 text-lg font-bold text-white">
+                            Memory Bank: {bank.type}
+                          </h3>
+
+                          <p className="mb-4 text-sm leading-relaxed text-slate">
+                            {bank.preview || 'This memory bank is currently empty.'}
+                          </p>
+
+                          <div className="flex items-center justify-between text-[11px] text-slate">
+                            <span>Updated {new Date(bank.updatedAt).toLocaleString()}</span>
+                            <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide">
+                              Memory Bank
+                            </span>
+                          </div>
                         </div>
-
-                        <h3 className="mb-2 text-lg font-bold text-white">
-                          Memory Bank: {bank.type}
-                        </h3>
-
-                        <p className="mb-4 text-sm leading-relaxed text-slate">
-                          {bank.preview || 'This memory bank is currently empty.'}
-                        </p>
-
-                        <div className="flex items-center justify-between text-[11px] text-slate">
-                          <span>Updated {new Date(bank.updatedAt).toLocaleString()}</span>
-                          <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide">
-                            Memory Bank
-                          </span>
-                        </div>
-                      </div>
+                      </Link>
                     ))}
 
                   {/* Regular Knowledge article cards */}
