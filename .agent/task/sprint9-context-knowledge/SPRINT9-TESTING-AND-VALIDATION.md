@@ -120,6 +120,12 @@ Validation approach:
 - Run controlled test scripts or E2E tests against the Mac mini Docker stack.
 - Capture summary results in `SPRINT9-FINAL-SUMMARY.md`.
 
+**Current evidence (2025-11-24):**
+- Project `id=3` (Client Test Project):
+  - `loadSessionStart(3)` returns all 5 Memory Banks (PROJECT_BRIEF, SYSTEM_PATTERNS, TECH_CONTEXT, ACTIVE_CONTEXT, PROGRESS).
+  - Total token estimate from `summaryTokens` = **500** tokens (80 + 150 + 160 + 60 + 50).
+  - Well within the **10K** session-start budget target, leaving ample headroom for more detailed bank content.
+
 ---
 
 ## 5. Step 4.5 Verification Gate – Evidence Checklist

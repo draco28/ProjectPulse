@@ -320,6 +320,9 @@ model Project {
   tokens        ProjectToken[]
   mcpWriteFiles Boolean @default(false) // Allow MCP to write helper files (CLAUDE.md, AGENTS.md) to repo
 
+  // Sprint 9: Memory Bank System
+  memoryBanks   MemoryBank[]
+
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt
   OnboardingPromptTemplate OnboardingPromptTemplate[]
@@ -1611,4 +1614,41 @@ model AuthSession {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("auth_sessions")
+}
+
+// ============================================================================
+// MEMORY BANK SYSTEM (Sprint 9)
+// ============================================================================
+// Token-efficient context management for AI agents
+// 5 Memory Bank types per project: PROJECT_BRIEF, SYSTEM_PATTERNS, TECH_CONTEXT, ACTIVE_CONTEXT, PROGRESS
+
+enum MemoryBankType {
+  PROJECT_BRIEF   // High-level project goals, ≤3K tokens
+  SYSTEM_PATTERNS // Implementation patterns, ≤2K tokens
+  TECH_CONTEXT    // Tech stack snapshot, ≤2K tokens
+  ACTIVE_CONTEXT  // Current work focus, ≤1K tokens
+  PROGRESS        // Progress overview, ≤2K tokens
+}
+
+model MemoryBank {
+  id    Int            @id @default(autoincrement())
+  type  MemoryBankType // Enum: PROJECT_BRIEF | SYSTEM_PATTERNS | TECH_CONTEXT | ACTIVE_CONTEXT | PROGRESS
+  
+  // FK to Project
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Content (Markdown)
+  content       String  @db.Text // Canonical markdown representation
+  summaryTokens Int?    // Optional: cached token estimate for quick budgeting
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Constraints & Indexes
+  @@unique([projectId, type]) // One bank per (project, type)
+  @@index([projectId]) // Query all banks for a project
+  @@index([type]) // Query by bank type
+  @@map("memory_banks")
 }

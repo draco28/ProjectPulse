@@ -63,6 +63,10 @@ import { issueSetStatusTool } from './issues/setStatus.js';
 import { materializeRoadmapTool } from './roadmap/materializeTool.js';
 import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
 import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
+// Sprint 9: Memory Bank System
+import { memorySessionStartTool } from './memory/sessionStartTool.js';
+import { memoryPatternLookupTool } from './memory/patternLookupTool.js';
+import { memoryContextRecoveryTool } from './memory/contextRecoveryTool.js';
 
 export const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -129,6 +133,10 @@ export const loadTools = (): ToolDefinition[] => [
   getCurrentPositionTool,
   // Sprint 8.5 Phase 4: Roadmap read tools
   getPhaseProgressTool,
+  // Sprint 9: Memory Bank System tools
+  memorySessionStartTool,
+  memoryPatternLookupTool,
+  memoryContextRecoveryTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {

@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth-server';
 import { cloneWikiTemplates } from '@/lib/wiki/system-templates';
+import { cloneMemoryBanks } from '@/lib/memory/system-templates';
 
 const createProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').max(100, 'Name too long').trim(),
@@ -138,6 +139,9 @@ export async function POST(request: Request) {
 
     // Clone default wiki templates (non-blocking, but awaited for simplicity in this route)
     await cloneWikiTemplates(project.id, project.name);
+
+    // Sprint 9: Clone default Memory Banks for token-efficient context management
+    await cloneMemoryBanks(project.id);
 
     return NextResponse.json({ project }, { status: 201 });
   } catch (error: any) {
