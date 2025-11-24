@@ -1878,92 +1878,87 @@ Sprint 8.5 Phases 1-3 successfully completed 22/27 story points (81%), implement
 
 ---
 
-### Sprint 10 (Weeks 19-20): Memory Bank Snapshot Integration - 42 points (Phase 2)
+### Sprint 10 (Weeks 19-20): Ticket System – Unified WorkItem Model with Issues as Subtype (42 points, Phase 2)
 
-**User Stories:** Enhancement to existing Task/Session system (FR-159 to FR-173 subset)
+**User Stories:** Ticket System foundation and Issues integration (FR-159 to FR-173 subset)
 
-**Goal:** Add memory bank snapshot capabilities to existing Task model for improved context resumption
+**Goal:** Replace the narrow Task-centric memory snapshot slice with a fully functional **Ticket System** based on a unified Ticket/WorkItem model, treating existing Issues as a `kind = 'issue'` subtype and remodeling the Issues UI into a Tickets UI.
 
-**Status:** 📅 **POST-MVP ENHANCEMENT** - Builds on proven Task/Session system from Sprint 1
+**Status:** 📅 **POST-MVP ENHANCEMENT** – Builds on the existing Issues feature and 5-level hierarchy without redesigning roadmap semantics.
 
 **Key Deliverables:**
 
-- **Memory Bank Snapshot Model (12 points):**
-  - Add `MemoryBankSnapshot` table with relation to `Task` model
-  - Capture 5 memory bank files at task creation: project-brief, system-patterns, tech-context, active-context, progress
-  - Store snapshot metadata (timestamp, version, size)
+- **Ticket/WorkItem Domain Model (14 points):**
+  - Introduce `Ticket` (or `WorkItem`) Prisma model as the single source of truth for work items.
+  - Fields include: `projectId`, `title`, `description`, `kind`, `status`, `priority`, `assigneeType`, `assigneeId`, `source`, `createdBy`, optional `linkedTaskId`, labels, timestamps, and `metadata`.
+  - Represent issues as `Ticket` rows with `kind in ('issue','bug','scanner_finding')`.
+  - Optionally link Tickets to existing Tasks (via `linkedTaskId`) without changing Task semantics.
 
-- **Task Enhancement (15 points):**
-  - Add `snapshotId` optional foreign key to `Task` model (non-breaking)
-  - Implement `task.captureSnapshot()` MCP tool
-  - Implement `task.getContextSnapshot()` MCP tool for resumption
-  - Update `task.create()` to optionally capture snapshot (backward compatible)
+- **Issue → Ticket Integration & Migration (12 points):**
+  - Migrate existing Issue data into the Ticket table with `kind='issue'` (status, priority, comments preserved).
+  - Implement `/api/issues` routes as thin wrappers over `/api/tickets` filtered to issue-like kinds.
+  - Implement `projectpulse_issue_*` MCP tools as adapters over new `projectpulse_ticket_*` tools (backwards compatible).
 
-- **Context Resumption Workflow (10 points):**
-  - Load snapshot when resuming task after interruption
-  - Compare current memory banks vs snapshot (detect drift)
-  - Provide diff summary to agent (what changed since task creation)
+- **Ticket HTTP + MCP APIs (8 points):**
+  - HTTP: `GET /api/tickets`, `POST /api/tickets`, `GET /api/tickets/[id]`, `PATCH /api/tickets/[id]`, `DELETE /api/tickets/[id]`, `POST /api/tickets/bulk`, `POST /api/tickets/[id]/comments`, `PATCH /api/tickets/[id]/status`.
+  - MCP: `ticket.create`, `ticket.update`, `ticket.search`, `ticket.addComment`, `ticket.setStatus` (general-purpose, kind-aware).
+  - Ensure filters support kind, status, priority, assignee, and project so agents can pick the most important ticket to work on.
 
-- **Auto-Update Integration (5 points):**
-  - On task completion, compare implementation vs snapshot patterns
-  - Detect new patterns discovered during implementation
-  - Optional: Auto-update system-patterns.md with new patterns
+- **UI Refactor: Issues → Tickets (8 points):**
+  - Remodel `/issues` list & detail pages into a **Tickets** experience (similar to Agent → AI Agent Hub refactor).
+  - List view shows Ticket ID, title, kind, status, priority, assignee, timestamps, with filters on kind/status/priority.
+  - Detail view shows Ticket header (kind + status + priority badges), assignment (human or agent persona), description, optional linked Task, and comments/activity.
+  - Keep `/issues` route for now but present "Tickets" terminology in the UI; optionally add `/tickets` alias route.
+
+- **Entry Points & Dashboard Integration (6 points):**
+  - Update all "Create Issue" buttons (Dashboard, scanners, etc.) to "Create Ticket" while defaulting `kind='issue'` for bug/problem flows.
+  - Ensure Dashboard widgets and stats use Ticket data (filtered by kind) instead of the legacy Issue model.
 
 **Implementation Strategy:**
 
-**Week 1 (Database & Core Logic):**
-- Create `MemoryBankSnapshot` Prisma model
-- Add migration (non-breaking: nullable snapshotId on tasks table)
-- Implement snapshot capture logic (read 5 memory bank files, store JSON)
-- Write snapshot retrieval logic
+**Week 1 (Domain & Data + Core APIs):**
+- Add `Ticket` model in Prisma and run migration to create the table.
+- Migrate existing `Issue` rows into `Ticket` with `kind='issue'` (one-time data migration script / Prisma migration seed).
+- Implement `/api/tickets` REST endpoints backed by the Ticket model.
+- Adapt `/api/issues` endpoints to call into Ticket APIs with enforced kind filters.
 
-**Week 2 (MCP Tools & Testing):**
-- Implement `task.captureSnapshot()` MCP tool
-- Implement `task.getContextSnapshot()` MCP tool
-- Update `task.create()` with optional snapshot parameter
-- Integration testing: Task creation → snapshot → resumption
-- Performance testing: Snapshot capture <500ms, retrieval <200ms
+**Week 2 (MCP & UI Refactor):**
+- Implement `projectpulse_ticket_*` MCP tools over the Ticket APIs.
+- Rewire `projectpulse_issue_*` MCP tools to delegate to Ticket tools with `kind='issue'` by default.
+- Refactor the Issues list/detail React pages and components into Ticket views, updating labels, filters, and data sources.
+- Update Dashboard and other entry points to create Tickets (default `kind='issue'` where appropriate) and display Ticket-derived stats.
 
 **Dependencies:**
 
-- Sprint 1 complete (Task/Session system working)
-- Sprint 6 complete (Memory Bank files exist: project-brief, system-patterns, tech-context, active-context, progress)
+- Existing Issues feature (Sprint 4) implemented and stable (Issue CRUD, bulk creation, comments, status updates).
+- 5-level Roadmap hierarchy (Phase/Week/Day/Task/Session) available for optional linking via `linkedTaskId`.
 
 **Migration Strategy:**
 
-- **Non-Breaking**: Existing tasks without snapshots continue working
-- **Backward Compatible**: `task.create()` works with or without snapshot
-- **Graceful Degradation**: If snapshot missing, agent proceeds without it (current behavior)
+- **Non-breaking external contracts:** Keep `/api/issues` and `projectpulse_issue_*` tools operational by delegating to the new Ticket model.
+- **Data preservation:** Migrate Issue rows into Ticket preserving title, description, status, priority, comments, and any existing tags/labels.
+- **Gradual deprecation:** Plan to deprecate the standalone Issue model in a later sprint once all code paths use Ticket directly.
 
 **Risks:**
 
-- Snapshot storage size (5 files × ~5KB each = ~25KB per task) - mitigated: Reasonable for typical projects
-- Memory bank drift (snapshots become stale) - mitigated: Diff tool shows what changed
-- Task model complexity increase - mitigated: Optional feature, existing tasks unaffected
+- Data migration complexity for existing Issues – mitigated by careful migration scripts and backup.
+- UI/UX confusion during rename (Issues → Tickets) – mitigated by clear copy and filters defaulting to `kind='issue'` for the Issues view.
+- MCP tool compatibility – mitigated by keeping `issue_*` tools as thin adapters over `ticket_*` tools.
 
 **Exit Criteria:**
 
-- ✅ MemoryBankSnapshot table created and migrated
-- ✅ task.captureSnapshot() captures all 5 memory bank files
-- ✅ task.getContextSnapshot() retrieves frozen snapshot correctly
-- ✅ Agent can resume task with snapshot context (test scenario: context compaction → resume)
-- ✅ Existing tasks (without snapshots) continue working (backward compatibility verified)
-- ✅ Snapshot capture completes in <500ms (performance target met)
-
-**Testing:**
-
-- Unit tests: Snapshot capture, retrieval, diff logic
-- Integration tests: Task creation with snapshot → resumption workflow
-- Performance tests: Snapshot operations meet latency targets
-- Backward compatibility tests: Existing tasks without snapshots work correctly
-- Sub-agent integration tests: Verify research reports actionable
+- ✅ Ticket model created and Prisma migration applied successfully.
+- ✅ Existing Issue data migrated into Ticket with `kind='issue'` and verified.
+- ✅ `/api/tickets` endpoints implemented and covered by tests.
+- ✅ `/api/issues` routes delegate to Ticket logic while preserving existing behavior for issue-like kinds.
+- ✅ `projectpulse_ticket_*` MCP tools available and tested; `projectpulse_issue_*` tools delegate correctly.
+- ✅ `/issues` page functions as a Ticket list/detail UI (with Issues as a filtered view) and all "Create Issue" entry points now create Tickets.
 
 **Success Metrics:**
 
-- Zero breaking changes to existing Task/Session API
-- 100% backward compatibility (all existing MCP tools work)
-- Context resumption success rate >95% (agents don't repeat questions)
-- Snapshot capture latency P95 <500ms
+- Single unified Ticket/WorkItem model used for all future work items (issues, features, tech debt, epics, sprint slices).
+- No regressions in existing Issue flows (manual and MCP-based) after migration.
+- Agents can query Tickets by kind/status/priority/assignee and reliably pick the most important item to work on.
 
 ---
 
@@ -2060,6 +2055,31 @@ Sprint 2's generic architecture means ZERO refactoring required:
 - Time savings: 40+ hours of manual documentation eliminated per project
 - Compliance readiness: Docs pass ISO 9001 / FDA checklist (if applicable)
 
+**EPIC-013: Client Agent Integration APIs & Templates (15–20 points, POST-MVP)**
+
+**Goal:** Expose AI workflow artifacts (agent personas, skills, SOPs, workflows) and repo templates via client-friendly MCP/HTTP contracts so external agents can consume the same workflows used in internal dogfooding, without `.agent/` or `.claude/` folders in user repositories.
+
+**Key Deliverables (Feature Requirements):**
+
+- **FR-013-01 – Agent Personas Read APIs**
+  - REST: list and get-by-slug endpoints for project-scoped agent personas.
+  - MCP tools: `agentPersonas.list` / `agentPersonas.get` returning persona metadata and `systemPrompt` for client agents.
+- **FR-013-02 – Skills Read via MCP**
+  - MCP tools: `skills.list` (frontmatter-only for token efficiency), `skills.get`, and `skills.search`, delegating to existing `/api/skills` endpoints.
+- **FR-013-03 – SOPs Read APIs**
+  - REST + MCP list/get operations for SOPs by slug/tag/category, returning markdown content suitable for agent consumption.
+- **FR-013-04 – Repo Templates as Contracts**
+  - Audit and refine `CLAUDE.md` and `AGENTS.md` templates to:
+    - Explicitly describe how client agents connect to ProjectPulse via MCP.
+    - Reference personas/skills/SOPs/workflow tools conceptually (without hardcoding internal tool IDs).
+    - Emphasize that all AI workflow state is stored in ProjectPulse DB; user repos remain clean (no `.agent/` or `.claude/` folders).
+
+**EPIC-013 Success Metrics:**
+
+- Client agents can list personas, skills, SOPs, and workflows for a project via MCP/HTTP without direct database access.
+- `CLAUDE.md` and `AGENTS.md` generated during onboarding accurately describe the ProjectPulse integration pattern for client agents (manual review).
+- No `.agent/` or `.claude/` folders are required in user repositories; all AI workflow state is DB-backed and exposed via MCP/HTTP.
+
 ---
 
 ## 4. Resource Allocation
@@ -2088,6 +2108,7 @@ Different epics have varying complexity levels, affecting the time required per 
 | EPIC-007  | Health                       | 1.0 hours/point  | Scanner integrations moderate         | 19 hours    |
 | EPIC-010  | Memory Bank System           | 1.0 hours/point  | Documentation creation, file writing  | 34 hours    |
 | EPIC-011  | Research Agent Orchestration | 1.2 hours/point  | Sub-agent architecture, file I/O      | 29 hours    |
+| EPIC-013  | Client Agent Integration APIs | 1.0 hours/point | Light API + template work, low risk   | 15–20 hours |
 | **Total** |                              | **1.20 avg**     | **Weighted average across all epics** | **584 hrs** |
 
 ---
