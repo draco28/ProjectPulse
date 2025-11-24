@@ -419,6 +419,9 @@ Bootstrap complete workflow (template-based)
 }
 ```
 
+> **Note (Sprint 11 – EPIC-013: Client Agent Integration APIs & Templates):**
+> Session 3 bootstraps agent personas, skills, workflows, SOPs, and writes `CLAUDE.md` / `AGENTS.md` into the user's repository. A dedicated post-MVP epic will add client-facing MCP/HTTP read APIs for personas, skills, and SOPs, and will refine these repo templates so external client agents can consume the AI workflows without relying on `.agent/` or `.claude/` folders.
+
 ---
 
 ## Error Handling
