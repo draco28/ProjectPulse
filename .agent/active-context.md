@@ -1,42 +1,45 @@
 # Active Context
 
-**Last Updated**: 2025-11-18 22:05 PST
-**Current Focus**: Sprint 8.5 Phase 2 COMPLETE ✅ | Phase 3 Ready to Start
-**Recent Completion**: Sprint 8.5 Phase 2 - Blueprint MCP Tool Implementation ✅
+**Last Updated**: 2025-11-25 12:15 PST
+**Current Focus**: Sprint 9 Phase 5 COMPLETE ✅ | Context & Knowledge System validated
+**Recent Completion**: Sprint 9 - Knowledge MCP tools E2E verified, UI navigation fixed
 
 ---
 
 ## Current State
 
-### ✅ Sprint 8.5 Phase 2 Complete
+### ✅ Sprint 9 Phase 5 Complete (Testing & Validation)
 
-**Completion Date**: 2025-11-18 22:05 PST
-**Status**: Phase 2 COMPLETE ✅ | Phase 3 (Agent AI Hub Tabs) Ready to Start
+**Completion Date**: 2025-11-25
+**Status**: Phase 5 COMPLETE ✅ | Sprint 9 Context & Knowledge ready for Phase 6
+**Branch**: `feature/sprint-9-context-knowledge`
 
-**Phase 2 Deliverables**:
-- ✅ MCP Tool: projectpulse.blueprint.get implemented (204 lines)
-- ✅ API Route: GET /api/onboarding/blueprint (108 lines)  
-- ✅ Tool Registration: Added to MCP server index
-- ✅ Integration Tests: 4 comprehensive tests created (250 lines)
-- ✅ Quality Gates: All 5 gates passed (TypeScript, Tests, Registration, Structure, NO UI)
-- ✅ Documentation: Session file, plan, todos all updated
+**Phase 5 Deliverables**:
+- ✅ MCP Knowledge Tools: All 7 tools E2E tested in production
+- ✅ Multi-tenancy: Critical export bug fixed, projectId scoping verified
+- ✅ Graph Traversal: Column name fix verified (camelCase)
+- ✅ Fulltext Search: Tsvector population fix verified
+- ✅ UI Navigation: Hydration mismatch fixed with useSearchParams()
+- ✅ Documentation: sprint9-phase5-verification.md complete
 
-**What Was Built**:
-- ✅ Agents page: Stats dashboard cards, responsive layout, Import Config button
-- ✅ Header: Enhanced navigation and button styling
-- ✅ AgentCard: Refined card design with better hover states
-- ✅ Health Dashboard: Streamlined layout for better readability
-- ✅ SearchSortBar: Improved input styling and interactive states
-- ✅ WikiSearchBar: Enhanced search experience with visual feedback
-- ✅ Global CSS: Added neumorphic utility classes (neu-no-hover)
-- ✅ All pages: Responsive padding system (px-6 py-4 md:px-8)
+**What Was Fixed (5 Bugs)**:
+1. ✅ Export Multi-Tenancy Violation (CRITICAL) - Data leak prevented
+2. ✅ Graph Traversal Column Names - SQL fixed to Prisma camelCase
+3. ✅ Import Parameter Mismatch - MCP tool format conversion
+4. ✅ Empty Fulltext Tsvector - Weighted title + content indexed
+5. ✅ Deduplication Missing ProjectId - Queries scoped correctly
 
-**Commit**: `45208ab` - feat(ui): Comprehensive UI refinement for mockup compliance
-**Merged**: `118bf32` - Merge feature/ui-refinement-mockup-compliance into master
+**UI Fix: ArticleCard Hydration Mismatch**:
+- Removed React.memo wrapper
+- Added useSearchParams() for URL-derived state
+- Added Suspense boundary in knowledge/page.tsx
+
+**Commits**:
+- `906ae03` - fix(knowledge): resolve navigation hydration mismatch and multi-tenancy bugs
 
 **Next Steps**:
-1. Resume Sprint 8 Day 1-2 (E2E Testing - Health Dashboard)
-2. Continue with Sprint 8 exit criteria
+1. Continue Sprint 9 remaining phases if applicable
+2. Review Memory Bank integration in UI
 
 ---
 
