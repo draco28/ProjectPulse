@@ -22,6 +22,7 @@ export interface SearchResult {
 }
 
 export interface SemanticSearchOptions {
+  projectId: number; // Project scope (required for multi-tenancy)
   limit?: number; // Max results to return (default: 5)
   threshold?: number; // Minimum similarity score 0-1 (default: 0.7)
   category?: string; // Optional category filter
@@ -65,13 +66,19 @@ export class SearchError extends Error {
  */
 export async function semanticSearch(
   query: string,
-  options: SemanticSearchOptions = {}
+  options: SemanticSearchOptions
 ): Promise<SearchResult[]> {
   const {
+    projectId,
     limit = 5,
     threshold = 0.7,
     category,
   } = options;
+
+  // Validate projectId
+  if (!projectId || projectId < 1) {
+    throw new SearchError('Valid projectId is required', 'INVALID_PROJECT_ID', 400);
+  }
 
   // Validate input
   if (!query || query.trim().length === 0) {
@@ -103,7 +110,8 @@ export async function semanticSearch(
         tags,
         (embedding <=> '${queryVector}'::vector(768)) AS distance
       FROM knowledge_items
-      WHERE 1=1
+      WHERE "projectId" = ${projectId}
+        AND "archivedAt" IS NULL
     `;
 
     if (category) {
@@ -205,13 +213,19 @@ export async function semanticSearch(
  */
 export async function fullTextSearch(
   query: string,
-  options: SemanticSearchOptions = {}
+  options: SemanticSearchOptions
 ): Promise<SearchResult[]> {
   const {
+    projectId,
     limit = 5,
     threshold = 0.1, // Lower threshold for full-text (different scale)
     category,
   } = options;
+
+  // Validate projectId
+  if (!projectId || projectId < 1) {
+    throw new SearchError('Valid projectId is required', 'INVALID_PROJECT_ID', 400);
+  }
 
   // Validate input
   if (!query || query.trim().length === 0) {
@@ -240,7 +254,9 @@ export async function fullTextSearch(
           32
         ) AS rank
       FROM knowledge_items
-      WHERE "contentTsvector" @@ plainto_tsquery('english', '${query.replace(/'/g, "''")}')
+      WHERE "projectId" = ${projectId}
+        AND "archivedAt" IS NULL
+        AND "contentTsvector" @@ plainto_tsquery('english', '${query.replace(/'/g, "''")}')
     `;
 
     if (category) {
@@ -331,9 +347,14 @@ export async function fullTextSearch(
  */
 export async function hybridSearch(
   query: string,
-  options: SemanticSearchOptions = {}
+  options: SemanticSearchOptions
 ): Promise<SearchResult[]> {
-  const { limit = 5, includeRelated = false } = options;
+  const { projectId, limit = 5, includeRelated = false } = options;
+
+  // Validate projectId
+  if (!projectId || projectId < 1) {
+    throw new SearchError('Valid projectId is required', 'INVALID_PROJECT_ID', 400);
+  }
 
   try {
     // Run both searches in parallel with higher limits to get more candidates
@@ -394,6 +415,7 @@ export async function hybridSearch(
       if (topResult) {
         try {
           const relatedItems = await findRelatedKnowledgeItems(topResult.id, {
+            projectId,
             maxDepth: 2,
             limit: 5,
             minStrength: 0.6,

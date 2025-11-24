@@ -19,14 +19,23 @@ import { createKnowledgeItem, KnowledgeCreationError, DuplicationError } from '@
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
+    const projectId = parseInt(searchParams.get('projectId') || '0', 10);
     const search = searchParams.get('search') || '';
     const tag = searchParams.get('tag') || '';
     const sort = searchParams.get('sort') || 'newest';
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 50);
 
+    // Validate projectId
+    if (!projectId || projectId < 1) {
+      return NextResponse.json(
+        { error: 'Valid projectId is required' },
+        { status: 400 }
+      );
+    }
+
     // Build where clause
-    const where: Prisma.KnowledgeItemWhereInput = {};
+    const where: Prisma.KnowledgeItemWhereInput = { projectId };
 
     // Exclude archived items by default (US-090)
     where.archivedAt = null;
@@ -113,12 +122,16 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Parse and validate request body
     const body = await request.json();
+    const projectId = parseInt(body.projectId, 10);
 
-    // Extract allowDuplicates parameter (US-089)
-    const allowDuplicates = body.allowDuplicates === true;
-    delete body.allowDuplicates; // Remove before validation
+    // Validate projectId
+    if (!projectId || projectId < 1) {
+      return NextResponse.json(
+        { error: 'Valid projectId is required' },
+        { status: 400 }
+      );
+    }
 
     const validation = createKnowledgeItemSchema.safeParse(body);
 

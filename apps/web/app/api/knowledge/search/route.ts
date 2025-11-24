@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
     // Parse and validate query params
     const searchParams = request.nextUrl.searchParams;
     const rawParams = {
+      projectId: searchParams.get('projectId'),
       query: searchParams.get('query'),
       mode: searchParams.get('mode') || 'hybrid',
       limit: searchParams.get('limit'),
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { query, mode, limit, category } = validation.data;
+    const { projectId, query, mode, limit, category } = validation.data;
 
     // Execute search based on mode
     const startTime = Date.now();
@@ -68,14 +69,14 @@ export async function GET(request: NextRequest) {
 
     switch (mode) {
       case 'semantic':
-        results = await semanticSearch(query, { limit, category });
+        results = await semanticSearch(query, { projectId, limit, category });
         break;
       case 'fulltext':
-        results = await fullTextSearch(query, { limit, category });
+        results = await fullTextSearch(query, { projectId, limit, category });
         break;
       case 'hybrid':
       default:
-        results = await hybridSearch(query, { limit, category });
+        results = await hybridSearch(query, { projectId, limit, category });
         break;
     }
 

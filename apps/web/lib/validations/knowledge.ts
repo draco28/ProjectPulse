@@ -8,6 +8,10 @@ import { z } from 'zod';
  * Schema for creating a knowledge item
  */
 export const createKnowledgeItemSchema = z.object({
+  projectId: z.coerce.number()
+    .int()
+    .positive('Project ID must be a positive integer'),
+
   title: z.string()
     .min(1, 'Title is required')
     .max(200, 'Title must be 200 characters or less')
@@ -35,6 +39,10 @@ export type CreateKnowledgeItemInput = z.infer<typeof createKnowledgeItemSchema>
  * Schema for searching knowledge items
  */
 export const searchKnowledgeSchema = z.object({
+  projectId: z.coerce.number()
+    .int()
+    .positive('Project ID must be a positive integer'),
+
   query: z.string()
     .min(1, 'Search query is required')
     .max(1000, 'Query must be 1,000 characters or less')

@@ -67,6 +67,14 @@ import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
 import { memorySessionStartTool } from './memory/sessionStartTool.js';
 import { memoryPatternLookupTool } from './memory/patternLookupTool.js';
 import { memoryContextRecoveryTool } from './memory/contextRecoveryTool.js';
+// Sprint 9 Phase 3: Knowledge Base Integration
+import { knowledgeSearchTool } from './knowledge/searchTool.js';
+import { knowledgeCreateTool } from './knowledge/createTool.js';
+import { knowledgeExportTool } from './knowledge/exportTool.js';
+import { knowledgeImportTool } from './knowledge/importTool.js';
+import { knowledgeArchiveTool } from './knowledge/archiveTool.js';
+import { knowledgeMetricsTool } from './knowledge/metricsTool.js';
+import { knowledgeRelatedTool } from './knowledge/relatedTool.js';
 
 export const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -137,6 +145,14 @@ export const loadTools = (): ToolDefinition[] => [
   memorySessionStartTool,
   memoryPatternLookupTool,
   memoryContextRecoveryTool,
+  // Sprint 9 Phase 3: Knowledge Base Integration
+  knowledgeSearchTool,
+  knowledgeCreateTool,
+  knowledgeExportTool,
+  knowledgeImportTool,
+  knowledgeArchiveTool,
+  knowledgeMetricsTool,
+  knowledgeRelatedTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {

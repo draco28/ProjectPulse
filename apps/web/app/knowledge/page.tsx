@@ -109,15 +109,24 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="mb-1 text-3xl font-bold text-white">Knowledge Base</h2>
-                <p className="text-sm text-slate">{totalCount} items • Hybrid search enabled</p>
+                <p className="text-sm text-slate">
+                  {totalCount} items • Hybrid search enabled • Agent-managed repository
+                </p>
               </div>
-              <button
-                className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"
-                aria-label="Add knowledge base item"
-              >
-                <Plus className="h-5 w-5" aria-hidden="true" />
-                <span>Add Knowledge</span>
-              </button>
+              <div className="flex flex-col items-end gap-2">
+                <p className="text-xs text-slate/70 italic">
+                  💡 Knowledge items are created and updated by AI agents via MCP tools
+                </p>
+                <button
+                  className="neu-raised smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-slate cursor-not-allowed opacity-50"
+                  aria-label="Add knowledge base item (agent-only)"
+                  disabled
+                  title="Knowledge items are managed by AI agents. Use MCP tools: projectpulse_knowledge_create"
+                >
+                  <Plus className="h-5 w-5" aria-hidden="true" />
+                  <span>Agent-Only</span>
+                </button>
+              </div>
             </div>
           </header>
 

@@ -21,6 +21,7 @@ export interface RelatedKnowledgeItem {
 }
 
 export interface GraphTraversalOptions {
+  projectId: number; // Project scope (required for multi-tenancy)
   maxDepth?: number; // 1 or 2 hops (default: 2)
   limit?: number; // Max results per depth level (default: 10)
   minStrength?: number; // Minimum relationship strength 0-1 (default: 0.5)
@@ -72,15 +73,21 @@ export class GraphError extends Error {
  */
 export async function findRelatedKnowledgeItems(
   itemId: number,
-  options: GraphTraversalOptions = {}
+  options: GraphTraversalOptions
 ): Promise<RelatedKnowledgeItem[]> {
   const {
+    projectId,
     maxDepth = 2,
     limit = 10,
     minStrength = 0.5,
     relationshipTypes,
     includePath = false,
   } = options;
+
+  // Validate projectId
+  if (!projectId || projectId < 1) {
+    throw new GraphError('Valid projectId is required', 'INVALID_PROJECT_ID', 400);
+  }
 
   // Validate input
   if (maxDepth < 1 || maxDepth > 2) {
@@ -108,9 +115,9 @@ export async function findRelatedKnowledgeItems(
   }
 
   try {
-    // Check if source item exists
-    const sourceItem = await prisma.knowledgeItem.findUnique({
-      where: { id: itemId },
+    // Check if source item exists and belongs to project
+    const sourceItem = await prisma.knowledgeItem.findFirst({
+      where: { id: itemId, projectId },
       select: { id: true, title: true },
     });
 
@@ -165,6 +172,8 @@ export async function findRelatedKnowledgeItems(
         dr.depth
       FROM direct_relations dr
       JOIN knowledge_items ki ON ki.id = dr.related_id
+      WHERE ki."projectId" = ${projectId}
+        AND ki."archivedAt" IS NULL
       ORDER BY dr.strength DESC, ki.id
       LIMIT ${limit}
     `;
@@ -246,6 +255,8 @@ export async function findRelatedKnowledgeItems(
         thr.depth
       FROM two_hop_relations thr
       JOIN knowledge_items ki ON ki.id = thr.related_id
+      WHERE ki."projectId" = ${projectId}
+        AND ki."archivedAt" IS NULL
       ORDER BY thr.strength DESC, ki.id
       LIMIT ${limit}
     `;
@@ -287,7 +298,7 @@ export async function findRelatedKnowledgeItems(
       // Need to fetch intermediate titles for path
       const intermediateIds = [...new Set(twoHopResults.map(r => r.intermediate_id))];
       const intermediates = await prisma.knowledgeItem.findMany({
-        where: { id: { in: intermediateIds } },
+        where: { id: { in: intermediateIds }, projectId },
         select: { id: true, title: true },
       });
       const intermediateMap = new Map(intermediates.map(i => [i.id, i.title]));
