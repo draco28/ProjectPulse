@@ -198,7 +198,7 @@ export default function Session3Page() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button asChild className="w-full">
-              <Link href="/agents">
+              <Link href={`/agents?project=${projectId}`}>
                 <Bot className="mr-2 h-4 w-4" />
                 View Agent Personas
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -206,20 +206,20 @@ export default function Session3Page() {
             </Button>
 
             <Button asChild variant="outline" className="w-full">
-              <Link href="/roadmap">
+              <Link href={`/roadmap?project=${projectId}`}>
                 <Map className="mr-2 h-4 w-4" />
                 Explore Roadmap
               </Link>
             </Button>
 
             <Button asChild variant="outline" className="w-full">
-              <Link href="/dashboard">
+              <Link href={`/dashboard?project=${projectId}`}>
                 Go to Dashboard
               </Link>
             </Button>
 
             <Button asChild variant="outline" className="w-full">
-              <Link href="/onboarding">
+              <Link href={`/onboarding?project=${projectId}`}>
                 Back to Onboarding
               </Link>
             </Button>
