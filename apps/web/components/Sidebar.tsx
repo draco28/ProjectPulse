@@ -51,7 +51,8 @@ interface SidebarCounts {
 const navigationItems: NavItem[] = [
   { icon: Home, label: 'Dashboard', href: '/dashboard', pulse: true },
   { icon: Map, label: 'Roadmap', href: '/roadmap' },
-  { icon: ListTodo, label: 'Issues', href: '/issues', badgeKey: 'issues' },
+  // Sprint 10: Renamed Issues to Tickets
+  { icon: ListTodo, label: 'Tickets', href: '/tickets', badgeKey: 'issues' },
   { icon: Lightbulb, label: 'Knowledge', href: '/knowledge', badgeKey: 'knowledge' },
   { icon: Book, label: 'Wiki', href: '/wiki', badgeKey: 'wiki' },
   {

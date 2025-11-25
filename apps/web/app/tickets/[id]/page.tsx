@@ -1,0 +1,400 @@
+/**
+ * Ticket Detail Page
+ *
+ * Sprint 10: Unified ticket system for all work items
+ * Displays complete ticket information with comments, attachments, and activity timeline
+ */
+
+import { Metadata } from 'next';
+import { notFound, redirect } from 'next/navigation';
+import { Paperclip, Plus, MessageSquare } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
+import { serializeIssueDetail } from '@/types/issue';
+import { FloatingBackground } from '@/components/FloatingBackground';
+import { Sidebar } from '@/components/Sidebar';
+import { getCurrentUser } from '@/lib/auth-server';
+import { getActiveProjectForUser } from '@/lib/project-context';
+
+// Reusing issue detail components
+import { IssueHeader } from '@/components/issues/detail/IssueHeader';
+import { QuickActions } from '@/components/issues/detail/QuickActions';
+import { WatchersSection } from '@/components/issues/detail/WatchersSection';
+import { IssueActions } from '@/components/issues/detail/IssueActions';
+import { DescriptionSection } from '@/components/issues/detail/DescriptionSection';
+import { CodeSection } from '@/components/issues/detail/CodeSection';
+import { SystemActivity } from '@/components/issues/detail/SystemActivity';
+import { RelatedIssues } from '@/components/issues/detail/RelatedIssues';
+import { CommentList } from '@/components/issues/detail/CommentList';
+import { CommentForm } from '@/components/issues/detail/CommentForm';
+import { AttachmentList } from '@/components/issues/detail/AttachmentList';
+import { IssueDetailSidebar } from '@/components/issues/detail/IssueDetailSidebar';
+
+// Kind labels for display
+const kindLabels: Record<string, string> = {
+  feature: 'Feature',
+  task: 'Task',
+  epic: 'Epic',
+  issue: 'Issue',
+  bug: 'Bug',
+  scanner_finding: 'Scanner Finding',
+  tech_debt: 'Tech Debt',
+};
+
+// Kind badge colors
+const kindColors: Record<string, string> = {
+  feature: 'bg-blue-500/20 text-blue-400',
+  task: 'bg-green-500/20 text-green-400',
+  epic: 'bg-purple-500/20 text-purple-400',
+  issue: 'bg-yellow-500/20 text-yellow-400',
+  bug: 'bg-red-500/20 text-red-400',
+  scanner_finding: 'bg-orange-500/20 text-orange-400',
+  tech_debt: 'bg-gray-500/20 text-gray-400',
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const ticketId = parseInt(id, 10);
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { title: true, id: true, kind: true },
+  });
+
+  if (!ticket) {
+    return {
+      title: 'Ticket Not Found | ProjectPulse',
+      description: 'The requested ticket could not be found.',
+    };
+  }
+
+  const kindLabel = kindLabels[ticket.kind] || ticket.kind;
+
+  return {
+    title: `#${ticket.id} ${ticket.title} | ${kindLabel} | ProjectPulse`,
+    description: `View details and activity for ${kindLabel.toLowerCase()} #${ticket.id}: ${ticket.title}`,
+  };
+}
+
+async function getTicketDetail(id: number) {
+  const ticket = await prisma.ticket.findUnique({
+    where: { id },
+    select: {
+      // Core ticket fields
+      id: true,
+      title: true,
+      description: true,
+      status: true,
+      priority: true,
+      module: true,
+      assignee: true,
+      projectId: true,
+      customFields: true,
+      createdAt: true,
+      updatedAt: true,
+      closedAt: true,
+      // Sprint 10 fields
+      kind: true,
+      source: true,
+      assigneeType: true,
+      assigneeId: true,
+      linkedTaskId: true,
+
+      // Project context
+      project: {
+        select: {
+          id: true,
+          name: true,
+          repository: true,
+        },
+      },
+
+      // Labels for categorization
+      labels: {
+        select: {
+          id: true,
+          name: true,
+          color: true,
+        },
+      },
+
+      // Comments ordered chronologically
+      comments: {
+        select: {
+          id: true,
+          content: true,
+          author: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { createdAt: 'asc' },
+      },
+
+      // Attachments with full metadata
+      attachments: {
+        select: {
+          id: true,
+          filename: true,
+          filepath: true,
+          mimetype: true,
+          size: true,
+          uploadedAt: true,
+        },
+      },
+
+      // Linked files from codebase
+      linkedFiles: {
+        select: {
+          id: true,
+          filePath: true,
+          lineNumber: true,
+          createdAt: true,
+        },
+      },
+
+      // Recent commit history (limited to 10 most recent)
+      linkedCommits: {
+        select: {
+          id: true,
+          commitHash: true,
+          commitMessage: true,
+          commitDate: true,
+        },
+        orderBy: { commitDate: 'desc' },
+        take: 10,
+      },
+
+      // Linked task (if part of roadmap)
+      linkedTask: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+        },
+      },
+
+      // Aggregated counts
+      _count: {
+        select: {
+          comments: true,
+          attachments: true,
+          linkedFiles: true,
+          linkedCommits: true,
+        },
+      },
+    },
+  });
+
+  return ticket;
+}
+
+export default async function TicketDetailPage({ 
+  params, 
+  searchParams 
+}: { 
+  params: Promise<{ id: string }>; 
+  searchParams: Promise<{ project?: string }> 
+}) {
+  const { id } = await params;
+  const ticketId = parseInt(id, 10);
+
+  // Auth check
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
+  // Fetch ticket with all relations
+  const ticket = await getTicketDetail(ticketId);
+
+  if (!ticket) {
+    notFound();
+  }
+
+  // Verify project ownership
+  const searchParamsResolved = await searchParams;
+  const { projectId } = await getActiveProjectForUser(user.id, searchParamsResolved.project);
+  
+  if (ticket.projectId !== projectId) {
+    redirect(`/tickets/${ticketId}?project=${ticket.projectId}`);
+  }
+
+  // Serialize for client components
+  const serializedTicket = serializeIssueDetail(ticket);
+
+  const kindLabel = kindLabels[ticket.kind] || ticket.kind;
+  const kindColor = kindColors[ticket.kind] || 'bg-gray-500/20 text-gray-400';
+
+  return (
+    <>
+      <FloatingBackground />
+      <div className="content-wrapper flex h-screen overflow-hidden">
+        <Sidebar projectId={projectId} />
+
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
+          {/* Ticket Header */}
+          <div className="relative">
+            {/* Kind Badge */}
+            <div className="absolute top-4 right-4 z-10">
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${kindColor}`}>
+                {kindLabel}
+              </span>
+            </div>
+            <IssueHeader
+              id={ticket.id}
+              title={ticket.title}
+              status={ticket.status as 'open' | 'in-progress' | 'closed'}
+              priority={ticket.priority as 'critical' | 'high' | 'medium' | 'low'}
+              module={ticket.module}
+              projectName={ticket.project.name}
+              assignee={ticket.assignee}
+              createdAt={serializedTicket.createdAt}
+              updatedAt={serializedTicket.updatedAt}
+            />
+          </div>
+
+          {/* 3-Column Responsive Grid Layout */}
+          <main className="grid flex-1 grid-cols-1 gap-4 overflow-hidden lg:grid-cols-12">
+            {/* LEFT SIDEBAR */}
+            <aside className="order-3 space-y-4 overflow-auto lg:order-none lg:col-span-2">
+              <QuickActions issueId={serializedTicket.id} issueTitle={ticket.title} />
+              <WatchersSection issueId={serializedTicket.id} />
+              
+              {/* Linked Task Card (Sprint 10) */}
+              {ticket.linkedTask && (
+                <div className="neu-raised smooth-transition rounded-3xl p-4">
+                  <h4 className="text-sm font-semibold text-white mb-2">Linked Task</h4>
+                  <div className="text-sm text-slate">
+                    <p className="text-white truncate">{ticket.linkedTask.title}</p>
+                    <p className="text-xs mt-1">Status: {ticket.linkedTask.status}</p>
+                  </div>
+                </div>
+              )}
+            </aside>
+
+            {/* MAIN CONTENT */}
+            <div className="order-1 space-y-4 overflow-auto lg:order-none lg:col-span-7">
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end">
+                <IssueActions
+                  issueId={serializedTicket.id}
+                  currentStatus={ticket.status as 'open' | 'in-progress' | 'closed'}
+                />
+              </div>
+
+              {/* Description Section */}
+              <DescriptionSection issueId={serializedTicket.id} description={ticket.description} />
+
+              {/* Code Section (Linked Files) */}
+              {ticket.linkedFiles.length > 0 && (
+                <CodeSection linkedFiles={serializedTicket.linkedFiles} />
+              )}
+
+              {/* Attachments Section */}
+              {ticket.attachments.length > 0 && (
+                <div className="neu-raised smooth-transition rounded-3xl p-6">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+                      <Paperclip className="h-5 w-5 text-coral" aria-hidden="true" />
+                      Attachments{' '}
+                      <span className="text-sm font-normal text-slate">
+                        ({ticket.attachments.length})
+                      </span>
+                    </h3>
+                    <button
+                      className="smooth-transition hover:text-coralLight text-sm font-semibold text-coral"
+                      aria-label="Add file attachment"
+                    >
+                      <Plus className="mr-2 h-5 w-5" aria-hidden="true" />
+                      Add File
+                    </button>
+                  </div>
+                  <AttachmentList attachments={serializedTicket.attachments} />
+                </div>
+              )}
+
+              {/* Activity/Comments Section */}
+              <div className="neu-raised smooth-transition rounded-3xl p-6">
+                <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-white">
+                  <MessageSquare className="h-5 w-5 text-coral" aria-hidden="true" />
+                  Activity{' '}
+                  <span className="text-sm font-normal text-slate">
+                    ({ticket.comments.length} comments)
+                  </span>
+                </h3>
+
+                <CommentList
+                  issueId={serializedTicket.id}
+                  initialComments={serializedTicket.comments}
+                />
+
+                {/* Add Comment Form */}
+                <div className="mt-6 border-t border-[#2A2A2A] pt-6">
+                  <CommentForm issueId={serializedTicket.id} />
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT SIDEBAR */}
+            <aside className="order-2 space-y-4 overflow-auto lg:order-none lg:col-span-3">
+              <IssueDetailSidebar
+                issueId={serializedTicket.id}
+                assignee={serializedTicket.assignee}
+                labels={serializedTicket.labels}
+                priority={serializedTicket.priority}
+                module={serializedTicket.module}
+                status={serializedTicket.status}
+              />
+              
+              {/* Ticket Metadata (Sprint 10) */}
+              <div className="neu-raised smooth-transition rounded-3xl p-4">
+                <h4 className="text-sm font-semibold text-white mb-3">Ticket Info</h4>
+                <dl className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <dt className="text-slate">Kind</dt>
+                    <dd className={`px-2 py-0.5 rounded text-xs font-medium ${kindColor}`}>
+                      {kindLabel}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-slate">Source</dt>
+                    <dd className="text-white capitalize">{ticket.source}</dd>
+                  </div>
+                  {ticket.assigneeType && (
+                    <div className="flex justify-between">
+                      <dt className="text-slate">Assignee Type</dt>
+                      <dd className="text-white capitalize">{ticket.assigneeType}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+
+              <SystemActivity
+                comments={serializedTicket.comments}
+                linkedCommits={
+                  serializedTicket.linkedCommits as Array<{
+                    id: string;
+                    commitHash: string;
+                    commitMessage: string | null;
+                    commitDate: string;
+                  }>
+                }
+              />
+              <RelatedIssues
+                currentIssueId={ticket.id}
+                projectId={ticket.project.id}
+                labels={ticket.labels}
+                module={ticket.module}
+              />
+            </aside>
+          </main>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export const revalidate = 300;
+export const dynamicParams = true;
