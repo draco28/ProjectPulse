@@ -58,6 +58,20 @@ import {
   healthGetHistoryHandler,
 } from '@/lib/mcp/handlers/health-handler';
 import {
+  ticketCreateHandler,
+  ticketBulkCreateHandler,
+  ticketUpdateHandler,
+  ticketSearchHandler,
+  ticketAddCommentHandler,
+  ticketSetStatusHandler,
+  issueCreateHandler,
+  issueBulkCreateHandler,
+  issueUpdateHandler,
+  issueSearchHandler,
+  issueAddCommentHandler,
+  issueSetStatusHandler,
+} from '@/lib/mcp/handlers/ticket-handler';
+import {
   listKnowledgeResources,
   readKnowledgeResource,
 } from '@/lib/mcp/resources/knowledge-resource';
@@ -264,12 +278,56 @@ export async function POST(request: NextRequest) {
         case 'health.getHistory':
           result = await healthGetHistoryHandler(args);
           break;
+        // Ticket tools (Sprint 10)
+        case 'ticket.create':
+          result = await ticketCreateHandler(args);
+          break;
+        case 'ticket.bulkCreate':
+          result = await ticketBulkCreateHandler(args);
+          break;
+        case 'ticket.update':
+          result = await ticketUpdateHandler(args);
+          break;
+        case 'ticket.search':
+          result = await ticketSearchHandler(args);
+          break;
+        case 'ticket.addComment':
+          result = await ticketAddCommentHandler(args);
+          break;
+        case 'ticket.setStatus':
+          result = await ticketSetStatusHandler(args);
+          break;
+        // Issue compatibility tools (adapters)
+        case 'issue.create':
+          result = await issueCreateHandler(args);
+          break;
+        case 'issue.bulkCreate':
+          result = await issueBulkCreateHandler(args);
+          break;
+        case 'issue.update':
+          result = await issueUpdateHandler(args);
+          break;
+        case 'issue.search':
+          result = await issueSearchHandler(args);
+          break;
+        case 'issue.addComment':
+          result = await issueAddCommentHandler(args);
+          break;
+        case 'issue.setStatus':
+          result = await issueSetStatusHandler(args);
+          break;
         default:
           throw new MCPError(
             `Unknown tool: ${name}`,
             JSONRPC_ERROR_CODES.METHOD_NOT_FOUND,
             404,
-            { availableTools: ['knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export', 'knowledge.import', 'knowledge.archive', 'skill.list', 'skill.load', 'skill.search', 'skill.update', 'skill.delete', 'skill.export', 'skill.import', 'skill.linkKnowledge', 'health.runScan', 'health.getScore', 'health.getHistory'] }
+            { availableTools: [
+              'knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export', 'knowledge.import', 'knowledge.archive',
+              'skill.list', 'skill.load', 'skill.search', 'skill.update', 'skill.delete', 'skill.export', 'skill.import', 'skill.linkKnowledge',
+              'health.runScan', 'health.getScore', 'health.getHistory',
+              'ticket.create', 'ticket.bulkCreate', 'ticket.update', 'ticket.search', 'ticket.addComment', 'ticket.setStatus',
+              'issue.create', 'issue.bulkCreate', 'issue.update', 'issue.search', 'issue.addComment', 'issue.setStatus'
+            ] }
           );
       }
     } else if (jsonrpcRequest.method === 'tools/list') {
@@ -572,6 +630,215 @@ export async function POST(request: NextRequest) {
                 },
               },
               required: ['projectId'],
+            },
+          },
+          // Ticket tools (Sprint 10)
+          {
+            name: 'ticket.create',
+            description: 'Create a new ticket (feature, task, epic, issue, bug, tech_debt, scanner_finding)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID (defaults to first project)' },
+                title: { type: 'string', minLength: 1, maxLength: 200 },
+                description: { type: 'string', maxLength: 50000 },
+                kind: { type: 'string', enum: ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'], default: 'issue' },
+                source: { type: 'string', enum: ['manual', 'onboarding', 'scanner', 'agent'], default: 'manual' },
+                status: { type: 'string', default: 'open' },
+                priority: { type: 'string', enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
+                module: { type: 'string' },
+                assignee: { type: 'string' },
+                assigneeType: { type: 'string', enum: ['human', 'agent_persona'] },
+                assigneeId: { type: 'number' },
+                linkedTaskId: { type: 'string', description: 'UUID of sprint task to link' },
+                labelIds: { type: 'array', items: { type: 'number' } },
+              },
+              required: ['title'],
+            },
+          },
+          {
+            name: 'ticket.bulkCreate',
+            description: 'Bulk create tickets (up to 50)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number' },
+                tickets: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      title: { type: 'string', minLength: 1, maxLength: 200 },
+                      description: { type: 'string' },
+                      kind: { type: 'string', enum: ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'] },
+                      status: { type: 'string' },
+                      priority: { type: 'string' },
+                      module: { type: 'string' },
+                      assignee: { type: 'string' },
+                    },
+                    required: ['title'],
+                  },
+                  minItems: 1,
+                  maxItems: 50,
+                },
+              },
+              required: ['tickets'],
+            },
+          },
+          {
+            name: 'ticket.update',
+            description: 'Update ticket fields',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                ticketId: { type: 'number' },
+                title: { type: 'string', minLength: 1, maxLength: 200 },
+                description: { type: 'string' },
+                status: { type: 'string' },
+                priority: { type: 'string' },
+                module: { type: 'string' },
+                assignee: { type: 'string' },
+                assigneeType: { type: 'string', enum: ['human', 'agent_persona'] },
+                assigneeId: { type: 'number' },
+                linkedTaskId: { type: 'string' },
+                labelIds: { type: 'array', items: { type: 'number' } },
+              },
+              required: ['ticketId'],
+            },
+          },
+          {
+            name: 'ticket.search',
+            description: 'Search tickets with filters',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number' },
+                search: { type: 'string', description: 'Text search in title/description' },
+                kind: { type: 'array', items: { type: 'string' } },
+                status: { type: 'array', items: { type: 'string' } },
+                priority: { type: 'array', items: { type: 'string' } },
+                module: { type: 'array', items: { type: 'string' } },
+                assignee: { type: 'array', items: { type: 'string' } },
+                tags: { type: 'array', items: { type: 'string' } },
+                createdFrom: { type: 'string', description: 'ISO 8601 date' },
+                createdTo: { type: 'string', description: 'ISO 8601 date' },
+                page: { type: 'number', minimum: 1, default: 1 },
+                pageSize: { type: 'number', minimum: 1, maximum: 100, default: 20 },
+                sortBy: { type: 'string', enum: ['createdAt', 'updatedAt', 'priority'], default: 'createdAt' },
+                sortDirection: { type: 'string', enum: ['asc', 'desc'], default: 'desc' },
+              },
+            },
+          },
+          {
+            name: 'ticket.addComment',
+            description: 'Add comment to ticket',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                ticketId: { type: 'number' },
+                content: { type: 'string', minLength: 1 },
+                author: { type: 'string', default: 'Anonymous' },
+              },
+              required: ['ticketId', 'content'],
+            },
+          },
+          {
+            name: 'ticket.setStatus',
+            description: 'Update ticket status (auto-sets closedAt for closed statuses)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                ticketId: { type: 'number' },
+                status: { type: 'string' },
+              },
+              required: ['ticketId', 'status'],
+            },
+          },
+          // Issue compatibility tools (adapters - backwards compatible)
+          {
+            name: 'issue.create',
+            description: 'Create issue (adapter for ticket.create with kind=issue)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number' },
+                title: { type: 'string', minLength: 1, maxLength: 200 },
+                description: { type: 'string' },
+                status: { type: 'string' },
+                priority: { type: 'string' },
+                module: { type: 'string' },
+                assignee: { type: 'string' },
+              },
+              required: ['title'],
+            },
+          },
+          {
+            name: 'issue.bulkCreate',
+            description: 'Bulk create issues (adapter for ticket.bulkCreate)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number' },
+                issues: { type: 'array', items: { type: 'object' }, minItems: 1, maxItems: 50 },
+              },
+              required: ['issues'],
+            },
+          },
+          {
+            name: 'issue.update',
+            description: 'Update issue (adapter for ticket.update)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                issueId: { type: 'number' },
+                title: { type: 'string' },
+                description: { type: 'string' },
+                status: { type: 'string' },
+                priority: { type: 'string' },
+                module: { type: 'string' },
+                assignee: { type: 'string' },
+              },
+              required: ['issueId'],
+            },
+          },
+          {
+            name: 'issue.search',
+            description: 'Search issues (adapter for ticket.search with kind=[issue,bug,scanner_finding])',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number' },
+                search: { type: 'string' },
+                status: { type: 'array', items: { type: 'string' } },
+                priority: { type: 'array', items: { type: 'string' } },
+                page: { type: 'number' },
+                pageSize: { type: 'number' },
+              },
+            },
+          },
+          {
+            name: 'issue.addComment',
+            description: 'Add comment to issue (adapter for ticket.addComment)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                issueId: { type: 'number' },
+                content: { type: 'string' },
+                author: { type: 'string' },
+              },
+              required: ['issueId', 'content'],
+            },
+          },
+          {
+            name: 'issue.setStatus',
+            description: 'Set issue status (adapter for ticket.setStatus)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                issueId: { type: 'number' },
+                status: { type: 'string' },
+              },
+              required: ['issueId', 'status'],
             },
           },
         ],
