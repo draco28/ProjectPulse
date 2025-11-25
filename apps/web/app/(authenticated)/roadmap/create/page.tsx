@@ -34,7 +34,7 @@ export default async function CreateRoadmapPage({
       {/* Page Header */}
       <div className="mb-6">
         <Link
-          href="/roadmap"
+          href={`/roadmap?project=${projectId}`}
           className="inline-flex items-center gap-2 text-sm text-slate hover:text-coral transition-colors mb-4"
         >
           <ArrowLeft className="h-4 w-4" />
