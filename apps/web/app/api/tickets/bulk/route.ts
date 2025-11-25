@@ -1,0 +1,180 @@
+/**
+ * Bulk Ticket Creation API Route (Sprint 10)
+ *
+ * POST /api/tickets/bulk - Create multiple tickets at once
+ *
+ * Supports up to 50 tickets per request with auto-tagging
+ */
+
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { TicketBulkCreateSchema } from '@/lib/validations/ticket';
+import { failure, success, resolveProjectId } from '../_utils';
+import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
+import { deriveAutoTags } from '@/lib/issues/tagging';
+import { revalidatePath } from 'next/cache';
+
+export const dynamic = 'force-dynamic';
+
+export async function POST(request: NextRequest) {
+  try {
+    const payload = await request.json();
+    const data = TicketBulkCreateSchema.parse(payload);
+    const projectId = await resolveProjectId(data.projectId);
+
+    const results: Array<{
+      success: boolean;
+      ticket?: { id: number; title: string; kind: string; reference?: string };
+      error?: string;
+      reference?: string;
+    }> = [];
+
+    // Process tickets in transaction for atomicity
+    await prisma.$transaction(async (tx) => {
+      for (const ticketData of data.tickets) {
+        try {
+          const autoTags = await deriveAutoTags(ticketData.context?.files);
+          const status = await resolveStatusValue(ticketData.status);
+          const priority = await resolvePriorityValue(ticketData.priority ?? autoTags.priority);
+          const ticketModule = await resolveModuleValue(ticketData.module ?? autoTags.module);
+
+          // Handle labels
+          const labelIdSet = new Set<number>(ticketData.labelIds ?? []);
+          
+          if (autoTags.labels?.length) {
+            const existing = await tx.label.findMany({
+              where: { name: { in: autoTags.labels } },
+              select: { id: true, name: true },
+            });
+
+            const missing = autoTags.labels.filter(
+              (name) => !existing.some((label) => label.name === name)
+            );
+
+            if (missing.length) {
+              const created = await Promise.all(
+                missing.map((name) =>
+                  tx.label.create({
+                    data: { name, color: '#94a3b8' },
+                    select: { id: true },
+                  })
+                )
+              );
+              created.forEach((label) => labelIdSet.add(label.id));
+            }
+
+            existing.forEach((label) => labelIdSet.add(label.id));
+          }
+
+          // Build custom fields
+          const files = ticketData.context?.files ?? [];
+          const snippets = files
+            .filter((file) => file.snippet)
+            .map((file) => ({
+              filePath: file.filePath,
+              lineNumber: file.lineNumber ?? null,
+              snippet: file.snippet,
+            }));
+
+          const customFieldsPayload = {
+            ...(ticketData.customFields ?? {}),
+            ...(ticketData.context?.metadata ?? {}),
+            ...(snippets.length ? { contextSnippets: snippets } : {}),
+          };
+          const customFields = Object.keys(customFieldsPayload).length > 0 ? customFieldsPayload : undefined;
+
+          // Validate linkedTaskId if provided
+          if (ticketData.linkedTaskId) {
+            const task = await tx.task.findUnique({
+              where: { id: ticketData.linkedTaskId },
+              select: { id: true },
+            });
+            if (!task) {
+              results.push({
+                success: false,
+                error: `Task ${ticketData.linkedTaskId} not found`,
+                reference: ticketData.reference,
+              });
+              continue;
+            }
+          }
+
+          // Create ticket
+          const ticket = await tx.ticket.create({
+            data: {
+              projectId,
+              title: ticketData.title,
+              description: ticketData.description,
+              status,
+              priority,
+              module: ticketModule,
+              assignee: ticketData.assignee,
+              kind: ticketData.kind ?? 'issue',
+              source: ticketData.source ?? 'manual',
+              assigneeType: ticketData.assigneeType,
+              assigneeId: ticketData.assigneeId,
+              linkedTaskId: ticketData.linkedTaskId,
+              customFields,
+              labels: labelIdSet.size > 0
+                ? { connect: Array.from(labelIdSet).map((id) => ({ id })) }
+                : undefined,
+            },
+            select: { id: true, title: true, kind: true },
+          });
+
+          // Create linked files
+          if (files.length) {
+            await tx.ticketLinkedFile.createMany({
+              data: files.map((file) => ({
+                ticketId: ticket.id,
+                filePath: file.filePath,
+                lineNumber: file.lineNumber ?? null,
+              })),
+            });
+          }
+
+          results.push({
+            success: true,
+            ticket: {
+              id: ticket.id,
+              title: ticket.title,
+              kind: ticket.kind,
+              reference: ticketData.reference,
+            },
+          });
+        } catch (ticketError) {
+          results.push({
+            success: false,
+            error: ticketError instanceof Error ? ticketError.message : 'Unknown error',
+            reference: ticketData.reference,
+          });
+        }
+      }
+    });
+
+    const successCount = results.filter((r) => r.success).length;
+    const failureCount = results.filter((r) => !r.success).length;
+
+    revalidatePath('/tickets');
+    revalidatePath('/issues');
+
+    return success({
+      created: successCount,
+      failed: failureCount,
+      total: data.tickets.length,
+      results,
+    }, successCount > 0 ? 201 : 400);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid bulk ticket payload',
+        details: error.flatten(),
+      });
+    }
+
+    console.error('[API] POST /api/tickets/bulk failed', error);
+    return failure({ code: 'INTERNAL_ERROR', message: 'Failed to create tickets', status: 500 });
+  }
+}

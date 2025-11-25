@@ -1,21 +1,21 @@
 /**
- * Issues API Route (Sprint 10 - Backwards Compatible Wrapper)
+ * Tickets API Route (Sprint 10)
  *
- * This route delegates to /api/tickets with kind filter for issue-like types
- * Maintained for backwards compatibility with existing clients
+ * GET /api/tickets - List tickets with filters
+ * POST /api/tickets - Create a new ticket
  *
- * GET /api/issues - List tickets with kind IN (issue, bug, scanner_finding)
- * POST /api/issues - Create a ticket with kind='issue'
+ * Tickets are the unified WorkItem model - Issues are a subtype (kind='issue')
  */
 
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { CreateTicketSchema, TicketFilterSchema, ISSUE_LIKE_KINDS } from '@/lib/validations/ticket';
-import { failure, success, resolveProjectId, buildTicketWhere, buildTicketOrderBy, ticketIncludeConfig } from '../tickets/_utils';
+import { CreateTicketSchema, TicketFilterSchema, TicketKind } from '@/lib/validations/ticket';
+import { failure, success, resolveProjectId, buildTicketWhere, buildTicketOrderBy, ticketIncludeConfig } from './_utils';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
 import { deriveAutoTags } from '@/lib/issues/tagging';
-import type { TicketFilters, TicketKind } from '@/lib/validations/ticket';
+import type { TicketFilters } from '@/lib/validations/ticket';
+import type { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
@@ -27,34 +27,29 @@ function parseArrayParam(searchParams: URLSearchParams, key: string) {
   }
   const single = searchParams.get(key);
   if (single) {
-    return single.split(',').map((value) => value.trim()).filter(Boolean);
+    return single
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean);
   }
   return undefined;
 }
 
-/**
- * GET /api/issues
- * Delegates to /api/tickets with kind filter for issue-like types
- */
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
-    
-    // Parse kind filter - default to issue-like kinds for backwards compatibility
-    const kindParam = parseArrayParam(url.searchParams, 'kind') as TicketKind[] | undefined;
-    const kind = kindParam ?? ISSUE_LIKE_KINDS;
-
     const rawFilters: Partial<TicketFilters> = {
       projectId: url.searchParams.get('projectId')
         ? Number(url.searchParams.get('projectId'))
         : undefined,
-      kind, // Always filter to issue-like kinds unless explicitly specified
+      kind: parseArrayParam(url.searchParams, 'kind') as TicketKind[] | undefined,
       status: parseArrayParam(url.searchParams, 'status'),
       priority: parseArrayParam(url.searchParams, 'priority'),
       module: parseArrayParam(url.searchParams, 'module'),
       assignee: parseArrayParam(url.searchParams, 'assignee'),
       tags: parseArrayParam(url.searchParams, 'tags'),
       search: url.searchParams.get('search') ?? undefined,
+      linkedTaskId: url.searchParams.get('linkedTaskId') ?? undefined,
       createdFrom: url.searchParams.get('createdFrom') ?? undefined,
       createdTo: url.searchParams.get('createdTo') ?? undefined,
       includeRelations: url.searchParams.get('includeRelations') === 'true',
@@ -82,9 +77,8 @@ export async function GET(request: NextRequest) {
       prisma.ticket.count({ where }),
     ]);
 
-    // Return as "issues" for backwards compatibility
     return success({
-      issues: tickets,
+      tickets,
       totalCount,
       page,
       pageSize,
@@ -100,23 +94,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.error('[API] GET /api/issues failed', error);
-    return failure({ code: 'INTERNAL_ERROR', message: 'Failed to fetch issues', status: 500 });
+    console.error('[API] GET /api/tickets failed', error);
+    return failure({ code: 'INTERNAL_ERROR', message: 'Failed to fetch tickets', status: 500 });
   }
 }
 
-/**
- * POST /api/issues
- * Creates a ticket with kind='issue' (default)
- */
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
-    // Force kind to 'issue' if not specified
-    const data = CreateTicketSchema.parse({
-      ...payload,
-      kind: payload.kind ?? 'issue',
-    });
+    const data = CreateTicketSchema.parse(payload);
     const projectId = await resolveProjectId(data.projectId);
 
     const autoTags = await deriveAutoTags(data.context?.files);
@@ -184,6 +170,21 @@ export async function POST(request: NextRequest) {
     const customFields =
       Object.keys(customFieldsPayload).length > 0 ? customFieldsPayload : undefined;
 
+    // Validate linkedTaskId if provided
+    if (data.linkedTaskId) {
+      const task = await prisma.task.findUnique({
+        where: { id: data.linkedTaskId },
+        select: { id: true },
+      });
+      if (!task) {
+        return failure({
+          code: 'INVALID_LINKED_TASK',
+          message: `Task ${data.linkedTaskId} not found`,
+          status: 400,
+        });
+      }
+    }
+
     const ticket = await prisma.$transaction(async (tx) => {
       const created = await tx.ticket.create({
         data: {
@@ -226,22 +227,23 @@ export async function POST(request: NextRequest) {
       });
     });
 
-    revalidatePath('/issues');
-    revalidatePath(`/issues/${ticket.id}`);
     revalidatePath('/tickets');
     revalidatePath(`/tickets/${ticket.id}`);
+    // Also revalidate issues paths for backwards compatibility
+    revalidatePath('/issues');
+    revalidatePath(`/issues/${ticket.id}`);
 
     return success(ticket, 201);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',
-        message: 'Invalid issue payload',
+        message: 'Invalid ticket payload',
         details: error.flatten(),
       });
     }
 
-    console.error('[API] POST /api/issues failed', error);
-    return failure({ code: 'INTERNAL_ERROR', message: 'Failed to create issue', status: 500 });
+    console.error('[API] POST /api/tickets failed', error);
+    return failure({ code: 'INTERNAL_ERROR', message: 'Failed to create ticket', status: 500 });
   }
 }

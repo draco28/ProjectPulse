@@ -195,6 +195,9 @@ model Task {
   // Hierarchy - Children
   sessions Session[]
 
+  // Sprint 10: Tickets linked to this task (Roadmap ↔ Ticket linkage)
+  tickets Ticket[]
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -297,7 +300,7 @@ model Project {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  issues              Issue[]
+  tickets             Ticket[] // Sprint 10: Unified Ticket model (replaces Issue)
   skills              Skill[] // Sprint 6: Skills lazy-loading system
   onboardingSessions  OnboardingSession[]
   workflowRuns        WorkflowRun[]
@@ -310,18 +313,18 @@ model Project {
   currentTodos        CurrentTodos? // Sprint 8.5 Phase 2: Current todos list
   agentPersonas       AgentPersona[] // Sprint 8.5 Phase 3: Project-scoped agent personas
   sops                SOP[] // Sprint 8.5 Phase 3E: SOPs for this project
-  
+
   // Sprint 8.9: Additional project-scoped entities
-  knowledgeItems      KnowledgeItem[]
-  securityFindings    SecurityFinding[]
-  wikiPages           WikiPage[]
+  knowledgeItems   KnowledgeItem[]
+  securityFindings SecurityFinding[]
+  wikiPages        WikiPage[]
 
   // Sprint 9: Agent OAuth & Settings
   tokens        ProjectToken[]
-  mcpWriteFiles Boolean @default(false) // Allow MCP to write helper files (CLAUDE.md, AGENTS.md) to repo
+  mcpWriteFiles Boolean        @default(false) // Allow MCP to write helper files (CLAUDE.md, AGENTS.md) to repo
 
   // Sprint 9: Memory Bank System
-  memoryBanks   MemoryBank[]
+  memoryBanks MemoryBank[]
 
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt
@@ -339,15 +342,15 @@ model Project {
 // Multi-tenancy: Each project can have multiple agent tokens (per persona/client)
 
 model ProjectToken {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   projectId Int
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  name      String   // Human-friendly label (e.g., "Frontend Claude", "Backend Claude")
-  tokenHash String   // bcrypt hash of opaque token (plaintext never stored)
-  expiresAt DateTime?
+  name       String // Human-friendly label (e.g., "Frontend Claude", "Backend Claude")
+  tokenHash  String // bcrypt hash of opaque token (plaintext never stored)
+  expiresAt  DateTime?
   lastUsedAt DateTime?
-  isRevoked Boolean  @default(false)
+  isRevoked  Boolean   @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -364,16 +367,36 @@ model ProjectToken {
 // Sessions: 1=Executive Summary, 2=Industry Docs, 3=AI Workflow Blueprint
 // Storage: Prompts in templates, responses in sessions (JSONB)
 
-model Issue {
+// ============================================================================
+// TICKET SYSTEM (Sprint 10)
+// ============================================================================
+// Purpose: Unified WorkItem model for all types of work items
+// Types: feature, task, epic, issue, bug, scanner_finding, tech_debt
+// Architecture: Single table with `kind` field for type discrimination
+// Migration: Issue model renamed to Ticket, existing data gets kind='issue'
+
+model Ticket {
   id Int @id @default(autoincrement())
 
-  // Core fields
+  // Core fields (inherited from Issue)
   title       String
   description String? @db.Text
   status      String  @default("open")
   priority    String  @default("medium")
-  module      String? // Combat, Core, UI, Systems, World, Creatures
-  assignee    String?
+  module      String? // UI, API, Database, etc.
+  assignee    String? // Legacy: simple string assignee
+
+  // Sprint 10: Ticket type system
+  kind   String @default("issue") // feature, task, epic, issue, bug, scanner_finding, tech_debt
+  source String @default("manual") // manual, onboarding, scanner, agent
+
+  // Sprint 10: Enhanced assignment
+  assigneeType String? // human, agent_persona
+  assigneeId   String? // User ID or AgentPersona ID
+
+  // Sprint 10: Roadmap linkage (Ticket ↔ Task in hierarchy)
+  linkedTaskId String? // Optional link to Task in roadmap hierarchy
+  linkedTask   Task?   @relation(fields: [linkedTaskId], references: [id], onDelete: SetNull)
 
   // Custom fields (flexible schema)
   customFields Json? @db.JsonB
@@ -386,14 +409,14 @@ model Issue {
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   labels        Label[]
-  comments      Comment[]
-  attachments   Attachment[]
-  linkedFiles   LinkedFile[]
-  linkedCommits LinkedCommit[]
+  comments      TicketComment[]
+  attachments   TicketAttachment[]
+  linkedFiles   TicketLinkedFile[]
+  linkedCommits TicketLinkedCommit[]
 
   // Knowledge & Wiki links
-  linkedKnowledge KnowledgeLink[] @relation("IssueKnowledge")
-  linkedWikiPages WikiPageLink[]  @relation("IssueWiki")
+  linkedKnowledge TicketKnowledgeLink[] @relation("TicketKnowledge")
+  linkedWikiPages TicketWikiPageLink[]  @relation("TicketWiki")
 
   // Security findings
   securityFinding SecurityFinding?
@@ -403,12 +426,19 @@ model Issue {
   closedAt      DateTime?
   HealthFinding HealthFinding?
 
+  // Indexes for performance
   @@index([status])
   @@index([priority])
   @@index([module])
   @@index([projectId])
   @@index([assignee])
+  @@index([kind]) // Sprint 10: Filter by ticket type
+  @@index([projectId, kind]) // Sprint 10: Project + kind filter
+  @@index([projectId, status]) // Sprint 10: Project + status filter
+  @@index([kind, status]) // Sprint 10: Kind + status filter
+  @@index([linkedTaskId]) // Sprint 10: Find tickets by linked task
   @@index([createdAt(sort: Desc)])
+  @@map("tickets") // Sprint 10: Renamed from "issues" to "tickets"
 }
 
 model Label {
@@ -416,70 +446,78 @@ model Label {
   name  String @unique
   color String @default("#808080")
 
-  issues Issue[]
+  tickets Ticket[] // Sprint 10: Renamed from issues
 
   createdAt DateTime @default(now())
 
   @@index([name])
 }
 
-model Comment {
+// Sprint 10: Renamed from Comment to TicketComment
+model TicketComment {
   id      Int     @id @default(autoincrement())
   content String  @db.Text
   author  String?
 
-  issueId Int
-  issue   Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  ticketId Int
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([issueId])
+  @@index([ticketId])
   @@index([createdAt(sort: Desc)])
+  @@map("ticket_comments") // Sprint 10: Renamed from "comments"
 }
 
-model Attachment {
+// Sprint 10: Renamed from Attachment to TicketAttachment
+model TicketAttachment {
   id       Int    @id @default(autoincrement())
   filename String
   filepath String
   mimetype String
   size     Int // bytes
 
-  issueId Int
-  issue   Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  ticketId Int
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   uploadedAt DateTime @default(now())
 
-  @@index([issueId])
+  @@index([ticketId])
+  @@map("ticket_attachments") // Sprint 10: Renamed from "attachments"
 }
 
-model LinkedFile {
+// Sprint 10: Renamed from LinkedFile to TicketLinkedFile
+model TicketLinkedFile {
   id         Int    @id @default(autoincrement())
   filePath   String // Relative path from project root
   lineNumber Int?
 
-  issueId Int
-  issue   Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  ticketId Int
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
-  @@unique([issueId, filePath])
+  @@unique([ticketId, filePath])
   @@index([filePath])
+  @@map("ticket_linked_files") // Sprint 10: Renamed from "linked_files"
 }
 
-model LinkedCommit {
+// Sprint 10: Renamed from LinkedCommit to TicketLinkedCommit
+model TicketLinkedCommit {
   id            Int       @id @default(autoincrement())
   commitHash    String // Git commit hash
   commitMessage String?
   commitDate    DateTime?
 
-  issueId Int
-  issue   Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  ticketId Int
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
-  @@unique([issueId, commitHash])
+  @@unique([ticketId, commitHash])
   @@index([commitHash])
+  @@map("ticket_linked_commits") // Sprint 10: Renamed from "linked_commits"
 }
 
 // ============================================================================
@@ -515,8 +553,8 @@ model KnowledgeItem {
   // Version history
   versions KnowledgeItemVersion[]
 
-  // Links to issues (existing functionality)
-  linkedIssues KnowledgeLink[] @relation("KnowledgeIssue")
+  // Sprint 10: Links to tickets (renamed from linkedIssues)
+  linkedTickets TicketKnowledgeLink[] @relation("KnowledgeTicket")
 
   // Links to skills (US-104: Sprint 6)
   linkedSkills SkillKnowledgeLink[]
@@ -535,20 +573,22 @@ model KnowledgeItem {
   @@map("knowledge_items")
 }
 
-model KnowledgeLink {
+// Sprint 10: Renamed from KnowledgeLink to TicketKnowledgeLink
+model TicketKnowledgeLink {
   id Int @id @default(autoincrement())
 
   knowledgeItemId Int
-  knowledgeItem   KnowledgeItem @relation("KnowledgeIssue", fields: [knowledgeItemId], references: [id], onDelete: Cascade)
+  knowledgeItem   KnowledgeItem @relation("KnowledgeTicket", fields: [knowledgeItemId], references: [id], onDelete: Cascade)
 
-  issueId Int
-  issue   Issue @relation("IssueKnowledge", fields: [issueId], references: [id], onDelete: Cascade)
+  ticketId Int
+  ticket   Ticket @relation("TicketKnowledge", fields: [ticketId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
-  @@unique([knowledgeItemId, issueId])
+  @@unique([knowledgeItemId, ticketId])
   @@index([knowledgeItemId])
-  @@index([issueId])
+  @@index([ticketId])
+  @@map("ticket_knowledge_links") // Sprint 10: Renamed from "knowledge_links"
 }
 
 // Graph relationships between knowledge items (for 2-hop traversal)
@@ -771,7 +811,7 @@ model WikiPage {
   incomingLinks PageLink[] @relation("TargetPage")
 
   // Issue links
-  linkedIssues WikiPageLink[] @relation("WikiIssue")
+  linkedTickets TicketWikiPageLink[] @relation("WikiTicket") // Sprint 10: Renamed from linkedIssues
 
   // Version history (simplified - Phase 3)
   version Int @default(1)
@@ -848,20 +888,22 @@ model PageLink {
   @@index([targetPageId])
 }
 
-model WikiPageLink {
+// Sprint 10: Renamed from WikiPageLink to TicketWikiPageLink
+model TicketWikiPageLink {
   id Int @id @default(autoincrement())
 
   wikiPageId Int
-  wikiPage   WikiPage @relation("WikiIssue", fields: [wikiPageId], references: [id], onDelete: Cascade)
+  wikiPage   WikiPage @relation("WikiTicket", fields: [wikiPageId], references: [id], onDelete: Cascade)
 
-  issueId Int
-  issue   Issue @relation("IssueWiki", fields: [issueId], references: [id], onDelete: Cascade)
+  ticketId Int
+  ticket   Ticket @relation("TicketWiki", fields: [ticketId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
-  @@unique([wikiPageId, issueId])
+  @@unique([wikiPageId, ticketId])
   @@index([wikiPageId])
-  @@index([issueId])
+  @@index([ticketId])
+  @@map("ticket_wiki_page_links") // Sprint 10: Renamed
 }
 
 model WikiPageEvent {
@@ -924,9 +966,9 @@ model SecurityFinding {
   // Status
   status String @default("open") // open, false_positive, fixed
 
-  // Optional link to issue
-  issueId Int?   @unique
-  issue   Issue? @relation(fields: [issueId], references: [id], onDelete: SetNull)
+  // Sprint 10: Optional link to ticket (renamed from issueId)
+  ticketId Int?    @unique
+  ticket   Ticket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
 
   // Metadata
   scanDate DateTime  @default(now())
@@ -1531,8 +1573,8 @@ model HealthFinding {
   agentAnalysis String? @db.Text // Agent's assessment
   proposedFix   String? @db.Text // Suggested remediation
 
-  // Issue linkage (FR-119 remediation workflow)
-  issueId Int? @unique // Optional link to Issue model
+  // Sprint 10: Ticket linkage (FR-119 remediation workflow, renamed from issueId)
+  ticketId Int? @unique // Optional link to Ticket model
 
   // Timestamps
   scanDate  DateTime  @default(now()) // When finding was detected
@@ -1542,7 +1584,7 @@ model HealthFinding {
 
   // Relations
   scanner HealthScanner @relation(fields: [scannerId], references: [id], onDelete: Cascade)
-  issue   Issue?        @relation(fields: [issueId], references: [id], onDelete: SetNull)
+  ticket  Ticket?       @relation(fields: [ticketId], references: [id], onDelete: SetNull)
 
   // Performance indexes (8 strategic indexes for sub-50ms queries)
   @@index([scannerId]) // Query findings for scanner
@@ -1591,7 +1633,7 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   name         String?
-  passwordHash String   // bcrypt hash
+  passwordHash String // bcrypt hash
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -1623,29 +1665,29 @@ model AuthSession {
 // 5 Memory Bank types per project: PROJECT_BRIEF, SYSTEM_PATTERNS, TECH_CONTEXT, ACTIVE_CONTEXT, PROGRESS
 
 enum MemoryBankType {
-  PROJECT_BRIEF   // High-level project goals, ≤3K tokens
+  PROJECT_BRIEF // High-level project goals, ≤3K tokens
   SYSTEM_PATTERNS // Implementation patterns, ≤2K tokens
-  TECH_CONTEXT    // Tech stack snapshot, ≤2K tokens
-  ACTIVE_CONTEXT  // Current work focus, ≤1K tokens
-  PROGRESS        // Progress overview, ≤2K tokens
+  TECH_CONTEXT // Tech stack snapshot, ≤2K tokens
+  ACTIVE_CONTEXT // Current work focus, ≤1K tokens
+  PROGRESS // Progress overview, ≤2K tokens
 }
 
 model MemoryBank {
-  id    Int            @id @default(autoincrement())
-  type  MemoryBankType // Enum: PROJECT_BRIEF | SYSTEM_PATTERNS | TECH_CONTEXT | ACTIVE_CONTEXT | PROGRESS
-  
+  id   Int            @id @default(autoincrement())
+  type MemoryBankType // Enum: PROJECT_BRIEF | SYSTEM_PATTERNS | TECH_CONTEXT | ACTIVE_CONTEXT | PROGRESS
+
   // FK to Project
   projectId Int
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+
   // Content (Markdown)
-  content       String  @db.Text // Canonical markdown representation
-  summaryTokens Int?    // Optional: cached token estimate for quick budgeting
-  
+  content       String @db.Text // Canonical markdown representation
+  summaryTokens Int? // Optional: cached token estimate for quick budgeting
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Constraints & Indexes
   @@unique([projectId, type]) // One bank per (project, type)
   @@index([projectId]) // Query all banks for a project
