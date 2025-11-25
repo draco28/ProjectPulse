@@ -1,27 +1,29 @@
 /**
- * Roadmap Page - Sprint 8.5
+ * Roadmap Page - Standalone Roadmap UI
  *
  * Displays 5-level development roadmap hierarchy:
  * Roadmap → Phase → Sprint → Week → Day → Task
  *
  * Features:
  * - Server Component data fetching (nested includes)
+ * - Toggle between Tree and Timeline views
  * - 5-level collapsible tree UI with neumorphic design
+ * - Horizontal Gantt-style timeline visualization
  * - Current position indicator with coral accents
  * - Progress visualization
  * - Color-coded status badges
  *
  * @see US-073: Development Roadmap Visualization
+ * @see .agent/task/roadmap-ui/ROADMAP-TIMELINE-DESIGN.md
  */
 
 import { Suspense } from 'react';
-import { Map, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Map } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth-server';
 import { getActiveProjectForUser } from '@/lib/project-context';
-import { FilterableRoadmapTree } from '@/components/roadmap/FilterableRoadmapTree';
+import { FilterableRoadmapView } from '@/components/roadmap/FilterableRoadmapView';
 import { CurrentPositionBanner } from '@/components/roadmap/CurrentPositionBanner';
 import { EmptyRoadmapState } from '@/components/roadmap/EmptyRoadmapState';
 
@@ -99,7 +101,7 @@ export default async function RoadmapPage({
   const roadmap = await getRoadmap(projectId);
 
   if (!roadmap) {
-    return <EmptyRoadmapState />;
+    return <EmptyRoadmapState projectId={projectId} />;
   }
 
   return (
@@ -120,7 +122,7 @@ export default async function RoadmapPage({
       {/* Current Position Banner */}
       <CurrentPositionBanner roadmap={roadmap} />
 
-      {/* Roadmap Tree with Filters */}
+      {/* Roadmap View (Tree or Timeline) */}
       <Suspense
         fallback={
           <div className="neu-raised rounded-3xl p-6 animate-pulse">
@@ -131,7 +133,7 @@ export default async function RoadmapPage({
           </div>
         }
       >
-        <FilterableRoadmapTree roadmap={roadmap} />
+        <FilterableRoadmapView roadmap={roadmap} />
       </Suspense>
     </>
   );

@@ -63,6 +63,7 @@ import { issueSetStatusTool } from './issues/setStatus.js';
 import { materializeRoadmapTool } from './roadmap/materializeTool.js';
 import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
 import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
+import { roadmapCreateTool } from './roadmap/createTool.js';
 // Sprint 9: Memory Bank System
 import { memorySessionStartTool } from './memory/sessionStartTool.js';
 import { memoryPatternLookupTool } from './memory/patternLookupTool.js';
@@ -141,6 +142,8 @@ export const loadTools = (): ToolDefinition[] => [
   getCurrentPositionTool,
   // Sprint 8.5 Phase 4: Roadmap read tools
   getPhaseProgressTool,
+  // Sprint 9: Roadmap creation tool for MCP agents
+  roadmapCreateTool,
   // Sprint 9: Memory Bank System tools
   memorySessionStartTool,
   memoryPatternLookupTool,

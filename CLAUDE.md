@@ -31,9 +31,17 @@ curl http://192.168.1.15:3000/api/health
 # ✅ MUST return: {"status":"healthy","database":"connected"}
 ```
 
-**If services down:**
-- Tell user to start Mac mini Docker services
-- Or use Git communication to tell Mac mini: "Start Docker services"
+**If services down (I CAN restart Docker directly since I'm running on Mac mini):**
+```bash
+# Restart Docker services
+docker compose -f docker-compose.cloud.yml up -d
+
+# Or restart specific service
+docker compose -f docker-compose.cloud.yml restart web
+
+# Rebuild if code changes need new image
+docker compose -f docker-compose.cloud.yml up -d --build web
+```
 
 **See**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
 
@@ -865,8 +873,8 @@ Initialize or update .agent/ documentation system
 
 ```markdown
 - [ ] Mac mini health OK: curl http://192.168.1.15:3000/api/health returns healthy
-- [ ] 192.168.1.15:3000 loads application (from Windows)
-- [ ] (Optional local) pnpm dev only if explicitly running locally on Windows
+- [ ] 192.168.1.15:3000 loads application (Mac mini is BOTH dev machine AND Docker host)
+- [ ] Docker services running: docker compose -f docker-compose.cloud.yml ps
 - [ ] On feature branch (not master)
 - [ ] Read .agent/active-context.md, .agent/progress.md and docs/13-Project-Plan.md
 - [ ] **CRITICAL**: Read .agent/MANDATORY_SESSION_PROTOCOL.md Protocol Violations Log
