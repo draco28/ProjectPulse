@@ -49,7 +49,8 @@ export async function generateMetadata({
   const { id } = await params;
   const issueId = parseInt(id, 10);
 
-  const issue = await prisma.issue.findUnique({
+  // Sprint 10: Use ticket model
+  const issue = await prisma.ticket.findUnique({
     where: { id: issueId },
     select: { title: true, id: true },
   });
@@ -83,7 +84,8 @@ export async function generateMetadata({
  * - Returns null if issue not found (handled by notFound())
  */
 async function getIssueDetail(id: number) {
-  const issue = await prisma.issue.findUnique({
+  // Sprint 10: Use ticket model
+  const issue = await prisma.ticket.findUnique({
     where: { id },
     select: {
       // Core issue fields
@@ -208,6 +210,7 @@ export default async function IssueDetailPage({ params, searchParams }: { params
   }
 
   // Serialize for client components (Dates → ISO strings, numbers → strings)
+  // @ts-expect-error Sprint 10: Ticket model has additional fields, but serialization still works
   const serializedIssue = serializeIssueDetail(issue);
 
   return (

@@ -58,9 +58,11 @@ export async function resolveProjectId(projectId?: number) {
   return defaultProject.id;
 }
 
-export function buildIssueWhere(filters: IssueFilters, projectId: number): Prisma.IssueWhereInput {
-  const where: Prisma.IssueWhereInput = {
+// Sprint 10: Use Ticket model (Issue is now Ticket with kind filter)
+export function buildIssueWhere(filters: IssueFilters, projectId: number): Prisma.TicketWhereInput {
+  const where: Prisma.TicketWhereInput = {
     projectId,
+    kind: { in: ['issue', 'bug', 'scanner_finding'] }, // Backwards compatibility
   };
 
   if (filters.status?.length) {
@@ -104,7 +106,8 @@ export function buildIssueWhere(filters: IssueFilters, projectId: number): Prism
   return where;
 }
 
-export function buildIssueOrderBy(filters: IssueFilters): Prisma.IssueOrderByWithRelationInput {
+// Sprint 10: Use Ticket model
+export function buildIssueOrderBy(filters: IssueFilters): Prisma.TicketOrderByWithRelationInput {
   const direction = filters.sortDirection ?? 'desc';
   switch (filters.sortBy) {
     case 'updatedAt':

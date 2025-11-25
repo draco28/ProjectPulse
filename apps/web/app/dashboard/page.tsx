@@ -55,13 +55,14 @@ async function getDashboardData(projectId: number) {
     issuesClosedPrev7,
   ] = await Promise.all([
     // Current snapshot counts
-    prisma.issue.count({ where: { projectId, status: 'open' } }),
-    prisma.issue.count({ where: { projectId, status: 'in-progress' } }),
-    prisma.issue.count({ where: { projectId, status: 'closed' } }),
+    // Sprint 10: Use ticket model (issues are tickets with kind IN ('issue','bug','scanner_finding'))
+    prisma.ticket.count({ where: { projectId, status: 'open', kind: { in: ['issue', 'bug', 'scanner_finding'] } } }),
+    prisma.ticket.count({ where: { projectId, status: 'in-progress', kind: { in: ['issue', 'bug', 'scanner_finding'] } } }),
+    prisma.ticket.count({ where: { projectId, status: 'closed', kind: { in: ['issue', 'bug', 'scanner_finding'] } } }),
     prisma.knowledgeItem.count({ where: { projectId } }),
     prisma.securityFinding.count({ where: { projectId, status: 'open' } }),
-    prisma.issue.findMany({
-      where: { projectId },
+    prisma.ticket.findMany({
+      where: { projectId, kind: { in: ['issue', 'bug', 'scanner_finding'] } },
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -88,15 +89,17 @@ async function getDashboardData(projectId: number) {
       select: { id: true, name: true, ownerId: true },
     }),
     // Historical windows for trends (issues created)
-    prisma.issue.count({
+    prisma.ticket.count({
       where: {
         projectId,
+        kind: { in: ['issue', 'bug', 'scanner_finding'] },
         createdAt: { gte: weekAgo },
       },
     }),
-    prisma.issue.count({
+    prisma.ticket.count({
       where: {
         projectId,
+        kind: { in: ['issue', 'bug', 'scanner_finding'] },
         createdAt: { gte: twoWeeksAgo, lt: weekAgo },
       },
     }),
@@ -127,16 +130,18 @@ async function getDashboardData(projectId: number) {
       },
     }),
     // Issues closed (completed) by updatedAt window
-    prisma.issue.count({
+    prisma.ticket.count({
       where: {
         projectId,
+        kind: { in: ['issue', 'bug', 'scanner_finding'] },
         status: 'closed',
         updatedAt: { gte: weekAgo },
       },
     }),
-    prisma.issue.count({
+    prisma.ticket.count({
       where: {
         projectId,
+        kind: { in: ['issue', 'bug', 'scanner_finding'] },
         status: 'closed',
         updatedAt: { gte: twoWeeksAgo, lt: weekAgo },
       },

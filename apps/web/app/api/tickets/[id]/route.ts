@@ -8,6 +8,7 @@
 
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { TicketIdParamSchema, UpdateTicketSchema } from '@/lib/validations/ticket';
 import { failure, success, ticketIncludeConfig } from '../_utils';
@@ -168,24 +169,27 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     // Determine if closing ticket
     const isClosing = status && status !== existing.status && (status === 'closed' || status === 'resolved');
 
+    // Build update data object explicitly
+    const updateData: Parameters<typeof prisma.ticket.update>[0]['data'] = {};
+    
+    if (data.title) updateData.title = data.title;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (status) updateData.status = status;
+    if (priority) updateData.priority = priority;
+    if (ticketModule !== undefined) updateData.module = ticketModule;
+    if (data.assignee !== undefined) updateData.assignee = data.assignee;
+    if (data.kind) updateData.kind = data.kind;
+    if (data.source) updateData.source = data.source;
+    if (data.assigneeType !== undefined) updateData.assigneeType = data.assigneeType;
+    if (data.assigneeId !== undefined) updateData.assigneeId = data.assigneeId;
+    if (data.linkedTaskId !== undefined) updateData.linkedTask = data.linkedTaskId ? { connect: { id: data.linkedTaskId } } : { disconnect: true };
+    if (data.customFields) updateData.customFields = data.customFields as Prisma.InputJsonValue;
+    if (labelSet !== undefined) updateData.labels = { set: labelSet };
+    if (isClosing) updateData.closedAt = new Date();
+
     const ticket = await prisma.ticket.update({
       where: { id },
-      data: {
-        ...(data.title && { title: data.title }),
-        ...(data.description !== undefined && { description: data.description }),
-        ...(status && { status }),
-        ...(priority && { priority }),
-        ...(ticketModule !== undefined && { module: ticketModule }),
-        ...(data.assignee !== undefined && { assignee: data.assignee }),
-        ...(data.kind && { kind: data.kind }),
-        ...(data.source && { source: data.source }),
-        ...(data.assigneeType !== undefined && { assigneeType: data.assigneeType }),
-        ...(data.assigneeId !== undefined && { assigneeId: data.assigneeId }),
-        ...(data.linkedTaskId !== undefined && { linkedTaskId: data.linkedTaskId }),
-        ...(data.customFields && { customFields: data.customFields }),
-        ...(labelSet !== undefined && { labels: { set: labelSet } }),
-        ...(isClosing && { closedAt: new Date() }),
-      },
+      data: updateData,
       include: ticketIncludeConfig(true),
     });
 

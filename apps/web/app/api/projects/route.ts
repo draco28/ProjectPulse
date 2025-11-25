@@ -38,7 +38,8 @@ export async function GET() {
         },
         _count: {
           select: {
-            issues: true,
+            // Sprint 10: Use tickets instead of issues
+            tickets: true,
           },
         },
       },
@@ -60,7 +61,7 @@ export async function GET() {
         repository: project.repository,
         createdAt: project.createdAt,
         updatedAt: project.updatedAt,
-        issueCount: project._count.issues,
+        issueCount: project._count.tickets, // Sprint 10: Use tickets count
         onboarding: {
           progress: onboardingProgress,
           complete: onboardingComplete,

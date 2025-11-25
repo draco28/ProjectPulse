@@ -87,7 +87,8 @@ async function getSecurityFindings(projectId: number, searchParams: PageProps['s
       codeSnippet: true,
       status: true,
       scanDate: true,
-      issue: {
+      // Sprint 10: Use ticket instead of issue
+      ticket: {
         select: {
           id: true,
           title: true,

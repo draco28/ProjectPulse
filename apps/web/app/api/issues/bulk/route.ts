@@ -1,3 +1,9 @@
+/**
+ * Issue Bulk Create API Route (Sprint 10 - Backwards Compatible Wrapper)
+ *
+ * Creates tickets with kind='issue' by default for backwards compatibility
+ */
+
 import { NextRequest } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -5,7 +11,7 @@ import { prisma } from '@/lib/prisma';
 import { IssueBulkCreateSchema } from '@/lib/validations/issue';
 import { deriveAutoTags } from '@/lib/issues/tagging';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
-import { failure, resolveProjectId, success } from '../_utils';
+import { failure, resolveProjectId, success } from '../../tickets/_utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +24,7 @@ export async function POST(request: NextRequest) {
     const projectId = await resolveProjectId(data.projectId);
     const startedAt = Date.now();
 
-    const createdIssues = await prisma.$transaction(async (tx) => {
+    const createdTickets = await prisma.$transaction(async (tx) => {
       const createdIds: number[] = [];
 
       for (const issuePayload of data.issues) {
@@ -83,11 +89,14 @@ export async function POST(request: NextRequest) {
         const customFields =
           Object.keys(customFieldsPayload).length > 0 ? customFieldsPayload : undefined;
 
-        const created = await tx.issue.create({
+        // Create ticket with kind='issue' for backwards compatibility
+        const created = await tx.ticket.create({
           data: {
             projectId,
             title: issuePayload.title,
             description: issuePayload.description,
+            kind: 'issue', // Default kind for backwards compatibility
+            source: 'manual',
             status,
             priority,
             module: issueModule,
@@ -104,9 +113,9 @@ export async function POST(request: NextRequest) {
         });
 
         if (files.length) {
-          await tx.linkedFile.createMany({
+          await tx.ticketLinkedFile.createMany({
             data: files.map((file) => ({
-              issueId: created.id,
+              ticketId: created.id,
               filePath: file.filePath,
               lineNumber: file.lineNumber ?? null,
             })),
@@ -116,7 +125,7 @@ export async function POST(request: NextRequest) {
         createdIds.push(created.id);
       }
 
-      return tx.issue.findMany({
+      return tx.ticket.findMany({
         where: { id: { in: createdIds } },
         include: {
           labels: { select: { id: true, name: true, color: true } },
@@ -128,12 +137,13 @@ export async function POST(request: NextRequest) {
     });
 
     revalidatePath('/issues');
+    revalidatePath('/tickets');
 
     return success(
       {
-        created: createdIssues.length,
+        created: createdTickets.length,
         failed: 0,
-        issues: createdIssues,
+        issues: createdTickets, // Keep response field name for backwards compatibility
         durationMs: Date.now() - startedAt,
       },
       201

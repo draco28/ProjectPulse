@@ -1,7 +1,7 @@
 /**
- * Issue Comments API Route
+ * Issue Comments API Route (Sprint 10 - Backwards Compatible Wrapper)
  *
- * POST /api/issues/[id]/comments - Create a new comment on an issue
+ * POST /api/issues/[id]/comments - Create a new comment on an issue/ticket
  *
  * Request body:
  * - content: string (required, 1-10000 characters)
@@ -16,21 +16,23 @@
 import { NextRequest } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
-import { CommentSchema, IssueIdParamSchema } from '@/lib/validations/issue';
-import { failure, success } from '../../_utils';
+import { CommentSchema } from '@/lib/validations/issue';
+import { TicketIdParamSchema } from '@/lib/validations/ticket';
+import { failure, success } from '../../../tickets/_utils';
 import { z } from 'zod';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = IssueIdParamSchema.parse({ id: params.id });
+    const { id: rawId } = await params;
+    const { id } = TicketIdParamSchema.parse({ id: rawId });
 
-    // 2. Verify issue exists
-    const issueExists = await prisma.issue.findUnique({
+    // 2. Verify ticket exists
+    const ticketExists = await prisma.ticket.findUnique({
       where: { id },
       select: { id: true },
     });
 
-    if (!issueExists) {
+    if (!ticketExists) {
       return failure({ code: 'NOT_FOUND', message: 'Issue not found', status: 404 });
     }
 
@@ -38,12 +40,12 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const body = await request.json();
     const validatedData = CommentSchema.parse(body);
 
-    // 4. Create comment in database
-    const comment = await prisma.comment.create({
+    // 4. Create comment in database (TicketComment)
+    const comment = await prisma.ticketComment.create({
       data: {
         content: validatedData.content,
         author: validatedData.author || 'Anonymous',
-        issueId: id,
+        ticketId: id,
       },
       select: {
         id: true,
@@ -51,12 +53,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         author: true,
         createdAt: true,
         updatedAt: true,
-        issueId: true,
+        ticketId: true,
       },
     });
 
-    // 5. Revalidate issue detail page (clears Next.js cache)
+    // 5. Revalidate issue/ticket detail pages (clears Next.js cache)
     revalidatePath(`/issues/${id}`);
+    revalidatePath(`/tickets/${id}`);
 
     return success(comment, 201);
   } catch (error) {

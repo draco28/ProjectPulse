@@ -103,10 +103,11 @@ async function getIssues(projectId: number, searchParams: SearchParams) {
       orderBy = { createdAt: 'desc' };
   }
 
-  // Fetch issues
+  // Sprint 10: Use ticket model with kind filter for backwards compatibility
+  const ticketWhere = { ...where, kind: { in: ['issue', 'bug', 'scanner_finding'] } };
   const [issues, totalCount] = await Promise.all([
-    prisma.issue.findMany({
-      where,
+    prisma.ticket.findMany({
+      where: ticketWhere,
       include: {
         comments: {
           select: { id: true },
@@ -119,7 +120,7 @@ async function getIssues(projectId: number, searchParams: SearchParams) {
       take: perPage,
       skip: (page - 1) * perPage,
     }),
-    prisma.issue.count({ where }),
+    prisma.ticket.count({ where: ticketWhere }),
   ]);
 
   return {
@@ -132,36 +133,38 @@ async function getIssues(projectId: number, searchParams: SearchParams) {
 }
 
 async function getFilterCounts(projectId: number) {
+  // Sprint 10: Use ticket model with kind filter
+  const ticketWhere = { projectId, kind: { in: ['issue', 'bug', 'scanner_finding'] } };
   // Get counts for each filter option scoped to project
   const [statusCounts, priorityCounts, moduleCounts] = await Promise.all([
-    prisma.issue.groupBy({
+    prisma.ticket.groupBy({
       by: ['status'],
-      where: { projectId },
+      where: ticketWhere,
       _count: true,
     }),
-    prisma.issue.groupBy({
+    prisma.ticket.groupBy({
       by: ['priority'],
-      where: { projectId },
+      where: ticketWhere,
       _count: true,
     }),
-    prisma.issue.groupBy({
+    prisma.ticket.groupBy({
       by: ['module'],
-      where: { projectId },
+      where: ticketWhere,
       _count: true,
     }),
   ]);
 
   return {
     status: Object.fromEntries(
-      statusCounts.map((s: { status: string; _count: number }) => [s.status, s._count])
+      statusCounts.map((s) => [s.status, s._count as number])
     ),
     priority: Object.fromEntries(
-      priorityCounts.map((p: { priority: string; _count: number }) => [p.priority, p._count])
+      priorityCounts.map((p) => [p.priority, p._count as number])
     ),
     module: Object.fromEntries(
       moduleCounts
-        .filter((m: { module: string | null; _count: number }) => m.module)
-        .map((m: { module: string | null; _count: number }) => [m.module!, m._count])
+        .filter((m) => m.module)
+        .map((m) => [m.module!, m._count as number])
     ),
   };
 }

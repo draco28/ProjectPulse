@@ -130,24 +130,27 @@ export async function getFilterCounts() {
   // Fetch all options first (uses cache from getFilterOptions)
   const options = await getFilterOptions();
 
+  // Sprint 10: Use ticket model with kind filter for backwards compatibility
+  const issueKindFilter = { kind: { in: ['issue', 'bug', 'scanner_finding'] } };
+
   // Build count queries for all filter values
   const countQueries = [
     // Status counts
     ...options.status.map((opt) =>
-      prisma.issue
-        .count({ where: { status: opt.value } })
+      prisma.ticket
+        .count({ where: { ...issueKindFilter, status: opt.value } })
         .then((count) => ({ type: 'status', value: opt.value, count }))
     ),
     // Priority counts
     ...options.priority.map((opt) =>
-      prisma.issue
-        .count({ where: { priority: opt.value } })
+      prisma.ticket
+        .count({ where: { ...issueKindFilter, priority: opt.value } })
         .then((count) => ({ type: 'priority', value: opt.value, count }))
     ),
     // Module counts
     ...options.modules.map((opt) =>
-      prisma.issue
-        .count({ where: { module: opt.value } })
+      prisma.ticket
+        .count({ where: { ...issueKindFilter, module: opt.value } })
         .then((count) => ({ type: 'module', value: opt.value, count }))
     ),
   ];
