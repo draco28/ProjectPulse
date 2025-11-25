@@ -81,6 +81,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get default project for wiki page
+    const defaultProject = await prisma.project.findFirst({
+      select: { id: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (!defaultProject) {
+      return NextResponse.json(
+        { error: 'No project found. Please create a project first.' },
+        { status: 400 }
+      );
+    }
+
     // Create wiki page with processed content
     const newPage = await prisma.wikiPage.create({
       data: {
@@ -90,6 +103,7 @@ export async function POST(request: NextRequest) {
         category,
         excerpt: excerpt || null,
         version: 1,
+        projectId: defaultProject.id,
       },
     });
 

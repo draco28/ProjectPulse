@@ -94,6 +94,16 @@ export async function GET(request: NextRequest) {
     const day = task.day;
     const week = day.week;
     const sprint = week.sprint;
+    
+    // Validate sprint hierarchy exists
+    if (!sprint || !sprint.phase) {
+      return NextResponse.json({
+        error: 'Invalid hierarchy: Sprint or Phase not found for current task',
+        hints: ['Ensure roadmap is properly materialized'],
+        projectId: projectIdNum
+      }, { status: 500 });
+    }
+    
     const phase = sprint.phase;
     
     // Build position response

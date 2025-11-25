@@ -286,11 +286,12 @@ export async function POST(request: NextRequest) {
 
     if (deduplicationResult.isDuplicate || deduplicationResult.candidates.length > 0) {
       const topCandidate = deduplicationResult.candidates[0];
+      const matchType = topCandidate?.matchType ?? 'similar';
 
       return NextResponse.json(
         {
           error: deduplicationResult.suggestion || `Potential duplicate skill detected`,
-          code: topCandidate.matchType === 'slug_exact' ? 'DUPLICATE_SLUG' : 'SIMILAR_TITLE',
+          code: matchType === 'slug_exact' ? 'DUPLICATE_SLUG' : 'SIMILAR_TITLE',
           duplicates: deduplicationResult.candidates.map((c) => ({
             id: c.id,
             slug: c.slug,

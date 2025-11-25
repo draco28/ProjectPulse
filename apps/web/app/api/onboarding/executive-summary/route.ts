@@ -187,7 +187,7 @@ function extractProjectName(phase1: any, summary: string): string {
   const coreFeatures = phase1['phase1_q1'] || phase1['phase1_q4'] || '';
   // Simple extraction - look for capitalized words
   const match = summary.match(/^([A-Z][a-zA-Z]+)/);
-  return match ? match[1] : 'MyProject';
+  return match?.[1] ?? 'MyProject';
 }
 
 function extractProjectType(phase1: any, summary: string): string {
@@ -254,7 +254,7 @@ function extractPhases(planningAnswers: any): any[] {
 
 function extractStartDate(phase2: any): string {
   // Default to today
-  return new Date().toISOString().split('T')[0];
+  return new Date().toISOString().split('T')[0] ?? new Date().toISOString().slice(0, 10);
 }
 
 function extractDuration(phase2: any): string {
@@ -269,7 +269,7 @@ function extractLaunchDate(phase2: any): string {
   // Add estimated duration to start date
   const start = new Date();
   start.setDate(start.getDate() + 84); // ~12 weeks
-  return start.toISOString().split('T')[0];
+  return start.toISOString().split('T')[0] ?? start.toISOString().slice(0, 10);
 }
 
 function extractBudget(phase2: any, type: string): string {

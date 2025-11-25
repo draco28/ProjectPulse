@@ -33,15 +33,16 @@ async function main() {
   await prisma.agentSession.deleteMany();
   await prisma.agentPersona.deleteMany();
   await prisma.promptTemplate.deleteMany();
-  await prisma.comment.deleteMany();
-  await prisma.attachment.deleteMany();
-  await prisma.linkedFile.deleteMany();
-  await prisma.linkedCommit.deleteMany();
-  await prisma.knowledgeLink.deleteMany();
-  await prisma.wikiPageLink.deleteMany();
+  // Sprint 10: Renamed Issue models to Ticket models
+  await prisma.ticketComment.deleteMany();
+  await prisma.ticketAttachment.deleteMany();
+  await prisma.ticketLinkedFile.deleteMany();
+  await prisma.ticketLinkedCommit.deleteMany();
+  await prisma.ticketKnowledgeLink.deleteMany();
+  await prisma.ticketWikiPageLink.deleteMany();
   await prisma.pageLink.deleteMany();
   await prisma.securityFinding.deleteMany();
-  await prisma.issue.deleteMany();
+  await prisma.ticket.deleteMany();
   await prisma.label.deleteMany();
   await prisma.issueStatusOption.deleteMany();
   await prisma.issuePriorityOption.deleteMany();
@@ -579,17 +580,19 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
   console.log('✓ Auto-tagging rules saved\n');
 
   // ========================================================================
-  // ISSUES
+  // TICKETS (Sprint 10: Renamed from Issues)
   // ========================================================================
-  console.log('📝 Creating issues...');
+  console.log('📝 Creating tickets...');
 
-  const issues = await Promise.all([
-    // Open issues
-    prisma.issue.create({
+  const tickets = await Promise.all([
+    // Open tickets
+    prisma.ticket.create({
       data: {
         title: 'Implement hybrid search with PostgreSQL tsvector + pgvector',
         description:
           'Add full-text search using tsvector and semantic search using pgvector embeddings for knowledge base articles.',
+        kind: 'issue',
+        source: 'manual',
         status: 'open',
         priority: 'high',
         module: 'Search',
@@ -599,11 +602,13 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
       },
     }),
 
-    prisma.issue.create({
+    prisma.ticket.create({
       data: {
         title: 'Add authentication with NextAuth.js',
         description:
           'Implement user authentication and authorization using NextAuth.js with GitHub OAuth provider.',
+        kind: 'issue',
+        source: 'manual',
         status: 'open',
         priority: 'critical',
         module: 'Auth',
@@ -613,11 +618,13 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
       },
     }),
 
-    prisma.issue.create({
+    prisma.ticket.create({
       data: {
         title: 'Dashboard theme switching not working correctly',
         description:
           'Theme CSS variables not applying when switching between Desert, Neon, Earthy, and Coral themes.',
+        kind: 'bug',
+        source: 'manual',
         status: 'in-progress',
         priority: 'high',
         module: 'UI',
@@ -627,11 +634,13 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
       },
     }),
 
-    prisma.issue.create({
+    prisma.ticket.create({
       data: {
         title: 'Optimize database queries for issue list page',
         description:
           'Issue list page loading slowly with 100+ issues. Need to add pagination and optimize N+1 queries.',
+        kind: 'issue',
+        source: 'manual',
         status: 'open',
         priority: 'medium',
         module: 'Performance',
@@ -640,11 +649,13 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
       },
     }),
 
-    prisma.issue.create({
+    prisma.ticket.create({
       data: {
         title: 'Add API documentation with OpenAPI/Swagger',
         description:
           'Document all API endpoints using OpenAPI 3.0 specification and generate interactive Swagger UI.',
+        kind: 'issue',
+        source: 'manual',
         status: 'open',
         priority: 'low',
         module: 'Documentation',
@@ -653,12 +664,14 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
       },
     }),
 
-    // Closed issues (for completed stat)
-    prisma.issue.create({
+    // Closed tickets (for completed stat)
+    prisma.ticket.create({
       data: {
         title: 'Setup Docker PostgreSQL container with pgvector',
         description:
           'Configure PostgreSQL 16 container with pgvector extension for semantic search capabilities.',
+        kind: 'issue',
+        source: 'manual',
         status: 'closed',
         priority: 'high',
         module: 'Infrastructure',
@@ -667,10 +680,12 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
       },
     }),
 
-    prisma.issue.create({
+    prisma.ticket.create({
       data: {
         title: 'Implement 4 theme system (Desert, Neon, Earthy, Coral)',
         description: 'Create 4 unique themes with neumorphic design and CSS custom properties.',
+        kind: 'issue',
+        source: 'manual',
         status: 'closed',
         priority: 'high',
         module: 'UI',
@@ -681,11 +696,13 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
       },
     }),
 
-    prisma.issue.create({
+    prisma.ticket.create({
       data: {
         title: 'Build Dashboard UI with shadcn/ui components',
         description:
           'Implement Dashboard layout with Sidebar, Header, WelcomeBanner, StatCards, and IssueCards.',
+        kind: 'issue',
+        source: 'manual',
         status: 'closed',
         priority: 'critical',
         module: 'UI',
@@ -697,36 +714,36 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
     }),
   ]);
 
-  console.log(`✓ Created ${issues.length} issues\n`);
+  console.log(`✓ Created ${tickets.length} tickets\n`);
 
   // ========================================================================
-  // COMMENTS
+  // COMMENTS (Sprint 10: Using TicketComment)
   // ========================================================================
   console.log('💬 Creating comments...');
 
   await Promise.all([
-    prisma.comment.create({
+    prisma.ticketComment.create({
       data: {
         content:
           'I can help with the tsvector implementation. We should use weighted search with title having higher weight than content.',
         author: 'Claude',
-        issueId: issues[0].id,
+        ticketId: tickets[0].id,
       },
     }),
-    prisma.comment.create({
+    prisma.ticketComment.create({
       data: {
         content:
           'Updated CSS specificity from `[data-theme="X"]` to `:root[data-theme="X"]` which fixed the issue!',
         author: 'Developer',
-        issueId: issues[2].id,
+        ticketId: tickets[2].id,
       },
     }),
-    prisma.comment.create({
+    prisma.ticketComment.create({
       data: {
         content:
           'Should we use server-side pagination or cursor-based pagination for infinite scroll?',
         author: 'Developer',
-        issueId: issues[3].id,
+        ticketId: tickets[3].id,
       },
     }),
   ]);
