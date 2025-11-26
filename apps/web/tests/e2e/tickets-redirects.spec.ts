@@ -18,7 +18,7 @@ test.describe('Issues → Tickets Redirect (Backwards Compatibility)', () => {
   test('should redirect /issues to /tickets with kind filter for legacy types', async ({ page }) => {
     // Navigate to legacy /issues route
     await page.goto('/issues');
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Should redirect to /tickets with kind filter
     // Filter should include: issue, bug, scanner_finding (legacy issue types)
@@ -41,8 +41,8 @@ test.describe('Issues → Tickets Redirect (Backwards Compatibility)', () => {
 
   test('should redirect /issues/{id} to /tickets/{id}', async ({ page }) => {
     // First, get a ticket ID from the list page
-    await page.goto('/tickets');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/tickets?project=3');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Get first ticket's ID from URL or data attribute
     const firstTicketLink = page.locator('[data-testid="ticket-card"] a, .ticket-card a').first();
@@ -61,7 +61,7 @@ test.describe('Issues → Tickets Redirect (Backwards Compatibility)', () => {
 
     // Now navigate to legacy /issues/{id} URL
     await page.goto(`/issues/${ticketId}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Should redirect to /tickets/{id}
     await expect(page).toHaveURL(`/tickets/${ticketId}`);
@@ -69,13 +69,13 @@ test.describe('Issues → Tickets Redirect (Backwards Compatibility)', () => {
     console.log(`✓ /issues/${ticketId} redirected to /tickets/${ticketId}`);
 
     // Verify ticket detail page loaded
-    await expect(page.locator('h1, h2')).toBeVisible();
+    await expect(page.locator('main h1, main h2, header h2').first()).toBeVisible();
   });
 
   test('should preserve query parameters on /issues redirect', async ({ page }) => {
     // Navigate to /issues with query params
     await page.goto('/issues?status=open&priority=high');
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Should redirect to /tickets AND preserve query params
     await expect(page).toHaveURL(/\/tickets/);
@@ -89,7 +89,7 @@ test.describe('Issues → Tickets Redirect (Backwards Compatibility)', () => {
   test('should redirect /issues?status=closed with kind filter added', async ({ page }) => {
     // Navigate to /issues with a specific filter
     await page.goto('/issues?status=closed');
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Should redirect to /tickets with:
     // 1. Original status filter preserved
@@ -103,8 +103,8 @@ test.describe('Issues → Tickets Redirect (Backwards Compatibility)', () => {
 
   test('should show "Tickets" in navigation menu (not "Issues")', async ({ page }) => {
     // Navigate to tickets page
-    await page.goto('/tickets');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/tickets?project=3');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Check navigation menu for "Tickets" link
     const nav = page.locator('nav, aside, [role="navigation"]');
@@ -126,7 +126,7 @@ test.describe('Issues → Tickets Redirect (Backwards Compatibility)', () => {
       console.log('⚠️ "Tickets" link not found in navigation');
 
       // Alternative: Check page title or heading
-      const heading = page.locator('h1, h2').first();
+      const heading = page.locator('main h1, main h2, header h2').first().first();
       const headingText = await heading.textContent();
       expect(headingText?.toLowerCase()).toContain('ticket');
     }

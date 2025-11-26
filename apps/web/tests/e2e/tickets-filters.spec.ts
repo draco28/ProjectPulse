@@ -25,8 +25,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Tickets Advanced Filtering', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to tickets list page before each test
-    await page.goto('/tickets');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/tickets?project=3');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
   });
 
   test('should allow selecting multiple kind filters simultaneously', async ({ page }) => {
@@ -34,7 +34,7 @@ test.describe('Tickets Advanced Filtering', () => {
     const featureFilter = page.locator('[data-testid="kind-pill"]:has-text("feature"), button:has-text("Feature")');
     if ((await featureFilter.count()) > 0) {
       await featureFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Verify URL includes first filter
       await expect(page).toHaveURL(/kind=feature/);
@@ -44,7 +44,7 @@ test.describe('Tickets Advanced Filtering', () => {
       const bugFilter = page.locator('[data-testid="kind-pill"]:has-text("bug"), button:has-text("Bug")');
       if ((await bugFilter.count()) > 0) {
         await bugFilter.first().click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('h1, h2', { timeout: 10000 });
 
         // Verify URL includes both filters
         const url = page.url();
@@ -67,7 +67,7 @@ test.describe('Tickets Advanced Filtering', () => {
     const kindFilter = page.locator('[data-testid="kind-pill"]:has-text("issue"), button:has-text("Issue")');
     if ((await kindFilter.count()) > 0) {
       await kindFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
       console.log('✓ Applied kind filter: issue');
     }
 
@@ -83,7 +83,7 @@ test.describe('Tickets Advanced Filtering', () => {
           await openOption.click();
         }
       }
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
       console.log('✓ Applied status filter: open');
     }
 
@@ -99,7 +99,7 @@ test.describe('Tickets Advanced Filtering', () => {
           await highOption.click();
         }
       }
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
       console.log('✓ Applied priority filter: high');
     }
 
@@ -131,7 +131,7 @@ test.describe('Tickets Advanced Filtering', () => {
     const featureFilter = page.locator('[data-testid="kind-pill"]:has-text("feature"), button:has-text("Feature")');
     if ((await featureFilter.count()) > 0) {
       await featureFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
     }
 
     // Get current URL with filters
@@ -140,11 +140,11 @@ test.describe('Tickets Advanced Filtering', () => {
 
     // Navigate away
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Navigate back using the saved URL
     await page.goto(urlWithFilters);
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Verify filters are still applied
     expect(page.url()).toBe(urlWithFilters);
@@ -162,7 +162,7 @@ test.describe('Tickets Advanced Filtering', () => {
     const featureFilter = page.locator('[data-testid="kind-pill"]:has-text("feature")');
     if ((await featureFilter.count()) > 0) {
       await featureFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
     }
 
     // Look for filter count indicator
@@ -184,7 +184,7 @@ test.describe('Tickets Advanced Filtering', () => {
     const featureFilter = page.locator('[data-testid="kind-pill"]:has-text("feature")');
     if ((await featureFilter.count()) > 0) {
       await featureFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
     }
 
     // Look for clear filters button
@@ -198,7 +198,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
       // Click to clear
       await clearButton.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Verify URL no longer has filter params
       const url = page.url();
@@ -226,7 +226,7 @@ test.describe('Tickets Advanced Filtering', () => {
       if ((await openCheckbox.count()) > 0 && (await inProgressCheckbox.count()) > 0) {
         await openCheckbox.click();
         await inProgressCheckbox.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('h1, h2', { timeout: 10000 });
 
         // Verify both statuses in URL
         const url = page.url();
@@ -259,7 +259,7 @@ test.describe('Tickets Advanced Filtering', () => {
       // If it's an input (autocomplete), type a module name
       if ((await moduleFilter.locator('input').count()) > 0) {
         await moduleFilter.locator('input').fill('API');
-        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('h1, h2', { timeout: 10000 });
 
         // Look for autocomplete suggestions
         const suggestions = page.locator('[role="listbox"], .autocomplete-item, [data-testid="module-suggestion"]');
@@ -276,7 +276,7 @@ test.describe('Tickets Advanced Filtering', () => {
         }
       }
 
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Verify URL includes module filter
       await expect(page).toHaveURL(/module=/);
@@ -306,7 +306,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
         await startDateInput.fill(thirtyDaysAgo.toISOString().split('T')[0]);
         await endDateInput.fill(today.toISOString().split('T')[0]);
-        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('h1, h2', { timeout: 10000 });
 
         // Verify URL includes date filters
         const url = page.url();
@@ -330,7 +330,7 @@ test.describe('Tickets Advanced Filtering', () => {
     const featureFilter = page.locator('[data-testid="kind-pill"]:has-text("feature")');
     if ((await featureFilter.count()) > 0) {
       await featureFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
       console.log('✓ Applied kind filter: feature');
     }
 
@@ -338,7 +338,7 @@ test.describe('Tickets Advanced Filtering', () => {
     const searchInput = page.locator('input[type="search"], input[placeholder*="Search"]');
     if ((await searchInput.count()) > 0) {
       await searchInput.fill('api');
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
       console.log('✓ Performed search: api');
 
       // Verify URL has both filter and search
@@ -369,7 +369,7 @@ test.describe('Tickets Advanced Filtering', () => {
     const featureFilter = page.locator('[data-testid="kind-pill"]:has-text("feature")');
     if ((await featureFilter.count()) > 0) {
       await featureFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
     }
 
     const urlWithFilter = page.url();
@@ -384,7 +384,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
       // Navigate back
       await page.goBack();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Verify filter is still applied
       const currentUrl = page.url();
@@ -400,14 +400,14 @@ test.describe('Tickets Advanced Filtering', () => {
     const kindFilter = page.locator('[data-testid="kind-pill"]:has-text("bug")');
     if ((await kindFilter.count()) > 0) {
       await kindFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
     }
 
     // Add search for unlikely string
     const searchInput = page.locator('input[type="search"], input[placeholder*="Search"]');
     if ((await searchInput.count()) > 0) {
       await searchInput.fill('xyzabc123nonexistent99999');
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Look for empty state
       const emptyState = page.locator(
@@ -437,13 +437,13 @@ test.describe('Tickets Advanced Filtering', () => {
     const featureFilter = page.locator('[data-testid="kind-pill"]:has-text("feature")');
     if ((await featureFilter.count()) > 0) {
       await featureFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
     }
 
     const bugFilter = page.locator('[data-testid="kind-pill"]:has-text("bug")');
     if ((await bugFilter.count()) > 0) {
       await bugFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
     }
 
     // Look for individual filter remove buttons (X icons)
@@ -453,7 +453,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
     if ((await removeFilterButton.count()) > 0) {
       await removeFilterButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       console.log('✓ Removed individual filter');
 
@@ -466,7 +466,7 @@ test.describe('Tickets Advanced Filtering', () => {
       // Alternative: Click active filter pill again to deactivate
       if ((await featureFilter.count()) > 0) {
         await featureFilter.first().click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('h1, h2', { timeout: 10000 });
 
         const url = page.url();
         const noFeatureFilter = !url.includes('feature') || url.includes('bug');
@@ -489,7 +489,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
       // Click first preset
       await presetButtons.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Verify filters were applied
       const url = page.url();
@@ -510,7 +510,7 @@ test.describe('Tickets Advanced Filtering', () => {
     const featureFilter = page.locator('[data-testid="kind-pill"]:has-text("feature")');
     if ((await featureFilter.count()) > 0) {
       await featureFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
     }
 
     // Look for active filter badges
@@ -537,7 +537,7 @@ test.describe('Tickets Advanced Filtering', () => {
     const featureFilter = page.locator('[data-testid="kind-pill"]:has-text("feature")');
     if ((await featureFilter.count()) > 0) {
       await featureFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
     }
 
     const firstFilterUrl = page.url();
@@ -546,14 +546,14 @@ test.describe('Tickets Advanced Filtering', () => {
     const bugFilter = page.locator('[data-testid="kind-pill"]:has-text("bug")');
     if ((await bugFilter.count()) > 0) {
       await bugFilter.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
     }
 
     const secondFilterUrl = page.url();
 
     // Use browser back
     await page.goBack();
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Should be back to first filter state
     expect(page.url()).toBe(firstFilterUrl);
@@ -561,7 +561,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
     // Use browser forward
     await page.goForward();
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Should be back to second filter state
     expect(page.url()).toBe(secondFilterUrl);

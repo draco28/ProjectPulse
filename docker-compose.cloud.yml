@@ -49,7 +49,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/projectpulse_dev
       - NEXT_PUBLIC_API_URL=http://0.0.0.0:3000
       - NODE_ENV=development
-      - DEFAULT_PROJECT_ID=8
+      - DEFAULT_PROJECT_ID=3
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - NEXTAUTH_SECRET=dev-secret-change-in-production

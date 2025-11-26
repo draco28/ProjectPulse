@@ -27,8 +27,8 @@ test.describe('Ticket Detail Page', () => {
     const page = await browser.newPage();
 
     try {
-      await page.goto('/tickets');
-      await page.waitForLoadState('networkidle');
+      await page.goto('/tickets?project=3');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Try to get first ticket link
       const firstLink = page.locator('[data-testid="ticket-card"] a, .ticket-card a, article a').first();
@@ -46,13 +46,13 @@ test.describe('Ticket Detail Page', () => {
 
   test.beforeEach(async ({ page }) => {
     // Navigate to ticket detail page before each test
-    await page.goto(`/tickets/${testTicketId}`);
-    await page.waitForLoadState('networkidle');
+    await page.goto(`/tickets/${testTicketId}?project=3`);
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
   });
 
   test('should display ticket header with title and ID', async ({ page }) => {
     // Verify ticket title is displayed
-    const heading = page.locator('h1, h2').first();
+    const heading = page.locator('main h1, main h2, header h2').first().first();
     await expect(heading).toBeVisible({ timeout: 10000 });
 
     const headingText = await heading.textContent();

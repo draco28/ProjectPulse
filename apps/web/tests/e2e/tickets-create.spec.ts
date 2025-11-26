@@ -20,13 +20,13 @@ import { test, expect } from '@playwright/test';
 test.describe('Create Ticket Page', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to create ticket page before each test
-    await page.goto('/tickets/create');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/tickets/create?project=3');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
   });
 
   test('should display create ticket form with all required fields', async ({ page }) => {
     // Verify page heading
-    const heading = page.locator('h1, h2').first();
+    const heading = page.locator('main h1, main h2, header h2').first().first();
     await expect(heading).toBeVisible({ timeout: 10000 });
 
     const headingText = await heading.textContent();
@@ -247,7 +247,7 @@ test.describe('Create Ticket Page', () => {
       console.log(`✓ Redirected to ticket detail page: ${page.url()}`);
 
       // Verify ticket was created
-      const heading = page.locator('h1, h2').first();
+      const heading = page.locator('main h1, main h2, header h2').first().first();
       await expect(heading).toBeVisible();
       console.log('✓ Ticket detail page loaded successfully');
     } catch (error) {
@@ -273,7 +273,7 @@ test.describe('Create Ticket Page', () => {
 
       // Click cancel and verify redirect to list
       await cancelButton.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Should be back on tickets list page
       await expect(page).toHaveURL(/\/tickets(?:\?.*)?$/);

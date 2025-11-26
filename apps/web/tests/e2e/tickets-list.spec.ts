@@ -19,15 +19,18 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Tickets List Page', () => {
+  // Use project 3 (Client Test Project) which has test ticket data
+  const PROJECT_ID = 3;
+  
   test.beforeEach(async ({ page }) => {
-    // Navigate to tickets list page before each test
-    await page.goto('/tickets');
-    await page.waitForLoadState('networkidle');
+    // Navigate to tickets list page with project context
+    await page.goto(`/tickets?project=${PROJECT_ID}`);
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
   });
 
   test('should display tickets list with pagination controls', async ({ page }) => {
-    // Verify page title/heading
-    await expect(page.locator('h1, h2')).toContainText(/Tickets|Work Items/i);
+    // Verify page title/heading (use main content area to avoid sidebar h1)
+    await expect(page.locator('main h1, main h2, header h2').first()).toContainText(/Tickets|Work Items/i);
 
     // Verify at least one ticket card is visible
     const ticketCards = page.locator('[data-testid="ticket-card"], .ticket-card, article');
@@ -44,7 +47,7 @@ test.describe('Tickets List Page', () => {
     // Click the "Feature" filter pill (or dropdown)
     const featureFilter = page.locator('text=/feature/i').first();
     await featureFilter.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Verify URL contains kind filter
     await expect(page).toHaveURL(/kind=feature/);
@@ -62,7 +65,7 @@ test.describe('Tickets List Page', () => {
     // Click the "Bug" filter
     const bugFilter = page.locator('text=/bug/i').first();
     await bugFilter.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Verify URL contains kind filter
     await expect(page).toHaveURL(/kind=bug/);
@@ -86,7 +89,7 @@ test.describe('Tickets List Page', () => {
         await openOption.click();
       }
 
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Verify URL contains status filter
       await expect(page).toHaveURL(/status=open/);
@@ -106,7 +109,7 @@ test.describe('Tickets List Page', () => {
         await highOption.click();
       }
 
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Verify URL contains priority filter
       await expect(page).toHaveURL(/priority=high/);
@@ -127,7 +130,7 @@ test.describe('Tickets List Page', () => {
     if ((await searchInput.count()) > 0) {
       // Type search query
       await searchInput.fill('test');
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Verify URL contains search query
       await expect(page).toHaveURL(/search=test|q=test/);
@@ -165,7 +168,7 @@ test.describe('Tickets List Page', () => {
     // Apply kind filter
     const featureFilter = page.locator('text=/feature/i').first();
     await featureFilter.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Apply status filter
     const statusFilter = page.locator('[data-testid="status-filter"], button:has-text("Open")');
@@ -177,7 +180,7 @@ test.describe('Tickets List Page', () => {
         await openOption.click();
       }
 
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Verify URL contains both filters
       await expect(page).toHaveURL(/kind=feature/);
@@ -209,7 +212,7 @@ test.describe('Tickets List Page', () => {
     // Click a kind filter
     const featureFilter = page.locator('text=/feature/i').first();
     await featureFilter.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
 
     // Check if the filter has active styling
     const activeFilter = page.locator('[data-testid="kind-pill"].active, [aria-selected="true"]');
@@ -227,7 +230,7 @@ test.describe('Tickets List Page', () => {
     const searchInput = page.locator('input[type="search"], input[placeholder*="Search"]');
     if ((await searchInput.count()) > 0) {
       await searchInput.fill('xyzabc123nonexistent');
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Check for empty state message
       const emptyState = page.locator('text=/no tickets|no results|nothing found/i');
@@ -286,7 +289,7 @@ test.describe('Tickets List Page', () => {
     expect(page.url()).toMatch(/\/tickets\/\d+$/);
 
     // Verify ticket title is shown
-    await expect(page.locator('h1, h2')).toContainText(ticketTitle || '');
+    await expect(page.locator('main h1, main h2, header h2').first()).toContainText(ticketTitle || '');
   });
 
   test('should show create ticket button', async ({ page }) => {
@@ -312,7 +315,7 @@ test.describe('Tickets List Page', () => {
 
       // Click next page
       await nextButton.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Verify URL changed (page parameter updated)
       expect(page.url()).not.toBe(currentURL);

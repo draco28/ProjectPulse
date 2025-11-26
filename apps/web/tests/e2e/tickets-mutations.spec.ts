@@ -25,8 +25,8 @@ test.describe('Ticket Mutations (Update Operations)', () => {
     const page = await browser.newPage();
 
     try {
-      await page.goto('/tickets');
-      await page.waitForLoadState('networkidle');
+      await page.goto('/tickets?project=3');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Get first ticket link
       const firstLink = page.locator('[data-testid="ticket-card"] a, .ticket-card a, article a').first();
@@ -44,8 +44,8 @@ test.describe('Ticket Mutations (Update Operations)', () => {
 
   test.beforeEach(async ({ page }) => {
     // Navigate to ticket detail page before each test
-    await page.goto(`/tickets/${testTicketId}`);
-    await page.waitForLoadState('networkidle');
+    await page.goto(`/tickets/${testTicketId}?project=3`);
+    await page.waitForSelector('h1, h2', { timeout: 10000 });
   });
 
   test('should update ticket title and description', async ({ page }) => {
@@ -73,10 +73,10 @@ test.describe('Ticket Mutations (Update Operations)', () => {
         const saveButton = page.locator('button:has-text("Save"), button[type="submit"]');
         if ((await saveButton.count()) > 0) {
           await saveButton.first().click();
-          await page.waitForLoadState('networkidle');
+          await page.waitForSelector('h1, h2', { timeout: 10000 });
 
           // Verify title updated in UI
-          const heading = page.locator('h1, h2').first();
+          const heading = page.locator('main h1, main h2, header h2').first().first();
           const headingText = await heading.textContent();
 
           if (headingText?.includes(newTitle)) {
@@ -105,7 +105,7 @@ test.describe('Ticket Mutations (Update Operations)', () => {
       // If it's a select dropdown
       if ((await statusControl.locator('select').count()) > 0) {
         await statusControl.locator('select').selectOption('in_progress');
-        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('h1, h2', { timeout: 10000 });
         console.log('✓ Changed status to in_progress');
       } else {
         // If it's a button/modal
@@ -115,7 +115,7 @@ test.describe('Ticket Mutations (Update Operations)', () => {
         const inProgressOption = page.locator('text=/^in.?progress$/i, [data-value="in_progress"]');
         if ((await inProgressOption.count()) > 0) {
           await inProgressOption.first().click();
-          await page.waitForLoadState('networkidle');
+          await page.waitForSelector('h1, h2', { timeout: 10000 });
           console.log('✓ Changed status to in_progress');
         }
       }
@@ -131,7 +131,7 @@ test.describe('Ticket Mutations (Update Operations)', () => {
 
       // Reload page and verify persistence
       await page.reload();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       const statusBadgeAfterReload = page.locator('[data-testid="status-badge"], .badge');
       if ((await statusBadgeAfterReload.count()) > 0) {
@@ -157,7 +157,7 @@ test.describe('Ticket Mutations (Update Operations)', () => {
       // If it's a select dropdown
       if ((await priorityControl.locator('select').count()) > 0) {
         await priorityControl.locator('select').selectOption('high');
-        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('h1, h2', { timeout: 10000 });
         console.log('✓ Changed priority to high');
       } else {
         // If it's a button/modal
@@ -167,7 +167,7 @@ test.describe('Ticket Mutations (Update Operations)', () => {
         const highOption = page.locator('text=/^high$/i, [data-value="high"]');
         if ((await highOption.count()) > 0) {
           await highOption.first().click();
-          await page.waitForLoadState('networkidle');
+          await page.waitForSelector('h1, h2', { timeout: 10000 });
           console.log('✓ Changed priority to high');
         }
       }
@@ -181,7 +181,7 @@ test.describe('Ticket Mutations (Update Operations)', () => {
 
       // Reload page and verify persistence
       await page.reload();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       const priorityBadgeAfterReload = page.locator('[data-testid="priority-badge"], .badge:has-text("high" i)');
       if ((await priorityBadgeAfterReload.count()) > 0) {
@@ -206,7 +206,7 @@ test.describe('Ticket Mutations (Update Operations)', () => {
         const options = await assigneeControl.locator('select option').allTextContents();
         if (options.length > 1) {
           await assigneeControl.locator('select').selectOption(options[1]);
-          await page.waitForLoadState('networkidle');
+          await page.waitForSelector('h1, h2', { timeout: 10000 });
           console.log(`✓ Assigned to: ${options[1]}`);
         }
       } else {
@@ -217,7 +217,7 @@ test.describe('Ticket Mutations (Update Operations)', () => {
         const assigneeOptions = page.locator('[role="option"], .assignee-option');
         if ((await assigneeOptions.count()) > 0) {
           await assigneeOptions.first().click();
-          await page.waitForLoadState('networkidle');
+          await page.waitForSelector('h1, h2', { timeout: 10000 });
           console.log('✓ Assigned to user/agent');
         }
       }
@@ -231,7 +231,7 @@ test.describe('Ticket Mutations (Update Operations)', () => {
 
       // Reload page and verify persistence
       await page.reload();
-      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       const assigneeAfterReload = page.locator('[data-testid="assignee"], text=/assigned to/i');
       if ((await assigneeAfterReload.count()) > 0) {
@@ -289,7 +289,7 @@ test.describe('Ticket Mutations (Update Operations)', () => {
 
         // Reload page and verify comment persists
         await page.reload();
-        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('h1, h2', { timeout: 10000 });
 
         const commentAfterReload = page.locator(`text=/${commentText.substring(0, 30)}/i`);
         if ((await commentAfterReload.count()) > 0) {
