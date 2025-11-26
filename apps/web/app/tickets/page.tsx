@@ -15,6 +15,7 @@ import { IssuesPageClient } from '@/components/issues/IssuesPageClient';
 import { SearchSortBar } from '@/components/issues/SearchSortBar';
 import { IssueListCard } from '@/components/issues/IssueListCard';
 import { Pagination } from '@/components/issues/Pagination';
+import { TicketKindFilters } from '@/components/tickets/TicketKindFilters';
 import { prisma } from '@/lib/prisma';
 import { getFilterOptions } from '@/lib/filters';
 import { getCurrentUser } from '@/lib/auth-server';
@@ -262,31 +263,13 @@ export default async function TicketsPage({
               </Link>
             </div>
 
-            {/* Kind Filter Pills */}
-            <div className="mt-4 flex flex-wrap gap-2" data-testid="kind-filters">
-              <Link
-                href={`/tickets?project=${projectId}`}
-                data-testid="kind-pill-all"
-                className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                  !params.kind ? 'bg-coral text-white' : 'bg-surface-dark text-slate hover:text-white'
-                }`}
-              >
-                All ({totalCount})
-              </Link>
-              {Object.entries(filterCounts.kind || {}).map(([kind, count]) => (
-                <Link
-                  key={kind}
-                  href={`/tickets?project=${projectId}&kind=${kind}`}
-                  data-testid={`kind-pill-${kind}`}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    params.kind === kind
-                      ? kindColors[kind] || 'bg-coral text-white'
-                      : 'bg-surface-dark text-slate hover:text-white'
-                  }`}
-                >
-                  {kindLabels[kind] || kind} ({count})
-                </Link>
-              ))}
+            {/* Kind Filter Pills - Multi-select */}
+            <div className="mt-4">
+              <TicketKindFilters
+                projectId={projectId}
+                counts={filterCounts.kind || {}}
+                totalCount={totalCount}
+              />
             </div>
           </header>
 

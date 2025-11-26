@@ -235,11 +235,28 @@ export default async function TicketDetailPage({
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Ticket Header */}
-          <div className="relative">
-            {/* Kind Badge */}
-            <div className="absolute top-4 right-4 z-10">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${kindColor}`}>
+          <div className="relative" data-testid="ticket-header">
+            {/* Kind and Source Badges */}
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+              <span 
+                data-testid="kind-badge" 
+                data-kind={ticket.kind}
+                className={`px-3 py-1 rounded-full text-sm font-medium ${kindColor}`}
+              >
                 {kindLabel}
+              </span>
+              <span 
+                data-testid="source-indicator"
+                data-source={ticket.source}
+                className="px-2 py-1 rounded-full text-xs bg-surface-dark text-slate capitalize"
+              >
+                {ticket.source}
+              </span>
+            </div>
+            {/* Ticket ID Badge */}
+            <div className="absolute top-4 left-4 z-10">
+              <span data-testid="ticket-id-badge" className="text-sm text-slate">
+                #{ticket.id}
               </span>
             </div>
             <IssueHeader
@@ -261,17 +278,6 @@ export default async function TicketDetailPage({
             <aside className="order-3 space-y-4 overflow-auto lg:order-none lg:col-span-2">
               <QuickActions issueId={serializedTicket.id} issueTitle={ticket.title} />
               <WatchersSection issueId={serializedTicket.id} />
-              
-              {/* Linked Task Card (Sprint 10) */}
-              {ticket.linkedTask && (
-                <div className="neu-raised smooth-transition rounded-3xl p-4">
-                  <h4 className="text-sm font-semibold text-white mb-2">Linked Task</h4>
-                  <div className="text-sm text-slate">
-                    <p className="text-white truncate">{ticket.linkedTask.title}</p>
-                    <p className="text-xs mt-1">Status: {ticket.linkedTask.status}</p>
-                  </div>
-                </div>
-              )}
             </aside>
 
             {/* MAIN CONTENT */}
@@ -349,27 +355,52 @@ export default async function TicketDetailPage({
               />
               
               {/* Ticket Metadata (Sprint 10) */}
-              <div className="neu-raised smooth-transition rounded-3xl p-4">
+              <div className="neu-raised smooth-transition rounded-3xl p-4" data-testid="ticket-metadata">
                 <h4 className="text-sm font-semibold text-white mb-3">Ticket Info</h4>
                 <dl className="space-y-2 text-sm">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between" data-testid="metadata-kind">
                     <dt className="text-slate">Kind</dt>
-                    <dd className={`px-2 py-0.5 rounded text-xs font-medium ${kindColor}`}>
+                    <dd className={`px-2 py-0.5 rounded text-xs font-medium ${kindColor}`} data-kind={ticket.kind}>
                       {kindLabel}
                     </dd>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between" data-testid="metadata-source">
                     <dt className="text-slate">Source</dt>
-                    <dd className="text-white capitalize">{ticket.source}</dd>
+                    <dd className="text-white capitalize" data-source={ticket.source}>{ticket.source}</dd>
                   </div>
                   {ticket.assigneeType && (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between" data-testid="metadata-assignee-type">
                       <dt className="text-slate">Assignee Type</dt>
-                      <dd className="text-white capitalize">{ticket.assigneeType}</dd>
+                      <dd className="text-white capitalize" data-assignee-type={ticket.assigneeType}>
+                        {ticket.assigneeType === 'agent_persona' ? 'Agent' : 'Human'}
+                      </dd>
+                    </div>
+                  )}
+                  {ticket.closedAt && (
+                    <div className="flex justify-between" data-testid="metadata-closed-at">
+                      <dt className="text-slate">Closed At</dt>
+                      <dd className="text-white text-xs">
+                        {new Date(ticket.closedAt).toLocaleDateString()}
+                      </dd>
                     </div>
                   )}
                 </dl>
               </div>
+              
+              {/* Linked Task Breadcrumb (Sprint 10) */}
+              {ticket.linkedTask && (
+                <div className="neu-raised smooth-transition rounded-3xl p-4" data-testid="linked-task-breadcrumb">
+                  <h4 className="text-sm font-semibold text-white mb-2">Linked to Roadmap</h4>
+                  <div className="text-sm text-slate space-y-1">
+                    <p className="text-white truncate" data-testid="linked-task-title">
+                      {ticket.linkedTask.title}
+                    </p>
+                    <p className="text-xs">
+                      Status: <span className="text-white capitalize">{ticket.linkedTask.status}</span>
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <SystemActivity
                 comments={serializedTicket.comments}

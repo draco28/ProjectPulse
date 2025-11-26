@@ -84,7 +84,7 @@ export function FilterSidebar({
         </div>
 
         {/* Status Filter */}
-        <div className="mb-6">
+        <div className="mb-6" data-testid="status-filter">
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
             <RefreshCw className="h-4 w-4 text-coral" aria-hidden="true" />
             Status
@@ -97,6 +97,7 @@ export function FilterSidebar({
               return (
                 <label
                   key={option.value}
+                  data-testid={`status-option-${option.value}`}
                   className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
                 >
                   <input
@@ -121,7 +122,7 @@ export function FilterSidebar({
         </div>
 
         {/* Priority Filter */}
-        <div className="mb-6">
+        <div className="mb-6" data-testid="priority-filter">
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
             <AlertCircle className="h-4 w-4 text-coral" aria-hidden="true" />
             Priority
@@ -134,6 +135,7 @@ export function FilterSidebar({
               return (
                 <label
                   key={option.value}
+                  data-testid={`priority-option-${option.value}`}
                   className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
                 >
                   <input
@@ -163,7 +165,7 @@ export function FilterSidebar({
         </div>
 
         {/* Module Filter */}
-        <div>
+        <div data-testid="module-filter">
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
             <Box className="h-4 w-4 text-coral" aria-hidden="true" />
             Module
@@ -176,6 +178,7 @@ export function FilterSidebar({
               return (
                 <label
                   key={option.value}
+                  data-testid={`module-option-${option.value}`}
                   className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
                 >
                   <input
