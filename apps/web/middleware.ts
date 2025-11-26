@@ -28,7 +28,7 @@ const mcpApiPaths = [
   '/api/hierarchy',
   '/api/roadmap',
   '/api/sprint',
-  '/api/issues',
+  '/api/tickets',  // Sprint 10: Unified ticket system (replaces /api/issues)
   '/api/workflow',
 ];
 const projectRoutes = ['/dashboard', '/issues', '/wiki', '/knowledge', '/health', '/agents', '/roadmap'];

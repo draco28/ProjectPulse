@@ -54,12 +54,13 @@ import { workflowGetStatusTool } from './workflow/getStatus.js';
 import { workflowPauseTool } from './workflow/pause.js';
 import { workflowResumeTool } from './workflow/resume.js';
 import { workflowCompleteTool } from './workflow/complete.js';
-import { issueCreateTool } from './issues/create.js';
-import { issueBulkCreateTool } from './issues/bulkCreate.js';
-import { issueUpdateTool } from './issues/update.js';
-import { issueSearchTool } from './issues/search.js';
-import { issueAddCommentTool } from './issues/addComment.js';
-import { issueSetStatusTool } from './issues/setStatus.js';
+// Sprint 10: Ticket tools (unified ticket system - replaces issue tools)
+import { ticketCreateTool } from './tickets/create.js';
+import { ticketBulkCreateTool } from './tickets/bulkCreate.js';
+import { ticketUpdateTool } from './tickets/update.js';
+import { ticketSearchTool } from './tickets/search.js';
+import { ticketAddCommentTool } from './tickets/addComment.js';
+import { ticketSetStatusTool } from './tickets/setStatus.js';
 import { materializeRoadmapTool } from './roadmap/materializeTool.js';
 import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
 import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
@@ -124,12 +125,13 @@ export const loadTools = (): ToolDefinition[] => [
   // Week 3 Enhancement: Observability tools (New)
   logStepTool,
   completeSessionTool,
-  issueCreateTool,
-  issueBulkCreateTool,
-  issueUpdateTool,
-  issueSearchTool,
-  issueAddCommentTool,
-  issueSetStatusTool,
+  // Sprint 10: Ticket tools (unified ticket system - implements all 7 kinds including issue)
+  ticketCreateTool,
+  ticketBulkCreateTool,
+  ticketUpdateTool,
+  ticketSearchTool,
+  ticketAddCommentTool,
+  ticketSetStatusTool,
   workflowListTool,
   workflowStartTool,
   workflowExecuteStepTool,
