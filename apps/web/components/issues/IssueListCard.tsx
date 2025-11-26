@@ -69,6 +69,7 @@ export function IssueListCard({ issue }: IssueListCardProps) {
         'neu-raised issue-card smooth-transition rounded-3xl p-6',
         isClosed && 'opacity-60'
       )}
+      data-testid="ticket-card"
     >
       <div className="flex items-start gap-4">
         {/* Checkbox */}

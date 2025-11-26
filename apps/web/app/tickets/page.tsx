@@ -263,9 +263,10 @@ export default async function TicketsPage({
             </div>
 
             {/* Kind Filter Pills */}
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2" data-testid="kind-filters">
               <Link
                 href={`/tickets?project=${projectId}`}
+                data-testid="kind-pill-all"
                 className={`px-3 py-1 rounded-full text-sm transition-colors ${
                   !params.kind ? 'bg-coral text-white' : 'bg-surface-dark text-slate hover:text-white'
                 }`}
@@ -276,6 +277,7 @@ export default async function TicketsPage({
                 <Link
                   key={kind}
                   href={`/tickets?project=${projectId}&kind=${kind}`}
+                  data-testid={`kind-pill-${kind}`}
                   className={`px-3 py-1 rounded-full text-sm transition-colors ${
                     params.kind === kind
                       ? kindColors[kind] || 'bg-coral text-white'
