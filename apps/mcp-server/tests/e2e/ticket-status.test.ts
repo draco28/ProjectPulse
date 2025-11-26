@@ -16,7 +16,6 @@
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  generateUniqueProjectId,
   createTestProject,
   createTestTicket,
   cleanupTestProject,
@@ -32,9 +31,9 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
   const prisma = getPrismaClient();
 
   beforeEach(async () => {
-    projectId = generateUniqueProjectId();
-    const { token } = await createTestProject(projectId);
+    const { token, projectId: newProjectId } = await createTestProject();
     authToken = token;
+    projectId = newProjectId;
     client = new MCPTestClient('http://192.168.1.15:3001', authToken);
     console.log(`✓ Test setup complete for project ${projectId}`);
   });
@@ -51,7 +50,7 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
     });
 
     const result = await client.callTool('projectpulse_ticket_setStatus', {
-      issueId: ticket.id,
+      ticketId: ticket.id,
       status: 'in_progress',
     });
 
@@ -73,7 +72,7 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
     });
 
     const result = await client.callTool('projectpulse_ticket_setStatus', {
-      issueId: ticket.id,
+      ticketId: ticket.id,
       status: 'closed',
     });
 
@@ -96,7 +95,7 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
     });
 
     const result = await client.callTool('projectpulse_ticket_setStatus', {
-      issueId: ticket.id,
+      ticketId: ticket.id,
       status: 'blocked',
     });
 
@@ -119,7 +118,7 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
 
     try {
       await client.callTool('projectpulse_ticket_setStatus', {
-        issueId: ticket.id,
+        ticketId: ticket.id,
         status: 'invalid_status',
       });
 

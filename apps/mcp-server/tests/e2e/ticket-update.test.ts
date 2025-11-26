@@ -19,7 +19,6 @@
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  generateUniqueProjectId,
   createTestProject,
   createTestTicket,
   cleanupTestProject,
@@ -36,9 +35,9 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
   const prisma = getPrismaClient();
 
   beforeEach(async () => {
-    projectId = generateUniqueProjectId();
-    const { token } = await createTestProject(projectId);
+    const { token, projectId: newProjectId } = await createTestProject();
     authToken = token;
+    projectId = newProjectId;
 
     // Create a test ticket to update
     testTicket = await createTestTicket(projectId, {
@@ -64,7 +63,7 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
     const newTitle = `Updated Title ${Date.now()}`;
 
     const result = await client.callTool('projectpulse_ticket_update', {
-      issueId: testTicket.id,
+      ticketId: testTicket.id,
       title: newTitle,
     });
 
@@ -86,7 +85,7 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
     const newDescription = `Updated description at ${new Date().toISOString()}`;
 
     const result = await client.callTool('projectpulse_ticket_update', {
-      issueId: testTicket.id,
+      ticketId: testTicket.id,
       description: newDescription,
     });
 
@@ -105,7 +104,7 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
 
   test('should update ticket priority from medium to critical', async () => {
     const result = await client.callTool('projectpulse_ticket_update', {
-      issueId: testTicket.id,
+      ticketId: testTicket.id,
       priority: 'critical',
     });
 
@@ -124,7 +123,7 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
 
   test('should update ticket status from open to in_progress', async () => {
     const result = await client.callTool('projectpulse_ticket_update', {
-      issueId: testTicket.id,
+      ticketId: testTicket.id,
       status: 'in_progress',
     });
 
@@ -143,7 +142,7 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
 
   test('should update ticket module', async () => {
     const result = await client.callTool('projectpulse_ticket_update', {
-      issueId: testTicket.id,
+      ticketId: testTicket.id,
       module: 'Database',
     });
 
@@ -163,7 +162,7 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
   test('should update custom fields while preserving existing data', async () => {
     // First set some custom fields
     await client.callTool('projectpulse_ticket_update', {
-      issueId: testTicket.id,
+      ticketId: testTicket.id,
       customFields: {
         environment: 'production',
         severity: 'high',
@@ -172,7 +171,7 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
 
     // Then update with partial custom fields
     const result = await client.callTool('projectpulse_ticket_update', {
-      issueId: testTicket.id,
+      ticketId: testTicket.id,
       customFields: {
         severity: 'critical', // Update existing field
         affectedUsers: 100,   // Add new field
@@ -192,7 +191,7 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
   test('should handle partial updates (only specified fields change)', async () => {
     // Update only priority, leaving all other fields unchanged
     await client.callTool('projectpulse_ticket_update', {
-      issueId: testTicket.id,
+      ticketId: testTicket.id,
       priority: 'high',
     });
 
@@ -213,7 +212,7 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
   test('should fail when updating non-existent ticket', async () => {
     try {
       await client.callTool('projectpulse_ticket_update', {
-        issueId: 999999, // Non-existent ID
+        ticketId: 999999, // Non-existent ID
         title: 'Should fail',
       });
 

@@ -17,7 +17,6 @@
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  generateUniqueProjectId,
   createTestProject,
   cleanupTestProject,
   disconnectPrisma,
@@ -32,12 +31,10 @@ describe('MCP Tool: projectpulse_ticket_create', () => {
   const prisma = getPrismaClient();
 
   beforeEach(async () => {
-    // Generate unique project ID for this test
-    projectId = generateUniqueProjectId();
-
     // Create test project and get auth token
-    const { token } = await createTestProject(projectId);
+    const { token, projectId: newProjectId } = await createTestProject();
     authToken = token;
+    projectId = newProjectId;
 
     // Initialize MCP client with authentication
     client = new MCPTestClient('http://192.168.1.15:3001', authToken);
@@ -67,7 +64,11 @@ describe('MCP Tool: projectpulse_ticket_create', () => {
     assert.ok(result.content[0].text, 'Result should have text content');
 
     // Parse result (MCP tools return text, may be JSON)
+    console.log('=== DEBUG: RAW RESPONSE ===');
+    console.log(result.content[0].text);
+    console.log('=== DEBUG: PARSED ===');
     const ticketData = JSON.parse(result.content[0].text);
+    console.log(JSON.stringify(ticketData, null, 2));
 
     assert.ok(ticketData.id, 'Ticket should have ID');
     assert.strictEqual(ticketData.kind, 'feature', 'Ticket kind should be feature');

@@ -15,7 +15,6 @@
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  generateUniqueProjectId,
   createTestProject,
   createTestTicket,
   cleanupTestProject,
@@ -31,9 +30,9 @@ describe('MCP Tool: projectpulse_ticket_addComment', () => {
   const prisma = getPrismaClient();
 
   beforeEach(async () => {
-    projectId = generateUniqueProjectId();
-    const { token } = await createTestProject(projectId);
+    const { token, projectId: newProjectId } = await createTestProject();
     authToken = token;
+    projectId = newProjectId;
     client = new MCPTestClient('http://192.168.1.15:3001', authToken);
     console.log(`✓ Test setup complete for project ${projectId}`);
   });
@@ -51,7 +50,7 @@ describe('MCP Tool: projectpulse_ticket_addComment', () => {
     const commentContent = `Test comment added at ${new Date().toISOString()}`;
 
     const result = await client.callTool('projectpulse_ticket_addComment', {
-      issueId: ticket.id,
+      ticketId: ticket.id,
       content: commentContent,
       author: 'MCP Agent',
     });
@@ -81,14 +80,14 @@ describe('MCP Tool: projectpulse_ticket_addComment', () => {
 
     // Add first comment
     await client.callTool('projectpulse_ticket_addComment', {
-      issueId: ticket.id,
+      ticketId: ticket.id,
       content: 'First comment',
       author: 'Agent 1',
     });
 
     // Add second comment
     await client.callTool('projectpulse_ticket_addComment', {
-      issueId: ticket.id,
+      ticketId: ticket.id,
       content: 'Second comment',
       author: 'Agent 2',
     });
@@ -112,7 +111,7 @@ describe('MCP Tool: projectpulse_ticket_addComment', () => {
     });
 
     const result = await client.callTool('projectpulse_ticket_addComment', {
-      issueId: ticket.id,
+      ticketId: ticket.id,
       content: 'Comment with author',
       author: 'Test Agent',
     });
@@ -128,7 +127,7 @@ describe('MCP Tool: projectpulse_ticket_addComment', () => {
   test('should fail when adding comment to non-existent ticket', async () => {
     try {
       await client.callTool('projectpulse_ticket_addComment', {
-        issueId: 999999, // Non-existent ticket ID
+        ticketId: 999999, // Non-existent ticket ID
         content: 'Should fail',
         author: 'Agent',
       });

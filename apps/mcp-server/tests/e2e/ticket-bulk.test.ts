@@ -15,7 +15,6 @@
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  generateUniqueProjectId,
   createTestProject,
   cleanupTestProject,
   disconnectPrisma,
@@ -30,9 +29,9 @@ describe('MCP Tool: projectpulse_ticket_bulkCreate', () => {
   const prisma = getPrismaClient();
 
   beforeEach(async () => {
-    projectId = generateUniqueProjectId();
-    const { token } = await createTestProject(projectId);
+    const { token, projectId: newProjectId } = await createTestProject();
     authToken = token;
+    projectId = newProjectId;
     client = new MCPTestClient('http://192.168.1.15:3001', authToken);
     console.log(`✓ Test setup complete for project ${projectId}`);
   });
@@ -252,10 +251,10 @@ describe('MCP Tool: projectpulse_ticket_bulkCreate', () => {
 
     const bulkResult = JSON.parse(result.content[0].text);
 
-    assert.ok(bulkResult.summary, 'Should have summary');
-    assert.ok(bulkResult.summary.includes('10'), 'Summary should mention created count');
+    assert.strictEqual(bulkResult.created, 10, 'Should have created 10 tickets');
+    assert.strictEqual(bulkResult.tickets.length, 10, 'Should return 10 ticket objects');
 
-    console.log(`✓ Bulk create summary: ${bulkResult.summary}`);
+    console.log(`✓ Bulk create result: ${bulkResult.created} tickets created`);
   });
 });
 

@@ -19,7 +19,6 @@
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  generateUniqueProjectId,
   createTestProject,
   createTestTickets,
   cleanupTestProject,
@@ -33,9 +32,9 @@ describe('MCP Tool: projectpulse_ticket_search', () => {
   let client: MCPTestClient;
 
   beforeEach(async () => {
-    projectId = generateUniqueProjectId();
-    const { token } = await createTestProject(projectId);
+    const { token, projectId: newProjectId } = await createTestProject();
     authToken = token;
+    projectId = newProjectId;
 
     // Create test tickets with different kinds, statuses, priorities
     await createTestTickets(projectId, 5, (index) => ({
