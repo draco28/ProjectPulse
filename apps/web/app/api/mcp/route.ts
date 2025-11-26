@@ -223,6 +223,11 @@ export async function POST(request: NextRequest) {
       }
 
       // Route to appropriate tool handler
+      // Helper to wrap result in MCP content format for tests
+      const wrapMCPContent = (data: unknown) => ({
+        content: [{ type: 'text', text: JSON.stringify(data) }]
+      });
+
       switch (name) {
         case 'knowledge.search':
           result = await knowledgeSearchHandler(args);
@@ -278,43 +283,55 @@ export async function POST(request: NextRequest) {
         case 'health.getHistory':
           result = await healthGetHistoryHandler(args);
           break;
-        // Ticket tools (Sprint 10)
+        // Ticket tools (Sprint 10) - both dot notation and projectpulse_ prefix
         case 'ticket.create':
-          result = await ticketCreateHandler(args);
+        case 'projectpulse_ticket_create':
+          result = wrapMCPContent(await ticketCreateHandler(args));
           break;
         case 'ticket.bulkCreate':
-          result = await ticketBulkCreateHandler(args);
+        case 'projectpulse_ticket_bulkCreate':
+          result = wrapMCPContent(await ticketBulkCreateHandler(args));
           break;
         case 'ticket.update':
-          result = await ticketUpdateHandler(args);
+        case 'projectpulse_ticket_update':
+          result = wrapMCPContent(await ticketUpdateHandler(args));
           break;
         case 'ticket.search':
-          result = await ticketSearchHandler(args);
+        case 'projectpulse_ticket_search':
+          result = wrapMCPContent(await ticketSearchHandler(args));
           break;
         case 'ticket.addComment':
-          result = await ticketAddCommentHandler(args);
+        case 'projectpulse_ticket_addComment':
+          result = wrapMCPContent(await ticketAddCommentHandler(args));
           break;
         case 'ticket.setStatus':
-          result = await ticketSetStatusHandler(args);
+        case 'projectpulse_ticket_setStatus':
+          result = wrapMCPContent(await ticketSetStatusHandler(args));
           break;
-        // Issue compatibility tools (adapters)
+        // Issue compatibility tools (adapters) - both dot notation and projectpulse_ prefix
         case 'issue.create':
-          result = await issueCreateHandler(args);
+        case 'projectpulse_issue_create':
+          result = wrapMCPContent(await issueCreateHandler(args));
           break;
         case 'issue.bulkCreate':
-          result = await issueBulkCreateHandler(args);
+        case 'projectpulse_issue_bulkCreate':
+          result = wrapMCPContent(await issueBulkCreateHandler(args));
           break;
         case 'issue.update':
-          result = await issueUpdateHandler(args);
+        case 'projectpulse_issue_update':
+          result = wrapMCPContent(await issueUpdateHandler(args));
           break;
         case 'issue.search':
-          result = await issueSearchHandler(args);
+        case 'projectpulse_issue_search':
+          result = wrapMCPContent(await issueSearchHandler(args));
           break;
         case 'issue.addComment':
-          result = await issueAddCommentHandler(args);
+        case 'projectpulse_issue_addComment':
+          result = wrapMCPContent(await issueAddCommentHandler(args));
           break;
         case 'issue.setStatus':
-          result = await issueSetStatusHandler(args);
+        case 'projectpulse_issue_setStatus':
+          result = wrapMCPContent(await issueSetStatusHandler(args));
           break;
         default:
           throw new MCPError(
@@ -326,7 +343,9 @@ export async function POST(request: NextRequest) {
               'skill.list', 'skill.load', 'skill.search', 'skill.update', 'skill.delete', 'skill.export', 'skill.import', 'skill.linkKnowledge',
               'health.runScan', 'health.getScore', 'health.getHistory',
               'ticket.create', 'ticket.bulkCreate', 'ticket.update', 'ticket.search', 'ticket.addComment', 'ticket.setStatus',
-              'issue.create', 'issue.bulkCreate', 'issue.update', 'issue.search', 'issue.addComment', 'issue.setStatus'
+              'projectpulse_ticket_create', 'projectpulse_ticket_bulkCreate', 'projectpulse_ticket_update', 'projectpulse_ticket_search', 'projectpulse_ticket_addComment', 'projectpulse_ticket_setStatus',
+              'issue.create', 'issue.bulkCreate', 'issue.update', 'issue.search', 'issue.addComment', 'issue.setStatus',
+              'projectpulse_issue_create', 'projectpulse_issue_bulkCreate', 'projectpulse_issue_update', 'projectpulse_issue_search', 'projectpulse_issue_addComment', 'projectpulse_issue_setStatus'
             ] }
           );
       }
@@ -832,6 +851,180 @@ export async function POST(request: NextRequest) {
           {
             name: 'issue.setStatus',
             description: 'Set issue status (adapter for ticket.setStatus)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                issueId: { type: 'number' },
+                status: { type: 'string' },
+              },
+              required: ['issueId', 'status'],
+            },
+          },
+          // projectpulse_ prefixed aliases (for MCP agent compatibility)
+          {
+            name: 'projectpulse_ticket_create',
+            description: 'Create a new ticket (feature, task, epic, issue, bug, tech_debt, scanner_finding)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number', description: 'Project ID (defaults to first project)' },
+                title: { type: 'string', minLength: 1, maxLength: 200 },
+                description: { type: 'string', maxLength: 50000 },
+                kind: { type: 'string', enum: ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'], default: 'issue' },
+                source: { type: 'string', enum: ['manual', 'onboarding', 'scanner', 'agent'], default: 'manual' },
+                status: { type: 'string', default: 'open' },
+                priority: { type: 'string', enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
+                module: { type: 'string' },
+                assignee: { type: 'string' },
+              },
+              required: ['title'],
+            },
+          },
+          {
+            name: 'projectpulse_ticket_bulkCreate',
+            description: 'Bulk create tickets (up to 50)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number' },
+                tickets: { type: 'array', items: { type: 'object' }, minItems: 1, maxItems: 50 },
+              },
+              required: ['tickets'],
+            },
+          },
+          {
+            name: 'projectpulse_ticket_update',
+            description: 'Update ticket fields',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                ticketId: { type: 'number' },
+                title: { type: 'string' },
+                description: { type: 'string' },
+                status: { type: 'string' },
+                priority: { type: 'string' },
+                module: { type: 'string' },
+                assignee: { type: 'string' },
+              },
+              required: ['ticketId'],
+            },
+          },
+          {
+            name: 'projectpulse_ticket_search',
+            description: 'Search tickets with filters',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number' },
+                search: { type: 'string' },
+                kind: { type: 'array', items: { type: 'string' } },
+                status: { type: 'array', items: { type: 'string' } },
+                priority: { type: 'array', items: { type: 'string' } },
+                page: { type: 'number' },
+                pageSize: { type: 'number' },
+              },
+            },
+          },
+          {
+            name: 'projectpulse_ticket_addComment',
+            description: 'Add comment to ticket',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                ticketId: { type: 'number' },
+                content: { type: 'string' },
+                author: { type: 'string' },
+              },
+              required: ['ticketId', 'content'],
+            },
+          },
+          {
+            name: 'projectpulse_ticket_setStatus',
+            description: 'Update ticket status',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                ticketId: { type: 'number' },
+                status: { type: 'string' },
+              },
+              required: ['ticketId', 'status'],
+            },
+          },
+          {
+            name: 'projectpulse_issue_create',
+            description: 'Create issue (adapter for ticket.create with kind=issue)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number' },
+                title: { type: 'string' },
+                description: { type: 'string' },
+                status: { type: 'string' },
+                priority: { type: 'string' },
+                module: { type: 'string' },
+                assignee: { type: 'string' },
+              },
+              required: ['title'],
+            },
+          },
+          {
+            name: 'projectpulse_issue_bulkCreate',
+            description: 'Bulk create issues (adapter)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number' },
+                issues: { type: 'array', items: { type: 'object' }, minItems: 1, maxItems: 50 },
+              },
+              required: ['issues'],
+            },
+          },
+          {
+            name: 'projectpulse_issue_update',
+            description: 'Update issue (adapter)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                issueId: { type: 'number' },
+                title: { type: 'string' },
+                description: { type: 'string' },
+                status: { type: 'string' },
+                priority: { type: 'string' },
+              },
+              required: ['issueId'],
+            },
+          },
+          {
+            name: 'projectpulse_issue_search',
+            description: 'Search issues (adapter with kind=[issue,bug,scanner_finding])',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'number' },
+                search: { type: 'string' },
+                status: { type: 'array', items: { type: 'string' } },
+                priority: { type: 'array', items: { type: 'string' } },
+                page: { type: 'number' },
+                pageSize: { type: 'number' },
+              },
+            },
+          },
+          {
+            name: 'projectpulse_issue_addComment',
+            description: 'Add comment to issue (adapter)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                issueId: { type: 'number' },
+                content: { type: 'string' },
+                author: { type: 'string' },
+              },
+              required: ['issueId', 'content'],
+            },
+          },
+          {
+            name: 'projectpulse_issue_setStatus',
+            description: 'Set issue status (adapter)',
             inputSchema: {
               type: 'object',
               properties: {

@@ -48,6 +48,7 @@ export interface TicketCreateInput {
 
 export interface TicketCreateOutput {
   id: number;
+  projectId: number;
   title: string;
   description: string | null;
   kind: string;
@@ -56,6 +57,7 @@ export interface TicketCreateOutput {
   priority: string;
   module: string | null;
   assignee: string | null;
+  customFields: Record<string, unknown> | null;
   createdAt: string;
 }
 
@@ -250,6 +252,7 @@ export async function ticketCreateHandler(
       data: createData,
       select: {
         id: true,
+        projectId: true,
         title: true,
         description: true,
         kind: true,
@@ -258,6 +261,7 @@ export async function ticketCreateHandler(
         priority: true,
         module: true,
         assignee: true,
+        customFields: true,
         createdAt: true,
       },
     });
@@ -276,6 +280,7 @@ export async function ticketCreateHandler(
 
     return {
       id: ticket.id,
+      projectId: ticket.projectId,
       title: ticket.title,
       description: ticket.description,
       kind: ticket.kind,
@@ -284,6 +289,7 @@ export async function ticketCreateHandler(
       priority: ticket.priority,
       module: ticket.module,
       assignee: ticket.assignee,
+      customFields: ticket.customFields as Record<string, unknown> | null,
       createdAt: ticket.createdAt.toISOString(),
     };
   } catch (error) {
@@ -351,6 +357,7 @@ export async function ticketBulkCreateHandler(
           },
           select: {
             id: true,
+            projectId: true,
             title: true,
             description: true,
             kind: true,
@@ -359,6 +366,7 @@ export async function ticketBulkCreateHandler(
             priority: true,
             module: true,
             assignee: true,
+            customFields: true,
             createdAt: true,
           },
         })
@@ -369,6 +377,7 @@ export async function ticketBulkCreateHandler(
       created: createdTickets.length,
       tickets: createdTickets.map((t) => ({
         id: t.id,
+        projectId: t.projectId,
         title: t.title,
         description: t.description,
         kind: t.kind,
@@ -377,6 +386,7 @@ export async function ticketBulkCreateHandler(
         priority: t.priority,
         module: t.module,
         assignee: t.assignee,
+        customFields: t.customFields as Record<string, unknown> | null,
         createdAt: t.createdAt.toISOString(),
       })),
     };

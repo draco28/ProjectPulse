@@ -252,13 +252,14 @@ export default async function TicketsPage({
                   {project.name} - All work items: features, tasks, epics, issues, and bugs
                 </p>
               </div>
-              <button
-                className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"
+              <Link
+                href={`/tickets/create?project=${projectId}`}
+                className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg hover:opacity-90"
                 aria-label="Create new ticket"
               >
                 <Plus className="h-5 w-5" aria-hidden="true" />
                 <span>New Ticket</span>
-              </button>
+              </Link>
             </div>
 
             {/* Kind Filter Pills */}
