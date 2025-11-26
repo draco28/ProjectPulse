@@ -58,6 +58,12 @@ importers:
       '@projectpulse/roadmap-tools':
         specifier: workspace:*
         version: link:../../packages/roadmap-tools
+      '@types/bcryptjs':
+        specifier: ^3.0.0
+        version: 3.0.0
+      bcryptjs:
+        specifier: ^3.0.3
+        version: 3.0.3
       express:
         specifier: ^5.1.0
         version: 5.1.0
@@ -3066,7 +3072,6 @@ packages:
     deprecated: This is a stub types definition. bcryptjs provides its own type definitions, so you do not need this installed.
     dependencies:
       bcryptjs: 3.0.3
-    dev: true
 
   /@types/body-parser@1.19.6:
     resolution: {integrity: sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g==}
