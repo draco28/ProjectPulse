@@ -3,6 +3,10 @@
  *
  * POST /api/wiki/generate - Generate wiki pages from JSDoc comments
  *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ *
  * @see US-107: JSDoc Auto-Generation
  */
 
@@ -13,6 +17,7 @@ import { generateMarkdown, generateSlug, generateExcerpt } from '@/lib/wiki/gene
 import { generateWikiSchema, type GenerateWikiInput } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
 import type { ParsedDocumentation } from '@/lib/wiki/parsers/jsdoc';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * Response type for wiki generation
@@ -45,6 +50,10 @@ interface WikiGenerationResponse {
 export async function POST(request: NextRequest): Promise<NextResponse<WikiGenerationResponse>> {
   try {
     const body = await request.json();
+    
+    // Authenticate and validate project access
+    const requestedProjectId = body.projectId ? parseInt(body.projectId, 10) : undefined;
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // Validate request body
     const validation = generateWikiSchema.safeParse(body);
@@ -83,26 +92,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<WikiGener
       });
     }
 
-    // Get default project for wiki pages
-    const defaultProject = await prisma.project.findFirst({
-      select: { id: true },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    if (!defaultProject) {
-      return NextResponse.json({
-        success: false,
-        pagesCreated: 0,
-        pagesUpdated: 0,
-        pagesSkipped: 0,
-        pages: [],
-        errors: [{ file: 'system', error: 'No project found. Please create a project first.' }],
-      });
+    // Use authenticated projectId
     }
 
     // Process each documentation file
     const results = await Promise.allSettled(
-      docs.map(doc => processDocumentation(doc, category, overwriteExisting, defaultProject.id))
+      docs.map(doc => processDocumentation(doc, category, overwriteExisting, projectId))
     );
 
     // Aggregate results
@@ -142,6 +137,20 @@ export async function POST(request: NextRequest): Promise<NextResponse<WikiGener
       errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        {
+          success: false,
+          pagesCreated: 0,
+          pagesUpdated: 0,
+          pagesSkipped: 0,
+          pages: [],
+          errors: [{ file: 'auth', error: error.message }],
+        },
+        { status: error.status }
+      );
+    }
+    
     console.error('Wiki generation error:', error);
 
     return NextResponse.json(

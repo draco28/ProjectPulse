@@ -18,6 +18,7 @@ import { config } from './config.js';
 import { createLogger } from './logger.js';
 import { createHttpClient } from './httpClient.js';
 import { registerTools } from './tools/index.js';
+import { authContext, type AgentAuth } from './authContext.js';
 
 const logger = createLogger(config.logLevel);
 const httpClient = createHttpClient(config, logger);
@@ -136,17 +137,25 @@ app.use('/mcp', async (req, res, next) => {
 
   try {
     // Validate token via web app (MCP never hits DB directly)
-    const agentAuth = await httpClient.post<{ projectId: number; tokenId: number; name: string }>(
+    // Sprint 10: Now includes tool permissions (blockedTools, allowedTools)
+    const agentAuth = await httpClient.post<{
+      projectId: number;
+      tokenId: number;
+      name: string;
+      blockedTools: string[];
+      allowedTools: string[];
+    }>(
       '/api/agent-auth/validate',
       { token: rawToken }
     );
     
     // Attach agent auth to request for tools
-    (req as any).agentAuth = agentAuth; // { projectId, tokenId, name }
+    (req as any).agentAuth = agentAuth;
     
     logger.debug('Agent authenticated', {
       projectId: agentAuth.projectId,
       tokenName: agentAuth.name,
+      hasToolRestrictions: agentAuth.blockedTools.length > 0 || agentAuth.allowedTools.length > 0,
     });
     
     return next();
@@ -194,81 +203,89 @@ app.get('/health', (_req, res) => {
  * Compatible with: Claude Code, Windsurf, Cascade, and all MCP-compliant clients
  */
 app.post('/mcp', async (req, res) => {
+  // Sprint 10: Build auth context from validated middleware data
+  const reqAgentAuth = (req as any).agentAuth as {
+    projectId: number;
+    tokenId: number;
+    name: string;
+    blockedTools: string[];
+    allowedTools: string[];
+  } | undefined;
+  const rawToken = req.headers.authorization?.slice('Bearer '.length) || '';
+  
+  // Create AgentAuth context for AsyncLocalStorage
+  const agentAuthContext: AgentAuth | undefined = reqAgentAuth ? {
+    projectId: reqAgentAuth.projectId,
+    tokenId: reqAgentAuth.tokenId,
+    tokenName: reqAgentAuth.name,
+    rawToken,
+    blockedTools: reqAgentAuth.blockedTools,
+    allowedTools: reqAgentAuth.allowedTools,
+  } : undefined;
+  
   logger.info('Handling stateful HTTP MCP request', {
     method: req.body?.method,
     hasBody: !!req.body,
+    projectId: agentAuthContext?.projectId,
   });
 
-  // Create transport for this request (STATELESS mode)
-  // Note: Stateless mode works correctly for separate HTTP POST requests
-  // For true session persistence across requests, implement session Map (future enhancement)
-  const transport = new StreamableHTTPServerTransport({
-    // Stateless mode: undefined sessionIdGenerator for per-request independence
-    sessionIdGenerator: undefined,
-    
-    // Return JSON responses (not SSE streams)
-    enableJsonResponse: true,
-    
-    // Disable DNS rebinding protection for local network
-    enableDnsRebindingProtection: false,
-  });
+  // Wrap entire request handling with auth context
+  // This allows httpClient to access auth via getAgentAuth()
+  const handleMcpRequest = async () => {
+    // Create transport for this request (STATELESS mode)
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true,
+      enableDnsRebindingProtection: false,
+    });
 
-  // Defer cleanup to HTTP response lifecycle (SDK pattern)
-  // This prevents premature stream termination
-  res.on('close', () => {
-    transport.close();
-    logger.debug('Stateful HTTP transport closed (response ended)');
-  });
+    // Defer cleanup to HTTP response lifecycle (SDK pattern)
+    res.on('close', () => {
+      transport.close();
+      logger.debug('Stateful HTTP transport closed (response ended)');
+    });
 
-  res.on('error', (error) => {
-    logger.error('HTTP response error', { error: error.message });
-    transport.close();
-  });
+    res.on('error', (error) => {
+      logger.error('HTTP response error', { error: error.message });
+      transport.close();
+    });
 
-  try {
-    // DIAGNOSTIC: Log what headers the SDK will see
-    const rawHeadersObj: Record<string, string> = {};
-    for (let i = 0; i < req.rawHeaders.length; i += 2) {
-      const key = req.rawHeaders[i];
-      const value = req.rawHeaders[i + 1];
-      if (key && value) {
-        rawHeadersObj[key.toLowerCase()] = value;
+    try {
+      // Connect singleton server to this transport
+      await server.connect(transport);
+      logger.debug('Stateful HTTP transport connected');
+
+      // Handle the MCP request (initialize, tools/list, tools/call, etc.)
+      await transport.handleRequest(req, res, req.body);
+      logger.debug('Stateful HTTP request handled successfully');
+
+    } catch (error) {
+      logger.error('Failed to handle stateful HTTP request', {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined,
+        method: req.body?.method,
+      });
+
+      if (!res.headersSent) {
+        res.status(500).json({
+          jsonrpc: '2.0',
+          error: {
+            code: -32603,
+            message: 'Internal server error',
+            data: error instanceof Error ? error.message : 'Unknown error',
+          },
+          id: req.body?.id || null,
+        });
       }
     }
+  };
 
-    logger.debug('Headers before SDK handleRequest', {
-      'req.headers.accept': req.headers.accept,
-      'req.rawHeaders.accept': rawHeadersObj['accept'] || '(not found)',
-      'headers match': req.headers.accept === rawHeadersObj['accept']
-    });
-
-    // Connect singleton server to this transport
-    await server.connect(transport);
-    logger.debug('Stateful HTTP transport connected');
-
-    // Handle the MCP request (initialize, tools/list, tools/call, etc.)
-    // SDK will stream response asynchronously - do NOT close transport here
-    await transport.handleRequest(req, res, req.body);
-    logger.debug('Stateful HTTP request handled successfully');
-
-  } catch (error) {
-    logger.error('Failed to handle stateful HTTP request', {
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined,
-      method: req.body?.method,
-    });
-
-    if (!res.headersSent) {
-      res.status(500).json({
-        jsonrpc: '2.0',
-        error: {
-          code: -32603,
-          message: 'Internal server error',
-          data: error instanceof Error ? error.message : 'Unknown error',
-        },
-        id: req.body?.id || null,
-      });
-    }
+  // Execute with auth context (enables httpClient to access credentials)
+  if (agentAuthContext) {
+    await authContext.run(agentAuthContext, handleMcpRequest);
+  } else {
+    // Fallback for unauthenticated requests (should not happen due to middleware)
+    await handleMcpRequest();
   }
 });
 

@@ -121,23 +121,23 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
     console.log('✓ Updated priority to critical');
   });
 
-  test('should update ticket status from open to in_progress', async () => {
+  test('should update ticket status from open to in-progress', async () => {
     const result = await client.callTool('projectpulse_ticket_update', {
       ticketId: testTicket.id,
-      status: 'in_progress',
+      status: 'in-progress',
     });
 
     const updatedTicket = JSON.parse(result.content[0].text);
 
-    assert.strictEqual(updatedTicket.status, 'in_progress', 'Status should be in_progress');
+    assert.strictEqual(updatedTicket.status, 'in-progress', 'Status should be in-progress');
 
     // Verify in database
     const dbTicket = await prisma.ticket.findUnique({
       where: { id: testTicket.id },
     });
 
-    assert.strictEqual(dbTicket?.status, 'in_progress', 'Status should be in_progress in database');
-    console.log('✓ Updated status to in_progress');
+    assert.strictEqual(dbTicket?.status, 'in-progress', 'Status should be in-progress in database');
+    console.log('✓ Updated status to in-progress');
   });
 
   test('should update ticket module', async () => {
@@ -210,21 +210,21 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
   });
 
   test('should fail when updating non-existent ticket', async () => {
-    try {
-      await client.callTool('projectpulse_ticket_update', {
-        ticketId: 999999, // Non-existent ID
-        title: 'Should fail',
-      });
+    const result = await client.callTool('projectpulse_ticket_update', {
+      ticketId: 999999, // Non-existent ID
+      title: 'Should fail',
+    });
 
-      // Should not reach here
-      assert.fail('Expected error for non-existent ticket');
-    } catch (error: any) {
-      assert.ok(
-        error.message.includes('not found') || error.message.includes('404'),
-        'Error should indicate ticket not found'
-      );
-      console.log('✓ Validation error for non-existent ticket');
-    }
+    const response = JSON.parse(result.content[0].text);
+    
+    assert.strictEqual(response.status, 'error', 'Response should indicate error');
+    assert.ok(
+      response.error.message.includes('not found') || 
+      response.error.message.includes('404') ||
+      response.error.message.includes('NOT_FOUND'),
+      'Error should indicate ticket not found'
+    );
+    console.log('✓ Validation error for non-existent ticket');
   });
 });
 

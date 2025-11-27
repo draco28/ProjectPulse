@@ -2,8 +2,8 @@
  * MCP Tool E2E Test: projectpulse_ticket_setStatus
  *
  * Tests the ticket status change MCP tool including:
- * - Change status from open to in_progress
- * - Change status from in_progress to completed
+ * - Change status from open to in-progress
+ * - Change status from in-progress to completed
  * - Change status from open to blocked
  * - Change status from completed to reopened (if supported)
  * - Verify status transitions persist
@@ -43,7 +43,7 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
     console.log(`✓ Test cleanup complete for project ${projectId}`);
   });
 
-  test('should change status from open to in_progress', async () => {
+  test('should change status from open to in-progress', async () => {
     const ticket = await createTestTicket(projectId, {
       title: 'Test Status Transition',
       status: 'open',
@@ -51,24 +51,24 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
 
     const result = await client.callTool('projectpulse_ticket_setStatus', {
       ticketId: ticket.id,
-      status: 'in_progress',
+      status: 'in-progress',
     });
 
     const updatedTicket = JSON.parse(result.content[0].text);
 
-    assert.strictEqual(updatedTicket.status, 'in_progress', 'Status should be in_progress');
+    assert.strictEqual(updatedTicket.status, 'in-progress', 'Status should be in-progress');
 
     // Verify in database
     const dbTicket = await prisma.ticket.findUnique({ where: { id: ticket.id } });
-    assert.strictEqual(dbTicket?.status, 'in_progress', 'Status should be in_progress in database');
+    assert.strictEqual(dbTicket?.status, 'in-progress', 'Status should be in-progress in database');
 
-    console.log('✓ Status changed: open → in_progress');
+    console.log('✓ Status changed: open → in-progress');
   });
 
-  test('should change status from in_progress to completed and set closedAt', async () => {
+  test('should change status from in-progress to completed and set closedAt', async () => {
     const ticket = await createTestTicket(projectId, {
       title: 'Test Completion',
-      status: 'in_progress',
+      status: 'in-progress',
     });
 
     const result = await client.callTool('projectpulse_ticket_setStatus', {
@@ -85,7 +85,7 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
     assert.ok(dbTicket?.closedAt, 'closedAt should be set when status=closed');
     assert.strictEqual(dbTicket?.status, 'closed', 'Status should be closed in database');
 
-    console.log(`✓ Status changed: in_progress → closed, closedAt set to ${dbTicket?.closedAt}`);
+    console.log(`✓ Status changed: in-progress → closed, closedAt set to ${dbTicket?.closedAt}`);
   });
 
   test('should change status from open to blocked', async () => {

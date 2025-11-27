@@ -3,6 +3,10 @@
  *
  * GET /api/tickets/[id]/comments - List comments for a ticket
  * POST /api/tickets/[id]/comments - Add a comment to a ticket
+ *
+ * Security (Sprint 10):
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation
  */
 
 import { NextRequest } from 'next/server';
@@ -10,6 +14,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { TicketIdParamSchema, TicketCommentSchema } from '@/lib/validations/ticket';
 import { failure, success } from '../../_utils';
+import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
@@ -23,10 +28,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { id: rawId } = await context.params;
     const { id } = TicketIdParamSchema.parse({ id: rawId });
 
-    // Check ticket exists
+    // Check ticket exists and get projectId for auth
     const ticket = await prisma.ticket.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, projectId: true },
     });
 
     if (!ticket) {
@@ -36,6 +41,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
         status: 404,
       });
     }
+
+    // Sprint 10: Validate project access
+    await requireProjectAccess(request, ticket.projectId);
 
     const comments = await prisma.ticketComment.findMany({
       where: { ticketId: id },
@@ -55,6 +63,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
       count: comments.length,
     });
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return failure({ code: error.code, message: error.message, status: error.status });
+    }
+    
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',
@@ -75,10 +88,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const payload = await request.json();
     const data = TicketCommentSchema.parse(payload);
 
-    // Check ticket exists
+    // Check ticket exists and get projectId for auth
     const ticket = await prisma.ticket.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, projectId: true },
     });
 
     if (!ticket) {
@@ -88,6 +101,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
         status: 404,
       });
     }
+
+    // Sprint 10: Validate project access
+    await requireProjectAccess(request, ticket.projectId);
 
     const comment = await prisma.ticketComment.create({
       data: {
@@ -109,6 +125,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     return success(comment, 201);
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return failure({ code: error.code, message: error.message, status: error.status });
+    }
+    
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',

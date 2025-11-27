@@ -18,13 +18,17 @@
  * - 404: Phase not found or doesn't belong to project
  * - 500: Server error
  *
- * Security: Validates phase belongs to projectId (prevents cross-project access)
+ * Security (Sprint 10):
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ * - Validates phase belongs to projectId (prevents cross-project access)
  *
  * @see Sprint 8.5 Phase 4 - getPhaseProgress MCP tool
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 
 export async function GET(
   request: NextRequest,
@@ -49,6 +53,9 @@ export async function GET(
         { status: 400 }
       );
     }
+
+    // Sprint 10: Authenticate and validate project access
+    await requireProjectAccess(request, projectIdNum);
     
     // Query phase with full nested tree + projectId validation
     // Single query with 4-level nested includes (no N+1 problem)
@@ -112,6 +119,14 @@ export async function GET(
     return NextResponse.json(phase);
     
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+
     console.error('[GET /api/roadmap/phases/[id]/progress] Error:', error);
     return NextResponse.json(
       {

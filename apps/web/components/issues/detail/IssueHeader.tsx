@@ -49,6 +49,7 @@ interface IssueHeaderProps {
   assignee: string | null;
   createdAt: string; // ISO 8601 date string
   updatedAt: string; // ISO 8601 date string
+  projectId: number;
 }
 
 // ============================================================================
@@ -119,13 +120,14 @@ export function IssueHeader({
   assignee,
   createdAt,
   updatedAt,
+  projectId,
 }: IssueHeaderProps) {
   return (
     <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
       {/* Breadcrumb Navigation */}
       <div className="mb-3 flex items-center justify-between">
         <nav className="flex items-center gap-3 text-sm" aria-label="Breadcrumb">
-          <Link href="/issues" className="smooth-transition text-slate hover:text-coral">
+          <Link href={`/tickets?project=${projectId}`} className="smooth-transition text-slate hover:text-coral">
             Issues
           </Link>
           <ChevronRight className="h-3 w-3 text-slate" aria-hidden="true" />
@@ -134,7 +136,7 @@ export function IssueHeader({
           </span>
         </nav>
         <Link
-          href="/issues"
+          href={`/tickets?project=${projectId}`}
           className="smooth-transition text-slate hover:text-white"
           aria-label="Close issue detail"
         >
@@ -153,6 +155,7 @@ export function IssueHeader({
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold shadow-md ${getPriorityStyles(priority)}`}
               aria-label={`Priority: ${priority}`}
+              data-testid="priority-badge"
             >
               {priority.charAt(0).toUpperCase() + priority.slice(1)}
             </span>
@@ -169,6 +172,7 @@ export function IssueHeader({
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold shadow-md ${getStatusStyles(status)}`}
               aria-label={`Status: ${formatStatus(status)}`}
+              data-testid="status-badge"
             >
               {formatStatus(status)}
             </span>

@@ -15,6 +15,15 @@ import { z } from 'zod';
 // ============================================================================
 
 /**
+ * Kind filter option (tickets)
+ * Maps to Ticket kind
+ */
+export interface KindOption {
+  value: string; // e.g., "feature", "task", "bug"
+  label: string; // e.g., "Feature", "Task", "Bug"
+}
+
+/**
  * Status filter option
  * Maps to IssueStatusOption model in database
  */
@@ -59,6 +68,7 @@ export interface LabelOption {
  * Returned by GET /api/settings/filters
  */
 export interface FiltersDTO {
+  kinds?: string[]; // Optional for backwards compatibility
   status: StatusOption[];
   priority: PriorityOption[];
   modules: ModuleOption[];
@@ -68,6 +78,14 @@ export interface FiltersDTO {
 // ============================================================================
 // ZOD SCHEMAS (for validation)
 // ============================================================================
+
+/**
+ * Zod schema for KindOption validation
+ */
+export const kindOptionSchema = z.object({
+  value: z.string().min(1),
+  label: z.string().min(1),
+});
 
 /**
  * Zod schema for StatusOption validation
@@ -109,6 +127,7 @@ export const labelOptionSchema = z.object({
  * Zod schema for complete FiltersDTO validation
  */
 export const filtersDTOSchema = z.object({
+  kinds: z.array(z.string()).optional(),
   status: z.array(statusOptionSchema),
   priority: z.array(priorityOptionSchema),
   modules: z.array(moduleOptionSchema),
@@ -118,6 +137,13 @@ export const filtersDTOSchema = z.object({
 // ============================================================================
 // TYPE GUARDS
 // ============================================================================
+
+/**
+ * Type guard to check if value is a valid KindOption
+ */
+export function isKindOption(value: unknown): value is KindOption {
+  return kindOptionSchema.safeParse(value).success;
+}
 
 /**
  * Type guard to check if value is a valid StatusOption
@@ -154,17 +180,18 @@ export function isFiltersDTO(value: unknown): value is FiltersDTO {
 /**
  * Filter type discriminator
  */
-export type FilterType = 'status' | 'priority' | 'module' | 'label';
+export type FilterType = 'kind' | 'status' | 'priority' | 'module' | 'label';
 
 /**
  * Generic filter option (union of all option types)
  */
-export type FilterOption = StatusOption | PriorityOption | ModuleOption | LabelOption;
+export type FilterOption = KindOption | StatusOption | PriorityOption | ModuleOption | LabelOption;
 
 /**
  * Filter counts map (used in FilterSidebar)
  */
 export interface FilterCounts {
+  kind?: Record<string, number>; // { "feature": 5, "task": 3 }
   status: Record<string, number>; // { "open": 5, "in-progress": 3, "closed": 2 }
   priority: Record<string, number>; // { "critical": 1, "high": 4, "medium": 3, "low": 2 }
   module: Record<string, number>; // { "combat": 2, "animation": 3, "core": 2, "ui": 3 }

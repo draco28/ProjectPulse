@@ -9,13 +9,17 @@
  * 1. { type: 'json', data: ParsedRoadmap } - Direct JSON object
  * 2. { type: 'file', content: string } - Base64 encoded JSON file
  *
+ * Security (Sprint 10):
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ *
  * @see .agent/task/roadmap-ui/ROADMAP-API-SPEC.md
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser, verifyProjectOwnership } from '@/lib/auth-server';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { materializeRoadmap } from '@projectpulse/roadmap-tools';
 
 // ============================================================================
@@ -117,23 +121,15 @@ function parseRoadmapData(source: z.infer<typeof importRoadmapSchema>['source'])
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
     const validated = importRoadmapSchema.parse(body);
 
-    // Verify project ownership
-    await verifyProjectOwnership(validated.projectId, user.id);
+    // Sprint 10: Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, validated.projectId);
 
     // Check if roadmap already exists
     const existing = await prisma.roadmap.findUnique({
-      where: { projectId: validated.projectId },
+      where: { projectId },
     });
 
     if (existing) {
@@ -170,7 +166,7 @@ export async function POST(request: NextRequest) {
     // Create roadmap
     const roadmap = await prisma.roadmap.create({
       data: {
-        projectId: validated.projectId,
+        projectId,
         phases: phasesJson,
         currentPhase: phasesJson.phases[0]?.name || null,
         currentSprint: phasesJson.phases[0]?.sprints[0]?.name || null,
@@ -218,6 +214,14 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
 
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: { code: error.code, message: error.message } },
+        { status: error.status }
+      );
+    }
+
     if (error instanceof z.ZodError) {
       return NextResponse.json({
         success: false,
@@ -238,13 +242,6 @@ export async function POST(request: NextRequest) {
             message: error.message.replace('PARSE_ERROR: ', ''),
           },
         }, { status: 422 });
-      }
-
-      if (error.message.includes('Unauthorized')) {
-        return NextResponse.json(
-          { success: false, error: { code: 'FORBIDDEN', message: 'Access denied' } },
-          { status: 403 }
-        );
       }
     }
 

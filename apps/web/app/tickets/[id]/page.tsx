@@ -236,29 +236,6 @@ export default async function TicketDetailPage({
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Ticket Header */}
           <div className="relative" data-testid="ticket-header">
-            {/* Kind and Source Badges */}
-            <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-              <span 
-                data-testid="kind-badge" 
-                data-kind={ticket.kind}
-                className={`px-3 py-1 rounded-full text-sm font-medium ${kindColor}`}
-              >
-                {kindLabel}
-              </span>
-              <span 
-                data-testid="source-indicator"
-                data-source={ticket.source}
-                className="px-2 py-1 rounded-full text-xs bg-surface-dark text-slate capitalize"
-              >
-                {ticket.source}
-              </span>
-            </div>
-            {/* Ticket ID Badge */}
-            <div className="absolute top-4 left-4 z-10">
-              <span data-testid="ticket-id-badge" className="text-sm text-slate">
-                #{ticket.id}
-              </span>
-            </div>
             <IssueHeader
               id={ticket.id}
               title={ticket.title}
@@ -269,19 +246,15 @@ export default async function TicketDetailPage({
               assignee={ticket.assignee}
               createdAt={serializedTicket.createdAt}
               updatedAt={serializedTicket.updatedAt}
+              projectId={projectId}
             />
           </div>
 
-          {/* 3-Column Responsive Grid Layout */}
+          {/* 2-Column Responsive Grid Layout (Main: 9, Sidebar: 3) */}
           <main className="grid flex-1 grid-cols-1 gap-4 overflow-hidden lg:grid-cols-12">
-            {/* LEFT SIDEBAR */}
-            <aside className="order-3 space-y-4 overflow-auto lg:order-none lg:col-span-2">
-              <QuickActions issueId={serializedTicket.id} issueTitle={ticket.title} />
-              <WatchersSection issueId={serializedTicket.id} />
-            </aside>
-
-            {/* MAIN CONTENT */}
-            <div className="order-1 space-y-4 overflow-auto lg:order-none lg:col-span-7">
+            
+            {/* MAIN CONTENT (Left Column) */}
+            <div className="space-y-4 overflow-auto lg:col-span-9">
               {/* Action Buttons */}
               <div className="flex items-center justify-end">
                 <IssueActions
@@ -344,7 +317,11 @@ export default async function TicketDetailPage({
             </div>
 
             {/* RIGHT SIDEBAR */}
-            <aside className="order-2 space-y-4 overflow-auto lg:order-none lg:col-span-3">
+            <aside className="space-y-4 overflow-auto lg:col-span-3">
+              {/* Quick Actions */}
+              <QuickActions issueId={serializedTicket.id} issueTitle={ticket.title} />
+
+              {/* Issue Details */}
               <IssueDetailSidebar
                 issueId={serializedTicket.id}
                 assignee={serializedTicket.assignee}
@@ -360,13 +337,13 @@ export default async function TicketDetailPage({
                 <dl className="space-y-2 text-sm">
                   <div className="flex justify-between" data-testid="metadata-kind">
                     <dt className="text-slate">Kind</dt>
-                    <dd className={`px-2 py-0.5 rounded text-xs font-medium ${kindColor}`} data-kind={ticket.kind}>
+                    <dd className={`px-2 py-0.5 rounded text-xs font-medium ${kindColor}`} data-testid="kind-badge" data-kind={ticket.kind}>
                       {kindLabel}
                     </dd>
                   </div>
                   <div className="flex justify-between" data-testid="metadata-source">
                     <dt className="text-slate">Source</dt>
-                    <dd className="text-white capitalize" data-source={ticket.source}>{ticket.source}</dd>
+                    <dd className="text-white capitalize" data-testid="source-badge" data-source={ticket.source}>{ticket.source}</dd>
                   </div>
                   {ticket.assigneeType && (
                     <div className="flex justify-between" data-testid="metadata-assignee-type">
@@ -387,6 +364,9 @@ export default async function TicketDetailPage({
                 </dl>
               </div>
               
+              {/* Watchers */}
+              <WatchersSection issueId={serializedTicket.id} />
+              
               {/* Linked Task Breadcrumb (Sprint 10) */}
               {ticket.linkedTask && (
                 <div className="neu-raised smooth-transition rounded-3xl p-4" data-testid="linked-task-breadcrumb">
@@ -402,6 +382,7 @@ export default async function TicketDetailPage({
                 </div>
               )}
 
+              {/* System Activity */}
               <SystemActivity
                 comments={serializedTicket.comments}
                 linkedCommits={
@@ -413,6 +394,8 @@ export default async function TicketDetailPage({
                   }>
                 }
               />
+              
+              {/* Related Issues */}
               <RelatedIssues
                 currentIssueId={ticket.id}
                 projectId={ticket.project.id}

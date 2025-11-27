@@ -31,7 +31,7 @@ test.describe('Ticket Detail Page', () => {
       await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Try to get first ticket link
-      const firstLink = page.locator('[data-testid="ticket-card"] a, .ticket-card a, article a').first();
+      const firstLink = page.locator('[data-testid="ticket-card"] a').first();
       const href = await firstLink.getAttribute('href');
       testTicketId = href?.match(/\/tickets\/(\d+)/)?.[1] || '1';
 
@@ -51,8 +51,8 @@ test.describe('Ticket Detail Page', () => {
   });
 
   test('should display ticket header with title and ID', async ({ page }) => {
-    // Verify ticket title is displayed
-    const heading = page.locator('main h1, main h2, header h2').first().first();
+    // Verify ticket title is displayed (use specific class to avoid sidebar h1)
+    const heading = page.locator('h1.text-2xl').first();
     await expect(heading).toBeVisible({ timeout: 10000 });
 
     const headingText = await heading.textContent();
@@ -60,7 +60,7 @@ test.describe('Ticket Detail Page', () => {
     console.log(`✓ Ticket title: ${headingText?.substring(0, 50)}...`);
 
     // Verify ticket ID/number is displayed
-    const ticketNumber = page.locator(`text=/#${testTicketId}/i, [data-testid="ticket-id"]`);
+    const ticketNumber = page.locator('[data-testid="ticket-id"]').or(page.getByText(`#${testTicketId}`));
     if ((await ticketNumber.count()) > 0) {
       await expect(ticketNumber.first()).toBeVisible();
       console.log(`✓ Ticket ID #${testTicketId} displayed`);
@@ -68,8 +68,8 @@ test.describe('Ticket Detail Page', () => {
   });
 
   test('should display kind badge with appropriate styling', async ({ page }) => {
-    // Look for kind badge (feature, task, epic, issue, bug, etc.)
-    const kindBadge = page.locator('[data-testid="kind-badge"], .badge:has-text(/feature|task|epic|issue|bug|scanner|tech/i)');
+    // Look for kind badge with data-testid
+    const kindBadge = page.locator('[data-testid="kind-badge"]');
 
     if ((await kindBadge.count()) > 0) {
       await expect(kindBadge.first()).toBeVisible();
@@ -89,10 +89,8 @@ test.describe('Ticket Detail Page', () => {
   });
 
   test('should display status badge', async ({ page }) => {
-    // Look for status badge
-    const statusBadge = page.locator(
-      '[data-testid="status-badge"], .badge:has-text(/open|closed|in progress|blocked|cancelled/i)'
-    );
+    // Look for status badge with data-testid
+    const statusBadge = page.locator('[data-testid="status-badge"]');
 
     if ((await statusBadge.count()) > 0) {
       await expect(statusBadge.first()).toBeVisible();
@@ -100,7 +98,7 @@ test.describe('Ticket Detail Page', () => {
       console.log(`✓ Status badge: ${statusText}`);
     } else {
       // Alternative: Look for status text anywhere on page
-      const statusText = page.locator('text=/status.*open|status.*closed/i');
+      const statusText = page.getByText(/status/i);
       if ((await statusText.count()) > 0) {
         console.log('✓ Status shown as text');
       } else {
@@ -110,10 +108,8 @@ test.describe('Ticket Detail Page', () => {
   });
 
   test('should display priority badge', async ({ page }) => {
-    // Look for priority badge
-    const priorityBadge = page.locator(
-      '[data-testid="priority-badge"], .badge:has-text(/critical|high|medium|low/i)'
-    );
+    // Look for priority badge with data-testid
+    const priorityBadge = page.locator('[data-testid="priority-badge"]');
 
     if ((await priorityBadge.count()) > 0) {
       await expect(priorityBadge.first()).toBeVisible();
@@ -129,10 +125,8 @@ test.describe('Ticket Detail Page', () => {
   });
 
   test('should display source indicator (manual, scanner, agent, onboarding)', async ({ page }) => {
-    // Look for source indicator
-    const sourceIndicator = page.locator(
-      '[data-testid="source-badge"], text=/source.*manual|source.*scanner|source.*agent|source.*onboarding/i'
-    );
+    // Look for source indicator with data-testid
+    const sourceIndicator = page.locator('[data-testid="source-badge"]');
 
     if ((await sourceIndicator.count()) > 0) {
       const sourceText = await sourceIndicator.first().textContent();
@@ -150,17 +144,15 @@ test.describe('Ticket Detail Page', () => {
   });
 
   test('should display assignee with type (human or agent_persona)', async ({ page }) => {
-    // Look for assignee information
-    const assigneeSection = page.locator(
-      '[data-testid="assignee"], text=/assigned to|assignee/i'
-    );
+    // Look for assignee information with data-testid
+    const assigneeSection = page.locator('[data-testid="assignee"]').or(page.getByText(/assigned to|assignee/i));
 
     if ((await assigneeSection.count()) > 0) {
       const assigneeText = await assigneeSection.first().textContent();
       console.log(`✓ Assignee: ${assigneeText}`);
 
       // Check if assignee type is indicated (human vs agent)
-      const assigneeType = page.locator('text=/human|agent|persona/i');
+      const assigneeType = page.getByText(/human|agent|persona/i);
       if ((await assigneeType.count()) > 0) {
         const typeText = await assigneeType.first().textContent();
         console.log(`✓ Assignee type: ${typeText}`);
@@ -171,8 +163,8 @@ test.describe('Ticket Detail Page', () => {
   });
 
   test('should display description section', async ({ page }) => {
-    // Look for description section
-    const descriptionHeading = page.locator('text=/^description$/i, h2:has-text("Description"), h3:has-text("Description")');
+    // Look for description section with heading
+    const descriptionHeading = page.getByRole('heading', { name: /description/i });
 
     if ((await descriptionHeading.count()) > 0) {
       await expect(descriptionHeading.first()).toBeVisible();
@@ -190,21 +182,21 @@ test.describe('Ticket Detail Page', () => {
 
   test('should display metadata (author, created, updated dates)', async ({ page }) => {
     // Look for author/creator
-    const authorInfo = page.locator('text=/created by|author|reported by/i');
+    const authorInfo = page.getByText(/created by|author|reported by/i);
     if ((await authorInfo.count()) > 0) {
       const authorText = await authorInfo.first().textContent();
       console.log(`✓ Author: ${authorText}`);
     }
 
-    // Look for created date
-    const createdDate = page.locator('time, [data-testid="created-at"], text=/created.*ago/i');
+    // Look for created date with time element or testid
+    const createdDate = page.locator('time').or(page.locator('[data-testid="created-at"]'));
     if ((await createdDate.count()) > 0) {
       await expect(createdDate.first()).toBeVisible();
       console.log('✓ Created date displayed');
     }
 
     // Look for updated date
-    const updatedDate = page.locator('[data-testid="updated-at"], text=/updated.*ago/i');
+    const updatedDate = page.locator('[data-testid="updated-at"]');
     if ((await updatedDate.count()) > 0) {
       console.log('✓ Updated date displayed');
     }
@@ -212,12 +204,12 @@ test.describe('Ticket Detail Page', () => {
 
   test('should display closedAt timestamp for closed tickets', async ({ page }) => {
     // Check if this is a closed ticket
-    const statusBadge = page.locator('text=/closed|resolved/i');
+    const statusBadge = page.getByText(/closed|resolved/i);
     const isClosed = (await statusBadge.count()) > 0;
 
     if (isClosed) {
       // Look for closedAt timestamp
-      const closedDate = page.locator('[data-testid="closed-at"], text=/closed.*ago|resolved.*ago/i');
+      const closedDate = page.locator('[data-testid="closed-at"]').or(page.getByText(/closed.*ago|resolved.*ago/i));
 
       if ((await closedDate.count()) > 0) {
         await expect(closedDate.first()).toBeVisible();
@@ -232,16 +224,14 @@ test.describe('Ticket Detail Page', () => {
 
   test('should display linked task hierarchy if present', async ({ page }) => {
     // Look for linked task section
-    const linkedTaskSection = page.locator(
-      '[data-testid="linked-task"], text=/linked to task|related task|sprint task/i'
-    );
+    const linkedTaskSection = page.locator('[data-testid="linked-task"]').or(page.getByText(/linked to task|related task|sprint task/i));
 
     if ((await linkedTaskSection.count()) > 0) {
       const taskText = await linkedTaskSection.first().textContent();
       console.log(`✓ Linked task: ${taskText}`);
 
       // Look for hierarchy breadcrumb (Phase → Sprint → Week → Day → Task)
-      const breadcrumb = page.locator('nav[aria-label="breadcrumb"], .breadcrumb, text=/phase.*sprint.*week/i');
+      const breadcrumb = page.locator('nav[aria-label="breadcrumb"]').or(page.locator('.breadcrumb'));
       if ((await breadcrumb.count()) > 0) {
         const breadcrumbText = await breadcrumb.first().textContent();
         console.log(`✓ Task hierarchy: ${breadcrumbText}`);
@@ -252,15 +242,15 @@ test.describe('Ticket Detail Page', () => {
   });
 
   test('should display comments section with list', async ({ page }) => {
-    // Look for comments section
-    const commentsHeading = page.locator('text=/^comments$/i, h2:has-text("Comments"), h3:has-text("Comments")');
+    // Look for comments section heading
+    const commentsHeading = page.getByRole('heading', { name: /comments/i });
 
     if ((await commentsHeading.count()) > 0) {
       await expect(commentsHeading.first()).toBeVisible();
       console.log('✓ Comments section found');
 
       // Check if comments exist
-      const commentsList = page.locator('[data-testid="comment"], .comment, article:has-text("ago")');
+      const commentsList = page.locator('[data-testid="comment"]').or(page.locator('.comment'));
       const commentCount = await commentsList.count();
 
       if (commentCount > 0) {
@@ -280,18 +270,16 @@ test.describe('Ticket Detail Page', () => {
 
   test('should display add comment form', async ({ page }) => {
     // Look for comment input/textarea
-    const commentInput = page.locator(
-      '[data-testid="comment-textarea"], textarea[placeholder*="comment"], textarea[name="comment"]'
-    );
+    const commentInput = page.locator('[data-testid="comment-textarea"]')
+      .or(page.locator('textarea[placeholder*="comment"]'))
+      .or(page.locator('textarea[name="comment"]'));
 
     if ((await commentInput.count()) > 0) {
       await expect(commentInput.first()).toBeVisible();
       console.log('✓ Comment input field found');
 
-      // Look for submit button
-      const submitButton = page.locator(
-        'button:has-text("Add Comment"), button:has-text("Post"), button[type="submit"]'
-      ).filter({ has: page.locator('textarea') });
+      // Look for submit button near comment form
+      const submitButton = page.getByRole('button', { name: /add comment|post|submit/i });
 
       if ((await submitButton.count()) > 0) {
         await expect(submitButton.first()).toBeVisible();
@@ -304,13 +292,13 @@ test.describe('Ticket Detail Page', () => {
 
   test('should display labels if attached', async ({ page }) => {
     // Look for labels section
-    const labelsSection = page.locator('[data-testid="labels"], text=/^labels$/i');
+    const labelsSection = page.locator('[data-testid="labels"]').or(page.getByText(/^labels$/i));
 
     if ((await labelsSection.count()) > 0) {
       console.log('✓ Labels section found');
 
       // Look for label badges
-      const labelBadges = page.locator('[data-testid="label-badge"], .label, .tag');
+      const labelBadges = page.locator('[data-testid="label-badge"]').or(page.locator('.label')).or(page.locator('.tag'));
       const labelCount = await labelBadges.count();
 
       if (labelCount > 0) {
@@ -332,15 +320,13 @@ test.describe('Ticket Detail Page', () => {
 
   test('should display linked files if present', async ({ page }) => {
     // Look for linked files section
-    const filesSection = page.locator(
-      '[data-testid="linked-files"], text=/linked files|attached files|related files/i'
-    );
+    const filesSection = page.locator('[data-testid="linked-files"]').or(page.getByText(/linked files|attached files|related files/i));
 
     if ((await filesSection.count()) > 0) {
       console.log('✓ Linked files section found');
 
       // Look for file items
-      const fileItems = page.locator('[data-testid="file-link"], code, .file-path');
+      const fileItems = page.locator('[data-testid="file-link"]').or(page.locator('code')).or(page.locator('.file-path'));
       const fileCount = await fileItems.count();
 
       if (fileCount > 0) {

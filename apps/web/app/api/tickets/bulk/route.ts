@@ -4,6 +4,10 @@
  * POST /api/tickets/bulk - Create multiple tickets at once
  *
  * Supports up to 50 tickets per request with auto-tagging
+ *
+ * Security (Sprint 10):
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation
  */
 
 import { NextRequest } from 'next/server';
@@ -13,6 +17,7 @@ import { TicketBulkCreateSchema } from '@/lib/validations/ticket';
 import { failure, success, resolveProjectId } from '../_utils';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
 import { deriveAutoTags } from '@/lib/issues/tagging';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
@@ -21,7 +26,9 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const data = TicketBulkCreateSchema.parse(payload);
-    const projectId = await resolveProjectId(data.projectId);
+    
+    // Sprint 10: Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, data.projectId);
 
     const results: Array<{
       success: boolean;
@@ -166,6 +173,11 @@ export async function POST(request: NextRequest) {
       results,
     }, successCount > 0 ? 201 : 400);
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return failure({ code: error.code, message: error.message, status: error.status });
+    }
+    
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',

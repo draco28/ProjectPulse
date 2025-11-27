@@ -1,5 +1,16 @@
+/**
+ * HTTP Client for MCP Server → Next.js API Communication
+ * Sprint 10: Security Architecture - Forwards agent auth to APIs
+ *
+ * Key security features:
+ * - Injects Authorization header from authContext
+ * - APIs can re-validate token for defense-in-depth
+ * - Project isolation enforced at API layer
+ */
+
 import type { AppConfig } from './config.js';
 import type { Logger } from './logger.js';
+import { getAgentAuth } from './authContext.js';
 
 export interface HttpClient {
   get<T>(path: string, init?: RequestInit): Promise<T>;
@@ -38,20 +49,38 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const createHttpClient = (config: AppConfig, logger: Logger): HttpClient => {
-  const defaultHeaders = {
-    'Content-Type': 'application/json',
-  };
-
   const request = async <T>(path: string, init?: RequestInit) => {
     const url = ensureAbsoluteUrl(config.apiBaseUrl, path);
-    logger.debug('HTTP request', { url, method: init?.method ?? 'GET' });
+    
+    // Build headers with auth context injection
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Inject auth from AsyncLocalStorage context
+    const auth = getAgentAuth();
+    if (auth?.rawToken) {
+      headers['Authorization'] = `Bearer ${auth.rawToken}`;
+      // Include project ID header for logging/debugging (API validates from token)
+      headers['X-Agent-Project-Id'] = String(auth.projectId);
+    }
+    
+    // Merge with any custom headers from caller
+    const finalHeaders = {
+      ...headers,
+      ...(init?.headers as Record<string, string> | undefined),
+    };
+    
+    logger.debug('HTTP request', { 
+      url, 
+      method: init?.method ?? 'GET',
+      hasAuth: !!auth?.rawToken,
+      projectId: auth?.projectId,
+    });
 
     const response = await fetch(url, {
       ...init,
-      headers: {
-        ...defaultHeaders,
-        ...init?.headers,
-      },
+      headers: finalHeaders,
     });
 
     return handleResponse<T>(response);

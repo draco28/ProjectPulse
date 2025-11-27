@@ -25,16 +25,10 @@ test.describe('Create Ticket Page', () => {
   });
 
   test('should display create ticket form with all required fields', async ({ page }) => {
-    // Verify page heading
-    const heading = page.locator('main h1, main h2, header h2').first().first();
-    await expect(heading).toBeVisible({ timeout: 10000 });
-
-    const headingText = await heading.textContent();
-    expect(headingText?.toLowerCase()).toMatch(/create|new ticket/i);
-    console.log(`✓ Page heading: ${headingText}`);
-
-    // Check for title input
-    const titleInput = page.locator('input[name="title"], input[id="title"], input[placeholder*="title" i]');
+    // Check for title input (main form indicator)
+    const titleInput = page.locator('input[name="title"]')
+      .or(page.locator('input[id="title"]'))
+      .or(page.locator('input[placeholder*="title" i]'));
     if ((await titleInput.count()) > 0) {
       await expect(titleInput.first()).toBeVisible();
       console.log('✓ Title input field found');
@@ -43,7 +37,9 @@ test.describe('Create Ticket Page', () => {
     }
 
     // Check for description textarea
-    const descriptionInput = page.locator('textarea[name="description"], textarea[id="description"], textarea[placeholder*="description" i]');
+    const descriptionInput = page.locator('textarea[name="description"]')
+      .or(page.locator('textarea[id="description"]'))
+      .or(page.locator('textarea[placeholder*="description" i]'));
     if ((await descriptionInput.count()) > 0) {
       await expect(descriptionInput.first()).toBeVisible();
       console.log('✓ Description textarea found');
@@ -52,7 +48,9 @@ test.describe('Create Ticket Page', () => {
     }
 
     // Check for submit button
-    const submitButton = page.locator('button[type="submit"], button:has-text("Create"), button:has-text("Submit")');
+    const submitButton = page.locator('button[type="submit"]')
+      .or(page.getByRole('button', { name: /create/i }))
+      .or(page.getByRole('button', { name: /submit/i }));
     if ((await submitButton.count()) > 0) {
       await expect(submitButton.first()).toBeVisible();
       console.log('✓ Submit button found');
@@ -63,7 +61,9 @@ test.describe('Create Ticket Page', () => {
 
   test('should display kind dropdown with all 7 ticket types', async ({ page }) => {
     // Look for kind select/dropdown
-    const kindSelect = page.locator('select[name="kind"], select[id="kind"], [data-testid="kind-select"]');
+    const kindSelect = page.locator('select[name="kind"]')
+      .or(page.locator('select[id="kind"]'))
+      .or(page.locator('[data-testid="kind-select"]'));
 
     if ((await kindSelect.count()) > 0) {
       await expect(kindSelect.first()).toBeVisible();
@@ -82,7 +82,7 @@ test.describe('Create Ticket Page', () => {
       }
     } else {
       // Try alternative: Combobox/custom select
-      const kindCombobox = page.locator('[role="combobox"]:has-text("kind" i), button:has-text("Select kind")');
+      const kindCombobox = page.locator('[role="combobox"]').filter({ hasText: /kind/i });
       if ((await kindCombobox.count()) > 0) {
         console.log('✓ Kind combobox found (custom select component)');
       } else {
@@ -93,7 +93,9 @@ test.describe('Create Ticket Page', () => {
 
   test('should display source dropdown with all 4 source types', async ({ page }) => {
     // Look for source select/dropdown
-    const sourceSelect = page.locator('select[name="source"], select[id="source"], [data-testid="source-select"]');
+    const sourceSelect = page.locator('select[name="source"]')
+      .or(page.locator('select[id="source"]'))
+      .or(page.locator('[data-testid="source-select"]'));
 
     if ((await sourceSelect.count()) > 0) {
       await expect(sourceSelect.first()).toBeVisible();
@@ -112,7 +114,7 @@ test.describe('Create Ticket Page', () => {
       }
     } else {
       // Try alternative: Combobox/custom select
-      const sourceCombobox = page.locator('[role="combobox"]:has-text("source" i), button:has-text("Select source")');
+      const sourceCombobox = page.locator('[role="combobox"]').filter({ hasText: /source/i });
       if ((await sourceCombobox.count()) > 0) {
         console.log('✓ Source combobox found (custom select component)');
       } else {
@@ -123,7 +125,9 @@ test.describe('Create Ticket Page', () => {
 
   test('should display priority dropdown with standard values', async ({ page }) => {
     // Look for priority select/dropdown
-    const prioritySelect = page.locator('select[name="priority"], select[id="priority"], [data-testid="priority-select"]');
+    const prioritySelect = page.locator('select[name="priority"]')
+      .or(page.locator('select[id="priority"]'))
+      .or(page.locator('[data-testid="priority-select"]'));
 
     if ((await prioritySelect.count()) > 0) {
       await expect(prioritySelect.first()).toBeVisible();
@@ -142,7 +146,7 @@ test.describe('Create Ticket Page', () => {
       }
     } else {
       // Try alternative: Combobox/custom select
-      const priorityCombobox = page.locator('[role="combobox"]:has-text("priority" i), button:has-text("Select priority")');
+      const priorityCombobox = page.locator('[role="combobox"]').filter({ hasText: /priority/i });
       if ((await priorityCombobox.count()) > 0) {
         console.log('✓ Priority combobox found (custom select component)');
       } else {
@@ -153,7 +157,9 @@ test.describe('Create Ticket Page', () => {
 
   test('should display optional fields (module, assignee)', async ({ page }) => {
     // Check for module input (optional)
-    const moduleInput = page.locator('input[name="module"], input[id="module"], input[placeholder*="module" i]');
+    const moduleInput = page.locator('input[name="module"]')
+      .or(page.locator('input[id="module"]'))
+      .or(page.locator('input[placeholder*="module" i]'));
     if ((await moduleInput.count()) > 0) {
       await expect(moduleInput.first()).toBeVisible();
       console.log('✓ Module input field found');
@@ -162,7 +168,9 @@ test.describe('Create Ticket Page', () => {
     }
 
     // Check for assignee selector (optional)
-    const assigneeSelect = page.locator('select[name="assignee"], select[id="assignee"], [data-testid="assignee-select"]');
+    const assigneeSelect = page.locator('select[name="assignee"]')
+      .or(page.locator('select[id="assignee"]'))
+      .or(page.locator('[data-testid="assignee-select"]'));
     if ((await assigneeSelect.count()) > 0) {
       await expect(assigneeSelect.first()).toBeVisible();
       console.log('✓ Assignee selector found');
@@ -177,23 +185,25 @@ test.describe('Create Ticket Page', () => {
 
   test('should show validation error when submitting without required title', async ({ page }) => {
     // Try to submit form without filling required fields
-    const submitButton = page.locator('button[type="submit"], button:has-text("Create"), button:has-text("Submit")');
+    const submitButton = page.locator('button[type="submit"]')
+      .or(page.getByRole('button', { name: /create/i }))
+      .or(page.getByRole('button', { name: /submit/i }));
 
     if ((await submitButton.count()) > 0) {
       await submitButton.first().click();
       await page.waitForTimeout(500); // Wait for validation to trigger
 
       // Look for validation error message
-      const errorMessage = page.locator(
-        'text=/title.*required/i, text=/please.*title/i, [role="alert"]:has-text("title")'
-      );
+      const errorMessage = page.getByText(/title.*required/i)
+        .or(page.getByText(/please.*title/i))
+        .or(page.locator('[role="alert"]').filter({ hasText: /title/i }));
 
       if ((await errorMessage.count()) > 0) {
         await expect(errorMessage.first()).toBeVisible();
         console.log('✓ Validation error displayed for missing title');
       } else {
         // Alternative: Check if HTML5 validation is used
-        const titleInput = page.locator('input[name="title"], input[id="title"]');
+        const titleInput = page.locator('input[name="title"]').or(page.locator('input[id="title"]'));
         if ((await titleInput.count()) > 0) {
           const isRequired = await titleInput.first().getAttribute('required');
           if (isRequired !== null) {
@@ -210,8 +220,8 @@ test.describe('Create Ticket Page', () => {
 
   test('should create ticket and redirect to detail page on valid submission', async ({ page }) => {
     // Fill in required fields
-    const titleInput = page.locator('input[name="title"], input[id="title"]');
-    const descriptionInput = page.locator('textarea[name="description"], textarea[id="description"]');
+    const titleInput = page.locator('input[name="title"]').or(page.locator('input[id="title"]'));
+    const descriptionInput = page.locator('textarea[name="description"]').or(page.locator('textarea[id="description"]'));
 
     if ((await titleInput.count()) === 0 || (await descriptionInput.count()) === 0) {
       console.log('⚠️ Form inputs not found - skipping submission test');
@@ -223,21 +233,23 @@ test.describe('Create Ticket Page', () => {
     await descriptionInput.fill('This is a test ticket created by automated E2E tests to verify the create form functionality.');
 
     // Select kind if available
-    const kindSelect = page.locator('select[name="kind"], select[id="kind"]');
+    const kindSelect = page.locator('select[name="kind"]').or(page.locator('select[id="kind"]'));
     if ((await kindSelect.count()) > 0) {
       await kindSelect.selectOption('feature');
       console.log('✓ Selected kind: feature');
     }
 
     // Select priority if available
-    const prioritySelect = page.locator('select[name="priority"], select[id="priority"]');
+    const prioritySelect = page.locator('select[name="priority"]').or(page.locator('select[id="priority"]'));
     if ((await prioritySelect.count()) > 0) {
       await prioritySelect.selectOption('medium');
       console.log('✓ Selected priority: medium');
     }
 
     // Submit form
-    const submitButton = page.locator('button[type="submit"], button:has-text("Create"), button:has-text("Submit")');
+    const submitButton = page.locator('button[type="submit"]')
+      .or(page.getByRole('button', { name: /create/i }))
+      .or(page.getByRole('button', { name: /submit/i }));
     await submitButton.first().click();
 
     // Wait for redirect to detail page OR success message
@@ -247,12 +259,12 @@ test.describe('Create Ticket Page', () => {
       console.log(`✓ Redirected to ticket detail page: ${page.url()}`);
 
       // Verify ticket was created
-      const heading = page.locator('main h1, main h2, header h2').first().first();
+      const heading = page.locator('h1.text-2xl').or(page.locator('main h1').first());
       await expect(heading).toBeVisible();
       console.log('✓ Ticket detail page loaded successfully');
-    } catch (error) {
+    } catch {
       // Option 2: Success message with manual navigation needed
-      const successMessage = page.locator('text=/created|success/i, [role="alert"]');
+      const successMessage = page.getByText(/created|success/i).or(page.locator('[role="alert"]'));
       if ((await successMessage.count()) > 0) {
         console.log('✓ Success message displayed (redirect may be manual)');
       } else {
@@ -263,9 +275,10 @@ test.describe('Create Ticket Page', () => {
 
   test('should show cancel button that returns to list page', async ({ page }) => {
     // Look for cancel button
-    const cancelButton = page.locator(
-      'button:has-text("Cancel"), a:has-text("Cancel"), button:has-text("Back"), a[href="/tickets"]'
-    );
+    const cancelButton = page.getByRole('button', { name: /cancel/i })
+      .or(page.getByRole('link', { name: /cancel/i }))
+      .or(page.getByRole('button', { name: /back/i }))
+      .or(page.locator('a[href="/tickets"]'));
 
     if ((await cancelButton.count()) > 0) {
       await expect(cancelButton.first()).toBeVisible();

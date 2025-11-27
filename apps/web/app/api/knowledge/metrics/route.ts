@@ -1,5 +1,16 @@
+/**
+ * Knowledge Metrics API Route
+ *
+ * GET /api/knowledge/metrics - Get query performance metrics
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getMetricsSummary } from '@/lib/knowledge/metrics';
+import { requireAuth, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * GET /api/knowledge/metrics
@@ -27,6 +38,9 @@ import { getMetricsSummary } from '@/lib/knowledge/metrics';
  */
 export async function GET(request: NextRequest) {
   try {
+    // Authenticate request (metrics are global, not project-specific)
+    await requireAuth(request);
+    
     const searchParams = request.nextUrl.searchParams;
     const daysParam = searchParams.get('days');
 
@@ -53,6 +67,10 @@ export async function GET(request: NextRequest) {
       data: summary,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     console.error('[GET /api/knowledge/metrics] Failed to get metrics:', error);
     return NextResponse.json(
       {

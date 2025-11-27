@@ -352,6 +352,12 @@ model ProjectToken {
   lastUsedAt DateTime?
   isRevoked  Boolean   @default(false)
 
+  // Sprint 10: Tool-level permissions for fine-grained access control
+  // blockedTools: Tools this token is NOT allowed to execute (e.g., ["admin_deleteProject"])
+  // allowedTools: If non-empty, ONLY these tools can be executed (whitelist mode)
+  blockedTools String[] @default([])
+  allowedTools String[] @default([])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

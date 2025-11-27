@@ -19,19 +19,13 @@ const publicApiPrefixes = [
   '/api/admin/',
 ];
 
-// MCP-accessible API base paths (authenticated at MCP layer via project token)
-// These are checked with startsWith OR exact match to handle both /api/knowledge and /api/knowledge/*
-const mcpApiPaths = [
-  '/api/knowledge',
-  '/api/wiki',
-  '/api/memory',
-  '/api/hierarchy',
-  '/api/roadmap',
-  '/api/sprint',
-  '/api/tickets',  // Sprint 10: Unified ticket system (replaces /api/issues)
-  '/api/workflow',
-];
-const projectRoutes = ['/dashboard', '/issues', '/wiki', '/knowledge', '/health', '/agents', '/roadmap'];
+// Sprint 10 Security Architecture: REMOVED mcpApiPaths whitelist
+// All API routes now handle their own authentication via:
+// - User session (NextAuth) for web app users
+// - Bearer token (project-scoped) for MCP agents
+// The whitelist approach was a security vulnerability - anyone with curl could access APIs
+// Sprint 10: Removed '/issues' - it's a redirect page to /tickets, project context enforced there
+const projectRoutes = ['/dashboard', '/wiki', '/knowledge', '/health', '/agents', '/roadmap'];
 
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -46,18 +40,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Allow MCP-accessible API routes (exact match or startsWith for nested routes)
-  if (mcpApiPaths.some((path) => pathname === path || pathname.startsWith(path + '/'))) {
+  // Sprint 10: All /api/* routes handle their own authentication
+  // This allows both session auth (web users) and bearer token auth (MCP agents)
+  // Routes will return 401/403 if auth fails
+  if (pathname.startsWith('/api/')) {
     return NextResponse.next();
   }
 
-  // Check authentication for protected routes
+  // Check authentication for protected web routes (pages, not APIs)
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (only for web pages)
   if (!token) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);

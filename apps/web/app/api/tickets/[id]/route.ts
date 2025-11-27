@@ -4,6 +4,10 @@
  * GET /api/tickets/[id] - Get a single ticket by ID
  * PATCH /api/tickets/[id] - Update a ticket
  * DELETE /api/tickets/[id] - Delete a ticket
+ *
+ * Security (Sprint 10):
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation
  */
 
 import { NextRequest } from 'next/server';
@@ -13,6 +17,7 @@ import { prisma } from '@/lib/prisma';
 import { TicketIdParamSchema, UpdateTicketSchema } from '@/lib/validations/ticket';
 import { failure, success, ticketIncludeConfig } from '../_utils';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
+import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
@@ -25,6 +30,23 @@ export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const { id: rawId } = await context.params;
     const { id } = TicketIdParamSchema.parse({ id: rawId });
+
+    // First fetch ticket to get projectId for auth check
+    const ticketForAuth = await prisma.ticket.findUnique({
+      where: { id },
+      select: { id: true, projectId: true },
+    });
+
+    if (!ticketForAuth) {
+      return failure({
+        code: 'NOT_FOUND',
+        message: `Ticket ${id} not found`,
+        status: 404,
+      });
+    }
+
+    // Sprint 10: Validate project access
+    await requireProjectAccess(request, ticketForAuth.projectId);
 
     const ticket = await prisma.ticket.findUnique({
       where: { id },
@@ -79,6 +101,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       },
     });
 
+    // This should not happen since we checked above, but just in case
     if (!ticket) {
       return failure({
         code: 'NOT_FOUND',
@@ -89,6 +112,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return success(ticket);
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return failure({ code: error.code, message: error.message, status: error.status });
+    }
+    
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',
@@ -109,10 +137,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const payload = await request.json();
     const data = UpdateTicketSchema.parse(payload);
 
-    // Check ticket exists
+    // Check ticket exists and get projectId for auth
     const existing = await prisma.ticket.findUnique({
       where: { id },
-      select: { id: true, status: true },
+      select: { id: true, status: true, projectId: true },
     });
 
     if (!existing) {
@@ -122,6 +150,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         status: 404,
       });
     }
+
+    // Sprint 10: Validate project access
+    await requireProjectAccess(request, existing.projectId);
 
     // Resolve option values
     const status = data.status ? await resolveStatusValue(data.status) : undefined;
@@ -200,6 +231,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     return success(ticket);
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return failure({ code: error.code, message: error.message, status: error.status });
+    }
+    
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',
@@ -218,9 +254,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const { id: rawId } = await context.params;
     const { id } = TicketIdParamSchema.parse({ id: rawId });
 
+    // Check ticket exists and get projectId for auth
     const existing = await prisma.ticket.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, projectId: true },
     });
 
     if (!existing) {
@@ -231,6 +268,9 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       });
     }
 
+    // Sprint 10: Validate project access
+    await requireProjectAccess(request, existing.projectId);
+
     await prisma.ticket.delete({
       where: { id },
     });
@@ -240,6 +280,11 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
     return success({ deleted: true, id });
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return failure({ code: error.code, message: error.message, status: error.status });
+    }
+    
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',

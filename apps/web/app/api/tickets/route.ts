@@ -5,6 +5,10 @@
  * POST /api/tickets - Create a new ticket
  *
  * Tickets are the unified WorkItem model - Issues are a subtype (kind='issue')
+ *
+ * Security (Sprint 10):
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
  */
 
 import { NextRequest } from 'next/server';
@@ -14,6 +18,7 @@ import { CreateTicketSchema, TicketFilterSchema, TicketKind } from '@/lib/valida
 import { failure, success, resolveProjectId, buildTicketWhere, buildTicketOrderBy, ticketIncludeConfig } from './_utils';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
 import { deriveAutoTags } from '@/lib/issues/tagging';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import type { TicketFilters } from '@/lib/validations/ticket';
 import type { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
@@ -60,7 +65,9 @@ export async function GET(request: NextRequest) {
     };
 
     const filters = TicketFilterSchema.parse(rawFilters);
-    const projectId = await resolveProjectId(filters.projectId);
+    
+    // Sprint 10: Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, filters.projectId);
     const where = buildTicketWhere(filters, projectId);
     const orderBy = buildTicketOrderBy(filters);
     const page = filters.page ?? 1;
@@ -86,6 +93,11 @@ export async function GET(request: NextRequest) {
       filters: { ...filters, projectId },
     });
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return failure({ code: error.code, message: error.message, status: error.status });
+    }
+    
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',
@@ -103,7 +115,9 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const data = CreateTicketSchema.parse(payload);
-    const projectId = await resolveProjectId(data.projectId);
+    
+    // Sprint 10: Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, data.projectId);
 
     const autoTags = await deriveAutoTags(data.context?.files);
     const status = await resolveStatusValue(data.status);
@@ -235,6 +249,11 @@ export async function POST(request: NextRequest) {
 
     return success(ticket, 201);
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return failure({ code: error.code, message: error.message, status: error.status });
+    }
+    
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',

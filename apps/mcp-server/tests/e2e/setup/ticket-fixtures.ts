@@ -61,9 +61,10 @@ export function generateTestToken(): string {
 
 /**
  * Create a test project with an agent token for MCP authentication
- * Returns { project, token } where token is the plaintext bearer token
+ * Returns { project, token, projectId } where token is the plaintext bearer token
+ * Note: projectId parameter is now ignored - Prisma auto-generates IDs
  */
-export async function createTestProject(projectId: number): Promise<{ project: any; token: string }> {
+export async function createTestProject(_projectId?: number): Promise<{ project: any; token: string; projectId: number }> {
   // Generate plaintext token
   const plaintextToken = generateTestToken();
 
@@ -79,13 +80,17 @@ export async function createTestProject(projectId: number): Promise<{ project: a
     throw new Error('Test user not found. Run seed data first: pnpm prisma db seed');
   }
 
-  // Create project and token in transaction
+  // Generate unique name with timestamp and random suffix to avoid conflicts
+  const timestamp = Date.now();
+  const suffix = randomBytes(4).toString('hex');
+  const uniqueName = `E2E Test Project ${timestamp}-${suffix}`;
+
+  // Create project (let Prisma auto-generate ID)
   const project = await prisma.project.create({
     data: {
-      id: projectId,
-      name: `Test Project ${projectId}`,
+      name: uniqueName,
       description: `E2E test project created at ${new Date().toISOString()}`,
-      repository: `https://github.com/test/project-${projectId}`,
+      repository: `https://github.com/test/project-${timestamp}`,
       owner: {
         connect: { id: testUser.id },
       },
@@ -95,17 +100,17 @@ export async function createTestProject(projectId: number): Promise<{ project: a
   // Create project token for MCP auth
   await prisma.projectToken.create({
     data: {
-      projectId,
+      projectId: project.id,
       name: 'E2E Test Token',
       tokenHash,
       isRevoked: false,
     },
   });
 
-  console.log(`✓ Created test project ${projectId} with auth token`);
+  console.log(`✓ Created test project ${project.id} with auth token`);
 
-  // Return project and plaintext token (for test Authorization header)
-  return { project, token: plaintextToken };
+  // Return project, token, and the auto-generated projectId
+  return { project, token: plaintextToken, projectId: project.id };
 }
 
 /**
@@ -118,6 +123,9 @@ export async function createTestTicket(
 ): Promise<any> {
   const ticketData = generateTicketData(overrides);
 
+  // Normalize status: convert underscores to hyphens (database uses hyphenated format)
+  const normalizedStatus = ticketData.status?.replace(/_/g, '-') ?? 'open';
+
   return await prisma.ticket.create({
     data: {
       projectId,
@@ -126,7 +134,7 @@ export async function createTestTicket(
       kind: ticketData.kind,
       source: ticketData.source,
       priority: ticketData.priority,
-      status: ticketData.status,
+      status: normalizedStatus,
       module: ticketData.module,
     },
   });
@@ -166,7 +174,22 @@ export async function createTestTickets(
  * 9. Project (root entity)
  */
 export async function cleanupTestProject(projectId: number): Promise<void> {
+  if (!projectId) {
+    console.log('⚠️ Skipping cleanup: No projectId provided');
+    return;
+  }
+
   try {
+    // Check if project still exists before attempting cleanup
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project) {
+      console.log(`✓ Project ${projectId} already deleted (cascade or external cleanup)`);
+      return;
+    }
+
     await prisma.$transaction([
       // Delete all ticket-related entities (in FK constraint order)
       prisma.ticketComment.deleteMany({
@@ -206,6 +229,11 @@ export async function cleanupTestProject(projectId: number): Promise<void> {
 
     console.log(`✅ Cleaned up test project ${projectId}`);
   } catch (error) {
+    // Handle the P2025 error (record not found) gracefully
+    if ((error as any).code === 'P2025') {
+      console.log(`✓ Project ${projectId} was deleted during cleanup (likely cascade)`);
+      return;
+    }
     console.error(`❌ Failed to cleanup project ${projectId}:`, error);
     throw error;
   }

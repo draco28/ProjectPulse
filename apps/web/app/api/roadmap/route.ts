@@ -6,13 +6,17 @@
  * GET  - List roadmaps for a project
  * POST - Create a new roadmap with phases/sprints structure
  *
+ * Security (Sprint 10):
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ *
  * @see .agent/task/roadmap-ui/ROADMAP-API-SPEC.md
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser, verifyProjectOwnership } from '@/lib/auth-server';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { materializeRoadmap } from '@projectpulse/roadmap-tools';
 
 // ============================================================================
@@ -50,14 +54,6 @@ const createRoadmapSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
-    }
-
     const searchParams = request.nextUrl.searchParams;
     const projectIdParam = searchParams.get('projectId');
 
@@ -68,16 +64,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const projectId = parseInt(projectIdParam, 10);
-    if (isNaN(projectId) || projectId <= 0) {
+    const requestedProjectId = parseInt(projectIdParam, 10);
+    if (isNaN(requestedProjectId) || requestedProjectId <= 0) {
       return NextResponse.json(
         { success: false, error: { code: 'VALIDATION_ERROR', message: 'projectId must be a positive integer' } },
         { status: 400 }
       );
     }
 
-    // Verify project ownership
-    await verifyProjectOwnership(projectId, user.id);
+    // Sprint 10: Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // Get roadmaps with summary data
     const roadmaps = await prisma.roadmap.findMany({
@@ -119,10 +115,11 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
       return NextResponse.json(
-        { success: false, error: { code: 'FORBIDDEN', message: 'Access denied' } },
-        { status: 403 }
+        { success: false, error: { code: error.code, message: error.message } },
+        { status: error.status }
       );
     }
 
@@ -140,23 +137,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
     const validated = createRoadmapSchema.parse(body);
 
-    // Verify project ownership
-    await verifyProjectOwnership(validated.projectId, user.id);
+    // Sprint 10: Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, validated.projectId);
 
     // Check if roadmap already exists for this project
     const existing = await prisma.roadmap.findUnique({
-      where: { projectId: validated.projectId },
+      where: { projectId },
     });
 
     if (existing) {
@@ -187,7 +176,7 @@ export async function POST(request: NextRequest) {
     // Create roadmap
     const roadmap = await prisma.roadmap.create({
       data: {
-        projectId: validated.projectId,
+        projectId,
         phases: phasesJson,
         currentPhase: validated.phases[0]?.title || null,
         currentSprint: validated.phases[0]?.sprints[0]?.name || null,
@@ -236,6 +225,14 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
 
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: { code: error.code, message: error.message } },
+        { status: error.status }
+      );
+    }
+
     if (error instanceof z.ZodError) {
       return NextResponse.json({
         success: false,
@@ -245,13 +242,6 @@ export async function POST(request: NextRequest) {
           details: error.errors.map((e) => ({ path: e.path, message: e.message })),
         },
       }, { status: 400 });
-    }
-
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      return NextResponse.json(
-        { success: false, error: { code: 'FORBIDDEN', message: 'Access denied' } },
-        { status: 403 }
-      );
     }
 
     console.error('[POST /api/roadmap] Error:', error);

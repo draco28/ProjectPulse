@@ -7,13 +7,17 @@
  * PUT    - Update roadmap metadata
  * DELETE - Delete roadmap (cascades to phases/sprints/weeks/days)
  *
+ * Security (Sprint 10):
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ *
  * @see .agent/task/roadmap-ui/ROADMAP-API-SPEC.md
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth-server';
+import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -29,26 +33,21 @@ const updateRoadmapSchema = z.object({
 });
 
 // ============================================================================
-// Helper: Verify roadmap ownership
+// Helper: Get roadmap and verify project access
 // ============================================================================
 
-async function verifyRoadmapOwnership(roadmapId: string, userId: string) {
+async function getRoadmapWithAuth(roadmapId: string, request: Request) {
   const roadmap = await prisma.roadmap.findUnique({
     where: { id: roadmapId },
-    include: {
-      project: {
-        select: { ownerId: true },
-      },
-    },
+    select: { id: true, projectId: true },
   });
 
   if (!roadmap) {
-    throw new Error('NOT_FOUND');
+    throw new AuthError('Roadmap not found', 404, 'NOT_FOUND');
   }
 
-  if (roadmap.project.ownerId !== userId) {
-    throw new Error('FORBIDDEN');
-  }
+  // Sprint 10: Authenticate and validate project access
+  await requireProjectAccess(request, roadmap.projectId);
 
   return roadmap;
 }
@@ -62,18 +61,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
-    }
-
     const { id } = await params;
 
-    // Verify ownership
-    await verifyRoadmapOwnership(id, user.id);
+    // Sprint 10: Authenticate and validate project access
+    await getRoadmapWithAuth(id, request);
 
     // Fetch roadmap with full 5-level hierarchy
     const roadmap = await prisma.roadmap.findUnique({
@@ -182,19 +173,12 @@ export async function GET(
     });
 
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'NOT_FOUND') {
-        return NextResponse.json(
-          { success: false, error: { code: 'NOT_FOUND', message: 'Roadmap not found' } },
-          { status: 404 }
-        );
-      }
-      if (error.message === 'FORBIDDEN') {
-        return NextResponse.json(
-          { success: false, error: { code: 'FORBIDDEN', message: 'Access denied' } },
-          { status: 403 }
-        );
-      }
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: { code: error.code, message: error.message } },
+        { status: error.status }
+      );
     }
 
     console.error('[GET /api/roadmap/[id]] Error:', error);
@@ -214,20 +198,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
-    }
-
     const { id } = await params;
     const body = await request.json();
     const validated = updateRoadmapSchema.parse(body);
 
-    // Verify ownership
-    await verifyRoadmapOwnership(id, user.id);
+    // Sprint 10: Authenticate and validate project access
+    await getRoadmapWithAuth(id, request);
 
     // Update roadmap
     const roadmap = await prisma.roadmap.update({
@@ -256,6 +232,14 @@ export async function PUT(
     });
 
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: { code: error.code, message: error.message } },
+        { status: error.status }
+      );
+    }
+
     if (error instanceof z.ZodError) {
       return NextResponse.json({
         success: false,
@@ -265,21 +249,6 @@ export async function PUT(
           details: error.errors.map((e) => ({ path: e.path, message: e.message })),
         },
       }, { status: 400 });
-    }
-
-    if (error instanceof Error) {
-      if (error.message === 'NOT_FOUND') {
-        return NextResponse.json(
-          { success: false, error: { code: 'NOT_FOUND', message: 'Roadmap not found' } },
-          { status: 404 }
-        );
-      }
-      if (error.message === 'FORBIDDEN') {
-        return NextResponse.json(
-          { success: false, error: { code: 'FORBIDDEN', message: 'Access denied' } },
-          { status: 403 }
-        );
-      }
     }
 
     console.error('[PUT /api/roadmap/[id]] Error:', error);
@@ -299,18 +268,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      );
-    }
-
     const { id } = await params;
 
-    // Verify ownership
-    await verifyRoadmapOwnership(id, user.id);
+    // Sprint 10: Authenticate and validate project access
+    await getRoadmapWithAuth(id, request);
 
     // Delete roadmap (cascades to phases/sprints/weeks/days via Prisma schema)
     await prisma.roadmap.delete({
@@ -323,19 +284,12 @@ export async function DELETE(
     });
 
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'NOT_FOUND') {
-        return NextResponse.json(
-          { success: false, error: { code: 'NOT_FOUND', message: 'Roadmap not found' } },
-          { status: 404 }
-        );
-      }
-      if (error.message === 'FORBIDDEN') {
-        return NextResponse.json(
-          { success: false, error: { code: 'FORBIDDEN', message: 'Access denied' } },
-          { status: 403 }
-        );
-      }
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: { code: error.code, message: error.message } },
+        { status: error.status }
+      );
     }
 
     console.error('[DELETE /api/roadmap/[id]] Error:', error);

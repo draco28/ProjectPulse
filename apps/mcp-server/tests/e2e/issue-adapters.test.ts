@@ -20,7 +20,6 @@
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  generateUniqueProjectId,
   createTestProject,
   createTestTicket,
   cleanupTestProject,
@@ -36,9 +35,9 @@ describe('MCP Backwards Compatibility: Issue → Ticket Adapters', () => {
   const prisma = getPrismaClient();
 
   beforeEach(async () => {
-    projectId = generateUniqueProjectId();
-    const { token } = await createTestProject(projectId);
+    const { token, projectId: newProjectId } = await createTestProject();
     authToken = token;
+    projectId = newProjectId;
     client = new MCPTestClient('http://192.168.1.15:3001', authToken);
     console.log(`✓ Test setup complete for project ${projectId}`);
   });
@@ -134,16 +133,16 @@ describe('MCP Backwards Compatibility: Issue → Ticket Adapters', () => {
 
     const result = await client.callTool('projectpulse_issue_setStatus', {
       issueId: ticket.id,
-      status: 'in_progress',
+      status: 'in-progress',
     });
 
     const updatedTicket = JSON.parse(result.content[0].text);
 
-    assert.strictEqual(updatedTicket.status, 'in_progress');
+    assert.strictEqual(updatedTicket.status, 'in-progress');
 
     // Verify in database
     const dbTicket = await prisma.ticket.findUnique({ where: { id: ticket.id } });
-    assert.strictEqual(dbTicket?.status, 'in_progress');
+    assert.strictEqual(dbTicket?.status, 'in-progress');
 
     console.log('✓ Legacy issue_setStatus works identically to ticket_setStatus');
   });

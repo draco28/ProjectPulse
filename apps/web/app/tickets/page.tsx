@@ -15,7 +15,6 @@ import { IssuesPageClient } from '@/components/issues/IssuesPageClient';
 import { SearchSortBar } from '@/components/issues/SearchSortBar';
 import { IssueListCard } from '@/components/issues/IssueListCard';
 import { Pagination } from '@/components/issues/Pagination';
-import { TicketKindFilters } from '@/components/tickets/TicketKindFilters';
 import { prisma } from '@/lib/prisma';
 import { getFilterOptions } from '@/lib/filters';
 import { getCurrentUser } from '@/lib/auth-server';
@@ -262,15 +261,6 @@ export default async function TicketsPage({
                 <span>New Ticket</span>
               </Link>
             </div>
-
-            {/* Kind Filter Pills - Multi-select */}
-            <div className="mt-4">
-              <TicketKindFilters
-                projectId={projectId}
-                counts={filterCounts.kind || {}}
-                totalCount={totalCount}
-              />
-            </div>
           </header>
 
           {/* Page Content */}
@@ -300,6 +290,7 @@ export default async function TicketsPage({
                         </span>
                       </div>
                       <IssueListCard
+                        projectId={projectId}
                         issue={{
                           id: ticket.id.toString(),
                           title: ticket.title,

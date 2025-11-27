@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, List, Grid3x3 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -25,6 +25,7 @@ const SORT_OPTIONS = [
 export function SearchSortBar({ searchParams }: SearchSortBarProps) {
   const router = useRouter();
   const currentSearchParams = useSearchParams();
+  const pathname = usePathname();
   const isFirstRender = useRef(true);
 
   // Local state for search input (for immediate feedback)
@@ -52,16 +53,16 @@ export function SearchSortBar({ searchParams }: SearchSortBarProps) {
     // Reset to page 1 when search changes
     params.delete('page');
 
-    router.push(`/issues?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch]);
+  }, [debouncedSearch, pathname]);
 
   const handleSortChange = (sortValue: string) => {
     const params = new URLSearchParams(currentSearchParams?.toString());
     params.set('sort', sortValue);
     params.delete('page');
 
-    router.push(`/issues?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const currentSort = searchParams.sort || 'newest';

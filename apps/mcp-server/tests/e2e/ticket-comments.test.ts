@@ -125,22 +125,21 @@ describe('MCP Tool: projectpulse_ticket_addComment', () => {
   });
 
   test('should fail when adding comment to non-existent ticket', async () => {
-    try {
-      await client.callTool('projectpulse_ticket_addComment', {
-        ticketId: 999999, // Non-existent ticket ID
-        content: 'Should fail',
-        author: 'Agent',
-      });
+    const result = await client.callTool('projectpulse_ticket_addComment', {
+      ticketId: 999999, // Non-existent ticket ID
+      content: 'Should fail',
+      author: 'Agent',
+    });
 
-      // Should not reach here
-      assert.fail('Expected error for non-existent ticket');
-    } catch (error: any) {
-      assert.ok(
-        error.message.includes('not found') || error.message.includes('404'),
-        'Error should indicate ticket not found'
-      );
-      console.log('✓ Validation error for non-existent ticket');
-    }
+    const response = JSON.parse(result.content[0].text);
+
+    assert.strictEqual(response.status, 'error', 'Response should indicate error');
+    assert.ok(
+      response.error?.message?.toLowerCase().includes('not found') ||
+        response.error?.message?.includes('404'),
+      'Error should indicate ticket not found'
+    );
+    console.log('✓ Validation error for non-existent ticket');
   });
 });
 
