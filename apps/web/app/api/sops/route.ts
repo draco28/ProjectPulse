@@ -17,7 +17,7 @@ import { prisma } from '@/lib/prisma';
 
 const querySchema = z.object({
   projectId: z.coerce.number().int().positive(),
-  category: z.string().optional(),
+  category: z.string().nullish(), // Allow null from searchParams.get()
 });
 
 //=============================================================================

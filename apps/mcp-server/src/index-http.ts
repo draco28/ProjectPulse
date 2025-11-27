@@ -17,7 +17,7 @@ import { randomUUID } from 'crypto';
 import { config } from './config.js';
 import { createLogger } from './logger.js';
 import { createHttpClient } from './httpClient.js';
-import { registerTools } from './tools/index.js';
+import { registerTools, loadTools } from './tools/index.js';
 import { authContext, type AgentAuth } from './authContext.js';
 
 const logger = createLogger(config.logLevel);
@@ -183,7 +183,7 @@ app.get('/health', (_req, res) => {
     version: '0.1.0',
     transport: 'http',
     description: 'Stateful HTTP Streaming (MCP Streamable HTTP)',
-    toolCount: 40,
+    toolCount: loadTools().length,
     endpoint: '/mcp',
   });
 });

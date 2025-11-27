@@ -17,7 +17,10 @@ import { prisma } from '@/lib/prisma';
 
 const querySchema = z.object({
   projectId: z.coerce.number().int().positive(),
-  isActive: z.coerce.boolean().optional(),
+  isActive: z.preprocess(
+    (val) => val === 'true' ? true : val === 'false' ? false : undefined,
+    z.boolean().optional()
+  ),
 });
 
 //=============================================================================
