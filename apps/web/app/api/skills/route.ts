@@ -8,6 +8,8 @@
  * This endpoint provides lazy-loading list view that excludes content field.
  * Token efficiency: ~60-80 tokens for 10 skills (92% reduction from loading full content).
  *
+ * Security: Requires authentication (user session OR agent token)
+ *
  * Created: 2025-11-13
  */
 
@@ -17,6 +19,7 @@ import type { Prisma } from '@prisma/client';
 import { createSkillSchema } from '@/lib/validations/skill';
 import { generateSlugFromTitle } from '@/lib/skills/constants';
 import { findSkillDuplicates, SkillDuplicationError } from '@/lib/skills/deduplication';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * GET /api/skills
@@ -81,8 +84,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const projectId = parseInt(projectIdParam, 10);
-    if (isNaN(projectId) || projectId <= 0) {
+    const requestedProjectId = parseInt(projectIdParam, 10);
+    if (isNaN(requestedProjectId) || requestedProjectId <= 0) {
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -91,6 +94,9 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // Extract optional filters
     const category = searchParams.get('category') || undefined;
@@ -196,6 +202,13 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    
     console.error('[GET /api/skills] Failed to list skills:', error);
     return NextResponse.json(
       {
@@ -272,8 +285,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { projectId, slug, title, content, category, description, tags, frameworks } =
+    const { projectId: requestedProjectId, slug, title, content, category, description, tags, frameworks } =
       validation.data;
+
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // US-105: Check for duplicates (slug and title)
     const deduplicationResult = await findSkillDuplicates({
@@ -328,6 +344,13 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    
     // Handle JSON parse errors
     if (error instanceof SyntaxError) {
       return NextResponse.json(

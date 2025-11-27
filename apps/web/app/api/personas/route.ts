@@ -5,11 +5,13 @@
  * 
  * Token Efficiency: Excludes systemPrompt in list view
  * Multi-tenancy: Filtered by projectId
+ * Security: Requires authentication (user session OR agent token)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -48,11 +50,14 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const { projectId, isActive } = validation.data;
+    const { projectId: requestedProjectId, isActive } = validation.data;
+    
+    // 2. Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
     
     console.log('[GET /api/personas] Listing personas', { projectId, isActive });
     
-    // 2. Query personas (metadata only, no systemPrompt)
+    // 3. Query personas (metadata only, no systemPrompt)
     const personas = await prisma.agentPersona.findMany({
       where: {
         projectId,
@@ -86,6 +91,14 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
+    // Handle auth errors with proper status codes
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    
     console.error('[GET /api/personas] Error:', error);
     return NextResponse.json(
       {

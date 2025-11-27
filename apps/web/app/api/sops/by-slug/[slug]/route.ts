@@ -4,11 +4,13 @@
  * GET /api/sops/by-slug/[slug] - Get full SOP details by slug
  * 
  * Multi-tenancy: Validates projectId ownership
+ * Security: Requires authentication (user session OR agent token)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -54,11 +56,14 @@ export async function GET(
       );
     }
     
-    const { projectId } = validation.data;
+    const { projectId: requestedProjectId } = validation.data;
+    
+    // 2. Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
     
     console.log('[GET /api/sops/by-slug/[slug]] Getting SOP', { slug, projectId });
     
-    // 2. Query SOP with ownership validation
+    // 3. Query SOP with ownership validation
     const sop = await prisma.sOP.findFirst({
       where: {
         slug,
@@ -82,6 +87,13 @@ export async function GET(
     return NextResponse.json(sop);
     
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    
     console.error('[GET /api/sops/by-slug/[slug]] Error:', error);
     return NextResponse.json(
       {

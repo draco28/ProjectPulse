@@ -10,6 +10,8 @@
  * This endpoint provides on-demand loading of full skill content with usage tracking.
  * Token efficiency: ~180-230 tokens per skill (vs ~2,500 tokens for all skills).
  *
+ * Security: Requires authentication (user session OR agent token)
+ *
  * Created: 2025-11-13
  */
 
@@ -17,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { updateSkillSchema } from '@/lib/validations/skill';
 import { skillsCache } from '@/lib/skills/cache';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * GET /api/skills/[slug]
@@ -70,8 +73,8 @@ export async function GET(
       );
     }
 
-    const projectId = parseInt(projectIdParam, 10);
-    if (isNaN(projectId) || projectId <= 0) {
+    const requestedProjectId = parseInt(projectIdParam, 10);
+    if (isNaN(requestedProjectId) || requestedProjectId <= 0) {
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -80,6 +83,9 @@ export async function GET(
         { status: 400 }
       );
     }
+
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // Extract incrementUsage param (default: true)
     const incrementUsageParam = searchParams.get('incrementUsage');
@@ -157,6 +163,13 @@ export async function GET(
       data: skill,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    
     console.error(`[GET /api/skills/[slug]] Failed to load skill:`, error);
     return NextResponse.json(
       {
@@ -223,8 +236,8 @@ export async function PATCH(
       );
     }
 
-    const projectId = parseInt(projectIdParam, 10);
-    if (isNaN(projectId) || projectId <= 0) {
+    const requestedProjectId = parseInt(projectIdParam, 10);
+    if (isNaN(requestedProjectId) || requestedProjectId <= 0) {
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -233,6 +246,9 @@ export async function PATCH(
         { status: 400 }
       );
     }
+
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // Parse and validate request body
     const body = await request.json();
@@ -285,6 +301,13 @@ export async function PATCH(
       data: updated,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    
     // Handle JSON parse errors
     if (error instanceof SyntaxError) {
       return NextResponse.json(
@@ -348,8 +371,8 @@ export async function DELETE(
       );
     }
 
-    const projectId = parseInt(projectIdParam, 10);
-    if (isNaN(projectId) || projectId <= 0) {
+    const requestedProjectId = parseInt(projectIdParam, 10);
+    if (isNaN(requestedProjectId) || requestedProjectId <= 0) {
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -358,6 +381,9 @@ export async function DELETE(
         { status: 400 }
       );
     }
+
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // Find skill
     const skill = await prisma.skill.findFirst({
@@ -396,6 +422,13 @@ export async function DELETE(
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    
     console.error(`[DELETE /api/skills/[slug]] Failed to delete skill:`, error);
     return NextResponse.json(
       {

@@ -4,11 +4,13 @@
  * GET /api/personas/[id] - Get full persona details including systemPrompt
  * 
  * Multi-tenancy: Validates projectId ownership
+ * Security: Requires authentication (user session OR agent token)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -55,11 +57,14 @@ export async function GET(
       );
     }
     
-    const { projectId } = validation.data;
+    const { projectId: requestedProjectId } = validation.data;
+    
+    // 2. Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
     
     console.log('[GET /api/personas/[id]] Getting persona', { id, projectId });
     
-    // 2. Query persona with ownership validation
+    // 3. Query persona with ownership validation
     const persona = await prisma.agentPersona.findFirst({
       where: {
         id,
@@ -83,6 +88,13 @@ export async function GET(
     return NextResponse.json(persona);
     
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    
     console.error('[GET /api/personas/[id]] Error:', error);
     return NextResponse.json(
       {

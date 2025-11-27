@@ -5,11 +5,13 @@
  * 
  * Token Efficiency: Excludes content in list view
  * Multi-tenancy: Filtered by projectId
+ * Security: Requires authentication (user session OR agent token)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -45,11 +47,14 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const { projectId, category } = validation.data;
+    const { projectId: requestedProjectId, category } = validation.data;
+    
+    // 2. Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
     
     console.log('[GET /api/sops] Listing SOPs', { projectId, category });
     
-    // 2. Query SOPs (metadata only, no content)
+    // 3. Query SOPs (metadata only, no content)
     const sops = await prisma.sOP.findMany({
       where: {
         projectId,
@@ -81,6 +86,13 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    
     console.error('[GET /api/sops] Error:', error);
     return NextResponse.json(
       {

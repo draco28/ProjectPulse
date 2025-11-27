@@ -1,31 +1,69 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+/**
+ * SOP Get by ID API - Sprint 11 (EPIC-013: Client Agent Integration)
+ * 
+ * GET /api/sops/by-id/[id] - Get full SOP details by ID
+ * 
+ * Multi-tenancy: Validates projectId ownership
+ * Security: Requires authentication (user session OR agent token)
+ */
 
-export const dynamic = 'force-dynamic'; // No caching
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+
+export const dynamic = 'force-dynamic';
+
+const querySchema = z.object({
+  projectId: z.coerce.number().int().positive(),
+});
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const sopId = parseInt(params.id, 10);
+    const { id: idParam } = await params;
+    const sopId = parseInt(idParam, 10);
 
-    if (isNaN(sopId)) {
+    if (isNaN(sopId) || sopId <= 0) {
       return NextResponse.json(
         { error: 'Invalid SOP ID' },
         { status: 400 }
       );
     }
 
-    // Fetch SOP with full content
-    const sop = await prisma.sOP.findUnique({
-      where: { id: sopId },
+    const { searchParams } = new URL(request.url);
+    
+    // 1. Validate query params
+    const validation = querySchema.safeParse({
+      projectId: searchParams.get('projectId'),
+    });
+    
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.errors },
+        { status: 400 }
+      );
+    }
+
+    const { projectId: requestedProjectId } = validation.data;
+    
+    // 2. Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
+
+    // 3. Fetch SOP with ownership validation
+    const sop = await prisma.sOP.findFirst({
+      where: { 
+        id: sopId,
+        projectId, // Validate ownership
+      },
       select: {
         id: true,
         slug: true,
         title: true,
         description: true,
-        content: true, // Include full content for detail view
+        content: true,
         category: true,
         tags: true,
         createdAt: true,
@@ -35,14 +73,21 @@ export async function GET(
 
     if (!sop) {
       return NextResponse.json(
-        { error: 'SOP not found' },
+        { error: 'SOP not found', id: sopId, projectId },
         { status: 404 }
       );
     }
 
     return NextResponse.json(sop);
   } catch (error) {
-    console.error('[API] Error fetching SOP:', error);
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    
+    console.error('[GET /api/sops/by-id/[id]] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
