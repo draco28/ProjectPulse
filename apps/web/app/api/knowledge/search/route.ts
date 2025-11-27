@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { projectId, query, mode, limit, category } = validation.data;
+    const { query, mode, limit, category } = validation.data;
 
     // Execute search based on mode
     const startTime = Date.now();
