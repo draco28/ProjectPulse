@@ -62,15 +62,8 @@ import { ticketUpdateTool } from './tickets/update.js';
 import { ticketSearchTool } from './tickets/search.js';
 import { ticketAddCommentTool } from './tickets/addComment.js';
 import { ticketSetStatusTool } from './tickets/setStatus.js';
-// Sprint 10: Issue adapter tools (backwards compatibility layer)
-import {
-  issueCreateTool,
-  issueSearchTool,
-  issueUpdateTool,
-  issueSetStatusTool,
-  issueAddCommentTool,
-  issueBulkCreateTool,
-} from './issues/index.js';
+// Sprint 10: Legacy issue adapter tools REMOVED (Sprint 11)
+// Use ticket tools with kind=issue|bug|scanner_finding instead
 import { materializeRoadmapTool } from './roadmap/materializeTool.js';
 import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
 import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
@@ -149,13 +142,7 @@ export const loadTools = (): ToolDefinition[] => [
   ticketSearchTool,
   ticketAddCommentTool,
   ticketSetStatusTool,
-  // Sprint 10: Issue adapter tools (backwards compatibility for legacy agents)
-  issueCreateTool,
-  issueSearchTool,
-  issueUpdateTool,
-  issueSetStatusTool,
-  issueAddCommentTool,
-  issueBulkCreateTool,
+  // Sprint 10: Legacy issue tools REMOVED (Sprint 11) - use ticket tools instead
   workflowListTool,
   workflowStartTool,
   workflowExecuteStepTool,

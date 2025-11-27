@@ -75,8 +75,9 @@ export const getPhaseProgressTool: ToolDefinition = {
       });
 
       // Call Next.js API route (follows MCP pattern: MCP → API → Database)
+      // Include projectId as query parameter for security validation
       const response = await context.httpClient.get(
-        `/api/roadmap/phases/${validated.phaseId}/progress`
+        `/api/roadmap/phases/${validated.phaseId}/progress?projectId=${validated.projectId}`
       ) as any;
 
       context.logger.info('Phase progress retrieved', {

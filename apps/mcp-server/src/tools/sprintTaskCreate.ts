@@ -17,7 +17,7 @@ import type { ToolDefinition, ToolContext } from './types.js';
 
 const sprintTaskCreateSchema = z.object({
   dayId: z.string()
-    .uuid('dayId must be a valid UUID'),
+    .min(1, 'dayId is required'),  // Database uses cuid format, not UUID
 
   title: z.string()
     .min(1, 'Title is required')
@@ -187,8 +187,7 @@ export const sprintTaskCreateTool: ToolDefinition = {
     properties: {
       dayId: {
         type: 'string',
-        format: 'uuid',
-        description: 'UUID of the day to create task in',
+        description: 'Day ID (cuid from database) to create task in',
       },
       title: {
         type: 'string',

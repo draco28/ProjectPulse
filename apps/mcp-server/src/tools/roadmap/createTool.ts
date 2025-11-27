@@ -125,49 +125,31 @@ Use the roadmap_materialize tool to re-materialize an existing roadmap.`,
     const validated = createRoadmapSchema.parse(params);
 
     try {
-      // Build API URL - use environment variable or default
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.1.15:3000';
+      context.logger.info('Creating roadmap', { projectId: validated.projectId, title: validated.title });
 
-      // Call POST /api/roadmap
-      const response = await fetch(`${apiUrl}/api/roadmap`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          projectId: validated.projectId,
-          title: validated.title,
-          description: validated.description,
-          startDate: validated.startDate,
-          phases: validated.phases,
-          materialize: validated.materialize,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        // API returned an error
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: result.error?.code || 'API_ERROR',
-                  message: result.error?.message || 'Failed to create roadmap',
-                  details: result.error?.details,
-                  projectId: validated.projectId,
-                  timestamp: new Date().toISOString(),
-                },
-                null,
-                2
-              ),
-            },
-          ],
+      // Call POST /api/roadmap using httpClient (includes auth header)
+      const result = await context.httpClient.post<{
+        data?: {
+          roadmap?: {
+            id: string;
+            currentPhase?: string;
+            currentSprint?: string;
+          };
+          materialization?: unknown;
         };
-      }
+        error?: {
+          code?: string;
+          message?: string;
+          details?: unknown;
+        };
+      }>('/api/roadmap', {
+        projectId: validated.projectId,
+        title: validated.title,
+        description: validated.description,
+        startDate: validated.startDate,
+        phases: validated.phases,
+        materialize: validated.materialize,
+      });
 
       // Success response
       return {
@@ -200,6 +182,9 @@ Use the roadmap_materialize tool to re-materialize an existing roadmap.`,
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       context.logger.error('roadmap_create failed', { error: errorMessage, projectId: validated.projectId });
 
+      // Check for specific error types
+      const isAuthError = errorMessage.includes('401') || errorMessage.includes('403') || errorMessage.includes('UNAUTHORIZED');
+      
       return {
         content: [
           {
@@ -207,7 +192,7 @@ Use the roadmap_materialize tool to re-materialize an existing roadmap.`,
             text: JSON.stringify(
               {
                 success: false,
-                error: 'NETWORK_ERROR',
+                error: isAuthError ? 'UNAUTHORIZED' : 'API_ERROR',
                 message: errorMessage,
                 projectId: validated.projectId,
                 timestamp: new Date().toISOString(),
