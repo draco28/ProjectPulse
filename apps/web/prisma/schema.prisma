@@ -809,8 +809,10 @@ model WikiPage {
   path       String @unique
   orderIndex Int    @default(0)
 
-  // Full-text search (will be populated by triggers)
-  searchVector String? @db.Text // Using Text as placeholder for tsvector
+  // Full-text search (generated column via migration)
+  // Note: searchVector was a placeholder, content_tsv is the actual tsvector column
+  searchVector String?                   @db.Text // Legacy placeholder (unused)
+  contentTsv   Unsupported("tsvector")? @map("content_tsv") // Actual FTS column
 
   // Links
   outgoingLinks PageLink[] @relation("SourcePage")
