@@ -1,51 +1,55 @@
+/**
+ * Issue Update Adapter - Backwards Compatibility
+ *
+ * Maps legacy issue_update to ticket_update (passthrough).
+ * Uses issueId parameter mapped to ticketId.
+ */
+
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
 import {
   ApiResponse,
-  IssueRecord,
-  baseIssueFields,
+  TicketRecord,
+  ticketContextSchema,
   buildErrorPayload,
-  buildSuccessPayload,
-  issueIdSchema,
-  issueInputProperties,
-  summarizeIssue,
-} from './common.js';
+  summarizeTicket,
+  ticketIdSchema,
+} from '../tickets/common.js';
 
-const issueUpdateSchema = baseIssueFields.omit({ projectId: true }).extend({
-  issueId: issueIdSchema,
-}).refine(
-  (data) =>
-    data.title !== undefined ||
-    data.description !== undefined ||
-    data.status !== undefined ||
-    data.priority !== undefined ||
-    data.module !== undefined ||
-    data.assignee !== undefined ||
-    data.labelIds !== undefined ||
-    data.customFields !== undefined ||
-    data.context !== undefined,
-  {
-    message: 'Provide at least one field to update',
-    path: [],
-  }
-);
+const issueUpdateSchema = z.object({
+  issueId: ticketIdSchema,
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(50000).optional(),
+  status: z.string().optional(),
+  priority: z.string().optional(),
+  module: z.string().optional(),
+  assignee: z.string().optional(),
+  labelIds: z.array(z.number().int().positive()).max(25).optional(),
+  customFields: z.record(z.unknown()).optional(),
+  context: ticketContextSchema.optional(),
+});
 
 type IssueUpdateInput = z.infer<typeof issueUpdateSchema>;
 
 async function handler(input: IssueUpdateInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
-
   const { issueId, ...payload } = input;
 
   try {
-    const response = await httpClient.patch<ApiResponse<IssueRecord>>(`/api/issues/${issueId}`, payload);
+    const response = await httpClient.patch<ApiResponse<TicketRecord>>(
+      `/api/tickets/${issueId}`,
+      payload
+    );
 
     if (!response.data) {
-      return buildErrorPayload(response.error?.message ?? 'Failed to update issue', response.error?.code);
+      return buildErrorPayload(
+        response.error?.message ?? 'Failed to update issue',
+        response.error?.code
+      );
     }
 
-    logger.info('[issue.update] Issue updated', { id: issueId });
-    return buildSuccessPayload({ issue: summarizeIssue(response.data) });
+    logger.info('[issue.update] Issue updated (via ticket adapter)', { id: issueId });
+    return JSON.stringify(summarizeTicket(response.data), null, 2);
   } catch (error) {
     logger.error('[issue.update] Unexpected error', { error, issueId });
     return buildErrorPayload(error instanceof Error ? error.message : 'Unexpected error');
@@ -55,24 +59,21 @@ async function handler(input: IssueUpdateInput, context: ToolContext): Promise<s
 export const issueUpdateTool: ToolDefinition = {
   name: 'projectpulse_issue_update',
   description:
-    'Update an existing issue (status, priority, module, labels, custom fields, or context metadata). Does not change comments; use issue.addComment for notes.',
+    '[LEGACY] Update an issue. Maps to ticket_update. Use projectpulse_ticket_update for new integrations.',
   schema: issueUpdateSchema,
   inputSchema: {
     type: 'object',
     properties: {
-      issueId: {
-        type: 'number',
-        description: 'Numeric issue identifier',
-      },
-      title: issueInputProperties.title,
-      description: issueInputProperties.description,
-      status: issueInputProperties.status,
-      priority: issueInputProperties.priority,
-      module: issueInputProperties.module,
-      assignee: issueInputProperties.assignee,
-      labelIds: issueInputProperties.labelIds,
-      customFields: issueInputProperties.customFields,
-      context: issueInputProperties.context,
+      issueId: { type: 'number', description: 'Issue identifier (maps to ticketId)' },
+      title: { type: 'string' },
+      description: { type: 'string' },
+      status: { type: 'string' },
+      priority: { type: 'string' },
+      module: { type: 'string' },
+      assignee: { type: 'string' },
+      labelIds: { type: 'array', items: { type: 'number' } },
+      customFields: { type: 'object', additionalProperties: true },
+      context: { type: 'object' },
     },
     required: ['issueId'],
   },

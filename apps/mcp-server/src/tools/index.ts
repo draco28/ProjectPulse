@@ -1,6 +1,7 @@
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import type { ToolDefinition, ToolContext } from './types.js';
+import { getAgentAuth, isToolAllowed } from '../authContext.js';
 import { healthCheckTool } from './healthCheck.js';
 import { sprintPhaseCreateTool } from './sprintPhaseCreate.js';
 import { sprintGetCurrentTaskTool } from './sprintGetCurrentTask.js';
@@ -54,12 +55,22 @@ import { workflowGetStatusTool } from './workflow/getStatus.js';
 import { workflowPauseTool } from './workflow/pause.js';
 import { workflowResumeTool } from './workflow/resume.js';
 import { workflowCompleteTool } from './workflow/complete.js';
-import { issueCreateTool } from './issues/create.js';
-import { issueBulkCreateTool } from './issues/bulkCreate.js';
-import { issueUpdateTool } from './issues/update.js';
-import { issueSearchTool } from './issues/search.js';
-import { issueAddCommentTool } from './issues/addComment.js';
-import { issueSetStatusTool } from './issues/setStatus.js';
+// Sprint 10: Ticket tools (unified ticket system - replaces issue tools)
+import { ticketCreateTool } from './tickets/create.js';
+import { ticketBulkCreateTool } from './tickets/bulkCreate.js';
+import { ticketUpdateTool } from './tickets/update.js';
+import { ticketSearchTool } from './tickets/search.js';
+import { ticketAddCommentTool } from './tickets/addComment.js';
+import { ticketSetStatusTool } from './tickets/setStatus.js';
+// Sprint 10: Issue adapter tools (backwards compatibility layer)
+import {
+  issueCreateTool,
+  issueSearchTool,
+  issueUpdateTool,
+  issueSetStatusTool,
+  issueAddCommentTool,
+  issueBulkCreateTool,
+} from './issues/index.js';
 import { materializeRoadmapTool } from './roadmap/materializeTool.js';
 import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
 import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
@@ -124,12 +135,20 @@ export const loadTools = (): ToolDefinition[] => [
   // Week 3 Enhancement: Observability tools (New)
   logStepTool,
   completeSessionTool,
+  // Sprint 10: Ticket tools (unified ticket system - implements all 7 kinds including issue)
+  ticketCreateTool,
+  ticketBulkCreateTool,
+  ticketUpdateTool,
+  ticketSearchTool,
+  ticketAddCommentTool,
+  ticketSetStatusTool,
+  // Sprint 10: Issue adapter tools (backwards compatibility for legacy agents)
   issueCreateTool,
-  issueBulkCreateTool,
-  issueUpdateTool,
   issueSearchTool,
-  issueAddCommentTool,
+  issueUpdateTool,
   issueSetStatusTool,
+  issueAddCommentTool,
+  issueBulkCreateTool,
   workflowListTool,
   workflowStartTool,
   workflowExecuteStepTool,
@@ -179,6 +198,26 @@ export const registerTools = (server: Server, context: ToolContext) => {
           {
             type: 'text',
             text: `Unknown tool "${name}". Available tools: ${tools.map((t) => t.name).join(', ')}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    // Sprint 10: Check tool permissions before execution
+    const auth = getAgentAuth();
+    if (!isToolAllowed(name)) {
+      context.logger.warn('Tool execution denied by permissions', {
+        tool: name,
+        projectId: auth?.projectId,
+        blockedTools: auth?.blockedTools,
+        allowedTools: auth?.allowedTools,
+      });
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Tool "${name}" is not authorized for this token. Contact your project admin to update permissions.`,
           },
         ],
         isError: true,

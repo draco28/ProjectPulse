@@ -14,32 +14,40 @@
  * - 400: Validation error (missing/invalid projectId)
  * - 500: Server error
  *
+ * Security (Sprint 10):
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ *
  * @see Sprint 8.5 Phase 4 - getCurrentPosition MCP tool
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 export async function GET(request: NextRequest) {
   try {
     // Get projectId from query params
     const searchParams = request.nextUrl.searchParams;
-    const projectId = searchParams.get('projectId');
+    const projectIdParam = searchParams.get('projectId');
     
-    if (!projectId) {
+    if (!projectIdParam) {
       return NextResponse.json(
         { error: 'projectId query parameter required' },
         { status: 400 }
       );
     }
     
-    const projectIdNum = parseInt(projectId, 10);
-    if (isNaN(projectIdNum) || projectIdNum <= 0) {
+    const requestedProjectId = parseInt(projectIdParam, 10);
+    if (isNaN(requestedProjectId) || requestedProjectId <= 0) {
       return NextResponse.json(
         { error: 'projectId must be a positive integer' },
         { status: 400 }
       );
     }
+
+    // Sprint 10: Authenticate and validate project access
+    const { projectId: projectIdNum } = await getAuthorizedProjectId(request, requestedProjectId);
     
     // Query latest IN_PROGRESS task with full 5-level hierarchy
     // Uses nested includes for single query (no N+1 problem)
@@ -94,6 +102,16 @@ export async function GET(request: NextRequest) {
     const day = task.day;
     const week = day.week;
     const sprint = week.sprint;
+    
+    // Validate sprint hierarchy exists
+    if (!sprint || !sprint.phase) {
+      return NextResponse.json({
+        error: 'Invalid hierarchy: Sprint or Phase not found for current task',
+        hints: ['Ensure roadmap is properly materialized'],
+        projectId: projectIdNum
+      }, { status: 500 });
+    }
+    
     const phase = sprint.phase;
     
     // Build position response
@@ -136,6 +154,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(position);
     
   } catch (error) {
+    // Sprint 10: Handle auth errors first
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+
     console.error('[GET /api/roadmap/current-position] Error:', error);
     return NextResponse.json(
       { 

@@ -1,5 +1,16 @@
+/**
+ * Knowledge Related Items API Route
+ *
+ * GET /api/knowledge/related - Find related knowledge items
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { findRelatedKnowledgeItems, GraphError } from '@/lib/knowledge/graph';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * GET /api/knowledge/related
@@ -22,21 +33,16 @@ import { findRelatedKnowledgeItems, GraphError } from '@/lib/knowledge/graph';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
+    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
+    
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
     
     // Parse and validate query params
-    const projectId = parseInt(searchParams.get('projectId') || '0', 10);
     const itemId = parseInt(searchParams.get('itemId') || '0', 10);
     const maxDepth = parseInt(searchParams.get('maxDepth') || '2', 10);
     const limit = parseInt(searchParams.get('limit') || '10', 10);
     const minStrength = parseFloat(searchParams.get('minStrength') || '0.5');
-
-    // Validate required params
-    if (!projectId || projectId < 1) {
-      return NextResponse.json(
-        { error: 'Valid projectId is required' },
-        { status: 400 }
-      );
-    }
 
     if (!itemId || itemId < 1) {
       return NextResponse.json(
@@ -93,6 +99,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     // Handle known graph errors
     if (error instanceof GraphError) {
       return NextResponse.json(

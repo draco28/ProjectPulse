@@ -159,3 +159,22 @@ export {
   listKnowledgeResources,
   readKnowledgeResource,
 } from './resources/knowledge-resource';
+
+/**
+ * Export ticket tool handlers for registration in route handler (Sprint 10)
+ */
+export {
+  ticketCreateHandler,
+  ticketBulkCreateHandler,
+  ticketUpdateHandler,
+  ticketSearchHandler,
+  ticketAddCommentHandler,
+  ticketSetStatusHandler,
+  // Issue compatibility handlers (adapters)
+  issueCreateHandler,
+  issueBulkCreateHandler,
+  issueUpdateHandler,
+  issueSearchHandler,
+  issueAddCommentHandler,
+  issueSetStatusHandler,
+} from './handlers/ticket-handler';

@@ -48,6 +48,7 @@ import { MCPError, JSONRPC_ERROR_CODES } from '../types';
  * Matches searchKnowledgeSchema from lib/validations/knowledge.ts
  */
 export interface KnowledgeSearchInput {
+  projectId: number; // required for multi-tenancy
   query: string; // 1-1000 chars
   mode?: 'semantic' | 'fulltext' | 'hybrid'; // default: 'hybrid'
   limit?: number; // 1-50, default: 5
@@ -79,6 +80,7 @@ export interface KnowledgeSearchOutput {
  * Matches createKnowledgeItemSchema from lib/validations/knowledge.ts
  */
 export interface KnowledgeCreateInput {
+  projectId: number; // required for multi-tenancy
   title: string; // 1-200 chars
   content: string; // 10-50000 chars
   category: string; // 1-50 chars
@@ -103,6 +105,7 @@ export interface KnowledgeCreateOutput {
  * Tool input schema for knowledge.related
  */
 export interface KnowledgeRelatedInput {
+  projectId: number; // required for multi-tenancy
   itemId: number; // Knowledge item ID
   maxDepth?: number; // 1 or 2 hops, default: 2
   limit?: number; // 1-50, default: 10
@@ -200,27 +203,29 @@ export async function knowledgeSearchHandler(
       );
     }
 
+    // Validate projectId
+    const projectId = params.projectId;
+    if (!projectId || typeof projectId !== 'number' || projectId < 1) {
+      throw new MCPError(
+        'Missing or invalid required field: projectId (positive integer)',
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
     // Execute search
+    const searchOptions = { projectId, limit, category: params.category };
     let results;
     switch (mode) {
       case 'semantic':
-        results = await semanticSearch(params.query, {
-          limit,
-          category: params.category,
-        });
+        results = await semanticSearch(params.query, searchOptions);
         break;
       case 'fulltext':
-        results = await fullTextSearch(params.query, {
-          limit,
-          category: params.category,
-        });
+        results = await fullTextSearch(params.query, searchOptions);
         break;
       case 'hybrid':
       default:
-        results = await hybridSearch(params.query, {
-          limit,
-          category: params.category,
-        });
+        results = await hybridSearch(params.query, searchOptions);
         break;
     }
 
@@ -307,6 +312,15 @@ export async function knowledgeCreateHandler(
 
     const params = input as KnowledgeCreateInput;
 
+    // Validate projectId
+    if (!params.projectId || typeof params.projectId !== 'number' || params.projectId < 1) {
+      throw new MCPError(
+        'Missing or invalid required field: projectId (positive integer)',
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
     // Validate required fields
     if (!params.title || typeof params.title !== 'string') {
       throw new MCPError(
@@ -377,6 +391,7 @@ export async function knowledgeCreateHandler(
 
     // Create knowledge item
     const result = await createKnowledgeItem({
+      projectId: params.projectId,
       title: params.title,
       content: params.content,
       category: params.category,
@@ -454,6 +469,15 @@ export async function knowledgeRelatedHandler(
 
     const params = input as KnowledgeRelatedInput;
 
+    // Validate projectId
+    if (!params.projectId || typeof params.projectId !== 'number' || params.projectId < 1) {
+      throw new MCPError(
+        'Missing or invalid required field: projectId (positive integer)',
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
     // Validate required fields
     if (typeof params.itemId !== 'number') {
       throw new MCPError(
@@ -493,6 +517,7 @@ export async function knowledgeRelatedHandler(
 
     // Build traversal options
     const options: GraphTraversalOptions = {
+      projectId: params.projectId,
       maxDepth,
       limit,
       minStrength,

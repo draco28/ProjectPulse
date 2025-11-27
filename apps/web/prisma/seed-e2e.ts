@@ -13,13 +13,14 @@ async function main() {
   console.log('🌱 Seeding E2E test data...');
 
   // Clean existing data (in correct order to handle foreign keys)
+  // Sprint 10: Use Ticket model names
   console.log('🗑️  Cleaning existing data...');
   await prisma.$transaction([
-    prisma.comment.deleteMany(),
-    prisma.attachment.deleteMany(),
-    prisma.linkedFile.deleteMany(),
-    prisma.linkedCommit.deleteMany(),
-    prisma.issue.deleteMany(),
+    prisma.ticketComment.deleteMany(),
+    prisma.ticketAttachment.deleteMany(),
+    prisma.ticketLinkedFile.deleteMany(),
+    prisma.ticketLinkedCommit.deleteMany(),
+    prisma.ticket.deleteMany(),
     prisma.label.deleteMany(),
     prisma.knowledgeItem.deleteMany(),
     prisma.securityFinding.deleteMany(),
@@ -29,7 +30,7 @@ async function main() {
 
   // Reset auto-increment sequences to start from 1
   console.log('🔄 Resetting ID sequences...');
-  await prisma.$executeRaw`ALTER SEQUENCE "Issue_id_seq" RESTART WITH 1;`;
+  await prisma.$executeRaw`ALTER SEQUENCE "Ticket_id_seq" RESTART WITH 1;`;
   await prisma.$executeRaw`ALTER SEQUENCE "Project_id_seq" RESTART WITH 1;`;
   await prisma.$executeRaw`ALTER SEQUENCE "Label_id_seq" RESTART WITH 1;`;
 
@@ -50,14 +51,14 @@ async function main() {
     prisma.label.create({ data: { name: 'enhancement', color: '#FFD600' } }),
   ]);
 
-  // Create issues with EXACT titles tests expect
-  console.log('📝 Creating issues...');
+  // Create tickets with EXACT titles tests expect (Sprint 10: Renamed from issues)
+  console.log('📝 Creating tickets...');
 
-  // Strategy: Create auth issue LAST (after all other issues) so it appears in dashboard's
+  // Strategy: Create auth ticket LAST (after all other tickets) so it appears in dashboard's
   // "recent issues" section which shows top 5 by createdAt DESC
 
-  // Create 11 open issues first (IDs 1-11)
-  const issuesData = [
+  // Create 11 open tickets first (IDs 1-11)
+  const ticketsData = [
     { title: 'Add dark mode toggle', priority: 'high', module: 'UI' },
     { title: 'Fix pagination bug', priority: 'medium', module: 'Core' },
     { title: 'Optimize database queries', priority: 'high', module: 'Performance' },
@@ -71,11 +72,13 @@ async function main() {
     { title: 'Refactor auth module', priority: 'medium', module: 'Authentication' },
   ];
 
-  for (const data of issuesData) {
-    await prisma.issue.create({
+  for (const data of ticketsData) {
+    await prisma.ticket.create({
       data: {
         title: data.title,
         description: `Description for ${data.title}`,
+        kind: 'issue',
+        source: 'manual',
         status: 'open',
         priority: data.priority,
         module: data.module,
@@ -85,14 +88,16 @@ async function main() {
     });
   }
 
-  // Create 24 closed issues for "Completed" stat (IDs 12-35)
-  // We'll create 4 more issues after this with varied priorities for test coverage
-  console.log('✅ Creating completed issues (first batch)...');
+  // Create 24 closed tickets for "Completed" stat (IDs 12-35)
+  // We'll create 4 more tickets after this with varied priorities for test coverage
+  console.log('✅ Creating completed tickets (first batch)...');
   for (let i = 1; i <= 24; i++) {
-    await prisma.issue.create({
+    await prisma.ticket.create({
       data: {
         title: `Completed issue ${i}`,
         description: `Completed task ${i}`,
+        kind: 'issue',
+        source: 'manual',
         status: 'closed',
         priority: i % 2 === 0 ? 'high' : 'medium',
         module: 'General',
@@ -102,14 +107,16 @@ async function main() {
     });
   }
 
-  // Create 4 more CLOSED issues with varied priorities (IDs 36-39)
+  // Create 4 more CLOSED tickets with varied priorities (IDs 36-39)
   // These ensure all priority badge variants (Critical/High/Medium/Low) appear in top 5 recent
-  console.log('✅ Creating final closed issues with varied priorities...');
+  console.log('✅ Creating final closed tickets with varied priorities...');
 
-  await prisma.issue.create({
+  await prisma.ticket.create({
     data: {
       title: 'Performance regression in API endpoints',
       description: 'API response times increased significantly - RESOLVED',
+      kind: 'issue',
+      source: 'manual',
       status: 'closed',
       priority: 'high',
       module: 'Performance',
@@ -118,10 +125,12 @@ async function main() {
     },
   });
 
-  await prisma.issue.create({
+  await prisma.ticket.create({
     data: {
       title: 'Update documentation for new features',
       description: 'Documentation updated to reflect recent changes',
+      kind: 'issue',
+      source: 'manual',
       status: 'closed',
       priority: 'medium',
       module: 'Documentation',
@@ -130,10 +139,12 @@ async function main() {
     },
   });
 
-  await prisma.issue.create({
+  await prisma.ticket.create({
     data: {
       title: 'Minor UI alignment issue in footer',
       description: 'Footer text alignment fixed',
+      kind: 'issue',
+      source: 'manual',
       status: 'closed',
       priority: 'low',
       module: 'UI',
@@ -142,10 +153,12 @@ async function main() {
     },
   });
 
-  await prisma.issue.create({
+  await prisma.ticket.create({
     data: {
       title: 'Optimize database connection pooling',
       description: 'Connection pool settings tuned and optimized',
+      kind: 'issue',
+      source: 'manual',
       status: 'closed',
       priority: 'high',
       module: 'Database',
@@ -154,14 +167,16 @@ async function main() {
     },
   });
 
-  // Create "Authentication flow" issue LAST (ID 40)
+  // Create "Authentication flow" ticket LAST (ID 40)
   // This ensures it appears in "recent issues" section (dashboard shows 5 most recent by createdAt DESC)
   // Set to 'in-progress' so pulse indicator appears for E2E test
-  console.log('📝 Creating test-expected authentication issue...');
-  const authIssue = await prisma.issue.create({
+  console.log('📝 Creating test-expected authentication ticket...');
+  const authTicket = await prisma.ticket.create({
     data: {
       title: 'Authentication flow not handling session timeout',
       description: 'Session timeout not being handled correctly in auth flow',
+      kind: 'issue',
+      source: 'manual',
       status: 'in-progress',
       priority: 'critical',
       module: 'Authentication',

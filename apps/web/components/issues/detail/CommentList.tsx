@@ -26,7 +26,7 @@ export function CommentList({ issueId: _issueId, initialComments }: CommentListP
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="comments-list">
       {initialComments.map((comment) => (
         <CommentItem key={comment.id} comment={comment} />
       ))}
@@ -43,7 +43,7 @@ function CommentItem({ comment }: { comment: CommentProps }) {
   const isUpdated = comment.updatedAt !== comment.createdAt;
 
   return (
-    <div className="comment-item smooth-transition neu-pressed flex gap-4 rounded-2xl p-4">
+    <div className="comment-item smooth-transition neu-pressed flex gap-4 rounded-2xl p-4" data-testid="comment-item">
       {/* Avatar */}
       <div className="icon-coral flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl">
         <i className="fas fa-user text-white"></i>

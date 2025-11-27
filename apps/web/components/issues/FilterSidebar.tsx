@@ -16,16 +16,21 @@
 import { useFilterParams } from '@/hooks/useFilterParams';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
-import type { FiltersDTO } from '@/types/filters';
-import { X, RefreshCw, AlertCircle, Box } from 'lucide-react';
+import type { FiltersDTO, FilterCounts } from '@/types/filters';
+import { X, RefreshCw, AlertCircle, Box, Layers } from 'lucide-react';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-interface FilterCounts {
-  status: Record<string, number>;
-  priority: Record<string, number>;
-  module: Record<string, number>;
-}
+// Kind configuration for display
+const kindConfig: Record<string, { label: string }> = {
+  feature: { label: 'Feature' },
+  task: { label: 'Task' },
+  epic: { label: 'Epic' },
+  issue: { label: 'Issue' },
+  bug: { label: 'Bug' },
+  scanner_finding: { label: 'Scanner Finding' },
+  tech_debt: { label: 'Tech Debt' },
+};
 
 interface FilterSidebarProps {
   options: FiltersDTO; // Dynamic filter options from database
@@ -83,8 +88,49 @@ export function FilterSidebar({
           )}
         </div>
 
+        {/* Type (Kind) Filter */}
+        {options.kinds && options.kinds.length > 0 && (
+          <div className="mb-6" data-testid="kind-filter">
+            <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
+              <Layers className="h-4 w-4 text-coral" aria-hidden="true" />
+              Type
+            </h4>
+            <div className="space-y-3">
+              {options.kinds.map((kind) => {
+                const count = counts.kind?.[kind] || 0;
+                const isChecked = isActive('kind', kind);
+                const label = kindConfig[kind]?.label || kind;
+
+                return (
+                  <label
+                    key={kind}
+                    data-testid={`kind-option-${kind}`}
+                    className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) => updateFilter('kind', kind, e.target.checked)}
+                    />
+                    <span className="flex-1">{label}</span>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        count > 0 && isChecked
+                          ? 'bg-coral text-white'
+                          : 'neu-pressed text-slate'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Status Filter */}
-        <div className="mb-6">
+        <div className="mb-6" data-testid="status-filter">
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
             <RefreshCw className="h-4 w-4 text-coral" aria-hidden="true" />
             Status
@@ -97,6 +143,7 @@ export function FilterSidebar({
               return (
                 <label
                   key={option.value}
+                  data-testid={`status-option-${option.value}`}
                   className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
                 >
                   <input
@@ -121,7 +168,7 @@ export function FilterSidebar({
         </div>
 
         {/* Priority Filter */}
-        <div className="mb-6">
+        <div className="mb-6" data-testid="priority-filter">
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
             <AlertCircle className="h-4 w-4 text-coral" aria-hidden="true" />
             Priority
@@ -134,6 +181,7 @@ export function FilterSidebar({
               return (
                 <label
                   key={option.value}
+                  data-testid={`priority-option-${option.value}`}
                   className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
                 >
                   <input
@@ -163,7 +211,7 @@ export function FilterSidebar({
         </div>
 
         {/* Module Filter */}
-        <div>
+        <div data-testid="module-filter">
           <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
             <Box className="h-4 w-4 text-coral" aria-hidden="true" />
             Module
@@ -176,6 +224,7 @@ export function FilterSidebar({
               return (
                 <label
                   key={option.value}
+                  data-testid={`module-option-${option.value}`}
                   className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
                 >
                   <input

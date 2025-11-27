@@ -4,11 +4,16 @@
  * 
  * Load ACTIVE_CONTEXT + PROGRESS for fast session resume
  * Target: ≤6K tokens total
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
  */
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { recoverContext } from '@/lib/memory/memory-bank-service';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 const querySchema = z.object({
   projectId: z.string().transform((val) => parseInt(val, 10)),
@@ -17,14 +22,19 @@ const querySchema = z.object({
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const projectId = searchParams.get('projectId');
+    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
 
-    const validated = querySchema.parse({ projectId });
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
-    const result = await recoverContext(validated.projectId);
+    const result = await recoverContext(projectId);
 
     return NextResponse.json(result);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation failed', issues: error.issues },

@@ -1,56 +1,100 @@
+/**
+ * Issue BulkCreate Adapter - Backwards Compatibility
+ *
+ * Maps legacy issue_bulkCreate to ticket_bulkCreate with kind=issue default.
+ */
+
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
 import {
   ApiResponse,
-  IssueRecord,
-  baseIssueFields,
+  TicketRecord,
+  ticketSourceSchema,
+  ticketContextSchema,
   buildErrorPayload,
-  buildSuccessPayload,
-  issueInputProperties,
-  summarizeIssue,
-} from './common.js';
+  summarizeTicket,
+} from '../tickets/common.js';
 
-interface IssueBulkResponse {
+const legacyKindSchema = z.enum(['issue', 'bug', 'scanner_finding']).default('issue');
+
+const issueItemSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(50000).optional(),
+  kind: legacyKindSchema.optional(),
+  source: ticketSourceSchema.optional().default('agent'),
+  status: z.string().optional(),
+  priority: z.string().optional(),
+  module: z.string().optional(),
+  assignee: z.string().optional(),
+  labelIds: z.array(z.number().int().positive()).max(25).optional(),
+  customFields: z.record(z.unknown()).optional(),
+  context: ticketContextSchema.optional(),
+  reference: z.string().optional(),
+});
+
+const issueBulkCreateSchema = z.object({
+  projectId: z.number().int().positive().optional(),
+  issues: z.array(issueItemSchema).min(1).max(50),
+});
+
+type IssueBulkCreateInput = z.infer<typeof issueBulkCreateSchema>;
+
+interface BulkCreateResponse {
   created: number;
   failed: number;
-  durationMs: number;
-  issues: IssueRecord[];
+  total: number;
+  results: Array<{
+    success: boolean;
+    ticket?: { id: number; title: string; kind: string; reference?: string };
+    error?: string;
+    reference?: string;
+  }>;
 }
-
-const bulkIssueSchema = baseIssueFields.omit({ projectId: true }).extend({
-  reference: z.string().max(64).optional(),
-});
-
-const bulkCreateSchema = z.object({
-  projectId: z.number().int().positive().optional(),
-  issues: z.array(bulkIssueSchema).min(1).max(50),
-});
-
-type IssueBulkCreateInput = z.infer<typeof bulkCreateSchema>;
 
 async function handler(input: IssueBulkCreateInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
 
+  // Map issues to tickets with kind defaulting to 'issue'
+  const tickets = input.issues.map((issue) => ({
+    ...issue,
+    kind: issue.kind ?? 'issue',
+    source: issue.source ?? 'agent',
+  }));
+
   try {
-    const response = await httpClient.post<ApiResponse<IssueBulkResponse>>('/api/issues/bulk', input);
+    const response = await httpClient.post<ApiResponse<BulkCreateResponse>>('/api/tickets/bulk', {
+      projectId: input.projectId,
+      tickets,
+    });
 
     if (!response.data) {
-      return buildErrorPayload(response.error?.message ?? 'Bulk issue creation failed', response.error?.code);
+      return buildErrorPayload(
+        response.error?.message ?? 'Bulk create failed',
+        response.error?.code
+      );
     }
 
-    logger.info('[issue.bulkCreate] Bulk insert completed', {
-      created: response.data.created,
-      durationMs: response.data.durationMs,
+    const successResults = response.data.results.filter((r) => r.success);
+    const errorResults = response.data.results.filter((r) => !r.success);
+
+    logger.info('[issue.bulkCreate] Issues created (via ticket adapter)', {
+      count: successResults.length,
+      errors: errorResults.length,
     });
 
-    return buildSuccessPayload({
+    return JSON.stringify({
+      created: successResults.map((r) => r.ticket),
+      errors: errorResults.map((r, i) => ({
+        index: i,
+        error: r.error,
+        reference: r.reference,
+      })),
       summary: {
-        created: response.data.created,
+        total: input.issues.length,
+        succeeded: response.data.created,
         failed: response.data.failed,
-        durationMs: response.data.durationMs,
       },
-      issues: response.data.issues.map(summarizeIssue),
-    });
+    }, null, 2);
   } catch (error) {
     logger.error('[issue.bulkCreate] Unexpected error', { error });
     return buildErrorPayload(error instanceof Error ? error.message : 'Unexpected error');
@@ -60,33 +104,37 @@ async function handler(input: IssueBulkCreateInput, context: ToolContext): Promi
 export const issueBulkCreateTool: ToolDefinition = {
   name: 'projectpulse_issue_bulkCreate',
   description:
-    'Bulk create 1-50 issues in a single request (used for scanner findings or checklist imports). Auto-tagging and context metadata supported.',
-  schema: bulkCreateSchema,
+    '[LEGACY] Bulk create issues. Maps to ticket_bulkCreate with kind=issue default. Use projectpulse_ticket_bulkCreate for new integrations.',
+  schema: issueBulkCreateSchema,
   inputSchema: {
     type: 'object',
     properties: {
-      projectId: issueInputProperties.projectId,
+      projectId: { type: 'number', description: 'Project identifier' },
       issues: {
         type: 'array',
-        minItems: 1,
-        maxItems: 50,
         items: {
           type: 'object',
           properties: {
-            ...issueInputProperties,
-            reference: {
-              type: 'string',
-              description: 'Optional reference or correlation identifier',
-            },
+            title: { type: 'string' },
+            description: { type: 'string' },
+            kind: { type: 'string', enum: ['issue', 'bug', 'scanner_finding'] },
+            source: { type: 'string', enum: ['manual', 'scanner', 'agent', 'onboarding'] },
+            status: { type: 'string' },
+            priority: { type: 'string' },
+            module: { type: 'string' },
+            assignee: { type: 'string' },
+            reference: { type: 'string' },
           },
           required: ['title'],
         },
+        minItems: 1,
+        maxItems: 50,
       },
     },
     required: ['issues'],
   },
   execute: async (params: unknown, context: ToolContext) => {
-    const parsed = bulkCreateSchema.parse(params ?? {});
+    const parsed = issueBulkCreateSchema.parse(params ?? {});
     const result = await handler(parsed, context);
     return { content: [{ type: 'text', text: result }] };
   },

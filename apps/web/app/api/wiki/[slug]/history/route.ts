@@ -1,5 +1,16 @@
+/**
+ * Wiki History API Route
+ *
+ * GET /api/wiki/[slug]/history - Get wiki page revision history
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 
 const DEFAULT_HISTORY_LIMIT = 10;
 const MAX_HISTORY_LIMIT = 50;
@@ -9,12 +20,15 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     const slugPath = params.slug.startsWith('/') ? params.slug : `/${params.slug}`;
     const page = await prisma.wikiPage.findUnique({
       where: { path: slugPath },
-      select: { id: true },
+      select: { id: true, projectId: true },
     });
 
     if (!page) {
       return NextResponse.json({ error: 'Wiki page not found' }, { status: 404 });
     }
+
+    // Authenticate and validate project access
+    await requireProjectAccess(request, page.projectId);
 
     const searchParams = request.nextUrl.searchParams;
     const limitParam = searchParams.get('limit');
@@ -57,6 +71,10 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     console.error('Failed to fetch wiki history:', error);
     return NextResponse.json({ error: 'Failed to fetch wiki history' }, { status: 500 });
   }

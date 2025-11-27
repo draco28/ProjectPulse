@@ -63,21 +63,23 @@ import type { SearchKnowledgeInput } from '../validations/knowledge';
  * ```
  */
 export async function knowledgeSearchTool(input: SearchKnowledgeInput) {
-  const { query, mode = 'hybrid', limit = 5, category, includeRelated = false } = input;
+  const { projectId, query, mode = 'hybrid', limit = 5, category, includeRelated = false } = input;
 
   const startTime = Date.now();
   let results;
 
+  const searchOptions = { projectId, limit, category, includeRelated };
+
   switch (mode) {
     case 'semantic':
-      results = await semanticSearch(query, { limit, category, includeRelated });
+      results = await semanticSearch(query, searchOptions);
       break;
     case 'fulltext':
-      results = await fullTextSearch(query, { limit, category, includeRelated });
+      results = await fullTextSearch(query, searchOptions);
       break;
     case 'hybrid':
     default:
-      results = await hybridSearch(query, { limit, category, includeRelated });
+      results = await hybridSearch(query, searchOptions);
       break;
   }
 
@@ -156,12 +158,14 @@ export async function knowledgeSearchTool(input: SearchKnowledgeInput) {
  * ```
  */
 export async function knowledgeCreateTool(input: {
+  projectId: number;
   title: string;
   content: string;
   category: string;
   tags?: string[];
 }) {
   const result = await createKnowledgeItem({
+    projectId: input.projectId,
     title: input.title,
     content: input.content,
     category: input.category,
@@ -229,15 +233,17 @@ export async function knowledgeCreateTool(input: {
  * ```
  */
 export async function knowledgeRelatedTool(input: {
+  projectId: number;
   itemId: number;
   maxDepth?: number;
   limit?: number;
   minStrength?: number;
   relationshipTypes?: string[];
 }) {
-  const { itemId, maxDepth = 2, limit = 10, minStrength = 0.6, relationshipTypes } = input;
+  const { projectId, itemId, maxDepth = 2, limit = 10, minStrength = 0.6, relationshipTypes } = input;
 
   const results = await findRelatedKnowledgeItems(itemId, {
+    projectId,
     maxDepth,
     limit,
     minStrength,

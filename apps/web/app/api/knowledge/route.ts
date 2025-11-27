@@ -1,8 +1,20 @@
+/**
+ * Knowledge API Route
+ *
+ * GET /api/knowledge - List knowledge items
+ * POST /api/knowledge - Create knowledge item
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { createKnowledgeItemSchema } from '@/lib/validations/knowledge';
 import { createKnowledgeItem, KnowledgeCreationError, DuplicationError } from '@/lib/knowledge/create';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * GET /api/knowledge
@@ -19,20 +31,16 @@ import { createKnowledgeItem, KnowledgeCreationError, DuplicationError } from '@
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const projectId = parseInt(searchParams.get('projectId') || '0', 10);
+    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
+    
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
+    
     const search = searchParams.get('search') || '';
     const tag = searchParams.get('tag') || '';
     const sort = searchParams.get('sort') || 'newest';
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 50);
-
-    // Validate projectId
-    if (!projectId || projectId < 1) {
-      return NextResponse.json(
-        { error: 'Valid projectId is required' },
-        { status: 400 }
-      );
-    }
 
     // Build where clause
     const where: Prisma.KnowledgeItemWhereInput = { projectId };
@@ -96,6 +104,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     console.error('Failed to fetch knowledge articles:', error);
     return NextResponse.json({ error: 'Failed to fetch knowledge articles' }, { status: 500 });
   }
@@ -123,15 +135,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const projectId = parseInt(body.projectId, 10);
-
-    // Validate projectId
-    if (!projectId || projectId < 1) {
-      return NextResponse.json(
-        { error: 'Valid projectId is required' },
-        { status: 400 }
-      );
-    }
+    const requestedProjectId = body.projectId ? parseInt(body.projectId, 10) : undefined;
+    
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     const validation = createKnowledgeItemSchema.safeParse(body);
 
@@ -174,6 +181,10 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     // Handle duplicate detection errors (US-089)
     if (error instanceof DuplicationError) {
       return NextResponse.json(

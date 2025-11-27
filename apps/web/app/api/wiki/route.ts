@@ -1,9 +1,21 @@
+/**
+ * Wiki API Route
+ *
+ * GET /api/wiki - List wiki pages
+ * POST /api/wiki - Create wiki page
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { createWikiPageSchema, normalizePath } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks } from '@/lib/wiki/cross-linking';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * POST /api/wiki
@@ -35,6 +47,10 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body = await request.json();
+    
+    // Authenticate and validate project access
+    const requestedProjectId = body.projectId ? parseInt(body.projectId, 10) : undefined;
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // Validate with Zod
     const validation = createWikiPageSchema.safeParse(body);
@@ -90,6 +106,7 @@ export async function POST(request: NextRequest) {
         category,
         excerpt: excerpt || null,
         version: 1,
+        projectId,
       },
     });
 
@@ -105,6 +122,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newPage, { status: 201 });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     console.error('Error creating wiki page:', error);
     return NextResponse.json(
       {
@@ -127,20 +148,25 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
+    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
+    
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
+    
     const category = searchParams.get('category');
     const search = searchParams.get('search')?.trim();
     const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '10', 10), 1), 50);
     const offset = Math.max(parseInt(searchParams.get('offset') || '0', 10), 0);
 
     // Build where clause for non-search queries
-    const where = category ? { category } : {};
+    const where = category ? { projectId, category } : { projectId };
 
     if (search) {
       const searchTerm = search;
       const tsQuery = Prisma.sql`plainto_tsquery('english', ${searchTerm})`;
       const categoryCondition = category
-        ? Prisma.sql`AND "category" = ${category}`
-        : Prisma.sql``;
+        ? Prisma.sql`AND "category" = ${category} AND "projectId" = ${projectId}`
+        : Prisma.sql`AND "projectId" = ${projectId}`;
 
       const [rows, countRows] = await Promise.all([
         prisma.$queryRaw<
@@ -244,6 +270,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     console.error('Error fetching wiki pages:', error);
     return NextResponse.json(
       {

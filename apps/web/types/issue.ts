@@ -1,5 +1,5 @@
 /**
- * Issue Detail Types
+ * Issue Detail Types (Sprint 10 - Backwards Compatible with Ticket model)
  *
  * Type definitions for Issue Detail page components
  * Includes both Prisma types (server-side) and serialized types (client-side props)
@@ -12,10 +12,10 @@ import { Prisma } from '@prisma/client';
 // ============================================================================
 
 /**
- * Issue Detail query result type
+ * Issue Detail query result type (Sprint 10: Uses Ticket model)
  * Matches the Prisma query in app/issues/[id]/page.tsx
  */
-export type IssueDetail = Prisma.IssueGetPayload<{
+export type IssueDetail = Prisma.TicketGetPayload<{
   include: {
     comments: {
       select: {
@@ -194,7 +194,7 @@ export function serializeIssueDetail(issue: IssueDetail): IssueDetailProps {
       repository: issue.project.repository,
     },
 
-    comments: issue.comments.map((comment) => ({
+    comments: issue.comments.map((comment: { id: number; content: string; author: string | null; createdAt: Date; updatedAt: Date }) => ({
       id: comment.id.toString(),
       content: comment.content,
       author: comment.author,
@@ -202,7 +202,7 @@ export function serializeIssueDetail(issue: IssueDetail): IssueDetailProps {
       updatedAt: comment.updatedAt.toISOString(),
     })),
 
-    attachments: issue.attachments.map((attachment) => ({
+    attachments: issue.attachments.map((attachment: { id: number; filename: string; filepath: string; mimetype: string; size: number; uploadedAt: Date }) => ({
       id: attachment.id.toString(),
       filename: attachment.filename,
       filepath: attachment.filepath,
@@ -211,20 +211,20 @@ export function serializeIssueDetail(issue: IssueDetail): IssueDetailProps {
       uploadedAt: attachment.uploadedAt.toISOString(),
     })),
 
-    labels: issue.labels.map((label) => ({
+    labels: issue.labels.map((label: { id: number; name: string; color: string }) => ({
       id: label.id.toString(),
       name: label.name,
       color: label.color,
     })),
 
-    linkedFiles: issue.linkedFiles.map((file) => ({
+    linkedFiles: issue.linkedFiles.map((file: { id: number; filePath: string; lineNumber: number | null; createdAt: Date }) => ({
       id: file.id.toString(),
       filePath: file.filePath,
       lineNumber: file.lineNumber,
       createdAt: file.createdAt.toISOString(),
     })),
 
-    linkedCommits: issue.linkedCommits.map((commit) => ({
+    linkedCommits: issue.linkedCommits.map((commit: { id: number; commitHash: string; commitMessage: string | null; commitDate: Date | null }) => ({
       id: commit.id.toString(),
       commitHash: commit.commitHash,
       commitMessage: commit.commitMessage,

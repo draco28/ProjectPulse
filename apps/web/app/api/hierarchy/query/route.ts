@@ -3,6 +3,10 @@
  *
  * GET /api/hierarchy/query - Query hierarchy entities with filters
  *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ *
  * Implements US-007 (partial - status + progress filters only).
  * Date range filtering deferred to Sprint 2 for full US-007 completion.
  *
@@ -14,6 +18,7 @@ import { prisma } from '@/lib/prisma';
 import { HierarchyQuerySchema, type EntityLevel } from '@/lib/validation/hierarchy-query';
 import { ApiResponse } from '@/lib/types/api';
 import type { Prisma } from '@prisma/client';
+import { requireAuth, AuthError } from '@/lib/auth/validateRequest';
 
 // Force dynamic rendering (no caching for query results)
 export const dynamic = 'force-dynamic';
@@ -67,6 +72,9 @@ function buildWhereClause(filters: {
  */
 export async function GET(request: NextRequest) {
   try {
+    // Authenticate request
+    await requireAuth(request);
+    
     const { searchParams } = new URL(request.url);
 
     // 1. Parse and validate query parameters
@@ -375,6 +383,19 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          data: null,
+          error: {
+            code: 'AUTH_ERROR',
+            message: error.message,
+          },
+        },
+        { status: error.status }
+      );
+    }
+    
     console.error('[GET /api/hierarchy/query] Error:', error);
 
     return NextResponse.json<ApiResponse<null>>(

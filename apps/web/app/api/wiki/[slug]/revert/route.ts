@@ -1,8 +1,19 @@
+/**
+ * Wiki Revert API Route
+ *
+ * POST /api/wiki/[slug]/revert - Revert wiki page to previous version
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 
 const DEFAULT_ACTOR_NAME = 'Unknown Editor';
 const DEFAULT_ACTOR_TYPE: 'human' | 'agent' | 'system' = 'human';
@@ -62,12 +73,16 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
           content: true,
           excerpt: true,
           version: true,
+          projectId: true,
         },
       });
 
       if (!page) {
         throw 'NOT_FOUND';
       }
+
+      // Authenticate and validate project access
+      await requireProjectAccess(request, page.projectId);
 
       const revision = await tx.wikiRevision.findUnique({
         where: {
@@ -142,6 +157,10 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
 
     return NextResponse.json({ data: revertedPage });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     if (typeof error === 'string') {
       return mapRevertError(error as RevertError);
     }

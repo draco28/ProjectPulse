@@ -14,14 +14,8 @@
 
 import { useState } from 'react';
 import { FilterSidebar } from '@/components/issues/FilterSidebar';
-import type { FiltersDTO } from '@/types/filters';
+import type { FiltersDTO, FilterCounts } from '@/types/filters';
 import { SlidersHorizontal } from 'lucide-react';
-
-interface FilterCounts {
-  status: Record<string, number>;
-  priority: Record<string, number>;
-  module: Record<string, number>;
-}
 
 interface IssuesPageClientProps {
   options: FiltersDTO;
@@ -34,6 +28,13 @@ export function IssuesPageClient({ options, counts, searchParams }: IssuesPageCl
 
   return (
     <>
+      {/* Desktop Sidebar (Hidden on mobile) */}
+      <FilterSidebar
+        options={options}
+        counts={counts}
+        searchParams={searchParams}
+      />
+
       {/* FAB - Floating Action Button (Mobile/Tablet only) */}
       <button
         onClick={() => setIsFilterDrawerOpen(true)}
@@ -44,7 +45,7 @@ export function IssuesPageClient({ options, counts, searchParams }: IssuesPageCl
         <SlidersHorizontal className="h-6 w-6" />
       </button>
 
-      {/* FilterSidebar with mobile drawer support */}
+      {/* Mobile Filter Drawer (Hidden on desktop) */}
       <FilterSidebar
         options={options}
         counts={counts}

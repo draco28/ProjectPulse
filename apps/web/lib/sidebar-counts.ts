@@ -14,10 +14,11 @@ export interface SidebarCounts {
 
 export async function getSidebarCounts(projectId: number): Promise<SidebarCounts> {
   const [issuesCount, healthCount, knowledgeCount, wikiCount] = await Promise.all([
-    // Open + In Progress issues
-    prisma.issue.count({
+    // Sprint 10: Use ticket model - Open + In Progress issues
+    prisma.ticket.count({
       where: {
         projectId,
+        kind: { in: ['issue', 'bug', 'scanner_finding'] },
         status: { in: ['open', 'in-progress'] },
       },
     }),

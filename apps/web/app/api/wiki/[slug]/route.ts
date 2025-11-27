@@ -1,9 +1,21 @@
+/**
+ * Wiki Detail API Route
+ *
+ * GET /api/wiki/[slug] - Get wiki page by slug
+ * PATCH /api/wiki/[slug] - Update wiki page
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { updateWikiPageSchema } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
+import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * GET /api/wiki/:slug
@@ -32,6 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
         category: true,
         createdAt: true,
         updatedAt: true,
+        projectId: true,
         // Related pages via outgoing links
         outgoingLinks: {
           select: {
@@ -51,6 +64,9 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     if (!page) {
       return NextResponse.json({ error: 'Wiki page not found' }, { status: 404 });
     }
+    
+    // Authenticate and validate project access
+    await requireProjectAccess(request, page.projectId);
 
     // Extract related pages from outgoing links
     const relatedPages = page.outgoingLinks.map((link) => link.targetPage);
@@ -71,6 +87,10 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     console.error('Failed to fetch wiki page:', error);
     return NextResponse.json({ error: 'Failed to fetch wiki page' }, { status: 500 });
   }
@@ -159,12 +179,16 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
           parentId: true,
           category: true,
           tags: true,
+          projectId: true,
         },
       });
 
       if (!existing) {
         throw 'NOT_FOUND';
       }
+      
+      // Authenticate and validate project access
+      await requireProjectAccess(request, existing.projectId);
 
       const parentUpdate: Prisma.WikiPageUpdateInput = {};
       if (hasParentUpdate) {
@@ -278,6 +302,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
 
     return NextResponse.json({ data: updatedPage });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     if (typeof error === 'string') {
       return mapUpdateError(error as WikiUpdateError);
     }

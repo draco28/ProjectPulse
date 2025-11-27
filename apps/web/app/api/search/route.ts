@@ -43,10 +43,11 @@ export async function GET(request: NextRequest) {
     const searchTerm = query.trim();
     const results: SearchResult[] = [];
 
-    // Search Issues
+    // Search Issues (Sprint 10: Use ticket model)
     if (type === 'all' || type === 'issues') {
-      const issues = await prisma.issue.findMany({
+      const issues = await prisma.ticket.findMany({
         where: {
+          kind: { in: ['issue', 'bug', 'scanner_finding'] },
           OR: [
             { title: { contains: searchTerm, mode: 'insensitive' as const } },
             { description: { contains: searchTerm, mode: 'insensitive' as const } },

@@ -1,6 +1,17 @@
+/**
+ * Knowledge Import API Route
+ *
+ * POST /api/knowledge/import - Import knowledge items
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import matter from 'gray-matter';
 import { createKnowledgeItem, KnowledgeCreationError } from '@/lib/knowledge/create';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * POST /api/knowledge/import
@@ -53,17 +64,10 @@ export async function POST(request: NextRequest) {
   try {
     // Parse projectId from query params (multi-tenancy requirement)
     const searchParams = request.nextUrl.searchParams;
-    const projectId = parseInt(searchParams.get('projectId') || '0', 10);
-
-    if (!projectId || projectId < 1) {
-      return NextResponse.json(
-        {
-          error: 'Valid projectId is required',
-          details: 'Provide projectId as query parameter',
-        },
-        { status: 400 }
-      );
-    }
+    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
+    
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     const body = await request.json();
 
@@ -263,6 +267,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: statusCode });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     // Handle JSON parse errors
     if (error instanceof SyntaxError) {
       return NextResponse.json(

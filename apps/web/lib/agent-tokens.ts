@@ -73,13 +73,15 @@ export async function generateProjectToken(
  * Validate a project token
  *
  * @param rawToken - Plaintext token from Authorization header
- * @returns Project ID, token ID, and name if valid
+ * @returns Project ID, token ID, name, and tool permissions if valid
  * @throws Error if token is invalid, expired, or revoked
  */
 export async function validateProjectToken(rawToken: string): Promise<{
   projectId: number;
   tokenId: number;
   name: string;
+  blockedTools: string[];
+  allowedTools: string[];
 }> {
   // Load all non-revoked, non-expired tokens
   const candidates = await prisma.projectToken.findMany({
@@ -95,6 +97,8 @@ export async function validateProjectToken(rawToken: string): Promise<{
       projectId: true,
       name: true,
       tokenHash: true,
+      blockedTools: true,
+      allowedTools: true,
     },
   });
 
@@ -112,6 +116,8 @@ export async function validateProjectToken(rawToken: string): Promise<{
         projectId: candidate.projectId,
         tokenId: candidate.id,
         name: candidate.name,
+        blockedTools: candidate.blockedTools,
+        allowedTools: candidate.allowedTools,
       };
     }
   }

@@ -45,7 +45,9 @@ export async function getIssueOptionSets(force = false): Promise<IssueOptionSets
 export async function resolveStatusValue(input?: string) {
   const options = await getIssueOptionSets();
   if (input) {
-    const match = options.statuses.find((option) => option.value === input);
+    // Normalize input: convert underscores to hyphens for backwards compatibility
+    const normalizedInput = input.replace(/_/g, '-');
+    const match = options.statuses.find((option) => option.value === normalizedInput || option.value === input);
     if (!match) {
       throw new Error(`Invalid status value: ${input}`);
     }

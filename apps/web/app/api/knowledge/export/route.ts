@@ -1,5 +1,16 @@
+/**
+ * Knowledge Export API Route
+ *
+ * GET /api/knowledge/export - Export knowledge graph
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * GET /api/knowledge/export
@@ -39,15 +50,10 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-
-    // CRITICAL: Parse and validate projectId for multi-tenancy isolation
-    const projectId = parseInt(searchParams.get('projectId') || '0', 10);
-    if (!projectId || projectId < 1) {
-      return NextResponse.json(
-        { error: 'Valid projectId is required' },
-        { status: 400 }
-      );
-    }
+    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
+    
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // Parse query parameters
     const includeEmbeddings = searchParams.get('includeEmbeddings') === 'true';
@@ -170,6 +176,10 @@ export async function GET(request: NextRequest) {
       data: exportData,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     console.error('[GET /api/knowledge/export] Export failed:', error);
     return NextResponse.json(
       {

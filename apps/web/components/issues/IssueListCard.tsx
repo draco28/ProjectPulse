@@ -37,6 +37,7 @@ interface IssueListCardProps {
     commentsCount: number;
     attachmentsCount: number;
   };
+  projectId: number;
 }
 
 const PRIORITY_CONFIG: Record<Priority, { label: string; className: string }> = {
@@ -52,7 +53,7 @@ const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
   closed: { label: 'Closed', className: 'neu-pressed text-slate' },
 };
 
-export function IssueListCard({ issue }: IssueListCardProps) {
+export function IssueListCard({ issue, projectId }: IssueListCardProps) {
   const priorityInfo = PRIORITY_CONFIG[issue.priority] || PRIORITY_CONFIG.low;
   const statusInfo = STATUS_CONFIG[issue.status] || {
     label: issue.status,
@@ -69,6 +70,7 @@ export function IssueListCard({ issue }: IssueListCardProps) {
         'neu-raised issue-card smooth-transition rounded-3xl p-6',
         isClosed && 'opacity-60'
       )}
+      data-testid="ticket-card"
     >
       <div className="flex items-start gap-4">
         {/* Checkbox */}
@@ -88,6 +90,7 @@ export function IssueListCard({ issue }: IssueListCardProps) {
                   'rounded-full px-3 py-1 text-xs font-semibold',
                   priorityInfo.className
                 )}
+                data-testid="priority-badge"
               >
                 {priorityInfo.label}
               </span>
@@ -100,6 +103,7 @@ export function IssueListCard({ issue }: IssueListCardProps) {
               {/* Status Badge */}
               <span
                 className={cn('rounded-full px-3 py-1 text-xs font-semibold', statusInfo.className)}
+                data-testid="status-badge"
               >
                 {statusInfo.label}
               </span>
@@ -116,7 +120,7 @@ export function IssueListCard({ issue }: IssueListCardProps) {
 
           {/* Title */}
           <h3 className={cn('mb-2 text-lg font-bold text-white', isClosed && 'line-through')}>
-            <Link href={`/issues/${issue.id}`} className="smooth-transition hover:text-coral">
+            <Link href={`/tickets/${issue.id}?project=${projectId}`} className="smooth-transition hover:text-coral">
               {issue.title}
             </Link>
           </h3>

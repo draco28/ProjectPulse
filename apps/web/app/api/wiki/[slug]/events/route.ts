@@ -1,6 +1,17 @@
+/**
+ * Wiki Events API Route
+ *
+ * POST /api/wiki/[slug]/events - Record wiki page event (view, feedback)
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 
 const eventSchema = z.object({
   type: z.enum(['VIEW', 'FEEDBACK_POSITIVE', 'FEEDBACK_NEGATIVE']),
@@ -28,12 +39,15 @@ export async function POST(
     const slugPath = params.slug.startsWith('/') ? params.slug : `/${params.slug}`;
     const page = await prisma.wikiPage.findUnique({
       where: { path: slugPath },
-      select: { id: true },
+      select: { id: true, projectId: true },
     });
 
     if (!page) {
       return NextResponse.json({ error: 'Wiki page not found' }, { status: 404 });
     }
+
+    // Authenticate and validate project access
+    await requireProjectAccess(request, page.projectId);
 
     await prisma.$transaction(async (tx) => {
       await tx.wikiPageEvent.create({
@@ -58,6 +72,10 @@ export async function POST(
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     console.error('Failed to record wiki event', error);
     return NextResponse.json({ error: 'Failed to record wiki event' }, { status: 500 });
   }

@@ -1,5 +1,17 @@
+/**
+ * Knowledge Archive API Route
+ *
+ * PATCH /api/knowledge/[id]/archive - Archive knowledge item
+ * DELETE /api/knowledge/[id]/archive - Unarchive knowledge item
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * PATCH /api/knowledge/[id]/archive
@@ -40,10 +52,10 @@ export async function PATCH(
       );
     }
 
-    // Check if item exists
+    // Check if item exists and get its projectId
     const existingItem = await prisma.knowledgeItem.findUnique({
       where: { id },
-      select: { id: true, title: true, archivedAt: true },
+      select: { id: true, title: true, archivedAt: true, projectId: true },
     });
 
     if (!existingItem) {
@@ -55,6 +67,9 @@ export async function PATCH(
         { status: 404 }
       );
     }
+    
+    // Authenticate and validate project access
+    await requireProjectAccess(request, existingItem.projectId);
 
     // Check if already archived
     if (existingItem.archivedAt) {
@@ -95,6 +110,10 @@ export async function PATCH(
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     console.error('[PATCH /api/knowledge/[id]/archive] Archive failed:', error);
     return NextResponse.json(
       {
@@ -139,10 +158,10 @@ export async function DELETE(
       );
     }
 
-    // Check if item exists
+    // Check if item exists and get its projectId
     const existingItem = await prisma.knowledgeItem.findUnique({
       where: { id },
-      select: { id: true, title: true, archivedAt: true },
+      select: { id: true, title: true, archivedAt: true, projectId: true },
     });
 
     if (!existingItem) {
@@ -154,6 +173,9 @@ export async function DELETE(
         { status: 404 }
       );
     }
+    
+    // Authenticate and validate project access
+    await requireProjectAccess(request, existingItem.projectId);
 
     // Check if not archived
     if (!existingItem.archivedAt) {
@@ -194,6 +216,10 @@ export async function DELETE(
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     console.error('[DELETE /api/knowledge/[id]/archive] Unarchive failed:', error);
     return NextResponse.json(
       {

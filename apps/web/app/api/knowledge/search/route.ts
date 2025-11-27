@@ -1,7 +1,18 @@
+/**
+ * Knowledge Search API Route
+ *
+ * GET /api/knowledge/search - Search knowledge base
+ *
+ * Security:
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Agent tokens enforce project isolation (cannot access other projects)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { searchKnowledgeSchema } from '@/lib/validations/knowledge';
 import { semanticSearch, fullTextSearch, hybridSearch, SearchError } from '@/lib/knowledge/search';
 import { recordQueryMetric, estimateTokenUsage, type QueryMode } from '@/lib/knowledge/metrics';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 /**
  * GET /api/knowledge/search
@@ -37,8 +48,13 @@ export async function GET(request: NextRequest) {
   try {
     // Parse and validate query params
     const searchParams = request.nextUrl.searchParams;
+    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
+    
+    // Authenticate and validate project access
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
+    
     const rawParams = {
-      projectId: searchParams.get('projectId'),
+      projectId,
       query: searchParams.get('query'),
       mode: searchParams.get('mode') || 'hybrid',
       limit: searchParams.get('limit'),
@@ -124,6 +140,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    
     // Handle known search errors
     if (error instanceof SearchError) {
       return NextResponse.json(

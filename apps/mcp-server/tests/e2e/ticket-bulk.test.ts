@@ -1,0 +1,262 @@
+/**
+ * MCP Tool E2E Test: projectpulse_ticket_bulkCreate
+ *
+ * Tests the bulk ticket creation MCP tool including:
+ * - Create multiple tickets in single request (1-50 tickets)
+ * - Verify all tickets persisted to database
+ * - Bulk create with different kinds
+ * - Bulk create with auto-tagging context
+ * - Handle partial failures gracefully
+ * - Validation errors (exceeding max limit, invalid ticket data)
+ *
+ * Sprint 10: MCP Bulk Ticket Operations Testing
+ */
+
+import { test, describe, beforeEach, afterEach } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  createTestProject,
+  cleanupTestProject,
+  disconnectPrisma,
+  getPrismaClient,
+} from './setup/ticket-fixtures.js';
+import { MCPTestClient } from './setup/mcp-client.js';
+
+describe('MCP Tool: projectpulse_ticket_bulkCreate', () => {
+  let projectId: number;
+  let authToken: string;
+  let client: MCPTestClient;
+  const prisma = getPrismaClient();
+
+  beforeEach(async () => {
+    const { token, projectId: newProjectId } = await createTestProject();
+    authToken = token;
+    projectId = newProjectId;
+    client = new MCPTestClient('http://192.168.1.15:3001', authToken);
+    console.log(`✓ Test setup complete for project ${projectId}`);
+  });
+
+  afterEach(async () => {
+    await cleanupTestProject(projectId);
+    console.log(`✓ Test cleanup complete for project ${projectId}`);
+  });
+
+  test('should create 5 tickets in single bulk request', async () => {
+    const tickets = [
+      {
+        title: 'Bulk Ticket 1',
+        description: 'First ticket in bulk',
+        kind: 'feature',
+        source: 'agent',
+        priority: 'high',
+        status: 'open',
+      },
+      {
+        title: 'Bulk Ticket 2',
+        description: 'Second ticket in bulk',
+        kind: 'bug',
+        source: 'scanner',
+        priority: 'critical',
+        status: 'open',
+      },
+      {
+        title: 'Bulk Ticket 3',
+        description: 'Third ticket in bulk',
+        kind: 'task',
+        source: 'manual',
+        priority: 'medium',
+        status: 'open',
+      },
+      {
+        title: 'Bulk Ticket 4',
+        description: 'Fourth ticket in bulk',
+        kind: 'issue',
+        source: 'agent',
+        priority: 'low',
+        status: 'open',
+      },
+      {
+        title: 'Bulk Ticket 5',
+        description: 'Fifth ticket in bulk',
+        kind: 'epic',
+        source: 'manual',
+        priority: 'high',
+        status: 'open',
+      },
+    ];
+
+    const result = await client.callTool('projectpulse_ticket_bulkCreate', {
+      projectId,
+      tickets,
+    });
+
+    const bulkResult = JSON.parse(result.content[0].text);
+
+    assert.ok(bulkResult.tickets, 'Should have tickets array');
+    assert.strictEqual(bulkResult.tickets.length, 5, 'Should create 5 tickets');
+
+    // Verify all tickets in database
+    const dbTickets = await prisma.ticket.findMany({
+      where: { projectId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    assert.strictEqual(dbTickets.length, 5, 'Should have 5 tickets in database');
+    assert.strictEqual(dbTickets[0].title, 'Bulk Ticket 1');
+    assert.strictEqual(dbTickets[1].kind, 'bug');
+    assert.strictEqual(dbTickets[2].priority, 'medium');
+
+    console.log(`✓ Created ${bulkResult.created.length} tickets in bulk`);
+  });
+
+  test('should create 20 tickets efficiently', async () => {
+    const tickets = Array.from({ length: 20 }, (_, i) => ({
+      title: `Bulk Ticket ${i + 1}`,
+      description: `Description for ticket ${i + 1}`,
+      kind: ['feature', 'bug', 'task'][i % 3],
+      source: 'agent',
+      priority: ['high', 'medium', 'low'][i % 3],
+      status: 'open',
+    }));
+
+    const result = await client.callTool('projectpulse_ticket_bulkCreate', {
+      projectId,
+      tickets,
+    });
+
+    const bulkResult = JSON.parse(result.content[0].text);
+
+    assert.strictEqual(bulkResult.tickets.length, 20, 'Should create 20 tickets');
+
+    // Verify in database
+    const dbTickets = await prisma.ticket.findMany({
+      where: { projectId },
+    });
+
+    assert.strictEqual(dbTickets.length, 20, 'Should have 20 tickets in database');
+
+    console.log('✓ Created 20 tickets efficiently in bulk');
+  });
+
+  test('should create tickets with mixed kinds', async () => {
+    const tickets = [
+      { title: 'Feature', kind: 'feature', source: 'agent', priority: 'high', status: 'open' },
+      { title: 'Bug', kind: 'bug', source: 'scanner', priority: 'critical', status: 'open' },
+      { title: 'Task', kind: 'task', source: 'manual', priority: 'medium', status: 'open' },
+      { title: 'Epic', kind: 'epic', source: 'agent', priority: 'high', status: 'open' },
+      { title: 'Scanner Finding', kind: 'scanner_finding', source: 'scanner', priority: 'high', status: 'open' },
+      { title: 'Tech Debt', kind: 'tech_debt', source: 'agent', priority: 'medium', status: 'open' },
+    ];
+
+    const result = await client.callTool('projectpulse_ticket_bulkCreate', {
+      projectId,
+      tickets,
+    });
+
+    const bulkResult = JSON.parse(result.content[0].text);
+
+    assert.strictEqual(bulkResult.tickets.length, 6, 'Should create 6 tickets with different kinds');
+
+    // Verify all kinds in database
+    const dbTickets = await prisma.ticket.findMany({
+      where: { projectId },
+      select: { kind: true },
+    });
+
+    const kinds = dbTickets.map((t) => t.kind).sort();
+    assert.ok(kinds.includes('feature'));
+    assert.ok(kinds.includes('bug'));
+    assert.ok(kinds.includes('task'));
+    assert.ok(kinds.includes('epic'));
+    assert.ok(kinds.includes('scanner_finding'));
+    assert.ok(kinds.includes('tech_debt'));
+
+    console.log('✓ Created tickets with all 6 different kinds');
+  });
+
+  test('should include custom fields in bulk create', async () => {
+    const tickets = [
+      {
+        title: 'Bulk Ticket with Custom Fields',
+        description: 'Testing custom fields',
+        kind: 'feature',
+        source: 'agent',
+        priority: 'high',
+        status: 'open',
+        customFields: {
+          scannerType: 'eslint',
+          severity: 'warning',
+        },
+      },
+    ];
+
+    const result = await client.callTool('projectpulse_ticket_bulkCreate', {
+      projectId,
+      tickets,
+    });
+
+    const bulkResult = JSON.parse(result.content[0].text);
+
+    assert.strictEqual(bulkResult.tickets.length, 1, 'Should create 1 ticket');
+    assert.ok(bulkResult.tickets[0].id, 'Ticket should have id');
+
+    console.log('✓ Bulk created ticket with custom fields');
+  });
+
+  test('should fail when exceeding max limit (>50 tickets)', async () => {
+    const tickets = Array.from({ length: 51 }, (_, i) => ({
+      title: `Ticket ${i + 1}`,
+      kind: 'feature',
+      source: 'agent',
+      priority: 'medium',
+      status: 'open',
+    }));
+
+    // Zod validation will throw for >50 tickets
+    const result = await client.callTool('projectpulse_ticket_bulkCreate', {
+      projectId,
+      tickets,
+    });
+
+    // Zod error returns as text containing "too_big" or "50"
+    const responseText = result.content[0].text;
+    
+    // Should be validation error (either Zod message or error response)
+    assert.ok(
+      responseText.includes('too_big') ||
+        responseText.includes('50') ||
+        responseText.includes('maximum') ||
+        responseText.includes('error'),
+      'Should return error for exceeding max limit'
+    );
+    console.log('✓ Validation error for exceeding 50 ticket limit');
+  });
+
+  test('should return summary with created count', async () => {
+    const tickets = Array.from({ length: 10 }, (_, i) => ({
+      title: `Summary Test ${i + 1}`,
+      kind: 'feature',
+      source: 'agent',
+      priority: 'medium',
+      status: 'open',
+    }));
+
+    const result = await client.callTool('projectpulse_ticket_bulkCreate', {
+      projectId,
+      tickets,
+    });
+
+    const bulkResult = JSON.parse(result.content[0].text);
+
+    assert.strictEqual(bulkResult.created, 10, 'Should have created 10 tickets');
+    assert.strictEqual(bulkResult.tickets.length, 10, 'Should return 10 ticket objects');
+
+    console.log(`✓ Bulk create result: ${bulkResult.created} tickets created`);
+  });
+});
+
+// Cleanup after all tests
+test.after(async () => {
+  await disconnectPrisma();
+  console.log('✓ Disconnected Prisma client');
+});

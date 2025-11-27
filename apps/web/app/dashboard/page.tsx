@@ -55,13 +55,14 @@ async function getDashboardData(projectId: number) {
     issuesClosedPrev7,
   ] = await Promise.all([
     // Current snapshot counts
-    prisma.issue.count({ where: { projectId, status: 'open' } }),
-    prisma.issue.count({ where: { projectId, status: 'in-progress' } }),
-    prisma.issue.count({ where: { projectId, status: 'closed' } }),
+    // Sprint 10: Use ticket model (issues are tickets with kind IN ('issue','bug','scanner_finding'))
+    prisma.ticket.count({ where: { projectId, status: 'open', kind: { in: ['issue', 'bug', 'scanner_finding'] } } }),
+    prisma.ticket.count({ where: { projectId, status: 'in-progress', kind: { in: ['issue', 'bug', 'scanner_finding'] } } }),
+    prisma.ticket.count({ where: { projectId, status: 'closed', kind: { in: ['issue', 'bug', 'scanner_finding'] } } }),
     prisma.knowledgeItem.count({ where: { projectId } }),
     prisma.securityFinding.count({ where: { projectId, status: 'open' } }),
-    prisma.issue.findMany({
-      where: { projectId },
+    prisma.ticket.findMany({
+      where: { projectId, kind: { in: ['issue', 'bug', 'scanner_finding'] } },
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -88,15 +89,17 @@ async function getDashboardData(projectId: number) {
       select: { id: true, name: true, ownerId: true },
     }),
     // Historical windows for trends (issues created)
-    prisma.issue.count({
+    prisma.ticket.count({
       where: {
         projectId,
+        kind: { in: ['issue', 'bug', 'scanner_finding'] },
         createdAt: { gte: weekAgo },
       },
     }),
-    prisma.issue.count({
+    prisma.ticket.count({
       where: {
         projectId,
+        kind: { in: ['issue', 'bug', 'scanner_finding'] },
         createdAt: { gte: twoWeeksAgo, lt: weekAgo },
       },
     }),
@@ -127,16 +130,18 @@ async function getDashboardData(projectId: number) {
       },
     }),
     // Issues closed (completed) by updatedAt window
-    prisma.issue.count({
+    prisma.ticket.count({
       where: {
         projectId,
+        kind: { in: ['issue', 'bug', 'scanner_finding'] },
         status: 'closed',
         updatedAt: { gte: weekAgo },
       },
     }),
-    prisma.issue.count({
+    prisma.ticket.count({
       where: {
         projectId,
+        kind: { in: ['issue', 'bug', 'scanner_finding'] },
         status: 'closed',
         updatedAt: { gte: twoWeeksAgo, lt: weekAgo },
       },
@@ -263,7 +268,7 @@ export default async function DashboardPage({
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Open Issues"
+          title="Open Tickets"
           value={data.stats.openIssues}
           icon={ListTodo}
           trend={{ value: data.trends.openIssues, label: trendLabel }}
@@ -292,14 +297,14 @@ export default async function DashboardPage({
 
       {/* Two-Column Layout */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Left Column - Recent Issues (2/3) */}
+        {/* Left Column - Recent Tickets (2/3) */}
         <div className="lg:col-span-2">
           <div className="neu-raised smooth-transition rounded-3xl">
             <div className="border-b border-white/5 p-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white">Recent Issues</h3>
+                <h3 className="text-xl font-bold text-white">Recent Tickets</h3>
                 <Link
-                  href={`/issues?project=${projectId}`}
+                  href={`/tickets?project=${projectId}`}
                   className="hover:text-coralLight smooth-transition text-sm font-semibold text-coral"
                 >
                   View all →

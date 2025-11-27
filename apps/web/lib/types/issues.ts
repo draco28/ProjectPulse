@@ -1,9 +1,14 @@
+/**
+ * Issue types (Sprint 10 - Backwards Compatible with Ticket model)
+ *
+ * Issue is now an alias for Ticket with kind IN ('issue', 'bug', 'scanner_finding')
+ */
 import type {
-  Attachment,
-  Comment,
-  Issue,
+  TicketAttachment,
+  TicketComment,
+  Ticket,
   Label,
-  LinkedFile,
+  TicketLinkedFile,
   Prisma,
   Project,
 } from '@prisma/client';
@@ -13,11 +18,17 @@ import type {
   IssueFilters,
 } from '@/lib/validations/issue';
 
-export type IssueWithRelations = Issue & {
-  comments: Array<Pick<Comment, 'id' | 'createdAt'>>;
-  attachments: Array<Pick<Attachment, 'id' | 'filename' | 'filepath'>>;
+// Sprint 10: Issue is now Ticket
+export type Issue = Ticket;
+export type Comment = TicketComment;
+export type Attachment = TicketAttachment;
+export type LinkedFile = TicketLinkedFile;
+
+export type IssueWithRelations = Ticket & {
+  comments: Array<Pick<TicketComment, 'id' | 'createdAt'>>;
+  attachments: Array<Pick<TicketAttachment, 'id' | 'filename' | 'filepath'>>;
   labels: Array<Pick<Label, 'id' | 'name' | 'color'>>;
-  linkedFiles: Array<Pick<LinkedFile, 'id' | 'filePath' | 'lineNumber'>>;
+  linkedFiles: Array<Pick<TicketLinkedFile, 'id' | 'filePath' | 'lineNumber'>>;
 };
 
 export interface IssueListResult {
@@ -74,6 +85,7 @@ export interface IssueAutoTagConfig {
   rules: IssueAutoTagRule[];
 }
 
+// Sprint 10: Use Ticket types
 export type IssueOrderBy =
-  | Prisma.IssueOrderByWithRelationInput
-  | Prisma.IssueOrderByWithRelationInput[];
+  | Prisma.TicketOrderByWithRelationInput
+  | Prisma.TicketOrderByWithRelationInput[];

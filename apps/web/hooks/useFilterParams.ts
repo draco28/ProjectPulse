@@ -15,18 +15,19 @@
 
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
 /**
  * Filter type discriminator
  */
-export type FilterType = 'status' | 'priority' | 'module';
+export type FilterType = 'kind' | 'status' | 'priority' | 'module';
 
 /**
  * Parsed filter values from URL params
  */
 export interface CurrentFilters {
+  kind: string[];
   status: string[];
   priority: string[];
   module: string[];
@@ -44,8 +45,8 @@ export interface UseFilterParamsReturn {
   /**
    * Check if a specific filter value is currently active
    *
-   * @param filterType - Type of filter (status, priority, module)
-   * @param value - Value to check (e.g., "open", "high", "core")
+   * @param filterType - Type of filter (kind, status, priority, module)
+   * @param value - Value to check (e.g., "feature", "open", "high")
    * @returns {boolean} True if value is active
    */
   isActive: (filterType: FilterType, value: string) => boolean;
@@ -97,6 +98,7 @@ export function useFilterParams(
 ): UseFilterParamsReturn {
   const router = useRouter();
   const currentSearchParams = useSearchParams();
+  const pathname = usePathname();
 
   /**
    * Parse current filter values from URL params
@@ -104,11 +106,12 @@ export function useFilterParams(
    */
   const currentFilters = useMemo(
     (): CurrentFilters => ({
+      kind: searchParams.kind?.split(',').filter(Boolean) || [],
       status: searchParams.status?.split(',').filter(Boolean) || [],
       priority: searchParams.priority?.split(',').filter(Boolean) || [],
       module: searchParams.module?.split(',').filter(Boolean) || [],
     }),
-    [searchParams.status, searchParams.priority, searchParams.module]
+    [searchParams.kind, searchParams.status, searchParams.priority, searchParams.module]
   );
 
   /**
@@ -116,6 +119,7 @@ export function useFilterParams(
    */
   const hasActiveFilters = useMemo(
     () =>
+      currentFilters.kind.length > 0 ||
       currentFilters.status.length > 0 ||
       currentFilters.priority.length > 0 ||
       currentFilters.module.length > 0,
@@ -167,9 +171,9 @@ export function useFilterParams(
       params.delete('page');
 
       // Navigate to updated URL
-      router.push(`/issues?${params.toString()}`);
+      router.push(`${pathname}?${params.toString()}`);
     },
-    [currentSearchParams, router]
+    [currentSearchParams, router, pathname]
   );
 
   /**
@@ -181,6 +185,7 @@ export function useFilterParams(
     const params = new URLSearchParams(currentSearchParams?.toString());
 
     // Remove all filter params
+    params.delete('kind');
     params.delete('status');
     params.delete('priority');
     params.delete('module');
@@ -190,8 +195,8 @@ export function useFilterParams(
 
     // Navigate to cleaned URL
     const queryString = params.toString();
-    router.push(queryString ? `/issues?${queryString}` : '/issues');
-  }, [currentSearchParams, router]);
+    router.push(queryString ? `${pathname}?${queryString}` : pathname);
+  }, [currentSearchParams, router, pathname]);
 
   return {
     currentFilters,
