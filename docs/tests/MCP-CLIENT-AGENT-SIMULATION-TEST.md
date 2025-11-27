@@ -1,9 +1,41 @@
 # MCP Client Agent Simulation Test
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Project:** ProjectPulse  
 **Test Type:** End-to-End Integration (Role-Play)  
 **Total MCP Tools:** 77  
+**Test Date:** 2025-11-27  
+
+## Test Results Summary
+
+| Category | Pass | Fail | Total |
+|----------|------|------|-------|
+| Health & Memory | 4 | 0 | 4 |
+| Onboarding S1 | 12 | 0 | 12 |
+| Document Gen S2 | 5 | 0 | 5 |
+| Bootstrap S3 | 10 | 0 | 10 |
+| Sprint/Roadmap | 6 | 3 | 9 |
+| Tickets | 7 | 0 | 7 |
+| Wiki | 2 | 4 | 6 |
+| Knowledge | 4 | 0 | 4 |
+| Workflows | 6 | 0 | 6 |
+| Legacy Issues | 4 | 2 | 6 |
+| **TOTAL** | **60** | **9** | **69** |
+
+**Pass Rate: 87%**
+
+### Critical Bugs Found
+
+1. **wiki/generate/route.ts syntax error** - Fixed during test
+2. **sprint_task_create** - dayId validation requires UUID but DB uses cuid
+3. **roadmap_create** - Returns UNAUTHORIZED
+4. **roadmap_getPhaseProgress** - projectId not passed correctly
+5. **wiki_search** - 500 error (fixed)
+6. **wiki_analytics_summary** - 500 error (depends on generate route)
+7. **wiki_generate** - 500 error (fixed)
+8. **wiki_update** - 403 (cross-project isolation issue)
+9. **issue_update (legacy)** - 500 error
+10. **issue_setStatus (legacy)** - 500 error
 
 ## Purpose
 
@@ -22,7 +54,20 @@ This document simulates a real client onboarding and using ProjectPulse with the
 
 **Project ID:** 3  
 **Project Name:** Client Test Project  
-**Token:** (configured in ~/.factory/mcp.json)
+**Token:** `mcp_668b6765b599bcb0cb4bf264254c64380f7e7dd14cd81efa2589969bef1953a8`
+
+### ⚠️ KNOWN ISSUE: Factory MCP Integration
+
+Factory's MCP integration attempts OAuth discovery (`/.well-known/openid-configuration`) and dynamic registration (`/register`) which our MCP server doesn't support. This causes "Cannot POST /register" errors.
+
+**Workaround:** Test tools via direct curl calls:
+```bash
+TOKEN="mcp_668b6765b599bcb0cb4bf264254c64380f7e7dd14cd81efa2589969bef1953a8"
+curl -s http://192.168.1.15:3001/mcp -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"TOOL_NAME","arguments":{...}}}'
+```
 
 ### Verify Clean State
 ```

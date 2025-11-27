@@ -92,9 +92,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<WikiGener
       });
     }
 
-    // Use authenticated projectId
-    }
-
     // Process each documentation file
     const results = await Promise.allSettled(
       docs.map(doc => processDocumentation(doc, category, overwriteExisting, projectId))
