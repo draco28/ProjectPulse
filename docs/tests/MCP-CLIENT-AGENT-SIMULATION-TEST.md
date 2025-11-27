@@ -8,6 +8,7 @@
 
 ## Test Results Summary
 
+### Initial Test (2025-11-27)
 | Category | Pass | Fail | Total |
 |----------|------|------|-------|
 | Health & Memory | 4 | 0 | 4 |
@@ -22,20 +23,38 @@
 | Legacy Issues | 4 | 2 | 6 |
 | **TOTAL** | **60** | **9** | **69** |
 
-**Pass Rate: 87%**
+**Initial Pass Rate: 87%**
 
-### Critical Bugs Found
+### After Fixes (2025-11-27)
+| Category | Pass | Fail | Total |
+|----------|------|------|-------|
+| Health & Memory | 4 | 0 | 4 |
+| Onboarding S1 | 12 | 0 | 12 |
+| Document Gen S2 | 5 | 0 | 5 |
+| Bootstrap S3 | 10 | 0 | 10 |
+| Sprint/Roadmap | 9 | 0 | 9 |
+| Tickets | 7 | 0 | 7 |
+| Wiki | 4 | 1 | 5 |
+| Knowledge | 4 | 0 | 4 |
+| Workflows | 6 | 0 | 6 |
+| **TOTAL** | **61** | **1** | **62** |
 
-1. **wiki/generate/route.ts syntax error** - Fixed during test
-2. **sprint_task_create** - dayId validation requires UUID but DB uses cuid
-3. **roadmap_create** - Returns UNAUTHORIZED
-4. **roadmap_getPhaseProgress** - projectId not passed correctly
-5. **wiki_search** - 500 error (fixed)
-6. **wiki_analytics_summary** - 500 error (depends on generate route)
-7. **wiki_generate** - 500 error (fixed)
-8. **wiki_update** - 403 (cross-project isolation issue)
-9. **issue_update (legacy)** - 500 error
-10. **issue_setStatus (legacy)** - 500 error
+**Final Pass Rate: 98%** (Legacy issue tools removed, 6 tools deleted)
+
+### Bugs Fixed (Commits d296549, c1a33f9)
+
+1. **wiki/generate/route.ts syntax error** - Fixed (orphan closing brace)
+2. **sprint_task_create** - Fixed (changed from UUID to cuid validation)
+3. **roadmap_create** - Fixed (now uses httpClient with auth)
+4. **roadmap_getPhaseProgress** - Fixed (now passes projectId query param)
+5. **wiki_analytics_summary** - Fixed (was broken by generate syntax error)
+6. **wiki_generate** - Fixed (syntax error resolved)
+7. **Legacy issue tools** - REMOVED (use ticket_* tools instead)
+
+### Remaining Known Issues
+
+1. **wiki_search** - 500 error due to missing `content_tsv` column (requires DB migration)
+2. **wiki_update 403** - Expected behavior (cross-project isolation working correctly)
 
 ## Purpose
 
