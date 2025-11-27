@@ -1,12 +1,46 @@
 # Active Context
 
-**Last Updated**: 2025-11-25 12:15 PST
-**Current Focus**: Sprint 9 Phase 5 COMPLETE ✅ | Context & Knowledge System validated
-**Recent Completion**: Sprint 9 - Knowledge MCP tools E2E verified, UI navigation fixed
+**Last Updated**: 2025-11-27 16:30 IST
+**Current Focus**: Sprint 11 PLANNING | EPIC-013: Client Agent Integration APIs
+**Recent Completion**: Sprint 10 - Unified Ticket System merged to master
 
 ---
 
 ## Current State
+
+### 📋 Sprint 11 Planning (EPIC-013: Client Agent Integration APIs)
+
+**Status**: PLANNING
+**Spec Document**: `.agent/task/sprint11-client-apis.md`
+**Branch**: `feature/sprint-11-client-apis` (to be created)
+**Story Points**: ~20 points
+**Duration**: 2 weeks
+
+**Goal**: Expose ProjectPulse AI workflow artifacts (personas, skills, SOPs, workflows) via client-friendly MCP/HTTP APIs so end-user agents can consume them.
+
+**Key Deliverables**:
+- 6 new MCP tools: `persona.list`, `persona.get`, `skill.list`, `skill.get`, `sop.list`, `sop.get`
+- 6 new API routes for personas, skills, SOPs
+- Enhanced CLAUDE.md template with client API documentation
+- Enhanced AGENTS.md template that queries actual project data
+
+**Sprint 11.5 (Deferred)**: EPIC-011 Research Agent Orchestration (~24 points)
+
+---
+
+### ✅ Sprint 10 Complete (Unified Ticket System)
+
+**Completion Date**: 2025-11-27
+**Status**: ✅ MERGED TO MASTER
+**Branch**: `feature/sprint-10-ticket-system`
+
+**Key Deliverables**:
+- Unified Ticket model (7 kinds: feature, task, epic, issue, bug, scanner_finding, tech_debt)
+- 6 MCP ticket tools + 6 issue adapter tools (backwards compatibility)
+- `/tickets` UI with multi-select filters
+- Security architecture with tool permissions (blockedTools, allowedTools)
+
+---
 
 ### ✅ Sprint 9 Phase 5 Complete (Testing & Validation)
 
