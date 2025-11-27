@@ -87,6 +87,13 @@ import { knowledgeImportTool } from './knowledge/importTool.js';
 import { knowledgeArchiveTool } from './knowledge/archiveTool.js';
 import { knowledgeMetricsTool } from './knowledge/metricsTool.js';
 import { knowledgeRelatedTool } from './knowledge/relatedTool.js';
+// Sprint 11: Client Agent Integration APIs (EPIC-013)
+import { personaListTool } from './personas/listTool.js';
+import { personaGetTool } from './personas/getTool.js';
+import { skillListTool } from './skills/listTool.js';
+import { skillGetTool } from './skills/getTool.js';
+import { sopListTool } from './sops/listTool.js';
+import { sopGetTool } from './sops/getTool.js';
 
 export const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -175,6 +182,13 @@ export const loadTools = (): ToolDefinition[] => [
   knowledgeArchiveTool,
   knowledgeMetricsTool,
   knowledgeRelatedTool,
+  // Sprint 11: Client Agent Integration APIs (EPIC-013)
+  personaListTool,
+  personaGetTool,
+  skillListTool,
+  skillGetTool,
+  sopListTool,
+  sopGetTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {
