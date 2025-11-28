@@ -17,7 +17,7 @@ import type { ToolDefinition, ToolContext } from './types.js';
 
 const sprintSessionCreateSchema = z.object({
   taskId: z.string()
-    .uuid('taskId must be a valid UUID'),
+    .min(1, 'taskId is required'),
 
   title: z.string()
     .min(1, 'Title is required')
@@ -195,8 +195,7 @@ export const sprintSessionCreateTool: ToolDefinition = {
     properties: {
       taskId: {
         type: 'string',
-        format: 'uuid',
-        description: 'UUID of the task to create session in',
+        description: 'ID of the task to create session in (cuid format)',
       },
       title: {
         type: 'string',

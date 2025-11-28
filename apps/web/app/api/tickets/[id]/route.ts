@@ -154,10 +154,40 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     // Sprint 10: Validate project access
     await requireProjectAccess(request, existing.projectId);
 
-    // Resolve option values
-    const status = data.status ? await resolveStatusValue(data.status) : undefined;
-    const priority = data.priority ? await resolvePriorityValue(data.priority) : undefined;
-    const ticketModule = data.module ? await resolveModuleValue(data.module) : undefined;
+    // Resolve option values with proper error handling
+    let status: string | undefined;
+    let priority: string | undefined;
+    let ticketModule: string | undefined;
+
+    try {
+      status = data.status ? await resolveStatusValue(data.status) : undefined;
+    } catch (error) {
+      return failure({
+        code: 'INVALID_STATUS',
+        message: error instanceof Error ? error.message : 'Invalid status value',
+        status: 400,
+      });
+    }
+
+    try {
+      priority = data.priority ? await resolvePriorityValue(data.priority) : undefined;
+    } catch (error) {
+      return failure({
+        code: 'INVALID_PRIORITY',
+        message: error instanceof Error ? error.message : 'Invalid priority value',
+        status: 400,
+      });
+    }
+
+    try {
+      ticketModule = data.module ? await resolveModuleValue(data.module) : undefined;
+    } catch (error) {
+      return failure({
+        code: 'INVALID_MODULE',
+        message: error instanceof Error ? error.message : 'Invalid module value',
+        status: 400,
+      });
+    }
 
     // Handle label updates
     let labelConnect: { id: number }[] | undefined;

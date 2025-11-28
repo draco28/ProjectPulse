@@ -111,13 +111,18 @@ export const wikiUpdateTool: ToolDefinition = {
       // Normalize path for API call (add leading slash if missing)
       const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
-      const data = await context.httpClient.patch<WikiUpdateResponse>(
+      // API returns { data: WikiUpdateResponse }
+      const response = await context.httpClient.patch<{ data: WikiUpdateResponse }>(
         `/api/wiki${normalizedPath}`,
         updateData
       );
+      const data = response.data;
 
       const auditedFields = Object.keys(updateData).filter((field) => !['updatedBy', 'updatedByType', 'changelog'].includes(field));
       const updatedFields = auditedFields.length ? auditedFields.join(', ') : 'metadata only';
+      const contentPreview = data?.content
+        ? `${data.content.substring(0, 100)}${data.content.length > 100 ? '...' : ''}`
+        : '(no content)';
       const summary = `✅ Wiki page updated successfully
 
 Title: ${data.title}
@@ -128,7 +133,7 @@ Updated: ${new Date(data.updatedAt).toLocaleString()}
 
 Fields updated: ${updatedFields}
 
-Content preview: ${data.content.substring(0, 100)}${data.content.length > 100 ? '...' : ''}`;
+Content preview: ${contentPreview}`;
 
       context.logger.info('Wiki page updated', {
         id: data.id,

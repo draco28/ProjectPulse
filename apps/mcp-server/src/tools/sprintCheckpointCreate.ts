@@ -32,7 +32,7 @@ const sessionContextSchema = z.object({
 
 const sprintCheckpointCreateSchema = z.object({
   sessionId: z.string()
-    .uuid('sessionId must be a valid UUID'),
+    .min(1, 'sessionId is required'),
 
   notes: z.string()
     .min(1, 'Notes cannot be empty')
@@ -172,8 +172,7 @@ export const sprintCheckpointCreateTool: ToolDefinition = {
     properties: {
       sessionId: {
         type: 'string',
-        format: 'uuid',
-        description: 'UUID of the session to attach checkpoint to',
+        description: 'ID of the session to attach checkpoint to (cuid format)',
       },
       notes: {
         type: 'string',
