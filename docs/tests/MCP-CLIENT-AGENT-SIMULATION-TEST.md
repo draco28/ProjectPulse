@@ -39,7 +39,24 @@
 | Workflows | 6 | 0 | 6 |
 | **TOTAL** | **61** | **1** | **62** |
 
-**Final Pass Rate: 98%** (Legacy issue tools removed, 6 tools deleted)
+**Pass Rate: 98%** (Legacy issue tools removed, 6 tools deleted)
+
+### Clean Re-Test (2025-11-28)
+| Category | Pass | Fail | Total | Notes |
+|----------|------|------|-------|-------|
+| Health & Memory | 4 | 0 | 4 | All working |
+| Onboarding S1 | 12 | 0 | 12 | All 10 phases + summary |
+| Document Gen S2 | 6 | 0 | 6 | All working |
+| Bootstrap S3 | 7 | 1 | 8 | getBootstrapPrompt needs Session 2 complete |
+| Sprint/Roadmap | 9 | 2 | 11 | session_create, checkpoint_create UUID bugs |
+| Tickets | 5 | 1 | 6 | ticket_update 500 error |
+| Wiki | 4 | 1 | 5 | wiki_update undefined property |
+| Knowledge | 7 | 0 | 7 | Ollama embeddings working (752ms) |
+| Workflows | 7 | 0 | 7 | All working |
+| Personas & Skills | 6 | 0 | 6 | All working |
+| **TOTAL** | **57** | **5** | **62** | |
+
+**Pass Rate: 92%** (4 new bugs discovered)
 
 ### Bugs Fixed (Commits d296549, c1a33f9)
 
@@ -51,10 +68,20 @@
 6. **wiki_generate** - Fixed (syntax error resolved)
 7. **Legacy issue tools** - REMOVED (use ticket_* tools instead)
 
-### Remaining Known Issues
+### Remaining Known Issues (2025-11-28)
 
-1. **wiki_search** - 500 error due to missing `content_tsv` column (requires DB migration)
-2. **wiki_update 403** - Expected behavior (cross-project isolation working correctly)
+**Fixed:**
+- ~~wiki_search 500 error~~ - Fixed with content_tsv migration (commit 6596058)
+
+**New Bugs Discovered:**
+1. **sprint_session_create** - UUID validation bug (taskId expects UUID but tasks use cuid)
+   - Fix: Change validation from `.uuid()` to `.min(1)` like sprint_task_create
+2. **sprint_checkpoint_create** - cuid validation bug (sessionId expects cuid but passed UUID)
+   - Same validation inconsistency as session_create
+3. **ticket_update** - 500 Internal Server Error on valid update request
+   - Needs investigation in `/api/tickets/[id]/route.ts`
+4. **wiki_update** - "Cannot read properties of undefined (reading 'substring')"
+   - Occurs when updating wiki page by path
 
 ## Purpose
 
