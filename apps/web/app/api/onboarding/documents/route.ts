@@ -61,10 +61,32 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Check for existing document
+    // Get or create Session 2 (documents belong to Session 2, not Session 1)
+    let session2 = await prisma.onboardingSession.findUnique({
+      where: {
+        projectId_sessionNumber: { projectId, sessionNumber: 2 }
+      }
+    });
+    
+    if (!session2) {
+      session2 = await prisma.onboardingSession.create({
+        data: {
+          projectId,
+          sessionNumber: 2,
+          status: 'in_progress',
+          response: {
+            documentsGenerated: 0,
+            createdAt: new Date().toISOString()
+          },
+          startedAt: new Date()
+        }
+      });
+    }
+    
+    // Check for existing document (in Session 2)
     const existingDoc = await prisma.document.findFirst({
       where: {
-        onboardingSessionId: session1.id,
+        onboardingSessionId: session2.id,
         filename
       }
     });
@@ -104,7 +126,7 @@ export async function POST(request: NextRequest) {
       console.log(`[Session 2] Storing new document: ${filename} (${wordCount} words)`);
       document = await prisma.document.create({
         data: {
-          onboardingSessionId: session1.id,
+          onboardingSessionId: session2.id,
           filename,
           content,
           wordCount,
@@ -117,37 +139,23 @@ export async function POST(request: NextRequest) {
     
     // Count total documents stored
     const documentsStored = await prisma.document.count({
-      where: { onboardingSessionId: session1.id }
+      where: { onboardingSessionId: session2.id }
     });
     
     const isComplete = documentsStored >= 15;
     
     console.log(`[Session 2] Document stored: ${filename}, progress: ${documentsStored}/15`);
     
-    // Create or update Session 2
-    await prisma.onboardingSession.upsert({
-      where: {
-        projectId_sessionNumber: { projectId, sessionNumber: 2 }
-      },
-      update: {
+    // Update Session 2 progress (session2 was created/fetched earlier)
+    await prisma.onboardingSession.update({
+      where: { id: session2.id },
+      data: {
         response: {
           documentsGenerated: documentsStored,
           lastDocumentStored: filename,
           lastUpdated: new Date().toISOString()
         },
         status: isComplete ? 'complete' : 'in_progress',
-        completedAt: isComplete ? new Date() : null
-      },
-      create: {
-        projectId,
-        sessionNumber: 2,
-        status: isComplete ? 'complete' : 'in_progress',
-        response: {
-          documentsGenerated: documentsStored,
-          lastDocumentStored: filename,
-          createdAt: new Date().toISOString()
-        },
-        startedAt: new Date(),
         completedAt: isComplete ? new Date() : null
       }
     });
