@@ -1,10 +1,10 @@
 # Project Implementation Plan
 
 **Document ID:** DOC-013
-**Version:** 1.4.0
+**Version:** 1.5.0
 **Status:** Active
 **Owner:** Project Management
-**Last Updated:** 2025-11-13
+**Last Updated:** 2025-11-28
 **Review Cycle:** Weekly (sprint planning)
 
 ---
@@ -18,6 +18,7 @@
 | 1.2.0   | 2025-11-12 | Project Management | Sprint 5 complete, added Sprint 5.5 (MCP Server Infrastructure) |
 | 1.3.0   | 2025-11-13 | Project Management | Sprint 5.5 complete (21/21 points), 264/484 total (55%) |
 | 1.4.0   | 2025-11-13 | Project Management | Sprint 6 complete (51/51 points), 315/505 total (62%) |
+| 1.5.0   | 2025-11-28 | Project Management | Sprint 10 complete (36/42 points), added Sprint 10.5 (consistency refactor), Sprint 12 (auto-ticket generation) |
 
 ---
 
@@ -1878,13 +1879,24 @@ Sprint 8.5 Phases 1-3 successfully completed 22/27 story points (81%), implement
 
 ---
 
-### Sprint 10 (Weeks 19-20): Ticket System – Unified WorkItem Model with Issues as Subtype (42 points, Phase 2)
+### Sprint 10 (Weeks 19-20): Ticket System – Unified WorkItem Model with Issues as Subtype (36/42 points, Phase 2)
 
 **User Stories:** Ticket System foundation and Issues integration (FR-159 to FR-173 subset)
 
 **Goal:** Replace the narrow Task-centric memory snapshot slice with a fully functional **Ticket System** based on a unified Ticket/WorkItem model, treating existing Issues as a `kind = 'issue'` subtype and remodeling the Issues UI into a Tickets UI.
 
-**Status:** 📅 **POST-MVP ENHANCEMENT** – Builds on the existing Issues feature and 5-level hierarchy without redesigning roadmap semantics.
+**Status:** ✅ **COMPLETE** (2025-11-26) – Core Ticket System implemented. Entry point consistency deferred to Sprint 10.5.
+
+**Completion Summary:**
+- ✅ Ticket Prisma model with all fields (kind, source, assigneeType, linkedTaskId, etc.)
+- ✅ Migration `20251125221500_sprint10_ticket_system` applied (189 lines, data-preserving)
+- ✅ `/api/tickets/*` REST endpoints (6 route files)
+- ✅ `/api/issues/*` routes as backwards-compatible adapters
+- ✅ 12 MCP tools (6 `ticket.*` + 6 `issue.*` adapters)
+- ✅ `/tickets` and `/tickets/[id]` UI pages
+- ✅ Sidebar "Issues" → "Tickets" navigation
+- ✅ Dashboard stats use Ticket model
+- ⚠️ Entry Points: Some "Create Issue" buttons remain (→ Sprint 10.5)
 
 **Key Deliverables:**
 
@@ -1962,123 +1974,196 @@ Sprint 8.5 Phases 1-3 successfully completed 22/27 story points (81%), implement
 
 ---
 
-### Sprint 11 (Weeks 21-22): Industry-Grade Documentation Suite - 95 points (POST-MVP)
+### Sprint 10.5 (Week 21): Issue → Ticket Consistency Refactor (15 points)
 
-**User Stories:** US-013-01 to US-013-18 (EPIC-012 complete)
+**User Stories:** Complete the Issue → Ticket UI/codebase consistency (FR-173 completion)
 
-**Goal:** Auto-generate complete professional documentation suite for user projects
+**Goal:** Eliminate all remaining "Issue" terminology from the codebase. After this sprint, "Issue" exists only as a `kind` value (`kind='issue'`), not as a separate concept. **There is no "Create Issue" button – users always create a Ticket, then select the `kind`.**
+
+**Status:** 📋 **PLANNING** – Follows Sprint 10 core implementation.
 
 **Key Deliverables:**
 
-- **13 Industry-Standard Documents:**
-  - 01-PRD.md (Product Requirements Document)
-  - 02-SRS.md (Software Requirements Specification)
-  - 03-Architecture.md (System Design + Diagrams)
-  - 04-Data-and-Model-Spec.md (Database Schema from Prisma)
-  - 05-AgentOps-Plan.md (Agent Workflows from Workflow tables)
-  - 06-API/openapi.yaml (API Specification from endpoints)
-  - 07-UI-UX.md (User Experience Design)
-  - 08-Security-and-Compliance.md (Security Model)
-  - 09-Testing-and-QA.md (Test Strategy)
-  - 10-Observability-and-SRE.md (Monitoring & SLOs)
-  - 11-Infrastructure.md (Deployment Architecture)
-  - 12-Backlog.md (User Stories & Epics from hierarchy)
-  - 13-Project-Plan.md (Sprint Roadmap from progress)
+- **UI Text/Labels (3 points):**
+  - Update `QuickActionsWidget.tsx` "Create Issue" → "Create Ticket" (link to `/tickets/create`)
+  - Update `VulnerabilityCard.tsx` "Create Issue" → "Create Ticket" (with `?kind=scanner_finding`)
 
-- **Template Registration:** 13 new templates added to Sprint 2's template engine
-- **Data Extractors:** 13 data extraction functions for each document type
-- **Migration Workflow:** Deprecate internal markdown concepts gracefully (non-product)
-- **MCP Tool:** `generateIndustryDocs` command for generating complete docs suite
+- **Component/Directory Renames (5 points):**
+  - Rename `components/issues/` → `components/tickets/`
+  - Rename all `IssueXxx` components to `TicketXxx` (IssueCard, IssueHeader, IssueListCard, etc.)
+  - Rename `components/dashboard/IssueCard.tsx` → `TicketCard.tsx`
+
+- **Type/Lib File Renames (2 points):**
+  - Rename `types/issue.ts` → `types/ticket.ts`
+  - Rename `lib/types/issues.ts` → `lib/types/tickets.ts`
+  - Consolidate `lib/validations/issue.ts` into `lib/validations/ticket.ts`
+  - Move `lib/issues/` → `lib/tickets/`
+
+- **Schema Option Tables (2 points):**
+  - Rename `IssueStatusOption` → `TicketStatusOption`
+  - Rename `IssuePriorityOption` → `TicketPriorityOption`
+  - Rename `IssueModuleOption` → `TicketModuleOption`
+  - Create and apply migration
+
+- **Props/Variables (2 points):**
+  - Rename all `issueId` props to `ticketId`
+  - Update component interfaces and caller sites
+
+- **Command Palette & Links (1 point):**
+  - Update `/issues/new` → `/tickets/create`
+  - Update all hardcoded `/issues` links to `/tickets`
 
 **Implementation Strategy:**
 
-**Week 1 (Core Documentation):**
-- PRD, SRS, Architecture templates (3 templates, most complex)
-- Data extractors for requirements, features, tech stack
-- Test generation for first 3 documents
+**Days 1-2 (Schema + Components):**
+- Create migration for option table renames
+- Move and rename `components/issues/` → `components/tickets/`
+- Update all imports
 
-**Week 2 (Remaining Docs + Migration):**
-- Remaining 10 document templates (simpler, follow patterns from Week 1)
-- Migration workflow (deprecation logic)
-- PDF/HTML export feature
-- Integration testing
-
-**Reuse from Sprint 2:**
-
-Sprint 2's generic architecture means ZERO refactoring required:
-- ✅ MarkdownFile schema (already supports unlimited categories)
-- ✅ TemplateEngine (already plugin-based)
-- ✅ DataExtractorRegistry (already extensible)
-- ✅ SyncService (already path-agnostic)
-- ✅ Read-path consistency validated (UI/MCP)
-
-**New Code Only:**
-- 13 template files (~400 lines each = ~5.2K lines total)
-- 13 data extractor functions (~150 lines each = ~2K lines total)
-- MCP tool wrapper (~50 lines)
-- Migration logic (~200 lines)
-- **Total: ~7.5K lines (all templates + extractors, zero infrastructure)**
-
-**Dependencies:**
-
-- Sprint 2 complete (markdown infrastructure with generic architecture)
-- Sprint 1-2 complete (hierarchy + workflow data sources)
-- Prisma schema stable (04-Data-and-Model-Spec.md generation)
-
-**Risks:**
-
-- Template complexity for complex docs (PRD, SRS) - mitigated: Start simple, iterate
-- Data extraction from incomplete projects - mitigated: Graceful degradation, placeholders
-- PDF export dependency (if external library needed) - mitigated: HTML export MVP
+**Days 3-4 (Types + UI + Tests):**
+- Rename type files and consolidate
+- Update UI text and links
+- Update E2E tests
+- Verification and smoke testing
 
 **Exit Criteria:**
 
-- ✅ All 13 documents generate successfully from test project
-- ✅ Generated docs match quality of ProjectPulse's own docs (manual review)
-- ✅ Documentation stays in sync (regenerate on project changes)
-- ✅ Migration from internal files → database/UI works without data loss
-- ✅ Cross-references between documents functional (PRD ↔ SRS ↔ Architecture)
-- ✅ MCP tool `generateIndustryDocs` completes in <5 seconds for 13 files
+- ✅ Zero "Create Issue" buttons in UI
+- ✅ Zero `IssueXxx` component names
+- ✅ Zero `issueId` prop names
+- ✅ Schema option tables renamed
+- ✅ `pnpm build` succeeds
+- ✅ `pnpm lint` passes
+- ✅ All E2E tests pass
 
-**Testing:**
+**Files to Modify:** See `.agent/task/sprint10.5-issue-ticket-consistency.md` for complete list.
 
-- Template rendering tests: Each template with mock data
-- Data extraction tests: Verify correct data pulled from database
-- Integration tests: Full generation workflow end-to-end
-- Cross-reference tests: Validate internal links between documents
-- Migration tests: Legacy markdown deprecation workflow
+---
+
+### Sprint 11 (Weeks 22-23): Client Agent Integration APIs (EPIC-013) - 20 points (POST-MVP)
+
+**User Stories:** US-013-01 to US-013-08
+
+**Goal:** Expose AI workflow artifacts (agent personas, skills, SOPs, workflows) via client-friendly MCP/HTTP APIs so end-user agents can consume the same workflows used during onboarding, without requiring `.agent/` or `.claude/` folders in user repositories.
+
+**Status:** 📋 **PLANNED** – Follows Sprint 10.5 consistency refactor.
+
+**Key Deliverables:**
+
+- **Persona APIs (5 points):**
+  - `persona.list` – List personas for project (metadata only, no systemPrompt)
+  - `persona.get` – Get full persona details including systemPrompt
+  - REST: `GET /api/personas`, `GET /api/personas/[id]`
+
+- **Skill APIs (5 points):**
+  - `skill.list` – List skills (metadata only, token efficient)
+  - `skill.get` – Load full skill content on-demand
+  - Filters: category, tags, frameworks
+  - REST: `GET /api/skills`, `GET /api/skills/[slug]`
+
+- **SOP APIs (5 points):**
+  - `sop.list` – List SOPs (metadata only)
+  - `sop.get` – Load full SOP content
+  - Filter by category
+  - REST: `GET /api/sops`, `GET /api/sops/[slug]`
+
+- **Enhanced Repo Templates (5 points):**
+  - Update `CLAUDE.md` template with client API documentation
+  - Update `AGENTS.md` template to list project-specific personas/skills
+  - Generate during onboarding Session 3
+
+**Implementation Strategy:**
+
+**Week 1 (APIs):**
+- Implement persona.list/get APIs + MCP tools
+- Implement skill.list/get APIs + MCP tools  
+- Implement sop.list/get APIs + MCP tools
+
+**Week 2 (Templates + Testing):**
+- Enhance CLAUDE.md template with MCP connection instructions
+- Enhance AGENTS.md template with dynamic persona/skill listing
+- Integration testing with client agent simulation
+
+**Dependencies:**
+
+- Sprint 10.5 complete (consistent Ticket terminology)
+- Existing persona, skill, SOP, workflow database models
+
+**Exit Criteria:**
+
+- ✅ Client agents can discover and load personas via MCP
+- ✅ Client agents can lazy-load skills on-demand
+- ✅ Client agents can retrieve SOPs by category/slug
+- ✅ Enhanced CLAUDE.md documents client API usage
+- ✅ All APIs project-scoped via bearer token
+- ✅ API response time < 200ms P95
 
 **Success Metrics:**
 
-- Documentation generation time: <5 seconds for full suite
-- User satisfaction: 9/10+ rating for doc quality (manual review)
-- Time savings: 40+ hours of manual documentation eliminated per project
-- Compliance readiness: Docs pass ISO 9001 / FDA checklist (if applicable)
+- Client agents can list personas, skills, SOPs for a project via MCP/HTTP
+- No `.agent/` or `.claude/` folders required in user repositories
+- All AI workflow state is DB-backed and exposed via MCP/HTTP
 
-**EPIC-013: Client Agent Integration APIs & Templates (15–20 points, POST-MVP)**
+**Detailed Spec:** See `.agent/task/sprint11-client-apis.md`
 
-**Goal:** Expose AI workflow artifacts (agent personas, skills, SOPs, workflows) and repo templates via client-friendly MCP/HTTP contracts so external agents can consume the same workflows used in internal dogfooding, without `.agent/` or `.claude/` folders in user repositories.
+---
 
-**Key Deliverables (Feature Requirements):**
+### Sprint 12 (Weeks 24-25): Auto-Generate Tickets from Project Plan - 20 points (POST-MVP)
 
-- **FR-013-01 – Agent Personas Read APIs**
-  - REST: list and get-by-slug endpoints for project-scoped agent personas.
-  - MCP tools: `agentPersonas.list` / `agentPersonas.get` returning persona metadata and `systemPrompt` for client agents.
-- **FR-013-02 – Skills Read via MCP**
-  - MCP tools: `skills.list` (frontmatter-only for token efficiency), `skills.get`, and `skills.search`, delegating to existing `/api/skills` endpoints.
-- **FR-013-03 – SOPs Read APIs**
-  - REST + MCP list/get operations for SOPs by slug/tag/category, returning markdown content suitable for agent consumption.
-- **FR-013-04 – Repo Templates as Contracts**
-  - Audit and refine `CLAUDE.md` and `AGENTS.md` templates to:
-    - Explicitly describe how client agents connect to ProjectPulse via MCP.
-    - Reference personas/skills/SOPs/workflow tools conceptually (without hardcoding internal tool IDs).
-    - Emphasize that all AI workflow state is stored in ProjectPulse DB; user repos remain clean (no `.agent/` or `.claude/` folders).
+**User Stories:** FR-174 to FR-178 (Roadmap ↔ Ticket Integration)
 
-**EPIC-013 Success Metrics:**
+**Goal:** Automatically parse the Project Plan document (13-Project-Plan.md stored in DB) and generate WorkItem Tickets linked to Tasks in the Roadmap hierarchy, so agents get detailed requirements automatically.
 
-- Client agents can list personas, skills, SOPs, and workflows for a project via MCP/HTTP without direct database access.
-- `CLAUDE.md` and `AGENTS.md` generated during onboarding accurately describe the ProjectPulse integration pattern for client agents (manual review).
-- No `.agent/` or `.claude/` folders are required in user repositories; all AI workflow state is DB-backed and exposed via MCP/HTTP.
+**Status:** 📋 **PLANNED** – Builds on Sprint 10 Ticket System.
+
+**Key Deliverables:**
+
+- **Project Plan Parser (8 points):**
+  - Parse 13-Project-Plan.md from Document table
+  - Extract sprint/week/task structure with goals and deliverables
+  - Map to existing Phase → Sprint → Week → Day → Task hierarchy
+
+- **Ticket Auto-Generation (8 points):**
+  - Create Ticket with `kind='feature'` for each task in Project Plan
+  - Link Ticket to corresponding Task via `linkedTaskId`
+  - Populate description with requirements from Project Plan
+
+- **MCP Tool (4 points):**
+  - `roadmap.materializeTickets` – Parse plan and generate linked tickets
+  - Idempotent (skip existing tickets for same task)
+  - Return summary of created/skipped tickets
+
+**Implementation Strategy:**
+
+**Week 1 (Parser + Generator):**
+- Implement Project Plan markdown parser
+- Map parsed structure to Roadmap hierarchy
+- Create ticket generation logic with task linking
+
+**Week 2 (MCP + Testing):**
+- Implement MCP tool for on-demand generation
+- Add to Session 3 bootstrap flow (optional)
+- Integration testing with sample project plans
+
+**Dependencies:**
+
+- Sprint 10 complete (Ticket model with linkedTaskId)
+- Session 2 document storage (13-Project-Plan.md in Document table)
+- Roadmap materialization (Phase/Sprint/Week/Day/Task hierarchy)
+
+**Exit Criteria:**
+
+- ✅ Project Plan parsed correctly into structured data
+- ✅ Tickets created with accurate descriptions from plan
+- ✅ Tickets linked to corresponding Tasks in hierarchy
+- ✅ Agent can query tickets by linkedTaskId to get work details
+- ✅ Idempotent regeneration (no duplicate tickets)
+
+**Success Metrics:**
+
+- Agents get detailed requirements automatically when starting a task
+- 100% of Project Plan tasks have corresponding Tickets
+- No manual ticket creation needed for planned work
 
 ---
 

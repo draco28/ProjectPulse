@@ -409,29 +409,40 @@ model Task {
 - [x] Roadmap creation wizard
 - [x] Import from JSON
 
-### Sprint 10 (Future) - Ticket System
+### Sprint 10 - Ticket System
 
-**Status:** 📅 Planned
+**Status:** ✅ Complete (2025-11-26)
 
 **Week 1:**
-- [ ] Ticket Prisma model
-- [ ] Migration from Issue to Ticket
-- [ ] `/api/tickets` REST endpoints
-- [ ] Issue→Ticket adapter layer
+- [x] Ticket Prisma model
+- [x] Migration from Issue to Ticket
+- [x] `/api/tickets` REST endpoints
+- [x] Issue→Ticket adapter layer
 
 **Week 2:**
-- [ ] `ticket.*` MCP tools
-- [ ] `issue.*` adapter tools
-- [ ] UI refactor (Issues → Tickets)
-- [ ] Dashboard integration
+- [x] `ticket.*` MCP tools
+- [x] `issue.*` adapter tools
+- [x] UI refactor (Issues → Tickets)
+- [x] Dashboard integration
 
-### Future Enhancement (Post-Sprint 10)
+### Sprint 10.5 - Issue → Ticket Consistency
+
+**Status:** 📋 Planning
+
+- [ ] Rename all `IssueXxx` components to `TicketXxx`
+- [ ] Rename `issueId` props to `ticketId`
+- [ ] Update "Create Issue" buttons to "Create Ticket"
+- [ ] Rename schema option tables (IssueStatusOption → TicketStatusOption)
+- [ ] Update command palette routes
+
+### Sprint 12 (Future Enhancement)
 
 **Auto-generate WorkItem Tickets from Project Plan:**
 - Parse 13-Project-Plan.md stored in DB
 - For each task in the document, create a Ticket with `kind='feature'`
 - Link each Ticket to corresponding Task in Roadmap
 - Agent gets detailed requirements automatically
+- MCP tool: `roadmap.materializeTickets`
 
 ---
 
