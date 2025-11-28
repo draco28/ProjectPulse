@@ -1,5 +1,5 @@
 /**
- * Filter Types and DTOs for Dynamic Issue Filtering
+ * Filter Types and DTOs for Dynamic Ticket Filtering
  *
  * These types represent filter options fetched from the database
  * and passed to UI components for rendering dynamic filter options.
@@ -25,7 +25,7 @@ export interface KindOption {
 
 /**
  * Status filter option
- * Maps to IssueStatusOption model in database
+ * Maps to TicketStatusOption model in database
  */
 export interface StatusOption {
   value: string; // e.g., "open", "in-progress", "closed"
@@ -35,7 +35,7 @@ export interface StatusOption {
 
 /**
  * Priority filter option
- * Maps to IssuePriorityOption model in database
+ * Maps to TicketPriorityOption model in database
  */
 export interface PriorityOption {
   value: string; // e.g., "critical", "high", "medium", "low"
@@ -46,7 +46,7 @@ export interface PriorityOption {
 
 /**
  * Module filter option
- * Maps to IssueModuleOption model in database
+ * Maps to TicketModuleOption model in database
  */
 export interface ModuleOption {
   value: string; // e.g., "combat", "animation", "core", "ui"

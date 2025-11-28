@@ -11,10 +11,10 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
-import { IssuesPageClient } from '@/components/issues/IssuesPageClient';
-import { SearchSortBar } from '@/components/issues/SearchSortBar';
-import { IssueListCard } from '@/components/issues/IssueListCard';
-import { Pagination } from '@/components/issues/Pagination';
+import { TicketsPageClient } from '@/components/tickets/TicketsPageClient';
+import { SearchSortBar } from '@/components/tickets/SearchSortBar';
+import { TicketListCard } from '@/components/tickets/TicketListCard';
+import { Pagination } from '@/components/tickets/Pagination';
 import { prisma } from '@/lib/prisma';
 import { getFilterOptions } from '@/lib/filters';
 import { getCurrentUser } from '@/lib/auth-server';
@@ -266,7 +266,7 @@ export default async function TicketsPage({
           {/* Page Content */}
           <main className="flex flex-1 gap-4 overflow-hidden">
             {/* Filters Sidebar (Desktop) + FAB + Mobile Drawer */}
-            <IssuesPageClient options={extendedFilterOptions} counts={filterCounts} searchParams={params} />
+            <TicketsPageClient options={extendedFilterOptions} counts={filterCounts} searchParams={params} />
 
             {/* Tickets List */}
             <div className="flex flex-1 flex-col gap-4 overflow-auto">
@@ -289,9 +289,9 @@ export default async function TicketsPage({
                           {kindLabels[ticket.kind] || ticket.kind}
                         </span>
                       </div>
-                      <IssueListCard
+                      <TicketListCard
                         projectId={projectId}
-                        issue={{
+                        ticket={{
                           id: ticket.id.toString(),
                           title: ticket.title,
                           description: ticket.description || '',

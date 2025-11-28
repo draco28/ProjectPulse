@@ -1,18 +1,18 @@
 /**
- * IssueListCard Component
+ * TicketListCard Component
  *
- * Individual issue card for the issues list page
- * Reference: mockups/Default theme/02-issues-dark-neumorphic-coral.html lines 523-631
+ * Individual ticket card for the tickets list page
+ * Sprint 10.5: Renamed from IssueListCard
  *
  * Features:
  * - Checkbox for selection
- * - Issue number, priority, module, status badges
- * - Title with line-through for closed issues
+ * - Ticket number, priority, module, status badges
+ * - Title with line-through for closed tickets
  * - Description preview (2 lines)
  * - Metadata (author, time, comments, attachments)
  * - Menu button
  * - Hover effect (translateY -2px)
- * - Opacity 60% for closed issues
+ * - Opacity 60% for closed tickets
  */
 'use client';
 
@@ -24,8 +24,8 @@ import { MoreVertical, User, Clock, MessageSquare, Paperclip } from 'lucide-reac
 type Priority = 'critical' | 'high' | 'medium' | 'low';
 type Status = 'open' | 'in-progress' | 'closed';
 
-interface IssueListCardProps {
-  issue: {
+interface TicketListCardProps {
+  ticket: {
     id: string;
     title: string;
     description: string;
@@ -53,16 +53,16 @@ const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
   closed: { label: 'Closed', className: 'neu-pressed text-slate' },
 };
 
-export function IssueListCard({ issue, projectId }: IssueListCardProps) {
-  const priorityInfo = PRIORITY_CONFIG[issue.priority] || PRIORITY_CONFIG.low;
-  const statusInfo = STATUS_CONFIG[issue.status] || {
-    label: issue.status,
+export function TicketListCard({ ticket, projectId }: TicketListCardProps) {
+  const priorityInfo = PRIORITY_CONFIG[ticket.priority] || PRIORITY_CONFIG.low;
+  const statusInfo = STATUS_CONFIG[ticket.status] || {
+    label: ticket.status,
     className: 'neu-pressed text-slate',
   };
-  const isClosed = issue.status === 'closed';
+  const isClosed = ticket.status === 'closed';
 
   // Format time ago
-  const timeAgo = formatDistanceToNow(new Date(issue.createdAt), { addSuffix: true });
+  const timeAgo = formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true });
 
   return (
     <div
@@ -78,11 +78,11 @@ export function IssueListCard({ issue, projectId }: IssueListCardProps) {
 
         {/* Content */}
         <div className="min-w-0 flex-1">
-          {/* Top Row: Issue Number + Badges + Menu */}
+          {/* Top Row: Ticket Number + Badges + Menu */}
           <div className="mb-3 flex items-start justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              {/* Issue Number */}
-              <span className="font-mono text-sm font-semibold text-slate">#{issue.id}</span>
+              {/* Ticket Number */}
+              <span className="font-mono text-sm font-semibold text-slate">#{ticket.id}</span>
 
               {/* Priority Badge */}
               <span
@@ -97,7 +97,7 @@ export function IssueListCard({ issue, projectId }: IssueListCardProps) {
 
               {/* Module Badge */}
               <span className="rounded-full bg-coral px-3 py-1 text-xs font-semibold text-white shadow-md">
-                {issue.module}
+                {ticket.module}
               </span>
 
               {/* Status Badge */}
@@ -120,14 +120,14 @@ export function IssueListCard({ issue, projectId }: IssueListCardProps) {
 
           {/* Title */}
           <h3 className={cn('mb-2 text-lg font-bold text-white', isClosed && 'line-through')}>
-            <Link href={`/tickets/${issue.id}?project=${projectId}`} className="smooth-transition hover:text-coral">
-              {issue.title}
+            <Link href={`/tickets/${ticket.id}?project=${projectId}`} className="smooth-transition hover:text-coral">
+              {ticket.title}
             </Link>
           </h3>
 
           {/* Description */}
           <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-slate">
-            {issue.description}
+            {ticket.description}
           </p>
 
           {/* Metadata Row */}
@@ -135,7 +135,7 @@ export function IssueListCard({ issue, projectId }: IssueListCardProps) {
             {/* Author */}
             <span className="flex items-center gap-2">
               <User className="h-4 w-4" aria-hidden="true" />
-              {issue.assignee}
+              {ticket.assignee}
             </span>
 
             {/* Time */}
@@ -147,14 +147,14 @@ export function IssueListCard({ issue, projectId }: IssueListCardProps) {
             {/* Comments */}
             <span className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" aria-hidden="true" />
-              {issue.commentsCount} {issue.commentsCount === 1 ? 'comment' : 'comments'}
+              {ticket.commentsCount} {ticket.commentsCount === 1 ? 'comment' : 'comments'}
             </span>
 
             {/* Attachments */}
-            {issue.attachmentsCount > 0 && (
+            {ticket.attachmentsCount > 0 && (
               <span className="flex items-center gap-2">
                 <Paperclip className="h-4 w-4" aria-hidden="true" />
-                {issue.attachmentsCount} {issue.attachmentsCount === 1 ? 'file' : 'files'}
+                {ticket.attachmentsCount} {ticket.attachmentsCount === 1 ? 'file' : 'files'}
               </span>
             )}
           </div>

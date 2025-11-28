@@ -13,10 +13,10 @@ import { useRouter } from 'next/navigation';
 import type { ApiResponse } from '@/types/issue';
 
 interface CommentFormProps {
-  issueId: string;
+  ticketId: string;
 }
 
-export function CommentForm({ issueId }: CommentFormProps) {
+export function CommentForm({ ticketId }: CommentFormProps) {
   const router = useRouter();
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,7 +40,7 @@ export function CommentForm({ issueId }: CommentFormProps) {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`/api/issues/${issueId}/comments`, {
+      const res = await fetch(`/api/tickets/${ticketId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

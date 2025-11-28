@@ -26,9 +26,9 @@ export async function getIssueOptionSets(force = false): Promise<IssueOptionSets
   }
 
   const [statuses, priorities, modules] = await Promise.all([
-    prisma.issueStatusOption.findMany({ orderBy: { order: 'asc' } }),
-    prisma.issuePriorityOption.findMany({ orderBy: { order: 'asc' } }),
-    prisma.issueModuleOption.findMany({ orderBy: { order: 'asc' } }),
+    prisma.ticketStatusOption.findMany({ orderBy: { order: 'asc' } }),
+    prisma.ticketPriorityOption.findMany({ orderBy: { order: 'asc' } }),
+    prisma.ticketModuleOption.findMany({ orderBy: { order: 'asc' } }),
   ]);
 
   cachedOptions = {

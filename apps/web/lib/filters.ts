@@ -36,7 +36,7 @@ export const getFilterOptions = unstable_cache(
     // Parallel fetch all option tables + labels
     const [statusOptions, priorityOptions, moduleOptions, labels] = await Promise.all([
       // Status options
-      prisma.issueStatusOption.findMany({
+      prisma.ticketStatusOption.findMany({
         orderBy: { order: 'asc' },
         select: {
           value: true,
@@ -46,7 +46,7 @@ export const getFilterOptions = unstable_cache(
       }),
 
       // Priority options
-      prisma.issuePriorityOption.findMany({
+      prisma.ticketPriorityOption.findMany({
         orderBy: { order: 'asc' },
         select: {
           value: true,
@@ -57,7 +57,7 @@ export const getFilterOptions = unstable_cache(
       }),
 
       // Module options
-      prisma.issueModuleOption.findMany({
+      prisma.ticketModuleOption.findMany({
         orderBy: { order: 'asc' },
         select: {
           value: true,

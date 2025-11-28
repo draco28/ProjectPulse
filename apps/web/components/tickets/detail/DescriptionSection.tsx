@@ -1,7 +1,7 @@
 /**
  * DescriptionSection Component
  *
- * Client Component for displaying and editing issue description
+ * Client Component for displaying and editing ticket description
  *
  * Architecture (per react-expert recommendation):
  * - Client Component ("use client")
@@ -16,8 +16,8 @@
  * - Future: Preview tab
  *
  * Props:
- * - issueId: Issue identifier
- * - description: Issue description text (can be null)
+ * - ticketId: Ticket identifier
+ * - description: Ticket description text (can be null)
  *
  * Reference: mockups/Default theme/03-issue-detail-dark-neumorphic-coral.html
  */
@@ -32,7 +32,7 @@ import { useRouter } from 'next/navigation';
 // ============================================================================
 
 interface DescriptionSectionProps {
-  issueId: string;
+  ticketId: string;
   description: string | null;
 }
 
@@ -40,7 +40,7 @@ interface DescriptionSectionProps {
 // COMPONENT
 // ============================================================================
 
-export function DescriptionSection({ issueId, description }: DescriptionSectionProps) {
+export function DescriptionSection({ ticketId, description }: DescriptionSectionProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState(description || '');
@@ -48,17 +48,17 @@ export function DescriptionSection({ issueId, description }: DescriptionSectionP
 
   /**
    * Handle save description
-   * Future: Add PATCH /api/issues/[id] endpoint
+   * Future: Add PATCH /api/tickets/[id] endpoint
    */
   async function handleSave() {
     setIsSaving(true);
 
     try {
-      // TODO: Implement PATCH /api/issues/[id] endpoint
+      // TODO: Implement PATCH /api/tickets/[id] endpoint
       // For now, simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // const response = await fetch(`/api/issues/${issueId}`, {
+      // const response = await fetch(`/api/tickets/${ticketId}`, {
       //   method: 'PATCH',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ description: editedDescription }),

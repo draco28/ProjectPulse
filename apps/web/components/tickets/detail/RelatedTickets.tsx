@@ -1,5 +1,5 @@
 /**
- * RelatedIssues Component
+ * RelatedTickets Component
  *
  * Server Component that displays issues related to the current issue
  *
@@ -9,12 +9,12 @@
  * - Shows issues from same project or with similar labels
  *
  * Current State:
- * - Placeholder component (related issues logic not yet implemented)
+ * - Placeholder component (related tickets logic not yet implemented)
  * - Future: Query issues with similar labels, same module, or linked references
  *
  * Props:
  * - currentIssueId: Current issue ID (to exclude from results)
- * - projectId: Project ID for finding related issues
+ * - projectId: Project ID for finding related tickets
  * - labels: Array of label names for similarity matching
  * - module: Module name for finding similar issues
  *
@@ -28,7 +28,7 @@ import { format } from 'date-fns';
 // TYPES
 // ============================================================================
 
-interface RelatedIssuesProps {
+interface RelatedTicketsProps {
   currentIssueId: number;
   projectId: number;
   labels: Array<{ id: number; name: string; color: string }>;
@@ -50,7 +50,7 @@ interface PlaceholderRelatedIssue {
 // ============================================================================
 
 /**
- * Placeholder related issues
+ * Placeholder related tickets
  * Future: This will come from Prisma query based on labels/module similarity
  */
 const PLACEHOLDER_RELATED_ISSUES: PlaceholderRelatedIssue[] = [
@@ -113,8 +113,8 @@ function getPriorityColor(priority: string): string {
 // COMPONENT
 // ============================================================================
 
-export function RelatedIssues({ currentIssueId, projectId, labels, module }: RelatedIssuesProps) {
-  // Future: Query Prisma for related issues based on:
+export function RelatedTickets({ currentIssueId, projectId, labels, module }: RelatedTicketsProps) {
+  // Future: Query Prisma for related tickets based on:
   // - Same project
   // - Overlapping labels
   // - Same module
@@ -126,9 +126,9 @@ export function RelatedIssues({ currentIssueId, projectId, labels, module }: Rel
       <div className="neu-raised smooth-transition rounded-3xl p-6">
         <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-white">
           <i className="fas fa-link text-coral" aria-hidden="true"></i>
-          Related Issues
+          Related Tickets
         </h3>
-        <p className="text-center text-sm text-slate">No related issues found</p>
+        <p className="text-center text-sm text-slate">No related tickets found</p>
       </div>
     );
   }
@@ -137,16 +137,16 @@ export function RelatedIssues({ currentIssueId, projectId, labels, module }: Rel
     <div className="neu-raised smooth-transition rounded-3xl p-6">
       <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-white">
         <i className="fas fa-link text-coral" aria-hidden="true"></i>
-        Related Issues
+        Related Tickets
         <span className="text-sm font-normal text-slate">({relatedIssues.length})</span>
       </h3>
 
-      {/* Related Issues List */}
+      {/* Related Tickets List */}
       <div className="space-y-3">
         {relatedIssues.map((issue) => (
           <Link
             key={issue.id}
-            href={`/issues/${issue.id}`}
+            href={`/tickets/${issue.id}`}
             className="smooth-transition block rounded-2xl border border-[#2A2A2A] bg-[#1A1A1A] p-4 hover:border-coral/30"
           >
             {/* Issue Header */}

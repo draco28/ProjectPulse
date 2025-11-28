@@ -1,16 +1,17 @@
 /**
- * IssueHeader Component
+ * TicketHeader Component
  *
- * Server Component that displays issue metadata and action buttons
+ * Server Component that displays ticket metadata and action buttons
+ * Sprint 10.5: Renamed from IssueHeader
  *
  * Architecture (per react-expert recommendation):
  * - Server Component (static rendering, no interactivity here)
- * - Receives explicit props (not full issue object)
+ * - Receives explicit props (not full ticket object)
  * - Badge styling uses helper functions for consistency
  *
  * Props:
- * - id: Issue ID number
- * - title: Issue title
+ * - id: Ticket ID number
+ * - title: Ticket title
  * - status: open | in-progress | closed
  * - priority: critical | high | medium | low
  * - module: Combat | Animation | etc (optional)
@@ -18,8 +19,6 @@
  * - assignee: Assigned user (optional)
  * - createdAt: ISO 8601 date string
  * - updatedAt: ISO 8601 date string
- *
- * Reference: mockups/Default theme/03-issue-detail-dark-neumorphic-coral.html
  */
 
 import Link from 'next/link';
@@ -39,7 +38,7 @@ import {
 // TYPES
 // ============================================================================
 
-interface IssueHeaderProps {
+interface TicketHeaderProps {
   id: number;
   title: string;
   status: 'open' | 'in-progress' | 'closed';
@@ -110,7 +109,7 @@ function formatStatus(status: string): string {
 // COMPONENT
 // ============================================================================
 
-export function IssueHeader({
+export function TicketHeader({
   id,
   title,
   status,
@@ -121,14 +120,14 @@ export function IssueHeader({
   createdAt,
   updatedAt,
   projectId,
-}: IssueHeaderProps) {
+}: TicketHeaderProps) {
   return (
     <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
       {/* Breadcrumb Navigation */}
       <div className="mb-3 flex items-center justify-between">
         <nav className="flex items-center gap-3 text-sm" aria-label="Breadcrumb">
           <Link href={`/tickets?project=${projectId}`} className="smooth-transition text-slate hover:text-coral">
-            Issues
+            Tickets
           </Link>
           <ChevronRight className="h-3 w-3 text-slate" aria-hidden="true" />
           <span className="font-medium text-white">
@@ -138,15 +137,15 @@ export function IssueHeader({
         <Link
           href={`/tickets?project=${projectId}`}
           className="smooth-transition text-slate hover:text-white"
-          aria-label="Close issue detail"
+          aria-label="Close ticket detail"
         >
           <X className="h-6 w-6" aria-hidden="true" />
         </Link>
       </div>
 
-      {/* Issue Header Content */}
+      {/* Ticket Header Content */}
       <div className="flex items-start justify-between">
-        {/* Left: Issue Info */}
+        {/* Left: Ticket Info */}
         <div className="flex-1">
           {/* Badges Row */}
           <div className="mb-2 flex items-center gap-3">
@@ -204,7 +203,7 @@ export function IssueHeader({
         <div className="flex items-center gap-2">
           <button
             className="smooth-transition neu-raised flex items-center gap-2 rounded-2xl px-4 py-2 text-sm text-white hover:text-coral"
-            aria-label="Edit issue"
+            aria-label="Edit ticket"
           >
             <PencilLine className="h-4 w-4" aria-hidden="true" />
             Edit
@@ -212,10 +211,10 @@ export function IssueHeader({
 
           <button
             className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-4 py-2 text-sm text-white shadow-lg hover:opacity-90"
-            aria-label="Close issue"
+            aria-label="Close ticket"
           >
             <Check className="h-4 w-4" aria-hidden="true" />
-            Close Issue
+            Close Ticket
           </button>
 
           <button

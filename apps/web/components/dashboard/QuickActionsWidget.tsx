@@ -57,18 +57,19 @@ export function QuickActionsWidget({ onboardingStatus, projectId }: QuickActions
           </Link>
         )}
 
-        {/* Create Issue - Primary action when setup complete, secondary otherwise */}
-        <button
+        {/* Create Ticket - Primary action when setup complete, secondary otherwise */}
+        <Link
+          href={projectId ? `/tickets/create?project=${projectId}` : '/tickets/create'}
           className={
             onboardingStatus?.isComplete
               ? 'coral-gradient smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-white'
               : 'neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-slate hover:text-white'
           }
-          aria-label="Create new issue"
+          aria-label="Create new ticket"
         >
           <Plus className="h-5 w-5" aria-hidden="true" />
-          <span>Create Issue</span>
-        </button>
+          <span>Create Ticket</span>
+        </Link>
         <button
           className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-slate hover:text-white"
           aria-label="Add knowledge base item"

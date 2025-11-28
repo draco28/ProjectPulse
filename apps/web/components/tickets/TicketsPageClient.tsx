@@ -1,5 +1,5 @@
 /**
- * IssuesPageClient Component
+ * TicketsPageClient Component
  *
  * Client wrapper for issues page that handles mobile filter drawer state
  * This keeps the main page.tsx as a Server Component for performance
@@ -13,17 +13,17 @@
 'use client';
 
 import { useState } from 'react';
-import { FilterSidebar } from '@/components/issues/FilterSidebar';
+import { FilterSidebar } from '@/components/tickets/FilterSidebar';
 import type { FiltersDTO, FilterCounts } from '@/types/filters';
 import { SlidersHorizontal } from 'lucide-react';
 
-interface IssuesPageClientProps {
+interface TicketsPageClientProps {
   options: FiltersDTO;
   counts: FilterCounts;
   searchParams: Record<string, string | undefined>;
 }
 
-export function IssuesPageClient({ options, counts, searchParams }: IssuesPageClientProps) {
+export function TicketsPageClient({ options, counts, searchParams }: TicketsPageClientProps) {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   return (

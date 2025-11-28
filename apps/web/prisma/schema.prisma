@@ -1119,8 +1119,10 @@ model AgentSession {
 // ============================================================================
 // PHASE 4: DYNAMIC FILTER OPTIONS
 // ============================================================================
+// Sprint 10.5: Renamed from Issue*Option to Ticket*Option for consistency
+// These are dropdown/filter options used across the Ticket system
 
-model IssueStatusOption {
+model TicketStatusOption {
   id         Int      @id @default(autoincrement())
   value      String   @unique
   label      String
@@ -1131,10 +1133,10 @@ model IssueStatusOption {
 
   @@index([value])
   @@index([order])
-  @@map("issue_status_options")
+  @@map("ticket_status_options")
 }
 
-model IssuePriorityOption {
+model TicketPriorityOption {
   id              Int      @id @default(autoincrement())
   value           String   @unique
   label           String
@@ -1146,10 +1148,10 @@ model IssuePriorityOption {
 
   @@index([value])
   @@index([order])
-  @@map("issue_priority_options")
+  @@map("ticket_priority_options")
 }
 
-model IssueModuleOption {
+model TicketModuleOption {
   id        Int      @id @default(autoincrement())
   value     String   @unique
   label     String
@@ -1159,7 +1161,7 @@ model IssueModuleOption {
 
   @@index([value])
   @@index([order])
-  @@map("issue_module_options")
+  @@map("ticket_module_options")
 }
 
 model OnboardingSession {

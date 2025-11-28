@@ -11,11 +11,11 @@ import { formatDistanceToNow } from 'date-fns';
 import type { CommentProps } from '@/types/issue';
 
 interface CommentListProps {
-  issueId: string;
+  ticketId: string;
   initialComments: CommentProps[];
 }
 
-export function CommentList({ issueId: _issueId, initialComments }: CommentListProps) {
+export function CommentList({ ticketId: _ticketId, initialComments }: CommentListProps) {
   if (initialComments.length === 0) {
     return (
       <div className="neu-pressed rounded-2xl p-8 text-center">

@@ -1,7 +1,7 @@
 /**
- * IssueCard Component
+ * TicketCard Component
  *
- * Glass-dark issue card matching the mockup exactly
+ * Glass-dark ticket card matching the mockup exactly
  * (dashboard-dark-neumorphic-coral.html lines 437-479)
  *
  * Features:
@@ -28,7 +28,7 @@ interface Issue {
   createdAt: string;
 }
 
-interface IssueCardProps {
+interface TicketCardProps {
   issue: Issue;
 }
 
@@ -51,7 +51,7 @@ const priorityConfig: Record<Priority, { label: string; className: string }> = {
   },
 };
 
-export function IssueCard({ issue }: IssueCardProps) {
+export function TicketCard({ issue }: TicketCardProps) {
   const priorityInfo = priorityConfig[issue.priority];
 
   return (

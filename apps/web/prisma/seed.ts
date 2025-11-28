@@ -44,9 +44,9 @@ async function main() {
   await prisma.securityFinding.deleteMany();
   await prisma.ticket.deleteMany();
   await prisma.label.deleteMany();
-  await prisma.issueStatusOption.deleteMany();
-  await prisma.issuePriorityOption.deleteMany();
-  await prisma.issueModuleOption.deleteMany();
+  await prisma.ticketStatusOption.deleteMany();
+  await prisma.ticketPriorityOption.deleteMany();
+  await prisma.ticketModuleOption.deleteMany();
   await prisma.knowledgeItem.deleteMany();
   await prisma.wikiPage.deleteMany();
   await prisma.project.deleteMany();
@@ -302,7 +302,7 @@ async function main() {
   ];
 
   for (const option of statusOptions) {
-    await prisma.issueStatusOption.upsert({
+    await prisma.ticketStatusOption.upsert({
       where: { value: option.value },
       update: { label: option.label, order: option.order, colorClass: option.colorClass },
       create: option,
@@ -343,7 +343,7 @@ async function main() {
   ];
 
   for (const option of priorityOptions) {
-    await prisma.issuePriorityOption.upsert({
+    await prisma.ticketPriorityOption.upsert({
       where: { value: option.value },
       update: {
         label: option.label,
@@ -365,7 +365,7 @@ async function main() {
   ];
 
   for (const option of moduleOptions) {
-    await prisma.issueModuleOption.upsert({
+    await prisma.ticketModuleOption.upsert({
       where: { value: option.value },
       update: { label: option.label, order: option.order },
       create: option,
@@ -488,7 +488,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
   console.log(`✓ Created ${labels.length} labels\n`);
 
   console.log('🧩 Seeding issue option lists...');
-  await prisma.issueStatusOption.createMany({
+  await prisma.ticketStatusOption.createMany({
     data: [
       { value: 'open', label: 'Open', order: 1 },
       { value: 'in-progress', label: 'In Progress', order: 2 },
@@ -497,7 +497,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
     ],
     skipDuplicates: true,
   });
-  await prisma.issuePriorityOption.createMany({
+  await prisma.ticketPriorityOption.createMany({
     data: [
       { value: 'critical', label: 'Critical', order: 1, dotColorClass: 'bg-red-500', badgeColorClass: 'bg-red-500/20 text-red-100' },
       { value: 'high', label: 'High', order: 2, dotColorClass: 'bg-orange-500', badgeColorClass: 'bg-orange-500/20 text-orange-100' },
@@ -506,7 +506,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
     ],
     skipDuplicates: true,
   });
-  await prisma.issueModuleOption.createMany({
+  await prisma.ticketModuleOption.createMany({
     data: [
       { value: 'API', label: 'API' },
       { value: 'Database', label: 'Database' },
@@ -2882,7 +2882,7 @@ export async function POST(request: Request) {
   console.log('✅ Database seed complete!\n');
   console.log('📊 Summary:');
   console.log(`   - Projects: 1`);
-  console.log(`   - Issues: ${issues.length} (5 open, 3 closed)`);
+  console.log(`   - Tickets: ${tickets.length} (5 open, 3 closed)`);
   console.log(`   - Labels: ${labels.length}`);
   console.log(`   - Knowledge Items: ${knowledgeItems.length}`);
   console.log(`   - Wiki Pages: ${rootPages.length + childPages.length}`);

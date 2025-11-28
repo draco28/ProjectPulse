@@ -14,7 +14,7 @@
  * - Includes "Add watcher" button (future functionality)
  *
  * Props:
- * - issueId: Issue identifier
+ * - ticketId: Ticket identifier
  * - watchers: Array of user objects (future)
  *
  * Reference: mockups/Default theme/03-issue-detail-dark-neumorphic-coral.html
@@ -25,7 +25,7 @@
 // ============================================================================
 
 interface WatchersSectionProps {
-  issueId: string;
+  ticketId: string;
   // Future: watchers: Watcher[]
 }
 
@@ -56,7 +56,7 @@ const PLACEHOLDER_WATCHERS: PlaceholderWatcher[] = [
 // COMPONENT
 // ============================================================================
 
-export function WatchersSection({ issueId }: WatchersSectionProps) {
+export function WatchersSection({ ticketId }: WatchersSectionProps) {
   const watchers = PLACEHOLDER_WATCHERS;
 
   return (

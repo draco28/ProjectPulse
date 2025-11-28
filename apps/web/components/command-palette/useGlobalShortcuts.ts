@@ -45,7 +45,7 @@ export function useGlobalShortcuts() {
           break;
         case 'i':
           e.preventDefault();
-          router.push(buildHref('/issues'));
+          router.push(buildHref('/tickets'));
           break;
         case 'b':
           e.preventDefault();
@@ -69,7 +69,7 @@ export function useGlobalShortcuts() {
           break;
         case 'n':
           e.preventDefault();
-          router.push(buildHref('/issues/new'));
+          router.push(buildHref('/tickets/create'));
           break;
         case ',':
           e.preventDefault();

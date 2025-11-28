@@ -1,23 +1,24 @@
 /**
  * QuickActions Component
  *
- * Client Component with quick action buttons for issue operations
+ * Client Component with quick action buttons for ticket operations
+ * Sprint 10.5: Renamed from issue to ticket terminology
  *
  * Architecture (per react-expert recommendation):
  * - Client Component ("use client")
  * - Minimal state (just UI feedback)
- * - Explicit props (issueId, issueTitle)
+ * - Explicit props (ticketId, ticketTitle)
  *
  * Features:
- * - Copy issue link to clipboard
- * - Pin issue (future)
+ * - Copy ticket link to clipboard
+ * - Pin ticket (future)
  * - Watch/Subscribe (future)
- * - Share issue (future)
+ * - Share ticket (future)
  * - Print view (future)
  *
  * Props:
- * - issueId: Issue identifier
- * - issueTitle: Issue title for sharing
+ * - ticketId: Ticket identifier
+ * - ticketTitle: Ticket title for sharing
  *
  * Reference: mockups/Default theme/03-issue-detail-dark-neumorphic-coral.html
  */
@@ -32,22 +33,22 @@ import { Zap, Link, Check, Pin, Eye, Share2, Printer, Lightbulb } from 'lucide-r
 // ============================================================================
 
 interface QuickActionsProps {
-  issueId: string;
-  issueTitle: string;
+  ticketId: string;
+  ticketTitle: string;
 }
 
 // ============================================================================
 // COMPONENT
 // ============================================================================
 
-export function QuickActions({ issueId, issueTitle }: QuickActionsProps) {
+export function QuickActions({ ticketId, ticketTitle }: QuickActionsProps) {
   const [copiedLink, setCopiedLink] = useState(false);
 
   /**
    * Copy issue link to clipboard
    */
   async function handleCopyLink() {
-    const url = `${window.location.origin}/issues/${issueId}`;
+    const url = `${window.location.origin}/tickets/${ticketId}`;
 
     try {
       await navigator.clipboard.writeText(url);

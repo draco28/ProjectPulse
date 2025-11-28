@@ -13,7 +13,7 @@
 import { redirect } from 'next/navigation';
 import { WelcomeBanner } from '@/components/dashboard/WelcomeBanner';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { IssueCard } from '@/components/dashboard/IssueCard';
+import { TicketCard } from '@/components/dashboard/TicketCard';
 import { QuickActionsWidget } from '@/components/dashboard/QuickActionsWidget';
 import { AgentPersonasWidget } from '@/components/dashboard/AgentPersonasWidget';
 import { ListTodo, Lightbulb, Shield, CheckCircle2, ArrowLeft } from 'lucide-react';
@@ -313,7 +313,7 @@ export default async function DashboardPage({
             </div>
             <div className="space-y-4 p-6">
               {data.recentIssues.map((issue) => (
-                <IssueCard key={issue.id} issue={issue} />
+                <TicketCard key={issue.id} issue={issue} />
               ))}
             </div>
           </div>

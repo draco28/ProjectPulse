@@ -15,7 +15,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { WikiListClient } from '@/components/wiki/WikiListClient';
 import { WikiSearchBar } from '@/components/wiki/WikiSearchBar';
 import { WikiCard } from '@/components/wiki/WikiCard';
-import { Pagination } from '@/components/issues/Pagination';
+import { Pagination } from '@/components/tickets/Pagination';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth-server';
 import { getActiveProjectForUser } from '@/lib/project-context';

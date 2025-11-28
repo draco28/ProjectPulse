@@ -1,7 +1,7 @@
 /**
  * Issue Detail Sidebar Component
  *
- * Right sidebar displaying quick actions, issue details, watchers, and related issues
+ * Right sidebar displaying quick actions, ticket details, watchers, and related issues
  * Reference: mockups/Default theme/03-issue-detail-dark-neumorphic-coral.html (lines 632-746)
  */
 
@@ -9,8 +9,8 @@
 
 import type { LabelProps } from '@/types/issue';
 
-interface IssueDetailSidebarProps {
-  issueId: string;
+interface TicketDetailSidebarProps {
+  ticketId: string;
   assignee: string | null;
   labels: LabelProps[];
   priority: string;
@@ -18,14 +18,14 @@ interface IssueDetailSidebarProps {
   status: string;
 }
 
-export function IssueDetailSidebar({
-  issueId: _issueId,
+export function TicketDetailSidebar({
+  ticketId: _ticketId,
   assignee,
   labels,
   priority,
   module,
   status: _status,
-}: IssueDetailSidebarProps) {
+}: TicketDetailSidebarProps) {
   return (
     <div className="w-80 space-y-4 overflow-auto">
       {/* Quick Actions section removed - now handled by QuickActions component in left sidebar */}

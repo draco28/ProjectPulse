@@ -30,7 +30,7 @@ export function Pagination({
   const goToPage = (page: number) => {
     const params = new URLSearchParams(searchParams?.toString());
     params.set('page', page.toString());
-    router.push(`/issues?${params.toString()}`);
+    router.push(`/tickets?${params.toString()}`);
   };
 
   // Generate page numbers to show

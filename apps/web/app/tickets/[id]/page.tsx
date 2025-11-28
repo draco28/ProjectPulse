@@ -15,19 +15,19 @@ import { Sidebar } from '@/components/Sidebar';
 import { getCurrentUser } from '@/lib/auth-server';
 import { getActiveProjectForUser } from '@/lib/project-context';
 
-// Reusing issue detail components
-import { IssueHeader } from '@/components/issues/detail/IssueHeader';
-import { QuickActions } from '@/components/issues/detail/QuickActions';
-import { WatchersSection } from '@/components/issues/detail/WatchersSection';
-import { IssueActions } from '@/components/issues/detail/IssueActions';
-import { DescriptionSection } from '@/components/issues/detail/DescriptionSection';
-import { CodeSection } from '@/components/issues/detail/CodeSection';
-import { SystemActivity } from '@/components/issues/detail/SystemActivity';
-import { RelatedIssues } from '@/components/issues/detail/RelatedIssues';
-import { CommentList } from '@/components/issues/detail/CommentList';
-import { CommentForm } from '@/components/issues/detail/CommentForm';
-import { AttachmentList } from '@/components/issues/detail/AttachmentList';
-import { IssueDetailSidebar } from '@/components/issues/detail/IssueDetailSidebar';
+// Ticket detail components (Sprint 10.5: renamed from issue)
+import { TicketHeader } from '@/components/tickets/detail/TicketHeader';
+import { QuickActions } from '@/components/tickets/detail/QuickActions';
+import { WatchersSection } from '@/components/tickets/detail/WatchersSection';
+import { TicketActions } from '@/components/tickets/detail/TicketActions';
+import { DescriptionSection } from '@/components/tickets/detail/DescriptionSection';
+import { CodeSection } from '@/components/tickets/detail/CodeSection';
+import { SystemActivity } from '@/components/tickets/detail/SystemActivity';
+import { RelatedTickets } from '@/components/tickets/detail/RelatedTickets';
+import { CommentList } from '@/components/tickets/detail/CommentList';
+import { CommentForm } from '@/components/tickets/detail/CommentForm';
+import { AttachmentList } from '@/components/tickets/detail/AttachmentList';
+import { TicketDetailSidebar } from '@/components/tickets/detail/TicketDetailSidebar';
 
 // Kind labels for display
 const kindLabels: Record<string, string> = {
@@ -236,7 +236,7 @@ export default async function TicketDetailPage({
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Ticket Header */}
           <div className="relative" data-testid="ticket-header">
-            <IssueHeader
+            <TicketHeader
               id={ticket.id}
               title={ticket.title}
               status={ticket.status as 'open' | 'in-progress' | 'closed'}
@@ -257,14 +257,14 @@ export default async function TicketDetailPage({
             <div className="space-y-4 overflow-auto lg:col-span-9">
               {/* Action Buttons */}
               <div className="flex items-center justify-end">
-                <IssueActions
-                  issueId={serializedTicket.id}
+                <TicketActions
+                  ticketId={serializedTicket.id}
                   currentStatus={ticket.status as 'open' | 'in-progress' | 'closed'}
                 />
               </div>
 
               {/* Description Section */}
-              <DescriptionSection issueId={serializedTicket.id} description={ticket.description} />
+              <DescriptionSection ticketId={serializedTicket.id} description={ticket.description} />
 
               {/* Code Section (Linked Files) */}
               {ticket.linkedFiles.length > 0 && (
@@ -305,13 +305,13 @@ export default async function TicketDetailPage({
                 </h3>
 
                 <CommentList
-                  issueId={serializedTicket.id}
+                  ticketId={serializedTicket.id}
                   initialComments={serializedTicket.comments}
                 />
 
                 {/* Add Comment Form */}
                 <div className="mt-6 border-t border-[#2A2A2A] pt-6">
-                  <CommentForm issueId={serializedTicket.id} />
+                  <CommentForm ticketId={serializedTicket.id} />
                 </div>
               </div>
             </div>
@@ -319,11 +319,11 @@ export default async function TicketDetailPage({
             {/* RIGHT SIDEBAR */}
             <aside className="space-y-4 overflow-auto lg:col-span-3">
               {/* Quick Actions */}
-              <QuickActions issueId={serializedTicket.id} issueTitle={ticket.title} />
+              <QuickActions ticketId={serializedTicket.id} ticketTitle={ticket.title} />
 
               {/* Issue Details */}
-              <IssueDetailSidebar
-                issueId={serializedTicket.id}
+              <TicketDetailSidebar
+                ticketId={serializedTicket.id}
                 assignee={serializedTicket.assignee}
                 labels={serializedTicket.labels}
                 priority={serializedTicket.priority}
@@ -365,7 +365,7 @@ export default async function TicketDetailPage({
               </div>
               
               {/* Watchers */}
-              <WatchersSection issueId={serializedTicket.id} />
+              <WatchersSection ticketId={serializedTicket.id} />
               
               {/* Linked Task Breadcrumb (Sprint 10) */}
               {ticket.linkedTask && (
@@ -396,7 +396,7 @@ export default async function TicketDetailPage({
               />
               
               {/* Related Issues */}
-              <RelatedIssues
+              <RelatedTickets
                 currentIssueId={ticket.id}
                 projectId={ticket.project.id}
                 labels={ticket.labels}

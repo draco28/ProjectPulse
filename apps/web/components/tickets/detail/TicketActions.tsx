@@ -1,5 +1,5 @@
 /**
- * IssueActions Component
+ * TicketActions Component
  *
  * Client Component with interactive issue action buttons
  *
@@ -15,7 +15,7 @@
  * - Error handling with toast notifications
  *
  * Props:
- * - issueId: Issue identifier
+ * - ticketId: Ticket identifier
  * - currentStatus: Current issue status
  *
  * Reference: mockups/Default theme/03-issue-detail-dark-neumorphic-coral.html
@@ -31,8 +31,8 @@ import { RotateCw, Play, Check, MoreVertical } from 'lucide-react';
 // TYPES
 // ============================================================================
 
-interface IssueActionsProps {
-  issueId: string;
+interface TicketActionsProps {
+  ticketId: string;
   currentStatus: 'open' | 'in-progress' | 'closed';
 }
 
@@ -83,7 +83,7 @@ function getStatusButtonIcon(nextStatus: StatusOption) {
 // COMPONENT
 // ============================================================================
 
-export function IssueActions({ issueId, currentStatus }: IssueActionsProps) {
+export function TicketActions({ ticketId, currentStatus }: TicketActionsProps) {
   const router = useRouter();
   const [isUpdating, setIsUpdating] = useState(false);
   const [optimisticStatus, setOptimisticStatus] = useState(currentStatus);
@@ -101,7 +101,7 @@ export function IssueActions({ issueId, currentStatus }: IssueActionsProps) {
 
     try {
       // Call API endpoint (from Day 4)
-      const response = await fetch(`/api/issues/${issueId}/status`, {
+      const response = await fetch(`/api/tickets/${ticketId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: nextStatus }),

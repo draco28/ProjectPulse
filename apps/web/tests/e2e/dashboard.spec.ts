@@ -76,7 +76,7 @@ test.describe('Dashboard Page', () => {
 
     // Check Quick Actions widget
     await expect(page.locator('text=Quick Actions')).toBeVisible();
-    await expect(page.locator('button:has-text("Create Issue")')).toBeVisible();
+    await expect(page.locator('button:has-text("Create Ticket")')).toBeVisible();
     await expect(page.locator('button:has-text("Add Knowledge")')).toBeVisible();
     await expect(page.locator('button:has-text("Run Agent")')).toBeVisible();
 
@@ -91,9 +91,9 @@ test.describe('Dashboard Page', () => {
     const dashboardLink = page.locator('a:has-text("Dashboard")');
     await expect(dashboardLink).toHaveClass(/bg-accent-primary\/20/);
 
-    // Click on Issues
-    await page.locator('a:has-text("Issues")').click();
-    await expect(page).toHaveURL('/issues');
+    // Click on Tickets (Sprint 10.5: renamed from Issues)
+    await page.locator('a:has-text("Tickets")').click();
+    await expect(page).toHaveURL('/tickets');
 
     // Click on Roadmap
     await page.locator('a:has-text("Roadmap")').click();

@@ -43,7 +43,7 @@ export function createCommands(router: any, projectId?: number): CommandCategory
           icon: Plus,
           shortcut: '⌘N',
           keywords: ['new', 'issue', 'bug', 'feature', 'create', 'add'],
-          action: () => router.push(buildHref('/issues/new')),
+          action: () => router.push(buildHref('/tickets/create')),
         },
         {
           id: 'add-knowledge',
@@ -172,7 +172,7 @@ export function createCommands(router: any, projectId?: number): CommandCategory
           icon: ListTodo,
           shortcut: '⌘I',
           keywords: ['issues', 'tasks', 'bugs', 'tickets'],
-          action: () => router.push(buildHref('/issues')),
+          action: () => router.push(buildHref('/tickets')),
         },
         {
           id: 'nav-knowledge',

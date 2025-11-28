@@ -137,7 +137,7 @@ export function CommandPalette() {
             type: 'issue' as const,
             title: `Issue matching "${query}"`,
             description: 'Fix authentication bug in login flow',
-            url: '/issues/1',
+            url: '/tickets/1',
             icon: 'bug',
             metadata: 'Open • High Priority',
           },
