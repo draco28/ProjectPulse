@@ -105,7 +105,7 @@ export async function getLatencyPercentile(
     }
 
     const index = Math.ceil((percentile / 100) * metrics.length) - 1;
-    return metrics[index].latencyMs;
+    return metrics[index]?.latencyMs ?? null;
   } catch (error) {
     console.error('[Knowledge Metrics] Failed to calculate percentile:', error);
     return null;

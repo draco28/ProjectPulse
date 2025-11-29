@@ -205,9 +205,10 @@ test.describe('Ticket Mutations (Update Operations)', () => {
       if ((await assigneeControl.locator('select').count()) > 0) {
         const options = await assigneeControl.locator('select option').allTextContents();
         if (options.length > 1) {
-          await assigneeControl.locator('select').selectOption(options[1]);
+          const selectedOption = options[1] ?? '';
+          await assigneeControl.locator('select').selectOption(selectedOption);
           await page.waitForSelector('h1, h2', { timeout: 10000 });
-          console.log(`✓ Assigned to: ${options[1]}`);
+          console.log(`✓ Assigned to: ${selectedOption}`);
         }
       } else {
         // If it's a button/modal

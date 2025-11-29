@@ -68,7 +68,7 @@ async function getFirstProjectId(page: Page): Promise<string> {
   // Extract project ID from URL (format: /dashboard?project=X)
   const url = page.url();
   const match = url.match(/project=(\d+)/);
-  if (match) {
+  if (match && match[1]) {
     return match[1];
   }
 

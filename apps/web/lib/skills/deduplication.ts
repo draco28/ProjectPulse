@@ -148,7 +148,7 @@ export async function findSkillDuplicates(
   // Generate suggestion
   let suggestion: string | null = null;
   if (topCandidates.length > 0) {
-    const topMatch = topCandidates[0];
+    const topMatch = topCandidates[0]!;
 
     if (topMatch.matchType === 'slug_exact') {
       suggestion = `Skill with slug "${topMatch.slug}" already exists in this project. Choose a different slug or use the existing skill (id: ${topMatch.id}).`;
@@ -158,7 +158,7 @@ export async function findSkillDuplicates(
   }
 
   // isDuplicate = true if slug collision detected (slug is primary key)
-  const isDuplicate = topCandidates.length > 0 && topCandidates[0].matchType === 'slug_exact';
+  const isDuplicate = topCandidates.length > 0 && topCandidates[0]?.matchType === 'slug_exact';
 
   return {
     isDuplicate,

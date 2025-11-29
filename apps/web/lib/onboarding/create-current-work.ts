@@ -53,7 +53,7 @@ export async function createInitialCurrentWork(
     throw new Error(`No days found for first week ${firstWeek.id}`);
   }
   
-  const firstDay = firstWeek.days[0];
+  const firstDay = firstWeek.days[0]!;
   
   console.log('[Session 3] Found first week/day', {
     weekId: firstWeek.id,

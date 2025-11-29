@@ -1124,7 +1124,7 @@ export async function seedOnboardingQuestions(prisma: PrismaClient) {
 
 // Run if called directly
 if (require.main === module) {
-  seedOnboardingQuestions()
+  seedOnboardingQuestions(prisma)
     .then(() => {
       console.log('\n✅ Seeding completed successfully');
       process.exit(0);

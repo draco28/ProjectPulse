@@ -3,6 +3,7 @@
  */
 
 import { createAxeCoreScanner } from '../lib/health/scanners/axecore';
+import type { ScanOptions } from '../lib/health/scanners/types';
 
 async function testAxeCore() {
   console.log('🔍 Testing axe-core Scanner\n');
@@ -12,10 +13,11 @@ async function testAxeCore() {
     const scanner = createAxeCoreScanner();
     console.log('Scanner created, starting scan...');
 
-    const result = await scanner.scan('/Users/draco/projects/AI_HUB/apps/web', {
-      baseUrl: 'http://localhost:3000',
+    const scanOptions: ScanOptions = {
+      config: { baseUrl: 'http://localhost:3000' },
       timeout: 30000,
-    });
+    };
+    const result = await scanner.scan('/Users/draco/projects/AI_HUB/apps/web', scanOptions);
 
     console.log('\n✅ axe-core scan completed successfully!\n');
     console.log('📊 Results:');

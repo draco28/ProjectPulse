@@ -612,6 +612,7 @@ export interface KnowledgeExportOutput {
  * Tool input schema for knowledge.import
  */
 export interface KnowledgeImportInput {
+  projectId: number;
   files: Array<{
     filename: string;
     content: string; // Markdown with YAML frontmatter
@@ -870,9 +871,9 @@ export async function knowledgeExportHandler(
       updatedAt: item.updatedAt.toISOString(),
       archivedAt: item.archivedAt?.toISOString() || null,
       // Convert embedding buffer to array if included
-      ...(params.includeEmbeddings && item.embedding && {
-        embedding: Array.from(item.embedding as any),
-      }),
+      ...(params.includeEmbeddings && item.embedding ? {
+        embedding: Array.from(item.embedding as unknown as ArrayLike<number>),
+      } : {}),
     }));
 
     // Build export output
@@ -883,7 +884,7 @@ export async function knowledgeExportHandler(
         itemCount: items.length,
         relationshipCount: relationships.length,
         includesEmbeddings: params.includeEmbeddings || false,
-        includesRelationships,
+        includesRelationships: includeRelationships,
         filters: {
           category: params.category || null,
           tags: params.tags ? params.tags.join(',') : null,
@@ -949,6 +950,15 @@ export async function knowledgeImportHandler(
 
     const params = input as KnowledgeImportInput;
 
+    // Validate projectId
+    if (typeof params.projectId !== 'number' || params.projectId <= 0) {
+      throw new MCPError(
+        'Invalid or missing projectId: must be positive integer',
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
     // Validate files array
     if (!Array.isArray(params.files) || params.files.length === 0) {
       throw new MCPError(
@@ -972,14 +982,14 @@ export async function knowledgeImportHandler(
     const errors: any[] = [];
 
     for (let i = 0; i < params.files.length; i++) {
-      const file = params.files[i];
+      const file = params.files[i] as { filename?: string; content?: string } | undefined;
 
       try {
         // Validate file structure
         if (!file || typeof file !== 'object') {
           errors.push({
             index: i,
-            filename: file?.filename || `file_${i}`,
+            filename: `file_${i}`,
             error: 'Invalid file object',
             details: 'Each file must have filename and content',
           });
@@ -1070,6 +1080,7 @@ export async function knowledgeImportHandler(
 
         // Create knowledge item with auto-embedding
         const result = await createKnowledgeItem({
+          projectId: params.projectId,
           title: frontmatter.title,
           content: markdownContent.trim(),
           category: frontmatter.category,

@@ -942,7 +942,6 @@ export async function createWorkflowsAndSOPs(
           category: def.category,
           tags: def.tags,
           content: def.content,
-          version: 1
         }
       });
       sopsCreated++;

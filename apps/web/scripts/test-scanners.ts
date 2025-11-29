@@ -3,18 +3,21 @@
  * Tests axe-core and Lighthouse scanners against local dev server
  */
 
-import { createAxeCoreScanner, createLighthouseScanner } from '../lib/health/scanners';
+import { getScanner, type ScanResult } from '../lib/health/scanners';
+import { ScannerType } from '@prisma/client';
 
 async function testScanners() {
   console.log('🔍 Testing Accessibility Scanners\n');
   console.log('Target: http://localhost:3000\n');
 
+  const projectPath = '/Users/draco/projects/AI_HUB/apps/web';
+
   // Test axe-core scanner
   console.log('1️⃣ Testing axe-core scanner...');
   try {
-    const axeScanner = createAxeCoreScanner();
-    const axeResult = await axeScanner.scan('/Users/draco/projects/AI_HUB/apps/web', {
-      baseUrl: 'http://localhost:3000',
+    const axeScanner = await getScanner(ScannerType.AXECORE);
+    const axeResult: ScanResult = await axeScanner.scan(projectPath, {
+      config: { baseUrl: 'http://localhost:3000' },
       timeout: 30000,
     });
 
@@ -27,7 +30,7 @@ async function testScanners() {
 
     if (axeResult.findings.length > 0) {
       console.log('\n   Sample findings:');
-      axeResult.findings.slice(0, 3).forEach((finding, i) => {
+      axeResult.findings.slice(0, 3).forEach((finding: ScanResult['findings'][0], i: number) => {
         console.log(`   ${i + 1}. [${finding.severity}] ${finding.ruleId}: ${finding.message}`);
       });
     }
@@ -40,9 +43,9 @@ async function testScanners() {
   // Test Lighthouse scanner
   console.log('2️⃣ Testing Lighthouse scanner...');
   try {
-    const lighthouseScanner = createLighthouseScanner();
-    const lighthouseResult = await lighthouseScanner.scan('/Users/draco/projects/AI_HUB/apps/web', {
-      baseUrl: 'http://localhost:3000',
+    const lighthouseScanner = await getScanner(ScannerType.LIGHTHOUSE);
+    const lighthouseResult: ScanResult = await lighthouseScanner.scan(projectPath, {
+      config: { baseUrl: 'http://localhost:3000' },
       timeout: 60000,
     });
 
@@ -55,7 +58,7 @@ async function testScanners() {
 
     if (lighthouseResult.findings.length > 0) {
       console.log('\n   Sample findings:');
-      lighthouseResult.findings.slice(0, 3).forEach((finding, i) => {
+      lighthouseResult.findings.slice(0, 3).forEach((finding: ScanResult['findings'][0], i: number) => {
         console.log(`   ${i + 1}. [${finding.severity}] ${finding.ruleId}: ${finding.message}`);
       });
     }

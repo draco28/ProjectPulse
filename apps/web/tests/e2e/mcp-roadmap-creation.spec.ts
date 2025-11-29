@@ -251,7 +251,7 @@ test.describe('MCP Server Connectivity', () => {
     expect(result.error).toBeUndefined();
     expect(result.result).toBeDefined();
 
-    const content = result.result!.content[0].text;
+    const content = result.result?.content?.[0]?.text ?? '';
     expect(content).toContain('healthy');
   });
 
@@ -496,7 +496,7 @@ test.describe('MCP Client Agent Roadmap Creation', () => {
     expect(result.result).toBeDefined();
 
     // Parse the response
-    const content = result.result!.content[0].text;
+    const content = result.result?.content?.[0]?.text ?? '';
     const parsed = JSON.parse(content);
 
     // Response may have currentPosition (if IN_PROGRESS task exists) or suggestions
@@ -550,10 +550,10 @@ test.describe('MCP Tool Response Validation', () => {
     expect(result.id).toBe(1);
     expect(result.result).toBeDefined();
     expect(result.result!.content).toBeInstanceOf(Array);
-    expect(result.result!.content[0].type).toBe('text');
+    expect(result.result?.content?.[0]?.type).toBe('text');
 
     // Content may be JSON or plain text depending on MCP tool implementation
-    const text = result.result!.content[0].text;
+    const text = result.result?.content?.[0]?.text ?? '';
 
     // Try to parse as JSON first
     try {

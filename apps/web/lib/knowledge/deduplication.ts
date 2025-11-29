@@ -160,7 +160,7 @@ export async function findDuplicates(
   // Generate suggestion
   let suggestion: string | null = null;
   if (topCandidates.length > 0) {
-    const topMatch = topCandidates[0];
+    const topMatch = topCandidates[0]!;
     if (topMatch.similarity >= 0.98) {
       suggestion = `Very similar to existing item "${topMatch.title}" (${(topMatch.similarity * 100).toFixed(1)}% match). Consider updating instead.`;
     } else if (topMatch.similarity >= 0.95) {
@@ -169,7 +169,7 @@ export async function findDuplicates(
   }
 
   return {
-    isDuplicate: topCandidates.length > 0 && topCandidates[0].similarity >= 0.98,
+    isDuplicate: topCandidates.length > 0 && (topCandidates[0]?.similarity ?? 0) >= 0.98,
     candidates: topCandidates,
     suggestion,
   };

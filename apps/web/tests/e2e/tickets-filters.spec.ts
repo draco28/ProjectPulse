@@ -228,8 +228,8 @@ test.describe('Tickets Advanced Filtering', () => {
         const today = new Date();
         const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-        await startDateInput.fill(thirtyDaysAgo.toISOString().split('T')[0]);
-        await endDateInput.fill(today.toISOString().split('T')[0]);
+        await startDateInput.fill(thirtyDaysAgo.toISOString().split('T')[0] ?? '');
+        await endDateInput.fill(today.toISOString().split('T')[0] ?? '');
         await page.waitForTimeout(500);
 
         // Verify URL includes date filters

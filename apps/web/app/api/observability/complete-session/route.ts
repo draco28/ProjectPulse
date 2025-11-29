@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
       data: {
         status: 'completed',
         completedAt: new Date(),
-        validationReport: validationReport || {}
+        validationReport: (validationReport || {}) as Prisma.InputJsonValue
       },
       select: {
         id: true,

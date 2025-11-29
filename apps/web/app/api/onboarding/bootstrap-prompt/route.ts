@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const projectPlanMarkdown = session2.documents[0].content;
+    const projectPlanMarkdown = session2.documents[0]?.content ?? '';
     
     console.log('[GET /api/onboarding/bootstrap-prompt] Project plan found', {
       length: projectPlanMarkdown.length

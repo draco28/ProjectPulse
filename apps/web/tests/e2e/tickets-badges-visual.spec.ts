@@ -24,7 +24,7 @@ test.describe('Ticket Badges Visual', () => {
            // Check data-kind attribute (raw value) not text (display label)
            await expect(kindBadge).toHaveAttribute('data-kind', kind);
         } else {
-           test.skip(`No ${kind} tickets found to verify badge`);
+           test.skip(); // No tickets of this kind found to verify badge
         }
       });
     });
@@ -43,7 +43,7 @@ test.describe('Ticket Badges Visual', () => {
               const badge = firstTicket.locator('[data-testid="priority-badge"]');
               await expect(badge).toBeVisible();
            } else {
-              test.skip(`No ${priority} tickets found`);
+              test.skip(); // No tickets of this priority found
            }
         });
      });
@@ -61,7 +61,7 @@ test.describe('Ticket Badges Visual', () => {
                  const badge = firstTicket.locator('[data-testid="status-badge"]');
                  await expect(badge).toBeVisible();
               } else {
-                 test.skip(`No ${status} tickets found`);
+                 test.skip(); // No tickets of this status found
               }
           });
       });

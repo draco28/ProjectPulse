@@ -23,10 +23,22 @@ async function testOnboardingFlow() {
     let project = await db.project.findFirst();
     if (!project) {
       console.log('Creating test project...');
+      // Create or get a test user first
+      const testUser = await db.user.upsert({
+        where: { email: 'onboarding-test@local' },
+        update: {},
+        create: {
+          id: 'onboarding-test-user-id',
+          email: 'onboarding-test@local',
+          name: 'Onboarding Test User',
+          passwordHash: 'not-used-for-testing',
+        },
+      });
       project = await db.project.create({
         data: {
           name: 'Test Project for Onboarding',
           description: 'Testing onboarding flow',
+          ownerId: testUser.id,
         },
       });
       console.log(`✅ Created project ID: ${project.id}\n`);

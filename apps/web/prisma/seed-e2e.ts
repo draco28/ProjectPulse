@@ -26,7 +26,20 @@ async function main() {
     prisma.securityFinding.deleteMany(),
     prisma.agentPersona.deleteMany(),
     prisma.project.deleteMany(),
+    prisma.user.deleteMany({ where: { email: 'test@e2e.local' } }),
   ]);
+
+  // Create test user for project ownership
+  const testUser = await prisma.user.upsert({
+    where: { email: 'test@e2e.local' },
+    update: {},
+    create: {
+      id: 'e2e-test-user-id',
+      email: 'test@e2e.local',
+      name: 'E2E Test User',
+      passwordHash: 'not-used-for-testing',
+    },
+  });
 
   // Reset auto-increment sequences to start from 1
   console.log('🔄 Resetting ID sequences...');
@@ -41,6 +54,7 @@ async function main() {
       name: 'Test Project',
       description: 'E2E Test Project',
       repository: 'https://github.com/test/test',
+      ownerId: testUser.id,
     },
   });
 
@@ -221,6 +235,7 @@ async function main() {
         filePath: `/test/file${i}.ts`,
         lineNumber: i * 10,
         status: 'open',
+        projectId: project.id,
       },
     });
   }

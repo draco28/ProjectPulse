@@ -165,9 +165,9 @@ export async function GET(request: NextRequest) {
         updatedAt: item.updatedAt.toISOString(),
         archivedAt: item.archivedAt?.toISOString() || null,
         // Convert embedding buffer to array if included
-        ...(includeEmbeddings && item.embedding && {
-          embedding: Array.from(item.embedding as any),
-        }),
+        ...(includeEmbeddings && item.embedding ? {
+          embedding: Array.from(item.embedding as unknown as ArrayLike<number>),
+        } : {}),
       })),
       relationships,
     };

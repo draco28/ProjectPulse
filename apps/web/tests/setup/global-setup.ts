@@ -20,7 +20,7 @@ import path from 'path';
 async function globalSetup(config: FullConfig) {
   console.log('🔐 Global Setup: Logging in and saving authentication state...');
 
-  const baseURL = config.use?.baseURL || 'http://192.168.1.15:3000';
+  const baseURL = (config.projects?.[0]?.use as { baseURL?: string })?.baseURL || 'http://192.168.1.15:3000';
   const storageStatePath = path.join(process.cwd(), '.auth', 'user.json');
 
   // Launch browser

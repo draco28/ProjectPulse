@@ -24,8 +24,31 @@ describe('Cross-Linking Utility', () => {
   let testPage1: { id: number; path: string; title: string };
   let testPage2: { id: number; path: string; title: string };
   let testPage3: { id: number; path: string; title: string };
+  let testProjectId: number;
 
   beforeAll(async () => {
+    // Create or get a test user and project
+    const testUser = await prisma.user.upsert({
+      where: { email: 'wiki-crosslink-test@local' },
+      update: {},
+      create: {
+        id: 'wiki-crosslink-test-user-id',
+        email: 'wiki-crosslink-test@local',
+        name: 'Wiki Crosslink Test User',
+        passwordHash: 'not-used-for-testing',
+      },
+    });
+    const testProject = await prisma.project.upsert({
+      where: { name: 'Wiki Crosslink Test Project' },
+      update: {},
+      create: {
+        name: 'Wiki Crosslink Test Project',
+        description: 'Test project for wiki cross-linking tests',
+        ownerId: testUser.id,
+      },
+    });
+    testProjectId = testProject.id;
+
     // Create test wiki pages
     testPage1 = await prisma.wikiPage.create({
       data: {
@@ -33,6 +56,7 @@ describe('Cross-Linking Utility', () => {
         path: '/api-reference',
         content: 'API documentation',
         category: 'reference',
+        projectId: testProjectId,
       },
     });
 
@@ -42,6 +66,7 @@ describe('Cross-Linking Utility', () => {
         path: '/getting-started',
         content: 'Getting started guide',
         category: 'guides',
+        projectId: testProjectId,
       },
     });
 
@@ -51,6 +76,7 @@ describe('Cross-Linking Utility', () => {
         path: '/troubleshooting',
         content: 'Troubleshooting guide',
         category: 'guides',
+        projectId: testProjectId,
       },
     });
   });

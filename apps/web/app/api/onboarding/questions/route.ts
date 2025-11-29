@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
       if (!subsectionsMap[q.subsection]) {
         subsectionsMap[q.subsection] = [];
       }
-      subsectionsMap[q.subsection].push(q);
+      subsectionsMap[q.subsection]!.push(q);
     });
     
     const subsections = Object.entries(subsectionsMap).map(([subsectionName, subQuestions]) => ({

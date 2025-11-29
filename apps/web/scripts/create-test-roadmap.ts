@@ -129,11 +129,24 @@ async function createTestRoadmap(projectId?: number) {
         process.exit(1);
       }
     } else {
+      // Create or get a test user
+      const testUser = await prisma.user.upsert({
+        where: { email: 'roadmap-test@local' },
+        update: {},
+        create: {
+          id: 'roadmap-test-user-id',
+          email: 'roadmap-test@local',
+          name: 'Roadmap Test User',
+          passwordHash: 'not-used-for-testing',
+        },
+      });
+
       // Create a test project
       project = await prisma.project.create({
         data: {
           name: 'Test Project for Roadmap',
           description: 'Automatically created for roadmap testing',
+          ownerId: testUser.id,
         },
       });
       console.log(`Created test project: ${project.id}`);

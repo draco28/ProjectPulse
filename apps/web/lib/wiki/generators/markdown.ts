@@ -197,6 +197,7 @@ function generateExamplesSection(examples: { code: string; caption?: string }[])
 
   for (let i = 0; i < examples.length; i++) {
     const example = examples[i];
+    if (!example) continue;
 
     if (example.caption) {
       lines.push(`**${example.caption}**\n`);
@@ -282,7 +283,7 @@ export function generateExcerpt(markdown: string, maxLength: number = 200): stri
     .trim();
 
   // Get first paragraph
-  const firstPara = plain.split('\n\n')[0];
+  const firstPara = plain.split('\n\n')[0] ?? '';
 
   // Truncate to maxLength
   if (firstPara.length > maxLength) {

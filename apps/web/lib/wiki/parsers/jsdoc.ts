@@ -184,8 +184,8 @@ export class JSDocParser {
 
     let match;
     while ((match = jsdocBlockRegex.exec(content)) !== null) {
-      const fullMatch = match[0];
-      const exportName = match[1];
+      const fullMatch = match[0]!;
+      const exportName = match[1]!;
 
       // Extract the JSDoc comment block
       const jsdocMatch = fullMatch.match(/\/\*\*([\s\S]*?)\*\//);

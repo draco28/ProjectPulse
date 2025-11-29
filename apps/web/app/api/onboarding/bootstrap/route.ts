@@ -19,6 +19,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
 // Session 3 library imports
@@ -219,7 +220,7 @@ export async function POST(request: NextRequest) {
       update: {
         status: 'complete',
         response: {
-          techStack,
+          techStack: techStack as unknown as Prisma.InputJsonValue,
           agentPersonasCreated: agentPersonasCount,
           skillsCreated: skillsCount,
           workflowsCreated: workflows,
@@ -229,7 +230,7 @@ export async function POST(request: NextRequest) {
           currentPlanCreated: false,
           currentTodosCreated: false,
           filesWritten
-        },
+        } as Prisma.InputJsonValue,
         completedAt: new Date()
       },
       create: {
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest) {
         sessionNumber: 3,
         status: 'complete',
         response: {
-          techStack,
+          techStack: techStack as unknown as Prisma.InputJsonValue,
           agentPersonasCreated: agentPersonasCount,
           skillsCreated: skillsCount,
           workflowsCreated: workflows,
@@ -247,7 +248,7 @@ export async function POST(request: NextRequest) {
           currentPlanCreated: false,
           currentTodosCreated: false,
           filesWritten
-        },
+        } as Prisma.InputJsonValue,
         startedAt: new Date(),
         completedAt: new Date()
       }

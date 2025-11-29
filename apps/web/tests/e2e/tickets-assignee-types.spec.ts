@@ -22,7 +22,7 @@ test.describe('Assignee Types', () => {
         // Verification would depend on having a specific human user ID/name known
         // For now, verifying creation is successful
       } else {
-        test.skip('No assignees available to select');
+        test.skip(); // No assignees available to select
       }
     });
 

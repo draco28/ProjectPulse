@@ -19,8 +19,10 @@ async function testSearch() {
     console.log(`\n📝 Query: "${query}"\n`);
 
     // Test semantic search with lower threshold
+    // Note: Using projectId=1 for test purposes
+    const testProjectId = 1;
     try {
-      const semanticResults = await semanticSearch(query, { limit: 3, threshold: 0.3 });
+      const semanticResults = await semanticSearch(query, { projectId: testProjectId, limit: 3, threshold: 0.3 });
       console.log(`  Semantic (${semanticResults.length} results):`);
       semanticResults.forEach((result, idx) => {
         console.log(`    ${idx + 1}. [${result.score.toFixed(3)}] ${result.title}`);
@@ -31,7 +33,7 @@ async function testSearch() {
 
     // Test full-text search
     try {
-      const fulltextResults = await fullTextSearch(query, { limit: 3 });
+      const fulltextResults = await fullTextSearch(query, { projectId: testProjectId, limit: 3 });
       console.log(`  Full-text (${fulltextResults.length} results):`);
       fulltextResults.forEach((result, idx) => {
         console.log(`    ${idx + 1}. [${result.score.toFixed(3)}] ${result.title}`);
@@ -42,7 +44,7 @@ async function testSearch() {
 
     // Test hybrid search
     try {
-      const hybridResults = await hybridSearch(query, { limit: 3 });
+      const hybridResults = await hybridSearch(query, { projectId: testProjectId, limit: 3 });
       console.log(`  Hybrid (${hybridResults.length} results):`);
       hybridResults.forEach((result, idx) => {
         console.log(`    ${idx + 1}. [${result.score.toFixed(3)}] ${result.title}`);
