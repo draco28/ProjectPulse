@@ -87,7 +87,7 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
   const dayIds: string[] = [];
 
   // 2. Transaction: Create Phase → Sprint → Week → Day records
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     let phaseOrder = 0;
 
     for (const phaseData of phases) {

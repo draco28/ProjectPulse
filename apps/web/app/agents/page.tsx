@@ -261,7 +261,7 @@ export default async function AgentsPage({
                   {/* Agent Cards */}
                   {agents.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                      {agents.map((agent) => (
+                      {agents.map((agent: { id: number; name: string; description: string | null; expertise: string[]; isActive: boolean; personality: string | null }) => (
                         <AgentCard key={agent.id} agent={agent} />
                       ))}
                     </div>

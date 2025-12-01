@@ -6,16 +6,16 @@
 
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { Suspense, useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentCard } from '@/components/onboarding/DocumentCard';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { PromptDialog } from '@/components/onboarding/PromptDialog';
 import { storeDocument } from '@/app/onboarding/actions';
-import { Loader2, FileText, Sparkles, ArrowLeft } from 'lucide-react';
+import { Loader2, FileText, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 interface DocumentPrompt {
@@ -36,7 +36,26 @@ interface Document {
   generatedAt: string;
 }
 
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="container mx-auto py-8 px-4 max-w-7xl flex items-center justify-center min-h-[60vh]">
+      <Loader2 className="h-8 w-8 animate-spin text-coral-500" />
+    </div>
+  );
+}
+
+// Main page wrapper with Suspense boundary
 export default function Session2Page() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <Session2Content />
+    </Suspense>
+  );
+}
+
+// Content component that uses useSearchParams
+function Session2Content() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectIdParam = searchParams.get('project');

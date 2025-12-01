@@ -119,5 +119,12 @@ export async function closeRedisConnection(): Promise<void> {
   }
 }
 
-// Export singleton for direct access
-export const redis = getRedisClient();
+// Export getter function for lazy initialization (avoids connection at import/build time)
+// Use getRedis() instead of direct redis export to prevent build-time connection attempts
+export function getRedis(): Redis | null {
+  return getRedisClient();
+}
+
+// Note: We intentionally do NOT export a direct `redis` constant here
+// because it would connect to Redis at module import time (including during build)
+// Use getRedis() when you need the Redis client

@@ -7,21 +7,43 @@
 
 import Redis from 'ioredis';
 
-// Use self-hosted Redis on Mac mini
-const redis = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD,
-  maxRetriesPerRequest: 3,
-  retryStrategy(times) {
-    if (times > 3) return null;
-    return Math.min(times * 50, 2000);
-  },
-});
+// Lazy-initialized Redis client (avoids connection at build time)
+let redisClient: Redis | null = null;
 
-redis.on('error', (error) => {
-  console.error('Redis connection error:', error);
-});
+function getRedisClient(): Redis | null {
+  // Return existing client if already initialized
+  if (redisClient) {
+    return redisClient;
+  }
+
+  // Don't connect during build time or if no Redis config
+  if (typeof window !== 'undefined' || !process.env.REDIS_HOST) {
+    return null;
+  }
+
+  try {
+    redisClient = new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      password: process.env.REDIS_PASSWORD,
+      maxRetriesPerRequest: 3,
+      lazyConnect: true, // Don't connect immediately
+      retryStrategy(times) {
+        if (times > 3) return null;
+        return Math.min(times * 50, 2000);
+      },
+    });
+
+    redisClient.on('error', (error) => {
+      console.error('Redis connection error:', error);
+    });
+
+    return redisClient;
+  } catch (error) {
+    console.error('Failed to create Redis client:', error);
+    return null;
+  }
+}
 
 interface RateLimitResult {
   success: boolean;
@@ -41,6 +63,18 @@ export async function rateLimit(
   limit = 5,
   window = 900
 ): Promise<RateLimitResult> {
+  const redis = getRedisClient();
+  
+  // If Redis not available, fail open (allow request)
+  if (!redis) {
+    return {
+      success: true,
+      limit,
+      remaining: limit,
+      reset: Date.now() + window * 1000,
+    };
+  }
+
   const key = `rate_limit:${identifier}`;
 
   try {
@@ -85,6 +119,9 @@ export async function rateLimit(
  * Reset rate limit for an identifier
  */
 export async function resetRateLimit(identifier: string): Promise<void> {
+  const redis = getRedisClient();
+  if (!redis) return;
+  
   const key = `rate_limit:${identifier}`;
   await redis.del(key);
 }

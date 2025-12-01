@@ -214,15 +214,21 @@ async function getCategoryStats(): Promise<Category[]> {
 }
 
 // Generate static params for ISR
+// Returns empty array during Docker build when database is unavailable
 export async function generateStaticParams() {
-  const pages = await prisma.wikiPage.findMany({
-    select: { path: true },
-    take: 50, // Limit for build time
-  });
+  try {
+    const pages = await prisma.wikiPage.findMany({
+      select: { path: true },
+      take: 50, // Limit for build time
+    });
 
-  return pages.map((page) => ({
-    slug: page.path.replace(/^\//, '').split('/'), // Remove leading slash and split segments
-  }));
+    return pages.map((page) => ({
+      slug: page.path.replace(/^\//, '').split('/'), // Remove leading slash and split segments
+    }));
+  } catch {
+    // Database not available during build time (Docker)
+    return [];
+  }
 }
 
 export default async function WikiPage({ params }: PageProps) {

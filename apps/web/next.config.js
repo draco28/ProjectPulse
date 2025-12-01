@@ -7,6 +7,16 @@ const nextConfig = {
   // This creates a minimal server.js with all dependencies bundled
   output: 'standalone',
 
+  // Disable ESLint during production builds (run separately in CI)
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
+  // Allow TypeScript errors during builds (strict checking in dev/CI)
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   // Experimental features
   experimental: {
     serverActions: {

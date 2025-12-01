@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { Suspense, useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,26 @@ import { PromptDialog } from '@/components/onboarding/PromptDialog';
 import { storeExecutiveSummary } from '@/app/onboarding/actions';
 import { Loader2, Sparkles, PenTool, ArrowRight } from 'lucide-react';
 
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="container mx-auto py-8 px-4 max-w-4xl flex items-center justify-center min-h-[60vh]">
+      <Loader2 className="h-8 w-8 animate-spin text-coral-500" />
+    </div>
+  );
+}
+
+// Main page wrapper with Suspense boundary
 export default function ExecutiveSummaryPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ExecutiveSummaryContent />
+    </Suspense>
+  );
+}
+
+// Content component that uses useSearchParams
+function ExecutiveSummaryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectIdParam = searchParams.get('project');

@@ -1,3 +1,6 @@
+// Force dynamic rendering (no pre-render during build)
+export const dynamic = 'force-dynamic';
+
 import { Metadata } from 'next';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';

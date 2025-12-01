@@ -1,3 +1,6 @@
+// Force dynamic rendering (no pre-render during build)
+export const dynamic = 'force-dynamic';
+
 /**
  * Dashboard Page - Server Component
  * Sprint 8.9: Now with auth and project ownership

@@ -3,6 +3,7 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/mcp-server/package.json ./apps/mcp-server/
+COPY apps/web/package.json ./apps/web/
 COPY packages/roadmap-tools/package.json ./packages/roadmap-tools/
 RUN corepack enable && pnpm install --frozen-lockfile
 
@@ -11,14 +12,18 @@ FROM node:20-alpine AS shared-builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY packages/roadmap-tools ./packages/roadmap-tools
-RUN cd packages/roadmap-tools && npx tsc
+# Use typescript directly from pnpm store location
+RUN node node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/tsc.js -p packages/roadmap-tools
 
 # Stage 3: Generate Prisma Client
 FROM node:20-alpine AS prisma
 WORKDIR /app
+# Copy package.json so prisma can find it (prevents auto-install attempts)
+COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/node_modules ./node_modules
 COPY apps/web/prisma ./apps/web/prisma
-RUN cd apps/web && npx prisma generate
+# Enable corepack for pnpm availability, then use prisma directly from pnpm store
+RUN corepack enable && node node_modules/.pnpm/prisma@5.22.0/node_modules/prisma/build/index.js generate --schema=apps/web/prisma/schema.prisma
 
 # Stage 4: Build MCP Server
 FROM node:20-alpine AS builder
@@ -26,11 +31,14 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=shared-builder /app/packages/roadmap-tools/dist ./packages/roadmap-tools/dist
 COPY --from=shared-builder /app/packages/roadmap-tools/package.json ./packages/roadmap-tools/
-COPY --from=prisma /app/node_modules/.prisma ./node_modules/.prisma
+# Copy generated Prisma client from pnpm location
+COPY --from=prisma /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.prisma
 COPY apps/mcp-server ./apps/mcp-server
 COPY packages/roadmap-tools/src ./packages/roadmap-tools/src
 COPY packages/roadmap-tools/tsconfig.json ./packages/roadmap-tools/
-RUN cd apps/mcp-server && npx tsc -p tsconfig.build.json
+COPY tsconfig.base.json ./tsconfig.base.json
+# Use typescript directly from pnpm store location, skip type checking for lib declarations
+RUN node node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/tsc.js -p apps/mcp-server/tsconfig.build.json --skipLibCheck
 
 # Stage 5: Production runtime
 FROM node:20-alpine AS runner
@@ -50,8 +58,8 @@ COPY --from=deps --chown=mcp:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=mcp:nodejs /app/packages/roadmap-tools/dist ./packages/roadmap-tools/dist
 COPY --from=builder --chown=mcp:nodejs /app/packages/roadmap-tools/package.json ./packages/roadmap-tools/
 
-# Copy Prisma client
-COPY --from=prisma --chown=mcp:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+# Copy Prisma client from pnpm location
+COPY --from=prisma --chown=mcp:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.prisma
 
 USER mcp
 EXPOSE 3001
