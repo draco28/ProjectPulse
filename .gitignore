@@ -16,6 +16,9 @@
 .env.backup
 .env.old
 
+# Production environment (Sprint 11 - contains secrets)
+.env.prod-local
+
 # ============================================================================
 # DEPENDENCIES
 # ============================================================================

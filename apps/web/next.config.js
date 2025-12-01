@@ -3,6 +3,10 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
 
+  // Enable standalone output for Docker production builds
+  // This creates a minimal server.js with all dependencies bundled
+  output: 'standalone',
+
   // Experimental features
   experimental: {
     serverActions: {

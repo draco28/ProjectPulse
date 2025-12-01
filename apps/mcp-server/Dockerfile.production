@@ -56,4 +56,10 @@ COPY --from=prisma --chown=mcp:nodejs /app/node_modules/.prisma ./node_modules/.
 USER mcp
 EXPOSE 3001
 ENV PORT=3001
+ENV MCP_PORT=3001
+
+# Health check - verify MCP server is responding
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://localhost:3001/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
+
 CMD ["node", "apps/mcp-server/dist/index-http.js"]

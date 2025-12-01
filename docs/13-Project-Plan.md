@@ -1,10 +1,10 @@
 # Project Implementation Plan
 
 **Document ID:** DOC-013
-**Version:** 1.5.0
+**Version:** 1.6.0
 **Status:** Active
 **Owner:** Project Management
-**Last Updated:** 2025-11-28
+**Last Updated:** 2025-11-29
 **Review Cycle:** Weekly (sprint planning)
 
 ---
@@ -19,6 +19,7 @@
 | 1.3.0   | 2025-11-13 | Project Management | Sprint 5.5 complete (21/21 points), 264/484 total (55%) |
 | 1.4.0   | 2025-11-13 | Project Management | Sprint 6 complete (51/51 points), 315/505 total (62%) |
 | 1.5.0   | 2025-11-28 | Project Management | Sprint 10 complete (36/42 points), added Sprint 10.5 (consistency refactor), Sprint 12 (auto-ticket generation) |
+| 1.6.0   | 2025-11-29 | Project Management | Sprint 10.5 complete, Sprint 10.6 (Client APIs) complete, added Sprint 11 (Production Deployment - CRITICAL GO-LIVE), renumbered Sprint 12→13 |
 
 ---
 
@@ -2040,71 +2041,168 @@ Sprint 8.5 Phases 1-3 successfully completed 22/27 story points (81%), implement
 
 ---
 
-### Sprint 11 (Weeks 22-23): Client Agent Integration APIs (EPIC-013) - 20 points (POST-MVP)
+### Sprint 10.6: Client Agent Integration APIs (EPIC-013) - 20 points ✅ COMPLETE
 
 **User Stories:** US-013-01 to US-013-08
 
 **Goal:** Expose AI workflow artifacts (agent personas, skills, SOPs, workflows) via client-friendly MCP/HTTP APIs so end-user agents can consume the same workflows used during onboarding, without requiring `.agent/` or `.claude/` folders in user repositories.
 
-**Status:** 📋 **PLANNED** – Follows Sprint 10.5 consistency refactor.
+**Status:** ✅ **COMPLETE** – Implemented ahead of schedule.
+
+**Completed Deliverables:**
+
+- ✅ **Persona APIs (5 points):**
+  - `persona.list` – List personas for project (metadata only, no systemPrompt)
+  - `persona.get` – Get full persona details including systemPrompt
+  - REST: `GET /api/personas`, `GET /api/personas/[id]`, `GET /api/personas/by-slug/[slug]`
+  - MCP: `projectpulse_persona_list`, `projectpulse_persona_get`
+
+- ✅ **Skill APIs (5 points):**
+  - `skill.list` – List skills (metadata only, token efficient)
+  - `skill.get` – Load full skill content on-demand
+  - MCP: `projectpulse_skill_list`, `projectpulse_skill_get`
+
+- ✅ **SOP APIs (5 points):**
+  - `sop.list` – List SOPs (metadata only)
+  - `sop.get` – Load full SOP content
+  - REST: `GET /api/sops`, `GET /api/sops/[id]`, `GET /api/sops/by-slug/[slug]`
+  - MCP: `projectpulse_sop_list`, `projectpulse_sop_get`
+
+- ✅ **Enhanced Repo Templates (5 points):**
+  - Enhanced `CLAUDE.md` template with MCP connection instructions
+  - Enhanced `AGENTS.md` template with persona/skill listing
+
+- ✅ **Security (added):**
+  - All APIs authenticated via bearer token
+  - Project-scoped access control
+
+**Commits:**
+- `a4d5dd4` feat(sprint-11): add client APIs for personas, skills, SOPs
+- `91d47c7` feat(sprint-11): enhance CLAUDE.md and AGENTS.md templates
+- `b06ad81` fix(security): add authentication to Sprint 11 client APIs
+- `68aaead` test(sprint-11): add MCP tools E2E tests for client APIs
+
+**Detailed Spec:** See `.agent/task/sprint11-client-apis.md`
+
+---
+
+### Sprint 11 (Weeks 22-23): Production Deployment - 20 points 🚀 CRITICAL GO-LIVE
+
+**User Stories:** US-011-01 to US-011-07
+
+**Goal:** Deploy ProjectPulse to production on Mac Mini using Docker with Cloudflare Tunnel for secure internet exposure. This is the **CRITICAL GO-LIVE** sprint that enables real users to access the platform.
+
+**Status:** 📋 **IN PROGRESS** – Critical path to production.
 
 **Key Deliverables:**
 
-- **Persona APIs (5 points):**
-  - `persona.list` – List personas for project (metadata only, no systemPrompt)
-  - `persona.get` – Get full persona details including systemPrompt
-  - REST: `GET /api/personas`, `GET /api/personas/[id]`
+- **Production Dockerfiles (5 points):**
+  - Create optimized multi-stage `Dockerfile.production` for Next.js
+  - Create optimized multi-stage `Dockerfile.production` for MCP Server
+  - Non-root user, security hardening, health checks baked in
+  - Target image sizes: web ~300MB, mcp ~200MB
 
-- **Skill APIs (5 points):**
-  - `skill.list` – List skills (metadata only, token efficient)
-  - `skill.get` – Load full skill content on-demand
-  - Filters: category, tags, frameworks
-  - REST: `GET /api/skills`, `GET /api/skills/[slug]`
+- **Docker Compose Production Stack (3 points):**
+  - `docker-compose.prod-local.yml` with port isolation
+  - Production: ports 8080/8081/5433/6380
+  - Development: ports 3000/3001/5432 (unchanged)
+  - Separate Docker network (`pp-prod`)
 
-- **SOP APIs (5 points):**
-  - `sop.list` – List SOPs (metadata only)
-  - `sop.get` – Load full SOP content
-  - Filter by category
-  - REST: `GET /api/sops`, `GET /api/sops/[slug]`
+- **Redis Session Store (3 points):**
+  - Integrate Redis for persistent session storage
+  - Configure NextAuth with Redis adapter
+  - Sessions survive container restarts
 
-- **Enhanced Repo Templates (5 points):**
-  - Update `CLAUDE.md` template with client API documentation
-  - Update `AGENTS.md` template to list project-specific personas/skills
-  - Generate during onboarding Session 3
+- **Cloudflare Tunnel Setup (2 points):**
+  - Configure tunnel for secure HTTPS exposure
+  - No port forwarding required
+  - App-level auth only (no Cloudflare Access)
+
+- **Database & Migration Workflow (3 points):**
+  - Fresh production database (`projectpulse_prod`)
+  - `init-db.sql` with pgvector extension
+  - Safe migration deployment procedure
+
+- **Deployment Automation (2 points):**
+  - `scripts/prod-local-deploy.sh` deployment script
+  - Health check verification
+  - Rollback procedure documented
+
+- **Documentation (2 points):**
+  - `DEPLOYMENT.md` with production procedures
+  - Environment setup guide
+  - Ongoing deployment workflow
+
+**Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        INTERNET (Cloudflare Edge)                        │
+│   Users → Cloudflare Tunnel (HTTPS) → App Authentication                │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Mac Mini (192.168.1.15)                           │
+├────────────────────────────────┬────────────────────────────────────────┤
+│  PRODUCTION STACK              │  DEV STACK (unchanged)                 │
+│  docker-compose.prod-local.yml │  docker-compose.cloud.yml              │
+│                                │                                        │
+│  prod-nextjs    :8080 ◄────────┼──── Cloudflare Tunnel                  │
+│  prod-mcp       :8081 ◄────────┼──── Cloudflare Tunnel                  │
+│  prod-postgres  :5433          │  nextjs     :3000                      │
+│  prod-redis     :6380          │  mcp        :3001                      │
+│  cloudflared    (outbound)     │  postgres   :5432                      │
+│                                │                                        │
+│  Network: pp-prod              │  Network: pp-cloud                     │
+│  DB: projectpulse_prod         │  DB: projectpulse_dev                  │
+└────────────────────────────────┴────────────────────────────────────────┘
+```
 
 **Implementation Strategy:**
 
-**Week 1 (APIs):**
-- Implement persona.list/get APIs + MCP tools
-- Implement skill.list/get APIs + MCP tools  
-- Implement sop.list/get APIs + MCP tools
+**Day 1 (Infrastructure):**
+- Create production Dockerfiles (web + MCP)
+- Create `docker-compose.prod-local.yml`
+- Create environment template `.env.prod-local.example`
 
-**Week 2 (Templates + Testing):**
-- Enhance CLAUDE.md template with MCP connection instructions
-- Enhance AGENTS.md template with dynamic persona/skill listing
-- Integration testing with client agent simulation
+**Day 2 (Services):**
+- Setup Cloudflare Tunnel
+- Initialize production database with migrations
+- Integrate Redis session storage
+
+**Day 3 (Automation & Testing):**
+- Create deployment script
+- End-to-end testing via tunnel
+- Documentation and rollback procedures
 
 **Dependencies:**
 
 - Sprint 10.5 complete (consistent Ticket terminology)
-- Existing persona, skill, SOP, workflow database models
+- Sprint 10.6 complete (Client APIs for MCP)
+- Mac Mini Docker environment operational
+- Cloudflare account (free tier)
 
 **Exit Criteria:**
 
-- ✅ Client agents can discover and load personas via MCP
-- ✅ Client agents can lazy-load skills on-demand
-- ✅ Client agents can retrieve SOPs by category/slug
-- ✅ Enhanced CLAUDE.md documents client API usage
-- ✅ All APIs project-scoped via bearer token
-- ✅ API response time < 200ms P95
+- ✅ Production stack runs on ports 8080/8081/5433/6380
+- ✅ Dev stack continues on ports 3000/3001/5432
+- ✅ Cloudflare tunnel accessible from internet
+- ✅ App authentication working (signup/login)
+- ✅ MCP session validation working via tunnel
+- ✅ Redis sessions persist across container restarts
+- ✅ Health checks passing on both environments
+- ✅ Fresh production database initialized
+- ✅ Deployment script tested end-to-end
 
 **Success Metrics:**
 
-- Client agents can list personas, skills, SOPs for a project via MCP/HTTP
-- No `.agent/` or `.claude/` folders required in user repositories
-- All AI workflow state is DB-backed and exposed via MCP/HTTP
+- Users can access ProjectPulse from internet via Cloudflare URL
+- AI agents can connect to MCP server via bearer token
+- Zero downtime for dev environment during prod deployment
+- <60 second deployment time for code changes
 
-**Detailed Spec:** See `.agent/task/sprint11-client-apis.md`
+**Detailed Spec:** See `.agent/task/sprint11-production-deployment.md`
 
 ---
 

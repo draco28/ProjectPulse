@@ -1,13 +1,135 @@
 # ProjectPulse Production Deployment Guide
 
-**Version:** 1.0.0
-**Last Updated:** 2025-11-18
+**Version:** 2.0.0
+**Last Updated:** 2025-11-29
 
-This guide covers deploying ProjectPulse to production using Docker and Kubernetes.
+This guide covers deploying ProjectPulse to production using Docker (Mac Mini) and Kubernetes.
 
 ---
 
-## Quick Start
+## Deployment Options
+
+| Option | Best For | Complexity |
+|--------|----------|------------|
+| **Mac Mini + Cloudflare Tunnel** | Solo/small team, low cost | Low |
+| **Kubernetes** | Enterprise, high availability | High |
+
+---
+
+## Mac Mini Production (Recommended for SaaS MVP)
+
+### Overview
+
+Deploy to Mac Mini with:
+- **Cloudflare Tunnel** for secure HTTPS (no port forwarding)
+- **Separate port stacks** (prod: 8080/8081, dev: 3000/3001)
+- **Redis** for persistent sessions
+- **Zero infrastructure cost** (except domain if needed)
+
+### Quick Start
+
+```bash
+# 1. Create environment file
+cp .env.prod-local.example .env.prod-local
+# Edit with strong passwords (openssl rand -base64 32)
+
+# 2. Deploy
+./scripts/prod-local-deploy.sh
+
+# 3. Access
+# Local: http://192.168.1.15:8080
+# Internet: https://<your-tunnel>.trycloudflare.com
+```
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        INTERNET (Cloudflare Edge)                        │
+│   Users → Cloudflare Tunnel (HTTPS) → App Authentication                │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Mac Mini (192.168.1.15)                           │
+├────────────────────────────────┬────────────────────────────────────────┤
+│  PRODUCTION STACK              │  DEV STACK (unchanged)                 │
+│  docker-compose.prod-local.yml │  docker-compose.cloud.yml              │
+│                                │                                        │
+│  prod-nextjs    :8080          │  nextjs     :3000                      │
+│  prod-mcp       :8081          │  mcp        :3001                      │
+│  prod-postgres  :5433          │  postgres   :5432                      │
+│  prod-redis     :6380          │                                        │
+│  cloudflared    (tunnel)       │                                        │
+│                                │                                        │
+│  Network: pp-prod              │  Network: pp-cloud                     │
+│  DB: projectpulse_prod         │  DB: projectpulse_dev                  │
+└────────────────────────────────┴────────────────────────────────────────┘
+```
+
+### Setup Cloudflare Tunnel
+
+1. Go to [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com)
+2. Access → Tunnels → Create a tunnel
+3. Name: `projectpulse-prod`
+4. Copy the tunnel token to `.env.prod-local`
+5. Configure public hostnames:
+   - `your-domain.com` → `http://prod-nextjs:3000`
+   - `api.your-domain.com` → `http://prod-mcp:3001`
+
+### Commands
+
+```bash
+# Start production
+docker compose -f docker-compose.prod-local.yml up -d
+
+# Stop production
+docker compose -f docker-compose.prod-local.yml down
+
+# View logs
+docker compose -f docker-compose.prod-local.yml logs -f
+
+# Check status
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+# Deploy code changes
+./scripts/prod-local-deploy.sh
+
+# Health checks
+curl http://192.168.1.15:8080/api/health
+curl http://192.168.1.15:8081/health
+```
+
+### Deploy Code Updates
+
+```bash
+# No schema changes
+git pull origin master
+./scripts/prod-local-deploy.sh
+
+# With schema changes
+git pull origin master
+DATABASE_URL="postgresql://projectpulse:<pwd>@192.168.1.15:5433/projectpulse_prod" \
+  npx prisma migrate deploy
+./scripts/prod-local-deploy.sh
+```
+
+### Rollback
+
+```bash
+# Stop production
+docker compose -f docker-compose.prod-local.yml down
+
+# Restore previous image (if tagged)
+docker tag projectpulse/web:previous projectpulse/web:latest
+
+# Restart
+docker compose -f docker-compose.prod-local.yml up -d
+```
+
+---
+
+## Quick Start (Docker Compose - Legacy)
 
 ### Local Production Testing (Docker Compose)
 

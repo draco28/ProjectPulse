@@ -1,0 +1,176 @@
+# ============================================
+# ProjectPulse Production Stack (Mac Mini)
+# ============================================
+# Runs alongside dev stack on separate ports:
+#   - Production: 8080 (web), 8081 (mcp), 5433 (postgres), 6380 (redis)
+#   - Development: 3000 (web), 3001 (mcp), 5432 (postgres), 6379 (redis)
+#
+# Start: docker compose -f docker-compose.prod-local.yml up -d
+# Stop:  docker compose -f docker-compose.prod-local.yml down
+# Logs:  docker compose -f docker-compose.prod-local.yml logs -f
+# ============================================
+
+version: '3.8'
+
+services:
+  # ============================================
+  # PostgreSQL Production Database
+  # ============================================
+  prod-postgres:
+    image: pgvector/pgvector:pg15
+    container_name: projectpulse-prod-postgres
+    environment:
+      POSTGRES_USER: ${PROD_POSTGRES_USER:-projectpulse}
+      POSTGRES_PASSWORD: ${PROD_POSTGRES_PASSWORD:?PROD_POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${PROD_POSTGRES_DB:-projectpulse_prod}
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5433:5432"
+    networks:
+      - pp-prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PROD_POSTGRES_USER:-projectpulse} -d ${PROD_POSTGRES_DB:-projectpulse_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  # ============================================
+  # Redis Production (Sessions & Cache)
+  # ============================================
+  prod-redis:
+    image: redis:7-alpine
+    container_name: projectpulse-prod-redis
+    command: redis-server --requirepass ${PROD_REDIS_PASSWORD:?PROD_REDIS_PASSWORD is required} --appendonly yes
+    volumes:
+      - prod_redis_data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - pp-prod
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${PROD_REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # ============================================
+  # Next.js Production Web Application
+  # ============================================
+  prod-nextjs:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.production
+    image: projectpulse/web:latest
+    container_name: projectpulse-prod-web
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${PROD_POSTGRES_USER:-projectpulse}:${PROD_POSTGRES_PASSWORD}@prod-postgres:5432/${PROD_POSTGRES_DB:-projectpulse_prod}
+      REDIS_URL: redis://:${PROD_REDIS_PASSWORD}@prod-redis:6379
+      NEXTAUTH_URL: ${PROD_PUBLIC_URL:-http://localhost:8080}
+      NEXTAUTH_SECRET: ${PROD_NEXTAUTH_SECRET:?PROD_NEXTAUTH_SECRET is required}
+      DEFAULT_PROJECT_ID: ${PROD_DEFAULT_PROJECT_ID:-1}
+      # MCP Server internal URL (container-to-container)
+      MCP_SERVER_URL: http://prod-mcp:3001
+    ports:
+      - "8080:3000"
+    networks:
+      - pp-prod
+    depends_on:
+      prod-postgres:
+        condition: service_healthy
+      prod-redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  # ============================================
+  # MCP Server Production
+  # ============================================
+  prod-mcp:
+    build:
+      context: .
+      dockerfile: apps/mcp-server/Dockerfile.production
+    image: projectpulse/mcp-server:latest
+    container_name: projectpulse-prod-mcp
+    environment:
+      NODE_ENV: production
+      PROJECTPULSE_API_URL: http://prod-nextjs:3000
+      MCP_PORT: 3001
+      DATABASE_URL: postgresql://${PROD_POSTGRES_USER:-projectpulse}:${PROD_POSTGRES_PASSWORD}@prod-postgres:5432/${PROD_POSTGRES_DB:-projectpulse_prod}
+      REDIS_URL: redis://:${PROD_REDIS_PASSWORD}@prod-redis:6379
+    ports:
+      - "8081:3001"
+    networks:
+      - pp-prod
+    depends_on:
+      prod-nextjs:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ============================================
+  # Cloudflare Tunnel (Secure Internet Exposure)
+  # ============================================
+  # Provides HTTPS access without port forwarding
+  # Configure hostnames in Cloudflare Zero Trust dashboard
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: projectpulse-cloudflared
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN is required}
+    networks:
+      - pp-prod
+    depends_on:
+      prod-nextjs:
+        condition: service_healthy
+      prod-mcp:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  pp-prod:
+    name: projectpulse-prod
+    driver: bridge
+
+# ============================================
+# Volumes (Persistent Data)
+# ============================================
+# WARNING: docker compose down does NOT delete these
+# To delete: docker volume rm projectpulse_prod_postgres_data projectpulse_prod_redis_data
+volumes:
+  prod_postgres_data:
+    name: projectpulse_prod_postgres_data
+  prod_redis_data:
+    name: projectpulse_prod_redis_data
