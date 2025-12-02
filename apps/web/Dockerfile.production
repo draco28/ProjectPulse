@@ -66,6 +66,16 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm /node_modules/
 COPY --from=builder --chown=nextjs:nodejs /app/packages/roadmap-tools/dist ./packages/roadmap-tools/dist
 COPY --from=builder --chown=nextjs:nodejs /app/packages/roadmap-tools/package.json ./packages/roadmap-tools/
 
+# Copy Prisma for migrations (needed for prisma migrate deploy)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma /node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma /node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma /node_modules/.prisma
+
+# Copy entrypoint script (runs migrations before starting app)
+COPY --chown=nextjs:nodejs apps/web/docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
+
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
@@ -75,4 +85,6 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD node -e "fetch('http://localhost:3000/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
 
+# Entrypoint runs migrations, then starts app
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "server.js"]
