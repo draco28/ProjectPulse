@@ -97,6 +97,20 @@ curl http://localhost:8081/health
 | Redis | 6379 | 6380 | (internal only) |
 | Ollama | 11434 | 11434 | (native, shared) |
 
+### Ollama Connectivity
+
+Both dev and prod containers connect to the native Ollama installation:
+
+```
+Container → host.docker.internal:11434 → Mac Mini's Ollama
+```
+
+This is automatic - no `OLLAMA_BASE_URL` env var needed. The default in `apps/web/lib/embeddings/ollama.ts` handles it:
+
+```typescript
+baseUrl = process.env.OLLAMA_BASE_URL || 'http://host.docker.internal:11434'
+```
+
 ---
 
 ## Cloudflare Tunnel

@@ -177,7 +177,11 @@
       "Bash(do cp \"$file\" \"$file.bak\")",
       "mcp__projectpulse__projectpulse_ticket_create",
       "mcp__projectpulse__projectpulse_ticket_search",
-      "Bash(pnpm test:mcp:*)"
+      "Bash(pnpm test:mcp:*)",
+      "Bash(source:*)",
+      "Bash(DATABASE_URL=\"postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost:5433/$PROD_POSTGRES_DB\" pnpm exec prisma migrate:*)",
+      "WebFetch(domain:developers.cloudflare.com)",
+      "Bash(sh)"
     ],
     "deny": [],
     "ask": [
