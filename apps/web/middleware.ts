@@ -16,7 +16,7 @@ const publicApiPrefixes = [
   '/api/agent-auth/',
   '/api/onboarding/',
   '/api/batch/',
-  '/api/admin/',
+  // Sprint 11.5: REMOVED '/api/admin/' - admin routes require authentication
 ];
 
 // Sprint 10 Security Architecture: REMOVED mcpApiPaths whitelist
