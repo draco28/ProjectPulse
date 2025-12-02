@@ -22,7 +22,9 @@
     "db:backfill:wiki-search": "tsx scripts/backfill-wiki-search.ts",
     "db:aggregate:wiki-analytics": "tsx scripts/aggregate-wiki-analytics.ts",
     "db:seed": "tsx prisma/seed.ts",
-    "db:seed:prod": "tsx prisma/seed-prod.ts"
+    "db:seed:prod": "tsx prisma/seed-prod.ts",
+    "db:cleanup-demo": "tsx prisma/scripts/cleanup-demo-user.ts",
+    "db:cleanup-demo-dry": "tsx prisma/scripts/cleanup-demo-user.ts --dry-run"
   },
   "dependencies": {
     "@fontsource/inter": "^5.0.16",
