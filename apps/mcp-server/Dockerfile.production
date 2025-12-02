@@ -1,72 +1,55 @@
-# Stage 1: Dependencies
-FROM node:20-alpine AS deps
+# Single-stage production build
+# This approach mirrors the dev environment to ensure pnpm symlinks work correctly.
+# The image is larger but guaranteed to work with workspace dependencies + Prisma.
+
+FROM node:20-alpine
+
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+
+# Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy all package.json files first (for better caching)
 COPY apps/mcp-server/package.json ./apps/mcp-server/
 COPY apps/web/package.json ./apps/web/
 COPY packages/roadmap-tools/package.json ./packages/roadmap-tools/
-RUN corepack enable && pnpm install --frozen-lockfile
 
-# Stage 2: Build shared packages
-FROM node:20-alpine AS shared-builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY packages/roadmap-tools ./packages/roadmap-tools
-# Use typescript directly from pnpm store location
-RUN node node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/tsc.js -p packages/roadmap-tools
+# Install dependencies (symlinks work within the same filesystem)
+RUN pnpm install --frozen-lockfile
 
-# Stage 3: Generate Prisma Client
-FROM node:20-alpine AS prisma
-WORKDIR /app
-# Copy package.json so prisma can find it (prevents auto-install attempts)
-COPY --from=deps /app/package.json ./package.json
-COPY --from=deps /app/node_modules ./node_modules
-COPY apps/web/prisma ./apps/web/prisma
-# Enable corepack for pnpm availability, then use prisma directly from pnpm store
-RUN corepack enable && node node_modules/.pnpm/prisma@5.22.0/node_modules/prisma/build/index.js generate --schema=apps/web/prisma/schema.prisma
-
-# Stage 4: Build MCP Server
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=shared-builder /app/packages/roadmap-tools/dist ./packages/roadmap-tools/dist
-COPY --from=shared-builder /app/packages/roadmap-tools/package.json ./packages/roadmap-tools/
-# Copy generated Prisma client from pnpm location
-COPY --from=prisma /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.prisma
+# Copy source files
 COPY apps/mcp-server ./apps/mcp-server
-COPY packages/roadmap-tools/src ./packages/roadmap-tools/src
-COPY packages/roadmap-tools/tsconfig.json ./packages/roadmap-tools/
-COPY tsconfig.base.json ./tsconfig.base.json
-# Use typescript directly from pnpm store location, skip type checking for lib declarations
-RUN node node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/tsc.js -p apps/mcp-server/tsconfig.build.json --skipLibCheck
+COPY apps/web/prisma ./apps/web/prisma
+COPY packages/roadmap-tools ./packages/roadmap-tools
+COPY tsconfig.base.json ./
 
-# Stage 5: Production runtime
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
+# Generate Prisma client (run from web app where prisma is installed)
+RUN cd apps/web && pnpm exec prisma generate
 
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S mcp -u 1001
+# Build shared packages
+RUN pnpm --filter @projectpulse/roadmap-tools build
 
-# Copy built MCP server
-COPY --from=builder --chown=mcp:nodejs /app/apps/mcp-server/dist ./apps/mcp-server/dist
+# Build MCP server
+RUN pnpm --filter @devhub/mcp-server build
 
-# Copy node_modules (only production dependencies)
-COPY --from=deps --chown=mcp:nodejs /app/node_modules ./node_modules
-
-# Copy shared package
-COPY --from=builder --chown=mcp:nodejs /app/packages/roadmap-tools/dist ./packages/roadmap-tools/dist
-COPY --from=builder --chown=mcp:nodejs /app/packages/roadmap-tools/package.json ./packages/roadmap-tools/
-
-# Copy Prisma client from pnpm location
-COPY --from=prisma --chown=mcp:nodejs /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.prisma
-
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && adduser -S mcp -u 1001
 USER mcp
-EXPOSE 3001
+
+# Set production environment
+ENV NODE_ENV=production
 ENV PORT=3001
 ENV MCP_PORT=3001
 
-# Health check - verify MCP server is responding
+EXPOSE 3001
+
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://localhost:3001/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
 
