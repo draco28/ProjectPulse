@@ -13,7 +13,7 @@
  */
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,7 +75,13 @@ export default function LoginPage() {
           setError('Account created but login failed. Please try logging in manually.');
           setMode('login');
         } else {
-          router.push('/app');
+          // Sprint 11.5: Check role and redirect accordingly
+          const session = await getSession();
+          if (session?.user?.role === 'ADMIN') {
+            router.push('/admin');
+          } else {
+            router.push('/app');
+          }
         }
       } else {
         // Login flow
@@ -88,7 +94,13 @@ export default function LoginPage() {
         if (result?.error) {
           setError('Invalid email or password');
         } else {
-          router.push('/app');
+          // Sprint 11.5: Check role and redirect accordingly
+          const session = await getSession();
+          if (session?.user?.role === 'ADMIN') {
+            router.push('/admin');
+          } else {
+            router.push('/app');
+          }
         }
       }
     } catch (err) {
@@ -202,12 +214,6 @@ export default function LoginPage() {
               </button>
             </div>
 
-            {/* Demo credentials hint */}
-            {mode === 'login' && (
-              <div className="mt-4 rounded-lg bg-blue-50 p-3 text-xs text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
-                <strong>Demo:</strong> dev@projectpulse.local / dev123456
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
