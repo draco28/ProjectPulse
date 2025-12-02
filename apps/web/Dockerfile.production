@@ -40,6 +40,10 @@ RUN mkdir -p node_modules/@prisma && \
     cp -r node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client node_modules/@prisma/ && \
     cp -r node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma node_modules/.prisma
 
+# Resolve prisma CLI symlink for migration support in runner stage
+# pnpm creates symlinks; COPY can't follow them, so we resolve to /tmp
+RUN cp -rL node_modules/prisma /tmp/prisma-cli
+
 # Build Next.js
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN cd apps/web && node node_modules/next/dist/bin/next build
@@ -68,7 +72,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/packages/roadmap-tools/package.js
 
 # Copy Prisma for migrations (needed for prisma migrate deploy)
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma /node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /tmp/prisma-cli /node_modules/prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma /node_modules/@prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma /node_modules/.prisma
 
