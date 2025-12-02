@@ -42,7 +42,8 @@ RUN mkdir -p node_modules/@prisma && \
 
 # Resolve prisma CLI symlink for migration support in runner stage
 # pnpm creates symlinks; COPY can't follow them, so we resolve to /tmp
-RUN cp -rL node_modules/prisma /tmp/prisma-cli
+# Note: prisma is in apps/web/node_modules, not root
+RUN cp -rL apps/web/node_modules/prisma /tmp/prisma-cli
 
 # Build Next.js
 ENV NEXT_TELEMETRY_DISABLED=1
