@@ -23,9 +23,11 @@ services:
     restart: unless-stopped
 
   # Redis Cache (for rate limiting and sessions)
+  # Note: Password enabled to match production environment and catch auth bugs early
   redis:
     image: redis:7-alpine
     container_name: projectpulse-redis-cloud
+    command: redis-server --requirepass devredis123
     ports:
       - "6379:6379"
     volumes:
@@ -33,7 +35,7 @@ services:
     networks:
       - projectpulse
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "devredis123", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -50,6 +52,8 @@ services:
       - NEXT_PUBLIC_API_URL=http://0.0.0.0:3000
       - NODE_ENV=development
       - DEFAULT_PROJECT_ID=3
+      # Redis with password to match prod environment
+      - REDIS_URL=redis://:devredis123@redis:6379
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - NEXTAUTH_SECRET=dev-secret-change-in-production

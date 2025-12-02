@@ -3299,9 +3299,115 @@ grep -i error logs/combined.log | tail -20
 
 ---
 
-## 11.13 Cross-References and Summary
+## 11.13 Mac Mini Production Deployment
 
-### 11.13.1 Related Documentation
+> **Added**: Sprint 11 (2025-12-02)
+
+This section covers deploying ProjectPulse to production on a Mac Mini with Cloudflare Tunnel for external access.
+
+### 11.13.1 Architecture Overview
+
+The Mac Mini runs **both development and production** stacks simultaneously using port separation:
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│                         Mac Mini (192.168.1.15)                        │
+│                                                                        │
+│  ┌─────────────────────────────┐    ┌─────────────────────────────┐   │
+│  │    Development Stack        │    │    Production Stack         │   │
+│  │    (docker-compose.cloud.yml)    │    (docker-compose.prod-local.yml)│
+│  │                             │    │                             │   │
+│  │  Next.js: 3000              │    │  Next.js: 8080              │   │
+│  │  MCP: 3001                  │    │  MCP: 8081                  │   │
+│  │  PostgreSQL: 5432           │    │  PostgreSQL: 5433           │   │
+│  │  Redis: 6379                │    │  Redis: 6380                │   │
+│  │                             │    │  Cloudflared: → Tunnel      │   │
+│  └─────────────────────────────┘    └─────────────────────────────┘   │
+│                                                    │                   │
+│                                                    │                   │
+└────────────────────────────────────────────────────│───────────────────┘
+                                                     │
+                                                     ▼
+                                        ┌─────────────────────────┐
+                                        │   Cloudflare Edge       │
+                                        │   projectpulse.dracodev.dev
+                                        │   projectpulsemcp.dracodev.dev
+                                        └─────────────────────────┘
+```
+
+### 11.13.2 Port Mapping Reference
+
+| Service | Dev Port | Prod Port | Internal Port | Notes |
+|---------|----------|-----------|---------------|-------|
+| Next.js Web | 3000 | 8080 | 3000 | Dev: source mount, Prod: Docker build |
+| MCP Server | 3001 | 8081 | 3001 | HTTP transport in both |
+| PostgreSQL | 5432 | 5433 | 5432 | Separate databases |
+| Redis | 6379 | 6380 | 6379 | Prod requires password |
+| Cloudflared | - | - | - | Prod only (tunnel) |
+
+### 11.13.3 Compose Files
+
+| File | Purpose | When to Use |
+|------|---------|-------------|
+| `docker-compose.cloud.yml` | Development stack | Daily development, testing |
+| `docker-compose.prod-local.yml` | Production stack | Production deployment |
+| `docker-compose.yml` | Legacy CI/local | GitHub Actions, CI only |
+| `docker-compose.production.yml` | Superseded | Don't use |
+
+### 11.13.4 Environment Files
+
+**Development** (`.env` or vars in compose):
+- Weak passwords (`postgres123`)
+- No Redis authentication
+- `NODE_ENV=development`
+
+**Production** (`.env.prod-local`):
+- Strong generated passwords
+- Redis password required
+- `NODE_ENV=production`
+- Cloudflare tunnel token
+
+### 11.13.5 Deployment Commands
+
+**Full Deployment:**
+```bash
+./scripts/prod-local-deploy.sh
+```
+
+**Quick Update (code only):**
+```bash
+docker compose --env-file .env.prod-local -f docker-compose.prod-local.yml build prod-nextjs prod-mcp
+docker compose --env-file .env.prod-local -f docker-compose.prod-local.yml up -d prod-nextjs prod-mcp
+```
+
+**Smoke Tests:**
+```bash
+./scripts/prod-smoke-test.sh --skip-build
+```
+
+### 11.13.6 Public Access (Cloudflare Tunnel)
+
+Production is accessible via Cloudflare Tunnel:
+- **Web**: https://projectpulse.dracodev.dev
+- **MCP**: https://projectpulsemcp.dracodev.dev
+
+**Verify tunnel:**
+```bash
+docker logs projectpulse-cloudflared --tail 10
+curl -sf https://projectpulse.dracodev.dev/api/health
+```
+
+### 11.13.7 Related Documentation
+
+- **Deployment SOP**: `.agent/sops/dev-to-prod-deployment.md`
+- **Smoke Tests**: `scripts/prod-smoke-test.sh`
+- **Full Deploy Script**: `scripts/prod-local-deploy.sh`
+
+---
+
+## 11.14 Cross-References and Summary
+
+### 11.14.1 Related Documentation
 
 | Document                                                       | Section                               | Relevance                                                      |
 | -------------------------------------------------------------- | ------------------------------------- | -------------------------------------------------------------- |
@@ -3312,7 +3418,7 @@ grep -i error logs/combined.log | tail -20
 | [10-Observability-and-SRE.md](10-Observability-and-SRE.md)     | Section 10.2: Logging Architecture    | Application logging (Winston), Prisma query logs               |
 | [10-Observability-and-SRE.md](10-Observability-and-SRE.md)     | Section 10.5: Reliability Engineering | NFR-009 (uptime), NFR-010 (RTO), NFR-011 (RPO)                 |
 
-### 11.13.2 NFR Coverage
+### 11.14.2 NFR Coverage
 
 | NFR-ID      | Requirement                                       | Implementation                                        | Section        |
 | ----------- | ------------------------------------------------- | ----------------------------------------------------- | -------------- |
@@ -3325,7 +3431,7 @@ grep -i error logs/combined.log | tail -20
 | **NFR-024** | Migration: Zero-downtime deployments              | Expand-contract pattern (blue-green)                  | 11.5.4         |
 | **NFR-025** | Scalability: Horizontal scaling (future)          | Stateless design, connection pooling, read replicas   | 11.9.3, 11.9.4 |
 
-### 11.13.3 Key Deliverables
+### 11.14.3 Key Deliverables
 
 **Infrastructure Configuration**:
 
@@ -3355,7 +3461,7 @@ grep -i error logs/combined.log | tail -20
 - ✅ Backup and disaster recovery (manual/automated backups, restore procedures, runbooks)
 - ✅ Scaling considerations (vertical, horizontal, database optimization)
 
-### 11.13.4 Summary
+### 11.14.4 Summary
 
 **Local Development** (MVP - Current State):
 
