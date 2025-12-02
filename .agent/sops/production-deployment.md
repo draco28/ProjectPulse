@@ -1,6 +1,6 @@
 # Production Deployment Guide for ProjectPulse
 
-**Version**: 1.1
+**Version**: 1.2
 **Last Updated**: 2025-12-02
 **Author**: Sprint 11 Infrastructure
 
@@ -138,37 +138,60 @@ docker compose -f docker-compose.prod-local.yml restart cloudflared
 
 ## Database Migrations
 
-Migrations run automatically on container start via `docker-entrypoint.sh`.
+⚠️ **Migrations are MANUAL** - They do NOT run automatically on container start.
 
-### Manual Migration (if needed)
+**Why Manual?**: Auto-migration was removed in Sprint 11 because pnpm's symlink structure
+in `node_modules/` is incompatible with Docker's `COPY` instruction. Copying the Prisma CLI
+to the production image caused build failures.
+
+### Before Deploying (if schema changed)
 
 ```bash
-# Connect to prod database
-DATABASE_URL="postgresql://..." pnpm prisma migrate deploy
+# 1. Check if migrations are pending
+source .env.prod-local
+DATABASE_URL="postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost:5433/$PROD_POSTGRES_DB" \
+  pnpm exec prisma migrate status
+
+# 2. Apply pending migrations
+DATABASE_URL="postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost:5433/$PROD_POSTGRES_DB" \
+  pnpm exec prisma migrate deploy
 ```
 
 ### Check Migration Status
 
 ```bash
-DATABASE_URL="postgresql://..." pnpm prisma migrate status
+source .env.prod-local
+DATABASE_URL="postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost:5433/$PROD_POSTGRES_DB" \
+  pnpm exec prisma migrate status
 ```
+
+### Workflow When Schema Changes
+
+1. Create migration in dev: `pnpm exec prisma migrate dev --name your_migration_name`
+2. Test migration in dev environment
+3. Commit migration files to git
+4. **Before deployment**: Run `prisma migrate deploy` against prod database
+5. Then run `./scripts/deploy-prod.sh`
 
 ---
 
 ## Seeding Production
 
-Production uses minimal seed (templates only, no test data):
+Production uses minimal seed (templates only, no test data).
+
+⚠️ **Run from host machine** - Production container is minimal and doesn't have `tsx`.
 
 ```bash
-# After container is running
-docker exec -it projectpulse-prod-web sh
-cd /app && npx tsx prisma/seed-prod.ts
+# Seed production database from host
+source .env.prod-local
+DATABASE_URL="postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost:5433/$PROD_POSTGRES_DB" \
+  pnpm --filter web db:seed:prod
 ```
 
-Or from host:
-```bash
-DATABASE_URL="postgresql://..." pnpm --filter web db:seed:prod
-```
+The seed script (`prisma/seed-prod.ts`) creates:
+- Onboarding question templates (96 questions)
+- Onboarding prompt templates (16 templates)
+- Default project and admin user
 
 ---
 
