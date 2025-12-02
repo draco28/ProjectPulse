@@ -1,6 +1,7 @@
 /**
  * Server-side Auth Utilities
  * Sprint 8.9: Get current user in Server Components and API routes
+ * Sprint 11.5: Added role support and requireAdmin()
  */
 
 import { getServerSession } from 'next-auth';
@@ -10,6 +11,7 @@ import { prisma } from './prisma';
 /**
  * Get current authenticated user
  * Returns null if not authenticated
+ * Sprint 11.5: Now includes role field
  */
 export async function getCurrentUser() {
   const session = await getServerSession(authOptions);
@@ -31,6 +33,7 @@ export async function getCurrentUser() {
       id: true,
       email: true,
       name: true,
+      role: true, // Sprint 11.5: Include role
       isActive: true,
       createdAt: true,
     },
@@ -48,6 +51,25 @@ export async function requireUser() {
 
   if (!user) {
     throw new Error('Unauthorized');
+  }
+
+  return user;
+}
+
+/**
+ * Get current admin user or throw error
+ * Use in admin-only API routes
+ * Sprint 11.5: New function for admin system
+ */
+export async function requireAdmin() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error('Unauthorized');
+  }
+
+  if (user.role !== 'ADMIN') {
+    throw new Error('Forbidden: Admin access required');
   }
 
   return user;

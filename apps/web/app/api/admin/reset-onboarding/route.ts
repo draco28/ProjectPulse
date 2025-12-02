@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireUser } from '@/lib/auth-server';
+import { requireAdmin } from '@/lib/auth-server';
 import { z } from 'zod';
 
 const requestSchema = z.object({
@@ -19,8 +19,8 @@ const requestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Sprint 11.5: Require authenticated user (will be upgraded to requireAdmin in Phase 1)
-    await requireUser();
+    // Sprint 11.5: Require admin role
+    await requireAdmin();
     
     const body = await request.json();
     const validation = requestSchema.safeParse(body);
@@ -59,12 +59,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[Reset] Error:', error);
     
-    // Sprint 11.5: Handle auth errors with proper status code
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    // Sprint 11.5: Handle auth errors with proper status codes
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      if (error.message.startsWith('Forbidden')) {
+        return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      }
     }
     
     return NextResponse.json(

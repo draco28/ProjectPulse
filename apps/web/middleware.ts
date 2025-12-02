@@ -1,8 +1,10 @@
 /**
  * Next.js Middleware
  * Sprint 8.9: Route protection and authentication
+ * Sprint 11.5: Added admin route protection with role checking
  * 
  * Protected routes: /app, /dashboard, /issues, /wiki, etc.
+ * Admin routes: /admin/* (requires ADMIN role)
  * Public routes: /login, /api/auth/*, /api/health
  */
 
@@ -58,6 +60,16 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Sprint 11.5: Admin route protection
+  // Check if user is accessing /admin/* pages and verify ADMIN role
+  if (pathname.startsWith('/admin')) {
+    const userRole = token.role as string | undefined;
+    if (userRole !== 'ADMIN') {
+      // Non-admin users get redirected to /app
+      return NextResponse.redirect(new URL('/app', request.url));
+    }
   }
 
   // Enforce project context on project-scoped routes

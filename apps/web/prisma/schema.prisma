@@ -1639,11 +1639,18 @@ model HealthScore {
 // USER AUTHENTICATION & DASHBOARD (Sprint 8.9)
 // ============================================================================
 
+// Sprint 11.5: User roles for admin system
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
   name         String?
-  passwordHash String // bcrypt hash
+  passwordHash String   // bcrypt hash
+  role         UserRole @default(USER) // Sprint 11.5: Admin role system
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -1666,6 +1673,25 @@ model AuthSession {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("auth_sessions")
+}
+
+// Sprint 11.5: Admin audit logging for accountability
+model AdminAuditLog {
+  id         Int      @id @default(autoincrement())
+  adminId    String   // User ID of admin who performed action
+  action     String   // DEACTIVATE_USER, ACTIVATE_USER, RESET_PASSWORD, PROMOTE_TO_ADMIN, etc.
+  targetType String   // USER, PROJECT_TOKEN, MCP_TOOL
+  targetId   String   // Target entity ID
+  metadata   Json?    @db.JsonB // Additional context (old values, new values, reason, etc.)
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([targetType, targetId])
+  @@index([action])
+  @@index([createdAt(sort: Desc)])
+  @@map("admin_audit_logs")
 }
 
 // ============================================================================
