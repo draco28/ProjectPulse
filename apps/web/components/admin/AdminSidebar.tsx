@@ -17,6 +17,7 @@ import {
   Shield,
   Menu,
   X,
+  Bot,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -35,6 +36,7 @@ interface NavItem {
 const adminNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Overview', href: '/admin' },
   { icon: Users, label: 'Users', href: '/admin/users' },
+  { icon: Bot, label: 'Agents', href: '/admin/agents' },
   { icon: Settings, label: 'Settings', href: '/admin/settings' },
 ];
 
