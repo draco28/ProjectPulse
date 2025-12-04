@@ -326,6 +326,10 @@ model Project {
   // Sprint 9: Memory Bank System
   memoryBanks MemoryBank[]
 
+  // Sprint 11.5: MCP Tool Logging for Admin Dashboard
+  toolLogs       MCPToolLog[]
+  toolAggregates MCPToolAggregate[]
+
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt
   OnboardingPromptTemplate OnboardingPromptTemplate[]
@@ -361,9 +365,63 @@ model ProjectToken {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Sprint 11.5: MCP Tool Logging relation
+  toolLogs MCPToolLog[]
+
   @@unique([projectId, name]) // One token per name per project
   @@index([projectId, isRevoked, expiresAt]) // Fast validation queries
   @@map("project_tokens")
+}
+
+// ============================================================================
+// MCP TOOL LOGGING (Sprint 11.5)
+// ============================================================================
+// Purpose: Track all MCP tool invocations for admin monitoring
+// Architecture: Individual logs + daily aggregates for efficient analytics
+// Retention: Logs kept 30 days, aggregates kept indefinitely
+
+// Individual tool call records - high volume, short retention
+model MCPToolLog {
+  id        BigInt   @id @default(autoincrement())
+  tokenId   Int
+  projectId Int
+  toolName  String   @db.VarChar(100)
+  duration  Int      // Execution time in milliseconds
+  success   Boolean
+  error     String?  @db.Text
+  metadata  Json?    @db.JsonB // Request params (sanitized, no secrets)
+  createdAt DateTime @default(now())
+
+  token   ProjectToken @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([tokenId])
+  @@index([projectId])
+  @@index([toolName])
+  @@index([createdAt(sort: Desc)])
+  @@index([success])
+  @@index([projectId, createdAt]) // For project-specific time-series queries
+  @@map("mcp_tool_logs")
+}
+
+// Daily aggregated statistics - permanent retention for analytics
+model MCPToolAggregate {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @db.Date
+  projectId   Int
+  toolName    String   @db.VarChar(100)
+  callCount   Int      @default(0)
+  errorCount  Int      @default(0)
+  avgDuration Int      @default(0) // Average milliseconds
+  minDuration Int      @default(0)
+  maxDuration Int      @default(0)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([date, projectId, toolName])
+  @@index([date(sort: Desc)])
+  @@index([projectId])
+  @@map("mcp_tool_aggregates")
 }
 
 // ============================================================================
