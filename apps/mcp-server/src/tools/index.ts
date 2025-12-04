@@ -2,6 +2,8 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import type { ToolDefinition, ToolContext } from './types.js';
 import { getAgentAuth, isToolAllowed } from '../authContext.js';
+// Sprint 11.5: Admin controls for global blocklist and logging
+import { checkBlockedTool, logToolCall } from '../adminControls.js';
 import { healthCheckTool } from './healthCheck.js';
 import { sprintPhaseCreateTool } from './sprintPhaseCreate.js';
 import { sprintGetCurrentTaskTool } from './sprintGetCurrentTask.js';
@@ -192,6 +194,8 @@ export const registerTools = (server: Server, context: ToolContext) => {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: rawArgs } = request.params;
     const tool = tools.find((item) => item.name === name);
+    const auth = getAgentAuth();
+    const startTime = Date.now();
 
     if (!tool) {
       return {
@@ -205,15 +209,27 @@ export const registerTools = (server: Server, context: ToolContext) => {
       };
     }
 
-    // Sprint 10: Check tool permissions before execution
-    const auth = getAgentAuth();
+    // Sprint 10: Check per-token tool permissions
     if (!isToolAllowed(name)) {
-      context.logger.warn('Tool execution denied by permissions', {
+      context.logger.warn('Tool execution denied by token permissions', {
         tool: name,
         projectId: auth?.projectId,
         blockedTools: auth?.blockedTools,
         allowedTools: auth?.allowedTools,
       });
+
+      // Log the blocked attempt (fire-and-forget)
+      if (auth) {
+        logToolCall({
+          tokenId: auth.tokenId,
+          projectId: auth.projectId,
+          toolName: name,
+          duration: Date.now() - startTime,
+          success: false,
+          error: 'Blocked by token permissions',
+        }).catch(() => {}); // Non-blocking
+      }
+
       return {
         content: [
           {
@@ -225,12 +241,80 @@ export const registerTools = (server: Server, context: ToolContext) => {
       };
     }
 
+    // Sprint 11.5: Check global admin blocklist
+    try {
+      const isGloballyBlocked = await checkBlockedTool(name);
+      if (isGloballyBlocked) {
+        context.logger.warn('Tool execution denied by global admin blocklist', {
+          tool: name,
+          projectId: auth?.projectId,
+        });
+
+        // Log the blocked attempt (fire-and-forget)
+        if (auth) {
+          logToolCall({
+            tokenId: auth.tokenId,
+            projectId: auth.projectId,
+            toolName: name,
+            duration: Date.now() - startTime,
+            success: false,
+            error: 'Blocked by admin: Global blocklist',
+          }).catch(() => {}); // Non-blocking
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Tool "${name}" is currently disabled by administrator. Please try again later or contact support.`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    } catch (err) {
+      // Fail open on blocklist check errors
+      context.logger.warn('Global blocklist check failed, allowing tool', {
+        tool: name,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     try {
       const parsed = tool.schema.parse(rawArgs ?? {});
-      return await tool.execute(parsed, context);
+      const result = await tool.execute(parsed, context);
+      const duration = Date.now() - startTime;
+
+      // Sprint 11.5: Log successful tool call (fire-and-forget)
+      if (auth) {
+        logToolCall({
+          tokenId: auth.tokenId,
+          projectId: auth.projectId,
+          toolName: name,
+          duration,
+          success: !result.isError,
+          error: result.isError ? (result.content[0] as { text?: string })?.text : undefined,
+        }).catch(() => {}); // Non-blocking
+      }
+
+      return result;
     } catch (error) {
+      const duration = Date.now() - startTime;
       const details = error instanceof Error ? error.message : String(error);
       context.logger.error('Tool execution failed', { tool: tool.name, error: details });
+
+      // Sprint 11.5: Log failed tool call (fire-and-forget)
+      if (auth) {
+        logToolCall({
+          tokenId: auth.tokenId,
+          projectId: auth.projectId,
+          toolName: name,
+          duration,
+          success: false,
+          error: details,
+        }).catch(() => {}); // Non-blocking
+      }
+
       return {
         content: [
           {

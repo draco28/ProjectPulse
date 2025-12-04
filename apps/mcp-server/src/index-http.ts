@@ -19,6 +19,8 @@ import { createLogger } from './logger.js';
 import { createHttpClient } from './httpClient.js';
 import { registerTools, loadTools } from './tools/index.js';
 import { authContext, type AgentAuth } from './authContext.js';
+// Sprint 11.5: Admin controls for emergency shutdown
+import { checkEmergencyShutdown } from './adminControls.js';
 
 const logger = createLogger(config.logLevel);
 const httpClient = createHttpClient(config, logger);
@@ -203,6 +205,29 @@ app.get('/health', (_req, res) => {
  * Compatible with: Claude Code, Windsurf, Cascade, and all MCP-compliant clients
  */
 app.post('/mcp', async (req, res) => {
+  // Sprint 11.5: Check emergency shutdown FIRST (before any processing)
+  try {
+    const emergencyStatus = await checkEmergencyShutdown();
+    if (emergencyStatus.enabled) {
+      logger.warn('MCP request rejected: Emergency shutdown is enabled', {
+        reason: emergencyStatus.reason,
+      });
+      return res.status(503).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32001,
+          message: `MCP temporarily disabled by administrator: ${emergencyStatus.reason || 'No reason provided'}`,
+        },
+        id: req.body?.id || null,
+      });
+    }
+  } catch (err) {
+    // Fail open on emergency check errors (availability over security)
+    logger.warn('Emergency shutdown check failed, proceeding with request', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   // Sprint 10: Build auth context from validated middleware data
   const reqAgentAuth = (req as any).agentAuth as {
     projectId: number;
@@ -212,7 +237,7 @@ app.post('/mcp', async (req, res) => {
     allowedTools: string[];
   } | undefined;
   const rawToken = req.headers.authorization?.slice('Bearer '.length) || '';
-  
+
   // Create AgentAuth context for AsyncLocalStorage
   const agentAuthContext: AgentAuth | undefined = reqAgentAuth ? {
     projectId: reqAgentAuth.projectId,
@@ -222,7 +247,7 @@ app.post('/mcp', async (req, res) => {
     blockedTools: reqAgentAuth.blockedTools,
     allowedTools: reqAgentAuth.allowedTools,
   } : undefined;
-  
+
   logger.info('Handling stateful HTTP MCP request', {
     method: req.body?.method,
     hasBody: !!req.body,
