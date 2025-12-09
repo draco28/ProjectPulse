@@ -1,29 +1,31 @@
 # Technical Context
 
 **Project**: ProjectPulse
-**Last Updated**: 2025-11-14
-**Current Sprint**: Sprint 7 (Tasks & Sessions MVP) - Planning
-**Sprint Completion**: 7/9 sprints complete (62% of 505 story points)
+**Last Updated**: 2025-12-08
+**Current Phase**: Production Hardening
+**Sprint Completion**: 91% MVP complete (infrastructure finalized)
 
 ---
 
 ## Current Implementation Status
 
-**What's Built** (Sprints 1-6 + 5.5):
+**What's Built** (MVP Complete - 91%):
 - ✅ 5-level hierarchy (Phase → Week → Day → Task → Session)
 - ✅ Progress roll-up system (auto-propagates to parents)
 - ✅ Wiki system (versioning, full-text search, analytics)
 - ✅ Onboarding system (3-session guided prompts)
 - ✅ Workflow orchestration (12 predefined workflows)
-- ✅ Issue management (CRUD, bulk ops, auto-tagging)
+- ✅ Issue/Ticket management (CRUD, bulk ops, auto-tagging)
 - ✅ Knowledge graph (hybrid search, pgvector, 2-hop traversal)
-- ✅ MCP server (HTTP JSON-RPC, 15 tools operational)
+- ✅ MCP server (HTTP transport, 42+ tools operational)
 - ✅ Skills system (lazy-loading, LRU cache, 92% token reduction)
+- ✅ Infrastructure (Docker, PostgreSQL, Redis, Cloudflare Tunnel)
 
-**What's Next** (Sprint 7):
-- ⏳ Task/Session entities with checkpoint recovery
-- ⏳ Real-time progress tracking
-- ⏳ Context snapshots for session resumption
+**Current Phase** (Production Hardening):
+- 🔧 UI/UX refinement and polish
+- 🔧 Testing and bug fixes
+- 🔧 Performance optimization
+- 🔧 Post-MVP feature planning
 
 ---
 
@@ -125,187 +127,122 @@
 
 ---
 
-## Runtime Environment: Mac Mini Cloud
+## Runtime Environment
 
-**CRITICAL**: All services run on Mac mini (local network), NOT on Windows.
+### Overview
 
-### Architecture Overview
+All services run in Docker containers on Mac Mini. Development and production use different ports to allow simultaneous operation.
 
-ProjectPulse uses a distributed development architecture:
+### Environment Summary
 
-**Windows Machine** (Code Editor Only):
-- **Role**: Code editing, Git operations, documentation
-- **Tools**: Windsurf IDE, Browser, Git
-- **Services**: None (all on Mac mini)
-- **Access**: Via network (HTTP to Mac mini)
+| Environment | Web App | MCP Server | PostgreSQL | Redis | Access Method |
+|-------------|---------|------------|------------|-------|---------------|
+| **Development** | localhost:3000 | localhost:3001 | localhost:5432 | localhost:6379 | Direct (localhost) |
+| **Production** | localhost:8080 | localhost:8081 | localhost:5433 | localhost:6380 | Cloudflare Tunnel |
 
-**Mac Mini** (Runtime Environment):
-- **IP Address**: `192.168.1.15`
-- **Role**: All runtime services (database, web server, MCP)
-- **Docker Compose**: `docker-compose.cloud.yml`
-- **Status**: ✅ Production-like containerized environment
+### Docker Compose Files
 
-### Service Architecture
+| File | Purpose |
+|------|---------|
+| `docker-compose.cloud.yml` | Daily development |
+| `docker-compose.prod-local.yml` | Production on Mac Mini |
+| `docker-compose.production.yml` | Future cloud/VPS deployment |
+| `docker-compose.yml` | CI/automated testing |
 
-```
-┌─────────────────────────────────────┐
-│ Windows (192.168.1.x)               │
-│  - Windsurf (code editor)           │
-│  - Browser → 192.168.1.15:3000     │
-│  - Git push/pull                    │
-│  - NO Docker, NO local services     │
-└──────────────┬──────────────────────┘
-               │
-               │ Git + HTTP + PostgreSQL
-               │
-┌──────────────▼──────────────────────┐
-│ Mac Mini (192.168.1.15)             │
-│  - Docker Compose (all services)    │
-│  - PostgreSQL :5432                 │
-│  - Next.js :3000                    │
-│  - MCP Server (stdio)               │
-└─────────────────────────────────────┘
-```
-
-### Services on Mac Mini
-
-| Service | Port | Access from Windows | Container Name | Purpose |
-|---------|------|---------------------|----------------|---------|
-| **PostgreSQL** | 5432 | `192.168.1.15:5432` | projectpulse-postgres-cloud | Database |
-| **Next.js** | 3000 | `http://192.168.1.15:3000` | projectpulse-nextjs-cloud | Web app + API |
-| **MCP Server** | stdio | N/A (stdio only) | projectpulse-mcp-cloud | AI tools |
-
-### Connection Details
-
-**Database Connection**:
-```bash
-# From Windows
-DATABASE_URL="postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev"
-
-# From Mac mini (within Docker network)
-DATABASE_URL="postgresql://postgres:postgres123@postgres:5432/projectpulse_dev"
-```
-
-**Web Application**:
-```bash
-# From Windows browser
-http://192.168.1.15:3000
-
-# Health check
-curl http://192.168.1.15:3000/api/health
-# Expected: {"status":"healthy","database":"connected"}
-```
-
-**API Endpoints**:
-```bash
-# From Windows
-curl http://192.168.1.15:3000/api/phases
-curl http://192.168.1.15:3000/api/tasks
-curl http://192.168.1.15:3000/api/progress
-```
-
-### Docker Compose Configuration
-
-**File**: `docker-compose.cloud.yml` (Mac mini only)
-
-**Key Configuration**:
-```yaml
-services:
-  postgres:
-    image: postgres:15-alpine
-    ports: ["5432:5432"]
-    environment:
-      POSTGRES_DB: projectpulse_dev
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
-
-  nextjs:
-    image: node:20-alpine
-    ports: ["3000:3000"]
-    command: sh -c "corepack enable && pnpm install && cd apps/web && pnpm dev --hostname 0.0.0.0"
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/projectpulse_dev
-
-  mcp-server:
-    image: node:20-alpine
-    command: sh -c "pnpm install && cd apps/mcp-server && pnpm build && node dist/index.js"
-    environment:
-      PROJECTPULSE_API_URL: http://nextjs:3000
-```
-
-### Mac Mini Management
-
-**Common Operations** (run on Mac mini):
+### Quick Commands (Development)
 
 ```bash
-# Navigate to project
-cd ~/projects/AI_HUB
-
 # Start all services
-docker-compose -f docker-compose.cloud.yml up -d
+docker compose -f docker-compose.cloud.yml up -d
 
-# Stop all services
-docker-compose -f docker-compose.cloud.yml down
-
-# Restart a specific service
-docker-compose -f docker-compose.cloud.yml restart nextjs
+# Check health
+curl http://localhost:3000/api/health
 
 # View logs
-docker-compose -f docker-compose.cloud.yml logs -f [service-name]
+docker compose -f docker-compose.cloud.yml logs -f web
 
-# Check status
-docker-compose -f docker-compose.cloud.yml ps
+# Restart specific service
+docker compose -f docker-compose.cloud.yml restart web
+
+# Stop all services
+docker compose -f docker-compose.cloud.yml down
 ```
 
-### Cross-Machine Communication
+### Production Access
 
-**Code Synchronization**: Git push/pull between machines
+Production is exposed via **Cloudflare Tunnel** (no port forwarding needed):
+- Web: `https://projectpulse.dracodev.dev`
+- MCP: `https://projectpulsemcp.dracodev.dev`
 
-**Service Access**: HTTP over local network (192.168.1.x)
+This is unaffected by local network/WiFi IP changes.
 
-**Claude Code Instances**: Git-based instruction files
-- Windows commits instructions to `.agent/task/mac-mini-instructions.md`
-- Mac mini pulls, executes, commits results back
-- Windows pulls to read results
+### Database Connection
 
-**See**: `.agent/sops/mac-mini-communication-protocol.md` for complete workflow
+```bash
+# Development
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/projectpulse_dev"
 
-### Setup Documentation
+# Production (from host, for migrations)
+source .env.prod-local
+DATABASE_URL="postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost:5433/$PROD_POSTGRES_DB"
+```
 
-**Complete Setup Guide**: `.agent/sops/mac-mini-cloud-architecture.md`
-- Full Mac mini setup from scratch
-- Docker installation
-- Repository cloning
-- Service verification
+### For Detailed Infrastructure Documentation
+- `.agent/system/infrastructure-state.md` - Complete infrastructure state, Docker configs, Kubernetes plans
+- `.agent/sops/mac-mini-cloud-architecture.md` - Mac Mini setup guide
 
-**Setup Completion Report**: `.agent/sops/mac-mini-setup-complete.md`
-- Current setup status
-- Network configuration
-- Service verification results
+---
 
-**Communication Protocol**: `.agent/sops/mac-mini-communication-protocol.md`
-- When to use Mac mini vs Windows
-- Git-based communication workflow
-- Real-world examples
+## Deployment & Schema Migrations
 
-### Why This Architecture?
+### Schema Changes Workflow
 
-**Problem Solved**:
-- Eliminated Windows WSL2 file permission issues
-- Eliminated Windows TypeScript module resolution errors
-- Clean separation of concerns (edit vs runtime)
+| Environment | Command | Auto-applies? |
+|-------------|---------|---------------|
+| **Development** | `pnpm prisma migrate dev --name your_migration` | ✅ Yes (on container start) |
+| **Production** | `pnpm prisma migrate deploy` | ❌ No (manual before deploy) |
 
-**Benefits**:
-- ✅ Production-like containerized environment
-- ✅ Windows = code editor only (simpler, faster)
-- ✅ Mac mini = dedicated runtime (stable, isolated)
-- ✅ Network-accessible services (testable from any device)
-- ✅ Git-based communication (versioned, reproducible)
+**Why manual in production?** pnpm's symlink structure in `node_modules/.pnpm/` is incompatible with Docker's COPY instruction, making auto-migration impossible in production containers.
 
-**Trade-offs**:
-- ⚠️ Initial setup time (~25 minutes)
-- ⚠️ Requires Mac mini to be powered on
-- ⚠️ Requires local network connectivity
+### Development Workflow
+
+```bash
+# Create and apply migration (creates SQL file + applies)
+cd apps/web
+pnpm prisma migrate dev --name add_user_preferences
+
+# Migration files created in: apps/web/prisma/migrations/
+```
+
+### Production Migration Workflow
+
+```bash
+# 1. Check pending migrations
+source .env.prod-local
+DATABASE_URL="postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost:5433/$PROD_POSTGRES_DB" \
+  pnpm exec prisma migrate status
+
+# 2. Apply migrations (BEFORE deployment)
+DATABASE_URL="postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost:5433/$PROD_POSTGRES_DB" \
+  pnpm exec prisma migrate deploy
+
+# 3. Then deploy
+./scripts/deploy-prod.sh
+```
+
+### Deployment Process
+
+| Mode | Command | What it does |
+|------|---------|--------------|
+| **Full deploy** | `./scripts/deploy-prod.sh` | Git pull → Build images → Restart → Smoke tests |
+| **Quick restart** | `./scripts/deploy-prod.sh --quick` | Restart containers only (no rebuild) |
+| **Test only** | `./scripts/deploy-prod.sh --test` | Run smoke tests only |
+
+### Detailed Documentation
+- **Migration Guide**: `.agent/sops/prisma-migration-workflow.md`
+- **Production Migrations**: `.agent/sops/prisma-migration-prod.md`
+- **Deployment Process**: `.agent/sops/production-deployment.md`
+- **Dev→Prod Workflow**: `.agent/sops/dev-to-prod-deployment.md`
 
 ---
 
@@ -394,13 +331,19 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 ### Port Configuration
 
-**Application**: `http://localhost:3000`
-**Database**: `localhost:5432`
-**Future API**: `http://localhost:3001` (if needed)
+**Development**:
+- Web App: `http://localhost:3000`
+- MCP Server: `http://localhost:3001`
+- PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
 
-**CRITICAL**: Always verify `pnpm dev` shows port 3000 (not 3002)
+**Production** (Mac Mini):
+- Web App: `localhost:8080` (internal) → `https://projectpulse.dracodev.dev` (external)
+- MCP Server: `localhost:8081` (internal) → `https://projectpulsemcp.dracodev.dev` (external)
+- PostgreSQL: `localhost:5433`
+- Redis: `localhost:6380`
 
-- See: `.agent/sops/port-troubleshooting.md`
+**Note**: Dev and prod use different ports so both can run simultaneously.
 
 ---
 
@@ -579,28 +522,32 @@ pnpm start  # Production server
 
 ## Docker Configuration
 
-### PostgreSQL Container
+### Current Services (All Running)
 
-**Image**: `postgres:16-alpine`
-**Ports**: `5432:5432`
-**Volumes**: `postgres_data:/var/lib/postgresql/data`
-**Env**:
+| Service | Image | Dev Port | Prod Port |
+|---------|-------|----------|-----------|
+| PostgreSQL | pgvector/pgvector:pg15 | 5432 | 5433 |
+| Redis | redis:7-alpine | 6379 | 6380 |
+| Next.js | Custom (multi-stage build) | 3000 | 8080 |
+| MCP Server | Custom (Node 20) | 3001 | 8081 |
+| Cloudflare Tunnel | cloudflare/cloudflared | - | (prod only) |
 
-- POSTGRES_USER=projectpulse
-- POSTGRES_PASSWORD=devpassword
-- POSTGRES_DB=projectpulse
+### PostgreSQL Extensions
+- `pgvector` - Vector similarity search (384 dimensions)
+- `pg_trgm` - Trigram indexing for full-text search
+- `uuid-ossp` - UUID generation
 
-### Future Containers
+### Health Checks
+All services have health checks configured:
+- PostgreSQL: `pg_isready` (10s interval)
+- Redis: `redis-cli ping` (10s interval)
+- Next.js: `curl /api/health` (30s interval)
+- MCP Server: `fetch /health` (30s interval)
 
-**MCP Server** (future):
-
-- Port: 3001
-- Protocol: stdio (HTTP optional in future; not required)
-
-**Redis** (future - caching):
-
-- Port: 6379
-- Persistence: AOF
+### Volumes (Persistent Data)
+- `postgres_data` / `prod_postgres_data` - Database files
+- `redis_data` / `prod_redis_data` - Redis persistence (AOF)
+- `uploads` - User-uploaded files
 
 ---
 
@@ -788,7 +735,7 @@ pnpm update
 
 ---
 
-Last reviewed: 2025-11-06
+Last reviewed: 2025-12-08
 
 ---
 
