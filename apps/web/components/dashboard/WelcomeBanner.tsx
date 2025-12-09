@@ -55,7 +55,7 @@ export function WelcomeBanner({
           <p className="mb-6 text-lg text-slate">Here&apos;s your project pulse for <strong>{projectName}</strong></p>
           <Link
             href={projectId ? `/tickets/create?project=${projectId}` : '/tickets/create'}
-            className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white"
+            className="coral-gradient smooth-transition inline-flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white"
           >
             <Plus className="h-5 w-5" />
             <span>Create Ticket</span>
@@ -78,7 +78,7 @@ export function WelcomeBanner({
         <p className="mb-6 text-lg text-slate">Here&apos;s your project pulse for <strong>{projectName}</strong></p>
         <Link
           href={projectId ? `/tickets/create?project=${projectId}` : '/tickets/create'}
-          className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white"
+          className="coral-gradient smooth-transition inline-flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white"
         >
           <Plus className="h-5 w-5" />
           <span>Create Ticket</span>
