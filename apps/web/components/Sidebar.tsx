@@ -88,6 +88,21 @@ export function Sidebar({ projectId: propProjectId, projectName: propProjectName
   const userInitials = user?.name
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : 'U';
+
+  // Get project display name (abbreviate if too long)
+  const MAX_PROJECT_NAME_LENGTH = 12;
+  const getProjectInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 3);
+  };
+  const projectDisplayName = projectName && projectName.length > MAX_PROJECT_NAME_LENGTH
+    ? getProjectInitials(projectName)
+    : projectName || 'Project';
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Helper to build href with projectId
@@ -170,7 +185,7 @@ export function Sidebar({ projectId: propProjectId, projectName: propProjectName
               <Heart className="h-6 w-6 text-white" fill="white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-xl font-bold text-white">{projectName || 'Project'}</h1>
+              <h1 className="truncate text-xl font-bold text-white" title={projectName || undefined}>{projectDisplayName}</h1>
               <p className="text-xs text-slate">ProjectPulse</p>
             </div>
           </div>
