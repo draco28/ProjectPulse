@@ -26,6 +26,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
@@ -67,17 +68,26 @@ const navigationItems: NavItem[] = [
 
 interface SidebarProps {
   projectId?: number;
+  projectName?: string;
   counts?: SidebarCounts;
 }
 
-export function Sidebar({ projectId: propProjectId, counts: propCounts }: SidebarProps = {}) {
-  // Fetch counts client-side from URL params
-  const { counts: fetchedCounts, projectId: urlProjectId } = useSidebarCounts();
-  
+export function Sidebar({ projectId: propProjectId, projectName: propProjectName, counts: propCounts }: SidebarProps = {}) {
+  // Fetch counts and project name client-side from URL params
+  const { counts: fetchedCounts, projectId: urlProjectId, projectName: fetchedProjectName } = useSidebarCounts();
+  const { data: session } = useSession();
+
   // Use prop values if provided, otherwise use fetched values
   const projectId = propProjectId ?? urlProjectId;
+  const projectName = propProjectName ?? fetchedProjectName;
   const counts = propCounts ?? fetchedCounts;
   const pathname = usePathname();
+
+  // Get user info from session
+  const user = session?.user;
+  const userInitials = user?.name
+    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'U';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Helper to build href with projectId
@@ -159,9 +169,9 @@ export function Sidebar({ projectId: propProjectId, counts: propCounts }: Sideba
             <div className="icon-coral heartbeat flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg">
               <Heart className="h-6 w-6 text-white" fill="white" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">Moksha</h1>
-              <p className="text-xs text-slate">DevHub</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-xl font-bold text-white">{projectName || 'Project'}</h1>
+              <p className="text-xs text-slate">ProjectPulse</p>
             </div>
           </div>
         </div>
@@ -225,17 +235,17 @@ export function Sidebar({ projectId: propProjectId, counts: propCounts }: Sideba
         {/* User Profile */}
         <div className="neu-raised smooth-transition rounded-3xl p-4">
           <div className="flex items-center gap-3">
-            <div className="icon-coral relative flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-lg">
-              DV
+            <div className="icon-coral relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-lg">
+              {userInitials}
               {/* Online status indicator */}
               <span
                 className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background bg-green-400"
                 title="Online"
               />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-white">Developer</p>
-              <p className="text-xs text-slate">dev@projectpulse.local</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-white">{user?.name || 'User'}</p>
+              <p className="truncate text-xs text-slate">{user?.email || ''}</p>
             </div>
           </div>
         </div>

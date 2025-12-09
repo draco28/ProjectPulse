@@ -17,13 +17,20 @@
 'use client';
 
 import { Plus } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 interface WelcomeBannerProps {
   userName?: string;
+  projectName?: string;
+  projectId?: number;
 }
 
-export function WelcomeBanner({ userName: _userName = 'Developer' }: WelcomeBannerProps) {
+export function WelcomeBanner({
+  userName: _userName = 'Developer',
+  projectName = 'Your Project',
+  projectId
+}: WelcomeBannerProps) {
   // Client-only rendering - no SSR
   const [mounted, setMounted] = useState(false);
   const [greeting, setGreeting] = useState('Good morning');
@@ -45,11 +52,14 @@ export function WelcomeBanner({ userName: _userName = 'Developer' }: WelcomeBann
           <h2 className="mb-2 text-4xl font-bold text-white">
             Good morning! 👋
           </h2>
-          <p className="mb-6 text-lg text-slate">Here&apos;s your project pulse for Moksha DevHub</p>
-          <button className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white">
+          <p className="mb-6 text-lg text-slate">Here&apos;s your project pulse for <strong>{projectName}</strong></p>
+          <Link
+            href={projectId ? `/tickets/create?project=${projectId}` : '/tickets/create'}
+            className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white"
+          >
             <Plus className="h-5 w-5" />
-            <span>Create New Issue</span>
-          </button>
+            <span>Create Ticket</span>
+          </Link>
         </div>
       </div>
     );
@@ -65,11 +75,14 @@ export function WelcomeBanner({ userName: _userName = 'Developer' }: WelcomeBann
         <h2 className="mb-2 text-4xl font-bold text-white">
           {greeting}! 👋
         </h2>
-        <p className="mb-6 text-lg text-slate">Here&apos;s your project pulse for Moksha DevHub</p>
-        <button className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white">
+        <p className="mb-6 text-lg text-slate">Here&apos;s your project pulse for <strong>{projectName}</strong></p>
+        <Link
+          href={projectId ? `/tickets/create?project=${projectId}` : '/tickets/create'}
+          className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white"
+        >
           <Plus className="h-5 w-5" />
-          <span>Create New Issue</span>
-        </button>
+          <span>Create Ticket</span>
+        </Link>
       </div>
     </div>
   );

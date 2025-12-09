@@ -266,7 +266,7 @@ export default async function DashboardPage({
       </Link>
 
       {/* Welcome Banner */}
-      <WelcomeBanner />
+      <WelcomeBanner projectName={project.name} projectId={projectId} />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">

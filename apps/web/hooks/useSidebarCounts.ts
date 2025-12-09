@@ -11,6 +11,7 @@ export interface SidebarCounts {
 
 export function useSidebarCounts() {
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState<string | null>(null);
   const [counts, setCounts] = useState<SidebarCounts | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +40,9 @@ export function useSidebarCounts() {
         });
         if (response.ok) {
           const data = await response.json();
-          setCounts(data);
+          const { projectName: name, ...countsData } = data;
+          setCounts(countsData);
+          setProjectName(name || null);
         }
       } catch (error) {
         // Ignore abort errors (expected when request is cancelled)
@@ -60,5 +63,10 @@ export function useSidebarCounts() {
     };
   }, [projectId]); // Only re-fetch when projectId changes
 
-  return { counts, loading, projectId: projectId ? parseInt(projectId, 10) : undefined };
+  return {
+    counts,
+    loading,
+    projectId: projectId ? parseInt(projectId, 10) : undefined,
+    projectName,
+  };
 }

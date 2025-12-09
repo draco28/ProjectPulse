@@ -21,11 +21,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
 
-    // Verify project ownership
+    // Verify project ownership and get project name
     const { prisma } = await import('@/lib/prisma');
     const project = await prisma.project.findUnique({
       where: { id: projectIdNum },
-      select: { ownerId: true },
+      select: { ownerId: true, name: true },
     });
 
     if (!project || project.ownerId !== user.id) {
@@ -35,7 +35,8 @@ export async function GET(request: NextRequest) {
     // Fetch counts
     const counts = await getSidebarCounts(projectIdNum);
 
-    return NextResponse.json(counts);
+    // Return counts + project name for Sidebar display
+    return NextResponse.json({ ...counts, projectName: project.name });
   } catch (error) {
     console.error('Sidebar counts error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

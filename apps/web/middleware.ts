@@ -27,7 +27,8 @@ const publicApiPrefixes = [
 // - Bearer token (project-scoped) for MCP agents
 // The whitelist approach was a security vulnerability - anyone with curl could access APIs
 // Sprint 10: Removed '/issues' - it's a redirect page to /tickets, project context enforced there
-const projectRoutes = ['/dashboard', '/wiki', '/knowledge', '/health', '/agents', '/roadmap'];
+// Sprint 11.7: Added '/tickets' - requires project context for proper filtering
+const projectRoutes = ['/dashboard', '/wiki', '/knowledge', '/health', '/agents', '/roadmap', '/tickets'];
 
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
