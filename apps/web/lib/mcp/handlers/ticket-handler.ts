@@ -29,6 +29,33 @@ import { Prisma } from '@prisma/client';
 // Types
 // ============================================================================
 
+// Sprint 11.7: Implementation Context types for MCP
+export interface ImplementationContextInput {
+  phaseSprintRef?: {
+    phaseId?: string;
+    sprintId?: string;
+    weekId?: string;
+    displayName?: string;
+  };
+  filesToModify?: Array<{
+    path: string;
+    reason?: string;
+    estimatedChanges?: 'minor' | 'moderate' | 'major';
+  }>;
+  filesToCreate?: Array<{
+    path: string;
+    purpose?: string;
+    template?: string;
+  }>;
+  schemaChanges?: {
+    required: boolean;
+    migrationName?: string;
+    models?: string[];
+    description?: string;
+  };
+  implementationBlueprint?: string;
+}
+
 export interface TicketCreateInput {
   projectId?: number;
   title: string;
@@ -44,6 +71,11 @@ export interface TicketCreateInput {
   linkedTaskId?: string;
   labelIds?: number[];
   customFields?: Record<string, unknown>;
+  // Sprint 11.7: Milestone and Due Date
+  dueDate?: string; // ISO datetime string
+  milestoneId?: number;
+  // Sprint 11.7: Implementation Context
+  implementationContext?: ImplementationContextInput;
 }
 
 export interface TicketCreateOutput {
@@ -59,6 +91,9 @@ export interface TicketCreateOutput {
   assignee: string | null;
   customFields: Record<string, unknown> | null;
   createdAt: string;
+  // Sprint 11.7: Milestone and Due Date
+  dueDate: string | null;
+  milestone: { id: number; name: string } | null;
 }
 
 export interface TicketBulkCreateInput {
@@ -84,6 +119,11 @@ export interface TicketUpdateInput {
   linkedTaskId?: string;
   labelIds?: number[];
   customFields?: Record<string, unknown>;
+  // Sprint 11.7: Milestone and Due Date
+  dueDate?: string | null; // ISO datetime string, null to clear
+  milestoneId?: number | null; // null to unassign milestone
+  // Sprint 11.7: Implementation Context (null to remove)
+  implementationContext?: ImplementationContextInput | null;
 }
 
 export interface TicketUpdateOutput {
@@ -96,6 +136,9 @@ export interface TicketUpdateOutput {
   module: string | null;
   assignee: string | null;
   updatedAt: string;
+  // Sprint 11.7: Milestone and Due Date
+  dueDate: string | null;
+  milestone: { id: number; name: string } | null;
 }
 
 export interface TicketSearchInput {
@@ -109,9 +152,17 @@ export interface TicketSearchInput {
   tags?: string[];
   createdFrom?: string;
   createdTo?: string;
+  // Sprint 11.7: Milestone and Due Date filters
+  milestoneId?: number;
+  dueDateFrom?: string;
+  dueDateTo?: string;
+  overdue?: boolean; // Filter for overdue tickets only
+  // Sprint 11.7: Implementation Context filters
+  hasImplementationContext?: boolean; // Filter tickets with/without context
+  requiresSchemaChanges?: boolean; // Filter tickets requiring DB migration
   page?: number;
   pageSize?: number;
-  sortBy?: 'createdAt' | 'updatedAt' | 'priority';
+  sortBy?: 'createdAt' | 'updatedAt' | 'priority' | 'dueDate';
   sortDirection?: 'asc' | 'desc';
 }
 
@@ -127,6 +178,9 @@ export interface TicketSearchOutput {
     assignee: string | null;
     createdAt: string;
     updatedAt: string;
+    // Sprint 11.7: Milestone and Due Date
+    dueDate: string | null;
+    milestone: { id: number; name: string } | null;
   }>;
   pagination: {
     page: number;
@@ -166,23 +220,36 @@ export interface TicketSetStatusOutput {
 // Helpers
 // ============================================================================
 
+/**
+ * Resolve and validate project ID
+ *
+ * Sprint 11.7: Removed unsafe fallback to first project.
+ * MCP handlers now REQUIRE explicit projectId to prevent cross-project data access.
+ */
 async function resolveProjectId(projectId?: number): Promise<number> {
-  if (projectId) return projectId;
-
-  const defaultProject = await prisma.project.findFirst({
-    orderBy: { id: 'asc' },
-    select: { id: true },
-  });
-
-  if (!defaultProject) {
+  if (!projectId) {
     throw new MCPError(
-      'No project found. Create a project first.',
+      'projectId is required. Specify the project to work with.',
       JSONRPC_ERROR_CODES.INVALID_PARAMS,
       400
     );
   }
 
-  return defaultProject.id;
+  // Validate project exists
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { id: true },
+  });
+
+  if (!project) {
+    throw new MCPError(
+      `Project ${projectId} not found`,
+      JSONRPC_ERROR_CODES.INVALID_PARAMS,
+      404
+    );
+  }
+
+  return projectId;
 }
 
 // ============================================================================
@@ -226,6 +293,18 @@ export async function ticketCreateHandler(
     // Resolve project ID
     const projectId = await resolveProjectId(params.projectId);
 
+    // Sprint 11.7: Merge implementation context into customFields
+    let customFieldsPayload: Record<string, unknown> = {
+      ...(params.customFields ?? {}),
+    };
+    if (params.implementationContext) {
+      customFieldsPayload._implementationContext = {
+        ...params.implementationContext,
+        filesToModify: params.implementationContext.filesToModify ?? [],
+        filesToCreate: params.implementationContext.filesToCreate ?? [],
+      };
+    }
+
     // Build create data
     const createData: Prisma.TicketCreateInput = {
       project: { connect: { id: projectId } },
@@ -239,12 +318,29 @@ export async function ticketCreateHandler(
       assignee: params.assignee || null,
       assigneeType: params.assigneeType || null,
       assigneeId: params.assigneeId || null,
-      customFields: params.customFields as Prisma.InputJsonValue || Prisma.JsonNull,
+      customFields: Object.keys(customFieldsPayload).length > 0
+        ? customFieldsPayload as Prisma.InputJsonValue
+        : Prisma.JsonNull,
+      // Sprint 11.7: Milestone and Due Date
+      dueDate: params.dueDate ? new Date(params.dueDate) : null,
     };
 
-    // Link to task if provided
-    if (params.linkedTaskId) {
-      createData.linkedTask = { connect: { id: params.linkedTaskId } };
+    // Sprint 12: linkedTask removed - tickets now schedule via scheduledWeekId
+
+    // Sprint 11.7: Link to milestone if provided
+    if (params.milestoneId) {
+      // Validate milestone exists and belongs to same project
+      const milestone = await prisma.milestone.findFirst({
+        where: { id: params.milestoneId, projectId },
+      });
+      if (!milestone) {
+        throw new MCPError(
+          `Milestone ${params.milestoneId} not found in project ${projectId}`,
+          JSONRPC_ERROR_CODES.INVALID_PARAMS,
+          404
+        );
+      }
+      createData.milestone = { connect: { id: params.milestoneId } };
     }
 
     // Create ticket
@@ -263,6 +359,11 @@ export async function ticketCreateHandler(
         assignee: true,
         customFields: true,
         createdAt: true,
+        // Sprint 11.7: Include milestone and dueDate
+        dueDate: true,
+        milestone: {
+          select: { id: true, name: true },
+        },
       },
     });
 
@@ -291,6 +392,9 @@ export async function ticketCreateHandler(
       assignee: ticket.assignee,
       customFields: ticket.customFields as Record<string, unknown> | null,
       createdAt: ticket.createdAt.toISOString(),
+      // Sprint 11.7: Milestone and Due Date
+      dueDate: ticket.dueDate?.toISOString() || null,
+      milestone: ticket.milestone ? { id: ticket.milestone.id, name: ticket.milestone.name } : null,
     };
   } catch (error) {
     if (error instanceof MCPError) throw error;
@@ -340,6 +444,7 @@ export async function ticketBulkCreateHandler(
     const projectId = await resolveProjectId(params.projectId);
 
     // Create tickets in transaction
+    // Note: bulkCreate doesn't support milestone linking (use single create for that)
     const createdTickets = await prisma.$transaction(
       params.tickets.map((ticket) =>
         prisma.ticket.create({
@@ -354,6 +459,8 @@ export async function ticketBulkCreateHandler(
             module: ticket.module || null,
             assignee: ticket.assignee || null,
             customFields: ticket.customFields as Prisma.InputJsonValue || Prisma.JsonNull,
+            // Sprint 11.7: Support dueDate in bulk create
+            dueDate: ticket.dueDate ? new Date(ticket.dueDate) : null,
           },
           select: {
             id: true,
@@ -368,6 +475,11 @@ export async function ticketBulkCreateHandler(
             assignee: true,
             customFields: true,
             createdAt: true,
+            // Sprint 11.7: Include dueDate and milestone
+            dueDate: true,
+            milestone: {
+              select: { id: true, name: true },
+            },
           },
         })
       )
@@ -388,6 +500,9 @@ export async function ticketBulkCreateHandler(
         assignee: t.assignee,
         customFields: t.customFields as Record<string, unknown> | null,
         createdAt: t.createdAt.toISOString(),
+        // Sprint 11.7: Include dueDate and milestone
+        dueDate: t.dueDate?.toISOString() || null,
+        milestone: t.milestone ? { id: t.milestone.id, name: t.milestone.name } : null,
       })),
     };
   } catch (error) {
@@ -426,10 +541,10 @@ export async function ticketUpdateHandler(
       );
     }
 
-    // Check ticket exists
+    // Check ticket exists and fetch customFields for context merging
     const existing = await prisma.ticket.findUnique({
       where: { id: params.ticketId },
-      select: { id: true },
+      select: { id: true, projectId: true, customFields: true },
     });
 
     if (!existing) {
@@ -451,16 +566,60 @@ export async function ticketUpdateHandler(
     if (params.assignee !== undefined) updateData.assignee = params.assignee;
     if (params.assigneeType !== undefined) updateData.assigneeType = params.assigneeType;
     if (params.assigneeId !== undefined) updateData.assigneeId = params.assigneeId;
-    if (params.customFields !== undefined) updateData.customFields = params.customFields as Prisma.InputJsonValue;
 
-    // Handle linked task
-    if (params.linkedTaskId !== undefined) {
-      if (params.linkedTaskId) {
-        updateData.linkedTask = { connect: { id: params.linkedTaskId } };
+    // Sprint 11.7: Handle customFields and implementationContext
+    if (params.customFields !== undefined || params.implementationContext !== undefined) {
+      const existingFields = (existing.customFields as Record<string, unknown>) ?? {};
+      let newCustomFields = { ...existingFields };
+
+      // Merge direct customFields updates
+      if (params.customFields !== undefined) {
+        newCustomFields = { ...newCustomFields, ...params.customFields };
+      }
+
+      // Handle implementationContext specially
+      if (params.implementationContext !== undefined) {
+        if (params.implementationContext === null) {
+          // Explicitly remove implementation context
+          delete newCustomFields._implementationContext;
+        } else {
+          newCustomFields._implementationContext = {
+            ...params.implementationContext,
+            filesToModify: params.implementationContext.filesToModify ?? [],
+            filesToCreate: params.implementationContext.filesToCreate ?? [],
+          };
+        }
+      }
+
+      updateData.customFields = newCustomFields as Prisma.InputJsonValue;
+    }
+
+    // Sprint 11.7: Handle dueDate
+    if (params.dueDate !== undefined) {
+      updateData.dueDate = params.dueDate ? new Date(params.dueDate) : null;
+    }
+
+    // Sprint 11.7: Handle milestone
+    if (params.milestoneId !== undefined) {
+      if (params.milestoneId) {
+        // Validate milestone exists and belongs to same project (use existing.projectId)
+        const milestone = await prisma.milestone.findFirst({
+          where: { id: params.milestoneId, projectId: existing.projectId },
+        });
+        if (!milestone) {
+          throw new MCPError(
+            `Milestone ${params.milestoneId} not found in ticket's project`,
+            JSONRPC_ERROR_CODES.INVALID_PARAMS,
+            404
+          );
+        }
+        updateData.milestone = { connect: { id: params.milestoneId } };
       } else {
-        updateData.linkedTask = { disconnect: true };
+        updateData.milestone = { disconnect: true };
       }
     }
+
+    // Sprint 12: linkedTask removed - tickets now schedule via scheduledWeekId
 
     // Handle labels
     if (params.labelIds !== undefined) {
@@ -483,6 +642,11 @@ export async function ticketUpdateHandler(
         module: true,
         assignee: true,
         updatedAt: true,
+        // Sprint 11.7: Include milestone and dueDate
+        dueDate: true,
+        milestone: {
+          select: { id: true, name: true },
+        },
       },
     });
 
@@ -496,6 +660,9 @@ export async function ticketUpdateHandler(
       module: ticket.module,
       assignee: ticket.assignee,
       updatedAt: ticket.updatedAt.toISOString(),
+      // Sprint 11.7: Milestone and Due Date
+      dueDate: ticket.dueDate?.toISOString() || null,
+      milestone: ticket.milestone ? { id: ticket.milestone.id, name: ticket.milestone.name } : null,
     };
   } catch (error) {
     if (error instanceof MCPError) throw error;
@@ -517,8 +684,13 @@ export async function ticketSearchHandler(
   try {
     const params = (input || {}) as TicketSearchInput;
 
-    // Build where clause
-    const where: Prisma.TicketWhereInput = {};
+    // Sprint 11.7: SECURITY FIX - Require projectId to prevent cross-project data access
+    const projectId = await resolveProjectId(params.projectId);
+
+    // Build where clause with mandatory projectId filter
+    const where: Prisma.TicketWhereInput = {
+      projectId, // Sprint 11.7: Always filter by project
+    };
 
     // Text search
     if (params.search) {
@@ -574,6 +746,53 @@ export async function ticketSearchHandler(
       };
     }
 
+    // Sprint 11.7: Milestone filter
+    if (params.milestoneId) {
+      where.milestoneId = params.milestoneId;
+    }
+
+    // Sprint 11.7: Due date filters
+    if (params.dueDateFrom || params.dueDateTo) {
+      where.dueDate = {
+        ...(params.dueDateFrom ? { gte: new Date(params.dueDateFrom) } : {}),
+        ...(params.dueDateTo ? { lte: new Date(params.dueDateTo) } : {}),
+      };
+    }
+
+    // Sprint 11.7: Overdue filter (dueDate < now AND not closed)
+    if (params.overdue === true) {
+      where.dueDate = { lt: new Date() };
+      where.status = { not: 'closed' };
+    }
+
+    // Sprint 11.7: Implementation Context filters (JSONB path queries)
+    if (params.hasImplementationContext !== undefined) {
+      if (params.hasImplementationContext) {
+        // Filter tickets that HAVE implementation context
+        where.customFields = {
+          path: ['_implementationContext'],
+          not: Prisma.JsonNull,
+        };
+      } else {
+        // Filter tickets WITHOUT implementation context
+        // This is tricky with JSONB - we check if the key doesn't exist or is null
+        where.OR = [
+          ...(where.OR || []),
+          { customFields: { equals: Prisma.JsonNull } },
+          { customFields: { path: ['_implementationContext'], equals: Prisma.JsonNull } },
+        ];
+      }
+    }
+
+    if (params.requiresSchemaChanges === true) {
+      // Filter tickets where schemaChanges.required is true
+      where.customFields = {
+        ...(where.customFields as Prisma.JsonFilter || {}),
+        path: ['_implementationContext', 'schemaChanges', 'required'],
+        equals: true,
+      };
+    }
+
     // Pagination
     const page = Math.max(1, params.page || 1);
     const pageSize = Math.min(100, Math.max(1, params.pageSize || 20));
@@ -582,9 +801,14 @@ export async function ticketSearchHandler(
     // Sorting
     const sortBy = params.sortBy || 'createdAt';
     const sortDirection = params.sortDirection || 'desc';
-    const orderBy: Prisma.TicketOrderByWithRelationInput = {
-      [sortBy]: sortDirection,
-    };
+    let orderBy: Prisma.TicketOrderByWithRelationInput;
+
+    // Sprint 11.7: Handle dueDate sorting with nulls
+    if (sortBy === 'dueDate') {
+      orderBy = { dueDate: { sort: sortDirection, nulls: sortDirection === 'asc' ? 'last' : 'first' } };
+    } else {
+      orderBy = { [sortBy]: sortDirection };
+    }
 
     // Execute query
     const [tickets, total] = await Promise.all([
@@ -604,6 +828,11 @@ export async function ticketSearchHandler(
           assignee: true,
           createdAt: true,
           updatedAt: true,
+          // Sprint 11.7: Include milestone and dueDate
+          dueDate: true,
+          milestone: {
+            select: { id: true, name: true },
+          },
         },
       }),
       prisma.ticket.count({ where }),
@@ -621,6 +850,9 @@ export async function ticketSearchHandler(
         assignee: t.assignee,
         createdAt: t.createdAt.toISOString(),
         updatedAt: t.updatedAt.toISOString(),
+        // Sprint 11.7: Milestone and Due Date
+        dueDate: t.dueDate?.toISOString() || null,
+        milestone: t.milestone ? { id: t.milestone.id, name: t.milestone.name } : null,
       })),
       pagination: {
         page,

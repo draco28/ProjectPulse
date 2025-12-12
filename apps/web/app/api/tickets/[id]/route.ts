@@ -67,29 +67,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
         linkedCommits: {
           select: { id: true, commitHash: true, commitMessage: true, commitDate: true, createdAt: true },
         },
-        linkedTask: {
+        // Sprint 12: linkedTask removed - tickets now schedule via scheduledWeek relation
+        scheduledWeek: {
           select: {
             id: true,
             title: true,
-            status: true,
-            day: {
+            sprint: {
               select: {
                 id: true,
                 title: true,
-                week: {
-                  select: {
-                    id: true,
-                    title: true,
-                    sprint: {
-                      select: {
-                        id: true,
-                        title: true,
-                        phase: {
-                          select: { id: true, title: true },
-                        },
-                      },
-                    },
-                  },
+                phase: {
+                  select: { id: true, title: true },
                 },
               },
             },
@@ -138,9 +126,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const data = UpdateTicketSchema.parse(payload);
 
     // Check ticket exists and get projectId for auth
+    // Sprint 11.7: Also fetch customFields for implementationContext merging
     const existing = await prisma.ticket.findUnique({
       where: { id },
-      select: { id: true, status: true, projectId: true },
+      select: { id: true, status: true, projectId: true, customFields: true },
     });
 
     if (!existing) {
@@ -195,14 +184,15 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     if (data.labelIds !== undefined) {
       if (data.labelIds.length > 0) {
+        // Sprint 11.7: Validate labels belong to same project
         const existingLabels = await prisma.label.findMany({
-          where: { id: { in: data.labelIds } },
+          where: { id: { in: data.labelIds }, projectId: existing.projectId },
           select: { id: true },
         });
         if (existingLabels.length !== data.labelIds.length) {
           return failure({
             code: 'INVALID_LABEL',
-            message: 'One or more labels do not exist',
+            message: 'One or more labels do not exist or belong to a different project',
             status: 400,
           });
         }
@@ -212,20 +202,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       }
     }
 
-    // Validate linkedTaskId if provided
-    if (data.linkedTaskId) {
-      const task = await prisma.task.findUnique({
-        where: { id: data.linkedTaskId },
-        select: { id: true },
-      });
-      if (!task) {
-        return failure({
-          code: 'INVALID_LINKED_TASK',
-          message: `Task ${data.linkedTaskId} not found`,
-          status: 400,
-        });
-      }
-    }
+    // Sprint 12: linkedTaskId removed - tickets now schedule to weeks via scheduledWeekId
 
     // Determine if closing ticket
     const isClosing = status && status !== existing.status && (status === 'closed' || status === 'resolved');
@@ -243,8 +220,30 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (data.source) updateData.source = data.source;
     if (data.assigneeType !== undefined) updateData.assigneeType = data.assigneeType;
     if (data.assigneeId !== undefined) updateData.assigneeId = data.assigneeId;
-    if (data.linkedTaskId !== undefined) updateData.linkedTask = data.linkedTaskId ? { connect: { id: data.linkedTaskId } } : { disconnect: true };
-    if (data.customFields) updateData.customFields = data.customFields as Prisma.InputJsonValue;
+    // Sprint 12: linkedTask removed - use scheduledWeekId/scheduledDays for roadmap association
+    // Sprint 11.7: Handle customFields and implementationContext
+    // Implementation context is stored in customFields._implementationContext
+    if (data.customFields || data.implementationContext !== undefined) {
+      const existingCustomFields = (existing.customFields as Record<string, unknown>) ?? {};
+      let newCustomFields = { ...existingCustomFields };
+
+      // Merge any direct customFields updates
+      if (data.customFields) {
+        newCustomFields = { ...newCustomFields, ...data.customFields };
+      }
+
+      // Handle implementationContext specially
+      if (data.implementationContext !== undefined) {
+        if (data.implementationContext === null) {
+          // Explicitly remove implementation context
+          delete newCustomFields._implementationContext;
+        } else {
+          newCustomFields._implementationContext = data.implementationContext;
+        }
+      }
+
+      updateData.customFields = newCustomFields as Prisma.InputJsonValue;
+    }
     if (labelSet !== undefined) updateData.labels = { set: labelSet };
     if (isClosing) updateData.closedAt = new Date();
 

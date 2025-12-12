@@ -50,8 +50,9 @@ export async function POST(request: NextRequest) {
           const labelIdSet = new Set<number>(ticketData.labelIds ?? []);
           
           if (autoTags.labels?.length) {
+            // Sprint 11.7: Filter labels by projectId (labels are now project-scoped)
             const existing = await tx.label.findMany({
-              where: { name: { in: autoTags.labels } },
+              where: { projectId, name: { in: autoTags.labels } },
               select: { id: true, name: true },
             });
 
@@ -60,10 +61,11 @@ export async function POST(request: NextRequest) {
             );
 
             if (missing.length) {
+              // Sprint 11.7: Create labels with projectId
               const created = await Promise.all(
                 missing.map((name) =>
                   tx.label.create({
-                    data: { name, color: '#94a3b8' },
+                    data: { name, color: '#94a3b8', projectId },
                     select: { id: true },
                   })
                 )
@@ -91,21 +93,7 @@ export async function POST(request: NextRequest) {
           };
           const customFields = Object.keys(customFieldsPayload).length > 0 ? customFieldsPayload : undefined;
 
-          // Validate linkedTaskId if provided
-          if (ticketData.linkedTaskId) {
-            const task = await tx.task.findUnique({
-              where: { id: ticketData.linkedTaskId },
-              select: { id: true },
-            });
-            if (!task) {
-              results.push({
-                success: false,
-                error: `Task ${ticketData.linkedTaskId} not found`,
-                reference: ticketData.reference,
-              });
-              continue;
-            }
-          }
+          // Sprint 12: linkedTaskId removed - tickets now schedule via scheduledWeekId
 
           // Create ticket
           const ticket = await tx.ticket.create({
@@ -121,7 +109,7 @@ export async function POST(request: NextRequest) {
               source: ticketData.source ?? 'manual',
               assigneeType: ticketData.assigneeType,
               assigneeId: ticketData.assigneeId,
-              linkedTaskId: ticketData.linkedTaskId,
+              // Sprint 12: linkedTaskId removed - tickets schedule via scheduledWeekId
               customFields,
               labels: labelIdSet.size > 0
                 ? { connect: Array.from(labelIdSet).map((id) => ({ id })) }

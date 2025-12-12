@@ -189,10 +189,12 @@ export type FilterOption = KindOption | StatusOption | PriorityOption | ModuleOp
 
 /**
  * Filter counts map (used in FilterSidebar)
+ * Sprint 11.7: Added label counts
  */
 export interface FilterCounts {
   kind?: Record<string, number>; // { "feature": 5, "task": 3 }
   status: Record<string, number>; // { "open": 5, "in-progress": 3, "closed": 2 }
   priority: Record<string, number>; // { "critical": 1, "high": 4, "medium": 3, "low": 2 }
   module: Record<string, number>; // { "combat": 2, "animation": 3, "core": 2, "ui": 3 }
+  label?: Record<string, number>; // { "1": 3, "2": 5 } - Sprint 11.7: Label ID to count
 }

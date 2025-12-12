@@ -20,8 +20,9 @@ import { useCallback, useMemo } from 'react';
 
 /**
  * Filter type discriminator
+ * Sprint 11.7: Added 'label' for label filtering
  */
-export type FilterType = 'kind' | 'status' | 'priority' | 'module';
+export type FilterType = 'kind' | 'status' | 'priority' | 'module' | 'label';
 
 /**
  * Parsed filter values from URL params
@@ -31,6 +32,7 @@ export interface CurrentFilters {
   status: string[];
   priority: string[];
   module: string[];
+  label: string[]; // Sprint 11.7: Label IDs as strings
 }
 
 /**
@@ -110,8 +112,9 @@ export function useFilterParams(
       status: searchParams.status?.split(',').filter(Boolean) || [],
       priority: searchParams.priority?.split(',').filter(Boolean) || [],
       module: searchParams.module?.split(',').filter(Boolean) || [],
+      label: searchParams.label?.split(',').filter(Boolean) || [], // Sprint 11.7
     }),
-    [searchParams.kind, searchParams.status, searchParams.priority, searchParams.module]
+    [searchParams.kind, searchParams.status, searchParams.priority, searchParams.module, searchParams.label]
   );
 
   /**
@@ -122,7 +125,8 @@ export function useFilterParams(
       currentFilters.kind.length > 0 ||
       currentFilters.status.length > 0 ||
       currentFilters.priority.length > 0 ||
-      currentFilters.module.length > 0,
+      currentFilters.module.length > 0 ||
+      currentFilters.label.length > 0, // Sprint 11.7
     [currentFilters]
   );
 
@@ -189,6 +193,7 @@ export function useFilterParams(
     params.delete('status');
     params.delete('priority');
     params.delete('module');
+    params.delete('label'); // Sprint 11.7
 
     // Reset pagination
     params.delete('page');

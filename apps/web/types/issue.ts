@@ -66,6 +66,15 @@ export type IssueDetail = Prisma.TicketGetPayload<{
         repository: true;
       };
     };
+    // Sprint 11.7: Milestone relation
+    milestone: {
+      select: {
+        id: true;
+        name: true;
+        targetDate: true;
+        status: true;
+      };
+    };
   };
 }>;
 
@@ -136,6 +145,46 @@ export interface ProjectProps {
 }
 
 /**
+ * Serialized milestone for client components (Sprint 11.7)
+ */
+export interface MilestoneProps {
+  id: string; // Converted from number
+  name: string;
+  targetDate: string | null; // Converted from Date
+  status: string;
+}
+
+/**
+ * Implementation context for ticket planning (Sprint 11.7)
+ * Actionable metadata for implementation: files to modify/create, schema changes, blueprint
+ */
+export interface ImplementationContextProps {
+  phaseSprintRef?: {
+    phaseId?: string;
+    sprintId?: string;
+    weekId?: string;
+    displayName?: string; // e.g., "Sprint 11.7 / Week 3"
+  };
+  filesToModify: Array<{
+    path: string;
+    reason?: string;
+    estimatedChanges?: 'minor' | 'moderate' | 'major';
+  }>;
+  filesToCreate: Array<{
+    path: string;
+    purpose?: string;
+    template?: string;
+  }>;
+  schemaChanges?: {
+    required: boolean;
+    migrationName?: string;
+    models?: string[];
+    description?: string;
+  };
+  implementationBlueprint?: string; // Markdown implementation plan
+}
+
+/**
  * Complete serialized issue for client components
  * All dates converted to ISO strings, all IDs to strings
  */
@@ -151,6 +200,13 @@ export interface IssueDetailProps {
   updatedAt: string; // Converted from Date
   closedAt: string | null; // Converted from Date
 
+  // Sprint 11.7: Milestone and Due Date
+  dueDate: string | null; // Converted from Date
+  milestone: MilestoneProps | null;
+
+  // Sprint 11.7: Implementation Context (from customFields._implementationContext)
+  implementationContext?: ImplementationContextProps;
+
   // Relations
   project: ProjectProps;
   comments: CommentProps[];
@@ -163,6 +219,37 @@ export interface IssueDetailProps {
 // ============================================================================
 // SERIALIZATION HELPERS
 // ============================================================================
+
+/**
+ * Extract implementation context from customFields JSONB
+ * Returns undefined if not present or invalid
+ */
+function extractImplementationContext(
+  customFields: unknown
+): ImplementationContextProps | undefined {
+  if (!customFields || typeof customFields !== 'object') {
+    return undefined;
+  }
+
+  const fields = customFields as Record<string, unknown>;
+  const context = fields._implementationContext;
+
+  if (!context || typeof context !== 'object') {
+    return undefined;
+  }
+
+  // Basic validation - ensure arrays exist with defaults
+  const ctx = context as Record<string, unknown>;
+  return {
+    phaseSprintRef: ctx.phaseSprintRef as ImplementationContextProps['phaseSprintRef'],
+    filesToModify: Array.isArray(ctx.filesToModify) ? ctx.filesToModify : [],
+    filesToCreate: Array.isArray(ctx.filesToCreate) ? ctx.filesToCreate : [],
+    schemaChanges: ctx.schemaChanges as ImplementationContextProps['schemaChanges'],
+    implementationBlueprint: typeof ctx.implementationBlueprint === 'string'
+      ? ctx.implementationBlueprint
+      : undefined,
+  };
+}
 
 /**
  * Converts Prisma Issue query result to serialized props for client components
@@ -187,6 +274,20 @@ export function serializeIssueDetail(issue: IssueDetail): IssueDetailProps {
     createdAt: issue.createdAt.toISOString(),
     updatedAt: issue.updatedAt.toISOString(),
     closedAt: issue.closedAt?.toISOString() || null,
+
+    // Sprint 11.7: Milestone and Due Date
+    dueDate: issue.dueDate?.toISOString() || null,
+    milestone: issue.milestone
+      ? {
+          id: issue.milestone.id.toString(),
+          name: issue.milestone.name,
+          targetDate: issue.milestone.targetDate?.toISOString() || null,
+          status: issue.milestone.status,
+        }
+      : null,
+
+    // Sprint 11.7: Implementation Context (from customFields._implementationContext)
+    implementationContext: extractImplementationContext(issue.customFields),
 
     project: {
       id: issue.project.id.toString(),

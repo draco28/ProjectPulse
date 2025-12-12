@@ -87,6 +87,71 @@ export const TicketContextSchema = z.object({
 export type TicketContextInput = z.infer<typeof TicketContextSchema>;
 
 // ============================================================================
+// IMPLEMENTATION CONTEXT (Sprint 11.7)
+// ============================================================================
+// Actionable planning metadata for tickets - stored in customFields._implementationContext
+
+/**
+ * Reference to Phase/Sprint/Week in roadmap hierarchy
+ */
+export const PhaseSprintRefSchema = z.object({
+  phaseId: z.string().optional(),
+  sprintId: z.string().optional(),
+  weekId: z.string().optional(),
+  displayName: z.string().max(100).optional(), // e.g., "Sprint 11.7 / Week 3"
+}).optional();
+
+export type PhaseSprintRef = z.infer<typeof PhaseSprintRefSchema>;
+
+/**
+ * Existing file that needs modifications
+ */
+export const FileToModifySchema = z.object({
+  path: z.string().min(1, 'Path is required').max(MAX_FILEPATH_LENGTH),
+  reason: z.string().max(500).optional(),
+  estimatedChanges: z.enum(['minor', 'moderate', 'major']).optional(),
+});
+
+export type FileToModify = z.infer<typeof FileToModifySchema>;
+
+/**
+ * New file to be created
+ */
+export const FileToCreateSchema = z.object({
+  path: z.string().min(1, 'Path is required').max(MAX_FILEPATH_LENGTH),
+  purpose: z.string().max(500).optional(),
+  template: z.string().max(100).optional(), // e.g., "api-route", "react-component"
+});
+
+export type FileToCreate = z.infer<typeof FileToCreateSchema>;
+
+/**
+ * Database schema/migration requirements
+ */
+export const SchemaChangesSchema = z.object({
+  required: z.boolean(),
+  migrationName: z.string().max(100).optional(),
+  models: z.array(z.string().max(50)).max(20).optional(),
+  description: z.string().max(2000).optional(),
+}).optional();
+
+export type SchemaChanges = z.infer<typeof SchemaChangesSchema>;
+
+/**
+ * Complete implementation context for a ticket
+ * Stored in customFields._implementationContext
+ */
+export const ImplementationContextSchema = z.object({
+  phaseSprintRef: PhaseSprintRefSchema,
+  filesToModify: z.array(FileToModifySchema).max(50).default([]),
+  filesToCreate: z.array(FileToCreateSchema).max(30).default([]),
+  schemaChanges: SchemaChangesSchema,
+  implementationBlueprint: z.string().max(50000).optional(), // Markdown implementation plan
+}).optional();
+
+export type ImplementationContext = z.infer<typeof ImplementationContextSchema>;
+
+// ============================================================================
 // BASE SCHEMA
 // ============================================================================
 
@@ -117,7 +182,18 @@ const TicketBaseSchema = z.object({
   source: TicketSourceSchema.default('manual'),
   assigneeType: AssigneeTypeSchema.optional(),
   assigneeId: z.string().optional(),
-  linkedTaskId: z.string().optional(), // Link to Task in roadmap hierarchy
+
+  // Sprint 12: Ticket scheduling (replaces linkedTaskId)
+  estimatedDays: z.number().int().min(1).max(365).optional().nullable(),
+  scheduledWeekId: z.string().optional().nullable(),
+  scheduledDays: z.array(z.string()).max(7).optional(), // ["Monday", "Tuesday", ...]
+
+  // Sprint 11.7: Milestone and Due Date
+  dueDate: z.string().datetime().optional().nullable(),
+  milestoneId: z.number().int().positive().optional().nullable(),
+
+  // Sprint 11.7: Implementation Context (stored in customFields._implementationContext)
+  implementationContext: ImplementationContextSchema,
 });
 
 export const TicketIdParamSchema = z.object({
@@ -219,18 +295,27 @@ export const TicketFilterSchema = z.object({
   
   // Sprint 10: Additional filters
   assigneeType: AssigneeTypeSchema.optional(),
-  linkedTaskId: z.string().optional(),
   source: z.array(TicketSourceSchema).optional(),
+
+  // Sprint 12: Scheduling filters
+  scheduledWeekId: z.string().optional(),
+  hasSchedule: z.boolean().optional(), // Filter for tickets with/without schedule
   
   // Date filters
   createdFrom: z.string().datetime().optional(),
   createdTo: z.string().datetime().optional(),
+
+  // Sprint 11.7: Milestone and Due Date filters
+  milestoneId: z.number().int().positive().optional(),
+  dueDateFrom: z.string().datetime().optional(),
+  dueDateTo: z.string().datetime().optional(),
+  overdue: z.boolean().optional(), // Filter for overdue tickets
   
   // Pagination & sorting
   includeRelations: z.boolean().optional(),
   page: z.number().int().min(1).default(1),
   pageSize: z.number().int().min(1).max(100).default(20),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'kind']).default('createdAt'),
+  sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'kind', 'dueDate']).default('createdAt'),
   sortDirection: z.enum(['asc', 'desc']).default('desc'),
 });
 

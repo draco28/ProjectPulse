@@ -28,11 +28,18 @@ import type {
  * Options cached for 1 hour (3600 seconds) with tag-based revalidation.
  * Tag can be used later for on-demand revalidation when admin edits options.
  *
+ * Sprint 11.7: Added projectId parameter to filter labels by project
+ *
+ * @param projectId - Project ID to filter labels (required for project-scoped labels)
  * @returns {Promise<FiltersDTO>} Complete filter options DTO
  * @throws {Error} If database query fails
  */
-export const getFilterOptions = unstable_cache(
-  async (): Promise<FiltersDTO> => {
+export async function getFilterOptions(projectId?: number): Promise<FiltersDTO> {
+  return getFilterOptionsCached(projectId);
+}
+
+const getFilterOptionsCached = unstable_cache(
+  async (projectId?: number): Promise<FiltersDTO> => {
     // Parallel fetch all option tables + labels
     const [statusOptions, priorityOptions, moduleOptions, labels] = await Promise.all([
       // Status options
@@ -65,8 +72,9 @@ export const getFilterOptions = unstable_cache(
         },
       }),
 
-      // Labels (existing Label model)
+      // Labels (existing Label model) - Sprint 11.7: Filter by projectId
       prisma.label.findMany({
+        where: projectId ? { projectId } : undefined,
         orderBy: { name: 'asc' },
         select: {
           id: true,
@@ -123,12 +131,15 @@ export const getFilterOptions = unstable_cache(
  *
  * NOT CACHED - counts change frequently when issues are created/updated.
  *
+ * Sprint 11.7: Added projectId parameter and label counts
+ *
+ * @param projectId - Project ID to filter counts by project
  * @returns {Promise<FilterCounts>} Count of issues per filter value
  * @throws {Error} If database query fails
  */
-export async function getFilterCounts() {
+export async function getFilterCounts(projectId?: number) {
   // Fetch all options first (uses cache from getFilterOptions)
-  const options = await getFilterOptions();
+  const options = await getFilterOptions(projectId);
 
   // Sprint 10: Use ticket model with kind filter for backwards compatibility
   const issueKindFilter = { kind: { in: ['issue', 'bug', 'scanner_finding'] } };
@@ -153,6 +164,17 @@ export async function getFilterCounts() {
         .count({ where: { ...issueKindFilter, module: opt.value } })
         .then((count) => ({ type: 'module', value: opt.value, count }))
     ),
+    // Sprint 11.7: Label counts
+    ...options.labels.map((label) =>
+      prisma.ticket
+        .count({
+          where: {
+            ...issueKindFilter,
+            labels: { some: { id: label.id } },
+          },
+        })
+        .then((count) => ({ type: 'label', value: String(label.id), count }))
+    ),
   ];
 
   // Execute all count queries in parallel
@@ -163,6 +185,7 @@ export async function getFilterCounts() {
     status: {} as Record<string, number>,
     priority: {} as Record<string, number>,
     module: {} as Record<string, number>,
+    label: {} as Record<string, number>, // Sprint 11.7
   };
 
   for (const result of results) {
@@ -172,6 +195,8 @@ export async function getFilterCounts() {
       counts.priority[result.value] = result.count;
     } else if (result.type === 'module') {
       counts.module[result.value] = result.count;
+    } else if (result.type === 'label') {
+      counts.label[result.value] = result.count;
     }
   }
 

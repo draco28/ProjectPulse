@@ -54,7 +54,10 @@ export async function GET(request: NextRequest) {
       assignee: parseArrayParam(url.searchParams, 'assignee'),
       tags: parseArrayParam(url.searchParams, 'tags'),
       search: url.searchParams.get('search') ?? undefined,
-      linkedTaskId: url.searchParams.get('linkedTaskId') ?? undefined,
+      // Sprint 12: Scheduling filters (linkedTaskId removed)
+      scheduledWeekId: url.searchParams.get('scheduledWeekId') ?? undefined,
+      hasSchedule: url.searchParams.get('hasSchedule') === 'true' ? true :
+                   url.searchParams.get('hasSchedule') === 'false' ? false : undefined,
       createdFrom: url.searchParams.get('createdFrom') ?? undefined,
       createdTo: url.searchParams.get('createdTo') ?? undefined,
       includeRelations: url.searchParams.get('includeRelations') === 'true',
@@ -140,8 +143,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (autoTags.labels?.length) {
+      // Sprint 11.7: Filter labels by projectId (labels are now project-scoped)
       const existing = await prisma.label.findMany({
-        where: { name: { in: autoTags.labels } },
+        where: { projectId, name: { in: autoTags.labels } },
         select: { id: true, name: true },
       });
 
@@ -150,11 +154,12 @@ export async function POST(request: NextRequest) {
       );
 
       if (missing.length) {
+        // Sprint 11.7: Create labels with projectId
         const created = await prisma.$transaction((tx) =>
           Promise.all(
             missing.map((name) =>
               tx.label.create({
-                data: { name, color: '#94a3b8' },
+                data: { name, color: '#94a3b8', projectId },
                 select: { id: true, name: true },
               })
             )
@@ -176,28 +181,17 @@ export async function POST(request: NextRequest) {
           snippet: file.snippet,
         })) ?? [];
 
+    // Sprint 11.7: Merge implementation context into customFields with reserved key
     const customFieldsPayload = {
       ...(data.customFields ?? {}),
       ...(data.context?.metadata ?? {}),
       ...(snippets.length ? { contextSnippets: snippets } : {}),
+      ...(data.implementationContext ? { _implementationContext: data.implementationContext } : {}),
     };
     const customFields =
       Object.keys(customFieldsPayload).length > 0 ? customFieldsPayload : undefined;
 
-    // Validate linkedTaskId if provided
-    if (data.linkedTaskId) {
-      const task = await prisma.task.findUnique({
-        where: { id: data.linkedTaskId },
-        select: { id: true },
-      });
-      if (!task) {
-        return failure({
-          code: 'INVALID_LINKED_TASK',
-          message: `Task ${data.linkedTaskId} not found`,
-          status: 400,
-        });
-      }
-    }
+    // Sprint 12: linkedTaskId removed - tickets now schedule to weeks directly via scheduledWeekId
 
     const ticket = await prisma.$transaction(async (tx) => {
       const created = await tx.ticket.create({
@@ -213,7 +207,7 @@ export async function POST(request: NextRequest) {
           source: data.source ?? 'manual',
           assigneeType: data.assigneeType,
           assigneeId: data.assigneeId,
-          linkedTaskId: data.linkedTaskId,
+          // Sprint 12: linkedTaskId removed - use scheduledWeekId for roadmap association
           customFields,
           labels:
             labelIdSet.size > 0

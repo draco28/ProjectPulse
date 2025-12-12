@@ -95,15 +95,33 @@ export function buildTicketWhere(filters: TicketFilters, projectId: number): Pri
     where.assigneeType = filters.assigneeType;
   }
 
-  if (filters.linkedTaskId) {
-    where.linkedTaskId = filters.linkedTaskId;
+  // Sprint 12: Scheduling filters (replaces linkedTaskId)
+  if (filters.scheduledWeekId) {
+    where.scheduledWeekId = filters.scheduledWeekId;
+  }
+
+  if (filters.hasSchedule === true) {
+    where.scheduledWeekId = { not: null };
+  } else if (filters.hasSchedule === false) {
+    where.scheduledWeekId = null;
   }
 
   if (filters.source?.length) {
     where.source = { in: filters.source };
   }
 
-  if (filters.tags?.length) {
+  // Sprint 11.7: Label filtering by ID (preferred)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((filters as any).labelIds?.length) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const labelIds = (filters as any).labelIds.map((id: string | number) => Number(id));
+    where.labels = {
+      some: {
+        id: { in: labelIds },
+      },
+    };
+  } else if (filters.tags?.length) {
+    // Backwards compatibility: filter by label name
     where.labels = {
       some: {
         name: { in: filters.tags },
@@ -125,6 +143,24 @@ export function buildTicketWhere(filters: TicketFilters, projectId: number): Pri
     };
   }
 
+  // Sprint 11.7: Milestone and Due Date filters
+  if (filters.milestoneId) {
+    where.milestoneId = filters.milestoneId;
+  }
+
+  if (filters.dueDateFrom || filters.dueDateTo) {
+    where.dueDate = {
+      ...(filters.dueDateFrom ? { gte: new Date(filters.dueDateFrom) } : {}),
+      ...(filters.dueDateTo ? { lte: new Date(filters.dueDateTo) } : {}),
+    };
+  }
+
+  // Filter for overdue tickets (dueDate is set and < now, and status is not closed)
+  if (filters.overdue === true) {
+    where.dueDate = { lt: new Date() };
+    where.status = { not: 'closed' };
+  }
+
   return where;
 }
 
@@ -137,6 +173,9 @@ export function buildTicketOrderBy(filters: TicketFilters): Prisma.TicketOrderBy
       return { priority: direction };
     case 'kind':
       return { kind: direction };
+    case 'dueDate':
+      // Sprint 11.7: Sort by due date (nulls last for asc, nulls first for desc)
+      return { dueDate: { sort: direction, nulls: direction === 'asc' ? 'last' : 'first' } };
     case 'createdAt':
     default:
       return { createdAt: direction };
@@ -160,8 +199,19 @@ export function ticketIncludeConfig(includeRelations?: boolean): Prisma.TicketIn
       attachments: {
         select: { id: true, filename: true, filepath: true },
       },
-      linkedTask: {
-        select: { id: true, title: true, status: true },
+      // Sprint 12: Include scheduled week (replaces linkedTask)
+      scheduledWeek: {
+        select: {
+          id: true,
+          title: true,
+          sprint: {
+            select: { id: true, title: true },
+          },
+        },
+      },
+      // Sprint 11.7: Include milestone
+      milestone: {
+        select: { id: true, name: true, targetDate: true, status: true },
       },
     };
   }
@@ -178,6 +228,14 @@ export function ticketIncludeConfig(includeRelations?: boolean): Prisma.TicketIn
     },
     attachments: {
       select: { id: true },
+    },
+    // Sprint 12: Include scheduled week (basic info)
+    scheduledWeek: {
+      select: { id: true, title: true },
+    },
+    // Sprint 11.7: Include milestone (basic info)
+    milestone: {
+      select: { id: true, name: true },
     },
   };
 }
