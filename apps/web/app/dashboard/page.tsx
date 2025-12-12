@@ -316,7 +316,7 @@ export default async function DashboardPage({
             </div>
             <div className="space-y-4 p-6">
               {data.recentIssues.map((issue) => (
-                <TicketCard key={issue.id} issue={issue} />
+                <TicketCard key={issue.id} issue={issue} projectId={projectId} />
               ))}
             </div>
           </div>

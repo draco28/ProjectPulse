@@ -17,7 +17,7 @@ import { useFilterParams } from '@/hooks/useFilterParams';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { FiltersDTO, FilterCounts } from '@/types/filters';
-import { X, RefreshCw, AlertCircle, Box, Layers } from 'lucide-react';
+import { X, RefreshCw, AlertCircle, Box, Layers, Tag } from 'lucide-react';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -209,6 +209,53 @@ export function FilterSidebar({
             })}
           </div>
         </div>
+
+        {/* Labels Filter (Sprint 11.7) */}
+        {options.labels && options.labels.length > 0 && (
+          <div className="mb-6" data-testid="label-filter">
+            <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
+              <Tag className="h-4 w-4 text-coral" aria-hidden="true" />
+              Labels
+            </h4>
+            <div className="space-y-3">
+              {options.labels.map((label) => {
+                const labelId = String(label.id);
+                const count = counts.label?.[labelId] || 0;
+                const isChecked = isActive('label', labelId);
+
+                return (
+                  <label
+                    key={label.id}
+                    data-testid={`label-option-${label.id}`}
+                    className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) => updateFilter('label', labelId, e.target.checked)}
+                    />
+                    <span className="flex flex-1 items-center gap-2">
+                      <span
+                        className="h-3 w-3 rounded-full"
+                        style={{ backgroundColor: label.color }}
+                      />
+                      {label.name}
+                    </span>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        count > 0 && isChecked
+                          ? 'bg-coral text-white'
+                          : 'neu-pressed text-slate'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Module Filter */}
         <div data-testid="module-filter">

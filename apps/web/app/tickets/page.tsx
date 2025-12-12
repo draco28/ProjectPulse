@@ -16,7 +16,7 @@ import { SearchSortBar } from '@/components/tickets/SearchSortBar';
 import { TicketListCard } from '@/components/tickets/TicketListCard';
 import { Pagination } from '@/components/tickets/Pagination';
 import { prisma } from '@/lib/prisma';
-import { getFilterOptions } from '@/lib/filters';
+import { getFilterOptions, getFilterCounts as getFilterCountsFromLib } from '@/lib/filters';
 import { getCurrentUser } from '@/lib/auth-server';
 import { getActiveProjectForUser } from '@/lib/project-context';
 
@@ -30,6 +30,7 @@ interface SearchParams {
   priority?: string;
   module?: string;
   kind?: string;
+  label?: string; // Sprint 11.7: Label IDs (comma-separated)
   search?: string;
   sort?: string;
   page?: string;
@@ -43,6 +44,7 @@ type WhereClause = {
   status?: { in: string[] };
   priority?: { in: string[] };
   module?: { in: string[] };
+  labels?: { some: { id: { in: number[] } } }; // Sprint 11.7: Label filter
   OR?: Array<{
     title?: { contains: string; mode: 'insensitive' };
     description?: { contains: string; mode: 'insensitive' };
@@ -55,6 +57,8 @@ async function getTickets(projectId: number, searchParams: SearchParams) {
   const statusFilter = searchParams.status?.split(',').filter(Boolean) || [];
   const priorityFilter = searchParams.priority?.split(',').filter(Boolean) || [];
   const moduleFilter = searchParams.module?.split(',').filter(Boolean) || [];
+  // Sprint 11.7: Parse label filter (IDs as strings, convert to numbers)
+  const labelFilter = searchParams.label?.split(',').filter(Boolean).map(Number) || [];
   const searchTerm = searchParams.search || '';
   const sortBy = searchParams.sort || 'newest';
   const page = parseInt(searchParams.page || '1', 10);
@@ -78,6 +82,11 @@ async function getTickets(projectId: number, searchParams: SearchParams) {
 
   if (moduleFilter.length > 0) {
     where.module = { in: moduleFilter };
+  }
+
+  // Sprint 11.7: Filter by labels
+  if (labelFilter.length > 0) {
+    where.labels = { some: { id: { in: labelFilter } } };
   }
 
   if (searchTerm) {
@@ -120,6 +129,10 @@ async function getTickets(projectId: number, searchParams: SearchParams) {
         attachments: {
           select: { id: true },
         },
+        // Sprint 11.7: Include labels for display
+        labels: {
+          select: { id: true, name: true, color: true },
+        },
       },
       orderBy,
       take: perPage,
@@ -137,49 +150,6 @@ async function getTickets(projectId: number, searchParams: SearchParams) {
   };
 }
 
-async function getFilterCounts(projectId: number) {
-  const where = { projectId };
-
-  const [kindCounts, statusCounts, priorityCounts, moduleCounts] = await Promise.all([
-    prisma.ticket.groupBy({
-      by: ['kind'],
-      where,
-      _count: true,
-    }),
-    prisma.ticket.groupBy({
-      by: ['status'],
-      where,
-      _count: true,
-    }),
-    prisma.ticket.groupBy({
-      by: ['priority'],
-      where,
-      _count: true,
-    }),
-    prisma.ticket.groupBy({
-      by: ['module'],
-      where,
-      _count: true,
-    }),
-  ]);
-
-  return {
-    kind: Object.fromEntries(
-      kindCounts.map((k) => [k.kind, k._count as number])
-    ),
-    status: Object.fromEntries(
-      statusCounts.map((s) => [s.status, s._count as number])
-    ),
-    priority: Object.fromEntries(
-      priorityCounts.map((p) => [p.priority, p._count as number])
-    ),
-    module: Object.fromEntries(
-      moduleCounts
-        .filter((m) => m.module)
-        .map((m) => [m.module!, m._count as number])
-    ),
-  };
-}
 
 // Kind labels for display
 const kindLabels: Record<string, string> = {
@@ -216,8 +186,9 @@ export default async function TicketsPage({
   
   const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
+  // Sprint 11.7: Use library's getFilterCounts (includes label counts) and pass projectId for project-scoped labels
   const [{ tickets, totalCount, currentPage, totalPages, perPage }, filterCounts, filterOptions] =
-    await Promise.all([getTickets(projectId, params), getFilterCounts(projectId), getFilterOptions()]);
+    await Promise.all([getTickets(projectId, params), getFilterCountsFromLib(projectId), getFilterOptions(projectId)]);
 
   // Extend filter options with kind filter
   const extendedFilterOptions = {
@@ -302,6 +273,8 @@ export default async function TicketsPage({
                           createdAt: ticket.createdAt,
                           commentsCount: ticket.comments.length,
                           attachmentsCount: ticket.attachments.length,
+                          // Sprint 11.7: Include labels for display
+                          labels: ticket.labels,
                         }}
                       />
                     </div>

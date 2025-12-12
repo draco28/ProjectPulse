@@ -13,10 +13,18 @@
  */
 'use client';
 
+import Link from 'next/link';
 import { Clock, MessageSquare, Bug } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LabelBadgeList } from '@/components/ui/LabelBadge';
 
 type Priority = 'critical' | 'high' | 'medium' | 'low';
+
+interface Label {
+  id: number | string;
+  name: string;
+  color: string;
+}
 
 interface Issue {
   id: string;
@@ -26,10 +34,12 @@ interface Issue {
   category: string;
   isActive?: boolean;
   createdAt: string;
+  labels?: Label[];
 }
 
 interface TicketCardProps {
   issue: Issue;
+  projectId: number;
 }
 
 const priorityConfig: Record<Priority, { label: string; className: string }> = {
@@ -51,11 +61,13 @@ const priorityConfig: Record<Priority, { label: string; className: string }> = {
   },
 };
 
-export function TicketCard({ issue }: TicketCardProps) {
+export function TicketCard({ issue, projectId }: TicketCardProps) {
   const priorityInfo = priorityConfig[issue.priority];
 
   return (
-    <div className="glass-dark neu-float cursor-pointer rounded-2xl p-5 hover:shadow-lg">
+    <Link
+      href={`/tickets/${issue.id}?project=${projectId}`}
+      className="glass-dark neu-float block cursor-pointer rounded-2xl p-5 hover:shadow-lg smooth-transition">
       <div className="flex items-start gap-4">
         {/* Icon Container */}
         <div className="icon-coral flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl shadow-lg">
@@ -86,6 +98,13 @@ export function TicketCard({ issue }: TicketCardProps) {
             )}
           </div>
 
+          {/* Labels (Sprint 11.7) */}
+          {issue.labels && issue.labels.length > 0 && (
+            <div className="mb-2" data-testid="ticket-labels">
+              <LabelBadgeList labels={issue.labels} maxVisible={2} size="sm" />
+            </div>
+          )}
+
           {/* Title */}
           <h4 className="mb-1 font-semibold text-white">{issue.title}</h4>
 
@@ -105,6 +124,6 @@ export function TicketCard({ issue }: TicketCardProps) {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

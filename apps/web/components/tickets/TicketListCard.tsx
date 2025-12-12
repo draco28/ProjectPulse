@@ -20,9 +20,16 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { MoreVertical, User, Clock, MessageSquare, Paperclip } from 'lucide-react';
+import { LabelBadgeList } from '@/components/ui/LabelBadge';
 
 type Priority = 'critical' | 'high' | 'medium' | 'low';
 type Status = 'open' | 'in-progress' | 'closed';
+
+interface Label {
+  id: number | string;
+  name: string;
+  color: string;
+}
 
 interface TicketListCardProps {
   ticket: {
@@ -36,6 +43,7 @@ interface TicketListCardProps {
     createdAt: Date;
     commentsCount: number;
     attachmentsCount: number;
+    labels?: Label[];
   };
   projectId: number;
 }
@@ -117,6 +125,13 @@ export function TicketListCard({ ticket, projectId }: TicketListCardProps) {
               <MoreVertical className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
+
+          {/* Labels (Sprint 11.7) */}
+          {ticket.labels && ticket.labels.length > 0 && (
+            <div className="mb-3" data-testid="ticket-labels">
+              <LabelBadgeList labels={ticket.labels} maxVisible={3} size="sm" />
+            </div>
+          )}
 
           {/* Title */}
           <h3 className={cn('mb-2 text-lg font-bold text-white', isClosed && 'line-through')}>
