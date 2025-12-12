@@ -23,11 +23,11 @@ Just chat naturally with me (Claude Code):
 
 ### 1. Mac Mini Services Verification
 
-**CRITICAL**: All services run on Mac mini (192.168.1.15), NOT on Windows.
+**CRITICAL**: All services run in Docker on the Mac mini. Use `localhost` when running on the Mac mini itself.
 
 ```bash
-# Check Mac mini services are running
-curl http://192.168.1.15:3000/api/health
+# Check services are running
+curl http://localhost:3000/api/health
 # ✅ MUST return: {"status":"healthy","database":"connected"}
 ```
 
@@ -81,13 +81,15 @@ git checkout -b feature/your-feature
 
 ## 🖥️ Mac Mini Cloud Architecture
 
-**All development happens on Mac mini (192.168.1.15) using Docker.**
+**All development happens on Mac mini using Docker. Use `localhost` for all services.**
 
-### Service URLs
+### Service URLs (Development)
 
-- **Web App**: http://192.168.1.15:3000
-- **API Health**: http://192.168.1.15:3000/api/health
-- **Database**: `postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev`
+- **Web App**: http://localhost:3000
+- **MCP Server**: http://localhost:3001
+- **API Health**: http://localhost:3000/api/health
+- **Database**: `postgresql://postgres:postgres123@localhost:5432/projectpulse_dev`
+- **Redis**: `localhost:6379`
 
 ### Compose Files
 
@@ -872,8 +874,8 @@ Initialize or update .agent/ documentation system
 ### Daily Checklist
 
 ```markdown
-- [ ] Mac mini health OK: curl http://192.168.1.15:3000/api/health returns healthy
-- [ ] 192.168.1.15:3000 loads application (Mac mini is BOTH dev machine AND Docker host)
+- [ ] Health OK: curl http://localhost:3000/api/health returns healthy
+- [ ] localhost:3000 loads application in browser
 - [ ] Docker services running: docker compose -f docker-compose.cloud.yml ps
 - [ ] On feature branch (not master)
 - [ ] Read .agent/active-context.md, .agent/progress.md and docs/13-Project-Plan.md

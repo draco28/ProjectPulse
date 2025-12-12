@@ -181,7 +181,19 @@
       "Bash(source:*)",
       "Bash(DATABASE_URL=\"postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost:5433/$PROD_POSTGRES_DB\" pnpm exec prisma migrate:*)",
       "WebFetch(domain:developers.cloudflare.com)",
-      "Bash(sh)"
+      "Bash(sh)",
+      "Bash(DATABASE_URL=\"postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost:5433/$PROD_POSTGRES_DB\" npx prisma migrate deploy:*)",
+      "Bash(xargs:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@localhost:5432/projectpulse_dev\" npx prisma migrate:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@localhost:5432/projectpulse_dev\" npx prisma migrate deploy:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@localhost:5432/projectpulse_dev\" npx tsx:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@localhost:5432/projectpulse_dev\" npx prisma migrate resolve:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@localhost:5432/projectpulse_dev\" npx prisma generate:*)",
+      "Bash(npx prisma:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@localhost:5432/projectpulse_dev\" npx prisma migrate status:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@localhost:5432/projectpulse_dev\" npx prisma db execute:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@localhost:5432/projectpulse_dev\" psql:*)",
+      "Bash(TOKEN=\"1bc5faadb0f4a9ab6ac31451c3ffb25a5a8e595041148094a6b67d4fafe2acea\")"
     ],
     "deny": [],
     "ask": [
