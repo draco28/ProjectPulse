@@ -1,26 +1,24 @@
 /**
  * Hierarchy Tree Query Helpers
  *
- * Utilities for traversing 5-level hierarchy:
- * Phase → Week → Day → Task → Session
+ * Sprint 12: Updated for 4-level hierarchy:
+ * Phase → Sprint → Week → Day
  *
- * Optimized with Prisma's type-safe queries and proper indexing
+ * Task and Session models removed - tickets now schedule directly to Weeks
  *
  * @see apps/web/prisma/schema.prisma for model definitions
  */
 
 import { prisma } from '@/lib/db';
-import type { Phase, Week, Day, Task, Session } from '@prisma/client';
+import type { Phase, Sprint, Week, Day } from '@prisma/client';
 
 /**
  * Full tree type with all nested relations
  */
 export type PhaseWithFullTree = Phase & {
-  weeks: (Week & {
-    days: (Day & {
-      tasks: (Task & {
-        sessions: Session[];
-      })[];
+  sprints: (Sprint & {
+    weeks: (Week & {
+      days: Day[];
     })[];
   })[];
 };
@@ -30,29 +28,24 @@ export type PhaseWithFullTree = Phase & {
  * Use for: Tree visualization, full context loading, integrity checks
  *
  * @param phaseId - Root Phase ID
- * @returns Phase with all nested relations (Week → Day → Task → Session)
+ * @returns Phase with all nested relations (Sprint → Week → Day)
  *
  * @example
  * const tree = await getFullTree('phase1');
- * console.log(tree.weeks[0].days[0].tasks[0].sessions.length);
+ * console.log(tree.sprints[0].weeks[0].days.length);
  */
 export async function getFullTree(phaseId: string): Promise<PhaseWithFullTree | null> {
   return prisma.phase.findUnique({
     where: { id: phaseId },
     include: {
-      weeks: {
+      sprints: {
         orderBy: { startDate: 'asc' },
         include: {
-          days: {
+          weeks: {
             orderBy: { startDate: 'asc' },
             include: {
-              tasks: {
+              days: {
                 orderBy: { startDate: 'asc' },
-                include: {
-                  sessions: {
-                    orderBy: { startDate: 'asc' },
-                  },
-                },
               },
             },
           },
@@ -70,35 +63,30 @@ export async function getFullTree(phaseId: string): Promise<PhaseWithFullTree | 
  * @returns Array of children
  *
  * @example
+ * // Get all Sprints under Phase 1
+ * const sprints = await getChildren('phase1', 'phase');
+ *
  * // Get all Days under Week 1
  * const days = await getChildren('week1', 'week');
- *
- * // Get all Sessions under Task 1
- * const sessions = await getChildren('task1', 'task');
  */
-export async function getChildren<T extends 'phase' | 'week' | 'day' | 'task'>(
+export async function getChildren<T extends 'phase' | 'sprint' | 'week'>(
   parentId: string,
   level: T
 ): Promise<ChildType<T>[]> {
   switch (level) {
     case 'phase':
-      return (await prisma.week.findMany({
+      return (await prisma.sprint.findMany({
         where: { phaseId: parentId },
+        orderBy: { startDate: 'asc' },
+      })) as ChildType<T>[];
+    case 'sprint':
+      return (await prisma.week.findMany({
+        where: { sprintId: parentId },
         orderBy: { startDate: 'asc' },
       })) as ChildType<T>[];
     case 'week':
       return (await prisma.day.findMany({
         where: { weekId: parentId },
-        orderBy: { startDate: 'asc' },
-      })) as ChildType<T>[];
-    case 'day':
-      return (await prisma.task.findMany({
-        where: { dayId: parentId },
-        orderBy: { startDate: 'asc' },
-      })) as ChildType<T>[];
-    case 'task':
-      return (await prisma.session.findMany({
-        where: { taskId: parentId },
         orderBy: { startDate: 'asc' },
       })) as ChildType<T>[];
     default:
@@ -114,23 +102,30 @@ export async function getChildren<T extends 'phase' | 'week' | 'day' | 'task'>(
  * @returns Parent entity or null
  *
  * @example
- * // Get parent Week of Day 3
- * const week = await getParent('day3', 'day');
+ * // Get parent Sprint of Week 3
+ * const sprint = await getParent('week3', 'week');
  *
- * // Get parent Task of Session 5
- * const task = await getParent('session5', 'session');
+ * // Get parent Week of Day 5
+ * const week = await getParent('day5', 'day');
  */
-export async function getParent<T extends 'week' | 'day' | 'task' | 'session'>(
+export async function getParent<T extends 'sprint' | 'week' | 'day'>(
   childId: string,
   level: T
 ): Promise<ParentType<T> | null> {
   switch (level) {
-    case 'week': {
-      const week = await prisma.week.findUnique({
+    case 'sprint': {
+      const sprint = await prisma.sprint.findUnique({
         where: { id: childId },
         include: { phase: true },
       });
-      return (week?.phase ?? null) as ParentType<T>;
+      return (sprint?.phase ?? null) as ParentType<T>;
+    }
+    case 'week': {
+      const week = await prisma.week.findUnique({
+        where: { id: childId },
+        include: { sprint: true },
+      });
+      return (week?.sprint ?? null) as ParentType<T>;
     }
     case 'day': {
       const day = await prisma.day.findUnique({
@@ -138,20 +133,6 @@ export async function getParent<T extends 'week' | 'day' | 'task' | 'session'>(
         include: { week: true },
       });
       return (day?.week ?? null) as ParentType<T>;
-    }
-    case 'task': {
-      const task = await prisma.task.findUnique({
-        where: { id: childId },
-        include: { day: true },
-      });
-      return (task?.day ?? null) as ParentType<T>;
-    }
-    case 'session': {
-      const session = await prisma.session.findUnique({
-        where: { id: childId },
-        include: { task: true },
-      });
-      return (session?.task ?? null) as ParentType<T>;
     }
     default:
       throw new Error(`Invalid level: ${level}`);
@@ -167,19 +148,30 @@ export async function getParent<T extends 'week' | 'day' | 'task' | 'session'>(
  * @returns Array of all descendant IDs
  *
  * @example
- * // Get all descendant IDs under Week 1 (Days + Tasks + Sessions)
- * const descendantIds = await getAllDescendants('week1', 'week');
+ * // Get all descendant IDs under Sprint 1 (Weeks + Days)
+ * const descendantIds = await getAllDescendants('sprint1', 'sprint');
  */
 export async function getAllDescendants(
   entityId: string,
-  entityType: 'phase' | 'week' | 'day' | 'task' | 'session'
+  entityType: 'phase' | 'sprint' | 'week' | 'day'
 ): Promise<string[]> {
   const descendants: string[] = [];
 
   switch (entityType) {
     case 'phase': {
-      const weeks = await prisma.week.findMany({
+      const sprints = await prisma.sprint.findMany({
         where: { phaseId: entityId },
+        select: { id: true },
+      });
+      descendants.push(...sprints.map((s) => s.id));
+      for (const sprint of sprints) {
+        descendants.push(...(await getAllDescendants(sprint.id, 'sprint')));
+      }
+      break;
+    }
+    case 'sprint': {
+      const weeks = await prisma.week.findMany({
+        where: { sprintId: entityId },
         select: { id: true },
       });
       descendants.push(...weeks.map((w) => w.id));
@@ -194,32 +186,10 @@ export async function getAllDescendants(
         select: { id: true },
       });
       descendants.push(...days.map((d) => d.id));
-      for (const day of days) {
-        descendants.push(...(await getAllDescendants(day.id, 'day')));
-      }
       break;
     }
     case 'day': {
-      const tasks = await prisma.task.findMany({
-        where: { dayId: entityId },
-        select: { id: true },
-      });
-      descendants.push(...tasks.map((t) => t.id));
-      for (const task of tasks) {
-        descendants.push(...(await getAllDescendants(task.id, 'task')));
-      }
-      break;
-    }
-    case 'task': {
-      const sessions = await prisma.session.findMany({
-        where: { taskId: entityId },
-        select: { id: true },
-      });
-      descendants.push(...sessions.map((s) => s.id));
-      break;
-    }
-    case 'session': {
-      // Sessions are leaf nodes, no descendants
+      // Days are leaf nodes, no descendants
       break;
     }
   }
@@ -228,42 +198,35 @@ export async function getAllDescendants(
 }
 
 /**
- * Get current active task (first IN_PROGRESS task in tree)
- * Use for: Agent context, workflow tracking, status displays
+ * Get current work for a project
+ * Sprint 12: Returns scheduled tickets instead of tasks
  *
- * @param phaseId - Root Phase ID
- * @returns Active Task with parent context, or null
+ * @param projectId - Project ID
+ * @returns Scheduled tickets with week context, or empty array
  *
  * @example
- * const activeTask = await getCurrentTask('phase1');
- * console.log(`Working on: ${activeTask?.day.week.phase.title} / ${activeTask?.day.title} / ${activeTask?.title}`);
+ * const scheduledWork = await getCurrentWork(1);
  */
-export async function getCurrentTask(phaseId: string) {
-  return prisma.task.findFirst({
+export async function getCurrentWork(projectId: number) {
+  return prisma.ticket.findMany({
     where: {
-      status: 'IN_PROGRESS',
-      day: {
-        week: {
-          phaseId,
-        },
-      },
+      projectId,
+      scheduledWeekId: { not: null },
+      status: { notIn: ['closed', 'resolved'] },
     },
     include: {
-      day: {
+      scheduledWeek: {
         include: {
-          week: {
+          sprint: {
             include: {
               phase: true,
             },
           },
         },
       },
-      sessions: {
-        orderBy: { startDate: 'desc' },
-        take: 5, // Most recent 5 sessions
-      },
     },
-    orderBy: { startDate: 'asc' }, // Earliest IN_PROGRESS task
+    orderBy: { updatedAt: 'desc' },
+    take: 20,
   });
 }
 
@@ -271,21 +234,17 @@ export async function getCurrentTask(phaseId: string) {
  * Type helpers for generic functions
  */
 type ChildType<T> = T extends 'phase'
-  ? Week
-  : T extends 'week'
-    ? Day
-    : T extends 'day'
-      ? Task
-      : T extends 'task'
-        ? Session
-        : never;
-
-type ParentType<T> = T extends 'week'
-  ? Phase
-  : T extends 'day'
+  ? Sprint
+  : T extends 'sprint'
     ? Week
-    : T extends 'task'
+    : T extends 'week'
       ? Day
-      : T extends 'session'
-        ? Task
-        : never;
+      : never;
+
+type ParentType<T> = T extends 'sprint'
+  ? Phase
+  : T extends 'week'
+    ? Sprint
+    : T extends 'day'
+      ? Week
+      : never;

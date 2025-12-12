@@ -181,88 +181,9 @@ export async function POST(request: NextRequest) {
             },
           });
 
-          // Step 8: Create initial DevelopmentSession (onboarding summary)
-          try {
-            console.log('[Session 3] Creating initial DevelopmentSession');
-
-            // Extract phases from materialization for goals
-            const firstPhase = parsedRoadmap.phases[0];
-            const goals = firstPhase?.sprints?.[0]?.goals || [
-              'Complete Session 1-3 onboarding',
-              'Review generated documentation',
-              'Begin Phase 1 development',
-            ];
-
-            // Create onboarding summary plan
-            const onboardingSummary = `
-# Onboarding Complete
-
-## Session 1: Executive Summary
-- Answered strategic questions
-- Defined project vision and goals
-- Established success criteria
-
-## Session 2: Documentation Generation
-- Created 13+ industry-grade documents
-- Generated project plan: ${parsedRoadmap.phases.length} phases
-- Established development roadmap
-
-## Session 3: ProjectPulse Configuration
-- Materialized roadmap: ${materializationResult.counts.phases} phases, ${materializationResult.counts.sprints} sprints, ${materializationResult.counts.weeks} weeks, ${materializationResult.counts.days} days
-- Database records created
-- Ready for development tracking
-
-## Next Steps
-1. Review roadmap at /roadmap
-2. Agent starts ${firstPhase?.name || 'Phase 1'}
-3. Track progress via CurrentWorkModal
-            `.trim();
-
-            // Extract todos from first sprint
-            const firstSprint = firstPhase?.sprints?.[0];
-            const todos = (firstSprint?.weeks?.[0] as any)?.days?.slice(0, 5).map((day: any) => ({
-              content: day.focus || day.name,
-              status: 'pending',
-              priority: 'medium',
-            })) || [
-              { content: 'Review generated documentation', status: 'pending', priority: 'high' },
-              { content: 'Verify roadmap structure', status: 'pending', priority: 'high' },
-              { content: 'Begin first development phase', status: 'pending', priority: 'medium' },
-            ];
-
-            // Create DevelopmentSession record
-            const devSession = await prisma.developmentSession.create({
-              data: {
-                projectId,
-                phase: 'Session 3: Onboarding Complete',
-                goals,
-                plan: onboardingSummary,
-                todos,
-                progress: `Onboarding completed successfully at ${now.toISOString()}`,
-                status: 'COMPLETED',
-                completedAt: now,
-              },
-            });
-
-            console.log('[Session 3] DevelopmentSession created:', devSession.id);
-
-            // Update session response with devSession reference
-            await prisma.onboardingSession.update({
-              where: { id: session.id },
-              data: {
-                response: {
-                  ...data,
-                  roadmapId: roadmap.id,
-                  materialization: materializationResult.counts,
-                  developmentSessionId: devSession.id, // Link to session
-                },
-              },
-            });
-          } catch (error) {
-            // Log error but don't fail the request
-            console.error('[Session 3] DevelopmentSession creation failed:', error);
-            console.error('[Session 3] Continuing without development session');
-          }
+          // Sprint 12: DevelopmentSession model removed
+          // Agent sessions are now created on-demand via MCP tools
+          console.log('[Session 3] Roadmap materialization complete - ready for agent sessions');
         } else {
           console.warn('[Session 3] 13-Project-Plan.md not found, skipping materialization');
         }

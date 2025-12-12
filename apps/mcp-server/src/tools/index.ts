@@ -6,12 +6,14 @@ import { getAgentAuth, isToolAllowed } from '../authContext.js';
 import { checkBlockedTool, logToolCall } from '../adminControls.js';
 import { healthCheckTool } from './healthCheck.js';
 import { sprintPhaseCreateTool } from './sprintPhaseCreate.js';
-import { sprintGetCurrentTaskTool } from './sprintGetCurrentTask.js';
+// Sprint 12: sprintGetCurrentTask, sprintTask*, sprintSession*, sprintCheckpoint* REMOVED
+// Task/Session/Checkpoint models deleted - use AgentSession tools instead
 import { sprintUpdateProgressTool } from './sprintUpdateProgress.js';
-import { sprintTaskCreateTool } from './sprintTaskCreate.js';
-import { sprintSessionCreateTool } from './sprintSessionCreate.js';
-import { sprintCheckpointCreateTool } from './sprintCheckpointCreate.js';
 import { sprintQueryHierarchyTool } from './sprintQueryHierarchy.js';
+// Sprint 12: New agent session tools for work tracking
+import { agentSessionStartTool } from './agent-session/startTool.js';
+import { agentSessionUpdateTool } from './agent-session/updateTool.js';
+import { agentSessionEndTool } from './agent-session/endTool.js';
 import { wikiCreateTool } from './wikiCreate.js';
 import { wikiSearchTool } from './wikiSearch.js';
 import { wikiUpdateTool } from './wikiUpdate.js';
@@ -93,12 +95,13 @@ import { sopGetTool } from './sops/getTool.js';
 export const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
   sprintPhaseCreateTool,
-  sprintGetCurrentTaskTool,
+  // Sprint 12: Task/Session/Checkpoint tools removed - models deleted
   sprintUpdateProgressTool,
-  sprintTaskCreateTool,
-  sprintSessionCreateTool,
-  sprintCheckpointCreateTool,
   sprintQueryHierarchyTool,
+  // Sprint 12: New agent session tools
+  agentSessionStartTool,
+  agentSessionUpdateTool,
+  agentSessionEndTool,
   wikiCreateTool,
   wikiSearchTool,
   wikiUpdateTool,

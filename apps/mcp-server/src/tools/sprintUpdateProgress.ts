@@ -1,10 +1,13 @@
 /**
  * MCP Tool: sprint.updateProgress
  *
+ * Sprint 12: Updated for 4-level hierarchy (day, week, sprint, phase)
+ * Task/Session models removed
+ *
  * Purpose: Update progress for any sprint entity and trigger automatic roll-up
  *
- * Use Case: Agent invokes when user says "Mark session X as 100% complete"
- * or "Update task progress to 75%"
+ * Use Case: Agent invokes when user says "Mark day X as 100% complete"
+ * or "Update week progress to 75%"
  *
  * Pattern: Zod schema → HTTP API call → Progress roll-up utility
  */
@@ -16,9 +19,10 @@ import type { ToolDefinition, ToolContext } from './types.js';
 // INPUT SCHEMA
 // ============================================================================
 
+// Sprint 12: 4-level hierarchy (Task/Session removed)
 const sprintUpdateProgressSchema = z.object({
-  entityType: z.enum(['session', 'task', 'day', 'week', 'phase'], {
-    errorMap: () => ({ message: 'entityType must be one of: session, task, day, week, phase' }),
+  entityType: z.enum(['day', 'week', 'sprint', 'phase'], {
+    errorMap: () => ({ message: 'entityType must be one of: day, week, sprint, phase' }),
   }),
 
   entityId: z.string()
@@ -173,18 +177,19 @@ async function handler(
 export const sprintUpdateProgressTool: ToolDefinition = {
   name: 'projectpulse_sprint_updateProgress',
 
-  description: `Update progress for any sprint entity (session/task/day/week/phase) and automatically propagate to parent entities.
+  description: `Update progress for any sprint entity (day/week/sprint/phase) and automatically propagate to parent entities.
+
+  Sprint 12: Updated for 4-level hierarchy. Task/Session models removed.
 
   Use this tool when:
-  - User says "Mark session X as complete" (progress = 100)
-  - User says "Update task Y to 75% progress"
+  - User says "Mark day X as complete" (progress = 100)
+  - User says "Update week Y to 75% progress"
   - User wants to track progress at any hierarchy level
 
   Progress automatically rolls up:
-  - Session 100% → Task recalculates from all sessions
-  - Task updated → Day recalculates from all tasks
   - Day updated → Week recalculates from all days
-  - Week updated → Phase recalculates from all weeks
+  - Week updated → Sprint recalculates from all weeks
+  - Sprint updated → Phase recalculates from all sprints
 
   Returns updated entity + full hierarchy showing propagation.`,
 
@@ -195,8 +200,8 @@ export const sprintUpdateProgressTool: ToolDefinition = {
     properties: {
       entityType: {
         type: 'string',
-        enum: ['session', 'task', 'day', 'week', 'phase'],
-        description: 'Type of entity to update (session, task, day, week, or phase)',
+        enum: ['day', 'week', 'sprint', 'phase'],
+        description: 'Type of entity to update (day, week, sprint, or phase)',
       },
       entityId: {
         type: 'string',

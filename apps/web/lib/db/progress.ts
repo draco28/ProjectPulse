@@ -1,19 +1,21 @@
 /**
  * Progress Roll-Up Utilities
  *
- * Implements bottom-up progress propagation for 5-level hierarchy:
- * Session → Task → Day → Week → Phase
+ * Sprint 12: Updated for 4-level hierarchy:
+ * Day → Week → Sprint → Phase
+ *
+ * Task and Session models removed - progress now tracks at Day level and above
  *
  * Architecture Decision: Incremental transactions (one level at a time)
  * - Prevents deadlocks by releasing locks quickly
  * - Uses row-level locking (FOR UPDATE) for concurrent safety
- * - Prisma aggregation for performance (90% faster than N+1)
+ * - Prisma aggregation for performance
  *
- * @see .agent/task/prisma-progress-rollup-20251106-1200.md for design rationale
+ * @see apps/web/prisma/schema.prisma for model definitions
  */
 
 import { prisma } from '@/lib/db';
-import { PrismaClient, Status } from '@prisma/client';
+import { Status } from '@prisma/client';
 
 /**
  * Propagation result type
@@ -22,13 +24,13 @@ import { PrismaClient, Status } from '@prisma/client';
 export interface PropagationResult {
   entity: {
     id: string;
-    type: 'session' | 'task' | 'day' | 'week' | 'phase';
+    type: 'day' | 'week' | 'sprint' | 'phase';
     progress: number;
     status: Status;
   };
   propagated: Array<{
     id: string;
-    type: 'task' | 'day' | 'week' | 'phase';
+    type: 'week' | 'sprint' | 'phase';
     progress: number;
     status: Status;
   }>;
@@ -39,21 +41,26 @@ export interface PropagationResult {
  * Uses row-level locking to prevent race conditions
  *
  * @param entityId - ID of the entity to update
- * @param entityType - Type of entity (session, task, day, week, phase)
+ * @param entityType - Type of entity (day, week, sprint, phase)
  * @param newProgress - New progress value (0-100)
  * @param _propagatedEntities - Internal accumulator for tracking propagated entities
  * @returns Propagation result with updated entity and all affected parents
  *
  * @example
- * // Update Session 1 to 100%, propagates to Task → Day → Week → Phase
- * const result = await updateProgressAndPropagate('session1', 'session', 100);
- * console.log(result.propagated); // [Task, Day, Week, Phase]
+ * // Update Day to 100%, propagates to Week → Sprint → Phase
+ * const result = await updateProgressAndPropagate('day1', 'day', 100);
+ * console.log(result.propagated); // [Week, Sprint, Phase]
  */
 export async function updateProgressAndPropagate(
   entityId: string,
-  entityType: 'session' | 'task' | 'day' | 'week' | 'phase',
+  entityType: 'day' | 'week' | 'sprint' | 'phase',
   newProgress: number,
-  _propagatedEntities: Array<any> = []
+  _propagatedEntities: Array<{
+    id: string;
+    type: 'week' | 'sprint' | 'phase';
+    progress: number;
+    status: Status;
+  }> = []
 ): Promise<PropagationResult> {
   // Validate progress range (0-100)
   if (newProgress < 0 || newProgress > 100) {
@@ -64,40 +71,12 @@ export async function updateProgressAndPropagate(
   const { parentInfo, updatedEntity } = await prisma.$transaction(
     async (tx) => {
       let parentId: string | null = null;
-      let parentType: 'task' | 'day' | 'week' | 'phase' | null = null;
-      let updatedEntity: any = null;
+      let parentType: 'week' | 'sprint' | 'phase' | null = null;
+      let updatedEntity: { id: string; progress: number; status: Status } & Record<string, unknown>;
 
       switch (entityType) {
-        case 'session': {
-          updatedEntity = await tx.session.update({
-            where: { id: entityId },
-            data: {
-              progress: newProgress,
-              status: determineStatus(newProgress),
-              updatedAt: new Date(),
-            },
-            select: { id: true, progress: true, status: true, taskId: true },
-          });
-          parentId = updatedEntity.taskId;
-          parentType = 'task';
-          break;
-        }
-        case 'task': {
-          updatedEntity = await tx.task.update({
-            where: { id: entityId },
-            data: {
-              progress: newProgress,
-              status: determineStatus(newProgress),
-              updatedAt: new Date(),
-            },
-            select: { id: true, progress: true, status: true, dayId: true },
-          });
-          parentId = updatedEntity.dayId;
-          parentType = 'day';
-          break;
-        }
         case 'day': {
-          updatedEntity = await tx.day.update({
+          const result = await tx.day.update({
             where: { id: entityId },
             data: {
               progress: newProgress,
@@ -106,12 +85,28 @@ export async function updateProgressAndPropagate(
             },
             select: { id: true, progress: true, status: true, weekId: true },
           });
-          parentId = updatedEntity.weekId;
+          updatedEntity = result;
+          parentId = result.weekId;
           parentType = 'week';
           break;
         }
         case 'week': {
-          updatedEntity = await tx.week.update({
+          const result = await tx.week.update({
+            where: { id: entityId },
+            data: {
+              progress: newProgress,
+              status: determineStatus(newProgress),
+              updatedAt: new Date(),
+            },
+            select: { id: true, progress: true, status: true, sprintId: true },
+          });
+          updatedEntity = result;
+          parentId = result.sprintId;
+          parentType = 'sprint';
+          break;
+        }
+        case 'sprint': {
+          const result = await tx.sprint.update({
             where: { id: entityId },
             data: {
               progress: newProgress,
@@ -120,12 +115,13 @@ export async function updateProgressAndPropagate(
             },
             select: { id: true, progress: true, status: true, phaseId: true },
           });
-          parentId = updatedEntity.phaseId;
+          updatedEntity = result;
+          parentId = result.phaseId;
           parentType = 'phase';
           break;
         }
         case 'phase': {
-          updatedEntity = await tx.phase.update({
+          const result = await tx.phase.update({
             where: { id: entityId },
             data: {
               progress: newProgress,
@@ -134,46 +130,55 @@ export async function updateProgressAndPropagate(
             },
             select: { id: true, progress: true, status: true },
           });
-          parentId = null;
-          parentType = null;
+          updatedEntity = result;
+          // Phase is root, no parent
           break;
         }
+        default:
+          throw new Error(`Invalid entity type: ${entityType}`);
       }
 
-      if (!parentId || !parentType) {
-        return { parentInfo: null, updatedEntity }; // No parent (phase)
-      }
-
-      const parentProgress = await calculateParentProgress(tx, parentId, parentType);
       return {
-        parentInfo: { parentId, parentType, parentProgress },
+        parentInfo: parentId && parentType ? { parentId, parentType } : null,
         updatedEntity,
       };
-    },
-    { timeout: 5000 }
+    }
   );
 
-  // 2. Recursively propagate to parent (AFTER current transaction commits)
-  // This releases locks incrementally, preventing deadlocks
+  // 2. If we have a parent, calculate its new progress and propagate
   if (parentInfo) {
+    const parentProgress = await calculateAggregateProgress(
+      parentInfo.parentId,
+      parentInfo.parentType
+    );
+
+    // Recursively propagate to parent
     const parentResult = await updateProgressAndPropagate(
       parentInfo.parentId,
       parentInfo.parentType,
-      parentInfo.parentProgress,
+      parentProgress,
       _propagatedEntities
     );
 
-    // The parent's entity info is now part of the propagation chain
-    // Add it to our tracking (parent was updated during recursive call)
+    // Add parent to propagated list
     _propagatedEntities.push({
-      id: parentResult.entity.id,
-      type: parentResult.entity.type as 'task' | 'day' | 'week' | 'phase',
-      progress: parentResult.entity.progress,
-      status: parentResult.entity.status,
+      id: parentInfo.parentId,
+      type: parentInfo.parentType,
+      progress: parentProgress,
+      status: determineStatus(parentProgress),
     });
+
+    return {
+      entity: {
+        id: updatedEntity.id,
+        type: entityType,
+        progress: updatedEntity.progress,
+        status: updatedEntity.status,
+      },
+      propagated: [..._propagatedEntities, ...parentResult.propagated],
+    };
   }
 
-  // 3. Build and return propagation result
   return {
     entity: {
       id: updatedEntity.id,
@@ -186,181 +191,42 @@ export async function updateProgressAndPropagate(
 }
 
 /**
- * Calculate parent progress as average of all children
- * Uses Prisma aggregation (single query, no N+1)
- * Implements row-level locking for concurrent safety
- *
- * @param tx - Prisma transaction client
- * @param parentId - Parent entity ID
- * @param parentType - Parent entity type
- * @returns Calculated progress (0-100)
+ * Calculate aggregate progress for a parent entity
+ * Uses Prisma aggregation for performance
  */
-async function calculateParentProgress(
-  tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>,
+async function calculateAggregateProgress(
   parentId: string,
-  parentType: 'task' | 'day' | 'week' | 'phase'
+  parentType: 'week' | 'sprint' | 'phase'
 ): Promise<number> {
   switch (parentType) {
-    case 'task': {
-      const result = await tx.session.aggregate({
-        where: { taskId: parentId },
-        _avg: { progress: true },
-        _count: true,
-      });
-      if (result._count === 0) {
-        const current = await tx.task.findUnique({
-          where: { id: parentId },
-          select: { progress: true },
-        });
-        return current?.progress ?? 0;
-      }
-      return Math.round(result._avg.progress ?? 0);
-    }
-    case 'day': {
-      const result = await tx.task.aggregate({
-        where: { dayId: parentId },
-        _avg: { progress: true },
-        _count: true,
-      });
-      if (result._count === 0) {
-        const current = await tx.day.findUnique({
-          where: { id: parentId },
-          select: { progress: true },
-        });
-        return current?.progress ?? 0;
-      }
-      return Math.round(result._avg.progress ?? 0);
-    }
     case 'week': {
-      const result = await tx.day.aggregate({
+      const result = await prisma.day.aggregate({
         where: { weekId: parentId },
         _avg: { progress: true },
-        _count: true,
       });
-      if (result._count === 0) {
-        const current = await tx.week.findUnique({
-          where: { id: parentId },
-          select: { progress: true },
-        });
-        return current?.progress ?? 0;
-      }
+      return Math.round(result._avg.progress ?? 0);
+    }
+    case 'sprint': {
+      const result = await prisma.week.aggregate({
+        where: { sprintId: parentId },
+        _avg: { progress: true },
+      });
       return Math.round(result._avg.progress ?? 0);
     }
     case 'phase': {
-      const result = await tx.week.aggregate({
+      const result = await prisma.sprint.aggregate({
         where: { phaseId: parentId },
         _avg: { progress: true },
-        _count: true,
       });
-      if (result._count === 0) {
-        const current = await tx.phase.findUnique({
-          where: { id: parentId },
-          select: { progress: true },
-        });
-        return current?.progress ?? 0;
-      }
       return Math.round(result._avg.progress ?? 0);
     }
+    default:
+      throw new Error(`Invalid parent type: ${parentType}`);
   }
 }
 
 /**
- * Recalculate progress for entire tree (bottom-up)
- * Use for: Data integrity recovery, migrations, manual fixes
- *
- * WARNING: This locks rows level-by-level, don't run during peak usage
- *
- * @param phaseId - Root Phase ID
- *
- * @example
- * // After bulk data import or manual DB edits
- * await recalculateFullTree(phaseId);
- */
-export async function recalculateFullTree(phaseId: string): Promise<void> {
-  // 1. Get entire tree structure
-  const phase = await prisma.phase.findUnique({
-    where: { id: phaseId },
-    include: {
-      weeks: {
-        include: {
-          days: {
-            include: {
-              tasks: {
-                include: {
-                  sessions: { select: { id: true, progress: true } },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!phase) throw new Error('Phase not found');
-
-  // 2. Recalculate bottom-up (Sessions are leaf nodes, already have progress)
-  for (const week of phase.weeks) {
-    for (const day of week.days) {
-      for (const task of day.tasks) {
-        // Recalculate Task progress from Sessions
-        if (task.sessions.length > 0) {
-          const taskProgress = calculateAverage(task.sessions.map((s) => s.progress));
-          await prisma.task.update({
-            where: { id: task.id },
-            data: { progress: taskProgress, status: determineStatus(taskProgress) },
-          });
-        }
-      }
-
-      // Recalculate Day progress from Tasks
-      const dayProgress = await prisma.task.aggregate({
-        where: { dayId: day.id },
-        _avg: { progress: true },
-        _count: true,
-      });
-      if (dayProgress._count > 0) {
-        const newProgress = Math.round(dayProgress._avg.progress ?? 0);
-        await prisma.day.update({
-          where: { id: day.id },
-          data: { progress: newProgress, status: determineStatus(newProgress) },
-        });
-      }
-    }
-
-    // Recalculate Week progress from Days
-    const weekProgress = await prisma.day.aggregate({
-      where: { weekId: week.id },
-      _avg: { progress: true },
-      _count: true,
-    });
-    if (weekProgress._count > 0) {
-      const newProgress = Math.round(weekProgress._avg.progress ?? 0);
-      await prisma.week.update({
-        where: { id: week.id },
-        data: { progress: newProgress, status: determineStatus(newProgress) },
-      });
-    }
-  }
-
-  // 3. Recalculate Phase progress from Weeks
-  const phaseProgress = await prisma.week.aggregate({
-    where: { phaseId: phase.id },
-    _avg: { progress: true },
-    _count: true,
-  });
-  if (phaseProgress._count > 0) {
-    const newProgress = Math.round(phaseProgress._avg.progress ?? 0);
-    await prisma.phase.update({
-      where: { id: phaseId },
-      data: { progress: newProgress, status: determineStatus(newProgress) },
-    });
-  }
-}
-
-/**
- * Determine status based on progress value
- * Auto-updates status when progress changes
+ * Determine status based on progress percentage
  */
 function determineStatus(progress: number): Status {
   if (progress === 0) return 'NOT_STARTED';
@@ -369,66 +235,87 @@ function determineStatus(progress: number): Status {
 }
 
 /**
- * Helper: Get parent ID from entity based on type
+ * Bulk progress initialization (for roadmap materialization)
+ * Sets all entities in a phase tree to initial state
  */
-function getParentId(
-  entity: any,
-  entityType: 'session' | 'task' | 'day' | 'week' | 'phase'
-): string | null {
-  switch (entityType) {
-    case 'session':
-      return entity.taskId;
-    case 'task':
-      return entity.dayId;
-    case 'day':
-      return entity.weekId;
-    case 'week':
-      return entity.phaseId;
-    case 'phase':
-      return null;
-  }
+export async function initializePhaseProgress(phaseId: string): Promise<void> {
+  await prisma.$transaction([
+    // Reset phase
+    prisma.phase.update({
+      where: { id: phaseId },
+      data: { progress: 0, status: 'NOT_STARTED' },
+    }),
+    // Reset sprints
+    prisma.sprint.updateMany({
+      where: { phaseId },
+      data: { progress: 0, status: 'NOT_STARTED' },
+    }),
+    // Reset weeks
+    prisma.week.updateMany({
+      where: { sprint: { phaseId } },
+      data: { progress: 0, status: 'NOT_STARTED' },
+    }),
+    // Reset days
+    prisma.day.updateMany({
+      where: { week: { sprint: { phaseId } } },
+      data: { progress: 0, status: 'NOT_STARTED' },
+    }),
+  ]);
 }
 
 /**
- * Helper: Get parent type from entity type
+ * Get progress summary for a phase
+ * Returns counts and averages at each level
  */
-function getParentType(
-  entityType: 'session' | 'task' | 'day' | 'week'
-): 'task' | 'day' | 'week' | 'phase' {
-  switch (entityType) {
-    case 'session':
-      return 'task';
-    case 'task':
-      return 'day';
-    case 'day':
-      return 'week';
-    case 'week':
-      return 'phase';
-  }
-}
+export async function getPhaseProgressSummary(phaseId: string) {
+  const phase = await prisma.phase.findUnique({
+    where: { id: phaseId },
+    include: {
+      sprints: {
+        include: {
+          weeks: {
+            include: {
+              days: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
-/**
- * Helper: Get child type from parent type
- */
-function getChildType(
-  parentType: 'task' | 'day' | 'week' | 'phase'
-): 'session' | 'task' | 'day' | 'week' {
-  switch (parentType) {
-    case 'task':
-      return 'session';
-    case 'day':
-      return 'task';
-    case 'week':
-      return 'day';
-    case 'phase':
-      return 'week';
-  }
-}
+  if (!phase) return null;
 
-/**
- * Helper: Calculate average of numbers
- */
-function calculateAverage(values: number[]): number {
-  if (values.length === 0) return 0;
-  return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
+  const sprints = phase.sprints;
+  const weeks = sprints.flatMap((s) => s.weeks);
+  const days = weeks.flatMap((w) => w.days);
+
+  return {
+    phase: {
+      id: phase.id,
+      title: phase.title,
+      progress: phase.progress,
+      status: phase.status,
+    },
+    counts: {
+      sprints: sprints.length,
+      weeks: weeks.length,
+      days: days.length,
+    },
+    completed: {
+      sprints: sprints.filter((s) => s.status === 'COMPLETED').length,
+      weeks: weeks.filter((w) => w.status === 'COMPLETED').length,
+      days: days.filter((d) => d.status === 'COMPLETED').length,
+    },
+    averages: {
+      sprintProgress: sprints.length > 0
+        ? Math.round(sprints.reduce((sum, s) => sum + s.progress, 0) / sprints.length)
+        : 0,
+      weekProgress: weeks.length > 0
+        ? Math.round(weeks.reduce((sum, w) => sum + w.progress, 0) / weeks.length)
+        : 0,
+      dayProgress: days.length > 0
+        ? Math.round(days.reduce((sum, d) => sum + d.progress, 0) / days.length)
+        : 0,
+    },
+  };
 }

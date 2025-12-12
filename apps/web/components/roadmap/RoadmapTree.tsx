@@ -1,14 +1,16 @@
 'use client';
 
 /**
- * RoadmapTree Component - Sprint 8.5
+ * RoadmapTree Component - Sprint 12
  *
- * Displays collapsible 5-level hierarchy tree with neumorphic design
- * - Phase → Sprint → Week → Day → Task
+ * Displays collapsible 4-level hierarchy tree with neumorphic design
+ * - Phase → Sprint → Week → Day (Days are leaf nodes)
  * - Expandable/collapsible sections
  * - Progress visualization
  * - Status badges
  * - Coral theme matching Agent Personas
+ *
+ * Sprint 12: Task model removed - Days are now leaf nodes
  */
 
 import { useState, useMemo } from 'react';
@@ -17,7 +19,6 @@ import { PhaseCard } from './PhaseCard';
 import { SprintCard } from './SprintCard';
 import { WeekCard } from './WeekCard';
 import { DayCard } from './DayCard';
-import { TaskCard } from './TaskCard';
 import type { RoadmapWithRelations } from '@/types/roadmap';
 import type { RoadmapFilterState} from './RoadmapFilters';
 
@@ -27,10 +28,11 @@ interface RoadmapTreeProps {
 }
 
 export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
+  // Sprint 12: 4-level hierarchy (Phase → Sprint → Week → Day)
+  // Days are now leaf nodes, no expandedDays state needed
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
   const [expandedSprints, setExpandedSprints] = useState<Set<string>>(new Set());
   const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
-  const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
 
   // Filter helper function
   const matchesFilters = (item: { title: string; description?: string | null; status: string }) => {
@@ -111,17 +113,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
     });
   };
 
-  const toggleDay = (dayId: string) => {
-    setExpandedDays(prev => {
-      const next = new Set(prev);
-      if (next.has(dayId)) {
-        next.delete(dayId);
-      } else {
-        next.add(dayId);
-      }
-      return next;
-    });
-  };
+  // Sprint 12: toggleDay removed - Days are now leaf nodes
 
   if (roadmap.phases_rel.length === 0) {
     return (
@@ -235,21 +227,12 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
                                   </div>
                                 </div>
 
-                                {/* Days (collapsible) - Sprint 8.5: Full 5-level hierarchy */}
+                                {/* Days - Sprint 12: 4-level hierarchy (Days are leaf nodes) */}
                                 {isWeekExpanded && week.days && (
                                   <div className="ml-12 space-y-2 mt-3 mb-4">
-                                    {week.days.map((day) => {
-                                      const isDayExpanded = expandedDays.has(day.id);
-                                      
-                                      return (
-                                        <DayCard
-                                          key={day.id}
-                                          day={day}
-                                          isExpanded={isDayExpanded}
-                                          onToggle={() => toggleDay(day.id)}
-                                        />
-                                      );
-                                    })}
+                                    {week.days.map((day) => (
+                                      <DayCard key={day.id} day={day} />
+                                    ))}
                                   </div>
                                 )}
                               </div>

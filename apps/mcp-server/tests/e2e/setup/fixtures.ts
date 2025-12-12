@@ -368,8 +368,11 @@ export async function createTestProject(projectId?: number): Promise<{ id: numbe
  * Deletes in correct order (children first) to respect foreign key constraints:
  * 1. Documents (linked to OnboardingSession)
  * 2. AgentPersona, Skill, Workflow, SOP (linked to Project)
- * 3. Roadmap hierarchy (Phase, Week, Day, Task, Session)
- * 4. OnboardingSession
+ * 3. Roadmap hierarchy (Phase → Sprint → Week → Day) - Sprint 12: 4-level hierarchy
+ * 4. AgentSession (Sprint 12: replaces old Session model)
+ * 5. OnboardingSession
+ *
+ * Sprint 12: Task/Session/Checkpoint/CurrentPlan/CurrentTodos models removed
  *
  * @param projectId - Project ID to clean up
  */
@@ -391,19 +394,15 @@ export async function cleanupProjectData(projectId: number): Promise<void> {
         },
       }),
 
-      // Delete CurrentPlan and CurrentTodos
-      prisma.currentPlan.deleteMany({ where: { projectId } }),
-      prisma.currentTodos.deleteMany({ where: { projectId } }),
-
-      // Delete roadmap hierarchy (children first)
-      prisma.checkpoint.deleteMany({ where: { session: { task: { day: { week: { phase: { roadmap: { projectId } } } } } } } }),
-      prisma.session.deleteMany({ where: { task: { day: { week: { phase: { roadmap: { projectId } } } } } } }),
-      prisma.task.deleteMany({ where: { day: { week: { phase: { roadmap: { projectId } } } } } }),
-      prisma.day.deleteMany({ where: { week: { phase: { roadmap: { projectId } } } } }),
-      prisma.week.deleteMany({ where: { phase: { roadmap: { projectId } } } }),
+      // Sprint 12: Delete roadmap hierarchy (4-level: children first)
+      prisma.day.deleteMany({ where: { week: { sprint: { phase: { roadmap: { projectId } } } } } }),
+      prisma.week.deleteMany({ where: { sprint: { phase: { roadmap: { projectId } } } } }),
       prisma.sprint.deleteMany({ where: { phase: { roadmap: { projectId } } } }),
       prisma.phase.deleteMany({ where: { roadmap: { projectId } } }),
       prisma.roadmap.deleteMany({ where: { projectId } }),
+
+      // Sprint 12: Delete agent sessions (new model)
+      prisma.agentSession.deleteMany({ where: { projectId } }),
 
       // Delete project-linked entities
       prisma.agentPersona.deleteMany({ where: { projectId } }),

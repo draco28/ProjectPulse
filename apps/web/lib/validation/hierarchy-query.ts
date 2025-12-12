@@ -11,9 +11,10 @@ import { z } from 'zod';
 
 /**
  * Entity level enum (which hierarchy level to query)
- * Sprint 8.5: Added 'sprint' for 5-level hierarchy (Phase → Sprint → Week → Day → Task)
+ * Sprint 12: Simplified to 4-level hierarchy (Phase → Sprint → Week → Day)
+ * Task and Session models removed - tickets now schedule directly to Weeks
  */
-export const EntityLevelSchema = z.enum(['phase', 'sprint', 'week', 'day', 'task', 'session']);
+export const EntityLevelSchema = z.enum(['phase', 'sprint', 'week', 'day']);
 
 /**
  * Status filter schema (matches Prisma Status enum)

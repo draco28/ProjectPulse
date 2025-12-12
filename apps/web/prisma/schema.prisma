@@ -13,11 +13,12 @@ datasource db {
 }
 
 // ============================================================================
-// SPRINT HIERARCHY (5-LEVEL TASK TRACKING)
+// SPRINT HIERARCHY (4-LEVEL ROADMAP STRUCTURE)
 // ============================================================================
 // Architecture: Adjacency List (FK relationships)
 // Progress: Stored field with application-managed roll-up
 // Query Strategy: Prisma nested includes for tree traversal
+// Sprint 12 Redesign: Removed Task/Session/Checkpoint (unused), tickets schedule to Weeks
 
 enum Status {
   NOT_STARTED
@@ -118,9 +119,8 @@ model Week {
   // Hierarchy - Children
   days Day[]
 
-  // Current Work Tracking (Sprint 8.5 Phase 2)
-  currentPlans CurrentPlan[] // Sprint 8.5 Phase 2: Current plans pointing to this week
-  currentTodos CurrentTodos[] // Sprint 8.5 Phase 2: Current todos pointing to this week
+  // Sprint 12: Scheduled tickets for this week
+  scheduledTickets Ticket[] @relation("ScheduledTickets")
 
   // Metadata
   createdAt DateTime @default(now())
@@ -155,12 +155,8 @@ model Day {
   weekId String
   week   Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
 
-  // Hierarchy - Children
-  tasks Task[]
-
-  // Current Work Tracking (Sprint 8.5 Phase 2)
-  currentPlans CurrentPlan[] // Sprint 8.5 Phase 2: Current plans pointing to this day
-  currentTodos CurrentTodos[] // Sprint 8.5 Phase 2: Current todos pointing to this day
+  // Sprint 12: Task model removed - Days are now leaf nodes
+  // Tickets are scheduled at Week level with scheduledDays[] specifying which days
 
   // Metadata
   createdAt DateTime @default(now())
@@ -175,93 +171,10 @@ model Day {
   @@map("days")
 }
 
-model Task {
-  id String @id @default(cuid())
-
-  // Core fields
-  title       String
-  description String? @db.Text
-  status      Status  @default(NOT_STARTED)
-  progress    Int     @default(0) // 0-100, validated in application
-
-  // Time window
-  startDate DateTime
-  endDate   DateTime?
-
-  // Hierarchy - Parent
-  dayId String
-  day   Day    @relation(fields: [dayId], references: [id], onDelete: Cascade)
-
-  // Hierarchy - Children
-  sessions Session[]
-
-  // Sprint 10: Tickets linked to this task (Roadmap ↔ Ticket linkage)
-  tickets Ticket[]
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Indexes for performance
-  @@index([dayId])
-  @@index([startDate, endDate])
-  @@index([status])
-  @@index([dayId, status])
-  @@index([dayId, startDate, endDate, status])
-  @@index([updatedAt(sort: Desc)]) // CRITICAL: For getCurrentTask query (100x faster)
-  @@map("tasks")
-}
-
-model Session {
-  id String @id @default(cuid())
-
-  // Core fields
-  title       String
-  description String? @db.Text
-  status      Status  @default(NOT_STARTED)
-  progress    Int     @default(0) // 0-100, validated in application
-
-  // Time window
-  startDate DateTime
-  endDate   DateTime?
-
-  // Hierarchy - Parent (leaf level, no children)
-  taskId String
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  // Checkpoints - Track progress every 15K tokens
-  checkpoints Checkpoint[]
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Indexes for performance
-  @@index([taskId])
-  @@index([startDate, endDate])
-  @@index([status])
-  @@index([taskId, status])
-  @@index([taskId, startDate, endDate, status])
-  @@map("sessions")
-}
-
-model Checkpoint {
-  id               String   @id @default(cuid())
-  sessionId        String
-  notes            String   @db.Text
-  tokenUsage       Int
-  sessionContext   Json?    @db.JsonB
-  checkpointNumber Int
-  createdAt        DateTime @default(now())
-
-  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
-  @@unique([sessionId, checkpointNumber])
-  @@index([sessionId])
-  @@index([createdAt(sort: Desc)])
-  @@index([sessionId, createdAt(sort: Desc)])
-  @@map("checkpoints")
-}
+// Sprint 12: Task, Session, and Checkpoint models REMOVED
+// These were never populated (Task never auto-created during roadmap materialization)
+// Tickets now schedule directly to Weeks with scheduledDays[] for day-level assignment
+// Agent work tracking moved to new AgentSession model (see below)
 
 // ============================================================================
 // USER PREFERENCES (for theme system and future UI preferences)
@@ -308,11 +221,9 @@ model Project {
   healthScanners      HealthScanner[] // Sprint 7: Health monitoring system
   healthScores        HealthScore[] // Sprint 7: Health scores
   roadmap             Roadmap? // Sprint 8.5: Development roadmap (one-to-one)
-  developmentSessions DevelopmentSession[] // Sprint 8.5: Agent work tracking (plan + todos for CurrentWorkModal)
-  currentPlan         CurrentPlan? // Sprint 8.5 Phase 2: Current work plan
-  currentTodos        CurrentTodos? // Sprint 8.5 Phase 2: Current todos list
   agentPersonas       AgentPersona[] // Sprint 8.5 Phase 3: Project-scoped agent personas
   sops                SOP[] // Sprint 8.5 Phase 3E: SOPs for this project
+  agentSessions       AgentSession[] // Sprint 12: Agent work sessions (replaces DevelopmentSession)
 
   // Sprint 8.9: Additional project-scoped entities
   knowledgeItems   KnowledgeItem[]
@@ -325,6 +236,12 @@ model Project {
 
   // Sprint 9: Memory Bank System
   memoryBanks MemoryBank[]
+
+  // Sprint 11.7: Project-scoped labels (moved from global)
+  labels Label[]
+
+  // Sprint 11.7: Project-scoped milestones
+  milestones Milestone[]
 
   // Sprint 11.5: MCP Tool Logging for Admin Dashboard
   toolLogs       MCPToolLog[]
@@ -458,9 +375,12 @@ model Ticket {
   assigneeType String? // human, agent_persona
   assigneeId   String? // User ID or AgentPersona ID
 
-  // Sprint 10: Roadmap linkage (Ticket ↔ Task in hierarchy)
-  linkedTaskId String? // Optional link to Task in roadmap hierarchy
-  linkedTask   Task?   @relation(fields: [linkedTaskId], references: [id], onDelete: SetNull)
+  // Sprint 12: Ticket Scheduling (replaces linkedTaskId → Task linkage)
+  // Tickets are now scheduled directly to Weeks with day-level assignment
+  estimatedDays    Int?     // How many days to complete (required for scheduling)
+  scheduledWeekId  String?  // Primary week this ticket is scheduled to
+  scheduledWeek    Week?    @relation("ScheduledTickets", fields: [scheduledWeekId], references: [id], onDelete: SetNull)
+  scheduledDays    String[] @default([]) // ["Monday", "Tuesday", "Wednesday"] - which days within the week
 
   // Custom fields (flexible schema)
   customFields Json? @db.JsonB
@@ -485,6 +405,11 @@ model Ticket {
   // Security findings
   securityFinding SecurityFinding?
 
+  // Sprint 11.7: Milestone and Due Date
+  dueDate     DateTime?
+  milestoneId Int?
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   closedAt      DateTime?
@@ -500,21 +425,54 @@ model Ticket {
   @@index([projectId, kind]) // Sprint 10: Project + kind filter
   @@index([projectId, status]) // Sprint 10: Project + status filter
   @@index([kind, status]) // Sprint 10: Kind + status filter
-  @@index([linkedTaskId]) // Sprint 10: Find tickets by linked task
+  @@index([scheduledWeekId]) // Sprint 12: Find tickets by scheduled week
   @@index([createdAt(sort: Desc)])
+  @@index([milestoneId]) // Sprint 11.7: Find tickets by milestone
+  @@index([dueDate]) // Sprint 11.7: Sort/filter by due date
   @@map("tickets") // Sprint 10: Renamed from "issues" to "tickets"
 }
 
 model Label {
   id    Int    @id @default(autoincrement())
-  name  String @unique
+  name  String
   color String @default("#808080")
+
+  // Sprint 11.7: Project-scoped labels (was global)
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   tickets Ticket[] // Sprint 10: Renamed from issues
 
   createdAt DateTime @default(now())
 
+  @@unique([projectId, name]) // Sprint 11.7: Unique per project, not globally
   @@index([name])
+  @@index([projectId])
+}
+
+// Sprint 11.7: Milestone model for grouping tickets into releases/versions
+model Milestone {
+  id          Int       @id @default(autoincrement())
+  name        String    // e.g., "v1.2.0", "Q1 2025 Release"
+  description String?   @db.Text
+  targetDate  DateTime? // Target completion date
+  status      String    @default("active") // active, completed, cancelled
+
+  // Project scope - milestones belong to a project
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Linked tickets
+  tickets Ticket[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, name]) // Milestone names unique within project
+  @@index([projectId])
+  @@index([status])
+  @@index([targetDate])
+  @@map("milestones")
 }
 
 // Sprint 10: Renamed from Comment to TicketComment
@@ -1105,8 +1063,8 @@ model AgentPersona {
   templateId Int?
   template   PromptTemplate? @relation(fields: [templateId], references: [id])
 
-  // Usage tracking
-  sessions AgentSession[]
+  // Usage tracking (Sprint 12: Renamed from sessions to personaActivations)
+  personaActivations PersonaActivation[]
 
   // Built-in vs custom
   isBuiltIn Boolean @default(false)
@@ -1152,7 +1110,10 @@ model PromptTemplate {
   @@index([category])
 }
 
-model AgentSession {
+// Sprint 12: Renamed from AgentSession to PersonaActivation
+// This tracks persona activation analytics (when a persona was used)
+// NOT to be confused with the new AgentSession model (work tracking)
+model PersonaActivation {
   id Int @id @default(autoincrement())
 
   personaId Int
@@ -1172,6 +1133,7 @@ model AgentSession {
 
   @@index([personaId])
   @@index([startedAt(sort: Desc)])
+  @@map("persona_activations") // Sprint 12: Renamed table
 }
 
 // ============================================================================
@@ -1411,88 +1373,46 @@ model Roadmap {
   @@map("roadmaps")
 }
 
-// Sprint 8.5: Development Session - Agent work tracking
-// Stores current plan + todos for CurrentWorkModal display
-model DevelopmentSession {
+// ============================================================================
+// AGENT WORK SESSION TRACKING (Sprint 12)
+// ============================================================================
+// Purpose: Track agent work plans, todos, and progress across tickets
+// Replaces: DevelopmentSession (unused), CurrentPlan (unused), CurrentTodos (unused)
+// Display: CurrentWorkModal in Roadmap UI
+
+model AgentSession {
   id        String  @id @default(cuid())
   projectId Int
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  // Session context
-  phase String // "Sprint 2 - Week 4", "Phase 1: Foundation"
-  goals String[] @default([])
+  // Session identification
+  name String? // "Implementing auth feature", "Sprint 11.7 Day 3"
 
-  // Agent work tracking
+  // Work tracking (replaces DevelopmentSession + CurrentPlan + CurrentTodos)
   plan     String? @db.Text // Implementation plan (markdown)
-  todos    Json?   @db.JsonB // Array: [{ content, status, priority }]
-  progress String? @db.Text // Progress log
+  todos    Json?   @db.JsonB // Array: [{ content, status, ticketId? }]
+  progress String? @db.Text // Progress notes/log
 
-  // Status
-  status String @default("IN_PROGRESS") // "IN_PROGRESS" | "COMPLETED"
+  // Active ticket tracking (simple array, no join table)
+  // Stores ticket IDs being worked on in this session
+  activeTicketIds String[] @default([])
+
+  // Status tracking
+  status String @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED | PAUSED
 
   // Timestamps
-  createdAt   DateTime  @default(now())
+  startedAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   completedAt DateTime?
 
   @@index([projectId, status])
-  @@index([projectId, createdAt])
-  @@map("development_sessions")
+  @@index([projectId, startedAt(sort: Desc)])
+  @@map("agent_sessions")
 }
 
-// ============================================================================
-// CURRENT WORK TRACKING (Sprint 8.5 Phase 2)
-// ============================================================================
-// Purpose: Track what agent is currently working on (visible in Roadmap UI)
-// Updated: Whenever agent begins a new week/day
-// Display: Roadmap UI tabs - "Current Plan" and "Current Todos"
-
-model CurrentPlan {
-  id        String  @id @default(cuid())
-  projectId Int     @unique // One current plan per project
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  // Plan content
-  content String   @db.Text // Markdown plan for current week/day
-  goals   String[] @default([])
-
-  // Pointer to Roadmap (which week/day are we working on?)
-  weekId String? // Current week being worked on
-  dayId  String? // Current day being worked on
-  week   Week?   @relation(fields: [weekId], references: [id], onDelete: SetNull)
-  day    Day?    @relation(fields: [dayId], references: [id], onDelete: SetNull)
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([projectId])
-  @@index([weekId, dayId])
-  @@map("current_plans")
-}
-
-model CurrentTodos {
-  id        String  @id @default(cuid())
-  projectId Int     @unique // One current todos per project
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  // Todos content
-  todos Json @db.JsonB // Array: [{ content, status, priority, completedAt? }]
-
-  // Pointer to Roadmap (same week/day as CurrentPlan)
-  weekId String?
-  dayId  String?
-  week   Week?   @relation(fields: [weekId], references: [id], onDelete: SetNull)
-  day    Day?    @relation(fields: [dayId], references: [id], onDelete: SetNull)
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([projectId])
-  @@index([weekId, dayId])
-  @@map("current_todos")
-}
+// Sprint 12: DevelopmentSession, CurrentPlan, CurrentTodos models REMOVED
+// These were orphaned (no API routes to update, never used after onboarding)
+// Agent work tracking consolidated into single AgentSession model above
 
 // ============================================================================
 // WORKFLOW ORCHESTRATION (Sprint 3)

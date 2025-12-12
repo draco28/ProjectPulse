@@ -42,8 +42,9 @@ async function main() {
   });
 
   // Reset auto-increment sequences to start from 1
+  // Note: "Issue_id_seq" is the original sequence name from before rename to Ticket
   console.log('🔄 Resetting ID sequences...');
-  await prisma.$executeRaw`ALTER SEQUENCE "Ticket_id_seq" RESTART WITH 1;`;
+  await prisma.$executeRaw`ALTER SEQUENCE "Issue_id_seq" RESTART WITH 1;`;
   await prisma.$executeRaw`ALTER SEQUENCE "Project_id_seq" RESTART WITH 1;`;
   await prisma.$executeRaw`ALTER SEQUENCE "Label_id_seq" RESTART WITH 1;`;
 
@@ -58,12 +59,13 @@ async function main() {
     },
   });
 
-  // Create labels
+  // Create labels (Sprint 11.7: Labels are now project-scoped)
   const labels = await Promise.all([
-    prisma.label.create({ data: { name: 'bug', color: '#FF0055' } }),
-    prisma.label.create({ data: { name: 'feature', color: '#00D4FF' } }),
-    prisma.label.create({ data: { name: 'enhancement', color: '#FFD600' } }),
+    prisma.label.create({ data: { name: 'bug', color: '#FF0055', projectId: project.id } }),
+    prisma.label.create({ data: { name: 'feature', color: '#00D4FF', projectId: project.id } }),
+    prisma.label.create({ data: { name: 'enhancement', color: '#FFD600', projectId: project.id } }),
   ]);
+  console.log('🏷️  Created labels:', labels.map(l => ({ id: l.id, name: l.name })));
 
   // Create tickets with EXACT titles tests expect (Sprint 10: Renamed from issues)
   console.log('📝 Creating tickets...');
@@ -185,6 +187,10 @@ async function main() {
   // This ensures it appears in "recent issues" section (dashboard shows 5 most recent by createdAt DESC)
   // Set to 'in-progress' so pulse indicator appears for E2E test
   console.log('📝 Creating test-expected authentication ticket...');
+  const bugLabel = labels.find(l => l.name === 'bug')!;
+  console.log(`   Connecting to bug label: id=${bugLabel.id}`);
+
+  // Create ticket first, then connect label (workaround for constraint timing issue)
   const authTicket = await prisma.ticket.create({
     data: {
       title: 'Authentication flow not handling session timeout',
@@ -196,11 +202,11 @@ async function main() {
       module: 'Authentication',
       projectId: project.id,
       assignee: 'Test User',
-      labels: {
-        connect: [{ id: labels[0].id }],
-      },
     },
   });
+
+  // Now connect the label using raw SQL (Prisma connect has constraint timing issues)
+  await prisma.$executeRaw`INSERT INTO "_LabelToTicket" ("A", "B") VALUES (${authTicket.id}, ${bugLabel.id})`;
 
   // Create 47 knowledge items for "Knowledge Items" stat
   console.log('📚 Creating knowledge items...');
@@ -209,9 +215,11 @@ async function main() {
 
   for (let i = 1; i <= 47; i++) {
     // Use raw SQL to bypass vector/tsvector requirements
+    // Sprint 11.7: knowledge_items now requires projectId
     await prisma.$executeRaw`
-      INSERT INTO knowledge_items (title, content, category, tags, embedding, "contentTsvector", "createdAt", "updatedAt")
+      INSERT INTO knowledge_items ("projectId", title, content, category, tags, embedding, "contentTsvector", "createdAt", "updatedAt")
       VALUES (
+        ${project.id},
         ${`Knowledge item ${i}`},
         ${`Knowledge content ${i}`},
         ${i % 3 === 0 ? 'guides' : i % 3 === 1 ? 'api' : 'tutorials'},

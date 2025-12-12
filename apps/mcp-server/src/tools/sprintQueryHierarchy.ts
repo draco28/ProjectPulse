@@ -1,9 +1,12 @@
 /**
  * MCP Tool: sprint.queryHierarchy
  *
+ * Sprint 12: Updated for 4-level hierarchy (phase, sprint, week, day)
+ * Task/Session models removed
+ *
  * Purpose: Query hierarchy entities with filters (status, progress)
  *
- * Use Case: Agent invokes when user says "Find all blocked tasks" or "Show me tasks with low progress"
+ * Use Case: Agent invokes when user says "Find all blocked days" or "Show me weeks with low progress"
  *
  * Pattern: Zod schema → HTTP API call → Prisma query with filters
  */
@@ -15,8 +18,9 @@ import type { ToolDefinition, ToolContext } from './types.js';
 // INPUT SCHEMA
 // ============================================================================
 
+// Sprint 12: 4-level hierarchy (Task/Session removed)
 const sprintQueryHierarchySchema = z.object({
-  level: z.enum(['phase', 'week', 'day', 'task', 'session'], {
+  level: z.enum(['phase', 'sprint', 'week', 'day'], {
     description: 'Entity level to query',
   }),
 
@@ -204,13 +208,15 @@ export const sprintQueryHierarchyTool: ToolDefinition = {
 
   description: `Query hierarchy entities with filters (status, progress). Use for reporting and finding specific work items.
 
-  Common use cases:
-  - Find blocked or stuck work: status=BLOCKED, progressMax=30
-  - Find completed items: status=COMPLETED
-  - Find low-progress tasks: progressMin=0, progressMax=25
-  - Find nearly complete work: progressMin=75, progressMax=99
+  Sprint 12: Updated for 4-level hierarchy. Task/Session models removed.
 
-  Returns paginated results with parent context (e.g., Task includes Day → Week → Phase).
+  Common use cases:
+  - Find blocked or stuck work: level=day, status=BLOCKED, progressMax=30
+  - Find completed items: level=sprint, status=COMPLETED
+  - Find low-progress weeks: level=week, progressMin=0, progressMax=25
+  - Find nearly complete phases: level=phase, progressMin=75, progressMax=99
+
+  Returns paginated results with parent context (e.g., Day includes Week → Sprint → Phase).
 
   Note: Date range filtering deferred to Sprint 2 (full US-007 implementation).`,
 
@@ -221,7 +227,7 @@ export const sprintQueryHierarchyTool: ToolDefinition = {
     properties: {
       level: {
         type: 'string',
-        enum: ['phase', 'week', 'day', 'task', 'session'],
+        enum: ['phase', 'sprint', 'week', 'day'],
         description: 'Entity level to query',
       },
       status: {

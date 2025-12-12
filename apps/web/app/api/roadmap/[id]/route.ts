@@ -88,15 +88,7 @@ export async function GET(
                         weekId: true,
                         createdAt: true,
                         updatedAt: true,
-                        tasks: {
-                          select: {
-                            id: true,
-                            title: true,
-                            description: true,
-                            status: true,
-                            progress: true,
-                          },
-                        },
+                        // Sprint 12: Tasks removed - tickets now schedule to weeks directly
                       },
                     },
                   },
@@ -157,7 +149,7 @@ export async function GET(
                   progress: day.progress,
                   startDate: day.startDate?.toISOString() || null,
                   endDate: day.endDate?.toISOString() || null,
-                  tasks: day.tasks,
+                  // Sprint 12: Tasks removed - tickets schedule to weeks via scheduledTickets relation
                 })),
               })),
             })),

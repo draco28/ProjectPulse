@@ -12,8 +12,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 
-// Valid entity types
-const EntityTypeSchema = z.enum(['phases', 'sprints', 'weeks', 'days', 'tasks']);
+// Valid entity types (Task model removed in Sprint 12 redesign)
+const EntityTypeSchema = z.enum(['phases', 'sprints', 'weeks', 'days']);
 
 // Status values
 const StatusSchema = z.enum([
@@ -31,13 +31,12 @@ const UpdateEntitySchema = z.object({
   status: StatusSchema.optional(),
 });
 
-// Map plural to Prisma model names
+// Map plural to Prisma model names (Task removed in Sprint 12)
 const entityModelMap = {
   phases: 'phase',
   sprints: 'sprint',
   weeks: 'week',
   days: 'day',
-  tasks: 'task',
 } as const;
 
 type RouteParams = {

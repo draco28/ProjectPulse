@@ -1,30 +1,42 @@
 /**
- * CurrentWorkModal Component - Sprint 8.5
+ * CurrentWorkModal Component - Sprint 12
  *
- * Modal showing current DevelopmentSession details with neumorphic design:
+ * Modal showing current AgentSession details with neumorphic design:
  * - Glass overlay with backdrop blur
  * - Neumorphic modal container
  * - Section containers with neu-pressed styling
  * - Todos list with glass-dark items
  * - Color-coded status badges
+ *
+ * Sprint 12: Updated from DevelopmentSession to AgentSession
+ * - New model uses name instead of phase/goals
+ * - Uses /api/agent-sessions endpoint
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Target, CheckCircle2, FileText, TrendingUp } from 'lucide-react';
+import { X, Bot, CheckCircle2, FileText, TrendingUp, Ticket } from 'lucide-react';
 import { formatDateTime } from '@/lib/date-utils';
 
-interface DevelopmentSession {
+interface TodoItem {
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  ticketId?: number | null;
+}
+
+interface AgentSession {
   id: string;
-  phase: string;
-  goals: string[];
+  projectId: number;
+  name: string | null;
   plan: string | null;
-  todos: any;
+  todos: TodoItem[] | null;
   progress: string | null;
+  activeTicketIds: number[];
   status: string;
-  createdAt: string;
+  startedAt: string;
   updatedAt: string;
+  completedAt: string | null;
 }
 
 interface CurrentWorkModalProps {
@@ -34,7 +46,7 @@ interface CurrentWorkModalProps {
 }
 
 export function CurrentWorkModal({ projectId, isOpen, onClose }: CurrentWorkModalProps) {
-  const [session, setSession] = useState<DevelopmentSession | null>(null);
+  const [session, setSession] = useState<AgentSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,7 +59,7 @@ export function CurrentWorkModal({ projectId, isOpen, onClose }: CurrentWorkModa
 
       try {
         // Fetch current IN_PROGRESS session for this project
-        const response = await fetch(`/api/development-sessions?projectId=${projectId}&status=IN_PROGRESS`);
+        const response = await fetch(`/api/agent-sessions?projectId=${projectId}&status=IN_PROGRESS`);
 
         if (!response.ok) {
           throw new Error('Failed to fetch current session');
@@ -57,7 +69,7 @@ export function CurrentWorkModal({ projectId, isOpen, onClose }: CurrentWorkModa
 
         // Get the most recent IN_PROGRESS session
         const sessions = data.sessions || [];
-        const currentSession = sessions.find((s: DevelopmentSession) => s.status === 'IN_PROGRESS');
+        const currentSession = sessions.find((s: AgentSession) => s.status === 'IN_PROGRESS');
 
         setSession(currentSession || null);
       } catch (err) {
@@ -78,14 +90,26 @@ export function CurrentWorkModal({ projectId, isOpen, onClose }: CurrentWorkModa
       ? 'badge-blue'
       : session?.status === 'COMPLETED'
       ? 'badge-green'
+      : session?.status === 'PAUSED'
+      ? 'badge-yellow'
       : 'badge-slate';
+
+  // Count todos by status
+  const todoStats = session?.todos
+    ? {
+        total: session.todos.length,
+        completed: session.todos.filter((t) => t.status === 'completed').length,
+        inProgress: session.todos.filter((t) => t.status === 'in_progress').length,
+        pending: session.todos.filter((t) => t.status === 'pending').length,
+      }
+    : null;
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
       <div className="neu-raised rounded-3xl max-w-3xl w-full max-h-[85vh] overflow-hidden">
         {/* Header */}
         <div className="border-b border-border-subtle p-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white">Current Development Session</h2>
+          <h2 className="text-2xl font-bold text-white">Current Agent Session</h2>
           <button
             onClick={onClose}
             className="neu-flat smooth-transition p-2 rounded-xl hover:bg-white/5"
@@ -110,41 +134,23 @@ export function CurrentWorkModal({ projectId, isOpen, onClose }: CurrentWorkModa
 
           {!loading && !error && !session && (
             <div className="text-center py-12">
-              <p className="text-white mb-2">No active development session found.</p>
+              <p className="text-white mb-2">No active agent session found.</p>
               <p className="text-sm text-slate">
-                Start a new session to track your current work.
+                Start a new session via MCP to track your current work.
               </p>
             </div>
           )}
 
           {!loading && !error && session && (
             <div className="space-y-4">
-              {/* Phase */}
+              {/* Session Name */}
               <div className="neu-pressed rounded-2xl p-4">
                 <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <Target className="h-5 w-5 text-coral" />
-                  Phase
+                  <Bot className="h-5 w-5 text-coral" />
+                  Session
                 </h3>
-                <p className="text-white">{session.phase}</p>
+                <p className="text-white">{session.name || 'Unnamed Session'}</p>
               </div>
-
-              {/* Goals */}
-              {session.goals && session.goals.length > 0 && (
-                <div className="neu-pressed rounded-2xl p-4">
-                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-coral" />
-                    Goals
-                  </h3>
-                  <ul className="space-y-2">
-                    {session.goals.map((goal, index) => (
-                      <li key={index} className="flex items-start gap-2 text-white">
-                        <span className="text-coral mt-1">•</span>
-                        <span>{goal}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
 
               {/* Plan */}
               {session.plan && (
@@ -160,37 +166,65 @@ export function CurrentWorkModal({ projectId, isOpen, onClose }: CurrentWorkModa
               )}
 
               {/* Todos */}
-              {session.todos && (
+              {session.todos && session.todos.length > 0 && (
                 <div className="neu-pressed rounded-2xl p-4">
                   <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                     <CheckCircle2 className="h-5 w-5 text-coral" />
                     Todos
+                    {todoStats && (
+                      <span className="text-sm font-normal text-slate ml-auto">
+                        {todoStats.completed}/{todoStats.total} complete
+                      </span>
+                    )}
                   </h3>
                   <div className="space-y-2">
-                    {Array.isArray(session.todos) ? (
-                      session.todos.map((todo: any, index: number) => (
-                        <div
-                          key={index}
-                          className="glass-dark rounded-xl p-3 flex items-center gap-3"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={todo.status === 'completed'}
-                            readOnly
-                            className="h-4 w-4 rounded border-slate accent-coral"
-                          />
-                          <span className={todo.status === 'completed' ? 'line-through text-slate' : 'text-white'}>
-                            {todo.content}
+                    {session.todos.map((todo, index) => (
+                      <div
+                        key={index}
+                        className="glass-dark rounded-xl p-3 flex items-center gap-3"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={todo.status === 'completed'}
+                          readOnly
+                          className="h-4 w-4 rounded border-slate accent-coral"
+                        />
+                        <span className={
+                          todo.status === 'completed'
+                            ? 'line-through text-slate'
+                            : todo.status === 'in_progress'
+                            ? 'text-blue-400'
+                            : 'text-white'
+                        }>
+                          {todo.content}
+                        </span>
+                        {todo.ticketId && (
+                          <span className="text-xs text-slate bg-slate-800 px-2 py-0.5 rounded">
+                            #{todo.ticketId}
                           </span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="bg-dark-pressed rounded-xl p-4">
-                        <pre className="text-sm font-mono text-slate">
-                          {JSON.stringify(session.todos, null, 2)}
-                        </pre>
+                        )}
                       </div>
-                    )}
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Active Tickets */}
+              {session.activeTicketIds && session.activeTicketIds.length > 0 && (
+                <div className="neu-pressed rounded-2xl p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                    <Ticket className="h-5 w-5 text-coral" />
+                    Active Tickets
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {session.activeTicketIds.map((ticketId) => (
+                      <span
+                        key={ticketId}
+                        className="px-3 py-1 bg-coral/20 text-coral rounded-lg text-sm font-medium"
+                      >
+                        #{ticketId}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
@@ -200,7 +234,7 @@ export function CurrentWorkModal({ projectId, isOpen, onClose }: CurrentWorkModa
                 <div className="neu-pressed rounded-2xl p-4">
                   <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-coral" />
-                    Progress
+                    Progress Notes
                   </h3>
                   <div className="bg-dark-pressed rounded-xl p-4">
                     <pre className="whitespace-pre-wrap text-sm font-mono text-slate">{session.progress}</pre>
@@ -218,8 +252,11 @@ export function CurrentWorkModal({ projectId, isOpen, onClose }: CurrentWorkModa
 
               {/* Timestamps */}
               <div className="text-xs text-slate border-t border-border-subtle pt-4">
-                <p>Created: {formatDateTime(session.createdAt)}</p>
+                <p>Started: {formatDateTime(session.startedAt)}</p>
                 <p>Updated: {formatDateTime(session.updatedAt)}</p>
+                {session.completedAt && (
+                  <p>Completed: {formatDateTime(session.completedAt)}</p>
+                )}
               </div>
             </div>
           )}

@@ -10,12 +10,12 @@ import { z } from 'zod';
 /**
  * Entity type enum (maps to Prisma models)
  * Plural form for REST API routes
+ * Sprint 12: Removed sessions and tasks - now 4-level hierarchy
  */
 export const EntityTypeSchema = z.enum([
-  'sessions',
-  'tasks',
   'days',
   'weeks',
+  'sprints',
   'phases'
 ]);
 
@@ -34,11 +34,11 @@ export type UpdateProgressInput = z.infer<typeof UpdateProgressSchema>;
 
 /**
  * Map plural entity types (API) to singular (Prisma)
+ * Sprint 12: Updated for 4-level hierarchy
  */
 export const entityTypeMap = {
-  'sessions': 'session',
-  'tasks': 'task',
   'days': 'day',
   'weeks': 'week',
+  'sprints': 'sprint',
   'phases': 'phase',
 } as const;

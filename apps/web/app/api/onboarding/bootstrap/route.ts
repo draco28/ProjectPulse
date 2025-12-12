@@ -27,7 +27,7 @@ import { detectTechStack } from '@/lib/onboarding/tech-stack-detection';
 import { createAgentPersonas } from '@/lib/onboarding/create-agent-personas';
 import { createSkills } from '@/lib/onboarding/create-skills';
 import { createWorkflowsAndSOPs } from '@/lib/onboarding/create-workflows-sops';
-import { createInitialCurrentWork } from '@/lib/onboarding/create-current-work';
+// Sprint 12: createInitialCurrentWork removed - CurrentPlan/CurrentTodos models deleted
 import { writeRepoFiles } from '@/lib/onboarding/generate-repo-files';
 
 // Roadmap tools (Sprint 8.5)

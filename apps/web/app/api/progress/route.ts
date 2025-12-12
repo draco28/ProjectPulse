@@ -18,9 +18,10 @@ import { prisma } from '@/lib/prisma';
 // VALIDATION SCHEMA
 // ============================================================================
 
+// Sprint 12: Removed 'session' and 'task' - hierarchy now 4-level (Phase → Sprint → Week → Day)
 const updateProgressSchema = z.object({
-  entityType: z.enum(['session', 'task', 'day', 'week', 'phase'], {
-    errorMap: () => ({ message: 'entityType must be one of: session, task, day, week, phase' }),
+  entityType: z.enum(['day', 'week', 'sprint', 'phase'], {
+    errorMap: () => ({ message: 'entityType must be one of: day, week, sprint, phase' }),
   }),
 
   entityId: z.string()
@@ -149,14 +150,15 @@ export async function POST(request: NextRequest) {
 /**
  * Fetch entity with hierarchical context after update
  * Returns entity + parent chain for full visibility
+ * Sprint 12: Removed 'session' and 'task' - now 4-level hierarchy
  */
 async function fetchEntityWithContext(
-  entityType: 'session' | 'task' | 'day' | 'week' | 'phase',
+  entityType: 'day' | 'week' | 'sprint' | 'phase',
   entityId: string
 ) {
   switch (entityType) {
-    case 'session': {
-      const session = await prisma.session.findUnique({
+    case 'day': {
+      const day = await prisma.day.findUnique({
         where: { id: entityId },
         select: {
           id: true,
@@ -164,94 +166,13 @@ async function fetchEntityWithContext(
           progress: true,
           status: true,
           updatedAt: true,
-          task: {
+          week: {
             select: {
               id: true,
               title: true,
               progress: true,
               status: true,
-              day: {
-                select: {
-                  id: true,
-                  title: true,
-                  progress: true,
-                  status: true,
-                  week: {
-                    select: {
-                      id: true,
-                      title: true,
-                      progress: true,
-                      status: true,
-                      phase: {
-                        select: {
-                          id: true,
-                          title: true,
-                          progress: true,
-                          status: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      return {
-        updated: {
-          type: 'session',
-          id: session!.id,
-          title: session!.title,
-          progress: session!.progress,
-          status: session!.status,
-        },
-        hierarchy: {
-          task: session!.task ? {
-            id: session!.task.id,
-            title: session!.task.title,
-            progress: session!.task.progress,
-            status: session!.task.status,
-          } : null,
-          day: session!.task?.day ? {
-            id: session!.task.day.id,
-            title: session!.task.day.title,
-            progress: session!.task.day.progress,
-            status: session!.task.day.status,
-          } : null,
-          week: session!.task?.day?.week ? {
-            id: session!.task.day.week.id,
-            title: session!.task.day.week.title,
-            progress: session!.task.day.week.progress,
-            status: session!.task.day.week.status,
-          } : null,
-          phase: session!.task?.day?.week?.phase ? {
-            id: session!.task.day.week.phase.id,
-            title: session!.task.day.week.phase.title,
-            progress: session!.task.day.week.phase.progress,
-            status: session!.task.day.week.phase.status,
-          } : null,
-        },
-      };
-    }
-
-    case 'task': {
-      const task = await prisma.task.findUnique({
-        where: { id: entityId },
-        select: {
-          id: true,
-          title: true,
-          progress: true,
-          status: true,
-          updatedAt: true,
-          day: {
-            select: {
-              id: true,
-              title: true,
-              progress: true,
-              status: true,
-              week: {
+              sprint: {
                 select: {
                   id: true,
                   title: true,
@@ -274,37 +195,37 @@ async function fetchEntityWithContext(
 
       return {
         updated: {
-          type: 'task',
-          id: task!.id,
-          title: task!.title,
-          progress: task!.progress,
-          status: task!.status,
+          type: 'day',
+          id: day!.id,
+          title: day!.title,
+          progress: day!.progress,
+          status: day!.status,
         },
         hierarchy: {
-          day: task!.day ? {
-            id: task!.day.id,
-            title: task!.day.title,
-            progress: task!.day.progress,
-            status: task!.day.status,
+          week: day!.week ? {
+            id: day!.week.id,
+            title: day!.week.title,
+            progress: day!.week.progress,
+            status: day!.week.status,
           } : null,
-          week: task!.day?.week ? {
-            id: task!.day.week.id,
-            title: task!.day.week.title,
-            progress: task!.day.week.progress,
-            status: task!.day.week.status,
+          sprint: day!.week?.sprint ? {
+            id: day!.week.sprint.id,
+            title: day!.week.sprint.title,
+            progress: day!.week.sprint.progress,
+            status: day!.week.sprint.status,
           } : null,
-          phase: task!.day?.week?.phase ? {
-            id: task!.day.week.phase.id,
-            title: task!.day.week.phase.title,
-            progress: task!.day.week.phase.progress,
-            status: task!.day.week.phase.status,
+          phase: day!.week?.sprint?.phase ? {
+            id: day!.week.sprint.phase.id,
+            title: day!.week.sprint.phase.title,
+            progress: day!.week.sprint.phase.progress,
+            status: day!.week.sprint.phase.status,
           } : null,
         },
       };
     }
 
-    case 'day': {
-      const day = await prisma.day.findUnique({
+    case 'week': {
+      const week = await prisma.week.findUnique({
         where: { id: entityId },
         select: {
           id: true,
@@ -312,7 +233,7 @@ async function fetchEntityWithContext(
           progress: true,
           status: true,
           updatedAt: true,
-          week: {
+          sprint: {
             select: {
               id: true,
               title: true,
@@ -333,31 +254,31 @@ async function fetchEntityWithContext(
 
       return {
         updated: {
-          type: 'day',
-          id: day!.id,
-          title: day!.title,
-          progress: day!.progress,
-          status: day!.status,
+          type: 'week',
+          id: week!.id,
+          title: week!.title,
+          progress: week!.progress,
+          status: week!.status,
         },
         hierarchy: {
-          week: day!.week ? {
-            id: day!.week.id,
-            title: day!.week.title,
-            progress: day!.week.progress,
-            status: day!.week.status,
+          sprint: week!.sprint ? {
+            id: week!.sprint.id,
+            title: week!.sprint.title,
+            progress: week!.sprint.progress,
+            status: week!.sprint.status,
           } : null,
-          phase: day!.week?.phase ? {
-            id: day!.week.phase.id,
-            title: day!.week.phase.title,
-            progress: day!.week.phase.progress,
-            status: day!.week.phase.status,
+          phase: week!.sprint?.phase ? {
+            id: week!.sprint.phase.id,
+            title: week!.sprint.phase.title,
+            progress: week!.sprint.phase.progress,
+            status: week!.sprint.phase.status,
           } : null,
         },
       };
     }
 
-    case 'week': {
-      const week = await prisma.week.findUnique({
+    case 'sprint': {
+      const sprint = await prisma.sprint.findUnique({
         where: { id: entityId },
         select: {
           id: true,
@@ -378,18 +299,18 @@ async function fetchEntityWithContext(
 
       return {
         updated: {
-          type: 'week',
-          id: week!.id,
-          title: week!.title,
-          progress: week!.progress,
-          status: week!.status,
+          type: 'sprint',
+          id: sprint!.id,
+          title: sprint!.title,
+          progress: sprint!.progress,
+          status: sprint!.status,
         },
         hierarchy: {
-          phase: week!.phase ? {
-            id: week!.phase.id,
-            title: week!.phase.title,
-            progress: week!.phase.progress,
-            status: week!.phase.status,
+          phase: sprint!.phase ? {
+            id: sprint!.phase.id,
+            title: sprint!.phase.title,
+            progress: sprint!.phase.progress,
+            status: sprint!.phase.status,
           } : null,
         },
       };

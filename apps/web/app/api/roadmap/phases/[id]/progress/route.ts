@@ -2,9 +2,10 @@
  * GET /api/roadmap/phases/[id]/progress
  *
  * Sprint 8.5 Phase 4 - Task B.2
+ * Sprint 12: Updated for 4-level hierarchy (Tasks removed)
  *
- * Returns full phase progress with nested sprints, weeks, days, and tasks
- * Single query with 4-level nested includes (replaces 10+ sequential calls)
+ * Returns full phase progress with nested sprints, weeks, and days
+ * Single query with 3-level nested includes (replaces 10+ sequential calls)
  *
  * Query Parameters:
  * - projectId: number (required) - Project ID for security validation
@@ -13,7 +14,7 @@
  * - id: string (required) - Phase ID (UUID)
  *
  * Response:
- * - 200: Phase with full nested tree (sprints → weeks → days → tasks)
+ * - 200: Phase with full nested tree (sprints → weeks → days)
  * - 400: Validation error (missing/invalid projectId)
  * - 404: Phase not found or doesn't belong to project
  * - 500: Server error
@@ -58,7 +59,7 @@ export async function GET(
     await requireProjectAccess(request, projectIdNum);
     
     // Query phase with full nested tree + projectId validation
-    // Single query with 4-level nested includes (no N+1 problem)
+    // Sprint 12: 3-level nested includes (Tasks removed - tickets schedule to weeks)
     const phase = await prisma.phase.findFirst({
       where: {
         id: params.id,
@@ -72,23 +73,30 @@ export async function GET(
             weeks: {
               include: {
                 days: {
-                  include: {
-                    tasks: {
-                      select: {
-                        id: true,
-                        title: true,
-                        description: true,
-                        status: true,
-                        progress: true,
-                        startDate: true,
-                        endDate: true,
-                        createdAt: true,
-                        updatedAt: true,
-                      }
-                    }
+                  select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    status: true,
+                    progress: true,
+                    startDate: true,
+                    endDate: true,
+                    createdAt: true,
+                    updatedAt: true,
                   },
                   orderBy: {
                     title: 'asc'  // Monday, Tuesday, Wednesday...
+                  }
+                },
+                // Sprint 12: Include scheduled tickets for week view
+                scheduledTickets: {
+                  select: {
+                    id: true,
+                    title: true,
+                    status: true,
+                    priority: true,
+                    estimatedDays: true,
+                    scheduledDays: true,
                   }
                 }
               },

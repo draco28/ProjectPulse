@@ -1,13 +1,13 @@
 /**
  * Roadmap Page - Standalone Roadmap UI
  *
- * Displays 5-level development roadmap hierarchy:
- * Roadmap → Phase → Sprint → Week → Day → Task
+ * Sprint 12: Updated for 4-level hierarchy:
+ * Roadmap → Phase → Sprint → Week → Day
  *
  * Features:
  * - Server Component data fetching (nested includes)
  * - Toggle between Tree and Timeline views
- * - 5-level collapsible tree UI with neumorphic design
+ * - 4-level collapsible tree UI with neumorphic design
  * - Horizontal Gantt-style timeline visualization
  * - Current position indicator with coral accents
  * - Progress visualization
@@ -28,7 +28,8 @@ import { CurrentPositionBanner } from '@/components/roadmap/CurrentPositionBanne
 import { EmptyRoadmapState } from '@/components/roadmap/EmptyRoadmapState';
 
 /**
- * Fetch roadmap with complete 5-level hierarchy
+ * Fetch roadmap with complete 4-level hierarchy
+ * Sprint 12: Task model removed - Days are now leaf nodes
  * Uses nested includes to load entire tree in one query
  */
 async function getRoadmap(projectId: number) {
@@ -53,20 +54,17 @@ async function getRoadmap(projectId: number) {
                       weekId: true,
                       createdAt: true,
                       updatedAt: true,
-                      tasks: {
-                        select: {
-                          id: true,
-                          title: true,
-                          description: true,
-                          status: true,
-                          progress: true,
-                          sessions: {
-                            select: {
-                              id: true,
-                            },
-                          },
-                        },
-                      },
+                    },
+                  },
+                  // Sprint 12: Tickets scheduled to weeks
+                  scheduledTickets: {
+                    select: {
+                      id: true,
+                      title: true,
+                      status: true,
+                      priority: true,
+                      estimatedDays: true,
+                      scheduledDays: true,
                     },
                   },
                 },
@@ -115,7 +113,7 @@ export default async function RoadmapPage({
           <h1 className="text-4xl font-bold text-white">Development Roadmap</h1>
         </div>
         <p className="text-slate text-sm ml-[68px]">
-          5-level hierarchy: Phase → Sprint → Week → Day → Task
+          4-level hierarchy: Phase → Sprint → Week → Day
         </p>
       </div>
 

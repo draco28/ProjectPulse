@@ -1,74 +1,41 @@
 'use client';
 
 /**
- * DayCard Component - Sprint 8.5 Phase 1B
+ * DayCard Component - Sprint 12
  *
- * Displays individual day in roadmap hierarchy (4th level)
- * - Collapsible with task list
+ * Displays individual day in roadmap hierarchy (4th level - LEAF NODE)
  * - Progress visualization
- * - Task count
+ * - Status badge
  * - Slate theme (consistent with WeekCard)
+ *
+ * Sprint 12: Task model removed - Day is now a leaf node
+ * No expand/collapse, no tasks to render
  */
 
-import { ChevronDown, ChevronRight, Calendar } from 'lucide-react';
-import { TaskCard } from './TaskCard';
+import { Calendar } from 'lucide-react';
 import type { Day } from '@prisma/client';
 
-interface DayWithTasks extends Day {
-  tasks?: Array<{
-    id: string;
-    title: string;
-    description?: string | null;
-    status: string;
-    progress: number;
-    sessions?: Array<{ id: string }>;
-  }>;
-}
-
 interface DayCardProps {
-  day: DayWithTasks;
-  isExpanded?: boolean;
-  onToggle?: () => void;
+  day: Day;
 }
 
-export function DayCard({ day, isExpanded = false, onToggle }: DayCardProps) {
-  const taskCount = day.tasks?.length || 0;
-  const completedTasks = day.tasks?.filter(t => t.status === 'COMPLETE').length || 0;
-  const taskProgress = taskCount > 0 ? (completedTasks / taskCount) * 100 : 0;
-
+export function DayCard({ day }: DayCardProps) {
   // Status color mapping
   const statusColors = {
-    COMPLETE: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    COMPLETED: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
     IN_PROGRESS: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     BLOCKED: 'bg-red-500/20 text-red-400 border-red-500/30',
-    PENDING: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+    NOT_STARTED: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+    CANCELLED: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
   };
 
-  const statusColor = statusColors[day.status as keyof typeof statusColors] || statusColors.PENDING;
+  const statusColor = statusColors[day.status as keyof typeof statusColors] || statusColors.NOT_STARTED;
 
   return (
     <div className="neu-flat rounded-2xl p-4 border border-slate-700/30 hover:border-slate-600/50 transition-all">
       {/* Header */}
-      <div 
-        className="flex items-center justify-between cursor-pointer"
-        onClick={onToggle}
-      >
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1">
-          {/* Expand/Collapse Icon */}
-          <button
-            className="neu-flat w-8 h-8 rounded-xl flex items-center justify-center hover:bg-slate-700/30 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle?.();
-            }}
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-slate-400" />
-            ) : (
-              <ChevronRight className="h-4 w-4 text-slate-400" />
-            )}
-          </button>
-
           {/* Day Icon */}
           <div className="neu-flat w-10 h-10 rounded-xl flex items-center justify-center bg-slate-700/30">
             <Calendar className="h-5 w-5 text-slate-400" />
@@ -85,7 +52,7 @@ export function DayCard({ day, isExpanded = false, onToggle }: DayCardProps) {
 
         {/* Status Badge */}
         <span className={`px-3 py-1 rounded-lg text-xs font-medium border ${statusColor}`}>
-          {day.status}
+          {day.status.replace('_', ' ')}
         </span>
       </div>
 
@@ -101,38 +68,6 @@ export function DayCard({ day, isExpanded = false, onToggle }: DayCardProps) {
           {day.progress}%
         </span>
       </div>
-
-      {/* Task Count */}
-      <div className="mt-3 flex items-center gap-4 text-xs text-slate-400">
-        <div className="flex items-center gap-1">
-          <span className="font-medium text-slate-300">{taskCount}</span>
-          <span>task{taskCount !== 1 ? 's' : ''}</span>
-        </div>
-        {taskCount > 0 && (
-          <div className="flex items-center gap-1">
-            <span className="font-medium text-emerald-400">{completedTasks}</span>
-            <span>complete</span>
-            <span className="text-slate-500">·</span>
-            <span className="font-medium text-slate-300">{Math.round(taskProgress)}%</span>
-          </div>
-        )}
-      </div>
-
-      {/* Collapsible Task List */}
-      {isExpanded && taskCount > 0 && (
-        <div className="mt-4 space-y-2 pl-2 border-l-2 border-slate-700/50">
-          {day.tasks?.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
-        </div>
-      )}
-
-      {/* Empty State */}
-      {isExpanded && taskCount === 0 && (
-        <div className="mt-4 text-center py-6 text-sm text-slate-500">
-          No tasks scheduled for this day
-        </div>
-      )}
     </div>
   );
 }
