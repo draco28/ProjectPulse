@@ -332,6 +332,8 @@ All state that matters to end users and their agents MUST live in the ProjectPul
 
 **Priority:** P2 (Medium - Post-MVP optimization)
 
+**Implementation Status:** Not implemented as of Sprint 11 MVP (future enhancement).
+
 **Dependencies:** FR-001, FR-002
 
 **Traceability:**
@@ -509,6 +511,8 @@ All state that matters to end users and their agents MUST live in the ProjectPul
 
 **Priority:** P2 (Medium - Useful for debugging, not core workflow)
 
+**Implementation Status:** Not implemented as of Sprint 11 MVP (future enhancement).
+
 **Dependencies:** FR-002
 
 **Traceability:**
@@ -566,6 +570,8 @@ All state that matters to end users and their agents MUST live in the ProjectPul
 
 **Priority:** P2 (Medium - Backup and migration)
 
+**Implementation Status:** Not implemented as of Sprint 11 MVP (future enhancement).
+
 **Dependencies:** FR-001
 
 **Traceability:**
@@ -596,6 +602,8 @@ All state that matters to end users and their agents MUST live in the ProjectPul
 - Foreign key integrity enforced
 
 **Priority:** P2 (Medium - Disaster recovery)
+
+**Implementation Status:** Not implemented as of Sprint 11 MVP (future enhancement).
 
 **Dependencies:** FR-001, FR-002, FR-016
 
@@ -726,6 +734,8 @@ All state that matters to end users and their agents MUST live in the ProjectPul
 
 **Priority:** P1 (High - Prevents out-of-order work)
 
+**Implementation Status:** Not implemented as of Sprint 11 MVP (future enhancement).
+
 **Dependencies:** FR-001, FR-010
 
 **Traceability:**
@@ -752,6 +762,8 @@ All state that matters to end users and their agents MUST live in the ProjectPul
 - Dashboard visualization (Gantt chart with critical path highlighted)
 
 **Priority:** P2 (Medium - Advanced planning feature)
+
+**Implementation Status:** Not implemented as of Sprint 11 MVP (future enhancement).
 
 **Dependencies:** FR-022
 
@@ -1928,6 +1940,9 @@ All state that matters to end users and their agents MUST live in the ProjectPul
 ### 1.5 Issues (FR-057 to FR-076)
 
 **Purpose:** Bug and task tracking for agent-created and human-created work items
+
+> **Terminology Note (As-Built MVP):**
+> The requirements in this section are implemented in the product as the unified **Ticket** system (Ticket model, `/api/tickets/*`, MCP ticket tools). There is **no separate Issues entity** in the current schema. Wherever this SRS refers to "Issue(s)", it maps to **Tickets** in the as-built implementation.
 
 ---
 
@@ -4247,6 +4262,8 @@ The Memory Bank System provides structured knowledge as database entries for tok
 **Related**: Backlog US-011-01 to US-011-05, PRD Section 4.2.11
 
 The Research Agent Orchestration system provides isolated agent threads for research tasks. Instead of reading 15 files + grepping + analyzing in main thread (25K tokens), sub-agents handle research in isolated threads and return concise summaries (≤500 tokens) to main thread.
+
+**Implementation Status:** Not implemented as of Sprint 11 MVP (future enhancement; design only).
 
 ---
 
@@ -6903,7 +6920,7 @@ US-001: Create 5-level hierarchy (8 points)
 | ----------- | ----------- | ------------ | ---------------------- | -------------- | ---------------- |
 | FR-001-025  | 4.2.1       | ADR-002      | /api/sprint/\*         | TEST-001-032   | US-001-029       |
 | FR-026-050  | 4.2.2       | ADR-004      | /api/workflows/\*      | TEST-033-060   | US-030-055       |
-| FR-051-070  | 4.2.3       | Section 4.9  | /api/issues/\*         | TEST-061-084   | US-056-075       |
+| FR-051-070  | 4.2.3       | Section 4.9  | /api/tickets/*        | TEST-061-084   | US-056-075       |
 | FR-071-090  | 4.2.4       | Section 4.10 | /api/knowledge/\*      | TEST-085-109   | US-076-095       |
 | FR-091-105  | 4.2.5       | Section 4.11 | /api/skills/\*         | TEST-110-124   | US-096-110       |
 | FR-106-115  | 4.2.6       | Section 4.12 | /api/wiki/\*           | TEST-125-134   | US-111-120       |

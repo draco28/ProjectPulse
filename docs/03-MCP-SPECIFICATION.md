@@ -3,8 +3,9 @@
 ## ProjectPulse - Final Documentation
 
 **This document consolidates:** MCP Specification, Implementation Guide, UI Architecture, and Agent Personas  
-**Version:** 1.0 Final  
-**Last Updated:** October 23, 2025
+**Version:** 2.0 – Sprint 11 MCP HTTP Streaming Server  
+**Last Updated:** December 11, 2025  
+**Status:** Sprint 11 MCP spec aligned with as-built HTTP server; Moksha/Issue sections archived as legacy.
 
 ---
 
@@ -19,7 +20,40 @@
 
 # MCP SPECIFICATION
 
-## 🔧 MCP Tools (25+ Tools)
+## ⚙️ Sprint 11 As-Built MCP Overview
+
+- **Transport & endpoint:** The production MCP server is an HTTP service using the Model Context Protocol **Streamable HTTP** transport. A single POST endpoint `/mcp` handles all JSON‑RPC methods (initialize, tools/list, tools/call, etc.) over HTTP streaming. The container listens on the MCP port defined in configuration (Docker default `3001`); public hostnames and ports are documented in `docs/11-Infrastructure-and-Deployment.md`.
+- **Authentication:** All MCP requests are authenticated with **project‑scoped bearer tokens**. The server expects `Authorization: Bearer <token>` on `/mcp`, validates tokens by calling the web app endpoint `POST /api/agent-auth/validate`, and attaches a per‑request auth context (`projectId`, `tokenId`, token name, and tool restrictions) using AsyncLocalStorage. No MCP code talks to the database directly.
+- **Authorization & tool restrictions:** Per‑token allow/deny lists (`allowedTools`, `blockedTools`) are enforced in the MCP layer before tools execute, and a separate admin control layer can globally block tools or shut down the server. This provides defense‑in‑depth on top of web‑app‑side validation.
+- **Tool surface area:** The as‑built server exposes **dozens of tools** across sprint planning, tickets, wiki, knowledge base, roadmap, onboarding, memory banks, workflows, health/security findings, observability, and personas. The canonical list is `loadTools()` in `apps/mcp-server/src/tools/index.ts`; this document describes categories and representative tools rather than freezing an exact list.
+- **Tickets vs issues:** Sprint 10+ use a unified `Ticket` system instead of the older `Issue` model. Ticket tools (for create, search, update, status changes, comments, etc.) call the `/api/tickets/*` HTTP API. Any references in this document to `create_issue`, `search_issues`, or `/api/issues/*` reflect the earlier Moksha prototype and are kept only as legacy examples.
+- **Auth quick‑start:** For end‑user setup of tokens and MCP URLs, `docs/guides/mcp-authentication-setup.md` is the authoritative guide. This file focuses on the protocol and tool surface rather than the UI flows.
+
+> **Canonical sources for Sprint 11 MCP behavior:**  
+> - Server: `apps/mcp-server/src/index-http.ts` (HTTP streaming + auth + health)  
+> - Tools registry: `apps/mcp-server/src/tools/index.ts`  
+> - Tickets tool family: `apps/mcp-server/src/tools/tickets/*.ts`  
+> - Auth context: `apps/mcp-server/src/authContext.ts`  
+> - Web app auth API: `apps/web/app/api/agent-auth/validate/route.ts`
+
+## 🔧 MCP Tools (Sprint 11 Overview + Legacy Examples)
+
+The Sprint 11 MCP server exposes tools in several major categories:
+
+- **Ticket tools:** Create, bulk‑create, update, search, set status, and add comments on tickets across all seven ticket kinds (feature, task, epic, issue, bug, scanner_finding, tech_debt).
+- **Sprint & roadmap tools:** Manage phases/sprints/weeks/days/tasks, record sessions and checkpoints, query hierarchy/progress, and materialize/read roadmaps.
+- **Wiki tools:** Create, update, search, and analyze wiki pages.
+- **Knowledge tools:** Create, search, relate, import/export, archive, and measure knowledge items (full‑text + vector search).
+- **Onboarding tools:** Drive the three‑session onboarding flow (phased questions, summaries, document batches, bootstrap prompts, minimal repo writes).
+- **Memory bank tools:** Start memory sessions and retrieve prior patterns/context for agent continuity.
+- **Workflow tools:** List, start, execute, pause/resume, and complete workflows defined in the database.
+- **Personas & skills tools:** List and fetch agent personas, skills, workflows, and SOPs for client agents.
+- **Observability tools:** Log steps and mark sessions complete for debugging and analytics.
+- **Health & security tools:** Surface roadmap, health scanner scores/findings, and security findings linked back into tickets.
+
+The detailed tool definitions live in code (`apps/mcp-server/src/tools/*.ts`). The sections that follow describe the **original Moksha Issue-based tool suite**, which is now treated as **legacy** and kept only for historical reference.
+
+> **Legacy Note:** Wherever these examples talk about “issues” and `create_issue`, read them conceptually as “tickets” in the Sprint 11 system, implemented via the `projectpulse_ticket_*` tools calling `/api/tickets/*`.
 
 ### Issue Management Tools
 
@@ -373,6 +407,9 @@ async function createIssue(args) {
 
 ## 📚 MCP Resources (Context Injection)
 
+> **Design‑Only (Not Implemented in Sprint 11):**  
+> The resource definitions below (`moksha://...` URIs) describe an earlier design for MCP resources in the Moksha prototype. The Sprint 11 ProjectPulse MCP server does **not** currently expose MCP resources; instead, agents obtain context via database‑backed tools (tickets, knowledge, wiki, onboarding, roadmap, health) and plain HTTP APIs. Treat this section as historical design notes, not a specification of the live MCP surface.
+
 ### 1. current_project_context
 
 ```typescript
@@ -448,6 +485,8 @@ Active Modules:
 ---
 
 ## 🤖 MCP Prompts (Agent Personas)
+
+Sprint 11 stores agent personas and their prompts in the database (`AgentPersona`, `PromptTemplate`, `AgentSession`, and related models). The YAML and prompt templates below represent the **canonical default personas conceptually**, but individual wording and enabled tools may differ from the seeded data in production. Any references to `create_issue` or `search_issues` in persona tool lists correspond, in the as-built system, to the Ticket tool family (`projectpulse_ticket_*`) operating on `/api/tickets/*`.
 
 ### 1. code_reviewer
 
@@ -1206,6 +1245,8 @@ model AgentSession {
 ---
 
 ## ✅ Implementation Checklist
+
+> **Status Note (Sprint 11):** The checklists below describe the original phased implementation plan. The Sprint 11 system has a fully implemented HTTP MCP server with the Ticket tool family and dozens of other tools. Where these checklists mention `create_issue`/`search_issues`, they map to the Ticket tools (`projectpulse_ticket_*`) in the live system.
 
 ### MVP (Week 4)
 

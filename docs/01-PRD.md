@@ -32,9 +32,9 @@ All state that matters to end users and their agents MUST live in the ProjectPul
 ProjectPulse is a **web-based project management platform** that replaces filesystem-based agent workflows with database-backed, UI-accessible project management.
 
 **What It Provides:**
-- **Web UI for Humans**: Searchable wiki, visual dashboards, issue tracking, knowledge base
-- **MCP API for Agents**: 41 tools for CRUD operations, vector search, progress tracking
-- **Database Storage**: All project data stored in PostgreSQL (docs, issues, knowledge, progress)
+- **Web UI for Humans**: Searchable wiki, visual dashboards, ticketing, knowledge base
+- **MCP API for Agents**: Dozens of MCP tools (approximately 70 as of Sprint 11) for CRUD operations, search, and workflow management
+- **Database Storage**: All project data stored in PostgreSQL (tickets, wiki, knowledge, progress)
 - **Clean Repositories**: No repository clutter from agent artifacts
 
 **How It Works:**
@@ -51,7 +51,7 @@ ProjectPulse is a **web-based project management platform** that replaces filesy
 
 **Primary Users:** AI Agents (95% of interactions)
 
-- Execute workflows via MCP tools (41 tools across 9 features)
+- Execute workflows via MCP tools (dozens of tools across multiple feature areas; see `docs/06-API/openapi.yaml` and the MCP tools index for the authoritative list)
 - Persistent state tracking enables context-free operation
 - Complete workflow execution without human intervention
 - Token-efficient context retrieval (92% reduction for skills, 88% for knowledge)
@@ -261,7 +261,7 @@ ProjectPulse provides **prompt templates** that guide AI agents through project 
 **Example Weekly Flow:**
 
 ```
-Monday AM: Check dashboard → See 15 new issues created by agent → Bulk approve
+Monday AM: Check dashboard → See 15 new tickets created by agent → Bulk approve
 Wednesday: Agent-created wiki entry missing business context → Manual edit via UI
 Friday: Review sprint progress chart → All checkpoints green → No action needed
 ```
@@ -308,14 +308,14 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 
 ---
 
-### 3.2 Issue Creation Workflow (Agent + Human)
+### 3.2 Ticket Creation Workflow (Agent + Human)
 
 **Agent Workflow:**
 
 ```
 1. Run audit (e.g., Semgrep security scan)
 2. Identify 15 findings
-3. Call MCP Tool: issues.createBulk(findings[])
+3. Call MCP Tool: tickets.createBulk(findings[])
 4. Auto-tag based on file paths (e.g., "backend", "api", "auth")
 5. Link to code files with line numbers
 6. Assign severity (Critical, High, Medium, Low)
@@ -325,14 +325,14 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 **Human Workflow:**
 
 ```
-1. Open Issues List page (already built, Sprint 0)
-2. Review agent-created issues
+1. Open Tickets List page
+2. Review agent-created tickets
 3. Bulk approve/reject via UI checkboxes
-4. Manually create issue for business logic bug (agent can't infer)
-5. Add business context to agent-created issue description
+4. Manually create ticket for business logic bug (agent can't infer)
+5. Add business context to agent-created ticket description
 ```
 
-**Success Criteria:** Agent creates 15 issues in <2 seconds, human reviews in <1 minute
+**Success Criteria:** Agent creates 15 tickets in <2 seconds, human reviews in <1 minute
 
 ---
 
@@ -394,15 +394,15 @@ Friday: Review sprint progress chart → All checkpoints green → No action nee
 | Sprint/Phase Tracking    | P0       | FR-001 to FR-025     | 5-level hierarchy, real-time UI/MCP sync, progress roll-up              |
 | Development Cycle UI     | P0       | FR-026 to FR-030     | Roadmap visualization, materialization, efficient position queries      |
 | Workflow Orchestration   | P0       | FR-032 to FR-056     | Track 12 workflows, enforce consistency, checkpoint recovery            |
-| Issues                   | P0       | FR-051 to FR-070     | CRUD + bulk creation + auto-tagging + context injection                 |
+| Tickets                  | P0       | FR-051 to FR-070     | CRUD + bulk creation + auto-tagging + context injection                 |
 | Knowledge (RAG + Graph)  | P1       | FR-071 to FR-090     | Hybrid search, semantic embeddings, 2-hop graph traversal               |
 | Skills                   | P1       | FR-091 to FR-105     | Framework patterns, lazy loading, 92% token reduction                   |
 | Wiki                     | P2       | FR-106 to FR-115     | Auto-generation from code, cross-linking, version control               |
 | Project Health           | P2       | FR-116 to FR-120     | Security + quality + a11y tracking, auto-categorization                 |
-| Personas                 | P3       | FR-121 to FR-125     | Agent-created sub-agents, project-specific, context-activation          |
+| Personas                 | P1       | FR-121 to FR-125     | Agent-created sub-agents, project-specific, context-activation          |
 | **Memory Bank System**   | **P0**   | **FR-146 to FR-153** | **Token-efficient context management, 5 structured memory bank entries** |
-| **Research Agent Orch.** | **P1**   | **FR-154 to FR-158** | **Isolated sub-agent threads, 92% token reduction, report persistence** |
-| **Ticket System**        | **P3**   | **FR-159 to FR-173** | **Phase 2: Memory bank snapshots for Tasks (Sprint 10+ post-MVP)**      |
+| **Research Agent Orch.** | **P1**   | **FR-154 to FR-158** | **Isolated sub-agent threads (future enhancement, not yet implemented)** |
+| **Ticket System**        | **P3**   | **FR-159 to FR-173** | **Phase 2: Ticket + memory bank snapshot integration (future enhancement)** |
 | **Memory Bank Auto-Gen** | **P2**   | **FR-174 to FR-188** | **Auto-update from ticket completion, 5 bank types, snapshot system**   |
 | **Agent Dashboard**      | **P2**   | **FR-189 to FR-198** | **Memory banks viewer, current ticket context, skills/sub-agents list** |
 | **Additional Sessions**  | **P2**   | **FR-199 to FR-220** | **Sessions 2-5: Tech stack, requirements, architecture, backlog**       |
@@ -682,6 +682,7 @@ Need progress overview?             → memory.read('progress') (2K tokens)
 **Priority**: Should Have (P1)
 **Functional Requirements**: FR-154 to FR-158
 **Related**: Backlog US-011-01 to US-011-05, SRS Section 1.10
+**Status**: Not yet implemented (future enhancement, not part of Sprint 11 MVP)
 
 ---
 

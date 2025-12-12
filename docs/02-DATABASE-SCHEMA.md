@@ -1,22 +1,89 @@
 # 02 - ProjectPulse: Complete Database Schema
 
-**Version:** 1.1 - Week 15 Extensions  
-**Last Updated:** October 29, 2025  
-**Status:** Production Ready ✅
+**Version:** 2.0 – Sprint 11 Ticket System + Sprint Hierarchy  
+**Last Updated:** December 11, 2025  
+**Status:** Aligned with Sprint 11 MVP (Tickets, multi-tenant, Sprint hierarchy)
 
 ---
 
 ## 🎯 Overview
 
-This document contains the **complete** Prisma schema for ProjectPulse, including all models, relationships, indexes, and PostgreSQL-specific features.
+This document describes the **ProjectPulse** database schema and how it evolved from the original Issue-centric prototype to the current **Sprint 11** Ticket-based, multi-tenant schema.
+
+**Canonical Source of Truth:** The live schema is defined in `apps/web/prisma/schema.prisma`. That file is authoritative for all table/column definitions; this document summarizes the as-built structure and clearly marks older Moksha/Issue-based sections as **legacy**.
 
 **Database:** PostgreSQL 16  
 **ORM:** Prisma 5.x  
 **Extensions:** pgvector, pg_trgm
 
+### 0.1 Sprint 11 As-Built Schema Overview
+
+- **Multi-tenant Project scope:** `Project` (with `ownerId`) is the root; each project owns its own `tickets`, `knowledge_items`, `wiki_pages`, `skills`, `sops`, `memory_banks`, `labels`, `milestones`, etc.
+- **Unified Ticket system:** A single `Ticket` model (and related tables such as `ticket_comments`, `ticket_attachments`, `ticket_linked_files`, `ticket_linked_commits`, `ticket_status_options`, `ticket_priority_options`, `ticket_module_options`) replaces the older `Issue` model.
+- **Sprint hierarchy:** Five-level hierarchy (`Phase` → `Sprint` → `Week` → `Day` → `Task` → `Session` plus `Checkpoint` and `Roadmap`) stores all planning and execution progress, with optional links from `Task` to `Ticket`.
+- **Onboarding & documents:** `OnboardingSession`, `OnboardingQuestion`, `OnboardingTemplate`, `OnboardingPromptTemplate`, and `Document` store structured onboarding answers and generated docs (including this repo’s top-level markdown files).
+- **Knowledge & wiki:** `KnowledgeItem` (project-scoped, 768‑dim embeddings, FTS), `KnowledgeRelationship`, `KnowledgeItemVersion`, `KnowledgeQueryMetric`, and `WikiPage` + revisions/events/analytics, with join tables linking tickets into the knowledge graph and wiki.
+- **Security & health:** `SecurityFinding`, `HealthScanner`, `HealthScore`, `HealthFinding` and related tables back the health dashboard and scanner findings linked to tickets.
+- **Agent & MCP telemetry:** `AgentPersona`, `PromptTemplate`, `AgentSession`, `ProjectToken`, `MCPToolLog`, `MCPToolAggregate`, `Setting`, `UserPreferences`, etc., support agent personas, MCP authentication, and tool usage analytics.
+
+---
+
+## 🧱 Key Models (Sprint 11 As-Built)
+
+The sections below summarize the major parts of the live Sprint 11 schema at a **conceptual level**. For exact fields and indexes, always refer to `apps/web/prisma/schema.prisma`.
+
+### 1. Project and Tenancy
+
+- **Project as root:** Every work item, knowledge article, wiki page, and configuration object belongs to a `Project`. The project record includes ownership and identifiers used for routing and authorization.
+- **Strict project scoping:** Tickets, knowledge, wiki pages, skills, SOPs, memory banks, labels, milestones, workflows, and onboarding sessions are all project-scoped. Cross-project access is not supported at the data layer.
+- **User and preferences:** A `User` can own or collaborate on multiple projects, with `UserPreferences` and other settings tables capturing per-user defaults and UI behavior.
+
+### 2. Unified Ticket System
+
+- **Single work-item model:** `Ticket` is the unified work item used for bugs, features, tasks, scanner findings, tech debt, and other kinds of work. There is no separate `Issue` entity in the live schema.
+- **Configuration tables:** `TicketStatusOption`, `TicketPriorityOption`, and `TicketModuleOption` define the allowed statuses, priorities, and modules per project, enabling fully project-local configuration of the ticket board.
+- **Relationships:** Tickets link to `Label`, `Milestone`, `SecurityFinding`, `HealthFinding`, and join tables for **knowledge**, **wiki pages**, **linked files**, **linked commits**, **attachments**, and **comments``, giving a single hub for all work-related context.
+- **Search:** Ticket content is indexed for full-text search in PostgreSQL so agents and UI queries can efficiently filter and search tickets.
+
+### 3. Sprint and Execution Hierarchy
+
+- **Planning hierarchy:** `Phase`, `Sprint`, `Week`, `Day`, and `Task` capture long-range plans down to daily execution, all scoped to a project.
+- **Execution sessions:** `Session` and `Checkpoint` track concrete work sessions and progress checkpoints, including which tasks were advanced.
+- **Roadmap linkage:** `Roadmap` and related models connect long-term planning to individual tasks and, optionally, to tickets via linking fields on the ticket or task side.
+- **Current plan/todos:** `CurrentPlan` and `CurrentTodos` store the active plan and todo list that the agent system uses as its working state.
+
+### 4. Knowledge Graph and Wiki
+
+- **Knowledge items:** `KnowledgeItem` stores structured knowledge entries with full-text search and vector embeddings (pgvector) per project, plus metadata such as source and type.
+- **Graph relationships:** `KnowledgeRelationship` and `TicketKnowledgeLink` form a lightweight graph over knowledge items and tickets, allowing agents to traverse related concepts and tickets.
+- **Versioning and analytics:** `KnowledgeItemVersion` and `KnowledgeQueryMetric` keep historical versions and query metrics to support audits and relevance tuning.
+- **Wiki system:** `WikiPage`, `WikiRevision`, `PageLink`, `TicketWikiPageLink`, `WikiPageEvent`, and `WikiPageAnalytics` provide a project wiki with revision history, link graph, ticket cross-links, and behavioral analytics.
+
+### 5. Onboarding and Documents
+
+- **Onboarding sessions:** `OnboardingSession` records the three-session onboarding flow for a project, including status and summary fields.
+- **Questions and templates:** `OnboardingQuestion`, `OnboardingTemplate`, and `OnboardingPromptTemplate` define the question bank and prompt templates that drive the onboarding MCP tools.
+- **Documents:** `Document` stores generated artifacts (such as PRD, SRS, Architecture docs) and other project documents as database-backed content, enabling agents to regenerate and cross-link them.
+
+### 6. Security, Health, and Scanners
+
+- **Security findings:** `SecurityFinding` stores static analysis and security scan results, typically linked back to tickets so that each finding has an owner and workflow.
+- **Health scanners:** `HealthScanner`, `HealthScore`, and `HealthFinding` model health checks and scores across projects, with optional links into tickets and phases for remediation work.
+
+### 7. Agents, MCP, and Settings
+
+- **Agent personas and prompts:** `AgentPersona` and `PromptTemplate` define named agents and their prompt configurations, which are referenced by the MCP server and planning workflows.
+- **Agent sessions:** `AgentSession` tracks conversational or workflow sessions involving agents, tying together prompts, tools, and resulting artifacts.
+- **MCP telemetry:** `ProjectToken`, `MCPToolLog`, and `MCPToolAggregate` implement authentication for external tools and logging/aggregation of tool usage for observability.
+- **Workflows and skills:** `WorkflowTemplate`, `WorkflowRun`, `Skill`, `SOP`, and `MemoryBank` capture reusable procedures, runs, skills, and long-term memory that agents use when operating on a project.
+- **Global and project settings:** `Setting` and project-specific configuration tables store feature flags and other runtime options that guide agent and UI behavior.
+
 ---
 
 ## 📊 Entity Relationship Diagram
+
+> **Legacy Diagram (Issue-centric, Moksha prototype) – Archived**  
+> The ERD below reflects the original Issue-based schema used in the early Moksha devhub prototype. For the live Sprint 11 Ticket-based schema, treat `Ticket` (and related tables) as the replacement for `Issue` and refer to `apps/web/prisma/schema.prisma` for the canonical definition.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -60,8 +127,11 @@ This document contains the **complete** Prisma schema for ProjectPulse, includin
 
 ### schema.prisma
 
+> **Legacy Prisma Listing (Archived):**  
+> The Prisma schema shown below describes the original Moksha Issue-based prototype and is kept for reference. It does **not** match the Sprint 11 Ticket-based, multi-tenant schema used in production. For the authoritative, up-to-date schema, always refer to `apps/web/prisma/schema.prisma`. Use the Sprint 11 overview above to understand how the live schema is organized.
+
 ```prisma
-// Prisma schema for ProjectPulse
+// Legacy Prisma schema (Issue-centric prototype; archived)
 // Database: PostgreSQL 16
 // Features: JSONB, Full-text search, Vector embeddings
 
@@ -961,8 +1031,11 @@ pnpm prisma db seed
 
 ### Connection String
 
+> **Legacy Example (Moksha devhub):**  
+> The connection string below comes from the original Moksha prototype. For the live ProjectPulse deployment, use the `projectpulse_dev` database and follow the values in `.env.example` and `docs/11-Infrastructure-and-Deployment.md` (Mac mini + Docker).
+
 ```env
-# .env
+# .env (legacy example)
 DATABASE_URL="postgresql://moksha:password@localhost:5432/moksha_devhub?schema=public"
 ```
 

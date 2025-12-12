@@ -124,7 +124,7 @@ C4Context
     Person(developer, "Solo Developer", "Human monitoring and manual operations<br/>Secondary User (5% interaction)")
 
     System_Boundary(devhub, "ProjectPulse") {
-    System(mcp_server, "MCP Server", "Execute workflows via MCP tools (45 tools across 9 features)<br/>HTTP JSON-RPC + SSE streaming")
+    System(mcp_server, "MCP Server", "Execute workflows via MCP tools (dozens of tools across multiple feature areas)<br/>HTTP JSON-RPC + HTTP streaming transport")
         System(web_app, "Next.js Web App", "Monitoring dashboard + Manual CRUD<br/>React Server Components")
         SystemDb(database, "PostgreSQL", "Single source of truth<br/>Prisma ORM")
     }
@@ -134,7 +134,7 @@ C4Context
     System_Ext(docker, "Docker", "PostgreSQL container<br/>Development environment")
     System_Ext(embedding_api, "Embedding API", "OpenAI text-embedding-3-small<br/>Optional: local embeddings")
 
-    Rel(agent, mcp_server, "Executes workflows via MCP", "HTTP JSON-RPC + SSE, 45 tools")
+    Rel(agent, mcp_server, "Executes workflows via MCP", "HTTP JSON-RPC + HTTP streaming, dozens of tools")
     Rel(developer, web_app, "Monitors progress, manual CRUD", "HTTPS")
 
     Rel(mcp_server, database, "CRUD operations", "Prisma queries")
@@ -153,9 +153,9 @@ C4Context
 
 **Key Relationships:**
 
-| Actor/System             | Primary Interface      | Purpose                                                 | Volume                     |
-| ------------------------ | ---------------------- | ------------------------------------------------------- | -------------------------- |
-| AI Agent → MCP Server    | HTTP JSON-RPC + SSE    | Execute workflows (5-step protocol)                     | 95% interaction            |
+| Actor/System             | Primary Interface                 | Purpose                                                 | Volume                     |
+| ------------------------ | --------------------------------- | ------------------------------------------------------- | -------------------------- |
+| AI Agent → MCP Server    | HTTP JSON-RPC + HTTP streaming    | Execute workflows (5-step protocol)                     | 95% interaction            |
 | Developer → Web App      | HTTPS, React UI        | Monitor progress, manual CRUD                           | 5% interaction             |
 | MCP Server → Database    | Prisma ORM             | State persistence (Phase, Week, Day, Task, Session)     | ~100 queries/minute        |
 | Database → File System   | —                      | —                                                       | —                          |
@@ -163,7 +163,7 @@ C4Context
 
 **Design Decision Reference:** See [ADR-001](architecture/ADRs/ADR-001-agent-first-architecture.md) for agent-first architecture rationale.
 
-Note: Tool count may expand; 45 represents current scope.
+Note: Tool count may expand; as of Sprint 11 there are approximately 70 MCP tools across multiple feature areas. For the authoritative list, see [06-API/openapi.yaml](06-API/openapi.yaml) and the MCP tools index in `apps/mcp-server/src/tools/`.
 
 ---
 
@@ -212,7 +212,7 @@ ProjectPulse Database:
 **Benefits:**
 - **Clean Repos**: Zero AI-related files in user repositories
 - **Centralized**: All context in one searchable location
-- **MCP API for Agents**: 45 tools for CRUD operations, vector search, progress tracking
+- **MCP API for Agents**: Dozens of tools for CRUD operations, vector search, progress tracking
 - **Shareable**: Multiple agents can access same context
 - **Versioned**: Full history of all changes
 - **No Conflicts**: No merge conflicts from AI files
@@ -345,7 +345,7 @@ C4Container
     Person(developer, "Developer", "Secondary user (5%)")
 
     Container_Boundary(devhub, "ProjectPulse") {
-        Container(mcp_server, "MCP Server", "Node.js, TypeScript", "45 MCP tools<br/>HTTP JSON-RPC + SSE<br/>Zod validation")
+        Container(mcp_server, "MCP Server", "Node.js, TypeScript", "Dozens of MCP tools<br/>HTTP JSON-RPC + HTTP streaming<br/>Zod validation")
 
         Container(web_app, "Next.js App", "React 18, Next.js 14 App Router", "Server Components<br/>Client Components<br/>shadcn/ui")
 
@@ -354,7 +354,7 @@ C4Container
 
     %% File System (removed from product scope)
 
-    Rel(agent, mcp_server, "MCP HTTP JSON-RPC + SSE", "45 tools")
+    Rel(agent, mcp_server, "MCP HTTP JSON-RPC + HTTP streaming", "Dozens of tools")
     Rel(developer, web_app, "HTTPS", "React UI")
 
     Rel(mcp_server, database, "Prisma Client", "CRUD operations")
@@ -391,9 +391,9 @@ C4Container
 **Transport:**
 
 - **Protocol:** HTTP JSON-RPC
-- **Streaming:** Server-Sent Events (SSE) for long-running operations, progress, and notifications
+- **Streaming:** HTTP streaming (MCP HTTP transport) for long-running operations, progress, and notifications
 - **Format:** JSON-RPC 2.0
-- **Security:** Local process communication (no network exposure)
+- **Security:** Runs as an HTTP service in a Docker container (port 3001), reachable over the ProjectPulse Docker network and exposed externally via configured ports/Cloudflare with bearer token authentication.
 
 **Tool Organization:**
 
@@ -419,7 +419,7 @@ const tools = {
   "workflow.recordCheckpoint": ...,
   "workflow.getActiveWorkflow": ...,
 
-  // Issues (5 tools)
+  // Issues (legacy naming in examples; implemented as unified Tickets in MVP)
   "issues.create": ...,
   "issues.bulkCreate": ...,
   "issues.update": ...,
@@ -471,7 +471,7 @@ const tools = {
   "onboarding.generateSummary": ...,
 
   // Ticket System (8 tools) - 🔮 Phase 2 Enhancement (Sprint 10+)
-  // Note: Memory bank snapshots for Tasks (task.create gains optional snapshot parameter)
+  // Note: In the as-built MVP, the unified Ticket system is implemented as the primary work item entity; this block describes an additional snapshot-enhanced layer.
   "ticket.create": ...,  // Enhanced task.create with automatic snapshot capture
   "ticket.update": ...,
   "ticket.complete": ...,
@@ -525,9 +525,11 @@ type MCPError = {
 
 #### MCP Execution Approach: Dual-Mode Architecture
 
+> **Implementation Status (Sprint 11 MVP):** The as-built MCP server runs in traditional HTTP JSON-RPC + HTTP streaming mode only. The dual-mode/code-execution architecture described in this section is a **future design**, not yet implemented in production.
+
 **Critical Requirement**: ProjectPulse MCP server must support **all MCP clients** equally, not just Claude Code.
 
-To support a 45-tool ecosystem efficiently while maintaining universal client compatibility, ProjectPulse implements a **dual-mode MCP server** that adapts to client capabilities:
+To support a growing MCP tool ecosystem efficiently while maintaining universal client compatibility, ProjectPulse is designed to support a **dual-mode MCP server** that adapts to client capabilities:
 
 **Architecture Overview:**
 

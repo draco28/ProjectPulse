@@ -1,16 +1,19 @@
 # 11. Infrastructure and Deployment
 
-**Version**: 1.0
-**Last Updated**: 2025-11-02
+**Version**: 1.1
+**Last Updated**: 2025-12-11
 **Status**: Industry-Grade Documentation
 
 ---
 
-> ⚠️ ARCHITECTURE CHANGE — Mac mini Cloud Runtime
-> All runtime services now run on the Mac mini (192.168.1.15); do not run Docker on Windows.
-> Access the app from Windows at http://192.168.1.15:3000. Use localhost only when executing commands on the Mac mini host or inside containers.
-> Primary compose file: docker-compose.cloud.yml (run on the Mac mini). docker-compose.yml is legacy for CI/local fallback.
-> See: .agent/sops/mac-mini-cloud-architecture.md and .agent/sops/mac-mini-communication-protocol.md
+> ⚠️ ARCHITECTURE CHANGE — Mac mini Cloud Runtime + Cloudflare
+> All runtime services now run on the Mac mini via Docker; do not run Docker on Windows.
+> - When running commands on the Mac mini host or inside containers, use `http://localhost:3000` (web) and `http://localhost:3001` (MCP).
+> - When accessing from another machine on the same LAN (e.g., Windows), use the Mac mini LAN IP (e.g., `http://192.168.1.15:3000`).
+> - For public production access, use Cloudflare tunnels:
+>   - Web: `https://projectpulse.dracodev.dev`
+>   - MCP: `https://projectpulsemcp.dracodev.dev`
+> Primary compose file for daily development: `docker-compose.cloud.yml` (run on the Mac mini). `docker-compose.yml` is legacy for CI/local fallback. For production on the Mac mini, see `docker-compose.prod-local.yml` and Section 11.13.
 
 ## 11.1 Overview and Philosophy
 
@@ -294,31 +297,60 @@ healthcheck:
 ```typescript
 // app/api/health/route.ts
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { healthCheck as sessionHealthCheck } from '@/lib/mcp/session-manager';
 
 export async function GET() {
-  try {
-    // Check database connectivity
-    await prisma.$queryRaw`SELECT 1`;
+  let database: 'connected' | 'error' = 'connected';
+  let redis = { healthy: false, type: 'unknown' as 'unknown' | 'memory' | 'redis' | 'error' };
+  let seedStatus = { ready: false, questions: 0, templates: 0 };
 
-    return NextResponse.json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      database: 'connected',
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        status: 'unhealthy',
-        error: error.message,
-        database: 'disconnected',
-      },
-      { status: 503 }
-    );
+  // Database health + seed data
+  try {
+    // Lightweight connectivity check
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _ = await prisma.$queryRaw<unknown[]>`SELECT 1`;
+    database = 'connected';
+
+    const [questions, templates] = await Promise.all([
+      prisma.onboardingQuestion.count(),
+      prisma.onboardingPromptTemplate.count(),
+    ]);
+
+    seedStatus = {
+      ready: questions >= 96 && templates >= 16,
+      questions,
+      templates,
+    };
+  } catch (err) {
+    console.error('[Health] Database health check failed:', err);
+    database = 'error';
   }
+
+  // Redis / session store health
+  try {
+    redis = await sessionHealthCheck();
+  } catch (err) {
+    console.error('[Health] Session health check failed:', err);
+    redis = { healthy: false, type: 'error' } as const;
+  }
+
+  // Overall health: database connected, seed data ready, and session store healthy
+  const healthy = database === 'connected' && seedStatus.ready && redis.healthy;
+
+  return NextResponse.json(
+    {
+      status: healthy ? 'healthy' : 'unhealthy',
+      timestamp: new Date().toISOString(),
+      database,
+      seed: seedStatus,
+      redis: redis.healthy,
+      sessionStore: redis.type,
+    },
+    {
+      status: healthy ? 200 : 503,
+    },
+  );
 }
 ```
 
@@ -326,7 +358,9 @@ export async function GET() {
 
 - Verifies Next.js app is responding
 - Confirms database connectivity (Prisma can execute queries)
-- Used by Docker Compose, monitoring tools, load balancers
+- Verifies required seed data is present (onboarding questions + prompt templates)
+- Verifies Redis/session store health and type (`memory` vs `redis`)
+- Used by Docker Compose, monitoring tools, load balancers, and smoke tests
 
 #### Resource Limits
 
@@ -611,29 +645,41 @@ docker compose -f docker-compose.cloud.yml logs -f postgres # Database only
 
 #### Verify Application
 
-**1. Check Application Health (from Windows)**:
+**1. Check Application Health**:
 
 ```bash
+# From Mac mini host (development stack)
+curl http://localhost:3000/api/health
+
+# From another machine on the same LAN (e.g., Windows dev box)
 curl http://192.168.1.15:3000/api/health
 
-# Expected response:
+# From the public internet (production via Cloudflare tunnel)
+curl -sf https://projectpulse.dracodev.dev/api/health
+
+# Example response (healthy)
 # {
 #   "status": "healthy",
-#   "timestamp": "2025-11-02T12:34:56.789Z",
-#   "uptime": 45.2,
-#   "database": "connected"
+#   "timestamp": "2025-12-11T12:34:56.789Z",
+#   "database": "connected",
+#   "seed": { "ready": true, "questions": 96, "templates": 16 },
+#   "redis": true,
+#   "sessionStore": "memory"
 # }
 ```
 
 **2. Open Dashboard**:
 
 ```bash
-# Open in browser (from Windows)
-start http://192.168.1.15:3000
-
-# Alternatively, on the Mac mini host
+# From Mac mini host (development)
 open http://localhost:3000          # macOS (Mac mini)
 xdg-open http://localhost:3000      # Linux (if applicable)
+
+# From another machine on the same LAN (e.g., Windows dev box)
+start http://192.168.1.15:3000
+
+# From the public internet (production)
+open https://projectpulse.dracodev.dev
 
 # Expected: See ProjectPulse dashboard with navigation, sprint progress
 ```
@@ -981,6 +1027,8 @@ export default function RootLayout({ children }) {
 ## 11.5 Database Migrations and Seeding
 
 ### 11.5.1 Prisma Migration Workflow
+
+> **Mac mini Safety Note (Sprint 11):** The `projectpulse_dev` database running on the Mac mini is treated as a semi-production environment. Do **not** run `prisma migrate dev`, `prisma migrate reset`, or `prisma db push` directly against this database. Generate and test migrations against a separate local database, then apply them on the Mac mini via `prisma migrate deploy` inside Docker (`docker-compose.cloud.yml` / `docker-compose.prod-local.yml`). See `.agent/system/infrastructure-state.md` and `.agent/sops/mac-mini-cloud-architecture.md` for current policy.
 
 ProjectPulse uses **Prisma Migrate** for database schema management.
 
@@ -1827,6 +1875,8 @@ open http://localhost:3000
 ```
 
 ### 11.7.2 Future Production Architecture
+
+> **Implementation Status (Sprint 11 MVP):** The Vercel/Railway/Supabase architecture in this section is a **future production path**, not the current deployment. The live Sprint 11 production environment runs on the Mac mini with Cloudflare tunnels as described in Section 11.13.
 
 **Vision**: 3-tier cloud deployment (CDN + Serverless + Managed Database)
 

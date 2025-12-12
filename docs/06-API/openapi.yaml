@@ -31,6 +31,17 @@ info:
     - [Architecture](../03-Architecture.md) - System design and data flows
     - [Data Model](../04-Data-and-Model-Spec.md) - Database schema
 
+    ---
+
+    **Sprint 11 As-Built Note:**
+
+    - The canonical runtime API surface is the Next.js HTTP API under `/api/*` in `apps/web/app/api` and the dedicated HTTP MCP server in `apps/mcp-server` (see `index-http.ts`).
+    - This OpenAPI file describes the original MCP-centric design and is kept as a **design/legacy reference**, not as the canonical as-built spec.
+    - In the as-built system, "Issues" are implemented via a unified Ticket model exposed at `/api/tickets`, and MCP uses HTTP streaming transport instead of pure stdio.
+    - For ground truth on implemented behavior, refer to:
+      - `apps/web/app/api/*` (HTTP routes such as `/api/tickets`, `/api/agent-auth/validate`, `/api/health`)
+      - `apps/mcp-server/src/index-http.ts` and tools in `apps/mcp-server/src/tools/*.ts` (HTTP MCP server)
+
   contact:
     name: ProjectPulse Team
     email: team@projectpulse.dev
@@ -41,8 +52,10 @@ info:
     url: https://opensource.org/licenses/MIT
 
 servers:
+  - url: http://localhost:3000
+    description: Sprint 11 Next.js app (HTTP API under /api/*; canonical web API surface)
   - url: stdio://projectpulse
-    description: MCP Server (stdio transport)
+    description: MCP Server (stdio transport; legacy design from early prototype)
     variables:
       protocol:
         default: stdio
@@ -68,6 +81,7 @@ tags:
     description: |
       Issue tracking with bulk creation, auto-tagging, deduplication, and relationship management.
       Supports priorities (P0-P3), statuses (OPEN → IN_PROGRESS → REVIEW → CLOSED).
+      Sprint 11 Note: Implemented in the as-built system via the unified Ticket model and `/api/tickets` HTTP endpoint, where "issues" are represented as tickets with `kind=issue|bug|scanner_finding`.
       **Tools:** 5 | **FRs:** FR-051 to FR-070
 
   - name: Knowledge Graph
@@ -338,7 +352,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 500
-                  example: 'Implement POST /api/issues endpoint'
+                  example: 'Implement POST /api/tickets endpoint'
                 description:
                   type: string
                   maxLength: 5000
@@ -370,7 +384,7 @@ paths:
                   path:
                     type: string
                     description: Full hierarchy path
-                    example: 'Phase A > Week 1 > Day 3 > Task: Implement POST /api/issues endpoint'
+                    example: 'Phase A > Week 1 > Day 3 > Task: Implement POST /api/tickets endpoint'
 
   /sprint/session/start:
     post:
@@ -425,7 +439,7 @@ paths:
                   sessionNotes:
                     type: string
                     description: Session notes (markdown stored in DB, accessible via UI/MCP)
-                    example: 'Session started. Task: Implement POST /api/issues.'
+                    example: 'Session started. Task: Implement POST /api/tickets.'
 
   /sprint/progress/rollup:
     get:
@@ -782,7 +796,7 @@ paths:
 
                     ## Steps
                     1. Create Prisma schema
-                    2. Implement POST /api/issues
+                    2. Implement POST /api/tickets
                     3. Add validation with Zod
                     4. Write tests
                 todos:
