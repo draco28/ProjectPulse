@@ -14,9 +14,10 @@ import type { ApiResponse } from '@/types/issue';
 
 interface CommentFormProps {
   ticketId: string;
+  authorName: string; // Sprint 11.7: User's display name from session
 }
 
-export function CommentForm({ ticketId }: CommentFormProps) {
+export function CommentForm({ ticketId, authorName }: CommentFormProps) {
   const router = useRouter();
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,7 +46,7 @@ export function CommentForm({ ticketId }: CommentFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: content.trim(),
-          author: 'Moksha Dev', // TODO: Get from auth session
+          author: authorName, // Sprint 11.7: Use actual user name from session
         }),
       });
 

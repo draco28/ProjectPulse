@@ -18,7 +18,7 @@ import { getActiveProjectForUser } from '@/lib/project-context';
 // Ticket detail components (Sprint 10.5: renamed from issue)
 import { TicketHeader } from '@/components/tickets/detail/TicketHeader';
 import { QuickActions } from '@/components/tickets/detail/QuickActions';
-import { WatchersSection } from '@/components/tickets/detail/WatchersSection';
+// import { WatchersSection } from '@/components/tickets/detail/WatchersSection'; // Hidden until DB support
 import { TicketActions } from '@/components/tickets/detail/TicketActions';
 import { DescriptionSection } from '@/components/tickets/detail/DescriptionSection';
 import { CodeSection } from '@/components/tickets/detail/CodeSection';
@@ -28,6 +28,7 @@ import { CommentList } from '@/components/tickets/detail/CommentList';
 import { CommentForm } from '@/components/tickets/detail/CommentForm';
 import { AttachmentList } from '@/components/tickets/detail/AttachmentList';
 import { TicketDetailSidebar } from '@/components/tickets/detail/TicketDetailSidebar';
+import { ImplementationContextSection } from '@/components/tickets/detail/ImplementationContextSection';
 
 // Kind labels for display
 const kindLabels: Record<string, string> = {
@@ -101,7 +102,22 @@ async function getTicketDetail(id: number) {
       source: true,
       assigneeType: true,
       assigneeId: true,
-      linkedTaskId: true,
+      // Sprint 12: Ticket scheduling (replaces linkedTaskId)
+      estimatedDays: true,
+      scheduledWeekId: true,
+      scheduledDays: true,
+
+      // Sprint 11.7: Milestone and Due Date
+      dueDate: true,
+      milestoneId: true,
+      milestone: {
+        select: {
+          id: true,
+          name: true,
+          targetDate: true,
+          status: true,
+        },
+      },
 
       // Project context
       project: {
@@ -167,12 +183,23 @@ async function getTicketDetail(id: number) {
         take: 10,
       },
 
-      // Linked task (if part of roadmap)
-      linkedTask: {
+      // Sprint 12: Scheduled week (for roadmap integration)
+      scheduledWeek: {
         select: {
           id: true,
           title: true,
-          status: true,
+          sprint: {
+            select: {
+              id: true,
+              title: true,
+              phase: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
+          },
         },
       },
 
@@ -266,6 +293,12 @@ export default async function TicketDetailPage({
               {/* Description Section */}
               <DescriptionSection ticketId={serializedTicket.id} description={ticket.description} />
 
+              {/* Implementation Context (Sprint 11.7) */}
+              <ImplementationContextSection
+                ticketId={serializedTicket.id}
+                context={serializedTicket.implementationContext}
+              />
+
               {/* Code Section (Linked Files) */}
               {ticket.linkedFiles.length > 0 && (
                 <CodeSection linkedFiles={serializedTicket.linkedFiles} />
@@ -311,7 +344,7 @@ export default async function TicketDetailPage({
 
                 {/* Add Comment Form */}
                 <div className="mt-6 border-t border-[#2A2A2A] pt-6">
-                  <CommentForm ticketId={serializedTicket.id} />
+                  <CommentForm ticketId={serializedTicket.id} authorName={user.name ?? 'Anonymous'} />
                 </div>
               </div>
             </div>
@@ -324,11 +357,14 @@ export default async function TicketDetailPage({
               {/* Issue Details */}
               <TicketDetailSidebar
                 ticketId={serializedTicket.id}
+                projectId={String(projectId)}
                 assignee={serializedTicket.assignee}
                 labels={serializedTicket.labels}
                 priority={serializedTicket.priority}
                 module={serializedTicket.module}
                 status={serializedTicket.status}
+                dueDate={serializedTicket.dueDate}
+                milestone={serializedTicket.milestone}
               />
               
               {/* Ticket Metadata (Sprint 10) */}
@@ -364,20 +400,33 @@ export default async function TicketDetailPage({
                 </dl>
               </div>
               
-              {/* Watchers */}
+              {/* Watchers - Hidden until DB support is implemented
               <WatchersSection ticketId={serializedTicket.id} />
+              */}
               
-              {/* Linked Task Breadcrumb (Sprint 10) */}
-              {ticket.linkedTask && (
-                <div className="neu-raised smooth-transition rounded-3xl p-4" data-testid="linked-task-breadcrumb">
-                  <h4 className="text-sm font-semibold text-white mb-2">Linked to Roadmap</h4>
+              {/* Scheduled Week Breadcrumb (Sprint 12) */}
+              {ticket.scheduledWeek && (
+                <div className="neu-raised smooth-transition rounded-3xl p-4" data-testid="scheduled-week-breadcrumb">
+                  <h4 className="text-sm font-semibold text-white mb-2">Scheduled in Roadmap</h4>
                   <div className="text-sm text-slate space-y-1">
-                    <p className="text-white truncate" data-testid="linked-task-title">
-                      {ticket.linkedTask.title}
+                    <p className="text-white truncate" data-testid="scheduled-week-title">
+                      {ticket.scheduledWeek.title}
                     </p>
-                    <p className="text-xs">
-                      Status: <span className="text-white capitalize">{ticket.linkedTask.status}</span>
-                    </p>
+                    {ticket.scheduledWeek.sprint && (
+                      <p className="text-xs">
+                        Sprint: <span className="text-white">{ticket.scheduledWeek.sprint.title}</span>
+                      </p>
+                    )}
+                    {ticket.scheduledWeek.sprint?.phase && (
+                      <p className="text-xs">
+                        Phase: <span className="text-white">{ticket.scheduledWeek.sprint.phase.title}</span>
+                      </p>
+                    )}
+                    {ticket.scheduledDays && ticket.scheduledDays.length > 0 && (
+                      <p className="text-xs">
+                        Days: <span className="text-white">{ticket.scheduledDays.join(', ')}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
               )}

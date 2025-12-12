@@ -35,20 +35,36 @@ async function getProjectSettings(projectId: number, userId: string) {
     return null; // Forbidden
   }
 
-  const tokens = await prisma.projectToken.findMany({
-    where: { projectId },
-    select: {
-      id: true,
-      name: true,
-      createdAt: true,
-      expiresAt: true,
-      lastUsedAt: true,
-      isRevoked: true,
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+  // Fetch tokens and labels in parallel
+  const [tokens, labels] = await Promise.all([
+    prisma.projectToken.findMany({
+      where: { projectId },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        expiresAt: true,
+        lastUsedAt: true,
+        isRevoked: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+    // Sprint 11.7: Fetch labels with usage counts
+    prisma.label.findMany({
+      where: { projectId },
+      select: {
+        id: true,
+        name: true,
+        color: true,
+        _count: {
+          select: { tickets: true },
+        },
+      },
+      orderBy: { name: 'asc' },
+    }),
+  ]);
 
-  return { project, tokens };
+  return { project, tokens, labels };
 }
 
 export default async function ProjectSettingsPage({ params, searchParams }: PageProps) {
@@ -65,7 +81,7 @@ export default async function ProjectSettingsPage({ params, searchParams }: Page
     redirect('/app');
   }
 
-  const { project, tokens } = data;
+  const { project, tokens, labels } = data;
 
   // MCP endpoint (configurable via env, fallback to localhost)
   const mcpEndpoint = process.env.NEXT_PUBLIC_MCP_URL || 'http://192.168.1.15:3001/mcp';
@@ -74,6 +90,7 @@ export default async function ProjectSettingsPage({ params, searchParams }: Page
     <ProjectSettingsClient
       project={project}
       tokens={tokens}
+      labels={labels}
       mcpEndpoint={mcpEndpoint}
     />
   );

@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Copy, Plus, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { LabelManagement, type Label } from '@/components/projects/settings/LabelManagement';
 
 interface Token {
   id: number;
@@ -29,10 +30,11 @@ interface Project {
 interface ProjectSettingsClientProps {
   project: Project;
   tokens: Token[];
+  labels: Label[];
   mcpEndpoint: string;
 }
 
-export function ProjectSettingsClient({ project, tokens, mcpEndpoint }: ProjectSettingsClientProps) {
+export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: ProjectSettingsClientProps) {
   const router = useRouter();
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [generatedToken, setGeneratedToken] = useState<{
@@ -342,6 +344,9 @@ export function ProjectSettingsClient({ project, tokens, mcpEndpoint }: ProjectS
             </button>
           )}
         </section>
+
+        {/* Labels Section (Sprint 11.7) */}
+        <LabelManagement projectId={project.id} labels={labels} />
 
         {/* Configuration Instructions */}
         <section className="bg-[#1a1a2e] rounded-lg p-6 shadow-neumorphic">
