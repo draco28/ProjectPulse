@@ -1,4 +1,243 @@
-# Sprint 8.7 Onboarding Test & Deployment Plan
+# Documentation Realignment Plan – Post-MVP (Sprint 11+)
+
+**Session**: 2025-12-10 00:04 IST  
+**Phase**: Production Hardening – Documentation Realignment  
+**Objective**: Realign all docs in `docs/` with the as-built system (UI, API, DB, MCP, infra) up to Sprint 11 and deployed production.
+
+## Scope
+
+- Included: Product specs (PRD, SRS), architecture, data & API, infra/deployment, backlog/plan, feature guides.
+- Excluded: Future/post-MVP speculative features not started in code.
+
+## Constraints
+
+- Documentation must match:
+  - Next.js app in `apps/web`
+  - MCP server in `apps/mcp-server`
+  - Prisma schema + migrations in `apps/web/prisma`
+  - Infra described by `docker-compose.*.yml`, `k8s/*.yaml`, Cloudflare URLs
+  - MCP tools and behaviour implemented in `apps/mcp-server` and documented in `.agent/system/mcp-tools-guide.md`
+- Environment model (authoritative as of 2025-12-08):
+  - Dev: `http://localhost:3000` (web), `http://localhost:3001` (MCP)
+  - Prod (Mac Mini via Cloudflare): `https://projectpulse.dracodev.dev` (web), `https://projectpulsemcp.dracodev.dev` (MCP)
+
+---
+
+## Stage 0 – Scope & Baselines
+
+**Goals**
+
+- Identify all active documentation artifacts and assign them to layers.
+- Establish sources of truth for implementation.
+
+**Tasks**
+
+1. Inventory `docs/` using `docs/README.md` and filesystem listing.
+2. Assign each doc to a layer:
+
+   - L0: Index/overview (`docs/README.md`, any index files)
+   - L1: Product specs (`01-PRD.md`, `02-SRS.md`)
+   - L2: Architecture (`03-Architecture.md`, `03-MCP-SPECIFICATION.md`, `WORKFLOW_ARCHITECTURE.md`, other architecture docs)
+   - L3: Data & API (`02-DATABASE-SCHEMA.md`, `04-Data-and-Model-Spec.md`, `06-API/openapi.yaml`)
+   - L4: Ops/Infra (`11-Infrastructure-and-Deployment.md`, `INFRASTRUCTURE.md`, `.agent/system/infrastructure-state.md`, `.agent/tech-context.md`)
+   - L5: Planning (`12-Backlog.md`, `13-Project-Plan.md`)
+   - L6: Feature & guide docs (`features/`, testing docs, onboarding/knowledge/wiki guides, MCP multi-agent guide, etc.).
+
+3. Record primary implementation sources of truth (SoT):
+
+   - Code: `apps/web`, `apps/mcp-server`, `packages/roadmap-tools`
+   - DB: `apps/web/prisma/schema.prisma` + key migrations
+   - Infra: Docker compose files, k8s manifests, deployment scripts
+   - MCP: tool index + `.agent/system/mcp-tools-guide.md`
+   - Progress: `.agent/tech-context.md`, `.agent/progress.md`, `.agent/active-context.md`
+
+**Output**
+
+- "Doc Map" section in this plan describing layers and key files.
+
+---
+
+## Stage 1 – As-Built Discovery (Bottom-Up from Code)
+
+**Goals**
+
+- Build an accurate picture of what is actually implemented and deployed.
+
+**Tasks**
+
+1. **UI & Routes**
+
+   - List all pages in `apps/web/app/**/page.tsx`.
+   - For each route: record URL, feature name, key UI flows, linked APIs.
+
+2. **API Surface**
+
+   - Enumerate `apps/web/app/api/**/route.ts`.
+   - For each endpoint: method, path, validation schema, models touched, major behaviours.
+
+3. **MCP Tools**
+
+   - List tools from `apps/mcp-server/src/tools/**` and the server index.
+   - For each tool: name, category, input/output, backing API/Prisma operations.
+
+4. **Database Schema**
+
+   - Extract model list and fields from `schema.prisma` (and important migrations).
+   - Note relationships, indexes, enum values relevant to docs.
+
+5. **Infra & Runtime**
+
+   - Summarize dev/prod setup from:
+     - `docker-compose.cloud.yml` (dev)
+     - `docker-compose.production.yml`
+     - `k8s/*.yaml`
+     - `.agent/system/infrastructure-state.md`, `.agent/tech-context.md`
+   - Normalize healthcheck + URL expectations (localhost vs Cloudflare).
+
+6. **Tests & Quality Gates**
+
+   - Sample E2E/integration tests validating onboarding, wiki, knowledge, issues/tickets, health, MCP connectivity.
+   - Note which requirements they cover.
+
+**Output**
+
+- "As-Built Map" section in this plan for UI, API, DB, MCP, infra, tests.
+
+---
+
+## Stage 2 – Spec vs Implementation Gap Analysis (Per Layer)
+
+**Goals**
+
+- For each documentation layer, reconcile spec with as-built behaviour.
+
+**Tasks**
+
+1. **L1 – PRD (`01-PRD.md`)**
+
+   - Compare feature list and MVP definition to As-Built Map.
+   - Flag:
+     - Implemented but undocumented features.
+     - Documented MVP features not fully built or changed.
+   - Update terminology (Issues vs Tickets, memory banks vs actual schema, etc.).
+
+2. **L1 – SRS (`02-SRS.md`)**
+
+   - For each relevant FR:
+     - Mark status: fully satisfied / partially satisfied / not implemented.
+     - Capture a one-line evidence link (e.g. route, model, test).
+
+3. **L2 – Architecture (`03-Architecture.md`, `03-MCP-SPECIFICATION.md`, `WORKFLOW_ARCHITECTURE.md`, etc.)**
+
+   - Align component diagrams and flows with actual Next.js + MCP + DB + Redis + Cloudflare design.
+   - Ensure MCP transport, session storage, and agent usage match current implementation.
+
+4. **L3 – Data & API (`02-DATABASE-SCHEMA.md`, `04-Data-and-Model-Spec.md`, `06-API/openapi.yaml`)**
+
+   - Update data-model docs to match `schema.prisma` exactly (names, types, relations, indexes, enums).
+   - Sync API spec with real endpoints and types.
+
+5. **L4 – Ops/Infra (`11-Infrastructure-and-Deployment.md`, `INFRASTRUCTURE.md`, `.agent/system/infrastructure-state.md`)**
+
+   - Replace legacy IP-based assumptions with:
+     - Dev: `http://localhost:3000` / `http://localhost:3001`
+     - Prod: Cloudflare URLs and internal ports `8080/8081`.
+   - Align deployment steps with `docker-compose.production.yml` and `scripts/deploy-prod.sh` + migration SOPs.
+
+6. **L5–L6 – Planning & Feature Docs (`12-Backlog.md`, `13-Project-Plan.md`, feature guides)**
+
+   - Update planning docs using `.agent/progress.md` and `.agent/tech-context.md` as evidence.
+   - Align feature guides (wiki, knowledge, onboarding, issues/tickets, MCP multi-agent, health) with As-Built Map.
+
+**Output**
+
+- For each doc: a checklist of required edits with pointers to evidence.
+
+---
+
+## Stage 3 – Evidence-Based Updates & Verification (Protocol Step 4.5)
+
+**Goals**
+
+- Perform doc edits only when backed by concrete evidence, and record that evidence.
+
+**Tasks**
+
+1. For each targeted doc:
+   - Gather evidence from:
+     - Code (routes, components, tools, models)
+     - DB (Prisma schema, queries)
+     - HTTP checks (`curl` for health/APIs, Cloudflare URLs)
+     - Tests (relevant E2E/unit tests)
+   - Capture summary + command outputs in session file under "Verification Results".
+
+2. Apply edits in **waterfall order**:
+   1. PRD + SRS
+   2. Architecture
+   3. Data & API
+   4. Ops/Infra
+   5. Backlog/Plan + feature guides
+
+3. After significant sets of edits:
+   - Run `pnpm type-check`, `pnpm lint`, and targeted tests.
+   - Store results in session file.
+
+**Output**
+
+- Updated docs plus verification notes satisfying Step 4.5.
+
+---
+
+## Stage 4 – Final Consistency & Sign-Off
+
+**Goals**
+
+- Ensure documentation set is self-consistent and matches implementation.
+
+**Tasks**
+
+1. Re-scan:
+   - `docs/README.md` / any index vs actual files.
+   - Counts: core models, endpoints, MCP tools, major features.
+
+2. Confirm:
+   - No references to legacy Windows/Mac-split workflows as current.
+   - No stale IP-based URLs where Cloudflare/localhost is correct.
+
+3. Create an audit record:
+   - `docs/audits/DOCUMENTATION_REALIGNMENT_2025-12-10.md` (or similar) summarizing:
+     - Docs touched
+     - Evidence sources
+     - Outstanding TODOs (if any).
+
+**Output**
+
+- Final audit doc + confirmation that all planned updates are either complete or tracked as future work.
+
+---
+
+## Success Criteria
+
+- All top-level docs reflect Sprint 11 as-built product and infra.
+- No contradictions between PRD, SRS, Architecture, DB spec, API spec, and infra docs.
+- Healthcheck and environment URLs are consistent across docs and match reality.
+- Traceability preserved (Epics → US → FR → Tests where applicable).
+- Protocol Steps 1–5 satisfied, including Step 4.5 (evidence recorded).
+
+---
+
+## Protocol Status
+
+- **Step 1** – Session initialized: ✅ (current session file created)
+- **Step 2** – Plan + todos: ✅ (this document + corresponding `current-todos.md`)
+- **Step 3** – Expert consultation: ✅ (aligned with `project-brief.md`, `system-patterns.md`, `tech-context.md`, `03-Architecture.md`, `02-DATABASE-SCHEMA.md`, `03-MCP-SPECIFICATION.md` before implementation)
+- **Step 4** – Checkpoints: will log at ~15K-token intervals in session file
+- **Step 4.5** – Verification: evidence mandated per Stage 3
+- **Step 5** – Post-completion: final audit + STATUS/plan/backlog updates
+
+---
+
+# Archived Plan – Sprint 8.7 Onboarding Test & Deployment Plan
 
 **Session**: 2025-11-20 00:30 UTC
 **Sprint**: Sprint 8.7 (Onboarding Refactor)

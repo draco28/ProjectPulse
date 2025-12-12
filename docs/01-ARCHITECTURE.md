@@ -4,6 +4,12 @@
 **Last Updated:** October 23, 2025  
 **Status:** Production Ready ✅
 
+> **Sprint 11 As-Built Note:** This document describes the original Moksha devhub, Issue-centric architecture and is kept as a historical design reference. For the Sprint 11 ProjectPulse as-built system (unified Ticket model, HTTP MCP server, Mac mini Docker runtime), see:
+> - `docs/02-DATABASE-SCHEMA.md` (Sprint 11 data model overview)
+> - `docs/03-MCP-SPECIFICATION.md` (HTTP MCP server + tools)
+> - `docs/06-API/HTTP-API-ROUTE-INVENTORY.md` (HTTP API route summary)
+> - `docs/11-Infrastructure-and-Deployment.md` (Mac mini Docker/Cloudflare setup)
+
 ---
 
 ## 🎯 Executive Summary
