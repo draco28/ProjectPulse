@@ -1,10 +1,13 @@
 /**
  * Knowledge Search MCP Tool
  * Sprint 9 Phase 3: Proxy to /api/knowledge/search
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { getContextStatus, getKnowledgeTip } from '../../utils/contextHints.js';
 
 const inputSchema = z.object({
   projectId: z.number().int().positive().describe('Project ID for multi-tenancy'),
@@ -18,7 +21,23 @@ type SearchInput = z.infer<typeof inputSchema>;
 
 export const knowledgeSearchTool: ToolDefinition = {
   name: 'projectpulse_knowledge_search',
-  description: 'Search knowledge base using semantic, full-text, or hybrid search. Returns array of knowledge items with scores and excerpts.',
+  description: `[QUERY] Search knowledge base for patterns, decisions, and procedures.
+
+When to Use:
+- Before implementing unfamiliar features (find prior art)
+- When researching existing patterns or architectural decisions
+- When checking for previous solutions to similar problems
+
+Search Modes:
+- semantic: Meaning-based search (best for concepts)
+- fulltext: Exact keyword matching (best for specific terms)
+- hybrid: Combined approach (default, recommended)
+
+Returns: Knowledge items with relevance scores and excerpts
+
+Related:
+→ projectpulse_knowledge_related - Find connected items via graph
+→ projectpulse_skill_list - If looking for coding patterns specifically`,
   schema: inputSchema,
   inputSchema: {
     type: 'object',
@@ -61,11 +80,22 @@ export const knowledgeSearchTool: ToolDefinition = {
         resultCount: response.data?.count || 0,
       });
 
+      // Phase 3: Add context hints
+      const contextStatus = await getContextStatus(validated.projectId, context.httpClient);
+      const responseWithHints = {
+        ...response,
+        _context: {
+          sessionActive: contextStatus.sessionActive,
+          sessionName: contextStatus.sessionName,
+          hint: contextStatus.hint || getKnowledgeTip(),
+        },
+      };
+
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(response, null, 2),
+            text: JSON.stringify(responseWithHints, null, 2),
           },
         ],
       };

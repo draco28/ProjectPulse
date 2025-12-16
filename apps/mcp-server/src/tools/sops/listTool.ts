@@ -1,12 +1,15 @@
 /**
  * SOP List MCP Tool - Sprint 11 (EPIC-013: Client Agent Integration)
- * 
+ *
  * Lists all SOPs for a project.
  * Returns metadata only (no content) for token efficiency.
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { addResourceTipToMarkdown } from '../../utils/contextHints.js';
 
 //=============================================================================
 // SCHEMA
@@ -25,7 +28,16 @@ type ListSOPsInput = z.infer<typeof schema>;
 
 export const sopListTool: ToolDefinition = {
   name: 'projectpulse_sop_list',
-  description: 'List all Standard Operating Procedures (SOPs) for a project (metadata only, no content). Use sop.get to load full content on-demand.',
+  description: `[RESOURCE] List available SOPs (metadata only, no content).
+
+When to Use:
+- Before starting a task that might have documented procedures
+- Finding project-specific workflows and checklists
+- Filtering by category (Development, Testing, Deployment, etc.)
+
+Token Efficient: Returns title, slug, description, category only
+
+Next: Use projectpulse_sop_get with slug to load full procedure on-demand.`,
   
   schema,
   
@@ -84,11 +96,15 @@ export const sopListTool: ToolDefinition = {
         return `### ${cat}\n\n${sopLines}`;
       }).join('\n\n');
       
+      // Phase 3: Add resource tip
+      const baseMarkdown = `# Available SOPs (${response.count})\n\n${sections || '_No SOPs found._'}\n\n---\n_Use \`sop.get\` to load full content on-demand._`;
+      const markdownWithHint = addResourceTipToMarkdown(baseMarkdown, 'SOPs');
+
       return {
         content: [
           {
             type: 'text',
-            text: `# Available SOPs (${response.count})\n\n${sections || '_No SOPs found._'}\n\n---\n_Use \`sop.get\` to load full content on-demand._`,
+            text: markdownWithHint,
           },
         ],
       };

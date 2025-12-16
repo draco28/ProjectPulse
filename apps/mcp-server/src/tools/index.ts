@@ -72,10 +72,15 @@ import { materializeRoadmapTool } from './roadmap/materializeTool.js';
 import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
 import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
 import { roadmapCreateTool } from './roadmap/createTool.js';
-// Sprint 9: Memory Bank System
-import { memorySessionStartTool } from './memory/sessionStartTool.js';
-import { memoryPatternLookupTool } from './memory/patternLookupTool.js';
-import { memoryContextRecoveryTool } from './memory/contextRecoveryTool.js';
+// ⚠️ DEPRECATED: Sprint 9 Memory Bank tools (kept for backward compatibility)
+// Use context tools below instead - they provide enhanced functionality
+import { memorySessionStartTool } from './memory/sessionStartTool.js';    // DEPRECATED → contextLoadTool
+import { memoryPatternLookupTool } from './memory/patternLookupTool.js';  // DEPRECATED → contextLookupTool
+import { memoryContextRecoveryTool } from './memory/contextRecoveryTool.js'; // DEPRECATED → contextLoadTool with banksToLoad: 'active-only'
+// ✅ PREFERRED: Self-Guiding MCP Architecture context tools
+import { contextLoadTool } from './context/loadTool.js';      // START HERE - unified entry point
+import { contextLookupTool } from './context/lookupTool.js';  // Token-efficient single bank lookup
+import { contextUpdateTool } from './context/updateTool.js';  // User-explicit bank updates
 // Sprint 9 Phase 3: Knowledge Base Integration
 import { knowledgeSearchTool } from './knowledge/searchTool.js';
 import { knowledgeCreateTool } from './knowledge/createTool.js';
@@ -162,10 +167,15 @@ export const loadTools = (): ToolDefinition[] => [
   getPhaseProgressTool,
   // Sprint 9: Roadmap creation tool for MCP agents
   roadmapCreateTool,
-  // Sprint 9: Memory Bank System tools
-  memorySessionStartTool,
-  memoryPatternLookupTool,
-  memoryContextRecoveryTool,
+  // ⚠️ DEPRECATED: Sprint 9 Memory Bank tools (kept for backward compatibility)
+  // Use context tools below instead - they provide enhanced functionality
+  memorySessionStartTool,       // DEPRECATED → use contextLoadTool
+  memoryPatternLookupTool,      // DEPRECATED → use contextLookupTool
+  memoryContextRecoveryTool,    // DEPRECATED → use contextLoadTool with banksToLoad: 'active-only'
+  // ✅ PREFERRED: Self-Guiding MCP Architecture context tools
+  contextLoadTool,      // 🚀 START HERE - unified entry with banks + session + hints
+  contextLookupTool,    // Token-efficient single bank lookup with formatting
+  contextUpdateTool,    // User-explicit bank updates with budget validation
   // Sprint 9 Phase 3: Knowledge Base Integration
   knowledgeSearchTool,
   knowledgeCreateTool,

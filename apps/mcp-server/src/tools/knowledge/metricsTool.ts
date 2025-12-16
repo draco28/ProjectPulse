@@ -1,10 +1,13 @@
 /**
  * Knowledge Metrics MCP Tool
  * Sprint 9 Phase 3: Proxy to GET /api/knowledge/metrics
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { getContextStatus, getKnowledgeTip } from '../../utils/contextHints.js';
 
 const inputSchema = z.object({
   projectId: z.number().int().positive().describe('Project ID for multi-tenancy'),
@@ -16,7 +19,16 @@ type MetricsInput = z.infer<typeof inputSchema>;
 
 export const knowledgeMetricsTool: ToolDefinition = {
   name: 'projectpulse_knowledge_metrics',
-  description: 'Get knowledge base usage metrics including search performance, popular queries, and item statistics.',
+  description: `[QUERY] Get knowledge base usage metrics and statistics.
+
+When to Use:
+- Checking knowledge base health and coverage
+- Identifying popular queries and trending topics
+- Analyzing search performance over time
+
+Filters: startDate/endDate (ISO 8601) for time-based analysis
+
+Returns: Search stats, popular queries, item counts by category`,
   schema: inputSchema,
   inputSchema: {
     type: 'object',
@@ -55,11 +67,22 @@ export const knowledgeMetricsTool: ToolDefinition = {
         projectId: validated.projectId,
       });
 
+      // Phase 3: Add context hints
+      const contextStatus = await getContextStatus(validated.projectId, context.httpClient);
+      const responseWithHints = {
+        ...response,
+        _context: {
+          sessionActive: contextStatus.sessionActive,
+          sessionName: contextStatus.sessionName,
+          hint: contextStatus.hint || getKnowledgeTip(),
+        },
+      };
+
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(response, null, 2),
+            text: JSON.stringify(responseWithHints, null, 2),
           },
         ],
       };

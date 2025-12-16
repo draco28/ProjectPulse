@@ -1,9 +1,14 @@
 /**
  * MCP Tool: projectpulse_memory_contextRecovery
  * Sprint 9: Memory Bank System
- * 
+ *
+ * ⚠️ DEPRECATED: Use projectpulse_context_load with banksToLoad: 'active-only'
+ *
  * Load ACTIVE_CONTEXT + PROGRESS for fast session resume
  * Target: ≤6K tokens total
+ *
+ * Migration: projectpulse_context_load({ banksToLoad: 'active-only' }) provides
+ * same banks PLUS active session state and workflow hints.
  */
 
 import { z } from 'zod';
@@ -19,7 +24,14 @@ type ContextRecoveryInput = z.infer<typeof schema>;
 
 export const memoryContextRecoveryTool: ToolDefinition = {
   name: 'projectpulse_memory_contextRecovery',
-  description: 'Load ACTIVE_CONTEXT + PROGRESS memory banks for fast session resume. Target: ≤6K tokens total.',
+  description: `⚠️ DEPRECATED - Use projectpulse_context_load with banksToLoad: 'active-only'.
+
+Load ACTIVE_CONTEXT + PROGRESS for fast session resume. Target: ≤6K tokens.
+
+MIGRATION: projectpulse_context_load({ banksToLoad: 'active-only' }) provides
+the same banks PLUS active session state and workflow hints.
+
+This tool is kept for backward compatibility only.`,
   schema,
   inputSchema: {
     type: 'object',
@@ -50,11 +62,21 @@ export const memoryContextRecoveryTool: ToolDefinition = {
         bankCount: response.activeBanks?.length || 0,
       });
       
+      // Add deprecation warning to response
+      const responseWithDeprecation = {
+        ...response,
+        _deprecation: {
+          warning: '⚠️ This tool is deprecated',
+          useInstead: "projectpulse_context_load with banksToLoad: 'active-only'",
+          reason: 'Enhanced version with session state and workflow hints',
+        },
+      };
+
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(response, null, 2),
+            text: JSON.stringify(responseWithDeprecation, null, 2),
           },
         ],
       };

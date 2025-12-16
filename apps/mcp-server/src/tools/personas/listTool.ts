@@ -1,12 +1,15 @@
 /**
  * Persona List MCP Tool - Sprint 11 (EPIC-013: Client Agent Integration)
- * 
+ *
  * Lists all agent personas for a project.
  * Returns metadata only (no systemPrompt) for token efficiency.
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { addResourceTipToMarkdown } from '../../utils/contextHints.js';
 
 //=============================================================================
 // SCHEMA
@@ -25,7 +28,16 @@ type ListPersonasInput = z.infer<typeof schema>;
 
 export const personaListTool: ToolDefinition = {
   name: 'projectpulse_persona_list',
-  description: 'List all agent personas for a project. Returns metadata only (no systemPrompt). Use persona.get to load full details including systemPrompt.',
+  description: `[RESOURCE] List available agent personas (metadata only, no systemPrompt).
+
+When to Use:
+- Discovering what expert roles are available for the project
+- Finding a persona matching your current task's domain
+- Filtering by active status (isActive=true for deployable personas)
+
+Token Efficient: Returns name, slug, description, expertise only
+
+Next: Use projectpulse_persona_get with slug to load full systemPrompt on-demand.`,
   
   schema,
   
@@ -74,11 +86,15 @@ export const personaListTool: ToolDefinition = {
         `• **${p.name}** (\`${p.slug}\`) ${p.icon || ''}\n  ${p.description || 'No description'}\n  Expertise: ${p.expertise?.join(', ') || 'General'}\n  Active: ${p.isActive ? '✅' : '❌'}`
       ).join('\n\n');
       
+      // Phase 3: Add resource tip
+      const baseMarkdown = `# Available Personas (${response.count})\n\n${formatted || '_No personas found._'}\n\n---\n_Use \`persona.get\` to load full details including systemPrompt._`;
+      const markdownWithHint = addResourceTipToMarkdown(baseMarkdown, 'personas');
+
       return {
         content: [
           {
             type: 'text',
-            text: `# Available Personas (${response.count})\n\n${formatted || '_No personas found._'}\n\n---\n_Use \`persona.get\` to load full details including systemPrompt._`,
+            text: markdownWithHint,
           },
         ],
       };

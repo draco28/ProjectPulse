@@ -45,8 +45,19 @@ async function handler(input: TicketCreateInput, context: ToolContext): Promise<
 
 export const ticketCreateTool: ToolDefinition = {
   name: 'projectpulse_ticket_create',
-  description:
-    'Create a new ticket in ProjectPulse with 7 kinds (feature, task, epic, issue, bug, scanner_finding, tech_debt) and 4 sources (manual, scanner, agent, onboarding). Supports optional auto-tagging context (files + metadata).',
+  description: `[ACTION] Create a new ticket in ProjectPulse.
+
+Kinds: feature, task, epic, issue, bug, scanner_finding, tech_debt
+Sources: manual, scanner, agent, onboarding
+Priorities: low, medium, high, critical
+
+RECOMMENDED: Search existing tickets first with projectpulse_ticket_search
+to avoid duplicates.
+
+Supports: Auto-tagging context (files + metadata) for intelligent labeling
+
+If tracking work: Consider projectpulse_agent_session_start to link
+this ticket to your work session.`,
   schema: ticketCreateSchema,
   inputSchema: {
     type: 'object',

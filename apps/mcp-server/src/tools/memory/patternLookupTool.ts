@@ -1,9 +1,14 @@
 /**
  * MCP Tool: projectpulse_memory_patternLookup
  * Sprint 9: Memory Bank System
- * 
+ *
+ * ⚠️ DEPRECATED: Use projectpulse_context_lookup instead
+ *
  * Query a specific memory bank by type
  * Target: ≤1K tokens per lookup
+ *
+ * Migration: projectpulse_context_lookup provides same data with
+ * better formatting and workflow guidance hints.
  */
 
 import { z } from 'zod';
@@ -26,7 +31,16 @@ type PatternLookupInput = z.infer<typeof schema>;
 
 export const memoryPatternLookupTool: ToolDefinition = {
   name: 'projectpulse_memory_patternLookup',
-  description: 'Query a specific memory bank by type (PROJECT_BRIEF, SYSTEM_PATTERNS, TECH_CONTEXT, ACTIVE_CONTEXT, PROGRESS). Target: ≤1K tokens per lookup.',
+  description: `⚠️ DEPRECATED - Use projectpulse_context_lookup instead.
+
+Query specific memory bank by type. Target: ≤1K tokens.
+
+Bank Types: PROJECT_BRIEF, SYSTEM_PATTERNS, TECH_CONTEXT, ACTIVE_CONTEXT, PROGRESS
+
+MIGRATION: projectpulse_context_lookup provides the same data with
+better formatting and workflow guidance hints.
+
+This tool is kept for backward compatibility only.`,
   schema,
   inputSchema: {
     type: 'object',
@@ -63,11 +77,21 @@ export const memoryPatternLookupTool: ToolDefinition = {
         tokens: response.tokens,
       });
       
+      // Add deprecation warning to response
+      const responseWithDeprecation = {
+        ...response,
+        _deprecation: {
+          warning: '⚠️ This tool is deprecated',
+          useInstead: 'projectpulse_context_lookup',
+          reason: 'Enhanced version with better formatting and workflow hints',
+        },
+      };
+
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(response, null, 2),
+            text: JSON.stringify(responseWithDeprecation, null, 2),
           },
         ],
       };

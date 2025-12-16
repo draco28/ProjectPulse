@@ -3,10 +3,13 @@
  *
  * Sprint 12: Update an agent work session
  * Updates plan, todos, progress, or active tickets
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { createContextField, type ContextHintField } from '../../utils/contextHints.js';
 
 const todoItemSchema = z.object({
   content: z.string(),
@@ -80,6 +83,13 @@ async function handler(input: AgentSessionUpdateInput, context: ToolContext): Pr
       status: session.status,
     });
 
+    // Phase 3: Add context hints
+    const contextHint: ContextHintField = createContextField({
+      sessionActive: true,
+      sessionName: session.name,
+      hint: '💡 Tip: If you lost context, call projectpulse_context_load to recover your full session state.',
+    });
+
     return JSON.stringify({
       status: 'success',
       message: 'Agent session updated',
@@ -91,6 +101,7 @@ async function handler(input: AgentSessionUpdateInput, context: ToolContext): Pr
         todosCount: session.todos ? (session.todos as unknown[]).length : 0,
         activeTicketsCount: session.activeTicketIds?.length || 0,
       },
+      _context: contextHint,
     }, null, 2);
   } catch (error) {
     logger.error('[agent-session.update] Unexpected error', { error });
@@ -103,8 +114,18 @@ async function handler(input: AgentSessionUpdateInput, context: ToolContext): Pr
 
 export const agentSessionUpdateTool: ToolDefinition = {
   name: 'projectpulse_agent_session_update',
-  description:
-    'Update an agent work session. Use this to update plan, todos, progress notes, or active tickets during implementation work.',
+  description: `[SESSION] Update current session with progress, todos, or plan changes.
+
+When to Use:
+- After completing a todo item
+- When hitting a checkpoint (every ~15 minutes)
+- When plan changes mid-session
+
+Requires: Active session (call projectpulse_agent_session_start first)
+
+Updates: todos status, progress notes, plan text, active tickets
+
+If you lost context: Call projectpulse_context_load to recover full session state.`,
   schema: agentSessionUpdateSchema,
   inputSchema: {
     type: 'object',

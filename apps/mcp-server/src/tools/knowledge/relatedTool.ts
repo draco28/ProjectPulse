@@ -1,10 +1,13 @@
 /**
  * Knowledge Related MCP Tool
  * Sprint 9 Phase 3: Find related knowledge items via graph traversal
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { getContextStatus, getKnowledgeTip } from '../../utils/contextHints.js';
 
 const inputSchema = z.object({
   projectId: z.number().int().positive().describe('Project ID for multi-tenancy'),
@@ -18,7 +21,20 @@ type RelatedInput = z.infer<typeof inputSchema>;
 
 export const knowledgeRelatedTool: ToolDefinition = {
   name: 'projectpulse_knowledge_related',
-  description: 'Find related knowledge items via graph traversal (1-2 hops). Returns items connected by relationships.',
+  description: `[QUERY] Find related knowledge items via graph traversal.
+
+When to Use:
+- After finding a relevant knowledge item, discover related content
+- Exploring topic clusters and connected concepts
+- Building context before starting complex work
+
+Graph Depth: 1 hop (direct) or 2 hops (extended relationships)
+
+Input: itemId from projectpulse_knowledge_search results
+
+Returns: Connected knowledge items with relationship strengths
+
+minStrength: Filter by relationship quality (0-1, default 0.5)`,
   schema: inputSchema,
   inputSchema: {
     type: 'object',
@@ -59,11 +75,22 @@ export const knowledgeRelatedTool: ToolDefinition = {
         count: response.count || 0,
       });
 
+      // Phase 3: Add context hints
+      const contextStatus = await getContextStatus(validated.projectId, context.httpClient);
+      const responseWithHints = {
+        ...response,
+        _context: {
+          sessionActive: contextStatus.sessionActive,
+          sessionName: contextStatus.sessionName,
+          hint: contextStatus.hint || getKnowledgeTip(),
+        },
+      };
+
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(response, null, 2),
+            text: JSON.stringify(responseWithHints, null, 2),
           },
         ],
       };

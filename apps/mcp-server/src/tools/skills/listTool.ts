@@ -1,12 +1,15 @@
 /**
  * Skill List MCP Tool - Sprint 11 (EPIC-013: Client Agent Integration)
- * 
+ *
  * Lists all skills for a project.
  * Returns metadata only (no content) for token efficiency.
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { addResourceTipToMarkdown } from '../../utils/contextHints.js';
 
 //=============================================================================
 // SCHEMA
@@ -28,7 +31,18 @@ type ListSkillsInput = z.infer<typeof schema>;
 
 export const skillListTool: ToolDefinition = {
   name: 'projectpulse_skill_list',
-  description: 'List all skills for a project (metadata only, no content). Use skill.get to load full content on-demand for token efficiency.',
+  description: `[RESOURCE] List available skills (metadata only, no content).
+
+When to Use:
+- During planning to discover coding patterns and procedures
+- When filtering by category (framework, testing, workflow, troubleshooting)
+- When filtering by framework (react, next.js, prisma, typescript)
+
+Token Efficient: Returns slug, title, description only (~100 tokens per skill)
+
+Filters: category, tags (comma-separated), frameworks (comma-separated)
+
+Next: Use projectpulse_skill_get with slug to load full content on-demand.`,
   
   schema,
   
@@ -108,11 +122,15 @@ export const skillListTool: ToolDefinition = {
         ? `\n\n---\n_Showing ${skills.length} of ${pagination.total} skills (page ${pagination.page}/${pagination.totalPages})_`
         : '';
       
+      // Phase 3: Add resource tip
+      const baseMarkdown = `# Available Skills (${skills.length})\n\n${sections || '_No skills found._'}${paginationInfo}\n\n_Use \`skill.get\` to load full content on-demand._`;
+      const markdownWithHint = addResourceTipToMarkdown(baseMarkdown, 'skills');
+
       return {
         content: [
           {
             type: 'text',
-            text: `# Available Skills (${skills.length})\n\n${sections || '_No skills found._'}${paginationInfo}\n\n_Use \`skill.get\` to load full content on-demand._`,
+            text: markdownWithHint,
           },
         ],
       };

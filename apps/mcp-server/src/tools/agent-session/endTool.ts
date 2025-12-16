@@ -77,8 +77,20 @@ async function handler(input: AgentSessionEndInput, context: ToolContext): Promi
 
 export const agentSessionEndTool: ToolDefinition = {
   name: 'projectpulse_agent_session_end',
-  description:
-    'Mark an agent work session as complete. Sets the session status to COMPLETED and records the completion timestamp. Optionally adds final progress notes.',
+  description: `[SESSION] End current session and auto-sync progress to memory banks.
+
+When to Use:
+- Task/ticket completed
+- Switching to different work
+- End of work period
+
+Auto-Syncs (automatic):
+- PROGRESS bank: Adds session summary with tickets and todos completed
+- ACTIVE_CONTEXT bank: Updates current focus
+
+Optionally: Add final progress notes before completion.
+
+Next: Call projectpulse_context_load to start new work.`,
   schema: agentSessionEndSchema,
   inputSchema: {
     type: 'object',

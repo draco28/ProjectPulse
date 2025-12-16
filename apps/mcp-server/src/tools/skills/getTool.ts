@@ -1,12 +1,15 @@
 /**
  * Skill Get MCP Tool - Sprint 11 (EPIC-013: Client Agent Integration)
- * 
+ *
  * Gets full skill details including content.
  * Automatically tracks usage for analytics.
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { addResourceTipToMarkdown } from '../../utils/contextHints.js';
 
 //=============================================================================
 // SCHEMA
@@ -25,7 +28,18 @@ type GetSkillInput = z.infer<typeof schema>;
 
 export const skillGetTool: ToolDefinition = {
   name: 'projectpulse_skill_get',
-  description: 'Get full details of a specific skill including content. Automatically tracks usage for analytics. Use this to load skill patterns and procedures on-demand.',
+  description: `[RESOURCE] Get full skill content including patterns and procedures.
+
+When to Use:
+- Implementing a feature that matches a skill's domain
+- Following established coding patterns for the project
+- Learning project-specific conventions before coding
+
+Automatically tracks usage for analytics.
+
+Input: projectId + slug (from projectpulse_skill_list)
+
+Returns: Full content with code examples and patterns.`,
   
   schema,
   
@@ -68,18 +82,22 @@ export const skillGetTool: ToolDefinition = {
       const tagsList = skill.tags?.length > 0 ? skill.tags.join(', ') : 'none';
       const frameworksList = skill.frameworks?.length > 0 ? skill.frameworks.join(', ') : 'none';
       
+      // Phase 3: Add resource tip
+      const baseMarkdown = `# ${skill.title}\n\n` +
+        `**Slug**: \`${skill.slug}\`\n` +
+        `**Category**: ${skill.category}\n` +
+        `**Tags**: ${tagsList}\n` +
+        `**Frameworks**: ${frameworksList}\n` +
+        `**Usage Count**: ${skill.usageCount}\n\n` +
+        `## Description\n\n${skill.description || '_No description_'}\n\n` +
+        `## Content\n\n${skill.content}`;
+      const markdownWithHint = addResourceTipToMarkdown(baseMarkdown, 'skills');
+
       return {
         content: [
           {
             type: 'text',
-            text: `# ${skill.title}\n\n` +
-              `**Slug**: \`${skill.slug}\`\n` +
-              `**Category**: ${skill.category}\n` +
-              `**Tags**: ${tagsList}\n` +
-              `**Frameworks**: ${frameworksList}\n` +
-              `**Usage Count**: ${skill.usageCount}\n\n` +
-              `## Description\n\n${skill.description || '_No description_'}\n\n` +
-              `## Content\n\n${skill.content}`,
+            text: markdownWithHint,
           },
         ],
       };

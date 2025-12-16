@@ -1,9 +1,16 @@
 /**
  * MCP Tool: projectpulse_memory_sessionStart
  * Sprint 9: Memory Bank System
- * 
+ *
+ * ⚠️ DEPRECATED: Use projectpulse_context_load instead
+ *
  * Load all 5 memory banks for session start
  * Target: ≤10K tokens total
+ *
+ * Migration: projectpulse_context_load provides same data PLUS:
+ * - Active session state (todos, progress)
+ * - Available resources metadata
+ * - Self-guiding workflow hints
  */
 
 import { z } from 'zod';
@@ -19,7 +26,16 @@ type SessionStartInput = z.infer<typeof schema>;
 
 export const memorySessionStartTool: ToolDefinition = {
   name: 'projectpulse_memory_sessionStart',
-  description: 'Load all 5 memory banks (PROJECT_BRIEF, SYSTEM_PATTERNS, TECH_CONTEXT, ACTIVE_CONTEXT, PROGRESS) for session start. Target: ≤10K tokens total.',
+  description: `⚠️ DEPRECATED - Use projectpulse_context_load instead.
+
+Load all 5 memory banks for session start. Target: ≤10K tokens.
+
+MIGRATION: projectpulse_context_load provides the same data PLUS:
+- Active session state (todos, progress)
+- Available resources metadata (personas, skills, SOPs)
+- Self-guiding workflow hints
+
+This tool is kept for backward compatibility only.`,
   schema,
   inputSchema: {
     type: 'object',
@@ -50,11 +66,21 @@ export const memorySessionStartTool: ToolDefinition = {
         bankCount: response.banks?.length || 0,
       });
       
+      // Add deprecation warning to response
+      const responseWithDeprecation = {
+        ...response,
+        _deprecation: {
+          warning: '⚠️ This tool is deprecated',
+          useInstead: 'projectpulse_context_load',
+          reason: 'Enhanced version with session state and workflow hints',
+        },
+      };
+
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(response, null, 2),
+            text: JSON.stringify(responseWithDeprecation, null, 2),
           },
         ],
       };

@@ -101,8 +101,23 @@ async function handler(input: TicketSearchInput, context: ToolContext): Promise<
 
 export const ticketSearchTool: ToolDefinition = {
   name: 'projectpulse_ticket_search',
-  description:
-    'Search tickets with advanced filters (kind, source, status, priority, module, tags, assignee, free-text). Returns pagination metadata plus summary of each ticket.',
+  description: `[QUERY] Search tickets with advanced filters.
+
+When to Use:
+- Finding related tickets before creating new ones
+- Checking status of work items
+- Discovering open issues in a module
+- Filtering by kind (feature, task, bug, etc.)
+
+Filters: kind, source, status, priority, module, tags, assignee, search text
+
+Returns: Paginated ticket summaries (not full descriptions)
+
+RECOMMENDED: Search existing tickets before creating new ones to avoid duplicates.
+
+Related:
+→ projectpulse_ticket_create - Create if no matching ticket found
+→ projectpulse_agent_session_start - Track work on found tickets`,
   schema: ticketSearchSchema,
   inputSchema: {
     type: 'object',

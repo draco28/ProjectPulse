@@ -529,7 +529,41 @@ docker_compose_status();
 **Tools**: 40 tools across 8 categories  
 **Status**: ✅ Production Ready (Validated 2025-11-20)
 
-**When to use**: Sprint management, onboarding workflows, wiki documentation, issue tracking, workflow orchestration, roadmap planning, blueprint management
+**When to use**: Sprint management, onboarding workflows, wiki documentation, issue tracking, workflow orchestration, roadmap planning, blueprint management, **context management (Memory Banks)**
+
+### Context & Memory Bank Tools
+
+**Entry Point**: `projectpulse_context_load` - **🚀 START HERE**
+
+#### Recommended Context Tools (Self-Guiding MCP)
+
+| Tool | Purpose | When to Use |
+|------|---------|-------------|
+| `projectpulse_context_load` | 🚀 Load all project context | **Always call first** when starting work or after context loss |
+| `projectpulse_context_lookup` | Load single memory bank | Token-efficient partial context loading |
+| `projectpulse_context_update` | Update memory bank content | User-explicit updates to project brief, patterns, tech context |
+
+#### ⚠️ Deprecated Memory Tools (Sprint 9 - Legacy)
+
+These tools are deprecated but kept for backward compatibility. **Use context tools instead.**
+
+| Deprecated Tool | Replacement | Migration |
+|-----------------|-------------|-----------|
+| `projectpulse_memory_sessionStart` | `projectpulse_context_load` | Same data + session state + hints |
+| `projectpulse_memory_patternLookup` | `projectpulse_context_lookup` | Same data + better formatting |
+| `projectpulse_memory_contextRecovery` | `projectpulse_context_load` with `banksToLoad: 'active-only'` | Same banks + session state |
+
+#### Memory Bank Types
+
+| Bank Type | Purpose | Token Budget |
+|-----------|---------|--------------|
+| `PROJECT_BRIEF` | WHAT we're building and WHY | ≤3K tokens |
+| `SYSTEM_PATTERNS` | HOW we build (architecture patterns) | ≤2K tokens |
+| `TECH_CONTEXT` | Technical stack and constraints | ≤2K tokens |
+| `ACTIVE_CONTEXT` | Current focus and work state | ≤1K tokens |
+| `PROGRESS` | What's done, what's left | ≤2K tokens |
+
+---
 
 **Architecture Update (Sprint 8.7)**:
 - Single POST `/mcp` endpoint (stateless HTTP)

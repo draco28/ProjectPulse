@@ -1,11 +1,14 @@
 /**
  * Persona Get MCP Tool - Sprint 11 (EPIC-013: Client Agent Integration)
- * 
+ *
  * Gets full persona details including systemPrompt, skills, tools, and rules.
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { addResourceTipToMarkdown } from '../../utils/contextHints.js';
 
 //=============================================================================
 // SCHEMA
@@ -27,7 +30,18 @@ type GetPersonaInput = z.infer<typeof schema>;
 
 export const personaGetTool: ToolDefinition = {
   name: 'projectpulse_persona_get',
-  description: 'Get full details of a specific persona including systemPrompt, skills, tools, and rules. Use this to adopt an expert role.',
+  description: `[RESOURCE] Get full persona details to adopt an expert role.
+
+When to Use:
+- Before starting specialized work (e.g., load "Backend Developer" for API work)
+- When you need domain expertise and specific rules
+- When project requires specific communication style or expertise
+
+Returns: Full systemPrompt, skills list, allowed MCP tools, behavioral rules
+
+Input: projectId + (id OR slug from projectpulse_persona_list)
+
+Use the systemPrompt to guide your responses for the session.`,
   
   schema,
   
@@ -87,21 +101,25 @@ export const personaGetTool: ToolDefinition = {
         ? persona.expertise.join(', ')
         : 'General';
       
+      // Phase 3: Add resource tip
+      const baseMarkdown = `# ${persona.name} ${persona.icon || ''}\n\n` +
+        `**Slug**: \`${persona.slug}\`\n` +
+        `**Active**: ${persona.isActive ? '✅ Yes' : '❌ No'}\n` +
+        `**Built-in**: ${persona.isBuiltIn ? 'Yes' : 'No'}\n` +
+        `**Expertise**: ${expertiseList}\n\n` +
+        `## Description\n\n${persona.description || '_No description_'}\n\n` +
+        `## Personality\n\n${persona.personality || '_No personality defined_'}\n\n` +
+        `## System Prompt\n\n\`\`\`\n${persona.systemPrompt}\n\`\`\`\n\n` +
+        `## Skills\n\n${skillsList}\n\n` +
+        `## MCP Tools\n\n${toolsList}\n\n` +
+        `## Rules\n\n${rulesList}`;
+      const markdownWithHint = addResourceTipToMarkdown(baseMarkdown, 'personas');
+
       return {
         content: [
           {
             type: 'text',
-            text: `# ${persona.name} ${persona.icon || ''}\n\n` +
-              `**Slug**: \`${persona.slug}\`\n` +
-              `**Active**: ${persona.isActive ? '✅ Yes' : '❌ No'}\n` +
-              `**Built-in**: ${persona.isBuiltIn ? 'Yes' : 'No'}\n` +
-              `**Expertise**: ${expertiseList}\n\n` +
-              `## Description\n\n${persona.description || '_No description_'}\n\n` +
-              `## Personality\n\n${persona.personality || '_No personality defined_'}\n\n` +
-              `## System Prompt\n\n\`\`\`\n${persona.systemPrompt}\n\`\`\`\n\n` +
-              `## Skills\n\n${skillsList}\n\n` +
-              `## MCP Tools\n\n${toolsList}\n\n` +
-              `## Rules\n\n${rulesList}`,
+            text: markdownWithHint,
           },
         ],
       };

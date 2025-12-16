@@ -2,12 +2,17 @@
  * End Agent Session API Route
  *
  * Sprint 12: Dedicated endpoint for completing sessions
+ * Phase 2: Self-Guiding MCP - Auto-syncs Memory Banks on session end
  *
  * POST /api/agent-sessions/[id]/end - Mark session as complete
  *
  * Security (Sprint 12):
  * - Requires authentication (user session OR agent token)
  * - Agent tokens enforce project isolation via session's projectId
+ *
+ * Auto-Sync (Phase 2):
+ * - PROGRESS bank: Adds session summary with pruning
+ * - ACTIVE_CONTEXT bank: Updates current focus based on pending todos
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -15,6 +20,11 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { EndAgentSessionSchema } from '@/lib/validations/agent-session';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import {
+  autoSyncProgressBank,
+  autoSyncActiveContext,
+  type FullAgentSession,
+} from '@/lib/memory/memory-bank-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -134,6 +144,47 @@ export async function POST(
       where: { id },
       data: updateData,
     });
+
+    // Phase 2: Auto-sync Memory Banks (fire-and-forget - don't block response)
+    // Fetch full session data needed for auto-sync
+    const fullSession = await prisma.agentSession.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        projectId: true,
+        name: true,
+        todos: true,
+        progress: true,
+        activeTicketIds: true,
+        status: true,
+        startedAt: true,
+        completedAt: true,
+      },
+    });
+
+    if (fullSession) {
+      // Cast to FullAgentSession type for auto-sync functions
+      const sessionForSync: FullAgentSession = {
+        id: fullSession.id,
+        projectId: fullSession.projectId,
+        name: fullSession.name,
+        todos: fullSession.todos,
+        progress: fullSession.progress,
+        activeTicketIds: fullSession.activeTicketIds,
+        status: fullSession.status,
+        startedAt: fullSession.startedAt,
+        completedAt: fullSession.completedAt,
+      };
+
+      // Fire-and-forget: run auto-sync in background, don't await
+      Promise.all([
+        autoSyncProgressBank(fullSession.projectId, sessionForSync),
+        autoSyncActiveContext(fullSession.projectId, sessionForSync),
+      ]).catch((error) => {
+        // Log error but don't fail the request
+        console.error('[POST /api/agent-sessions/[id]/end] Auto-sync error:', error);
+      });
+    }
 
     return NextResponse.json({
       success: true,

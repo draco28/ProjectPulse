@@ -1,11 +1,14 @@
 /**
  * SOP Get MCP Tool - Sprint 11 (EPIC-013: Client Agent Integration)
- * 
+ *
  * Gets full SOP details including content.
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { addResourceTipToMarkdown } from '../../utils/contextHints.js';
 
 //=============================================================================
 // SCHEMA
@@ -27,7 +30,18 @@ type GetSOPInput = z.infer<typeof schema>;
 
 export const sopGetTool: ToolDefinition = {
   name: 'projectpulse_sop_get',
-  description: 'Get full details of a specific Standard Operating Procedure (SOP) including content. Use this to follow project-specific procedures.',
+  description: `[RESOURCE] Get full SOP content to follow project-specific procedures.
+
+When to Use:
+- Following established workflows for common tasks
+- Ensuring compliance with project standards
+- Learning step-by-step procedures before executing
+
+Returns: Full procedure content with steps, checklists, and examples
+
+Input: projectId + (id OR slug from projectpulse_sop_list)
+
+Follow the steps exactly as documented for consistency.`,
   
   schema,
   
@@ -73,16 +87,20 @@ export const sopGetTool: ToolDefinition = {
       // Format for agent readability
       const tagsList = sop.tags?.length > 0 ? sop.tags.join(', ') : 'none';
       
+      // Phase 3: Add resource tip
+      const baseMarkdown = `# ${sop.title}\n\n` +
+        `**Slug**: \`${sop.slug}\`\n` +
+        `**Category**: ${sop.category}\n` +
+        `**Tags**: ${tagsList}\n\n` +
+        `## Description\n\n${sop.description || '_No description_'}\n\n` +
+        `## Procedure\n\n${sop.content}`;
+      const markdownWithHint = addResourceTipToMarkdown(baseMarkdown, 'SOPs');
+
       return {
         content: [
           {
             type: 'text',
-            text: `# ${sop.title}\n\n` +
-              `**Slug**: \`${sop.slug}\`\n` +
-              `**Category**: ${sop.category}\n` +
-              `**Tags**: ${tagsList}\n\n` +
-              `## Description\n\n${sop.description || '_No description_'}\n\n` +
-              `## Procedure\n\n${sop.content}`,
+            text: markdownWithHint,
           },
         ],
       };

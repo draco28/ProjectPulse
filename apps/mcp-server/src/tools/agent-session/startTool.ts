@@ -3,10 +3,13 @@
  *
  * Sprint 12: Start a new agent work session
  * Creates an AgentSession record for tracking work across tickets
+ *
+ * Phase 3 (Self-Guiding MCP): Includes context hints in response
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { createContextField, type ContextHintField } from '../../utils/contextHints.js';
 
 const todoItemSchema = z.object({
   content: z.string(),
@@ -76,6 +79,13 @@ async function handler(input: AgentSessionStartInput, context: ToolContext): Pro
       name: session.name,
     });
 
+    // Phase 3: Add context hints
+    const contextHint: ContextHintField = createContextField({
+      sessionActive: true,
+      sessionName: session.name,
+      hint: '💡 Tip: Call projectpulse_context_load to see full project context including memory banks and available resources.',
+    });
+
     return JSON.stringify({
       status: 'success',
       message: 'Agent session started',
@@ -87,6 +97,7 @@ async function handler(input: AgentSessionStartInput, context: ToolContext): Pro
         todosCount: session.todos ? (session.todos as unknown[]).length : 0,
         activeTicketsCount: session.activeTicketIds?.length || 0,
       },
+      _context: contextHint,
     }, null, 2);
   } catch (error) {
     logger.error('[agent-session.start] Unexpected error', { error });
@@ -99,8 +110,23 @@ async function handler(input: AgentSessionStartInput, context: ToolContext): Pro
 
 export const agentSessionStartTool: ToolDefinition = {
   name: 'projectpulse_agent_session_start',
-  description:
-    'Start a new agent work session. Creates an AgentSession record for tracking implementation work across multiple tickets. Use this at the start of a task to track plan, todos, and progress.',
+  description: `[SESSION] Start a new agent work session to track progress.
+
+When to Use:
+- After calling projectpulse_context_load
+- When beginning a new task or ticket
+- When resuming work after a break
+
+RECOMMENDED: Call projectpulse_context_load first to see if you have an
+existing session to resume.
+
+Creates:
+- Session with name, plan, and todo tracking
+- Links to active tickets (optional)
+
+Next Actions:
+→ projectpulse_agent_session_update - Save progress checkpoints
+→ projectpulse_agent_session_end - Complete session (auto-syncs to memory banks)`,
   schema: agentSessionStartSchema,
   inputSchema: {
     type: 'object',
