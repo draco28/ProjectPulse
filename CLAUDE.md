@@ -774,7 +774,7 @@ Me: "This needs Next.js routing + React optimization expertise.
 
 ---
 
-**Complete Guide**: [SIMPLE_GEMINI_WORKFLOW.md](SIMPLE_GEMINI_WORKFLOW.md)
+**Complete Guide**: [GEMINI.md](GEMINI.md)
 
 ---
 
@@ -898,7 +898,7 @@ Initialize or update .agent/ documentation system
 → Follow [.agent/sops/git-workflow.md](.agent/sops/git-workflow.md)
 
 **Deep codebase analysis needed?**
-→ Use Gemini CLI (see [SIMPLE_GEMINI_WORKFLOW.md](SIMPLE_GEMINI_WORKFLOW.md))
+→ Use Gemini CLI (see [GEMINI.md](GEMINI.md))
 
 ---
 

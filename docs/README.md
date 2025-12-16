@@ -230,7 +230,7 @@ PRD (Features) → SRS (FR-XXX) → Architecture (ADR-XXX) → Backlog (US-XXX +
 
 - ✅ Complete traceability (FR IDs in all documents)
 - ✅ Implementation-ready (clear acceptance criteria)
-- ✅ Industry-grade structure (follows DOCS_GENERATION_PROMPT.md template)
+- ✅ Industry-grade structure
 
 ---
 
