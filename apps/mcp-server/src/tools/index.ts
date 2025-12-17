@@ -44,6 +44,8 @@ import { bootstrapTool } from './onboarding/bootstrapTool.js';
 // Sprint 9 Refactor: Session 3 refactored tools
 import { getBootstrapPromptTool } from './onboarding/getBootstrapPromptTool.js';
 import { writeMinimalTool } from './repo/writeMinimalTool.js';
+// Sprint 12: Session 3 sync tool (for batch tool users)
+import { syncSession3Tool } from './onboarding/syncSession3Tool.js';
 // Week 3 Enhancement: Batch create tools for Session 3 bootstrap
 import { createAgentPersonaBatchTool } from './batch/createAgentPersonaBatchTool.js';
 import { createSkillBatchTool } from './batch/createSkillBatchTool.js';
@@ -137,6 +139,8 @@ export const loadTools = (): ToolDefinition[] => [
   // Sprint 9 Refactor: Session 3 refactored tools (New)
   getBootstrapPromptTool,
   writeMinimalTool,
+  // Sprint 12: Session 3 sync tool (for batch tool users)
+  syncSession3Tool,
   // Week 3 Enhancement: Batch create tools for Session 3 bootstrap (New)
   createAgentPersonaBatchTool,
   createSkillBatchTool,

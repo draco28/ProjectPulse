@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { getOnboardingSyncHint } from '../../utils/contextHints.js';
 
 //=============================================================================
 // SCHEMA
@@ -127,11 +128,14 @@ export const createWorkflowTemplateBatchTool: ToolDefinition = {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(result, null, 2)
+            text: JSON.stringify({
+              ...result,
+              _onboardingHint: getOnboardingSyncHint()
+            }, null, 2)
           }
         ]
       };
-      
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       context.logger.error('Failed to create workflow template batch', {

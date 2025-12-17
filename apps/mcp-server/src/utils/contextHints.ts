@@ -83,6 +83,14 @@ export function getKnowledgeTip(): string {
   return '💡 Tip: Use projectpulse_context_load first to see project context, then search knowledge for specific topics.';
 }
 
+/**
+ * Generate hint for batch tools during Session 3 bootstrap
+ * Reminds agents to call syncSession3 when done creating artifacts
+ */
+export function getOnboardingSyncHint(): string {
+  return '💡 Onboarding Hint: After creating all bootstrap artifacts (personas, skills, workflows, SOPs), call projectpulse_onboarding_syncSession3 to mark Session 3 as complete. This updates the web UI to show onboarding is finished.';
+}
+
 // ============================================================================
 // Context Status Detection
 // ============================================================================
