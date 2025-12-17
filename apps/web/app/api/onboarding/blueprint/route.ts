@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       where: {
         projectId,
         sessionNumber: 3, // Session 3 = Bootstrap
-        status: 'completed',
+        status: 'complete',
       },
       orderBy: { completedAt: 'desc' }, // Get most recent if multiple
       select: {
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
             'Session 3 (Bootstrap) has not been completed for this project. Complete onboarding first by running Sessions 1, 2, and 3.',
           troubleshooting: [
             'Verify project exists in database',
-            'Check if Session 3 was completed (status = "completed")',
+            'Check if Session 3 was completed (status = "complete")',
             'Run onboarding Sessions 1-3 via MCP tools',
           ],
         },

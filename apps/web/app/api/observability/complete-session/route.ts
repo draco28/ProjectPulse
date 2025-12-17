@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     const updatedSession = await prisma.onboardingSession.update({
       where: { id: sessionId },
       data: {
-        status: 'completed',
+        status: 'complete',
         completedAt: new Date(),
         validationReport: (validationReport || {}) as Prisma.InputJsonValue
       },
