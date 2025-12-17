@@ -19,6 +19,7 @@ import { wikiSearchTool } from './wikiSearch.js';
 import { wikiUpdateTool } from './wikiUpdate.js';
 import { wikiAnalyticsTopPagesTool } from './wikiAnalyticsTopPages.js';
 import { wikiGenerateTool } from './wikiGenerate.js';
+import { wikiGetTool } from './wikiGet.js';
 import { onboardingGetPromptTool } from './onboarding/getPrompt.js';
 import { onboardingSubmitResponseTool } from './onboarding/submitResponse.js';
 import { blueprintGetTool } from './onboarding/getBlueprintTool.js';
@@ -111,6 +112,7 @@ export const loadTools = (): ToolDefinition[] => [
   agentSessionEndTool,
   wikiCreateTool,
   wikiSearchTool,
+  wikiGetTool,
   wikiUpdateTool,
   wikiAnalyticsTopPagesTool,
   wikiGenerateTool,
