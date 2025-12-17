@@ -1,7 +1,7 @@
 # Technical Context
 
 **Project**: ProjectPulse
-**Last Updated**: 2025-12-08
+**Last Updated**: 2025-12-17
 **Current Phase**: Production Hardening
 **Sprint Completion**: 91% MVP complete (infrastructure finalized)
 
@@ -17,7 +17,7 @@
 - ✅ Workflow orchestration (12 predefined workflows)
 - ✅ Issue/Ticket management (CRUD, bulk ops, auto-tagging)
 - ✅ Knowledge graph (hybrid search, pgvector, 2-hop traversal)
-- ✅ MCP server (HTTP transport, 42+ tools operational)
+- ✅ MCP server (HTTP transport, 73 tools operational)
 - ✅ Skills system (lazy-loading, LRU cache, 92% token reduction)
 - ✅ Infrastructure (Docker, PostgreSQL, Redis, Cloudflare Tunnel)
 
@@ -806,33 +806,57 @@ console.log('MCP server running on stdio');
 
 ### Claude Code Configuration
 
-**Location**: `~/.claude/mcp_settings.json` (user config)
+**Location**: `~/.claude/settings.json` (user config)
 
+**Development** (localhost on Mac mini):
 ```json
 {
   "mcpServers": {
     "projectpulse": {
-      "command": "node",
-      "args": ["F:/Web_Projects/AI_HUB/mcp-server/dist/index.js"],
-      "env": {
-        "DATABASE_URL": "postgresql://projectpulse:devpassword@localhost:5432/projectpulse"
+      "type": "http",
+      "url": "http://localhost:3001/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-dev-agent-token>"
       }
     }
   }
 }
 ```
 
+**Production** (public HTTPS via Cloudflare Tunnel):
+```json
+{
+  "mcpServers": {
+    "projectpulse": {
+      "type": "http",
+      "url": "https://projectpulsemcp.dracodev.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-prod-agent-token>"
+      }
+    }
+  }
+}
+```
+
+**Production URLs**:
+- Web App: `https://projectpulse.dracodev.dev`
+- MCP Server: `https://projectpulsemcp.dracodev.dev`
+- MCP Endpoint: `https://projectpulsemcp.dracodev.dev/mcp`
+
 **Testing Connection**:
 
 ```bash
-# 1. Build MCP server
-cd mcp-server
-pnpm build
+# Check MCP server health
+curl https://projectpulsemcp.dracodev.dev/health
 
-# 2. Test stdio communication
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | node dist/index.js
+# Expected output:
+# {"status":"healthy","version":"0.1.0","transport":"http","toolCount":73,"endpoint":"/mcp"}
 
-# 3. Expected output: List of 41 tools
+# Test MCP endpoint (requires auth token)
+curl -X POST https://projectpulsemcp.dracodev.dev/mcp \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 ```
 
 ### MCP Tool Categories (41 Total)

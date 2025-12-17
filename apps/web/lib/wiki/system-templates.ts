@@ -4,73 +4,112 @@ import { prisma } from '@/lib/prisma';
 const SYSTEM_PROJECT_NAME = 'System Wiki Templates';
 const SYSTEM_PROJECT_SLUG = 'system-wiki-templates';
 
-// Initial Bootstrap Content
-const INITIAL_TEMPLATES = [
+// Initial Bootstrap Content - Production Ready (Updated 2025-12-17)
+// Exported for use by wiki refresh API
+export const INITIAL_TEMPLATES = [
   {
     title: 'MCP Configuration Guide',
     path: `/${SYSTEM_PROJECT_SLUG}/mcp-configuration`,
     category: 'getting-started',
     content: `# MCP Configuration Guide
 
-Learn how to configure the Model Context Protocol (MCP) to connect your AI agents to ProjectPulse.
+Connect your AI agents to ProjectPulse using the Model Context Protocol (MCP).
 
-## 1. Generate Bearer Token
-To securely authenticate your local agents:
-1.  Go to **Settings** > **Agent Tokens**.
-2.  Click **"Generate Token"**.
-3.  Give it a name (e.g., "Cursor", "Claude Desktop").
-4.  **Copy the token** immediately (it won't be shown again).
+## Prerequisites
 
-## 2. Configure Your Client
+- An active ProjectPulse project
+- Agent token (generated in Settings → Agent Tokens)
 
-### Claude Desktop
-Edit \`~/.claude/claude_desktop_config.json\`:
+## Step 1: Generate Your Agent Token
+
+1. Navigate to **Settings** → **Agent Tokens**
+2. Click **"Generate New Token"**
+3. Name it descriptively (e.g., "Claude-Code-Main", "Windsurf-Dev")
+4. **Copy immediately** - tokens are shown only once!
+
+## Step 2: Configure Your AI Agent
+
+### Claude Code
+
+Edit \`~/.claude/settings.json\`:
 
 \`\`\`json
 {
   "mcpServers": {
     "projectpulse": {
-      "command": "docker",
-      "args": [
-        "exec",
-        "-i",
-        "projectpulse-web-1",
-        "node",
-        "apps/mcp-server/dist/index.js"
-      ],
-      "env": {
-        "MCP_API_KEY": "your-bearer-token-here"
+      "type": "http",
+      "url": "https://projectpulsemcp.dracodev.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN_HERE"
       }
     }
   }
 }
 \`\`\`
 
-### Windsurf / Cursor
-Update your MCP configuration file (usually \`~/.codeium/windsurf/mcp_config.json\` or similar):
+### Windsurf
+
+Edit \`~/.codeium/windsurf/mcp_config.json\`:
 
 \`\`\`json
 {
   "mcpServers": {
     "projectpulse": {
-      "command": "node",
-      "args": ["/path/to/projectpulse/apps/mcp-server/dist/index.js"],
-      "env": {
-        "MCP_API_KEY": "your-bearer-token-here"
+      "serverUrl": "https://projectpulsemcp.dracodev.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN_HERE"
       }
     }
   }
 }
 \`\`\`
 
-## 3. Verify Connection
-Run the health check tool to ensure everything is working:
-- **Tool**: \`projectpulse_health_check\`
-- **Expected Output**: \`{"status": "healthy", "database": "connected"}\`
+### Cursor
+
+Go to **Settings → MCP → Add Server**:
+- **Name**: projectpulse
+- **Type**: HTTP
+- **URL**: \`https://projectpulsemcp.dracodev.dev/mcp\`
+- **Headers**: \`Authorization: Bearer YOUR_TOKEN_HERE\`
+
+## Step 3: Verify Connection
+
+Ask your agent to run the health check:
+
+\`\`\`
+Use the projectpulse_health_check tool
+\`\`\`
+
+**Expected Response**:
+\`\`\`json
+{"status": "healthy", "database": "connected", "toolCount": 73}
+\`\`\`
+
+## Step 4: Load Project Context
+
+After connecting, your agent should call:
+
+\`\`\`
+projectpulse_context_load({ projectId: YOUR_PROJECT_ID })
+\`\`\`
+
+This loads memory banks, checks onboarding status, and provides workflow hints.
 
 ## Troubleshooting
-- **401 Unauthorized**: Check your Bearer Token.
-- **Connection Refused**: Ensure Docker containers are running.
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| 401 Unauthorized | Invalid or expired token | Generate a new token in Settings |
+| 403 Forbidden | Token revoked | Check token status, generate new one |
+| Connection refused | Network issue | Check internet connection |
+| Timeout | Server restarting | Wait 30 seconds, retry |
+
+## Security Best Practices
+
+- **One token per agent** - Makes revocation granular
+- **Rotate tokens** - Regenerate every 90 days
+- **Revoke on compromise** - Immediate action in Settings → Agent Tokens
+- **Never commit tokens** - Use environment variables or secure storage
 `,
   },
   {
@@ -79,37 +118,89 @@ Run the health check tool to ensure everything is working:
     category: 'getting-started',
     content: `# Getting Started with ProjectPulse
 
-Welcome to ProjectPulse! This platform is designed to be the central nervous system for your AI-driven development.
+Welcome! ProjectPulse is your AI-powered project management system designed for seamless agent integration.
+
+## What is ProjectPulse?
+
+ProjectPulse provides:
+- **Sprint Tracking**: 5-level hierarchy (Phase → Week → Day → Task → Session)
+- **MCP Integration**: 73+ tools for AI agents to read/write project data
+- **Knowledge Base**: Semantic search across documentation and code patterns
+- **Issue Tracking**: Full-featured ticketing with AI auto-categorization
+
+## Quick Start Checklist
+
+### ✅ Step 1: Configure MCP Connection
+
+See [[MCP Configuration Guide]] for detailed setup:
+1. Generate agent token in Settings
+2. Add MCP config to your agent (Claude Code, Windsurf, or Cursor)
+3. Verify with \`projectpulse_health_check\`
+
+### ✅ Step 2: Complete Onboarding (New Projects)
+
+For new projects, your agent should complete 3 onboarding sessions:
+
+\`\`\`
+# First, load context to check status
+projectpulse_context_load({ projectId: YOUR_ID })
+
+# The hints will tell you to start onboarding:
+projectpulse_onboarding_start({ sessionNumber: 1 })
+\`\`\`
+
+See [[Onboarding Guide]] for details on each session.
+
+### ✅ Step 3: Start Working (After Onboarding)
+
+When starting work, your agent should:
+
+\`\`\`
+1. projectpulse_context_load({ projectId: YOUR_ID })
+   → Loads memory banks, active session, workflow hints
+
+2. projectpulse_agent_session_start({ projectId: YOUR_ID, name: "Feature X" })
+   → Creates work session for tracking
+
+3. [Do your work...]
+
+4. projectpulse_agent_session_end({ sessionId: "...", summary: "..." })
+   → Saves progress, auto-syncs memory banks
+\`\`\`
 
 ## Core Features
 
-### 1. Sprint Hierarchy
-We track work in a 5-level hierarchy:
-- **Phase**: Major milestone (e.g., "MVP Launch").
-- **Sprint**: 2-week cycle.
-- **Week**: Weekly goals.
-- **Day**: Daily tasks.
-- **Task**: Specific work item.
-- **Session**: Granular work units with AI checkpoints.
+### Sprint Hierarchy
+Track work at 5 levels:
+- **Phase**: Major milestones (e.g., "MVP Launch")
+- **Week**: Weekly goals and focus
+- **Day**: Daily tasks and priorities
+- **Task**: Specific work items
+- **Session**: Granular work units with AI checkpoints
 
-### 2. Issue Tracking
-Manage bugs and features with rich context. Issues can be linked to:
-- **Wiki Pages**: For documentation.
-- **Knowledge Items**: For technical context.
-- **Code Files**: For implementation details.
+### Issue Tracking
+Manage bugs and features with rich context:
+- Link issues to wiki pages, knowledge items, and code
+- Auto-categorization with AI tagging
+- Bulk operations for efficient management
 
-### 3. Knowledge Base & Wiki
-- **Wiki**: Hierarchical project documentation (like this page).
-- **Knowledge Base**: Semantic search for snippets, patterns, and error logs.
+### Knowledge Base
+- **Wiki**: Hierarchical documentation (like this page)
+- **Knowledge Graph**: Semantic search for patterns and solutions
+- **Memory Banks**: Token-efficient context for agents
 
 ## Navigation Tips
-- **Cmd+K**: Open the command palette to jump anywhere.
-- **Sidebar**: Quick access to all modules.
-- **Dashboard**: Your daily command center with "Current Work" tracking.
+
+- **Cmd/Ctrl+K**: Command palette for quick navigation
+- **Dashboard**: Your daily command center
+- **Wiki**: Project documentation hub
+- **Issues**: Bug and feature tracking
 
 ## Next Steps
-1.  Complete the **Onboarding Guide** to set up your project strategy.
-2.  Configure **MCP** to enable your AI agents.
+
+1. Complete [[Onboarding Guide]] to set up your project
+2. Configure MCP with [[MCP Configuration Guide]]
+3. Review [[Development Workflow]] for team conventions
 `,
   },
   {
@@ -118,34 +209,137 @@ Manage bugs and features with rich context. Issues can be linked to:
     category: 'guides',
     content: `# Project Onboarding Workflow
 
-ProjectPulse uses a unique 3-session AI onboarding process to set up new projects.
+ProjectPulse uses a 3-session onboarding process to configure AI-driven development for your project.
+
+## Overview
+
+| Session | Duration | Focus | Output |
+|---------|----------|-------|--------|
+| 1 | 60-90 min | Strategic Planning | Executive summary, 96 Q&A pairs |
+| 2 | 30-60 min | Documentation | 15 industry-standard documents |
+| 3 | 15-30 sec | AI Configuration | Personas, skills, roadmap |
 
 ## Session 1: Strategic Planning
-**Goal**: Define *what* we are building.
-- **Process**: The AI interviews you (Product Manager persona).
-- **Output**: 96 Q&A pairs covering Architecture, DevOps, UX, and more.
-- **Result**: A comprehensive **Executive Summary**.
 
-## Session 2: Industry Documentation
-**Goal**: Generate standard documentation artifacts.
-- **Process**: The AI generates 15 core documents in batches:
-    1.  **Planning**: PRD, SRS, Backlog.
-    2.  **Architecture**: System Design, API Spec, Data Model.
-    3.  **Implementation**: Testing Strategy, Security Plan.
-    4.  **Operations**: Deployment Guide, SRE Plan.
-- **Output**: Markdown files stored in the database.
+**Goal**: Define what you're building and why.
 
-## Session 3: AI Workflow Blueprint
-**Goal**: Configure the AI for this specific project.
-- **Process**: The AI parses the Project Plan.
-- **Output**:
-    -   **Agent Personas**: Custom experts (e.g., "React Expert").
-    -   **Skills Library**: Reusable patterns.
-    -   **Workflows**: Standard Operating Procedures (SOPs).
-    -   **Roadmap**: Materialized Sprint/Week/Day hierarchy.
+**Process**:
+1. AI interviews you across 10 phases (Product, Architecture, DevOps, etc.)
+2. You answer 96 questions covering all aspects of your project
+3. AI generates an executive summary
 
-## How to Start
-Use the **Onboarding** tab in your Project Dashboard to begin Session 1.
+**MCP Tools for Agents**:
+\`\`\`
+# Start Session 1
+projectpulse_onboarding_start({ sessionNumber: 1 })
+
+# Get questions for current phase
+projectpulse_onboarding_getQuestions({ sessionNumber: 1, phase: 1 })
+
+# Save answers for a phase
+projectpulse_onboarding_saveAnswers({
+  sessionNumber: 1,
+  phase: 1,
+  answers: { "q1": "answer1", "q2": "answer2" }
+})
+
+# Generate executive summary (after all phases)
+projectpulse_onboarding_generateSummary({ sessionNumber: 1 })
+
+# Complete Session 1
+projectpulse_onboarding_complete({ sessionNumber: 1 })
+\`\`\`
+
+**Tips for Best Results**:
+- Be specific and detailed in answers
+- Include technical constraints and preferences
+- Mention integrations and dependencies
+- Describe target users and use cases
+
+## Session 2: Documentation Generation
+
+**Goal**: Generate industry-standard documentation.
+
+**Documents Generated** (15 total):
+
+| Category | Documents |
+|----------|-----------|
+| Planning | PRD, SRS, Backlog, Project Plan, Budget |
+| Architecture | System Design, Data Model, API Spec |
+| Implementation | UI/UX, Security Plan, Testing Strategy |
+| Operations | Infrastructure, Observability, Success Metrics |
+
+**MCP Tools for Agents**:
+\`\`\`
+# Start Session 2
+projectpulse_onboarding_start({ sessionNumber: 2 })
+
+# Get prompt for a specific document
+projectpulse_onboarding_getDocumentPrompt({ documentType: "PRD" })
+
+# Store generated document
+projectpulse_onboarding_storeDocument({
+  documentType: "PRD",
+  content: "# PRD\\n\\n..."
+})
+
+# Check progress
+projectpulse_onboarding_getDocumentStatus()
+
+# Complete Session 2 (after all 15 docs)
+projectpulse_onboarding_complete({ sessionNumber: 2 })
+\`\`\`
+
+## Session 3: AI Workflow Bootstrap
+
+**Goal**: Configure AI agents for your specific project.
+
+**What Gets Created**:
+- **Agent Personas**: Custom experts (React Expert, Prisma Expert, etc.)
+- **Skills Library**: Reusable code patterns and conventions
+- **Workflows**: Standard operating procedures
+- **SOPs**: Step-by-step guides for common tasks
+- **Roadmap**: Materialized Phase/Week/Day hierarchy from Project Plan
+
+**MCP Tools for Agents**:
+\`\`\`
+# Start Session 3 (one-shot bootstrap)
+projectpulse_onboarding_start({ sessionNumber: 3 })
+
+# Bootstrap creates everything automatically
+# Wait for completion confirmation
+
+# Verify bootstrap results
+projectpulse_persona_list({ projectId: YOUR_ID })
+projectpulse_skill_list({ projectId: YOUR_ID })
+\`\`\`
+
+## Starting Onboarding
+
+### For Agents (Recommended)
+
+\`\`\`
+# 1. Load context first
+response = projectpulse_context_load({ projectId: YOUR_ID })
+
+# 2. Check onboardingStatus in response
+# If not complete, follow hints to start onboarding
+
+# 3. Start appropriate session
+projectpulse_onboarding_start({ sessionNumber: 1 })
+\`\`\`
+
+### For Users (Web UI)
+
+Navigate to: **Project Dashboard → Onboarding Tab → Start Session 1**
+
+## After Onboarding
+
+Once all 3 sessions are complete:
+1. \`projectpulse_context_load\` will show "onboarding complete"
+2. Agents can start work sessions with \`projectpulse_agent_session_start\`
+3. Memory banks are populated with project context
+4. Personas and skills are available for specialized guidance
 `,
   },
   {
@@ -154,30 +348,137 @@ Use the **Onboarding** tab in your Project Dashboard to begin Session 1.
     category: 'guides',
     content: `# Development Workflow
 
-Follow these guidelines to maintain velocity and quality.
+Guidelines for AI-assisted development with ProjectPulse.
 
 ## Git Workflow
-- **Main Branch**: \`master\` (Protected).
-- **Feature Branches**: \`feature/ticket-id-description\`.
-- **Commits**: Use semantic commits (e.g., \`feat: add user auth\`, \`fix: resolve login bug\`).
 
-## Agent Persona Usage
-Don't just use generic AI. Select the right specialist for the job:
-- **React Expert**: For component design and hooks.
-- **Next.js Expert**: For App Router and Server Components.
-- **Prisma Expert**: For schema changes and complex queries.
-- **Testing Agent**: For writing Jest/Playwright tests.
+- **Main Branch**: \`master\` (protected)
+- **Feature Branches**: \`feature/ticket-id-description\`
+- **Commits**: Semantic format (\`feat:\`, \`fix:\`, \`chore:\`, etc.)
 
-## Checkpoints (Critical)
-To prevent context loss, your AI agent must create checkpoints:
-- **Frequency**: Every 15,000 tokens.
-- **Tool**: \`projectpulse_sprint_checkpoint\`.
-- **Benefit**: Allows you to resume complex tasks even if the LLM context window resets.
+## Session Lifecycle
+
+### Starting a Work Session
+
+\`\`\`
+# 1. Load project context
+projectpulse_context_load({ projectId: YOUR_ID })
+# Returns: memory banks, active session, workflow hints
+
+# 2. Start tracking your work
+projectpulse_agent_session_start({
+  projectId: YOUR_ID,
+  name: "Implementing user auth",
+  ticketIds: ["TICKET-123"]
+})
+# Returns: sessionId for tracking
+\`\`\`
+
+### During Development
+
+| Action | MCP Tool | When to Use |
+|--------|----------|-------------|
+| Create issue | \`projectpulse_ticket_create\` | Found bug, need feature |
+| Log progress | \`projectpulse_agent_session_update\` | Every 15-20 minutes |
+| Search docs | \`projectpulse_wiki_search\` | Need reference info |
+| Add knowledge | \`projectpulse_knowledge_create\` | Discovered pattern/solution |
+| Get persona | \`projectpulse_persona_get\` | Need specialized guidance |
+| Load skill | \`projectpulse_skill_get\` | Need code pattern |
+
+### Checkpoints (Critical)
+
+**Why**: Prevents context loss when AI sessions reset.
+
+\`\`\`
+projectpulse_agent_session_update({
+  sessionId: "...",
+  progress: "Implemented login form, working on validation",
+  todos: [
+    { content: "Add password validation", status: "in_progress" },
+    { content: "Connect to auth API", status: "pending" }
+  ]
+})
+\`\`\`
+
+**Frequency**: Every 15K tokens or ~20 minutes of work.
+
+### Ending a Session
+
+\`\`\`
+projectpulse_agent_session_end({
+  sessionId: "...",
+  summary: "Completed user login form with validation",
+  completedTicketIds: ["TICKET-123"]
+})
+# Auto-syncs PROGRESS and ACTIVE_CONTEXT memory banks
+\`\`\`
+
+## Using Agent Personas
+
+Select the right specialist for the task:
+
+\`\`\`
+# List available personas
+projectpulse_persona_list({ projectId: YOUR_ID })
+
+# Load specific persona guidance
+projectpulse_persona_get({ personaId: "react-expert" })
+\`\`\`
+
+**Common Personas** (after onboarding):
+- **React Expert**: Component design, hooks, state management
+- **Next.js Expert**: App Router, Server Components, data fetching
+- **Prisma Expert**: Schema design, migrations, query optimization
+- **Testing Expert**: Jest, Playwright, test strategies
+
+## Using Skills
+
+Skills are token-efficient code patterns:
+
+\`\`\`
+# List skills by category
+projectpulse_skill_list({ projectId: YOUR_ID, category: "api" })
+
+# Load full skill content
+projectpulse_skill_get({ skillId: "api-endpoint-pattern" })
+\`\`\`
 
 ## Wiki Documentation
-- **When to write**: Whenever you make a significant architectural decision.
-- **Where to write**: Create a new Wiki Page in the appropriate category.
-- **System Pages**: Pages marked "System" (like this one) are defaults. You can edit them to fit your project!
+
+**When to Write**:
+- Architectural decisions
+- API design choices
+- Bug root cause analysis
+- Reusable patterns
+
+**MCP Tool**:
+\`\`\`
+projectpulse_wiki_create({
+  projectId: YOUR_ID,
+  title: "Auth Flow Decision",
+  category: "architecture",
+  content: "# Auth Flow\\n\\nWe chose JWT because..."
+})
+\`\`\`
+
+## Context Recovery
+
+If your agent loses context (session reset, compaction):
+
+\`\`\`
+# Reload everything
+projectpulse_context_load({ projectId: YOUR_ID })
+
+# Check for active session
+# If found, resume work on existing todos
+# If not, start new session
+\`\`\`
+
+## System Pages
+
+Pages marked "System" (like this one) are defaults from templates. You can:
+- Edit them to fit your project
+- Refresh them via **Settings → Wiki Templates** if templates improve
 `,
   },
 ];

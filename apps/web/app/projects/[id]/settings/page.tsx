@@ -83,8 +83,8 @@ export default async function ProjectSettingsPage({ params, searchParams }: Page
 
   const { project, tokens, labels } = data;
 
-  // MCP endpoint (configurable via env, fallback to localhost)
-  const mcpEndpoint = process.env.NEXT_PUBLIC_MCP_URL || 'http://192.168.1.15:3001/mcp';
+  // MCP endpoint (configurable via env, fallback to production URL)
+  const mcpEndpoint = process.env.NEXT_PUBLIC_MCP_URL || 'https://projectpulsemcp.dracodev.dev/mcp';
 
   return (
     <ProjectSettingsClient

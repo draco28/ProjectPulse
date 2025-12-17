@@ -57,6 +57,13 @@ interface AvailableResources {
   };
 }
 
+interface OnboardingStatus {
+  isComplete: boolean;
+  completedSessions: number; // 0, 1, 2, or 3
+  nextSession: number | null; // 1, 2, 3, or null if complete
+  inProgressSession: number | null; // Session currently in progress
+}
+
 interface ContextLoadResponse {
   projectId: number;
   projectName: string;
@@ -69,6 +76,7 @@ interface ContextLoadResponse {
   };
   activeSession: ActiveSessionData | null;
   availableResources: AvailableResources;
+  onboardingStatus: OnboardingStatus;
   hints: string[];
   totalTokens: number;
   timestamp: string;
@@ -89,15 +97,55 @@ const querySchema = z.object({
 
 /**
  * Generate workflow hints based on current state
+ * PRIORITY ORDER: Onboarding → Session → Resources → Bank Freshness
  */
 function generateHints(
+  onboardingStatus: OnboardingStatus,
   activeSession: ActiveSessionData | null,
   memoryBanks: Record<string, MemoryBankData>,
   resources: AvailableResources
 ): string[] {
   const hints: string[] = [];
 
-  // Session-based hints
+  // =========================================================================
+  // ONBOARDING HINTS (Highest Priority - Check FIRST)
+  // =========================================================================
+  if (!onboardingStatus.isComplete) {
+    // Onboarding is not complete - this takes priority over everything
+    if (onboardingStatus.inProgressSession) {
+      // Session in progress - continue it
+      hints.push(
+        `🚀 ONBOARDING IN PROGRESS: Session ${onboardingStatus.inProgressSession} of 3 is active. ` +
+        `Continue with projectpulse_onboarding_getQuestions to get the next questions.`
+      );
+    } else {
+      // No session in progress - start the next one
+      const nextSession = onboardingStatus.nextSession || 1;
+      const sessionDescriptions: Record<number, string> = {
+        1: 'Strategic Planning (96 questions to define your project)',
+        2: 'Documentation Generation (15 industry-standard docs)',
+        3: 'AI Workflow Bootstrap (personas, skills, roadmap)',
+      };
+      hints.push(
+        `🚨 ONBOARDING REQUIRED: Session ${nextSession} of 3 needed. ` +
+        `Call projectpulse_onboarding_start({ sessionNumber: ${nextSession} }) to begin ${sessionDescriptions[nextSession]}.`
+      );
+    }
+
+    // For incomplete onboarding, only add a brief note about status
+    if (onboardingStatus.completedSessions > 0) {
+      hints.push(
+        `✅ Sessions completed: ${onboardingStatus.completedSessions}/3`
+      );
+    }
+
+    // Return early - don't suggest session management for non-onboarded projects
+    return hints;
+  }
+
+  // =========================================================================
+  // SESSION HINTS (Only if onboarding is complete)
+  // =========================================================================
   if (activeSession) {
     hints.push(
       `Active session '${activeSession.name || 'Unnamed'}' found (${activeSession.status}). ` +
@@ -128,7 +176,9 @@ function generateHints(
     );
   }
 
-  // Resource hints
+  // =========================================================================
+  // RESOURCE HINTS
+  // =========================================================================
   if (resources.personas.count > 0) {
     hints.push(
       `${resources.personas.count} personas available. Use projectpulse_persona_get ` +
@@ -142,7 +192,9 @@ function generateHints(
     );
   }
 
-  // Memory bank freshness hints
+  // =========================================================================
+  // MEMORY BANK FRESHNESS HINTS
+  // =========================================================================
   const activeContextAge = getAgeInHours(memoryBanks.ACTIVE_CONTEXT?.updatedAt);
   if (activeContextAge > 24) {
     hints.push(
@@ -239,8 +291,8 @@ export async function GET(request: Request) {
       startedAt: activeSession.startedAt.toISOString(),
     } : null;
 
-    // 4. Get available resources metadata
-    const [personasList, skillsList, sopsList] = await Promise.all([
+    // 4. Get available resources metadata AND onboarding status
+    const [personasList, skillsList, sopsList, onboardingSessions] = await Promise.all([
       prisma.agentPersona.findMany({
         where: { projectId, isActive: true },
         select: { name: true },
@@ -254,6 +306,15 @@ export async function GET(request: Request) {
         where: { projectId },
         select: { title: true },
         take: 10,
+      }),
+      // Query onboarding sessions for this project
+      prisma.onboardingSession.findMany({
+        where: { projectId },
+        select: {
+          sessionNumber: true,
+          status: true,
+        },
+        orderBy: { sessionNumber: 'asc' },
       }),
     ]);
 
@@ -275,21 +336,46 @@ export async function GET(request: Request) {
       },
     };
 
-    // 5. Generate workflow hints
-    const hints = generateHints(activeSessionData, memoryBanks, availableResources);
+    // 5. Calculate onboarding status
+    const completedSessions = onboardingSessions.filter(s => s.status === 'COMPLETED').length;
+    const inProgressSession = onboardingSessions.find(s => s.status === 'IN_PROGRESS');
 
-    // 6. Calculate total tokens
+    // Determine next session (1, 2, or 3) - based on what's not yet completed
+    let nextSession: number | null = null;
+    if (completedSessions < 3) {
+      // Find the first session that isn't completed
+      for (let i = 1; i <= 3; i++) {
+        const sessionRecord = onboardingSessions.find(s => s.sessionNumber === i);
+        if (!sessionRecord || sessionRecord.status !== 'COMPLETED') {
+          nextSession = i;
+          break;
+        }
+      }
+    }
+
+    const onboardingStatus: OnboardingStatus = {
+      isComplete: completedSessions >= 3,
+      completedSessions,
+      nextSession,
+      inProgressSession: inProgressSession?.sessionNumber || null,
+    };
+
+    // 6. Generate workflow hints (now with onboarding awareness)
+    const hints = generateHints(onboardingStatus, activeSessionData, memoryBanks, availableResources);
+
+    // 7. Calculate total tokens
     const bankTokens = Object.values(finalBanks).reduce((sum, bank) => sum + (bank?.tokens || 0), 0);
     // Estimate session + resources at ~500 tokens
     const totalTokens = bankTokens + (activeSession ? 500 : 100);
 
-    // 7. Build response
+    // 8. Build response (now includes onboardingStatus)
     const response: ContextLoadResponse = {
       projectId,
       projectName: project.name,
       memoryBanks: finalBanks as ContextLoadResponse['memoryBanks'],
       activeSession: activeSessionData,
       availableResources,
+      onboardingStatus,
       hints,
       totalTokens,
       timestamp: new Date().toISOString(),

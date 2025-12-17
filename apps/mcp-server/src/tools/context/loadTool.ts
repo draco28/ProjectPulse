@@ -217,13 +217,31 @@ function formatContextResponse(response: any): string {
     sections.push('');
   }
 
-  // Footer with next actions
+  // Footer with next actions (dynamic based on onboarding status)
   sections.push('---');
   sections.push('**Next Actions**:');
-  sections.push('- To start tracking work: `projectpulse_agent_session_start`');
-  sections.push('- To update progress: `projectpulse_agent_session_update`');
-  sections.push('- To load specific bank: `projectpulse_context_lookup`');
-  sections.push('- To update static banks: `projectpulse_context_update`');
+
+  // Check onboarding status to determine appropriate next actions
+  const onboarding = response.onboardingStatus;
+  if (onboarding && !onboarding.isComplete) {
+    // Onboarding not complete - prioritize onboarding actions
+    if (onboarding.inProgressSession) {
+      sections.push(`- 🚀 **CONTINUE ONBOARDING**: \`projectpulse_onboarding_getQuestions({ sessionNumber: ${onboarding.inProgressSession} })\``);
+      sections.push(`- Check status: \`projectpulse_onboarding_status\``);
+    } else {
+      const nextSession = onboarding.nextSession || 1;
+      sections.push(`- 🚨 **START ONBOARDING**: \`projectpulse_onboarding_start({ sessionNumber: ${nextSession} })\``);
+      sections.push(`- Check status: \`projectpulse_onboarding_status\``);
+    }
+    sections.push('');
+    sections.push('_Note: Complete all 3 onboarding sessions before starting work sessions._');
+  } else {
+    // Onboarding complete - show normal work session actions
+    sections.push('- To start tracking work: `projectpulse_agent_session_start`');
+    sections.push('- To update progress: `projectpulse_agent_session_update`');
+    sections.push('- To load specific bank: `projectpulse_context_lookup`');
+    sections.push('- To update static banks: `projectpulse_context_update`');
+  }
 
   return sections.join('\n');
 }

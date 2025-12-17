@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Copy, Plus, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Copy, Plus, Trash2, AlertTriangle, CheckCircle2, RefreshCw, FileText } from 'lucide-react';
 import { LabelManagement, type Label } from '@/components/projects/settings/LabelManagement';
 
 interface Token {
@@ -34,6 +34,13 @@ interface ProjectSettingsClientProps {
   mcpEndpoint: string;
 }
 
+interface WikiRefreshResult {
+  updated: Array<{ title: string; path: string; reason: string }>;
+  skipped: Array<{ title: string; path: string; reason: string }>;
+  unchanged: Array<{ title: string; path: string }>;
+  preview: boolean;
+}
+
 export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: ProjectSettingsClientProps) {
   const router = useRouter();
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -47,6 +54,11 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
   const [expiryDays, setExpiryDays] = useState(30);
   const [mcpWriteFiles, setMcpWriteFiles] = useState(project.mcpWriteFiles);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  // Wiki refresh state
+  const [wikiRefreshPreview, setWikiRefreshPreview] = useState<WikiRefreshResult | null>(null);
+  const [isRefreshingWikis, setIsRefreshingWikis] = useState(false);
+  const [showWikiRefreshModal, setShowWikiRefreshModal] = useState(false);
 
   const handleGenerateToken = async () => {
     if (!tokenName.trim()) {
@@ -121,6 +133,53 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
       alert(error.message);
     } finally {
       setIsSavingSettings(false);
+    }
+  };
+
+  // Wiki refresh handlers
+  const handlePreviewWikiRefresh = async () => {
+    setIsRefreshingWikis(true);
+    try {
+      const response = await fetch(`/api/projects/${project.id}/wiki/refresh?preview=true`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to preview wiki refresh');
+      }
+
+      const result = await response.json();
+      setWikiRefreshPreview(result);
+      setShowWikiRefreshModal(true);
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsRefreshingWikis(false);
+    }
+  };
+
+  const handleConfirmWikiRefresh = async () => {
+    setIsRefreshingWikis(true);
+    try {
+      const response = await fetch(`/api/projects/${project.id}/wiki/refresh`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to refresh wikis');
+      }
+
+      const result = await response.json();
+      setShowWikiRefreshModal(false);
+      setWikiRefreshPreview(null);
+      alert(`Wiki refresh complete! ${result.updated.length} pages updated, ${result.skipped.length} skipped, ${result.unchanged.length} unchanged.`);
+      router.refresh();
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsRefreshingWikis(false);
     }
   };
 
@@ -345,6 +404,49 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
           )}
         </section>
 
+        {/* Wiki Templates Section */}
+        <section className="bg-[#1a1a2e] rounded-lg p-6 shadow-neumorphic">
+          <div className="flex items-center gap-3 mb-4">
+            <FileText size={24} className="text-coral-400" />
+            <div>
+              <h2 className="text-xl font-semibold text-coral-400">Wiki Templates</h2>
+              <p className="text-sm text-gray-400">
+                Update default wiki pages with latest templates
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-4 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+            <p className="text-sm text-blue-200">
+              <strong>What this does:</strong> Updates system-generated wiki pages (Getting Started, MCP Configuration, etc.)
+              with the latest templates. Pages you've edited won't be overwritten.
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={handlePreviewWikiRefresh}
+              disabled={isRefreshingWikis}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRefreshingWikis ? (
+                <RefreshCw size={18} className="animate-spin" />
+              ) : (
+                <RefreshCw size={18} />
+              )}
+              Preview Changes
+            </button>
+            <button
+              onClick={handleConfirmWikiRefresh}
+              disabled={isRefreshingWikis}
+              className="flex items-center gap-2 px-4 py-2 bg-coral-500 text-white rounded-md hover:bg-coral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw size={18} />
+              Refresh Now
+            </button>
+          </div>
+        </section>
+
         {/* Labels Section (Sprint 11.7) */}
         <LabelManagement projectId={project.id} labels={labels} />
 
@@ -352,21 +454,115 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
         <section className="bg-[#1a1a2e] rounded-lg p-6 shadow-neumorphic">
           <h2 className="text-xl font-semibold text-coral-400 mb-4">Agent Configuration</h2>
           <div className="prose prose-invert max-w-none">
-            <p className="text-gray-400 mb-3">
-              To configure an agent (Claude Code, Windsurf, etc.) to use this project:
+            <p className="text-gray-400 mb-4">
+              Configure your AI agent to connect to ProjectPulse. First, generate a token above, then add the configuration below.
             </p>
-            <ol className="text-gray-400 space-y-2 list-decimal list-inside">
-              <li>Generate a new token above and copy it</li>
-              <li>
-                Set the MCP URL to: <code className="text-coral-400">{mcpEndpoint}</code>
-              </li>
-              <li>
-                Add the Authorization header:{' '}
-                <code className="text-coral-400">Bearer &lt;your-token&gt;</code>
-              </li>
-              <li>Test the connection by calling any MCP tool</li>
-            </ol>
-            <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg flex items-start gap-3">
+
+            {/* Claude Code Configuration */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-white mb-2">Claude Code</h3>
+              <p className="text-sm text-gray-400 mb-2">
+                Edit <code className="text-coral-400">~/.claude/settings.json</code>:
+              </p>
+              <div className="relative">
+                <pre className="bg-[#0f0f1a] px-4 py-3 rounded border border-gray-800 text-sm overflow-x-auto">
+                  <code className="text-gray-300">{`{
+  "mcpServers": {
+    "projectpulse": {
+      "type": "http",
+      "url": "${mcpEndpoint}",
+      "headers": {
+        "Authorization": "Bearer <YOUR_TOKEN>"
+      }
+    }
+  }
+}`}</code>
+                </pre>
+                <button
+                  onClick={() => copyToClipboard(`{
+  "mcpServers": {
+    "projectpulse": {
+      "type": "http",
+      "url": "${mcpEndpoint}",
+      "headers": {
+        "Authorization": "Bearer <YOUR_TOKEN>"
+      }
+    }
+  }
+}`)}
+                  className="absolute top-2 right-2 p-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                  title="Copy config"
+                >
+                  <Copy size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Windsurf Configuration */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-white mb-2">Windsurf</h3>
+              <p className="text-sm text-gray-400 mb-2">
+                Edit <code className="text-coral-400">~/.codeium/windsurf/mcp_config.json</code>:
+              </p>
+              <div className="relative">
+                <pre className="bg-[#0f0f1a] px-4 py-3 rounded border border-gray-800 text-sm overflow-x-auto">
+                  <code className="text-gray-300">{`{
+  "mcpServers": {
+    "projectpulse": {
+      "serverUrl": "${mcpEndpoint}",
+      "headers": {
+        "Authorization": "Bearer <YOUR_TOKEN>"
+      }
+    }
+  }
+}`}</code>
+                </pre>
+                <button
+                  onClick={() => copyToClipboard(`{
+  "mcpServers": {
+    "projectpulse": {
+      "serverUrl": "${mcpEndpoint}",
+      "headers": {
+        "Authorization": "Bearer <YOUR_TOKEN>"
+      }
+    }
+  }
+}`)}
+                  className="absolute top-2 right-2 p-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                  title="Copy config"
+                >
+                  <Copy size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Cursor Configuration */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-white mb-2">Cursor</h3>
+              <p className="text-sm text-gray-400 mb-2">
+                Go to <strong>Settings → MCP → Add Server</strong> with:
+              </p>
+              <ul className="text-sm text-gray-400 list-disc list-inside space-y-1 ml-2">
+                <li><strong>Name:</strong> projectpulse</li>
+                <li><strong>Type:</strong> HTTP</li>
+                <li><strong>URL:</strong> <code className="text-coral-400">{mcpEndpoint}</code></li>
+                <li><strong>Headers:</strong> <code className="text-coral-400">Authorization: Bearer &lt;YOUR_TOKEN&gt;</code></li>
+              </ul>
+            </div>
+
+            {/* Test Connection */}
+            <div className="mb-4 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+              <h4 className="font-medium text-blue-300 mb-2">Test Your Connection</h4>
+              <p className="text-sm text-blue-200/80">
+                After configuring, ask your agent: "Use the <code className="text-blue-300">projectpulse_health_check</code> tool"
+              </p>
+              <p className="text-sm text-blue-200/80 mt-1">
+                Expected response: <code className="text-blue-300">{"status: healthy, database: connected"}</code>
+              </p>
+            </div>
+
+            {/* Security Warning */}
+            <div className="p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg flex items-start gap-3">
               <AlertTriangle size={20} className="text-yellow-500 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-yellow-200">
                 <strong>Security Note:</strong> Store your token securely. It grants full project
@@ -490,6 +686,110 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Wiki Refresh Preview Modal */}
+      {showWikiRefreshModal && wikiRefreshPreview && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1a1a2e] rounded-lg p-6 max-w-2xl w-full shadow-neumorphic max-h-[80vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4">Wiki Refresh Preview</h3>
+
+            <p className="text-gray-400 mb-4">
+              Review the changes that will be made to your wiki pages:
+            </p>
+
+            {/* Updated Pages */}
+            {wikiRefreshPreview.updated.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-green-400 mb-2 flex items-center gap-2">
+                  <CheckCircle2 size={16} />
+                  Will be Updated ({wikiRefreshPreview.updated.length})
+                </h4>
+                <ul className="bg-green-900/20 border border-green-700/50 rounded-lg p-3 space-y-2">
+                  {wikiRefreshPreview.updated.map((page, index) => (
+                    <li key={index} className="text-sm">
+                      <span className="font-medium text-green-300">{page.title}</span>
+                      <span className="text-gray-400 block text-xs">{page.reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Skipped Pages */}
+            {wikiRefreshPreview.skipped.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-yellow-400 mb-2 flex items-center gap-2">
+                  <AlertTriangle size={16} />
+                  Will be Skipped ({wikiRefreshPreview.skipped.length})
+                </h4>
+                <ul className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 space-y-2">
+                  {wikiRefreshPreview.skipped.map((page, index) => (
+                    <li key={index} className="text-sm">
+                      <span className="font-medium text-yellow-300">{page.title}</span>
+                      <span className="text-gray-400 block text-xs">{page.reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Unchanged Pages */}
+            {wikiRefreshPreview.unchanged.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-400 mb-2">
+                  Already Up-to-Date ({wikiRefreshPreview.unchanged.length})
+                </h4>
+                <ul className="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                  <li className="text-sm text-gray-500">
+                    {wikiRefreshPreview.unchanged.map(p => p.title).join(', ')}
+                  </li>
+                </ul>
+              </div>
+            )}
+
+            {/* No Changes Message */}
+            {wikiRefreshPreview.updated.length === 0 &&
+             wikiRefreshPreview.skipped.length === 0 &&
+             wikiRefreshPreview.unchanged.length === 0 && (
+              <div className="mb-4 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
+                <p className="text-gray-400 text-sm">No wiki pages found to refresh.</p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowWikiRefreshModal(false);
+                  setWikiRefreshPreview(null);
+                }}
+                className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              {wikiRefreshPreview.updated.length > 0 && (
+                <button
+                  onClick={handleConfirmWikiRefresh}
+                  disabled={isRefreshingWikis}
+                  className="flex-1 px-4 py-2 bg-coral-500 text-white rounded-md hover:bg-coral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isRefreshingWikis ? (
+                    <>
+                      <RefreshCw size={18} className="animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={18} />
+                      Apply {wikiRefreshPreview.updated.length} Update{wikiRefreshPreview.updated.length !== 1 ? 's' : ''}
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
