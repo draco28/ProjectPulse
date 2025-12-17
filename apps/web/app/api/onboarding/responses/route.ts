@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { submitResponseSchema, type SubmitResponseResponse } from '@/lib/validations/onboarding';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 /**
  * POST /api/onboarding/responses
@@ -37,6 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     const { projectId, sessionNumber, data } = validation.data;
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
 
     // Verify project exists
     const project = await prisma.project.findUnique({
@@ -225,6 +229,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, { status: statusCode });
   } catch (error) {
     console.error('[POST /api/onboarding/responses] Error:', error);
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     return NextResponse.json(
       { error: 'Failed to submit onboarding response', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

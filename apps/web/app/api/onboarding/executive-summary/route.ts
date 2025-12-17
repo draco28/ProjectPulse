@@ -26,6 +26,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 const requestSchema = z.object({
   projectId: z.number().int().positive('Project ID must be positive'),
@@ -51,7 +52,10 @@ export async function POST(request: NextRequest) {
     }
     
     const { projectId, executiveSummary, wordCount: providedWordCount } = validation.data;
-    
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
+
     // Fetch Session 1 data (Sprint 9 Refactored Schema)
     const session = await prisma.onboardingSession.findUnique({
       where: {
@@ -112,7 +116,12 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error('[POST /api/onboarding/executive-summary] Error:', error);
-    
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     return NextResponse.json(
       {
         error: 'Failed to generate executive summary',
@@ -175,9 +184,10 @@ function generateProjectContextJson(planningAnswers: any, executiveSummary: stri
       development: extractBudget(phase2, 'development'),
       monthly_operating: extractBudget(phase2, 'monthly')
     },
-    features: extractFeatures(phase1),
-    planningAnswers: planningAnswers,
-    executiveSummary: executiveSummary
+    features: extractFeatures(phase1)
+    // NOTE: planningAnswers and executiveSummary intentionally omitted
+    // - planningAnswers: Raw Q&A already processed into structured fields above (~27K tokens saved)
+    // - executiveSummary: Sent separately via {executiveSummary} placeholder (no duplication)
   };
 }
 

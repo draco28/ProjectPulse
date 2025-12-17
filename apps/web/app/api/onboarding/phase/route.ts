@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -75,12 +76,15 @@ export async function POST(request: NextRequest) {
     }
     
     const { projectId, phase, answers }: PhaseRequest = validation.data;
-    
+
     console.log('[POST /api/onboarding/phase] Request validated', {
       projectId,
       phase,
       answerCount: Object.keys(answers).length
     });
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
     
     // 2. Get or create OnboardingSession (sessionNumber: 1)
     let session = await prisma.onboardingSession.findUnique({
@@ -185,9 +189,14 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error('[POST /api/onboarding/phase] Error:', error);
-    
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
+
     return NextResponse.json(
       { error: 'Failed to save phase answers', message: errorMessage },
       { status: 500 }

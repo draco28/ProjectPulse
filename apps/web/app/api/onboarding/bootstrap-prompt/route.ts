@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -60,8 +61,11 @@ export async function GET(request: NextRequest) {
     }
     
     const { projectId } = validation.data;
-    
+
     console.log('[GET /api/onboarding/bootstrap-prompt] Request validated', { projectId });
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
     
     // 2. Get Session 2 to find 13-Project-Plan.md document
     const session2 = await prisma.onboardingSession.findUnique({
@@ -191,9 +195,14 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error('[GET /api/onboarding/bootstrap-prompt] Error:', error);
-    
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
+
     return NextResponse.json(
       { error: 'Failed to fetch bootstrap prompt', message: errorMessage },
       { status: 500 }

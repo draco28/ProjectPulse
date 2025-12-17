@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { syncOnboardingToWiki } from '@/lib/wiki/sync-onboarding';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 // ============================================================================
 // POST: Store Document
@@ -43,7 +44,10 @@ export async function POST(request: NextRequest) {
     }
     
     const { projectId, filename, content, category, wordCount: providedWordCount, overwrite } = validation.data;
-    
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
+
     // Verify Session 1 is complete
     const session1 = await prisma.onboardingSession.findUnique({
       where: {
@@ -194,7 +198,12 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error('[POST /api/onboarding/documents] Error:', error);
-    
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     return NextResponse.json(
       {
         error: 'Failed to store document',
@@ -229,7 +238,10 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
+
     // Fetch Session 2 to get the onboardingSessionId for documents
     // Sprint 9 Refactor: Documents are now linked to Session 2, not Session 1
     const session2 = await prisma.onboardingSession.findUnique({
@@ -276,7 +288,12 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error('[GET /api/onboarding/documents] Error:', error);
-    
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     return NextResponse.json(
       {
         error: 'Failed to list documents',

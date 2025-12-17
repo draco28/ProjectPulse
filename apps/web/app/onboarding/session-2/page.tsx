@@ -6,7 +6,7 @@
 
 'use client';
 
-import { Suspense, useState, useEffect, useTransition } from 'react';
+import { Suspense, useState, useEffect, useTransition, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -88,6 +88,10 @@ function Session2Content() {
     fetchPrompts();
   }, [projectId]);
 
+  // Ref to track documents count without causing re-renders (fixes stale closure issue)
+  const documentsRef = useRef(documents);
+  documentsRef.current = documents;
+
   // Fetch stored documents (poll while generating)
   useEffect(() => {
     async function fetchDocuments() {
@@ -105,15 +109,15 @@ function Session2Content() {
 
     fetchDocuments();
 
-    // Poll every 5 seconds if documents < 15
+    // Poll every 5 seconds if documents < 15 (use ref to avoid stale closure)
     const interval = setInterval(() => {
-      if (documents.length < 15) {
+      if (documentsRef.current.length < 15) {
         fetchDocuments();
       }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [projectId, documents.length]);
+  }, [projectId]); // Only depend on projectId, not documents.length
 
   const handleGenerate = (prompt: DocumentPrompt) => {
     setSelectedPrompt(prompt);
@@ -139,9 +143,9 @@ function Session2Content() {
         const data = await res.json();
         setDocuments(data.documents || []);
 
-        // Check if Session 2 is complete
-        if (data.session2Complete) {
-          router.push('/onboarding');
+        // Check if Session 2 is complete (all 15 documents generated)
+        if (data.documents?.length >= 15) {
+          router.push(`/onboarding?project=${projectId}`);
         }
       } else {
         alert(`Error: ${result.error}`);
@@ -266,7 +270,7 @@ function Session2Content() {
                 doc
                   ? () =>
                       router.push(
-                        `/onboarding/session-2/documents?doc=${encodeURIComponent(prompt.filename)}`
+                        `/onboarding/session-2/documents?doc=${encodeURIComponent(prompt.filename)}&project=${projectId}`
                       )
                   : undefined
               }

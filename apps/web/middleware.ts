@@ -16,7 +16,7 @@ const publicPaths = ['/login', '/api/auth/signup', '/api/health'];
 const publicApiPrefixes = [
   '/api/auth/',
   '/api/agent-auth/',
-  '/api/onboarding/',
+  // Sprint 12: REMOVED '/api/onboarding/' - now requires dual auth (session OR bearer token)
   '/api/batch/',
   // Sprint 11.5: REMOVED '/api/admin/' - admin routes require authentication
 ];

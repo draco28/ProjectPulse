@@ -193,6 +193,79 @@ DATABASE_URL="postgresql://$PROD_POSTGRES_USER:$PROD_POSTGRES_PASSWORD@localhost
 
 ---
 
+## Development to Production Workflow
+
+### Quick Reference (Daily Use)
+
+| Step | Command |
+|------|---------|
+| 1. Test in dev | `docker compose -f docker-compose.cloud.yml up -d --build web` |
+| 2. Verify dev | `curl http://localhost:3000/api/health` |
+| 3. Commit | `git add -A && git commit -m "..."` |
+| 4. Push | `git push origin <branch>` |
+| 5. Deploy to prod | `./scripts/deploy-prod.sh` |
+
+### Complete Workflow
+
+**After Making Code Changes:**
+
+1. **Rebuild dev containers** to pick up changes:
+   ```bash
+   docker compose -f docker-compose.cloud.yml up -d --build web
+   # Or for both web and MCP:
+   docker compose -f docker-compose.cloud.yml up -d --build web mcp-server
+   ```
+
+2. **Verify dev is healthy**:
+   ```bash
+   curl http://localhost:3000/api/health
+   # Expected: {"status":"healthy","database":"connected"}
+   ```
+
+3. **Test your changes** in browser at http://localhost:3000
+
+4. **Commit and push**:
+   ```bash
+   git add -A
+   git commit -m "feat: your feature description"
+   git push origin <branch>
+   ```
+
+5. **Deploy to production** (after PR merge or on master):
+   ```bash
+   # Full deployment (recommended for first-time or major changes)
+   ./scripts/deploy-prod.sh
+
+   # Quick restart (code-only, no Dockerfile changes)
+   ./scripts/deploy-prod.sh --quick
+
+   # Verify only (no changes)
+   ./scripts/deploy-prod.sh --test
+   ```
+
+6. **Verify production**:
+   ```bash
+   curl https://projectpulse.dracodev.dev/api/health
+   curl https://projectpulsemcp.dracodev.dev/health
+   ```
+
+### When to Use Which
+
+| Scenario | Dev Command | Prod Command |
+|----------|-------------|--------------|
+| Code changes only | `up -d --build web` | `--quick` |
+| Dockerfile changes | `up -d --build web` | Full deploy |
+| Schema changes | Run `prisma migrate dev` first | Run `prisma migrate deploy` first, then full deploy |
+| Just verify | `curl localhost:3000/api/health` | `--test` |
+
+### Detailed Documentation
+
+- **Full Production Deployment**: `.agent/sops/production-deployment.md`
+- **Dev to Prod SOP**: `.agent/sops/dev-to-prod-deployment.md`
+- **Database Migrations**: `.agent/sops/prisma-migration-workflow.md`
+
+---
+
 ## Deployment & Schema Migrations
 
 ### Schema Changes Workflow

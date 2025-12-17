@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getPromptSchema, type GetPromptResponse } from '@/lib/validations/onboarding';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 /**
  * GET /api/onboarding/prompt
@@ -40,6 +41,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { projectId, sessionNumber: requestedSession } = validation.data;
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
 
     // Verify project exists
     const project = await prisma.project.findUnique({
@@ -126,6 +130,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error('[GET /api/onboarding/prompt] Error:', error);
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     return NextResponse.json(
       { error: 'Failed to fetch onboarding prompt', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

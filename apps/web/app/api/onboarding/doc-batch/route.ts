@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -94,13 +95,16 @@ export async function GET(request: NextRequest) {
     
     const { projectId, batch } = validation.data;
     const batchConfig = BATCH_CONFIGS[batch as keyof typeof BATCH_CONFIGS];
-    
+
     console.log('[GET /api/onboarding/doc-batch] Request validated', {
       projectId,
       batch,
       batchName: batchConfig.name,
       docCount: batchConfig.docs.length
     });
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
     
     // 2. Get Session 1 with executiveSummary and projectContextJson
     const session1 = await prisma.onboardingSession.findUnique({
@@ -156,46 +160,54 @@ export async function GET(request: NextRequest) {
     }
     
     console.log('[GET /api/onboarding/doc-batch] Template found');
-    
-    // 4. Inject context into userPrompt
-    const userPrompt = injectVariables(template.userPrompt, {
-      executiveSummary,
-      projectContextJson: projectContext
-    });
-    
-    // 5. Build document structure
+
+    // 4. Build document structure (template only, context sent once via sharedContext)
+    // NOTE: Previously injected full context per document causing 42K+ token responses
+    // Now: Send context ONCE via sharedContext, documents reference the template
     const documents = batchConfig.docs.map((filename, index) => ({
       filename,
       category: batchConfig.category,
       systemPrompt: template.systemPrompt,
-      userPrompt, // Same prompt for all docs in batch (agent will extract relevant parts)
+      userPromptTemplate: template.userPrompt, // Template with {executiveSummary} and {projectContextJson} placeholders
       wordCountTarget: index < 3 ? 2500 : 1800, // First 3 docs ~2500, rest ~1800
       estimatedTokens: Math.floor(batchConfig.estimatedTokens / batchConfig.docs.length),
       dependencies: batch === 1 && index === 0 ? ['executive-summary'] : []
     }));
-    
+
     console.log('[GET /api/onboarding/doc-batch] Batch prompt ready', {
       projectId,
       batch,
       documentCount: documents.length,
       estimatedTotalTokens: batchConfig.estimatedTokens
     });
-    
+
     return NextResponse.json({
       projectId,
       batchNumber: batch,
       batchName: batchConfig.name,
       totalBatches: 4,
       documents,
+      // Context sent ONCE (not duplicated per document) - ~75% token reduction
+      sharedContext: {
+        executiveSummary,
+        projectContextJson: JSON.stringify(projectContext, null, 2)
+      },
       estimatedTotalTokens: batchConfig.estimatedTokens,
-      guidance: `Generate documents in order: ${batchConfig.docs.join(' → ')}. Maintain consistency and traceability.`
+      guidance: `Generate ${batchConfig.docs.length} documents in order: ${batchConfig.docs.join(' → ')}.
+Use sharedContext to inject {executiveSummary} and {projectContextJson} into each document's userPromptTemplate before generation.
+Maintain consistency and traceability across documents.`
     });
     
   } catch (error) {
     console.error('[GET /api/onboarding/doc-batch] Error:', error);
-    
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
+
     return NextResponse.json(
       { error: 'Failed to fetch doc batch prompt', message: errorMessage },
       { status: 500 }

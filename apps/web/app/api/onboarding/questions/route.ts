@@ -17,6 +17,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 const PHASE_NAMES: Record<number, string> = {
   1: 'Product Manager - Foundation',
@@ -68,7 +69,10 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
+
     // Fetch questions from database
     const questions = await prisma.onboardingQuestion.findMany({
       where: { phase },
@@ -133,6 +137,12 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error('[GET /api/onboarding/questions] Error:', error);
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     return NextResponse.json(
       {
         error: 'Failed to fetch questions',

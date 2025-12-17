@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 /**
  * GET /api/onboarding/blueprint
@@ -46,6 +47,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { projectId } = validation.data;
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
 
     // Query OnboardingSession for Session 3 (Bootstrap)
     const session = await prisma.onboardingSession.findFirst({
@@ -105,6 +109,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(projectContext, { status: 200 });
   } catch (error: any) {
     console.error('[Blueprint API] Error:', error);
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     return NextResponse.json(
       {
         error: 'Internal server error',

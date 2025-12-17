@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -48,11 +49,14 @@ export async function POST(request: NextRequest) {
     }
     
     const { projectId, estimatedTokens }: TokenBudgetRequest = validation.data;
-    
+
     console.log('[POST /api/onboarding/token-budget] Request validated', {
       projectId,
       estimatedTokens
     });
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
     
     // 2. Find active onboarding session for this project
     const session = await prisma.onboardingSession.findFirst({
@@ -146,9 +150,14 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error('[POST /api/onboarding/token-budget] Error:', error);
-    
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
+
     return NextResponse.json(
       { error: 'Failed to check token budget', message: errorMessage },
       { status: 500 }

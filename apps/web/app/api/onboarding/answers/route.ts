@@ -20,6 +20,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 const answerSchema = z.object({
   projectId: z.number().int().positive('Project ID must be positive'),
@@ -45,7 +46,10 @@ export async function POST(request: NextRequest) {
     }
     
     const { projectId, phase, answers } = validation.data;
-    
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
+
     // Verify project exists
     const project = await prisma.project.findUnique({
       where: { id: projectId }
@@ -129,6 +133,11 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     console.error('[POST /api/onboarding/answers] Error:', error);
     return NextResponse.json(
       {

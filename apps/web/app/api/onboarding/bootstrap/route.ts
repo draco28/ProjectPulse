@@ -21,6 +21,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 
 // Session 3 library imports
 import { detectTechStack } from '@/lib/onboarding/tech-stack-detection';
@@ -66,11 +67,14 @@ export async function POST(request: NextRequest) {
     }
     
     const { projectId, repoPath }: BootstrapRequest = validation.data;
-    
+
     console.log('[POST /api/onboarding/bootstrap] Request validated', {
       projectId,
       repoPath
     });
+
+    // Sprint 12: Require authentication (session OR bearer token)
+    await requireOnboardingAuth(request, projectId);
     
     // 2. Verify Sessions 1 & 2 complete
     const [session1, session2] = await Promise.all([
@@ -282,7 +286,12 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error('[POST /api/onboarding/bootstrap] Error:', error);
-    
+
+    // Sprint 12: Handle auth errors
+    if (error instanceof AuthError) {
+      return handleAuthError(error);
+    }
+
     return NextResponse.json({
       error: 'Failed to bootstrap project',
       details: error instanceof Error ? error.message : 'Unknown error'
