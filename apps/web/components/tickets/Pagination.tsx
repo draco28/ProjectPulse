@@ -1,12 +1,14 @@
 /**
  * Pagination Component
  *
- * Pagination controls for issues list
+ * Reusable pagination controls for any list page
  * Reference: mockups/Default theme/02-issues-dark-neumorphic-coral.html lines 634-649
+ *
+ * Sprint 12: Made reusable with basePath prop (was hardcoded to /tickets)
  */
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 interface PaginationProps {
@@ -15,6 +17,10 @@ interface PaginationProps {
   totalCount: number;
   showing: number;
   perPage: number;
+  /** Base path for pagination URLs. Defaults to current pathname if not provided. */
+  basePath?: string;
+  /** Label for the "Showing X of Y" text. Defaults to "items" */
+  itemLabel?: string;
 }
 
 export function Pagination({
@@ -23,14 +29,20 @@ export function Pagination({
   totalCount,
   showing: _showing,
   perPage,
+  basePath,
+  itemLabel = 'items',
 }: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  // Use provided basePath, or fall back to current pathname
+  const targetPath = basePath ?? pathname;
 
   const goToPage = (page: number) => {
     const params = new URLSearchParams(searchParams?.toString());
     params.set('page', page.toString());
-    router.push(`/tickets?${params.toString()}`);
+    router.push(`${targetPath}?${params.toString()}`);
   };
 
   // Generate page numbers to show
@@ -77,7 +89,7 @@ export function Pagination({
       <div className="flex items-center justify-between">
         {/* Showing text */}
         <p className="text-sm font-medium text-slate">
-          Showing {startItem}-{endItem} of {totalCount} issues
+          Showing {startItem}-{endItem} of {totalCount} {itemLabel}
         </p>
 
         {/* Page controls */}

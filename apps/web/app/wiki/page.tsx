@@ -390,6 +390,7 @@ export default async function WikiPage({
                   totalCount={totalCount}
                   showing={pages.length}
                   perPage={perPage}
+                  itemLabel="pages"
                 />
               )}
             </div>

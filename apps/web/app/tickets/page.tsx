@@ -290,6 +290,7 @@ export default async function TicketsPage({
                   totalCount={totalCount}
                   showing={tickets.length}
                   perPage={perPage}
+                  itemLabel="tickets"
                 />
               )}
             </div>
