@@ -19,6 +19,7 @@ import { failure, success, resolveProjectId, buildTicketWhere, buildTicketOrderB
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
 import { deriveAutoTags } from '@/lib/issues/tagging';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
 import type { TicketFilters } from '@/lib/validations/ticket';
 import type { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
@@ -60,6 +61,18 @@ export async function GET(request: NextRequest) {
                    url.searchParams.get('hasSchedule') === 'false' ? false : undefined,
       createdFrom: url.searchParams.get('createdFrom') ?? undefined,
       createdTo: url.searchParams.get('createdTo') ?? undefined,
+      // Sprint 13: Hierarchy filters
+      parentTicketId: url.searchParams.get('parentTicketId')
+        ? Number(url.searchParams.get('parentTicketId'))
+        : undefined,
+      hasChildren: url.searchParams.get('hasChildren') === 'true' ? true :
+                   url.searchParams.get('hasChildren') === 'false' ? false : undefined,
+      isTopLevel: url.searchParams.get('isTopLevel') === 'true' ? true : undefined,
+      // Sprint 13: Traceability filters
+      epicRef: url.searchParams.get('epicRef') ?? undefined,
+      sprintNumber: url.searchParams.get('sprintNumber')
+        ? Number(url.searchParams.get('sprintNumber'))
+        : undefined,
       includeRelations: url.searchParams.get('includeRelations') === 'true',
       sortBy: (url.searchParams.get('sortBy') as TicketFilters['sortBy']) ?? undefined,
       sortDirection: (url.searchParams.get('sortDirection') as TicketFilters['sortDirection']) ?? undefined,
@@ -193,6 +206,17 @@ export async function POST(request: NextRequest) {
 
     // Sprint 12: linkedTaskId removed - tickets now schedule to weeks directly via scheduledWeekId
 
+    // Sprint 13: Validate parent ticket if provided
+    if (data.parentTicketId) {
+      await validateAndSetParent(
+        prisma,
+        null, // null ticketId for new ticket (no circular reference possible)
+        data.parentTicketId,
+        projectId,
+        data.kind ?? 'issue'
+      );
+    }
+
     const ticket = await prisma.$transaction(async (tx) => {
       const created = await tx.ticket.create({
         data: {
@@ -209,6 +233,12 @@ export async function POST(request: NextRequest) {
           assigneeId: data.assigneeId,
           // Sprint 12: linkedTaskId removed - use scheduledWeekId for roadmap association
           customFields,
+          // Sprint 13: Hierarchy fields
+          parentTicketId: data.parentTicketId ?? null,
+          // Sprint 13: Traceability fields
+          epicRef: data.epicRef ?? null,
+          backlogRefs: data.backlogRefs ?? [],
+          sprintNumber: data.sprintNumber ?? null,
           labels:
             labelIdSet.size > 0
               ? {
@@ -247,7 +277,16 @@ export async function POST(request: NextRequest) {
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });
     }
-    
+
+    // Sprint 13: Handle hierarchy validation errors
+    if (error instanceof TicketHierarchyError) {
+      return failure({
+        code: error.code,
+        message: error.message,
+        status: 400,
+      });
+    }
+
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',

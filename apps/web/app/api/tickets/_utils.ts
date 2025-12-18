@@ -161,6 +161,32 @@ export function buildTicketWhere(filters: TicketFilters, projectId: number): Pri
     where.status = { not: 'closed' };
   }
 
+  // Sprint 13: Hierarchy filters
+  if (filters.parentTicketId !== undefined) {
+    where.parentTicketId = filters.parentTicketId;
+  }
+
+  // Filter for tickets with/without children
+  if (filters.hasChildren === true) {
+    where.childTickets = { some: {} };
+  } else if (filters.hasChildren === false) {
+    where.childTickets = { none: {} };
+  }
+
+  // Filter for top-level tickets (no parent)
+  if (filters.isTopLevel === true) {
+    where.parentTicketId = null;
+  }
+
+  // Sprint 13: Traceability filters
+  if (filters.epicRef) {
+    where.epicRef = filters.epicRef;
+  }
+
+  if (filters.sprintNumber !== undefined) {
+    where.sprintNumber = filters.sprintNumber;
+  }
+
   return where;
 }
 
@@ -176,6 +202,9 @@ export function buildTicketOrderBy(filters: TicketFilters): Prisma.TicketOrderBy
     case 'dueDate':
       // Sprint 11.7: Sort by due date (nulls last for asc, nulls first for desc)
       return { dueDate: { sort: direction, nulls: direction === 'asc' ? 'last' : 'first' } };
+    case 'sprintNumber':
+      // Sprint 13: Sort by sprint number (nulls last for asc, nulls first for desc)
+      return { sprintNumber: { sort: direction, nulls: direction === 'asc' ? 'last' : 'first' } };
     case 'createdAt':
     default:
       return { createdAt: direction };
@@ -213,6 +242,15 @@ export function ticketIncludeConfig(includeRelations?: boolean): Prisma.TicketIn
       milestone: {
         select: { id: true, name: true, targetDate: true, status: true },
       },
+      // Sprint 13: Include hierarchy (parent + children summary)
+      parentTicket: {
+        select: { id: true, title: true, kind: true, status: true },
+      },
+      childTickets: {
+        select: { id: true, title: true, kind: true, status: true },
+        orderBy: { createdAt: 'asc' },
+        take: 20, // Limit to prevent response bloat
+      },
     };
   }
 
@@ -236,6 +274,13 @@ export function ticketIncludeConfig(includeRelations?: boolean): Prisma.TicketIn
     // Sprint 11.7: Include milestone (basic info)
     milestone: {
       select: { id: true, name: true },
+    },
+    // Sprint 13: Include hierarchy (basic - just counts for list view)
+    parentTicket: {
+      select: { id: true, title: true },
+    },
+    _count: {
+      select: { childTickets: true },
     },
   };
 }

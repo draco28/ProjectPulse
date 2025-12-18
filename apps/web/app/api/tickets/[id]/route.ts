@@ -18,6 +18,7 @@ import { TicketIdParamSchema, UpdateTicketSchema } from '@/lib/validations/ticke
 import { failure, success, ticketIncludeConfig } from '../_utils';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
 import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
@@ -86,6 +87,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
         project: {
           select: { id: true, name: true },
         },
+        // Sprint 13: Include hierarchy (parent + children)
+        parentTicket: {
+          select: { id: true, title: true, kind: true, status: true },
+        },
+        childTickets: {
+          select: { id: true, title: true, kind: true, status: true },
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 
@@ -127,9 +136,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     // Check ticket exists and get projectId for auth
     // Sprint 11.7: Also fetch customFields for implementationContext merging
+    // Sprint 13: Also fetch kind for hierarchy validation
     const existing = await prisma.ticket.findUnique({
       where: { id },
-      select: { id: true, status: true, projectId: true, customFields: true },
+      select: { id: true, status: true, projectId: true, customFields: true, kind: true, parentTicketId: true },
     });
 
     if (!existing) {
@@ -204,6 +214,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     // Sprint 12: linkedTaskId removed - tickets now schedule to weeks via scheduledWeekId
 
+    // Sprint 13: Validate parent ticket if being changed
+    // Use the final kind (updated or existing) for validation
+    const effectiveKind = data.kind ?? existing.kind;
+    if (data.parentTicketId !== undefined && data.parentTicketId !== null) {
+      // Parent is being set or changed (not removed)
+      await validateAndSetParent(
+        prisma,
+        id, // Current ticket ID for circular reference check
+        data.parentTicketId,
+        existing.projectId,
+        effectiveKind
+      );
+    }
+
     // Determine if closing ticket
     const isClosing = status && status !== existing.status && (status === 'closed' || status === 'resolved');
 
@@ -246,6 +270,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
     if (labelSet !== undefined) updateData.labels = { set: labelSet };
     if (isClosing) updateData.closedAt = new Date();
+    // Sprint 13: Hierarchy and traceability fields
+    if (data.parentTicketId !== undefined) updateData.parentTicketId = data.parentTicketId;
+    if (data.epicRef !== undefined) updateData.epicRef = data.epicRef;
+    if (data.backlogRefs !== undefined) updateData.backlogRefs = data.backlogRefs;
+    if (data.sprintNumber !== undefined) updateData.sprintNumber = data.sprintNumber;
 
     const ticket = await prisma.ticket.update({
       where: { id },
@@ -264,7 +293,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });
     }
-    
+
+    // Sprint 13: Handle hierarchy validation errors
+    if (error instanceof TicketHierarchyError) {
+      return failure({
+        code: error.code,
+        message: error.message,
+        status: 400,
+      });
+    }
+
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',

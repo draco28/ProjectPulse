@@ -51,6 +51,13 @@ Kinds: feature, task, epic, issue, bug, scanner_finding, tech_debt
 Sources: manual, scanner, agent, onboarding
 Priorities: low, medium, high, critical
 
+HIERARCHY (Sprint 13):
+- Only 'feature' tickets can have children
+- Only 'task', 'issue', 'bug', 'tech_debt' can have a parent
+- Use parentTicketId to create child tickets under a feature
+- Use epicRef for soft epic references (NOT parent-child)
+- Use sprintNumber to organize work by sprint
+
 RECOMMENDED: Search existing tickets first with projectpulse_ticket_search
 to avoid duplicates.
 

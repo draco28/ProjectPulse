@@ -20,8 +20,15 @@ const ticketSearchSchema = z.object({
   search: z.string().max(200).optional(),
   createdFrom: z.string().datetime().optional(),
   createdTo: z.string().datetime().optional(),
+  // Sprint 13: Hierarchy filters
+  parentTicketId: z.number().int().positive().optional(),
+  hasChildren: z.boolean().optional(),
+  isTopLevel: z.boolean().optional(),
+  // Sprint 13: Traceability filters
+  epicRef: z.string().max(200).optional(),
+  sprintNumber: z.number().int().min(1).max(999).optional(),
   includeRelations: z.boolean().optional(),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'priority']).optional(),
+  sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'sprintNumber']).optional(),
   sortDirection: z.enum(['asc', 'desc']).optional(),
   page: z.number().int().min(1).optional(),
   pageSize: z.number().int().min(1).max(100).optional(),
@@ -49,6 +56,13 @@ async function handler(input: TicketSearchInput, context: ToolContext): Promise<
   if (input.search) params.set('search', input.search);
   if (input.createdFrom) params.set('createdFrom', input.createdFrom);
   if (input.createdTo) params.set('createdTo', input.createdTo);
+  // Sprint 13: Hierarchy filters
+  if (input.parentTicketId) params.set('parentTicketId', String(input.parentTicketId));
+  if (input.hasChildren !== undefined) params.set('hasChildren', String(input.hasChildren));
+  if (input.isTopLevel !== undefined) params.set('isTopLevel', String(input.isTopLevel));
+  // Sprint 13: Traceability filters
+  if (input.epicRef) params.set('epicRef', input.epicRef);
+  if (input.sprintNumber) params.set('sprintNumber', String(input.sprintNumber));
   if (input.includeRelations !== undefined)
     params.set('includeRelations', String(input.includeRelations));
   if (input.sortBy) params.set('sortBy', input.sortBy);
@@ -87,6 +101,13 @@ async function handler(input: TicketSearchInput, context: ToolContext): Promise<
         labels: ticket.labels.map((label) => label.name),
         closedAt: ticket.closedAt ?? null,
         updatedAt: ticket.updatedAt,
+        // Sprint 13: Hierarchy fields
+        parentTicketId: ticket.parentTicketId ?? null,
+        parentTicket: ticket.parentTicket ?? null,
+        childrenCount: ticket._count?.childTickets ?? 0,
+        // Sprint 13: Traceability fields
+        epicRef: ticket.epicRef ?? null,
+        sprintNumber: ticket.sprintNumber ?? null,
       })),
       total: response.data.totalCount,
       page: response.data.page,
@@ -108,16 +129,27 @@ When to Use:
 - Checking status of work items
 - Discovering open issues in a module
 - Filtering by kind (feature, task, bug, etc.)
+- Finding feature tickets for a specific sprint (sprintNumber filter)
+- Finding children of a feature (parentTicketId filter)
 
-Filters: kind, source, status, priority, module, tags, assignee, search text
+HIERARCHY FILTERS (Sprint 13):
+- parentTicketId: Find children of a specific feature ticket
+- hasChildren: true/false to find feature vs task tickets
+- isTopLevel: true to find tickets with no parent
+- sprintNumber: Find tickets assigned to a specific sprint
+- epicRef: Find tickets referencing a specific epic
 
-Returns: Paginated ticket summaries (not full descriptions)
+Returns: Paginated ticket summaries with hierarchy info
 
-RECOMMENDED: Search existing tickets before creating new ones to avoid duplicates.
+AGENT WORKFLOW:
+1. Search for feature tickets by sprintNumber to find your sprint work
+2. Use parentTicketId to find existing tasks under a feature
+3. Create new tasks with the same parentTicketId
 
 Related:
 → projectpulse_ticket_create - Create if no matching ticket found
-→ projectpulse_agent_session_start - Track work on found tickets`,
+→ projectpulse_ticket_getChildren - Get paginated children of a feature
+→ projectpulse_ticket_getHierarchy - Get full hierarchy context`,
   schema: ticketSearchSchema,
   inputSchema: {
     type: 'object',
@@ -143,8 +175,30 @@ Related:
       search: { type: 'string' },
       createdFrom: { type: 'string', description: 'ISO timestamp (inclusive)' },
       createdTo: { type: 'string', description: 'ISO timestamp (inclusive)' },
+      // Sprint 13: Hierarchy filters
+      parentTicketId: {
+        type: 'number',
+        description: 'Filter for children of a specific feature ticket',
+      },
+      hasChildren: {
+        type: 'boolean',
+        description: 'Filter for tickets with children (true) or without (false)',
+      },
+      isTopLevel: {
+        type: 'boolean',
+        description: 'Filter for tickets with no parent (true)',
+      },
+      // Sprint 13: Traceability filters
+      epicRef: {
+        type: 'string',
+        description: 'Filter by epic reference (soft reference)',
+      },
+      sprintNumber: {
+        type: 'number',
+        description: 'Filter by sprint number (1, 2, 3, ...)',
+      },
       includeRelations: { type: 'boolean' },
-      sortBy: { type: 'string', enum: ['createdAt', 'updatedAt', 'priority'] },
+      sortBy: { type: 'string', enum: ['createdAt', 'updatedAt', 'priority', 'sprintNumber'] },
       sortDirection: { type: 'string', enum: ['asc', 'desc'] },
       page: { type: 'number', minimum: 1 },
       pageSize: { type: 'number', minimum: 1, maximum: 100 },

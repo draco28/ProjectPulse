@@ -107,6 +107,12 @@ async function getTicketDetail(id: number) {
       scheduledWeekId: true,
       scheduledDays: true,
 
+      // Sprint 13: Two-level hierarchy (Feature → Task)
+      parentTicketId: true,
+      epicRef: true,
+      backlogRefs: true,
+      sprintNumber: true,
+
       // Sprint 11.7: Milestone and Due Date
       dueDate: true,
       milestoneId: true,

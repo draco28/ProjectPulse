@@ -69,6 +69,11 @@ import { ticketUpdateTool } from './tickets/update.js';
 import { ticketSearchTool } from './tickets/search.js';
 import { ticketAddCommentTool } from './tickets/addComment.js';
 import { ticketSetStatusTool } from './tickets/setStatus.js';
+// Sprint 13: Ticket hierarchy tools
+import { ticketGetChildrenTool } from './tickets/getChildren.js';
+import { ticketGetHierarchyTool } from './tickets/getHierarchy.js';
+// Sprint 13: Traceability tools
+import { traceabilityGenerateTool } from './traceability/generateTool.js';
 // Sprint 10: Legacy issue adapter tools REMOVED (Sprint 11)
 // Use ticket tools with kind=issue|bug|scanner_finding instead
 import { materializeRoadmapTool } from './roadmap/materializeTool.js';
@@ -158,6 +163,11 @@ export const loadTools = (): ToolDefinition[] => [
   ticketSearchTool,
   ticketAddCommentTool,
   ticketSetStatusTool,
+  // Sprint 13: Ticket hierarchy tools
+  ticketGetChildrenTool,
+  ticketGetHierarchyTool,
+  // Sprint 13: Traceability tools
+  traceabilityGenerateTool,
   // Sprint 10: Legacy issue tools REMOVED (Sprint 11) - use ticket tools instead
   workflowListTool,
   workflowStartTool,

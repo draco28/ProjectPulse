@@ -32,7 +32,12 @@ const ticketUpdateSchema = baseTicketFields
       data.linkedTaskId !== undefined ||
       data.labelIds !== undefined ||
       data.customFields !== undefined ||
-      data.context !== undefined,
+      data.context !== undefined ||
+      // Sprint 13: Hierarchy and traceability fields
+      data.parentTicketId !== undefined ||
+      data.epicRef !== undefined ||
+      data.backlogRefs !== undefined ||
+      data.sprintNumber !== undefined,
     {
       message: 'Provide at least one field to update',
       path: [],
@@ -70,8 +75,13 @@ async function handler(input: TicketUpdateInput, context: ToolContext): Promise<
 
 export const ticketUpdateTool: ToolDefinition = {
   name: 'projectpulse_ticket_update',
-  description:
-    'Update an existing ticket (kind, source, status, priority, module, assignee, labels, custom fields, or context metadata). Does not change comments; use ticket.addComment for notes.',
+  description: `Update an existing ticket (kind, source, status, priority, module, assignee, labels, custom fields, or context metadata). Does not change comments; use ticket.addComment for notes.
+
+HIERARCHY (Sprint 13):
+- Set parentTicketId to link ticket under a feature
+- Set parentTicketId to null to unlink from parent
+- Circular references are prevented automatically
+- Only task/issue/bug/tech_debt can have parents`,
   schema: ticketUpdateSchema,
   inputSchema: {
     type: 'object',
@@ -94,6 +104,11 @@ export const ticketUpdateTool: ToolDefinition = {
       labelIds: ticketInputProperties.labelIds,
       customFields: ticketInputProperties.customFields,
       context: ticketInputProperties.context,
+      // Sprint 13: Hierarchy and traceability fields
+      parentTicketId: ticketInputProperties.parentTicketId,
+      epicRef: ticketInputProperties.epicRef,
+      backlogRefs: ticketInputProperties.backlogRefs,
+      sprintNumber: ticketInputProperties.sprintNumber,
     },
     required: ['ticketId'],
   },

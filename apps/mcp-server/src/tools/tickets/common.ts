@@ -36,13 +36,22 @@ export interface TicketRecord {
   assignee?: string | null;
   assigneeType?: string | null; // NEW: human or agent_persona
   assigneeId?: string | null; // NEW: User ID or AgentPersona ID
-  linkedTaskId?: string | null; // NEW: Sprint hierarchy link
+  linkedTaskId?: string | null; // Deprecated (Sprint 12) - use scheduledWeekId
   customFields?: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
   closedAt?: string | null; // NEW: Timestamp when closed
   labels: TicketLabel[];
   linkedFiles: TicketLinkedFile[];
+  // Sprint 13: Hierarchy fields
+  parentTicketId?: number | null;
+  parentTicket?: { id: number; title: string; kind: string; status: string } | null;
+  childTickets?: Array<{ id: number; title: string; kind: string; status: string }>;
+  _count?: { childTickets: number };
+  // Sprint 13: Traceability fields
+  epicRef?: string | null;
+  backlogRefs?: string[];
+  sprintNumber?: number | null;
 }
 
 export interface TicketListResponse {
@@ -97,11 +106,17 @@ export const baseTicketFields = z.object({
   assignee: z.string().optional(),
   assigneeType: z.string().optional(),
   assigneeId: z.string().optional(),
-  linkedTaskId: z.string().optional(),
+  linkedTaskId: z.string().optional(), // Deprecated (Sprint 12)
   projectId: z.number().int().positive().optional(),
   labelIds: z.array(z.number().int().positive()).max(25).optional(),
   customFields: z.record(z.unknown()).optional(),
   context: ticketContextSchema.optional(),
+  // Sprint 13: Hierarchy fields
+  parentTicketId: z.number().int().positive().optional().nullable(),
+  // Sprint 13: Traceability fields
+  epicRef: z.string().max(200).optional().nullable(),
+  backlogRefs: z.array(z.string().max(50)).max(50).optional(),
+  sprintNumber: z.number().int().min(1).max(999).optional().nullable(),
 });
 
 export const ticketIdSchema = z
@@ -156,11 +171,30 @@ export const ticketInputProperties = {
   },
   linkedTaskId: {
     type: 'string',
-    description: 'Sprint hierarchy task link (UUID)',
+    description: 'DEPRECATED (Sprint 12): Sprint hierarchy task link - use scheduledWeekId instead',
   },
   projectId: {
     type: 'number',
     description: 'Project identifier (defaults to first project if omitted)',
+  },
+  // Sprint 13: Hierarchy fields
+  parentTicketId: {
+    type: 'number',
+    description: 'Parent ticket ID (only for task/issue/bug/tech_debt kinds - parent must be a feature)',
+  },
+  // Sprint 13: Traceability fields
+  epicRef: {
+    type: 'string',
+    description: 'Soft reference to epic (e.g., "Epic 1: User Management") - NOT a parent-child relationship',
+  },
+  backlogRefs: {
+    type: 'array',
+    items: { type: 'string' },
+    description: 'Array of backlog references for traceability (e.g., ["FR-001", "FR-002", "NFR-003"])',
+  },
+  sprintNumber: {
+    type: 'number',
+    description: 'Sprint number for filtering (1, 2, 3, ...). Agents use this to find work for a specific sprint.',
   },
   labelIds: {
     type: 'array',
@@ -241,4 +275,12 @@ export const summarizeTicket = (ticket: Partial<TicketRecord>) => ({
   closedAt: ticket.closedAt ?? null,
   updatedAt: ticket.updatedAt,
   createdAt: ticket.createdAt,
+  // Sprint 13: Hierarchy fields
+  parentTicketId: ticket.parentTicketId ?? null,
+  parentTicket: ticket.parentTicket ?? null,
+  childrenCount: ticket._count?.childTickets ?? ticket.childTickets?.length ?? 0,
+  // Sprint 13: Traceability fields
+  epicRef: ticket.epicRef ?? null,
+  backlogRefs: ticket.backlogRefs ?? [],
+  sprintNumber: ticket.sprintNumber ?? null,
 });

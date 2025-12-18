@@ -194,6 +194,15 @@ const TicketBaseSchema = z.object({
 
   // Sprint 11.7: Implementation Context (stored in customFields._implementationContext)
   implementationContext: ImplementationContextSchema,
+
+  // Sprint 13: Ticket hierarchy (Feature → Task/Issue/Bug)
+  // Only kind=feature can have children; only task/issue/bug/tech_debt can have parent
+  parentTicketId: z.number().int().positive().optional().nullable(),
+
+  // Sprint 13: Traceability fields for industry workflow (PRD → SRS → Backlog → ProjectPlan)
+  epicRef: z.string().max(200, 'Epic reference too long').optional().nullable(), // "Epic 1: User Management"
+  backlogRefs: z.array(z.string().max(50)).max(50).default([]), // ["FR-001", "FR-002", "NFR-003"]
+  sprintNumber: z.number().int().min(1).max(999).optional().nullable(), // Sprint 1, 2, 3, ...
 });
 
 export const TicketIdParamSchema = z.object({
@@ -282,17 +291,17 @@ export type BulkTicketCreateInput = z.infer<typeof TicketBulkCreateSchema>;
 
 export const TicketFilterSchema = z.object({
   projectId: z.number().int().positive().optional(),
-  
+
   // Sprint 10: Kind filter (new)
   kind: z.array(TicketKindSchema).optional(),
-  
+
   status: z.array(z.string().min(1)).optional(),
   priority: z.array(z.string().min(1)).optional(),
   module: z.array(z.string().min(1)).optional(),
   assignee: z.array(z.string().min(1)).optional(),
   search: z.string().max(200).optional(),
   tags: z.array(z.string().min(1)).optional(),
-  
+
   // Sprint 10: Additional filters
   assigneeType: AssigneeTypeSchema.optional(),
   source: z.array(TicketSourceSchema).optional(),
@@ -300,7 +309,7 @@ export const TicketFilterSchema = z.object({
   // Sprint 12: Scheduling filters
   scheduledWeekId: z.string().optional(),
   hasSchedule: z.boolean().optional(), // Filter for tickets with/without schedule
-  
+
   // Date filters
   createdFrom: z.string().datetime().optional(),
   createdTo: z.string().datetime().optional(),
@@ -310,12 +319,21 @@ export const TicketFilterSchema = z.object({
   dueDateFrom: z.string().datetime().optional(),
   dueDateTo: z.string().datetime().optional(),
   overdue: z.boolean().optional(), // Filter for overdue tickets
-  
+
+  // Sprint 13: Hierarchy filters
+  parentTicketId: z.number().int().positive().optional(), // Filter children of a specific feature
+  hasChildren: z.boolean().optional(), // Filter for feature tickets with/without children
+  isTopLevel: z.boolean().optional(), // Filter for tickets with no parent (orphans/root tickets)
+
+  // Sprint 13: Traceability filters
+  epicRef: z.string().max(200).optional(), // Filter by epic reference
+  sprintNumber: z.number().int().min(1).max(999).optional(), // Filter by sprint number
+
   // Pagination & sorting
   includeRelations: z.boolean().optional(),
   page: z.number().int().min(1).default(1),
   pageSize: z.number().int().min(1).max(100).default(20),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'kind', 'dueDate']).default('createdAt'),
+  sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'kind', 'dueDate', 'sprintNumber']).default('createdAt'),
   sortDirection: z.enum(['asc', 'desc']).default('desc'),
 });
 

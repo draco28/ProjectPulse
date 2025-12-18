@@ -410,6 +410,17 @@ model Ticket {
   milestoneId Int?
   milestone   Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
 
+  // Sprint 13: Two-level ticket hierarchy (Feature → Task/Issue/Bug)
+  // Only kind=feature can have children; only task/issue/bug/tech_debt can have parent
+  parentTicketId Int?
+  parentTicket   Ticket?  @relation("TicketHierarchy", fields: [parentTicketId], references: [id], onDelete: SetNull)
+  childTickets   Ticket[] @relation("TicketHierarchy")
+
+  // Sprint 13: Traceability fields for industry workflow (PRD → SRS → Backlog → ProjectPlan)
+  epicRef      String?  @db.VarChar(200) // Soft reference: "Epic 1: User Management"
+  backlogRefs  String[] @default([])     // SRS traceability: ["FR-001", "FR-002", "NFR-003"]
+  sprintNumber Int?                      // Sprint number for filtering (1, 2, 3, ...)
+
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   closedAt      DateTime?
@@ -429,6 +440,10 @@ model Ticket {
   @@index([createdAt(sort: Desc)])
   @@index([milestoneId]) // Sprint 11.7: Find tickets by milestone
   @@index([dueDate]) // Sprint 11.7: Sort/filter by due date
+  @@index([parentTicketId]) // Sprint 13: Find children by parent
+  @@index([projectId, parentTicketId]) // Sprint 13: Project-scoped hierarchy queries
+  @@index([projectId, sprintNumber]) // Sprint 13: Find tickets by sprint
+  @@index([projectId, epicRef]) // Sprint 13: Find tickets by epic reference
   @@map("tickets") // Sprint 10: Renamed from "issues" to "tickets"
 }
 
