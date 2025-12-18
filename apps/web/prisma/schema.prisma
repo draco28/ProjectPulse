@@ -243,6 +243,9 @@ model Project {
   // Sprint 11.7: Project-scoped milestones
   milestones Milestone[]
 
+  // Sprint 14: Backlog items for traceability
+  backlogItems BacklogItem[]
+
   // Sprint 11.5: MCP Tool Logging for Admin Dashboard
   toolLogs       MCPToolLog[]
   toolAggregates MCPToolAggregate[]
@@ -445,6 +448,44 @@ model Ticket {
   @@index([projectId, sprintNumber]) // Sprint 13: Find tickets by sprint
   @@index([projectId, epicRef]) // Sprint 13: Find tickets by epic reference
   @@map("tickets") // Sprint 10: Renamed from "issues" to "tickets"
+}
+
+// ============================================================================
+// BACKLOG ITEMS (Sprint 14)
+// ============================================================================
+// Purpose: Store parsed backlog items for agent-consumable traceability
+// Source: Extracted from 12-Backlog.md during traceability validation
+// Usage: Agent calls projectpulse_backlog_getBySprint() to get items for ticket creation
+// Note: Minimal storage - full details in wiki, this just provides traceability fields
+
+model BacklogItem {
+  id        Int     @id @default(autoincrement())
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Identity (from parser - matches BacklogItem interface in parsers.ts)
+  itemId String @db.VarChar(50) // "US-001" or "Feature 1.1"
+  title  String @db.VarChar(300)
+
+  // Traceability fields (for ticket creation)
+  epicRef      String?  @db.VarChar(200) // "Epic 1: User Management" (was epicId in parser)
+  frTraces     String[] @default([])     // ["FR-001", "FR-002"] - functional requirements
+  nfrTraces    String[] @default([])     // ["NFR-001"] - non-functional requirements
+  sprintNumber Int? // Sprint assignment (1, 2, 3, ...)
+
+  // Source tracking
+  sourceDoc String  @db.VarChar(100) // "12-Backlog.md"
+  rawBlock  String? @db.Text // Original markdown block for reference
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Constraints
+  @@unique([projectId, itemId])
+  @@index([projectId])
+  @@index([projectId, sprintNumber])
+  @@map("backlog_items")
 }
 
 model Label {

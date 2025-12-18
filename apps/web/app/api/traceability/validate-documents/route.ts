@@ -169,6 +169,46 @@ export async function POST(request: NextRequest) {
     // Parse documents
     const parsedDocs = parseDocumentSet(docs);
 
+    // Sprint 14: Store backlog items in database for agent-consumable queries
+    let backlogItemsStored = 0;
+    if (parsedDocs.backlog?.items && parsedDocs.backlog.items.length > 0) {
+      const backlogItems = parsedDocs.backlog.items;
+
+      // Upsert each backlog item (update if exists, create if not)
+      for (const item of backlogItems) {
+        await prisma.backlogItem.upsert({
+          where: {
+            projectId_itemId: {
+              projectId,
+              itemId: item.id,
+            },
+          },
+          update: {
+            title: item.title,
+            epicRef: item.epicId, // Parser uses epicId, DB uses epicRef
+            frTraces: item.frTraces,
+            nfrTraces: item.nfrTraces,
+            sprintNumber: item.sprintNumber,
+            sourceDoc: '12-Backlog.md',
+            rawBlock: item.rawBlock,
+            updatedAt: new Date(),
+          },
+          create: {
+            projectId,
+            itemId: item.id,
+            title: item.title,
+            epicRef: item.epicId,
+            frTraces: item.frTraces,
+            nfrTraces: item.nfrTraces,
+            sprintNumber: item.sprintNumber,
+            sourceDoc: '12-Backlog.md',
+            rawBlock: item.rawBlock,
+          },
+        });
+        backlogItemsStored++;
+      }
+    }
+
     // Analyze traceability
     const matrix = analyzeTraceability(parsedDocs, {
       strict: data.strict,
@@ -248,8 +288,9 @@ export async function POST(request: NextRequest) {
       gaps: matrix.gaps,
       details: matrix.details,
       knowledgeItemId: knowledgeItem.id,
+      backlogItemsStored, // Sprint 14: Number of backlog items stored in database
       generatedAt,
-      message: `Document traceability validated: FR ${matrix.coverage.frCoveragePercent}%, Backlog ${matrix.coverage.backlogItemCoveragePercent}%, Plan ${matrix.coverage.planMappingCoveragePercent}%`,
+      message: `Document traceability validated: FR ${matrix.coverage.frCoveragePercent}%, Backlog ${matrix.coverage.backlogItemCoveragePercent}%, Plan ${matrix.coverage.planMappingCoveragePercent}%. ${backlogItemsStored} backlog items stored.`,
     }, 201);
   } catch (error) {
     if (error instanceof AuthError) {

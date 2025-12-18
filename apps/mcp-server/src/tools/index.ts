@@ -103,6 +103,8 @@ import { skillListTool } from './skills/listTool.js';
 import { skillGetTool } from './skills/getTool.js';
 import { sopListTool } from './sops/listTool.js';
 import { sopGetTool } from './sops/getTool.js';
+// Sprint 14: Backlog items tools for traceability workflow
+import { backlogGetBySprintTool, backlogListTool } from './backlog/index.js';
 
 export const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -205,6 +207,9 @@ export const loadTools = (): ToolDefinition[] => [
   skillGetTool,
   sopListTool,
   sopGetTool,
+  // Sprint 14: Backlog items for traceability workflow
+  backlogGetBySprintTool,
+  backlogListTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {
