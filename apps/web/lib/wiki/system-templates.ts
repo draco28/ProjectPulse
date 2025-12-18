@@ -289,13 +289,35 @@ ProjectPulse uses a 3-session onboarding process followed by post-onboarding set
 
 After all 3 sessions complete, run these steps:
 
-### Step 1: Validate Traceability
+### Step 1: Validate Traceability & Populate Backlog
 \`\`\`
 projectpulse_traceability_validate_documents()
 \`\`\`
 - Validates SRS→Backlog→Project-Plan coverage
 - Identifies gaps (untraced requirements, unmapped features)
-- Stores matrix as Knowledge Item
+- **Stores backlog items in database** (enables sprint queries)
+- Creates gap analysis as Knowledge Item
+
+### Step 1b: Query Backlog Items
+
+After traceability validation, you can query backlog items:
+
+**Get features for a specific sprint:**
+\`\`\`
+projectpulse_backlog_getBySprint({ projectId: YOUR_ID, sprintNumber: 1 })
+\`\`\`
+- Returns items with itemId, title, epicRef, frTraces
+- Use when starting work on a sprint
+- Data ready for \`projectpulse_ticket_create()\`
+
+**View all backlogs across all sprints:**
+\`\`\`
+projectpulse_backlog_list({ projectId: YOUR_ID })
+\`\`\`
+- Returns items grouped by sprint
+- Shows unassigned items
+- Use for product backlog overview
+- Optional: filter by epicRef
 
 ### Step 2: Create Roadmap
 \`\`\`
