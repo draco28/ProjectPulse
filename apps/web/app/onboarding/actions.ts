@@ -93,30 +93,8 @@ export async function storeDocument(
 }
 
 // ============================================================================
-// Session 3: AI Workflow Bootstrap
+// Session 3: AI Workflow Setup
 // ============================================================================
-
-export async function bootstrapWorkflow(projectId: number, repoPath: string) {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/onboarding/bootstrap`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId, repoPath }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      return { success: false, error: error.error || 'Failed to bootstrap' };
-    }
-
-    const result = await response.json();
-    revalidatePath('/onboarding');
-    revalidatePath('/onboarding/session-3');
-    revalidatePath('/agents');
-    revalidatePath('/roadmap');
-    
-    return { success: true, data: result };
-  } catch (error) {
-    return { success: false, error: 'Network error' };
-  }
-}
+// NOTE: Session 3 is completed via MCP batch tools (batch_createAgentPersonas,
+// batch_createSkills, batch_createWorkflowTemplates, batch_createSOPs) followed
+// by syncSession3. No server actions needed - agents call MCP tools directly.

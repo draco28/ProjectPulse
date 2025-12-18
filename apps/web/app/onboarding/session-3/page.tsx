@@ -1,54 +1,28 @@
 /**
- * Session 3: AI Workflow Bootstrap
+ * Session 3: AI Workflow Setup
  *
- * Bootstrap complete AI workflow with agent personas, skills, workflows, SOPs, and roadmap
+ * Guidance page showing MCP tools for setting up agent personas, skills, workflows, and SOPs.
+ * Agents use MCP batch tools directly - this page provides information only.
  */
 
 'use client';
 
-import { Suspense, useState, useTransition } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { bootstrapWorkflow } from '@/app/onboarding/actions';
 import {
   Loader2,
-  Rocket,
-  CheckCircle2,
   Bot,
   Book,
   Workflow,
   FileText,
-  Map,
-  ArrowRight,
-  FolderOpen,
   ArrowLeft,
+  Terminal,
+  CheckCircle2,
+  Info,
 } from 'lucide-react';
 import Link from 'next/link';
-
-interface BootstrapResult {
-  success: boolean;
-  data: {
-    created: {
-      agentPersonas: number;
-      skills: number;
-      workflows: number;
-      sops: number;
-      roadmap: {
-        phases: number;
-        weeks: number;
-      };
-      currentPlan: boolean;
-      currentTodos: boolean;
-      files: {
-        claudeMd: boolean;
-        agentsMd: boolean;
-      };
-    };
-  };
-}
 
 // Loading fallback component
 function LoadingFallback() {
@@ -70,193 +44,18 @@ export default function Session3Page() {
 
 // Content component that uses useSearchParams
 function Session3Content() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const projectIdParam = searchParams.get('project');
   const projectId = projectIdParam ? parseInt(projectIdParam, 10) : 1;
-  const [repoPath, setRepoPath] = useState('');
-  const [isBootstrapping, setIsBootstrapping] = useState(false);
-  const [bootstrapResult, setBootstrapResult] = useState<BootstrapResult | null>(null);
-  const [error, setError] = useState('');
-  const [isPending, startTransition] = useTransition();
-
-  const handleBootstrap = async () => {
-    if (!repoPath.trim()) {
-      setError('Repository path is required');
-      return;
-    }
-
-    setError('');
-    setIsBootstrapping(true);
-
-    startTransition(async () => {
-      const result = await bootstrapWorkflow(projectId, repoPath);
-
-      if (result.success) {
-        setBootstrapResult(result as BootstrapResult);
-      } else {
-        setError(result.error || 'Bootstrap failed');
-      }
-
-      setIsBootstrapping(false);
-    });
-  };
-
-  if (bootstrapResult) {
-    const { created } = bootstrapResult.data;
-
-    return (
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
-        {/* Success Header */}
-        <Card className="neu-raised mb-8 border-green-500/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-green-400 text-3xl">
-              <CheckCircle2 className="h-8 w-8" />
-              Bootstrap Complete!
-            </CardTitle>
-            <CardDescription>
-              Your project is fully configured for AI-assisted development.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-slate mb-6">
-              All AI workflow components have been created and your repository files have been
-              written. You're ready to start building with AI assistance!
-            </p>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <Card className="neu-inset bg-slate-900/50">
-                <CardContent className="p-4 text-center">
-                  <Bot className="h-8 w-8 text-coral-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{created.agentPersonas}</p>
-                  <p className="text-xs text-slate">Agent Personas</p>
-                </CardContent>
-              </Card>
-
-              <Card className="neu-inset bg-slate-900/50">
-                <CardContent className="p-4 text-center">
-                  <Book className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{created.skills}</p>
-                  <p className="text-xs text-slate">Skills</p>
-                </CardContent>
-              </Card>
-
-              <Card className="neu-inset bg-slate-900/50">
-                <CardContent className="p-4 text-center">
-                  <Workflow className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{created.workflows}</p>
-                  <p className="text-xs text-slate">Workflows</p>
-                </CardContent>
-              </Card>
-
-              <Card className="neu-inset bg-slate-900/50">
-                <CardContent className="p-4 text-center">
-                  <FileText className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{created.sops}</p>
-                  <p className="text-xs text-slate">SOPs</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Roadmap Stats */}
-            <Card className="neu-inset bg-slate-900/50 mb-6">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Map className="h-6 w-6 text-orange-500" />
-                  <h3 className="text-lg font-semibold text-white">Development Roadmap</h3>
-                </div>
-                <p className="text-slate text-sm mb-3">
-                  Complete project roadmap materialized from your project plan
-                </p>
-                <div className="flex gap-6">
-                  <div>
-                    <p className="text-2xl font-bold text-white">{created.roadmap.phases}</p>
-                    <p className="text-xs text-slate">Phases</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">{created.roadmap.weeks}</p>
-                    <p className="text-xs text-slate">Weeks</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Files Written */}
-            <Card className="neu-inset bg-slate-900/50 mb-6">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <FolderOpen className="h-6 w-6 text-yellow-500" />
-                  <h3 className="text-lg font-semibold text-white">Repository Files</h3>
-                </div>
-                <p className="text-slate text-sm mb-3">Written to: {repoPath}</p>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-400" />
-                    <span className="text-sm text-white font-mono">CLAUDE.md</span>
-                    <span className="text-xs text-slate">
-                      (Claude Code integration guide)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-400" />
-                    <span className="text-sm text-white font-mono">AGENTS.md</span>
-                    <span className="text-xs text-slate">(Agent personas reference)</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </CardContent>
-        </Card>
-
-        {/* Next Steps */}
-        <Card className="neu-raised">
-          <CardHeader>
-            <CardTitle>Next Steps</CardTitle>
-            <CardDescription>Explore your newly configured project</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button asChild className="w-full">
-              <Link href={`/agents?project=${projectId}`}>
-                <Bot className="mr-2 h-4 w-4" />
-                View Agent Personas
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-
-            <Button asChild variant="outline" className="w-full">
-              <Link href={`/roadmap?project=${projectId}`}>
-                <Map className="mr-2 h-4 w-4" />
-                Explore Roadmap
-              </Link>
-            </Button>
-
-            <Button asChild variant="outline" className="w-full">
-              <Link href={`/dashboard?project=${projectId}`}>
-                Go to Dashboard
-              </Link>
-            </Button>
-
-            <Button asChild variant="outline" className="w-full">
-              <Link href={`/onboarding?project=${projectId}`}>
-                Back to Onboarding
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       {/* Page Header with Back Button */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-4">AI Workflow Bootstrap</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">AI Workflow Setup</h1>
           <p className="text-lg text-slate">
-            Set up agent personas, skills, workflows, and SOPs tailored to your tech stack and
-            project needs.
+            Configure agent personas, skills, workflows, and SOPs for your project.
           </p>
         </div>
         <Button variant="outline" size="sm" asChild>
@@ -267,130 +66,168 @@ function Session3Content() {
         </Button>
       </div>
 
-      {/* Info Card */}
-      <Card className="neu-raised mb-8">
+      {/* MCP Tools Guidance */}
+      <Card className="neu-raised mb-8 border-blue-500/20">
         <CardHeader>
-          <CardTitle>What Will Be Created</CardTitle>
-          <CardDescription>Bootstrap creates all these components automatically</CardDescription>
+          <CardTitle className="flex items-center gap-3 text-blue-400">
+            <Terminal className="h-6 w-6" />
+            For AI Agents: Use MCP Tools
+          </CardTitle>
+          <CardDescription>
+            Session 3 is completed via MCP batch tools. Use the following tools in order:
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+          <div className="space-y-4 font-mono text-sm">
+            {/* Step 1: Personas */}
+            <div className="p-4 rounded-lg bg-slate-900/50 border border-slate-700">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-coral-500 font-bold">1.</span>
                 <Bot className="h-4 w-4 text-coral-500" />
-                Agent Personas (3-5)
-              </h3>
-              <p className="text-sm text-slate ml-6">
-                Expert AI assistants tailored to your tech stack (React Expert, Next.js Expert,
-                Prisma Expert, etc.)
+                <span className="text-white font-semibold">Create Agent Personas</span>
+                <span className="text-xs text-slate ml-auto">(Required)</span>
+              </div>
+              <code className="text-green-400 block mt-2">
+                projectpulse_batch_createAgentPersonas({'{ personas: [...] }'})
+              </code>
+              <p className="text-xs text-slate mt-2">
+                Create 1-10 expert personas tailored to your tech stack
               </p>
             </div>
 
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+            {/* Step 2: Skills */}
+            <div className="p-4 rounded-lg bg-slate-900/50 border border-slate-700">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-blue-500 font-bold">2.</span>
                 <Book className="h-4 w-4 text-blue-500" />
-                Skills Library (5-10)
-              </h3>
-              <p className="text-sm text-slate ml-6">
-                Coding patterns and best practices specific to your frameworks
+                <span className="text-white font-semibold">Create Skills</span>
+                <span className="text-xs text-slate ml-auto">(Optional)</span>
+              </div>
+              <code className="text-green-400 block mt-2">
+                projectpulse_batch_createSkills({'{ skills: [...] }'})
+              </code>
+              <p className="text-xs text-slate mt-2">
+                Define coding patterns and best practices
               </p>
             </div>
 
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+            {/* Step 3: Workflows */}
+            <div className="p-4 rounded-lg bg-slate-900/50 border border-slate-700">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-purple-500 font-bold">3.</span>
                 <Workflow className="h-4 w-4 text-purple-500" />
-                Workflows (3)
-              </h3>
-              <p className="text-sm text-slate ml-6">
-                Process templates: Feature Development, Bug Fix, Code Review
+                <span className="text-white font-semibold">Create Workflow Templates</span>
+                <span className="text-xs text-slate ml-auto">(Optional)</span>
+              </div>
+              <code className="text-green-400 block mt-2">
+                projectpulse_batch_createWorkflowTemplates({'{ workflows: [...] }'})
+              </code>
+              <p className="text-xs text-slate mt-2">
+                Define process templates for feature dev, bug fix, etc.
               </p>
             </div>
 
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+            {/* Step 4: SOPs */}
+            <div className="p-4 rounded-lg bg-slate-900/50 border border-slate-700">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-green-500 font-bold">4.</span>
                 <FileText className="h-4 w-4 text-green-500" />
-                SOPs (5)
-              </h3>
-              <p className="text-sm text-slate ml-6">
-                Standard Operating Procedures: Git Workflow, Security, API, Testing, Deployment
+                <span className="text-white font-semibold">Create SOPs</span>
+                <span className="text-xs text-slate ml-auto">(Optional)</span>
+              </div>
+              <code className="text-green-400 block mt-2">
+                projectpulse_batch_createSOPs({'{ sops: [...] }'})
+              </code>
+              <p className="text-xs text-slate mt-2">
+                Standard operating procedures for common tasks
               </p>
             </div>
 
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                <Map className="h-4 w-4 text-orange-500" />
-                Development Roadmap
-              </h3>
-              <p className="text-sm text-slate ml-6">
-                Complete roadmap materialized from your project plan (Phase → Sprint → Week → Day)
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                <FolderOpen className="h-4 w-4 text-yellow-500" />
-                Repository Files
-              </h3>
-              <p className="text-sm text-slate ml-6">
-                CLAUDE.md and AGENTS.md written to your repository for AI agent integration
+            {/* Step 5: Sync */}
+            <div className="p-4 rounded-lg bg-slate-900/50 border border-green-500/30">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-green-400 font-bold">5.</span>
+                <CheckCircle2 className="h-4 w-4 text-green-400" />
+                <span className="text-white font-semibold">Mark Session Complete</span>
+                <span className="text-xs text-green-400 ml-auto">(Required)</span>
+              </div>
+              <code className="text-green-400 block mt-2">
+                projectpulse_onboarding_syncSession3()
+              </code>
+              <p className="text-xs text-slate mt-2">
+                Validates artifacts and marks Session 3 as complete
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Bootstrap Form */}
-      <Card className="neu-raised">
+      {/* Info Card */}
+      <Card className="neu-raised mb-8">
         <CardHeader>
-          <CardTitle>Start Bootstrap</CardTitle>
-          <CardDescription>
-            This process takes approximately 30 seconds and cannot be undone
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Info className="h-5 w-5 text-slate" />
+            What Gets Created
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleBootstrap();
-            }}
-            className="space-y-4"
-          >
-            <div>
-              <Label htmlFor="repoPath">Repository Path *</Label>
-              <Input
-                id="repoPath"
-                type="text"
-                placeholder="/path/to/your/repository"
-                value={repoPath}
-                onChange={(e) => setRepoPath(e.target.value)}
-                className="neu-inset bg-slate-900/50 border-slate-700 text-white mt-2"
-                disabled={isBootstrapping}
-              />
-              <p className="text-xs text-slate mt-2">
-                Absolute path where CLAUDE.md and AGENTS.md will be written
-              </p>
-              {error && <p className="text-sm text-red-400 mt-2">{error}</p>}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-start gap-3">
+              <Bot className="h-5 w-5 text-coral-500 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-white">Agent Personas</p>
+                <p className="text-xs text-slate">Expert AI assistants for your tech stack</p>
+              </div>
             </div>
 
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full"
-              disabled={isBootstrapping || !repoPath.trim()}
-            >
-              {isBootstrapping ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Bootstrapping... (~30 seconds)
-                </>
-              ) : (
-                <>
-                  <Rocket className="mr-2 h-4 w-4" />
-                  Start Bootstrap
-                </>
-              )}
-            </Button>
-          </form>
+            <div className="flex items-start gap-3">
+              <Book className="h-5 w-5 text-blue-500 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-white">Skills Library</p>
+                <p className="text-xs text-slate">Coding patterns and best practices</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <Workflow className="h-5 w-5 text-purple-500 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-white">Workflow Templates</p>
+                <p className="text-xs text-slate">Feature dev, bug fix, code review</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <FileText className="h-5 w-5 text-green-500 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-white">SOPs</p>
+                <p className="text-xs text-slate">Git, security, testing procedures</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Navigation */}
+      <Card className="neu-raised">
+        <CardHeader>
+          <CardTitle>Explore Results</CardTitle>
+          <CardDescription>
+            After completing Session 3, explore your created artifacts
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button asChild variant="outline" className="w-full">
+            <Link href={`/agents?project=${projectId}`}>
+              <Bot className="mr-2 h-4 w-4" />
+              View Agent Personas
+            </Link>
+          </Button>
+
+          <Button asChild variant="outline" className="w-full">
+            <Link href={`/dashboard?project=${projectId}`}>
+              Go to Dashboard
+            </Link>
+          </Button>
         </CardContent>
       </Card>
     </div>

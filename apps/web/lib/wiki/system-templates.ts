@@ -207,139 +207,127 @@ Manage bugs and features with rich context:
     title: 'Onboarding Guide',
     path: `/${SYSTEM_PROJECT_SLUG}/onboarding-guide`,
     category: 'guides',
-    content: `# Project Onboarding Workflow
-
-ProjectPulse uses a 3-session onboarding process to configure AI-driven development for your project.
+    content: `# Onboarding Guide
 
 ## Overview
 
-| Session | Duration | Focus | Output |
-|---------|----------|-------|--------|
-| 1 | 60-90 min | Strategic Planning | Executive summary, 96 Q&A pairs |
-| 2 | 30-60 min | Documentation | 15 industry-standard documents |
-| 3 | 15-30 sec | AI Configuration | Personas, skills, roadmap |
+ProjectPulse uses a 3-session onboarding process followed by post-onboarding setup.
+
+| Session | Focus | Output |
+|---------|-------|--------|
+| 1 | Strategic Planning | Executive summary, 96 Q&A pairs |
+| 2 | Documentation | 15 industry-standard documents |
+| 3 | AI Workflow Setup | Personas, skills, workflows, SOPs |
+| Post | Traceability + Roadmap | Validated coverage, materialized roadmap |
+
+---
 
 ## Session 1: Strategic Planning
 
-**Goal**: Define what you're building and why.
+### Step-by-Step Flow
+1. \`projectpulse_onboarding_getPhasedQuestions({ phase: 1 })\` - Get questions
+2. Ask user the questions from phase
+3. \`projectpulse_onboarding_savePhase({ phase: 1, answers: {...} })\` - Save
+4. Repeat for phases 2-10
+5. Session auto-completes after phase 10
 
-**Process**:
-1. AI interviews you across 10 phases (Product, Architecture, DevOps, etc.)
-2. You answer 96 questions covering all aspects of your project
-3. AI generates an executive summary
+### Tools Used
+- \`projectpulse_onboarding_getPhasedQuestions\` - Get questions for a phase
+- \`projectpulse_onboarding_savePhase\` - Save phase answers
 
-**MCP Tools for Agents**:
+---
+
+## Session 2: Document Generation
+
+### Step-by-Step Flow
+1. \`projectpulse_onboarding_getDocBatchPrompt({ batch: 1 })\` - Get prompts
+2. Generate documents using YOUR AI provider
+3. \`projectpulse_onboarding_storeBatch({ batch: 1, documents: [...] })\` - Store
+4. Repeat for batches 2-4
+5. Session auto-completes at 15 documents
+
+### Batch Structure
+| Batch | Documents |
+|-------|-----------|
+| 1 | PRD, SRS, Backlog, Project-Plan |
+| 2 | Architecture, Data-Model, API-Spec |
+| 3 | UI-UX, Security, Testing |
+| 4 | Deployment, Observability, Performance, Team-Onboarding, Maintenance |
+
+### Tools Used
+- \`projectpulse_onboarding_getDocBatchPrompt\` - Get batch prompts with context
+- \`projectpulse_onboarding_storeBatch\` - Store generated documents
+- \`projectpulse_onboarding_listDocuments\` - Check progress
+
+---
+
+## Session 3: AI Workflow Setup
+
+### Step-by-Step Flow
+1. \`projectpulse_batch_createAgentPersonas({ personas: [...] })\` - Create 1-10 personas
+2. [Optional] \`projectpulse_batch_createSkills({ skills: [...] })\` - Create skills
+3. [Optional] \`projectpulse_batch_createWorkflowTemplates({ workflows: [...] })\` - Create workflows
+4. [Optional] \`projectpulse_batch_createSOPs({ sops: [...] })\` - Create SOPs
+5. \`projectpulse_onboarding_syncSession3()\` - Mark session complete
+
+### What Each Tool Creates
+- **Personas**: Custom AI experts (React Expert, Prisma Expert, etc.)
+- **Skills**: Reusable code patterns and conventions
+- **Workflows**: Step-by-step development procedures
+- **SOPs**: Standard operating procedures for common tasks
+
+### Tools Used
+- \`projectpulse_batch_createAgentPersonas\` - Bulk create personas
+- \`projectpulse_batch_createSkills\` - Bulk create skills
+- \`projectpulse_batch_createWorkflowTemplates\` - Bulk create workflows
+- \`projectpulse_batch_createSOPs\` - Bulk create SOPs
+- \`projectpulse_onboarding_syncSession3\` - Mark onboarding complete
+
+---
+
+## Post-Onboarding Setup
+
+After all 3 sessions complete, run these steps:
+
+### Step 1: Validate Traceability
 \`\`\`
-# Start Session 1
-projectpulse_onboarding_start({ sessionNumber: 1 })
+projectpulse_traceability_validate_documents()
+\`\`\`
+- Validates SRS→Backlog→Project-Plan coverage
+- Identifies gaps (untraced requirements, unmapped features)
+- Stores matrix as Knowledge Item
 
-# Get questions for current phase
-projectpulse_onboarding_getQuestions({ sessionNumber: 1, phase: 1 })
-
-# Save answers for a phase
-projectpulse_onboarding_saveAnswers({
-  sessionNumber: 1,
-  phase: 1,
-  answers: { "q1": "answer1", "q2": "answer2" }
+### Step 2: Create Roadmap
+\`\`\`
+projectpulse_roadmap_create({
+  projectId: YOUR_ID,
+  title: "Project Roadmap",
+  materialize: true,
+  phases: [...] // From Project-Plan document
 })
-
-# Generate executive summary (after all phases)
-projectpulse_onboarding_generateSummary({ sessionNumber: 1 })
-
-# Complete Session 1
-projectpulse_onboarding_complete({ sessionNumber: 1 })
 \`\`\`
+- Parses 13-Project-Plan.md structure
+- Creates Phase → Sprint → Week → Day hierarchy
+- Enables progress tracking
 
-**Tips for Best Results**:
-- Be specific and detailed in answers
-- Include technical constraints and preferences
-- Mention integrations and dependencies
-- Describe target users and use cases
+### Step 3: [Optional] Generate Repo Files
+If you want CLAUDE.md and AGENTS.md in your repository:
+- Use your AI's file write tools
+- Reference the personas created in Session 3
+- Follow your project's conventions
 
-## Session 2: Documentation Generation
+---
 
-**Goal**: Generate industry-standard documentation.
+## Starting Development
 
-**Documents Generated** (15 total):
+After post-onboarding setup, your agent workflow is:
 
-| Category | Documents |
-|----------|-----------|
-| Planning | PRD, SRS, Backlog, Project Plan, Budget |
-| Architecture | System Design, Data Model, API Spec |
-| Implementation | UI/UX, Security Plan, Testing Strategy |
-| Operations | Infrastructure, Observability, Success Metrics |
+1. \`projectpulse_context_load({ projectId: YOUR_ID })\` - Load context + hints
+2. \`projectpulse_agent_session_start({ name: "Feature X" })\` - Start work session
+3. [Do your development work]
+4. \`projectpulse_agent_session_end({ summary: "..." })\` - End session
 
-**MCP Tools for Agents**:
-\`\`\`
-# Start Session 2
-projectpulse_onboarding_start({ sessionNumber: 2 })
-
-# Get prompt for a specific document
-projectpulse_onboarding_getDocumentPrompt({ documentType: "PRD" })
-
-# Store generated document
-projectpulse_onboarding_storeDocument({
-  documentType: "PRD",
-  content: "# PRD\\n\\n..."
-})
-
-# Check progress
-projectpulse_onboarding_getDocumentStatus()
-
-# Complete Session 2 (after all 15 docs)
-projectpulse_onboarding_complete({ sessionNumber: 2 })
-\`\`\`
-
-## Session 3: AI Workflow Bootstrap
-
-**Goal**: Configure AI agents for your specific project.
-
-**What Gets Created**:
-- **Agent Personas**: Custom experts (React Expert, Prisma Expert, etc.)
-- **Skills Library**: Reusable code patterns and conventions
-- **Workflows**: Standard operating procedures
-- **SOPs**: Step-by-step guides for common tasks
-- **Roadmap**: Materialized Phase/Week/Day hierarchy from Project Plan
-
-**MCP Tools for Agents**:
-\`\`\`
-# Start Session 3 (one-shot bootstrap)
-projectpulse_onboarding_start({ sessionNumber: 3 })
-
-# Bootstrap creates everything automatically
-# Wait for completion confirmation
-
-# Verify bootstrap results
-projectpulse_persona_list({ projectId: YOUR_ID })
-projectpulse_skill_list({ projectId: YOUR_ID })
-\`\`\`
-
-## Starting Onboarding
-
-### For Agents (Recommended)
-
-\`\`\`
-# 1. Load context first
-response = projectpulse_context_load({ projectId: YOUR_ID })
-
-# 2. Check onboardingStatus in response
-# If not complete, follow hints to start onboarding
-
-# 3. Start appropriate session
-projectpulse_onboarding_start({ sessionNumber: 1 })
-\`\`\`
-
-### For Users (Web UI)
-
-Navigate to: **Project Dashboard → Onboarding Tab → Start Session 1**
-
-## After Onboarding
-
-Once all 3 sessions are complete:
-1. \`projectpulse_context_load\` will show "onboarding complete"
-2. Agents can start work sessions with \`projectpulse_agent_session_start\`
-3. Memory banks are populated with project context
-4. Personas and skills are available for specialized guidance
+See [[Development Workflow]] for detailed development patterns.
 `,
   },
   {
