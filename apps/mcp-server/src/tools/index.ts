@@ -74,6 +74,7 @@ import { ticketGetChildrenTool } from './tickets/getChildren.js';
 import { ticketGetHierarchyTool } from './tickets/getHierarchy.js';
 // Sprint 13: Traceability tools
 import { traceabilityGenerateTool } from './traceability/generateTool.js';
+import { traceabilityValidateDocumentsTool } from './traceability/validateDocumentsTool.js';
 // Sprint 10: Legacy issue adapter tools REMOVED (Sprint 11)
 // Use ticket tools with kind=issue|bug|scanner_finding instead
 import { materializeRoadmapTool } from './roadmap/materializeTool.js';
@@ -168,6 +169,7 @@ export const loadTools = (): ToolDefinition[] => [
   ticketGetHierarchyTool,
   // Sprint 13: Traceability tools
   traceabilityGenerateTool,
+  traceabilityValidateDocumentsTool,
   // Sprint 10: Legacy issue tools REMOVED (Sprint 11) - use ticket tools instead
   workflowListTool,
   workflowStartTool,

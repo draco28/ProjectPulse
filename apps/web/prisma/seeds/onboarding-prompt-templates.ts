@@ -279,7 +279,7 @@ Generate the summary now.`,
     category: 'onboarding',
     sessionNumber: 2,
     batch: 1,
-    systemPrompt: 'You are a Technical Writer generating industry-standard project documentation.',
+    systemPrompt: 'You are a Technical Writer generating industry-standard project documentation with full traceability.',
     userPrompt: `Generate these **Planning Documents** for Batch 1:
 
 **Documents to Generate:**
@@ -305,25 +305,49 @@ Generate the summary now.`,
 **01-PRD.md:**
 - Product vision and goals
 - User personas and stories
-- Core features with priorities
+- Core features with priorities (number each section: 2.1, 2.2, etc.)
 - Success metrics (KPIs)
 - Out of scope (what we're NOT building)
 - Use standard IEEE PRD template
+- **IMPORTANT:** Use numbered sections (e.g., "2.3 User Authentication") for traceability
 
 **02-SRS.md:**
-- Functional requirements (FR-001, FR-002, etc.)
-- Non-functional requirements (NFR-001, etc.)
+- Functional requirements labeled **FR-001**, **FR-002**, etc.
+- Non-functional requirements labeled **NFR-001**, **NFR-002**, etc.
 - Use cases with actors and flows
 - Data requirements
 - Interface requirements
-- **Ensure traceability**: Each FR traces to PRD features
+- **TRACEABILITY FORMAT (REQUIRED):** Each requirement MUST include:
+  \`Traces to: PRD Section X.Y\` (e.g., "Traces to: PRD Section 2.3")
+  
+Example:
+\`\`\`markdown
+### FR-001: User Registration
+Users must be able to create accounts with email and password.
+Traces to: PRD Section 2.1
+\`\`\`
 
 **12-Backlog.md:**
-- Prioritized user stories (Epic → Story → Task)
+- Epics labeled **EPIC-001**, **EPIC-002**, etc. (or "Epic 1:", "Epic 2:", etc.)
+- User stories labeled **US-001**, **US-002**, etc. (or "Feature 1.1", "Feature 1.2", etc.)
 - Acceptance criteria for each story
 - Story point estimates
-- Sprint assignments
-- **Ensure traceability**: Each story traces to SRS FRs
+- **TRACEABILITY FORMAT (REQUIRED):** Each item MUST include:
+  - \`Traces to: FR-###\` (required) - e.g., "Traces to: FR-001"
+  - \`Traces to: NFR-###\` (optional) - e.g., "Traces to: NFR-002"
+  - \`Sprint: N\` (required) - e.g., "Sprint: 1"
+
+Example:
+\`\`\`markdown
+### US-001: User Registration Form
+**Epic:** EPIC-001
+**Story Points:** 3
+**Sprint:** 1
+Traces to: FR-001, FR-002
+Traces to: NFR-001
+
+As a new user, I want to register with my email...
+\`\`\`
 
 **13-Project-Plan.md:**
 - Phases with sprints
@@ -331,16 +355,33 @@ Generate the summary now.`,
 - Deliverables per sprint
 - Resource allocation
 - Critical path analysis
-- **Format:** Use markdown with clear sprint structure for parsing
+- **SCOPE FORMAT (REQUIRED):** Each sprint section MUST include a backlog items list:
 
-Generate each document in order. Maintain consistency across all 4 documents.`,
+\`\`\`markdown
+### Sprint 1: Foundation (Weeks 1-2)
+
+**Goals:**
+- Set up development environment
+- Implement user authentication
+
+**Scope (Backlog Items):**
+- EPIC-001 / US-001 (FR-001, FR-002)
+- US-002 (FR-003)
+- US-003 (FR-004, NFR-001)
+
+**Deliverables:**
+- Working authentication system
+- Database schema deployed
+\`\`\`
+
+Generate each document in order. Maintain consistency and full traceability across all 4 documents.`,
     variables: {
       executiveSummary: 'string',
       projectContextJson: 'object'
     },
     temperature: 0.7,
     maxTokens: 12000,
-    description: 'Session 2 Batch 1: Planning documents (PRD, SRS, Backlog, Project Plan)',
+    description: 'Session 2 Batch 1: Planning documents (PRD, SRS, Backlog, Project Plan) with traceability',
     isActive: true
   },
   
