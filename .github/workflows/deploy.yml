@@ -1,0 +1,181 @@
+name: Deploy to Mac Mini
+
+# Triggers: Push to master OR manual trigger
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:  # Manual trigger (useful after schema changes)
+
+jobs:
+  # ==========================================================================
+  # JOB 1: Deploy to Development Environment
+  # ==========================================================================
+  deploy-dev:
+    name: Deploy Dev (port 3000/3001)
+    runs-on: self-hosted
+    
+    steps:
+      - name: Pull latest code
+        run: |
+          cd ~/projects/AI_HUB
+          git fetch origin master
+          git reset --hard origin/master
+      
+      - name: Check for schema changes
+        id: schema
+        run: |
+          cd ~/projects/AI_HUB
+          # Check if migration files or schema.prisma changed in last commit
+          SCHEMA_CHANGED=$(git diff --name-only HEAD~1 HEAD | grep -E 'prisma/migrations|schema.prisma' || echo "")
+          if [ -n "$SCHEMA_CHANGED" ]; then
+            echo "schema_changed=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Schema changes detected in this commit:"
+            echo "$SCHEMA_CHANGED"
+          else
+            echo "schema_changed=false" >> $GITHUB_OUTPUT
+            echo "✅ No schema changes detected"
+          fi
+      
+      - name: Skip if schema changes (manual handling required)
+        if: steps.schema.outputs.schema_changed == 'true'
+        run: |
+          echo "============================================"
+          echo "⚠️  SCHEMA CHANGES DETECTED - SKIPPING AUTO-DEPLOY"
+          echo "============================================"
+          echo ""
+          echo "Please run migrations manually on Mac Mini:"
+          echo ""
+          echo "  Development:"
+          echo "    cd ~/projects/AI_HUB/apps/web"
+          echo "    pnpm prisma migrate dev"
+          echo ""
+          echo "  Production:"
+          echo "    source .env.prod-local"
+          echo "    DATABASE_URL=\"postgresql://...\" pnpm db:migrate:deploy"
+          echo ""
+          echo "After migrations complete, trigger deploy manually:"
+          echo "  Option 1: gh workflow run deploy.yml"
+          echo "  Option 2: GitHub Actions tab → Run workflow"
+          echo "============================================"
+      
+      - name: Rebuild and restart dev containers
+        if: steps.schema.outputs.schema_changed == 'false'
+        run: |
+          cd ~/projects/AI_HUB
+          echo "🔄 Rebuilding and restarting dev containers..."
+          docker compose -f docker-compose.cloud.yml up -d --build nextjs mcp-server
+      
+      - name: Wait for services to start
+        if: steps.schema.outputs.schema_changed == 'false'
+        run: |
+          echo "⏳ Waiting 30 seconds for services to initialize..."
+          sleep 30
+      
+      - name: Health check - Web API
+        if: steps.schema.outputs.schema_changed == 'false'
+        run: |
+          echo "🏥 Checking web health..."
+          HEALTH=$(curl -sf http://localhost:3000/api/health)
+          echo "$HEALTH"
+          echo "$HEALTH" | grep -q '"database":"connected"' || exit 1
+          echo "✅ Web API healthy"
+      
+      - name: Health check - MCP Server
+        if: steps.schema.outputs.schema_changed == 'false'
+        run: |
+          echo "🏥 Checking MCP health..."
+          curl -sf http://localhost:3001/health || exit 1
+          echo "✅ MCP Server healthy"
+      
+      - name: Dev deployment summary
+        if: steps.schema.outputs.schema_changed == 'false'
+        run: |
+          echo ""
+          echo "============================================"
+          echo "✅ DEV DEPLOYMENT COMPLETE"
+          echo "============================================"
+          echo "  Web:  http://localhost:3000"
+          echo "  MCP:  http://localhost:3001"
+          echo "============================================"
+
+  # ==========================================================================
+  # JOB 2: Deploy to Production Environment
+  # ==========================================================================
+  deploy-prod:
+    name: Deploy Prod (port 8080/8081)
+    needs: deploy-dev
+    runs-on: self-hosted
+    # Only run if dev deployment succeeded and no schema changes
+    if: |
+      github.ref == 'refs/heads/master' && 
+      needs.deploy-dev.result == 'success'
+    
+    steps:
+      - name: Check for pending production migrations
+        id: pending
+        run: |
+          cd ~/projects/AI_HUB
+          
+          # Check if .env.prod-local exists
+          if [ ! -f .env.prod-local ]; then
+            echo "⚠️ .env.prod-local not found, skipping prod deployment"
+            echo "pending=skip" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Load prod environment
+          source .env.prod-local
+          
+          # Check for pending migrations
+          PENDING=$(DATABASE_URL="postgresql://${PROD_POSTGRES_USER:-projectpulse}:${PROD_POSTGRES_PASSWORD}@localhost:5433/${PROD_POSTGRES_DB:-projectpulse_prod}" \
+            npx prisma migrate status 2>&1 | grep -c "pending" || echo "0")
+          
+          if [ "$PENDING" -gt 0 ]; then
+            echo "pending=true" >> $GITHUB_OUTPUT
+            echo "⚠️ $PENDING pending migration(s) detected"
+          else
+            echo "pending=false" >> $GITHUB_OUTPUT
+            echo "✅ No pending migrations"
+          fi
+      
+      - name: Skip if no prod environment
+        if: steps.pending.outputs.pending == 'skip'
+        run: |
+          echo "⚠️ Production environment not configured, skipping"
+          echo "To enable: create .env.prod-local from .env.prod-local.example"
+      
+      - name: Fail if pending migrations
+        if: steps.pending.outputs.pending == 'true'
+        run: |
+          echo "============================================"
+          echo "❌ PENDING MIGRATIONS - CANNOT DEPLOY TO PROD"
+          echo "============================================"
+          echo ""
+          echo "Run production migrations manually:"
+          echo "  cd ~/projects/AI_HUB"
+          echo "  source .env.prod-local"
+          echo "  DATABASE_URL=\"postgresql://\${PROD_POSTGRES_USER}:\${PROD_POSTGRES_PASSWORD}@localhost:5433/\${PROD_POSTGRES_DB}\" \\"
+          echo "    pnpm db:migrate:deploy"
+          echo ""
+          echo "Then re-run this workflow."
+          echo "============================================"
+          exit 1
+      
+      - name: Deploy to production
+        if: steps.pending.outputs.pending == 'false'
+        run: |
+          cd ~/projects/AI_HUB
+          echo "🚀 Deploying to production..."
+          ./scripts/deploy-prod.sh --quick
+      
+      - name: Production deployment summary
+        if: steps.pending.outputs.pending == 'false'
+        run: |
+          echo ""
+          echo "============================================"
+          echo "✅ PRODUCTION DEPLOYMENT COMPLETE"
+          echo "============================================"
+          echo "  Web:      http://localhost:8080"
+          echo "  MCP:      http://localhost:8081"
+          echo "  External: https://projectpulse.dracodev.dev"
+          echo "============================================"
