@@ -267,7 +267,7 @@ export default async function TicketsPage({
                           title: ticket.title,
                           description: ticket.description || '',
                           priority: ticket.priority as 'critical' | 'high' | 'medium' | 'low',
-                          module: ticket.module || 'Unknown',
+                          module: ticket.module || '',
                           status: ticket.status as 'open' | 'in-progress' | 'closed',
                           assignee: ticket.assignee || 'Unassigned',
                           createdAt: ticket.createdAt,

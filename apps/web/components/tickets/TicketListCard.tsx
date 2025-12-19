@@ -103,10 +103,12 @@ export function TicketListCard({ ticket, projectId }: TicketListCardProps) {
                 {priorityInfo.label}
               </span>
 
-              {/* Module Badge */}
-              <span className="rounded-full bg-coral px-3 py-1 text-xs font-semibold text-white shadow-md">
-                {ticket.module}
-              </span>
+              {/* Module Badge - only show if module is set */}
+              {ticket.module && (
+                <span className="rounded-full bg-coral px-3 py-1 text-xs font-semibold text-white shadow-md">
+                  {ticket.module}
+                </span>
+              )}
 
               {/* Status Badge */}
               <span
