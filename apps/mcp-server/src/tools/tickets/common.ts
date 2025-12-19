@@ -204,7 +204,16 @@ export const ticketInputProperties = {
   customFields: {
     type: 'object',
     additionalProperties: true,
-    description: 'Arbitrary custom fields stored on the ticket',
+    description: `Arbitrary custom fields stored on the ticket. RECOMMENDED: Use '_implementationContext' for feature planning:
+{
+  "_implementationContext": {
+    "phaseSprintRef": { "displayName": "Phase 1 / Sprint 2", "phaseId": "uuid", "sprintId": "uuid" },
+    "filesToModify": [{ "path": "src/file.ts", "estimatedChanges": "minor|moderate|major", "reason": "..." }],
+    "filesToCreate": [{ "path": "src/new.ts", "purpose": "...", "template": "component|api|test" }],
+    "schemaChanges": { "required": true, "migrationName": "add_xyz", "models": ["Model"], "description": "..." },
+    "implementationBlueprint": "# Plan\\n## Steps\\n1. Create X\\n2. Update Y\\n..."
+  }
+}`,
   },
   context: {
     type: 'object',
