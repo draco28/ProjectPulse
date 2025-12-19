@@ -142,26 +142,30 @@ export async function getFilterCounts(projectId?: number) {
   const options = await getFilterOptions(projectId);
 
   // Sprint 10: Use ticket model with kind filter for backwards compatibility
-  const issueKindFilter = { kind: { in: ['issue', 'bug', 'scanner_finding'] } };
+  // Sprint 14: Add projectId to base filter to fix data bleeding bug (Ticket #19)
+  const baseFilter = {
+    ...(projectId && { projectId }),
+    kind: { in: ['issue', 'bug', 'scanner_finding'] },
+  };
 
   // Build count queries for all filter values
   const countQueries = [
     // Status counts
     ...options.status.map((opt) =>
       prisma.ticket
-        .count({ where: { ...issueKindFilter, status: opt.value } })
+        .count({ where: { ...baseFilter, status: opt.value } })
         .then((count) => ({ type: 'status', value: opt.value, count }))
     ),
     // Priority counts
     ...options.priority.map((opt) =>
       prisma.ticket
-        .count({ where: { ...issueKindFilter, priority: opt.value } })
+        .count({ where: { ...baseFilter, priority: opt.value } })
         .then((count) => ({ type: 'priority', value: opt.value, count }))
     ),
     // Module counts
     ...options.modules.map((opt) =>
       prisma.ticket
-        .count({ where: { ...issueKindFilter, module: opt.value } })
+        .count({ where: { ...baseFilter, module: opt.value } })
         .then((count) => ({ type: 'module', value: opt.value, count }))
     ),
     // Sprint 11.7: Label counts
@@ -169,7 +173,7 @@ export async function getFilterCounts(projectId?: number) {
       prisma.ticket
         .count({
           where: {
-            ...issueKindFilter,
+            ...baseFilter,
             labels: { some: { id: label.id } },
           },
         })
