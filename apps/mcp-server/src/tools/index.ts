@@ -98,6 +98,8 @@ import { knowledgeImportTool } from './knowledge/importTool.js';
 import { knowledgeArchiveTool } from './knowledge/archiveTool.js';
 import { knowledgeMetricsTool } from './knowledge/metricsTool.js';
 import { knowledgeRelatedTool } from './knowledge/relatedTool.js';
+// Sprint 14: Knowledge get tool (retrieves full content by ID)
+import { knowledgeGetTool } from './knowledge/getTool.js';
 // Sprint 11: Client Agent Integration APIs (EPIC-013)
 import { personaListTool } from './personas/listTool.js';
 import { personaGetTool } from './personas/getTool.js';
@@ -204,6 +206,7 @@ export const loadTools = (): ToolDefinition[] => [
   knowledgeArchiveTool,
   knowledgeMetricsTool,
   knowledgeRelatedTool,
+  knowledgeGetTool,     // Sprint 14: Full content retrieval by ID
   // Sprint 11: Client Agent Integration APIs (EPIC-013)
   personaListTool,
   personaGetTool,
