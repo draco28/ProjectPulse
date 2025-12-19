@@ -14,6 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth-server';
 import { INITIAL_TEMPLATES } from '@/lib/wiki/system-templates';
@@ -159,6 +160,19 @@ export async function POST(
             updatedAt: new Date(),
           },
         });
+      }
+    }
+
+    // Revalidate ISR cache for all affected pages (not just updated ones)
+    // This ensures the cache is busted even if content was already up-to-date in DB
+    if (!isPreview) {
+      const allPaths = [
+        ...result.updated.map((p) => p.path),
+        ...result.unchanged.map((p) => p.path),
+      ];
+      for (const path of allPaths) {
+        // Wiki pages are served at /wiki/[path-without-leading-slash]
+        revalidatePath(`/wiki${path}`);
       }
     }
 

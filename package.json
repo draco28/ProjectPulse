@@ -41,6 +41,8 @@
     "mcp:dev": "pnpm --filter mcp-server dev",
     "mcp:build": "pnpm --filter mcp-server build",
     "mcp:start": "pnpm --filter mcp-server start",
+    "dogfood:bootstrap": "npx tsx scripts/dogfood-bootstrap.ts",
+    "dogfood:dry-run": "npx tsx scripts/dogfood-bootstrap.ts --dry-run",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "pnpm --filter web clean && rm -rf node_modules",

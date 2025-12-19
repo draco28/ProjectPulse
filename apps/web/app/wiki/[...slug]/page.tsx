@@ -1,5 +1,7 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
 import { ChevronRight } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
@@ -232,15 +234,38 @@ export async function generateStaticParams() {
 }
 
 export default async function WikiPage({ params }: PageProps) {
+  // Auth check: Require authentication
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    redirect('/login');
+  }
+
   const resolvedParams = await params;
   // Handle nested slugs (e.g., ['my-project', 'getting-started'])
   const slugArray = resolvedParams.slug;
   const slugPath = Array.isArray(slugArray) ? slugArray.join('/') : slugArray;
-  
+
   const page = await getWikiPage(slugPath);
 
   if (!page) {
     notFound();
+  }
+
+  // Auth check: Verify user owns this project
+  const userId = (session.user as { id?: string }).id;
+  if (userId) {
+    const hasAccess = await prisma.project.findFirst({
+      where: {
+        id: page.projectId,
+        ownerId: userId,
+      },
+      select: { id: true },
+    });
+
+    if (!hasAccess) {
+      // User doesn't own this project - show 404 (don't reveal page exists)
+      notFound();
+    }
   }
 
   const [categories, revisions] = await Promise.all([
