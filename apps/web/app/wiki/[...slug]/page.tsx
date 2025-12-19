@@ -21,8 +21,8 @@ interface PageProps {
   }>;
 }
 
-// ISR: Revalidate every hour (3600 seconds)
-export const revalidate = 3600;
+// Force dynamic rendering since we need auth on every request
+export const dynamic = 'force-dynamic';
 
 interface Category {
   name: string;
