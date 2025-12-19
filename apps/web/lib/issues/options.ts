@@ -1,6 +1,27 @@
 import type { IssueOptionSets } from '@/lib/types/issues';
 import { prisma } from '@/lib/prisma';
 
+/**
+ * Custom error for option validation failures
+ * Allows API routes to catch and return 400 instead of 500
+ */
+export class OptionValidationError extends Error {
+  readonly code = 'VALIDATION_ERROR';
+  readonly field: string;
+  readonly invalidValue: string;
+  readonly validValues: string[];
+
+  constructor(field: string, invalidValue: string, validValues: string[]) {
+    const validList = validValues.slice(0, 10).join(', ');
+    const message = `Invalid ${field} value: "${invalidValue}". Valid values are: ${validList}`;
+    super(message);
+    this.name = 'OptionValidationError';
+    this.field = field;
+    this.invalidValue = invalidValue;
+    this.validValues = validValues;
+  }
+}
+
 const CACHE_TTL_MS = 1000 * 60; // 1 minute
 let cachedOptions: IssueOptionSets | null = null;
 let lastLoadedAt = 0;
@@ -49,7 +70,11 @@ export async function resolveStatusValue(input?: string) {
     const normalizedInput = input.replace(/_/g, '-');
     const match = options.statuses.find((option) => option.value === normalizedInput || option.value === input);
     if (!match) {
-      throw new Error(`Invalid status value: ${input}`);
+      throw new OptionValidationError(
+        'status',
+        input,
+        options.statuses.map((s) => s.value)
+      );
     }
     return match.value;
   }
@@ -65,7 +90,11 @@ export async function resolvePriorityValue(input?: string) {
   if (input) {
     const match = options.priorities.find((option) => option.value === input);
     if (!match) {
-      throw new Error(`Invalid priority value: ${input}`);
+      throw new OptionValidationError(
+        'priority',
+        input,
+        options.priorities.map((p) => p.value)
+      );
     }
     return match.value;
   }
@@ -83,7 +112,11 @@ export async function resolveModuleValue(input?: string) {
   const options = await getIssueOptionSets();
   const match = options.modules.find((option) => option.value === input);
   if (!match) {
-    throw new Error(`Invalid module value: ${input}`);
+    throw new OptionValidationError(
+      'module',
+      input,
+      options.modules.map((m) => m.value)
+    );
   }
   return match.value;
 }

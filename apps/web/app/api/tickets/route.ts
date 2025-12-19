@@ -16,7 +16,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { CreateTicketSchema, TicketFilterSchema, TicketKind } from '@/lib/validations/ticket';
 import { failure, success, resolveProjectId, buildTicketWhere, buildTicketOrderBy, ticketIncludeConfig } from './_utils';
-import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
+import { resolveModuleValue, resolvePriorityValue, resolveStatusValue, OptionValidationError } from '@/lib/issues/options';
 import { deriveAutoTags } from '@/lib/issues/tagging';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
@@ -283,6 +283,20 @@ export async function POST(request: NextRequest) {
       return failure({
         code: error.code,
         message: error.message,
+        status: 400,
+      });
+    }
+
+    // Sprint 14: Handle option validation errors (invalid status/priority/module)
+    if (error instanceof OptionValidationError) {
+      return failure({
+        code: error.code,
+        message: error.message,
+        details: {
+          field: error.field,
+          invalidValue: error.invalidValue,
+          validValues: error.validValues,
+        },
         status: 400,
       });
     }
