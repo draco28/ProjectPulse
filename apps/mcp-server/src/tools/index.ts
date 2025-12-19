@@ -70,6 +70,8 @@ import { ticketSetStatusTool } from './tickets/setStatus.js';
 // Sprint 13: Ticket hierarchy tools
 import { ticketGetChildrenTool } from './tickets/getChildren.js';
 import { ticketGetHierarchyTool } from './tickets/getHierarchy.js';
+// Sprint 14: Full ticket details tool
+import { ticketGetTool } from './tickets/get.js';
 // Sprint 13: Traceability tools
 import { traceabilityGenerateTool } from './traceability/generateTool.js';
 import { traceabilityValidateDocumentsTool } from './traceability/validateDocumentsTool.js';
@@ -165,6 +167,8 @@ export const loadTools = (): ToolDefinition[] => [
   // Sprint 13: Ticket hierarchy tools
   ticketGetChildrenTool,
   ticketGetHierarchyTool,
+  // Sprint 14: Full ticket details tool
+  ticketGetTool,
   // Sprint 13: Traceability tools
   traceabilityGenerateTool,
   traceabilityValidateDocumentsTool,
