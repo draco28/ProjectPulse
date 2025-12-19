@@ -214,7 +214,11 @@
       "Bash(rg:*)",
       "Bash(for dir in .agent/task/*/)",
       "Bash(for dir in .agent/task/archive/*/)",
-      "Bash(sort:*)"
+      "Bash(sort:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@localhost:5432/projectpulse_dev\" npx prisma migrate dev:*)",
+      "mcp__projectpulse__projectpulse_onboarding_savePhase",
+      "mcp__projectpulse__projectpulse_onboarding_getPhasedQuestions",
+      "mcp__projectpulse__projectpulse_onboarding_storeDocument"
     ],
     "deny": [],
     "ask": [
@@ -224,6 +228,10 @@
       "Bash(git push:*)"
     ]
   },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "projectpulse"
+  ],
   "outputStyle": "Explanatory",
   "settings": {
     "project_name": "ProjectPulse (AI_HUB)",

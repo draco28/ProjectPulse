@@ -19,6 +19,9 @@
 # Production environment (Sprint 11 - contains secrets)
 .env.prod-local
 
+# MCP configuration (contains bearer tokens)
+.mcp.json
+
 # ============================================================================
 # DEPENDENCIES
 # ============================================================================

@@ -62,8 +62,8 @@ docker compose -f docker-compose.cloud.yml ps
 - Then re-run the health check from Step 1.
 
 **See**:
-- [docs/11-Infrastructure-and-Deployment.md](docs/11-Infrastructure-and-Deployment.md)
-- [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
+- [.agent/tech-context.md](.agent/tech-context.md)
+- [.agent/system-patterns.md](.agent/system-patterns.md)
 
 ### 3. Git Branch
 
@@ -105,55 +105,6 @@ git checkout -b feature/your-feature
 - Docker management (restart, logs, migrations)
 
 **Complete Setup**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
-
-**Legacy Workflows**: For deprecated Windows/Mac cross-machine communication, see [.agent/archive/windows-mac-communication-legacy.md](.agent/archive/windows-mac-communication-legacy.md)
-
----
-
-## 🚨 CRITICAL: Mandatory Session Protocol
-
-**EVERY session MUST start with the mandatory protocol.**
-
-**Why this exists:** I read instructions but don't follow them unless explicitly prompted with confirmations.
-
-**How it works:**
-
-1. You copy-paste a starter prompt at session start
-2. I must complete all protocol steps
-3. I must confirm each step explicitly
-4. Missing confirmation = workflow violation (you call me out)
-
-**⚠️ CRITICAL UPDATE (2025-11-10)**: Protocol violations log added to enforce compliance. Before starting ANY session, read the Protocol Violations Log in [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md) to see what went wrong and the 9-point checklist that MUST be satisfied.
-
-**📋 Full Protocol:** [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md)
-**🚀 Quick Start Guide:** [SESSION_START_QUICK_GUIDE.md](SESSION_START_QUICK_GUIDE.md)
-
----
-
-## Session Start Pattern (REQUIRED PROTOCOL)
-
-### Starter Prompt (Copy-Paste This)
-
-At the start of **EVERY** session, copy-paste this:
-
-```
-MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
-
-Current phase: [copy from .agent/active-context.md or .agent/progress.md]
-Requirements: [copy from docs/13-Project-Plan.md]
-
-ENFORCE:
-- ✅ Step 1: Initialize session
-- ✅ Step 2: Save plan BEFORE code
-- ✅ Step 3: Consult experts
-- ✅ Step 4: Checkpoints every 15K tokens
-- ✅ Step 4.5: Verification gate (evidence-based)
-- ✅ Step 5: Post-completion workflow
-
-Confirm each step explicitly. If you skip ANY step, I will stop you.
-
-Proceed with [phase name].
-```
 
 ### What I Must Do (Per Protocol)
 
@@ -283,30 +234,6 @@ Per protocol Step 3, I am REQUIRED to:
 - **No information loss**: Everything is saved to files, not just in messages
 - **Parent agent stays informed**: current-session.md tracks entire session progress
 
-### Example Flow with Context Files
-
-```
-Session Start:
-1. I create: .agent/task/current-session-20251026-1430.md
-2. Content: "Phase 3.1: Issue Management API - implementing POST /api/issues"
-
-Need Architecture Understanding:
-3. I invoke: analyze-architecture sub-agent
-4. I tell it: "Read .agent/task/current-session-20251026-1430.md first"
-5. Sub-agent reads context, analyzes, creates:
-   .agent/task/architecture-issues-20251026-1445.md
-6. Sub-agent returns: "Analysis complete. Read the report at [file path]"
-7. I read the report file
-8. I use report to guide implementation
-
-Implementation Complete:
-9. I update: .agent/task/current-session-20251026-1430.md
-   Add: "Implemented POST /api/issues following patterns from architecture report"
-10. I invoke: synthesize-docs sub-agent
-11. Sub-agent reads context, creates SOP
-12. I commit everything
-```
-
 ## 3-Tier Persistence Strategy (REQUIRED PER PROTOCOL)
 
 **Comprehensive progress tracking - REQUIRED by Steps 1, 2, and 4**
@@ -398,115 +325,6 @@ To ensure no progress is ever lost, the protocol requires three levels of progre
 5. Archive `current-todos.md` → `archive/phase-X-day-Y-todos-COMPLETE.md`
 6. Optional Memory MCP update with phase summary
 
-### Manual Save Guidance
-
-**⚠️ CRITICAL: There is NO automatic save - you must save manually**
-
-**When to save progress:**
-
-1. **Before reaching 150K tokens** (75% of limit)
-   - Monitor system warnings: "Token usage: X/200000"
-   - Save when you see 140-150K range
-
-2. **After significant milestones:**
-   - Component fully implemented
-   - API endpoint working
-   - Feature section complete
-
-3. **Before risky operations:**
-   - Large refactorings
-   - Multi-file changes
-   - Long debugging sessions
-
-**How to save manually:**
-
-1. Update `current-session-[timestamp].md` with latest progress
-2. Update `current-todos.md` with task statuses
-3. Update `.agent/progress.md` at major checkpoints
-4. Brief note: "💾 Progress saved at [X]K tokens"
-
-**Token Counter Quick Reference**:
-
-- Current usage shown in system warnings: "Token usage: X/200000"
-- 140-150K = ⚠️ Warning (save soon)
-- 150-180K = 🟡 Caution (save frequently)
-- 180K+ = 🔴 Danger (save immediately)
-- ~200K = 💥 Auto-compaction imminent
-
-**After manual save**:
-
-- Continue working (you have buffer remaining)
-- Or manually compact context if approaching limits
-- Or start new session for next major task
-
-### Plan Mode Workflow
-
-**⚠️ REQUIRED: Always save plans after user approval**
-
-When you create a plan in plan mode and user approves with ExitPlanMode:
-
-1. **IMMEDIATELY save plan** to `.agent/task/current-plan.md`
-   - Single reusable file (overwrites previous plan)
-   - Include: overview, steps, dependencies, success criteria
-
-2. **Update session file**: Note that plan was saved
-
-3. **Proceed with implementation** using the saved plan
-
-**Why this matters**:
-
-- Plans in conversation history are LOST during context compaction
-- Saved plan survives compaction and session interruptions
-- You can always reference `.agent/task/current-plan.md`
-
-**File location**: `.agent/task/current-plan.md` (single file, not timestamped)
-
-**Example workflow**:
-
-```
-User: "Create a plan for implementing search feature"
-You: [Create plan, call ExitPlanMode]
-User: [Approves plan]
-You: [Save to current-plan.md, update session file, begin implementation]
-```
-
-### Recovery Workflow
-
-**If context compacts or session interrupted**:
-
-```
-Step 1: Read .agent/active-context.md and .agent/progress.md
-→ "Current: Phase 3 Day 4, 60% complete, last: CommentForm component"
-
-Step 2: Find latest .agent/task/current-session-[timestamp].md
-→ "Was implementing CommentList at 16:45"
-
-Step 3: Read .agent/task/current-todos.md
-→ "5/20 tasks done, CommentList in progress, 14 pending"
-
-Step 4: Resume
-→ "I see we're implementing CommentList. Let me continue from line 45..."
-```
-
-**No progress is lost!** ✅
-
-**Token overhead**: ~3-5K tokens per phase (2.5% of budget) for complete progress safety
-
----
-
-### Documentation System
-
-### Session Start - Read in Order
-
-1. **[docs/13-Project-Plan.md](docs/13-Project-Plan.md)** - Implementation roadmap
-2. **[docs/12-Backlog.md](docs/12-Backlog.md)** - User stories and backlog
-3. **[docs/README.md](docs/README.md)** - Complete documentation index
-4. **This file** (CLAUDE.md) - Integration guide
-5. **[.agent/README.md](.agent/README.md)** - Agent documentation
-
-**Note**: STATUS.md is retired. Use `.agent/progress.md` for current phase and `.agent/active-context.md` for current work.
-
-**Then I automatically load skills/.agent/ docs based on phase keywords.**
 
 ### Memory Bank System (MANDATORY)
 
@@ -598,23 +416,6 @@ Need progress overview?             → progress.md
 The `.agent/` folder exists in THIS repository because we're using our own early version of ProjectPulse to build ProjectPulse itself (dogfooding). But end users won't have `.agent/` folders - they'll have a clean codebase with all tracking in the ProjectPulse database.
 
 ---
-
-### Finding Information
-
-**Project Documentation (Main):**
-**Looking for requirements?** → [docs/01-PRD.md](docs/01-PRD.md) or [docs/02-SRS.md](docs/02-SRS.md)
-**Looking for architecture?** → [docs/03-Architecture.md](docs/03-Architecture.md)
-**Looking for API spec?** → [docs/06-API/openapi.yaml](docs/06-API/openapi.yaml)
-**Looking for project plan?** → [docs/13-Project-Plan.md](docs/13-Project-Plan.md)
-**Looking for all docs?** → [docs/README.md](docs/README.md)
-
-**Agent Context (.agent/):**
-**Looking for patterns?** → [.agent/system-patterns.md](.agent/system-patterns.md)
-**Looking for tech details?** → [.agent/tech-context.md](.agent/tech-context.md)
-**Looking for current work?** → [.agent/active-context.md](.agent/active-context.md)
-**Looking for progress?** → [.agent/progress.md](.agent/progress.md)
-**Looking for procedures?** → [.agent/sops/](.agent/sops/)
-**Looking for system docs?** → [.agent/system/](.agent/system/)
 
 ### Key Documentation
 
@@ -788,6 +589,60 @@ Me: "This needs Next.js routing + React optimization expertise.
 
 ---
 
+## 🎫 ProjectPulse Ticket Integration
+
+**Project ID**: 6 (always use this for ProjectPulse itself)
+
+When the user mentions work to be tracked, create a ticket via MCP:
+
+| User Says | Ticket Kind |
+|-----------|-------------|
+| "Add feature X", "We need X" | `feature` |
+| "Do X", "Set up X", "Implement X" | `task` |
+| "X is broken", "X doesn't work" | `bug` |
+| "X needs refactoring", "Clean up X" | `tech_debt` |
+| "I'm concerned about X", "X seems off" | `issue` |
+
+**Process**:
+1. Create ticket using `projectpulse_ticket_create`
+2. Set `kind` based on the table above
+3. Set `priority` based on severity/urgency (low, medium, high, critical)
+4. Set `source: "agent"` since I'm creating it
+5. Include detailed `description`
+
+**Example**:
+```
+User: "The search returns wrong results when using special characters"
+Me: [Creates ticket via MCP: kind="bug", priority="medium",
+     title="Search returns wrong results with special characters"]
+```
+
+---
+
+## 📚 ProjectPulse Knowledge Items
+
+**Project ID**: 6 (always use this for ProjectPulse itself)
+
+### When to Store Knowledge
+- Important discoveries during development
+- Decisions made that affect future work
+- Solutions to recurring problems
+- When user explicitly asks to remember something
+
+**Store**: Use `projectpulse_knowledge_create` with title, content (markdown), category, tags
+
+### When to Retrieve Knowledge
+- Before starting unfamiliar tasks
+- When confused about project context
+- When user asks to check knowledge
+- Before making significant decisions
+
+**Search**: Use `projectpulse_knowledge_search` with query and `mode: "hybrid"`
+
+**⚡ Proactive Retrieval**: When unsure about something, FIRST search knowledge items before asking user.
+
+---
+
 ## Best Practices
 
 ### 1. Be Specific
@@ -899,6 +754,15 @@ Initialize or update .agent/ documentation system
 
 **Deep codebase analysis needed?**
 → Use Gemini CLI (see [GEMINI.md](GEMINI.md))
+
+**Found a bug or issue?**
+→ Create ticket via `projectpulse_ticket_create` (projectId: 6)
+
+**Need to remember something important?**
+→ Store via `projectpulse_knowledge_create` (projectId: 6)
+
+**Confused about project context?**
+→ Search via `projectpulse_knowledge_search` (projectId: 6)
 
 ---
 
