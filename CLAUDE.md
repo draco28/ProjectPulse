@@ -617,6 +617,40 @@ Me: [Creates ticket via MCP: kind="bug", priority="medium",
      title="Search returns wrong results with special characters"]
 ```
 
+### Agent Ticket Workflow
+
+**Assignee**: Always set `assignee: "Claude Code"` when:
+- I create a ticket that I will immediately work on
+- I'm claiming an existing ticket to work on
+
+**Status Transitions** (REQUIRED):
+| When | Action |
+|------|--------|
+| Create ticket | Status defaults to `open` |
+| Start working | Update to `in-progress` BEFORE coding |
+| Complete work | Update to `closed` AFTER verification |
+
+**Complete Workflow** (5 steps):
+| Step | Action | MCP Tool |
+|------|--------|----------|
+| 1. Create | Create ticket with assignee | `ticket_create` |
+| 2. Plan | Add implementation plan to customFields | `ticket_update` |
+| 3. Claim | Set status to `in-progress` | `ticket_update` |
+| 4. Work | Implement, test, commit | (code tools) |
+| 5. Close | Set status to `closed` | `ticket_update` |
+
+**Workflow Example**:
+```
+1. User: "Fix the search bug"
+2. Me: [Create ticket: kind=bug, assignee="Claude Code", status=open]
+3. Me: [Update ticket: add plan to customFields._implementationContext]
+4. Me: [Update ticket: status="in-progress"]
+5. Me: [Implement fix, test, commit]
+6. Me: [Update ticket: status="closed"]
+```
+
+**Note**: Valid status values are `open`, `in-progress`, `closed` (NOT `completed`!)
+
 ---
 
 ## 📚 ProjectPulse Knowledge Items
