@@ -155,7 +155,7 @@ export const ticketInputProperties = {
   },
   module: {
     type: 'string',
-    description: 'Module tag (UI, API, Database, etc.)',
+    description: 'Module tag for categorization (e.g., UI, API, Database, MCP, Auth, Testing, Docs, DevOps, Core). Free-form text - use consistent values within your project.',
   },
   assignee: {
     type: 'string',
