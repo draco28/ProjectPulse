@@ -31,8 +31,15 @@ export function WikiSearchBar({ searchParams }: WikiSearchBarProps) {
   const [search, setSearch] = useState(searchParams.search || '');
   const sortBy = searchParams.sort || 'newest';
 
+  // Track previous search to detect actual changes
+  const [prevSearch, setPrevSearch] = useState(searchParams.search || '');
+
   // Debounced search (300ms delay)
+  // Sprint 14: Only run when search actually changes, not on every URL change (Ticket #21)
   useEffect(() => {
+    // Skip if search hasn't actually changed (prevents pagination reset)
+    if (search === prevSearch) return;
+
     const handler = setTimeout(() => {
       const params = new URLSearchParams(currentSearchParams?.toString());
 
@@ -42,14 +49,15 @@ export function WikiSearchBar({ searchParams }: WikiSearchBarProps) {
         params.delete('search');
       }
 
-      // Reset to page 1 when searching
+      // Reset to page 1 when searching (only when search actually changed)
       params.delete('page');
 
+      setPrevSearch(search);
       router.push(`/wiki?${params.toString()}`);
     }, 300);
 
     return () => clearTimeout(handler);
-  }, [search, router, currentSearchParams]);
+  }, [search, prevSearch, router, currentSearchParams]);
 
   const handleClear = () => {
     setSearch('');
