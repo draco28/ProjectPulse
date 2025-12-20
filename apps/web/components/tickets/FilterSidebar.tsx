@@ -17,9 +17,40 @@ import { useFilterParams } from '@/hooks/useFilterParams';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { FiltersDTO, FilterCounts } from '@/types/filters';
-import { X, RefreshCw, AlertCircle, Box, Layers, Tag } from 'lucide-react';
-import { useEffect } from 'react';
+import { X, RefreshCw, AlertCircle, Box, Layers, Tag, ChevronDown } from 'lucide-react';
+import { useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+
+// Sprint 14: Semantic badge colors for filter counts (Ticket #23)
+const STATUS_BADGE_COLORS: Record<string, string> = {
+  open: 'bg-emerald-500',
+  'in-progress': 'bg-amber-500',
+  closed: 'bg-slate-500',
+};
+
+const PRIORITY_BADGE_COLORS: Record<string, string> = {
+  critical: 'bg-red-500',
+  high: 'bg-orange-500',
+  medium: 'bg-blue-500',
+  low: 'bg-slate-400',
+};
+
+const KIND_BADGE_COLORS: Record<string, string> = {
+  feature: 'bg-blue-500',
+  task: 'bg-green-500',
+  epic: 'bg-purple-500',
+  issue: 'bg-yellow-500',
+  bug: 'bg-red-500',
+  scanner_finding: 'bg-orange-500',
+  tech_debt: 'bg-gray-500',
+};
+
+const MODULE_BADGE_COLOR = 'bg-teal-500';
 
 // Kind configuration for display
 const kindConfig: Record<string, { label: string }> = {
@@ -31,6 +62,35 @@ const kindConfig: Record<string, { label: string }> = {
   scanner_finding: { label: 'Scanner Finding' },
   tech_debt: { label: 'Tech Debt' },
 };
+
+// Sprint 14: Collapsible filter section component (Ticket #23)
+interface FilterSectionProps {
+  title: string;
+  icon: ReactNode;
+  defaultOpen?: boolean;
+  children: ReactNode;
+  testId?: string;
+}
+
+function FilterSection({ title, icon, defaultOpen = false, children, testId }: FilterSectionProps) {
+  return (
+    <Collapsible defaultOpen={defaultOpen} className="mb-6" data-testid={testId}>
+      <CollapsibleTrigger className="group mb-3 flex w-full items-center justify-between">
+        <h4 className="flex items-center gap-2 font-semibold text-white">
+          {icon}
+          {title}
+        </h4>
+        <ChevronDown
+          className="h-4 w-4 text-slate transition-transform duration-200 group-data-[state=open]:rotate-180"
+          aria-hidden="true"
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3 data-[state=closed]:animate-collapse data-[state=open]:animate-expand">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
 
 interface FilterSidebarProps {
   options: FiltersDTO; // Dynamic filter options from database
@@ -88,206 +148,206 @@ export function FilterSidebar({
           )}
         </div>
 
-        {/* Type (Kind) Filter */}
+        {/* Type (Kind) Filter - Collapsed by default */}
         {options.kinds && options.kinds.length > 0 && (
-          <div className="mb-6" data-testid="kind-filter">
-            <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Layers className="h-4 w-4 text-coral" aria-hidden="true" />
-              Type
-            </h4>
-            <div className="space-y-3">
-              {options.kinds.map((kind) => {
-                const count = counts.kind?.[kind] || 0;
-                const isChecked = isActive('kind', kind);
-                const label = kindConfig[kind]?.label || kind;
-
-                return (
-                  <label
-                    key={kind}
-                    data-testid={`kind-option-${kind}`}
-                    className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={(e) => updateFilter('kind', kind, e.target.checked)}
-                    />
-                    <span className="flex-1">{label}</span>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        count > 0 && isChecked
-                          ? 'bg-coral text-white'
-                          : 'neu-pressed text-slate'
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Status Filter */}
-        <div className="mb-6" data-testid="status-filter">
-          <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <RefreshCw className="h-4 w-4 text-coral" aria-hidden="true" />
-            Status
-          </h4>
-          <div className="space-y-3">
-            {options.status.map((option) => {
-              const count = counts.status[option.value] || 0;
-              const isChecked = isActive('status', option.value);
+          <FilterSection
+            title="Type"
+            icon={<Layers className="h-4 w-4 text-coral" aria-hidden="true" />}
+            defaultOpen={false}
+            testId="kind-filter"
+          >
+            {options.kinds.map((kind) => {
+              const count = counts.kind?.[kind] || 0;
+              const isChecked = isActive('kind', kind);
+              const label = kindConfig[kind]?.label || kind;
+              const badgeColor = KIND_BADGE_COLORS[kind] || 'bg-gray-500';
 
               return (
                 <label
-                  key={option.value}
-                  data-testid={`status-option-${option.value}`}
+                  key={kind}
+                  data-testid={`kind-option-${kind}`}
                   className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={(e) => updateFilter('status', option.value, e.target.checked)}
+                    onChange={(e) => updateFilter('kind', kind, e.target.checked)}
                   />
-                  <span className="flex-1">{option.label}</span>
+                  <span className="flex-1">{label}</span>
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      count > 0 && isChecked
-                        ? `${option.colorClass || 'bg-coral'} text-white`
-                        : 'neu-pressed text-slate'
-                    }`}
+                    className={cn(
+                      'rounded-full px-2.5 py-1 text-xs font-semibold',
+                      count > 0 ? `${badgeColor} text-white` : 'neu-pressed text-slate'
+                    )}
                   >
                     {count}
                   </span>
                 </label>
               );
             })}
-          </div>
-        </div>
+          </FilterSection>
+        )}
 
-        {/* Priority Filter */}
-        <div className="mb-6" data-testid="priority-filter">
-          <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <AlertCircle className="h-4 w-4 text-coral" aria-hidden="true" />
-            Priority
-          </h4>
-          <div className="space-y-3">
-            {options.priority.map((option) => {
-              const count = counts.priority[option.value] || 0;
-              const isChecked = isActive('priority', option.value);
+        {/* Status Filter - Expanded by default */}
+        <FilterSection
+          title="Status"
+          icon={<RefreshCw className="h-4 w-4 text-coral" aria-hidden="true" />}
+          defaultOpen={true}
+          testId="status-filter"
+        >
+          {options.status.map((option) => {
+            const count = counts.status[option.value] || 0;
+            const isChecked = isActive('status', option.value);
+            const badgeColor = STATUS_BADGE_COLORS[option.value] || 'bg-gray-500';
+
+            return (
+              <label
+                key={option.value}
+                data-testid={`status-option-${option.value}`}
+                className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
+              >
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={(e) => updateFilter('status', option.value, e.target.checked)}
+                />
+                <span className="flex-1">{option.label}</span>
+                <span
+                  className={cn(
+                    'rounded-full px-2.5 py-1 text-xs font-semibold',
+                    count > 0 ? `${badgeColor} text-white` : 'neu-pressed text-slate'
+                  )}
+                >
+                  {count}
+                </span>
+              </label>
+            );
+          })}
+        </FilterSection>
+
+        {/* Priority Filter - Expanded by default */}
+        <FilterSection
+          title="Priority"
+          icon={<AlertCircle className="h-4 w-4 text-coral" aria-hidden="true" />}
+          defaultOpen={true}
+          testId="priority-filter"
+        >
+          {options.priority.map((option) => {
+            const count = counts.priority[option.value] || 0;
+            const isChecked = isActive('priority', option.value);
+            const badgeColor = PRIORITY_BADGE_COLORS[option.value] || 'bg-gray-500';
+
+            return (
+              <label
+                key={option.value}
+                data-testid={`priority-option-${option.value}`}
+                className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
+              >
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={(e) => updateFilter('priority', option.value, e.target.checked)}
+                />
+                <span className="flex flex-1 items-center gap-2">
+                  <span
+                    className={`h-2 w-2 rounded-full ${option.dotColorClass || 'bg-gray-500'}`}
+                  />
+                  {option.label}
+                </span>
+                <span
+                  className={cn(
+                    'rounded-full px-2.5 py-1 text-xs font-semibold',
+                    count > 0 ? `${badgeColor} text-white` : 'neu-pressed text-slate'
+                  )}
+                >
+                  {count}
+                </span>
+              </label>
+            );
+          })}
+        </FilterSection>
+
+        {/* Labels Filter - Collapsed by default */}
+        {options.labels && options.labels.length > 0 && (
+          <FilterSection
+            title="Labels"
+            icon={<Tag className="h-4 w-4 text-coral" aria-hidden="true" />}
+            defaultOpen={false}
+            testId="label-filter"
+          >
+            {options.labels.map((label) => {
+              const labelId = String(label.id);
+              const count = counts.label?.[labelId] || 0;
+              const isChecked = isActive('label', labelId);
 
               return (
                 <label
-                  key={option.value}
-                  data-testid={`priority-option-${option.value}`}
+                  key={label.id}
+                  data-testid={`label-option-${label.id}`}
                   className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={(e) => updateFilter('priority', option.value, e.target.checked)}
+                    onChange={(e) => updateFilter('label', labelId, e.target.checked)}
                   />
                   <span className="flex flex-1 items-center gap-2">
                     <span
-                      className={`h-2 w-2 rounded-full ${option.dotColorClass || 'bg-gray-500'}`}
+                      className="h-3 w-3 rounded-full"
+                      style={{ backgroundColor: label.color }}
                     />
-                    {option.label}
+                    {label.name}
                   </span>
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      count > 0 && isChecked
-                        ? `${option.badgeColorClass || 'bg-coral text-white'}`
-                        : 'neu-pressed text-slate'
-                    }`}
+                    className={cn(
+                      'rounded-full px-2.5 py-1 text-xs font-semibold',
+                      count > 0 ? 'text-white' : 'neu-pressed text-slate'
+                    )}
+                    style={count > 0 ? { backgroundColor: label.color } : undefined}
                   >
                     {count}
                   </span>
                 </label>
               );
             })}
-          </div>
-        </div>
-
-        {/* Labels Filter (Sprint 11.7) */}
-        {options.labels && options.labels.length > 0 && (
-          <div className="mb-6" data-testid="label-filter">
-            <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Tag className="h-4 w-4 text-coral" aria-hidden="true" />
-              Labels
-            </h4>
-            <div className="space-y-3">
-              {options.labels.map((label) => {
-                const labelId = String(label.id);
-                const count = counts.label?.[labelId] || 0;
-                const isChecked = isActive('label', labelId);
-
-                return (
-                  <label
-                    key={label.id}
-                    data-testid={`label-option-${label.id}`}
-                    className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={(e) => updateFilter('label', labelId, e.target.checked)}
-                    />
-                    <span className="flex flex-1 items-center gap-2">
-                      <span
-                        className="h-3 w-3 rounded-full"
-                        style={{ backgroundColor: label.color }}
-                      />
-                      {label.name}
-                    </span>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        count > 0 && isChecked
-                          ? 'bg-coral text-white'
-                          : 'neu-pressed text-slate'
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
+          </FilterSection>
         )}
 
-        {/* Module Filter */}
-        <div data-testid="module-filter">
-          <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <Box className="h-4 w-4 text-coral" aria-hidden="true" />
-            Module
-          </h4>
-          <div className="space-y-3">
-            {options.modules.map((option) => {
-              const count = counts.module[option.value] || 0;
-              const isChecked = isActive('module', option.value);
+        {/* Module Filter - Collapsed by default */}
+        <FilterSection
+          title="Module"
+          icon={<Box className="h-4 w-4 text-coral" aria-hidden="true" />}
+          defaultOpen={false}
+          testId="module-filter"
+        >
+          {options.modules.map((option) => {
+            const count = counts.module[option.value] || 0;
+            const isChecked = isActive('module', option.value);
 
-              return (
-                <label
-                  key={option.value}
-                  data-testid={`module-option-${option.value}`}
-                  className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
+            return (
+              <label
+                key={option.value}
+                data-testid={`module-option-${option.value}`}
+                className="smooth-transition group flex cursor-pointer items-center gap-3 text-slate hover:text-white"
+              >
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={(e) => updateFilter('module', option.value, e.target.checked)}
+                />
+                <span className="flex-1">{option.label}</span>
+                <span
+                  className={cn(
+                    'rounded-full px-2.5 py-1 text-xs font-semibold',
+                    count > 0 ? `${MODULE_BADGE_COLOR} text-white` : 'neu-pressed text-slate'
+                  )}
                 >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={(e) => updateFilter('module', option.value, e.target.checked)}
-                  />
-                  <span className="flex-1">{option.label}</span>
-                  <span className="neu-pressed rounded-full px-2.5 py-1 text-xs font-semibold text-slate">
-                    {count}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
+                  {count}
+                </span>
+              </label>
+            );
+          })}
+        </FilterSection>
       </div>
     </>
   );
