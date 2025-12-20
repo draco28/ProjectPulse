@@ -147,7 +147,7 @@ export const ticketInputProperties = {
   },
   status: {
     type: 'string',
-    description: 'Status value (e.g., open, in_progress, blocked, completed, cancelled)',
+    description: 'Status value (e.g., open, in-progress, blocked, closed)',
   },
   priority: {
     type: 'string',
