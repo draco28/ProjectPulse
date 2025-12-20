@@ -21,6 +21,8 @@ interface PaginationProps {
   basePath?: string;
   /** Label for the "Showing X of Y" text. Defaults to "items" */
   itemLabel?: string;
+  /** Project ID to ensure project context is preserved in pagination URLs (Sprint 14 fix for Ticket #20) */
+  projectId?: number;
 }
 
 export function Pagination({
@@ -31,6 +33,7 @@ export function Pagination({
   perPage,
   basePath,
   itemLabel = 'items',
+  projectId,
 }: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,6 +45,10 @@ export function Pagination({
   const goToPage = (page: number) => {
     const params = new URLSearchParams(searchParams?.toString());
     params.set('page', page.toString());
+    // Sprint 14: Ensure project context is preserved (Ticket #20)
+    if (projectId && !params.has('project')) {
+      params.set('project', projectId.toString());
+    }
     router.push(`${targetPath}?${params.toString()}`);
   };
 

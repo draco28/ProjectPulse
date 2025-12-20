@@ -291,6 +291,7 @@ export default async function TicketsPage({
                   showing={tickets.length}
                   perPage={perPage}
                   itemLabel="tickets"
+                  projectId={projectId}
                 />
               )}
             </div>
