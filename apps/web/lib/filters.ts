@@ -137,6 +137,9 @@ const getFilterOptionsCached = unstable_cache(
  * @returns {Promise<FilterCounts>} Count of issues per filter value
  * @throws {Error} If database query fails
  */
+// Sprint 14: All ticket kinds for counting
+const TICKET_KINDS = ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'] as const;
+
 export async function getFilterCounts(projectId?: number) {
   // Fetch all options first (uses cache from getFilterOptions)
   const options = await getFilterOptions(projectId);
@@ -147,6 +150,9 @@ export async function getFilterCounts(projectId?: number) {
     ...(projectId && { projectId }),
     kind: { in: ['issue', 'bug', 'scanner_finding'] },
   };
+
+  // Sprint 14: projectId-only filter for kind counts (all kinds, not just issues)
+  const projectFilter = projectId ? { projectId } : {};
 
   // Build count queries for all filter values
   const countQueries = [
@@ -179,6 +185,12 @@ export async function getFilterCounts(projectId?: number) {
         })
         .then((count) => ({ type: 'label', value: String(label.id), count }))
     ),
+    // Sprint 14: Kind counts (use projectFilter, not baseFilter - count ALL kinds)
+    ...TICKET_KINDS.map((kind) =>
+      prisma.ticket
+        .count({ where: { ...projectFilter, kind } })
+        .then((count) => ({ type: 'kind', value: kind, count }))
+    ),
   ];
 
   // Execute all count queries in parallel
@@ -190,6 +202,7 @@ export async function getFilterCounts(projectId?: number) {
     priority: {} as Record<string, number>,
     module: {} as Record<string, number>,
     label: {} as Record<string, number>, // Sprint 11.7
+    kind: {} as Record<string, number>, // Sprint 14
   };
 
   for (const result of results) {
@@ -201,6 +214,8 @@ export async function getFilterCounts(projectId?: number) {
       counts.module[result.value] = result.count;
     } else if (result.type === 'label') {
       counts.label[result.value] = result.count;
+    } else if (result.type === 'kind') {
+      counts.kind[result.value] = result.count;
     }
   }
 
