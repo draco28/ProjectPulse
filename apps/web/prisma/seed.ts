@@ -151,12 +151,17 @@ async function main() {
   }
   console.log(`✓ Seeded ${priorityOptions.length} priority options`);
 
-  // MODULE OPTIONS
+  // MODULE OPTIONS - Development-focused modules for software projects
   const moduleOptions = [
-    { value: 'combat', label: 'Combat', order: 0 },
-    { value: 'animation', label: 'Animation', order: 1 },
-    { value: 'core', label: 'Core', order: 2 },
-    { value: 'ui', label: 'UI', order: 3 },
+    { value: 'UI', label: 'UI / Frontend', order: 0 },
+    { value: 'API', label: 'API / Backend', order: 1 },
+    { value: 'Database', label: 'Database', order: 2 },
+    { value: 'MCP', label: 'MCP Server', order: 3 },
+    { value: 'Auth', label: 'Authentication', order: 4 },
+    { value: 'Testing', label: 'Testing', order: 5 },
+    { value: 'Docs', label: 'Documentation', order: 6 },
+    { value: 'DevOps', label: 'DevOps / Infra', order: 7 },
+    { value: 'Core', label: 'Core', order: 8 },
   ];
 
   for (const option of moduleOptions) {
@@ -301,16 +306,18 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
     ],
     skipDuplicates: true,
   });
+  // Module options already seeded in main seed block above - skip duplicates ensures consistency
   await prisma.ticketModuleOption.createMany({
     data: [
-      { value: 'API', label: 'API' },
-      { value: 'Database', label: 'Database' },
-      { value: 'UI', label: 'UI' },
-      { value: 'Core', label: 'Core' },
-      { value: 'Feature', label: 'Feature' },
-      { value: 'Security', label: 'Security' },
-      { value: 'Performance', label: 'Performance' },
-      { value: 'Documentation', label: 'Documentation' },
+      { value: 'UI', label: 'UI / Frontend', order: 0 },
+      { value: 'API', label: 'API / Backend', order: 1 },
+      { value: 'Database', label: 'Database', order: 2 },
+      { value: 'MCP', label: 'MCP Server', order: 3 },
+      { value: 'Auth', label: 'Authentication', order: 4 },
+      { value: 'Testing', label: 'Testing', order: 5 },
+      { value: 'Docs', label: 'Documentation', order: 6 },
+      { value: 'DevOps', label: 'DevOps / Infra', order: 7 },
+      { value: 'Core', label: 'Core', order: 8 },
     ],
     skipDuplicates: true,
   });

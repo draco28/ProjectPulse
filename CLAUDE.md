@@ -628,16 +628,24 @@ Me: [Creates ticket via MCP: kind="bug", priority="medium",
 |------|--------|
 | Create ticket | Status defaults to `open` |
 | Start working | Update to `in-progress` BEFORE coding |
-| Complete work | Update to `closed` AFTER verification |
+| Implement | Add comment with implementation details |
+| Test | Verify fix works (manual or automated) |
+| Close | Update to `closed` ONLY after testing passes |
 
-**Complete Workflow** (5 steps):
+**⚠️ NEVER close a ticket until testing is complete!**
+- After implementation: Add comment describing what was done (commit hash, files changed)
+- After testing passes: Then close the ticket
+- If no testing possible: Note in comment, get user approval to close
+
+**Complete Workflow** (6 steps):
 | Step | Action | MCP Tool |
 |------|--------|----------|
 | 1. Create | Create ticket with assignee | `ticket_create` |
 | 2. Plan | Add implementation plan to customFields | `ticket_update` |
 | 3. Claim | Set status to `in-progress` | `ticket_update` |
-| 4. Work | Implement, test, commit | (code tools) |
-| 5. Close | Set status to `closed` | `ticket_update` |
+| 4. Work | Implement and commit | (code tools) |
+| 5. Comment | Add implementation details | `ticket_addComment` |
+| 6. Test+Close | After testing passes, set `closed` | `ticket_setStatus` |
 
 **Workflow Example**:
 ```
@@ -645,8 +653,10 @@ Me: [Creates ticket via MCP: kind="bug", priority="medium",
 2. Me: [Create ticket: kind=bug, assignee="Claude Code", status=open]
 3. Me: [Update ticket: add plan to customFields._implementationContext]
 4. Me: [Update ticket: status="in-progress"]
-5. Me: [Implement fix, test, commit]
-6. Me: [Update ticket: status="closed"]
+5. Me: [Implement fix, commit]
+6. Me: [Add comment: "Fixed in commit abc123. Changed X, Y, Z."]
+7. User/Me: [Test the fix]
+8. Me: [Update ticket: status="closed"] ← ONLY after testing passes!
 ```
 
 **Note**: Valid status values are `open`, `in-progress`, `closed` (NOT `completed`!)
