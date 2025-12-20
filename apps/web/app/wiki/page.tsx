@@ -20,8 +20,9 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth-server';
 import { getActiveProjectForUser } from '@/lib/project-context';
 
-// ISR: Revalidate every hour (same as wiki detail page)
-export const revalidate = 3600;
+// Sprint 14: Use force-dynamic instead of ISR to support pagination
+// ISR caches page 1 for 1 hour, breaking pagination (Ticket #21)
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Wiki | ProjectPulse',
@@ -391,6 +392,7 @@ export default async function WikiPage({
                   showing={pages.length}
                   perPage={perPage}
                   itemLabel="pages"
+                  projectId={projectId}
                 />
               )}
             </div>
