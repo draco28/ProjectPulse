@@ -241,6 +241,7 @@ secrets/
 !scripts/init-db.sql
 !apps/web/prisma/migrations/**/*.sql
 !apps/web/prisma/migrations-archive/**/*.sql
+!apps/web/prisma/data-migrations/**/*.sql
 
 # ============================================================================
 # MISC
