@@ -83,7 +83,7 @@ export async function POST(
     // Process each template
     for (const template of INITIAL_TEMPLATES) {
       // Calculate what the path would be for this project
-      const expectedPath = template.path.replace(/^\/[^\/]+/, `/${projectSlug}`);
+      const expectedPath = template.path.replace(/^\/[^/]+/, `/${projectSlug}`);
 
       // Find matching page in project
       const existingPage = existingPages.find((p) => p.path === expectedPath);

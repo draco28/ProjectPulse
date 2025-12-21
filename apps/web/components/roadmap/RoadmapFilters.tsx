@@ -88,7 +88,7 @@ export function RoadmapFilters({ onFilterChange }: RoadmapFiltersProps) {
           )}
           {filters.searchQuery && (
             <span className="px-3 py-1 bg-coral/20 text-coral border border-coral/30 rounded-full text-xs font-semibold">
-              Search: "{filters.searchQuery}"
+              Search: &quot;{filters.searchQuery}&quot;
             </span>
           )}
           <button

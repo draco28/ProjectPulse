@@ -119,13 +119,14 @@ export function ColorPicker({
           newIndex = focusedIndex - cols >= 0 ? focusedIndex - cols : total - cols + (focusedIndex % cols);
           break;
         case 'Enter':
-        case ' ':
+        case ' ': {
           e.preventDefault();
           const selectedColor = LABEL_COLORS[focusedIndex];
           if (focusedIndex >= 0 && focusedIndex < total && selectedColor) {
             onChange(selectedColor);
           }
           break;
+        }
         case 'Home':
           e.preventDefault();
           newIndex = 0;

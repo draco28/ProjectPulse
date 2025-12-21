@@ -70,7 +70,7 @@ async function createTicket(formData: FormData) {
   const source = formData.get('source') as string;
   const priority = formData.get('priority') as string;
   const status = formData.get('status') as string;
-  const module = formData.get('module') as string;
+  const moduleValue = formData.get('module') as string;
   const assignee = formData.get('assignee') as string;
 
   if (!title || title.trim().length === 0) {
@@ -86,7 +86,7 @@ async function createTicket(formData: FormData) {
       source: source || 'manual',
       priority: priority || 'medium',
       status: status || 'open',
-      module: module?.trim() || null,
+      module: moduleValue?.trim() || null,
       assignee: assignee?.trim() || null,
     },
   });

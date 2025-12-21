@@ -182,7 +182,7 @@ function ExecutiveSummaryContent() {
                   This keeps your data private and uses your own AI provider.
                 </p>
                 <ol className="text-sm text-slate-300 space-y-2 list-decimal list-inside">
-                  <li>Click "Get Prompt" to view the system and user prompts</li>
+                  <li>Click &quot;Get Prompt&quot; to view the system and user prompts</li>
                   <li>Copy both prompts to your AI agent</li>
                   <li>Generate the summary with your AI</li>
                   <li>Paste the result back and store it</li>

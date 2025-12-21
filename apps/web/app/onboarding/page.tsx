@@ -171,7 +171,7 @@ export default async function OnboardingPage({
       {/* What You'll Get */}
       <Card className="neu-raised">
         <CardHeader>
-          <CardTitle>What You'll Get</CardTitle>
+          <CardTitle>What You&apos;ll Get</CardTitle>
           <CardDescription>
             Complete onboarding unlocks these features for your project
           </CardDescription>

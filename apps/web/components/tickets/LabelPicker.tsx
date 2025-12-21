@@ -190,13 +190,14 @@ export function LabelPicker({
         event.preventDefault();
         setFocusedIndex((prev) => (prev > 0 ? prev - 1 : 0));
         break;
-      case 'Enter':
+      case 'Enter': {
         event.preventDefault();
         const focusedLabel = filteredLabels[focusedIndex];
         if (focusedIndex >= 0 && focusedLabel) {
           toggleLabel(focusedLabel);
         }
         break;
+      }
     }
   };
 

@@ -388,7 +388,7 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Use this URL when configuring your agent's MCP connection.
+              Use this URL when configuring your agent&apos;s MCP connection.
             </p>
           </div>
 
@@ -419,7 +419,7 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
           <div className="mb-4 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
             <p className="text-sm text-blue-200">
               <strong>What this does:</strong> Updates system-generated wiki pages (Getting Started, MCP Configuration, etc.)
-              with the latest templates. Pages you've edited won't be overwritten.
+              with the latest templates. Pages you&apos;ve edited won&apos;t be overwritten.
             </p>
           </div>
 
@@ -554,7 +554,7 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
             <div className="mb-4 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
               <h4 className="font-medium text-blue-300 mb-2">Test Your Connection</h4>
               <p className="text-sm text-blue-200/80">
-                After configuring, ask your agent: "Use the <code className="text-blue-300">projectpulse_health_check</code> tool"
+                After configuring, ask your agent: &quot;Use the <code className="text-blue-300">projectpulse_health_check</code> tool&quot;
               </p>
               <p className="text-sm text-blue-200/80 mt-1">
                 Expected response: <code className="text-blue-300">{"status: healthy, database: connected"}</code>

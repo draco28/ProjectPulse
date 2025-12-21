@@ -70,7 +70,7 @@ export function parseCrossLinks(content: string): ParsedCrossLink[] {
   const links: ParsedCrossLink[] = [];
 
   // Regex for @wiki/slug syntax
-  const atWikiRegex = /@wiki\/([a-z0-9\-]+)/gi;
+  const atWikiRegex = /@wiki\/([a-z0-9-]+)/gi;
   let match: RegExpExecArray | null;
 
   while ((match = atWikiRegex.exec(content)) !== null) {
@@ -86,7 +86,7 @@ export function parseCrossLinks(content: string): ParsedCrossLink[] {
   }
 
   // Regex for [[slug]] syntax
-  const doubleBracketRegex = /\[\[([a-z0-9\-]+)\]\]/gi;
+  const doubleBracketRegex = /\[\[([a-z0-9-]+)\]\]/gi;
 
   while ((match = doubleBracketRegex.exec(content)) !== null) {
     if (match[1]) {

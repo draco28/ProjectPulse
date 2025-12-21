@@ -272,7 +272,7 @@ export function generateSlug(filePath: string): string {
  */
 export function generateExcerpt(markdown: string, maxLength: number = 200): string {
   // Remove markdown formatting
-  let plain = markdown
+  const plain = markdown
     .replace(/^#+\s+/gm, '') // Remove headers
     .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
     .replace(/\*([^*]+)\*/g, '$1') // Remove italic

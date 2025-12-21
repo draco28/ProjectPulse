@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /**
  * Unit tests for Lighthouse accessibility scanner
  * Sprint 7 Day 10 - Accessibility Scanners (Task 29)

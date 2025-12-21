@@ -10,7 +10,6 @@
  */
 
 import lighthouse from 'lighthouse';
-// @ts-ignore - chrome-launcher types not available
 import * as chromeLauncher from 'chrome-launcher';
 import { FindingCategory, FindingSeverity, ScannerType } from '@prisma/client';
 import type {

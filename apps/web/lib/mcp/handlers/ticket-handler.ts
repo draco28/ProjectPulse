@@ -294,7 +294,7 @@ export async function ticketCreateHandler(
     const projectId = await resolveProjectId(params.projectId);
 
     // Sprint 11.7: Merge implementation context into customFields
-    let customFieldsPayload: Record<string, unknown> = {
+    const customFieldsPayload: Record<string, unknown> = {
       ...(params.customFields ?? {}),
     };
     if (params.implementationContext) {

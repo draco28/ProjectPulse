@@ -6,7 +6,7 @@
  * Maps ESLint findings to HealthFinding records with CODE_QUALITY category.
  */
 
-// @ts-ignore - eslint types not properly exported
+// @ts-expect-error - eslint types not properly exported
 import { ESLint } from 'eslint';
 import { FindingCategory, FindingSeverity, ScannerType } from '@prisma/client';
 import type {
