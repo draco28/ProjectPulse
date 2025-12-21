@@ -366,8 +366,14 @@ export async function GET(request: Request) {
     };
 
     // 5. Calculate onboarding status
-    const completedSessions = onboardingSessions.filter((s) => s.status === 'COMPLETED').length;
-    const inProgressSession = onboardingSessions.find((s) => s.status === 'IN_PROGRESS');
+    // Note: Status can be 'COMPLETED'/'complete' or 'IN_PROGRESS'/'in_progress' - normalize to uppercase
+    const normalizeStatus = (status: string) => status.toUpperCase().replace('_', '_');
+    const completedSessions = onboardingSessions.filter(
+      (s) => normalizeStatus(s.status) === 'COMPLETE' || normalizeStatus(s.status) === 'COMPLETED'
+    ).length;
+    const inProgressSession = onboardingSessions.find(
+      (s) => normalizeStatus(s.status) === 'IN_PROGRESS'
+    );
 
     // Determine next session (1, 2, or 3) - based on what's not yet completed
     let nextSession: number | null = null;
@@ -375,7 +381,8 @@ export async function GET(request: Request) {
       // Find the first session that isn't completed
       for (let i = 1; i <= 3; i++) {
         const sessionRecord = onboardingSessions.find((s) => s.sessionNumber === i);
-        if (!sessionRecord || sessionRecord.status !== 'COMPLETED') {
+        const status = sessionRecord ? normalizeStatus(sessionRecord.status) : '';
+        if (!sessionRecord || (status !== 'COMPLETE' && status !== 'COMPLETED')) {
           nextSession = i;
           break;
         }
