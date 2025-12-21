@@ -166,7 +166,7 @@ jobs:
         run: |
           cd ~/projects/AI_HUB
           echo "🚀 Deploying to production..."
-          ./scripts/deploy-prod.sh --quick
+          ./scripts/deploy-prod.sh
       
       - name: Production deployment summary
         if: steps.pending.outputs.pending == 'false'
