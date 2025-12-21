@@ -19,6 +19,7 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { TicketCard } from '@/components/dashboard/TicketCard';
 import { QuickActionsWidget } from '@/components/dashboard/QuickActionsWidget';
 import { AgentPersonasWidget } from '@/components/dashboard/AgentPersonasWidget';
+import { ActiveSessionsWidget } from '@/components/dashboard/ActiveSessionsWidget';
 import { ListTodo, Lightbulb, Shield, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { PrismaClient } from '@prisma/client';
 import { getCurrentUser } from '@/lib/auth-server';
@@ -56,6 +57,7 @@ async function getDashboardData(projectId: number) {
     findingsCreatedPrev7,
     issuesClosedLast7,
     issuesClosedPrev7,
+    activeSessions,
   ] = await Promise.all([
     // Current snapshot counts
     // Sprint 10: Use ticket model (issues are tickets with kind IN ('issue','bug','scanner_finding'))
@@ -159,6 +161,23 @@ async function getDashboardData(projectId: number) {
         updatedAt: { gte: twoWeeksAgo, lt: weekAgo },
       },
     }),
+    // Sprint 14: Active agent sessions for dashboard widget
+    prisma.agentSession.findMany({
+      where: {
+        projectId,
+        status: { in: ['IN_PROGRESS', 'PAUSED'] },
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        startedAt: true,
+        todos: true,
+        activeTicketIds: true,
+      },
+    }),
   ]);
 
   const completedCount = onboardingSessions.filter((s) => s.status === 'complete').length;
@@ -212,6 +231,23 @@ async function getDashboardData(projectId: number) {
       completedSessions: completedCount,
       isComplete: completedCount === 3,
     },
+    // Sprint 14: Active agent sessions
+    sessions: activeSessions.map((session) => {
+      const todos = Array.isArray(session.todos)
+        ? (session.todos as Array<{ content: string; status: string }>)
+        : [];
+      const todosCompleted = todos.filter((t) => t.status === 'completed').length;
+      const todosTotal = todos.length;
+      return {
+        id: session.id,
+        name: session.name,
+        status: session.status as 'IN_PROGRESS' | 'PAUSED',
+        startedAt: session.startedAt.toISOString(),
+        todosCompleted,
+        todosTotal,
+        activeTicketIds: session.activeTicketIds,
+      };
+    }),
   };
 }
 
@@ -337,6 +373,9 @@ export default async function DashboardPage({
         <div className="space-y-4">
           {/* Quick Actions - with onboarding status */}
           <QuickActionsWidget onboardingStatus={data.onboarding} projectId={projectId} />
+
+          {/* Active Agent Sessions (Sprint 14) */}
+          <ActiveSessionsWidget sessions={data.sessions} projectId={projectId} />
 
           {/* Agent Personas */}
           <AgentPersonasWidget agents={data.agents} />

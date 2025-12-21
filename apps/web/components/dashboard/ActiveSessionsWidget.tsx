@@ -36,8 +36,8 @@ export function ActiveSessionsWidget({ sessions, projectId }: ActiveSessionsWidg
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const displayedSessions = sessions.slice(0, 3);
-  const activeCount = sessions.filter(s => s.status === 'IN_PROGRESS').length;
-  const pausedCount = sessions.filter(s => s.status === 'PAUSED').length;
+  const activeCount = sessions.filter((s) => s.status === 'IN_PROGRESS').length;
+  const pausedCount = sessions.filter((s) => s.status === 'PAUSED').length;
 
   const copyToClipboard = async (id: string) => {
     await navigator.clipboard.writeText(id);
@@ -95,10 +95,7 @@ export function ActiveSessionsWidget({ sessions, projectId }: ActiveSessionsWidg
 
       <div className="space-y-3">
         {displayedSessions.map((session) => (
-          <div
-            key={session.id}
-            className="glass-dark smooth-transition rounded-2xl p-4"
-          >
+          <div key={session.id} className="glass-dark smooth-transition rounded-2xl p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -140,13 +137,15 @@ export function ActiveSessionsWidget({ sessions, projectId }: ActiveSessionsWidg
               <div className="mt-3">
                 <div className="mb-1 flex justify-between text-xs text-slate">
                   <span>Progress</span>
-                  <span>{session.todosCompleted}/{session.todosTotal} todos</span>
+                  <span>
+                    {session.todosCompleted}/{session.todosTotal} todos
+                  </span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-coral to-coralLight transition-all"
+                    className="to-coralLight h-full rounded-full bg-gradient-to-r from-coral transition-all"
                     style={{
-                      width: `${Math.round((session.todosCompleted / session.todosTotal) * 100)}%`
+                      width: `${Math.round((session.todosCompleted / session.todosTotal) * 100)}%`,
                     }}
                   />
                 </div>
@@ -178,7 +177,7 @@ export function ActiveSessionsWidget({ sessions, projectId }: ActiveSessionsWidg
       {sessions.length > 3 && (
         <Link
           href={`/sessions?project=${projectId}`}
-          className="mt-4 block text-center text-sm font-semibold text-coral hover:text-coralLight smooth-transition"
+          className="hover:text-coralLight smooth-transition mt-4 block text-center text-sm font-semibold text-coral"
         >
           View all {sessions.length} sessions →
         </Link>

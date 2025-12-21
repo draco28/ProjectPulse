@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+out/
+dist/
+
+# Test fixtures - intentionally malformed files
+lib/wiki/parsers/__tests__/fixtures/malformed-*.ts
+
+# Generated files
+prisma/generated/
+*.generated.ts
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+
+# Coverage
+coverage/
+
+# Playwright
+playwright-report/
+test-results/
+
+# IDE
+.idea/
+.vscode/

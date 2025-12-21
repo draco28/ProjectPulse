@@ -22,6 +22,7 @@ import {
   Menu,
   X,
   Map,
+  Terminal,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -56,6 +57,8 @@ const navigationItems: NavItem[] = [
   { icon: ListTodo, label: 'Tickets', href: '/tickets', badgeKey: 'issues' },
   { icon: Lightbulb, label: 'Knowledge', href: '/knowledge', badgeKey: 'knowledge' },
   { icon: Book, label: 'Wiki', href: '/wiki', badgeKey: 'wiki' },
+  // Sprint 14: Agent Sessions for tracking Claude Code work
+  { icon: Terminal, label: 'Sessions', href: '/sessions' },
   {
     icon: Activity,
     label: 'Health',
