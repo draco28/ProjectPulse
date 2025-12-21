@@ -6,7 +6,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, RefObject } from 'react';
 import { usePathname } from 'next/navigation';
 import { Filter, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -77,7 +77,7 @@ export function SessionsPageClient({ counts, projectId }: SessionsPageClientProp
 
       {/* Mobile Drawer */}
       <div
-        ref={drawerRef}
+        ref={drawerRef as RefObject<HTMLDivElement>}
         className={cn(
           'fixed inset-y-0 right-0 z-50 w-80 bg-background p-4 shadow-xl transition-transform duration-300 md:hidden',
           isDrawerOpen ? 'translate-x-0' : 'translate-x-full'

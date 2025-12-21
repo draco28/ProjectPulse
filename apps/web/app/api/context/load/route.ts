@@ -74,7 +74,8 @@ interface ContextLoadResponse {
     ACTIVE_CONTEXT: MemoryBankData;
     PROGRESS: MemoryBankData;
   };
-  activeSession: ActiveSessionData | null;
+  // Sprint 14: Changed to array for multi-instance support
+  activeSessions: ActiveSessionData[];
   availableResources: AvailableResources;
   onboardingStatus: OnboardingStatus;
   hints: string[];
@@ -101,10 +102,11 @@ const querySchema = z.object({
 /**
  * Generate workflow hints based on current state
  * PRIORITY ORDER: Onboarding → Session → Resources → Bank Freshness
+ * Sprint 14: Updated for multi-session support
  */
 function generateHints(
   onboardingStatus: OnboardingStatus,
-  activeSession: ActiveSessionData | null,
+  activeSessions: ActiveSessionData[],
   memoryBanks: Record<string, MemoryBankData>,
   resources: AvailableResources
 ): string[] {
@@ -145,32 +147,56 @@ function generateHints(
   }
 
   // =========================================================================
-  // SESSION HINTS (Only if onboarding is complete)
+  // SESSION HINTS (Sprint 14: Multi-session support)
   // =========================================================================
-  if (activeSession) {
-    hints.push(
-      `Active session '${activeSession.name || 'Unnamed'}' found (${activeSession.status}). ` +
-        `Consider resuming your previous work.`
-    );
+  const inProgressSessions = activeSessions.filter((s) => s.status === 'IN_PROGRESS');
+  const pausedSessions = activeSessions.filter((s) => s.status === 'PAUSED');
 
-    if (activeSession.activeTicketIds.length > 0) {
+  if (activeSessions.length > 0) {
+    // Multi-session summary
+    if (activeSessions.length > 1) {
       hints.push(
-        `Working on tickets: ${activeSession.activeTicketIds.join(', ')}. ` +
-          `Use projectpulse_agent_session_update to track progress.`
+        `📋 Found ${activeSessions.length} sessions: ${inProgressSessions.length} active, ${pausedSessions.length} paused. ` +
+          `Use projectpulse_agent_session_resume with session ID to continue specific work.`
       );
     }
 
-    const todos = activeSession.todos as Array<{ content: string; status: string }> | null;
-    if (todos && Array.isArray(todos)) {
-      const pending = todos.filter((t) => t.status !== 'completed').length;
-      const completed = todos.filter((t) => t.status === 'completed').length;
-      if (pending > 0) {
-        hints.push(`${completed}/${todos.length} todos completed. ${pending} remaining.`);
+    // Show the most recent IN_PROGRESS session (this agent's likely session)
+    const currentSession = inProgressSessions[0] || pausedSessions[0];
+    if (currentSession) {
+      hints.push(
+        `Current session: '${currentSession.name || 'Unnamed'}' (${currentSession.status}, ID: ${currentSession.id.slice(0, 8)}...). ` +
+          `${currentSession.status === 'PAUSED' ? 'Resume with projectpulse_agent_session_resume.' : ''}`
+      );
+
+      if (currentSession.activeTicketIds.length > 0) {
+        hints.push(
+          `Working on tickets: ${currentSession.activeTicketIds.join(', ')}. ` +
+            `Use projectpulse_agent_session_update to track progress.`
+        );
       }
+
+      const todos = currentSession.todos as Array<{ content: string; status: string }> | null;
+      if (todos && Array.isArray(todos)) {
+        const pending = todos.filter((t) => t.status !== 'completed').length;
+        const completed = todos.filter((t) => t.status === 'completed').length;
+        if (pending > 0) {
+          hints.push(`${completed}/${todos.length} todos completed. ${pending} remaining.`);
+        }
+      }
+    }
+
+    // List other sessions if multiple exist
+    if (pausedSessions.length > 0 && inProgressSessions.length > 0) {
+      const pausedNames = pausedSessions
+        .slice(0, 3)
+        .map((s) => `'${s.name || 'Unnamed'}' (${s.id.slice(0, 8)})`)
+        .join(', ');
+      hints.push(`⏸️ Paused sessions available: ${pausedNames}`);
     }
   } else {
     hints.push(
-      `No active work session found. Consider calling projectpulse_agent_session_start ` +
+      `No active work sessions found. Use projectpulse_agent_session_start ` +
         `to track your work if you're starting a new task.`
     );
   }
@@ -260,13 +286,15 @@ export async function GET(request: Request) {
       } as Record<string, MemoryBankData>;
     }
 
-    // 3. Find active agent session (IN_PROGRESS status)
-    const activeSession = await prisma.agentSession.findFirst({
+    // 3. Find ALL active agent sessions (Sprint 14: multi-instance support)
+    // Includes both IN_PROGRESS and PAUSED sessions for visibility
+    const activeSessions = await prisma.agentSession.findMany({
       where: {
         projectId,
-        status: 'IN_PROGRESS',
+        status: { in: ['IN_PROGRESS', 'PAUSED'] },
       },
-      orderBy: { startedAt: 'desc' },
+      orderBy: { updatedAt: 'desc' },
+      take: 10, // Limit to prevent token bloat
       select: {
         id: true,
         name: true,
@@ -279,18 +307,16 @@ export async function GET(request: Request) {
       },
     });
 
-    const activeSessionData: ActiveSessionData | null = activeSession
-      ? {
-          id: activeSession.id,
-          name: activeSession.name,
-          plan: activeSession.plan,
-          todos: activeSession.todos,
-          progress: activeSession.progress,
-          activeTicketIds: activeSession.activeTicketIds,
-          status: activeSession.status,
-          startedAt: activeSession.startedAt.toISOString(),
-        }
-      : null;
+    const activeSessionsData: ActiveSessionData[] = activeSessions.map((session) => ({
+      id: session.id,
+      name: session.name,
+      plan: session.plan,
+      todos: session.todos,
+      progress: session.progress,
+      activeTicketIds: session.activeTicketIds,
+      status: session.status,
+      startedAt: session.startedAt.toISOString(),
+    }));
 
     // 4. Get available resources metadata AND onboarding status
     const [personasList, skillsList, sopsList, onboardingSessions] = await Promise.all([
@@ -363,10 +389,10 @@ export async function GET(request: Request) {
       inProgressSession: inProgressSession?.sessionNumber || null,
     };
 
-    // 6. Generate workflow hints (now with onboarding awareness)
+    // 6. Generate workflow hints (Sprint 14: multi-session aware)
     const hints = generateHints(
       onboardingStatus,
-      activeSessionData,
+      activeSessionsData,
       memoryBanks,
       availableResources
     );
@@ -376,15 +402,15 @@ export async function GET(request: Request) {
       (sum, bank) => sum + (bank?.tokens || 0),
       0
     );
-    // Estimate session + resources at ~500 tokens
-    const totalTokens = bankTokens + (activeSession ? 500 : 100);
+    // Estimate sessions + resources at ~500 tokens per session
+    const totalTokens = bankTokens + (activeSessionsData.length * 500) + 100;
 
-    // 8. Build response (now includes onboardingStatus)
+    // 8. Build response (Sprint 14: activeSessions array for multi-instance)
     const response: ContextLoadResponse = {
       projectId,
       projectName: project.name,
       memoryBanks: finalBanks as ContextLoadResponse['memoryBanks'],
-      activeSession: activeSessionData,
+      activeSessions: activeSessionsData,
       availableResources,
       onboardingStatus,
       hints,

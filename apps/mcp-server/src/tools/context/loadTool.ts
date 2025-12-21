@@ -86,7 +86,8 @@ This is your entry point to ProjectPulse.`,
       context.logger.info('Context loaded', {
         projectId: validated.projectId,
         totalTokens: response.totalTokens,
-        hasActiveSession: !!response.activeSession,
+        // Sprint 14: Multi-session support
+        activeSessionsCount: response.activeSessions?.length || 0,
         hintsCount: response.hints?.length || 0,
       });
 
@@ -148,40 +149,61 @@ function formatContextResponse(response: any): string {
     sections.push('');
   }
 
-  // Active Session (if any)
-  if (response.activeSession) {
-    const session = response.activeSession;
-    sections.push('## Active Work Session');
-    sections.push(`**Name**: ${session.name || '_Unnamed session_'}`);
-    sections.push(`**Status**: ${session.status}`);
-    sections.push(`**Started**: ${session.startedAt}`);
+  // Active Sessions (Sprint 14: Multi-session support)
+  if (response.activeSessions && response.activeSessions.length > 0) {
+    const sessions = response.activeSessions;
+    const inProgressCount = sessions.filter((s: any) => s.status === 'IN_PROGRESS').length;
+    const pausedCount = sessions.filter((s: any) => s.status === 'PAUSED').length;
 
-    if (session.activeTicketIds.length > 0) {
-      sections.push(`**Active Tickets**: ${session.activeTicketIds.join(', ')}`);
-    }
+    sections.push('## Active Work Sessions');
+    sections.push(`**Total**: ${sessions.length} (${inProgressCount} active, ${pausedCount} paused)`);
+    sections.push('');
 
-    if (session.todos) {
-      const todos = session.todos as Array<{ content: string; status: string }>;
-      if (Array.isArray(todos) && todos.length > 0) {
-        sections.push('');
-        sections.push('### Todos');
-        for (const todo of todos) {
-          const icon = todo.status === 'completed' ? '[x]' : '[ ]';
-          sections.push(`- ${icon} ${todo.content}`);
+    // Show details for each session (most recent first)
+    for (const session of sessions) {
+      const statusIcon = session.status === 'IN_PROGRESS' ? '🟢' : '⏸️';
+      sections.push(`### ${statusIcon} ${session.name || '_Unnamed session_'}`);
+      sections.push(`**Session ID**: \`${session.id}\``);
+      sections.push(`**Status**: ${session.status}`);
+      sections.push(`**Started**: ${session.startedAt}`);
+
+      if (session.activeTicketIds && session.activeTicketIds.length > 0) {
+        sections.push(`**Active Tickets**: ${session.activeTicketIds.join(', ')}`);
+      }
+
+      if (session.todos) {
+        const todos = session.todos as Array<{ content: string; status: string }>;
+        if (Array.isArray(todos) && todos.length > 0) {
+          const completed = todos.filter(t => t.status === 'completed').length;
+          sections.push(`**Todos**: ${completed}/${todos.length} completed`);
+          // Show first 3 incomplete todos
+          const incomplete = todos.filter(t => t.status !== 'completed').slice(0, 3);
+          if (incomplete.length > 0) {
+            for (const todo of incomplete) {
+              sections.push(`  - [ ] ${todo.content}`);
+            }
+            if (todos.filter(t => t.status !== 'completed').length > 3) {
+              sections.push(`  - _...and ${todos.filter(t => t.status !== 'completed').length - 3} more_`);
+            }
+          }
         }
       }
+
+      if (session.plan) {
+        // Truncate plan preview for multi-session view
+        const planPreview = session.plan.length > 200
+          ? session.plan.substring(0, 200) + '...'
+          : session.plan;
+        sections.push(`**Plan**: ${planPreview.replace(/\n/g, ' ')}`);
+      }
+      sections.push('');
     }
 
-    if (session.plan) {
+    // Helpful guidance for multi-session scenarios
+    if (sessions.length > 1) {
+      sections.push('> **Tip**: Use `projectpulse_agent_session_resume` with a session ID to continue specific work.');
       sections.push('');
-      sections.push('### Current Plan');
-      // Truncate plan if too long
-      const planPreview = session.plan.length > 500
-        ? session.plan.substring(0, 500) + '...\n_(Plan truncated. See full session for details.)_'
-        : session.plan;
-      sections.push(planPreview);
     }
-    sections.push('');
   }
 
   // Memory Banks
