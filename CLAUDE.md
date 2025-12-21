@@ -1,7 +1,7 @@
 # Claude Code Integration Guide - ProjectPulse
 
-**Version**: 2.1 (Protocol-Enforced)
-**Last Updated**: 2025-11-10
+**Version**: 3.0 (MCP-Based)
+**Last Updated**: 2025-12-21
 
 ---
 
@@ -21,51 +21,19 @@ Just chat naturally with me (Claude Code):
 
 **BEFORE starting ANY coding work:**
 
-### 1. Mac Mini Services Verification
-
-**CRITICAL**: All services run in Docker on the Mac mini. Use `localhost` when running on the Mac mini itself.
+### 1. Health Check
 
 ```bash
-# Check services are running
 curl http://localhost:3000/api/health
 # ✅ MUST return: {"status":"healthy","database":"connected"}
 ```
 
-**If services down (I CAN restart Docker directly since I'm running on Mac mini):**
+**If services down:**
 ```bash
-# Restart Docker services
 docker compose -f docker-compose.cloud.yml up -d
-
-# Or restart specific service
-docker compose -f docker-compose.cloud.yml restart web
-
-# Rebuild if code changes need new image
-docker compose -f docker-compose.cloud.yml up -d --build web
 ```
 
-**See**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
-
-### 2. Docker Services (Mac mini Runtime)
-
-> Default assumption: all runtime services (Next.js, PostgreSQL, MCP) run in
-> Docker on the **Mac mini itself**. Do **not** start extra local dev servers
-> (`pnpm dev`) unless explicitly requested and you know they will not conflict
-> with Docker.
-
-```bash
-# On Mac mini, check containers
-docker compose -f docker-compose.cloud.yml ps
-```
-
-**If services down or unhealthy:**
-- Ask the user to run: `docker compose -f docker-compose.cloud.yml up -d`
-- Then re-run the health check from Step 1.
-
-**See**:
-- [.agent/tech-context.md](.agent/tech-context.md)
-- [.agent/system-patterns.md](.agent/system-patterns.md)
-
-### 3. Git Branch
+### 2. Git Branch
 
 ```bash
 git branch
@@ -74,6 +42,20 @@ git branch
 git checkout master && git pull origin master
 git checkout -b feature/your-feature
 ```
+
+### 3. Load ProjectPulse Context (MCP)
+
+```
+projectpulse_context_load(projectId: 6)
+```
+
+This returns:
+- All 5 memory banks (project brief, patterns, tech context, active focus, progress)
+- Active sessions (check if PAUSED work exists)
+- Workflow hints
+
+**If PAUSED session found:** Resume with `projectpulse_agent_session_resume(sessionId)`
+**If no session:** Start new with `projectpulse_agent_session_start()`
 
 **See**: [.agent/sops/git-workflow.md](.agent/sops/git-workflow.md)
 
@@ -106,63 +88,85 @@ git checkout -b feature/your-feature
 
 **Complete Setup**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
 
-### What I Must Do (Per Protocol)
+### What I Must Do (MCP-Based Workflow)
 
-**STEP 1: INITIALIZATION**
+**STEP 1: LOAD CONTEXT**
 
-- Read .agent/active-context.md and .agent/progress.md, plus docs/13-Project-Plan.md and docs/12-Backlog.md
-- Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
-- **Confirm:** "✅ STEP 1 COMPLETE: Session initialized at [timestamp]"
+```
+projectpulse_context_load(projectId: 6)
+```
 
-**Reading Path After Step 1:**
+This returns:
+- All 5 memory banks (project brief, patterns, tech context, active focus, progress)
+- Active sessions (check if work in progress)
+- Available resources (personas, skills, SOPs)
+- Workflow hints
 
-After initialization, load additional context based on phase type:
+**If PAUSED session exists:** → `projectpulse_agent_session_resume(sessionId)`
+**If no active session:** → Continue to Step 2
 
-- **Implementation phases:** [docs/03-Architecture.md](docs/03-Architecture.md) → [docs/04-Data-and-Model-Spec.md](docs/04-Data-and-Model-Spec.md) → [docs/06-API/openapi.yaml](docs/06-API/openapi.yaml)
-- **Planning phases:** [docs/01-PRD.md](docs/01-PRD.md) → [docs/02-SRS.md](docs/02-SRS.md) → [docs/12-Backlog.md](docs/12-Backlog.md)
+**STEP 2: START SESSION**
 
-See [docs/README.md](docs/README.md) for complete reading paths.
+```
+projectpulse_agent_session_start({
+  projectId: 6,
+  name: "Implementing feature X",
+  plan: "## Plan\n1. Do X\n2. Do Y\n...",
+  todos: [{content: "Task 1", status: "pending"}, ...],
+  activeTicketIds: [25, 26]  // Link to tickets
+})
+```
 
-**STEP 2: PLAN CREATION**
+- Create implementation plan (use EnterPlanMode if needed)
+- Get user approval
+- Save plan and todos to MCP session (NOT to files)
 
-- Create implementation plan (use ExitPlanMode if needed)
-- Get your approval
-- **IMMEDIATELY save** to `.agent/task/current-plan.md`
-- Create `.agent/task/current-todos.md`
-- **Confirm:** "✅ STEP 2 COMPLETE: Plan saved to current-plan.md, todos saved to current-todos.md"
+**STEP 3: PROGRESS CHECKPOINTS**
 
-**STEP 3: EXPERT CONSULTATION**
+At 15K, 30K, 45K, 60K, 75K, 90K tokens:
+
+```
+projectpulse_agent_session_update({
+  sessionId: "...",
+  todos: [{content: "Task 1", status: "completed"}, ...],
+  progress: "Checkpoint: Completed X, now working on Y"
+})
+```
+
+**For breaks (lunch, EOD):** Use `status: "PAUSED"` - can resume later with full context.
+
+**STEP 4: COMPLETE SESSION**
+
+When work is FULLY done:
+
+```
+projectpulse_agent_session_end({
+  sessionId: "...",
+  progress: "Session complete. Implemented X, Y, Z."
+})
+```
+
+This auto-syncs:
+- PROGRESS bank: Session summary added
+- ACTIVE_CONTEXT bank: Updated with pending todos
+
+⚠️ **CRITICAL**: COMPLETED sessions CANNOT be resumed. Use PAUSED for breaks!
+
+**Expert Consultation (When Needed):**
 
 - Invoke `react-expert` for component architecture decisions
 - Invoke `next-js-expert` for Server/Client component and data fetching decisions
 - Invoke `prisma-expert` for database schema and query optimization
-- **Confirm:** "✅ STEP 3 COMPLETE: Consulted [expert-name] for [decision-topic]"
 
 **When Experts Required:**
-
 - New architectures (component hierarchies, state patterns)
 - Complex features (multi-step workflows, performance-critical)
 - Database changes (schema design, migration strategy)
 
 **When Experts Optional:**
-
 - Routine CRUD following established patterns
 - UI updates matching existing conventions
 - Minor refactors within established architecture
-
-**STEP 4: PROGRESS CHECKPOINTS**
-
-- At 15K, 30K, 45K, 60K, 75K, 90K tokens: Update session and todos files
-- **Confirm:** "✅ CHECKPOINT at [X]K tokens: Progress saved"
-
-**STEP 5: POST-COMPLETION**
-
-- Create completion doc (optional but recommended for complex phases)
-- Update .agent/active-context.md, .agent/progress.md, and docs/13-Project-Plan.md
-- Invoke synthesize-docs (if new patterns)
-- Invoke map-system (if architecture changed)
-- Commit documentation, then code
-- **Confirm:** "✅ STEP 5 COMPLETE: All documentation updated and committed"
 
 ### Skills and Context Loading
 
@@ -195,225 +199,69 @@ Based on phase keywords, I load relevant skills:
 
 ---
 
-## Context File Workflow (REQUIRED PER PROTOCOL)
+### Memory Bank System (via MCP)
 
-**File-based context management - REQUIRED by Steps 1, 2, and 4**
+**All 5 memory banks are loaded automatically via `projectpulse_context_load`.**
 
-### At Session Start (STEP 1)
+No need to read `.agent/` files directly - the MCP tool returns all banks in one call (~10K tokens).
 
-Per protocol Step 1, I am REQUIRED to:
+**Memory Banks Returned by context_load:**
 
-1. **Create** `.agent/task/current-session-[YYYYMMDD-HHMM].md`
-2. **Document**: Current phase, goals, requirements from .agent/progress.md / docs plan
-3. **Update** this file at every checkpoint (Step 4)
+| Bank | Content |
+|------|---------|
+| **PROJECT_BRIEF** | What we're building, goals, success criteria |
+| **SYSTEM_PATTERNS** | Architecture patterns, coding conventions |
+| **TECH_CONTEXT** | Technical stack, dependencies, constraints |
+| **ACTIVE_CONTEXT** | Current focus, recent changes |
+| **PROGRESS** | What's done, milestones, velocity |
 
-### When Invoking Sub-Agents (STEP 3)
-
-Per protocol Step 3, I am REQUIRED to:
-
-1. **Pass context file**: "Read `.agent/task/current-session.md` first"
-2. **Wait for report**: Sub-agent creates research/analysis report
-3. **Read the report**: Load `.agent/task/[agent]-[topic]-[timestamp].md`
-4. **Use report for implementation**: Follow the plan/recommendations
-5. **Update context**: Add what I implemented to current-session.md
-
-### File Structure
+**How to Access:**
 
 ```
-.agent/task/
-├── current-session-20251026-1430.md         ← Main context file (I create/update)
-├── explore-api-patterns-20251026-1445.md    ← Sub-agent research report
-├── architecture-search-20251026-1502.md     ← Sub-agent analysis
-└── synthesize-sop-20251026-1530.md          ← Sub-agent documentation
+# Load all banks at session start
+projectpulse_context_load(projectId: 6)
+→ Returns: memoryBanks { projectBrief, systemPatterns, techContext, activeContext, progress }
+
+# Load specific bank only (token-efficient)
+projectpulse_context_lookup(projectId: 6, bankType: "SYSTEM_PATTERNS")
+→ Returns: ~1K tokens of patterns
+
+# Update a bank (user-explicit only)
+projectpulse_context_update(projectId: 6, bankType: "PROGRESS", content: "...", mode: "append")
 ```
 
-### Why This Works
+**Auto-Sync**: PROGRESS and ACTIVE_CONTEXT banks are auto-updated when you call `session_end`.
 
-- **Sub-agents have full context**: They read current-session.md first
-- **Reports are persistent**: I can read them anytime, even after context compaction
-- **No information loss**: Everything is saved to files, not just in messages
-- **Parent agent stays informed**: current-session.md tracks entire session progress
-
-## 3-Tier Persistence Strategy (REQUIRED PER PROTOCOL)
-
-**Comprehensive progress tracking - REQUIRED by Steps 1, 2, and 4**
-
-To ensure no progress is ever lost, the protocol requires three levels of progress tracking:
-
-### Tier 1: Real-Time Tracking (Every Major Step)
-
-**Files I must create per protocol Steps 1 & 2**:
-
-- `.agent/task/current-session-[timestamp].md` - What I'm doing RIGHT NOW (Step 1)
-- `.agent/task/current-todos.md` - Complete task list with progress (Step 2)
-
-**I must update these per protocol Step 4**:
-
-- At every 15K token checkpoint (Step 4)
-- After completing any significant action (file created, test passed, component done)
-- When invoking sub-agents (note report location)
-- When blocked or encountering issues
-
-**Token cost**: ~100-200 tokens per update
-**Purpose**: Survive context compaction within active session
-
-### Tier 2: Checkpoints (After Significant Milestones)
-
-**File I update**:
-
-- `.agent/progress.md` - Add milestone entry with timestamp
-
-**I update when**:
-
-- Component fully implemented and tested
-- API endpoint working with tests
-- Feature sub-section complete
-- Before committing to git
-
-**Token cost**: ~300-500 tokens per update
-**Purpose**: Track partial phase progress, survive session interruptions
-
-### Tier 3: Knowledge Capture (Strategic, Infrequent)
-
-**Tool I use**:
-
-- Memory MCP - For patterns, decisions, architectural insights
-
-**I update for**:
-
-- Important architectural decisions made
-- New patterns discovered (for future skill generation)
-- Phase completion summaries
-- Solutions to recurring problems
-
-**Token cost**: ~800-1000 tokens per operation
-**Purpose**: Long-term knowledge retention across sessions
-
-### Required Workflow per Protocol
-
-**When starting session (STEP 1)**:
-
-1. Create `current-session-[timestamp].md` (REQUIRED)
-2. Check if `current-todos.md` exists (resuming previous work?)
-3. If yes → Read todos and continue
-4. If no → Create new todos from docs/13-Project-Plan.md (STEP 2)
-
-**When creating plan (STEP 2)**:
-
-1. Create UI todo list with TodoWrite (visible to you)
-2. Save identical list to `current-todos.md` (persistent - REQUIRED)
-3. Save plan to `current-plan.md` (REQUIRED)
-
-**At each checkpoint (STEP 4 - every 15K tokens)**:
-
-1. Update `current-session.md` with progress note (REQUIRED)
-2. Update `current-todos.md` (mark complete, update percentage - REQUIRED)
-3. Update TodoWrite UI (REQUIRED)
-4. Output checkpoint confirmation (REQUIRED)
-
-**After significant milestone**:
-
-1. Update `.agent/progress.md` with checkpoint
-2. Commit to git if appropriate
-
-**After phase completion (STEP 5)**:
-
-1. Create completion doc (optional but recommended for complex phases)
-2. Update .agent/active-context.md, .agent/progress.md, and docs/13-Project-Plan.md (REQUIRED)
-3. Invoke synthesize-docs and map-system sub-agents (REQUIRED if patterns created or architecture changed)
-4. Commit documentation, then code (REQUIRED)
-5. Archive `current-todos.md` → `archive/phase-X-day-Y-todos-COMPLETE.md`
-6. Optional Memory MCP update with phase summary
-
-
-### Memory Bank System (MANDATORY)
-
-**🚨 REQUIRED BY PROTOCOL: These files must be read EVERY session (Step 1) and updated EVERY session (Step 5).**
-
-See [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md) Step 1 and Step 5 for requirements.
-
-**Structured context files for efficient knowledge retrieval:**
-
-**Core Memory Bank Files** (.agent/):
-
-1. **[project-brief.md](.agent/project-brief.md)** - WHAT we're building and WHY
-   - Core requirements, goals, success criteria
-   - User personas, target audience
-   - Quality standards, constraints
-   - Current status and milestones
-
-2. **[system-patterns.md](.agent/system-patterns.md)** - HOW we build
-   - Architecture patterns (Server/Client Components)
-   - Database patterns (Prisma queries, optimization)
-   - API patterns (endpoints, validation, error handling)
-   - Styling patterns (Tailwind, neumorphic design)
-   - Testing patterns (Jest, RTL, Playwright)
-
-3. **[tech-context.md](.agent/tech-context.md)** - Technical stack
-   - Dependencies (Next.js, Prisma, Zod, etc.)
-   - Environment setup, configuration
-   - Constraints and limitations
-   - Browser support, performance targets
-   - Troubleshooting common issues
-
-4. **[active-context.md](.agent/active-context.md)** - Current focus
-   - What we're working on RIGHT NOW
-   - Recent changes and commits
-   - Remaining tasks for current phase
-   - Blockers and waiting items
-
-5. **[progress.md](.agent/progress.md)** - Progress tracking
-   - What's done, what's left
-   - Metrics (velocity, quality gates)
-   - Risk assessment
-   - Lessons learned
-
-**When to Read Which File:**
-
-```
-Need project requirements?          → project-brief.md
-Need architectural patterns?        → system-patterns.md
-Need tech stack details?            → tech-context.md
-Need current task context?          → active-context.md
-Need progress overview?             → progress.md
-```
-
-**Memory Bank Benefits:**
-
-- 🎯 **Targeted Loading**: Read only what you need (vs loading everything)
-- 🔄 **Auto-Updates**: Sub-agents maintain these files automatically
-- 💾 **Token Efficient**: ~3-5K tokens per file vs 30K+ for full context
-- 📊 **Structured**: Consistent format makes information easy to find
+**Token Budgets:**
+- PROJECT_BRIEF: 3K tokens
+- SYSTEM_PATTERNS: 2K tokens
+- TECH_CONTEXT: 2K tokens
+- ACTIVE_CONTEXT: 1K tokens
+- PROGRESS: 2K tokens
 
 ---
 
-## 🔧 Internal Tooling vs Product Features
+## 🔧 Dogfooding: We Use Our Own MCP Tools
 
-**IMPORTANT DISTINCTION**:
+**We're building ProjectPulse AND using it to build itself!**
 
-### Internal Tooling (ProjectPulse Team Only)
-- `.agent/` folder - Our team's dogfooding workflow while building ProjectPulse
-- `.agent/task/current-session-*.md` - Tracking our work building the product itself
-- `.agent/progress.md` - Our sprint progress (building ProjectPulse)
-- `CLAUDE.md` - Integration guide for Claude Code working on ProjectPulse
-- **NOT visible to end users**
+### What We Use (Same as End Users)
+- `projectpulse_context_load` - Load memory banks at session start
+- `projectpulse_agent_session_*` - Track our work sessions
+- `projectpulse_ticket_*` - Create and manage our tickets
+- `projectpulse_knowledge_*` - Store and retrieve knowledge
 
-### Product Features (For End User Teams)
-- `apps/web/` - ProjectPulse application code (the product we're building)
-- Database entities: `Phase`, `Week`, `Day`, `Task`, `Session` (for end users' AI agents)
-- MCP API: `task.create()`, `session.start()`, `session.checkpoint()` (called by end users' agents)
-- Web UI: Progress dashboards, issue tracking, wiki pages (viewed by end users)
-- **End users install ProjectPulse and THEIR agents use these features**
+### What `.agent/` Folder Is For (Sub-Agent Outputs Only)
+- `.agent/sops/` - SOPs generated by `synthesize-docs` sub-agent
+- `.agent/system/` - System docs generated by `map-system` sub-agent
+- `CLAUDE.md` - This integration guide
 
-**For End Users**:
-- ✅ Their AI agents use Task/Session database entities to track THEIR development work
-- ✅ Their work tracked in ProjectPulse database (their own instance)
-- ✅ Clean repositories - NO `.agent/` folders in their codebases
-- ✅ NO markdown files in their repos - everything in ProjectPulse database
+**We no longer use:**
+- ~~`.agent/task/current-session-*.md`~~ → Use MCP sessions
+- ~~`.agent/progress.md`~~ → Use MCP context_load
+- ~~`.agent/active-context.md`~~ → Use MCP context_load
 
-**End users get the clean, database-backed experience we're building!**
-
-The `.agent/` folder exists in THIS repository because we're using our own early version of ProjectPulse to build ProjectPulse itself (dogfooding). But end users won't have `.agent/` folders - they'll have a clean codebase with all tracking in the ProjectPulse database.
+**End users get the same clean, database-backed experience we now use ourselves!**
 
 ---
 
@@ -575,15 +423,117 @@ Me: "This needs Next.js routing + React optimization expertise.
 
 ---
 
-**Complete Guide**: [GEMINI.md](GEMINI.md)
+## 🔄 Agent Session Workflow
+
+**Project ID**: 6 (always use this for ProjectPulse itself)
+
+### What Are Agent Sessions?
+
+Sessions track Claude Code work periods that survive context compaction. The **plan** is the crown jewel - deep implementation thoughts that would otherwise be lost.
+
+**Key Insight**: Session = Claude Code work period (not a ticket or task)
+
+### Session Lifecycle
+
+| Step | MCP Tool | When to Use |
+|------|----------|-------------|
+| 1. Entry Point | `projectpulse_context_load` | ALWAYS start here |
+| 2. Resume Work | `projectpulse_agent_session_resume` | If PAUSED session exists |
+| 3. Start New | `projectpulse_agent_session_start` | New task/feature |
+| 4. Checkpoint | `projectpulse_agent_session_update` | Every 15K tokens |
+| 5. Take Break | `session_update(status: PAUSED)` | Lunch, EOD, switching tasks |
+| 6. Complete | `projectpulse_agent_session_end` | Work FULLY done |
+
+### Pause vs End - Critical Distinction
+
+| Use PAUSED for | Use END for |
+|----------------|-------------|
+| Lunch break | Feature fully complete |
+| End of day | Milestone reached |
+| Switching tasks temporarily | Ready for next feature |
+| Context compaction imminent | All tickets closed |
+
+⚠️ **CRITICAL**: COMPLETED sessions CANNOT be resumed. Use PAUSED for breaks!
+
+### Multi-Instance Support
+
+Each Claude Code instance gets its own session. When `context_load` returns multiple active sessions:
+- Pick your session by ID
+- Or create a new one for independent work
+- Sessions don't conflict - each tracks its own plan/todos
+
+### Auto-Sync on Session End
+
+When you call `session_end`:
+- **PROGRESS bank**: Session summary added automatically
+- **ACTIVE_CONTEXT bank**: Updated with pending todos
+- Response includes `syncStatus` - check for failures
+
+If sync fails, use `projectpulse_context_update` manually.
+
+### Example Workflow
+
+```
+# Session start
+Me: projectpulse_context_load(projectId: 6)
+→ Returns: memory banks + no active sessions
+
+Me: projectpulse_agent_session_start({
+  name: "Implementing API endpoint",
+  plan: "## Plan\n1. Create route\n2. Add validation\n...",
+  todos: [{content: "Create route", status: "pending"}, ...]
+})
+→ Returns: sessionId: "abc123..."
+
+# ... work for 30 minutes ...
+
+Me: projectpulse_agent_session_update({
+  sessionId: "abc123...",
+  todos: [{content: "Create route", status: "completed"}, ...],
+  progress: "Completed route, now adding validation"
+})
+
+# ... lunch break ...
+
+Me: projectpulse_agent_session_update({
+  sessionId: "abc123...",
+  status: "PAUSED",
+  progress: "Pausing for lunch. Next: finish validation"
+})
+
+# ... return from lunch ...
+
+Me: projectpulse_context_load(projectId: 6)
+→ Returns: PAUSED session found!
+
+Me: projectpulse_agent_session_resume({sessionId: "abc123..."})
+→ Returns: full plan, todos, progress
+
+# ... complete the work ...
+
+Me: projectpulse_agent_session_end({
+  sessionId: "abc123...",
+  progress: "Session complete. API endpoint implemented and tested."
+})
+→ Auto-syncs to memory banks
+```
 
 ---
 
 ## MCP Tools
 
-**Current tools available**:
+**ProjectPulse MCP Server** (projectId: 6 for this project):
 
-- sequential-thinking - Complex reasoning
+| Category | Tools |
+|----------|-------|
+| **Context** | `context_load`, `context_lookup`, `context_update` |
+| **Sessions** | `agent_session_start`, `agent_session_update`, `agent_session_resume`, `agent_session_end` |
+| **Tickets** | `ticket_create`, `ticket_search`, `ticket_update`, `ticket_setStatus`, `ticket_addComment`, `ticket_get` |
+| **Knowledge** | `knowledge_create`, `knowledge_search`, `knowledge_get` |
+| **Resources** | `persona_list`, `persona_get`, `skill_list`, `skill_get`, `sop_list`, `sop_get` |
+
+**Other MCP Servers**:
+- `sequential-thinking` - Complex multi-step reasoning
 
 **Complete guide**: [docs/features/mcp-tools-guide.md](docs/features/mcp-tools-guide.md)
 
@@ -725,27 +675,18 @@ Me: [Generates SOP, updates .agent/ docs]
 
 ### After EVERY Feature Completion
 
-**Your existing workflow** (unchanged):
+**MCP-Based Workflow:**
 
-1. Update .agent/active-context.md and .agent/progress.md
-2. Update docs/13-Project-Plan.md (and docs/12-Backlog.md if needed)
-3. Optional: Create completion doc (COMPLETION_TEMPLATE.md) — will be archived under `docs/archive/completions/`
-4. Commit and push
+1. **End session** - `projectpulse_agent_session_end()` auto-syncs memory banks
+2. **Close tickets** - `projectpulse_ticket_setStatus(ticketId, "closed")`
+3. **Commit and push** - Git operations as normal
 
-**Optional - New** (when feature introduces new patterns): 5. Ask me to generate SOP:
+**Optional (when new patterns introduced):**
 
-```
-You: "Generate SOP for adding API endpoints"
-Me: [Invokes synthesize-docs sub-agent]
-    [Saves to .agent/sops/]
-```
+4. **Generate SOP** - Invoke `synthesize-docs` sub-agent
+5. **Update system docs** - Invoke `map-system` sub-agent
 
-6. If system changed, update docs:
-   ```
-   You: "Update system documentation"
-   Me: [Invokes map-system sub-agent]
-       [Refreshes .agent/system/ docs]
-   ```
+**Note**: You no longer need to manually update `.agent/progress.md` or `.agent/active-context.md`. The `session_end` tool auto-syncs these memory banks.
 
 ---
 
@@ -774,12 +715,10 @@ Initialize or update .agent/ documentation system
 
 ```markdown
 - [ ] Health OK: curl http://localhost:3000/api/health returns healthy
-- [ ] localhost:3000 loads application in browser
 - [ ] Docker services running: docker compose -f docker-compose.cloud.yml ps
 - [ ] On feature branch (not master)
-- [ ] Read .agent/active-context.md, .agent/progress.md and docs/13-Project-Plan.md
-- [ ] **CRITICAL**: Read .agent/MANDATORY_SESSION_PROTOCOL.md Protocol Violations Log
-- [ ] Check .agent/README.md for task context
+- [ ] Called projectpulse_context_load(projectId: 6) to load memory banks
+- [ ] Resumed PAUSED session OR started new session
 ```
 
 ### Common Tasks
@@ -843,46 +782,5 @@ Initialize or update .agent/ documentation system
 **System Docs**:
 
 - [.agent/system/](.agent/system/) - Technical references
-
-
-## Protocol Violations Log Reference
-
-**CRITICAL**: Before starting ANY session, read the Protocol Violations Log in [.agent/MANDATORY_SESSION_PROTOCOL.md](.agent/MANDATORY_SESSION_PROTOCOL.md).
-
-### What to Check
-
-1. **Violation History** - See what went wrong on 2025-11-10
-2. **Future Session Checklist** - 9-point checklist MUST be satisfied before claiming any step "complete"
-3. **Enforcement Mechanism** - This log persists across sessions and context resets
-
-### Key Lesson from 2025-11-10 Violation
-
-- Claiming "protocol complete" without evidence = violation
-- User will stop you and demand RIGHT NOW execution
-- Without file updates, enforcement cannot persist
-- Required confirmations are NOT optional - they are proof of execution
-
-### If User Says "You Did Not Do Step X"
-
-1. You violated the protocol
-2. Execute step X RIGHT NOW with full documentation
-3. Update session file with evidence
-4. Provide required confirmation
-
-### Future Session Checklist (9 Points)
-
-Before claiming ANY protocol step complete, verify:
-
-1. **Session file created** - `.agent/task/current-session-[timestamp].md` exists
-2. **Plan saved** - `.agent/task/current-plan.md` contains approved plan
-3. **Todos saved** - `.agent/task/current-todos.md` tracks all tasks
-4. **Expert consultations** - Sub-agents invoked with documented reports
-5. **Progress checkpoints** - Files updated at 15K token intervals
-6. **Verification evidence** - Concrete proof for each requirement (ls, tsc, curl, tests)
-7. **Documentation updated** - .agent/active-context.md, .agent/progress.md, docs/13-Project-Plan.md
-8. **Sub-agents invoked** - synthesize-docs and map-system if applicable
-9. **Git commits** - Documentation first, then code
-
-**If you cannot provide ALL these updates, the step is NOT complete.**
 
 ---
