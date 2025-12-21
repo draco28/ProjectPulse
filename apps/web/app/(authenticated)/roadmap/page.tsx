@@ -93,7 +93,7 @@ export default async function RoadmapPage({
   if (!user) redirect('/login');
 
   const params = await searchParams;
-  
+
   const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
   const roadmap = await getRoadmap(projectId);
@@ -106,13 +106,13 @@ export default async function RoadmapPage({
     <>
       {/* Page Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="icon-coral flex h-14 w-14 items-center justify-center rounded-2xl flex-shrink-0">
+        <div className="mb-2 flex items-center gap-3">
+          <div className="icon-coral flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl">
             <Map className="h-7 w-7 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-white">Development Roadmap</h1>
         </div>
-        <p className="text-slate text-sm ml-[68px]">
+        <p className="ml-[68px] text-sm text-slate">
           4-level hierarchy: Phase → Sprint → Week → Day
         </p>
       </div>
@@ -123,11 +123,11 @@ export default async function RoadmapPage({
       {/* Roadmap View (Tree or Timeline) */}
       <Suspense
         fallback={
-          <div className="neu-raised rounded-3xl p-6 animate-pulse">
-            <div className="h-8 bg-dark-pressed rounded-xl mb-4 w-1/3"></div>
-            <div className="h-32 bg-dark-pressed rounded-xl mb-3"></div>
-            <div className="h-32 bg-dark-pressed rounded-xl mb-3"></div>
-            <div className="h-32 bg-dark-pressed rounded-xl"></div>
+          <div className="neu-raised animate-pulse rounded-3xl p-6">
+            <div className="mb-4 h-8 w-1/3 rounded-xl bg-dark-pressed"></div>
+            <div className="mb-3 h-32 rounded-xl bg-dark-pressed"></div>
+            <div className="mb-3 h-32 rounded-xl bg-dark-pressed"></div>
+            <div className="h-32 rounded-xl bg-dark-pressed"></div>
           </div>
         }
       >

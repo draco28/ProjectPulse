@@ -42,17 +42,17 @@ export function RoadmapFilters({ onFilterChange }: RoadmapFiltersProps) {
   };
 
   return (
-    <div className="neu-raised rounded-3xl p-6 mb-6">
-      <h3 className="text-lg font-bold text-white mb-4">Filters</h3>
+    <div className="neu-raised mb-6 rounded-3xl p-6">
+      <h3 className="mb-4 text-lg font-bold text-white">Filters</h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Status Filter */}
         <div>
-          <label className="block text-sm font-medium text-slate mb-2">Status</label>
+          <label className="mb-2 block text-sm font-medium text-slate">Status</label>
           <select
             value={filters.status}
             onChange={(e) => handleStatusChange(e.target.value as RoadmapFilterStatus)}
-            className="neu-pressed w-full rounded-xl px-4 py-3 text-white bg-transparent focus:ring-2 focus:ring-coral smooth-transition"
+            className="neu-pressed smooth-transition w-full rounded-xl bg-transparent px-4 py-3 text-white focus:ring-2 focus:ring-coral"
           >
             <option value="ALL">All Statuses</option>
             <option value="NOT_STARTED">Not Started</option>
@@ -63,15 +63,15 @@ export function RoadmapFilters({ onFilterChange }: RoadmapFiltersProps) {
 
         {/* Search Filter */}
         <div>
-          <label className="block text-sm font-medium text-slate mb-2">Search</label>
+          <label className="mb-2 block text-sm font-medium text-slate">Search</label>
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate" />
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
             <input
               type="text"
               value={filters.searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search phases, sprints, weeks..."
-              className="neu-pressed w-full rounded-xl pl-11 pr-4 py-3 text-white bg-transparent placeholder-slate focus:ring-2 focus:ring-coral smooth-transition"
+              className="neu-pressed smooth-transition w-full rounded-xl bg-transparent py-3 pl-11 pr-4 text-white placeholder-slate focus:ring-2 focus:ring-coral"
             />
           </div>
         </div>
@@ -79,15 +79,15 @@ export function RoadmapFilters({ onFilterChange }: RoadmapFiltersProps) {
 
       {/* Active Filters Summary */}
       {(filters.status !== 'ALL' || filters.searchQuery) && (
-        <div className="mt-4 flex items-center gap-2 flex-wrap">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="text-xs text-slate">Active:</span>
           {filters.status !== 'ALL' && (
-            <span className="px-3 py-1 bg-coral/20 text-coral border border-coral/30 rounded-full text-xs font-semibold">
+            <span className="rounded-full border border-coral/30 bg-coral/20 px-3 py-1 text-xs font-semibold text-coral">
               Status: {filters.status.replace('_', ' ')}
             </span>
           )}
           {filters.searchQuery && (
-            <span className="px-3 py-1 bg-coral/20 text-coral border border-coral/30 rounded-full text-xs font-semibold">
+            <span className="rounded-full border border-coral/30 bg-coral/20 px-3 py-1 text-xs font-semibold text-coral">
               Search: &quot;{filters.searchQuery}&quot;
             </span>
           )}
@@ -97,7 +97,7 @@ export function RoadmapFilters({ onFilterChange }: RoadmapFiltersProps) {
               setFilters(resetFilters);
               onFilterChange(resetFilters);
             }}
-            className="ml-auto text-xs text-coral hover:text-coral-light smooth-transition font-medium"
+            className="smooth-transition ml-auto text-xs font-medium text-coral hover:text-coral-light"
           >
             Clear all
           </button>

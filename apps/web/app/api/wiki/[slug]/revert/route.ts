@@ -54,9 +54,7 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
 
     const { version, reason, updatedBy, updatedByType } = validation.data;
     const actorName =
-      updatedBy ||
-      request.headers.get('x-projectpulse-actor') ||
-      DEFAULT_ACTOR_NAME;
+      updatedBy || request.headers.get('x-projectpulse-actor') || DEFAULT_ACTOR_NAME;
     const actorType =
       updatedByType ||
       (request.headers.get('x-projectpulse-actor-type') as 'human' | 'agent' | 'system' | null) ||
@@ -160,7 +158,7 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     if (typeof error === 'string') {
       return mapRevertError(error as RevertError);
     }

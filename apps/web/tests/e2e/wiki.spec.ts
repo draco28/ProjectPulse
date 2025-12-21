@@ -20,7 +20,9 @@ test.describe('Wiki Page - Basic Rendering', () => {
     // Page title (scope to main/article content to avoid "Moksha" header)
     const mainContent = page.locator('main, article, [role="main"], [class*="content"]').first();
     await expect(mainContent.getByRole('heading', { level: 1 }).first()).toBeVisible();
-    await expect(mainContent.getByRole('heading', { level: 1 }).first()).toContainText('Getting Started');
+    await expect(mainContent.getByRole('heading', { level: 1 }).first()).toContainText(
+      'Getting Started'
+    );
 
     // Verify page has section headings (TOC links may not exist in current implementation)
     await expect(mainContent).toContainText(/What is ProjectPulse/i);
@@ -46,9 +48,11 @@ test.describe('Wiki Page - Basic Rendering', () => {
     await page.waitForLoadState('networkidle');
 
     // Look for any internal wiki link (more flexible than expecting specific "Related Pages" section)
-    const wikiLinks = page.locator('a[href^="/wiki/"]').filter({ hasText: /Configuration|Docker|Guide/i });
+    const wikiLinks = page
+      .locator('a[href^="/wiki/"]')
+      .filter({ hasText: /Configuration|Docker|Guide/i });
 
-    if (await wikiLinks.count() > 0) {
+    if ((await wikiLinks.count()) > 0) {
       const firstLink = wikiLinks.first();
       await firstLink.click();
 
@@ -140,7 +144,9 @@ test.describe('Wiki Cross-Linking', () => {
 
       // Scope to main content to avoid "Moksha" header
       const mainContent = page.locator('main, article, [role="main"], [class*="content"]').first();
-      await expect(mainContent.getByRole('heading', { level: 1 }).first()).toContainText('Configuration');
+      await expect(mainContent.getByRole('heading', { level: 1 }).first()).toContainText(
+        'Configuration'
+      );
     }
   });
 
@@ -205,7 +211,9 @@ test.describe('Wiki Revisions', () => {
         await viewButton.click();
 
         // Should display revision content (possibly with banner indicating old version)
-        await expect(page.getByText(/Viewing revision|Old version/i)).toBeVisible({ timeout: 2000 });
+        await expect(page.getByText(/Viewing revision|Old version/i)).toBeVisible({
+          timeout: 2000,
+        });
       }
     }
   });
@@ -255,7 +263,9 @@ test.describe('Wiki Full-Text Search', () => {
 
     // Should show search results (scope to main content area to avoid header/footer links)
     const mainContent = page.locator('main, [role="main"]').first();
-    const searchResults = mainContent.getByRole('link').filter({ hasText: /Getting Started|Installation|Docker|Guide/i });
+    const searchResults = mainContent
+      .getByRole('link')
+      .filter({ hasText: /Getting Started|Installation|Docker|Guide/i });
 
     // At least one result should match
     const count = await searchResults.count();
@@ -289,13 +299,13 @@ test.describe('Wiki Full-Text Search', () => {
     const bodyText = await page.textContent('body', { timeout: 10000 });
 
     // Just verify search returned SOME results (any wiki page title)
-    const hasResults = bodyText && (
-      /getting started/i.test(bodyText) ||
-      /configuration/i.test(bodyText) ||
-      /docker/i.test(bodyText) ||
-      /guide/i.test(bodyText) ||
-      /tutorial/i.test(bodyText)
-    );
+    const hasResults =
+      bodyText &&
+      (/getting started/i.test(bodyText) ||
+        /configuration/i.test(bodyText) ||
+        /docker/i.test(bodyText) ||
+        /guide/i.test(bodyText) ||
+        /tutorial/i.test(bodyText));
 
     expect(hasResults).toBeTruthy();
   });
@@ -457,11 +467,11 @@ test.describe('Wiki Revisions - Advanced', () => {
     const bodyText = await page.textContent('body');
 
     // Check for timestamp patterns (e.g., "2 hours ago", "Nov 15, 2025")
-    const hasTimestamps = bodyText && (
-      /\d+ (seconds?|minutes?|hours?|days?) ago/i.test(bodyText) ||
-      /\d{1,2}\/\d{1,2}\/\d{4}/.test(bodyText) ||
-      /\w+ \d{1,2}, \d{4}/.test(bodyText)
-    );
+    const hasTimestamps =
+      bodyText &&
+      (/\d+ (seconds?|minutes?|hours?|days?) ago/i.test(bodyText) ||
+        /\d{1,2}\/\d{1,2}\/\d{4}/.test(bodyText) ||
+        /\w+ \d{1,2}, \d{4}/.test(bodyText));
 
     // Check for author info (e.g., "by User", "Author: User")
     const hasAuthor = bodyText && /by |Author:|Edited by/i.test(bodyText);
@@ -489,11 +499,11 @@ test.describe('Wiki Revisions - Advanced', () => {
 
     // Look for changelog/change summary field
     const bodyText = await page.textContent('body');
-    const hasChangelog = bodyText && (
-      /Change(?:log|s)?:/i.test(bodyText) ||
-      /Summary:/i.test(bodyText) ||
-      /What changed/i.test(bodyText)
-    );
+    const hasChangelog =
+      bodyText &&
+      (/Change(?:log|s)?:/i.test(bodyText) ||
+        /Summary:/i.test(bodyText) ||
+        /What changed/i.test(bodyText));
 
     if (hasChangelog) {
       expect(true).toBeTruthy();
@@ -518,11 +528,11 @@ test.describe('Wiki Revisions - Advanced', () => {
 
     // Look for revision count display (e.g., "5 revisions", "Version 3")
     const bodyText = await page.textContent('body');
-    const hasRevisionCount = bodyText && (
-      /\d+ revisions?/i.test(bodyText) ||
-      /Version \d+/i.test(bodyText) ||
-      /v\d+\.\d+/i.test(bodyText)
-    );
+    const hasRevisionCount =
+      bodyText &&
+      (/\d+ revisions?/i.test(bodyText) ||
+        /Version \d+/i.test(bodyText) ||
+        /v\d+\.\d+/i.test(bodyText));
 
     if (hasRevisionCount) {
       expect(true).toBeTruthy();
@@ -546,7 +556,9 @@ test.describe('Wiki Revisions - Advanced', () => {
     await page.waitForTimeout(500);
 
     // Look for revision selection checkboxes
-    const revisionCheckboxes = page.locator('input[type="checkbox"][data-testid="revision-select"]');
+    const revisionCheckboxes = page.locator(
+      'input[type="checkbox"][data-testid="revision-select"]'
+    );
 
     if ((await revisionCheckboxes.count()) >= 2) {
       // Select two non-adjacent revisions
@@ -585,11 +597,9 @@ test.describe('Wiki Navigation & Breadcrumbs', () => {
       const breadcrumbText = await breadcrumbs.textContent();
 
       // Should contain wiki hierarchy
-      const hasBreadcrumbs = breadcrumbText && (
-        /home/i.test(breadcrumbText) ||
-        /wiki/i.test(breadcrumbText) ||
-        />/i.test(breadcrumbText)
-      );
+      const hasBreadcrumbs =
+        breadcrumbText &&
+        (/home/i.test(breadcrumbText) || /wiki/i.test(breadcrumbText) || />/i.test(breadcrumbText));
 
       expect(hasBreadcrumbs).toBeTruthy();
     } else {
@@ -655,7 +665,7 @@ test.describe('Wiki Accessibility', () => {
     // Look for skip link (usually hidden until focused)
     const skipLink = page.getByRole('link', { name: /Skip to content|Skip to main/i });
 
-    if (await skipLink.count() > 0) {
+    if ((await skipLink.count()) > 0) {
       // Skip link should exist for accessibility
       expect(await skipLink.count()).toBeGreaterThan(0);
     } else {
@@ -698,10 +708,9 @@ test.describe('Wiki Performance', () => {
 
     // Check for ISR cache headers
     const cacheControl = response?.headers()['cache-control'];
-    const hasISR = cacheControl && (
-      /s-maxage=/i.test(cacheControl) ||
-      /stale-while-revalidate/i.test(cacheControl)
-    );
+    const hasISR =
+      cacheControl &&
+      (/s-maxage=/i.test(cacheControl) || /stale-while-revalidate/i.test(cacheControl));
 
     if (hasISR) {
       expect(hasISR).toBeTruthy();

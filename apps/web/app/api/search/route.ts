@@ -111,7 +111,14 @@ export async function GET(request: NextRequest) {
     if (type === 'all' || type === 'wiki') {
       const categoryBoost = Prisma.sql`CASE WHEN "category" = 'reference' THEN 1.1 ELSE 1 END`;
       const wikiRows = await prisma.$queryRaw<
-        Array<{ id: number; title: string; path: string; category: string | null; highlight: string | null; rank: number }>
+        Array<{
+          id: number;
+          title: string;
+          path: string;
+          category: string | null;
+          highlight: string | null;
+          rank: number;
+        }>
       >(Prisma.sql`
         SELECT
           "id",

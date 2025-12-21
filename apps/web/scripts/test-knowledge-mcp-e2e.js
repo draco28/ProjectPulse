@@ -2,10 +2,10 @@
 /**
  * MCP E2E Test Script for Knowledge Tools
  * Sprint 9 Phase 5: Tests all 7 Knowledge MCP tools against Mac mini Docker MCP server
- * 
+ *
  * Usage:
  *   node scripts/test-knowledge-mcp-e2e.js
- * 
+ *
  * Environment variables:
  *   MCP_ENDPOINT - MCP server endpoint (default: http://192.168.1.15:3001/mcp)
  *   MCP_TOKEN_PROJECT3 - Agent token for project 3 (required)
@@ -32,14 +32,14 @@ async function callMCPTool(toolName, params) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${MCP_TOKEN}`,
+      Accept: 'application/json',
+      Authorization: `Bearer ${MCP_TOKEN}`,
     },
     body: JSON.stringify(payload),
   });
 
   const data = await response.json();
-  
+
   return {
     status: response.status,
     data,
@@ -49,7 +49,7 @@ async function callMCPTool(toolName, params) {
 // Test 1: Search Tool
 async function testSearchTool() {
   console.log('\n📝 Test 1: projectpulse_knowledge_search');
-  
+
   try {
     const { status, data } = await callMCPTool('projectpulse_knowledge_search', {
       projectId: TEST_PROJECT_ID,
@@ -76,13 +76,14 @@ async function testSearchTool() {
 // Test 2: Create Tool
 async function testCreateTool() {
   console.log('\n📝 Test 2: projectpulse_knowledge_create');
-  
+
   try {
     const timestamp = Date.now();
     const { status, data } = await callMCPTool('projectpulse_knowledge_create', {
       projectId: TEST_PROJECT_ID,
       title: `MCP E2E Test Item ${timestamp}`,
-      content: 'This is a test knowledge item created via MCP E2E testing. It verifies that the MCP tool correctly forwards projectId and creates items in the correct project.',
+      content:
+        'This is a test knowledge item created via MCP E2E testing. It verifies that the MCP tool correctly forwards projectId and creates items in the correct project.',
       category: 'Testing',
       tags: ['e2e', 'mcp', 'sprint9'],
     });
@@ -94,14 +95,14 @@ async function testCreateTool() {
 
     console.log('✅ PASS: Create tool successfully created item');
     console.log(`   HTTP Status: ${status}`);
-    
+
     if (data.result?.content?.[0]?.text) {
       try {
         const parsed = JSON.parse(data.result.content[0].text);
         console.log('   Created item ID:', parsed.id || parsed.data?.id || 'N/A');
       } catch {}
     }
-    
+
     return true;
   } catch (error) {
     console.error('❌ FAIL:', error.message);
@@ -112,7 +113,7 @@ async function testCreateTool() {
 // Test 3: Related Tool
 async function testRelatedTool() {
   console.log('\n📝 Test 3: projectpulse_knowledge_related');
-  
+
   try {
     const { status, data } = await callMCPTool('projectpulse_knowledge_related', {
       projectId: TEST_PROJECT_ID,
@@ -144,7 +145,7 @@ async function testRelatedTool() {
 // Test 4: Export Tool
 async function testExportTool() {
   console.log('\n📝 Test 4: projectpulse_knowledge_export');
-  
+
   try {
     const { status, data } = await callMCPTool('projectpulse_knowledge_export', {
       projectId: TEST_PROJECT_ID,
@@ -168,7 +169,7 @@ async function testExportTool() {
 // Test 5: Metrics Tool
 async function testMetricsTool() {
   console.log('\n📝 Test 5: projectpulse_knowledge_metrics');
-  
+
   try {
     const { status, data } = await callMCPTool('projectpulse_knowledge_metrics', {
       projectId: TEST_PROJECT_ID,
@@ -191,7 +192,7 @@ async function testMetricsTool() {
 // Test 6: Import Tool
 async function testImportTool() {
   console.log('\n📝 Test 6: projectpulse_knowledge_import');
-  
+
   try {
     const timestamp = Date.now();
     const { status, data } = await callMCPTool('projectpulse_knowledge_import', {
@@ -230,7 +231,7 @@ async function testImportTool() {
 // Test 7: Archive Tool (create, archive, unarchive)
 async function testArchiveTool() {
   console.log('\n📝 Test 7: projectpulse_knowledge_archive');
-  
+
   try {
     // First create an item to archive
     const timestamp = Date.now();
@@ -298,7 +299,7 @@ async function testArchiveTool() {
 // Test 8: Invalid ProjectId (should fail with 400)
 async function testInvalidProjectId() {
   console.log('\n📝 Test 8: Invalid projectId validation');
-  
+
   try {
     const { status, data } = await callMCPTool('projectpulse_knowledge_search', {
       projectId: 0, // Invalid
@@ -306,7 +307,12 @@ async function testInvalidProjectId() {
       mode: 'hybrid',
     });
 
-    if (data.error && (data.error.message.includes('projectId') || data.error.message.includes('required') || status === 400)) {
+    if (
+      data.error &&
+      (data.error.message.includes('projectId') ||
+        data.error.message.includes('required') ||
+        status === 400)
+    ) {
       console.log('✅ PASS: Tool correctly rejected invalid projectId');
       console.log(`   HTTP Status: ${status}`);
       console.log('   Error:', data.error.message.substring(0, 100));
@@ -325,7 +331,7 @@ async function testInvalidProjectId() {
 // Test 9: MCP Server Health Check
 async function testMCPHealth() {
   console.log('\n📝 Test 9: MCP server health check');
-  
+
   try {
     const healthUrl = MCP_ENDPOINT.replace('/mcp', '/health');
     const response = await fetch(healthUrl);
@@ -378,7 +384,7 @@ async function runAllTests() {
   console.log('\n' + '='.repeat(70));
   console.log('TEST SUMMARY');
   console.log('='.repeat(70));
-  
+
   tests.forEach((test, i) => {
     const status = results[i] ? '✅ PASS' : '❌ FAIL';
     console.log(`${status}  ${test.name}`);
@@ -388,7 +394,7 @@ async function runAllTests() {
   const passed = results.filter(Boolean).length;
   const total = results.length;
   const percentage = Math.round((passed / total) * 100);
-  
+
   console.log(`\nResult: ${passed}/${total} tests passed (${percentage}%)`);
   console.log('='.repeat(70));
 

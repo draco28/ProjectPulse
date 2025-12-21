@@ -1,7 +1,7 @@
 /**
  * API Route: GET /api/memory/session-start
  * Sprint 9: Memory Bank System - Session Start Workflow
- * 
+ *
  * Load all 5 memory banks for session start
  * Target: ≤10K tokens total
  *
@@ -22,7 +22,9 @@ const querySchema = z.object({
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
+    const requestedProjectId = searchParams.get('projectId')
+      ? parseInt(searchParams.get('projectId')!, 10)
+      : undefined;
 
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
@@ -34,7 +36,7 @@ export async function GET(request: Request) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation failed', issues: error.issues },

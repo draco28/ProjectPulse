@@ -26,7 +26,8 @@ test.describe('Create Ticket Page', () => {
 
   test('should display create ticket form with all required fields', async ({ page }) => {
     // Check for title input (main form indicator)
-    const titleInput = page.locator('input[name="title"]')
+    const titleInput = page
+      .locator('input[name="title"]')
       .or(page.locator('input[id="title"]'))
       .or(page.locator('input[placeholder*="title" i]'));
     if ((await titleInput.count()) > 0) {
@@ -37,7 +38,8 @@ test.describe('Create Ticket Page', () => {
     }
 
     // Check for description textarea
-    const descriptionInput = page.locator('textarea[name="description"]')
+    const descriptionInput = page
+      .locator('textarea[name="description"]')
       .or(page.locator('textarea[id="description"]'))
       .or(page.locator('textarea[placeholder*="description" i]'));
     if ((await descriptionInput.count()) > 0) {
@@ -48,7 +50,8 @@ test.describe('Create Ticket Page', () => {
     }
 
     // Check for submit button
-    const submitButton = page.locator('button[type="submit"]')
+    const submitButton = page
+      .locator('button[type="submit"]')
       .or(page.getByRole('button', { name: /create/i }))
       .or(page.getByRole('button', { name: /submit/i }));
     if ((await submitButton.count()) > 0) {
@@ -61,7 +64,8 @@ test.describe('Create Ticket Page', () => {
 
   test('should display kind dropdown with all 7 ticket types', async ({ page }) => {
     // Look for kind select/dropdown
-    const kindSelect = page.locator('select[name="kind"]')
+    const kindSelect = page
+      .locator('select[name="kind"]')
       .or(page.locator('select[id="kind"]'))
       .or(page.locator('[data-testid="kind-select"]'));
 
@@ -70,7 +74,15 @@ test.describe('Create Ticket Page', () => {
       console.log('✓ Kind dropdown found');
 
       // Verify all 7 kinds are available
-      const expectedKinds = ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'];
+      const expectedKinds = [
+        'feature',
+        'task',
+        'epic',
+        'issue',
+        'bug',
+        'scanner_finding',
+        'tech_debt',
+      ];
 
       for (const kind of expectedKinds) {
         const option = kindSelect.locator(`option[value="${kind}"]`);
@@ -93,7 +105,8 @@ test.describe('Create Ticket Page', () => {
 
   test('should display source dropdown with all 4 source types', async ({ page }) => {
     // Look for source select/dropdown
-    const sourceSelect = page.locator('select[name="source"]')
+    const sourceSelect = page
+      .locator('select[name="source"]')
       .or(page.locator('select[id="source"]'))
       .or(page.locator('[data-testid="source-select"]'));
 
@@ -125,7 +138,8 @@ test.describe('Create Ticket Page', () => {
 
   test('should display priority dropdown with standard values', async ({ page }) => {
     // Look for priority select/dropdown
-    const prioritySelect = page.locator('select[name="priority"]')
+    const prioritySelect = page
+      .locator('select[name="priority"]')
       .or(page.locator('select[id="priority"]'))
       .or(page.locator('[data-testid="priority-select"]'));
 
@@ -157,7 +171,8 @@ test.describe('Create Ticket Page', () => {
 
   test('should display optional fields (module, assignee)', async ({ page }) => {
     // Check for module input (optional)
-    const moduleInput = page.locator('input[name="module"]')
+    const moduleInput = page
+      .locator('input[name="module"]')
       .or(page.locator('input[id="module"]'))
       .or(page.locator('input[placeholder*="module" i]'));
     if ((await moduleInput.count()) > 0) {
@@ -168,7 +183,8 @@ test.describe('Create Ticket Page', () => {
     }
 
     // Check for assignee selector (optional)
-    const assigneeSelect = page.locator('select[name="assignee"]')
+    const assigneeSelect = page
+      .locator('select[name="assignee"]')
       .or(page.locator('select[id="assignee"]'))
       .or(page.locator('[data-testid="assignee-select"]'));
     if ((await assigneeSelect.count()) > 0) {
@@ -185,7 +201,8 @@ test.describe('Create Ticket Page', () => {
 
   test('should show validation error when submitting without required title', async ({ page }) => {
     // Try to submit form without filling required fields
-    const submitButton = page.locator('button[type="submit"]')
+    const submitButton = page
+      .locator('button[type="submit"]')
       .or(page.getByRole('button', { name: /create/i }))
       .or(page.getByRole('button', { name: /submit/i }));
 
@@ -194,7 +211,8 @@ test.describe('Create Ticket Page', () => {
       await page.waitForTimeout(500); // Wait for validation to trigger
 
       // Look for validation error message
-      const errorMessage = page.getByText(/title.*required/i)
+      const errorMessage = page
+        .getByText(/title.*required/i)
         .or(page.getByText(/please.*title/i))
         .or(page.locator('[role="alert"]').filter({ hasText: /title/i }));
 
@@ -203,7 +221,9 @@ test.describe('Create Ticket Page', () => {
         console.log('✓ Validation error displayed for missing title');
       } else {
         // Alternative: Check if HTML5 validation is used
-        const titleInput = page.locator('input[name="title"]').or(page.locator('input[id="title"]'));
+        const titleInput = page
+          .locator('input[name="title"]')
+          .or(page.locator('input[id="title"]'));
         if ((await titleInput.count()) > 0) {
           const isRequired = await titleInput.first().getAttribute('required');
           if (isRequired !== null) {
@@ -221,7 +241,9 @@ test.describe('Create Ticket Page', () => {
   test('should create ticket and redirect to detail page on valid submission', async ({ page }) => {
     // Fill in required fields
     const titleInput = page.locator('input[name="title"]').or(page.locator('input[id="title"]'));
-    const descriptionInput = page.locator('textarea[name="description"]').or(page.locator('textarea[id="description"]'));
+    const descriptionInput = page
+      .locator('textarea[name="description"]')
+      .or(page.locator('textarea[id="description"]'));
 
     if ((await titleInput.count()) === 0 || (await descriptionInput.count()) === 0) {
       console.log('⚠️ Form inputs not found - skipping submission test');
@@ -230,7 +252,9 @@ test.describe('Create Ticket Page', () => {
 
     // Fill form with valid data
     await titleInput.fill(`E2E Test Ticket ${Date.now()}`);
-    await descriptionInput.fill('This is a test ticket created by automated E2E tests to verify the create form functionality.');
+    await descriptionInput.fill(
+      'This is a test ticket created by automated E2E tests to verify the create form functionality.'
+    );
 
     // Select kind if available
     const kindSelect = page.locator('select[name="kind"]').or(page.locator('select[id="kind"]'));
@@ -240,14 +264,17 @@ test.describe('Create Ticket Page', () => {
     }
 
     // Select priority if available
-    const prioritySelect = page.locator('select[name="priority"]').or(page.locator('select[id="priority"]'));
+    const prioritySelect = page
+      .locator('select[name="priority"]')
+      .or(page.locator('select[id="priority"]'));
     if ((await prioritySelect.count()) > 0) {
       await prioritySelect.selectOption('medium');
       console.log('✓ Selected priority: medium');
     }
 
     // Submit form
-    const submitButton = page.locator('button[type="submit"]')
+    const submitButton = page
+      .locator('button[type="submit"]')
       .or(page.getByRole('button', { name: /create/i }))
       .or(page.getByRole('button', { name: /submit/i }));
     await submitButton.first().click();
@@ -275,7 +302,8 @@ test.describe('Create Ticket Page', () => {
 
   test('should show cancel button that returns to list page', async ({ page }) => {
     // Look for cancel button
-    const cancelButton = page.getByRole('button', { name: /cancel/i })
+    const cancelButton = page
+      .getByRole('button', { name: /cancel/i })
       .or(page.getByRole('link', { name: /cancel/i }))
       .or(page.getByRole('button', { name: /back/i }))
       .or(page.locator('a[href="/tickets"]'));

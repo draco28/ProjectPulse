@@ -45,7 +45,8 @@ export async function logAdminAction(params: LogAdminActionParams): Promise<void
         targetType,
         targetId,
         metadata: metadata as Prisma.InputJsonValue | undefined,
-        ipAddress: request?.headers.get('x-forwarded-for') ?? request?.headers.get('x-real-ip') ?? null,
+        ipAddress:
+          request?.headers.get('x-forwarded-for') ?? request?.headers.get('x-real-ip') ?? null,
         userAgent: request?.headers.get('user-agent') ?? null,
       },
     });

@@ -91,9 +91,7 @@ export function BlockedToolsPanel() {
   };
 
   if (loading) {
-    return (
-      <div className="h-64 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
-    );
+    return <div className="h-64 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />;
   }
 
   if (error) {

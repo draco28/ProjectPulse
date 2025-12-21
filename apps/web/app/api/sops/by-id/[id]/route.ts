@@ -1,8 +1,8 @@
 /**
  * SOP Get by ID API - Sprint 11 (EPIC-013: Client Agent Integration)
- * 
+ *
  * GET /api/sops/by-id/[id] - Get full SOP details by ID
- * 
+ *
  * Multi-tenancy: Validates projectId ownership
  * Security: Requires authentication (user session OR agent token)
  */
@@ -18,28 +18,22 @@ const querySchema = z.object({
   projectId: z.coerce.number().int().positive(),
 });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: idParam } = await params;
     const sopId = parseInt(idParam, 10);
 
     if (isNaN(sopId) || sopId <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid SOP ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid SOP ID' }, { status: 400 });
     }
 
     const { searchParams } = new URL(request.url);
-    
+
     // 1. Validate query params
     const validation = querySchema.safeParse({
       projectId: searchParams.get('projectId'),
     });
-    
+
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
@@ -48,13 +42,13 @@ export async function GET(
     }
 
     const { projectId: requestedProjectId } = validation.data;
-    
+
     // 2. Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // 3. Fetch SOP with ownership validation
     const sop = await prisma.sOP.findFirst({
-      where: { 
+      where: {
         id: sopId,
         projectId, // Validate ownership
       },
@@ -72,10 +66,7 @@ export async function GET(
     });
 
     if (!sop) {
-      return NextResponse.json(
-        { error: 'SOP not found', id: sopId, projectId },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'SOP not found', id: sopId, projectId }, { status: 404 });
     }
 
     return NextResponse.json(sop);
@@ -86,11 +77,8 @@ export async function GET(
         { status: error.status }
       );
     }
-    
+
     console.error('[GET /api/sops/by-id/[id]] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

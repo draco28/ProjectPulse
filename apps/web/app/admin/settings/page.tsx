@@ -1,7 +1,7 @@
 /**
  * Admin Settings Page
  * Sprint 11.5: System settings and utilities
- * 
+ *
  * Features:
  * - System information
  * - Seed management
@@ -20,10 +20,7 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <AdminHeader
-        title="Settings"
-        description="System configuration and utilities"
-      />
+      <AdminHeader title="Settings" description="System configuration and utilities" />
 
       {/* Settings Panel - Client Component */}
       <AdminSettingsPanel />

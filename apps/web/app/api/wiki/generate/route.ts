@@ -50,7 +50,7 @@ interface WikiGenerationResponse {
 export async function POST(request: NextRequest): Promise<NextResponse<WikiGenerationResponse>> {
   try {
     const body = await request.json();
-    
+
     // Authenticate and validate project access
     const requestedProjectId = body.projectId ? parseInt(body.projectId, 10) : undefined;
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WikiGener
           pagesUpdated: 0,
           pagesSkipped: 0,
           pages: [],
-          errors: validation.error.errors.map(err => ({
+          errors: validation.error.errors.map((err) => ({
             file: 'validation',
             error: `${err.path.join('.')}: ${err.message}`,
           })),
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WikiGener
 
     // Process each documentation file
     const results = await Promise.allSettled(
-      docs.map(doc => processDocumentation(doc, category, overwriteExisting, projectId))
+      docs.map((doc) => processDocumentation(doc, category, overwriteExisting, projectId))
     );
 
     // Aggregate results
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WikiGener
         { status: error.status }
       );
     }
-    
+
     console.error('Wiki generation error:', error);
 
     return NextResponse.json(
@@ -199,7 +199,7 @@ async function processDocumentation(
   if (crossLinkResult.unresolvedLinks.length > 0) {
     console.warn(
       `[Wiki Generation] Unresolved cross-links in ${doc.filePath}:`,
-      crossLinkResult.unresolvedLinks.map(l => l.slug).join(', ')
+      crossLinkResult.unresolvedLinks.map((l) => l.slug).join(', ')
     );
   }
 
@@ -252,7 +252,7 @@ async function processDocumentation(
     await deletePageLinks(updated.id);
 
     // 2. Create new links
-    const targetPageIds = crossLinkResult.resolvedLinks.map(link => link.wikiPageId);
+    const targetPageIds = crossLinkResult.resolvedLinks.map((link) => link.wikiPageId);
     if (targetPageIds.length > 0) {
       await createPageLinks(updated.id, targetPageIds, 'reference');
     }
@@ -285,7 +285,7 @@ async function processDocumentation(
   });
 
   // Create PageLink relationships for new page
-  const targetPageIds = crossLinkResult.resolvedLinks.map(link => link.wikiPageId);
+  const targetPageIds = crossLinkResult.resolvedLinks.map((link) => link.wikiPageId);
   if (targetPageIds.length > 0) {
     await createPageLinks(created.id, targetPageIds, 'reference');
   }

@@ -288,6 +288,14 @@ export interface FullAgentSession {
 // ============================================================================
 
 /**
+ * Sync result type for auto-sync functions
+ */
+export interface SyncResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
  * Auto-sync PROGRESS bank when agent session ends
  *
  * Updates PROGRESS memory bank with:
@@ -296,11 +304,12 @@ export interface FullAgentSession {
  *
  * @param projectId - Project ID
  * @param session - Completed agent session data
+ * @returns SyncResult indicating success or failure
  */
 export async function autoSyncProgressBank(
   projectId: number,
   session: FullAgentSession
-): Promise<void> {
+): Promise<SyncResult> {
   try {
     // 1. Get current PROGRESS bank content
     let currentContent = '';
@@ -364,9 +373,11 @@ export async function autoSyncProgressBank(
     });
 
     console.log(`[auto-sync] PROGRESS bank updated for project ${projectId} (${newTokens} tokens)`);
+    return { success: true };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[auto-sync] Failed to sync PROGRESS bank:', error);
-    // Don't throw - auto-sync failure shouldn't break session end
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -380,54 +391,55 @@ export async function autoSyncProgressBank(
  *
  * @param projectId - Project ID
  * @param session - Completed agent session data
+ * @returns SyncResult indicating success or failure
  */
 export async function autoSyncActiveContext(
   projectId: number,
   session: FullAgentSession
-): Promise<void> {
+): Promise<SyncResult> {
   try {
     // Parse todos
     const todos = Array.isArray(session.todos)
-      ? session.todos as Array<{ content: string; status: string; ticketId?: number | null }>
+      ? (session.todos as Array<{ content: string; status: string; ticketId?: number | null }>)
       : [];
 
-    const pendingTodos = todos.filter(t => t.status !== 'completed');
+    const pendingTodos = todos.filter((t) => t.status !== 'completed');
 
     // Determine current focus
     let currentFocus: string;
     if (pendingTodos.length === 0) {
       currentFocus = 'No active work - ready for next task';
     } else {
-      const inProgress = pendingTodos.find(t => t.status === 'in_progress');
+      const inProgress = pendingTodos.find((t) => t.status === 'in_progress');
       if (inProgress) {
         currentFocus = `Working on: ${inProgress.content}`;
       } else {
         const nextTodo = pendingTodos[0];
-        currentFocus = nextTodo ? `Next up: ${nextTodo.content}` : 'No active work - ready for next task';
+        currentFocus = nextTodo
+          ? `Next up: ${nextTodo.content}`
+          : 'No active work - ready for next task';
       }
     }
 
     // Get remaining tickets from pending todos
     const remainingTicketIds = pendingTodos
-      .filter(t => t.ticketId)
-      .map(t => `TICK-${t.ticketId}`);
+      .filter((t) => t.ticketId)
+      .map((t) => `TICK-${t.ticketId}`);
 
     // Also include any session tickets that might still be active
     const allRemainingTickets = [
       ...new Set([
         ...remainingTicketIds,
         // Only include session tickets if there are pending todos for them
-        ...session.activeTicketIds.filter(id =>
-          pendingTodos.some(t => t.ticketId?.toString() === id)
-        ).map(id => `TICK-${id}`),
+        ...session.activeTicketIds
+          .filter((id) => pendingTodos.some((t) => t.ticketId?.toString() === id))
+          .map((id) => `TICK-${id}`),
       ]),
     ];
 
     // Generate ACTIVE_CONTEXT content
     const formattedDate = formatDateTime(new Date());
-    const ticketList = allRemainingTickets.length > 0
-      ? allRemainingTickets.join(', ')
-      : 'None';
+    const ticketList = allRemainingTickets.length > 0 ? allRemainingTickets.join(', ') : 'None';
 
     const activeContextContent = `# Active Context
 **Updated**: ${formattedDate}
@@ -461,9 +473,13 @@ ${session.name || 'Unnamed Session'} - ${session.status}`;
       },
     });
 
-    console.log(`[auto-sync] ACTIVE_CONTEXT bank updated for project ${projectId} (${newTokens} tokens)`);
+    console.log(
+      `[auto-sync] ACTIVE_CONTEXT bank updated for project ${projectId} (${newTokens} tokens)`
+    );
+    return { success: true };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[auto-sync] Failed to sync ACTIVE_CONTEXT bank:', error);
-    // Don't throw - auto-sync failure shouldn't break session end
+    return { success: false, error: errorMessage };
   }
 }

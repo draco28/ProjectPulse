@@ -1,12 +1,12 @@
 /**
  * Session 2 Document Prompt Templates
- * 
+ *
  * Agent-Side AI Generation Pattern:
  * - Agent calls GET /api/onboarding/document-prompts
  * - Server returns these 15 prompts WITH project context injected
  * - Agent generates documents with THEIR AI provider
  * - Agent stores documents via POST /api/onboarding/documents
- * 
+ *
  * NO server-side AI generation (privacy-first, zero-cost)
  */
 
@@ -23,14 +23,16 @@ export const DOCUMENT_PROMPTS: DocumentPrompt[] = [
   // ============================================================================
   // PLANNING DOCUMENTS (5)
   // ============================================================================
-  
+
   {
     filename: '01-PRD.md',
     title: 'Product Requirements Document',
     category: 'planning',
     wordCountTarget: 2000,
-    systemPrompt: 'You are a product manager writing a comprehensive PRD following industry best practices. Write in a clear, structured format with actionable requirements.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a product manager writing a comprehensive PRD following industry best practices. Write in a clear, structured format with actionable requirements.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Product Requirements Document for ${ctx.metadata?.projectName || 'the project'}.
 
 # Project Context
@@ -58,16 +60,18 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
 - Tone: Professional, actionable, and specific.
 
 Generate ~2000 words in markdown format with clear headings, bullet points, and actionable requirements.
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '02-SRS.md',
     title: 'Software Requirements Specification',
     category: 'planning',
     wordCountTarget: 2500,
-    systemPrompt: 'You are a software architect writing an SRS document following IEEE 830 standards. Be detailed, technical, and comprehensive.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a software architect writing an SRS document following IEEE 830 standards. Be detailed, technical, and comprehensive.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Software Requirements Specification for ${ctx.metadata?.projectName || 'the project'}.
 
 # Project Context
@@ -99,16 +103,18 @@ ${ctx.executiveSummary || 'No executive summary available'}
 - Ensure traceability: Each FR traces to PRD features.
 
 Generate ~2500 words in markdown format with detailed technical specifications.
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '12-Backlog.md',
     title: 'Feature Backlog & Prioritization',
     category: 'planning',
     wordCountTarget: 1500,
-    systemPrompt: 'You are a product manager creating a prioritized backlog. Be strategic and data-driven.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a product manager creating a prioritized backlog. Be strategic and data-driven.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Feature Backlog for ${ctx.metadata?.projectName || 'the project'}.
 
 # Project Context
@@ -135,16 +141,18 @@ ${JSON.stringify(ctx.features || [], null, 2)}
 - Ensure traceability: Each story traces to SRS FRs.
 
 Generate ~1500 words in markdown format with prioritized backlog items.
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '13-Project-Plan.md',
     title: 'Project Implementation Plan',
     category: 'planning',
     wordCountTarget: 2000,
-    systemPrompt: 'You are a project manager creating a detailed implementation roadmap. CRITICAL: Follow the EXACT markdown structure specified - this will be parsed by Session 3.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a project manager creating a detailed implementation roadmap. CRITICAL: Follow the EXACT markdown structure specified - this will be parsed by Session 3.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Project Implementation Plan for ${ctx.metadata?.projectName || 'the project'}.
 
 # Timeline
@@ -205,16 +213,18 @@ Example phases:
 - Phase 3: Polish & Launch (testing, optimization, deployment)
 
 Generate ~2000 words following the EXACT structure above. Session 3 depends on this format!
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '14-Team-Onboarding.md',
     title: 'Developer Onboarding Guide',
     category: 'operations',
     wordCountTarget: 1000,
-    systemPrompt: 'You are a technical lead writing an onboarding guide for new developers. Be practical and comprehensive.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a technical lead writing an onboarding guide for new developers. Be practical and comprehensive.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Developer Onboarding Guide for ${ctx.metadata?.projectName || 'the project'}.
 
 # Tech Stack
@@ -237,20 +247,22 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
 6. **Resources** - Documentation, tutorials, team contacts
 
 Generate ~1000 words in markdown format with clear step-by-step instructions.
-    `.trim()
+    `.trim(),
   },
-  
+
   // ============================================================================
   // ARCHITECTURE DOCUMENTS (3)
   // ============================================================================
-  
+
   {
     filename: '03-Architecture.md',
     title: 'System Architecture',
     category: 'architecture',
     wordCountTarget: 1800,
-    systemPrompt: 'You are a solutions architect documenting system architecture. Be technical, detailed, and include diagrams.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a solutions architect documenting system architecture. Be technical, detailed, and include diagrams.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a System Architecture document for ${ctx.metadata?.projectName || 'the project'}.
 
 # Tech Stack
@@ -288,16 +300,18 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
 - Address scalability and performance explicitly.
 
 Generate ~1800 words in markdown with mermaid diagram descriptions where appropriate.
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '04-Data-and-Model-Spec.md',
     title: 'Database Schema & Data Models',
     category: 'architecture',
     wordCountTarget: 1500,
-    systemPrompt: 'You are a database architect designing schema and models. Be precise with relationships and constraints.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a database architect designing schema and models. Be precise with relationships and constraints.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Database Schema & Data Models document for ${ctx.metadata?.projectName || 'the project'}.
 
 # Database
@@ -328,16 +342,18 @@ ${JSON.stringify(ctx.features || [], null, 2)}
 - Define indexes for performance critical queries.
 
 Generate ~1500 words in markdown format with clear model definitions.
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '05-API-Specification.md',
     title: 'API Endpoints & Contracts',
     category: 'architecture',
     wordCountTarget: 2000,
-    systemPrompt: 'You are an API architect designing RESTful endpoints. Be precise with request/response formats.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are an API architect designing RESTful endpoints. Be precise with request/response formats.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate an API Specification document for ${ctx.metadata?.projectName || 'the project'}.
 
 # Backend Framework
@@ -372,20 +388,21 @@ ${JSON.stringify(ctx.features || [], null, 2)}
 - Define specific JSON payloads for critical actions.
 
 Generate ~2000 words in markdown format with clear API contracts.
-    `.trim()
+    `.trim(),
   },
-  
+
   // ============================================================================
   // IMPLEMENTATION DOCUMENTS (4)
   // ============================================================================
-  
+
   {
     filename: '06-UI-UX-Design.md',
     title: 'UI/UX Design System',
     category: 'implementation',
     wordCountTarget: 1800,
     systemPrompt: 'You are a UX designer documenting the design system. Be visual and consistent.',
-    userPromptTemplate: (ctx) => `
+    userPromptTemplate: (ctx) =>
+      `
 Generate a UI/UX Design System document for ${ctx.metadata?.projectName || 'the project'}.
 
 # Frontend Framework
@@ -420,16 +437,18 @@ ${ctx.metadata?.targetUsers || 'General users'}
 - Explicit Accessibility Checklist (Contrast, Aria labels).
 
 Generate ~1800 words in markdown format with visual descriptions.
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '07-Authentication-Security.md',
     title: 'Authentication & Security',
     category: 'implementation',
     wordCountTarget: 1500,
-    systemPrompt: 'You are a security engineer designing authentication and security patterns. Be thorough and follow best practices.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a security engineer designing authentication and security patterns. Be thorough and follow best practices.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate an Authentication & Security document for ${ctx.metadata?.projectName || 'the project'}.
 
 # Tech Stack
@@ -469,16 +488,18 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
 - List 10 specific security headers to configure.
 
 Generate ~1500 words in markdown format with security implementation details.
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '08-Testing-Strategy.md',
     title: 'Testing Approach & Coverage',
     category: 'implementation',
     wordCountTarget: 1500,
-    systemPrompt: 'You are a QA engineer designing a comprehensive testing strategy. Be methodical and cover all testing types.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a QA engineer designing a comprehensive testing strategy. Be methodical and cover all testing types.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Testing Strategy document for ${ctx.metadata?.projectName || 'the project'}.
 
 # Tech Stack
@@ -513,16 +534,18 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
 - Create a "Test Data Strategy" section (Seeding vs Mocking).
 
 Generate ~1500 words in markdown format with testing implementation details.
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '15-Maintenance-Guide.md',
     title: 'Maintenance & Support Guide',
     category: 'operations',
     wordCountTarget: 1000,
-    systemPrompt: 'You are a DevOps engineer writing a maintenance guide. Be practical and cover common scenarios.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a DevOps engineer writing a maintenance guide. Be practical and cover common scenarios.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Maintenance & Support Guide for ${ctx.metadata?.projectName || 'the project'}.
 
 # Tech Stack
@@ -559,20 +582,22 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
 - Include a "Disaster Recovery" step-by-step plan.
 
 Generate ~1000 words in markdown format with practical maintenance procedures.
-    `.trim()
+    `.trim(),
   },
-  
+
   // ============================================================================
   // OPERATIONS DOCUMENTS (3)
   // ============================================================================
-  
+
   {
     filename: '09-Deployment-Guide.md',
     title: 'Deployment & Infrastructure',
     category: 'operations',
     wordCountTarget: 1500,
-    systemPrompt: 'You are a DevOps engineer writing a deployment guide. Be step-by-step and comprehensive.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a DevOps engineer writing a deployment guide. Be step-by-step and comprehensive.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Deployment Guide for ${ctx.metadata?.projectName || 'the project'}.
 
 # Tech Stack
@@ -612,16 +637,18 @@ Generate a Deployment Guide for ${ctx.metadata?.projectName || 'the project'}.
 - List specific Environment Variables required for production.
 
 Generate ~1500 words in markdown format with step-by-step deployment instructions.
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '10-Monitoring-Logging.md',
     title: 'Monitoring & Observability',
     category: 'operations',
     wordCountTarget: 1200,
-    systemPrompt: 'You are an SRE engineer designing monitoring and logging strategy. Be proactive and metrics-driven.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are an SRE engineer designing monitoring and logging strategy. Be proactive and metrics-driven.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Monitoring & Logging document for ${ctx.metadata?.projectName || 'the project'}.
 
 # Tech Stack
@@ -658,16 +685,18 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
 - Define 5 specific Alert Rules with thresholds.
 
 Generate ~1200 words in markdown format with monitoring best practices.
-    `.trim()
+    `.trim(),
   },
-  
+
   {
     filename: '11-Performance-Optimization.md',
     title: 'Performance Best Practices',
     category: 'operations',
     wordCountTarget: 1200,
-    systemPrompt: 'You are a performance engineer optimizing application performance. Be data-driven and practical.',
-    userPromptTemplate: (ctx) => `
+    systemPrompt:
+      'You are a performance engineer optimizing application performance. Be data-driven and practical.',
+    userPromptTemplate: (ctx) =>
+      `
 Generate a Performance Optimization document for ${ctx.metadata?.projectName || 'the project'}.
 
 # Tech Stack
@@ -707,22 +736,24 @@ ${JSON.stringify(ctx.techStack || {}, null, 2)}
 - Define a caching strategy for API endpoints.
 
 Generate ~1200 words in markdown format with actionable optimization strategies.
-    `.trim()
-  }
+    `.trim(),
+  },
 ];
 
 /**
  * Get prompt for a specific document by filename
  */
 export function getDocumentPrompt(filename: string): DocumentPrompt | undefined {
-  return DOCUMENT_PROMPTS.find(p => p.filename === filename);
+  return DOCUMENT_PROMPTS.find((p) => p.filename === filename);
 }
 
 /**
  * Get all prompts by category
  */
-export function getDocumentPromptsByCategory(category: DocumentPrompt['category']): DocumentPrompt[] {
-  return DOCUMENT_PROMPTS.filter(p => p.category === category);
+export function getDocumentPromptsByCategory(
+  category: DocumentPrompt['category']
+): DocumentPrompt[] {
+  return DOCUMENT_PROMPTS.filter((p) => p.category === category);
 }
 
 /**

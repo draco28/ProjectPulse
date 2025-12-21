@@ -38,33 +38,35 @@ export const StatusFilterSchema = z.enum([
  * - page: Optional - pagination (default 1)
  * - limit: Optional - results per page (default 20, max 100)
  */
-export const HierarchyQuerySchema = z.object({
-  // Required: entity level
-  level: EntityLevelSchema,
+export const HierarchyQuerySchema = z
+  .object({
+    // Required: entity level
+    level: EntityLevelSchema,
 
-  // Optional: status filter (can pass multiple)
-  status: z.array(StatusFilterSchema).optional(),
+    // Optional: status filter (can pass multiple)
+    status: z.array(StatusFilterSchema).optional(),
 
-  // Optional: progress range
-  progressMin: z.coerce.number().int().min(0).max(100).optional(),
-  progressMax: z.coerce.number().int().min(0).max(100).optional(),
+    // Optional: progress range
+    progressMin: z.coerce.number().int().min(0).max(100).optional(),
+    progressMax: z.coerce.number().int().min(0).max(100).optional(),
 
-  // Optional: pagination
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-}).refine(
-  (data) => {
-    // If both progressMin and progressMax provided, min must be <= max
-    if (data.progressMin !== undefined && data.progressMax !== undefined) {
-      return data.progressMin <= data.progressMax;
+    // Optional: pagination
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+  })
+  .refine(
+    (data) => {
+      // If both progressMin and progressMax provided, min must be <= max
+      if (data.progressMin !== undefined && data.progressMax !== undefined) {
+        return data.progressMin <= data.progressMax;
+      }
+      return true;
+    },
+    {
+      message: 'progressMin must be less than or equal to progressMax',
+      path: ['progressMin'],
     }
-    return true;
-  },
-  {
-    message: 'progressMin must be less than or equal to progressMax',
-    path: ['progressMin'],
-  }
-);
+  );
 
 export type HierarchyQueryInput = z.infer<typeof HierarchyQuerySchema>;
 export type EntityLevel = z.infer<typeof EntityLevelSchema>;

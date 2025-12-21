@@ -16,27 +16,29 @@ import { z } from 'zod';
  * All fields are optional to allow partial context storage.
  * Uses .strict() to reject unknown properties.
  */
-export const SessionContextSchema = z.object({
-  // Hierarchy context
-  taskId: z.string().cuid().optional(),
-  taskTitle: z.string().max(200).optional(),
-  dayId: z.string().cuid().optional(),
-  dayTitle: z.string().max(100).optional(),
+export const SessionContextSchema = z
+  .object({
+    // Hierarchy context
+    taskId: z.string().cuid().optional(),
+    taskTitle: z.string().max(200).optional(),
+    dayId: z.string().cuid().optional(),
+    dayTitle: z.string().max(100).optional(),
 
-  // Progress context
-  completionPercentage: z.number().min(0).max(100).optional(),
-  checkpointCount: z.number().int().min(0).optional(),
+    // Progress context
+    completionPercentage: z.number().min(0).max(100).optional(),
+    checkpointCount: z.number().int().min(0).optional(),
 
-  // Code context
-  filesModified: z.array(z.string()).optional(),
-  filesCreated: z.array(z.string()).optional(),
-  endpointsImplemented: z.array(z.string()).optional(),
+    // Code context
+    filesModified: z.array(z.string()).optional(),
+    filesCreated: z.array(z.string()).optional(),
+    endpointsImplemented: z.array(z.string()).optional(),
 
-  // Recovery context
-  uncommittedChanges: z.boolean().optional(),
-  currentBranch: z.string().optional(),
-  tokenBudgetRemaining: z.number().int().min(0).optional(),
-}).strict(); // Reject unknown properties
+    // Recovery context
+    uncommittedChanges: z.boolean().optional(),
+    currentBranch: z.string().optional(),
+    tokenBudgetRemaining: z.number().int().min(0).optional(),
+  })
+  .strict(); // Reject unknown properties
 
 export type SessionContext = z.infer<typeof SessionContextSchema>;
 
@@ -51,10 +53,12 @@ export type SessionContext = z.infer<typeof SessionContextSchema>;
  */
 export const CreateCheckpointSchema = z.object({
   sessionId: z.string().cuid({ message: 'Invalid session ID format' }),
-  notes: z.string()
+  notes: z
+    .string()
     .min(1, 'Notes cannot be empty')
     .max(5000, 'Notes must be at most 5000 characters'),
-  tokenUsage: z.number()
+  tokenUsage: z
+    .number()
     .int('Token usage must be an integer')
     .min(0, 'Token usage cannot be negative')
     .max(200000, 'Token usage exceeds maximum (200K)'),

@@ -15,7 +15,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Issues → Tickets Redirect (Backwards Compatibility)', () => {
-  test('should redirect /issues to /tickets with kind filter for legacy types', async ({ page }) => {
+  test('should redirect /issues to /tickets with kind filter for legacy types', async ({
+    page,
+  }) => {
     // Navigate to legacy /issues route WITH project param (required for tickets)
     await page.goto('/issues?project=3');
     await page.waitForSelector('[data-testid="ticket-card"]', { timeout: 15000 });

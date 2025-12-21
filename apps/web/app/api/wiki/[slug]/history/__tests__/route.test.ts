@@ -152,7 +152,9 @@ describe('GET /api/wiki/[slug]/history', () => {
       mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
-      const request = new NextRequest('http://localhost/api/wiki/getting-started/history?limit=100');
+      const request = new NextRequest(
+        'http://localhost/api/wiki/getting-started/history?limit=100'
+      );
       await GET(request, { params: { slug: 'getting-started' } });
 
       expect(mockPrisma.wikiRevision.findMany).toHaveBeenCalledWith(
@@ -180,7 +182,9 @@ describe('GET /api/wiki/[slug]/history', () => {
       mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
-      const request = new NextRequest('http://localhost/api/wiki/getting-started/history?limit=invalid');
+      const request = new NextRequest(
+        'http://localhost/api/wiki/getting-started/history?limit=invalid'
+      );
       await GET(request, { params: { slug: 'getting-started' } });
 
       expect(mockPrisma.wikiRevision.findMany).toHaveBeenCalledWith(

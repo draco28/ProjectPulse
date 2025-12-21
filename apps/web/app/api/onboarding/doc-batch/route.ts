@@ -1,6 +1,6 @@
 /**
  * GET /api/onboarding/doc-batch
- * 
+ *
  * Sprint 9 Refactor: Get prompts for a batch of documents (waterfall generation)
  * Returns batch-specific prompts from OnboardingPromptTemplate with injected context
  */
@@ -16,7 +16,7 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 
 const querySchema = z.object({
   projectId: z.string().transform(Number).pipe(z.number().int().positive()),
-  batch: z.string().transform(Number).pipe(z.number().int().min(1).max(4))
+  batch: z.string().transform(Number).pipe(z.number().int().min(1).max(4)),
 });
 
 // ============================================================================
@@ -28,26 +28,32 @@ const BATCH_CONFIGS = {
     name: 'Planning',
     docs: ['01-PRD.md', '02-SRS.md', '12-Backlog.md', '13-Project-Plan.md'],
     category: 'planning',
-    estimatedTokens: 45000
+    estimatedTokens: 45000,
   },
   2: {
     name: 'Architecture',
     docs: ['03-Architecture.md', '04-Data-Model.md', '05-API-Spec.md'],
     category: 'architecture',
-    estimatedTokens: 35000
+    estimatedTokens: 35000,
   },
   3: {
     name: 'Implementation',
     docs: ['06-UI-UX.md', '07-Security.md', '08-Testing.md'],
     category: 'implementation',
-    estimatedTokens: 35000
+    estimatedTokens: 35000,
   },
   4: {
     name: 'Operations',
-    docs: ['09-Deployment.md', '10-Observability.md', '11-Performance.md', '14-Team-Onboarding.md', '15-Maintenance.md'],
+    docs: [
+      '09-Deployment.md',
+      '10-Observability.md',
+      '11-Performance.md',
+      '14-Team-Onboarding.md',
+      '15-Maintenance.md',
+    ],
     category: 'operations',
-    estimatedTokens: 50000
-  }
+    estimatedTokens: 50000,
+  },
 } as const;
 
 // ============================================================================
@@ -56,16 +62,14 @@ const BATCH_CONFIGS = {
 
 function injectVariables(template: string, variables: Record<string, any>): string {
   let result = template;
-  
+
   for (const [key, value] of Object.entries(variables)) {
     const placeholder = `{${key}}`;
-    const replacement = typeof value === 'object' 
-      ? JSON.stringify(value, null, 2) 
-      : String(value);
-    
+    const replacement = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+
     result = result.replace(new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'), replacement);
   }
-  
+
   return result;
 }
 
@@ -75,24 +79,24 @@ function injectVariables(template: string, variables: Record<string, any>): stri
 
 export async function GET(request: NextRequest) {
   console.log('[GET /api/onboarding/doc-batch] Fetching doc batch prompt...');
-  
+
   try {
     // 1. Validate query params
     const searchParams = request.nextUrl.searchParams;
     const validation = querySchema.safeParse({
       projectId: searchParams.get('projectId'),
-      batch: searchParams.get('batch')
+      batch: searchParams.get('batch'),
     });
-    
+
     if (!validation.success) {
       console.error('[GET /api/onboarding/doc-batch] Validation failed:', validation.error);
-      
+
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
         { status: 400 }
       );
     }
-    
+
     const { projectId, batch } = validation.data;
     const batchConfig = BATCH_CONFIGS[batch as keyof typeof BATCH_CONFIGS];
 
@@ -100,65 +104,65 @@ export async function GET(request: NextRequest) {
       projectId,
       batch,
       batchName: batchConfig.name,
-      docCount: batchConfig.docs.length
+      docCount: batchConfig.docs.length,
     });
 
     // Sprint 12: Require authentication (session OR bearer token)
     await requireOnboardingAuth(request, projectId);
-    
+
     // 2. Get Session 1 with executiveSummary and projectContextJson
     const session1 = await prisma.onboardingSession.findUnique({
       where: {
-        projectId_sessionNumber: { projectId, sessionNumber: 1 }
+        projectId_sessionNumber: { projectId, sessionNumber: 1 },
       },
       select: {
-        projectContextJson: true
-      }
+        projectContextJson: true,
+      },
     });
-    
+
     if (!session1 || !session1.projectContextJson) {
       console.error('[GET /api/onboarding/doc-batch] Session 1 not found or incomplete');
-      
+
       return NextResponse.json(
         {
           error: 'Session 1 not found or incomplete',
-          hint: 'Complete Session 1 (all 10 phases + executive summary) before starting Session 2'
+          hint: 'Complete Session 1 (all 10 phases + executive summary) before starting Session 2',
         },
         { status: 404 }
       );
     }
-    
+
     const projectContext = session1.projectContextJson as any;
     const executiveSummary = projectContext.executiveSummary || '';
-    
+
     console.log('[GET /api/onboarding/doc-batch] Session 1 found');
-    
+
     // 3. Fetch batch prompt template
     const template = await prisma.onboardingPromptTemplate.findFirst({
       where: {
         name: `onboarding-session-2-batch-${batch}`,
-        isActive: true
+        isActive: true,
       },
       select: {
         systemPrompt: true,
         userPrompt: true,
         temperature: true,
-        maxTokens: true
-      }
+        maxTokens: true,
+      },
     });
-    
+
     if (!template) {
       console.error('[GET /api/onboarding/doc-batch] Template not found');
-      
+
       return NextResponse.json(
         {
           error: 'Batch template not found',
-          hint: 'Run database seed to create batch templates'
+          hint: 'Run database seed to create batch templates',
         },
         { status: 404 }
       );
     }
-    
+
     console.log('[GET /api/onboarding/doc-batch] Template found');
 
     // 4. Build document structure (template only, context sent once via sharedContext)
@@ -171,14 +175,14 @@ export async function GET(request: NextRequest) {
       userPromptTemplate: template.userPrompt, // Template with {executiveSummary} and {projectContextJson} placeholders
       wordCountTarget: index < 3 ? 2500 : 1800, // First 3 docs ~2500, rest ~1800
       estimatedTokens: Math.floor(batchConfig.estimatedTokens / batchConfig.docs.length),
-      dependencies: batch === 1 && index === 0 ? ['executive-summary'] : []
+      dependencies: batch === 1 && index === 0 ? ['executive-summary'] : [],
     }));
 
     console.log('[GET /api/onboarding/doc-batch] Batch prompt ready', {
       projectId,
       batch,
       documentCount: documents.length,
-      estimatedTotalTokens: batchConfig.estimatedTokens
+      estimatedTotalTokens: batchConfig.estimatedTokens,
     });
 
     return NextResponse.json({
@@ -190,14 +194,13 @@ export async function GET(request: NextRequest) {
       // Context sent ONCE (not duplicated per document) - ~75% token reduction
       sharedContext: {
         executiveSummary,
-        projectContextJson: JSON.stringify(projectContext, null, 2)
+        projectContextJson: JSON.stringify(projectContext, null, 2),
       },
       estimatedTotalTokens: batchConfig.estimatedTokens,
       guidance: `Generate ${batchConfig.docs.length} documents in order: ${batchConfig.docs.join(' → ')}.
 Use sharedContext to inject {executiveSummary} and {projectContextJson} into each document's userPromptTemplate before generation.
-Maintain consistency and traceability across documents.`
+Maintain consistency and traceability across documents.`,
     });
-    
   } catch (error) {
     console.error('[GET /api/onboarding/doc-batch] Error:', error);
 

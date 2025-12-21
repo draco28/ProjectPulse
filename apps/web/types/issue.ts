@@ -245,9 +245,8 @@ function extractImplementationContext(
     filesToModify: Array.isArray(ctx.filesToModify) ? ctx.filesToModify : [],
     filesToCreate: Array.isArray(ctx.filesToCreate) ? ctx.filesToCreate : [],
     schemaChanges: ctx.schemaChanges as ImplementationContextProps['schemaChanges'],
-    implementationBlueprint: typeof ctx.implementationBlueprint === 'string'
-      ? ctx.implementationBlueprint
-      : undefined,
+    implementationBlueprint:
+      typeof ctx.implementationBlueprint === 'string' ? ctx.implementationBlueprint : undefined,
   };
 }
 
@@ -295,22 +294,39 @@ export function serializeIssueDetail(issue: IssueDetail): IssueDetailProps {
       repository: issue.project.repository,
     },
 
-    comments: issue.comments.map((comment: { id: number; content: string; author: string | null; createdAt: Date; updatedAt: Date }) => ({
-      id: comment.id.toString(),
-      content: comment.content,
-      author: comment.author,
-      createdAt: comment.createdAt.toISOString(),
-      updatedAt: comment.updatedAt.toISOString(),
-    })),
+    comments: issue.comments.map(
+      (comment: {
+        id: number;
+        content: string;
+        author: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      }) => ({
+        id: comment.id.toString(),
+        content: comment.content,
+        author: comment.author,
+        createdAt: comment.createdAt.toISOString(),
+        updatedAt: comment.updatedAt.toISOString(),
+      })
+    ),
 
-    attachments: issue.attachments.map((attachment: { id: number; filename: string; filepath: string; mimetype: string; size: number; uploadedAt: Date }) => ({
-      id: attachment.id.toString(),
-      filename: attachment.filename,
-      filepath: attachment.filepath,
-      mimetype: attachment.mimetype,
-      size: attachment.size,
-      uploadedAt: attachment.uploadedAt.toISOString(),
-    })),
+    attachments: issue.attachments.map(
+      (attachment: {
+        id: number;
+        filename: string;
+        filepath: string;
+        mimetype: string;
+        size: number;
+        uploadedAt: Date;
+      }) => ({
+        id: attachment.id.toString(),
+        filename: attachment.filename,
+        filepath: attachment.filepath,
+        mimetype: attachment.mimetype,
+        size: attachment.size,
+        uploadedAt: attachment.uploadedAt.toISOString(),
+      })
+    ),
 
     labels: issue.labels.map((label: { id: number; name: string; color: string }) => ({
       id: label.id.toString(),
@@ -318,19 +334,28 @@ export function serializeIssueDetail(issue: IssueDetail): IssueDetailProps {
       color: label.color,
     })),
 
-    linkedFiles: issue.linkedFiles.map((file: { id: number; filePath: string; lineNumber: number | null; createdAt: Date }) => ({
-      id: file.id.toString(),
-      filePath: file.filePath,
-      lineNumber: file.lineNumber,
-      createdAt: file.createdAt.toISOString(),
-    })),
+    linkedFiles: issue.linkedFiles.map(
+      (file: { id: number; filePath: string; lineNumber: number | null; createdAt: Date }) => ({
+        id: file.id.toString(),
+        filePath: file.filePath,
+        lineNumber: file.lineNumber,
+        createdAt: file.createdAt.toISOString(),
+      })
+    ),
 
-    linkedCommits: issue.linkedCommits.map((commit: { id: number; commitHash: string; commitMessage: string | null; commitDate: Date | null }) => ({
-      id: commit.id.toString(),
-      commitHash: commit.commitHash,
-      commitMessage: commit.commitMessage,
-      commitDate: commit.commitDate?.toISOString() || null,
-    })),
+    linkedCommits: issue.linkedCommits.map(
+      (commit: {
+        id: number;
+        commitHash: string;
+        commitMessage: string | null;
+        commitDate: Date | null;
+      }) => ({
+        id: commit.id.toString(),
+        commitHash: commit.commitHash,
+        commitMessage: commit.commitMessage,
+        commitDate: commit.commitDate?.toISOString() || null,
+      })
+    ),
   };
 }
 

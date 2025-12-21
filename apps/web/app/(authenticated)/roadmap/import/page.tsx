@@ -31,21 +31,19 @@ export default async function ImportRoadmapPage({
       <div className="mb-6">
         <Link
           href={`/roadmap?project=${projectId}`}
-          className="inline-flex items-center gap-2 text-sm text-slate hover:text-coral transition-colors mb-4"
+          className="mb-4 inline-flex items-center gap-2 text-sm text-slate transition-colors hover:text-coral"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Roadmap
         </Link>
 
-        <div className="flex items-center gap-3 mb-2">
-          <div className="icon-coral flex h-14 w-14 items-center justify-center rounded-2xl flex-shrink-0">
+        <div className="mb-2 flex items-center gap-3">
+          <div className="icon-coral flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl">
             <Upload className="h-7 w-7 text-white" />
           </div>
           <div>
             <h1 className="text-4xl font-bold text-white">Import Roadmap</h1>
-            <p className="text-slate text-sm">
-              Upload a JSON file or paste your roadmap structure
-            </p>
+            <p className="text-sm text-slate">Upload a JSON file or paste your roadmap structure</p>
           </div>
         </div>
       </div>
@@ -53,9 +51,9 @@ export default async function ImportRoadmapPage({
       {/* Import Component */}
       <Suspense
         fallback={
-          <div className="neu-raised rounded-3xl p-8 animate-pulse">
-            <div className="h-48 bg-dark-pressed rounded-xl mb-4"></div>
-            <div className="h-12 bg-dark-pressed rounded-xl w-1/3 mx-auto"></div>
+          <div className="neu-raised animate-pulse rounded-3xl p-8">
+            <div className="mb-4 h-48 rounded-xl bg-dark-pressed"></div>
+            <div className="mx-auto h-12 w-1/3 rounded-xl bg-dark-pressed"></div>
           </div>
         }
       >

@@ -57,7 +57,10 @@ async function testAgentSessionCRUD(): Promise<string | null> {
     sessionId = session.id;
     logSuccess('AgentSession: Create via Prisma', { id: session.id, name: session.name });
   } catch (error) {
-    logFailure('AgentSession: Create via Prisma', error instanceof Error ? error.message : String(error));
+    logFailure(
+      'AgentSession: Create via Prisma',
+      error instanceof Error ? error.message : String(error)
+    );
     return null;
   }
 
@@ -69,7 +72,10 @@ async function testAgentSessionCRUD(): Promise<string | null> {
     if (!session) throw new Error('Session not found');
     logSuccess('AgentSession: Read via Prisma', { status: session.status });
   } catch (error) {
-    logFailure('AgentSession: Read via Prisma', error instanceof Error ? error.message : String(error));
+    logFailure(
+      'AgentSession: Read via Prisma',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 
   // Update
@@ -85,9 +91,14 @@ async function testAgentSessionCRUD(): Promise<string | null> {
         ],
       },
     });
-    logSuccess('AgentSession: Update via Prisma', { todosCount: (session.todos as unknown[])?.length });
+    logSuccess('AgentSession: Update via Prisma', {
+      todosCount: (session.todos as unknown[])?.length,
+    });
   } catch (error) {
-    logFailure('AgentSession: Update via Prisma', error instanceof Error ? error.message : String(error));
+    logFailure(
+      'AgentSession: Update via Prisma',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 
   // End (complete)
@@ -101,9 +112,15 @@ async function testAgentSessionCRUD(): Promise<string | null> {
       },
     });
     if (session.status !== 'COMPLETED') throw new Error('Status not updated');
-    logSuccess('AgentSession: Complete via Prisma', { status: session.status, completedAt: session.completedAt });
+    logSuccess('AgentSession: Complete via Prisma', {
+      status: session.status,
+      completedAt: session.completedAt,
+    });
   } catch (error) {
-    logFailure('AgentSession: Complete via Prisma', error instanceof Error ? error.message : String(error));
+    logFailure(
+      'AgentSession: Complete via Prisma',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 
   return sessionId;
@@ -167,7 +184,10 @@ async function testImplementationContext(): Promise<number | null> {
       hasContext: !!customFields.implementationContext,
     });
   } catch (error) {
-    logFailure('Ticket: Create with implementation context', error instanceof Error ? error.message : String(error));
+    logFailure(
+      'Ticket: Create with implementation context',
+      error instanceof Error ? error.message : String(error)
+    );
     return null;
   }
 
@@ -176,12 +196,14 @@ async function testImplementationContext(): Promise<number | null> {
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
     });
-    const customFields = ticket?.customFields as { implementationContext?: {
-      filesToModify?: unknown[];
-      filesToCreate?: unknown[];
-      schemaChanges?: { required?: boolean };
-      implementationBlueprint?: string;
-    }};
+    const customFields = ticket?.customFields as {
+      implementationContext?: {
+        filesToModify?: unknown[];
+        filesToCreate?: unknown[];
+        schemaChanges?: { required?: boolean };
+        implementationBlueprint?: string;
+      };
+    };
     const ctx = customFields?.implementationContext;
 
     if (!ctx) throw new Error('Implementation context not found');
@@ -193,7 +215,10 @@ async function testImplementationContext(): Promise<number | null> {
       hasBlueprint: !!ctx.implementationBlueprint,
     });
   } catch (error) {
-    logFailure('Ticket: Read implementation context', error instanceof Error ? error.message : String(error));
+    logFailure(
+      'Ticket: Read implementation context',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 
   // Update implementation context
@@ -215,13 +240,18 @@ async function testImplementationContext(): Promise<number | null> {
         },
       },
     });
-    const customFields = ticket.customFields as { implementationContext?: { implementationBlueprint?: string }};
+    const customFields = ticket.customFields as {
+      implementationContext?: { implementationBlueprint?: string };
+    };
     if (!customFields?.implementationContext?.implementationBlueprint?.includes('UPDATED')) {
       throw new Error('Update not reflected');
     }
     logSuccess('Ticket: Update implementation context', { updated: true });
   } catch (error) {
-    logFailure('Ticket: Update implementation context', error instanceof Error ? error.message : String(error));
+    logFailure(
+      'Ticket: Update implementation context',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 
   // Remove implementation context
@@ -238,7 +268,10 @@ async function testImplementationContext(): Promise<number | null> {
     }
     logSuccess('Ticket: Remove implementation context', { removed: true });
   } catch (error) {
-    logFailure('Ticket: Remove implementation context', error instanceof Error ? error.message : String(error));
+    logFailure(
+      'Ticket: Remove implementation context',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 
   return ticketId;
@@ -281,7 +314,10 @@ async function testTicketScheduling(): Promise<number | null> {
       scheduledDays: ticket.scheduledDays,
     });
   } catch (error) {
-    logFailure('Ticket: Create with scheduling fields', error instanceof Error ? error.message : String(error));
+    logFailure(
+      'Ticket: Create with scheduling fields',
+      error instanceof Error ? error.message : String(error)
+    );
     return null;
   }
 
@@ -304,7 +340,10 @@ async function testTicketScheduling(): Promise<number | null> {
       scheduledDays: ticket.scheduledDays,
     });
   } catch (error) {
-    logFailure('Ticket: Update scheduling fields', error instanceof Error ? error.message : String(error));
+    logFailure(
+      'Ticket: Update scheduling fields',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 
   return ticketId;
@@ -363,7 +402,6 @@ async function main() {
     console.log('\n--- Ticket Scheduling Tests ---\n');
     const schedTicketId = await testTicketScheduling();
     if (schedTicketId) ticketIds.push(schedTicketId);
-
   } finally {
     // Cleanup
     await cleanup(ticketIds, sessionIds);
@@ -384,9 +422,11 @@ async function main() {
 
   if (failed > 0) {
     console.log('\nFailed Tests:');
-    results.filter((r) => !r.passed).forEach((r) => {
-      console.log(`  - ${r.name}: ${r.error}`);
-    });
+    results
+      .filter((r) => !r.passed)
+      .forEach((r) => {
+        console.log(`  - ${r.name}: ${r.error}`);
+      });
     process.exit(1);
   }
 

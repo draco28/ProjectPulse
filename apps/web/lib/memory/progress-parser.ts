@@ -127,7 +127,9 @@ export function parseProgressBank(content: string): ParsedProgressBank {
 
     // Parse total stats line (e.g., "Total: 23 sessions | 112 todos completed | 28 tickets closed")
     if (currentSection === 'summary' && line.startsWith('Total:')) {
-      const statsMatch = line.match(/Total:\s*(\d+)\s*sessions?\s*\|\s*(\d+)\s*todos?\s*completed\s*\|\s*(\d+)\s*tickets?\s*closed/i);
+      const statsMatch = line.match(
+        /Total:\s*(\d+)\s*sessions?\s*\|\s*(\d+)\s*todos?\s*completed\s*\|\s*(\d+)\s*tickets?\s*closed/i
+      );
       if (statsMatch && statsMatch[1] && statsMatch[2] && statsMatch[3]) {
         result.totalStats = {
           sessions: parseInt(statsMatch[1], 10),
@@ -161,7 +163,9 @@ export function parseProgressBank(content: string): ParsedProgressBank {
 
     // Parse sprint stats line (e.g., "- 15 sessions, 67 todos, 18 tickets")
     if (currentSection === 'sprint' && currentSprintSummary && line.startsWith('-')) {
-      const sprintStatsMatch = line.match(/-\s*(\d+)\s*sessions?,\s*(\d+)\s*todos?,\s*(\d+)\s*tickets?/i);
+      const sprintStatsMatch = line.match(
+        /-\s*(\d+)\s*sessions?,\s*(\d+)\s*todos?,\s*(\d+)\s*tickets?/i
+      );
       if (sprintStatsMatch && sprintStatsMatch[1] && sprintStatsMatch[2] && sprintStatsMatch[3]) {
         currentSprintSummary.sessionCount = parseInt(sprintStatsMatch[1], 10);
         currentSprintSummary.todosCompleted = parseInt(sprintStatsMatch[2], 10);
@@ -207,7 +211,10 @@ export function parseProgressBank(content: string): ParsedProgressBank {
       if (ticketsMatch && ticketsMatch[1]) {
         const ticketStr = ticketsMatch[1].trim();
         if (ticketStr.toLowerCase() !== 'none') {
-          currentSession.tickets = ticketStr.split(',').map(t => t.trim()).filter(Boolean);
+          currentSession.tickets = ticketStr
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean);
         } else {
           currentSession.tickets = [];
         }
@@ -258,13 +265,17 @@ export function generateProgressMarkdown(parsed: ParsedProgressBank): string {
 
   // Sprint Summary section
   lines.push('## Sprint Summary');
-  lines.push(`Total: ${parsed.totalStats.sessions} sessions | ${parsed.totalStats.todos} todos completed | ${parsed.totalStats.tickets} tickets closed`);
+  lines.push(
+    `Total: ${parsed.totalStats.sessions} sessions | ${parsed.totalStats.todos} todos completed | ${parsed.totalStats.tickets} tickets closed`
+  );
   lines.push('');
 
   // Individual sprint summaries
   for (const sprint of parsed.sprintSummaries) {
     lines.push(`### ${sprint.title} (${sprint.status})`);
-    lines.push(`- ${sprint.sessionCount} sessions, ${sprint.todosCompleted} todos, ${sprint.ticketsClosed} tickets`);
+    lines.push(
+      `- ${sprint.sessionCount} sessions, ${sprint.todosCompleted} todos, ${sprint.ticketsClosed} tickets`
+    );
     lines.push('');
   }
 
@@ -312,14 +323,14 @@ export function createSessionEntry(
 ): SessionEntry {
   // Parse todos array
   const todos = Array.isArray(session.todos)
-    ? session.todos as Array<{ content: string; status: string; ticketId?: number | null }>
+    ? (session.todos as Array<{ content: string; status: string; ticketId?: number | null }>)
     : [];
 
-  const completedTodos = todos.filter(t => t.status === 'completed').length;
+  const completedTodos = todos.filter((t) => t.status === 'completed').length;
   const totalTodos = todos.length;
 
   // Format ticket IDs
-  const tickets = session.activeTicketIds.map(id => `TICK-${id}`);
+  const tickets = session.activeTicketIds.map((id) => `TICK-${id}`);
 
   return {
     name: session.name || 'Unnamed Session',
@@ -346,7 +357,7 @@ export function aggregateIntoSprintSummary(
   totalStats: TotalStats
 ): void {
   // Find or create "Current Sprint" summary for aggregated sessions
-  let currentSprint = summaries.find(s => s.title === DEFAULT_SPRINT_TITLE);
+  let currentSprint = summaries.find((s) => s.title === DEFAULT_SPRINT_TITLE);
   if (!currentSprint) {
     currentSprint = {
       title: DEFAULT_SPRINT_TITLE,
@@ -372,10 +383,7 @@ export function aggregateIntoSprintSummary(
  * @param parsed - Current parsed progress bank (modified in place)
  * @param newEntry - New session entry to add
  */
-export function addSessionWithPruning(
-  parsed: ParsedProgressBank,
-  newEntry: SessionEntry
-): void {
+export function addSessionWithPruning(parsed: ParsedProgressBank, newEntry: SessionEntry): void {
   // Update total stats
   parsed.totalStats.sessions += 1;
   parsed.totalStats.todos += newEntry.completedTodos;

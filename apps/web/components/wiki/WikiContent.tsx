@@ -5,15 +5,18 @@ import dynamic from 'next/dynamic';
 
 // Lazy load EnhancedCodeBlock (~300KB with syntax highlighter)
 // Only loads when markdown contains code blocks
-const EnhancedCodeBlock = dynamic(() => import('./EnhancedCodeBlock').then((mod) => ({ default: mod.EnhancedCodeBlock })), {
-  loading: () => (
-    <div className="neu-pressed animate-pulse rounded-2xl p-4">
-      <div className="h-4 w-3/4 rounded bg-slate/20"></div>
-      <div className="mt-2 h-4 w-1/2 rounded bg-slate/20"></div>
-    </div>
-  ),
-  ssr: true, // Enable SSR to prevent hydration mismatch
-});
+const EnhancedCodeBlock = dynamic(
+  () => import('./EnhancedCodeBlock').then((mod) => ({ default: mod.EnhancedCodeBlock })),
+  {
+    loading: () => (
+      <div className="neu-pressed animate-pulse rounded-2xl p-4">
+        <div className="h-4 w-3/4 rounded bg-slate/20"></div>
+        <div className="mt-2 h-4 w-1/2 rounded bg-slate/20"></div>
+      </div>
+    ),
+    ssr: true, // Enable SSR to prevent hydration mismatch
+  }
+);
 
 interface TOCItem {
   id: string;

@@ -41,7 +41,7 @@ export default async function DocumentsViewerPage({ searchParams }: PageProps) {
 
   if (documents.length === 0) {
     return (
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
+      <div className="container mx-auto max-w-7xl px-4 py-8">
         <Card className="neu-raised">
           <CardContent className="p-6">
             <p className="text-slate">No documents generated yet.</p>
@@ -85,11 +85,11 @@ export default async function DocumentsViewerPage({ searchParams }: PageProps) {
   const categories = ['planning', 'architecture', 'implementation', 'operations'];
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="container mx-auto max-w-7xl px-4 py-8">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-2">Documentation</h1>
+          <h1 className="mb-2 text-4xl font-bold text-white">Documentation</h1>
           <p className="text-slate">{documents.length} of 15 documents generated</p>
         </div>
         <Button variant="outline" asChild>
@@ -115,7 +115,7 @@ export default async function DocumentsViewerPage({ searchParams }: PageProps) {
 
                   return (
                     <div key={category}>
-                      <h3 className="text-xs font-semibold text-slate uppercase mb-2">
+                      <h3 className="mb-2 text-xs font-semibold uppercase text-slate">
                         {category}
                       </h3>
                       <div className="space-y-1">
@@ -123,7 +123,7 @@ export default async function DocumentsViewerPage({ searchParams }: PageProps) {
                           <Link
                             key={doc.id}
                             href={`/onboarding/session-2/documents?project=${projectId}&doc=${encodeURIComponent(doc.filename)}`}
-                            className={`block px-3 py-2 rounded-md text-sm transition-colors ${
+                            className={`block rounded-md px-3 py-2 text-sm transition-colors ${
                               selectedDoc?.id === doc.id
                                 ? 'bg-coral-500 text-white'
                                 : 'text-slate hover:bg-slate-800'
@@ -168,7 +168,7 @@ export default async function DocumentsViewerPage({ searchParams }: PageProps) {
                         href={`data:text/markdown;charset=utf-8,${encodeURIComponent(selectedDoc.content)}`}
                         download={selectedDoc.filename}
                       >
-                        <Download className="h-4 w-4 mr-1" />
+                        <Download className="mr-1 h-4 w-4" />
                         Download
                       </a>
                     </Button>
@@ -183,7 +183,7 @@ export default async function DocumentsViewerPage({ searchParams }: PageProps) {
             </Card>
           ) : (
             <Card className="neu-raised">
-              <CardContent className="flex items-center justify-center h-96">
+              <CardContent className="flex h-96 items-center justify-center">
                 <p className="text-slate">Select a document to view</p>
               </CardContent>
             </Card>

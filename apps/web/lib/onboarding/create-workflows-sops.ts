@@ -1,9 +1,9 @@
 /**
  * Workflows & SOPs Creation for Session 3 Onboarding
- * 
+ *
  * Purpose: Create WorkflowTemplate and SOP records (STATIC templates)
  * Used by: Bootstrap API route
- * 
+ *
  * Architecture: Static templates (NO AI generation, NO tech stack detection)
  */
 
@@ -30,7 +30,7 @@ interface SOPDefinition {
   description: string;
   category: string;
   tags: string[];
-  content: string;  // Markdown content
+  content: string; // Markdown content
 }
 
 // ============================================================================
@@ -45,29 +45,29 @@ const FEATURE_DEVELOPMENT_WORKFLOW: WorkflowTemplateDefinition = {
     {
       name: 'Create plan',
       action: 'session.create',
-      description: 'Initialize session and create implementation plan'
+      description: 'Initialize session and create implementation plan',
     },
     {
       name: 'Consult experts',
       action: 'agent.invoke',
-      description: 'Get architectural guidance from expert personas'
+      description: 'Get architectural guidance from expert personas',
     },
     {
       name: 'Implement',
       action: 'file.edit',
-      description: 'Write code following patterns and conventions'
+      description: 'Write code following patterns and conventions',
     },
     {
       name: 'Test',
       action: 'test.run',
-      description: 'Run unit and integration tests'
+      description: 'Run unit and integration tests',
     },
     {
       name: 'Commit',
       action: 'git.commit',
-      description: 'Commit changes with descriptive message'
-    }
-  ]
+      description: 'Commit changes with descriptive message',
+    },
+  ],
 };
 
 const BUG_FIX_WORKFLOW: WorkflowTemplateDefinition = {
@@ -78,29 +78,29 @@ const BUG_FIX_WORKFLOW: WorkflowTemplateDefinition = {
     {
       name: 'Reproduce',
       action: 'test.reproduce',
-      description: 'Reproduce the bug consistently'
+      description: 'Reproduce the bug consistently',
     },
     {
       name: 'Root cause analysis',
       action: 'search.code',
-      description: 'Find the root cause using systematic debugging'
+      description: 'Find the root cause using systematic debugging',
     },
     {
       name: 'Fix',
       action: 'file.edit',
-      description: 'Implement the fix'
+      description: 'Implement the fix',
     },
     {
       name: 'Regression test',
       action: 'test.create',
-      description: 'Add test to prevent regression'
+      description: 'Add test to prevent regression',
     },
     {
       name: 'Commit',
       action: 'git.commit',
-      description: 'Commit fix with regression test'
-    }
-  ]
+      description: 'Commit fix with regression test',
+    },
+  ],
 };
 
 const CODE_REVIEW_WORKFLOW: WorkflowTemplateDefinition = {
@@ -111,29 +111,29 @@ const CODE_REVIEW_WORKFLOW: WorkflowTemplateDefinition = {
     {
       name: 'Read changes',
       action: 'git.diff',
-      description: 'Review all changes in the PR'
+      description: 'Review all changes in the PR',
     },
     {
       name: 'Check tests',
       action: 'test.run',
-      description: 'Verify all tests pass'
+      description: 'Verify all tests pass',
     },
     {
       name: 'Security audit',
       action: 'security.scan',
-      description: 'Check for security vulnerabilities'
+      description: 'Check for security vulnerabilities',
     },
     {
       name: 'Performance check',
       action: 'performance.analyze',
-      description: 'Analyze performance impact'
+      description: 'Analyze performance impact',
     },
     {
       name: 'Approve or request changes',
       action: 'review.complete',
-      description: 'Provide feedback and approval status'
-    }
-  ]
+      description: 'Provide feedback and approval status',
+    },
+  ],
 };
 
 // ============================================================================
@@ -279,7 +279,7 @@ git branch -d feature/my-feature
 - [ ] No secrets in code
 - [ ] Commit message follows convention
 - [ ] Changes are focused and atomic
-  `.trim()
+  `.trim(),
 };
 
 const SECURITY_CHECKLIST_SOP: SOPDefinition = {
@@ -373,7 +373,7 @@ npm test
 - OWASP Top 10: https://owasp.org/www-project-top-ten/
 - Next.js Security: https://nextjs.org/docs/app/building-your-application/security
 - Prisma Security: https://www.prisma.io/docs/concepts/components/prisma-client/security
-  `.trim()
+  `.trim(),
 };
 
 const API_DEVELOPMENT_SOP: SOPDefinition = {
@@ -555,7 +555,7 @@ Update OpenAPI spec or API documentation:
 - [ ] API documented
 - [ ] Performance tested
 - [ ] Security reviewed
-  `.trim()
+  `.trim(),
 };
 
 const TESTING_WORKFLOW_SOP: SOPDefinition = {
@@ -742,7 +742,7 @@ npm run test:e2e
 - Mock external dependencies
 - Clean up test data
 - Use test fixtures for complex data
-  `.trim()
+  `.trim(),
 };
 
 const DEPLOYMENT_SOP: SOPDefinition = {
@@ -874,7 +874,7 @@ API_KEY="..."
 - DevOps: [contact]
 - Database Admin: [contact]
 - Security: [contact]
-  `.trim()
+  `.trim(),
 };
 
 // ============================================================================
@@ -883,7 +883,7 @@ API_KEY="..."
 
 /**
  * Create workflows and SOPs in database
- * 
+ *
  * @param projectId - Project ID
  * @returns Object with counts of created workflows and SOPs
  */
@@ -891,16 +891,12 @@ export async function createWorkflowsAndSOPs(
   projectId: number
 ): Promise<{ workflows: number; sops: number }> {
   console.log('[Session 3] Creating workflows and SOPs', { projectId });
-  
+
   // Create workflows
-  const workflowDefs = [
-    FEATURE_DEVELOPMENT_WORKFLOW,
-    BUG_FIX_WORKFLOW,
-    CODE_REVIEW_WORKFLOW
-  ];
-  
+  const workflowDefs = [FEATURE_DEVELOPMENT_WORKFLOW, BUG_FIX_WORKFLOW, CODE_REVIEW_WORKFLOW];
+
   let workflowsCreated = 0;
-  
+
   for (const def of workflowDefs) {
     try {
       await prisma.workflowTemplate.create({
@@ -910,8 +906,8 @@ export async function createWorkflowsAndSOPs(
           description: def.description,
           category: def.category,
           steps: def.steps,
-          isActive: true
-        }
+          isActive: true,
+        },
       });
       workflowsCreated++;
       console.log(`[Session 3] Created workflow: ${def.name}`);
@@ -919,18 +915,18 @@ export async function createWorkflowsAndSOPs(
       console.error(`[Session 3] Failed to create workflow ${def.name}:`, error);
     }
   }
-  
+
   // Create SOPs
   const sopDefs = [
     GIT_WORKFLOW_SOP,
     SECURITY_CHECKLIST_SOP,
     API_DEVELOPMENT_SOP,
     TESTING_WORKFLOW_SOP,
-    DEPLOYMENT_SOP
+    DEPLOYMENT_SOP,
   ];
-  
+
   let sopsCreated = 0;
-  
+
   for (const def of sopDefs) {
     try {
       await prisma.sOP.create({
@@ -942,7 +938,7 @@ export async function createWorkflowsAndSOPs(
           category: def.category,
           tags: def.tags,
           content: def.content,
-        }
+        },
       });
       sopsCreated++;
       console.log(`[Session 3] Created SOP: ${def.title}`);
@@ -950,12 +946,12 @@ export async function createWorkflowsAndSOPs(
       console.error(`[Session 3] Failed to create SOP ${def.title}:`, error);
     }
   }
-  
+
   console.log(`[Session 3] Workflows created: ${workflowsCreated}/${workflowDefs.length}`);
   console.log(`[Session 3] SOPs created: ${sopsCreated}/${sopDefs.length}`);
-  
+
   return {
     workflows: workflowsCreated,
-    sops: sopsCreated
+    sops: sopsCreated,
   };
 }

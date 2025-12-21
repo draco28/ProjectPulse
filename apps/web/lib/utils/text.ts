@@ -31,7 +31,7 @@ export function generateInitials(name: string): string {
     return 'U'; // Fallback if name becomes empty after cleaning
   }
 
-  const words = cleanName.split(/\s+/).filter(word => word.length > 0);
+  const words = cleanName.split(/\s+/).filter((word) => word.length > 0);
 
   if (words.length === 0) {
     return 'U';
@@ -45,9 +45,10 @@ export function generateInitials(name: string): string {
     return 'U';
   }
 
-  const initials = words.length >= 2 && secondWord
-    ? (firstWord[0] ?? '') + (secondWord[0] ?? '')
-    : firstWord.substring(0, 2);
+  const initials =
+    words.length >= 2 && secondWord
+      ? (firstWord[0] ?? '') + (secondWord[0] ?? '')
+      : firstWord.substring(0, 2);
 
   return initials.toUpperCase();
 }

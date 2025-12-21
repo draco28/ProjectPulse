@@ -74,8 +74,8 @@ describe('JSDocParser', () => {
       expect(result).toBeDefined();
       expect(result.exports.length).toBeGreaterThanOrEqual(2);
 
-      const functionExport = result.exports.find(e => e.kind === 'function');
-      const interfaceExport = result.exports.find(e => e.kind === 'interface');
+      const functionExport = result.exports.find((e) => e.kind === 'function');
+      const interfaceExport = result.exports.find((e) => e.kind === 'interface');
 
       expect(functionExport).toBeDefined();
       expect(interfaceExport).toBeDefined();
@@ -176,7 +176,7 @@ describe('JSDocParser', () => {
       expect(results.length).toBeGreaterThan(0);
 
       // Should find multiple fixture files
-      const filePaths = results.map(r => path.basename(r.filePath));
+      const filePaths = results.map((r) => path.basename(r.filePath));
       expect(filePaths).toContain('valid-function.ts');
       expect(filePaths).toContain('valid-class.ts');
     });
@@ -192,7 +192,7 @@ describe('JSDocParser', () => {
       expect(results).toBeDefined();
 
       // Should NOT include malformed or invalid files
-      const filePaths = results.map(r => path.basename(r.filePath));
+      const filePaths = results.map((r) => path.basename(r.filePath));
       expect(filePaths).not.toContain('malformed-missing-closing.ts');
       expect(filePaths).not.toContain('invalid-tsdoc-syntax.ts');
     });
@@ -210,7 +210,7 @@ describe('JSDocParser', () => {
       expect(results.length).toBeGreaterThan(0);
 
       // Verify structure of returned documentation
-      results.forEach(doc => {
+      results.forEach((doc) => {
         expect(doc).toHaveProperty('filePath');
         expect(doc).toHaveProperty('exports');
         expect(Array.isArray(doc.exports)).toBe(true);

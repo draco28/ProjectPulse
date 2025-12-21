@@ -36,7 +36,9 @@ const skillListInputSchema = z.object({
   category: z.string().optional(),
   tags: z.array(z.string()).max(10).optional(),
   frameworks: z.array(z.string()).max(5).optional(),
-  sortBy: z.enum(['title', 'usageCount', 'lastLoadedAt', 'createdAt', 'updatedAt']).default('title'),
+  sortBy: z
+    .enum(['title', 'usageCount', 'lastLoadedAt', 'createdAt', 'updatedAt'])
+    .default('title'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(50).default(10),
@@ -104,12 +106,15 @@ const skillExportInputSchema = z.object({
  */
 const skillImportInputSchema = z.object({
   projectId: z.number().int().positive(),
-  files: z.array(
-    z.object({
-      filename: z.string(),
-      content: z.string(),
-    })
-  ).min(1).max(50),
+  files: z
+    .array(
+      z.object({
+        filename: z.string(),
+        content: z.string(),
+      })
+    )
+    .min(1)
+    .max(50),
   overwriteExisting: z.boolean().default(false),
 });
 
@@ -230,12 +235,9 @@ export async function skillListHandler(input: unknown) {
     }
 
     if (error instanceof z.ZodError) {
-      throw new MCPError(
-        'Invalid input parameters',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400,
-        { errors: error.errors }
-      );
+      throw new MCPError('Invalid input parameters', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400, {
+        errors: error.errors,
+      });
     }
 
     throw new MCPError(
@@ -306,7 +308,9 @@ export async function skillLoadHandler(input: unknown) {
       const error = await response.json();
       throw new MCPError(
         error.error || 'Failed to load skill',
-        error.code === 'SKILL_NOT_FOUND' ? JSONRPC_ERROR_CODES.METHOD_NOT_FOUND : JSONRPC_ERROR_CODES.INTERNAL_ERROR,
+        error.code === 'SKILL_NOT_FOUND'
+          ? JSONRPC_ERROR_CODES.METHOD_NOT_FOUND
+          : JSONRPC_ERROR_CODES.INTERNAL_ERROR,
         response.status,
         error
       );
@@ -320,12 +324,9 @@ export async function skillLoadHandler(input: unknown) {
     }
 
     if (error instanceof z.ZodError) {
-      throw new MCPError(
-        'Invalid input parameters',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400,
-        { errors: error.errors }
-      );
+      throw new MCPError('Invalid input parameters', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400, {
+        errors: error.errors,
+      });
     }
 
     throw new MCPError(
@@ -428,12 +429,9 @@ export async function skillSearchHandler(input: unknown) {
     }
 
     if (error instanceof z.ZodError) {
-      throw new MCPError(
-        'Invalid input parameters',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400,
-        { errors: error.errors }
-      );
+      throw new MCPError('Invalid input parameters', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400, {
+        errors: error.errors,
+      });
     }
 
     throw new MCPError(
@@ -516,12 +514,9 @@ export async function skillUpdateHandler(input: unknown) {
     }
 
     if (error instanceof z.ZodError) {
-      throw new MCPError(
-        'Invalid input parameters',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400,
-        { errors: error.errors }
-      );
+      throw new MCPError('Invalid input parameters', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400, {
+        errors: error.errors,
+      });
     }
 
     throw new MCPError(
@@ -597,12 +592,9 @@ export async function skillDeleteHandler(input: unknown) {
     }
 
     if (error instanceof z.ZodError) {
-      throw new MCPError(
-        'Invalid input parameters',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400,
-        { errors: error.errors }
-      );
+      throw new MCPError('Invalid input parameters', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400, {
+        errors: error.errors,
+      });
     }
 
     throw new MCPError(
@@ -690,7 +682,8 @@ export async function skillExportHandler(input: unknown) {
     // Extract filename from Content-Disposition header
     const contentDisposition = response.headers.get('Content-Disposition');
     const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
-    const filename = filenameMatch?.[1] || `skills-export-${new Date().toISOString().split('T')[0]}.zip`;
+    const filename =
+      filenameMatch?.[1] || `skills-export-${new Date().toISOString().split('T')[0]}.zip`;
 
     return {
       filename,
@@ -705,12 +698,9 @@ export async function skillExportHandler(input: unknown) {
     }
 
     if (error instanceof z.ZodError) {
-      throw new MCPError(
-        'Invalid input parameters',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400,
-        { errors: error.errors }
-      );
+      throw new MCPError('Invalid input parameters', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400, {
+        errors: error.errors,
+      });
     }
 
     throw new MCPError(
@@ -801,12 +791,9 @@ export async function skillImportHandler(input: unknown) {
     }
 
     if (error instanceof z.ZodError) {
-      throw new MCPError(
-        'Invalid input parameters',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400,
-        { errors: error.errors }
-      );
+      throw new MCPError('Invalid input parameters', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400, {
+        errors: error.errors,
+      });
     }
 
     throw new MCPError(
@@ -926,12 +913,9 @@ export async function skillLinkKnowledgeHandler(input: unknown) {
     }
 
     if (error instanceof z.ZodError) {
-      throw new MCPError(
-        'Invalid input parameters',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400,
-        { errors: error.errors }
-      );
+      throw new MCPError('Invalid input parameters', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400, {
+        errors: error.errors,
+      });
     }
 
     throw new MCPError(

@@ -29,7 +29,9 @@ test.describe('Ticket Mutations (Update Operations)', () => {
       await page.waitForSelector('h1, h2', { timeout: 10000 });
 
       // Get first ticket link
-      const firstLink = page.locator('[data-testid="ticket-card"] a, .ticket-card a, article a').first();
+      const firstLink = page
+        .locator('[data-testid="ticket-card"] a, .ticket-card a, article a')
+        .first();
       const href = await firstLink.getAttribute('href');
       testTicketId = href?.match(/\/tickets\/(\d+)/)?.[1] || '1';
 
@@ -173,7 +175,9 @@ test.describe('Ticket Mutations (Update Operations)', () => {
       }
 
       // Verify priority badge updated
-      const priorityBadge = page.locator('[data-testid="priority-badge"], .badge:has-text("high" i)');
+      const priorityBadge = page.locator(
+        '[data-testid="priority-badge"], .badge:has-text("high" i)'
+      );
       if ((await priorityBadge.count()) > 0) {
         await expect(priorityBadge.first()).toBeVisible();
         console.log('✓ Priority badge updated to high');
@@ -183,7 +187,9 @@ test.describe('Ticket Mutations (Update Operations)', () => {
       await page.reload();
       await page.waitForSelector('h1, h2', { timeout: 10000 });
 
-      const priorityBadgeAfterReload = page.locator('[data-testid="priority-badge"], .badge:has-text("high" i)');
+      const priorityBadgeAfterReload = page.locator(
+        '[data-testid="priority-badge"], .badge:has-text("high" i)'
+      );
       if ((await priorityBadgeAfterReload.count()) > 0) {
         console.log('✓ Priority change persisted after reload');
       }
@@ -259,9 +265,9 @@ test.describe('Ticket Mutations (Update Operations)', () => {
       console.log(`✓ Typed comment: ${commentText.substring(0, 50)}...`);
 
       // Look for submit button
-      const submitButton = page.locator(
-        'button:has-text("Add Comment"), button:has-text("Post"), button[type="submit"]'
-      ).filter({ has: page.locator('textarea') });
+      const submitButton = page
+        .locator('button:has-text("Add Comment"), button:has-text("Post"), button[type="submit"]')
+        .filter({ has: page.locator('textarea') });
 
       if ((await submitButton.count()) > 0) {
         // Get current comment count

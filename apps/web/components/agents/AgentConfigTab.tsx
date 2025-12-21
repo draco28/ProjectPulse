@@ -2,11 +2,7 @@
 
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { AgentPersona } from '@prisma/client';
@@ -32,7 +28,7 @@ export function AgentConfigTab({ agent }: AgentConfigTabProps) {
         </CardHeader>
         <CardContent>
           <Collapsible open={promptOpen} onOpenChange={setPromptOpen}>
-            <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
               {promptOpen ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
@@ -41,8 +37,8 @@ export function AgentConfigTab({ agent }: AgentConfigTabProps) {
               <span>{promptOpen ? 'Hide' : 'Show'} system prompt</span>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="mt-4 neu-inset rounded-lg p-4 max-h-96 overflow-y-auto">
-                <pre className="text-xs sm:text-sm whitespace-pre-wrap font-mono leading-relaxed">
+              <div className="neu-inset mt-4 max-h-96 overflow-y-auto rounded-lg p-4">
+                <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed sm:text-sm">
                   {agent.systemPrompt}
                 </pre>
               </div>
@@ -67,9 +63,7 @@ export function AgentConfigTab({ agent }: AgentConfigTabProps) {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No rules configured
-            </p>
+            <p className="text-sm text-muted-foreground">No rules configured</p>
           )}
         </CardContent>
       </Card>
@@ -89,9 +83,7 @@ export function AgentConfigTab({ agent }: AgentConfigTabProps) {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No expertise areas defined
-            </p>
+            <p className="text-sm text-muted-foreground">No expertise areas defined</p>
           )}
         </CardContent>
       </Card>
@@ -107,7 +99,7 @@ export function AgentConfigTab({ agent }: AgentConfigTabProps) {
               {agent.tools.map((tool) => (
                 <div
                   key={tool}
-                  className="flex items-center gap-2 text-sm font-mono bg-background px-3 py-2 rounded"
+                  className="flex items-center gap-2 rounded bg-background px-3 py-2 font-mono text-sm"
                 >
                   <code>{tool}</code>
                 </div>
@@ -144,9 +136,7 @@ export function AgentConfigTab({ agent }: AgentConfigTabProps) {
             </div>
             <div>
               <span className="text-muted-foreground">Type:</span>
-              <p className="font-medium">
-                {agent.isBuiltIn ? 'Built-in' : 'Custom'}
-              </p>
+              <p className="font-medium">{agent.isBuiltIn ? 'Built-in' : 'Custom'}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Status:</span>
@@ -158,9 +148,7 @@ export function AgentConfigTab({ agent }: AgentConfigTabProps) {
             </div>
             <div>
               <span className="text-muted-foreground">Created:</span>
-              <p className="font-medium">
-                {new Date(agent.createdAt).toLocaleDateString()}
-              </p>
+              <p className="font-medium">{new Date(agent.createdAt).toLocaleDateString()}</p>
             </div>
           </div>
         </CardContent>

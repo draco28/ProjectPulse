@@ -1,12 +1,12 @@
 /**
  * Admin Audit Logs API
  * Sprint 11.5: View audit logs
- * 
+ *
  * GET /api/admin/audit-logs - Get recent audit logs
- * 
+ *
  * Query params:
  * - limit: Number of logs to return (default 50, max 100)
- * 
+ *
  * Security: Requires ADMIN role
  */
 

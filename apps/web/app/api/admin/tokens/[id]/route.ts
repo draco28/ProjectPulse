@@ -20,10 +20,7 @@ const revokeSchema = z.object({
   reason: z.string().min(1).max(500).optional(),
 });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const admin = await requireAdmin();
     const tokenId = parseInt(params.id);
@@ -115,17 +112,11 @@ export async function GET(
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch token details' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch token details' }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const admin = await requireAdmin();
     const tokenId = parseInt(params.id);
@@ -198,9 +189,6 @@ export async function PATCH(
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to revoke token' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to revoke token' }, { status: 500 });
   }
 }

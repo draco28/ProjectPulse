@@ -138,7 +138,15 @@ const getFilterOptionsCached = unstable_cache(
  * @throws {Error} If database query fails
  */
 // Sprint 14: All ticket kinds for counting
-const TICKET_KINDS = ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'] as const;
+const TICKET_KINDS = [
+  'feature',
+  'task',
+  'epic',
+  'issue',
+  'bug',
+  'scanner_finding',
+  'tech_debt',
+] as const;
 
 export async function getFilterCounts(projectId?: number) {
   // Fetch all options first (uses cache from getFilterOptions)

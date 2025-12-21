@@ -52,10 +52,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch blocked tools' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch blocked tools' }, { status: 500 });
   }
 }
 
@@ -73,10 +70,7 @@ export async function POST(request: NextRequest) {
     const currentList: string[] = (setting?.value as string[]) ?? [];
 
     if (currentList.includes(toolName)) {
-      return NextResponse.json(
-        { error: 'Tool is already blocked' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Tool is already blocked' }, { status: 400 });
     }
 
     // Add to blocklist
@@ -131,10 +125,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to block tool' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to block tool' }, { status: 500 });
   }
 }
 
@@ -152,10 +143,7 @@ export async function DELETE(request: NextRequest) {
     const currentList: string[] = (setting?.value as string[]) ?? [];
 
     if (!currentList.includes(toolName)) {
-      return NextResponse.json(
-        { error: 'Tool is not blocked' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Tool is not blocked' }, { status: 400 });
     }
 
     // Remove from blocklist
@@ -202,9 +190,6 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to unblock tool' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to unblock tool' }, { status: 500 });
   }
 }

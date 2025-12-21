@@ -25,13 +25,13 @@ export default async function IssuesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  
+
   // Build redirect URL preserving all query params
   const queryParams = new URLSearchParams();
-  
+
   // Add kind filter for backwards compatibility (only show issue-like tickets)
   queryParams.set('kind', 'issue,bug,scanner_finding');
-  
+
   // Preserve existing query params
   if (params.project) queryParams.set('project', params.project);
   if (params.status) queryParams.set('status', params.status);
@@ -40,6 +40,6 @@ export default async function IssuesPage({
   if (params.search) queryParams.set('search', params.search);
   if (params.sort) queryParams.set('sort', params.sort);
   if (params.page) queryParams.set('page', params.page);
-  
+
   redirect(`/tickets?${queryParams.toString()}`);
 }

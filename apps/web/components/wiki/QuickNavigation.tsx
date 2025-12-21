@@ -40,14 +40,14 @@ export function QuickNavigation({ categories, currentCategory }: QuickNavigation
         <Link
           key={category.slug}
           href={`/wiki?category=${category.slug}`}
-          className={`sidebar-item block px-3 py-2.5 text-sm rounded-xl smooth-transition ${
+          className={`sidebar-item smooth-transition block rounded-xl px-3 py-2.5 text-sm ${
             isActive
-              ? 'active text-coral bg-coral/10'
-              : 'text-slate hover:text-white hover:bg-coral/5'
+              ? 'active bg-coral/10 text-coral'
+              : 'text-slate hover:bg-coral/5 hover:text-white'
           }`}
           aria-current={isActive ? 'page' : undefined}
         >
-          <IconComponent className="inline-block mr-2 h-4 w-4" aria-hidden="true" />
+          <IconComponent className="mr-2 inline-block h-4 w-4" aria-hidden="true" />
           {category.name}
           <span className="float-right text-xs text-slate">{category.count}</span>
         </Link>
@@ -62,13 +62,16 @@ export function QuickNavigation({ categories, currentCategory }: QuickNavigation
         <div className="mb-6">
           <form onSubmit={handleSearchSubmit}>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate" aria-hidden="true" />
+              <Search
+                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate"
+                aria-hidden="true"
+              />
               <input
                 type="search"
                 placeholder="Search wiki..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 neu-pressed rounded-xl text-white placeholder-slate text-sm smooth-transition focus:outline-none focus:ring-2 focus:ring-coral"
+                className="neu-pressed smooth-transition w-full rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate focus:outline-none focus:ring-2 focus:ring-coral"
                 aria-label="Search wiki pages"
               />
             </div>

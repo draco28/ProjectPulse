@@ -48,11 +48,13 @@ export async function GET(request: NextRequest) {
   try {
     // Parse and validate query params
     const searchParams = request.nextUrl.searchParams;
-    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
-    
+    const requestedProjectId = searchParams.get('projectId')
+      ? parseInt(searchParams.get('projectId')!, 10)
+      : undefined;
+
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
-    
+
     const rawParams = {
       projectId,
       query: searchParams.get('query'),
@@ -68,7 +70,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: validation.error.errors.map(err => ({
+          details: validation.error.errors.map((err) => ({
             field: err.path.join('.'),
             message: err.message,
           })),
@@ -99,7 +101,7 @@ export async function GET(request: NextRequest) {
     const duration = Date.now() - startTime;
 
     // Generate excerpts (first 200 chars of content)
-    const resultsWithExcerpts = results.map(result => ({
+    const resultsWithExcerpts = results.map((result) => ({
       id: result.id,
       title: result.title,
       excerpt: result.content.slice(0, 200) + (result.content.length > 200 ? '...' : ''),
@@ -121,7 +123,7 @@ export async function GET(request: NextRequest) {
       tokenUsage,
       category,
       userAgent,
-    }).catch(err => {
+    }).catch((err) => {
       // Log but don't fail the request
       console.error('[Knowledge Search] Failed to record metrics:', err);
     });
@@ -143,7 +145,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     // Handle known search errors
     if (error instanceof SearchError) {
       return NextResponse.json(

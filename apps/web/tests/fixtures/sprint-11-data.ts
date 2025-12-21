@@ -1,6 +1,6 @@
 /**
  * Sprint 11 Test Fixtures
- * 
+ *
  * Test data for Client Agent Integration APIs (EPIC-013)
  * - Personas (US-013-01, US-013-02)
  * - SOPs (US-013-05, US-013-06)
@@ -20,7 +20,8 @@ export const testPersonas = [
     description: 'Specializes in React patterns and performance optimization',
     expertise: ['React', 'Hooks', 'Performance'],
     personality: 'Detail-oriented and methodical',
-    systemPrompt: 'You are a React expert specializing in hooks, component patterns, and performance optimization.',
+    systemPrompt:
+      'You are a React expert specializing in hooks, component patterns, and performance optimization.',
     skills: ['react-hooks', 'component-patterns'],
     tools: ['create_issue', 'search_knowledge'],
     rules: ['Always use TypeScript', 'Prefer functional components'],
@@ -93,7 +94,8 @@ export const testSOPs = [
     slug: 'git-workflow',
     description: 'Standard git branching and commit workflow',
     category: 'Development',
-    content: '# Git Workflow\n\n## Branch Naming\n- feature/XXX\n- fix/XXX\n- hotfix/XXX\n\n## Commit Messages\nUse conventional commits.',
+    content:
+      '# Git Workflow\n\n## Branch Naming\n- feature/XXX\n- fix/XXX\n- hotfix/XXX\n\n## Commit Messages\nUse conventional commits.',
     tags: ['git', 'workflow', 'branching'],
     createdAt: new Date('2025-01-01'),
     updatedAt: new Date('2025-01-01'),
@@ -105,7 +107,8 @@ export const testSOPs = [
     slug: 'code-review',
     description: 'Guidelines for conducting code reviews',
     category: 'Development',
-    content: '# Code Review\n\n## Checklist\n1. Check for TypeScript errors\n2. Review test coverage\n3. Check security implications',
+    content:
+      '# Code Review\n\n## Checklist\n1. Check for TypeScript errors\n2. Review test coverage\n3. Check security implications',
     tags: ['review', 'quality'],
     createdAt: new Date('2025-01-01'),
     updatedAt: new Date('2025-01-01'),
@@ -117,7 +120,8 @@ export const testSOPs = [
     slug: 'deployment-checklist',
     description: 'Pre-deployment verification steps',
     category: 'Deployment',
-    content: '# Deployment Checklist\n\n1. Run tests\n2. Build production\n3. Verify environment variables',
+    content:
+      '# Deployment Checklist\n\n1. Run tests\n2. Build production\n3. Verify environment variables',
     tags: ['deployment', 'checklist'],
     createdAt: new Date('2025-01-01'),
     updatedAt: new Date('2025-01-01'),
@@ -144,7 +148,8 @@ export const testSkills = [
     slug: 'api-patterns',
     category: 'framework',
     description: 'REST API design patterns for Next.js',
-    content: '# API Patterns\n\n## Route Structure\n- Use app/api for API routes\n- Validate with Zod\n- Return proper status codes',
+    content:
+      '# API Patterns\n\n## Route Structure\n- Use app/api for API routes\n- Validate with Zod\n- Return proper status codes',
     tags: ['api', 'rest', 'nextjs'],
     frameworks: ['Next.js', 'Zod'],
     usageCount: 5,
@@ -174,7 +179,8 @@ export const testSkills = [
     slug: 'db-optimization',
     category: 'troubleshooting',
     description: 'PostgreSQL query optimization techniques',
-    content: '# Database Optimization\n\n## Indexes\n- Add indexes for frequently queried columns\n- Use EXPLAIN ANALYZE',
+    content:
+      '# Database Optimization\n\n## Indexes\n- Add indexes for frequently queried columns\n- Use EXPLAIN ANALYZE',
     tags: ['database', 'performance', 'postgresql'],
     frameworks: ['Prisma', 'PostgreSQL'],
     usageCount: 3,
@@ -186,29 +192,25 @@ export const testSkills = [
 
 export const personasListResponse = (projectId: number) => ({
   personas: testPersonas
-    .filter(p => p.projectId === projectId)
+    .filter((p) => p.projectId === projectId)
     .map(({ systemPrompt, skills, tools, rules, personality, ...rest }) => rest),
-  count: testPersonas.filter(p => p.projectId === projectId).length,
+  count: testPersonas.filter((p) => p.projectId === projectId).length,
   projectId,
 });
 
 export const sopsListResponse = (projectId: number) => ({
-  sops: testSOPs
-    .filter(s => s.projectId === projectId)
-    .map(({ content, ...rest }) => rest),
-  count: testSOPs.filter(s => s.projectId === projectId).length,
+  sops: testSOPs.filter((s) => s.projectId === projectId).map(({ content, ...rest }) => rest),
+  count: testSOPs.filter((s) => s.projectId === projectId).length,
   projectId,
 });
 
 export const skillsListResponse = (projectId: number) => ({
   data: {
-    skills: testSkills
-      .filter(s => s.projectId === projectId)
-      .map(({ content, ...rest }) => rest),
+    skills: testSkills.filter((s) => s.projectId === projectId).map(({ content, ...rest }) => rest),
     pagination: {
       page: 1,
       limit: 20,
-      total: testSkills.filter(s => s.projectId === projectId).length,
+      total: testSkills.filter((s) => s.projectId === projectId).length,
       totalPages: 1,
       hasMore: false,
     },

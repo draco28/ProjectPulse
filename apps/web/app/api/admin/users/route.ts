@@ -1,9 +1,9 @@
 /**
  * Admin Users API
  * Sprint 11.5: List users with pagination and filters
- * 
+ *
  * GET /api/admin/users - List users
- * 
+ *
  * Query params:
  * - page: Page number (default 1)
  * - pageSize: Items per page (default 20, max 100)
@@ -12,7 +12,7 @@
  * - isActive: Filter by active status (true, false)
  * - sortBy: Sort field (email, name, createdAt, role)
  * - sortDirection: asc or desc
- * 
+ *
  * Security: Requires ADMIN role
  * Privacy: Does NOT return passwordHash
  */
@@ -129,9 +129,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch users' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
   }
 }

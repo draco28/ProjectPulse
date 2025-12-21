@@ -14,23 +14,23 @@ export type ThemeMode = 'light' | 'dark';
 export interface ThemeColors {
   // Background layers (4 levels for depth)
   bg: {
-    darkest: string;  // Base background
-    dark: string;     // Sidebar background
-    medium: string;   // Card background
-    light: string;    // Hover state background
+    darkest: string; // Base background
+    dark: string; // Sidebar background
+    medium: string; // Card background
+    light: string; // Hover state background
   };
   // Accent colors (brand colors)
   accent: {
-    primary: string;   // Main brand color
+    primary: string; // Main brand color
     secondary: string; // Secondary accent
-    tertiary: string;  // Tertiary accent
+    tertiary: string; // Tertiary accent
   };
   // Text colors (4 levels for hierarchy)
   text: {
-    primary: string;   // Main text
+    primary: string; // Main text
     secondary: string; // Secondary text
-    tertiary: string;  // Tertiary text
-    muted: string;     // Muted/disabled text
+    tertiary: string; // Tertiary text
+    muted: string; // Muted/disabled text
   };
   // Semantic colors
   semantic: {
@@ -51,10 +51,10 @@ export interface ThemeColors {
 export interface ThemeEffects {
   // Box shadows
   shadow: {
-    neuFloat?: string;  // Neumorphic floating shadow
-    neuInset?: string;  // Neumorphic pressed shadow
-    neuDark?: string;   // Dark neumorphic shadow
-    regular: string;    // Standard shadow
+    neuFloat?: string; // Neumorphic floating shadow
+    neuInset?: string; // Neumorphic pressed shadow
+    neuDark?: string; // Dark neumorphic shadow
+    regular: string; // Standard shadow
   };
   // Glow effects
   glow: {
@@ -90,40 +90,43 @@ const desertTheme: ThemeDefinition = {
   mode: 'light',
   colors: {
     bg: {
-      darkest: '#FAF9F6',  // Feather (lightest)
-      dark: '#F4F1EA',     // Mist
-      medium: '#E6DAC8',   // Oat
-      light: '#CBB9A4',    // Sandstone
+      darkest: '#FAF9F6', // Feather (lightest)
+      dark: '#F4F1EA', // Mist
+      medium: '#E6DAC8', // Oat
+      light: '#CBB9A4', // Sandstone
     },
     accent: {
-      primary: '#A48D78',   // Desert
+      primary: '#A48D78', // Desert
       secondary: '#8B7766', // Desert Dark
-      tertiary: '#6B5D52',  // Desert Deep
+      tertiary: '#6B5D52', // Desert Deep
     },
     text: {
-      primary: '#6B5D52',   // Desert Deep (dark on light)
+      primary: '#6B5D52', // Desert Deep (dark on light)
       secondary: '#8B7766', // Desert Dark
-      tertiary: '#A48D78',  // Desert
-      muted: '#CBB9A4',     // Sandstone
+      tertiary: '#A48D78', // Desert
+      muted: '#CBB9A4', // Sandstone
     },
     semantic: {
-      success: '#9BA785',   // Sage green
-      warning: '#B8956A',   // Bronze
-      error: '#C17B5C',     // Terracotta
-      info: '#8B7766',      // Desert Dark
+      success: '#9BA785', // Sage green
+      warning: '#B8956A', // Bronze
+      error: '#C17B5C', // Terracotta
+      info: '#8B7766', // Desert Dark
     },
     priority: {
-      critical: '#C17B5C',  // Terracotta
-      high: '#B8956A',      // Bronze
-      medium: '#9BA785',    // Sage
-      low: '#CBB9A4',       // Sandstone
+      critical: '#C17B5C', // Terracotta
+      high: '#B8956A', // Bronze
+      medium: '#9BA785', // Sage
+      low: '#CBB9A4', // Sandstone
     },
   },
   effects: {
     shadow: {
-      neuFloat: '12px 12px 24px rgba(164, 141, 120, 0.25), -12px -12px 24px rgba(255, 255, 255, 0.9), inset 2px 2px 4px rgba(255, 255, 255, 0.5)',
-      neuInset: 'inset 4px 4px 8px rgba(164, 141, 120, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.9)',
-      neuDark: '10px 10px 20px rgba(107, 93, 82, 0.4), -10px -10px 20px rgba(203, 185, 164, 0.3), inset 2px 2px 4px rgba(255, 255, 255, 0.1)',
+      neuFloat:
+        '12px 12px 24px rgba(164, 141, 120, 0.25), -12px -12px 24px rgba(255, 255, 255, 0.9), inset 2px 2px 4px rgba(255, 255, 255, 0.5)',
+      neuInset:
+        'inset 4px 4px 8px rgba(164, 141, 120, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.9)',
+      neuDark:
+        '10px 10px 20px rgba(107, 93, 82, 0.4), -10px -10px 20px rgba(203, 185, 164, 0.3), inset 2px 2px 4px rgba(255, 255, 255, 0.1)',
       regular: '0 8px 32px 0 rgba(164, 141, 120, 0.2)',
     },
     glow: {
@@ -149,33 +152,33 @@ const neonTheme: ThemeDefinition = {
   mode: 'dark',
   colors: {
     bg: {
-      darkest: '#091221',   // Midnight
-      dark: '#0d1929',      // Sidebar
-      medium: '#14203a',    // Cards (lighter than sidebar)
-      light: '#1a2a4a',     // Hover state
+      darkest: '#091221', // Midnight
+      dark: '#0d1929', // Sidebar
+      medium: '#14203a', // Cards (lighter than sidebar)
+      light: '#1a2a4a', // Hover state
     },
     accent: {
-      primary: '#fe0369',   // Hot Pink
+      primary: '#fe0369', // Hot Pink
       secondary: '#0236a5', // Royal Blue
-      tertiary: '#0585c6',  // Cyan
+      tertiary: '#0585c6', // Cyan
     },
     text: {
-      primary: '#ffffff',   // Pure white
+      primary: '#ffffff', // Pure white
       secondary: '#8fa8c4', // Light blue-gray
-      tertiary: '#6a8cb8',  // Medium blue-gray
-      muted: '#4a6c9c',     // Dark blue-gray
+      tertiary: '#6a8cb8', // Medium blue-gray
+      muted: '#4a6c9c', // Dark blue-gray
     },
     semantic: {
-      success: '#00e676',   // Bright green
-      warning: '#ffea00',   // Bright yellow
-      error: '#ff1744',     // Bright red
-      info: '#0585c6',      // Cyan
+      success: '#00e676', // Bright green
+      warning: '#ffea00', // Bright yellow
+      error: '#ff1744', // Bright red
+      info: '#0585c6', // Cyan
     },
     priority: {
-      critical: '#fe0369',  // Hot Pink
-      high: '#ffea00',      // Bright Yellow
-      medium: '#0585c6',    // Cyan
-      low: '#8fa8c4',       // Light blue-gray
+      critical: '#fe0369', // Hot Pink
+      high: '#ffea00', // Bright Yellow
+      medium: '#0585c6', // Cyan
+      low: '#8fa8c4', // Light blue-gray
     },
   },
   effects: {
@@ -206,33 +209,33 @@ const earthyTheme: ThemeDefinition = {
   mode: 'dark',
   colors: {
     bg: {
-      darkest: '#11120D',   // Smoky
-      dark: '#1A1B15',      // Sidebar (slightly lighter)
-      medium: '#26271F',    // Cards
-      light: '#3E3D35',     // Olive Dark (hover)
+      darkest: '#11120D', // Smoky
+      dark: '#1A1B15', // Sidebar (slightly lighter)
+      medium: '#26271F', // Cards
+      light: '#3E3D35', // Olive Dark (hover)
     },
     accent: {
-      primary: '#D8CFBC',   // Bone
+      primary: '#D8CFBC', // Bone
       secondary: '#6B6A5D', // Olive Light
-      tertiary: '#565449',  // Olive
+      tertiary: '#565449', // Olive
     },
     text: {
-      primary: '#FFFBF4',   // Floral (brightest)
+      primary: '#FFFBF4', // Floral (brightest)
       secondary: '#D8CFBC', // Bone
-      tertiary: '#6B6A5D',  // Olive Light
-      muted: '#565449',     // Olive
+      tertiary: '#6B6A5D', // Olive Light
+      muted: '#565449', // Olive
     },
     semantic: {
-      success: '#8B9775',   // Sage green
-      warning: '#B8956A',   // Bronze
-      error: '#C17B5C',     // Terracotta
-      info: '#6B6A5D',      // Olive Light
+      success: '#8B9775', // Sage green
+      warning: '#B8956A', // Bronze
+      error: '#C17B5C', // Terracotta
+      info: '#6B6A5D', // Olive Light
     },
     priority: {
-      critical: '#C17B5C',  // Terracotta
-      high: '#B8956A',      // Bronze (yellow-600)
-      medium: '#8B9775',    // Sage
-      low: '#6B6A5D',       // Olive Light
+      critical: '#C17B5C', // Terracotta
+      high: '#B8956A', // Bronze (yellow-600)
+      medium: '#8B9775', // Sage
+      low: '#6B6A5D', // Olive Light
     },
   },
   effects: {
@@ -262,38 +265,39 @@ const coralTheme: ThemeDefinition = {
   mode: 'dark',
   colors: {
     bg: {
-      darkest: '#1A1A1A',   // Dark
-      dark: '#242424',      // Dark Lighter (sidebar)
-      medium: '#2A2A2A',    // Dark Card
-      light: '#303030',     // Hover state
+      darkest: '#1A1A1A', // Dark
+      dark: '#242424', // Dark Lighter (sidebar)
+      medium: '#2A2A2A', // Dark Card
+      light: '#303030', // Hover state
     },
     accent: {
-      primary: '#FF8B6A',   // Coral
+      primary: '#FF8B6A', // Coral
       secondary: '#FFB299', // Coral Light
-      tertiary: '#E67759',  // Coral Dark
+      tertiary: '#E67759', // Coral Dark
     },
     text: {
-      primary: '#E5E5E5',   // Light gray
+      primary: '#E5E5E5', // Light gray
       secondary: '#A5A5A5', // Slate Light
-      tertiary: '#8B8B8B',  // Slate
-      muted: '#6B6B6B',     // Dark Slate
+      tertiary: '#8B8B8B', // Slate
+      muted: '#6B6B6B', // Dark Slate
     },
     semantic: {
-      success: '#4CAF50',   // Green
-      warning: '#FFC107',   // Amber
-      error: '#F44336',     // Red
-      info: '#2196F3',      // Blue
+      success: '#4CAF50', // Green
+      warning: '#FFC107', // Amber
+      error: '#F44336', // Red
+      info: '#2196F3', // Blue
     },
     priority: {
-      critical: '#FF8B6A',  // Coral
-      high: '#FFC107',      // Amber
-      medium: '#2196F3',    // Blue
-      low: '#8B8B8B',       // Slate
+      critical: '#FF8B6A', // Coral
+      high: '#FFC107', // Amber
+      medium: '#2196F3', // Blue
+      low: '#8B8B8B', // Slate
     },
   },
   effects: {
     shadow: {
-      neuFloat: '8px 8px 16px rgba(0, 0, 0, 0.6), -8px -8px 16px rgba(60, 60, 60, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+      neuFloat:
+        '8px 8px 16px rgba(0, 0, 0, 0.6), -8px -8px 16px rgba(60, 60, 60, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
       neuInset: 'inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -2px -2px 6px rgba(60, 60, 60, 0.1)',
       neuDark: '12px 12px 24px rgba(0, 0, 0, 0.7), -12px -12px 24px rgba(60, 60, 60, 0.15)',
       regular: '0 8px 20px rgba(0, 0, 0, 0.4)',

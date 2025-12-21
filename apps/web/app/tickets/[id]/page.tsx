@@ -224,12 +224,12 @@ async function getTicketDetail(id: number) {
   return ticket;
 }
 
-export default async function TicketDetailPage({ 
-  params, 
-  searchParams 
-}: { 
-  params: Promise<{ id: string }>; 
-  searchParams: Promise<{ project?: string }> 
+export default async function TicketDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ project?: string }>;
 }) {
   const { id } = await params;
   const ticketId = parseInt(id, 10);
@@ -248,7 +248,7 @@ export default async function TicketDetailPage({
   // Verify project ownership
   const searchParamsResolved = await searchParams;
   const { projectId } = await getActiveProjectForUser(user.id, searchParamsResolved.project);
-  
+
   if (ticket.projectId !== projectId) {
     redirect(`/tickets/${ticketId}?project=${ticket.projectId}`);
   }
@@ -285,7 +285,6 @@ export default async function TicketDetailPage({
 
           {/* 2-Column Responsive Grid Layout (Main: 9, Sidebar: 3) */}
           <main className="grid flex-1 grid-cols-1 gap-4 overflow-hidden lg:grid-cols-12">
-            
             {/* MAIN CONTENT (Left Column) */}
             <div className="space-y-4 overflow-auto lg:col-span-9">
               {/* Action Buttons */}
@@ -350,7 +349,10 @@ export default async function TicketDetailPage({
 
                 {/* Add Comment Form */}
                 <div className="mt-6 border-t border-[#2A2A2A] pt-6">
-                  <CommentForm ticketId={serializedTicket.id} authorName={user.name ?? 'Anonymous'} />
+                  <CommentForm
+                    ticketId={serializedTicket.id}
+                    authorName={user.name ?? 'Anonymous'}
+                  />
                 </div>
               </div>
             </div>
@@ -372,25 +374,41 @@ export default async function TicketDetailPage({
                 dueDate={serializedTicket.dueDate}
                 milestone={serializedTicket.milestone}
               />
-              
+
               {/* Ticket Metadata (Sprint 10) */}
-              <div className="neu-raised smooth-transition rounded-3xl p-4" data-testid="ticket-metadata">
-                <h4 className="text-sm font-semibold text-white mb-3">Ticket Info</h4>
+              <div
+                className="neu-raised smooth-transition rounded-3xl p-4"
+                data-testid="ticket-metadata"
+              >
+                <h4 className="mb-3 text-sm font-semibold text-white">Ticket Info</h4>
                 <dl className="space-y-2 text-sm">
                   <div className="flex justify-between" data-testid="metadata-kind">
                     <dt className="text-slate">Kind</dt>
-                    <dd className={`px-2 py-0.5 rounded text-xs font-medium ${kindColor}`} data-testid="kind-badge" data-kind={ticket.kind}>
+                    <dd
+                      className={`rounded px-2 py-0.5 text-xs font-medium ${kindColor}`}
+                      data-testid="kind-badge"
+                      data-kind={ticket.kind}
+                    >
                       {kindLabel}
                     </dd>
                   </div>
                   <div className="flex justify-between" data-testid="metadata-source">
                     <dt className="text-slate">Source</dt>
-                    <dd className="text-white capitalize" data-testid="source-badge" data-source={ticket.source}>{ticket.source}</dd>
+                    <dd
+                      className="capitalize text-white"
+                      data-testid="source-badge"
+                      data-source={ticket.source}
+                    >
+                      {ticket.source}
+                    </dd>
                   </div>
                   {ticket.assigneeType && (
                     <div className="flex justify-between" data-testid="metadata-assignee-type">
                       <dt className="text-slate">Assignee Type</dt>
-                      <dd className="text-white capitalize" data-assignee-type={ticket.assigneeType}>
+                      <dd
+                        className="capitalize text-white"
+                        data-assignee-type={ticket.assigneeType}
+                      >
                         {ticket.assigneeType === 'agent_persona' ? 'Agent' : 'Human'}
                       </dd>
                     </div>
@@ -398,34 +416,41 @@ export default async function TicketDetailPage({
                   {ticket.closedAt && (
                     <div className="flex justify-between" data-testid="metadata-closed-at">
                       <dt className="text-slate">Closed At</dt>
-                      <dd className="text-white text-xs">
+                      <dd className="text-xs text-white">
                         {new Date(ticket.closedAt).toLocaleDateString()}
                       </dd>
                     </div>
                   )}
                 </dl>
               </div>
-              
+
               {/* Watchers - Hidden until DB support is implemented
               <WatchersSection ticketId={serializedTicket.id} />
               */}
-              
+
               {/* Scheduled Week Breadcrumb (Sprint 12) */}
               {ticket.scheduledWeek && (
-                <div className="neu-raised smooth-transition rounded-3xl p-4" data-testid="scheduled-week-breadcrumb">
-                  <h4 className="text-sm font-semibold text-white mb-2">Scheduled in Roadmap</h4>
-                  <div className="text-sm text-slate space-y-1">
-                    <p className="text-white truncate" data-testid="scheduled-week-title">
+                <div
+                  className="neu-raised smooth-transition rounded-3xl p-4"
+                  data-testid="scheduled-week-breadcrumb"
+                >
+                  <h4 className="mb-2 text-sm font-semibold text-white">Scheduled in Roadmap</h4>
+                  <div className="space-y-1 text-sm text-slate">
+                    <p className="truncate text-white" data-testid="scheduled-week-title">
                       {ticket.scheduledWeek.title}
                     </p>
                     {ticket.scheduledWeek.sprint && (
                       <p className="text-xs">
-                        Sprint: <span className="text-white">{ticket.scheduledWeek.sprint.title}</span>
+                        Sprint:{' '}
+                        <span className="text-white">{ticket.scheduledWeek.sprint.title}</span>
                       </p>
                     )}
                     {ticket.scheduledWeek.sprint?.phase && (
                       <p className="text-xs">
-                        Phase: <span className="text-white">{ticket.scheduledWeek.sprint.phase.title}</span>
+                        Phase:{' '}
+                        <span className="text-white">
+                          {ticket.scheduledWeek.sprint.phase.title}
+                        </span>
                       </p>
                     )}
                     {ticket.scheduledDays && ticket.scheduledDays.length > 0 && (
@@ -449,7 +474,7 @@ export default async function TicketDetailPage({
                   }>
                 }
               />
-              
+
               {/* Related Issues */}
               <RelatedTickets
                 currentIssueId={ticket.id}

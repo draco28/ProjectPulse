@@ -14,7 +14,7 @@ export default async function WikiEditPage({ params }: WikiEditPageProps) {
   const path = slug.join('/');
   // Normalize path for DB lookup (add leading slash if needed)
   const dbPath = path.startsWith('/') ? path : `/${path}`;
-  
+
   const page = await prisma.wikiPage.findUnique({
     where: { path: dbPath },
   });
@@ -25,40 +25,40 @@ export default async function WikiEditPage({ params }: WikiEditPageProps) {
 
   async function handleUpdateWikiPage(data: UpdateWikiPageInput) {
     'use server';
-    
+
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    
+
     const response = await fetch(`${baseUrl}/api/wiki/${path}`, {
       method: 'PATCH',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'x-projectpulse-actor': 'Human Editor'
+        'x-projectpulse-actor': 'Human Editor',
       },
       body: JSON.stringify({
         ...data,
-        changelog: 'Updated via Web Editor'
+        changelog: 'Updated via Web Editor',
       }),
     });
 
     if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || 'Failed to update');
+      const err = await response.json();
+      throw new Error(err.message || 'Failed to update');
     }
-    
+
     redirect(`/wiki/${path}`);
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto max-w-7xl px-4 py-8">
       <WikiEditor
         mode="edit"
         initialData={{
-            id: page.id,
-            title: page.title,
-            path: page.path,
-            content: page.content,
-            category: page.category as any,
-            excerpt: page.excerpt
+          id: page.id,
+          title: page.title,
+          path: page.path,
+          content: page.content,
+          category: page.category as any,
+          excerpt: page.excerpt,
         }}
         onSave={handleUpdateWikiPage}
         onCancelPath={`/wiki/${path}`}

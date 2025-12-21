@@ -59,11 +59,13 @@ export async function recordQueryMetric(data: QueryMetricData): Promise<void> {
  */
 export function estimateTokenUsage(results: any[]): number {
   const totalChars = results.reduce((sum, result) => {
-    return sum +
+    return (
+      sum +
       (result.title?.length || 0) +
       (result.excerpt?.length || result.content?.length || 0) +
       (result.category?.length || 0) +
-      (result.tags?.join(',')?.length || 0);
+      (result.tags?.join(',')?.length || 0)
+    );
   }, 0);
 
   // Rough token estimation (OpenAI uses ~4 chars per token)
@@ -122,37 +124,31 @@ export async function getMetricsSummary(days: number = 7) {
   try {
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    const [
-      totalQueries,
-      avgLatency,
-      p95Semantic,
-      p95Fulltext,
-      p95Hybrid,
-      modeDistribution,
-    ] = await Promise.all([
-      // Total query count
-      prisma.knowledgeQueryMetric.count({
-        where: { createdAt: { gte: since } },
-      }),
+    const [totalQueries, avgLatency, p95Semantic, p95Fulltext, p95Hybrid, modeDistribution] =
+      await Promise.all([
+        // Total query count
+        prisma.knowledgeQueryMetric.count({
+          where: { createdAt: { gte: since } },
+        }),
 
-      // Average latency
-      prisma.knowledgeQueryMetric.aggregate({
-        where: { createdAt: { gte: since } },
-        _avg: { latencyMs: true },
-      }),
+        // Average latency
+        prisma.knowledgeQueryMetric.aggregate({
+          where: { createdAt: { gte: since } },
+          _avg: { latencyMs: true },
+        }),
 
-      // P95 latencies by mode
-      getLatencyPercentile('semantic', 95, days),
-      getLatencyPercentile('fulltext', 95, days),
-      getLatencyPercentile('hybrid', 95, days),
+        // P95 latencies by mode
+        getLatencyPercentile('semantic', 95, days),
+        getLatencyPercentile('fulltext', 95, days),
+        getLatencyPercentile('hybrid', 95, days),
 
-      // Query mode distribution
-      prisma.knowledgeQueryMetric.groupBy({
-        by: ['queryMode'],
-        where: { createdAt: { gte: since } },
-        _count: true,
-      }),
-    ]);
+        // Query mode distribution
+        prisma.knowledgeQueryMetric.groupBy({
+          by: ['queryMode'],
+          where: { createdAt: { gte: since } },
+          _count: true,
+        }),
+      ]);
 
     return {
       period: { days, since },
@@ -163,10 +159,13 @@ export async function getMetricsSummary(days: number = 7) {
         fulltext: p95Fulltext,
         hybrid: p95Hybrid,
       },
-      modeDistribution: modeDistribution.reduce((acc, item) => {
-        acc[item.queryMode] = item._count;
-        return acc;
-      }, {} as Record<string, number>),
+      modeDistribution: modeDistribution.reduce(
+        (acc, item) => {
+          acc[item.queryMode] = item._count;
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
     };
   } catch (error) {
     console.error('[Knowledge Metrics] Failed to get metrics summary:', error);

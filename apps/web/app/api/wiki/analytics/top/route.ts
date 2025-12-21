@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   try {
     // Authenticate request (analytics are global, not project-specific)
     await requireAuth(request);
-    
+
     const [topPages, trendingTags, feedback, timeline] = await Promise.all([
       fetchTopWikiPages(),
       fetchTrendingWikiTags(),
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('Failed to load wiki analytics summary', error);
     return NextResponse.json({ error: 'Failed to load analytics summary' }, { status: 500 });
   }

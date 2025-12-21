@@ -117,10 +117,7 @@ export function MCPStatsCards() {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <div
-            key={i}
-            className="h-32 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800"
-          />
+          <div key={i} className="h-32 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
         ))}
       </div>
     );
@@ -139,11 +136,12 @@ export function MCPStatsCards() {
   }
 
   // Determine error rate variant
-  const errorRateVariant = stats.errors.errorRate24h > 5
-    ? 'danger'
-    : stats.errors.errorRate24h > 2
-      ? 'warning'
-      : 'success';
+  const errorRateVariant =
+    stats.errors.errorRate24h > 5
+      ? 'danger'
+      : stats.errors.errorRate24h > 2
+        ? 'warning'
+        : 'success';
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -161,17 +159,14 @@ export function MCPStatsCards() {
         description={`${stats.errors.last24h} errors`}
         variant={errorRateVariant}
       />
-      <StatCard
-        title="Active Tokens"
-        value={stats.tokens.active}
-        icon={Key}
-        variant="success"
-      />
+      <StatCard title="Active Tokens" value={stats.tokens.active} icon={Key} variant="success" />
       <StatCard
         title="Top Tool"
         value={stats.topTools[0]?.name?.replace('projectpulse_', '') || 'N/A'}
         icon={Wrench}
-        description={stats.topTools[0] ? `${stats.topTools[0].count.toLocaleString()} calls` : undefined}
+        description={
+          stats.topTools[0] ? `${stats.topTools[0].count.toLocaleString()} calls` : undefined
+        }
       />
     </div>
   );

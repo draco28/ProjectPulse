@@ -191,11 +191,11 @@ async function main() {
   // Seed Onboarding Questions (Session 1)
   console.log('🧩 Seeding Onboarding Questions...');
   await seedOnboardingQuestions(prisma);
-  
+
   // Seed Onboarding Prompt Templates (Session 1, 2, 3)
   console.log('🧩 Seeding Onboarding Prompt Templates...');
   await seedOnboardingPromptTemplates(prisma);
-  
+
   // DEPRECATED: Old OnboardingTemplate model (kept for backward compatibility until full migration)
   const onboardingTemplates = [
     {
@@ -219,7 +219,20 @@ Please answer these 10 questions to help me understand your project:
 8. Key Features: Top 3 most important features?
 9. Technical Constraints: Any limitations? (budget, hosting, compliance requirements)
 10. Success Criteria: How will you measure success?`,
-      variables: { expectedVariables: ['project_name', 'target_users', 'problem_statement', 'tech_stack', 'project_phase', 'team_size', 'timeline', 'key_features', 'technical_constraints', 'success_criteria'] },
+      variables: {
+        expectedVariables: [
+          'project_name',
+          'target_users',
+          'problem_statement',
+          'tech_stack',
+          'project_phase',
+          'team_size',
+          'timeline',
+          'key_features',
+          'technical_constraints',
+          'success_criteria',
+        ],
+      },
       isActive: true,
     },
     {
@@ -241,7 +254,17 @@ Please generate the following industry-standard documents:
 1) Product Requirements Document (PRD)
 2) System Requirements Specification (SRS)
 3) Architecture Overview`,
-      variables: { expectedVariables: ['project_name', 'problem_statement', 'target_users', 'tech_stack', 'key_features', 'success_criteria', 'technical_constraints'] },
+      variables: {
+        expectedVariables: [
+          'project_name',
+          'problem_statement',
+          'target_users',
+          'tech_stack',
+          'key_features',
+          'success_criteria',
+          'technical_constraints',
+        ],
+      },
       isActive: true,
     },
     {
@@ -250,7 +273,15 @@ Please generate the following industry-standard documents:
       promptTemplate: `# ProjectPulse - New Project Onboarding (Session 3/3)
 
 Based on your project documentation (PRD, SRS, Architecture), create your AI workflow blueprint with Memory Bank files, SOPs, and Agent Skills.`,
-      variables: { expectedVariables: ['tech_stack', 'project_name', 'target_users', 'key_features', 'project_phase'] },
+      variables: {
+        expectedVariables: [
+          'tech_stack',
+          'project_name',
+          'target_users',
+          'key_features',
+          'project_phase',
+        ],
+      },
       isActive: true,
     },
   ];
@@ -268,7 +299,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
     });
   }
   console.log(`✓ Seeded ${onboardingTemplates.length} onboarding templates\n`);
-  
+
   // Sprint 9 Refactor: Seed OnboardingPromptTemplates (database-driven prompts)
   // Already seeded above
   console.log(''); // Extra newline for formatting
@@ -280,7 +311,9 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
   const labels = await Promise.all([
     prisma.label.create({ data: { name: 'bug', color: '#d73a4a', projectId: project.id } }),
     prisma.label.create({ data: { name: 'enhancement', color: '#a2eeef', projectId: project.id } }),
-    prisma.label.create({ data: { name: 'documentation', color: '#0075ca', projectId: project.id } }),
+    prisma.label.create({
+      data: { name: 'documentation', color: '#0075ca', projectId: project.id },
+    }),
     prisma.label.create({ data: { name: 'security', color: '#d4c5f9', projectId: project.id } }),
     prisma.label.create({ data: { name: 'performance', color: '#fbca04', projectId: project.id } }),
     prisma.label.create({ data: { name: 'ui/ux', color: '#d876e3', projectId: project.id } }),
@@ -299,10 +332,34 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
   });
   await prisma.ticketPriorityOption.createMany({
     data: [
-      { value: 'critical', label: 'Critical', order: 1, dotColorClass: 'bg-red-500', badgeColorClass: 'bg-red-500/20 text-red-100' },
-      { value: 'high', label: 'High', order: 2, dotColorClass: 'bg-orange-500', badgeColorClass: 'bg-orange-500/20 text-orange-100' },
-      { value: 'medium', label: 'Medium', order: 3, dotColorClass: 'bg-yellow-500', badgeColorClass: 'bg-yellow-500/20 text-yellow-100' },
-      { value: 'low', label: 'Low', order: 4, dotColorClass: 'bg-green-500', badgeColorClass: 'bg-green-500/20 text-green-100' },
+      {
+        value: 'critical',
+        label: 'Critical',
+        order: 1,
+        dotColorClass: 'bg-red-500',
+        badgeColorClass: 'bg-red-500/20 text-red-100',
+      },
+      {
+        value: 'high',
+        label: 'High',
+        order: 2,
+        dotColorClass: 'bg-orange-500',
+        badgeColorClass: 'bg-orange-500/20 text-orange-100',
+      },
+      {
+        value: 'medium',
+        label: 'Medium',
+        order: 3,
+        dotColorClass: 'bg-yellow-500',
+        badgeColorClass: 'bg-yellow-500/20 text-yellow-100',
+      },
+      {
+        value: 'low',
+        label: 'Low',
+        order: 4,
+        dotColorClass: 'bg-green-500',
+        badgeColorClass: 'bg-green-500/20 text-green-100',
+      },
     ],
     skipDuplicates: true,
   });
@@ -1069,15 +1126,15 @@ import { Issue, WikiPage, KnowledgeItem } from '@prisma/client';
       },
     }),
 
-// 3. Development Guides (parent page)
-prisma.wikiPage.create({
-  data: {
-    projectId: project.id,
-    title: 'Development Guides',
-    path: '/guides',
-    category: 'guides',
-    orderIndex: 2,
-    content: `# Development Guides
+    // 3. Development Guides (parent page)
+    prisma.wikiPage.create({
+      data: {
+        projectId: project.id,
+        title: 'Development Guides',
+        path: '/guides',
+        category: 'guides',
+        orderIndex: 2,
+        content: `# Development Guides
 
 Comprehensive guides for developing with ProjectPulse.
 
@@ -1100,18 +1157,18 @@ Want to add a guide? See our [Contributing Guidelines](https://github.com/draco2
 
 **Last Updated**: 2025-11-10
 **Version**: 1.0`,
-  },
-}),
+      },
+    }),
 
-// 4. API Documentation (root, reference category)
-prisma.wikiPage.create({
-  data: {
-    projectId: project.id,
-    title: 'API Documentation',
-    path: '/reference/api',
-    category: 'reference',
-    orderIndex: 3,
-    content: `# API Documentation
+    // 4. API Documentation (root, reference category)
+    prisma.wikiPage.create({
+      data: {
+        projectId: project.id,
+        title: 'API Documentation',
+        path: '/reference/api',
+        category: 'reference',
+        orderIndex: 3,
+        content: `# API Documentation
 
 ProjectPulse provides a RESTful API for programmatic access to issues, knowledge base, and wiki pages.
 
@@ -1340,18 +1397,18 @@ GET /api/issues?cursor=<last-id>&limit=20
 
 **Last Updated**: 2025-11-10
 **Version**: 1.0`,
-  },
-}),
+      },
+    }),
 
-// 5. Troubleshooting (root, troubleshooting category)
-prisma.wikiPage.create({
-  data: {
-    projectId: project.id,
-    title: 'Troubleshooting',
-    path: '/troubleshooting',
-    category: 'troubleshooting',
-    orderIndex: 4,
-    content: `# Troubleshooting
+    // 5. Troubleshooting (root, troubleshooting category)
+    prisma.wikiPage.create({
+      data: {
+        projectId: project.id,
+        title: 'Troubleshooting',
+        path: '/troubleshooting',
+        category: 'troubleshooting',
+        orderIndex: 4,
+        content: `# Troubleshooting
 
 Common issues and solutions for ProjectPulse.
 
@@ -1581,7 +1638,7 @@ pnpm prisma migrate reset
   console.log('Root pages:', rootPages.map((p, i) => `${i}: ${p?.title}`).join(', '));
 
   // HIERARCHICAL PAGES (children of "Development Guides")
-  const guidesParent = rootPages.find(p => p?.title === 'Development Guides');
+  const guidesParent = rootPages.find((p) => p?.title === 'Development Guides');
   if (!guidesParent) {
     throw new Error('Could not find "Development Guides" parent page');
   }
@@ -2339,16 +2396,92 @@ Format:
       description: 'Complete workflow for implementing a new feature from planning to deployment',
       category: 'development',
       steps: [
-        { stepNumber: 1, name: 'Create Feature Branch', description: 'Create new git branch for feature', mcpTool: null, preconditions: ['git status is clean'], postconditions: ['branch exists', 'checked out to new branch'] },
-        { stepNumber: 2, name: 'Run Onboarding Session', description: 'Gather feature context via onboarding', mcpTool: 'onboarding.getPrompt', mcpToolArgs: { sessionNumber: 1 }, preconditions: ['project exists'], postconditions: ['context gathered'] },
-        { stepNumber: 3, name: 'Create Wiki Page', description: 'Document feature requirements and design', mcpTool: 'wiki.create', mcpToolArgs: { title: '{featureName} Documentation', category: 'features' }, preconditions: ['feature context ready'], postconditions: ['wiki page created'] },
-        { stepNumber: 4, name: 'Create Sprint Task', description: 'Track feature in sprint system', mcpTool: 'sprint.task.create', mcpToolArgs: { title: '{featureName}', dayId: '{currentDayId}' }, preconditions: ['dayId exists'], postconditions: ['taskId returned'] },
-        { stepNumber: 5, name: 'Implement Feature Code', description: 'Write implementation code', mcpTool: null, preconditions: ['task created'], postconditions: ['code committed'] },
-        { stepNumber: 6, name: 'Run Tests', description: 'Execute unit and integration tests', mcpTool: null, preconditions: ['code committed'], postconditions: ['all tests pass'] },
-        { stepNumber: 7, name: 'Create Checkpoint', description: 'Save progress checkpoint', mcpTool: 'sprint.checkpoint.create', mcpToolArgs: { sessionId: '{sessionId}' }, preconditions: ['tests passing'], postconditions: ['checkpoint created'] },
-        { stepNumber: 8, name: 'Create Pull Request', description: 'Open PR for code review', mcpTool: null, preconditions: ['branch pushed'], postconditions: ['PR created'] },
-        { stepNumber: 9, name: 'Update Wiki', description: 'Update wiki with implementation details', mcpTool: 'wiki.update', mcpToolArgs: { id: '{wikiPageId}' }, preconditions: ['PR merged'], postconditions: ['wiki updated'] },
-        { stepNumber: 10, name: 'Complete Task', description: 'Mark sprint task as complete', mcpTool: 'sprint.updateProgress', mcpToolArgs: { taskId: '{taskId}', progress: 100 }, preconditions: ['PR merged'], postconditions: ['task completed'] },
+        {
+          stepNumber: 1,
+          name: 'Create Feature Branch',
+          description: 'Create new git branch for feature',
+          mcpTool: null,
+          preconditions: ['git status is clean'],
+          postconditions: ['branch exists', 'checked out to new branch'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Run Onboarding Session',
+          description: 'Gather feature context via onboarding',
+          mcpTool: 'onboarding.getPrompt',
+          mcpToolArgs: { sessionNumber: 1 },
+          preconditions: ['project exists'],
+          postconditions: ['context gathered'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Create Wiki Page',
+          description: 'Document feature requirements and design',
+          mcpTool: 'wiki.create',
+          mcpToolArgs: { title: '{featureName} Documentation', category: 'features' },
+          preconditions: ['feature context ready'],
+          postconditions: ['wiki page created'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Create Sprint Task',
+          description: 'Track feature in sprint system',
+          mcpTool: 'sprint.task.create',
+          mcpToolArgs: { title: '{featureName}', dayId: '{currentDayId}' },
+          preconditions: ['dayId exists'],
+          postconditions: ['taskId returned'],
+        },
+        {
+          stepNumber: 5,
+          name: 'Implement Feature Code',
+          description: 'Write implementation code',
+          mcpTool: null,
+          preconditions: ['task created'],
+          postconditions: ['code committed'],
+        },
+        {
+          stepNumber: 6,
+          name: 'Run Tests',
+          description: 'Execute unit and integration tests',
+          mcpTool: null,
+          preconditions: ['code committed'],
+          postconditions: ['all tests pass'],
+        },
+        {
+          stepNumber: 7,
+          name: 'Create Checkpoint',
+          description: 'Save progress checkpoint',
+          mcpTool: 'sprint.checkpoint.create',
+          mcpToolArgs: { sessionId: '{sessionId}' },
+          preconditions: ['tests passing'],
+          postconditions: ['checkpoint created'],
+        },
+        {
+          stepNumber: 8,
+          name: 'Create Pull Request',
+          description: 'Open PR for code review',
+          mcpTool: null,
+          preconditions: ['branch pushed'],
+          postconditions: ['PR created'],
+        },
+        {
+          stepNumber: 9,
+          name: 'Update Wiki',
+          description: 'Update wiki with implementation details',
+          mcpTool: 'wiki.update',
+          mcpToolArgs: { id: '{wikiPageId}' },
+          preconditions: ['PR merged'],
+          postconditions: ['wiki updated'],
+        },
+        {
+          stepNumber: 10,
+          name: 'Complete Task',
+          description: 'Mark sprint task as complete',
+          mcpTool: 'sprint.updateProgress',
+          mcpToolArgs: { taskId: '{taskId}', progress: 100 },
+          preconditions: ['PR merged'],
+          postconditions: ['task completed'],
+        },
       ],
     },
     {
@@ -2357,14 +2490,73 @@ Format:
       description: 'Systematic workflow for investigating and fixing bugs',
       category: 'development',
       steps: [
-        { stepNumber: 1, name: 'Create Bug Fix Branch', description: 'Create new git branch for bug fix', mcpTool: null, preconditions: ['git status is clean'], postconditions: ['branch exists'] },
-        { stepNumber: 2, name: 'Investigate Issue', description: 'Reproduce bug and analyze root cause', mcpTool: null, preconditions: ['issue reported'], postconditions: ['root cause identified'] },
-        { stepNumber: 3, name: 'Document Investigation', description: 'Create or update wiki with findings', mcpTool: 'wiki.create', mcpToolArgs: { title: 'Bug: {bugTitle}', category: 'troubleshooting' }, preconditions: ['investigation complete'], postconditions: ['documentation created'] },
-        { stepNumber: 4, name: 'Create Sprint Task', description: 'Track bug fix in sprint', mcpTool: 'sprint.task.create', mcpToolArgs: { title: 'Fix: {bugTitle}' }, preconditions: ['investigation done'], postconditions: ['task created'] },
-        { stepNumber: 5, name: 'Implement Fix', description: 'Write fix code with tests', mcpTool: null, preconditions: ['root cause known'], postconditions: ['fix committed'] },
-        { stepNumber: 6, name: 'Run Tests', description: 'Verify fix and regression tests', mcpTool: null, preconditions: ['fix committed'], postconditions: ['all tests pass'] },
-        { stepNumber: 7, name: 'Create Pull Request', description: 'Open PR with fix', mcpTool: null, preconditions: ['tests pass'], postconditions: ['PR created'] },
-        { stepNumber: 8, name: 'Complete Task', description: 'Mark bug fix complete', mcpTool: 'sprint.updateProgress', mcpToolArgs: { taskId: '{taskId}', progress: 100 }, preconditions: ['PR merged'], postconditions: ['task completed'] },
+        {
+          stepNumber: 1,
+          name: 'Create Bug Fix Branch',
+          description: 'Create new git branch for bug fix',
+          mcpTool: null,
+          preconditions: ['git status is clean'],
+          postconditions: ['branch exists'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Investigate Issue',
+          description: 'Reproduce bug and analyze root cause',
+          mcpTool: null,
+          preconditions: ['issue reported'],
+          postconditions: ['root cause identified'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Document Investigation',
+          description: 'Create or update wiki with findings',
+          mcpTool: 'wiki.create',
+          mcpToolArgs: { title: 'Bug: {bugTitle}', category: 'troubleshooting' },
+          preconditions: ['investigation complete'],
+          postconditions: ['documentation created'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Create Sprint Task',
+          description: 'Track bug fix in sprint',
+          mcpTool: 'sprint.task.create',
+          mcpToolArgs: { title: 'Fix: {bugTitle}' },
+          preconditions: ['investigation done'],
+          postconditions: ['task created'],
+        },
+        {
+          stepNumber: 5,
+          name: 'Implement Fix',
+          description: 'Write fix code with tests',
+          mcpTool: null,
+          preconditions: ['root cause known'],
+          postconditions: ['fix committed'],
+        },
+        {
+          stepNumber: 6,
+          name: 'Run Tests',
+          description: 'Verify fix and regression tests',
+          mcpTool: null,
+          preconditions: ['fix committed'],
+          postconditions: ['all tests pass'],
+        },
+        {
+          stepNumber: 7,
+          name: 'Create Pull Request',
+          description: 'Open PR with fix',
+          mcpTool: null,
+          preconditions: ['tests pass'],
+          postconditions: ['PR created'],
+        },
+        {
+          stepNumber: 8,
+          name: 'Complete Task',
+          description: 'Mark bug fix complete',
+          mcpTool: 'sprint.updateProgress',
+          mcpToolArgs: { taskId: '{taskId}', progress: 100 },
+          preconditions: ['PR merged'],
+          postconditions: ['task completed'],
+        },
       ],
     },
     {
@@ -2373,13 +2565,64 @@ Format:
       description: 'Safe refactoring workflow with comprehensive testing',
       category: 'development',
       steps: [
-        { stepNumber: 1, name: 'Create Refactoring Branch', description: 'Create new git branch', mcpTool: null, preconditions: ['git status is clean'], postconditions: ['branch exists'] },
-        { stepNumber: 2, name: 'Analyze Code', description: 'Identify refactoring opportunities', mcpTool: null, preconditions: ['target code identified'], postconditions: ['analysis complete'] },
-        { stepNumber: 3, name: 'Create Sprint Task', description: 'Track refactoring work', mcpTool: 'sprint.task.create', mcpToolArgs: { title: 'Refactor: {target}' }, preconditions: ['analysis done'], postconditions: ['task created'] },
-        { stepNumber: 4, name: 'Refactor Code', description: 'Apply refactoring changes', mcpTool: null, preconditions: ['tests exist'], postconditions: ['refactoring done'] },
-        { stepNumber: 5, name: 'Run Tests', description: 'Verify behavior unchanged', mcpTool: null, preconditions: ['refactoring done'], postconditions: ['all tests pass'] },
-        { stepNumber: 6, name: 'Create Pull Request', description: 'Open PR for review', mcpTool: null, preconditions: ['tests pass'], postconditions: ['PR created'] },
-        { stepNumber: 7, name: 'Complete Task', description: 'Mark refactoring complete', mcpTool: 'sprint.updateProgress', mcpToolArgs: { taskId: '{taskId}', progress: 100 }, preconditions: ['PR merged'], postconditions: ['task completed'] },
+        {
+          stepNumber: 1,
+          name: 'Create Refactoring Branch',
+          description: 'Create new git branch',
+          mcpTool: null,
+          preconditions: ['git status is clean'],
+          postconditions: ['branch exists'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Analyze Code',
+          description: 'Identify refactoring opportunities',
+          mcpTool: null,
+          preconditions: ['target code identified'],
+          postconditions: ['analysis complete'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Create Sprint Task',
+          description: 'Track refactoring work',
+          mcpTool: 'sprint.task.create',
+          mcpToolArgs: { title: 'Refactor: {target}' },
+          preconditions: ['analysis done'],
+          postconditions: ['task created'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Refactor Code',
+          description: 'Apply refactoring changes',
+          mcpTool: null,
+          preconditions: ['tests exist'],
+          postconditions: ['refactoring done'],
+        },
+        {
+          stepNumber: 5,
+          name: 'Run Tests',
+          description: 'Verify behavior unchanged',
+          mcpTool: null,
+          preconditions: ['refactoring done'],
+          postconditions: ['all tests pass'],
+        },
+        {
+          stepNumber: 6,
+          name: 'Create Pull Request',
+          description: 'Open PR for review',
+          mcpTool: null,
+          preconditions: ['tests pass'],
+          postconditions: ['PR created'],
+        },
+        {
+          stepNumber: 7,
+          name: 'Complete Task',
+          description: 'Mark refactoring complete',
+          mcpTool: 'sprint.updateProgress',
+          mcpToolArgs: { taskId: '{taskId}', progress: 100 },
+          preconditions: ['PR merged'],
+          postconditions: ['task completed'],
+        },
       ],
     },
     {
@@ -2388,11 +2631,48 @@ Format:
       description: 'Workflow for creating or updating project documentation',
       category: 'development',
       steps: [
-        { stepNumber: 1, name: 'Create Docs Branch', description: 'Create new git branch for documentation', mcpTool: null, preconditions: ['git status is clean'], postconditions: ['branch exists'] },
-        { stepNumber: 2, name: 'Create/Update Wiki Page', description: 'Write documentation content', mcpTool: 'wiki.create', mcpToolArgs: { title: '{docTitle}', category: '{docCategory}' }, preconditions: ['content prepared'], postconditions: ['wiki page saved'] },
-        { stepNumber: 3, name: 'Review Content', description: 'Proofread and validate accuracy', mcpTool: null, preconditions: ['draft complete'], postconditions: ['review done'] },
-        { stepNumber: 4, name: 'Create Pull Request', description: 'Submit documentation for review', mcpTool: null, preconditions: ['review passed'], postconditions: ['PR created'] },
-        { stepNumber: 5, name: 'Complete Task', description: 'Finalize documentation', mcpTool: 'sprint.updateProgress', mcpToolArgs: { taskId: '{taskId}', progress: 100 }, preconditions: ['PR merged'], postconditions: ['docs published'] },
+        {
+          stepNumber: 1,
+          name: 'Create Docs Branch',
+          description: 'Create new git branch for documentation',
+          mcpTool: null,
+          preconditions: ['git status is clean'],
+          postconditions: ['branch exists'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Create/Update Wiki Page',
+          description: 'Write documentation content',
+          mcpTool: 'wiki.create',
+          mcpToolArgs: { title: '{docTitle}', category: '{docCategory}' },
+          preconditions: ['content prepared'],
+          postconditions: ['wiki page saved'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Review Content',
+          description: 'Proofread and validate accuracy',
+          mcpTool: null,
+          preconditions: ['draft complete'],
+          postconditions: ['review done'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Create Pull Request',
+          description: 'Submit documentation for review',
+          mcpTool: null,
+          preconditions: ['review passed'],
+          postconditions: ['PR created'],
+        },
+        {
+          stepNumber: 5,
+          name: 'Complete Task',
+          description: 'Finalize documentation',
+          mcpTool: 'sprint.updateProgress',
+          mcpToolArgs: { taskId: '{taskId}', progress: 100 },
+          preconditions: ['PR merged'],
+          postconditions: ['docs published'],
+        },
       ],
     },
     {
@@ -2401,12 +2681,55 @@ Format:
       description: 'Systematic workflow for improving test coverage',
       category: 'development',
       steps: [
-        { stepNumber: 1, name: 'Create Testing Branch', description: 'Create new git branch', mcpTool: null, preconditions: ['git status is clean'], postconditions: ['branch exists'] },
-        { stepNumber: 2, name: 'Identify Coverage Gaps', description: 'Analyze coverage report', mcpTool: null, preconditions: ['coverage report exists'], postconditions: ['gaps identified'] },
-        { stepNumber: 3, name: 'Create Sprint Task', description: 'Track testing work', mcpTool: 'sprint.task.create', mcpToolArgs: { title: 'Test Coverage: {target}' }, preconditions: ['gaps known'], postconditions: ['task created'] },
-        { stepNumber: 4, name: 'Write Tests', description: 'Implement missing tests', mcpTool: null, preconditions: ['test plan ready'], postconditions: ['tests written'] },
-        { stepNumber: 5, name: 'Verify Coverage', description: 'Run coverage report and validate improvement', mcpTool: null, preconditions: ['tests written'], postconditions: ['coverage increased'] },
-        { stepNumber: 6, name: 'Create Pull Request', description: 'Submit tests for review', mcpTool: null, preconditions: ['coverage verified'], postconditions: ['PR created'] },
+        {
+          stepNumber: 1,
+          name: 'Create Testing Branch',
+          description: 'Create new git branch',
+          mcpTool: null,
+          preconditions: ['git status is clean'],
+          postconditions: ['branch exists'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Identify Coverage Gaps',
+          description: 'Analyze coverage report',
+          mcpTool: null,
+          preconditions: ['coverage report exists'],
+          postconditions: ['gaps identified'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Create Sprint Task',
+          description: 'Track testing work',
+          mcpTool: 'sprint.task.create',
+          mcpToolArgs: { title: 'Test Coverage: {target}' },
+          preconditions: ['gaps known'],
+          postconditions: ['task created'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Write Tests',
+          description: 'Implement missing tests',
+          mcpTool: null,
+          preconditions: ['test plan ready'],
+          postconditions: ['tests written'],
+        },
+        {
+          stepNumber: 5,
+          name: 'Verify Coverage',
+          description: 'Run coverage report and validate improvement',
+          mcpTool: null,
+          preconditions: ['tests written'],
+          postconditions: ['coverage increased'],
+        },
+        {
+          stepNumber: 6,
+          name: 'Create Pull Request',
+          description: 'Submit tests for review',
+          mcpTool: null,
+          preconditions: ['coverage verified'],
+          postconditions: ['PR created'],
+        },
       ],
     },
     {
@@ -2415,15 +2738,79 @@ Format:
       description: 'Safe database schema migration workflow',
       category: 'development',
       steps: [
-        { stepNumber: 1, name: 'Create Migration Branch', description: 'Create new git branch', mcpTool: null, preconditions: ['git status is clean'], postconditions: ['branch exists'] },
-        { stepNumber: 2, name: 'Update Prisma Schema', description: 'Modify schema.prisma file', mcpTool: null, preconditions: ['requirements clear'], postconditions: ['schema updated'] },
-        { stepNumber: 3, name: 'Generate Migration', description: 'Run prisma migrate dev', mcpTool: null, preconditions: ['schema valid'], postconditions: ['migration created'] },
-        { stepNumber: 4, name: 'Test Migration', description: 'Apply migration to test database', mcpTool: null, preconditions: ['migration generated'], postconditions: ['migration tested'] },
-        { stepNumber: 5, name: 'Update Seed Script', description: 'Add seed data for new models', mcpTool: null, preconditions: ['migration tested'], postconditions: ['seed updated'] },
-        { stepNumber: 6, name: 'Deploy Migration', description: 'Apply to production database', mcpTool: null, preconditions: ['testing complete'], postconditions: ['migration deployed'] },
-        { stepNumber: 7, name: 'Verify Deployment', description: 'Check production database', mcpTool: null, preconditions: ['migration deployed'], postconditions: ['deployment verified'] },
-        { stepNumber: 8, name: 'Create Pull Request', description: 'Submit schema changes', mcpTool: null, preconditions: ['deployment verified'], postconditions: ['PR created'] },
-        { stepNumber: 9, name: 'Complete Task', description: 'Mark migration complete', mcpTool: 'sprint.updateProgress', mcpToolArgs: { taskId: '{taskId}', progress: 100 }, preconditions: ['PR merged'], postconditions: ['task completed'] },
+        {
+          stepNumber: 1,
+          name: 'Create Migration Branch',
+          description: 'Create new git branch',
+          mcpTool: null,
+          preconditions: ['git status is clean'],
+          postconditions: ['branch exists'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Update Prisma Schema',
+          description: 'Modify schema.prisma file',
+          mcpTool: null,
+          preconditions: ['requirements clear'],
+          postconditions: ['schema updated'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Generate Migration',
+          description: 'Run prisma migrate dev',
+          mcpTool: null,
+          preconditions: ['schema valid'],
+          postconditions: ['migration created'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Test Migration',
+          description: 'Apply migration to test database',
+          mcpTool: null,
+          preconditions: ['migration generated'],
+          postconditions: ['migration tested'],
+        },
+        {
+          stepNumber: 5,
+          name: 'Update Seed Script',
+          description: 'Add seed data for new models',
+          mcpTool: null,
+          preconditions: ['migration tested'],
+          postconditions: ['seed updated'],
+        },
+        {
+          stepNumber: 6,
+          name: 'Deploy Migration',
+          description: 'Apply to production database',
+          mcpTool: null,
+          preconditions: ['testing complete'],
+          postconditions: ['migration deployed'],
+        },
+        {
+          stepNumber: 7,
+          name: 'Verify Deployment',
+          description: 'Check production database',
+          mcpTool: null,
+          preconditions: ['migration deployed'],
+          postconditions: ['deployment verified'],
+        },
+        {
+          stepNumber: 8,
+          name: 'Create Pull Request',
+          description: 'Submit schema changes',
+          mcpTool: null,
+          preconditions: ['deployment verified'],
+          postconditions: ['PR created'],
+        },
+        {
+          stepNumber: 9,
+          name: 'Complete Task',
+          description: 'Mark migration complete',
+          mcpTool: 'sprint.updateProgress',
+          mcpToolArgs: { taskId: '{taskId}', progress: 100 },
+          preconditions: ['PR merged'],
+          postconditions: ['task completed'],
+        },
       ],
     },
     {
@@ -2432,12 +2819,60 @@ Format:
       description: 'Setup new sprint with phases, weeks, days, and tasks',
       category: 'project-management',
       steps: [
-        { stepNumber: 1, name: 'Create Sprint Phase', description: 'Initialize new phase', mcpTool: 'sprint.phase.create', mcpToolArgs: { title: '{sprintTitle}', description: '{sprintDescription}' }, preconditions: ['planning complete'], postconditions: ['phase created'] },
-        { stepNumber: 2, name: 'Create Week 1', description: 'Create first week', mcpTool: 'sprint.week.create', mcpToolArgs: { phaseId: '{phaseId}', title: 'Week 1' }, preconditions: ['phase exists'], postconditions: ['week 1 created'] },
-        { stepNumber: 3, name: 'Create Week 2', description: 'Create second week', mcpTool: 'sprint.week.create', mcpToolArgs: { phaseId: '{phaseId}', title: 'Week 2' }, preconditions: ['week 1 exists'], postconditions: ['week 2 created'] },
-        { stepNumber: 4, name: 'Create Days', description: 'Create day entries for each week', mcpTool: 'sprint.day.create', mcpToolArgs: { weekId: '{weekId}' }, preconditions: ['weeks created'], postconditions: ['days created'] },
-        { stepNumber: 5, name: 'Assign Tasks', description: 'Create and assign tasks to days', mcpTool: 'sprint.task.create', mcpToolArgs: { dayId: '{dayId}' }, preconditions: ['days exist'], postconditions: ['tasks assigned'] },
-        { stepNumber: 6, name: 'Set Sprint Goals', description: 'Document sprint objectives', mcpTool: 'wiki.create', mcpToolArgs: { title: '{sprintTitle} Goals', category: 'planning' }, preconditions: ['tasks assigned'], postconditions: ['goals documented'] },
+        {
+          stepNumber: 1,
+          name: 'Create Sprint Phase',
+          description: 'Initialize new phase',
+          mcpTool: 'sprint.phase.create',
+          mcpToolArgs: { title: '{sprintTitle}', description: '{sprintDescription}' },
+          preconditions: ['planning complete'],
+          postconditions: ['phase created'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Create Week 1',
+          description: 'Create first week',
+          mcpTool: 'sprint.week.create',
+          mcpToolArgs: { phaseId: '{phaseId}', title: 'Week 1' },
+          preconditions: ['phase exists'],
+          postconditions: ['week 1 created'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Create Week 2',
+          description: 'Create second week',
+          mcpTool: 'sprint.week.create',
+          mcpToolArgs: { phaseId: '{phaseId}', title: 'Week 2' },
+          preconditions: ['week 1 exists'],
+          postconditions: ['week 2 created'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Create Days',
+          description: 'Create day entries for each week',
+          mcpTool: 'sprint.day.create',
+          mcpToolArgs: { weekId: '{weekId}' },
+          preconditions: ['weeks created'],
+          postconditions: ['days created'],
+        },
+        {
+          stepNumber: 5,
+          name: 'Assign Tasks',
+          description: 'Create and assign tasks to days',
+          mcpTool: 'sprint.task.create',
+          mcpToolArgs: { dayId: '{dayId}' },
+          preconditions: ['days exist'],
+          postconditions: ['tasks assigned'],
+        },
+        {
+          stepNumber: 6,
+          name: 'Set Sprint Goals',
+          description: 'Document sprint objectives',
+          mcpTool: 'wiki.create',
+          mcpToolArgs: { title: '{sprintTitle} Goals', category: 'planning' },
+          preconditions: ['tasks assigned'],
+          postconditions: ['goals documented'],
+        },
       ],
     },
     {
@@ -2446,11 +2881,49 @@ Format:
       description: 'Complete sprint review and generate completion report',
       category: 'project-management',
       steps: [
-        { stepNumber: 1, name: 'Gather Sprint Metrics', description: 'Collect completion statistics', mcpTool: 'sprint.getCurrentTask', mcpToolArgs: {}, preconditions: ['sprint complete'], postconditions: ['metrics gathered'] },
-        { stepNumber: 2, name: 'Create Completion Document', description: 'Generate sprint summary', mcpTool: 'wiki.create', mcpToolArgs: { title: '{sprintTitle} Completion', category: 'retrospective' }, preconditions: ['metrics ready'], postconditions: ['document created'] },
-        { stepNumber: 3, name: 'Update Progress Tracker', description: 'Update project progress', mcpTool: 'sprint.updateProgress', mcpToolArgs: { phaseId: '{phaseId}', progress: 100 }, preconditions: ['review done'], postconditions: ['progress updated'] },
-        { stepNumber: 4, name: 'Sprint Demo', description: 'Present completed work', mcpTool: null, preconditions: ['document ready'], postconditions: ['demo completed'] },
-        { stepNumber: 5, name: 'Archive Sprint', description: 'Archive sprint artifacts', mcpTool: null, preconditions: ['demo done'], postconditions: ['sprint archived'] },
+        {
+          stepNumber: 1,
+          name: 'Gather Sprint Metrics',
+          description: 'Collect completion statistics',
+          mcpTool: 'sprint.getCurrentTask',
+          mcpToolArgs: {},
+          preconditions: ['sprint complete'],
+          postconditions: ['metrics gathered'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Create Completion Document',
+          description: 'Generate sprint summary',
+          mcpTool: 'wiki.create',
+          mcpToolArgs: { title: '{sprintTitle} Completion', category: 'retrospective' },
+          preconditions: ['metrics ready'],
+          postconditions: ['document created'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Update Progress Tracker',
+          description: 'Update project progress',
+          mcpTool: 'sprint.updateProgress',
+          mcpToolArgs: { phaseId: '{phaseId}', progress: 100 },
+          preconditions: ['review done'],
+          postconditions: ['progress updated'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Sprint Demo',
+          description: 'Present completed work',
+          mcpTool: null,
+          preconditions: ['document ready'],
+          postconditions: ['demo completed'],
+        },
+        {
+          stepNumber: 5,
+          name: 'Archive Sprint',
+          description: 'Archive sprint artifacts',
+          mcpTool: null,
+          preconditions: ['demo done'],
+          postconditions: ['sprint archived'],
+        },
       ],
     },
     {
@@ -2459,10 +2932,41 @@ Format:
       description: 'Create progress checkpoint during active work',
       category: 'project-management',
       steps: [
-        { stepNumber: 1, name: 'Query Current Task', description: 'Get current task context', mcpTool: 'sprint.getCurrentTask', mcpToolArgs: {}, preconditions: ['session active'], postconditions: ['context retrieved'] },
-        { stepNumber: 2, name: 'Create Checkpoint', description: 'Save progress snapshot', mcpTool: 'sprint.checkpoint.create', mcpToolArgs: { sessionId: '{sessionId}' }, preconditions: ['context ready'], postconditions: ['checkpoint saved'] },
-        { stepNumber: 3, name: 'Update Progress', description: 'Update task progress', mcpTool: 'sprint.updateProgress', mcpToolArgs: { taskId: '{taskId}', progress: '{currentProgress}' }, preconditions: ['checkpoint created'], postconditions: ['progress updated'] },
-        { stepNumber: 4, name: 'Save Session Log', description: 'Document session notes', mcpTool: null, preconditions: ['progress updated'], postconditions: ['log saved'] },
+        {
+          stepNumber: 1,
+          name: 'Query Current Task',
+          description: 'Get current task context',
+          mcpTool: 'sprint.getCurrentTask',
+          mcpToolArgs: {},
+          preconditions: ['session active'],
+          postconditions: ['context retrieved'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Create Checkpoint',
+          description: 'Save progress snapshot',
+          mcpTool: 'sprint.checkpoint.create',
+          mcpToolArgs: { sessionId: '{sessionId}' },
+          preconditions: ['context ready'],
+          postconditions: ['checkpoint saved'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Update Progress',
+          description: 'Update task progress',
+          mcpTool: 'sprint.updateProgress',
+          mcpToolArgs: { taskId: '{taskId}', progress: '{currentProgress}' },
+          preconditions: ['checkpoint created'],
+          postconditions: ['progress updated'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Save Session Log',
+          description: 'Document session notes',
+          mcpTool: null,
+          preconditions: ['progress updated'],
+          postconditions: ['log saved'],
+        },
       ],
     },
     {
@@ -2471,11 +2975,48 @@ Format:
       description: 'Structured workflow for creating comprehensive wiki pages',
       category: 'knowledge',
       steps: [
-        { stepNumber: 1, name: 'Gather Context', description: 'Run onboarding to collect information', mcpTool: 'onboarding.getPrompt', mcpToolArgs: { sessionNumber: 1 }, preconditions: ['topic chosen'], postconditions: ['context gathered'] },
-        { stepNumber: 2, name: 'Draft Content', description: 'Write initial wiki content', mcpTool: null, preconditions: ['context ready'], postconditions: ['draft complete'] },
-        { stepNumber: 3, name: 'Create Wiki Page', description: 'Save page via MCP', mcpTool: 'wiki.create', mcpToolArgs: { title: '{pageTitle}', category: '{pageCategory}' }, preconditions: ['draft reviewed'], postconditions: ['page created'] },
-        { stepNumber: 4, name: 'Review Content', description: 'Proofread and validate', mcpTool: null, preconditions: ['page created'], postconditions: ['review complete'] },
-        { stepNumber: 5, name: 'Publish Page', description: 'Make page visible', mcpTool: null, preconditions: ['review passed'], postconditions: ['page published'] },
+        {
+          stepNumber: 1,
+          name: 'Gather Context',
+          description: 'Run onboarding to collect information',
+          mcpTool: 'onboarding.getPrompt',
+          mcpToolArgs: { sessionNumber: 1 },
+          preconditions: ['topic chosen'],
+          postconditions: ['context gathered'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Draft Content',
+          description: 'Write initial wiki content',
+          mcpTool: null,
+          preconditions: ['context ready'],
+          postconditions: ['draft complete'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Create Wiki Page',
+          description: 'Save page via MCP',
+          mcpTool: 'wiki.create',
+          mcpToolArgs: { title: '{pageTitle}', category: '{pageCategory}' },
+          preconditions: ['draft reviewed'],
+          postconditions: ['page created'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Review Content',
+          description: 'Proofread and validate',
+          mcpTool: null,
+          preconditions: ['page created'],
+          postconditions: ['review complete'],
+        },
+        {
+          stepNumber: 5,
+          name: 'Publish Page',
+          description: 'Make page visible',
+          mcpTool: null,
+          preconditions: ['review passed'],
+          postconditions: ['page published'],
+        },
       ],
     },
     {
@@ -2484,10 +3025,39 @@ Format:
       description: 'Comprehensive search across multiple knowledge sources',
       category: 'knowledge',
       steps: [
-        { stepNumber: 1, name: 'Define Search Requirements', description: 'Clarify what information is needed', mcpTool: null, preconditions: ['query provided'], postconditions: ['requirements clear'] },
-        { stepNumber: 2, name: 'Search Wiki', description: 'Search wiki pages', mcpTool: 'wiki.search', mcpToolArgs: { query: '{searchQuery}' }, preconditions: ['requirements defined'], postconditions: ['wiki results returned'] },
-        { stepNumber: 3, name: 'Search Codebase', description: 'Search code and documentation', mcpTool: null, preconditions: ['wiki searched'], postconditions: ['code results returned'] },
-        { stepNumber: 4, name: 'Synthesize Results', description: 'Combine and summarize findings', mcpTool: null, preconditions: ['searches complete'], postconditions: ['summary created'] },
+        {
+          stepNumber: 1,
+          name: 'Define Search Requirements',
+          description: 'Clarify what information is needed',
+          mcpTool: null,
+          preconditions: ['query provided'],
+          postconditions: ['requirements clear'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Search Wiki',
+          description: 'Search wiki pages',
+          mcpTool: 'wiki.search',
+          mcpToolArgs: { query: '{searchQuery}' },
+          preconditions: ['requirements defined'],
+          postconditions: ['wiki results returned'],
+        },
+        {
+          stepNumber: 3,
+          name: 'Search Codebase',
+          description: 'Search code and documentation',
+          mcpTool: null,
+          preconditions: ['wiki searched'],
+          postconditions: ['code results returned'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Synthesize Results',
+          description: 'Combine and summarize findings',
+          mcpTool: null,
+          preconditions: ['searches complete'],
+          postconditions: ['summary created'],
+        },
       ],
     },
     {
@@ -2496,13 +3066,68 @@ Format:
       description: 'Complete 3-session project onboarding workflow',
       category: 'knowledge',
       steps: [
-        { stepNumber: 1, name: 'Executive Summary Session', description: 'Collect high-level project info', mcpTool: 'onboarding.getPrompt', mcpToolArgs: { sessionNumber: 1 }, preconditions: ['project started'], postconditions: ['session 1 complete'] },
-        { stepNumber: 2, name: 'Industry Documentation Session', description: 'Generate PRD, SRS, Architecture', mcpTool: 'onboarding.getPrompt', mcpToolArgs: { sessionNumber: 2 }, preconditions: ['session 1 done'], postconditions: ['session 2 complete'] },
-        { stepNumber: 3, name: 'AI Workflow Blueprint Session', description: 'Setup memory bank and SOPs', mcpTool: 'onboarding.getPrompt', mcpToolArgs: { sessionNumber: 3 }, preconditions: ['session 2 done'], postconditions: ['session 3 complete'] },
-        { stepNumber: 4, name: 'Create Project Wiki', description: 'Initialize project documentation', mcpTool: 'wiki.create', mcpToolArgs: { title: '{projectName} Overview', category: 'projects' }, preconditions: ['onboarding complete'], postconditions: ['wiki created'] },
-        { stepNumber: 5, name: 'Create Sprint Phase', description: 'Setup initial sprint', mcpTool: 'sprint.phase.create', mcpToolArgs: { title: 'Phase 1: Foundation' }, preconditions: ['wiki created'], postconditions: ['phase created'] },
-        { stepNumber: 6, name: 'Setup Progress Tracking', description: 'Initialize tracking systems', mcpTool: null, preconditions: ['phase created'], postconditions: ['tracking active'] },
-        { stepNumber: 7, name: 'Create Checkpoint', description: 'Save onboarding checkpoint', mcpTool: 'sprint.checkpoint.create', mcpToolArgs: { sessionId: '{sessionId}' }, preconditions: ['setup complete'], postconditions: ['checkpoint saved'] },
+        {
+          stepNumber: 1,
+          name: 'Executive Summary Session',
+          description: 'Collect high-level project info',
+          mcpTool: 'onboarding.getPrompt',
+          mcpToolArgs: { sessionNumber: 1 },
+          preconditions: ['project started'],
+          postconditions: ['session 1 complete'],
+        },
+        {
+          stepNumber: 2,
+          name: 'Industry Documentation Session',
+          description: 'Generate PRD, SRS, Architecture',
+          mcpTool: 'onboarding.getPrompt',
+          mcpToolArgs: { sessionNumber: 2 },
+          preconditions: ['session 1 done'],
+          postconditions: ['session 2 complete'],
+        },
+        {
+          stepNumber: 3,
+          name: 'AI Workflow Blueprint Session',
+          description: 'Setup memory bank and SOPs',
+          mcpTool: 'onboarding.getPrompt',
+          mcpToolArgs: { sessionNumber: 3 },
+          preconditions: ['session 2 done'],
+          postconditions: ['session 3 complete'],
+        },
+        {
+          stepNumber: 4,
+          name: 'Create Project Wiki',
+          description: 'Initialize project documentation',
+          mcpTool: 'wiki.create',
+          mcpToolArgs: { title: '{projectName} Overview', category: 'projects' },
+          preconditions: ['onboarding complete'],
+          postconditions: ['wiki created'],
+        },
+        {
+          stepNumber: 5,
+          name: 'Create Sprint Phase',
+          description: 'Setup initial sprint',
+          mcpTool: 'sprint.phase.create',
+          mcpToolArgs: { title: 'Phase 1: Foundation' },
+          preconditions: ['wiki created'],
+          postconditions: ['phase created'],
+        },
+        {
+          stepNumber: 6,
+          name: 'Setup Progress Tracking',
+          description: 'Initialize tracking systems',
+          mcpTool: null,
+          preconditions: ['phase created'],
+          postconditions: ['tracking active'],
+        },
+        {
+          stepNumber: 7,
+          name: 'Create Checkpoint',
+          description: 'Save onboarding checkpoint',
+          mcpTool: 'sprint.checkpoint.create',
+          mcpToolArgs: { sessionId: '{sessionId}' },
+          preconditions: ['setup complete'],
+          postconditions: ['checkpoint saved'],
+        },
       ],
     },
   ];
@@ -2590,7 +3215,8 @@ Format:
         projectId: project.id,
         title: 'API Endpoint Development',
         slug: 'api-endpoint-development',
-        description: 'Standard procedure for creating new API endpoints with validation and error handling',
+        description:
+          'Standard procedure for creating new API endpoints with validation and error handling',
         content: `# API Endpoint Development
 
 ## Steps

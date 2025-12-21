@@ -1,8 +1,8 @@
 /**
  * /api/onboarding/documents
- * 
+ *
  * Sprint 8.6 Phase 2 - Session 2 Document Storage API (Agent-Side AI)
- * 
+ *
  * POST: Store ONE agent-generated document (called 15 times by agent)
  * GET: List all stored documents from Session 2
  */
@@ -20,30 +20,38 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 const storeDocumentSchema = z.object({
   projectId: z.number().int().positive('Project ID must be positive'),
   filename: z.string().regex(/^\d{2}-[A-Za-z-]+\.md$/, 'Filename must match pattern: 01-Name.md'),
-  content: z.string()
+  content: z
+    .string()
     .min(500, 'Content must be at least 500 characters')
     .max(50000, 'Content must not exceed 50000 characters'),
   category: z.enum(['planning', 'architecture', 'implementation', 'operations']),
   wordCount: z.number().int().positive().optional(),
-  overwrite: z.boolean().optional().default(false)
+  overwrite: z.boolean().optional().default(false),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validation = storeDocumentSchema.safeParse(body);
-    
+
     if (!validation.success) {
       return NextResponse.json(
         {
           error: 'Invalid request body',
-          details: validation.error.format()
+          details: validation.error.format(),
         },
         { status: 400 }
       );
     }
-    
-    const { projectId, filename, content, category, wordCount: providedWordCount, overwrite } = validation.data;
+
+    const {
+      projectId,
+      filename,
+      content,
+      category,
+      wordCount: providedWordCount,
+      overwrite,
+    } = validation.data;
 
     // Sprint 12: Require authentication (session OR bearer token)
     await requireOnboardingAuth(request, projectId);
@@ -51,27 +59,27 @@ export async function POST(request: NextRequest) {
     // Verify Session 1 is complete
     const session1 = await prisma.onboardingSession.findUnique({
       where: {
-        projectId_sessionNumber: { projectId, sessionNumber: 1 }
-      }
+        projectId_sessionNumber: { projectId, sessionNumber: 1 },
+      },
     });
-    
+
     if (!session1 || session1.status !== 'complete') {
       return NextResponse.json(
         {
           error: 'Session 1 must be complete before storing documents',
-          status: session1?.status || 'not_found'
+          status: session1?.status || 'not_found',
         },
         { status: 400 }
       );
     }
-    
+
     // Get or create Session 2 (documents belong to Session 2, not Session 1)
     let session2 = await prisma.onboardingSession.findUnique({
       where: {
-        projectId_sessionNumber: { projectId, sessionNumber: 2 }
-      }
+        projectId_sessionNumber: { projectId, sessionNumber: 2 },
+      },
     });
-    
+
     if (!session2) {
       session2 = await prisma.onboardingSession.create({
         data: {
@@ -80,24 +88,24 @@ export async function POST(request: NextRequest) {
           status: 'in_progress',
           response: {
             documentsGenerated: 0,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
           },
-          startedAt: new Date()
-        }
+          startedAt: new Date(),
+        },
       });
     }
-    
+
     // Check for existing document (in Session 2)
     const existingDoc = await prisma.document.findFirst({
       where: {
         onboardingSessionId: session2.id,
-        filename
-      }
+        filename,
+      },
     });
-    
+
     // Calculate word count if not provided
-    const wordCount = providedWordCount || content.split(/\s+/).filter(w => w.length > 0).length;
-    
+    const wordCount = providedWordCount || content.split(/\s+/).filter((w) => w.length > 0).length;
+
     let document;
 
     if (existingDoc) {
@@ -107,7 +115,7 @@ export async function POST(request: NextRequest) {
             error: 'Document with this filename already exists',
             filename,
             existingDocId: existingDoc.id,
-            hint: 'Use a different filename or set overwrite=true'
+            hint: 'Use a different filename or set overwrite=true',
           },
           { status: 409 }
         );
@@ -122,8 +130,8 @@ export async function POST(request: NextRequest) {
           wordCount,
           category,
           tags: ['onboarding', 'session-2', category],
-          generatedAt: new Date()
-        }
+          generatedAt: new Date(),
+        },
       });
     } else {
       // Create new Document record
@@ -136,20 +144,20 @@ export async function POST(request: NextRequest) {
           wordCount,
           category,
           tags: ['onboarding', 'session-2', category],
-          generatedAt: new Date()
-        }
+          generatedAt: new Date(),
+        },
       });
     }
-    
+
     // Count total documents stored
     const documentsStored = await prisma.document.count({
-      where: { onboardingSessionId: session2.id }
+      where: { onboardingSessionId: session2.id },
     });
-    
+
     const isComplete = documentsStored >= 15;
-    
+
     console.log(`[Session 2] Document stored: ${filename}, progress: ${documentsStored}/15`);
-    
+
     // Update Session 2 progress (session2 was created/fetched earlier)
     await prisma.onboardingSession.update({
       where: { id: session2.id },
@@ -157,27 +165,27 @@ export async function POST(request: NextRequest) {
         response: {
           documentsGenerated: documentsStored,
           lastDocumentStored: filename,
-          lastUpdated: new Date().toISOString()
+          lastUpdated: new Date().toISOString(),
         },
         status: isComplete ? 'complete' : 'in_progress',
-        completedAt: isComplete ? new Date() : null
-      }
+        completedAt: isComplete ? new Date() : null,
+      },
     });
-    
+
     if (isComplete) {
       console.log('[Session 2] All 15 documents stored - Session 2 COMPLETE! ✅');
       // Sync to Wiki (Sprint 9 Fix)
-      syncOnboardingToWiki(projectId).catch(err => 
+      syncOnboardingToWiki(projectId).catch((err) =>
         console.error('[POST /api/onboarding/documents] Failed to sync wiki:', err)
       );
     } else if (overwrite) {
       // If overwriting, also trigger sync to update Wiki (Sprint 9 Update: allow updates after completion)
       console.log('[Session 2] Overwriting document - Triggering Wiki Sync');
-      syncOnboardingToWiki(projectId).catch(err => 
+      syncOnboardingToWiki(projectId).catch((err) =>
         console.error('[POST /api/onboarding/documents] Failed to sync wiki on overwrite:', err)
       );
     }
-    
+
     return NextResponse.json({
       success: true,
       stored: true,
@@ -186,16 +194,15 @@ export async function POST(request: NextRequest) {
         filename: document.filename,
         wordCount: document.wordCount,
         category: document.category,
-        generatedAt: document.generatedAt
+        generatedAt: document.generatedAt,
       },
       progress: {
         documentsStored,
         totalDocuments: 15,
         percentComplete: Math.round((documentsStored / 15) * 100),
-        isComplete
-      }
+        isComplete,
+      },
     });
-    
   } catch (error) {
     console.error('[POST /api/onboarding/documents] Error:', error);
 
@@ -207,7 +214,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Failed to store document',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -222,21 +229,15 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const projectIdParam = searchParams.get('projectId');
-    
+
     if (!projectIdParam) {
-      return NextResponse.json(
-        { error: 'projectId query parameter required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'projectId query parameter required' }, { status: 400 });
     }
-    
+
     const projectId = parseInt(projectIdParam, 10);
-    
+
     if (isNaN(projectId) || projectId <= 0) {
-      return NextResponse.json(
-        { error: 'projectId must be a positive integer' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'projectId must be a positive integer' }, { status: 400 });
     }
 
     // Sprint 12: Require authentication (session OR bearer token)
@@ -246,8 +247,8 @@ export async function GET(request: NextRequest) {
     // Sprint 9 Refactor: Documents are now linked to Session 2, not Session 1
     const session2 = await prisma.onboardingSession.findUnique({
       where: {
-        projectId_sessionNumber: { projectId, sessionNumber: 2 }
-      }
+        projectId_sessionNumber: { projectId, sessionNumber: 2 },
+      },
     });
 
     if (!session2) {
@@ -260,7 +261,7 @@ export async function GET(request: NextRequest) {
     // Fetch all documents for this project's Session 2
     const documents = await prisma.document.findMany({
       where: {
-        onboardingSessionId: session2.id
+        onboardingSessionId: session2.id,
       },
       select: {
         id: true,
@@ -268,14 +269,14 @@ export async function GET(request: NextRequest) {
         wordCount: true,
         category: true,
         tags: true,
-        generatedAt: true
+        generatedAt: true,
         // Note: NOT including content (too large for list view)
       },
       orderBy: {
-        filename: 'asc'
-      }
+        filename: 'asc',
+      },
     });
-    
+
     const totalWordCount = documents.reduce((sum, doc) => sum + doc.wordCount, 0);
 
     return NextResponse.json({
@@ -283,9 +284,8 @@ export async function GET(request: NextRequest) {
       totalDocuments: documents.length,
       totalWordCount,
       status: session2.status,
-      session2Id: session2.id
+      session2Id: session2.id,
     });
-    
   } catch (error) {
     console.error('[GET /api/onboarding/documents] Error:', error);
 
@@ -297,7 +297,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Failed to list documents',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

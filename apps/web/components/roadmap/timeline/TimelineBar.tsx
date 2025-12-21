@@ -56,7 +56,11 @@ export function TimelineBar({
 
   // Duration text
   const durationText =
-    duration === 1 ? '1 day' : duration < 7 ? `${duration} days` : `${Math.ceil(duration / 7)} weeks`;
+    duration === 1
+      ? '1 day'
+      : duration < 7
+        ? `${duration} days`
+        : `${Math.ceil(duration / 7)} weeks`;
 
   return (
     <div
@@ -71,9 +75,9 @@ export function TimelineBar({
       {/* Bar Container */}
       <div
         className={`
-          relative ${barHeight} rounded-md overflow-hidden
+          relative ${barHeight} overflow-hidden rounded-md
           ${colors.bg}
-          ${isCurrent ? 'ring-2 ring-coral ring-offset-1 ring-offset-dark-surface' : ''}
+          ${isCurrent ? 'ring-offset-dark-surface ring-2 ring-coral ring-offset-1' : ''}
           cursor-pointer transition-all hover:brightness-110
         `}
       >

@@ -43,7 +43,10 @@ function CommentItem({ comment }: { comment: CommentProps }) {
   const isUpdated = comment.updatedAt !== comment.createdAt;
 
   return (
-    <div className="comment-item smooth-transition neu-pressed flex gap-4 rounded-2xl p-4" data-testid="comment-item">
+    <div
+      className="comment-item smooth-transition neu-pressed flex gap-4 rounded-2xl p-4"
+      data-testid="comment-item"
+    >
       {/* Avatar */}
       <div className="icon-coral flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl">
         <i className="fas fa-user text-white"></i>

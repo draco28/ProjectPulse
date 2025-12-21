@@ -52,9 +52,26 @@ export type UpdateAgentSessionInput = z.infer<typeof UpdateAgentSessionSchema>;
  */
 export const ListAgentSessionsQuerySchema = z.object({
   projectId: z.coerce.number().int().positive(),
-  status: z.enum(['IN_PROGRESS', 'COMPLETED', 'PAUSED']).nullable().optional().transform(v => v ?? undefined),
-  limit: z.coerce.number().int().min(1).max(100).nullable().optional().transform(v => v ?? 20),
-  offset: z.coerce.number().int().min(0).nullable().optional().transform(v => v ?? 0),
+  status: z
+    .enum(['IN_PROGRESS', 'COMPLETED', 'PAUSED'])
+    .nullable()
+    .optional()
+    .transform((v) => v ?? undefined),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? 20),
+  offset: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? 0),
 });
 
 export type ListAgentSessionsQuery = z.infer<typeof ListAgentSessionsQuerySchema>;

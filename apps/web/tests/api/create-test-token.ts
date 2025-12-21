@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
 
@@ -10,13 +10,13 @@ async function main() {
       where: {
         projectId: 1,
         name: 'Sprint12-Test-Token',
-        isRevoked: false
+        isRevoked: false,
       },
     });
 
     if (existing) {
-      console.log("Test token already exists (ID:", existing.id, ")");
-      console.log("Creating a NEW token for testing...");
+      console.log('Test token already exists (ID:', existing.id, ')');
+      console.log('Creating a NEW token for testing...');
     }
 
     // Generate new token
@@ -32,14 +32,13 @@ async function main() {
       },
     });
 
-    console.log("\n=== TEST TOKEN CREATED ===");
-    console.log("Token:", token);
-    console.log("Token ID:", record.id);
-    console.log("Project ID:", record.projectId);
-    console.log("Expires:", record.expiresAt);
-    console.log("\nUse this token for testing:");
+    console.log('\n=== TEST TOKEN CREATED ===');
+    console.log('Token:', token);
+    console.log('Token ID:', record.id);
+    console.log('Project ID:', record.projectId);
+    console.log('Expires:', record.expiresAt);
+    console.log('\nUse this token for testing:');
     console.log(`curl -H "Authorization: Bearer ${token}" ...`);
-
   } finally {
     await prisma.$disconnect();
   }

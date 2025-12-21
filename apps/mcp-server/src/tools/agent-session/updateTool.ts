@@ -125,7 +125,16 @@ Requires: Active session (call projectpulse_agent_session_start first)
 
 Updates: todos status, progress notes, plan text, active tickets
 
-If you lost context: Call projectpulse_context_load to recover full session state.`,
+If you lost context: Call projectpulse_context_load to recover full session state.
+
+PAUSING vs ENDING:
+- Use status: 'PAUSED' for breaks (lunch, switching tasks, end of day)
+  → Session saved with full context, can resume anytime
+- Use projectpulse_agent_session_end ONLY when work is COMPLETE
+  → Syncs to memory banks, CANNOT be resumed
+
+Multi-Instance: Each Claude Code instance should have its own session. When pausing,
+your session stays independent from other instances.`,
   schema: agentSessionUpdateSchema,
   inputSchema: {
     type: 'object',

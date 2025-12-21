@@ -158,7 +158,7 @@ export async function resolveCrossLinks(
   });
 
   // Create slug → page mapping
-  const slugToPage = new Map<string, typeof wikiPages[0]>();
+  const slugToPage = new Map<string, (typeof wikiPages)[0]>();
   wikiPages.forEach((page) => {
     const slug = page.path.replace(/^\//, ''); // Remove leading slash
     slugToPage.set(slug, page);

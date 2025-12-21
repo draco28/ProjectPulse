@@ -43,23 +43,20 @@ export function AgentSkillsTab({ agent }: AgentSkillsTabProps) {
       skill.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       skill.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesCategory =
-      categoryFilter === 'all' || skill.category === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || skill.category === categoryFilter;
 
     return matchesSearch && matchesCategory;
   });
 
   // Extract unique categories
-  const categories = Array.from(
-    new Set(agent.skillDetails.map((s) => s.category))
-  ).sort();
+  const categories = Array.from(new Set(agent.skillDetails.map((s) => s.category))).sort();
 
   return (
     <div className="space-y-4">
       {/* Search and Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search skills by name, description, or tags..."
             value={searchTerm}
@@ -88,20 +85,16 @@ export function AgentSkillsTab({ agent }: AgentSkillsTabProps) {
       </div>
 
       {/* Skills Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {filteredSkills.map((skill) => (
           <Card key={skill.id} className="neu-flat hover:neu-raised smooth-transition">
             <CardContent className="p-4">
               <div className="space-y-3">
                 {/* Title */}
-                <h4 className="font-semibold text-lg leading-tight">
-                  {skill.title}
-                </h4>
+                <h4 className="text-lg font-semibold leading-tight">{skill.title}</h4>
 
                 {/* Description */}
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {skill.description}
-                </p>
+                <p className="line-clamp-2 text-sm text-muted-foreground">{skill.description}</p>
 
                 {/* Badges: Category + Frameworks */}
                 <div className="flex flex-wrap gap-1.5">
@@ -121,17 +114,12 @@ export function AgentSkillsTab({ agent }: AgentSkillsTabProps) {
                 </div>
 
                 {/* Usage Stats */}
-                <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
-                  <span className="font-medium">
-                    Used {skill.usageCount} times
-                  </span>
+                <div className="flex items-center gap-3 pt-1 text-xs text-muted-foreground">
+                  <span className="font-medium">Used {skill.usageCount} times</span>
                   {skill.lastLoadedAt && (
                     <>
                       <span>•</span>
-                      <span>
-                        Last used{' '}
-                        {new Date(skill.lastLoadedAt).toLocaleDateString()}
-                      </span>
+                      <span>Last used {new Date(skill.lastLoadedAt).toLocaleDateString()}</span>
                     </>
                   )}
                 </div>
@@ -143,7 +131,7 @@ export function AgentSkillsTab({ agent }: AgentSkillsTabProps) {
 
       {/* Empty State */}
       {filteredSkills.length === 0 && (
-        <div className="text-center py-12 space-y-3">
+        <div className="space-y-3 py-12 text-center">
           <div className="text-4xl">🔍</div>
           <p className="text-lg font-medium">No skills found</p>
           <p className="text-sm text-muted-foreground">
@@ -155,13 +143,13 @@ export function AgentSkillsTab({ agent }: AgentSkillsTabProps) {
       )}
 
       {/* Info Banner */}
-      <div className="neu-inset rounded-lg p-4 text-sm space-y-2">
+      <div className="neu-inset space-y-2 rounded-lg p-4 text-sm">
         <p className="font-medium">💡 Configured Skills</p>
-        <p className="text-muted-foreground leading-relaxed">
-          These are skills this agent is <strong>configured to use</strong> (agent preferences). 
+        <p className="leading-relaxed text-muted-foreground">
+          These are skills this agent is <strong>configured to use</strong> (agent preferences).
           Note: <strong>All project skills</strong> are available to all agents via MCP tool{' '}
-          <code className="bg-background px-1.5 py-0.5 rounded">projectpulse.skill.load(slug)</code>. 
-          View all project skills in the <strong>Skills Library</strong> tab.
+          <code className="rounded bg-background px-1.5 py-0.5">projectpulse.skill.load(slug)</code>
+          . View all project skills in the <strong>Skills Library</strong> tab.
         </p>
       </div>
     </div>

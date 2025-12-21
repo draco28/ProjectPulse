@@ -8,13 +8,7 @@
 
 import { spawn } from 'child_process';
 import { FindingCategory, FindingSeverity, ScannerType } from '@prisma/client';
-import type {
-  Scanner,
-  ScanResult,
-  ScanOptions,
-  FindingData,
-  SeverityMapper,
-} from './types';
+import type { Scanner, ScanResult, ScanOptions, FindingData, SeverityMapper } from './types';
 import { createSummary, ScannerError, ScannerNotFoundError, ScannerTimeoutError } from './types';
 
 /**
@@ -26,20 +20,20 @@ type SemgrepSeverity = 'ERROR' | 'WARNING' | 'INFO';
  * Semgrep finding structure (from --json output)
  */
 interface SemgrepFinding {
-  check_id: string;           // Rule ID (e.g., "javascript.lang.security.audit.xss")
-  path: string;               // File path
+  check_id: string; // Rule ID (e.g., "javascript.lang.security.audit.xss")
+  path: string; // File path
   start: {
-    line: number;             // Starting line number
-    col: number;              // Starting column
+    line: number; // Starting line number
+    col: number; // Starting column
   };
   end: {
-    line: number;             // Ending line number
-    col: number;              // Ending column
+    line: number; // Ending line number
+    col: number; // Ending column
   };
   extra: {
-    message: string;          // Finding description
+    message: string; // Finding description
     severity: SemgrepSeverity; // Severity level
-    lines?: string;           // Code snippet
+    lines?: string; // Code snippet
     metadata?: {
       category?: string;
       cwe?: string[];
@@ -133,7 +127,10 @@ export class SemgrepScanner implements Scanner {
       }
 
       // Check if Semgrep is not installed
-      if ((error as Error).message.includes('command not found') || (error as Error).message.includes('ENOENT')) {
+      if (
+        (error as Error).message.includes('command not found') ||
+        (error as Error).message.includes('ENOENT')
+      ) {
         throw new ScannerNotFoundError(this.scannerType, 'semgrep');
       }
 
@@ -149,12 +146,17 @@ export class SemgrepScanner implements Scanner {
   /**
    * Build Semgrep CLI command arguments
    */
-  private buildCommandArgs(projectPath: string, ruleConfig: string, options?: SemgrepOptions): string[] {
+  private buildCommandArgs(
+    projectPath: string,
+    ruleConfig: string,
+    options?: SemgrepOptions
+  ): string[] {
     const args = [
-      '--config', ruleConfig,
-      '--json',                    // JSON output for parsing
-      '--quiet',                   // Suppress progress messages
-      '--no-git-ignore',          // Scan all files (we'll filter with exclude patterns)
+      '--config',
+      ruleConfig,
+      '--json', // JSON output for parsing
+      '--quiet', // Suppress progress messages
+      '--no-git-ignore', // Scan all files (we'll filter with exclude patterns)
     ];
 
     // Add exclude patterns
@@ -181,10 +183,7 @@ export class SemgrepScanner implements Scanner {
   /**
    * Execute Semgrep with spawn and timeout
    */
-  private async executeWithTimeout(
-    args: string[],
-    timeout: number
-  ): Promise<string> {
+  private async executeWithTimeout(args: string[], timeout: number): Promise<string> {
     return new Promise((resolve, reject) => {
       const process = spawn('semgrep', args, {
         stdio: ['ignore', 'pipe', 'pipe'], // stdin ignored, stdout/stderr captured

@@ -1,6 +1,6 @@
 /**
  * Command Palette Types
- * 
+ *
  * Type definitions for the command palette system
  */
 

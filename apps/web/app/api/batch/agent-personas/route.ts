@@ -18,12 +18,12 @@ const agentPersonaSchema = z.object({
   expertise: z.array(z.string()).default([]),
   personality: z.string().optional(),
   isActive: z.boolean().default(true),
-  isBuiltIn: z.boolean().default(false)
+  isBuiltIn: z.boolean().default(false),
 });
 
 const requestSchema = z.object({
   projectId: z.number().int().positive(),
-  personas: z.array(agentPersonaSchema).min(1).max(10)
+  personas: z.array(agentPersonaSchema).min(1).max(10),
 });
 
 //=============================================================================
@@ -35,9 +35,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('[POST /api/batch/agent-personas] Request received', {
       projectId: body.projectId,
-      count: body.personas?.length
+      count: body.personas?.length,
     });
-    
+
     // 1. Validate request
     const validation = requestSchema.safeParse(body);
     if (!validation.success) {
@@ -45,51 +45,48 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: validation.error.errors
+          details: validation.error.errors,
         },
         { status: 400 }
       );
     }
-    
+
     const { projectId, personas } = validation.data;
-    
+
     // 2. Verify project exists
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
     });
-    
+
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found', projectId },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Project not found', projectId }, { status: 404 });
     }
-    
+
     // 3. Check for duplicate names/slugs in existing personas
     const existingPersonas = await prisma.agentPersona.findMany({
       where: {
         projectId,
         OR: [
-          { name: { in: personas.map(p => p.name) } },
-          { slug: { in: personas.map(p => p.slug) } }
-        ]
+          { name: { in: personas.map((p) => p.name) } },
+          { slug: { in: personas.map((p) => p.slug) } },
+        ],
       },
-      select: { name: true, slug: true }
+      select: { name: true, slug: true },
     });
-    
-    const duplicateNames = existingPersonas.map(p => p.name);
-    const duplicateSlugs = existingPersonas.map(p => p.slug);
+
+    const duplicateNames = existingPersonas.map((p) => p.name);
+    const duplicateSlugs = existingPersonas.map((p) => p.slug);
     const duplicates = [...new Set([...duplicateNames, ...duplicateSlugs])];
-    
+
     if (duplicates.length > 0) {
       console.warn('[POST /api/batch/agent-personas] Duplicates found', { duplicates });
     }
-    
+
     // 4. Filter out duplicates, create only new personas
-    const newPersonas = personas.filter(p => 
-      !duplicateNames.includes(p.name) && !duplicateSlugs.includes(p.slug)
+    const newPersonas = personas.filter(
+      (p) => !duplicateNames.includes(p.name) && !duplicateSlugs.includes(p.slug)
     );
-    
+
     if (newPersonas.length === 0) {
       return NextResponse.json({
         success: true,
@@ -97,28 +94,28 @@ export async function POST(request: NextRequest) {
         created: 0,
         duplicates,
         skipped: personas.length,
-        message: `All ${personas.length} personas already exist. 0 created.`
+        message: `All ${personas.length} personas already exist. 0 created.`,
       });
     }
-    
+
     // 5. Bulk create personas in transaction
     const createdPersonas = await prisma.$transaction(
-      newPersonas.map(persona =>
+      newPersonas.map((persona) =>
         prisma.agentPersona.create({
           data: {
             projectId,
-            ...persona
-          }
+            ...persona,
+          },
         })
       )
     );
-    
+
     console.log('[POST /api/batch/agent-personas] Personas created', {
       projectId,
       created: createdPersonas.length,
-      duplicates: duplicates.length
+      duplicates: duplicates.length,
     });
-    
+
     return NextResponse.json({
       success: true,
       projectId,
@@ -126,15 +123,14 @@ export async function POST(request: NextRequest) {
       duplicates,
       skipped: duplicates.length,
       total: personas.length,
-      message: `Created ${createdPersonas.length}/${personas.length} personas. ${duplicates.length} duplicates skipped.`
+      message: `Created ${createdPersonas.length}/${personas.length} personas. ${duplicates.length} duplicates skipped.`,
     });
-    
   } catch (error) {
     console.error('[POST /api/batch/agent-personas] Error:', error);
     return NextResponse.json(
       {
         error: 'Failed to create agent persona batch',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

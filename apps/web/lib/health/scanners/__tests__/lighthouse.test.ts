@@ -76,7 +76,7 @@ describe('LighthouseScanner', () => {
       const result = await scanner.scan('/test/project');
 
       // Check that all findings have failing scores
-      const foundRuleIds = result.findings.map(f => f.ruleId.replace('lighthouse.', ''));
+      const foundRuleIds = result.findings.map((f) => f.ruleId.replace('lighthouse.', ''));
 
       // Should include failing audits
       expect(foundRuleIds).toContain('aria-required-attr'); // score: 0
@@ -110,23 +110,25 @@ describe('LighthouseScanner', () => {
       const result = await scanner.scan('/test/project');
 
       // aria-required-attr has snippet in details
-      const ariaFinding = result.findings.find(f => f.ruleId === 'lighthouse.aria-required-attr');
+      const ariaFinding = result.findings.find((f) => f.ruleId === 'lighthouse.aria-required-attr');
       expect(ariaFinding?.codeSnippet).toBe('<div role="combobox" tabindex="0">Select...</div>');
 
       // image-alt has snippet in details
-      const imageFinding = result.findings.find(f => f.ruleId === 'lighthouse.image-alt');
+      const imageFinding = result.findings.find((f) => f.ruleId === 'lighthouse.image-alt');
       expect(imageFinding?.codeSnippet).toBe('<img src="/logo.png" class="logo">');
 
       // button-name has snippet in details
-      const buttonFinding = result.findings.find(f => f.ruleId === 'lighthouse.button-name');
-      expect(buttonFinding?.codeSnippet).toBe('<button class="icon-button"><svg>...</svg></button>');
+      const buttonFinding = result.findings.find((f) => f.ruleId === 'lighthouse.button-name');
+      expect(buttonFinding?.codeSnippet).toBe(
+        '<button class="icon-button"><svg>...</svg></button>'
+      );
     });
 
     it('should use audit description as snippet when no details available', async () => {
       const result = await scanner.scan('/test/project');
 
       // color-contrast has no details.items
-      const contrastFinding = result.findings.find(f => f.ruleId === 'lighthouse.color-contrast');
+      const contrastFinding = result.findings.find((f) => f.ruleId === 'lighthouse.color-contrast');
       expect(contrastFinding?.codeSnippet).toContain('Low-contrast text is difficult');
       expect(contrastFinding?.codeSnippet!.length).toBeLessThanOrEqual(200); // Truncated
     });
@@ -185,9 +187,9 @@ describe('LighthouseScanner', () => {
         () => new Promise((resolve) => setTimeout(resolve, 150000))
       );
 
-      await expect(
-        scanner.scan('/test/project', { timeout: 1000 })
-      ).rejects.toThrow(ScannerTimeoutError);
+      await expect(scanner.scan('/test/project', { timeout: 1000 })).rejects.toThrow(
+        ScannerTimeoutError
+      );
     });
 
     it('should throw ScannerError when Chrome fails to launch', async () => {

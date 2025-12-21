@@ -15,11 +15,11 @@ export function TimelineLegend() {
   ];
 
   return (
-    <div className="flex items-center gap-6 flex-wrap">
+    <div className="flex flex-wrap items-center gap-6">
       <span className="text-xs font-medium text-slate">Legend:</span>
       {statuses.map((status) => (
         <div key={status.label} className="flex items-center gap-2">
-          <div className={`w-3 h-3 rounded ${status.color}`} />
+          <div className={`h-3 w-3 rounded ${status.color}`} />
           <span className="text-xs text-slate">{status.label}</span>
         </div>
       ))}

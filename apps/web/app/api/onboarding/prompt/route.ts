@@ -71,10 +71,7 @@ export async function GET(request: NextRequest) {
       const nextSession = completedSessions.length + 1;
 
       if (nextSession > 3) {
-        return NextResponse.json(
-          { error: 'All onboarding sessions complete' },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: 'All onboarding sessions complete' }, { status: 404 });
       }
 
       targetSessionNumber = nextSession;
@@ -137,7 +134,10 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to fetch onboarding prompt', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to fetch onboarding prompt',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

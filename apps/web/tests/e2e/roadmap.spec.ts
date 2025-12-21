@@ -184,7 +184,9 @@ test.describe('Roadmap Creation Wizard', () => {
     await page.waitForLoadState('networkidle');
 
     // Should show the page header "Create Roadmap"
-    await expect(page.getByRole('heading', { name: 'Create Roadmap' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Create Roadmap' })).toBeVisible({
+      timeout: 10000,
+    });
   });
 
   test('should validate required fields on Step 1', async ({ page }) => {
@@ -217,7 +219,9 @@ test.describe('Roadmap Creation Wizard', () => {
     await page.waitForTimeout(500);
 
     // Should be on Step 2 - look for "Define Phases" heading
-    await expect(page.getByRole('heading', { name: 'Define Phases' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Define Phases' })).toBeVisible({
+      timeout: 5000,
+    });
 
     // Click Back
     await page.getByRole('button', { name: 'Back' }).click();
@@ -358,7 +362,9 @@ test.describe('Roadmap Import', () => {
     await page.waitForTimeout(1000);
 
     // Preview should show the phase
-    await expect(page.getByText('Phase 1').or(page.getByText('Foundation'))).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Phase 1').or(page.getByText('Foundation'))).toBeVisible({
+      timeout: 5000,
+    });
     await expect(page.getByText('Sprint 1')).toBeVisible();
   });
 });
@@ -383,7 +389,9 @@ test.describe('Roadmap View Toggle', () => {
     }
 
     // View toggle should be visible
-    const toggleGroup = page.getByRole('button', { name: 'Tree' }).or(page.getByRole('button', { name: 'Timeline' }));
+    const toggleGroup = page
+      .getByRole('button', { name: 'Tree' })
+      .or(page.getByRole('button', { name: 'Timeline' }));
     await expect(toggleGroup).toBeVisible({ timeout: 5000 });
   });
 

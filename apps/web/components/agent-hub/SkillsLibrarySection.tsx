@@ -54,9 +54,7 @@ export function SkillsLibrarySection({ skills }: SkillsLibrarySectionProps) {
 
   // Extract unique categories and frameworks
   const categories = Array.from(new Set(skills.map((s) => s.category))).sort();
-  const allFrameworks = Array.from(
-    new Set(skills.flatMap((s) => s.frameworks))
-  ).sort();
+  const allFrameworks = Array.from(new Set(skills.flatMap((s) => s.frameworks))).sort();
 
   return (
     <>
@@ -65,7 +63,7 @@ export function SkillsLibrarySection({ skills }: SkillsLibrarySectionProps) {
         <div className="neu-raised smooth-transition rounded-3xl p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search skills by name, description, or tags..."
                 value={searchTerm}
@@ -129,9 +127,7 @@ export function SkillsLibrarySection({ skills }: SkillsLibrarySectionProps) {
 
                     {/* Description */}
                     {skill.description && (
-                      <p className="text-sm text-slate line-clamp-2">
-                        {skill.description}
-                      </p>
+                      <p className="line-clamp-2 text-sm text-slate">{skill.description}</p>
                     )}
 
                     {/* Badges: Category + Frameworks */}
@@ -152,7 +148,7 @@ export function SkillsLibrarySection({ skills }: SkillsLibrarySectionProps) {
                     </div>
 
                     {/* Usage Stats */}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-white/10">
+                    <div className="flex items-center gap-2 border-t border-white/10 pt-2 text-xs text-muted-foreground">
                       <TrendingUp className="h-3 w-3" />
                       <span className="font-medium">
                         {skill.usageCount} {skill.usageCount === 1 ? 'use' : 'uses'}
@@ -160,9 +156,7 @@ export function SkillsLibrarySection({ skills }: SkillsLibrarySectionProps) {
                       {skill.lastLoadedAt && (
                         <>
                           <span>•</span>
-                          <span>
-                            Last used {new Date(skill.lastLoadedAt).toLocaleDateString()}
-                          </span>
+                          <span>Last used {new Date(skill.lastLoadedAt).toLocaleDateString()}</span>
                         </>
                       )}
                     </div>
@@ -174,7 +168,7 @@ export function SkillsLibrarySection({ skills }: SkillsLibrarySectionProps) {
         ) : (
           /* Empty State */
           <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
-            <div className="text-4xl mb-4">🔍</div>
+            <div className="mb-4 text-4xl">🔍</div>
             <h3 className="mb-2 text-xl font-bold text-white">No skills found</h3>
             <p className="text-sm text-slate">
               {searchTerm || categoryFilter !== 'all' || frameworkFilter !== 'all'
@@ -187,19 +181,17 @@ export function SkillsLibrarySection({ skills }: SkillsLibrarySectionProps) {
         {/* Info Banner */}
         <div className="neu-inset rounded-3xl p-6">
           <div className="space-y-2">
-            <p className="font-semibold text-white flex items-center gap-2">
+            <p className="flex items-center gap-2 font-semibold text-white">
               <span>💡</span> How Skills Work
             </p>
-            <p className="text-sm text-slate leading-relaxed">
-              Skills are project-wide resources available to <strong>all agents</strong> (including the main agent). 
-              Any agent can autonomously load skills when relevant via the MCP tool{' '}
-              <code className="bg-background px-1.5 py-0.5 rounded text-xs">
+            <p className="text-sm leading-relaxed text-slate">
+              Skills are project-wide resources available to <strong>all agents</strong> (including
+              the main agent). Any agent can autonomously load skills when relevant via the MCP tool{' '}
+              <code className="rounded bg-background px-1.5 py-0.5 text-xs">
                 projectpulse.skill.load(slug)
               </code>
               . Skills contain detailed patterns, code examples, and procedures - similar to{' '}
-              <code className="bg-background px-1.5 py-0.5 rounded text-xs">
-                .claude/skills/
-              </code>{' '}
+              <code className="rounded bg-background px-1.5 py-0.5 text-xs">.claude/skills/</code>{' '}
               in Claude Code.
             </p>
           </div>

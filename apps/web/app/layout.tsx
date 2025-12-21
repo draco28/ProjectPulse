@@ -24,9 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SessionProvider>
           <ThemeProvider>
             {/* CommandPaletteProvider temporarily disabled - causing webpack errors */}
-            <CommandPaletteProvider>
-              {children}
-            </CommandPaletteProvider>
+            <CommandPaletteProvider>{children}</CommandPaletteProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>

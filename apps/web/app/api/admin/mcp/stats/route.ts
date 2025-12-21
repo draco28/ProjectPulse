@@ -74,10 +74,7 @@ export async function GET(request: NextRequest) {
       prisma.projectToken.count({
         where: {
           isRevoked: false,
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: now } },
-          ],
+          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
         },
       }),
 
@@ -92,9 +89,7 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    const errorRate24h = calls24h > 0
-      ? ((errors24h / calls24h) * 100).toFixed(2)
-      : '0';
+    const errorRate24h = calls24h > 0 ? ((errors24h / calls24h) * 100).toFixed(2) : '0';
 
     // Type-safe extraction of emergency status
     const emergencyValue = emergencyStatus?.value as {
@@ -142,9 +137,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch MCP statistics' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch MCP statistics' }, { status: 500 });
   }
 }

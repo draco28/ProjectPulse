@@ -60,11 +60,7 @@ describe('WikiRevisionTimeline', () => {
   describe('Rendering', () => {
     it('should render all revisions in timeline', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       expect(screen.getByText('Version v3')).toBeInTheDocument();
@@ -74,11 +70,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should display section header with current version', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       expect(screen.getByText('Revision History')).toBeInTheDocument();
@@ -88,11 +80,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should render nothing when revisions array is empty', () => {
       const { container } = render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={[]}
-          currentVersion={1}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={[]} currentVersion={1} />
       );
 
       expect(container.firstChild).toBeNull();
@@ -100,11 +88,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should display actor name for each revision', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       expect(screen.getByText('Jane Doe')).toBeInTheDocument();
@@ -114,11 +98,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should display actor type badges', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       // Each revision shows actor type badge
@@ -128,11 +108,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should display relative timestamps', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       expect(screen.getByText('1 hour ago')).toBeInTheDocument();
@@ -142,11 +118,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should display diffSummary when provided', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       expect(screen.getByText('Updated content and formatting')).toBeInTheDocument();
@@ -169,11 +141,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should mark first revision as latest snapshot', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       expect(screen.getByText('Latest snapshot')).toBeInTheDocument();
@@ -181,11 +149,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should only mark the first revision as latest', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       const latestBadges = screen.getAllByText('Latest snapshot');
@@ -196,11 +160,7 @@ describe('WikiRevisionTimeline', () => {
   describe('RevisionDiffViewer integration', () => {
     it('should render RevisionDiffViewer for each revision', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       expect(screen.getByTestId('diff-viewer-3')).toBeInTheDocument();
@@ -210,11 +170,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should pass slug to RevisionDiffViewer', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       expect(screen.getByText(/Diff Viewer: getting-started v3/)).toBeInTheDocument();
@@ -222,11 +178,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should mark first revision as latest in diff viewer', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       expect(screen.getByText(/Diff Viewer:.*v3.*\(latest\)/)).toBeInTheDocument();
@@ -234,11 +186,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should not mark subsequent revisions as latest', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       const diffViewer2 = screen.getByTestId('diff-viewer-2');
@@ -342,11 +290,7 @@ describe('WikiRevisionTimeline', () => {
     it('should handle mismatched currentVersion and revision list', () => {
       // Current version is 5 but highest revision is 3
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={5}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={5} />
       );
 
       expect(screen.getByText('Current version v5')).toBeInTheDocument();
@@ -357,11 +301,7 @@ describe('WikiRevisionTimeline', () => {
   describe('Styling and structure', () => {
     it('should render revisions in an ordered list', () => {
       const { container } = render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       const orderedList = container.querySelector('ol');
@@ -371,11 +311,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should apply section wrapper', () => {
       const { container } = render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       const section = container.querySelector('section');
@@ -384,11 +320,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should have header with title and version badge', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       const header = screen.getByRole('heading', { name: 'Changes & Rollbacks' });
@@ -399,11 +331,7 @@ describe('WikiRevisionTimeline', () => {
   describe('Accessibility', () => {
     it('should have proper heading hierarchy', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       const h2 = screen.getByRole('heading', { level: 2 });
@@ -412,11 +340,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should use semantic list element', () => {
       const { container } = render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       expect(container.querySelector('ol')).toBeInTheDocument();
@@ -424,11 +348,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should have meaningful text for screen readers', () => {
       render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       // Version labels
@@ -442,11 +362,7 @@ describe('WikiRevisionTimeline', () => {
 
     it('should use aria-hidden for decorative dots', () => {
       const { container } = render(
-        <WikiRevisionTimeline
-          slug="getting-started"
-          revisions={mockRevisions}
-          currentVersion={3}
-        />
+        <WikiRevisionTimeline slug="getting-started" revisions={mockRevisions} currentVersion={3} />
       );
 
       const decorativeDots = container.querySelectorAll('[aria-hidden="true"]');

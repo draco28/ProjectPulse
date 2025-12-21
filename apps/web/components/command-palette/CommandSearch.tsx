@@ -2,7 +2,7 @@
 
 /**
  * Command Search Input
- * 
+ *
  * Search input component with icon and ESC indicator
  */
 

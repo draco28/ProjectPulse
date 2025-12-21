@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
   try {
     // Authenticate request (metrics are global, not project-specific)
     await requireAuth(request);
-    
+
     const searchParams = request.nextUrl.searchParams;
     const daysParam = searchParams.get('days');
 
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('[GET /api/knowledge/metrics] Failed to get metrics:', error);
     return NextResponse.json(
       {

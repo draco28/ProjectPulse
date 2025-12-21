@@ -58,11 +58,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     html.classList.add('dark');
   }, [mounted]);
 
-  return (
-    <ThemeContext.Provider value={{ theme: coralTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme: coralTheme }}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

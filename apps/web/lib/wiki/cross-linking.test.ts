@@ -132,8 +132,7 @@ describe('Cross-Linking Utility', () => {
     });
 
     it('should parse multiple cross-links', () => {
-      const content =
-        'See @wiki/api-reference and [[getting-started]] then @wiki/troubleshooting';
+      const content = 'See @wiki/api-reference and [[getting-started]] then @wiki/troubleshooting';
       const links = parseCrossLinks(content);
 
       expect(links).toHaveLength(3);
@@ -196,8 +195,7 @@ describe('Cross-Linking Utility', () => {
     });
 
     it('should resolve multiple cross-links', async () => {
-      const content =
-        'Read @wiki/api-reference and [[getting-started]]';
+      const content = 'Read @wiki/api-reference and [[getting-started]]';
       const result = await resolveCrossLinks(content, '/test-page');
 
       expect(result.resolvedLinks).toHaveLength(2);
@@ -233,8 +231,7 @@ describe('Cross-Linking Utility', () => {
     });
 
     it('should handle mixed resolved and unresolved links', async () => {
-      const content =
-        'Valid: @wiki/api-reference Invalid: @wiki/missing-page';
+      const content = 'Valid: @wiki/api-reference Invalid: @wiki/missing-page';
       const result = await resolveCrossLinks(content, '/test-page');
 
       expect(result.resolvedLinks).toHaveLength(1);
@@ -242,8 +239,7 @@ describe('Cross-Linking Utility', () => {
     });
 
     it('should deduplicate resolved links', async () => {
-      const content =
-        'Link 1: @wiki/api-reference Link 2: @wiki/api-reference';
+      const content = 'Link 1: @wiki/api-reference Link 2: @wiki/api-reference';
       const result = await resolveCrossLinks(content, '/test-page');
 
       // Should only have one resolved link entry (deduplicated)

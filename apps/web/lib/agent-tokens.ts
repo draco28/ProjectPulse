@@ -87,10 +87,7 @@ export async function validateProjectToken(rawToken: string): Promise<{
   const candidates = await prisma.projectToken.findMany({
     where: {
       isRevoked: false,
-      OR: [
-        { expiresAt: null },
-        { expiresAt: { gt: new Date() } },
-      ],
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
     },
     select: {
       id: true,
@@ -131,10 +128,7 @@ export async function validateProjectToken(rawToken: string): Promise<{
  * @param projectId - Project ID
  * @param name - Token name to revoke
  */
-export async function revokeProjectToken(
-  projectId: number,
-  name: string
-): Promise<void> {
+export async function revokeProjectToken(projectId: number, name: string): Promise<void> {
   await prisma.projectToken.updateMany({
     where: {
       projectId,
@@ -153,10 +147,7 @@ export async function revokeProjectToken(
  * @param projectId - Project ID (for ownership check)
  * @param tokenId - Token ID to revoke
  */
-export async function revokeProjectTokenById(
-  projectId: number,
-  tokenId: number
-): Promise<void> {
+export async function revokeProjectTokenById(projectId: number, tokenId: number): Promise<void> {
   await prisma.projectToken.updateMany({
     where: {
       id: tokenId,

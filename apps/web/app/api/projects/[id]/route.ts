@@ -22,19 +22,13 @@ const updateProjectSchema = z.object({
  *
  * Update project settings (owner only).
  */
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   try {
     const user = await requireUser();
     const projectId = parseInt(params.id, 10);
 
     if (isNaN(projectId)) {
-      return NextResponse.json(
-        { error: 'Invalid project ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
 
     // Verify ownership
@@ -44,10 +38,7 @@ export async function PATCH(
     });
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     if (project.ownerId !== user.id) {
@@ -94,9 +85,6 @@ export async function PATCH(
     }
 
     console.error('PATCH /api/projects/[id] error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

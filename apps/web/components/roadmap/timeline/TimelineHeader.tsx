@@ -15,32 +15,25 @@ interface TimelineHeaderProps {
   totalDays: number;
 }
 
-export function TimelineHeader({
-  startDate,
-  endDate,
-  months,
-  totalDays,
-}: TimelineHeaderProps) {
+export function TimelineHeader({ startDate, endDate, months, totalDays }: TimelineHeaderProps) {
   // Calculate weeks for fine grid
   const weeks = eachWeekOfInterval({ start: startDate, end: endDate });
 
   return (
-    <div className="sticky top-0 z-10 bg-dark-surface border-b border-dark-pressed">
+    <div className="bg-dark-surface sticky top-0 z-10 border-b border-dark-pressed">
       {/* Month Row */}
       <div className="flex h-8">
         {/* Label Column */}
-        <div className="w-48 flex-shrink-0 px-4 flex items-center border-r border-dark-pressed">
+        <div className="flex w-48 flex-shrink-0 items-center border-r border-dark-pressed px-4">
           <span className="text-xs font-medium text-slate">Phase / Sprint</span>
         </div>
 
         {/* Months */}
-        <div className="flex-1 flex relative">
+        <div className="relative flex flex-1">
           {months.map((month, index) => {
             const monthStart = index === 0 ? startDate : month;
             const nextMonth = months[index + 1];
-            const monthEnd = nextMonth
-              ? new Date(nextMonth.getTime() - 1)
-              : endDate;
+            const monthEnd = nextMonth ? new Date(nextMonth.getTime() - 1) : endDate;
 
             const startOffset = differenceInDays(monthStart, startDate);
             const duration = differenceInDays(monthEnd, monthStart) + 1;
@@ -50,7 +43,7 @@ export function TimelineHeader({
             return (
               <div
                 key={month.toISOString()}
-                className="absolute h-full flex items-center justify-center border-r border-dark-pressed"
+                className="absolute flex h-full items-center justify-center border-r border-dark-pressed"
                 style={{
                   left: `${leftPercent}%`,
                   width: `${widthPercent}%`,
@@ -71,7 +64,7 @@ export function TimelineHeader({
         <div className="w-48 flex-shrink-0 border-r border-dark-pressed" />
 
         {/* Week markers */}
-        <div className="flex-1 flex relative">
+        <div className="relative flex flex-1">
           {weeks.map((week, index) => {
             const weekStart = index === 0 ? startDate : week;
             const startOffset = differenceInDays(weekStart, startDate);
@@ -87,7 +80,7 @@ export function TimelineHeader({
                 style={{ left: `${leftPercent}%` }}
               >
                 {showLabel && (
-                  <span className="absolute top-1 left-1 text-[10px] text-slate/50">
+                  <span className="absolute left-1 top-1 text-[10px] text-slate/50">
                     W{index + 1}
                   </span>
                 )}

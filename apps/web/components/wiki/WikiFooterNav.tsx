@@ -14,17 +14,20 @@ export function WikiFooterNav({ prevPage, nextPage }: WikiFooterNavProps) {
 
   return (
     <nav
-      className="flex items-center justify-between pt-8 border-t border-darkCard mt-12"
+      className="border-darkCard mt-12 flex items-center justify-between border-t pt-8"
       aria-label="Page navigation"
     >
       {prevPage ? (
         <Link
           href={`/wiki${prevPage.path}`}
-          className="flex items-center gap-2 text-slate hover:text-coral smooth-transition group"
+          className="smooth-transition group flex items-center gap-2 text-slate hover:text-coral"
         >
-          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" aria-hidden="true" />
+          <ArrowLeft
+            className="h-4 w-4 transition-transform group-hover:-translate-x-1"
+            aria-hidden="true"
+          />
           <div>
-            <div className="text-xs uppercase mb-1">Previous</div>
+            <div className="mb-1 text-xs uppercase">Previous</div>
             <div className="font-medium">{prevPage.title}</div>
           </div>
         </Link>
@@ -35,13 +38,16 @@ export function WikiFooterNav({ prevPage, nextPage }: WikiFooterNavProps) {
       {nextPage ? (
         <Link
           href={`/wiki${nextPage.path}`}
-          className="flex items-center gap-2 text-slate hover:text-coral smooth-transition group text-right"
+          className="smooth-transition group flex items-center gap-2 text-right text-slate hover:text-coral"
         >
           <div>
-            <div className="text-xs uppercase mb-1">Next</div>
+            <div className="mb-1 text-xs uppercase">Next</div>
             <div className="font-medium">{nextPage.title}</div>
           </div>
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+          <ArrowRight
+            className="h-4 w-4 transition-transform group-hover:translate-x-1"
+            aria-hidden="true"
+          />
         </Link>
       ) : (
         <div /> // Spacer

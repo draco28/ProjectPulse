@@ -72,7 +72,10 @@ export async function POST(request: NextRequest) {
         {
           error: 'Validation failed',
           details: [
-            { field: 'knowledgeItemId', message: 'knowledgeItemId is required and must be a number' },
+            {
+              field: 'knowledgeItemId',
+              message: 'knowledgeItemId is required and must be a number',
+            },
           ],
         },
         { status: 400 }

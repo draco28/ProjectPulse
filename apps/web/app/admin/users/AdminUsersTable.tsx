@@ -102,7 +102,9 @@ export function AdminUsersTable() {
         if (response.ok) {
           const result = await response.json();
           if (result.temporaryPassword) {
-            alert(`Temporary password: ${result.temporaryPassword}\n\nShare this with the user securely.`);
+            alert(
+              `Temporary password: ${result.temporaryPassword}\n\nShare this with the user securely.`
+            );
           } else {
             alert('Password has been reset');
           }
@@ -150,7 +152,7 @@ export function AdminUsersTable() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative min-w-[200px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -164,7 +166,10 @@ export function AdminUsersTable() {
         {/* Role Filter */}
         <select
           value={roleFilter}
-          onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setRoleFilter(e.target.value);
+            setPage(1);
+          }}
           className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
         >
           <option value="">All Roles</option>
@@ -175,7 +180,10 @@ export function AdminUsersTable() {
         {/* Active Filter */}
         <select
           value={activeFilter}
-          onChange={(e) => { setActiveFilter(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setActiveFilter(e.target.value);
+            setPage(1);
+          }}
           className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
         >
           <option value="">All Status</option>
@@ -190,12 +198,24 @@ export function AdminUsersTable() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 dark:border-gray-700">
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">User</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Role</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Projects</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Joined</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                  User
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Role
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Projects
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Joined
+                </th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -222,9 +242,7 @@ export function AdminUsersTable() {
                         <p className="font-medium text-gray-900 dark:text-white">
                           {user.name || 'No name'}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {user.email}
-                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -280,7 +298,9 @@ export function AdminUsersTable() {
                             />
                             <div className="absolute right-0 top-full z-20 mt-1 w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                               <button
-                                onClick={() => handleAction(user.id, 'toggle', { isActive: !user.isActive })}
+                                onClick={() =>
+                                  handleAction(user.id, 'toggle', { isActive: !user.isActive })
+                                }
                                 className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
                               >
                                 {user.isActive ? (
@@ -296,7 +316,11 @@ export function AdminUsersTable() {
                                 )}
                               </button>
                               <button
-                                onClick={() => handleAction(user.id, 'role', { role: user.role === 'ADMIN' ? 'USER' : 'ADMIN' })}
+                                onClick={() =>
+                                  handleAction(user.id, 'role', {
+                                    role: user.role === 'ADMIN' ? 'USER' : 'ADMIN',
+                                  })
+                                }
                                 className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
                               >
                                 {user.role === 'ADMIN' ? (

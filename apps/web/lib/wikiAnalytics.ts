@@ -70,10 +70,10 @@ export async function fetchWikiFeedbackSummary() {
   };
 }
 
-export async function fetchWikiViewTimeline(days = 7): Promise<Array<{ label: string; count: number }>> {
-  const rows = await prisma.$queryRaw<
-    Array<{ day: Date | null; count: number }>
-  >(Prisma.sql`
+export async function fetchWikiViewTimeline(
+  days = 7
+): Promise<Array<{ label: string; count: number }>> {
+  const rows = await prisma.$queryRaw<Array<{ day: Date | null; count: number }>>(Prisma.sql`
     SELECT
       DATE("createdAt") AS day,
       COUNT(*) AS count

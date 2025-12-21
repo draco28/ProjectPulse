@@ -69,12 +69,8 @@ export default function NewWikiPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <WikiEditor
-        mode="create"
-        onSave={handleCreateWikiPage}
-        onCancelPath="/wiki"
-      />
+    <div className="container mx-auto max-w-7xl px-4 py-8">
+      <WikiEditor mode="create" onSave={handleCreateWikiPage} onCancelPath="/wiki" />
     </div>
   );
 }

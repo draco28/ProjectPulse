@@ -75,8 +75,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'No bootstrap artifacts found',
-          message:
-            'Create at least one persona, skill, workflow, or SOP before syncing Session 3',
+          message: 'Create at least one persona, skill, workflow, or SOP before syncing Session 3',
           artifactCounts: { personas: 0, skills: 0, workflows: 0, sops: 0 },
         },
         { status: 400 }

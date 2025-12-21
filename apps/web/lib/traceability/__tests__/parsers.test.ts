@@ -2,13 +2,7 @@
  * Tests for Document Parsers
  */
 
-import {
-  parsePRD,
-  parseSRS,
-  parseBacklog,
-  parseProjectPlan,
-  parseDocumentSet,
-} from '../parsers';
+import { parsePRD, parseSRS, parseBacklog, parseProjectPlan, parseDocumentSet } from '../parsers';
 
 describe('Document Parsers', () => {
   describe('parsePRD', () => {

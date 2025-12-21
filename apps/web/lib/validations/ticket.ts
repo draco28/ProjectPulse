@@ -28,13 +28,13 @@ const MAX_SNIPPET_LENGTH = 5000;
  * Ticket kinds - the type of work item
  */
 export const TicketKindSchema = z.enum([
-  'feature',        // Planned feature work (linked to Tasks in roadmap)
-  'task',           // Sub-task of a feature
-  'epic',           // Large work spanning multiple sprints
-  'issue',          // Bug/problem found during development
-  'bug',            // Alias for issue (user preference)
+  'feature', // Planned feature work (linked to Tasks in roadmap)
+  'task', // Sub-task of a feature
+  'epic', // Large work spanning multiple sprints
+  'issue', // Bug/problem found during development
+  'bug', // Alias for issue (user preference)
   'scanner_finding', // Automated security/quality finding
-  'tech_debt',      // Technical debt item
+  'tech_debt', // Technical debt item
 ]);
 
 export type TicketKind = z.infer<typeof TicketKindSchema>;
@@ -43,10 +43,10 @@ export type TicketKind = z.infer<typeof TicketKindSchema>;
  * Ticket source - how the ticket was created
  */
 export const TicketSourceSchema = z.enum([
-  'manual',      // Created by human via UI
-  'onboarding',  // Created during project onboarding
-  'scanner',     // Created by security/quality scanner
-  'agent',       // Created by AI agent
+  'manual', // Created by human via UI
+  'onboarding', // Created during project onboarding
+  'scanner', // Created by security/quality scanner
+  'agent', // Created by AI agent
 ]);
 
 export type TicketSource = z.infer<typeof TicketSourceSchema>;
@@ -55,7 +55,7 @@ export type TicketSource = z.infer<typeof TicketSourceSchema>;
  * Assignee type - who can be assigned to a ticket
  */
 export const AssigneeTypeSchema = z.enum([
-  'human',         // Human user
+  'human', // Human user
   'agent_persona', // AI agent persona
 ]);
 
@@ -94,12 +94,14 @@ export type TicketContextInput = z.infer<typeof TicketContextSchema>;
 /**
  * Reference to Phase/Sprint/Week in roadmap hierarchy
  */
-export const PhaseSprintRefSchema = z.object({
-  phaseId: z.string().optional(),
-  sprintId: z.string().optional(),
-  weekId: z.string().optional(),
-  displayName: z.string().max(100).optional(), // e.g., "Sprint 11.7 / Week 3"
-}).optional();
+export const PhaseSprintRefSchema = z
+  .object({
+    phaseId: z.string().optional(),
+    sprintId: z.string().optional(),
+    weekId: z.string().optional(),
+    displayName: z.string().max(100).optional(), // e.g., "Sprint 11.7 / Week 3"
+  })
+  .optional();
 
 export type PhaseSprintRef = z.infer<typeof PhaseSprintRefSchema>;
 
@@ -128,12 +130,14 @@ export type FileToCreate = z.infer<typeof FileToCreateSchema>;
 /**
  * Database schema/migration requirements
  */
-export const SchemaChangesSchema = z.object({
-  required: z.boolean(),
-  migrationName: z.string().max(100).optional(),
-  models: z.array(z.string().max(50)).max(20).optional(),
-  description: z.string().max(2000).optional(),
-}).optional();
+export const SchemaChangesSchema = z
+  .object({
+    required: z.boolean(),
+    migrationName: z.string().max(100).optional(),
+    models: z.array(z.string().max(50)).max(20).optional(),
+    description: z.string().max(2000).optional(),
+  })
+  .optional();
 
 export type SchemaChanges = z.infer<typeof SchemaChangesSchema>;
 
@@ -141,13 +145,15 @@ export type SchemaChanges = z.infer<typeof SchemaChangesSchema>;
  * Complete implementation context for a ticket
  * Stored in customFields._implementationContext
  */
-export const ImplementationContextSchema = z.object({
-  phaseSprintRef: PhaseSprintRefSchema,
-  filesToModify: z.array(FileToModifySchema).max(50).default([]),
-  filesToCreate: z.array(FileToCreateSchema).max(30).default([]),
-  schemaChanges: SchemaChangesSchema,
-  implementationBlueprint: z.string().max(50000).optional(), // Markdown implementation plan
-}).optional();
+export const ImplementationContextSchema = z
+  .object({
+    phaseSprintRef: PhaseSprintRefSchema,
+    filesToModify: z.array(FileToModifySchema).max(50).default([]),
+    filesToCreate: z.array(FileToCreateSchema).max(30).default([]),
+    schemaChanges: SchemaChangesSchema,
+    implementationBlueprint: z.string().max(50000).optional(), // Markdown implementation plan
+  })
+  .optional();
 
 export type ImplementationContext = z.infer<typeof ImplementationContextSchema>;
 
@@ -176,7 +182,7 @@ const TicketBaseSchema = z.object({
   labelIds: z.array(z.number().int().positive()).max(25).optional(),
   customFields: z.record(z.unknown()).optional(),
   context: TicketContextSchema.optional(),
-  
+
   // Sprint 10: New ticket-specific fields
   kind: TicketKindSchema.default('issue'),
   source: TicketSourceSchema.default('manual'),
@@ -206,10 +212,9 @@ const TicketBaseSchema = z.object({
 });
 
 export const TicketIdParamSchema = z.object({
-  id: z.union([
-    z.number().int().positive(),
-    z.string().regex(/^\d+$/, 'ID must be numeric')
-  ]).transform((value) => Number(value)),
+  id: z
+    .union([z.number().int().positive(), z.string().regex(/^\d+$/, 'ID must be numeric')])
+    .transform((value) => Number(value)),
 });
 
 // ============================================================================
@@ -280,7 +285,10 @@ export const BulkTicketItemSchema = TicketBaseSchema.extend({
 
 export const TicketBulkCreateSchema = z.object({
   projectId: z.number().int().positive().optional(),
-  tickets: z.array(BulkTicketItemSchema).min(1, 'At least one ticket is required').max(50, 'Max 50 tickets'),
+  tickets: z
+    .array(BulkTicketItemSchema)
+    .min(1, 'At least one ticket is required')
+    .max(50, 'Max 50 tickets'),
 });
 
 export type BulkTicketCreateInput = z.infer<typeof TicketBulkCreateSchema>;
@@ -333,7 +341,9 @@ export const TicketFilterSchema = z.object({
   includeRelations: z.boolean().optional(),
   page: z.number().int().min(1).default(1),
   pageSize: z.number().int().min(1).max(100).default(20),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'kind', 'dueDate', 'sprintNumber']).default('createdAt'),
+  sortBy: z
+    .enum(['createdAt', 'updatedAt', 'priority', 'kind', 'dueDate', 'sprintNumber'])
+    .default('createdAt'),
   sortDirection: z.enum(['asc', 'desc']).default('desc'),
 });
 
@@ -346,7 +356,11 @@ export type TicketFilters = z.infer<typeof TicketFilterSchema>;
 export const TicketAttachmentUploadSchema = z.object({
   filename: z.string().min(1, 'Filename is required').max(255, 'Filename too long'),
   mimetype: z.string().regex(/^[a-z]+\/[a-z0-9.+-]+$/i, 'Invalid MIME type'),
-  size: z.number().int().positive().max(50 * 1024 * 1024, 'File size cannot exceed 50MB'),
+  size: z
+    .number()
+    .int()
+    .positive()
+    .max(50 * 1024 * 1024, 'File size cannot exceed 50MB'),
 });
 
 export type TicketAttachmentUpload = z.infer<typeof TicketAttachmentUploadSchema>;

@@ -55,7 +55,7 @@ const statusOptions = [
 
 async function createTicket(formData: FormData) {
   'use server';
-  
+
   const user = await getCurrentUser();
   if (!user) {
     redirect('/login');
@@ -118,26 +118,24 @@ export default async function CreateTicketPage({
             <div className="mb-4">
               <Link
                 href={`/tickets?project=${projectId}`}
-                className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-coral transition-colors hover:text-coral-light"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Tickets
               </Link>
             </div>
             <h1 className="text-3xl font-bold text-white">Create New Ticket</h1>
-            <p className="text-sm text-slate mt-1">
-              {project.name} - Create a new work item
-            </p>
+            <p className="mt-1 text-sm text-slate">{project.name} - Create a new work item</p>
           </header>
 
           {/* Form */}
           <main className="neu-raised smooth-transition rounded-3xl p-8">
-            <form action={createTicket} className="space-y-6 max-w-2xl">
+            <form action={createTicket} className="max-w-2xl space-y-6">
               <input type="hidden" name="projectId" value={projectId} />
 
               {/* Title - Required */}
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="title" className="mb-2 block text-sm font-medium text-white">
                   Title <span className="text-coral">*</span>
                 </label>
                 <input
@@ -147,13 +145,13 @@ export default async function CreateTicketPage({
                   required
                   maxLength={200}
                   placeholder="Enter ticket title"
-                  className="w-full px-4 py-3 rounded-xl bg-surface-dark border border-surface-light text-white placeholder-slate focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent"
+                  className="bg-surface-dark border-surface-light w-full rounded-xl border px-4 py-3 text-white placeholder-slate focus:border-transparent focus:outline-none focus:ring-2 focus:ring-coral"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="description" className="mb-2 block text-sm font-medium text-white">
                   Description
                 </label>
                 <textarea
@@ -161,7 +159,7 @@ export default async function CreateTicketPage({
                   name="description"
                   rows={5}
                   placeholder="Describe the ticket in detail..."
-                  className="w-full px-4 py-3 rounded-xl bg-surface-dark border border-surface-light text-white placeholder-slate focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent resize-none"
+                  className="bg-surface-dark border-surface-light w-full resize-none rounded-xl border px-4 py-3 text-white placeholder-slate focus:border-transparent focus:outline-none focus:ring-2 focus:ring-coral"
                 />
               </div>
 
@@ -169,7 +167,7 @@ export default async function CreateTicketPage({
               <div className="grid grid-cols-2 gap-4">
                 {/* Kind */}
                 <div>
-                  <label htmlFor="kind" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="kind" className="mb-2 block text-sm font-medium text-white">
                     Kind <span className="text-coral">*</span>
                   </label>
                   <select
@@ -177,7 +175,7 @@ export default async function CreateTicketPage({
                     name="kind"
                     required
                     defaultValue="issue"
-                    className="w-full px-4 py-3 rounded-xl bg-surface-dark border border-surface-light text-white focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent"
+                    className="bg-surface-dark border-surface-light w-full rounded-xl border px-4 py-3 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-coral"
                   >
                     {kindOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -189,14 +187,14 @@ export default async function CreateTicketPage({
 
                 {/* Source */}
                 <div>
-                  <label htmlFor="source" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="source" className="mb-2 block text-sm font-medium text-white">
                     Source
                   </label>
                   <select
                     id="source"
                     name="source"
                     defaultValue="manual"
-                    className="w-full px-4 py-3 rounded-xl bg-surface-dark border border-surface-light text-white focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent"
+                    className="bg-surface-dark border-surface-light w-full rounded-xl border px-4 py-3 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-coral"
                   >
                     {sourceOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -211,14 +209,14 @@ export default async function CreateTicketPage({
               <div className="grid grid-cols-2 gap-4">
                 {/* Priority */}
                 <div>
-                  <label htmlFor="priority" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="priority" className="mb-2 block text-sm font-medium text-white">
                     Priority
                   </label>
                   <select
                     id="priority"
                     name="priority"
                     defaultValue="medium"
-                    className="w-full px-4 py-3 rounded-xl bg-surface-dark border border-surface-light text-white focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent"
+                    className="bg-surface-dark border-surface-light w-full rounded-xl border px-4 py-3 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-coral"
                   >
                     {priorityOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -230,14 +228,14 @@ export default async function CreateTicketPage({
 
                 {/* Status */}
                 <div>
-                  <label htmlFor="status" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="status" className="mb-2 block text-sm font-medium text-white">
                     Status
                   </label>
                   <select
                     id="status"
                     name="status"
                     defaultValue="open"
-                    className="w-full px-4 py-3 rounded-xl bg-surface-dark border border-surface-light text-white focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent"
+                    className="bg-surface-dark border-surface-light w-full rounded-xl border px-4 py-3 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-coral"
                   >
                     {statusOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -250,7 +248,7 @@ export default async function CreateTicketPage({
 
               {/* Module */}
               <div>
-                <label htmlFor="module" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="module" className="mb-2 block text-sm font-medium text-white">
                   Module
                 </label>
                 <input
@@ -258,13 +256,13 @@ export default async function CreateTicketPage({
                   id="module"
                   name="module"
                   placeholder="e.g., API, UI, Database"
-                  className="w-full px-4 py-3 rounded-xl bg-surface-dark border border-surface-light text-white placeholder-slate focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent"
+                  className="bg-surface-dark border-surface-light w-full rounded-xl border px-4 py-3 text-white placeholder-slate focus:border-transparent focus:outline-none focus:ring-2 focus:ring-coral"
                 />
               </div>
 
               {/* Assignee */}
               <div>
-                <label htmlFor="assignee" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="assignee" className="mb-2 block text-sm font-medium text-white">
                   Assignee
                 </label>
                 <input
@@ -272,7 +270,7 @@ export default async function CreateTicketPage({
                   id="assignee"
                   name="assignee"
                   placeholder="Enter assignee name"
-                  className="w-full px-4 py-3 rounded-xl bg-surface-dark border border-surface-light text-white placeholder-slate focus:outline-none focus:ring-2 focus:ring-coral focus:border-transparent"
+                  className="bg-surface-dark border-surface-light w-full rounded-xl border px-4 py-3 text-white placeholder-slate focus:border-transparent focus:outline-none focus:ring-2 focus:ring-coral"
                 />
               </div>
 
@@ -280,13 +278,13 @@ export default async function CreateTicketPage({
               <div className="flex items-center gap-4 pt-4">
                 <button
                   type="submit"
-                  className="coral-gradient smooth-transition px-8 py-3 rounded-2xl font-semibold text-white shadow-lg hover:opacity-90"
+                  className="coral-gradient smooth-transition rounded-2xl px-8 py-3 font-semibold text-white shadow-lg hover:opacity-90"
                 >
                   Create Ticket
                 </button>
                 <Link
                   href={`/tickets?project=${projectId}`}
-                  className="px-8 py-3 rounded-2xl font-semibold text-slate hover:text-white transition-colors"
+                  className="rounded-2xl px-8 py-3 font-semibold text-slate transition-colors hover:text-white"
                 >
                   Cancel
                 </Link>

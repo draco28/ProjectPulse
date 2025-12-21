@@ -44,7 +44,7 @@ export function HealthOverviewCard({ score, trend }: HealthOverviewCardProps) {
   return (
     <div className="neu-raised rounded-3xl p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Activity className="h-5 w-5 text-coral-400" />
+        <Activity className="text-coral-400 h-5 w-5" />
         <h2 className="text-sm font-bold uppercase text-white">Overall Health</h2>
       </div>
 

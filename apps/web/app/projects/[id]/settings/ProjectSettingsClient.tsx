@@ -41,7 +41,12 @@ interface WikiRefreshResult {
   preview: boolean;
 }
 
-export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: ProjectSettingsClientProps) {
+export function ProjectSettingsClient({
+  project,
+  tokens,
+  labels,
+  mcpEndpoint,
+}: ProjectSettingsClientProps) {
   const router = useRouter();
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [generatedToken, setGeneratedToken] = useState<{
@@ -95,7 +100,11 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
   };
 
   const handleRevokeToken = async (tokenId: number, tokenName: string) => {
-    if (!confirm(`Are you sure you want to revoke the token "${tokenName}"? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to revoke the token "${tokenName}"? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
@@ -174,7 +183,9 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
       const result = await response.json();
       setShowWikiRefreshModal(false);
       setWikiRefreshPreview(null);
-      alert(`Wiki refresh complete! ${result.updated.length} pages updated, ${result.skipped.length} skipped, ${result.unchanged.length} unchanged.`);
+      alert(
+        `Wiki refresh complete! ${result.updated.length} pages updated, ${result.skipped.length} skipped, ${result.unchanged.length} unchanged.`
+      );
       router.refresh();
     } catch (error: any) {
       alert(error.message);
@@ -230,27 +241,25 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
   const revokedTokens = tokens.filter((t) => t.isRevoked);
 
   return (
-    <div className="min-h-screen bg-[#0f0f1a] text-white p-8">
+    <div className="min-h-screen bg-[#0f0f1a] p-8 text-white">
       {/* Header */}
-      <div className="max-w-6xl mx-auto mb-8">
-        <h1 className="text-3xl font-bold text-coral-400 mb-2">Project Settings</h1>
+      <div className="mx-auto mb-8 max-w-6xl">
+        <h1 className="text-coral-400 mb-2 text-3xl font-bold">Project Settings</h1>
         <p className="text-gray-400">{project.name}</p>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="mx-auto max-w-6xl space-y-8">
         {/* Agent Tokens Section */}
-        <section className="bg-[#1a1a2e] rounded-lg p-6 shadow-neumorphic">
-          <div className="flex items-center justify-between mb-6">
+        <section className="shadow-neumorphic rounded-lg bg-[#1a1a2e] p-6">
+          <div className="mb-6 flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-coral-400 mb-1">Agent Tokens</h2>
-              <p className="text-sm text-gray-400">
-                Manage bearer tokens for agent MCP access
-              </p>
+              <h2 className="text-coral-400 mb-1 text-xl font-semibold">Agent Tokens</h2>
+              <p className="text-sm text-gray-400">Manage bearer tokens for agent MCP access</p>
             </div>
             <button
               onClick={() => setShowGenerateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-coral-500 text-white rounded-md hover:bg-coral-600 transition-colors"
+              className="bg-coral-500 hover:bg-coral-600 flex items-center gap-2 rounded-md px-4 py-2 text-white transition-colors"
             >
               <Plus size={18} />
               Generate New Token
@@ -260,31 +269,31 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
           {/* Active Tokens Table */}
           {activeTokens.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-lg font-medium mb-3">Active Tokens</h3>
+              <h3 className="mb-3 text-lg font-medium">Active Tokens</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-700">
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Created</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Expires</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Last Used</th>
-                      <th className="text-right py-3 px-4 text-gray-400 font-medium">Actions</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-400">Name</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-400">Created</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-400">Expires</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-400">Last Used</th>
+                      <th className="px-4 py-3 text-right font-medium text-gray-400">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeTokens.map((token) => (
                       <tr key={token.id} className="border-b border-gray-800 hover:bg-[#1f1f33]">
-                        <td className="py-3 px-4 font-medium">{token.name}</td>
-                        <td className="py-3 px-4 text-gray-400">{formatDate(token.createdAt)}</td>
-                        <td className="py-3 px-4 text-gray-400">
+                        <td className="px-4 py-3 font-medium">{token.name}</td>
+                        <td className="px-4 py-3 text-gray-400">{formatDate(token.createdAt)}</td>
+                        <td className="px-4 py-3 text-gray-400">
                           {token.expiresAt ? formatDate(token.expiresAt) : 'Never'}
                         </td>
-                        <td className="py-3 px-4 text-gray-400">{formatDate(token.lastUsedAt)}</td>
-                        <td className="py-3 px-4 text-right">
+                        <td className="px-4 py-3 text-gray-400">{formatDate(token.lastUsedAt)}</td>
+                        <td className="px-4 py-3 text-right">
                           <button
                             onClick={() => handleRevokeToken(token.id, token.name)}
-                            className="text-red-400 hover:text-red-300 transition-colors"
+                            className="text-red-400 transition-colors hover:text-red-300"
                             title="Revoke token"
                           >
                             <Trash2 size={18} />
@@ -299,7 +308,7 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
           )}
 
           {activeTokens.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="py-8 text-center text-gray-500">
               No active tokens. Generate one to get started.
             </div>
           )}
@@ -314,17 +323,25 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-700">
-                      <th className="text-left py-2 px-4 text-gray-500 font-medium text-sm">Name</th>
-                      <th className="text-left py-2 px-4 text-gray-500 font-medium text-sm">Created</th>
-                      <th className="text-left py-2 px-4 text-gray-500 font-medium text-sm">Revoked</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                        Name
+                      </th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                        Created
+                      </th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                        Revoked
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {revokedTokens.map((token) => (
                       <tr key={token.id} className="border-b border-gray-800 opacity-60">
-                        <td className="py-2 px-4 text-sm line-through">{token.name}</td>
-                        <td className="py-2 px-4 text-sm text-gray-500">{formatDate(token.createdAt)}</td>
-                        <td className="py-2 px-4 text-sm text-gray-500">Yes</td>
+                        <td className="px-4 py-2 text-sm line-through">{token.name}</td>
+                        <td className="px-4 py-2 text-sm text-gray-500">
+                          {formatDate(token.createdAt)}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-500">Yes</td>
                       </tr>
                     ))}
                   </tbody>
@@ -335,21 +352,21 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
         </section>
 
         {/* Project Controls Section */}
-        <section className="bg-[#1a1a2e] rounded-lg p-6 shadow-neumorphic">
-          <h2 className="text-xl font-semibold text-coral-400 mb-4">Project Controls</h2>
+        <section className="shadow-neumorphic rounded-lg bg-[#1a1a2e] p-6">
+          <h2 className="text-coral-400 mb-4 text-xl font-semibold">Project Controls</h2>
 
           {/* mcpWriteFiles Toggle */}
-          <div className="mb-6 pb-6 border-b border-gray-800">
+          <div className="mb-6 border-b border-gray-800 pb-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="font-medium mb-1">Allow MCP to Write Helper Files</h3>
-                <p className="text-sm text-gray-400 max-w-2xl">
-                  When enabled, agents can write <code className="text-coral-400">CLAUDE.md</code> and{' '}
-                  <code className="text-coral-400">AGENTS.md</code> files to your repository during
-                  onboarding and bootstrap. Disable this to keep your repository clean.
+                <h3 className="mb-1 font-medium">Allow MCP to Write Helper Files</h3>
+                <p className="max-w-2xl text-sm text-gray-400">
+                  When enabled, agents can write <code className="text-coral-400">CLAUDE.md</code>{' '}
+                  and <code className="text-coral-400">AGENTS.md</code> files to your repository
+                  during onboarding and bootstrap. Disable this to keep your repository clean.
                 </p>
               </div>
-              <label className="flex items-center cursor-pointer ml-4">
+              <label className="ml-4 flex cursor-pointer items-center">
                 <div className="relative">
                   <input
                     type="checkbox"
@@ -358,13 +375,13 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
                     onChange={(e) => setMcpWriteFiles(e.target.checked)}
                   />
                   <div
-                    className={`block w-14 h-8 rounded-full transition-colors ${
+                    className={`block h-8 w-14 rounded-full transition-colors ${
                       mcpWriteFiles ? 'bg-coral-500' : 'bg-gray-700'
                     }`}
                   ></div>
                   <div
-                    className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${
-                      mcpWriteFiles ? 'transform translate-x-6' : ''
+                    className={`dot absolute left-1 top-1 h-6 w-6 rounded-full bg-white transition-transform ${
+                      mcpWriteFiles ? 'translate-x-6 transform' : ''
                     }`}
                   ></div>
                 </div>
@@ -374,20 +391,20 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
 
           {/* MCP Endpoint Display */}
           <div className="mb-6">
-            <h3 className="font-medium mb-2">MCP Endpoint</h3>
+            <h3 className="mb-2 font-medium">MCP Endpoint</h3>
             <div className="flex items-center gap-2">
-              <code className="flex-1 bg-[#0f0f1a] px-4 py-2 rounded border border-gray-800 text-gray-300">
+              <code className="flex-1 rounded border border-gray-800 bg-[#0f0f1a] px-4 py-2 text-gray-300">
                 {mcpEndpoint}
               </code>
               <button
                 onClick={() => copyToClipboard(mcpEndpoint)}
-                className="p-2 hover:bg-[#1f1f33] rounded transition-colors"
+                className="rounded p-2 transition-colors hover:bg-[#1f1f33]"
                 title="Copy endpoint"
               >
                 <Copy size={18} />
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="mt-2 text-xs text-gray-500">
               Use this URL when configuring your agent&apos;s MCP connection.
             </p>
           </div>
@@ -397,7 +414,7 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
             <button
               onClick={handleSaveSettings}
               disabled={isSavingSettings}
-              className="px-6 py-2 bg-coral-500 text-white rounded-md hover:bg-coral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-coral-500 hover:bg-coral-600 rounded-md px-6 py-2 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSavingSettings ? 'Saving...' : 'Save Settings'}
             </button>
@@ -405,21 +422,22 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
         </section>
 
         {/* Wiki Templates Section */}
-        <section className="bg-[#1a1a2e] rounded-lg p-6 shadow-neumorphic">
-          <div className="flex items-center gap-3 mb-4">
+        <section className="shadow-neumorphic rounded-lg bg-[#1a1a2e] p-6">
+          <div className="mb-4 flex items-center gap-3">
             <FileText size={24} className="text-coral-400" />
             <div>
-              <h2 className="text-xl font-semibold text-coral-400">Wiki Templates</h2>
+              <h2 className="text-coral-400 text-xl font-semibold">Wiki Templates</h2>
               <p className="text-sm text-gray-400">
                 Update default wiki pages with latest templates
               </p>
             </div>
           </div>
 
-          <div className="mb-4 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+          <div className="mb-4 rounded-lg border border-blue-700/50 bg-blue-900/20 p-4">
             <p className="text-sm text-blue-200">
-              <strong>What this does:</strong> Updates system-generated wiki pages (Getting Started, MCP Configuration, etc.)
-              with the latest templates. Pages you&apos;ve edited won&apos;t be overwritten.
+              <strong>What this does:</strong> Updates system-generated wiki pages (Getting Started,
+              MCP Configuration, etc.) with the latest templates. Pages you&apos;ve edited
+              won&apos;t be overwritten.
             </p>
           </div>
 
@@ -427,7 +445,7 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
             <button
               onClick={handlePreviewWikiRefresh}
               disabled={isRefreshingWikis}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 rounded-md bg-gray-700 px-4 py-2 text-white transition-colors hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isRefreshingWikis ? (
                 <RefreshCw size={18} className="animate-spin" />
@@ -439,7 +457,7 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
             <button
               onClick={handleConfirmWikiRefresh}
               disabled={isRefreshingWikis}
-              className="flex items-center gap-2 px-4 py-2 bg-coral-500 text-white rounded-md hover:bg-coral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-coral-500 hover:bg-coral-600 flex items-center gap-2 rounded-md px-4 py-2 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
               <RefreshCw size={18} />
               Refresh Now
@@ -451,21 +469,22 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
         <LabelManagement projectId={project.id} labels={labels} />
 
         {/* Configuration Instructions */}
-        <section className="bg-[#1a1a2e] rounded-lg p-6 shadow-neumorphic">
-          <h2 className="text-xl font-semibold text-coral-400 mb-4">Agent Configuration</h2>
+        <section className="shadow-neumorphic rounded-lg bg-[#1a1a2e] p-6">
+          <h2 className="text-coral-400 mb-4 text-xl font-semibold">Agent Configuration</h2>
           <div className="prose prose-invert max-w-none">
-            <p className="text-gray-400 mb-4">
-              Configure your AI agent to connect to ProjectPulse. First, generate a token above, then add the configuration below.
+            <p className="mb-4 text-gray-400">
+              Configure your AI agent to connect to ProjectPulse. First, generate a token above,
+              then add the configuration below.
             </p>
 
             {/* Claude Code Configuration */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium text-white mb-2">Claude Code</h3>
-              <p className="text-sm text-gray-400 mb-2">
+              <h3 className="mb-2 text-lg font-medium text-white">Claude Code</h3>
+              <p className="mb-2 text-sm text-gray-400">
                 Edit <code className="text-coral-400">~/.claude/settings.json</code>:
               </p>
               <div className="relative">
-                <pre className="bg-[#0f0f1a] px-4 py-3 rounded border border-gray-800 text-sm overflow-x-auto">
+                <pre className="overflow-x-auto rounded border border-gray-800 bg-[#0f0f1a] px-4 py-3 text-sm">
                   <code className="text-gray-300">{`{
   "mcpServers": {
     "projectpulse": {
@@ -479,7 +498,8 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
 }`}</code>
                 </pre>
                 <button
-                  onClick={() => copyToClipboard(`{
+                  onClick={() =>
+                    copyToClipboard(`{
   "mcpServers": {
     "projectpulse": {
       "type": "http",
@@ -489,8 +509,9 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
       }
     }
   }
-}`)}
-                  className="absolute top-2 right-2 p-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+}`)
+                  }
+                  className="absolute right-2 top-2 rounded bg-gray-700 p-2 transition-colors hover:bg-gray-600"
                   title="Copy config"
                 >
                   <Copy size={14} />
@@ -500,12 +521,12 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
 
             {/* Windsurf Configuration */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium text-white mb-2">Windsurf</h3>
-              <p className="text-sm text-gray-400 mb-2">
+              <h3 className="mb-2 text-lg font-medium text-white">Windsurf</h3>
+              <p className="mb-2 text-sm text-gray-400">
                 Edit <code className="text-coral-400">~/.codeium/windsurf/mcp_config.json</code>:
               </p>
               <div className="relative">
-                <pre className="bg-[#0f0f1a] px-4 py-3 rounded border border-gray-800 text-sm overflow-x-auto">
+                <pre className="overflow-x-auto rounded border border-gray-800 bg-[#0f0f1a] px-4 py-3 text-sm">
                   <code className="text-gray-300">{`{
   "mcpServers": {
     "projectpulse": {
@@ -518,7 +539,8 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
 }`}</code>
                 </pre>
                 <button
-                  onClick={() => copyToClipboard(`{
+                  onClick={() =>
+                    copyToClipboard(`{
   "mcpServers": {
     "projectpulse": {
       "serverUrl": "${mcpEndpoint}",
@@ -527,8 +549,9 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
       }
     }
   }
-}`)}
-                  className="absolute top-2 right-2 p-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+}`)
+                  }
+                  className="absolute right-2 top-2 rounded bg-gray-700 p-2 transition-colors hover:bg-gray-600"
                   title="Copy config"
                 >
                   <Copy size={14} />
@@ -538,32 +561,43 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
 
             {/* Cursor Configuration */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium text-white mb-2">Cursor</h3>
-              <p className="text-sm text-gray-400 mb-2">
+              <h3 className="mb-2 text-lg font-medium text-white">Cursor</h3>
+              <p className="mb-2 text-sm text-gray-400">
                 Go to <strong>Settings → MCP → Add Server</strong> with:
               </p>
-              <ul className="text-sm text-gray-400 list-disc list-inside space-y-1 ml-2">
-                <li><strong>Name:</strong> projectpulse</li>
-                <li><strong>Type:</strong> HTTP</li>
-                <li><strong>URL:</strong> <code className="text-coral-400">{mcpEndpoint}</code></li>
-                <li><strong>Headers:</strong> <code className="text-coral-400">Authorization: Bearer &lt;YOUR_TOKEN&gt;</code></li>
+              <ul className="ml-2 list-inside list-disc space-y-1 text-sm text-gray-400">
+                <li>
+                  <strong>Name:</strong> projectpulse
+                </li>
+                <li>
+                  <strong>Type:</strong> HTTP
+                </li>
+                <li>
+                  <strong>URL:</strong> <code className="text-coral-400">{mcpEndpoint}</code>
+                </li>
+                <li>
+                  <strong>Headers:</strong>{' '}
+                  <code className="text-coral-400">Authorization: Bearer &lt;YOUR_TOKEN&gt;</code>
+                </li>
               </ul>
             </div>
 
             {/* Test Connection */}
-            <div className="mb-4 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
-              <h4 className="font-medium text-blue-300 mb-2">Test Your Connection</h4>
+            <div className="mb-4 rounded-lg border border-blue-700/50 bg-blue-900/20 p-4">
+              <h4 className="mb-2 font-medium text-blue-300">Test Your Connection</h4>
               <p className="text-sm text-blue-200/80">
-                After configuring, ask your agent: &quot;Use the <code className="text-blue-300">projectpulse_health_check</code> tool&quot;
+                After configuring, ask your agent: &quot;Use the{' '}
+                <code className="text-blue-300">projectpulse_health_check</code> tool&quot;
               </p>
-              <p className="text-sm text-blue-200/80 mt-1">
-                Expected response: <code className="text-blue-300">{"status: healthy, database: connected"}</code>
+              <p className="mt-1 text-sm text-blue-200/80">
+                Expected response:{' '}
+                <code className="text-blue-300">{'status: healthy, database: connected'}</code>
               </p>
             </div>
 
             {/* Security Warning */}
-            <div className="p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg flex items-start gap-3">
-              <AlertTriangle size={20} className="text-yellow-500 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-3 rounded-lg border border-yellow-700/50 bg-yellow-900/20 p-4">
+              <AlertTriangle size={20} className="mt-0.5 flex-shrink-0 text-yellow-500" />
               <p className="text-sm text-yellow-200">
                 <strong>Security Note:</strong> Store your token securely. It grants full project
                 access to the agent. Revoke tokens immediately if compromised.
@@ -575,32 +609,32 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
 
       {/* Generate Token Modal */}
       {showGenerateModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a2e] rounded-lg p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-coral-400 mb-4">Generate New Token</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-lg bg-[#1a1a2e] p-6 shadow-2xl">
+            <h3 className="text-coral-400 mb-4 text-xl font-semibold">Generate New Token</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Token Name</label>
+                <label className="mb-2 block text-sm font-medium">Token Name</label>
                 <input
                   type="text"
                   value={tokenName}
                   onChange={(e) => setTokenName(e.target.value)}
                   placeholder="e.g., Frontend Claude"
-                  className="w-full px-4 py-2 bg-[#0f0f1a] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-coral-500"
+                  className="focus:ring-coral-500 w-full rounded-md border border-gray-700 bg-[#0f0f1a] px-4 py-2 focus:outline-none focus:ring-2"
                   maxLength={50}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-gray-500">
                   Choose a descriptive name (unique per project)
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Expires In</label>
+                <label className="mb-2 block text-sm font-medium">Expires In</label>
                 <select
                   value={expiryDays}
                   onChange={(e) => setExpiryDays(parseInt(e.target.value, 10))}
-                  className="w-full px-4 py-2 bg-[#0f0f1a] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-coral-500"
+                  className="focus:ring-coral-500 w-full rounded-md border border-gray-700 bg-[#0f0f1a] px-4 py-2 focus:outline-none focus:ring-2"
                 >
                   <option value={7}>7 days</option>
                   <option value={30}>30 days</option>
@@ -609,11 +643,11 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
                 </select>
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="mt-6 flex gap-3">
                 <button
                   onClick={handleGenerateToken}
                   disabled={isGenerating || !tokenName.trim()}
-                  className="flex-1 px-4 py-2 bg-coral-500 text-white rounded-md hover:bg-coral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-coral-500 hover:bg-coral-600 flex-1 rounded-md px-4 py-2 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isGenerating ? 'Generating...' : 'Generate Token'}
                 </button>
@@ -622,7 +656,7 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
                     setShowGenerateModal(false);
                     setTokenName('');
                   }}
-                  className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors"
+                  className="rounded-md bg-gray-700 px-4 py-2 text-white transition-colors hover:bg-gray-600"
                 >
                   Cancel
                 </button>
@@ -634,38 +668,38 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
 
       {/* Generated Token Display Modal */}
       {generatedToken && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a2e] rounded-lg p-6 max-w-2xl w-full shadow-2xl">
-            <div className="flex items-center gap-3 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-2xl rounded-lg bg-[#1a1a2e] p-6 shadow-2xl">
+            <div className="mb-4 flex items-center gap-3">
               <CheckCircle2 size={24} className="text-green-500" />
-              <h3 className="text-xl font-semibold text-coral-400">Token Generated Successfully</h3>
+              <h3 className="text-coral-400 text-xl font-semibold">Token Generated Successfully</h3>
             </div>
 
-            <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4 mb-4">
-              <p className="text-yellow-200 text-sm font-medium mb-2">
+            <div className="mb-4 rounded-lg border border-yellow-700/50 bg-yellow-900/20 p-4">
+              <p className="mb-2 text-sm font-medium text-yellow-200">
                 ⚠️ Important: Copy this token now
               </p>
-              <p className="text-yellow-200/80 text-sm">
+              <p className="text-sm text-yellow-200/80">
                 You will not be able to see this token again. Store it securely.
               </p>
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Token Name</label>
-              <div className="text-gray-300 px-4 py-2 bg-[#0f0f1a] rounded border border-gray-800">
+              <label className="mb-2 block text-sm font-medium">Token Name</label>
+              <div className="rounded border border-gray-800 bg-[#0f0f1a] px-4 py-2 text-gray-300">
                 {generatedToken.name}
               </div>
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Token (Bearer)</label>
+              <label className="mb-2 block text-sm font-medium">Token (Bearer)</label>
               <div className="flex items-center gap-2">
-                <code className="flex-1 bg-[#0f0f1a] px-4 py-2 rounded border border-gray-800 text-sm text-green-400 font-mono overflow-x-auto whitespace-nowrap">
+                <code className="flex-1 overflow-x-auto whitespace-nowrap rounded border border-gray-800 bg-[#0f0f1a] px-4 py-2 font-mono text-sm text-green-400">
                   {generatedToken.token}
                 </code>
                 <button
                   onClick={() => copyToClipboard(generatedToken.token)}
-                  className="p-2 bg-coral-500 hover:bg-coral-600 rounded transition-colors flex-shrink-0"
+                  className="bg-coral-500 hover:bg-coral-600 flex-shrink-0 rounded p-2 transition-colors"
                   title="Copy token"
                 >
                   <Copy size={18} />
@@ -674,15 +708,15 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Expires</label>
-              <div className="text-gray-300 px-4 py-2 bg-[#0f0f1a] rounded border border-gray-800">
+              <label className="mb-2 block text-sm font-medium">Expires</label>
+              <div className="rounded border border-gray-800 bg-[#0f0f1a] px-4 py-2 text-gray-300">
                 {formatDate(generatedToken.expiresAt)}
               </div>
             </div>
 
             <button
               onClick={() => setGeneratedToken(null)}
-              className="w-full px-4 py-2 bg-coral-500 text-white rounded-md hover:bg-coral-600 transition-colors"
+              className="bg-coral-500 hover:bg-coral-600 w-full rounded-md px-4 py-2 text-white transition-colors"
             >
               Close
             </button>
@@ -692,26 +726,26 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
 
       {/* Wiki Refresh Preview Modal */}
       {showWikiRefreshModal && wikiRefreshPreview && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a2e] rounded-lg p-6 max-w-2xl w-full shadow-neumorphic max-h-[80vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Wiki Refresh Preview</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="shadow-neumorphic max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-[#1a1a2e] p-6">
+            <h3 className="mb-4 text-lg font-semibold">Wiki Refresh Preview</h3>
 
-            <p className="text-gray-400 mb-4">
+            <p className="mb-4 text-gray-400">
               Review the changes that will be made to your wiki pages:
             </p>
 
             {/* Updated Pages */}
             {wikiRefreshPreview.updated.length > 0 && (
               <div className="mb-4">
-                <h4 className="text-sm font-medium text-green-400 mb-2 flex items-center gap-2">
+                <h4 className="mb-2 flex items-center gap-2 text-sm font-medium text-green-400">
                   <CheckCircle2 size={16} />
                   Will be Updated ({wikiRefreshPreview.updated.length})
                 </h4>
-                <ul className="bg-green-900/20 border border-green-700/50 rounded-lg p-3 space-y-2">
+                <ul className="space-y-2 rounded-lg border border-green-700/50 bg-green-900/20 p-3">
                   {wikiRefreshPreview.updated.map((page, index) => (
                     <li key={index} className="text-sm">
                       <span className="font-medium text-green-300">{page.title}</span>
-                      <span className="text-gray-400 block text-xs">{page.reason}</span>
+                      <span className="block text-xs text-gray-400">{page.reason}</span>
                     </li>
                   ))}
                 </ul>
@@ -721,15 +755,15 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
             {/* Skipped Pages */}
             {wikiRefreshPreview.skipped.length > 0 && (
               <div className="mb-4">
-                <h4 className="text-sm font-medium text-yellow-400 mb-2 flex items-center gap-2">
+                <h4 className="mb-2 flex items-center gap-2 text-sm font-medium text-yellow-400">
                   <AlertTriangle size={16} />
                   Will be Skipped ({wikiRefreshPreview.skipped.length})
                 </h4>
-                <ul className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 space-y-2">
+                <ul className="space-y-2 rounded-lg border border-yellow-700/50 bg-yellow-900/20 p-3">
                   {wikiRefreshPreview.skipped.map((page, index) => (
                     <li key={index} className="text-sm">
                       <span className="font-medium text-yellow-300">{page.title}</span>
-                      <span className="text-gray-400 block text-xs">{page.reason}</span>
+                      <span className="block text-xs text-gray-400">{page.reason}</span>
                     </li>
                   ))}
                 </ul>
@@ -739,12 +773,12 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
             {/* Unchanged Pages */}
             {wikiRefreshPreview.unchanged.length > 0 && (
               <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-400 mb-2">
+                <h4 className="mb-2 text-sm font-medium text-gray-400">
                   Already Up-to-Date ({wikiRefreshPreview.unchanged.length})
                 </h4>
-                <ul className="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                <ul className="rounded-lg border border-gray-700 bg-gray-800/50 p-3">
                   <li className="text-sm text-gray-500">
-                    {wikiRefreshPreview.unchanged.map(p => p.title).join(', ')}
+                    {wikiRefreshPreview.unchanged.map((p) => p.title).join(', ')}
                   </li>
                 </ul>
               </div>
@@ -752,21 +786,21 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
 
             {/* No Changes Message */}
             {wikiRefreshPreview.updated.length === 0 &&
-             wikiRefreshPreview.skipped.length === 0 &&
-             wikiRefreshPreview.unchanged.length === 0 && (
-              <div className="mb-4 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
-                <p className="text-gray-400 text-sm">No wiki pages found to refresh.</p>
-              </div>
-            )}
+              wikiRefreshPreview.skipped.length === 0 &&
+              wikiRefreshPreview.unchanged.length === 0 && (
+                <div className="mb-4 rounded-lg border border-gray-700 bg-gray-800/50 p-4">
+                  <p className="text-sm text-gray-400">No wiki pages found to refresh.</p>
+                </div>
+              )}
 
             {/* Action Buttons */}
-            <div className="flex gap-3 mt-6">
+            <div className="mt-6 flex gap-3">
               <button
                 onClick={() => {
                   setShowWikiRefreshModal(false);
                   setWikiRefreshPreview(null);
                 }}
-                className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors"
+                className="flex-1 rounded-md bg-gray-700 px-4 py-2 text-white transition-colors hover:bg-gray-600"
               >
                 Cancel
               </button>
@@ -774,7 +808,7 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
                 <button
                   onClick={handleConfirmWikiRefresh}
                   disabled={isRefreshingWikis}
-                  className="flex-1 px-4 py-2 bg-coral-500 text-white rounded-md hover:bg-coral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="bg-coral-500 hover:bg-coral-600 flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isRefreshingWikis ? (
                     <>
@@ -784,7 +818,8 @@ export function ProjectSettingsClient({ project, tokens, labels, mcpEndpoint }: 
                   ) : (
                     <>
                       <RefreshCw size={18} />
-                      Apply {wikiRefreshPreview.updated.length} Update{wikiRefreshPreview.updated.length !== 1 ? 's' : ''}
+                      Apply {wikiRefreshPreview.updated.length} Update
+                      {wikiRefreshPreview.updated.length !== 1 ? 's' : ''}
                     </>
                   )}
                 </button>

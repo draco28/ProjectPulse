@@ -25,9 +25,9 @@ interface QuestionCardProps {
 export function QuestionCard({ question, value, onChange, error }: QuestionCardProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={question.id} className="text-white font-medium">
+      <Label htmlFor={question.id} className="font-medium text-white">
         {question.questionNumber}. {question.text}
-        {question.isRequired && <span className="text-red-400 ml-1">*</span>}
+        {question.isRequired && <span className="ml-1 text-red-400">*</span>}
       </Label>
       <Textarea
         id={question.id}
@@ -36,8 +36,8 @@ export function QuestionCard({ question, value, onChange, error }: QuestionCardP
         onChange={(e) => onChange(e.target.value)}
         rows={3}
         className={cn(
-          'neu-inset bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500',
-          'focus:ring-2 focus:ring-coral-500 focus:border-transparent',
+          'neu-inset border-slate-700 bg-slate-900/50 text-white placeholder:text-slate-500',
+          'focus:ring-coral-500 focus:border-transparent focus:ring-2',
           error && 'border-red-500 focus:ring-red-500'
         )}
       />

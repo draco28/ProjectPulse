@@ -9,14 +9,17 @@ import { prisma } from '@/lib/prisma';
 const requestSchema = z.object({
   sessionId: z.number().int().positive(),
   stepName: z.string().min(1).max(200),
-  metadata: z.object({
-    tokensUsed: z.number().optional(),
-    quality: z.string().optional(),
-    warnings: z.array(z.string()).optional(),
-    filesCreated: z.array(z.string()).optional(),
-    filesModified: z.array(z.string()).optional(),
-    errors: z.array(z.string()).optional()
-  }).passthrough().optional()
+  metadata: z
+    .object({
+      tokensUsed: z.number().optional(),
+      quality: z.string().optional(),
+      warnings: z.array(z.string()).optional(),
+      filesCreated: z.array(z.string()).optional(),
+      filesModified: z.array(z.string()).optional(),
+      errors: z.array(z.string()).optional(),
+    })
+    .passthrough()
+    .optional(),
 });
 
 //=============================================================================
@@ -28,9 +31,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('[POST /api/observability/log-step] Request received', {
       sessionId: body.sessionId,
-      stepName: body.stepName
+      stepName: body.stepName,
     });
-    
+
     // 1. Validate request
     const validation = requestSchema.safeParse(body);
     if (!validation.success) {
@@ -38,43 +41,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: validation.error.errors
+          details: validation.error.errors,
         },
         { status: 400 }
       );
     }
-    
+
     const { sessionId, stepName, metadata } = validation.data;
-    
+
     // 2. Verify session exists
     const session = await prisma.onboardingSession.findUnique({
       where: { id: sessionId },
       select: {
         id: true,
         sessionNumber: true,
-        metrics: true
-      }
+        metrics: true,
+      },
     });
-    
+
     if (!session) {
-      return NextResponse.json(
-        { error: 'Session not found', sessionId },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Session not found', sessionId }, { status: 404 });
     }
-    
+
     // 3. Get current metrics and add new action
     const currentMetrics = (session.metrics as any) || {};
     const actions = currentMetrics.actions || [];
-    
+
     const newAction = {
       timestamp: new Date().toISOString(),
       stepName,
-      metadata: metadata || {}
+      metadata: metadata || {},
     };
-    
+
     actions.push(newAction);
-    
+
     // 4. Update session metrics
     const updatedSession = await prisma.onboardingSession.update({
       where: { id: sessionId },
@@ -83,37 +83,36 @@ export async function POST(request: NextRequest) {
           ...currentMetrics,
           actions,
           lastActionAt: new Date().toISOString(),
-          totalSteps: actions.length
-        }
+          totalSteps: actions.length,
+        },
       },
       select: {
         id: true,
         sessionNumber: true,
-        metrics: true
-      }
+        metrics: true,
+      },
     });
-    
+
     console.log('[POST /api/observability/log-step] Action logged', {
       sessionId,
       stepName,
-      totalSteps: actions.length
+      totalSteps: actions.length,
     });
-    
+
     return NextResponse.json({
       success: true,
       sessionId,
       sessionNumber: updatedSession.sessionNumber,
       stepName,
       totalSteps: actions.length,
-      message: `Step "${stepName}" logged. Total: ${actions.length} steps.`
+      message: `Step "${stepName}" logged. Total: ${actions.length} steps.`,
     });
-    
   } catch (error) {
     console.error('[POST /api/observability/log-step] Error:', error);
     return NextResponse.json(
       {
         error: 'Failed to log step',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

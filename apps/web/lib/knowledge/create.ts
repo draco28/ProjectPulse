@@ -106,15 +106,17 @@ export async function createKnowledgeItem(
 
     // Insert into database using raw query (Prisma doesn't support vector type natively)
     // Populate contentTsvector with title (weight A) + content (weight B) for fulltext search
-    const result = await prisma.$queryRaw<Array<{
-      id: number;
-      title: string;
-      content: string;
-      category: string;
-      tags: string[];
-      createdAt: Date;
-      updatedAt: Date;
-    }>>`
+    const result = await prisma.$queryRaw<
+      Array<{
+        id: number;
+        title: string;
+        content: string;
+        category: string;
+        tags: string[];
+        createdAt: Date;
+        updatedAt: Date;
+      }>
+    >`
       INSERT INTO knowledge_items (
         "projectId",
         title,

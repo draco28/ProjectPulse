@@ -242,11 +242,7 @@ async function resolveProjectId(projectId?: number): Promise<number> {
   });
 
   if (!project) {
-    throw new MCPError(
-      `Project ${projectId} not found`,
-      JSONRPC_ERROR_CODES.INVALID_PARAMS,
-      404
-    );
+    throw new MCPError(`Project ${projectId} not found`, JSONRPC_ERROR_CODES.INVALID_PARAMS, 404);
   }
 
   return projectId;
@@ -259,16 +255,10 @@ async function resolveProjectId(projectId?: number): Promise<number> {
 /**
  * ticket.create - Create a new ticket
  */
-export async function ticketCreateHandler(
-  input: unknown
-): Promise<TicketCreateOutput> {
+export async function ticketCreateHandler(input: unknown): Promise<TicketCreateOutput> {
   try {
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as TicketCreateInput;
@@ -318,9 +308,10 @@ export async function ticketCreateHandler(
       assignee: params.assignee || null,
       assigneeType: params.assigneeType || null,
       assigneeId: params.assigneeId || null,
-      customFields: Object.keys(customFieldsPayload).length > 0
-        ? customFieldsPayload as Prisma.InputJsonValue
-        : Prisma.JsonNull,
+      customFields:
+        Object.keys(customFieldsPayload).length > 0
+          ? (customFieldsPayload as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
       // Sprint 11.7: Milestone and Due Date
       dueDate: params.dueDate ? new Date(params.dueDate) : null,
     };
@@ -410,16 +401,10 @@ export async function ticketCreateHandler(
 /**
  * ticket.bulkCreate - Bulk create tickets (up to 50)
  */
-export async function ticketBulkCreateHandler(
-  input: unknown
-): Promise<TicketBulkCreateOutput> {
+export async function ticketBulkCreateHandler(input: unknown): Promise<TicketBulkCreateOutput> {
   try {
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as TicketBulkCreateInput;
@@ -458,7 +443,7 @@ export async function ticketBulkCreateHandler(
             priority: ticket.priority || 'medium',
             module: ticket.module || null,
             assignee: ticket.assignee || null,
-            customFields: ticket.customFields as Prisma.InputJsonValue || Prisma.JsonNull,
+            customFields: (ticket.customFields as Prisma.InputJsonValue) || Prisma.JsonNull,
             // Sprint 11.7: Support dueDate in bulk create
             dueDate: ticket.dueDate ? new Date(ticket.dueDate) : null,
           },
@@ -519,16 +504,10 @@ export async function ticketBulkCreateHandler(
 /**
  * ticket.update - Update ticket fields
  */
-export async function ticketUpdateHandler(
-  input: unknown
-): Promise<TicketUpdateOutput> {
+export async function ticketUpdateHandler(input: unknown): Promise<TicketUpdateOutput> {
   try {
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as TicketUpdateInput;
@@ -678,9 +657,7 @@ export async function ticketUpdateHandler(
 /**
  * ticket.search - Search tickets with filters
  */
-export async function ticketSearchHandler(
-  input: unknown
-): Promise<TicketSearchOutput> {
+export async function ticketSearchHandler(input: unknown): Promise<TicketSearchOutput> {
   try {
     const params = (input || {}) as TicketSearchInput;
 
@@ -741,7 +718,7 @@ export async function ticketSearchHandler(
 
     if (params.createdTo) {
       where.createdAt = {
-        ...(where.createdAt as Prisma.DateTimeFilter || {}),
+        ...((where.createdAt as Prisma.DateTimeFilter) || {}),
         lte: new Date(params.createdTo),
       };
     }
@@ -787,7 +764,7 @@ export async function ticketSearchHandler(
     if (params.requiresSchemaChanges === true) {
       // Filter tickets where schemaChanges.required is true
       where.customFields = {
-        ...(where.customFields as Prisma.JsonFilter || {}),
+        ...((where.customFields as Prisma.JsonFilter) || {}),
         path: ['_implementationContext', 'schemaChanges', 'required'],
         equals: true,
       };
@@ -805,7 +782,9 @@ export async function ticketSearchHandler(
 
     // Sprint 11.7: Handle dueDate sorting with nulls
     if (sortBy === 'dueDate') {
-      orderBy = { dueDate: { sort: sortDirection, nulls: sortDirection === 'asc' ? 'last' : 'first' } };
+      orderBy = {
+        dueDate: { sort: sortDirection, nulls: sortDirection === 'asc' ? 'last' : 'first' },
+      };
     } else {
       orderBy = { [sortBy]: sortDirection };
     }
@@ -875,16 +854,10 @@ export async function ticketSearchHandler(
 /**
  * ticket.addComment - Add comment to ticket
  */
-export async function ticketAddCommentHandler(
-  input: unknown
-): Promise<TicketAddCommentOutput> {
+export async function ticketAddCommentHandler(input: unknown): Promise<TicketAddCommentOutput> {
   try {
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as TicketAddCommentInput;
@@ -956,16 +929,10 @@ export async function ticketAddCommentHandler(
 /**
  * ticket.setStatus - Update ticket status
  */
-export async function ticketSetStatusHandler(
-  input: unknown
-): Promise<TicketSetStatusOutput> {
+export async function ticketSetStatusHandler(input: unknown): Promise<TicketSetStatusOutput> {
   try {
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as TicketSetStatusInput;
@@ -1002,10 +969,12 @@ export async function ticketSetStatusHandler(
 
     // Determine if closing
     const closedStatuses = ['closed', 'resolved', 'done', 'completed', 'cancelled'];
-    const isClosing = closedStatuses.includes(params.status.toLowerCase()) &&
-                      !closedStatuses.includes(existing.status.toLowerCase());
-    const isReopening = !closedStatuses.includes(params.status.toLowerCase()) &&
-                        closedStatuses.includes(existing.status.toLowerCase());
+    const isClosing =
+      closedStatuses.includes(params.status.toLowerCase()) &&
+      !closedStatuses.includes(existing.status.toLowerCase());
+    const isReopening =
+      !closedStatuses.includes(params.status.toLowerCase()) &&
+      closedStatuses.includes(existing.status.toLowerCase());
 
     // Update status
     const ticket = await prisma.ticket.update({

@@ -42,10 +42,7 @@ export async function GET(
     const milestoneIdNum = parseInt(milestoneId, 10);
 
     if (isNaN(projectId) || isNaN(milestoneIdNum)) {
-      return NextResponse.json(
-        { error: 'Invalid project ID or milestone ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid project ID or milestone ID' }, { status: 400 });
     }
 
     // SECURITY: Validate authentication AND project access
@@ -77,10 +74,7 @@ export async function GET(
     });
 
     if (!milestone) {
-      return NextResponse.json(
-        { error: 'Milestone not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Milestone not found' }, { status: 404 });
     }
 
     return NextResponse.json({ milestone }, { status: 200 });
@@ -90,10 +84,7 @@ export async function GET(
     }
 
     console.error('GET /api/projects/[id]/milestones/[milestoneId] error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -114,10 +105,7 @@ export async function PUT(
     const milestoneIdNum = parseInt(milestoneId, 10);
 
     if (isNaN(projectId) || isNaN(milestoneIdNum)) {
-      return NextResponse.json(
-        { error: 'Invalid project ID or milestone ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid project ID or milestone ID' }, { status: 400 });
     }
 
     // SECURITY: Validate authentication AND project access
@@ -132,10 +120,7 @@ export async function PUT(
     });
 
     if (!existingMilestone) {
-      return NextResponse.json(
-        { error: 'Milestone not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Milestone not found' }, { status: 404 });
     }
 
     // Parse and validate request body
@@ -143,10 +128,7 @@ export async function PUT(
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
-        { error: 'Invalid JSON body' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
     const validationResult = updateMilestoneSchema.safeParse(body);
@@ -212,10 +194,7 @@ export async function PUT(
     }
 
     console.error('PUT /api/projects/[id]/milestones/[milestoneId] error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -237,10 +216,7 @@ export async function DELETE(
     const milestoneIdNum = parseInt(milestoneId, 10);
 
     if (isNaN(projectId) || isNaN(milestoneIdNum)) {
-      return NextResponse.json(
-        { error: 'Invalid project ID or milestone ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid project ID or milestone ID' }, { status: 400 });
     }
 
     // SECURITY: Validate authentication AND project access
@@ -258,10 +234,7 @@ export async function DELETE(
     });
 
     if (!existingMilestone) {
-      return NextResponse.json(
-        { error: 'Milestone not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Milestone not found' }, { status: 404 });
     }
 
     // Delete milestone (tickets will have milestoneId set to null via FK constraint)
@@ -282,9 +255,6 @@ export async function DELETE(
     }
 
     console.error('DELETE /api/projects/[id]/milestones/[milestoneId] error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

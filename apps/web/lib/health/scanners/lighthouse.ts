@@ -12,24 +12,20 @@
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
 import { FindingCategory, FindingSeverity, ScannerType } from '@prisma/client';
-import type {
-  Scanner,
-  ScanResult,
-  ScanOptions,
-  FindingData,
-} from './types';
+import type { Scanner, ScanResult, ScanOptions, FindingData } from './types';
 import { createSummary, ScannerError, ScannerTimeoutError } from './types';
 
 /**
  * Lighthouse audit structure (from lhr.audits)
  */
 interface LighthouseAudit {
-  id: string;                    // Audit ID (e.g., "aria-required-attr")
-  title: string;                 // Human-readable title
-  description: string;           // Detailed description
-  score: number | null;          // Score 0-1 (null if not applicable)
-  scoreDisplayMode: string;      // How to display score: 'binary' | 'numeric' | 'manual' | 'notApplicable'
-  details?: {                    // Optional details about failing elements
+  id: string; // Audit ID (e.g., "aria-required-attr")
+  title: string; // Human-readable title
+  description: string; // Detailed description
+  score: number | null; // Score 0-1 (null if not applicable)
+  scoreDisplayMode: string; // How to display score: 'binary' | 'numeric' | 'manual' | 'notApplicable'
+  details?: {
+    // Optional details about failing elements
     items?: Array<{
       node?: {
         selector?: string;
@@ -58,7 +54,7 @@ export interface LighthouseOptions extends ScanOptions {
  */
 export class LighthouseScanner implements Scanner {
   private readonly scannerType = ScannerType.LIGHTHOUSE;
-  private readonly category = FindingCategory.PERFORMANCE;  // Lighthouse provides both performance + a11y
+  private readonly category = FindingCategory.PERFORMANCE; // Lighthouse provides both performance + a11y
 
   /**
    * Execute Lighthouse scan on the given project's web pages
@@ -70,7 +66,7 @@ export class LighthouseScanner implements Scanner {
 
     try {
       // Scan base URL (and additional pages if specified)
-      const pagesToScan = [baseUrl, ...(options?.pages?.map(p => `${baseUrl}${p}`) ?? [])];
+      const pagesToScan = [baseUrl, ...(options?.pages?.map((p) => `${baseUrl}${p}`) ?? [])];
       const allFindings: FindingData[] = [];
 
       for (const url of pagesToScan) {
@@ -135,24 +131,30 @@ export class LighthouseScanner implements Scanner {
       };
 
       // Run Lighthouse with timeout
-      const lighthousePromise = lighthouse(url, {
-        port: chrome.port,
-        output: 'json',
-        logLevel: 'error',
-      }, config as any);
+      const lighthousePromise = lighthouse(
+        url,
+        {
+          port: chrome.port,
+          output: 'json',
+          logLevel: 'error',
+        },
+        config as any
+      );
 
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new ScannerTimeoutError(this.scannerType, timeout)), timeout)
       );
 
-      const result = await Promise.race([lighthousePromise, timeoutPromise]) as any;
+      const result = (await Promise.race([lighthousePromise, timeoutPromise])) as any;
 
       if (!result || !result.lhr) {
         throw new Error('Lighthouse returned no results');
       }
 
       // Extract accessibility audits
-      const accessibilityAudits = this.filterAccessibilityAudits(result.lhr.audits as Record<string, LighthouseAudit>);
+      const accessibilityAudits = this.filterAccessibilityAudits(
+        result.lhr.audits as Record<string, LighthouseAudit>
+      );
 
       // Convert to FindingData
       return this.convertAudits(accessibilityAudits, url);
@@ -208,10 +210,10 @@ export class LighthouseScanner implements Scanner {
 
       return {
         ruleId: `lighthouse.${audit.id}`,
-        severity: FindingSeverity.MEDIUM,  // All Lighthouse failures → MEDIUM
+        severity: FindingSeverity.MEDIUM, // All Lighthouse failures → MEDIUM
         message: audit.title,
-        filePath: url,                     // URL is the "file" for page-level findings
-        lineNumber: null,                  // Page-level finding (no line number)
+        filePath: url, // URL is the "file" for page-level findings
+        lineNumber: null, // Page-level finding (no line number)
         codeSnippet: codeSnippet?.trim(),
       };
     });

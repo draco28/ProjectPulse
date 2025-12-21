@@ -27,8 +27,8 @@ import Link from 'next/link';
 // Loading fallback component
 function LoadingFallback() {
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl flex items-center justify-center min-h-[60vh]">
-      <Loader2 className="h-8 w-8 animate-spin text-coral-500" />
+    <div className="container mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4 py-8">
+      <Loader2 className="text-coral-500 h-8 w-8 animate-spin" />
     </div>
   );
 }
@@ -49,11 +49,11 @@ function Session3Content() {
   const projectId = projectIdParam ? parseInt(projectIdParam, 10) : 1;
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
+    <div className="container mx-auto max-w-4xl px-4 py-8">
       {/* Page Header with Back Button */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-4">AI Workflow Setup</h1>
+          <h1 className="mb-4 text-4xl font-bold text-white">AI Workflow Setup</h1>
           <p className="text-lg text-slate">
             Configure agent personas, skills, workflows, and SOPs for your project.
           </p>
@@ -80,81 +80,79 @@ function Session3Content() {
         <CardContent>
           <div className="space-y-4 font-mono text-sm">
             {/* Step 1: Personas */}
-            <div className="p-4 rounded-lg bg-slate-900/50 border border-slate-700">
-              <div className="flex items-center gap-2 mb-2">
+            <div className="rounded-lg border border-slate-700 bg-slate-900/50 p-4">
+              <div className="mb-2 flex items-center gap-2">
                 <span className="text-coral-500 font-bold">1.</span>
-                <Bot className="h-4 w-4 text-coral-500" />
-                <span className="text-white font-semibold">Create Agent Personas</span>
-                <span className="text-xs text-slate ml-auto">(Required)</span>
+                <Bot className="text-coral-500 h-4 w-4" />
+                <span className="font-semibold text-white">Create Agent Personas</span>
+                <span className="ml-auto text-xs text-slate">(Required)</span>
               </div>
-              <code className="text-green-400 block mt-2">
+              <code className="mt-2 block text-green-400">
                 projectpulse_batch_createAgentPersonas({'{ personas: [...] }'})
               </code>
-              <p className="text-xs text-slate mt-2">
+              <p className="mt-2 text-xs text-slate">
                 Create 1-10 expert personas tailored to your tech stack
               </p>
             </div>
 
             {/* Step 2: Skills */}
-            <div className="p-4 rounded-lg bg-slate-900/50 border border-slate-700">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-blue-500 font-bold">2.</span>
+            <div className="rounded-lg border border-slate-700 bg-slate-900/50 p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="font-bold text-blue-500">2.</span>
                 <Book className="h-4 w-4 text-blue-500" />
-                <span className="text-white font-semibold">Create Skills</span>
-                <span className="text-xs text-slate ml-auto">(Optional)</span>
+                <span className="font-semibold text-white">Create Skills</span>
+                <span className="ml-auto text-xs text-slate">(Optional)</span>
               </div>
-              <code className="text-green-400 block mt-2">
+              <code className="mt-2 block text-green-400">
                 projectpulse_batch_createSkills({'{ skills: [...] }'})
               </code>
-              <p className="text-xs text-slate mt-2">
-                Define coding patterns and best practices
-              </p>
+              <p className="mt-2 text-xs text-slate">Define coding patterns and best practices</p>
             </div>
 
             {/* Step 3: Workflows */}
-            <div className="p-4 rounded-lg bg-slate-900/50 border border-slate-700">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-purple-500 font-bold">3.</span>
+            <div className="rounded-lg border border-slate-700 bg-slate-900/50 p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="font-bold text-purple-500">3.</span>
                 <Workflow className="h-4 w-4 text-purple-500" />
-                <span className="text-white font-semibold">Create Workflow Templates</span>
-                <span className="text-xs text-slate ml-auto">(Optional)</span>
+                <span className="font-semibold text-white">Create Workflow Templates</span>
+                <span className="ml-auto text-xs text-slate">(Optional)</span>
               </div>
-              <code className="text-green-400 block mt-2">
+              <code className="mt-2 block text-green-400">
                 projectpulse_batch_createWorkflowTemplates({'{ workflows: [...] }'})
               </code>
-              <p className="text-xs text-slate mt-2">
+              <p className="mt-2 text-xs text-slate">
                 Define process templates for feature dev, bug fix, etc.
               </p>
             </div>
 
             {/* Step 4: SOPs */}
-            <div className="p-4 rounded-lg bg-slate-900/50 border border-slate-700">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-green-500 font-bold">4.</span>
+            <div className="rounded-lg border border-slate-700 bg-slate-900/50 p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="font-bold text-green-500">4.</span>
                 <FileText className="h-4 w-4 text-green-500" />
-                <span className="text-white font-semibold">Create SOPs</span>
-                <span className="text-xs text-slate ml-auto">(Optional)</span>
+                <span className="font-semibold text-white">Create SOPs</span>
+                <span className="ml-auto text-xs text-slate">(Optional)</span>
               </div>
-              <code className="text-green-400 block mt-2">
+              <code className="mt-2 block text-green-400">
                 projectpulse_batch_createSOPs({'{ sops: [...] }'})
               </code>
-              <p className="text-xs text-slate mt-2">
+              <p className="mt-2 text-xs text-slate">
                 Standard operating procedures for common tasks
               </p>
             </div>
 
             {/* Step 5: Sync */}
-            <div className="p-4 rounded-lg bg-slate-900/50 border border-green-500/30">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-green-400 font-bold">5.</span>
+            <div className="rounded-lg border border-green-500/30 bg-slate-900/50 p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="font-bold text-green-400">5.</span>
                 <CheckCircle2 className="h-4 w-4 text-green-400" />
-                <span className="text-white font-semibold">Mark Session Complete</span>
-                <span className="text-xs text-green-400 ml-auto">(Required)</span>
+                <span className="font-semibold text-white">Mark Session Complete</span>
+                <span className="ml-auto text-xs text-green-400">(Required)</span>
               </div>
-              <code className="text-green-400 block mt-2">
+              <code className="mt-2 block text-green-400">
                 projectpulse_onboarding_syncSession3()
               </code>
-              <p className="text-xs text-slate mt-2">
+              <p className="mt-2 text-xs text-slate">
                 Validates artifacts and marks Session 3 as complete
               </p>
             </div>
@@ -173,7 +171,7 @@ function Session3Content() {
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
-              <Bot className="h-5 w-5 text-coral-500 mt-0.5" />
+              <Bot className="text-coral-500 mt-0.5 h-5 w-5" />
               <div>
                 <p className="text-sm font-medium text-white">Agent Personas</p>
                 <p className="text-xs text-slate">Expert AI assistants for your tech stack</p>
@@ -181,7 +179,7 @@ function Session3Content() {
             </div>
 
             <div className="flex items-start gap-3">
-              <Book className="h-5 w-5 text-blue-500 mt-0.5" />
+              <Book className="mt-0.5 h-5 w-5 text-blue-500" />
               <div>
                 <p className="text-sm font-medium text-white">Skills Library</p>
                 <p className="text-xs text-slate">Coding patterns and best practices</p>
@@ -189,7 +187,7 @@ function Session3Content() {
             </div>
 
             <div className="flex items-start gap-3">
-              <Workflow className="h-5 w-5 text-purple-500 mt-0.5" />
+              <Workflow className="mt-0.5 h-5 w-5 text-purple-500" />
               <div>
                 <p className="text-sm font-medium text-white">Workflow Templates</p>
                 <p className="text-xs text-slate">Feature dev, bug fix, code review</p>
@@ -197,7 +195,7 @@ function Session3Content() {
             </div>
 
             <div className="flex items-start gap-3">
-              <FileText className="h-5 w-5 text-green-500 mt-0.5" />
+              <FileText className="mt-0.5 h-5 w-5 text-green-500" />
               <div>
                 <p className="text-sm font-medium text-white">SOPs</p>
                 <p className="text-xs text-slate">Git, security, testing procedures</p>
@@ -224,9 +222,7 @@ function Session3Content() {
           </Button>
 
           <Button asChild variant="outline" className="w-full">
-            <Link href={`/dashboard?project=${projectId}`}>
-              Go to Dashboard
-            </Link>
+            <Link href={`/dashboard?project=${projectId}`}>Go to Dashboard</Link>
           </Button>
         </CardContent>
       </Card>

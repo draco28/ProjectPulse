@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body = await request.json();
-    
+
     // Authenticate and validate project access
     const requestedProjectId = body.projectId ? parseInt(body.projectId, 10) : undefined;
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('Error creating wiki page:', error);
     return NextResponse.json(
       {
@@ -148,11 +148,13 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
-    
+    const requestedProjectId = searchParams.get('projectId')
+      ? parseInt(searchParams.get('projectId')!, 10)
+      : undefined;
+
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
-    
+
     const category = searchParams.get('category');
     const search = searchParams.get('search')?.trim();
     const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '10', 10), 1), 50);
@@ -203,7 +205,7 @@ export async function GET(request: NextRequest) {
             ${categoryCondition}
             ORDER BY rank DESC, "updatedAt" DESC
             LIMIT ${limit} OFFSET ${offset};
-          `,
+          `
         ),
         prisma.$queryRaw<Array<{ count: number }>>(
           Prisma.sql`
@@ -211,7 +213,7 @@ export async function GET(request: NextRequest) {
             FROM "WikiPage"
             WHERE "content_tsv" @@ ${tsQuery}
             ${categoryCondition};
-          `,
+          `
         ),
       ]);
 
@@ -273,7 +275,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('Error fetching wiki pages:', error);
     return NextResponse.json(
       {

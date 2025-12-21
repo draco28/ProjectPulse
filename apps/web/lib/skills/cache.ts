@@ -332,10 +332,7 @@ export class SkillsCache {
   private cache: LRUCache<CachedSkill>;
 
   constructor() {
-    this.cache = new LRUCache<CachedSkill>(
-      CACHE_CONFIG.MAX_ENTRIES,
-      CACHE_CONFIG.TTL_MS
-    );
+    this.cache = new LRUCache<CachedSkill>(CACHE_CONFIG.MAX_ENTRIES, CACHE_CONFIG.TTL_MS);
 
     console.log(
       `[SkillsCache] Initialized singleton (TTL: ${CACHE_CONFIG.TTL_SECONDS}s, max: ${CACHE_CONFIG.MAX_ENTRIES} entries)`

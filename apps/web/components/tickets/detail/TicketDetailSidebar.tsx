@@ -43,7 +43,9 @@ export function TicketDetailSidebar({
   const [labels, setLabels] = useState(initialLabels);
 
   // Sprint 11.7: Handler to convert LabelPicker output to LabelProps format
-  const handleLabelsChange = (newLabels: Array<{ id: string | number; name: string; color: string }>) => {
+  const handleLabelsChange = (
+    newLabels: Array<{ id: string | number; name: string; color: string }>
+  ) => {
     setLabels(newLabels.map((l) => ({ ...l, id: String(l.id) })));
   };
 
@@ -118,7 +120,7 @@ export function TicketDetailSidebar({
             {milestone ? (
               <span className="text-sm text-white">{milestone.name}</span>
             ) : (
-              <span className="text-sm text-slate italic">No milestone</span>
+              <span className="text-sm italic text-slate">No milestone</span>
             )}
           </div>
 
@@ -134,7 +136,9 @@ export function TicketDetailSidebar({
                 ) : (
                   <Calendar className="h-4 w-4 text-coral" aria-hidden="true" />
                 )}
-                <span className={`text-sm ${isOverdue ? 'font-semibold text-red-400' : 'text-white'}`}>
+                <span
+                  className={`text-sm ${isOverdue ? 'font-semibold text-red-400' : 'text-white'}`}
+                >
                   {formatDueDate(dueDate)}
                   {isOverdue && <span className="ml-2 text-xs">(Overdue)</span>}
                 </span>
@@ -142,7 +146,7 @@ export function TicketDetailSidebar({
             ) : (
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-slate" aria-hidden="true" />
-                <span className="text-sm text-slate italic">No due date</span>
+                <span className="text-sm italic text-slate">No due date</span>
               </div>
             )}
           </div>

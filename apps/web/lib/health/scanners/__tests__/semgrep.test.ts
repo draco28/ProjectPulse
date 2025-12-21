@@ -77,14 +77,18 @@ describe('SemgrepScanner', () => {
 
       // Verify second finding (SQL injection - ERROR severity)
       const sqlFinding = result.findings[1];
-      expect(sqlFinding.ruleId).toBe('semgrep.javascript.lang.security.audit.sql-injection.pg-sqli');
+      expect(sqlFinding.ruleId).toBe(
+        'semgrep.javascript.lang.security.audit.sql-injection.pg-sqli'
+      );
       expect(sqlFinding.severity).toBe(FindingSeverity.CRITICAL); // ERROR → CRITICAL
       expect(sqlFinding.message).toContain('Potential SQL injection');
       expect(sqlFinding.lineNumber).toBe(128);
 
       // Verify third finding (Hardcoded credentials - WARNING severity)
       const credFinding = result.findings[2];
-      expect(credFinding.ruleId).toBe('semgrep.javascript.lang.security.audit.hardcoded-credentials');
+      expect(credFinding.ruleId).toBe(
+        'semgrep.javascript.lang.security.audit.hardcoded-credentials'
+      );
       expect(credFinding.severity).toBe(FindingSeverity.HIGH); // WARNING → HIGH
       expect(credFinding.message).toContain('Hardcoded credential');
 
@@ -105,21 +109,21 @@ describe('SemgrepScanner', () => {
             path: 'test.ts',
             start: { line: 1, col: 1 },
             end: { line: 1, col: 10 },
-            extra: { message: 'Error level', severity: 'ERROR' }
+            extra: { message: 'Error level', severity: 'ERROR' },
           },
           {
             check_id: 'test.warning',
             path: 'test.ts',
             start: { line: 2, col: 1 },
             end: { line: 2, col: 10 },
-            extra: { message: 'Warning level', severity: 'WARNING' }
+            extra: { message: 'Warning level', severity: 'WARNING' },
           },
           {
             check_id: 'test.info',
             path: 'test.ts',
             start: { line: 3, col: 1 },
             end: { line: 3, col: 10 },
-            extra: { message: 'Info level', severity: 'INFO' }
+            extra: { message: 'Info level', severity: 'INFO' },
           },
         ],
         errors: [],
@@ -130,8 +134,8 @@ describe('SemgrepScanner', () => {
       const result = await scanner.scan('/fake/path');
 
       expect(result.findings[0].severity).toBe(FindingSeverity.CRITICAL); // ERROR
-      expect(result.findings[1].severity).toBe(FindingSeverity.HIGH);     // WARNING
-      expect(result.findings[2].severity).toBe(FindingSeverity.MEDIUM);   // INFO
+      expect(result.findings[1].severity).toBe(FindingSeverity.HIGH); // WARNING
+      expect(result.findings[2].severity).toBe(FindingSeverity.MEDIUM); // INFO
     });
 
     it('should generate accurate summary with counts by severity', async () => {
@@ -162,14 +166,16 @@ describe('SemgrepScanner', () => {
 
       // Should throw ScannerError
       await expect(scanner.scan('/fake/path')).rejects.toThrow(ScannerError);
-      await expect(scanner.scan('/fake/path')).rejects.toThrow('Failed to parse Semgrep JSON output');
+      await expect(scanner.scan('/fake/path')).rejects.toThrow(
+        'Failed to parse Semgrep JSON output'
+      );
     });
 
     it('should handle empty results gracefully', async () => {
       const emptyOutput = {
         results: [],
         errors: [],
-        paths: { scanned: [] }
+        paths: { scanned: [] },
       };
 
       mockSpawn.mockReturnValue(createMockSpawn(JSON.stringify(emptyOutput)));
@@ -194,7 +200,9 @@ describe('SemgrepScanner', () => {
       mockSpawn.mockReturnValue(mockProcess);
 
       // Execute scan with 100ms timeout
-      await expect(scanner.scan('/fake/path', { timeout: 100 })).rejects.toThrow(ScannerTimeoutError);
+      await expect(scanner.scan('/fake/path', { timeout: 100 })).rejects.toThrow(
+        ScannerTimeoutError
+      );
     }, 5000);
   });
 
@@ -222,7 +230,7 @@ describe('SemgrepScanner', () => {
       });
 
       await scanner.scan('/fake/path', {
-        exclude: ['node_modules/**', '*.test.ts']
+        exclude: ['node_modules/**', '*.test.ts'],
       });
 
       expect(capturedArgs).toContain('--exclude');

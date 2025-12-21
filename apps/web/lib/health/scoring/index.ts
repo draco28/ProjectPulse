@@ -46,8 +46,4 @@ export {
 } from './types';
 
 // Export calculator functions
-export {
-  calculateHealthScore,
-  calculateCategoryScore,
-  assignGrade,
-} from './calculator';
+export { calculateHealthScore, calculateCategoryScore, assignGrade } from './calculator';

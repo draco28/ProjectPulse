@@ -31,11 +31,7 @@ interface RoadmapTimelineProps {
   currentSprint?: string | null;
 }
 
-export function RoadmapTimeline({
-  phases,
-  currentPhase,
-  currentSprint,
-}: RoadmapTimelineProps) {
+export function RoadmapTimeline({ phases, currentPhase, currentSprint }: RoadmapTimelineProps) {
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(
     new Set(phases.map((p) => p.id))
   );
@@ -101,9 +97,9 @@ export function RoadmapTimeline({
   }
 
   return (
-    <div className="neu-raised rounded-3xl overflow-hidden">
+    <div className="neu-raised overflow-hidden rounded-3xl">
       {/* Legend */}
-      <div className="px-6 py-4 border-b border-dark-pressed">
+      <div className="border-b border-dark-pressed px-6 py-4">
         <TimelineLegend />
       </div>
 
@@ -146,8 +142,7 @@ export function RoadmapTimeline({
                   {/* Sprint Rows (if expanded) */}
                   {isExpanded &&
                     phase.sprints?.map((sprint) => {
-                      const isCurrentSprint =
-                        isCurrent && sprint.title === currentSprint;
+                      const isCurrentSprint = isCurrent && sprint.title === currentSprint;
 
                       return (
                         <TimelineRow
@@ -155,9 +150,7 @@ export function RoadmapTimeline({
                           type="sprint"
                           id={sprint.id}
                           title={sprint.title}
-                          startDate={
-                            sprint.startDate ? new Date(sprint.startDate) : startDate
-                          }
+                          startDate={sprint.startDate ? new Date(sprint.startDate) : startDate}
                           endDate={sprint.endDate ? new Date(sprint.endDate) : endDate}
                           progress={sprint.progress}
                           status={sprint.status}
@@ -176,8 +169,8 @@ export function RoadmapTimeline({
       </div>
 
       {/* Footer info */}
-      <div className="px-6 py-3 border-t border-dark-pressed bg-dark-pressed/30">
-        <p className="text-xs text-slate text-center">
+      <div className="border-t border-dark-pressed bg-dark-pressed/30 px-6 py-3">
+        <p className="text-center text-xs text-slate">
           Timeline: {format(startDate, 'MMM d, yyyy')} → {format(endDate, 'MMM d, yyyy')} •{' '}
           {totalDays} days • {phases.length} phase{phases.length !== 1 ? 's' : ''}
         </p>

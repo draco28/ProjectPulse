@@ -60,12 +60,7 @@ interface WikiEditorProps {
   onCancelPath: string; // Path to redirect to on cancel
 }
 
-export function WikiEditor({
-  mode,
-  initialData,
-  onSave,
-  onCancelPath,
-}: WikiEditorProps) {
+export function WikiEditor({ mode, initialData, onSave, onCancelPath }: WikiEditorProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -76,9 +71,10 @@ export function WikiEditor({
   const form = useForm<CreateWikiPageInput | UpdateWikiPageInput>({
     resolver: (mode === 'create'
       ? zodResolver(createWikiPageSchema)
-      : zodResolver(updateWikiPageSchema)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
+      : zodResolver(
+          updateWikiPageSchema
+        )) as // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any,
     mode: 'onBlur', // Validate on blur for better performance
     defaultValues: {
       title: initialData?.title || '',
@@ -88,7 +84,13 @@ export function WikiEditor({
       excerpt: initialData?.excerpt || '',
     },
   });
-  const { control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = form;
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isDirty },
+  } = form;
 
   // Watch form fields for auto-path generation and unsaved changes
   const titleValue = watch('title');
@@ -163,9 +165,7 @@ export function WikiEditor({
   // Handle cancel with unsaved changes warning
   const handleCancel = useCallback(() => {
     if (hasUnsavedChanges) {
-      const confirmed = window.confirm(
-        'You have unsaved changes. Are you sure you want to leave?'
-      );
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?');
       if (!confirmed) return;
     }
     router.push(onCancelPath);
@@ -192,12 +192,7 @@ export function WikiEditor({
           {mode === 'create' ? 'Create New Wiki Page' : 'Edit Wiki Page'}
         </h1>
         <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleCancel}
-            disabled={isSaving}
-          >
+          <Button type="button" variant="outline" onClick={handleCancel} disabled={isSaving}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSaving}>
@@ -210,7 +205,9 @@ export function WikiEditor({
       <div className="grid gap-6 md:grid-cols-2">
         {/* Title */}
         <div className="md:col-span-2">
-          <label htmlFor="title" className="block text-sm font-medium mb-2">Title *</label>
+          <label htmlFor="title" className="mb-2 block text-sm font-medium">
+            Title *
+          </label>
           <Controller
             name="title"
             control={control}
@@ -223,15 +220,15 @@ export function WikiEditor({
               />
             )}
           />
-          {errors.title && (
-            <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
-          )}
+          {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>}
         </div>
 
         {/* Path */}
         {mode === 'create' && (
           <div>
-            <label htmlFor="path" className="block text-sm font-medium mb-2">Path *</label>
+            <label htmlFor="path" className="mb-2 block text-sm font-medium">
+              Path *
+            </label>
             <Controller
               name="path"
               control={control}
@@ -251,21 +248,19 @@ export function WikiEditor({
         )}
         {mode === 'edit' && (
           <div>
-            <label htmlFor="path" className="block text-sm font-medium mb-2">Path</label>
-            <Input
-              value={initialData?.path || ''}
-              disabled
-              className="bg-gray-100"
-            />
-            <p className="mt-1 text-sm text-gray-500">
-              Path cannot be changed after creation
-            </p>
+            <label htmlFor="path" className="mb-2 block text-sm font-medium">
+              Path
+            </label>
+            <Input value={initialData?.path || ''} disabled className="bg-gray-100" />
+            <p className="mt-1 text-sm text-gray-500">Path cannot be changed after creation</p>
           </div>
         )}
 
         {/* Category */}
         <div>
-          <label htmlFor="category" className="block text-sm font-medium mb-2">Category *</label>
+          <label htmlFor="category" className="mb-2 block text-sm font-medium">
+            Category *
+          </label>
           <Controller
             name="category"
             control={control}
@@ -273,7 +268,7 @@ export function WikiEditor({
               <select
                 {...field}
                 id="category"
-                className={`w-full px-3 py-2 border rounded-md ${errors.category ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full rounded-md border px-3 py-2 ${errors.category ? 'border-red-500' : 'border-gray-300'}`}
               >
                 {wikiCategories.map((category) => (
                   <option key={category} value={category}>
@@ -293,7 +288,9 @@ export function WikiEditor({
 
         {/* Excerpt (Optional) */}
         <div className="md:col-span-2">
-          <label htmlFor="excerpt" className="block text-sm font-medium mb-2">Excerpt (Optional)</label>
+          <label htmlFor="excerpt" className="mb-2 block text-sm font-medium">
+            Excerpt (Optional)
+          </label>
           <Controller
             name="excerpt"
             control={control}
@@ -306,9 +303,7 @@ export function WikiEditor({
               />
             )}
           />
-          {errors.excerpt && (
-            <p className="mt-1 text-sm text-red-500">{errors.excerpt.message}</p>
-          )}
+          {errors.excerpt && <p className="mt-1 text-sm text-red-500">{errors.excerpt.message}</p>}
         </div>
       </div>
 
@@ -318,31 +313,25 @@ export function WikiEditor({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium">Content * (Markdown)</label>
-            <span className="text-sm text-gray-500">
-              {contentValue?.length || 0} characters
-            </span>
+            <span className="text-sm text-gray-500">{contentValue?.length || 0} characters</span>
           </div>
-          <div className="rounded-lg border border-gray-300 bg-white p-4 neu-raised min-h-[500px]">
+          <div className="neu-raised min-h-[500px] rounded-lg border border-gray-300 bg-white p-4">
             {editor && <EditorContent editor={editor} />}
           </div>
-          {errors.content && (
-            <p className="text-sm text-red-500">{errors.content.message}</p>
-          )}
+          {errors.content && <p className="text-sm text-red-500">{errors.content.message}</p>}
         </div>
 
         {/* Preview Panel */}
         <div className="space-y-3">
-          <label className="block text-sm font-medium mb-2">Preview</label>
-          <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 neu-inset min-h-[500px] overflow-auto">
+          <label className="mb-2 block text-sm font-medium">Preview</label>
+          <div className="neu-inset min-h-[500px] overflow-auto rounded-lg border border-gray-300 bg-gray-50 p-4">
             {previewContent ? (
               <div
                 className="prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: previewContent }}
               />
             ) : (
-              <p className="text-gray-400 text-sm">
-                Start typing to see preview...
-              </p>
+              <p className="text-sm text-gray-400">Start typing to see preview...</p>
             )}
           </div>
         </div>
@@ -350,10 +339,8 @@ export function WikiEditor({
 
       {/* Unsaved Changes Warning */}
       {hasUnsavedChanges && (
-        <div className="rounded-md bg-yellow-50 border border-yellow-200 p-3">
-          <p className="text-sm text-yellow-800">
-            ⚠️ You have unsaved changes
-          </p>
+        <div className="rounded-md border border-yellow-200 bg-yellow-50 p-3">
+          <p className="text-sm text-yellow-800">⚠️ You have unsaved changes</p>
         </div>
       )}
     </form>

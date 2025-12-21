@@ -1,14 +1,14 @@
 /**
  * GET /api/onboarding/questions
- * 
+ *
  * Sprint 8.6 Phase 1 - Session 1 Questions API
- * 
+ *
  * Fetch onboarding questions for a specific phase (1-10)
- * 
+ *
  * Query Parameters:
  * - projectId: number (required) - Project ID
  * - phase: number (required) - Phase number (1-10)
- * 
+ *
  * Response:
  * - 200: Questions for the phase grouped by subsection
  * - 400: Validation error (missing/invalid parameters)
@@ -29,7 +29,7 @@ const PHASE_NAMES: Record<number, string> = {
   7: 'Frontend Development',
   8: 'QA & Testing',
   9: 'Production Deployment',
-  10: 'Security & Compliance'
+  10: 'Security & Compliance',
 };
 
 export async function GET(request: NextRequest) {
@@ -37,37 +37,25 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const projectIdParam = searchParams.get('projectId');
     const phaseParam = searchParams.get('phase');
-    
+
     // Validation
     if (!projectIdParam) {
-      return NextResponse.json(
-        { error: 'projectId query parameter required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'projectId query parameter required' }, { status: 400 });
     }
-    
+
     if (!phaseParam) {
-      return NextResponse.json(
-        { error: 'phase query parameter required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'phase query parameter required' }, { status: 400 });
     }
-    
+
     const projectId = parseInt(projectIdParam, 10);
     const phase = parseInt(phaseParam, 10);
-    
+
     if (isNaN(projectId) || projectId <= 0) {
-      return NextResponse.json(
-        { error: 'projectId must be a positive integer' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'projectId must be a positive integer' }, { status: 400 });
     }
-    
+
     if (isNaN(phase) || phase < 1 || phase > 10) {
-      return NextResponse.json(
-        { error: 'phase must be between 1 and 10' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'phase must be between 1 and 10' }, { status: 400 });
     }
 
     // Sprint 12: Require authentication (session OR bearer token)
@@ -76,10 +64,7 @@ export async function GET(request: NextRequest) {
     // Fetch questions from database
     const questions = await prisma.onboardingQuestion.findMany({
       where: { phase },
-      orderBy: [
-        { subsection: 'asc' },
-        { questionNumber: 'asc' }
-      ],
+      orderBy: [{ subsection: 'asc' }, { questionNumber: 'asc' }],
       select: {
         id: true,
         phase: true,
@@ -91,27 +76,27 @@ export async function GET(request: NextRequest) {
         validationType: true,
         isRequired: true,
         minLength: true,
-        maxLength: true
-      }
+        maxLength: true,
+      },
     });
-    
+
     if (questions.length === 0) {
       return NextResponse.json(
         { error: `No questions found for phase ${phase}. Questions may not be seeded yet.` },
         { status: 404 }
       );
     }
-    
+
     // Group by subsection
     const subsectionsMap: Record<string, typeof questions> = {};
-    
+
     questions.forEach((q) => {
       if (!subsectionsMap[q.subsection]) {
         subsectionsMap[q.subsection] = [];
       }
       subsectionsMap[q.subsection]!.push(q);
     });
-    
+
     const subsections = Object.entries(subsectionsMap).map(([subsectionName, subQuestions]) => ({
       id: subsectionName,
       name: subsectionName,
@@ -124,17 +109,16 @@ export async function GET(request: NextRequest) {
         validationType: q.validationType,
         isRequired: q.isRequired,
         minLength: q.minLength,
-        maxLength: q.maxLength
-      }))
+        maxLength: q.maxLength,
+      })),
     }));
-    
+
     return NextResponse.json({
       phase,
       phaseName: PHASE_NAMES[phase] || `Phase ${phase}`,
       subsections,
-      totalQuestions: questions.length
+      totalQuestions: questions.length,
     });
-    
   } catch (error) {
     console.error('[GET /api/onboarding/questions] Error:', error);
 
@@ -146,7 +130,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Failed to fetch questions',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

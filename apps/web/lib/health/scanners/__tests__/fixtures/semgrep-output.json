@@ -104,10 +104,6 @@
   ],
   "errors": [],
   "paths": {
-    "scanned": [
-      "apps/web/app/",
-      "apps/web/lib/",
-      "apps/web/components/"
-    ]
+    "scanned": ["apps/web/app/", "apps/web/lib/", "apps/web/components/"]
   }
 }

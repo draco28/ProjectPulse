@@ -1,6 +1,6 @@
 /**
  * Command Palette - Barrel Export
- * 
+ *
  * Centralized exports for command palette components
  */
 

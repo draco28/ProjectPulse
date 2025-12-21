@@ -1,9 +1,9 @@
 /**
  * Repository Files Generation for Session 3 Onboarding
- * 
+ *
  * Purpose: Generate CLAUDE.md and AGENTS.md for user's repository
  * Used by: Bootstrap API route
- * 
+ *
  * Architecture: Template-based (variable substitution, NO AI generation)
  */
 
@@ -16,19 +16,16 @@ import * as path from 'path';
 
 /**
  * Generate CLAUDE.md content
- * 
+ *
  * @param projectName - Project name
  * @param agentPersonas - Array of agent personas
  * @returns Markdown content for CLAUDE.md
  */
-export function generateCLAUDEmd(
-  projectName: string,
-  agentPersonas: any[]
-): string {
+export function generateCLAUDEmd(projectName: string, agentPersonas: any[]): string {
   const agentsList = agentPersonas
-    .map(agent => `- **${agent.name}** (\`${agent.slug}\`) ${agent.icon} - ${agent.description}`)
+    .map((agent) => `- **${agent.name}** (\`${agent.slug}\`) ${agent.icon} - ${agent.description}`)
     .join('\n');
-  
+
   return `
 # ${projectName} - Claude Code Integration Guide
 
@@ -276,16 +273,15 @@ Use ProjectPulse to track your development journey and leverage AI agents for ex
 
 /**
  * Generate AGENTS.md content
- * 
+ *
  * @param projectName - Project name
  * @param agentPersonas - Array of agent personas
  * @returns Markdown content for AGENTS.md
  */
-export function generateAGENTSmd(
-  projectName: string,
-  agentPersonas: any[]
-): string {
-  const agentSections = agentPersonas.map(agent => `
+export function generateAGENTSmd(projectName: string, agentPersonas: any[]): string {
+  const agentSections = agentPersonas
+    .map(
+      (agent) => `
 ### ${agent.icon} ${agent.name}
 
 **Slug**: \`${agent.slug}\`
@@ -304,8 +300,10 @@ projectpulse.agent.invoke({
   question: 'Your question here...'
 })
 \`\`\`
-  `).join('\n---\n');
-  
+  `
+    )
+    .join('\n---\n');
+
   return `
 # ${projectName} - Available Agent Personas
 
@@ -392,7 +390,7 @@ For more information, see **CLAUDE.md** in this repository.
 
 /**
  * Write CLAUDE.md and AGENTS.md to user's repository
- * 
+ *
  * @param repoPath - Absolute path to user's repository
  * @param projectName - Project name
  * @param agentPersonas - Array of agent personas
@@ -406,19 +404,19 @@ export async function writeRepoFiles(
   console.log('[Session 3] Writing repo files', {
     repoPath,
     projectName,
-    agentCount: agentPersonas.length
+    agentCount: agentPersonas.length,
   });
-  
+
   const results = {
     claudeMd: false,
-    agentsMd: false
+    agentsMd: false,
   };
-  
+
   try {
     // Generate content
     const claudeContent = generateCLAUDEmd(projectName, agentPersonas);
     const agentsContent = generateAGENTSmd(projectName, agentPersonas);
-    
+
     // Write CLAUDE.md
     try {
       const claudePath = path.join(repoPath, 'CLAUDE.md');
@@ -428,7 +426,7 @@ export async function writeRepoFiles(
     } catch (error) {
       console.error('[Session 3] Failed to write CLAUDE.md:', error);
     }
-    
+
     // Write AGENTS.md
     try {
       const agentsPath = path.join(repoPath, 'AGENTS.md');
@@ -438,10 +436,9 @@ export async function writeRepoFiles(
     } catch (error) {
       console.error('[Session 3] Failed to write AGENTS.md:', error);
     }
-    
+
     console.log('[Session 3] Repo files written:', results);
     return results;
-    
   } catch (error) {
     console.error('[Session 3] Failed to write repo files:', error);
     return results;

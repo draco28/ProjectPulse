@@ -41,7 +41,7 @@ export function DocumentCard({
   return (
     <Card className={cn('neu-raised smooth-transition', isGenerated && 'border-green-500/20')}>
       <CardHeader>
-        <div className="flex items-start justify-between mb-2">
+        <div className="mb-2 flex items-start justify-between">
           <div className="icon-coral flex h-10 w-10 items-center justify-center rounded-xl shadow-md">
             <FileText className="h-5 w-5 text-white" />
           </div>
@@ -56,8 +56,8 @@ export function DocumentCard({
               {category}
             </Badge>
             {isGenerated && (
-              <Badge className="bg-green-500/20 text-green-400 text-xs">
-                <Check className="h-3 w-3 mr-1" />
+              <Badge className="bg-green-500/20 text-xs text-green-400">
+                <Check className="mr-1 h-3 w-3" />
                 Complete
               </Badge>
             )}
@@ -83,28 +83,18 @@ export function DocumentCard({
             {isGenerated ? (
               <>
                 {onView && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onView}
-                    className="flex-1"
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
+                  <Button variant="outline" size="sm" onClick={onView} className="flex-1">
+                    <Eye className="mr-1 h-4 w-4" />
                     View
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onGenerate}
-                  className="flex-1"
-                >
+                <Button variant="outline" size="sm" onClick={onGenerate} className="flex-1">
                   Regenerate
                 </Button>
               </>
             ) : (
               <Button size="sm" onClick={onGenerate} className="w-full">
-                <Sparkles className="h-4 w-4 mr-1" />
+                <Sparkles className="mr-1 h-4 w-4" />
                 Generate
               </Button>
             )}

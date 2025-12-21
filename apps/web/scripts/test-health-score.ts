@@ -13,7 +13,7 @@ import type { FindingData } from '../lib/health/scanners/types';
 import { calculateHealthScore } from '../lib/health/scoring';
 
 console.log('🧪 Health Score Calculator - Manual Integration Test\n');
-console.log('=' .repeat(70));
+console.log('='.repeat(70));
 console.log('\n');
 
 /**
@@ -183,7 +183,7 @@ console.log('\n');
 /**
  * Summary
  */
-console.log('=' .repeat(70));
+console.log('='.repeat(70));
 console.log('✅ Manual Integration Test Complete');
 console.log('');
 console.log('All test scenarios executed successfully!');

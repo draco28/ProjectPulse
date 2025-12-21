@@ -95,10 +95,7 @@ async function getSOPs(projectId: number) {
       createdAt: true,
       updatedAt: true,
     },
-    orderBy: [
-      { category: 'asc' },
-      { title: 'asc' },
-    ],
+    orderBy: [{ category: 'asc' }, { title: 'asc' }],
   });
 
   return sops;
@@ -123,7 +120,7 @@ export default async function AgentsPage({
   if (!user) redirect('/login');
 
   const params = await searchParams;
-  
+
   const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
   const [agents, stats, skills, workflows, sops] = await Promise.all([
@@ -146,7 +143,7 @@ export default async function AgentsPage({
             <div className="mb-4">
               <Link
                 href={`/dashboard?project=${projectId}`}
-                className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-coral transition-colors hover:text-coral-light"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
@@ -155,7 +152,9 @@ export default async function AgentsPage({
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="mb-1 text-3xl font-bold text-white">Agent AI Hub</h2>
-                <p className="text-sm text-slate">{project.name} - Manage agents, skills, workflows, and SOPs</p>
+                <p className="text-sm text-slate">
+                  {project.name} - Manage agents, skills, workflows, and SOPs
+                </p>
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -191,9 +190,10 @@ export default async function AgentsPage({
                   <div>
                     <h3 className="mb-1 font-semibold text-white">About Agent AI Hub</h3>
                     <p className="text-sm text-slate">
-                      The Agent AI Hub manages all AI resources for your project: Agent Personas (specialized sub-agents), 
-                      Skills (reusable patterns), Workflows (multi-step processes), and SOPs (standard procedures). 
-                      All resources are project-specific and available to any agent via MCP.
+                      The Agent AI Hub manages all AI resources for your project: Agent Personas
+                      (specialized sub-agents), Skills (reusable patterns), Workflows (multi-step
+                      processes), and SOPs (standard procedures). All resources are project-specific
+                      and available to any agent via MCP.
                     </p>
                   </div>
                 </div>
@@ -212,58 +212,67 @@ export default async function AgentsPage({
                 <TabsContent value="personas" className="space-y-4">
                   {/* Stats Cards */}
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {/* Active Agents */}
-                <div className="neu-raised neu-no-hover smooth-transition rounded-3xl p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="icon-coral flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg">
-                      <span className="text-xl">🤖</span>
+                    {/* Active Agents */}
+                    <div className="neu-raised neu-no-hover smooth-transition rounded-3xl p-6">
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="icon-coral flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg">
+                          <span className="text-xl">🤖</span>
+                        </div>
+                        <span className="pulse-glow h-2 w-2 rounded-full bg-coral" />
+                      </div>
+                      <div className="mb-1 text-3xl font-bold text-coral">{stats.active}</div>
+                      <div className="text-sm text-slate">Active Agents</div>
                     </div>
-                    <span className="pulse-glow h-2 w-2 rounded-full bg-coral" />
-                  </div>
-                  <div className="mb-1 text-3xl font-bold text-coral">{stats.active}</div>
-                  <div className="text-sm text-slate">Active Agents</div>
-                </div>
 
-                {/* Total Agents / Tasks Completed placeholder */}
-                <div className="neu-raised neu-no-hover smooth-transition rounded-3xl p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="neu-raised flex h-12 w-12 items-center justify-center rounded-2xl">
-                      <span className="text-xl">📋</span>
+                    {/* Total Agents / Tasks Completed placeholder */}
+                    <div className="neu-raised neu-no-hover smooth-transition rounded-3xl p-6">
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="neu-raised flex h-12 w-12 items-center justify-center rounded-2xl">
+                          <span className="text-xl">📋</span>
+                        </div>
+                      </div>
+                      <div className="mb-1 text-3xl font-bold text-white">{stats.total}</div>
+                      <div className="text-sm text-slate">Total Agents</div>
                     </div>
-                  </div>
-                  <div className="mb-1 text-3xl font-bold text-white">{stats.total}</div>
-                  <div className="text-sm text-slate">Total Agents</div>
-                </div>
 
-                {/* Time Saved (placeholder for future metrics) */}
-                <div className="neu-raised neu-no-hover smooth-transition rounded-3xl p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="neu-raised flex h-12 w-12 items-center justify-center rounded-2xl">
-                      <span className="text-xl">⏱️</span>
+                    {/* Time Saved (placeholder for future metrics) */}
+                    <div className="neu-raised neu-no-hover smooth-transition rounded-3xl p-6">
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="neu-raised flex h-12 w-12 items-center justify-center rounded-2xl">
+                          <span className="text-xl">⏱️</span>
+                        </div>
+                      </div>
+                      <div className="mb-1 text-3xl font-bold text-white">--</div>
+                      <div className="text-sm text-slate">Time Saved (coming soon)</div>
                     </div>
-                  </div>
-                  <div className="mb-1 text-3xl font-bold text-white">--</div>
-                  <div className="text-sm text-slate">Time Saved (coming soon)</div>
-                </div>
 
-                {/* Success Rate (placeholder for future metrics) */}
-                <div className="neu-raised neu-no-hover smooth-transition rounded-3xl p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="neu-raised flex h-12 w-12 items-center justify-center rounded-2xl">
-                      <span className="text-xl">📈</span>
+                    {/* Success Rate (placeholder for future metrics) */}
+                    <div className="neu-raised neu-no-hover smooth-transition rounded-3xl p-6">
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="neu-raised flex h-12 w-12 items-center justify-center rounded-2xl">
+                          <span className="text-xl">📈</span>
+                        </div>
+                      </div>
+                      <div className="mb-1 text-3xl font-bold text-green-400">--</div>
+                      <div className="text-sm text-slate">Success Rate (coming soon)</div>
                     </div>
                   </div>
-                  <div className="mb-1 text-3xl font-bold text-green-400">--</div>
-                  <div className="text-sm text-slate">Success Rate (coming soon)</div>
-                </div>
-              </div>
 
                   {/* Agent Cards */}
                   {agents.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                      {agents.map((agent: { id: number; name: string; description: string | null; expertise: string[]; isActive: boolean; personality: string | null }) => (
-                        <AgentCard key={agent.id} agent={agent} />
-                      ))}
+                      {agents.map(
+                        (agent: {
+                          id: number;
+                          name: string;
+                          description: string | null;
+                          expertise: string[];
+                          isActive: boolean;
+                          personality: string | null;
+                        }) => (
+                          <AgentCard key={agent.id} agent={agent} />
+                        )
+                      )}
                     </div>
                   ) : (
                     <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">

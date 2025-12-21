@@ -79,10 +79,7 @@ async function getAuthorizedSession(request: NextRequest, sessionId: string) {
  *
  * Security: Requires authentication + access to session's project
  */
-export async function POST(
-  request: NextRequest,
-  { params }: RouteParams
-) {
+export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
 
@@ -107,17 +104,11 @@ export async function POST(
     const existing = await getAuthorizedSession(request, id);
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Agent session not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Agent session not found' }, { status: 404 });
     }
 
     if (existing.status === 'COMPLETED') {
-      return NextResponse.json(
-        { error: 'Session is already completed' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Session is already completed' }, { status: 400 });
     }
 
     const { progress } = validation.data;
@@ -162,6 +153,12 @@ export async function POST(
       },
     });
 
+    // Phase 2: Auto-sync Memory Banks with status reporting
+    let syncStatus: {
+      progress: { success: boolean; error?: string };
+      activeContext: { success: boolean; error?: string };
+    } | null = null;
+
     if (fullSession) {
       // Cast to FullAgentSession type for auto-sync functions
       const sessionForSync: FullAgentSession = {
@@ -176,19 +173,43 @@ export async function POST(
         completedAt: fullSession.completedAt,
       };
 
-      // Fire-and-forget: run auto-sync in background, don't await
-      Promise.all([
+      // Run both syncs in parallel and collect individual results
+      const [progressResult, activeContextResult] = await Promise.allSettled([
         autoSyncProgressBank(fullSession.projectId, sessionForSync),
         autoSyncActiveContext(fullSession.projectId, sessionForSync),
-      ]).catch((error) => {
-        // Log error but don't fail the request
-        console.error('[POST /api/agent-sessions/[id]/end] Auto-sync error:', error);
-      });
+      ]);
+
+      // Build sync status from settled results
+      syncStatus = {
+        progress:
+          progressResult.status === 'fulfilled'
+            ? progressResult.value
+            : { success: false, error: progressResult.reason?.message || 'Unknown error' },
+        activeContext:
+          activeContextResult.status === 'fulfilled'
+            ? activeContextResult.value
+            : { success: false, error: activeContextResult.reason?.message || 'Unknown error' },
+      };
+
+      // Log any failures
+      if (!syncStatus.progress.success) {
+        console.error(
+          '[POST /api/agent-sessions/[id]/end] PROGRESS sync failed:',
+          syncStatus.progress.error
+        );
+      }
+      if (!syncStatus.activeContext.success) {
+        console.error(
+          '[POST /api/agent-sessions/[id]/end] ACTIVE_CONTEXT sync failed:',
+          syncStatus.activeContext.error
+        );
+      }
     }
 
     return NextResponse.json({
       success: true,
       session,
+      syncStatus,
       message: 'Session completed successfully',
     });
   } catch (error) {
@@ -201,9 +222,6 @@ export async function POST(
     }
 
     console.error('[POST /api/agent-sessions/[id]/end] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to end agent session' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to end agent session' }, { status: 500 });
   }
 }

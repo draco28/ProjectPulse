@@ -1,13 +1,13 @@
 /**
  * Command Registry
- * 
+ *
  * Centralized registry of all commands available in the palette
  */
 
-import { 
-  Plus, 
-  Lightbulb, 
-  Book, 
+import {
+  Plus,
+  Lightbulb,
+  Book,
   ShieldAlert,
   Home,
   ListTodo,
@@ -17,7 +17,7 @@ import {
   Settings,
   Moon,
   Keyboard,
-  Map
+  Map,
 } from 'lucide-react';
 import { Command, CommandCategory } from './types';
 
@@ -275,7 +275,9 @@ export function createCommands(router: any, projectId?: number): CommandCategory
           keywords: ['keyboard', 'shortcuts', 'hotkeys', 'keys', 'help'],
           action: () => {
             // TODO: Show shortcuts modal
-            alert('Keyboard shortcuts reference:\n\n⌘K - Command Palette\n⌘D - Dashboard\n⌘I - Issues\n⌘W - Wiki\n⌘E - Security\n⌘A - Agents\n⌘N - New Issue\n⌘, - Settings');
+            alert(
+              'Keyboard shortcuts reference:\n\n⌘K - Command Palette\n⌘D - Dashboard\n⌘I - Issues\n⌘W - Wiki\n⌘E - Security\n⌘A - Agents\n⌘N - New Issue\n⌘, - Settings'
+            );
           },
         },
       ],

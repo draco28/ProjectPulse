@@ -40,7 +40,7 @@ let storeType: 'redis' | 'memory' = 'memory';
 
 /**
  * Default project ID (TODO: Extract from session context in future)
- * 
+ *
  * Currently all sessions use DEFAULT_PROJECT_ID for single-project mode.
  * Future: Multi-tenant support will extract projectId from authenticated context.
  */
@@ -48,7 +48,7 @@ const DEFAULT_PROJECT_ID = parseInt(process.env.DEFAULT_PROJECT_ID || '8', 10);
 
 /**
  * Initialize session store (lazy initialization)
- * 
+ *
  * Detects environment and creates appropriate store:
  * - Production + REDIS_URL → RedisSessionStore (persistent, scalable)
  * - Development or no REDIS_URL → InMemorySessionStore (local, temporary)
@@ -97,8 +97,7 @@ export function generateSessionId(): string {
  * @returns True if valid UUID v4 format
  */
 export function isValidSessionId(sessionId: string): boolean {
-  const uuidV4Regex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidV4Regex.test(sessionId);
 }
 
@@ -136,7 +135,7 @@ export async function validateSession(sessionId: string): Promise<MCPSession> {
 
   // Try to get existing session
   const session = await sessionStore.getSession(sessionId);
-  
+
   if (session) {
     return session;
   }
@@ -211,7 +210,7 @@ export async function getSessionCount(): Promise<number> {
 export async function clearAllSessions(): Promise<void> {
   const sessionStore = getStore();
   const sessions = await sessionStore.getActiveSessions(DEFAULT_PROJECT_ID);
-  await Promise.all(sessions.map(s => sessionStore.deleteSession(s.id)));
+  await Promise.all(sessions.map((s) => sessionStore.deleteSession(s.id)));
   console.log(`[Session] Cleared all sessions (${sessions.length} removed)`);
 }
 

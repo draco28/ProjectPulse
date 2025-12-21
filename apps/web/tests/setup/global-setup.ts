@@ -20,7 +20,8 @@ import path from 'path';
 async function globalSetup(config: FullConfig) {
   console.log('🔐 Global Setup: Logging in and saving authentication state...');
 
-  const baseURL = (config.projects?.[0]?.use as { baseURL?: string })?.baseURL || 'http://192.168.1.15:3000';
+  const baseURL =
+    (config.projects?.[0]?.use as { baseURL?: string })?.baseURL || 'http://192.168.1.15:3000';
   const storageStatePath = path.join(process.cwd(), '.auth', 'user.json');
 
   // Launch browser
@@ -66,9 +67,7 @@ async function globalSetup(config: FullConfig) {
     // Verify session cookie exists
     const cookies = await context.cookies();
     const sessionCookie = cookies.find(
-      (c) =>
-        c.name === 'next-auth.session-token' ||
-        c.name === '__Secure-next-auth.session-token'
+      (c) => c.name === 'next-auth.session-token' || c.name === '__Secure-next-auth.session-token'
     );
 
     if (!sessionCookie) {

@@ -2,7 +2,7 @@
 
 /**
  * Command Palette Component
- * 
+ *
  * Main command palette modal with search, commands, and keyboard navigation
  */
 

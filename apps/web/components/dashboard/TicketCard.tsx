@@ -67,7 +67,8 @@ export function TicketCard({ issue, projectId }: TicketCardProps) {
   return (
     <Link
       href={`/tickets/${issue.id}?project=${projectId}`}
-      className="glass-dark neu-float block cursor-pointer rounded-2xl p-5 hover:shadow-lg smooth-transition">
+      className="glass-dark neu-float smooth-transition block cursor-pointer rounded-2xl p-5 hover:shadow-lg"
+    >
       <div className="flex items-start gap-4">
         {/* Icon Container */}
         <div className="icon-coral flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl shadow-lg">

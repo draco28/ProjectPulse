@@ -138,7 +138,8 @@ function validateStep2(data: WizardData): Record<string, string> {
   const errors: Record<string, string> = {};
   if (data.phases.length === 0) errors.phases = 'Add at least one phase';
   data.phases.forEach((phase, index) => {
-    if (!phase.title.trim()) errors[`phase_${index}_title`] = `Phase ${index + 1} title is required`;
+    if (!phase.title.trim())
+      errors[`phase_${index}_title`] = `Phase ${index + 1} title is required`;
   });
   return errors;
 }
@@ -327,18 +328,14 @@ export function RoadmapWizard({ projectId, projectName }: RoadmapWizardProps) {
       {/* Project Context */}
       <div className="mb-6 text-center">
         <span className="text-sm text-slate">
-          Creating roadmap for: <span className="text-coral font-medium">{projectName}</span>
+          Creating roadmap for: <span className="font-medium text-coral">{projectName}</span>
         </span>
       </div>
 
       {/* Step Content */}
       <div className="min-h-[400px]">
         {state.currentStep === 1 && (
-          <Step1ProjectInfo
-            data={state.data}
-            errors={state.errors}
-            onChange={handleDataChange}
-          />
+          <Step1ProjectInfo data={state.data} errors={state.errors} onChange={handleDataChange} />
         )}
 
         {state.currentStep === 2 && (
@@ -357,9 +354,7 @@ export function RoadmapWizard({ projectId, projectName }: RoadmapWizardProps) {
           />
         )}
 
-        {state.currentStep === 4 && (
-          <Step4Preview data={state.data} errors={state.errors} />
-        )}
+        {state.currentStep === 4 && <Step4Preview data={state.data} errors={state.errors} />}
       </div>
 
       {/* Navigation */}

@@ -1,12 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, FileText, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -29,11 +24,7 @@ interface SOPDetailModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function SOPDetailModal({
-  sopId,
-  open,
-  onOpenChange,
-}: SOPDetailModalProps) {
+export function SOPDetailModal({ sopId, open, onOpenChange }: SOPDetailModalProps) {
   const [sop, setSOP] = useState<SOPDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +64,7 @@ export function SOPDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">
             {loading ? 'Loading...' : error ? 'Error' : sop?.title}
@@ -93,7 +84,7 @@ export function SOPDetailModal({
         )}
 
         {sop && !loading && !error && (
-          <div className="space-y-6 mt-4">
+          <div className="mt-4 space-y-6">
             {/* Metadata Row */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap gap-2">
@@ -106,7 +97,7 @@ export function SOPDetailModal({
               </div>
               <button
                 onClick={handleDownload}
-                className="neu-raised smooth-transition rounded-lg px-4 py-2 text-sm font-medium text-white flex items-center gap-2 hover:shadow-lg"
+                className="neu-raised smooth-transition flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:shadow-lg"
               >
                 <Download className="h-4 w-4" />
                 Download
@@ -116,27 +107,25 @@ export function SOPDetailModal({
             {/* Description */}
             {sop.description && (
               <div className="neu-inset rounded-lg p-4">
-                <p className="text-sm text-slate leading-relaxed">
-                  {sop.description}
-                </p>
+                <p className="text-sm leading-relaxed text-slate">{sop.description}</p>
               </div>
             )}
 
             {/* Content (Markdown) */}
             <div>
-              <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+              <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
                 <FileText className="h-4 w-4" />
                 Content
               </h4>
-              <div className="neu-raised rounded-lg p-6 max-h-96 overflow-y-auto prose prose-invert prose-sm max-w-none">
+              <div className="neu-raised prose prose-invert prose-sm max-h-96 max-w-none overflow-y-auto rounded-lg p-6">
                 <ReactMarkdown>{sop.content}</ReactMarkdown>
               </div>
             </div>
 
             {/* Metadata Grid */}
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+            <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
               <div className="neu-inset rounded-lg p-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>Created</span>
                 </div>
@@ -145,7 +134,7 @@ export function SOPDetailModal({
                 </div>
               </div>
               <div className="neu-inset rounded-lg p-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>Last Updated</span>
                 </div>
@@ -157,8 +146,8 @@ export function SOPDetailModal({
 
             {/* MCP Reference */}
             <div className="neu-raised rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-white mb-2">Reference via MCP</h4>
-              <code className="text-xs bg-background px-3 py-2 rounded block font-mono text-slate">
+              <h4 className="mb-2 text-sm font-semibold text-white">Reference via MCP</h4>
+              <code className="block rounded bg-background px-3 py-2 font-mono text-xs text-slate">
                 projectpulse.sop.get(&quot;{sop.slug}&quot;)
               </code>
             </div>

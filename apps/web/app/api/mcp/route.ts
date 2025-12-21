@@ -28,10 +28,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getMCPServer } from '@/lib/mcp/server';
-import {
-  validateSession,
-  generateSessionId,
-} from '@/lib/mcp/session-manager';
+import { validateSession, generateSessionId } from '@/lib/mcp/session-manager';
 import { MCPError, JSONRPC_ERROR_CODES, isMCPError } from '@/lib/mcp/types';
 import {
   knowledgeSearchHandler,
@@ -153,12 +150,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 4: Validate JSON-RPC 2.0 format
-    if (
-      !body ||
-      typeof body !== 'object' ||
-      !('jsonrpc' in body) ||
-      body.jsonrpc !== '2.0'
-    ) {
+    if (!body || typeof body !== 'object' || !('jsonrpc' in body) || body.jsonrpc !== '2.0') {
       console.warn('[POST /api/mcp] Invalid JSON-RPC version:', body);
 
       return NextResponse.json(
@@ -197,9 +189,7 @@ export async function POST(request: NextRequest) {
       params?: Record<string, unknown>;
     };
 
-    console.log(
-      `[POST /api/mcp] Method: ${jsonrpcRequest.method}, ID: ${jsonrpcRequest.id}`
-    );
+    console.log(`[POST /api/mcp] Method: ${jsonrpcRequest.method}, ID: ${jsonrpcRequest.id}`);
 
     // Step 5: Get singleton MCP server
     const mcpServer = getMCPServer();
@@ -215,17 +205,13 @@ export async function POST(request: NextRequest) {
       };
 
       if (!name) {
-        throw new MCPError(
-          'Missing tool name in params',
-          JSONRPC_ERROR_CODES.INVALID_PARAMS,
-          400
-        );
+        throw new MCPError('Missing tool name in params', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
       }
 
       // Route to appropriate tool handler
       // Helper to wrap result in MCP content format for tests
       const wrapMCPContent = (data: unknown) => ({
-        content: [{ type: 'text', text: JSON.stringify(data) }]
+        content: [{ type: 'text', text: JSON.stringify(data) }],
       });
 
       switch (name) {
@@ -334,20 +320,52 @@ export async function POST(request: NextRequest) {
           result = wrapMCPContent(await issueSetStatusHandler(args));
           break;
         default:
-          throw new MCPError(
-            `Unknown tool: ${name}`,
-            JSONRPC_ERROR_CODES.METHOD_NOT_FOUND,
-            404,
-            { availableTools: [
-              'knowledge.search', 'knowledge.create', 'knowledge.related', 'knowledge.getMetrics', 'knowledge.export', 'knowledge.import', 'knowledge.archive',
-              'skill.list', 'skill.load', 'skill.search', 'skill.update', 'skill.delete', 'skill.export', 'skill.import', 'skill.linkKnowledge',
-              'health.runScan', 'health.getScore', 'health.getHistory',
-              'ticket.create', 'ticket.bulkCreate', 'ticket.update', 'ticket.search', 'ticket.addComment', 'ticket.setStatus',
-              'projectpulse_ticket_create', 'projectpulse_ticket_bulkCreate', 'projectpulse_ticket_update', 'projectpulse_ticket_search', 'projectpulse_ticket_addComment', 'projectpulse_ticket_setStatus',
-              'issue.create', 'issue.bulkCreate', 'issue.update', 'issue.search', 'issue.addComment', 'issue.setStatus',
-              'projectpulse_issue_create', 'projectpulse_issue_bulkCreate', 'projectpulse_issue_update', 'projectpulse_issue_search', 'projectpulse_issue_addComment', 'projectpulse_issue_setStatus'
-            ] }
-          );
+          throw new MCPError(`Unknown tool: ${name}`, JSONRPC_ERROR_CODES.METHOD_NOT_FOUND, 404, {
+            availableTools: [
+              'knowledge.search',
+              'knowledge.create',
+              'knowledge.related',
+              'knowledge.getMetrics',
+              'knowledge.export',
+              'knowledge.import',
+              'knowledge.archive',
+              'skill.list',
+              'skill.load',
+              'skill.search',
+              'skill.update',
+              'skill.delete',
+              'skill.export',
+              'skill.import',
+              'skill.linkKnowledge',
+              'health.runScan',
+              'health.getScore',
+              'health.getHistory',
+              'ticket.create',
+              'ticket.bulkCreate',
+              'ticket.update',
+              'ticket.search',
+              'ticket.addComment',
+              'ticket.setStatus',
+              'projectpulse_ticket_create',
+              'projectpulse_ticket_bulkCreate',
+              'projectpulse_ticket_update',
+              'projectpulse_ticket_search',
+              'projectpulse_ticket_addComment',
+              'projectpulse_ticket_setStatus',
+              'issue.create',
+              'issue.bulkCreate',
+              'issue.update',
+              'issue.search',
+              'issue.addComment',
+              'issue.setStatus',
+              'projectpulse_issue_create',
+              'projectpulse_issue_bulkCreate',
+              'projectpulse_issue_update',
+              'projectpulse_issue_search',
+              'projectpulse_issue_addComment',
+              'projectpulse_issue_setStatus',
+            ],
+          });
       }
     } else if (jsonrpcRequest.method === 'tools/list') {
       // List available tools
@@ -355,8 +373,7 @@ export async function POST(request: NextRequest) {
         tools: [
           {
             name: 'knowledge.search',
-            description:
-              'Search knowledge base using hybrid (semantic + full-text) search',
+            description: 'Search knowledge base using hybrid (semantic + full-text) search',
             inputSchema: {
               type: 'object',
               properties: {
@@ -402,7 +419,8 @@ export async function POST(request: NextRequest) {
           },
           {
             name: 'knowledge.getMetrics',
-            description: 'Get query performance metrics summary (latency, query counts, mode distribution)',
+            description:
+              'Get query performance metrics summary (latency, query counts, mode distribution)',
             inputSchema: {
               type: 'object',
               properties: {
@@ -412,7 +430,8 @@ export async function POST(request: NextRequest) {
           },
           {
             name: 'knowledge.export',
-            description: 'Export knowledge graph to JSON (items, relationships, optional embeddings)',
+            description:
+              'Export knowledge graph to JSON (items, relationships, optional embeddings)',
             inputSchema: {
               type: 'object',
               properties: {
@@ -427,7 +446,8 @@ export async function POST(request: NextRequest) {
           },
           {
             name: 'knowledge.import',
-            description: 'Import knowledge items from markdown files with YAML frontmatter (batch up to 50)',
+            description:
+              'Import knowledge items from markdown files with YAML frontmatter (batch up to 50)',
             inputSchema: {
               type: 'object',
               properties: {
@@ -463,15 +483,23 @@ export async function POST(request: NextRequest) {
           },
           {
             name: 'skill.list',
-            description: 'List skills with frontmatter only (excludes content for token efficiency)',
+            description:
+              'List skills with frontmatter only (excludes content for token efficiency)',
             inputSchema: {
               type: 'object',
               properties: {
                 projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
-                category: { type: 'string', enum: ['framework', 'testing', 'workflow', 'troubleshooting', 'custom'] },
+                category: {
+                  type: 'string',
+                  enum: ['framework', 'testing', 'workflow', 'troubleshooting', 'custom'],
+                },
                 tags: { type: 'array', items: { type: 'string' }, maxItems: 10 },
                 frameworks: { type: 'array', items: { type: 'string' }, maxItems: 5 },
-                sortBy: { type: 'string', enum: ['title', 'usageCount', 'lastLoadedAt', 'createdAt', 'updatedAt'], default: 'title' },
+                sortBy: {
+                  type: 'string',
+                  enum: ['title', 'usageCount', 'lastLoadedAt', 'createdAt', 'updatedAt'],
+                  default: 'title',
+                },
                 sortOrder: { type: 'string', enum: ['asc', 'desc'], default: 'asc' },
                 page: { type: 'number', minimum: 1, default: 1 },
                 limit: { type: 'number', minimum: 1, maximum: 50, default: 10 },
@@ -487,7 +515,11 @@ export async function POST(request: NextRequest) {
               properties: {
                 projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
                 slug: { type: 'string', minLength: 1, maxLength: 100 },
-                incrementUsage: { type: 'boolean', default: true, description: 'Track usage count' },
+                incrementUsage: {
+                  type: 'boolean',
+                  default: true,
+                  description: 'Track usage count',
+                },
               },
               required: ['projectId', 'slug'],
             },
@@ -500,7 +532,10 @@ export async function POST(request: NextRequest) {
               properties: {
                 projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
                 query: { type: 'string', minLength: 1, maxLength: 200 },
-                category: { type: 'string', enum: ['framework', 'testing', 'workflow', 'troubleshooting', 'custom'] },
+                category: {
+                  type: 'string',
+                  enum: ['framework', 'testing', 'workflow', 'troubleshooting', 'custom'],
+                },
                 tags: { type: 'array', items: { type: 'string' }, maxItems: 10 },
                 frameworks: { type: 'array', items: { type: 'string' }, maxItems: 5 },
                 limit: { type: 'number', minimum: 1, maximum: 50, default: 10 },
@@ -550,7 +585,10 @@ export async function POST(request: NextRequest) {
               type: 'object',
               properties: {
                 projectId: { type: 'number', description: 'Project ID for multi-tenancy' },
-                category: { type: 'string', enum: ['framework', 'testing', 'workflow', 'troubleshooting', 'custom'] },
+                category: {
+                  type: 'string',
+                  enum: ['framework', 'testing', 'workflow', 'troubleshooting', 'custom'],
+                },
                 tags: { type: 'array', items: { type: 'string' }, maxItems: 10 },
                 frameworks: { type: 'array', items: { type: 'string' }, maxItems: 5 },
               },
@@ -613,8 +651,16 @@ export async function POST(request: NextRequest) {
                 options: {
                   type: 'object',
                   properties: {
-                    include: { type: 'array', items: { type: 'string' }, description: 'File patterns to include (glob)' },
-                    exclude: { type: 'array', items: { type: 'string' }, description: 'File patterns to exclude (glob)' },
+                    include: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description: 'File patterns to include (glob)',
+                    },
+                    exclude: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description: 'File patterns to exclude (glob)',
+                    },
                   },
                 },
               },
@@ -628,7 +674,13 @@ export async function POST(request: NextRequest) {
               type: 'object',
               properties: {
                 projectId: { type: 'number', description: 'Project ID to get scores for' },
-                limit: { type: 'number', minimum: 1, maximum: 10, default: 1, description: 'Number of scores to return' },
+                limit: {
+                  type: 'number',
+                  minimum: 1,
+                  maximum: 10,
+                  default: 1,
+                  description: 'Number of scores to return',
+                },
               },
               required: ['projectId'],
             },
@@ -640,7 +692,13 @@ export async function POST(request: NextRequest) {
               type: 'object',
               properties: {
                 projectId: { type: 'number', description: 'Project ID to analyze' },
-                days: { type: 'number', minimum: 1, maximum: 90, default: 7, description: 'Days of history to retrieve' },
+                days: {
+                  type: 'number',
+                  minimum: 1,
+                  maximum: 90,
+                  default: 7,
+                  description: 'Days of history to retrieve',
+                },
                 category: {
                   type: 'string',
                   enum: ['overall', 'security', 'quality', 'performance', 'accessibility'],
@@ -654,17 +712,33 @@ export async function POST(request: NextRequest) {
           // Ticket tools (Sprint 10)
           {
             name: 'ticket.create',
-            description: 'Create a new ticket (feature, task, epic, issue, bug, tech_debt, scanner_finding)',
+            description:
+              'Create a new ticket (feature, task, epic, issue, bug, tech_debt, scanner_finding)',
             inputSchema: {
               type: 'object',
               properties: {
-                projectId: { type: 'number', description: 'Project ID (defaults to first project)' },
+                projectId: {
+                  type: 'number',
+                  description: 'Project ID (defaults to first project)',
+                },
                 title: { type: 'string', minLength: 1, maxLength: 200 },
                 description: { type: 'string', maxLength: 50000 },
-                kind: { type: 'string', enum: ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'], default: 'issue' },
-                source: { type: 'string', enum: ['manual', 'onboarding', 'scanner', 'agent'], default: 'manual' },
+                kind: {
+                  type: 'string',
+                  enum: ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'],
+                  default: 'issue',
+                },
+                source: {
+                  type: 'string',
+                  enum: ['manual', 'onboarding', 'scanner', 'agent'],
+                  default: 'manual',
+                },
                 status: { type: 'string', default: 'open' },
-                priority: { type: 'string', enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
+                priority: {
+                  type: 'string',
+                  enum: ['low', 'medium', 'high', 'critical'],
+                  default: 'medium',
+                },
                 module: { type: 'string' },
                 assignee: { type: 'string' },
                 assigneeType: { type: 'string', enum: ['human', 'agent_persona'] },
@@ -689,7 +763,18 @@ export async function POST(request: NextRequest) {
                     properties: {
                       title: { type: 'string', minLength: 1, maxLength: 200 },
                       description: { type: 'string' },
-                      kind: { type: 'string', enum: ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'] },
+                      kind: {
+                        type: 'string',
+                        enum: [
+                          'feature',
+                          'task',
+                          'epic',
+                          'issue',
+                          'bug',
+                          'scanner_finding',
+                          'tech_debt',
+                        ],
+                      },
                       status: { type: 'string' },
                       priority: { type: 'string' },
                       module: { type: 'string' },
@@ -743,7 +828,11 @@ export async function POST(request: NextRequest) {
                 createdTo: { type: 'string', description: 'ISO 8601 date' },
                 page: { type: 'number', minimum: 1, default: 1 },
                 pageSize: { type: 'number', minimum: 1, maximum: 100, default: 20 },
-                sortBy: { type: 'string', enum: ['createdAt', 'updatedAt', 'priority'], default: 'createdAt' },
+                sortBy: {
+                  type: 'string',
+                  enum: ['createdAt', 'updatedAt', 'priority'],
+                  default: 'createdAt',
+                },
                 sortDirection: { type: 'string', enum: ['asc', 'desc'], default: 'desc' },
               },
             },
@@ -822,7 +911,8 @@ export async function POST(request: NextRequest) {
           },
           {
             name: 'issue.search',
-            description: 'Search issues (adapter for ticket.search with kind=[issue,bug,scanner_finding])',
+            description:
+              'Search issues (adapter for ticket.search with kind=[issue,bug,scanner_finding])',
             inputSchema: {
               type: 'object',
               properties: {
@@ -863,17 +953,33 @@ export async function POST(request: NextRequest) {
           // projectpulse_ prefixed aliases (for MCP agent compatibility)
           {
             name: 'projectpulse_ticket_create',
-            description: 'Create a new ticket (feature, task, epic, issue, bug, tech_debt, scanner_finding)',
+            description:
+              'Create a new ticket (feature, task, epic, issue, bug, tech_debt, scanner_finding)',
             inputSchema: {
               type: 'object',
               properties: {
-                projectId: { type: 'number', description: 'Project ID (defaults to first project)' },
+                projectId: {
+                  type: 'number',
+                  description: 'Project ID (defaults to first project)',
+                },
                 title: { type: 'string', minLength: 1, maxLength: 200 },
                 description: { type: 'string', maxLength: 50000 },
-                kind: { type: 'string', enum: ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'], default: 'issue' },
-                source: { type: 'string', enum: ['manual', 'onboarding', 'scanner', 'agent'], default: 'manual' },
+                kind: {
+                  type: 'string',
+                  enum: ['feature', 'task', 'epic', 'issue', 'bug', 'scanner_finding', 'tech_debt'],
+                  default: 'issue',
+                },
+                source: {
+                  type: 'string',
+                  enum: ['manual', 'onboarding', 'scanner', 'agent'],
+                  default: 'manual',
+                },
                 status: { type: 'string', default: 'open' },
-                priority: { type: 'string', enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
+                priority: {
+                  type: 'string',
+                  enum: ['low', 'medium', 'high', 'critical'],
+                  default: 'medium',
+                },
                 module: { type: 'string' },
                 assignee: { type: 'string' },
               },
@@ -1070,9 +1176,7 @@ export async function POST(request: NextRequest) {
     // Step 7: Return JSON-RPC response
     const duration = Date.now() - startTime;
 
-    console.log(
-      `[POST /api/mcp] Success (${duration}ms) - Session: ${sessionId}`
-    );
+    console.log(`[POST /api/mcp] Success (${duration}ms) - Session: ${sessionId}`);
 
     return NextResponse.json(response, {
       status: 200,
@@ -1109,8 +1213,7 @@ export async function POST(request: NextRequest) {
         id: null,
         error: {
           code: JSONRPC_ERROR_CODES.INTERNAL_ERROR,
-          message:
-            error instanceof Error ? error.message : 'Internal server error',
+          message: error instanceof Error ? error.message : 'Internal server error',
           data:
             process.env.NODE_ENV === 'development'
               ? { stack: error instanceof Error ? error.stack : undefined }
@@ -1163,8 +1266,7 @@ export async function OPTIONS(_request: NextRequest) {
     headers: {
       'Access-Control-Allow-Origin': '*', // MVP: Allow all origins on local network
       'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers':
-        'Content-Type, Mcp-Session-Id, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type, Mcp-Session-Id, Authorization',
       'Access-Control-Max-Age': '86400', // 24 hours
     },
   });

@@ -121,12 +121,7 @@ export function LabelBadgeList({
         />
       ))}
       {remainingCount > 0 && (
-        <span
-          className={cn(
-            'text-slate',
-            size === 'sm' ? 'text-[10px]' : 'text-xs'
-          )}
-        >
+        <span className={cn('text-slate', size === 'sm' ? 'text-[10px]' : 'text-xs')}>
           +{remainingCount}
         </span>
       )}

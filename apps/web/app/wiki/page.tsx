@@ -87,10 +87,7 @@ async function getWikiPages(projectId: number, searchParams: SearchParams) {
   }
 
   // Build orderBy clause
-  let orderBy:
-    | { createdAt: 'desc' | 'asc' }
-    | { updatedAt: 'desc' | 'asc' }
-    | { title: 'asc' };
+  let orderBy: { createdAt: 'desc' | 'asc' } | { updatedAt: 'desc' | 'asc' } | { title: 'asc' };
 
   switch (sortBy) {
     case 'newest':
@@ -154,7 +151,7 @@ async function getWikiPages(projectId: number, searchParams: SearchParams) {
           ${categoryCondition}
           ORDER BY rank DESC, "updatedAt" DESC
           LIMIT ${perPage} OFFSET ${offset};
-        `,
+        `
       ),
       prisma.$queryRaw<Array<{ count: number }>>(
         Prisma.sql`
@@ -163,7 +160,7 @@ async function getWikiPages(projectId: number, searchParams: SearchParams) {
           WHERE "projectId" = ${projectId}
             AND "content_tsv" @@ ${tsQuery}
           ${categoryCondition};
-        `,
+        `
       ),
     ]);
 
@@ -186,7 +183,9 @@ async function getWikiPages(projectId: number, searchParams: SearchParams) {
     const pages: WikiListResult[] = rows.map((row) => {
       const stats = analyticsMap.get(row.id);
       const totalVotes = (stats?.positiveVotes ?? 0) + (stats?.negativeVotes ?? 0);
-      const helpfulRatio = totalVotes ? Math.round(((stats?.positiveVotes ?? 0) / totalVotes) * 100) : null;
+      const helpfulRatio = totalVotes
+        ? Math.round(((stats?.positiveVotes ?? 0) / totalVotes) * 100)
+        : null;
 
       return {
         id: row.id,
@@ -249,7 +248,9 @@ async function getWikiPages(projectId: number, searchParams: SearchParams) {
   const mapped: WikiListResult[] = pages.map((page) => {
     const stats = analyticsMap.get(page.id);
     const totalVotes = (stats?.positiveVotes ?? 0) + (stats?.negativeVotes ?? 0);
-    const helpfulRatio = totalVotes ? Math.round(((stats?.positiveVotes ?? 0) / totalVotes) * 100) : null;
+    const helpfulRatio = totalVotes
+      ? Math.round(((stats?.positiveVotes ?? 0) / totalVotes) * 100)
+      : null;
     return {
       id: page.id,
       title: page.title,
@@ -287,23 +288,17 @@ async function getCategoryStats(projectId: number) {
   });
 
   return Object.fromEntries(
-    categoryCounts
-      .filter((c) => c.category)
-      .map((c) => [c.category!, c._count])
+    categoryCounts.filter((c) => c.category).map((c) => [c.category!, c._count])
   );
 }
 
-export default async function WikiPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
+export default async function WikiPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   // Auth check
   const user = await getCurrentUser();
   if (!user) redirect('/login');
 
   const params = await searchParams;
-  
+
   const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
   const [{ pages, totalCount, currentPage, totalPages, perPage }, categoryStats] =
@@ -323,7 +318,7 @@ export default async function WikiPage({
             <div className="mb-4">
               <Link
                 href={`/dashboard?project=${projectId}`}
-                className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-coral transition-colors hover:text-coral-light"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
@@ -332,7 +327,9 @@ export default async function WikiPage({
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="mb-1 text-3xl font-bold text-white">Wiki</h2>
-                <p className="text-sm text-slate">{project.name} - Documentation, guides, and references</p>
+                <p className="text-sm text-slate">
+                  {project.name} - Documentation, guides, and references
+                </p>
               </div>
               <button
                 className="coral-gradient smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white shadow-lg"

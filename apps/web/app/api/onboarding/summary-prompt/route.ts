@@ -1,6 +1,6 @@
 /**
  * GET /api/onboarding/summary-prompt
- * 
+ *
  * Sprint 9 Refactor: Get executive summary prompt template with all 96 Q&A pairs injected
  * Returns systemPrompt + userPrompt for agent-side AI generation
  */
@@ -15,7 +15,7 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 // ============================================================================
 
 const querySchema = z.object({
-  projectId: z.string().transform(Number).pipe(z.number().int().positive())
+  projectId: z.string().transform(Number).pipe(z.number().int().positive()),
 });
 
 // ============================================================================
@@ -24,16 +24,14 @@ const querySchema = z.object({
 
 function injectVariables(template: string, variables: Record<string, any>): string {
   let result = template;
-  
+
   for (const [key, value] of Object.entries(variables)) {
     const placeholder = `{${key}}`;
-    const replacement = typeof value === 'object' 
-      ? JSON.stringify(value, null, 2) 
-      : String(value);
-    
+    const replacement = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+
     result = result.replace(new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'), replacement);
   }
-  
+
   return result;
 }
 
@@ -43,104 +41,107 @@ function injectVariables(template: string, variables: Record<string, any>): stri
 
 export async function GET(request: NextRequest) {
   console.log('[GET /api/onboarding/summary-prompt] Fetching executive summary prompt...');
-  
+
   try {
     // 1. Validate query params
     const searchParams = request.nextUrl.searchParams;
     const validation = querySchema.safeParse({
-      projectId: searchParams.get('projectId')
+      projectId: searchParams.get('projectId'),
     });
-    
+
     if (!validation.success) {
       console.error('[GET /api/onboarding/summary-prompt] Validation failed:', validation.error);
-      
+
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
         { status: 400 }
       );
     }
-    
+
     const { projectId } = validation.data;
 
     console.log('[GET /api/onboarding/summary-prompt] Request validated', { projectId });
 
     // Sprint 12: Require authentication (session OR bearer token)
     await requireOnboardingAuth(request, projectId);
-    
+
     // 2. Get Session 1 with all phase answers
     const session = await prisma.onboardingSession.findUnique({
       where: {
-        projectId_sessionNumber: { projectId, sessionNumber: 1 }
+        projectId_sessionNumber: { projectId, sessionNumber: 1 },
       },
       select: {
         planningAnswers: true,
         projectContextJson: true,
-        metrics: true
-      }
+        metrics: true,
+      },
     });
-    
+
     if (!session) {
       console.error('[GET /api/onboarding/summary-prompt] Session 1 not found');
-      
+
       return NextResponse.json(
         { error: 'Session 1 not found', hint: 'Complete at least one phase first' },
         { status: 404 }
       );
     }
-    
+
     const planningAnswers = (session.planningAnswers as any) || {};
     const metrics = (session.metrics as any) || { phasesComplete: 0 };
-    
+
     console.log('[GET /api/onboarding/summary-prompt] Session found', {
-      phasesComplete: metrics.phasesComplete
+      phasesComplete: metrics.phasesComplete,
     });
-    
+
     // 3. Fetch prompt template from OnboardingPromptTemplate
     const template = await prisma.onboardingPromptTemplate.findFirst({
       where: {
         name: 'onboarding-session-1-executive-summary',
-        isActive: true
+        isActive: true,
       },
       select: {
         systemPrompt: true,
         userPrompt: true,
         temperature: true,
         maxTokens: true,
-        variables: true
-      }
+        variables: true,
+      },
     });
-    
+
     if (!template) {
       console.error('[GET /api/onboarding/summary-prompt] Template not found');
-      
+
       return NextResponse.json(
-        { error: 'Executive summary template not found', hint: 'Run database seed to create templates' },
+        {
+          error: 'Executive summary template not found',
+          hint: 'Run database seed to create templates',
+        },
         { status: 404 }
       );
     }
-    
+
     console.log('[GET /api/onboarding/summary-prompt] Template found');
-    
+
     // 4. Inject all 96 Q&A pairs into userPrompt
     const variables: Record<string, any> = {};
-    
+
     for (let phase = 1; phase <= 10; phase++) {
       variables[`phase${phase}Answers`] = planningAnswers[`phase${phase}`] || {};
     }
-    
+
     const userPrompt = injectVariables(template.userPrompt, variables);
-    
+
     // 5. Calculate metadata
     const metadata = {
       totalQuestions: 96,
       totalPhases: 10,
       completedPhases: metrics.phasesComplete,
       userPromptCharacters: userPrompt.length,
-      estimatedTokens: Math.ceil(userPrompt.length / 3) // Rough estimate: 1 token ≈ 3 chars
+      estimatedTokens: Math.ceil(userPrompt.length / 3), // Rough estimate: 1 token ≈ 3 chars
     };
-    
+
     console.log('[GET /api/onboarding/summary-prompt] Prompt ready', metadata);
-    
+
     return NextResponse.json({
       projectId,
       systemPrompt: template.systemPrompt,
@@ -149,9 +150,8 @@ export async function GET(request: NextRequest) {
       wordCountTarget: 500,
       temperature: template.temperature,
       maxTokens: template.maxTokens,
-      guidance: 'Generate the summary now with your AI provider, then call storeExecutiveSummary.'
+      guidance: 'Generate the summary now with your AI provider, then call storeExecutiveSummary.',
     });
-    
   } catch (error) {
     console.error('[GET /api/onboarding/summary-prompt] Error:', error);
 

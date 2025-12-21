@@ -28,9 +28,12 @@ export const createWikiPageSchema = z.object({
     .string()
     .min(3, 'Path must be at least 3 characters')
     .max(100, 'Path must be less than 100 characters')
-    .regex(/^\/?[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Path must be lowercase letters, numbers, and hyphens only')
+    .regex(
+      /^\/?[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      'Path must be lowercase letters, numbers, and hyphens only'
+    )
     .trim(),
-    // Note: Path normalization (remove leading slash) happens in API route
+  // Note: Path normalization (remove leading slash) happens in API route
 
   content: z
     .string()
@@ -41,10 +44,7 @@ export const createWikiPageSchema = z.object({
     errorMap: () => ({ message: 'Invalid category' }),
   }),
 
-  excerpt: z
-    .string()
-    .max(200, 'Excerpt must be less than 200 characters')
-    .optional(),
+  excerpt: z.string().max(200, 'Excerpt must be less than 200 characters').optional(),
 });
 
 /**
@@ -74,22 +74,19 @@ export const updateWikiPageSchema = z.object({
     })
     .optional(),
 
-  excerpt: z
-    .string()
-    .max(200, 'Excerpt must be less than 200 characters')
-    .optional(),
+  excerpt: z.string().max(200, 'Excerpt must be less than 200 characters').optional(),
 
   parentPath: z
     .string()
     .min(1, 'Parent path must be at least 1 character')
     .max(100, 'Parent path must be less than 100 characters')
-    .regex(/^\/?[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Parent path must be lowercase letters, numbers, and hyphens only')
+    .regex(
+      /^\/?[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      'Parent path must be lowercase letters, numbers, and hyphens only'
+    )
     .optional(),
 
-  changelog: z
-    .string()
-    .max(500, 'Changelog must be less than 500 characters')
-    .optional(),
+  changelog: z.string().max(500, 'Changelog must be less than 500 characters').optional(),
 
   updatedBy: z
     .string()
@@ -132,9 +129,12 @@ export const validatePathSchema = z.object({
   path: z
     .string()
     .min(3, 'Path must be at least 3 characters')
-    .regex(/^\/?[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Path must be lowercase letters, numbers, and hyphens only')
+    .regex(
+      /^\/?[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      'Path must be lowercase letters, numbers, and hyphens only'
+    )
     .trim(),
-    // Note: Path normalization happens in API route
+  // Note: Path normalization happens in API route
 
   excludeId: z.string().optional(), // Exclude current page ID when editing
 });
@@ -185,7 +185,7 @@ export const ContributorSchema = z.object({
   name: z.string().min(1),
   avatar: z.string().url().optional(),
   editCount: z.number().int().nonnegative(),
-  lastEditAt: z.string() // ISO date string
+  lastEditAt: z.string(), // ISO date string
 });
 
 export type Contributor = z.infer<typeof ContributorSchema>;
@@ -207,7 +207,7 @@ export function parseContributors(data: unknown): Contributor[] {
   }
 
   return data
-    .map(item => {
+    .map((item) => {
       const result = ContributorSchema.safeParse(item);
       return result.success ? result.data : null;
     })
@@ -240,15 +240,9 @@ export function parseTags(data: unknown): string[] {
  * @see POST /api/wiki/generate
  */
 export const generateWikiSchema = z.object({
-  projectPath: z
-    .string()
-    .min(1, 'Project path is required')
-    .max(500, 'Project path too long'),
+  projectPath: z.string().min(1, 'Project path is required').max(500, 'Project path too long'),
 
-  filePatterns: z
-    .array(z.string())
-    .optional()
-    .default(['**/*.{ts,tsx,js,jsx}']),
+  filePatterns: z.array(z.string()).optional().default(['**/*.{ts,tsx,js,jsx}']),
 
   category: z.enum(wikiCategories).default('api-reference'),
 

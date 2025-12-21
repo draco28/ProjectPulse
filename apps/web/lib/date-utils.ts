@@ -1,6 +1,6 @@
 /**
  * Date Formatting Utilities
- * 
+ *
  * Provides consistent date formatting across server and client to prevent hydration errors.
  * Uses 'en-US' locale explicitly to ensure MM/DD/YYYY format everywhere.
  */

@@ -50,14 +50,14 @@ export default async function OnboardingPage({
   const overallProgress = (status.completedCount / 3) * 100;
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
+    <div className="container mx-auto max-w-6xl px-4 py-8">
       {/* Page Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-4">Project Onboarding</h1>
-          <p className="text-lg text-slate max-w-3xl">
-            Complete your project setup in 3 sessions to unlock AI-assisted development with
-            agent personas, skills, and workflows.
+          <h1 className="mb-4 text-4xl font-bold text-white">Project Onboarding</h1>
+          <p className="max-w-3xl text-lg text-slate">
+            Complete your project setup in 3 sessions to unlock AI-assisted development with agent
+            personas, skills, and workflows.
           </p>
         </div>
         <Button variant="outline" asChild>
@@ -73,9 +73,7 @@ export default async function OnboardingPage({
         <Card className="neu-raised mb-8">
           <CardHeader>
             <CardTitle>Overall Progress</CardTitle>
-            <CardDescription>
-              {status.completedCount} of 3 sessions complete
-            </CardDescription>
+            <CardDescription>{status.completedCount} of 3 sessions complete</CardDescription>
           </CardHeader>
           <CardContent>
             <ProgressBar value={overallProgress} showPercentage />
@@ -119,7 +117,7 @@ export default async function OnboardingPage({
       )}
 
       {/* 3-Session Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
         <SessionCard
           session={1}
           title="Strategic Planning"
@@ -177,10 +175,10 @@ export default async function OnboardingPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <h4 className="font-semibold text-white">Session 1 Outputs:</h4>
-              <ul className="list-disc list-inside text-sm text-slate space-y-1">
+              <ul className="list-inside list-disc space-y-1 text-sm text-slate">
                 <li>Executive summary (500 words)</li>
                 <li>Project context JSON</li>
                 <li>96 Q&A pairs covering all aspects</li>
@@ -188,7 +186,7 @@ export default async function OnboardingPage({
             </div>
             <div className="space-y-2">
               <h4 className="font-semibold text-white">Session 2 Outputs:</h4>
-              <ul className="list-disc list-inside text-sm text-slate space-y-1">
+              <ul className="list-inside list-disc space-y-1 text-sm text-slate">
                 <li>15 industry-standard documents</li>
                 <li>PRD, SRS, Architecture, API specs</li>
                 <li>Complete project plan and roadmap</li>
@@ -196,7 +194,7 @@ export default async function OnboardingPage({
             </div>
             <div className="space-y-2">
               <h4 className="font-semibold text-white">Session 3 Outputs:</h4>
-              <ul className="list-disc list-inside text-sm text-slate space-y-1">
+              <ul className="list-inside list-disc space-y-1 text-sm text-slate">
                 <li>3-5 Agent personas (tech stack-based)</li>
                 <li>5-10 Skills (coding patterns)</li>
                 <li>3 Workflow templates + 5 SOPs</li>
@@ -206,7 +204,7 @@ export default async function OnboardingPage({
             </div>
             <div className="space-y-2">
               <h4 className="font-semibold text-white">Time Investment:</h4>
-              <ul className="list-disc list-inside text-sm text-slate space-y-1">
+              <ul className="list-inside list-disc space-y-1 text-sm text-slate">
                 <li>Session 1: 60-90 minutes</li>
                 <li>Session 2: 30-60 minutes</li>
                 <li>Session 3: 15-30 minutes</li>

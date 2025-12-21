@@ -23,7 +23,16 @@ export type ScheduledTicket = Pick<
  */
 export type RoadmapDay = Pick<
   Day,
-  'id' | 'title' | 'description' | 'status' | 'progress' | 'startDate' | 'endDate' | 'weekId' | 'createdAt' | 'updatedAt'
+  | 'id'
+  | 'title'
+  | 'description'
+  | 'status'
+  | 'progress'
+  | 'startDate'
+  | 'endDate'
+  | 'weekId'
+  | 'createdAt'
+  | 'updatedAt'
 >;
 
 /**

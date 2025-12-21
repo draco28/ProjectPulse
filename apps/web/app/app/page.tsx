@@ -3,7 +3,7 @@
 /**
  * User Dashboard (/app)
  * Sprint 8.9: User's project hub with onboarding status
- * 
+ *
  * Features:
  * - List all user projects
  * - Show onboarding progress per project
@@ -16,13 +16,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Plus, FolderOpen, CheckCircle2, Clock, LogOut } from 'lucide-react';
 import { FloatingBackground } from '@/components/FloatingBackground';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -275,7 +269,9 @@ export default function UserDashboard() {
                       <div>
                         <div className="mb-2 flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Onboarding</span>
-                          <span className="font-medium">{Math.round(project.onboarding.progress)}%</span>
+                          <span className="font-medium">
+                            {Math.round(project.onboarding.progress)}%
+                          </span>
                         </div>
                         <div className="h-2 overflow-hidden rounded-full bg-muted">
                           <div

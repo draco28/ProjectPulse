@@ -19,7 +19,8 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Project Health | ProjectPulse',
-  description: 'Comprehensive health monitoring dashboard with security, quality, accessibility, and performance metrics',
+  description:
+    'Comprehensive health monitoring dashboard with security, quality, accessibility, and performance metrics',
 };
 
 interface HealthData {
@@ -179,8 +180,7 @@ async function getHealthData(projectId: number): Promise<HealthData> {
     const now = new Date();
     const lastRunMs = s.lastRun ? now.getTime() - s.lastRun.getTime() : Infinity;
     const hoursSinceLastRun = lastRunMs / (1000 * 60 * 60);
-    const status: 'ACTIVE' | 'INACTIVE' | 'ERROR' =
-      hoursSinceLastRun < 24 ? 'ACTIVE' : 'INACTIVE';
+    const status: 'ACTIVE' | 'INACTIVE' | 'ERROR' = hoursSinceLastRun < 24 ? 'ACTIVE' : 'INACTIVE';
 
     return {
       id: s.id,
@@ -216,7 +216,7 @@ export default async function HealthPage({
   if (!user) redirect('/login');
 
   const params = await searchParams;
-  
+
   const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
   const { latestScore, historicalScores, findings, scanners, vulnerabilityCounts, trend } =
@@ -235,7 +235,7 @@ export default async function HealthPage({
               <div className="mb-4">
                 <Link
                   href={`/dashboard?project=${project.id}`}
-                  className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+                  className="inline-flex items-center gap-2 text-sm text-coral transition-colors hover:text-coral-light"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back to Dashboard
@@ -322,19 +322,27 @@ export default async function HealthPage({
     {
       name: 'OWASP Top 10',
       description: 'Web application security risks',
-      status: (vulnerabilityCounts.critical === 0 ? 'compliant' : 'partial') as 'compliant' | 'partial' | 'non-compliant',
+      status: (vulnerabilityCounts.critical === 0 ? 'compliant' : 'partial') as
+        | 'compliant'
+        | 'partial'
+        | 'non-compliant',
       percentage: Math.max(0, 100 - vulnerabilityCounts.critical * 10),
     },
     {
       name: 'CWE Top 25',
       description: 'Most dangerous software weaknesses',
-      status: (vulnerabilityCounts.critical + vulnerabilityCounts.high < 5 ? 'partial' : 'non-compliant') as 'compliant' | 'partial' | 'non-compliant',
+      status: (vulnerabilityCounts.critical + vulnerabilityCounts.high < 5
+        ? 'partial'
+        : 'non-compliant') as 'compliant' | 'partial' | 'non-compliant',
       percentage: Math.max(0, 100 - (vulnerabilityCounts.critical + vulnerabilityCounts.high) * 5),
     },
     {
       name: 'SOC 2',
       description: 'Security and availability controls',
-      status: (latestScore.securityScore >= 80 ? 'compliant' : 'partial') as 'compliant' | 'partial' | 'non-compliant',
+      status: (latestScore.securityScore >= 80 ? 'compliant' : 'partial') as
+        | 'compliant'
+        | 'partial'
+        | 'non-compliant',
       percentage: latestScore.securityScore,
     },
   ];
@@ -351,7 +359,7 @@ export default async function HealthPage({
             <div className="mb-4">
               <Link
                 href={`/dashboard?project=${projectId}`}
-                className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-coral transition-colors hover:text-coral-light"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
@@ -391,7 +399,11 @@ export default async function HealthPage({
 
                 {/* Trend Indicator */}
                 <div className="flex items-center gap-2" data-testid="trend-indicator">
-                  <TrendIcon className={`h-6 w-6 ${trendColor}`} data-testid="trend-icon" aria-hidden="true" />
+                  <TrendIcon
+                    className={`h-6 w-6 ${trendColor}`}
+                    data-testid="trend-icon"
+                    aria-hidden="true"
+                  />
                   <span className={`text-sm font-semibold ${trendColor}`}>{trendText}</span>
                 </div>
               </div>

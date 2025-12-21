@@ -114,7 +114,13 @@ export function useFilterParams(
       module: searchParams.module?.split(',').filter(Boolean) || [],
       label: searchParams.label?.split(',').filter(Boolean) || [], // Sprint 11.7
     }),
-    [searchParams.kind, searchParams.status, searchParams.priority, searchParams.module, searchParams.label]
+    [
+      searchParams.kind,
+      searchParams.status,
+      searchParams.priority,
+      searchParams.module,
+      searchParams.label,
+    ]
   );
 
   /**

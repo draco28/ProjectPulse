@@ -87,12 +87,10 @@ function getRelationReason(
     return 'Same module';
   }
 
-  const overlappingLabels = ticket.labels.filter(l =>
-    currentLabelNames.includes(l.name)
-  );
+  const overlappingLabels = ticket.labels.filter((l) => currentLabelNames.includes(l.name));
 
   if (overlappingLabels.length > 0) {
-    return `Similar labels: ${overlappingLabels.map(l => l.name).join(', ')}`;
+    return `Similar labels: ${overlappingLabels.map((l) => l.name).join(', ')}`;
   }
 
   return 'Related';
@@ -106,9 +104,9 @@ export async function RelatedTickets({
   currentIssueId,
   projectId,
   labels,
-  module
+  module,
 }: RelatedTicketsProps) {
-  const labelNames = labels.map(l => l.name);
+  const labelNames = labels.map((l) => l.name);
 
   // Build OR conditions for related tickets
   const orConditions: Array<Record<string, unknown>> = [];
@@ -145,9 +143,9 @@ export async function RelatedTickets({
   // Query related tickets from database
   const relatedTickets = await prisma.ticket.findMany({
     where: {
-      projectId,                    // Same project
-      id: { not: currentIssueId },  // Exclude current ticket
-      OR: orConditions,             // Match by module OR labels
+      projectId, // Same project
+      id: { not: currentIssueId }, // Exclude current ticket
+      OR: orConditions, // Match by module OR labels
     },
     take: 5,
     orderBy: { updatedAt: 'desc' },
@@ -163,7 +161,7 @@ export async function RelatedTickets({
   });
 
   // Add relation reason to each ticket
-  const ticketsWithReason: RelatedTicket[] = relatedTickets.map(ticket => ({
+  const ticketsWithReason: RelatedTicket[] = relatedTickets.map((ticket) => ({
     ...ticket,
     relationReason: getRelationReason(ticket, module, labelNames),
   }));

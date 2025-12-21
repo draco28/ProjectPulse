@@ -1,9 +1,9 @@
 /**
  * Admin Stats API
  * Sprint 11.5: Aggregate statistics for admin dashboard
- * 
+ *
  * GET /api/admin/stats - Returns system-wide statistics
- * 
+ *
  * Security: Requires ADMIN role
  */
 
@@ -74,9 +74,6 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch stats' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
   }
 }

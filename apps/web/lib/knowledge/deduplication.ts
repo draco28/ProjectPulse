@@ -41,17 +41,8 @@ export interface DeduplicationResult {
  * @param options - Deduplication search options
  * @returns Deduplication result with candidates
  */
-export async function findDuplicates(
-  options: DeduplicationOptions
-): Promise<DeduplicationResult> {
-  const {
-    projectId,
-    title,
-    embedding,
-    category,
-    similarityThreshold = 0.95,
-    limit = 5,
-  } = options;
+export async function findDuplicates(options: DeduplicationOptions): Promise<DeduplicationResult> {
+  const { projectId, title, embedding, category, similarityThreshold = 0.95, limit = 5 } = options;
 
   const candidates: DuplicateCandidate[] = [];
 
@@ -93,7 +84,7 @@ export async function findDuplicates(
       // Use pgvector cosine similarity (<=> operator)
       // Note: Raw SQL required for vector operations
       const embeddingStr = `[${embedding.join(',')}]`;
-      const excludedIds = candidates.map(c => c.id);
+      const excludedIds = candidates.map((c) => c.id);
 
       // Build WHERE clause parts (always include projectId for multi-tenancy)
       const whereClauses: string[] = [

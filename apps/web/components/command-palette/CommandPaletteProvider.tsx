@@ -2,7 +2,7 @@
 
 /**
  * Command Palette Provider
- * 
+ *
  * Global state management for command palette using Context API
  */
 
@@ -62,16 +62,19 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Execute command
-  const executeCommand = useCallback(async (command: Command) => {
-    if (command.disabled) return;
-    
-    try {
-      await command.action();
-      close();
-    } catch (error) {
-      console.error('Command execution failed:', error);
-    }
-  }, [close]);
+  const executeCommand = useCallback(
+    async (command: Command) => {
+      if (command.disabled) return;
+
+      try {
+        await command.action();
+        close();
+      } catch (error) {
+        console.error('Command execution failed:', error);
+      }
+    },
+    [close]
+  );
 
   // Filter commands based on search query
   useEffect(() => {
@@ -88,7 +91,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
       const keywordsMatch = command.keywords?.some((keyword) =>
         keyword.toLowerCase().includes(query)
       );
-      
+
       return titleMatch || descriptionMatch || keywordsMatch;
     });
 
@@ -104,7 +107,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
         e.preventDefault();
         toggle();
       }
-      
+
       // ESC to close
       if (e.key === 'Escape' && isOpen) {
         e.preventDefault();
@@ -131,11 +134,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
     registerCommands,
   };
 
-  return (
-    <CommandPaletteContext.Provider value={value}>
-      {children}
-    </CommandPaletteContext.Provider>
-  );
+  return <CommandPaletteContext.Provider value={value}>{children}</CommandPaletteContext.Provider>;
 }
 
 // Custom hook to use command palette

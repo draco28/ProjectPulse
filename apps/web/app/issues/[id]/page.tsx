@@ -15,11 +15,9 @@ interface PageProps {
 export default async function IssueDetailPage({ params, searchParams }: PageProps) {
   const { id } = await params;
   const { project } = await searchParams;
-  
+
   // Redirect to /tickets/[id] preserving project context
-  const redirectUrl = project 
-    ? `/tickets/${id}?project=${project}`
-    : `/tickets/${id}`;
-    
+  const redirectUrl = project ? `/tickets/${id}?project=${project}` : `/tickets/${id}`;
+
   redirect(redirectUrl);
 }

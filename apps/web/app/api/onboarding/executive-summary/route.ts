@@ -1,21 +1,21 @@
 /**
  * POST /api/onboarding/executive-summary
- * 
+ *
  * Sprint 8.6 Phase 1 - Session 1 Executive Summary Storage (Agent-Side AI)
- * 
+ *
  * Store agent-generated executive summary from their own AI provider.
  * This endpoint NO LONGER generates summaries - it just stores them.
- * 
+ *
  * Agent workflow:
  * 1. GET /api/onboarding/executive-summary-prompt (get prompt template)
  * 2. Agent generates summary with their AI provider
  * 3. POST /api/onboarding/executive-summary (store summary - this endpoint)
- * 
+ *
  * Request Body:
  * - projectId: number (required) - Project ID
  * - executiveSummary: string (required) - Agent-generated summary (100-5000 chars)
  * - wordCount: number (optional) - Word count (calculated if not provided)
- * 
+ *
  * Response:
  * - 200: Executive summary stored successfully
  * - 400: Validation error or Session 1 incomplete
@@ -30,27 +30,28 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 
 const requestSchema = z.object({
   projectId: z.number().int().positive('Project ID must be positive'),
-  executiveSummary: z.string()
+  executiveSummary: z
+    .string()
     .min(100, 'Executive summary must be at least 100 characters')
     .max(5000, 'Executive summary must not exceed 5000 characters'),
-  wordCount: z.number().int().positive().optional()
+  wordCount: z.number().int().positive().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validation = requestSchema.safeParse(body);
-    
+
     if (!validation.success) {
       return NextResponse.json(
         {
           error: 'Invalid request body',
-          details: validation.error.format()
+          details: validation.error.format(),
         },
         { status: 400 }
       );
     }
-    
+
     const { projectId, executiveSummary, wordCount: providedWordCount } = validation.data;
 
     // Sprint 12: Require authentication (session OR bearer token)
@@ -59,14 +60,14 @@ export async function POST(request: NextRequest) {
     // Fetch Session 1 data (Sprint 9 Refactored Schema)
     const session = await prisma.onboardingSession.findUnique({
       where: {
-        projectId_sessionNumber: { projectId, sessionNumber: 1 }
+        projectId_sessionNumber: { projectId, sessionNumber: 1 },
       },
       select: {
         id: true,
         planningAnswers: true,
         projectContextJson: true,
-        status: true
-      }
+        status: true,
+      },
     });
 
     if (!session || !session.planningAnswers) {
@@ -79,7 +80,8 @@ export async function POST(request: NextRequest) {
     const planningAnswers = session.planningAnswers as any;
 
     // Calculate word count if not provided
-    const wordCount = providedWordCount || executiveSummary.split(/\s+/).filter((w) => w.length > 0).length;
+    const wordCount =
+      providedWordCount || executiveSummary.split(/\s+/).filter((w) => w.length > 0).length;
 
     console.log(`[Session 1] Storing agent-generated executive summary: ${wordCount} words`);
 
@@ -100,20 +102,19 @@ export async function POST(request: NextRequest) {
           ...currentMetrics,
           executiveSummaryWordCount: wordCount,
           executiveSummaryGeneratedAt: now.toISOString(),
-          generatedBy: 'agent'
-        }
-      }
+          generatedBy: 'agent',
+        },
+      },
     });
-    
+
     console.log('[Session 1] Session marked complete with agent-generated executive summary');
-    
+
     return NextResponse.json({
       success: true,
       stored: true,
       wordCount,
-      projectContextJson
+      projectContextJson,
     });
-    
   } catch (error) {
     console.error('[POST /api/onboarding/executive-summary] Error:', error);
 
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Failed to generate executive summary',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
 
 /**
  * Generate project-context.json from planning answers and executive summary
- * 
+ *
  * This extracts structured data from the 10 phases of planning answers
  * and combines it with the agent-generated executive summary to create
  * a complete project context object for Session 2 and Session 3 to use.
@@ -151,10 +152,10 @@ function generateProjectContextJson(planningAnswers: any, executiveSummary: stri
   const phase8 = planningAnswers.phase8 || {};
   const phase9 = planningAnswers.phase9 || {};
   const phase10 = planningAnswers.phase10 || {};
-  
+
   // Parse answers to extract structured data
   // Note: This is basic extraction - real implementation would parse text answers
-  
+
   return {
     metadata: {
       projectName: extractProjectName(phase1, executiveSummary),
@@ -164,7 +165,7 @@ function generateProjectContextJson(planningAnswers: any, executiveSummary: stri
       valueProposition: extractValueProp(phase1),
       version: '1.0.0',
       lastUpdated: new Date().toISOString(),
-      createdBy: 'onboarding-session-1'
+      createdBy: 'onboarding-session-1',
     },
     techStack: {
       frontend: extractTechStack(phase2, 'frontend'),
@@ -172,19 +173,19 @@ function generateProjectContextJson(planningAnswers: any, executiveSummary: stri
       database: extractTechStack(phase2, 'database'),
       auth: extractTechStack(phase4, 'auth'),
       hosting: extractTechStack(phase9, 'hosting'),
-      other: []
+      other: [],
     },
     phases: extractPhases(planningAnswers),
     timeline: {
       startDate: extractStartDate(phase2),
       estimatedDuration: extractDuration(phase2),
-      targetLaunch: extractLaunchDate(phase2)
+      targetLaunch: extractLaunchDate(phase2),
     },
     budget: {
       development: extractBudget(phase2, 'development'),
-      monthly_operating: extractBudget(phase2, 'monthly')
+      monthly_operating: extractBudget(phase2, 'monthly'),
     },
-    features: extractFeatures(phase1)
+    features: extractFeatures(phase1),
     // NOTE: planningAnswers and executiveSummary intentionally omitted
     // - planningAnswers: Raw Q&A already processed into structured fields above (~27K tokens saved)
     // - executiveSummary: Sent separately via {executiveSummary} placeholder (no duplication)
@@ -226,39 +227,53 @@ function extractValueProp(phase1: any): string {
 function extractTechStack(phase: any, type: string): string {
   // Extract from relevant phase answers
   const allAnswers = Object.values(phase).join(' ');
-  
+
   if (type === 'frontend') {
     if (allAnswers.includes('Next.js')) return 'Next.js';
     if (allAnswers.includes('React')) return 'React';
     if (allAnswers.includes('Vue')) return 'Vue.js';
   }
-  
+
   if (type === 'backend') {
     if (allAnswers.includes('Node.js')) return 'Node.js';
     if (allAnswers.includes('Express')) return 'Express';
     if (allAnswers.includes('Fastify')) return 'Fastify';
   }
-  
+
   if (type === 'database') {
     if (allAnswers.includes('PostgreSQL') || allAnswers.includes('Postgres')) return 'PostgreSQL';
     if (allAnswers.includes('MySQL')) return 'MySQL';
     if (allAnswers.includes('MongoDB')) return 'MongoDB';
   }
-  
+
   if (type === 'hosting') {
     if (allAnswers.includes('Vercel')) return 'Vercel';
     if (allAnswers.includes('AWS')) return 'AWS';
     if (allAnswers.includes('Railway')) return 'Railway';
   }
-  
+
   return 'Not specified';
 }
 
 function extractPhases(planningAnswers: any): any[] {
   // Basic phase extraction - will be enhanced by Session 2
   return [
-    { id: 1, name: 'Foundation', duration: '2-4 weeks', goals: [], deliverables: [], status: 'NOT_STARTED' },
-    { id: 2, name: 'Core Features', duration: '3-5 weeks', goals: [], deliverables: [], status: 'NOT_STARTED' }
+    {
+      id: 1,
+      name: 'Foundation',
+      duration: '2-4 weeks',
+      goals: [],
+      deliverables: [],
+      status: 'NOT_STARTED',
+    },
+    {
+      id: 2,
+      name: 'Core Features',
+      duration: '3-5 weeks',
+      goals: [],
+      deliverables: [],
+      status: 'NOT_STARTED',
+    },
   ];
 }
 
@@ -303,13 +318,13 @@ function extractFeatures(phase1: any): any[] {
     .map((f: string) => f.trim())
     .filter((f: string) => f.length > 5)
     .slice(0, 5);
-  
+
   return features.map((name: string, idx: number) => ({
     id: idx + 1,
     name,
     description: name,
     priority: idx < 3 ? 'high' : 'medium',
     phase: 1,
-    status: 'NOT_STARTED'
+    status: 'NOT_STARTED',
   }));
 }

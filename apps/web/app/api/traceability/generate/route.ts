@@ -61,10 +61,7 @@ function failure({
   status?: number;
   details?: unknown;
 }) {
-  return Response.json(
-    { data: null, error: { code, message, details } },
-    { status }
-  );
+  return Response.json({ data: null, error: { code, message, details } }, { status });
 }
 
 /**
@@ -80,7 +77,9 @@ function generateMarkdownMatrix(matrix: TraceabilityMatrix, projectName: string)
   lines.push('## Coverage Summary');
   lines.push('');
   lines.push(`- **Total Requirements**: ${matrix.stats.totalRefs}`);
-  lines.push(`- **Covered**: ${matrix.stats.coveredRefs} (${matrix.stats.coveragePercent.toFixed(1)}%)`);
+  lines.push(
+    `- **Covered**: ${matrix.stats.coveredRefs} (${matrix.stats.coveragePercent.toFixed(1)}%)`
+  );
   lines.push(`- **Uncovered**: ${matrix.uncovered.length}`);
   lines.push(`- **Tickets with Refs**: ${matrix.stats.ticketsWithRefs}`);
   lines.push('');
@@ -92,14 +91,14 @@ function generateMarkdownMatrix(matrix: TraceabilityMatrix, projectName: string)
     lines.push('|-------------|---------|----------------|');
 
     for (const entry of matrix.covered) {
-      const ticketLinks = entry.tickets
-        .map((t) => `#${t.id} (${t.kind})`)
-        .join(', ');
-      const statusSummary = entry.tickets
-        .reduce((acc, t) => {
+      const ticketLinks = entry.tickets.map((t) => `#${t.id} (${t.kind})`).join(', ');
+      const statusSummary = entry.tickets.reduce(
+        (acc, t) => {
           acc[t.status] = (acc[t.status] || 0) + 1;
           return acc;
-        }, {} as Record<string, number>);
+        },
+        {} as Record<string, number>
+      );
       const statusStr = Object.entries(statusSummary)
         .map(([s, c]) => `${s}: ${c}`)
         .join(', ');
@@ -184,9 +183,10 @@ export async function POST(request: NextRequest) {
 
     // If expectedRefs provided, use those as the total set
     // Otherwise, use discovered refs (only shows covered)
-    const allRefs = data.expectedRefs && data.expectedRefs.length > 0
-      ? [...new Set([...data.expectedRefs, ...allDiscoveredRefs])]
-      : allDiscoveredRefs;
+    const allRefs =
+      data.expectedRefs && data.expectedRefs.length > 0
+        ? [...new Set([...data.expectedRefs, ...allDiscoveredRefs])]
+        : allDiscoveredRefs;
 
     // Build covered and uncovered lists
     const covered: CoverageEntry[] = [];
@@ -229,13 +229,15 @@ export async function POST(request: NextRequest) {
     const embeddingVector = `[${embeddingResult.embedding.join(',')}]`;
 
     // Store as Knowledge Item using raw SQL (Prisma doesn't support vector type)
-    const result = await prisma.$queryRaw<Array<{
-      id: number;
-      title: string;
-      category: string;
-      tags: string[];
-      createdAt: Date;
-    }>>`
+    const result = await prisma.$queryRaw<
+      Array<{
+        id: number;
+        title: string;
+        category: string;
+        tags: string[];
+        createdAt: Date;
+      }>
+    >`
       INSERT INTO knowledge_items (
         "projectId",
         title,
@@ -274,11 +276,14 @@ export async function POST(request: NextRequest) {
 
     const knowledgeItem = result[0];
 
-    return success({
-      matrix,
-      knowledgeItem,
-      message: `Traceability matrix generated with ${matrix.stats.coveragePercent.toFixed(1)}% coverage (${covered.length}/${allRefs.length} refs)`,
-    }, 201);
+    return success(
+      {
+        matrix,
+        knowledgeItem,
+        message: `Traceability matrix generated with ${matrix.stats.coveragePercent.toFixed(1)}% coverage (${covered.length}/${allRefs.length} refs)`,
+      },
+      201
+    );
   } catch (error) {
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });
@@ -293,6 +298,10 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('[API] POST /api/traceability/generate failed', error);
-    return failure({ code: 'INTERNAL_ERROR', message: 'Failed to generate traceability matrix', status: 500 });
+    return failure({
+      code: 'INTERNAL_ERROR',
+      message: 'Failed to generate traceability matrix',
+      status: 500,
+    });
   }
 }

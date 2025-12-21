@@ -150,7 +150,6 @@ async function getTickets(projectId: number, searchParams: SearchParams) {
   };
 }
 
-
 // Kind labels for display
 const kindLabels: Record<string, string> = {
   feature: 'Feature',
@@ -183,12 +182,16 @@ export default async function TicketsPage({
   if (!user) redirect('/login');
 
   const params = await searchParams;
-  
+
   const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
 
   // Sprint 11.7: Use library's getFilterCounts (includes label counts) and pass projectId for project-scoped labels
   const [{ tickets, totalCount, currentPage, totalPages, perPage }, filterCounts, filterOptions] =
-    await Promise.all([getTickets(projectId, params), getFilterCountsFromLib(projectId), getFilterOptions(projectId)]);
+    await Promise.all([
+      getTickets(projectId, params),
+      getFilterCountsFromLib(projectId),
+      getFilterOptions(projectId),
+    ]);
 
   // Extend filter options with kind filter
   const extendedFilterOptions = {
@@ -210,7 +213,7 @@ export default async function TicketsPage({
             <div className="mb-4">
               <Link
                 href={`/dashboard?project=${projectId}`}
-                className="inline-flex items-center gap-2 text-sm text-coral hover:text-coral-light transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-coral transition-colors hover:text-coral-light"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
@@ -237,7 +240,11 @@ export default async function TicketsPage({
           {/* Page Content */}
           <main className="flex flex-1 gap-4 overflow-hidden">
             {/* Filters Sidebar (Desktop) + FAB + Mobile Drawer */}
-            <TicketsPageClient options={extendedFilterOptions} counts={filterCounts} searchParams={params} />
+            <TicketsPageClient
+              options={extendedFilterOptions}
+              counts={filterCounts}
+              searchParams={params}
+            />
 
             {/* Tickets List */}
             <div className="flex flex-1 flex-col gap-4 overflow-auto">
@@ -255,8 +262,10 @@ export default async function TicketsPage({
                   tickets.map((ticket) => (
                     <div key={ticket.id} className="relative">
                       {/* Kind Badge */}
-                      <div className="absolute top-3 right-3 z-10">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${kindColors[ticket.kind] || 'bg-gray-500/20 text-gray-400'}`}>
+                      <div className="absolute right-3 top-3 z-10">
+                        <span
+                          className={`rounded px-2 py-0.5 text-xs font-medium ${kindColors[ticket.kind] || 'bg-gray-500/20 text-gray-400'}`}
+                        >
                           {kindLabels[ticket.kind] || ticket.kind}
                         </span>
                       </div>

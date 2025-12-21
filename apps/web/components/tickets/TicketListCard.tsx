@@ -137,7 +137,10 @@ export function TicketListCard({ ticket, projectId }: TicketListCardProps) {
 
           {/* Title */}
           <h3 className={cn('mb-2 text-lg font-bold text-white', isClosed && 'line-through')}>
-            <Link href={`/tickets/${ticket.id}?project=${projectId}`} className="smooth-transition hover:text-coral">
+            <Link
+              href={`/tickets/${ticket.id}?project=${projectId}`}
+              className="smooth-transition hover:text-coral"
+            >
               {ticket.title}
             </Link>
           </h3>

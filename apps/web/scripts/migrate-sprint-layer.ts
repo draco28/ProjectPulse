@@ -45,7 +45,8 @@ async function migrateToSprintLayer() {
       const sprint = await prisma.sprint.create({
         data: {
           title: `${phase.title} - Default Sprint`,
-          description: 'Auto-generated Sprint for backward compatibility during Sprint 8.5 migration',
+          description:
+            'Auto-generated Sprint for backward compatibility during Sprint 8.5 migration',
           status: phase.status,
           progress: phase.progress,
           startDate: phase.startDate,
@@ -94,8 +95,7 @@ async function migrateToSprintLayer() {
 }
 
 // Run migration
-migrateToSprintLayer()
-  .catch((error) => {
-    console.error('Fatal error:', error);
-    process.exit(1);
-  });
+migrateToSprintLayer().catch((error) => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});

@@ -110,9 +110,7 @@ export function useQuestions(projectId: number, phase: number) {
   return useQuery<QuestionsResponse>({
     queryKey: ['onboarding-questions', projectId, phase],
     queryFn: async () => {
-      const res = await fetch(
-        `/api/onboarding/questions?projectId=${projectId}&phase=${phase}`
-      );
+      const res = await fetch(`/api/onboarding/questions?projectId=${projectId}&phase=${phase}`);
       if (!res.ok) throw new Error('Failed to fetch questions');
       return res.json();
     },
@@ -145,9 +143,7 @@ export function useExecutiveSummaryPrompt(projectId: number) {
   return useQuery({
     queryKey: ['executive-summary-prompt', projectId],
     queryFn: async () => {
-      const res = await fetch(
-        `/api/onboarding/executive-summary-prompt?projectId=${projectId}`
-      );
+      const res = await fetch(`/api/onboarding/executive-summary-prompt?projectId=${projectId}`);
       if (!res.ok) throw new Error('Failed to fetch executive summary prompt');
       return res.json();
     },
@@ -159,7 +155,11 @@ export function useStoreExecutiveSummary() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { projectId: number; executiveSummary: string; wordCount?: number }) => {
+    mutationFn: async (data: {
+      projectId: number;
+      executiveSummary: string;
+      wordCount?: number;
+    }) => {
       const res = await fetch('/api/onboarding/executive-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -168,7 +168,10 @@ export function useStoreExecutiveSummary() {
       if (!res.ok) throw new Error('Failed to store executive summary');
       return res.json();
     },
-    onSuccess: (_data: unknown, variables: { projectId: number; executiveSummary: string; wordCount?: number }) => {
+    onSuccess: (
+      _data: unknown,
+      variables: { projectId: number; executiveSummary: string; wordCount?: number }
+    ) => {
       queryClient.invalidateQueries({
         queryKey: ['onboarding-status', variables.projectId],
       });

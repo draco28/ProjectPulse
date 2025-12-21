@@ -35,15 +35,17 @@ const sprintSchema = z.object({
   storyPoints: z.number().int().positive().optional(),
 });
 
-const phaseSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  name: z.string().min(1).max(200).optional(),
-  description: z.string().max(2000).optional(),
-  duration: z.string().optional(),
-  sprints: z.array(sprintSchema).min(1),
-}).refine((data) => data.title || data.name, {
-  message: 'Phase must have either title or name',
-});
+const phaseSchema = z
+  .object({
+    title: z.string().min(1).max(200).optional(),
+    name: z.string().min(1).max(200).optional(),
+    description: z.string().max(2000).optional(),
+    duration: z.string().optional(),
+    sprints: z.array(sprintSchema).min(1),
+  })
+  .refine((data) => data.title || data.name, {
+    message: 'Phase must have either title or name',
+  });
 
 const parsedRoadmapSchema = z.object({
   phases: z.array(phaseSchema).min(1),
@@ -133,13 +135,17 @@ export async function POST(request: NextRequest) {
     });
 
     if (existing) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'CONFLICT',
-          message: 'Roadmap already exists for this project. Delete it first or use the update endpoint.',
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'CONFLICT',
+            message:
+              'Roadmap already exists for this project. Delete it first or use the update endpoint.',
+          },
         },
-      }, { status: 409 });
+        { status: 409 }
+      );
     }
 
     // Parse and validate roadmap data
@@ -181,7 +187,9 @@ export async function POST(request: NextRequest) {
         materializationResult = await materializeRoadmap(roadmap.id);
       } catch (matError) {
         console.error('[POST /api/roadmap/import] Materialization error:', matError);
-        warnings.push(`Materialization failed: ${matError instanceof Error ? matError.message : 'Unknown error'}`);
+        warnings.push(
+          `Materialization failed: ${matError instanceof Error ? matError.message : 'Unknown error'}`
+        );
         materializationResult = {
           success: false,
           message: matError instanceof Error ? matError.message : 'Materialization failed',
@@ -190,29 +198,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        roadmap: {
-          id: roadmap.id,
-          projectId: roadmap.projectId,
-          title: validated.title || 'Imported Roadmap',
-          phases: roadmap.phases,
-          currentPhase: roadmap.currentPhase,
-          currentSprint: roadmap.currentSprint,
-          createdAt: roadmap.createdAt.toISOString(),
-          updatedAt: roadmap.updatedAt.toISOString(),
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          roadmap: {
+            id: roadmap.id,
+            projectId: roadmap.projectId,
+            title: validated.title || 'Imported Roadmap',
+            phases: roadmap.phases,
+            currentPhase: roadmap.currentPhase,
+            currentSprint: roadmap.currentSprint,
+            createdAt: roadmap.createdAt.toISOString(),
+            updatedAt: roadmap.updatedAt.toISOString(),
+          },
+          materialization: materializationResult
+            ? {
+                phases: materializationResult.counts?.phases ?? 0,
+                sprints: materializationResult.counts?.sprints ?? 0,
+                weeks: materializationResult.counts?.weeks ?? 0,
+                days: materializationResult.counts?.days ?? 0,
+              }
+            : null,
+          warnings,
         },
-        materialization: materializationResult ? {
-          phases: materializationResult.counts?.phases ?? 0,
-          sprints: materializationResult.counts?.sprints ?? 0,
-          weeks: materializationResult.counts?.weeks ?? 0,
-          days: materializationResult.counts?.days ?? 0,
-        } : null,
-        warnings,
       },
-    }, { status: 201 });
-
+      { status: 201 }
+    );
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {
@@ -223,25 +235,31 @@ export async function POST(request: NextRequest) {
     }
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid request body',
-          details: error.errors.map((e) => ({ path: e.path, message: e.message })),
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request body',
+            details: error.errors.map((e) => ({ path: e.path, message: e.message })),
+          },
         },
-      }, { status: 400 });
+        { status: 400 }
+      );
     }
 
     if (error instanceof Error) {
       if (error.message.startsWith('PARSE_ERROR:')) {
-        return NextResponse.json({
-          success: false,
-          error: {
-            code: 'PARSE_ERROR',
-            message: error.message.replace('PARSE_ERROR: ', ''),
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'PARSE_ERROR',
+              message: error.message.replace('PARSE_ERROR: ', ''),
+            },
           },
-        }, { status: 422 });
+          { status: 422 }
+        );
       }
     }
 

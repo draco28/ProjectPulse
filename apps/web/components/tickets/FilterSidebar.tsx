@@ -20,11 +20,7 @@ import type { FiltersDTO, FilterCounts } from '@/types/filters';
 import { X, RefreshCw, AlertCircle, Box, Layers, Tag, ChevronDown } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 // Sprint 14: Semantic badge colors for filter counts (Ticket #23)
 const STATUS_BADGE_COLORS: Record<string, string> = {
@@ -85,7 +81,7 @@ function FilterSection({ title, icon, defaultOpen = false, children, testId }: F
           aria-hidden="true"
         />
       </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-3 data-[state=closed]:animate-collapse data-[state=open]:animate-expand">
+      <CollapsibleContent className="data-[state=closed]:animate-collapse data-[state=open]:animate-expand space-y-3">
         {children}
       </CollapsibleContent>
     </Collapsible>

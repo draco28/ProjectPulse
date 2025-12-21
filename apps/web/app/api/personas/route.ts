@@ -1,8 +1,8 @@
 /**
  * Personas List API - Sprint 11 (EPIC-013: Client Agent Integration)
- * 
+ *
  * GET /api/personas - List all agent personas for a project (metadata only)
- * 
+ *
  * Token Efficiency: Excludes systemPrompt in list view
  * Multi-tenancy: Filtered by projectId
  * Security: Requires authentication (user session OR agent token)
@@ -20,7 +20,7 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 const querySchema = z.object({
   projectId: z.coerce.number().int().positive(),
   isActive: z.preprocess(
-    (val) => val === 'true' ? true : val === 'false' ? false : undefined,
+    (val) => (val === 'true' ? true : val === 'false' ? false : undefined),
     z.boolean().optional()
   ),
 });
@@ -32,13 +32,13 @@ const querySchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     // 1. Validate query params
     const validation = querySchema.safeParse({
       projectId: searchParams.get('projectId'),
       isActive: searchParams.get('isActive'),
     });
-    
+
     if (!validation.success) {
       console.error('[GET /api/personas] Validation failed', validation.error);
       return NextResponse.json(
@@ -49,14 +49,14 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     const { projectId: requestedProjectId, isActive } = validation.data;
-    
+
     // 2. Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
-    
+
     console.log('[GET /api/personas] Listing personas', { projectId, isActive });
-    
+
     // 3. Query personas (metadata only, no systemPrompt)
     const personas = await prisma.agentPersona.findMany({
       where: {
@@ -78,18 +78,17 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { name: 'asc' },
     });
-    
+
     console.log('[GET /api/personas] Found personas', {
       projectId,
       count: personas.length,
     });
-    
+
     return NextResponse.json({
       personas,
       count: personas.length,
       projectId,
     });
-    
   } catch (error) {
     // Handle auth errors with proper status codes
     if (error instanceof AuthError) {
@@ -98,7 +97,7 @@ export async function GET(request: NextRequest) {
         { status: error.status }
       );
     }
-    
+
     console.error('[GET /api/personas] Error:', error);
     return NextResponse.json(
       {

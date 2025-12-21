@@ -15,6 +15,16 @@ const agentSessionEndSchema = z.object({
 
 type AgentSessionEndInput = z.infer<typeof agentSessionEndSchema>;
 
+interface SyncBankStatus {
+  success: boolean;
+  error?: string;
+}
+
+interface SyncStatus {
+  progress: SyncBankStatus;
+  activeContext: SyncBankStatus;
+}
+
 interface EndResponse {
   success: boolean;
   session?: {
@@ -22,6 +32,7 @@ interface EndResponse {
     status: string;
     completedAt: string;
   };
+  syncStatus?: SyncStatus | null;
   message?: string;
   error?: string;
 }
@@ -55,11 +66,37 @@ async function handler(input: AgentSessionEndInput, context: ToolContext): Promi
         completedAt: response.session.completedAt,
       });
 
-      return JSON.stringify({
+      // Build result with sync status visibility
+      const result: Record<string, unknown> = {
         status: 'success',
         message: response.message || 'Agent session completed',
         session: response.session,
-      }, null, 2);
+      };
+
+      // Parse sync status and add warnings if any sync failed
+      if (response.syncStatus) {
+        const syncWarnings: string[] = [];
+
+        if (!response.syncStatus.progress.success) {
+          syncWarnings.push(`PROGRESS bank sync failed: ${response.syncStatus.progress.error || 'Unknown error'}`);
+        }
+        if (!response.syncStatus.activeContext.success) {
+          syncWarnings.push(`ACTIVE_CONTEXT bank sync failed: ${response.syncStatus.activeContext.error || 'Unknown error'}`);
+        }
+
+        if (syncWarnings.length > 0) {
+          result.syncWarnings = syncWarnings;
+          result.hint = 'Memory bank sync partially failed. Context may not be fully updated for next session. Consider calling projectpulse_context_update manually if needed.';
+          logger.warn('[agent-session.end] Memory bank sync warnings', { warnings: syncWarnings });
+        } else {
+          result.syncStatus = {
+            progress: '✓ synced',
+            activeContext: '✓ synced',
+          };
+        }
+      }
+
+      return JSON.stringify(result, null, 2);
     }
 
     return JSON.stringify({
@@ -90,7 +127,12 @@ Auto-Syncs (automatic):
 
 Optionally: Add final progress notes before completion.
 
-Next: Call projectpulse_context_load to start new work.`,
+Next: Call projectpulse_context_load to start new work.
+
+⚠️ IMPORTANT:
+- COMPLETED sessions CANNOT be resumed - use PAUSED for breaks instead
+- If you need to take a break: call projectpulse_agent_session_update({ status: 'PAUSED' })
+- Only call session_end when work is truly FINISHED`,
   schema: agentSessionEndSchema,
   inputSchema: {
     type: 'object',

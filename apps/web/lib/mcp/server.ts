@@ -91,9 +91,7 @@ export function getMCPServer(): Server {
   );
 
   // Log server initialization
-  console.log(
-    `[MCP Server] Initialized ${SERVER_CONFIG.name} v${SERVER_CONFIG.version}`
-  );
+  console.log(`[MCP Server] Initialized ${SERVER_CONFIG.name} v${SERVER_CONFIG.version}`);
   console.log('[MCP Server] Capabilities:', Object.keys(SERVER_CAPABILITIES));
 
   return mcpServerInstance;
@@ -155,10 +153,7 @@ export {
 /**
  * Export knowledge resource handlers for registration in route handler
  */
-export {
-  listKnowledgeResources,
-  readKnowledgeResource,
-} from './resources/knowledge-resource';
+export { listKnowledgeResources, readKnowledgeResource } from './resources/knowledge-resource';
 
 /**
  * Export ticket tool handlers for registration in route handler (Sprint 10)

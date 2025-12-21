@@ -1,10 +1,10 @@
 /**
  * Admin Single User API
  * Sprint 11.5: Get and update individual users
- * 
+ *
  * GET /api/admin/users/[id] - Get user details
  * PATCH /api/admin/users/[id] - Update user (isActive, role, name)
- * 
+ *
  * Security:
  * - Requires ADMIN role
  * - Cannot modify own account (self-protection)
@@ -91,10 +91,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     // Self-protection: Cannot modify own account
     if (id === admin.id) {
-      return NextResponse.json(
-        { error: 'Cannot modify your own account' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Cannot modify your own account' }, { status: 400 });
     }
 
     const body = await request.json();
@@ -114,10 +111,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (data.role === 'USER' && currentUser.role === 'ADMIN') {
       const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
       if (adminCount <= 1) {
-        return NextResponse.json(
-          { error: 'Cannot demote the last admin' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Cannot demote the last admin' }, { status: 400 });
       }
     }
 

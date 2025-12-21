@@ -24,16 +24,17 @@ The design prioritizes **synchronous embedding generation** for simplicity in Ph
 
 **✅ RECOMMENDATION: Route Handlers (`route.ts`)**
 
-| Criterion | Route Handler | Server Action | Winner |
-|-----------|---------------|---------------|--------|
-| **External API access** | ✅ Yes (RESTful endpoint) | ❌ No (form-bound) | Route Handler |
-| **MCP tool integration** | ✅ Direct HTTP calls | ❌ Requires wrapper | Route Handler |
-| **Response flexibility** | ✅ Full control (JSON, headers) | ⚠️ Limited | Route Handler |
-| **Error handling** | ✅ HTTP status codes | ⚠️ Throws only | Route Handler |
-| **Caching control** | ✅ Next.js cache config | ⚠️ Revalidation only | Route Handler |
-| **TypeScript safety** | ✅ Explicit types | ✅ Type-safe | Tie |
+| Criterion                | Route Handler                   | Server Action        | Winner        |
+| ------------------------ | ------------------------------- | -------------------- | ------------- |
+| **External API access**  | ✅ Yes (RESTful endpoint)       | ❌ No (form-bound)   | Route Handler |
+| **MCP tool integration** | ✅ Direct HTTP calls            | ❌ Requires wrapper  | Route Handler |
+| **Response flexibility** | ✅ Full control (JSON, headers) | ⚠️ Limited           | Route Handler |
+| **Error handling**       | ✅ HTTP status codes            | ⚠️ Throws only       | Route Handler |
+| **Caching control**      | ✅ Next.js cache config         | ⚠️ Revalidation only | Route Handler |
+| **TypeScript safety**    | ✅ Explicit types               | ✅ Type-safe         | Tie           |
 
 **Rationale**:
+
 - Knowledge base is designed for **MCP tool consumption** (MCP server will call these endpoints)
 - External services (Ollama, OpenAI) need RESTful HTTP access
 - Hybrid search requires custom response headers (cache-control, X-Search-Mode)
@@ -53,11 +54,13 @@ export const dynamic = 'force-dynamic'; // Opt out of caching
 ```
 
 **Why Dynamic?**
+
 - **POST /api/knowledge**: Creates new data → must be dynamic
 - **GET /api/knowledge/search**: Search queries vary wildly → caching provides minimal benefit
 - User-specific results possible in future (auth-based filtering)
 
 **Caching Strategy** (implemented at application level):
+
 - **No Next.js cache**: Each request hits handler
 - **Database-level caching**: PostgreSQL query cache handles repetitive queries
 - **Future**: Redis for search result caching (Phase 3 optimization)
@@ -81,6 +84,7 @@ async function POST(request: NextRequest) {
 ```
 
 **Why Synchronous Now?**
+
 - **Simplicity**: Single transaction, no queue infrastructure needed
 - **Latency acceptable**: Ollama embedding generation: 200-400ms (well under 500ms target)
 - **Immediate feedback**: User gets confirmation that embedding succeeded
@@ -90,12 +94,14 @@ async function POST(request: NextRequest) {
 #### Phase 3 Migration Path (Async)
 
 **When to switch to async:**
+
 - POST latency consistently exceeds 500ms
 - Implementing batch embedding generation
 - Adding multiple embedding models (Ollama + OpenAI + local)
 - User demand for "save draft, embed later" workflow
 
 **Async architecture** (future):
+
 ```typescript
 POST /api/knowledge → Return 202 Accepted immediately
                    → Enqueue job to background worker
@@ -109,6 +115,7 @@ Background Worker Options:
 ```
 
 **Migration strategy**:
+
 - Encapsulate embedding logic in `lib/embeddings/service.ts`
 - No changes to API contract (client still POSTs same payload)
 - Add `embeddings.status` field to schema ('pending' | 'completed' | 'failed')
@@ -201,7 +208,7 @@ return failure({
   details: {
     service: 'ollama',
     endpoint: 'http://ollama:11434',
-    troubleshooting: 'Verify Ollama container is running: docker ps | grep ollama'
+    troubleshooting: 'Verify Ollama container is running: docker ps | grep ollama',
   },
   status: 503,
 });
@@ -254,14 +261,14 @@ try {
 
 #### Decision Matrix: When to Return What Status
 
-| Scenario | Status Code | User Action | System Action |
-|----------|-------------|-------------|---------------|
-| Ollama timeout | 503 Service Unavailable | Retry request | Use OpenAI fallback OR fail |
-| Ollama down | 503 Service Unavailable | Check service status | Alert ops team |
-| OpenAI fallback succeeds | 201 Created | None (transparent) | Log fallback usage |
-| All embedding services fail | 503 Service Unavailable | Retry later | Alert ops team |
-| Database error after embedding | 500 Internal Server Error | Contact support | Store embedding for recovery |
-| Validation error | 400 Bad Request | Fix input | None |
+| Scenario                       | Status Code               | User Action          | System Action                |
+| ------------------------------ | ------------------------- | -------------------- | ---------------------------- |
+| Ollama timeout                 | 503 Service Unavailable   | Retry request        | Use OpenAI fallback OR fail  |
+| Ollama down                    | 503 Service Unavailable   | Check service status | Alert ops team               |
+| OpenAI fallback succeeds       | 201 Created               | None (transparent)   | Log fallback usage           |
+| All embedding services fail    | 503 Service Unavailable   | Retry later          | Alert ops team               |
+| Database error after embedding | 500 Internal Server Error | Contact support      | Store embedding for recovery |
+| Validation error               | 400 Bad Request           | Fix input            | None                         |
 
 ---
 
@@ -320,6 +327,7 @@ return success(item, 201);
 ```
 
 **Why this pattern?**
+
 - **Raw SQL for vector**: Only way to insert pgvector types
 - **Prisma for retrieval**: Type-safe, gets us IDE autocomplete
 - **Trigger handles tsvector**: No need to manually generate full-text search vector
@@ -343,7 +351,7 @@ interface HybridSearchResult {
   fulltextScore: number;
   combinedScore: number;
   matchedSnippet: string | null;
-  relatedItems: Array<{ id: number; title: string; relationType: string; }>;
+  relatedItems: Array<{ id: number; title: string; relationType: string }>;
 }
 
 async function hybridSearch(
@@ -352,7 +360,6 @@ async function hybridSearch(
   limit: number,
   includeRelated: boolean
 ): Promise<HybridSearchResult[]> {
-
   // Step 1: Generate query embedding (for semantic search)
   const queryEmbedding = await generateEmbedding(query);
   const queryVector = `[${queryEmbedding.join(',')}]`;
@@ -419,14 +426,16 @@ async function hybridSearch(
 
   // Step 3: Fetch related items (if requested)
   if (includeRelated && results.length > 0) {
-    const itemIds = results.map(r => r.id);
+    const itemIds = results.map((r) => r.id);
 
-    const related = await prisma.$queryRaw<Array<{
-      fromId: number;
-      toId: number;
-      title: string;
-      relationType: string;
-    }>>`
+    const related = await prisma.$queryRaw<
+      Array<{
+        fromId: number;
+        toId: number;
+        title: string;
+        relationType: string;
+      }>
+    >`
       SELECT
         kr."fromId",
         kr."toId",
@@ -440,10 +449,10 @@ async function hybridSearch(
     `;
 
     // Attach related items to results
-    results.forEach(result => {
+    results.forEach((result) => {
       result.relatedItems = related
-        .filter(r => r.fromId === result.id)
-        .map(r => ({
+        .filter((r) => r.fromId === result.id)
+        .map((r) => ({
           id: r.toId,
           title: r.title,
           relationType: r.relationType,
@@ -456,6 +465,7 @@ async function hybridSearch(
 ```
 
 **Performance optimizations**:
+
 - **LIMIT multiplication**: Fetch 2x limit for each sub-query, then merge and re-limit
 - **CTE usage**: `WITH` clauses for readability and potential optimization
 - **Index usage**: HNSW for vector, GIN for tsvector (already created in migration)
@@ -510,6 +520,7 @@ apps/web/
 #### File Responsibilities
 
 **`app/api/knowledge/route.ts`** (Route Handler)
+
 - HTTP request/response handling
 - Zod validation
 - Call service layer functions
@@ -517,12 +528,14 @@ apps/web/
 - ~100-150 lines
 
 **`lib/knowledge/create.ts`** (Service Layer)
+
 - Orchestrate embedding generation + database insertion
 - Transaction management
 - Error recovery
 - ~150-200 lines
 
 **`lib/knowledge/search.ts`** (Service Layer)
+
 - Execute hybrid search query
 - Score normalization
 - Result ranking
@@ -530,6 +543,7 @@ apps/web/
 - ~200-250 lines
 
 **`lib/embeddings/ollama.ts`** (Integration Layer)
+
 - Ollama API client
 - Timeout handling
 - Retry logic
@@ -537,19 +551,20 @@ apps/web/
 - ~100-150 lines
 
 **`lib/validations/knowledge.ts`** (Validation)
+
 - Zod schemas for all endpoints
 - TypeScript type inference
 - ~50-100 lines
 
 #### Why This Structure?
 
-| Benefit | How It Helps |
-|---------|--------------|
-| **Testability** | Service layer can be unit tested without HTTP |
-| **Reusability** | Services can be used from multiple routes |
-| **Maintainability** | Clear separation of concerns |
-| **Type Safety** | Shared types across layers |
-| **Future-proof** | Easy to swap Ollama for another service |
+| Benefit             | How It Helps                                  |
+| ------------------- | --------------------------------------------- |
+| **Testability**     | Service layer can be unit tested without HTTP |
+| **Reusability**     | Services can be used from multiple routes     |
+| **Maintainability** | Clear separation of concerns                  |
+| **Type Safety**     | Shared types across layers                    |
+| **Future-proof**    | Easy to swap Ollama for another service       |
 
 ---
 
@@ -609,6 +624,7 @@ export interface SearchResult extends KnowledgeItem {
 ```
 
 **Success Criteria**:
+
 - ✅ All schemas export TypeScript types
 - ✅ Validation catches edge cases (empty strings, negative numbers)
 - ✅ Default values applied correctly
@@ -652,7 +668,12 @@ export class EmbeddingTimeoutError extends EmbeddingError {
 **File**: `lib/embeddings/ollama.ts`
 
 ```typescript
-import { EmbeddingProvider, EmbeddingOptions, EmbeddingTimeoutError, EmbeddingError } from './types';
+import {
+  EmbeddingProvider,
+  EmbeddingOptions,
+  EmbeddingTimeoutError,
+  EmbeddingError,
+} from './types';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://ollama:11434';
 const OLLAMA_MODEL = 'all-minilm'; // 384 dimensions
@@ -680,19 +701,13 @@ export class OllamaEmbeddingProvider implements EmbeddingProvider {
 
       if (!response.ok) {
         const error = await response.text();
-        throw new EmbeddingError(
-          `Ollama API error: ${response.status} - ${error}`,
-          this.name
-        );
+        throw new EmbeddingError(`Ollama API error: ${response.status} - ${error}`, this.name);
       }
 
       const data = await response.json();
 
       if (!data.embedding || !Array.isArray(data.embedding)) {
-        throw new EmbeddingError(
-          'Invalid embedding response from Ollama',
-          this.name
-        );
+        throw new EmbeddingError('Invalid embedding response from Ollama', this.name);
       }
 
       // Validate embedding dimensions
@@ -715,11 +730,7 @@ export class OllamaEmbeddingProvider implements EmbeddingProvider {
         throw error;
       }
 
-      throw new EmbeddingError(
-        `Failed to generate embedding: ${error.message}`,
-        this.name,
-        error
-      );
+      throw new EmbeddingError(`Failed to generate embedding: ${error.message}`, this.name, error);
     }
   }
 
@@ -788,6 +799,7 @@ export * from './types';
 ```
 
 **Success Criteria**:
+
 - ✅ Generates 384-dim embeddings from Ollama
 - ✅ Handles timeouts gracefully (throws EmbeddingTimeoutError)
 - ✅ Handles Ollama unavailable (throws EmbeddingError)
@@ -795,6 +807,7 @@ export * from './types';
 - ✅ Unit tests pass
 
 **Test Cases**:
+
 ```typescript
 // lib/embeddings/__tests__/ollama.test.ts
 describe('OllamaEmbeddingProvider', () => {
@@ -802,14 +815,14 @@ describe('OllamaEmbeddingProvider', () => {
     const provider = new OllamaEmbeddingProvider();
     const embedding = await provider.generateEmbedding('test content');
     expect(embedding).toHaveLength(384);
-    expect(embedding.every(n => typeof n === 'number')).toBe(true);
+    expect(embedding.every((n) => typeof n === 'number')).toBe(true);
   });
 
   test('throws timeout error after 5s', async () => {
     const provider = new OllamaEmbeddingProvider();
-    await expect(
-      provider.generateEmbedding('test', { timeout: 100 })
-    ).rejects.toThrow(EmbeddingTimeoutError);
+    await expect(provider.generateEmbedding('test', { timeout: 100 })).rejects.toThrow(
+      EmbeddingTimeoutError
+    );
   });
 
   test('health check returns true when service available', async () => {
@@ -838,9 +851,7 @@ import { Prisma } from '@prisma/client';
  * @throws EmbeddingTimeoutError if embedding generation times out
  * @throws Error if database insertion fails
  */
-export async function createKnowledgeItem(
-  input: CreateKnowledgeInput
-): Promise<KnowledgeItem> {
+export async function createKnowledgeItem(input: CreateKnowledgeInput): Promise<KnowledgeItem> {
   // Step 1: Generate embedding (200-400ms)
   const embedding = await generateEmbedding(input.content, { timeout: 5000 });
 
@@ -918,9 +929,7 @@ export async function batchCreateKnowledgeItems(
 
   for (let i = 0; i < items.length; i += CONCURRENCY) {
     const batch = items.slice(i, i + CONCURRENCY);
-    const batchResults = await Promise.all(
-      batch.map(item => createKnowledgeItem(item))
-    );
+    const batchResults = await Promise.all(batch.map((item) => createKnowledgeItem(item)));
     results.push(...batchResults);
   }
 
@@ -929,6 +938,7 @@ export async function batchCreateKnowledgeItems(
 ```
 
 **Success Criteria**:
+
 - ✅ Creates knowledge item with embedding in single transaction
 - ✅ Returns full item with all fields
 - ✅ Throws EmbeddingTimeoutError if Ollama times out
@@ -957,9 +967,7 @@ import { Prisma } from '@prisma/client';
  * 4. Merge results with weighted scores (0.7 semantic + 0.3 fulltext)
  * 5. Optionally fetch related items via graph relationships
  */
-export async function hybridSearch(
-  query: SearchQueryInput
-): Promise<SearchResult[]> {
+export async function hybridSearch(query: SearchQueryInput): Promise<SearchResult[]> {
   // Step 1: Generate query embedding
   const queryEmbedding = await generateEmbedding(query.query, { timeout: 3000 });
   const queryVector = `[${queryEmbedding.join(',')}]`;
@@ -1046,7 +1054,7 @@ export async function hybridSearch(
 
   // Step 3: Fetch related items (if requested)
   if (query.includeRelated && results.length > 0) {
-    const itemIds = results.map(r => r.id);
+    const itemIds = results.map((r) => r.id);
 
     const related = await prisma.$queryRaw<
       Array<{
@@ -1069,11 +1077,11 @@ export async function hybridSearch(
     `;
 
     // Attach related items to results
-    const resultsWithRelated: SearchResult[] = results.map(result => ({
+    const resultsWithRelated: SearchResult[] = results.map((result) => ({
       ...result,
       relatedItems: related
-        .filter(r => r.fromId === result.id)
-        .map(r => ({
+        .filter((r) => r.fromId === result.id)
+        .map((r) => ({
           id: r.toId,
           title: r.title,
           relationType: r.relationType,
@@ -1083,7 +1091,7 @@ export async function hybridSearch(
     return resultsWithRelated;
   }
 
-  return results.map(r => ({ ...r, relatedItems: [] }));
+  return results.map((r) => ({ ...r, relatedItems: [] }));
 }
 
 /**
@@ -1095,14 +1103,16 @@ export function normalizeScore(score: number): number {
 ```
 
 **Success Criteria**:
+
 - ✅ Returns results ranked by combined score
 - ✅ Semantic search uses HNSW index (verify with EXPLAIN ANALYZE)
 - ✅ Fulltext search uses GIN index (verify with EXPLAIN ANALYZE)
 - ✅ Mode filtering works ('semantic', 'fulltext', 'hybrid')
 - ✅ Related items fetched correctly when requested
-- ✅ Matched snippets highlighted with ** markers
+- ✅ Matched snippets highlighted with \*\* markers
 
 **Performance Benchmarks** (to verify):
+
 - Semantic search: <100ms for 10K items
 - Fulltext search: <50ms for 10K items
 - Hybrid search: <200ms for 10K items
@@ -1251,6 +1261,7 @@ export function failure({
 ```
 
 **Success Criteria**:
+
 - ✅ Returns 201 Created with full item
 - ✅ Returns 400 for validation errors with details
 - ✅ Returns 503 for embedding timeout/unavailable
@@ -1378,6 +1389,7 @@ export async function GET(request: NextRequest) {
 ```
 
 **Success Criteria**:
+
 - ✅ Returns results ranked by combined score
 - ✅ Mode filtering works correctly
 - ✅ Related items included when requested
@@ -1404,13 +1416,13 @@ describe('OllamaEmbeddingProvider', () => {
     it('should generate 384-dimensional embedding', async () => {
       const embedding = await provider.generateEmbedding('test content');
       expect(embedding).toHaveLength(384);
-      expect(embedding.every(n => typeof n === 'number' && !isNaN(n))).toBe(true);
+      expect(embedding.every((n) => typeof n === 'number' && !isNaN(n))).toBe(true);
     });
 
     it('should throw timeout error after specified duration', async () => {
-      await expect(
-        provider.generateEmbedding('test', { timeout: 10 })
-      ).rejects.toThrow(EmbeddingTimeoutError);
+      await expect(provider.generateEmbedding('test', { timeout: 10 })).rejects.toThrow(
+        EmbeddingTimeoutError
+      );
     });
 
     it('should handle empty text', async () => {
@@ -1472,9 +1484,9 @@ describe('createKnowledgeItem', () => {
   });
 
   it('should throw error when embedding generation fails', async () => {
-    jest.spyOn(embeddingModule, 'generateEmbedding').mockRejectedValue(
-      new Error('Ollama unavailable')
-    );
+    jest
+      .spyOn(embeddingModule, 'generateEmbedding')
+      .mockRejectedValue(new Error('Ollama unavailable'));
 
     await expect(
       createKnowledgeItem({
@@ -1516,7 +1528,7 @@ describe('hybridSearch', () => {
     });
 
     expect(Array.isArray(results)).toBe(true);
-    results.forEach(result => {
+    results.forEach((result) => {
       expect(result).toHaveProperty('id');
       expect(result).toHaveProperty('title');
       expect(result).toHaveProperty('semanticScore');
@@ -1533,7 +1545,7 @@ describe('hybridSearch', () => {
       includeRelated: false,
     });
 
-    results.forEach(result => {
+    results.forEach((result) => {
       expect(result.semanticScore).toBeGreaterThan(0);
       // Fulltext score may be 0 for semantic-only mode
     });
@@ -1572,7 +1584,8 @@ test.describe('Knowledge Base API', () => {
       const response = await request.post(`${BASE_URL}/api/knowledge`, {
         data: {
           title: 'E2E Test Knowledge Item',
-          content: 'This is a test knowledge item created during E2E testing to verify the API endpoint works correctly.',
+          content:
+            'This is a test knowledge item created during E2E testing to verify the API endpoint works correctly.',
           category: 'Testing',
           tags: ['e2e', 'test', 'automated'],
         },
@@ -1692,24 +1705,24 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 200
-                  example: "Next.js Server Components"
+                  example: 'Next.js Server Components'
                 content:
                   type: string
                   minLength: 10
                   maxLength: 10000
-                  example: "Server Components in Next.js 14..."
+                  example: 'Server Components in Next.js 14...'
                 category:
                   type: string
                   minLength: 1
                   maxLength: 50
-                  example: "Architecture"
+                  example: 'Architecture'
                 tags:
                   type: array
                   items:
                     type: string
                   minItems: 1
                   maxItems: 10
-                  example: ["next.js", "server-components"]
+                  example: ['next.js', 'server-components']
       responses:
         '201':
           description: Knowledge item created successfully
@@ -1745,7 +1758,7 @@ paths:
             type: string
             minLength: 1
             maxLength: 500
-          example: "next.js server components"
+          example: 'next.js server components'
         - name: mode
           in: query
           schema:
@@ -1864,10 +1877,10 @@ OLLAMA_MODEL=all-minilm  # 384 dimensions
 
 ### Current Performance Targets (Phase 2)
 
-| Endpoint | Target | Expected | Bottleneck |
-|----------|--------|----------|------------|
-| POST /api/knowledge | <500ms | 300-400ms | Ollama embedding generation |
-| GET /api/knowledge/search | <300ms | 200-250ms | Query embedding + DB query |
+| Endpoint                  | Target | Expected  | Bottleneck                  |
+| ------------------------- | ------ | --------- | --------------------------- |
+| POST /api/knowledge       | <500ms | 300-400ms | Ollama embedding generation |
+| GET /api/knowledge/search | <300ms | 200-250ms | Query embedding + DB query  |
 
 ### Optimization Opportunities (Phase 3+)
 
@@ -1876,6 +1889,7 @@ OLLAMA_MODEL=all-minilm  # 384 dimensions
 **Problem**: Same query from multiple users → duplicate work
 
 **Solution**:
+
 ```typescript
 // lib/knowledge/search.ts with caching
 export async function hybridSearch(query: SearchQueryInput): Promise<SearchResult[]> {
@@ -1898,6 +1912,7 @@ export async function hybridSearch(query: SearchQueryInput): Promise<SearchResul
 ```
 
 **Impact**:
+
 - Cache hit: <10ms response time (99% reduction)
 - Cache miss: Same as current (~200ms)
 - Cache hit rate expected: 30-40% (common queries repeat)
@@ -1909,6 +1924,7 @@ export async function hybridSearch(query: SearchQueryInput): Promise<SearchResul
 **Problem**: Embedding generation blocks HTTP response
 
 **Solution**:
+
 ```typescript
 // POST /api/knowledge (async version)
 export async function POST(request: NextRequest) {
@@ -1944,6 +1960,7 @@ async function processEmbeddingJob(job: { itemId: number; content: string }) {
 ```
 
 **Impact**:
+
 - POST response time: 50ms (90% reduction)
 - Embedding still generates in background (same 300ms)
 - Better UX: user can continue working immediately
@@ -1955,6 +1972,7 @@ async function processEmbeddingJob(job: { itemId: number; content: string }) {
 **Problem**: Creating 100 knowledge items → 100 sequential API calls to Ollama
 
 **Solution**:
+
 ```typescript
 // Ollama supports batch embeddings
 async function generateEmbeddingBatch(texts: string[]): Promise<number[][]> {
@@ -1972,6 +1990,7 @@ async function generateEmbeddingBatch(texts: string[]): Promise<number[][]> {
 ```
 
 **Impact**:
+
 - 100 items: 30s → 5s (83% reduction)
 - Used for seeding, bulk imports
 
@@ -1982,6 +2001,7 @@ async function generateEmbeddingBatch(texts: string[]): Promise<number[][]> {
 **Problem**: Popular queries like "next.js patterns" generate same embedding repeatedly
 
 **Solution**:
+
 ```typescript
 // Pre-compute embeddings for top 100 queries
 const POPULAR_QUERIES = [
@@ -2006,6 +2026,7 @@ const queryEmbedding = cachedEmbedding
 ```
 
 **Impact**:
+
 - Popular queries: 200ms → 100ms (50% reduction)
 - Embedding generation time saved: 200ms
 
@@ -2016,12 +2037,14 @@ const queryEmbedding = cachedEmbedding
 ### When to Migrate?
 
 **Triggers**:
+
 - POST latency exceeds 500ms consistently (>10% of requests)
 - User feedback: "Slow to create knowledge items"
 - Implementing batch imports (>10 items at once)
 - Adding multiple embedding models (Ollama + OpenAI + local)
 
 **Don't migrate if**:
+
 - Latency is acceptable (<500ms)
 - Volume is low (<100 items/day)
 - Infrastructure complexity not justified
@@ -2195,11 +2218,13 @@ async function createKnowledgeItem(data: CreateKnowledgeInput) {
 ### Unit Tests
 
 **Coverage targets**:
+
 - Embedding service: 90%+ (critical path)
 - Knowledge service: 85%+ (complex logic)
 - Validation schemas: 100% (cheap to test)
 
 **Mock strategy**:
+
 - Mock Ollama API responses
 - Mock Prisma for service layer tests
 - Don't mock in integration tests
@@ -2209,11 +2234,13 @@ async function createKnowledgeItem(data: CreateKnowledgeInput) {
 ### Integration Tests
 
 **Test database**:
+
 - Use separate test database
 - Reset schema between test suites
 - Seed with minimal test data
 
 **Test cases**:
+
 - Create knowledge item → verify in database
 - Search for known items → verify results
 - Test all search modes (semantic, fulltext, hybrid)
@@ -2224,10 +2251,12 @@ async function createKnowledgeItem(data: CreateKnowledgeInput) {
 ### E2E Tests
 
 **Run against**:
+
 - Local Docker Compose (CI)
 - Staging environment (pre-deploy)
 
 **Critical flows**:
+
 1. Create knowledge item → appears in search
 2. Hybrid search returns ranked results
 3. Related items fetched correctly
@@ -2240,6 +2269,7 @@ async function createKnowledgeItem(data: CreateKnowledgeInput) {
 **Tools**: Artillery, k6, or custom script
 
 **Test scenarios**:
+
 1. **POST load test**: 100 req/min for 5 minutes
    - Target: <500ms p95, <1s p99
    - Measure: Ollama latency, DB insertion time
@@ -2253,6 +2283,7 @@ async function createKnowledgeItem(data: CreateKnowledgeInput) {
    - Measure: DB connection pool usage
 
 **Baseline metrics** (to establish):
+
 ```bash
 # POST /api/knowledge
 curl -X POST http://localhost:3000/api/knowledge \
@@ -2274,27 +2305,32 @@ time_starttransfer: 0.381s
 ## Rollout Plan
 
 ### Phase 2.1: Foundation (Week 1, Days 1-2)
+
 - ✅ Embedding service (Ollama integration)
 - ✅ Knowledge service (create, search)
 - ✅ Validation schemas
 - ✅ Unit tests
 
 ### Phase 2.2: API Routes (Week 1, Day 3)
+
 - ✅ POST /api/knowledge handler
 - ✅ GET /api/knowledge/search handler
 - ✅ Error handling
 
 ### Phase 2.3: Testing (Week 1, Days 4-5)
+
 - ✅ Integration tests
 - ✅ E2E tests
 - ✅ Performance baseline
 
 ### Phase 2.4: Documentation (Week 2, Day 1)
+
 - ✅ API documentation (OpenAPI spec)
 - ✅ README updates
 - ✅ Deployment guide
 
 ### Phase 2.5: Deployment (Week 2, Day 2)
+
 - ✅ Deploy to staging
 - ✅ Run smoke tests
 - ✅ Deploy to production
@@ -2305,6 +2341,7 @@ time_starttransfer: 0.381s
 ## Success Criteria
 
 ### Functional Requirements
+
 - [x] POST /api/knowledge creates items with embeddings
 - [x] GET /api/knowledge/search returns ranked results
 - [x] Semantic search uses pgvector cosine similarity
@@ -2314,12 +2351,14 @@ time_starttransfer: 0.381s
 - [x] All three modes work (semantic, fulltext, hybrid)
 
 ### Performance Requirements
+
 - [x] POST latency: <500ms (p95)
 - [x] GET search latency: <300ms (p95)
 - [x] Embedding generation: <400ms (Ollama)
 - [x] Handles 100 req/min sustained load
 
 ### Quality Requirements
+
 - [x] Unit test coverage: >85%
 - [x] E2E tests pass
 - [x] All error cases handled gracefully

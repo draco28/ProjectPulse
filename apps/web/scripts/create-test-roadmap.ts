@@ -47,14 +47,14 @@ const TEST_ROADMAP: ParsedRoadmap = {
           goals: [
             'Set up development environment and tooling',
             'Initialize database schema with hierarchy models',
-            'Create basic API structure'
+            'Create basic API structure',
           ],
           deliverables: [
             'PostgreSQL database with Phase/Week/Day/Task models',
             'Next.js 14 App Router structure',
-            'Basic MCP server configuration'
+            'Basic MCP server configuration',
           ],
-          storyPoints: 12
+          storyPoints: 12,
         },
         {
           name: 'Sprint 2: Wiki System',
@@ -63,14 +63,14 @@ const TEST_ROADMAP: ParsedRoadmap = {
           goals: [
             'Implement documentation wiki system',
             'Create onboarding flow (3 sessions)',
-            'Build wiki page management UI'
+            'Build wiki page management UI',
           ],
           deliverables: [
             'WikiPage CRUD API',
             'Onboarding session system',
-            'Wiki editor with TipTap'
+            'Wiki editor with TipTap',
           ],
-          storyPoints: 10
+          storyPoints: 10,
         },
         {
           name: 'Sprint 3: Knowledge Base',
@@ -79,16 +79,16 @@ const TEST_ROADMAP: ParsedRoadmap = {
           goals: [
             'Build knowledge management system',
             'Implement full-text search',
-            'Create knowledge item workflows'
+            'Create knowledge item workflows',
           ],
           deliverables: [
             'KnowledgeItem model and API',
             'PostgreSQL tsvector search',
-            'Knowledge base UI'
+            'Knowledge base UI',
           ],
-          storyPoints: 11
-        }
-      ]
+          storyPoints: 11,
+        },
+      ],
     },
     {
       name: 'Phase B: Development Tools & Integration',
@@ -101,18 +101,18 @@ const TEST_ROADMAP: ParsedRoadmap = {
           goals: [
             'Build issue tracking system',
             'Implement issue workflows',
-            'Create issue management UI'
+            'Create issue management UI',
           ],
           deliverables: [
             'Issue model and API',
             'Issue status transitions',
-            'Issue list and detail pages'
+            'Issue list and detail pages',
           ],
-          storyPoints: 9
-        }
-      ]
-    }
-  ]
+          storyPoints: 9,
+        },
+      ],
+    },
+  ],
 };
 
 async function createTestRoadmap(projectId?: number) {
@@ -182,14 +182,15 @@ async function createTestRoadmap(projectId?: number) {
     console.log(`Project ID: ${project.id}`);
     console.log(`Project Name: ${project.name}`);
     console.log(`\nPhases: ${TEST_ROADMAP.phases.length}`);
-    console.log(`Total Sprints: ${TEST_ROADMAP.phases.reduce((sum, p) => sum + p.sprints.length, 0)}`);
+    console.log(
+      `Total Sprints: ${TEST_ROADMAP.phases.reduce((sum, p) => sum + p.sprints.length, 0)}`
+    );
     console.log(`\nCurrent Position:`);
     console.log(`  Phase: ${roadmap.currentPhase}`);
     console.log(`  Sprint: ${roadmap.currentSprint}`);
 
     console.log(`\nNext step: Run materialization to create Phase/Sprint/Week/Day records`);
     console.log(`  (Task A.3: Materialization Tool)`);
-
   } catch (error) {
     console.error('Error creating test roadmap:', error);
     process.exit(1);

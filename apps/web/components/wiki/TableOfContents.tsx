@@ -37,9 +37,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
 
   return (
     <nav className="space-y-2">
-      <h3 className="mb-4 text-sm font-semibold uppercase text-slate">
-        Table of Contents
-      </h3>
+      <h3 className="mb-4 text-sm font-semibold uppercase text-slate">Table of Contents</h3>
       {items.map((item) => (
         <button
           key={item.id}
@@ -51,9 +49,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
             item.level === 4 && 'pl-8',
             item.level === 5 && 'pl-12',
             item.level === 6 && 'pl-16',
-            activeId === item.id
-              ? 'font-semibold text-coral'
-              : 'text-slate hover:text-white'
+            activeId === item.id ? 'font-semibold text-coral' : 'text-slate hover:text-white'
           )}
         >
           {item.text}

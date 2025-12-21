@@ -49,7 +49,8 @@ export function FeedbackFunnelCard({ feedback }: FeedbackFunnelCardProps) {
         <p className="text-xs uppercase tracking-wide text-white/70">Approval Rate</p>
         <p className="mt-1 text-3xl font-semibold text-white">{feedback.ratio}%</p>
         <p className="mt-2 text-xs text-slate">
-          Based on {totalVotes.toLocaleString()} votes and {feedback.totalViews.toLocaleString()} views.
+          Based on {totalVotes.toLocaleString()} votes and {feedback.totalViews.toLocaleString()}{' '}
+          views.
         </p>
       </div>
     </div>

@@ -13,7 +13,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { createKnowledgeItemSchema } from '@/lib/validations/knowledge';
-import { createKnowledgeItem, KnowledgeCreationError, DuplicationError } from '@/lib/knowledge/create';
+import {
+  createKnowledgeItem,
+  KnowledgeCreationError,
+  DuplicationError,
+} from '@/lib/knowledge/create';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 /**
@@ -31,11 +35,13 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
-    
+    const requestedProjectId = searchParams.get('projectId')
+      ? parseInt(searchParams.get('projectId')!, 10)
+      : undefined;
+
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
-    
+
     const search = searchParams.get('search') || '';
     const tag = searchParams.get('tag') || '';
     const sort = searchParams.get('sort') || 'newest';
@@ -107,7 +113,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('Failed to fetch knowledge articles:', error);
     return NextResponse.json({ error: 'Failed to fetch knowledge articles' }, { status: 500 });
   }
@@ -136,7 +142,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const requestedProjectId = body.projectId ? parseInt(body.projectId, 10) : undefined;
-    
+
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
@@ -146,7 +152,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: validation.error.errors.map(err => ({
+          details: validation.error.errors.map((err) => ({
             field: err.path.join('.'),
             message: err.message,
           })),
@@ -184,7 +190,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     // Handle duplicate detection errors (US-089)
     if (error instanceof DuplicationError) {
       return NextResponse.json(

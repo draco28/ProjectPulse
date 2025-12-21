@@ -60,7 +60,9 @@ test.describe('Ticket Detail Page', () => {
     console.log(`✓ Ticket title: ${headingText?.substring(0, 50)}...`);
 
     // Verify ticket ID/number is displayed
-    const ticketNumber = page.locator('[data-testid="ticket-id"]').or(page.getByText(`#${testTicketId}`));
+    const ticketNumber = page
+      .locator('[data-testid="ticket-id"]')
+      .or(page.getByText(`#${testTicketId}`));
     if ((await ticketNumber.count()) > 0) {
       await expect(ticketNumber.first()).toBeVisible();
       console.log(`✓ Ticket ID #${testTicketId} displayed`);
@@ -78,9 +80,9 @@ test.describe('Ticket Detail Page', () => {
       console.log(`✓ Kind badge: ${kindText}`);
 
       // Verify badge has color/styling
-      const backgroundColor = await kindBadge.first().evaluate((el) =>
-        window.getComputedStyle(el).backgroundColor
-      );
+      const backgroundColor = await kindBadge
+        .first()
+        .evaluate((el) => window.getComputedStyle(el).backgroundColor);
       expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)'); // Not transparent
       console.log(`✓ Kind badge has styling: ${backgroundColor}`);
     } else {
@@ -134,9 +136,7 @@ test.describe('Ticket Detail Page', () => {
 
       // Verify source is one of the valid types
       const validSources = ['manual', 'scanner', 'agent', 'onboarding'];
-      const hasValidSource = validSources.some(src =>
-        sourceText?.toLowerCase().includes(src)
-      );
+      const hasValidSource = validSources.some((src) => sourceText?.toLowerCase().includes(src));
       expect(hasValidSource).toBe(true);
     } else {
       console.log('⚠️ Source indicator not found - may not be displayed');
@@ -145,7 +145,9 @@ test.describe('Ticket Detail Page', () => {
 
   test('should display assignee with type (human or agent_persona)', async ({ page }) => {
     // Look for assignee information with data-testid
-    const assigneeSection = page.locator('[data-testid="assignee"]').or(page.getByText(/assigned to|assignee/i));
+    const assigneeSection = page
+      .locator('[data-testid="assignee"]')
+      .or(page.getByText(/assigned to|assignee/i));
 
     if ((await assigneeSection.count()) > 0) {
       const assigneeText = await assigneeSection.first().textContent();
@@ -209,7 +211,9 @@ test.describe('Ticket Detail Page', () => {
 
     if (isClosed) {
       // Look for closedAt timestamp
-      const closedDate = page.locator('[data-testid="closed-at"]').or(page.getByText(/closed.*ago|resolved.*ago/i));
+      const closedDate = page
+        .locator('[data-testid="closed-at"]')
+        .or(page.getByText(/closed.*ago|resolved.*ago/i));
 
       if ((await closedDate.count()) > 0) {
         await expect(closedDate.first()).toBeVisible();
@@ -224,14 +228,18 @@ test.describe('Ticket Detail Page', () => {
 
   test('should display linked task hierarchy if present', async ({ page }) => {
     // Look for linked task section
-    const linkedTaskSection = page.locator('[data-testid="linked-task"]').or(page.getByText(/linked to task|related task|sprint task/i));
+    const linkedTaskSection = page
+      .locator('[data-testid="linked-task"]')
+      .or(page.getByText(/linked to task|related task|sprint task/i));
 
     if ((await linkedTaskSection.count()) > 0) {
       const taskText = await linkedTaskSection.first().textContent();
       console.log(`✓ Linked task: ${taskText}`);
 
       // Look for hierarchy breadcrumb (Phase → Sprint → Week → Day → Task)
-      const breadcrumb = page.locator('nav[aria-label="breadcrumb"]').or(page.locator('.breadcrumb'));
+      const breadcrumb = page
+        .locator('nav[aria-label="breadcrumb"]')
+        .or(page.locator('.breadcrumb'));
       if ((await breadcrumb.count()) > 0) {
         const breadcrumbText = await breadcrumb.first().textContent();
         console.log(`✓ Task hierarchy: ${breadcrumbText}`);
@@ -270,7 +278,8 @@ test.describe('Ticket Detail Page', () => {
 
   test('should display add comment form', async ({ page }) => {
     // Look for comment input/textarea
-    const commentInput = page.locator('[data-testid="comment-textarea"]')
+    const commentInput = page
+      .locator('[data-testid="comment-textarea"]')
       .or(page.locator('textarea[placeholder*="comment"]'))
       .or(page.locator('textarea[name="comment"]'));
 
@@ -298,7 +307,10 @@ test.describe('Ticket Detail Page', () => {
       console.log('✓ Labels section found');
 
       // Look for label badges
-      const labelBadges = page.locator('[data-testid="label-badge"]').or(page.locator('.label')).or(page.locator('.tag'));
+      const labelBadges = page
+        .locator('[data-testid="label-badge"]')
+        .or(page.locator('.label'))
+        .or(page.locator('.tag'));
       const labelCount = await labelBadges.count();
 
       if (labelCount > 0) {
@@ -306,8 +318,8 @@ test.describe('Ticket Detail Page', () => {
 
         // Verify labels have color
         const firstLabel = labelBadges.first();
-        const backgroundColor = await firstLabel.evaluate((el) =>
-          window.getComputedStyle(el).backgroundColor
+        const backgroundColor = await firstLabel.evaluate(
+          (el) => window.getComputedStyle(el).backgroundColor
         );
         expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
       } else {
@@ -320,13 +332,18 @@ test.describe('Ticket Detail Page', () => {
 
   test('should display linked files if present', async ({ page }) => {
     // Look for linked files section
-    const filesSection = page.locator('[data-testid="linked-files"]').or(page.getByText(/linked files|attached files|related files/i));
+    const filesSection = page
+      .locator('[data-testid="linked-files"]')
+      .or(page.getByText(/linked files|attached files|related files/i));
 
     if ((await filesSection.count()) > 0) {
       console.log('✓ Linked files section found');
 
       // Look for file items
-      const fileItems = page.locator('[data-testid="file-link"]').or(page.locator('code')).or(page.locator('.file-path'));
+      const fileItems = page
+        .locator('[data-testid="file-link"]')
+        .or(page.locator('code'))
+        .or(page.locator('.file-path'));
       const fileCount = await fileItems.count();
 
       if (fileCount > 0) {

@@ -51,7 +51,8 @@ export async function GET() {
       const sessions = project.onboardingSessions;
       const completedSessions = sessions.filter((s) => s.status === 'complete').length;
       const totalSessions = 3; // Sprint 9: 3-session onboarding
-      const onboardingProgress = sessions.length > 0 ? (completedSessions / totalSessions) * 100 : 0;
+      const onboardingProgress =
+        sessions.length > 0 ? (completedSessions / totalSessions) * 100 : 0;
       const onboardingComplete = completedSessions === totalSessions;
 
       return {

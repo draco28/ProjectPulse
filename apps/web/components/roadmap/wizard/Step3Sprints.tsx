@@ -33,9 +33,7 @@ const SPRINT_DURATION_OPTIONS = [
 ];
 
 export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
-  const [expandedPhaseId, setExpandedPhaseId] = useState<string | null>(
-    phases[0]?.id || null
-  );
+  const [expandedPhaseId, setExpandedPhaseId] = useState<string | null>(phases[0]?.id || null);
 
   // Add sprint to phase
   const handleAddSprint = (phaseId: string, _phaseIndex: number) => {
@@ -52,9 +50,7 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
     };
 
     onChange(
-      phases.map((p) =>
-        p.id === phaseId ? { ...p, sprints: [...p.sprints, newSprint] } : p
-      )
+      phases.map((p) => (p.id === phaseId ? { ...p, sprints: [...p.sprints, newSprint] } : p))
     );
   };
 
@@ -65,9 +61,7 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
         p.id === phaseId
           ? {
               ...p,
-              sprints: p.sprints.map((s) =>
-                s.id === sprintId ? { ...s, ...updates } : s
-              ),
+              sprints: p.sprints.map((s) => (s.id === sprintId ? { ...s, ...updates } : s)),
             }
           : p
       )
@@ -78,9 +72,7 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
   const handleDeleteSprint = (phaseId: string, sprintId: string) => {
     onChange(
       phases.map((p) =>
-        p.id === phaseId
-          ? { ...p, sprints: p.sprints.filter((s) => s.id !== sprintId) }
-          : p
+        p.id === phaseId ? { ...p, sprints: p.sprints.filter((s) => s.id !== sprintId) } : p
       )
     );
   };
@@ -101,9 +93,9 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white mb-2">Define Sprints</h2>
-        <p className="text-slate text-sm">
+      <div className="mb-8 text-center">
+        <h2 className="mb-2 text-2xl font-bold text-white">Define Sprints</h2>
+        <p className="text-sm text-slate">
           Break each phase into sprints with goals and deliverables
         </p>
       </div>
@@ -118,14 +110,14 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
             <div
               key={phase.id}
               className={`
-                neu-raised rounded-2xl overflow-hidden
+                neu-raised overflow-hidden rounded-2xl
                 ${sprintsError ? 'ring-2 ring-red-500' : ''}
               `}
             >
               {/* Phase Header */}
               <button
                 onClick={() => setExpandedPhaseId(isExpanded ? null : phase.id)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-dark-pressed/50 transition-colors"
+                className="flex w-full items-center gap-3 p-4 transition-colors hover:bg-dark-pressed/50"
               >
                 {isExpanded ? (
                   <ChevronDown className="h-5 w-5 text-coral" />
@@ -141,23 +133,18 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
                   </p>
                 </div>
 
-                {sprintsError && (
-                  <span className="text-xs text-red-400">{sprintsError}</span>
-                )}
+                {sprintsError && <span className="text-xs text-red-400">{sprintsError}</span>}
               </button>
 
               {/* Sprints (Expanded) */}
               {isExpanded && (
-                <div className="p-4 pt-0 space-y-4 border-t border-dark-pressed">
+                <div className="space-y-4 border-t border-dark-pressed p-4 pt-0">
                   {/* Sprint List */}
                   {phase.sprints.map((sprint, sprintIndex) => {
                     const nameError = errors[`phase_${phaseIndex}_sprint_${sprintIndex}_name`];
 
                     return (
-                      <div
-                        key={sprint.id}
-                        className="neu-flat rounded-xl p-4 space-y-3"
-                      >
+                      <div key={sprint.id} className="neu-flat space-y-3 rounded-xl p-4">
                         {/* Sprint Header */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -168,7 +155,7 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
                           </div>
                           <button
                             onClick={() => handleDeleteSprint(phase.id, sprint.id)}
-                            className="p-1.5 rounded-lg hover:bg-red-500/20 text-slate hover:text-red-400 transition-colors"
+                            className="rounded-lg p-1.5 text-slate transition-colors hover:bg-red-500/20 hover:text-red-400"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -176,7 +163,7 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
 
                         {/* Sprint Name */}
                         <div>
-                          <label className="text-xs text-slate mb-1 block">
+                          <label className="mb-1 block text-xs text-slate">
                             Sprint Name <span className="text-coral">*</span>
                           </label>
                           <input
@@ -187,32 +174,32 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
                             }
                             placeholder="e.g., Setup & Foundation"
                             className={`
-                              w-full px-3 py-2 rounded-lg text-sm
-                              neu-pressed bg-transparent
+                              neu-pressed w-full rounded-lg bg-transparent px-3
+                              py-2 text-sm
                               text-white placeholder:text-slate/50
                               focus:outline-none focus:ring-2 focus:ring-coral/50
                               ${nameError ? 'ring-2 ring-red-500' : ''}
                             `}
                           />
-                          {nameError && (
-                            <span className="text-xs text-red-400">{nameError}</span>
-                          )}
+                          {nameError && <span className="text-xs text-red-400">{nameError}</span>}
                         </div>
 
                         {/* Duration & Weeks */}
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-xs text-slate mb-1 block">Duration</label>
+                            <label className="mb-1 block text-xs text-slate">Duration</label>
                             <select
                               value={sprint.duration}
                               onChange={(e) =>
-                                handleUpdateSprint(phase.id, sprint.id, { duration: e.target.value })
+                                handleUpdateSprint(phase.id, sprint.id, {
+                                  duration: e.target.value,
+                                })
                               }
                               className="
-                                w-full px-3 py-2 rounded-lg text-sm
-                                neu-pressed bg-transparent text-white
-                                focus:outline-none focus:ring-2 focus:ring-coral/50
-                                [&>option]:bg-dark-surface [&>option]:text-white
+                                neu-pressed [&>option]:bg-dark-surface w-full rounded-lg bg-transparent
+                                px-3 py-2 text-sm
+                                text-white focus:outline-none focus:ring-2
+                                focus:ring-coral/50 [&>option]:text-white
                               "
                             >
                               {SPRINT_DURATION_OPTIONS.map((opt) => (
@@ -223,7 +210,7 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
                             </select>
                           </div>
                           <div>
-                            <label className="text-xs text-slate mb-1 block">Week Range</label>
+                            <label className="mb-1 block text-xs text-slate">Week Range</label>
                             <input
                               type="text"
                               value={sprint.weeks}
@@ -232,8 +219,8 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
                               }
                               placeholder="e.g., Weeks 1-2"
                               className="
-                                w-full px-3 py-2 rounded-lg text-sm
-                                neu-pressed bg-transparent
+                                neu-pressed w-full rounded-lg bg-transparent px-3
+                                py-2 text-sm
                                 text-white placeholder:text-slate/50
                                 focus:outline-none focus:ring-2 focus:ring-coral/50
                               "
@@ -243,7 +230,7 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
 
                         {/* Goals */}
                         <div>
-                          <label className="flex items-center gap-1 text-xs text-slate mb-1">
+                          <label className="mb-1 flex items-center gap-1 text-xs text-slate">
                             <Target className="h-3 w-3" />
                             Goals <span className="text-slate/50">(comma-separated)</span>
                           </label>
@@ -255,8 +242,8 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
                             }
                             placeholder="e.g., Setup project, Configure CI/CD, Write tests"
                             className="
-                              w-full px-3 py-2 rounded-lg text-sm
-                              neu-pressed bg-transparent
+                              neu-pressed w-full rounded-lg bg-transparent px-3
+                              py-2 text-sm
                               text-white placeholder:text-slate/50
                               focus:outline-none focus:ring-2 focus:ring-coral/50
                             "
@@ -265,7 +252,7 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
 
                         {/* Deliverables */}
                         <div>
-                          <label className="flex items-center gap-1 text-xs text-slate mb-1">
+                          <label className="mb-1 flex items-center gap-1 text-xs text-slate">
                             <Package className="h-3 w-3" />
                             Deliverables <span className="text-slate/50">(comma-separated)</span>
                           </label>
@@ -277,8 +264,8 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
                             }
                             placeholder="e.g., Working API, Documentation, Test suite"
                             className="
-                              w-full px-3 py-2 rounded-lg text-sm
-                              neu-pressed bg-transparent
+                              neu-pressed w-full rounded-lg bg-transparent px-3
+                              py-2 text-sm
                               text-white placeholder:text-slate/50
                               focus:outline-none focus:ring-2 focus:ring-coral/50
                             "
@@ -292,11 +279,11 @@ export function Step3Sprints({ phases, errors, onChange }: Step3Props) {
                   <button
                     onClick={() => handleAddSprint(phase.id, phaseIndex)}
                     className="
-                      w-full py-3 rounded-xl
-                      neu-flat border-2 border-dashed border-slate/30
-                      text-slate hover:text-coral hover:border-coral/50
-                      transition-all duration-200
-                      flex items-center justify-center gap-2 text-sm
+                      neu-flat flex w-full
+                      items-center justify-center gap-2 rounded-xl
+                      border-2 border-dashed border-slate/30
+                      py-3 text-sm
+                      text-slate transition-all duration-200 hover:border-coral/50 hover:text-coral
                     "
                   >
                     <Plus className="h-4 w-4" />

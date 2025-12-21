@@ -122,22 +122,13 @@ export function calculateHealthScore(
 
   // Calculate individual category scores (0-1 scale)
   const categoryScores: CategoryScores = {
-    security: calculateCategoryScoreForFindings(
-      findingsByCategory.security,
-      severityPoints
-    ),
-    quality: calculateCategoryScoreForFindings(
-      findingsByCategory.quality,
-      severityPoints
-    ),
+    security: calculateCategoryScoreForFindings(findingsByCategory.security, severityPoints),
+    quality: calculateCategoryScoreForFindings(findingsByCategory.quality, severityPoints),
     accessibility: calculateCategoryScoreForFindings(
       findingsByCategory.accessibility,
       severityPoints
     ),
-    debt: calculateCategoryScoreForFindings(
-      findingsByCategory.debt,
-      severityPoints
-    ),
+    debt: calculateCategoryScoreForFindings(findingsByCategory.debt, severityPoints),
   };
 
   // Calculate overall score using weighted formula
@@ -269,7 +260,11 @@ function separateFindingsByCategory(findings: FindingData[]): {
       result.security.push(finding);
     } else if (finding.ruleId.startsWith('eslint.') || finding.ruleId.includes('quality')) {
       result.quality.push(finding);
-    } else if (finding.ruleId.startsWith('axe.') || finding.ruleId.startsWith('lighthouse.') || finding.ruleId.includes('a11y')) {
+    } else if (
+      finding.ruleId.startsWith('axe.') ||
+      finding.ruleId.startsWith('lighthouse.') ||
+      finding.ruleId.includes('a11y')
+    ) {
       result.accessibility.push(finding);
     } else {
       // Default to quality for unknown findings

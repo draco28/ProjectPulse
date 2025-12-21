@@ -28,10 +28,7 @@ const logSchema = z.object({
 export async function POST(request: NextRequest) {
   // Only allow internal requests
   if (request.headers.get('x-internal-request') !== 'true') {
-    return NextResponse.json(
-      { error: 'Forbidden: Internal use only' },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: 'Forbidden: Internal use only' }, { status: 403 });
   }
 
   try {
@@ -52,12 +49,14 @@ export async function POST(request: NextRequest) {
     });
 
     // Update token's lastUsedAt
-    await prisma.projectToken.update({
-      where: { id: data.tokenId },
-      data: { lastUsedAt: new Date() },
-    }).catch(() => {
-      // Ignore if token doesn't exist (shouldn't happen)
-    });
+    await prisma.projectToken
+      .update({
+        where: { id: data.tokenId },
+        data: { lastUsedAt: new Date() },
+      })
+      .catch(() => {
+        // Ignore if token doesn't exist (shouldn't happen)
+      });
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -70,9 +69,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
-      { error: 'Failed to log tool call' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to log tool call' }, { status: 500 });
   }
 }

@@ -20,17 +20,17 @@ interface Step1Props {
 
 export function Step1ProjectInfo({ data, errors, onChange }: Step1Props) {
   return (
-    <div className="space-y-6 max-w-xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white mb-2">Project Information</h2>
-        <p className="text-slate text-sm">
+    <div className="mx-auto max-w-xl space-y-6">
+      <div className="mb-8 text-center">
+        <h2 className="mb-2 text-2xl font-bold text-white">Project Information</h2>
+        <p className="text-sm text-slate">
           Start by giving your roadmap a name and setting a start date
         </p>
       </div>
 
       {/* Title Field */}
       <div>
-        <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
+        <label className="mb-2 flex items-center gap-2 text-sm font-medium text-white">
           <FileText className="h-4 w-4 text-coral" />
           Roadmap Title
           <span className="text-coral">*</span>
@@ -42,27 +42,23 @@ export function Step1ProjectInfo({ data, errors, onChange }: Step1Props) {
           placeholder="e.g., Q1 2025 Development Roadmap"
           maxLength={200}
           className={`
-            w-full px-4 py-3 rounded-xl
-            neu-pressed bg-transparent
-            text-white placeholder:text-slate/50
-            focus:outline-none focus:ring-2 focus:ring-coral/50
-            transition-all duration-200
+            neu-pressed w-full rounded-xl bg-transparent
+            px-4 py-3
+            text-white transition-all
+            duration-200 placeholder:text-slate/50 focus:outline-none
+            focus:ring-2 focus:ring-coral/50
             ${errors.title ? 'ring-2 ring-red-500' : ''}
           `}
         />
-        <div className="flex justify-between mt-1">
-          {errors.title ? (
-            <span className="text-xs text-red-400">{errors.title}</span>
-          ) : (
-            <span />
-          )}
+        <div className="mt-1 flex justify-between">
+          {errors.title ? <span className="text-xs text-red-400">{errors.title}</span> : <span />}
           <span className="text-xs text-slate">{data.title.length}/200</span>
         </div>
       </div>
 
       {/* Start Date Field */}
       <div>
-        <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
+        <label className="mb-2 flex items-center gap-2 text-sm font-medium text-white">
           <Calendar className="h-4 w-4 text-coral" />
           Start Date
           <span className="text-coral">*</span>
@@ -72,26 +68,26 @@ export function Step1ProjectInfo({ data, errors, onChange }: Step1Props) {
           value={data.startDate}
           onChange={(e) => onChange({ startDate: e.target.value })}
           className={`
-            w-full px-4 py-3 rounded-xl
-            neu-pressed bg-transparent
+            neu-pressed w-full rounded-xl bg-transparent
+            px-4 py-3
             text-white
-            focus:outline-none focus:ring-2 focus:ring-coral/50
-            transition-all duration-200
-            [color-scheme:dark]
+            transition-all duration-200 [color-scheme:dark]
+            focus:outline-none focus:ring-2
+            focus:ring-coral/50
             ${errors.startDate ? 'ring-2 ring-red-500' : ''}
           `}
         />
         {errors.startDate && (
-          <span className="text-xs text-red-400 mt-1 block">{errors.startDate}</span>
+          <span className="mt-1 block text-xs text-red-400">{errors.startDate}</span>
         )}
       </div>
 
       {/* Description Field */}
       <div>
-        <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
+        <label className="mb-2 flex items-center gap-2 text-sm font-medium text-white">
           <AlignLeft className="h-4 w-4 text-coral" />
           Description
-          <span className="text-slate text-xs font-normal">(optional)</span>
+          <span className="text-xs font-normal text-slate">(optional)</span>
         </label>
         <textarea
           value={data.description}
@@ -100,15 +96,15 @@ export function Step1ProjectInfo({ data, errors, onChange }: Step1Props) {
           maxLength={2000}
           rows={4}
           className={`
-            w-full px-4 py-3 rounded-xl
-            neu-pressed bg-transparent
-            text-white placeholder:text-slate/50
+            neu-pressed w-full resize-none rounded-xl
+            bg-transparent px-4
+            py-3 text-white
+            transition-all duration-200 placeholder:text-slate/50
             focus:outline-none focus:ring-2 focus:ring-coral/50
-            transition-all duration-200 resize-none
             ${errors.description ? 'ring-2 ring-red-500' : ''}
           `}
         />
-        <div className="flex justify-between mt-1">
+        <div className="mt-1 flex justify-between">
           {errors.description ? (
             <span className="text-xs text-red-400">{errors.description}</span>
           ) : (
@@ -119,10 +115,10 @@ export function Step1ProjectInfo({ data, errors, onChange }: Step1Props) {
       </div>
 
       {/* Tip */}
-      <div className="neu-flat rounded-xl p-4 mt-8">
+      <div className="neu-flat mt-8 rounded-xl p-4">
         <p className="text-sm text-slate">
-          <span className="text-coral font-medium">Tip:</span> Your progress is automatically
-          saved. You can close this page and return later to continue.
+          <span className="font-medium text-coral">Tip:</span> Your progress is automatically saved.
+          You can close this page and return later to continue.
         </p>
       </div>
     </div>

@@ -39,10 +39,7 @@ describe('Skills-Knowledge Linking APIs', () => {
       const { knowledgeId } = body;
 
       if (!knowledgeId) {
-        return Response.json(
-          { error: 'knowledgeId is required' },
-          { status: 400 }
-        );
+        return Response.json({ error: 'knowledgeId is required' }, { status: 400 });
       }
 
       // Verify skill exists
@@ -74,10 +71,7 @@ describe('Skills-Knowledge Linking APIs', () => {
       });
 
       if (existingLink) {
-        return Response.json(
-          { error: 'Link already exists' },
-          { status: 409 }
-        );
+        return Response.json({ error: 'Link already exists' }, { status: 409 });
       }
 
       // Create bidirectional link
@@ -263,10 +257,7 @@ describe('Skills-Knowledge Linking APIs', () => {
       });
 
       if (!link) {
-        return Response.json(
-          { error: 'Link not found' },
-          { status: 404 }
-        );
+        return Response.json({ error: 'Link not found' }, { status: 404 });
       }
 
       // Delete the link

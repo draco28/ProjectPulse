@@ -52,7 +52,7 @@ export const LABEL_COLORS = [
   '#6b7280', // gray
 ] as const;
 
-export type LabelColor = typeof LABEL_COLORS[number];
+export type LabelColor = (typeof LABEL_COLORS)[number];
 
 interface ColorPickerProps {
   /**
@@ -82,12 +82,7 @@ interface ColorPickerProps {
  * Grid of color swatches for selecting label colors.
  * Uses predefined palette for consistency.
  */
-export function ColorPicker({
-  value,
-  onChange,
-  className,
-  disabled = false,
-}: ColorPickerProps) {
+export function ColorPicker({ value, onChange, className, disabled = false }: ColorPickerProps) {
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +111,8 @@ export function ColorPicker({
           break;
         case 'ArrowUp':
           e.preventDefault();
-          newIndex = focusedIndex - cols >= 0 ? focusedIndex - cols : total - cols + (focusedIndex % cols);
+          newIndex =
+            focusedIndex - cols >= 0 ? focusedIndex - cols : total - cols + (focusedIndex % cols);
           break;
         case 'Enter':
         case ' ': {
@@ -321,11 +317,7 @@ export function ColorPickerDropdown({
             'shadow-lg'
           )}
         >
-          <ColorPicker
-            value={value}
-            onChange={handleColorChange}
-            disabled={disabled}
-          />
+          <ColorPicker value={value} onChange={handleColorChange} disabled={disabled} />
         </div>
       )}
     </div>

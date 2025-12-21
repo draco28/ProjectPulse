@@ -33,11 +33,13 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
-    
+    const requestedProjectId = searchParams.get('projectId')
+      ? parseInt(searchParams.get('projectId')!, 10)
+      : undefined;
+
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
-    
+
     // Parse and validate query params
     const itemId = parseInt(searchParams.get('itemId') || '0', 10);
     const maxDepth = parseInt(searchParams.get('maxDepth') || '2', 10);
@@ -45,32 +47,20 @@ export async function GET(request: NextRequest) {
     const minStrength = parseFloat(searchParams.get('minStrength') || '0.5');
 
     if (!itemId || itemId < 1) {
-      return NextResponse.json(
-        { error: 'Valid itemId is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Valid itemId is required' }, { status: 400 });
     }
 
     // Validate ranges
     if (maxDepth < 1 || maxDepth > 2) {
-      return NextResponse.json(
-        { error: 'maxDepth must be 1 or 2' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'maxDepth must be 1 or 2' }, { status: 400 });
     }
 
     if (limit < 1 || limit > 50) {
-      return NextResponse.json(
-        { error: 'limit must be between 1 and 50' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'limit must be between 1 and 50' }, { status: 400 });
     }
 
     if (minStrength < 0 || minStrength > 1) {
-      return NextResponse.json(
-        { error: 'minStrength must be between 0 and 1' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'minStrength must be between 0 and 1' }, { status: 400 });
     }
 
     // Execute graph traversal
@@ -102,7 +92,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     // Handle known graph errors
     if (error instanceof GraphError) {
       return NextResponse.json(

@@ -4,7 +4,7 @@ import { healthCheck as sessionHealthCheck } from '@/lib/mcp/session-manager';
 
 /**
  * Health check endpoint
- * 
+ *
  * Returns system status including database and session store (Redis/in-memory).
  * Used by:
  * - Kubernetes liveness/readiness probes
@@ -28,7 +28,7 @@ export async function GET() {
     // Check seed data status
     const [questions, templates] = await Promise.all([
       prisma.onboardingQuestion.count(),
-      prisma.onboardingPromptTemplate.count()
+      prisma.onboardingPromptTemplate.count(),
     ]);
 
     // Thresholds based on current seed content (96 questions, 16 templates)
@@ -36,7 +36,7 @@ export async function GET() {
     seedStatus = {
       ready: questions >= 96 && templates >= 16,
       questions,
-      templates
+      templates,
     };
   } catch (err) {
     console.error('[Health] Database health check failed:', err);
@@ -54,14 +54,17 @@ export async function GET() {
   // Overall health: database connected, seed data ready, and session store healthy
   const healthy = database === 'connected' && seedStatus.ready && redis.healthy;
 
-  return NextResponse.json({
-    status: healthy ? 'healthy' : 'unhealthy',
-    timestamp: new Date().toISOString(),
-    database,
-    seed: seedStatus,
-    redis: redis.healthy,
-    sessionStore: redis.type,
-  }, {
-    status: healthy ? 200 : 503,
-  });
+  return NextResponse.json(
+    {
+      status: healthy ? 'healthy' : 'unhealthy',
+      timestamp: new Date().toISOString(),
+      database,
+      seed: seedStatus,
+      redis: redis.healthy,
+      sessionStore: redis.type,
+    },
+    {
+      status: healthy ? 200 : 503,
+    }
+  );
 }

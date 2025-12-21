@@ -21,10 +21,7 @@ export default function WikiLoading() {
       {/* Filters skeleton */}
       <div className="mb-6 flex gap-2">
         {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="h-8 w-24 animate-pulse rounded-full bg-slate-700/30"
-          />
+          <div key={i} className="h-8 w-24 animate-pulse rounded-full bg-slate-700/30" />
         ))}
       </div>
 
@@ -33,7 +30,7 @@ export default function WikiLoading() {
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
             key={i}
-            className="space-y-3 rounded-lg border border-slate-700 bg-dark-surface p-6"
+            className="bg-dark-surface space-y-3 rounded-lg border border-slate-700 p-6"
             style={{
               animationDelay: `${i * 100}ms`,
             }}

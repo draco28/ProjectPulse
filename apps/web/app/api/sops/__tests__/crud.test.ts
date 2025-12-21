@@ -3,7 +3,7 @@
  *
  * SOPs API tests - Sprint 11 (EPIC-013: Client Agent Integration)
  * Tests GET /api/sops, GET /api/sops/[id], GET /api/sops/by-slug/[slug]
- * 
+ *
  * US-013-05: SOP List API
  * US-013-06: SOP Get API
  */
@@ -35,8 +35,8 @@ describe('SOPs API - Sprint 11', () => {
   // GET /api/sops (List)
   // =========================================================================
   describe('GET /api/sops (List)', () => {
-    const projectSOPs = testSOPs.filter(s => s.projectId === TEST_PROJECT_ID);
-    
+    const projectSOPs = testSOPs.filter((s) => s.projectId === TEST_PROJECT_ID);
+
     it('lists all SOPs with metadata only (excludes content)', async () => {
       const expectedSOPs = projectSOPs.map(({ content, ...rest }) => rest);
       mockPrisma.sOP.findMany.mockResolvedValueOnce(expectedSOPs as any);
@@ -49,7 +49,7 @@ describe('SOPs API - Sprint 11', () => {
       expect(body.sops).toHaveLength(3);
       expect(body.count).toBe(3);
       expect(body.projectId).toBe(TEST_PROJECT_ID);
-      
+
       // Verify content is excluded
       body.sops.forEach((sop: any) => {
         expect(sop).not.toHaveProperty('content');
@@ -75,10 +75,12 @@ describe('SOPs API - Sprint 11', () => {
     });
 
     it('filters by category when provided', async () => {
-      const developmentSOPs = projectSOPs.filter(s => s.category === 'Development');
+      const developmentSOPs = projectSOPs.filter((s) => s.category === 'Development');
       mockPrisma.sOP.findMany.mockResolvedValueOnce(developmentSOPs as any);
 
-      const req = new NextRequest(`http://localhost:3000/api/sops?projectId=${TEST_PROJECT_ID}&category=Development`);
+      const req = new NextRequest(
+        `http://localhost:3000/api/sops?projectId=${TEST_PROJECT_ID}&category=Development`
+      );
       await GET_List(req);
 
       expect(mockPrisma.sOP.findMany).toHaveBeenCalledWith(
@@ -226,7 +228,9 @@ describe('SOPs API - Sprint 11', () => {
     });
 
     it('returns 400 when ID is non-numeric', async () => {
-      const req = new NextRequest(`http://localhost:3000/api/sops/abc?projectId=${TEST_PROJECT_ID}`);
+      const req = new NextRequest(
+        `http://localhost:3000/api/sops/abc?projectId=${TEST_PROJECT_ID}`
+      );
       const res = await GET_ById(req, { params: Promise.resolve({ id: 'abc' }) });
 
       expect(res.status).toBe(400);
@@ -249,7 +253,9 @@ describe('SOPs API - Sprint 11', () => {
     it('returns 404 when SOP not found', async () => {
       mockPrisma.sOP.findFirst.mockResolvedValueOnce(null);
 
-      const req = new NextRequest(`http://localhost:3000/api/sops/999?projectId=${TEST_PROJECT_ID}`);
+      const req = new NextRequest(
+        `http://localhost:3000/api/sops/999?projectId=${TEST_PROJECT_ID}`
+      );
       const res = await GET_ById(req, { params: Promise.resolve({ id: '999' }) });
       const body = await res.json();
 
@@ -276,7 +282,9 @@ describe('SOPs API - Sprint 11', () => {
     it('returns full SOP by slug', async () => {
       mockPrisma.sOP.findFirst.mockResolvedValueOnce(testSOP as any);
 
-      const req = new NextRequest(`http://localhost:3000/api/sops/by-slug/git-workflow?projectId=${TEST_PROJECT_ID}`);
+      const req = new NextRequest(
+        `http://localhost:3000/api/sops/by-slug/git-workflow?projectId=${TEST_PROJECT_ID}`
+      );
       const res = await GET_BySlug(req, { params: Promise.resolve({ slug: 'git-workflow' }) });
       const body = await res.json();
 
@@ -288,7 +296,9 @@ describe('SOPs API - Sprint 11', () => {
     it('validates ownership via projectId', async () => {
       mockPrisma.sOP.findFirst.mockResolvedValueOnce(testSOP as any);
 
-      const req = new NextRequest(`http://localhost:3000/api/sops/by-slug/git-workflow?projectId=${TEST_PROJECT_ID}`);
+      const req = new NextRequest(
+        `http://localhost:3000/api/sops/by-slug/git-workflow?projectId=${TEST_PROJECT_ID}`
+      );
       await GET_BySlug(req, { params: Promise.resolve({ slug: 'git-workflow' }) });
 
       expect(mockPrisma.sOP.findFirst).toHaveBeenCalledWith({
@@ -308,14 +318,18 @@ describe('SOPs API - Sprint 11', () => {
     });
 
     it('returns 400 when slug is empty', async () => {
-      const req = new NextRequest(`http://localhost:3000/api/sops/by-slug/?projectId=${TEST_PROJECT_ID}`);
+      const req = new NextRequest(
+        `http://localhost:3000/api/sops/by-slug/?projectId=${TEST_PROJECT_ID}`
+      );
       const res = await GET_BySlug(req, { params: Promise.resolve({ slug: '' }) });
 
       expect(res.status).toBe(400);
     });
 
     it('returns 400 when slug is whitespace only', async () => {
-      const req = new NextRequest(`http://localhost:3000/api/sops/by-slug/%20%20?projectId=${TEST_PROJECT_ID}`);
+      const req = new NextRequest(
+        `http://localhost:3000/api/sops/by-slug/%20%20?projectId=${TEST_PROJECT_ID}`
+      );
       const res = await GET_BySlug(req, { params: Promise.resolve({ slug: '  ' }) });
 
       expect(res.status).toBe(400);
@@ -324,7 +338,9 @@ describe('SOPs API - Sprint 11', () => {
     it('returns 404 when slug not found', async () => {
       mockPrisma.sOP.findFirst.mockResolvedValueOnce(null);
 
-      const req = new NextRequest(`http://localhost:3000/api/sops/by-slug/nonexistent?projectId=${TEST_PROJECT_ID}`);
+      const req = new NextRequest(
+        `http://localhost:3000/api/sops/by-slug/nonexistent?projectId=${TEST_PROJECT_ID}`
+      );
       const res = await GET_BySlug(req, { params: Promise.resolve({ slug: 'nonexistent' }) });
       const body = await res.json();
 
@@ -335,7 +351,9 @@ describe('SOPs API - Sprint 11', () => {
     it('returns 404 when slug exists but wrong projectId', async () => {
       mockPrisma.sOP.findFirst.mockResolvedValueOnce(null);
 
-      const req = new NextRequest(`http://localhost:3000/api/sops/by-slug/git-workflow?projectId=${OTHER_PROJECT_ID}`);
+      const req = new NextRequest(
+        `http://localhost:3000/api/sops/by-slug/git-workflow?projectId=${OTHER_PROJECT_ID}`
+      );
       const res = await GET_BySlug(req, { params: Promise.resolve({ slug: 'git-workflow' }) });
 
       expect(res.status).toBe(404);
@@ -371,7 +389,9 @@ describe('SOPs API - Sprint 11', () => {
     it('handles database errors gracefully in get by slug endpoint', async () => {
       mockPrisma.sOP.findFirst.mockRejectedValueOnce(new Error('Database connection failed'));
 
-      const req = new NextRequest(`http://localhost:3000/api/sops/by-slug/git-workflow?projectId=${TEST_PROJECT_ID}`);
+      const req = new NextRequest(
+        `http://localhost:3000/api/sops/by-slug/git-workflow?projectId=${TEST_PROJECT_ID}`
+      );
       const res = await GET_BySlug(req, { params: Promise.resolve({ slug: 'git-workflow' }) });
       const body = await res.json();
 

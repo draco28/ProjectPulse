@@ -31,13 +31,15 @@ import { findRelatedKnowledgeItems } from '../graph';
 import { generateEmbedding } from '@/lib/embeddings';
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
-const mockFindRelated = findRelatedKnowledgeItems as jest.MockedFunction<typeof findRelatedKnowledgeItems>;
+const mockFindRelated = findRelatedKnowledgeItems as jest.MockedFunction<
+  typeof findRelatedKnowledgeItems
+>;
 const mockGenerateEmbedding = generateEmbedding as jest.MockedFunction<typeof generateEmbedding>;
 
 describe('Knowledge Search Service Layer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock embedding generation to return correct structure
     mockGenerateEmbedding.mockResolvedValue({
       embedding: new Array(768).fill(0.1), // Mock 768-dimensional vector
@@ -96,11 +98,11 @@ describe('Knowledge Search Service Layer', () => {
 
       // Verify $queryRaw was called
       expect(mockPrisma.$queryRaw).toHaveBeenCalled();
-      
+
       // Get the SQL query string from the call
       const callArgs = mockPrisma.$queryRaw.mock.calls[0];
       const sqlQuery = String(callArgs[0]);
-      
+
       // Verify projectId filter is in the query
       expect(sqlQuery).toContain('"projectId" = 3');
       expect(sqlQuery).toContain('"archivedAt" IS NULL');
@@ -117,7 +119,7 @@ describe('Knowledge Search Service Layer', () => {
 
       const callArgs = mockPrisma.$queryRaw.mock.calls[0];
       const sqlQuery = String(callArgs[0]);
-      
+
       expect(sqlQuery).toContain('category =');
     });
   });
@@ -151,10 +153,10 @@ describe('Knowledge Search Service Layer', () => {
       });
 
       expect(mockPrisma.$queryRaw).toHaveBeenCalled();
-      
+
       const callArgs = mockPrisma.$queryRaw.mock.calls[0];
       const sqlQuery = String(callArgs[0]);
-      
+
       expect(sqlQuery).toContain('"projectId" = 3');
       expect(sqlQuery).toContain('"archivedAt" IS NULL');
     });
@@ -191,7 +193,7 @@ describe('Knowledge Search Service Layer', () => {
 
       // Should call $queryRaw twice (once for semantic, once for fulltext)
       expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(2);
-      
+
       // Both calls should include projectId filter
       mockPrisma.$queryRaw.mock.calls.forEach((call) => {
         const sqlQuery = String(call[0]);
@@ -247,9 +249,7 @@ describe('Knowledge Search Service Layer', () => {
         },
       ];
 
-      mockPrisma.$queryRaw
-        .mockResolvedValueOnce(mockResults)
-        .mockResolvedValueOnce(mockResults);
+      mockPrisma.$queryRaw.mockResolvedValueOnce(mockResults).mockResolvedValueOnce(mockResults);
 
       await hybridSearch('test query', {
         projectId: 3,
@@ -262,7 +262,14 @@ describe('Knowledge Search Service Layer', () => {
 
     it('combines results using semantic (60%) and fulltext (40%) weights', async () => {
       const semanticResults = [
-        { id: 1, title: 'Item 1', content: 'Content 1', category: 'DevOps', tags: [], distance: 0.2 },
+        {
+          id: 1,
+          title: 'Item 1',
+          content: 'Content 1',
+          category: 'DevOps',
+          tags: [],
+          distance: 0.2,
+        },
       ];
 
       const fulltextResults = [
@@ -280,7 +287,7 @@ describe('Knowledge Search Service Layer', () => {
 
       expect(results).toHaveLength(1);
       expect(results[0].id).toBe(1);
-      
+
       // Score should be: (0.8 * 0.6) + (0.8 * 0.4) = 0.48 + 0.32 = 0.8
       // Semantic score = 1 - distance = 1 - 0.2 = 0.8
       expect(results[0].score).toBeCloseTo(0.8, 1);
@@ -290,7 +297,7 @@ describe('Knowledge Search Service Layer', () => {
   describe('SearchError', () => {
     it('includes error code and status code', () => {
       const error = new SearchError('Test error', 'TEST_CODE', 400);
-      
+
       expect(error.message).toBe('Test error');
       expect(error.code).toBe('TEST_CODE');
       expect(error.statusCode).toBe(400);

@@ -20,7 +20,7 @@ import { SprintCard } from './SprintCard';
 import { WeekCard } from './WeekCard';
 import { DayCard } from './DayCard';
 import type { RoadmapWithRelations } from '@/types/roadmap';
-import type { RoadmapFilterState} from './RoadmapFilters';
+import type { RoadmapFilterState } from './RoadmapFilters';
 
 interface RoadmapTreeProps {
   roadmap: RoadmapWithRelations;
@@ -78,7 +78,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
   }, [roadmap.phases_rel, filters]);
 
   const togglePhase = (phaseId: string) => {
-    setExpandedPhases(prev => {
+    setExpandedPhases((prev) => {
       const next = new Set(prev);
       if (next.has(phaseId)) {
         next.delete(phaseId);
@@ -90,7 +90,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
   };
 
   const toggleSprint = (sprintId: string) => {
-    setExpandedSprints(prev => {
+    setExpandedSprints((prev) => {
       const next = new Set(prev);
       if (next.has(sprintId)) {
         next.delete(sprintId);
@@ -102,7 +102,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
   };
 
   const toggleWeek = (weekId: string) => {
-    setExpandedWeeks(prev => {
+    setExpandedWeeks((prev) => {
       const next = new Set(prev);
       if (next.has(weekId)) {
         next.delete(weekId);
@@ -118,12 +118,10 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
   if (roadmap.phases_rel.length === 0) {
     return (
       <div className="neu-raised rounded-3xl p-12 text-center">
-        <div className="icon-coral heartbeat flex h-16 w-16 items-center justify-center rounded-2xl mx-auto mb-4">
+        <div className="icon-coral heartbeat mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
           <Map className="h-8 w-8 text-white" />
         </div>
-        <p className="text-white text-lg font-semibold mb-2">
-          No roadmap data available
-        </p>
+        <p className="mb-2 text-lg font-semibold text-white">No roadmap data available</p>
         <p className="text-sm text-slate">
           Run materialization to create Phase/Sprint/Week/Day records
         </p>
@@ -134,15 +132,11 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
   if (filteredPhases.length === 0) {
     return (
       <div className="neu-raised rounded-3xl p-12 text-center">
-        <div className="icon-coral flex h-16 w-16 items-center justify-center rounded-2xl mx-auto mb-4">
+        <div className="icon-coral mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
           <Map className="h-8 w-8 text-white" />
         </div>
-        <p className="text-white text-lg font-semibold mb-2">
-          No results match your filters
-        </p>
-        <p className="text-sm text-slate">
-          Try adjusting your search query or status filter
-        </p>
+        <p className="mb-2 text-lg font-semibold text-white">No results match your filters</p>
+        <p className="text-sm text-slate">Try adjusting your search query or status filter</p>
       </div>
     );
   }
@@ -153,14 +147,14 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
         const isPhaseExpanded = expandedPhases.has(phase.id);
 
         return (
-          <div key={phase.id} className="neu-raised rounded-3xl overflow-hidden">
+          <div key={phase.id} className="neu-raised overflow-hidden rounded-3xl">
             {/* Phase Card */}
             <div
-              className="cursor-pointer hover:bg-white/5 smooth-transition"
+              className="smooth-transition cursor-pointer hover:bg-white/5"
               onClick={() => togglePhase(phase.id)}
             >
               <div className="flex items-start gap-3 p-6">
-                <button className="neu-flat smooth-transition h-8 w-8 rounded-xl flex items-center justify-center hover:shadow-lg flex-shrink-0">
+                <button className="neu-flat smooth-transition flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl hover:shadow-lg">
                   {isPhaseExpanded ? (
                     <ChevronDown className="h-4 w-4 text-coral" />
                   ) : (
@@ -173,22 +167,22 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
 
             {/* Sprints (collapsible) */}
             {isPhaseExpanded && phase.sprints && (
-              <div className="bg-dark-card/50 border-t border-white/5">
+              <div className="border-t border-white/5 bg-dark-card/50">
                 {phase.sprints.map((sprint) => {
                   const isSprintExpanded = expandedSprints.has(sprint.id);
 
                   return (
-                    <div key={sprint.id} className="border-l-4 border-coral/30 ml-6 mb-4 last:mb-6">
+                    <div key={sprint.id} className="mb-4 ml-6 border-l-4 border-coral/30 last:mb-6">
                       {/* Sprint Card */}
                       <div
-                        className="cursor-pointer hover:bg-white/5 smooth-transition"
+                        className="smooth-transition cursor-pointer hover:bg-white/5"
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleSprint(sprint.id);
                         }}
                       >
                         <div className="flex items-start gap-3 p-5">
-                          <button className="neu-flat smooth-transition h-8 w-8 rounded-xl flex items-center justify-center hover:shadow-lg flex-shrink-0">
+                          <button className="neu-flat smooth-transition flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl hover:shadow-lg">
                             {isSprintExpanded ? (
                               <ChevronDown className="h-4 w-4 text-coral" />
                             ) : (
@@ -201,7 +195,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
 
                       {/* Weeks (collapsible) */}
                       {isSprintExpanded && sprint.weeks && (
-                        <div className="bg-dark-lighter/30 ml-6">
+                        <div className="ml-6 bg-dark-lighter/30">
                           {sprint.weeks.map((week) => {
                             const isWeekExpanded = expandedWeeks.has(week.id);
 
@@ -209,14 +203,14 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
                               <div key={week.id} className="mb-3 last:mb-4">
                                 {/* Week Card */}
                                 <div
-                                  className="cursor-pointer hover:bg-white/5 smooth-transition rounded-xl"
+                                  className="smooth-transition cursor-pointer rounded-xl hover:bg-white/5"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     toggleWeek(week.id);
                                   }}
                                 >
                                   <div className="flex items-start gap-3 p-4">
-                                    <button className="neu-flat smooth-transition h-8 w-8 rounded-xl flex items-center justify-center hover:shadow-lg flex-shrink-0">
+                                    <button className="neu-flat smooth-transition flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl hover:shadow-lg">
                                       {isWeekExpanded ? (
                                         <ChevronDown className="h-4 w-4 text-coral" />
                                       ) : (
@@ -229,7 +223,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
 
                                 {/* Days - Sprint 12: 4-level hierarchy (Days are leaf nodes) */}
                                 {isWeekExpanded && week.days && (
-                                  <div className="ml-12 space-y-2 mt-3 mb-4">
+                                  <div className="mb-4 ml-12 mt-3 space-y-2">
                                     {week.days.map((day) => (
                                       <DayCard key={day.id} day={day} />
                                     ))}

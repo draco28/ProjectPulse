@@ -25,8 +25,8 @@ export function WeekCard({ week }: WeekCardProps) {
     week.status === 'COMPLETED'
       ? 'badge-green'
       : week.status === 'IN_PROGRESS'
-      ? 'badge-blue'
-      : 'badge-slate';
+        ? 'badge-blue'
+        : 'badge-slate';
 
   // Get day range (e.g., "Mon-Fri")
   const getDayRange = () => {
@@ -38,15 +38,15 @@ export function WeekCard({ week }: WeekCardProps) {
   return (
     <div className="flex-1">
       {/* Header with Icon + Title */}
-      <div className="flex items-start gap-2.5 mb-2">
+      <div className="mb-2 flex items-start gap-2.5">
         {/* Icon Container */}
-        <div className="icon-slate flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0">
+        <div className="icon-slate flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg">
           <Calendar className="h-4 w-4 text-white" />
         </div>
 
         {/* Title and Badge */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex items-center justify-between gap-2">
             <h4 className="font-medium text-white">{week.title}</h4>
             <span className={`${badgeClass} flex-shrink-0 text-xs`}>
               {week.status.replace('_', ' ')}
@@ -56,13 +56,13 @@ export function WeekCard({ week }: WeekCardProps) {
       </div>
 
       {/* Date Range */}
-      <div className="text-xs text-slate mb-2 ml-10.5">
+      <div className="ml-10.5 mb-2 text-xs text-slate">
         {formatDateRange(week.startDate, week.endDate)}
       </div>
 
       {/* Days Count */}
       {daysCount > 0 && (
-        <p className="text-xs text-slate mb-2 ml-10.5">
+        <p className="ml-10.5 mb-2 text-xs text-slate">
           {daysCount} {daysCount === 1 ? 'day' : 'days'}
         </p>
       )}
@@ -70,13 +70,13 @@ export function WeekCard({ week }: WeekCardProps) {
       {/* Progress Bar */}
       {week.progress > 0 && (
         <div className="ml-10.5">
-          <div className="flex items-center justify-between mb-1">
+          <div className="mb-1 flex items-center justify-between">
             <span className="text-xs font-medium text-slate">Progress</span>
             <span className="text-xs font-medium text-slate">{week.progress}%</span>
           </div>
-          <div className="neu-pressed rounded-full h-1 overflow-hidden">
+          <div className="neu-pressed h-1 overflow-hidden rounded-full">
             <div
-              className="bg-slate h-1 rounded-full smooth-transition"
+              className="smooth-transition h-1 rounded-full bg-slate"
               style={{ width: `${week.progress}%` }}
             />
           </div>

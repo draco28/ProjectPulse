@@ -123,10 +123,9 @@ export function LabelManagement({ projectId, labels }: LabelManagementProps) {
     setIsDeleting(true);
 
     try {
-      const response = await fetch(
-        `/api/projects/${projectId}/labels/${deletingLabel.id}`,
-        { method: 'DELETE' }
-      );
+      const response = await fetch(`/api/projects/${projectId}/labels/${deletingLabel.id}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
         const data = await response.json();
@@ -148,21 +147,19 @@ export function LabelManagement({ projectId, labels }: LabelManagementProps) {
   }, []);
 
   return (
-    <section className="bg-[#1a1a2e] rounded-lg p-6 shadow-neumorphic">
+    <section className="shadow-neumorphic rounded-lg bg-[#1a1a2e] p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-coral-400 mb-1 flex items-center gap-2">
+          <h2 className="text-coral-400 mb-1 flex items-center gap-2 text-xl font-semibold">
             <Tag className="h-5 w-5" />
             Labels
           </h2>
-          <p className="text-sm text-gray-400">
-            Create and manage labels for organizing tickets
-          </p>
+          <p className="text-sm text-gray-400">Create and manage labels for organizing tickets</p>
         </div>
         <button
           onClick={handleAdd}
-          className="flex items-center gap-2 px-4 py-2 bg-coral-500 text-white rounded-md hover:bg-coral-600 transition-colors"
+          className="bg-coral-500 hover:bg-coral-600 flex items-center gap-2 rounded-md px-4 py-2 text-white transition-colors"
         >
           <Plus size={18} />
           Add Label
@@ -175,37 +172,38 @@ export function LabelManagement({ projectId, labels }: LabelManagementProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-700">
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Color</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Usage</th>
-                <th className="text-right py-3 px-4 text-gray-400 font-medium">Actions</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-400">Color</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-400">Name</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-400">Usage</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-400">Actions</th>
               </tr>
             </thead>
             <tbody>
               {labels.map((label) => (
                 <tr key={label.id} className="border-b border-gray-800 hover:bg-[#1f1f33]">
-                  <td className="py-3 px-4">
+                  <td className="px-4 py-3">
                     <span
                       className="inline-block h-5 w-5 rounded-md"
                       style={{ backgroundColor: label.color }}
                     />
                   </td>
-                  <td className="py-3 px-4 font-medium">{label.name}</td>
-                  <td className="py-3 px-4 text-gray-400">
-                    {label._count?.tickets ?? 0} ticket{(label._count?.tickets ?? 0) !== 1 ? 's' : ''}
+                  <td className="px-4 py-3 font-medium">{label.name}</td>
+                  <td className="px-4 py-3 text-gray-400">
+                    {label._count?.tickets ?? 0} ticket
+                    {(label._count?.tickets ?? 0) !== 1 ? 's' : ''}
                   </td>
-                  <td className="py-3 px-4 text-right">
+                  <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleEdit(label)}
-                        className="p-1.5 text-gray-400 hover:text-coral-400 transition-colors rounded hover:bg-[#2a2a44]"
+                        className="hover:text-coral-400 rounded p-1.5 text-gray-400 transition-colors hover:bg-[#2a2a44]"
                         title="Edit label"
                       >
                         <Pencil size={16} />
                       </button>
                       <button
                         onClick={() => handleDeleteClick(label)}
-                        className="p-1.5 text-gray-400 hover:text-red-400 transition-colors rounded hover:bg-[#2a2a44]"
+                        className="rounded p-1.5 text-gray-400 transition-colors hover:bg-[#2a2a44] hover:text-red-400"
                         title="Delete label"
                       >
                         <Trash2 size={16} />
@@ -218,8 +216,8 @@ export function LabelManagement({ projectId, labels }: LabelManagementProps) {
           </table>
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">
-          <Tag className="h-12 w-12 mx-auto mb-3 opacity-30" />
+        <div className="py-8 text-center text-gray-500">
+          <Tag className="mx-auto mb-3 h-12 w-12 opacity-30" />
           <p className="mb-2">No labels yet</p>
           <p className="text-sm">Create labels to organize your tickets</p>
         </div>
@@ -227,15 +225,15 @@ export function LabelManagement({ projectId, labels }: LabelManagementProps) {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a2e] rounded-lg p-6 max-w-md w-full shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-coral-400">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-lg bg-[#1a1a2e] p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-coral-400 text-xl font-semibold">
                 {editingLabel ? 'Edit Label' : 'Add Label'}
               </h3>
               <button
                 onClick={handleCloseModal}
-                className="p-1 text-gray-400 hover:text-white transition-colors"
+                className="p-1 text-gray-400 transition-colors hover:text-white"
               >
                 <X size={20} />
               </button>
@@ -244,13 +242,13 @@ export function LabelManagement({ projectId, labels }: LabelManagementProps) {
             <div className="space-y-4">
               {/* Name Input */}
               <div>
-                <label className="block text-sm font-medium mb-2">Name</label>
+                <label className="mb-2 block text-sm font-medium">Name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g., bug, enhancement, documentation"
-                  className="w-full px-4 py-2 bg-[#0f0f1a] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-coral-500"
+                  className="focus:ring-coral-500 w-full rounded-md border border-gray-700 bg-[#0f0f1a] px-4 py-2 focus:outline-none focus:ring-2"
                   maxLength={50}
                   autoFocus
                 />
@@ -258,51 +256,46 @@ export function LabelManagement({ projectId, labels }: LabelManagementProps) {
 
               {/* Color Picker */}
               <div>
-                <label className="block text-sm font-medium mb-3">Color</label>
+                <label className="mb-3 block text-sm font-medium">Color</label>
                 <div className="flex items-center gap-4">
                   {/* Preview */}
                   <div
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0f0f1a]"
+                    className="flex items-center gap-2 rounded-full bg-[#0f0f1a] px-3 py-1.5"
                     style={{ borderLeft: `3px solid ${color}` }}
                   >
-                    <span
-                      className="h-3 w-3 rounded-full"
-                      style={{ backgroundColor: color }}
-                    />
-                    <span className="text-sm text-gray-300">
-                      {name || 'Label preview'}
-                    </span>
+                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
+                    <span className="text-sm text-gray-300">{name || 'Label preview'}</span>
                   </div>
                 </div>
-                <div className="mt-3 p-3 bg-[#0f0f1a] rounded-lg">
+                <div className="mt-3 rounded-lg bg-[#0f0f1a] p-3">
                   <ColorPicker value={color} onChange={setColor} />
                 </div>
               </div>
 
               {/* Error Message */}
               {error && (
-                <div className="flex items-center gap-2 text-red-400 text-sm">
+                <div className="flex items-center gap-2 text-sm text-red-400">
                   <AlertTriangle size={16} />
                   {error}
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex gap-3 mt-6">
+              <div className="mt-6 flex gap-3">
                 <button
                   onClick={handleSave}
                   disabled={isSaving || !name.trim()}
                   className={cn(
-                    'flex-1 px-4 py-2 rounded-md transition-colors',
-                    'bg-coral-500 text-white hover:bg-coral-600',
-                    'disabled:opacity-50 disabled:cursor-not-allowed'
+                    'flex-1 rounded-md px-4 py-2 transition-colors',
+                    'bg-coral-500 hover:bg-coral-600 text-white',
+                    'disabled:cursor-not-allowed disabled:opacity-50'
                   )}
                 >
                   {isSaving ? 'Saving...' : editingLabel ? 'Save Changes' : 'Create Label'}
                 </button>
                 <button
                   onClick={handleCloseModal}
-                  className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors"
+                  className="rounded-md bg-gray-700 px-4 py-2 text-white transition-colors hover:bg-gray-600"
                 >
                   Cancel
                 </button>
@@ -314,19 +307,19 @@ export function LabelManagement({ projectId, labels }: LabelManagementProps) {
 
       {/* Delete Confirmation Modal */}
       {deletingLabel && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a2e] rounded-lg p-6 max-w-md w-full shadow-2xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-500/20 rounded-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-lg bg-[#1a1a2e] p-6 shadow-2xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="rounded-lg bg-red-500/20 p-2">
                 <AlertTriangle className="h-6 w-6 text-red-400" />
               </div>
               <h3 className="text-xl font-semibold text-white">Delete Label</h3>
             </div>
 
-            <p className="text-gray-300 mb-4">
+            <p className="mb-4 text-gray-300">
               Are you sure you want to delete the label{' '}
               <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm"
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-sm"
                 style={{ backgroundColor: `${deletingLabel.color}20`, color: deletingLabel.color }}
               >
                 {deletingLabel.name}
@@ -335,11 +328,11 @@ export function LabelManagement({ projectId, labels }: LabelManagementProps) {
             </p>
 
             {(deletingLabel._count?.tickets ?? 0) > 0 && (
-              <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4 mb-4">
-                <p className="text-yellow-200 text-sm">
-                  <strong>Warning:</strong> This label is used on{' '}
-                  {deletingLabel._count?.tickets} ticket{deletingLabel._count?.tickets !== 1 ? 's' : ''}.
-                  Deleting it will remove the label from all tickets.
+              <div className="mb-4 rounded-lg border border-yellow-700/50 bg-yellow-900/20 p-4">
+                <p className="text-sm text-yellow-200">
+                  <strong>Warning:</strong> This label is used on {deletingLabel._count?.tickets}{' '}
+                  ticket{deletingLabel._count?.tickets !== 1 ? 's' : ''}. Deleting it will remove
+                  the label from all tickets.
                 </p>
               </div>
             )}
@@ -349,16 +342,16 @@ export function LabelManagement({ projectId, labels }: LabelManagementProps) {
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
                 className={cn(
-                  'flex-1 px-4 py-2 rounded-md transition-colors',
+                  'flex-1 rounded-md px-4 py-2 transition-colors',
                   'bg-red-500 text-white hover:bg-red-600',
-                  'disabled:opacity-50 disabled:cursor-not-allowed'
+                  'disabled:cursor-not-allowed disabled:opacity-50'
                 )}
               >
                 {isDeleting ? 'Deleting...' : 'Delete Label'}
               </button>
               <button
                 onClick={handleCancelDelete}
-                className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors"
+                className="rounded-md bg-gray-700 px-4 py-2 text-white transition-colors hover:bg-gray-600"
               >
                 Cancel
               </button>

@@ -108,7 +108,7 @@ export function Pagination({
             className={cn(
               'neu-raised smooth-transition rounded-xl px-4 py-2 font-medium',
               currentPage === 1
-                ? 'cursor-not-allowed opacity-50 text-slate'
+                ? 'cursor-not-allowed text-slate opacity-50'
                 : 'text-slate hover:text-white'
             )}
           >
@@ -119,10 +119,7 @@ export function Pagination({
           {pageNumbers.map((page, index) => {
             if (page === '...') {
               return (
-                <span
-                  key={`ellipsis-${index}`}
-                  className="flex items-center px-2 text-slate"
-                >
+                <span key={`ellipsis-${index}`} className="flex items-center px-2 text-slate">
                   ...
                 </span>
               );
@@ -154,7 +151,7 @@ export function Pagination({
             className={cn(
               'neu-raised smooth-transition rounded-xl px-4 py-2 font-medium',
               currentPage === totalPages
-                ? 'cursor-not-allowed opacity-50 text-slate'
+                ? 'cursor-not-allowed text-slate opacity-50'
                 : 'text-slate hover:text-white'
             )}
           >

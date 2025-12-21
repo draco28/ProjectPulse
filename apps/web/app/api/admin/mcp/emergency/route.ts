@@ -64,10 +64,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch emergency status' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch emergency status' }, { status: 500 });
   }
 }
 
@@ -135,10 +132,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to enable emergency shutdown' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to enable emergency shutdown' }, { status: 500 });
   }
 }
 
@@ -190,9 +184,6 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to disable emergency shutdown' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to disable emergency shutdown' }, { status: 500 });
   }
 }

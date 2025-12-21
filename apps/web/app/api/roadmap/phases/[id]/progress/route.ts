@@ -31,41 +31,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Get projectId from query params (REQUIRED for security)
     const searchParams = request.nextUrl.searchParams;
     const projectId = searchParams.get('projectId');
-    
+
     if (!projectId) {
-      return NextResponse.json(
-        { error: 'projectId query parameter required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'projectId query parameter required' }, { status: 400 });
     }
-    
+
     const projectIdNum = parseInt(projectId, 10);
     if (isNaN(projectIdNum) || projectIdNum <= 0) {
-      return NextResponse.json(
-        { error: 'projectId must be a positive integer' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'projectId must be a positive integer' }, { status: 400 });
     }
 
     // Sprint 10: Authenticate and validate project access
     await requireProjectAccess(request, projectIdNum);
-    
+
     // Query phase with full nested tree + projectId validation
     // Sprint 12: 3-level nested includes (Tasks removed - tickets schedule to weeks)
     const phase = await prisma.phase.findFirst({
       where: {
         id: params.id,
         roadmap: {
-          projectId: projectIdNum  // Security: Validate ownership
-        }
+          projectId: projectIdNum, // Security: Validate ownership
+        },
       },
       include: {
         sprints: {
@@ -85,8 +76,8 @@ export async function GET(
                     updatedAt: true,
                   },
                   orderBy: {
-                    title: 'asc'  // Monday, Tuesday, Wednesday...
-                  }
+                    title: 'asc', // Monday, Tuesday, Wednesday...
+                  },
                 },
                 // Sprint 12: Include scheduled tickets for week view
                 scheduledTickets: {
@@ -97,35 +88,34 @@ export async function GET(
                     priority: true,
                     estimatedDays: true,
                     scheduledDays: true,
-                  }
-                }
+                  },
+                },
               },
               orderBy: {
-                title: 'asc'  // Week 1, Week 2, Week 3...
-              }
-            }
+                title: 'asc', // Week 1, Week 2, Week 3...
+              },
+            },
           },
           orderBy: {
-            title: 'asc'  // Sprint 1, Sprint 2, Sprint 3...
-          }
-        }
-      }
+            title: 'asc', // Sprint 1, Sprint 2, Sprint 3...
+          },
+        },
+      },
     });
-    
+
     // Phase not found or doesn't belong to project
     if (!phase) {
       return NextResponse.json(
         {
           error: 'Phase not found',
-          message: `Phase ${params.id} does not exist or does not belong to project ${projectIdNum}`
+          message: `Phase ${params.id} does not exist or does not belong to project ${projectIdNum}`,
         },
         { status: 404 }
       );
     }
-    
+
     // Return full nested tree
     return NextResponse.json(phase);
-    
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {
@@ -139,7 +129,7 @@ export async function GET(
     return NextResponse.json(
       {
         error: 'Failed to get phase progress',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

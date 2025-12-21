@@ -227,11 +227,7 @@ export const FRONTMATTER_FIELDS = [
 /**
  * Required frontmatter fields (validation)
  */
-export const REQUIRED_FRONTMATTER_FIELDS = [
-  'title',
-  'slug',
-  'category',
-] as const;
+export const REQUIRED_FRONTMATTER_FIELDS = ['title', 'slug', 'category'] as const;
 
 // ============================================================================
 // HELPER FUNCTIONS

@@ -1,12 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Calendar, Tag, Code } from 'lucide-react';
 
@@ -31,11 +26,7 @@ interface SkillDetailModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function SkillDetailModal({
-  skillId,
-  open,
-  onOpenChange,
-}: SkillDetailModalProps) {
+export function SkillDetailModal({ skillId, open, onOpenChange }: SkillDetailModalProps) {
   const [skill, setSkill] = useState<SkillDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +52,7 @@ export function SkillDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">
             {loading ? 'Loading...' : error ? 'Error' : skill?.title}
@@ -81,7 +72,7 @@ export function SkillDetailModal({
         )}
 
         {skill && !loading && !error && (
-          <div className="space-y-6 mt-4">
+          <div className="mt-4 space-y-6">
             {/* Metadata Row */}
             <div className="flex flex-wrap gap-3">
               <Badge variant="default">{skill.category}</Badge>
@@ -95,58 +86,48 @@ export function SkillDetailModal({
             {/* Description */}
             {skill.description && (
               <div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {skill.description}
-                </p>
+                <p className="text-sm leading-relaxed text-muted-foreground">{skill.description}</p>
               </div>
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               <div className="neu-inset rounded-lg p-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
                   <TrendingUp className="h-4 w-4" />
                   <span>Usage</span>
                 </div>
-                <div className="text-lg font-semibold text-white">
-                  {skill.usageCount}
-                </div>
+                <div className="text-lg font-semibold text-white">{skill.usageCount}</div>
               </div>
               <div className="neu-inset rounded-lg p-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>Last Used</span>
                 </div>
                 <div className="text-sm font-medium text-white">
-                  {skill.lastLoadedAt
-                    ? new Date(skill.lastLoadedAt).toLocaleDateString()
-                    : 'Never'}
+                  {skill.lastLoadedAt ? new Date(skill.lastLoadedAt).toLocaleDateString() : 'Never'}
                 </div>
               </div>
               <div className="neu-inset rounded-lg p-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
                   <Tag className="h-4 w-4" />
                   <span>Tags</span>
                 </div>
-                <div className="text-sm font-medium text-white">
-                  {skill.tags.length}
-                </div>
+                <div className="text-sm font-medium text-white">{skill.tags.length}</div>
               </div>
               <div className="neu-inset rounded-lg p-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
                   <Code className="h-4 w-4" />
                   <span>Slug</span>
                 </div>
-                <div className="text-xs font-mono text-white truncate">
-                  {skill.slug}
-                </div>
+                <div className="truncate font-mono text-xs text-white">{skill.slug}</div>
               </div>
             </div>
 
             {/* Tags */}
             {skill.tags.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-white mb-3">Tags</h4>
+                <h4 className="mb-3 text-sm font-semibold text-white">Tags</h4>
                 <div className="flex flex-wrap gap-2">
                   {skill.tags.map((tag) => (
                     <Badge key={tag} variant="outline" className="text-xs">
@@ -159,9 +140,9 @@ export function SkillDetailModal({
 
             {/* Content */}
             <div>
-              <h4 className="text-sm font-semibold text-white mb-3">Content</h4>
-              <div className="neu-inset rounded-lg p-6 max-h-96 overflow-y-auto">
-                <pre className="text-xs sm:text-sm whitespace-pre-wrap font-mono leading-relaxed text-slate">
+              <h4 className="mb-3 text-sm font-semibold text-white">Content</h4>
+              <div className="neu-inset max-h-96 overflow-y-auto rounded-lg p-6">
+                <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-slate sm:text-sm">
                   {skill.content}
                 </pre>
               </div>
@@ -169,8 +150,8 @@ export function SkillDetailModal({
 
             {/* MCP Usage */}
             <div className="neu-raised rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-white mb-2">Load via MCP</h4>
-              <code className="text-xs bg-background px-3 py-2 rounded block font-mono text-slate">
+              <h4 className="mb-2 text-sm font-semibold text-white">Load via MCP</h4>
+              <code className="block rounded bg-background px-3 py-2 font-mono text-xs text-slate">
                 projectpulse.skill.load(&quot;{skill.slug}&quot;)
               </code>
             </div>

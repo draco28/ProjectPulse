@@ -83,9 +83,7 @@ test.describe('Project Context - Query Parameter Persistence', () => {
     await expect(page).toHaveURL(/project=1/);
   });
 
-  test('should preserve project ID when navigating from dashboard to roadmap', async ({
-    page,
-  }) => {
+  test('should preserve project ID when navigating from dashboard to roadmap', async ({ page }) => {
     await page.goto('/dashboard?project=1');
     await expect(page).toHaveURL(/project=1/);
 
@@ -275,7 +273,9 @@ test.describe('Project Context - No Project ID Behavior', () => {
 
     if (url.includes('/dashboard') && !url.includes('project=')) {
       // This is a BUG - should enforce project context
-      console.log('🐛 BUG DETECTED: Dashboard loads without project ID instead of redirecting to /app');
+      console.log(
+        '🐛 BUG DETECTED: Dashboard loads without project ID instead of redirecting to /app'
+      );
 
       test.fail();
       await expect(page).toHaveURL(/\/app/); // This will fail, documenting the bug

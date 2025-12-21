@@ -14,6 +14,8 @@ import { sprintQueryHierarchyTool } from './sprintQueryHierarchy.js';
 import { agentSessionStartTool } from './agent-session/startTool.js';
 import { agentSessionUpdateTool } from './agent-session/updateTool.js';
 import { agentSessionEndTool } from './agent-session/endTool.js';
+// Sprint 14: Resume tool for paused session recovery
+import { agentSessionResumeTool } from './agent-session/resumeTool.js';
 import { wikiCreateTool } from './wikiCreate.js';
 import { wikiSearchTool } from './wikiSearch.js';
 import { wikiUpdateTool } from './wikiUpdate.js';
@@ -120,6 +122,8 @@ export const loadTools = (): ToolDefinition[] => [
   agentSessionStartTool,
   agentSessionUpdateTool,
   agentSessionEndTool,
+  // Sprint 14: Resume tool for paused session recovery
+  agentSessionResumeTool,
   wikiCreateTool,
   wikiSearchTool,
   wikiGetTool,

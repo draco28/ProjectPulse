@@ -194,10 +194,7 @@ export function estimateSkillListTokens(
  * const reduction = calculateTokenReduction(before, after); // 97.2% ✅
  * ```
  */
-export function calculateTokenReduction(
-  beforeTokens: number,
-  afterTokens: number
-): number {
+export function calculateTokenReduction(beforeTokens: number, afterTokens: number): number {
   if (beforeTokens === 0) return 0;
   const reduction = ((beforeTokens - afterTokens) / beforeTokens) * 100;
   return Number(reduction.toFixed(2));
@@ -304,7 +301,7 @@ export function validateSkillListTokenEfficiency(
   const target = 80; // Target: <80 tokens for 10 skills
 
   // Calculate equivalent for 10 skills
-  const tokensFor10 = (avgTokensPerSkill * 10);
+  const tokensFor10 = avgTokensPerSkill * 10;
   const valid = tokensFor10 <= target;
 
   const status = valid ? '✅' : '❌';

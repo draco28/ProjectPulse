@@ -42,10 +42,7 @@ function failure({
   status?: number;
   details?: unknown;
 }) {
-  return Response.json(
-    { data: null, error: { code, message, details } },
-    { status }
-  );
+  return Response.json({ data: null, error: { code, message, details } }, { status });
 }
 
 // Document filename patterns
@@ -100,9 +97,7 @@ async function loadSession2Documents(
 
   // Match documents by filename pattern
   for (const [key, pattern] of Object.entries(DOC_PATTERNS)) {
-    const doc = documents.find((d) =>
-      d.filename.toLowerCase().includes(pattern.toLowerCase())
-    );
+    const doc = documents.find((d) => d.filename.toLowerCase().includes(pattern.toLowerCase()));
 
     if (doc) {
       rawDocs[key as DocType] = doc.content;
@@ -234,13 +229,15 @@ export async function POST(request: NextRequest) {
     const embeddingVector = `[${embeddingResult.embedding.join(',')}]`;
 
     // Store using raw SQL (Prisma doesn't support vector type)
-    const result = await prisma.$queryRaw<Array<{
-      id: number;
-      title: string;
-      category: string;
-      tags: string[];
-      createdAt: Date;
-    }>>`
+    const result = await prisma.$queryRaw<
+      Array<{
+        id: number;
+        title: string;
+        category: string;
+        tags: string[];
+        createdAt: Date;
+      }>
+    >`
       INSERT INTO knowledge_items (
         "projectId",
         title,
@@ -282,16 +279,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return success({
-      coverage: matrix.coverage,
-      nfrSummary: matrix.nfrSummary,
-      gaps: matrix.gaps,
-      details: matrix.details,
-      knowledgeItemId: knowledgeItem.id,
-      backlogItemsStored, // Sprint 14: Number of backlog items stored in database
-      generatedAt,
-      message: `Document traceability validated: FR ${matrix.coverage.frCoveragePercent}%, Backlog ${matrix.coverage.backlogItemCoveragePercent}%, Plan ${matrix.coverage.planMappingCoveragePercent}%. ${backlogItemsStored} backlog items stored.`,
-    }, 201);
+    return success(
+      {
+        coverage: matrix.coverage,
+        nfrSummary: matrix.nfrSummary,
+        gaps: matrix.gaps,
+        details: matrix.details,
+        knowledgeItemId: knowledgeItem.id,
+        backlogItemsStored, // Sprint 14: Number of backlog items stored in database
+        generatedAt,
+        message: `Document traceability validated: FR ${matrix.coverage.frCoveragePercent}%, Backlog ${matrix.coverage.backlogItemCoveragePercent}%, Plan ${matrix.coverage.planMappingCoveragePercent}%. ${backlogItemsStored} backlog items stored.`,
+      },
+      201
+    );
   } catch (error) {
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });

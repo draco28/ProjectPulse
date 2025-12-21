@@ -174,7 +174,9 @@ export function generateTraceabilityMarkdown(
   // Metadata
   lines.push('---');
   lines.push('');
-  lines.push('*This matrix validates document-level traceability between Session 2 planning documents.*');
+  lines.push(
+    '*This matrix validates document-level traceability between Session 2 planning documents.*'
+  );
   lines.push('*For ticket-level traceability, use `projectpulse_traceability_generate`.*');
 
   return lines.join('\n');
@@ -221,10 +223,14 @@ export function generateConciseSummary(matrix: TraceabilityMatrix): string {
     lines.push('');
     lines.push(`Gaps Found: ${totalGaps}`);
     if (matrix.gaps.missingFrRefsInBacklog.length > 0) {
-      lines.push(`- Uncovered FRs: ${matrix.gaps.missingFrRefsInBacklog.slice(0, 5).join(', ')}${matrix.gaps.missingFrRefsInBacklog.length > 5 ? '...' : ''}`);
+      lines.push(
+        `- Uncovered FRs: ${matrix.gaps.missingFrRefsInBacklog.slice(0, 5).join(', ')}${matrix.gaps.missingFrRefsInBacklog.length > 5 ? '...' : ''}`
+      );
     }
     if (matrix.gaps.missingBacklogInPlan.length > 0) {
-      lines.push(`- Unmapped Backlog: ${matrix.gaps.missingBacklogInPlan.slice(0, 5).join(', ')}${matrix.gaps.missingBacklogInPlan.length > 5 ? '...' : ''}`);
+      lines.push(
+        `- Unmapped Backlog: ${matrix.gaps.missingBacklogInPlan.slice(0, 5).join(', ')}${matrix.gaps.missingBacklogInPlan.length > 5 ? '...' : ''}`
+      );
     }
   } else {
     lines.push('');

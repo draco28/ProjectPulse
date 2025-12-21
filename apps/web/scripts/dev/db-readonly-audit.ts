@@ -24,7 +24,9 @@ async function main() {
     });
     console.log('\n📁 Projects:');
     for (const p of projects) {
-      console.log(`- id=${p.id} | name="${p.name}" | ownerId=${p.ownerId} | createdAt=${p.createdAt.toISOString()}`);
+      console.log(
+        `- id=${p.id} | name="${p.name}" | ownerId=${p.ownerId} | createdAt=${p.createdAt.toISOString()}`
+      );
     }
 
     // Focus on project id 3

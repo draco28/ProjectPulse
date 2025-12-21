@@ -49,9 +49,15 @@ let localStorageStore = {};
 Object.defineProperty(global, 'localStorage', {
   value: {
     getItem: jest.fn((key) => localStorageStore[key] || null),
-    setItem: jest.fn((key, value) => { localStorageStore[key] = value; }),
-    removeItem: jest.fn((key) => { delete localStorageStore[key]; }),
-    clear: jest.fn(() => { localStorageStore = {}; }),
+    setItem: jest.fn((key, value) => {
+      localStorageStore[key] = value;
+    }),
+    removeItem: jest.fn((key) => {
+      delete localStorageStore[key];
+    }),
+    clear: jest.fn(() => {
+      localStorageStore = {};
+    }),
     length: 0,
     key: jest.fn(),
   },

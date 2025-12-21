@@ -109,11 +109,7 @@ const descriptionSchema = z
  */
 const tagsSchema = z
   .array(
-    z
-      .string()
-      .min(SKILL_CONSTRAINTS.TAG_MIN_LENGTH)
-      .max(SKILL_CONSTRAINTS.TAG_MAX_LENGTH)
-      .trim()
+    z.string().min(SKILL_CONSTRAINTS.TAG_MIN_LENGTH).max(SKILL_CONSTRAINTS.TAG_MAX_LENGTH).trim()
   )
   .min(SKILL_CONSTRAINTS.TAGS_MIN_ITEMS)
   .max(SKILL_CONSTRAINTS.TAGS_MAX_ITEMS, 'Maximum 20 tags allowed')
@@ -212,10 +208,7 @@ export const updateSkillSchema = z
     tags: tagsSchema.optional(),
     frameworks: frameworksSchema.optional(),
   })
-  .refine(
-    (data) => Object.keys(data).length > 0,
-    'At least one field must be provided for update'
-  );
+  .refine((data) => Object.keys(data).length > 0, 'At least one field must be provided for update');
 
 export type UpdateSkillInput = z.infer<typeof updateSkillSchema>;
 
@@ -348,7 +341,10 @@ export const skillImportBatchSchema = z.object({
       })
     )
     .min(1, 'At least one file required')
-    .max(SKILL_CONSTRAINTS.IMPORT_MAX_FILES, `Maximum ${SKILL_CONSTRAINTS.IMPORT_MAX_FILES} files per batch`),
+    .max(
+      SKILL_CONSTRAINTS.IMPORT_MAX_FILES,
+      `Maximum ${SKILL_CONSTRAINTS.IMPORT_MAX_FILES} files per batch`
+    ),
   overwriteExisting: z.boolean().default(false), // Skip duplicate slugs by default
 });
 

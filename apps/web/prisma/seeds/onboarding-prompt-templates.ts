@@ -1,7 +1,7 @@
 /**
  * Seed: Onboarding Prompt Templates
  * Sprint 9 Refactor: Database-driven prompts for agent-side AI generation
- * 
+ *
  * 16 templates total:
  * - 10 for Session 1 phases
  * - 1 for Session 1 executive summary
@@ -15,13 +15,14 @@ const templates: Prisma.OnboardingPromptTemplateCreateInput[] = [
   // ============================================================================
   // SESSION 1: PHASE PROMPTS (10 templates)
   // ============================================================================
-  
+
   {
     name: 'onboarding-session-1-phase-1',
     category: 'onboarding',
     sessionNumber: 1,
     phase: 1,
-    systemPrompt: 'You are a Product Manager conducting strategic planning interviews with a project founder.',
+    systemPrompt:
+      'You are a Product Manager conducting strategic planning interviews with a project founder.',
     userPrompt: `**Phase 1: Product Manager - Foundation**
 
 Ask the user these questions conversationally, one at a time:
@@ -46,14 +47,14 @@ Then call: \`savePhase(projectId: {projectId}, phase: 1, answers: {...})\`
 - Stay under 20K tokens for this phase`,
     variables: {
       projectId: 'number',
-      questions: 'array'
+      questions: 'array',
     },
     temperature: 0.7,
     maxTokens: 2000,
     description: 'Phase 1: Product Manager - Foundation (11 questions)',
-    isActive: true
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-1-phase-2',
     category: 'onboarding',
@@ -71,14 +72,14 @@ Format answers as JSON and call: \`savePhase(projectId: {projectId}, phase: 2, a
 **Focus areas:** Tech stack selection, cost analysis, timeline planning, risk assessment`,
     variables: {
       projectId: 'number',
-      questions: 'array'
+      questions: 'array',
     },
     temperature: 0.7,
     maxTokens: 2000,
     description: 'Phase 2: Strategic Planning (10 questions)',
-    isActive: true
+    isActive: true,
   },
-  
+
   // Phases 3-10: Similar structure (abbreviated for brevity - expand in production)
   {
     name: 'onboarding-session-1-phase-3',
@@ -91,9 +92,9 @@ Format answers as JSON and call: \`savePhase(projectId: {projectId}, phase: 2, a
     temperature: 0.7,
     maxTokens: 2000,
     description: 'Phase 3: UX/UI Design (9 questions)',
-    isActive: true
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-1-phase-4',
     category: 'onboarding',
@@ -105,9 +106,9 @@ Format answers as JSON and call: \`savePhase(projectId: {projectId}, phase: 2, a
     temperature: 0.7,
     maxTokens: 2000,
     description: 'Phase 4: System Architecture (12 questions)',
-    isActive: true
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-1-phase-5',
     category: 'onboarding',
@@ -119,9 +120,9 @@ Format answers as JSON and call: \`savePhase(projectId: {projectId}, phase: 2, a
     temperature: 0.7,
     maxTokens: 2000,
     description: 'Phase 5: DevOps (9 questions)',
-    isActive: true
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-1-phase-6',
     category: 'onboarding',
@@ -133,9 +134,9 @@ Format answers as JSON and call: \`savePhase(projectId: {projectId}, phase: 2, a
     temperature: 0.7,
     maxTokens: 2000,
     description: 'Phase 6: Backend (10 questions)',
-    isActive: true
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-1-phase-7',
     category: 'onboarding',
@@ -147,9 +148,9 @@ Format answers as JSON and call: \`savePhase(projectId: {projectId}, phase: 2, a
     temperature: 0.7,
     maxTokens: 2000,
     description: 'Phase 7: Frontend (9 questions)',
-    isActive: true
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-1-phase-8',
     category: 'onboarding',
@@ -161,9 +162,9 @@ Format answers as JSON and call: \`savePhase(projectId: {projectId}, phase: 2, a
     temperature: 0.7,
     maxTokens: 2000,
     description: 'Phase 8: QA & Testing (8 questions)',
-    isActive: true
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-1-phase-9',
     category: 'onboarding',
@@ -175,9 +176,9 @@ Format answers as JSON and call: \`savePhase(projectId: {projectId}, phase: 2, a
     temperature: 0.7,
     maxTokens: 2000,
     description: 'Phase 9: Production (9 questions)',
-    isActive: true
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-1-phase-10',
     category: 'onboarding',
@@ -189,13 +190,13 @@ Format answers as JSON and call: \`savePhase(projectId: {projectId}, phase: 2, a
     temperature: 0.7,
     maxTokens: 2000,
     description: 'Phase 10: Security (9 questions)',
-    isActive: true
+    isActive: true,
   },
-  
+
   // ============================================================================
   // SESSION 1: EXECUTIVE SUMMARY
   // ============================================================================
-  
+
   {
     name: 'onboarding-session-1-executive-summary',
     category: 'onboarding',
@@ -262,24 +263,25 @@ Generate the summary now.`,
       phase7Answers: 'object',
       phase8Answers: 'object',
       phase9Answers: 'object',
-      phase10Answers: 'object'
+      phase10Answers: 'object',
     },
     temperature: 0.7,
     maxTokens: 1000,
     description: 'Session 1: Executive summary generation from all 96 Q&A pairs',
-    isActive: true
+    isActive: true,
   },
-  
+
   // ============================================================================
   // SESSION 2: DOCUMENT BATCH PROMPTS (4 templates)
   // ============================================================================
-  
+
   {
     name: 'onboarding-session-2-batch-1',
     category: 'onboarding',
     sessionNumber: 2,
     batch: 1,
-    systemPrompt: 'You are a Technical Writer generating industry-standard project documentation with full traceability.',
+    systemPrompt:
+      'You are a Technical Writer generating industry-standard project documentation with full traceability.',
     userPrompt: `Generate these **Planning Documents** for Batch 1:
 
 **Documents to Generate:**
@@ -377,14 +379,15 @@ As a new user, I want to register with my email...
 Generate each document in order. Maintain consistency and full traceability across all 4 documents.`,
     variables: {
       executiveSummary: 'string',
-      projectContextJson: 'object'
+      projectContextJson: 'object',
     },
     temperature: 0.7,
     maxTokens: 12000,
-    description: 'Session 2 Batch 1: Planning documents (PRD, SRS, Backlog, Project Plan) with traceability',
-    isActive: true
+    description:
+      'Session 2 Batch 1: Planning documents (PRD, SRS, Backlog, Project Plan) with traceability',
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-2-batch-2',
     category: 'onboarding',
@@ -402,14 +405,14 @@ Generate each document in order. Maintain consistency and full traceability acro
 **Instructions:** Follow industry standards (C4 model for architecture, ERD for data model, OpenAPI for API spec).`,
     variables: {
       executiveSummary: 'string',
-      projectContextJson: 'object'
+      projectContextJson: 'object',
     },
     temperature: 0.7,
     maxTokens: 10000,
     description: 'Session 2 Batch 2: Architecture documents',
-    isActive: true
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-2-batch-3',
     category: 'onboarding',
@@ -425,14 +428,14 @@ Generate each document in order. Maintain consistency and full traceability acro
 **Context:** {executiveSummary} | {projectContextJson}`,
     variables: {
       executiveSummary: 'string',
-      projectContextJson: 'object'
+      projectContextJson: 'object',
     },
     temperature: 0.7,
     maxTokens: 10000,
     description: 'Session 2 Batch 3: Implementation documents',
-    isActive: true
+    isActive: true,
   },
-  
+
   {
     name: 'onboarding-session-2-batch-4',
     category: 'onboarding',
@@ -450,18 +453,18 @@ Generate each document in order. Maintain consistency and full traceability acro
 **Context:** {executiveSummary} | {projectContextJson}`,
     variables: {
       executiveSummary: 'string',
-      projectContextJson: 'object'
+      projectContextJson: 'object',
     },
     temperature: 0.7,
     maxTokens: 12000,
     description: 'Session 2 Batch 4: Operations documents',
-    isActive: true
+    isActive: true,
   },
-  
+
   // ============================================================================
   // SESSION 3: BOOTSTRAP PROMPT
   // ============================================================================
-  
+
   {
     name: 'onboarding-session-3-bootstrap',
     category: 'onboarding',
@@ -523,40 +526,41 @@ After parsing, you'll use this JSON to:
 Output the parsed JSON now.`,
     variables: {
       projectPlanMarkdown: 'string',
-      techStack: 'array'
+      techStack: 'array',
     },
     temperature: 0.3, // Lower temperature for structured output
     maxTokens: 5000,
-    description: 'Session 3: Bootstrap prompt for parsing Project Plan to JSON with tech stack context',
-    isActive: true
-  }
+    description:
+      'Session 3: Bootstrap prompt for parsing Project Plan to JSON with tech stack context',
+    isActive: true,
+  },
 ];
 
 export async function seedOnboardingPromptTemplates(prisma: PrismaClient) {
   console.log('🌱 Seeding onboarding prompt templates...');
-  
+
   let created = 0;
   let updated = 0;
   let skipped = 0;
-  
+
   for (const template of templates) {
     try {
       const existing = await prisma.onboardingPromptTemplate.findFirst({
         where: {
           name: template.name,
-          isActive: true
-        }
+          isActive: true,
+        },
       });
-      
+
       if (existing) {
         await prisma.onboardingPromptTemplate.update({
           where: { id: existing.id },
-          data: template
+          data: template,
         });
         updated++;
       } else {
         await prisma.onboardingPromptTemplate.create({
-          data: template
+          data: template,
         });
         created++;
       }
@@ -565,7 +569,7 @@ export async function seedOnboardingPromptTemplates(prisma: PrismaClient) {
       skipped++;
     }
   }
-  
+
   console.log(`✅ Seeded ${templates.length} onboarding prompt templates`);
   console.log(`   - Created: ${created}`);
   console.log(`   - Updated: ${updated}`);

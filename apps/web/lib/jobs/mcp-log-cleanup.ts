@@ -60,9 +60,7 @@ export async function runMCPLogCleanup(): Promise<CleanupResult> {
     });
 
     // Build error map for easy lookup
-    const errorMap = new Map(
-      errorCounts.map((e) => [`${e.projectId}-${e.toolName}`, e._count.id])
-    );
+    const errorMap = new Map(errorCounts.map((e) => [`${e.projectId}-${e.toolName}`, e._count.id]));
 
     // Create aggregates using upsert (idempotent)
     for (const agg of aggregateData) {
@@ -133,9 +131,7 @@ export async function runMCPLogCleanup(): Promise<CleanupResult> {
 
     deletedLogs = deleted;
   } catch (err) {
-    errors.push(
-      `Failed to delete old logs: ${err instanceof Error ? err.message : String(err)}`
-    );
+    errors.push(`Failed to delete old logs: ${err instanceof Error ? err.message : String(err)}`);
   }
 
   return {

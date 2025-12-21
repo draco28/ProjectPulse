@@ -35,10 +35,7 @@ import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
  * PATCH /api/knowledge/42/archive
  * ```
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = parseInt(params.id, 10);
 
@@ -67,7 +64,7 @@ export async function PATCH(
         { status: 404 }
       );
     }
-    
+
     // Authenticate and validate project access
     await requireProjectAccess(request, existingItem.projectId);
 
@@ -113,7 +110,7 @@ export async function PATCH(
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('[PATCH /api/knowledge/[id]/archive] Archive failed:', error);
     return NextResponse.json(
       {
@@ -141,10 +138,7 @@ export async function PATCH(
  * DELETE /api/knowledge/42/archive
  * ```
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = parseInt(params.id, 10);
 
@@ -173,7 +167,7 @@ export async function DELETE(
         { status: 404 }
       );
     }
-    
+
     // Authenticate and validate project access
     await requireProjectAccess(request, existingItem.projectId);
 
@@ -219,7 +213,7 @@ export async function DELETE(
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('[DELETE /api/knowledge/[id]/archive] Unarchive failed:', error);
     return NextResponse.json(
       {

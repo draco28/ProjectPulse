@@ -36,7 +36,7 @@ export function ThemeSwitcher() {
   const applyTheme = (theme: Theme) => {
     // Update CSS custom properties based on theme
     const root = document.documentElement;
-    
+
     switch (theme) {
       case 'coral':
         root.style.setProperty('--color-accent-primary', '#FF6B6B');

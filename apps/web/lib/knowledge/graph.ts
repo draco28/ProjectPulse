@@ -91,27 +91,15 @@ export async function findRelatedKnowledgeItems(
 
   // Validate input
   if (maxDepth < 1 || maxDepth > 2) {
-    throw new GraphError(
-      'maxDepth must be 1 or 2',
-      'INVALID_DEPTH',
-      400
-    );
+    throw new GraphError('maxDepth must be 1 or 2', 'INVALID_DEPTH', 400);
   }
 
   if (limit < 1 || limit > 50) {
-    throw new GraphError(
-      'limit must be between 1 and 50',
-      'INVALID_LIMIT',
-      400
-    );
+    throw new GraphError('limit must be between 1 and 50', 'INVALID_LIMIT', 400);
   }
 
   if (minStrength < 0 || minStrength > 1) {
-    throw new GraphError(
-      'minStrength must be between 0 and 1',
-      'INVALID_STRENGTH',
-      400
-    );
+    throw new GraphError('minStrength must be between 0 and 1', 'INVALID_STRENGTH', 400);
   }
 
   try {
@@ -122,17 +110,14 @@ export async function findRelatedKnowledgeItems(
     });
 
     if (!sourceItem) {
-      throw new GraphError(
-        `Knowledge item with ID ${itemId} not found`,
-        'ITEM_NOT_FOUND',
-        404
-      );
+      throw new GraphError(`Knowledge item with ID ${itemId} not found`, 'ITEM_NOT_FOUND', 404);
     }
 
     // Build relationship type filter (using correct Prisma column name: relationType)
-    const typeFilter = relationshipTypes && relationshipTypes.length > 0
-      ? `AND "relationType" = ANY(ARRAY[${relationshipTypes.map(t => `'${t.replace(/'/g, "''")}'`).join(', ')}])`
-      : '';
+    const typeFilter =
+      relationshipTypes && relationshipTypes.length > 0
+        ? `AND "relationType" = ANY(ARRAY[${relationshipTypes.map((t) => `'${t.replace(/'/g, "''")}'`).join(', ')}])`
+        : '';
 
     // ========================================
     // STEP 1: Find 1-hop relationships
@@ -179,20 +164,22 @@ export async function findRelatedKnowledgeItems(
       LIMIT ${limit}
     `;
 
-    const oneHopResults = await prisma.$queryRawUnsafe<Array<{
-      id: number;
-      title: string;
-      content: string;
-      category: string;
-      tags: string[];
-      relationship_type: string;
-      strength: number;
-      depth: number;
-    }>>(oneHopSql);
+    const oneHopResults = await prisma.$queryRawUnsafe<
+      Array<{
+        id: number;
+        title: string;
+        content: string;
+        category: string;
+        tags: string[];
+        relationship_type: string;
+        strength: number;
+        depth: number;
+      }>
+    >(oneHopSql);
 
     // If maxDepth=1, return only 1-hop results
     if (maxDepth === 1) {
-      return oneHopResults.map(result => ({
+      return oneHopResults.map((result) => ({
         id: result.id,
         title: result.title,
         content: result.content,
@@ -208,7 +195,7 @@ export async function findRelatedKnowledgeItems(
     // ========================================
     // STEP 2: Find 2-hop relationships
     // ========================================
-    const oneHopIds = oneHopResults.map(r => r.id);
+    const oneHopIds = oneHopResults.map((r) => r.id);
     if (oneHopIds.length === 0) {
       // No 1-hop connections, return empty
       return [];
@@ -263,17 +250,19 @@ export async function findRelatedKnowledgeItems(
       LIMIT ${limit}
     `;
 
-    const twoHopResults = await prisma.$queryRawUnsafe<Array<{
-      id: number;
-      title: string;
-      content: string;
-      category: string;
-      tags: string[];
-      relationship_type: string;
-      strength: number;
-      intermediate_id: number;
-      depth: number;
-    }>>(twoHopSql);
+    const twoHopResults = await prisma.$queryRawUnsafe<
+      Array<{
+        id: number;
+        title: string;
+        content: string;
+        category: string;
+        tags: string[];
+        relationship_type: string;
+        strength: number;
+        intermediate_id: number;
+        depth: number;
+      }>
+    >(twoHopSql);
 
     // ========================================
     // STEP 3: Combine and deduplicate results
@@ -298,12 +287,12 @@ export async function findRelatedKnowledgeItems(
     // Add 2-hop results (if not already in map)
     if (includePath) {
       // Need to fetch intermediate titles for path
-      const intermediateIds = [...new Set(twoHopResults.map(r => r.intermediate_id))];
+      const intermediateIds = [...new Set(twoHopResults.map((r) => r.intermediate_id))];
       const intermediates = await prisma.knowledgeItem.findMany({
         where: { id: { in: intermediateIds }, projectId },
         select: { id: true, title: true },
       });
-      const intermediateMap = new Map(intermediates.map(i => [i.id, i.title]));
+      const intermediateMap = new Map(intermediates.map((i) => [i.id, i.title]));
 
       for (const result of twoHopResults) {
         if (!allResults.has(result.id)) {
@@ -407,11 +396,13 @@ export async function getRelationshipStats(itemId: number): Promise<{
       GROUP BY "relationType"
     `;
 
-    const stats = await prisma.$queryRawUnsafe<Array<{
-      type: string;
-      direction: 'outgoing' | 'incoming';
-      count: bigint;
-    }>>(sqlQuery);
+    const stats = await prisma.$queryRawUnsafe<
+      Array<{
+        type: string;
+        direction: 'outgoing' | 'incoming';
+        count: bigint;
+      }>
+    >(sqlQuery);
 
     const byType: Record<string, number> = {};
     let outgoing = 0;

@@ -2,12 +2,12 @@
  * Redis Client for Production Session Storage
  * ============================================
  * Sprint 11: Production Deployment
- * 
+ *
  * Provides Redis connection for:
  * - Session storage (NextAuth)
  * - Rate limiting (future)
  * - Caching (future)
- * 
+ *
  * Falls back gracefully if REDIS_URL is not configured (dev mode).
  */
 
@@ -29,11 +29,13 @@ export function getRedisClient(): Redis | null {
   }
 
   const redisUrl = process.env.REDIS_URL;
-  
+
   // Development fallback - no Redis required
   if (!redisUrl) {
     if (process.env.NODE_ENV === 'production') {
-      console.warn('[Redis] REDIS_URL not set in production - sessions will not persist across restarts');
+      console.warn(
+        '[Redis] REDIS_URL not set in production - sessions will not persist across restarts'
+      );
     }
     return null;
   }
@@ -46,7 +48,7 @@ export function getRedisClient(): Redis | null {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
-      
+
       // Reconnection options
       reconnectOnError(err) {
         const targetError = 'READONLY';
@@ -56,13 +58,13 @@ export function getRedisClient(): Redis | null {
         }
         return false;
       },
-      
+
       // Enable offline queue for better resilience
       enableOfflineQueue: true,
-      
+
       // Connection timeout
       connectTimeout: 10000,
-      
+
       // Keep alive
       keepAlive: 30000,
     });

@@ -29,13 +29,28 @@ describe('Traceability Analysis', () => {
         backlog: {
           epics: [],
           items: [
-            { id: 'US-001', title: 'Story', epicId: null, frTraces: ['FR-001', 'FR-002'], nfrTraces: [], sprintNumber: 1, rawBlock: '' },
+            {
+              id: 'US-001',
+              title: 'Story',
+              epicId: null,
+              frTraces: ['FR-001', 'FR-002'],
+              nfrTraces: [],
+              sprintNumber: 1,
+              rawBlock: '',
+            },
           ],
           rawContent: '',
         },
         projectPlan: {
           sprints: [
-            { sprintNumber: 1, title: 'Sprint 1', backlogItems: ['US-001'], frRefs: [], nfrRefs: [], rawBlock: '' },
+            {
+              sprintNumber: 1,
+              title: 'Sprint 1',
+              backlogItems: ['US-001'],
+              frRefs: [],
+              nfrRefs: [],
+              rawBlock: '',
+            },
           ],
           rawContent: '',
         },
@@ -65,7 +80,15 @@ describe('Traceability Analysis', () => {
         backlog: {
           epics: [],
           items: [
-            { id: 'US-001', title: 'Story', epicId: null, frTraces: ['FR-001'], nfrTraces: [], sprintNumber: 1, rawBlock: '' },
+            {
+              id: 'US-001',
+              title: 'Story',
+              epicId: null,
+              frTraces: ['FR-001'],
+              nfrTraces: [],
+              sprintNumber: 1,
+              rawBlock: '',
+            },
           ],
           rawContent: '',
         },
@@ -89,15 +112,46 @@ describe('Traceability Analysis', () => {
         backlog: {
           epics: [],
           items: [
-            { id: 'US-001', title: 'Story1', epicId: null, frTraces: [], nfrTraces: [], sprintNumber: 1, rawBlock: '' },
-            { id: 'US-002', title: 'Story2', epicId: null, frTraces: [], nfrTraces: [], sprintNumber: null, rawBlock: '' },
-            { id: 'US-003', title: 'Story3', epicId: null, frTraces: [], nfrTraces: [], sprintNumber: null, rawBlock: '' },
+            {
+              id: 'US-001',
+              title: 'Story1',
+              epicId: null,
+              frTraces: [],
+              nfrTraces: [],
+              sprintNumber: 1,
+              rawBlock: '',
+            },
+            {
+              id: 'US-002',
+              title: 'Story2',
+              epicId: null,
+              frTraces: [],
+              nfrTraces: [],
+              sprintNumber: null,
+              rawBlock: '',
+            },
+            {
+              id: 'US-003',
+              title: 'Story3',
+              epicId: null,
+              frTraces: [],
+              nfrTraces: [],
+              sprintNumber: null,
+              rawBlock: '',
+            },
           ],
           rawContent: '',
         },
         projectPlan: {
           sprints: [
-            { sprintNumber: 1, title: 'Sprint 1', backlogItems: ['US-001', 'US-003'], frRefs: [], nfrRefs: [], rawBlock: '' },
+            {
+              sprintNumber: 1,
+              title: 'Sprint 1',
+              backlogItems: ['US-001', 'US-003'],
+              frRefs: [],
+              nfrRefs: [],
+              rawBlock: '',
+            },
           ],
           rawContent: '',
         },
@@ -124,8 +178,24 @@ describe('Traceability Analysis', () => {
         backlog: {
           epics: [],
           items: [
-            { id: 'US-001', title: 'Story1', epicId: null, frTraces: ['FR-001'], nfrTraces: [], sprintNumber: 1, rawBlock: '' },
-            { id: 'US-002', title: 'Orphan', epicId: null, frTraces: [], nfrTraces: [], sprintNumber: 1, rawBlock: '' },
+            {
+              id: 'US-001',
+              title: 'Story1',
+              epicId: null,
+              frTraces: ['FR-001'],
+              nfrTraces: [],
+              sprintNumber: 1,
+              rawBlock: '',
+            },
+            {
+              id: 'US-002',
+              title: 'Orphan',
+              epicId: null,
+              frTraces: [],
+              nfrTraces: [],
+              sprintNumber: 1,
+              rawBlock: '',
+            },
           ],
           rawContent: '',
         },
@@ -183,7 +253,15 @@ describe('Traceability Analysis', () => {
         backlog: {
           epics: [],
           items: [
-            { id: 'US-001', title: 'Story', epicId: null, frTraces: [], nfrTraces: ['NFR-001'], sprintNumber: 1, rawBlock: '' },
+            {
+              id: 'US-001',
+              title: 'Story',
+              epicId: null,
+              frTraces: [],
+              nfrTraces: ['NFR-001'],
+              sprintNumber: 1,
+              rawBlock: '',
+            },
           ],
           rawContent: '',
         },

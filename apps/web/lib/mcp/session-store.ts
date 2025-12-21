@@ -1,6 +1,6 @@
 /**
  * Redis Session Store for MCP Server
- * 
+ *
  * Provides persistent session management across container restarts
  * and horizontal scaling support.
  */
@@ -49,7 +49,7 @@ function toSessionData(session: MCPSession, projectId: number): SessionData {
 export class RedisSessionStore {
   private redis: Redis;
   private readonly TTL_SECONDS = 3600; // 1 hour
-  
+
   constructor(redisUrl: string) {
     this.redis = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
@@ -73,58 +73,46 @@ export class RedisSessionStore {
   async createSession(projectId: number): Promise<MCPSession> {
     const sessionId = randomUUID();
     const now = Date.now();
-    
+
     const data: SessionData = {
       id: sessionId,
       projectId,
       createdAt: now,
       lastAccessedAt: now,
-      expiresAt: now + (this.TTL_SECONDS * 1000),
+      expiresAt: now + this.TTL_SECONDS * 1000,
     };
-    
-    await this.redis.setex(
-      `session:${sessionId}`,
-      this.TTL_SECONDS,
-      JSON.stringify(data)
-    );
-    
+
+    await this.redis.setex(`session:${sessionId}`, this.TTL_SECONDS, JSON.stringify(data));
+
     return toMCPSession(data);
   }
 
   async createSessionWithId(sessionId: string, projectId: number): Promise<MCPSession> {
     const now = Date.now();
-    
+
     const data: SessionData = {
       id: sessionId,
       projectId,
       createdAt: now,
       lastAccessedAt: now,
-      expiresAt: now + (this.TTL_SECONDS * 1000),
+      expiresAt: now + this.TTL_SECONDS * 1000,
     };
-    
-    await this.redis.setex(
-      `session:${sessionId}`,
-      this.TTL_SECONDS,
-      JSON.stringify(data)
-    );
-    
+
+    await this.redis.setex(`session:${sessionId}`, this.TTL_SECONDS, JSON.stringify(data));
+
     return toMCPSession(data);
   }
 
   async getSession(sessionId: string): Promise<MCPSession | null> {
     const raw = await this.redis.get(`session:${sessionId}`);
     if (!raw) return null;
-    
+
     const data: SessionData = JSON.parse(raw);
-    
+
     // Update last accessed time
     data.lastAccessedAt = Date.now();
-    await this.redis.setex(
-      `session:${sessionId}`,
-      this.TTL_SECONDS,
-      JSON.stringify(data)
-    );
-    
+    await this.redis.setex(`session:${sessionId}`, this.TTL_SECONDS, JSON.stringify(data));
+
     return toMCPSession(data);
   }
 
@@ -140,9 +128,9 @@ export class RedisSessionStore {
   async getActiveSessions(projectId: number): Promise<MCPSession[]> {
     const pattern = 'session:*';
     const keys = await this.redis.keys(pattern);
-    
+
     if (keys.length === 0) return [];
-    
+
     const sessions = await Promise.all(
       keys.map(async (key) => {
         try {
@@ -155,8 +143,8 @@ export class RedisSessionStore {
         }
       })
     );
-    
-    return sessions.filter(s => s !== null) as MCPSession[];
+
+    return sessions.filter((s) => s !== null) as MCPSession[];
   }
 
   async getActiveSessionCount(): Promise<number> {
@@ -180,7 +168,7 @@ export class RedisSessionStore {
 
 /**
  * In-Memory Session Store (Fallback)
- * 
+ *
  * Used when Redis is unavailable. Sessions are not persistent
  * and don't support horizontal scaling.
  */
@@ -199,7 +187,7 @@ export class InMemorySessionStore {
   async createSession(projectId: number): Promise<MCPSession> {
     const sessionId = randomUUID();
     const now = Date.now();
-    
+
     const data: SessionData = {
       id: sessionId,
       projectId,
@@ -207,14 +195,14 @@ export class InMemorySessionStore {
       lastAccessedAt: now,
       expiresAt: now + this.TTL_MS,
     };
-    
+
     this.sessions.set(sessionId, data);
     return toMCPSession(data);
   }
 
   async createSessionWithId(sessionId: string, projectId: number): Promise<MCPSession> {
     const now = Date.now();
-    
+
     const data: SessionData = {
       id: sessionId,
       projectId,
@@ -222,7 +210,7 @@ export class InMemorySessionStore {
       lastAccessedAt: now,
       expiresAt: now + this.TTL_MS,
     };
-    
+
     this.sessions.set(sessionId, data);
     return toMCPSession(data);
   }
@@ -230,12 +218,12 @@ export class InMemorySessionStore {
   async getSession(sessionId: string): Promise<MCPSession | null> {
     const data = this.sessions.get(sessionId);
     if (!data) return null;
-    
+
     if (data.expiresAt < Date.now()) {
       this.sessions.delete(sessionId);
       return null;
     }
-    
+
     data.lastAccessedAt = Date.now();
     return toMCPSession(data);
   }
@@ -254,8 +242,8 @@ export class InMemorySessionStore {
   async getActiveSessions(projectId: number): Promise<MCPSession[]> {
     const now = Date.now();
     return Array.from(this.sessions.values())
-      .filter(data => data.projectId === projectId && data.expiresAt > now)
-      .map(data => toMCPSession(data));
+      .filter((data) => data.projectId === projectId && data.expiresAt > now)
+      .map((data) => toMCPSession(data));
   }
 
   async getActiveSessionCount(): Promise<number> {

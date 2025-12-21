@@ -34,10 +34,7 @@ describe('Skills Search, Export, and Import APIs', () => {
       const limit = Math.min(parseInt(url.searchParams.get('limit') || '20'), 100);
 
       if (!query || query.trim().length === 0) {
-        return Response.json(
-          { error: 'Query parameter "q" is required' },
-          { status: 400 }
-        );
+        return Response.json({ error: 'Query parameter "q" is required' }, { status: 400 });
       }
 
       const where = {
@@ -407,10 +404,7 @@ describe('Skills Search, Export, and Import APIs', () => {
       const { items, options } = body;
 
       if (!Array.isArray(items) || items.length === 0) {
-        return Response.json(
-          { error: 'Items must be a non-empty array' },
-          { status: 400 }
-        );
+        return Response.json({ error: 'Items must be a non-empty array' }, { status: 400 });
       }
 
       // Validate required fields for each item

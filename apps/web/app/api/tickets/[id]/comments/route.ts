@@ -67,7 +67,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });
     }
-    
+
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });
     }
-    
+
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',

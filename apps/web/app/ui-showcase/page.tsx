@@ -38,18 +38,18 @@ export default function UIShowcasePage() {
             <div className="rounded-lg border border-background-light bg-background-medium p-4">
               <div className="text-sm text-text-secondary">Medium</div>
             </div>
-            <div className="rounded-lg border border-accent-primary bg-background-light p-4">
+            <div className="border-accent-primary rounded-lg border bg-background-light p-4">
               <div className="text-sm text-text-secondary">Light</div>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="rounded-lg bg-accent-primary p-4">
+            <div className="bg-accent-primary rounded-lg p-4">
               <div className="text-sm font-medium text-white">Accent Primary</div>
             </div>
-            <div className="rounded-lg bg-accent-secondary p-4">
+            <div className="bg-accent-secondary rounded-lg p-4">
               <div className="text-sm font-medium text-white">Accent Secondary</div>
             </div>
-            <div className="rounded-lg bg-accent-tertiary p-4">
+            <div className="bg-accent-tertiary rounded-lg p-4">
               <div className="text-sm font-medium text-white">Accent Tertiary</div>
             </div>
           </div>
@@ -148,14 +148,14 @@ export default function UIShowcasePage() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
             <Card className="animate-pulse-glow">
               <CardContent className="pt-6 text-center">
-                <Heart className="mx-auto mb-2 h-12 w-12 text-accent-primary" />
+                <Heart className="text-accent-primary mx-auto mb-2 h-12 w-12" />
                 <p className="text-sm text-text-secondary">Pulse Glow</p>
               </CardContent>
             </Card>
 
             <Card className="animate-heartbeat">
               <CardContent className="pt-6 text-center">
-                <Star className="mx-auto mb-2 h-12 w-12 text-accent-primary" />
+                <Star className="text-accent-primary mx-auto mb-2 h-12 w-12" />
                 <p className="text-sm text-text-secondary">Heartbeat</p>
               </CardContent>
             </Card>

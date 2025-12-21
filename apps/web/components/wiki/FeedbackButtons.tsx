@@ -74,7 +74,7 @@ export function FeedbackButtons({ pageId, slug }: FeedbackButtonsProps) {
       <button
         onClick={() => handleFeedback(isHelpful ? null : 'helpful')}
         disabled={isLoading}
-        className={`flex-1 px-4 py-2 rounded-xl smooth-transition text-sm ${
+        className={`smooth-transition flex-1 rounded-xl px-4 py-2 text-sm ${
           isHelpful
             ? 'bg-green-500 text-white shadow-lg'
             : 'neu-raised hover:bg-green-500 hover:text-white'
@@ -82,13 +82,13 @@ export function FeedbackButtons({ pageId, slug }: FeedbackButtonsProps) {
         aria-label="Mark as helpful"
         aria-pressed={isHelpful}
       >
-        <ThumbsUp className="inline-block mr-2 h-4 w-4" aria-hidden="true" />
+        <ThumbsUp className="mr-2 inline-block h-4 w-4" aria-hidden="true" />
         Yes
       </button>
       <button
         onClick={() => handleFeedback(isNotHelpful ? null : 'not-helpful')}
         disabled={isLoading}
-        className={`flex-1 px-4 py-2 rounded-xl smooth-transition text-sm ${
+        className={`smooth-transition flex-1 rounded-xl px-4 py-2 text-sm ${
           isNotHelpful
             ? 'bg-red-500 text-white shadow-lg'
             : 'neu-raised hover:bg-red-500 hover:text-white'
@@ -96,7 +96,7 @@ export function FeedbackButtons({ pageId, slug }: FeedbackButtonsProps) {
         aria-label="Mark as not helpful"
         aria-pressed={isNotHelpful}
       >
-        <ThumbsDown className="inline-block mr-2 h-4 w-4" aria-hidden="true" />
+        <ThumbsDown className="mr-2 inline-block h-4 w-4" aria-hidden="true" />
         No
       </button>
     </div>

@@ -21,8 +21,8 @@ import { Loader2, Sparkles, PenTool, ArrowRight } from 'lucide-react';
 // Loading fallback component
 function LoadingFallback() {
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl flex items-center justify-center min-h-[60vh]">
-      <Loader2 className="h-8 w-8 animate-spin text-coral-500" />
+    <div className="container mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4 py-8">
+      <Loader2 className="text-coral-500 h-8 w-8 animate-spin" />
     </div>
   );
 }
@@ -53,9 +53,7 @@ function ExecutiveSummaryContent() {
     async function fetchPrompt() {
       setIsLoadingPrompt(true);
       try {
-        const res = await fetch(
-          `/api/onboarding/executive-summary-prompt?projectId=${projectId}`
-        );
+        const res = await fetch(`/api/onboarding/executive-summary-prompt?projectId=${projectId}`);
         if (!res.ok) throw new Error('Failed to fetch prompt');
         const data = await res.json();
         setPromptData(data);
@@ -85,21 +83,25 @@ function ExecutiveSummaryContent() {
 
   if (isLoadingPrompt) {
     return (
-      <div className="container mx-auto py-8 px-4 max-w-4xl flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-coral-500" />
+      <div className="container mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4 py-8">
+        <Loader2 className="text-coral-500 h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   if (!promptData) {
     return (
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
         <Card className="neu-raised">
           <CardContent className="p-6">
             <p className="text-red-400">
               Failed to load prompt data. Please complete all 10 phases first.
             </p>
-            <Button variant="outline" onClick={() => router.push('/onboarding/session-1')} className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => router.push('/onboarding/session-1')}
+              className="mt-4"
+            >
               Back to Questions
             </Button>
           </CardContent>
@@ -109,10 +111,10 @@ function ExecutiveSummaryContent() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
+    <div className="container mx-auto max-w-4xl px-4 py-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-white mb-4">Executive Summary</h1>
+        <h1 className="mb-4 text-4xl font-bold text-white">Executive Summary</h1>
         <p className="text-lg text-slate">
           Generate a comprehensive executive summary (~500 words) of your project based on the 96
           questions you answered.
@@ -129,12 +131,10 @@ function ExecutiveSummaryContent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div>
               <p className="text-sm text-slate">Total Questions</p>
-              <p className="text-2xl font-bold text-white">
-                {promptData.metadata.totalQuestions}
-              </p>
+              <p className="text-2xl font-bold text-white">{promptData.metadata.totalQuestions}</p>
             </div>
             <div>
               <p className="text-sm text-slate">Completed Phases</p>
@@ -160,7 +160,7 @@ function ExecutiveSummaryContent() {
       <Card className="neu-raised">
         <CardContent className="p-6">
           <Tabs defaultValue="agent" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsList className="mb-6 grid w-full grid-cols-2">
               <TabsTrigger value="agent">
                 <Sparkles className="mr-2 h-4 w-4" />
                 Agent Generation
@@ -173,15 +173,15 @@ function ExecutiveSummaryContent() {
 
             {/* Agent Generation Tab */}
             <TabsContent value="agent" className="space-y-4">
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-md p-4">
-                <h3 className="text-sm font-semibold text-blue-400 mb-2">
+              <div className="rounded-md border border-blue-500/20 bg-blue-500/10 p-4">
+                <h3 className="mb-2 text-sm font-semibold text-blue-400">
                   Agent-Side AI Generation (Recommended)
                 </h3>
-                <p className="text-sm text-slate-300 mb-4">
+                <p className="mb-4 text-sm text-slate-300">
                   Use your AI agent (Claude Code, ChatGPT, etc.) to generate the executive summary.
                   This keeps your data private and uses your own AI provider.
                 </p>
-                <ol className="text-sm text-slate-300 space-y-2 list-decimal list-inside">
+                <ol className="list-inside list-decimal space-y-2 text-sm text-slate-300">
                   <li>Click &quot;Get Prompt&quot; to view the system and user prompts</li>
                   <li>Copy both prompts to your AI agent</li>
                   <li>Generate the summary with your AI</li>
@@ -189,11 +189,7 @@ function ExecutiveSummaryContent() {
                 </ol>
               </div>
 
-              <Button
-                onClick={() => setShowPromptDialog(true)}
-                size="lg"
-                className="w-full"
-              >
+              <Button onClick={() => setShowPromptDialog(true)} size="lg" className="w-full">
                 <Sparkles className="mr-2 h-4 w-4" />
                 Get Prompt & Generate with Agent
               </Button>
@@ -201,8 +197,8 @@ function ExecutiveSummaryContent() {
 
             {/* Manual Entry Tab */}
             <TabsContent value="manual" className="space-y-4">
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-md p-4">
-                <h3 className="text-sm font-semibold text-yellow-400 mb-2">Manual Entry</h3>
+              <div className="rounded-md border border-yellow-500/20 bg-yellow-500/10 p-4">
+                <h3 className="mb-2 text-sm font-semibold text-yellow-400">Manual Entry</h3>
                 <p className="text-sm text-slate-300">
                   Write or paste your executive summary directly. Target: ~
                   {promptData.wordCountTarget} words.
@@ -215,9 +211,9 @@ function ExecutiveSummaryContent() {
                   value={manualSummary}
                   onChange={(e) => setManualSummary(e.target.value)}
                   rows={15}
-                  className="neu-inset bg-slate-900/50 border-slate-700 text-white"
+                  className="neu-inset border-slate-700 bg-slate-900/50 text-white"
                 />
-                <p className="text-xs text-slate-400 mt-2">
+                <p className="mt-2 text-xs text-slate-400">
                   Word count: {manualSummary.split(/\s+/).filter((w) => w).length} words
                 </p>
               </div>

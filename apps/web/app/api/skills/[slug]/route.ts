@@ -53,10 +53,7 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
  * Response (404): { "error": "Skill not found", "code": "SKILL_NOT_FOUND" }
  * Response (500): { "error": "Failed to load skill" }
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const { slug } = params;
     const searchParams = request.nextUrl.searchParams;
@@ -107,9 +104,7 @@ export async function GET(
               lastLoadedAt: new Date(),
             },
           })
-          .catch((err) =>
-            console.error(`[GET /api/skills/${slug}] Failed to update usage:`, err)
-          );
+          .catch((err) => console.error(`[GET /api/skills/${slug}] Failed to update usage:`, err));
 
         // Update cached value
         cached.usageCount += 1;
@@ -157,7 +152,9 @@ export async function GET(
     // US-094: Store in cache (auto-unload after 5 minutes)
     skillsCache.set(projectId, slug, skill);
 
-    console.log(`[GET /api/skills/${slug}] Loaded skill from DB and cached (id: ${skill.id}, usage: ${skill.usageCount})`);
+    console.log(
+      `[GET /api/skills/${slug}] Loaded skill from DB and cached (id: ${skill.id}, usage: ${skill.usageCount})`
+    );
 
     return NextResponse.json({
       data: skill,
@@ -169,7 +166,7 @@ export async function GET(
         { status: error.status }
       );
     }
-    
+
     console.error(`[GET /api/skills/[slug]] Failed to load skill:`, error);
     return NextResponse.json(
       {
@@ -216,10 +213,7 @@ export async function GET(
  * Response (404): { "error": "Skill not found", "code": "SKILL_NOT_FOUND" }
  * Response (500): { "error": "Failed to update skill" }
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const { slug } = params;
     const searchParams = request.nextUrl.searchParams;
@@ -295,7 +289,9 @@ export async function PATCH(
     // US-094: Invalidate cache after update
     skillsCache.invalidate(projectId, slug);
 
-    console.log(`[PATCH /api/skills/${slug}] Updated skill (id: ${updated.id}) and invalidated cache`);
+    console.log(
+      `[PATCH /api/skills/${slug}] Updated skill (id: ${updated.id}) and invalidated cache`
+    );
 
     return NextResponse.json({
       data: updated,
@@ -307,7 +303,7 @@ export async function PATCH(
         { status: error.status }
       );
     }
-    
+
     // Handle JSON parse errors
     if (error instanceof SyntaxError) {
       return NextResponse.json(
@@ -351,10 +347,7 @@ export async function PATCH(
  * Response (404): { "error": "Skill not found", "code": "SKILL_NOT_FOUND" }
  * Response (500): { "error": "Failed to delete skill" }
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const { slug } = params;
     const searchParams = request.nextUrl.searchParams;
@@ -412,7 +405,9 @@ export async function DELETE(
     // US-094: Invalidate cache after deletion
     skillsCache.invalidate(projectId, slug);
 
-    console.log(`[DELETE /api/skills/${slug}] Deleted skill (id: ${skill.id}) and invalidated cache`);
+    console.log(
+      `[DELETE /api/skills/${slug}] Deleted skill (id: ${skill.id}) and invalidated cache`
+    );
 
     return NextResponse.json({
       data: {
@@ -428,7 +423,7 @@ export async function DELETE(
         { status: error.status }
       );
     }
-    
+
     console.error(`[DELETE /api/skills/[slug]] Failed to delete skill:`, error);
     return NextResponse.json(
       {

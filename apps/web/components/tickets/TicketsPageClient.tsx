@@ -29,11 +29,7 @@ export function TicketsPageClient({ options, counts, searchParams }: TicketsPage
   return (
     <>
       {/* Desktop Sidebar (Hidden on mobile) */}
-      <FilterSidebar
-        options={options}
-        counts={counts}
-        searchParams={searchParams}
-      />
+      <FilterSidebar options={options} counts={counts} searchParams={searchParams} />
 
       {/* FAB - Floating Action Button (Mobile/Tablet only) */}
       <button

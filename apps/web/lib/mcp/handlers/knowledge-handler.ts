@@ -22,16 +22,8 @@
  * @see apps/web/lib/knowledge/graph.ts - Graph traversal
  */
 
-import {
-  hybridSearch,
-  semanticSearch,
-  fullTextSearch,
-  SearchError,
-} from '@/lib/knowledge/search';
-import {
-  createKnowledgeItem,
-  KnowledgeCreationError,
-} from '@/lib/knowledge/create';
+import { hybridSearch, semanticSearch, fullTextSearch, SearchError } from '@/lib/knowledge/search';
+import { createKnowledgeItem, KnowledgeCreationError } from '@/lib/knowledge/create';
 import {
   findRelatedKnowledgeItems,
   GraphError,
@@ -150,19 +142,13 @@ export interface KnowledgeRelatedOutput {
  * });
  * ```
  */
-export async function knowledgeSearchHandler(
-  input: unknown
-): Promise<KnowledgeSearchOutput> {
+export async function knowledgeSearchHandler(input: unknown): Promise<KnowledgeSearchOutput> {
   const startTime = Date.now();
 
   try {
     // Validate input
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as KnowledgeSearchInput;
@@ -196,11 +182,7 @@ export async function knowledgeSearchHandler(
 
     const limit = params.limit || 5;
     if (limit < 1 || limit > 50) {
-      throw new MCPError(
-        'Invalid limit: must be 1-50',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid limit: must be 1-50', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     // Validate projectId
@@ -235,9 +217,7 @@ export async function knowledgeSearchHandler(
     const formattedResults = results.map((result) => ({
       id: result.id,
       title: result.title,
-      excerpt:
-        result.content.slice(0, 200) +
-        (result.content.length > 200 ? '...' : ''),
+      excerpt: result.content.slice(0, 200) + (result.content.length > 200 ? '...' : ''),
       category: result.category,
       tags: result.tags,
       score: result.score,
@@ -254,12 +234,9 @@ export async function knowledgeSearchHandler(
   } catch (error) {
     // Handle known search errors
     if (error instanceof SearchError) {
-      throw new MCPError(
-        error.message,
-        JSONRPC_ERROR_CODES.INTERNAL_ERROR,
-        error.statusCode,
-        { originalCode: error.code }
-      );
+      throw new MCPError(error.message, JSONRPC_ERROR_CODES.INTERNAL_ERROR, error.statusCode, {
+        originalCode: error.code,
+      });
     }
 
     // Re-throw MCPError as-is
@@ -270,8 +247,7 @@ export async function knowledgeSearchHandler(
     // Wrap unexpected errors
     console.error('[knowledge.search] Unexpected error:', error);
     throw new MCPError(
-      'Search failed: ' +
-        (error instanceof Error ? error.message : 'Unknown error'),
+      'Search failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500
     );
@@ -297,17 +273,11 @@ export async function knowledgeSearchHandler(
  * });
  * ```
  */
-export async function knowledgeCreateHandler(
-  input: unknown
-): Promise<KnowledgeCreateOutput> {
+export async function knowledgeCreateHandler(input: unknown): Promise<KnowledgeCreateOutput> {
   try {
     // Validate input
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as KnowledgeCreateInput;
@@ -411,12 +381,9 @@ export async function knowledgeCreateHandler(
   } catch (error) {
     // Handle known creation errors
     if (error instanceof KnowledgeCreationError) {
-      throw new MCPError(
-        error.message,
-        JSONRPC_ERROR_CODES.INTERNAL_ERROR,
-        error.statusCode,
-        { originalCode: error.code }
-      );
+      throw new MCPError(error.message, JSONRPC_ERROR_CODES.INTERNAL_ERROR, error.statusCode, {
+        originalCode: error.code,
+      });
     }
 
     // Re-throw MCPError as-is
@@ -427,8 +394,7 @@ export async function knowledgeCreateHandler(
     // Wrap unexpected errors
     console.error('[knowledge.create] Unexpected error:', error);
     throw new MCPError(
-      'Creation failed: ' +
-        (error instanceof Error ? error.message : 'Unknown error'),
+      'Creation failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500
     );
@@ -454,17 +420,11 @@ export async function knowledgeCreateHandler(
  * });
  * ```
  */
-export async function knowledgeRelatedHandler(
-  input: unknown
-): Promise<KnowledgeRelatedOutput> {
+export async function knowledgeRelatedHandler(input: unknown): Promise<KnowledgeRelatedOutput> {
   try {
     // Validate input
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as KnowledgeRelatedInput;
@@ -499,11 +459,7 @@ export async function knowledgeRelatedHandler(
 
     const limit = params.limit || 10;
     if (limit < 1 || limit > 50) {
-      throw new MCPError(
-        'Invalid limit: must be 1-50',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid limit: must be 1-50', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const minStrength = params.minStrength || 0.5;
@@ -532,9 +488,7 @@ export async function knowledgeRelatedHandler(
     const formattedResults = results.map((item) => ({
       id: item.id,
       title: item.title,
-      excerpt:
-        item.content.slice(0, 200) +
-        (item.content.length > 200 ? '...' : ''),
+      excerpt: item.content.slice(0, 200) + (item.content.length > 200 ? '...' : ''),
       category: item.category,
       tags: item.tags,
       relationshipType: item.relationshipType,
@@ -551,12 +505,9 @@ export async function knowledgeRelatedHandler(
   } catch (error) {
     // Handle known graph errors
     if (error instanceof GraphError) {
-      throw new MCPError(
-        error.message,
-        JSONRPC_ERROR_CODES.INTERNAL_ERROR,
-        error.statusCode,
-        { originalCode: error.code }
-      );
+      throw new MCPError(error.message, JSONRPC_ERROR_CODES.INTERNAL_ERROR, error.statusCode, {
+        originalCode: error.code,
+      });
     }
 
     // Re-throw MCPError as-is
@@ -567,8 +518,7 @@ export async function knowledgeRelatedHandler(
     // Wrap unexpected errors
     console.error('[knowledge.related] Unexpected error:', error);
     throw new MCPError(
-      'Graph traversal failed: ' +
-        (error instanceof Error ? error.message : 'Unknown error'),
+      'Graph traversal failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500
     );
@@ -743,8 +693,7 @@ export async function knowledgeGetMetricsHandler(
     // Wrap unexpected errors
     console.error('[knowledge.getMetrics] Unexpected error:', error);
     throw new MCPError(
-      'Failed to retrieve metrics: ' +
-        (error instanceof Error ? error.message : 'Unknown error'),
+      'Failed to retrieve metrics: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500
     );
@@ -776,9 +725,7 @@ export async function knowledgeGetMetricsHandler(
  * });
  * ```
  */
-export async function knowledgeExportHandler(
-  input: unknown
-): Promise<KnowledgeExportOutput> {
+export async function knowledgeExportHandler(input: unknown): Promise<KnowledgeExportOutput> {
   try {
     // Validate input (all parameters optional)
     const params = (input || {}) as KnowledgeExportInput;
@@ -845,13 +792,10 @@ export async function knowledgeExportHandler(
     let relationships: any[] = [];
 
     if (includeRelationships && items.length > 0) {
-      const itemIds = items.map(item => item.id);
+      const itemIds = items.map((item) => item.id);
       relationships = await prisma.knowledgeRelationship.findMany({
         where: {
-          OR: [
-            { fromId: { in: itemIds } },
-            { toId: { in: itemIds } },
-          ],
+          OR: [{ fromId: { in: itemIds } }, { toId: { in: itemIds } }],
         },
         select: {
           id: true,
@@ -865,15 +809,17 @@ export async function knowledgeExportHandler(
     }
 
     // Format items for export
-    const formattedItems = items.map(item => ({
+    const formattedItems = items.map((item) => ({
       ...item,
       createdAt: item.createdAt.toISOString(),
       updatedAt: item.updatedAt.toISOString(),
       archivedAt: item.archivedAt?.toISOString() || null,
       // Convert embedding buffer to array if included
-      ...(params.includeEmbeddings && item.embedding ? {
-        embedding: Array.from(item.embedding as unknown as ArrayLike<number>),
-      } : {}),
+      ...(params.includeEmbeddings && item.embedding
+        ? {
+            embedding: Array.from(item.embedding as unknown as ArrayLike<number>),
+          }
+        : {}),
     }));
 
     // Build export output
@@ -903,8 +849,7 @@ export async function knowledgeExportHandler(
     // Wrap unexpected errors
     console.error('[knowledge.export] Unexpected error:', error);
     throw new MCPError(
-      'Export failed: ' +
-        (error instanceof Error ? error.message : 'Unknown error'),
+      'Export failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500
     );
@@ -935,17 +880,11 @@ export async function knowledgeExportHandler(
  * });
  * ```
  */
-export async function knowledgeImportHandler(
-  input: unknown
-): Promise<KnowledgeImportOutput> {
+export async function knowledgeImportHandler(input: unknown): Promise<KnowledgeImportOutput> {
   try {
     // Validate input
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as KnowledgeImportInput;
@@ -1145,8 +1084,7 @@ export async function knowledgeImportHandler(
     // Wrap unexpected errors
     console.error('[knowledge.import] Unexpected error:', error);
     throw new MCPError(
-      'Import failed: ' +
-        (error instanceof Error ? error.message : 'Unknown error'),
+      'Import failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500
     );
@@ -1174,17 +1112,11 @@ export async function knowledgeImportHandler(
  * const result = await knowledgeArchiveHandler({ itemId: 42, unarchive: true });
  * ```
  */
-export async function knowledgeArchiveHandler(
-  input: unknown
-): Promise<KnowledgeArchiveOutput> {
+export async function knowledgeArchiveHandler(input: unknown): Promise<KnowledgeArchiveOutput> {
   try {
     // Validate input
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as KnowledgeArchiveInput;
@@ -1262,8 +1194,7 @@ export async function knowledgeArchiveHandler(
     // Wrap unexpected errors
     console.error('[knowledge.archive] Unexpected error:', error);
     throw new MCPError(
-      'Archive operation failed: ' +
-        (error instanceof Error ? error.message : 'Unknown error'),
+      'Archive operation failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500
     );

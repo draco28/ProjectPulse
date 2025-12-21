@@ -25,19 +25,13 @@ import { CreateLabelSchema } from '@/lib/validations/label';
  *
  * Auth: User session OR Agent token (project-scoped)
  */
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const projectId = parseInt(id, 10);
 
     if (isNaN(projectId)) {
-      return NextResponse.json(
-        { error: 'Invalid project ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
 
     // SECURITY: Validate authentication AND project access
@@ -49,7 +43,7 @@ export async function GET(
 
     // Build query with validated filters
     const where: { projectId: number; name?: { contains: string; mode: 'insensitive' } } = {
-      projectId
+      projectId,
     };
 
     if (search && search.trim()) {
@@ -68,9 +62,7 @@ export async function GET(
           select: { tickets: true },
         },
       },
-      orderBy: [
-        { name: 'asc' },
-      ],
+      orderBy: [{ name: 'asc' }],
     });
 
     // Transform to flatten _count
@@ -90,10 +82,7 @@ export async function GET(
     }
 
     console.error('GET /api/projects/[id]/labels error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -105,19 +94,13 @@ export async function GET(
  * Auth: User session OR Agent token (project-scoped)
  * Note: requireProjectAccess already enforces owner-only for users
  */
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const projectId = parseInt(id, 10);
 
     if (isNaN(projectId)) {
-      return NextResponse.json(
-        { error: 'Invalid project ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
 
     // SECURITY: Validate authentication AND project access (owner-only for users)
@@ -128,10 +111,7 @@ export async function POST(
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
-        { error: 'Invalid JSON body' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
     const validationResult = CreateLabelSchema.safeParse(body);
@@ -197,9 +177,6 @@ export async function POST(
     }
 
     console.error('POST /api/projects/[id]/labels error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

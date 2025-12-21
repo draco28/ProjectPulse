@@ -3,18 +3,12 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic'; // No caching
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const agentId = parseInt(params.id, 10);
 
     if (isNaN(agentId)) {
-      return NextResponse.json(
-        { error: 'Invalid agent ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid agent ID' }, { status: 400 });
     }
 
     // Fetch agent with project relation
@@ -31,10 +25,7 @@ export async function GET(
     });
 
     if (!agent) {
-      return NextResponse.json(
-        { error: 'Agent not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
     }
 
     // Fetch full Skill records for agent's skills (project-scoped)
@@ -83,9 +74,6 @@ export async function GET(
     });
   } catch (error) {
     console.error('[API] Error fetching agent:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

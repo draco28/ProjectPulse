@@ -146,9 +146,7 @@ describe('RevisionDiffViewer', () => {
       const button = screen.getByRole('button', { name: /revert/i });
       await user.click(button);
 
-      expect(window.confirm).toHaveBeenCalledWith(
-        'Revert /wiki/getting-started to version v2?'
-      );
+      expect(window.confirm).toHaveBeenCalledWith('Revert /wiki/getting-started to version v2?');
     });
 
     it('should not proceed with revert if user cancels confirmation', async () => {

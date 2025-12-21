@@ -17,35 +17,40 @@ import { prisma } from '@/lib/prisma';
 // VALIDATION SCHEMA
 // ============================================================================
 
-const createPhaseSchema = z.object({
-  title: z.string()
-    .min(1, 'Title is required')
-    .max(200, 'Title must be 200 characters or less'),
+const createPhaseSchema = z
+  .object({
+    title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
 
-  description: z.string().optional(),
+    description: z.string().optional(),
 
-  startDate: z.string()
-    .refine((date) => !isNaN(Date.parse(date)), 'Invalid ISO 8601 date format'),
+    startDate: z
+      .string()
+      .refine((date) => !isNaN(Date.parse(date)), 'Invalid ISO 8601 date format'),
 
-  endDate: z.string()
-    .refine((date) => !isNaN(Date.parse(date)), 'Invalid ISO 8601 date format'),
+    endDate: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid ISO 8601 date format'),
 
-  status: z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'CANCELLED'])
-    .default('NOT_STARTED'),
+    status: z
+      .enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'CANCELLED'])
+      .default('NOT_STARTED'),
 
-  progress: z.number()
-    .int()
-    .min(0, 'Progress must be between 0 and 100')
-    .max(100, 'Progress must be between 0 and 100')
-    .default(0),
-}).refine((data) => {
-  const start = new Date(data.startDate);
-  const end = new Date(data.endDate);
-  return start < end;
-}, {
-  message: 'startDate must be before endDate',
-  path: ['startDate'],
-});
+    progress: z
+      .number()
+      .int()
+      .min(0, 'Progress must be between 0 and 100')
+      .max(100, 'Progress must be between 0 and 100')
+      .default(0),
+  })
+  .refine(
+    (data) => {
+      const start = new Date(data.startDate);
+      const end = new Date(data.endDate);
+      return start < end;
+    },
+    {
+      message: 'startDate must be before endDate',
+      path: ['startDate'],
+    }
+  );
 
 type CreatePhaseInput = z.infer<typeof createPhaseSchema>;
 
@@ -88,7 +93,7 @@ export async function POST(request: NextRequest) {
     const weeksData = [];
     for (let i = 0; i < durationWeeks; i++) {
       const weekStart = new Date(startDate);
-      weekStart.setDate(weekStart.getDate() + (i * 7));
+      weekStart.setDate(weekStart.getDate() + i * 7);
 
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekEnd.getDate() + 7);
@@ -132,67 +137,78 @@ export async function POST(request: NextRequest) {
     });
 
     // 6. Success response
-    return NextResponse.json({
-      success: true,
-      data: {
-        phase: {
-          id: phase.id,
-          title: phase.title,
-          description: phase.description,
-          status: phase.status,
-          progress: phase.progress,
-          startDate: phase.startDate.toISOString(),
-          endDate: phase.endDate?.toISOString() || null,
-          createdAt: phase.createdAt.toISOString(),
-          updatedAt: phase.updatedAt.toISOString(),
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          phase: {
+            id: phase.id,
+            title: phase.title,
+            description: phase.description,
+            status: phase.status,
+            progress: phase.progress,
+            startDate: phase.startDate.toISOString(),
+            endDate: phase.endDate?.toISOString() || null,
+            createdAt: phase.createdAt.toISOString(),
+            updatedAt: phase.updatedAt.toISOString(),
+          },
+          weeks: phase.weeks.map((week) => ({
+            id: week.id,
+            title: week.title,
+            phaseId: week.phaseId,
+            startDate: week.startDate.toISOString(),
+            endDate: week.endDate?.toISOString() || null,
+            status: week.status,
+            progress: week.progress,
+          })),
         },
-        weeks: phase.weeks.map((week) => ({
-          id: week.id,
-          title: week.title,
-          phaseId: week.phaseId,
-          startDate: week.startDate.toISOString(),
-          endDate: week.endDate?.toISOString() || null,
-          status: week.status,
-          progress: week.progress,
-        })),
       },
-    }, { status: 201 });
-
+      { status: 201 }
+    );
   } catch (error) {
     // 7. Error handling
 
     // Zod validation errors (400)
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: error.errors[0]?.message || 'Validation error',
-          field: String(error.errors[0]?.path[0] || 'unknown'),
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: error.errors[0]?.message || 'Validation error',
+            field: String(error.errors[0]?.path[0] || 'unknown'),
+          },
         },
-      }, { status: 400 });
+        { status: 400 }
+      );
     }
 
     // Prisma database errors (500)
     if (error?.constructor?.name === 'PrismaClientKnownRequestError') {
       console.error('[API] Prisma error in POST /api/phases:', error);
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Database operation failed',
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Database operation failed',
+          },
         },
-      }, { status: 500 });
+        { status: 500 }
+      );
     }
 
     // Unknown errors (500)
     console.error('[API] Unexpected error in POST /api/phases:', error);
-    return NextResponse.json({
-      success: false,
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error occurred',
+        },
       },
-    }, { status: 500 });
+      { status: 500 }
+    );
   }
 }

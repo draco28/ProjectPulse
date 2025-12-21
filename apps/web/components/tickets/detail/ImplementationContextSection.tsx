@@ -24,7 +24,7 @@ import {
   Database,
   AlertTriangle,
   FileCode,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ImplementationContextProps } from '@/types/issue';
@@ -72,7 +72,7 @@ function getFileName(filePath: string): string {
 
 export function ImplementationContextSection({
   ticketId,
-  context
+  context,
 }: ImplementationContextSectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -88,7 +88,13 @@ export function ImplementationContextSection({
   const hasPhaseRef = !!context.phaseSprintRef?.displayName;
 
   // Don't render if completely empty
-  if (!hasFilesToModify && !hasFilesToCreate && !hasSchemaChanges && !hasBlueprint && !hasPhaseRef) {
+  if (
+    !hasFilesToModify &&
+    !hasFilesToCreate &&
+    !hasSchemaChanges &&
+    !hasBlueprint &&
+    !hasPhaseRef
+  ) {
     return null;
   }
 
@@ -97,18 +103,14 @@ export function ImplementationContextSection({
       {/* Header - Collapsible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full mb-4 flex items-center justify-between group"
+        className="group mb-4 flex w-full items-center justify-between"
       >
         <h3 className="flex items-center gap-2 text-lg font-bold text-white">
           <Map className="h-5 w-5 text-coral" aria-hidden="true" />
           Implementation Context
         </h3>
-        <span className="text-slate group-hover:text-white transition-colors">
-          {isExpanded ? (
-            <ChevronDown className="h-5 w-5" />
-          ) : (
-            <ChevronRight className="h-5 w-5" />
-          )}
+        <span className="text-slate transition-colors group-hover:text-white">
+          {isExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
         </span>
       </button>
 
@@ -118,7 +120,7 @@ export function ImplementationContextSection({
           {hasPhaseRef && (
             <div className="flex items-center gap-2 text-sm">
               <span className="text-slate">Roadmap:</span>
-              <span className="px-2 py-1 rounded-lg bg-coral/10 text-coral border border-coral/30 font-medium">
+              <span className="rounded-lg border border-coral/30 bg-coral/10 px-2 py-1 font-medium text-coral">
                 {context.phaseSprintRef?.displayName}
               </span>
             </div>
@@ -128,26 +130,34 @@ export function ImplementationContextSection({
           {hasSchemaChanges && (
             <div className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-4">
               <div className="flex items-start gap-3">
-                <Database className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <Database className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-yellow-400" />
                     <span className="font-semibold text-yellow-200">Schema Changes Required</span>
                   </div>
                   {context.schemaChanges?.migrationName && (
-                    <p className="text-sm text-yellow-300/80 mt-1">
-                      Migration: <code className="font-mono bg-yellow-500/20 px-1 rounded">{context.schemaChanges.migrationName}</code>
+                    <p className="mt-1 text-sm text-yellow-300/80">
+                      Migration:{' '}
+                      <code className="rounded bg-yellow-500/20 px-1 font-mono">
+                        {context.schemaChanges.migrationName}
+                      </code>
                     </p>
                   )}
                   {context.schemaChanges?.models && context.schemaChanges.models.length > 0 && (
-                    <p className="text-sm text-yellow-300/80 mt-1">
-                      Models: {context.schemaChanges.models.map((m, i) => (
-                        <code key={i} className="font-mono bg-yellow-500/20 px-1 rounded mx-0.5">{m}</code>
+                    <p className="mt-1 text-sm text-yellow-300/80">
+                      Models:{' '}
+                      {context.schemaChanges.models.map((m, i) => (
+                        <code key={i} className="mx-0.5 rounded bg-yellow-500/20 px-1 font-mono">
+                          {m}
+                        </code>
                       ))}
                     </p>
                   )}
                   {context.schemaChanges?.description && (
-                    <p className="text-sm text-yellow-300/70 mt-2">{context.schemaChanges.description}</p>
+                    <p className="mt-2 text-sm text-yellow-300/70">
+                      {context.schemaChanges.description}
+                    </p>
                   )}
                 </div>
               </div>
@@ -157,10 +167,10 @@ export function ImplementationContextSection({
           {/* Files to Modify */}
           {hasFilesToModify && (
             <div>
-              <h4 className="flex items-center gap-2 text-sm font-semibold text-white mb-3">
+              <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
                 <FileEdit className="h-4 w-4 text-blue-400" />
                 Files to Modify
-                <span className="text-slate font-normal">({context.filesToModify.length})</span>
+                <span className="font-normal text-slate">({context.filesToModify.length})</span>
               </h4>
               <div className="space-y-2">
                 {context.filesToModify.map((file, index) => (
@@ -171,25 +181,28 @@ export function ImplementationContextSection({
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 overflow-hidden">
                         <div className="flex items-center gap-2">
-                          <FileCode className="h-4 w-4 text-blue-400 flex-shrink-0" />
-                          <span className="font-mono text-sm text-white truncate">
+                          <FileCode className="h-4 w-4 flex-shrink-0 text-blue-400" />
+                          <span className="truncate font-mono text-sm text-white">
                             {getFileName(file.path)}
                           </span>
                           {file.estimatedChanges && (
-                            <span className={cn(
-                              'text-xs px-1.5 py-0.5 rounded border flex-shrink-0',
-                              getChangeSeverityBadge(file.estimatedChanges)
-                            )}>
+                            <span
+                              className={cn(
+                                'flex-shrink-0 rounded border px-1.5 py-0.5 text-xs',
+                                getChangeSeverityBadge(file.estimatedChanges)
+                              )}
+                            >
                               {file.estimatedChanges}
                             </span>
                           )}
                         </div>
-                        <p className="font-mono text-xs text-slate truncate mt-0.5" title={file.path}>
+                        <p
+                          className="mt-0.5 truncate font-mono text-xs text-slate"
+                          title={file.path}
+                        >
                           {file.path}
                         </p>
-                        {file.reason && (
-                          <p className="text-xs text-slate/80 mt-1">{file.reason}</p>
-                        )}
+                        {file.reason && <p className="mt-1 text-xs text-slate/80">{file.reason}</p>}
                       </div>
                     </div>
                   </div>
@@ -201,10 +214,10 @@ export function ImplementationContextSection({
           {/* Files to Create */}
           {hasFilesToCreate && (
             <div>
-              <h4 className="flex items-center gap-2 text-sm font-semibold text-white mb-3">
+              <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
                 <FilePlus className="h-4 w-4 text-green-400" />
                 Files to Create
-                <span className="text-slate font-normal">({context.filesToCreate.length})</span>
+                <span className="font-normal text-slate">({context.filesToCreate.length})</span>
               </h4>
               <div className="space-y-2">
                 {context.filesToCreate.map((file, index) => (
@@ -215,21 +228,24 @@ export function ImplementationContextSection({
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 overflow-hidden">
                         <div className="flex items-center gap-2">
-                          <FileCode className="h-4 w-4 text-green-400 flex-shrink-0" />
-                          <span className="font-mono text-sm text-white truncate">
+                          <FileCode className="h-4 w-4 flex-shrink-0 text-green-400" />
+                          <span className="truncate font-mono text-sm text-white">
                             {getFileName(file.path)}
                           </span>
                           {file.template && (
-                            <span className="text-xs px-1.5 py-0.5 rounded border bg-slate-500/20 text-slate-400 border-slate-500/30 flex-shrink-0">
+                            <span className="flex-shrink-0 rounded border border-slate-500/30 bg-slate-500/20 px-1.5 py-0.5 text-xs text-slate-400">
                               {file.template}
                             </span>
                           )}
                         </div>
-                        <p className="font-mono text-xs text-slate truncate mt-0.5" title={file.path}>
+                        <p
+                          className="mt-0.5 truncate font-mono text-xs text-slate"
+                          title={file.path}
+                        >
                           {file.path}
                         </p>
                         {file.purpose && (
-                          <p className="text-xs text-slate/80 mt-1">{file.purpose}</p>
+                          <p className="mt-1 text-xs text-slate/80">{file.purpose}</p>
                         )}
                       </div>
                     </div>
@@ -242,12 +258,12 @@ export function ImplementationContextSection({
           {/* Implementation Blueprint */}
           {hasBlueprint && (
             <div>
-              <h4 className="flex items-center gap-2 text-sm font-semibold text-white mb-3">
+              <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
                 <Map className="h-4 w-4 text-coral" />
                 Implementation Blueprint
               </h4>
               <div className="rounded-xl border border-[#2A2A2A] bg-[#0f0f1a] p-4">
-                <pre className="text-sm text-slate whitespace-pre-wrap font-mono leading-relaxed">
+                <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate">
                   {context.implementationBlueprint}
                 </pre>
               </div>

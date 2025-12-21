@@ -1,12 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Circle, ArrowRight } from 'lucide-react';
 
@@ -31,11 +26,7 @@ interface WorkflowDetailModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function WorkflowDetailModal({
-  workflowId,
-  open,
-  onOpenChange,
-}: WorkflowDetailModalProps) {
+export function WorkflowDetailModal({ workflowId, open, onOpenChange }: WorkflowDetailModalProps) {
   const [workflow, setWorkflow] = useState<WorkflowDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +52,7 @@ export function WorkflowDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">
             {loading ? 'Loading...' : error ? 'Error' : workflow?.name}
@@ -81,7 +72,7 @@ export function WorkflowDetailModal({
         )}
 
         {workflow && !loading && !error && (
-          <div className="space-y-6 mt-4">
+          <div className="mt-4 space-y-6">
             {/* Metadata */}
             <div className="flex flex-wrap gap-3">
               <Badge variant="outline">{workflow.category}</Badge>
@@ -102,21 +93,21 @@ export function WorkflowDetailModal({
 
             {/* Description */}
             <div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 {workflow.description}
               </p>
             </div>
 
             {/* Steps */}
             <div>
-              <h4 className="text-sm font-semibold text-white mb-4">
+              <h4 className="mb-4 text-sm font-semibold text-white">
                 Workflow Steps ({workflow.steps.length})
               </h4>
               <div className="space-y-3">
                 {workflow.steps.map((step, index) => (
                   <div key={index} className="neu-raised rounded-lg p-4">
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-coral/20 text-coral font-semibold text-sm">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-coral/20 text-sm font-semibold text-coral">
                         {index + 1}
                       </div>
                       <div className="flex-1 space-y-2">
@@ -133,7 +124,7 @@ export function WorkflowDetailModal({
                         )}
                       </div>
                       {index < workflow.steps.length - 1 && (
-                        <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-2" />
+                        <ArrowRight className="mt-2 h-4 w-4 flex-shrink-0 text-muted-foreground" />
                       )}
                     </div>
                   </div>
@@ -142,15 +133,15 @@ export function WorkflowDetailModal({
             </div>
 
             {/* Metadata */}
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+            <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
               <div className="neu-inset rounded-lg p-4">
-                <div className="text-xs text-muted-foreground mb-1">Created</div>
+                <div className="mb-1 text-xs text-muted-foreground">Created</div>
                 <div className="text-sm font-medium text-white">
                   {new Date(workflow.createdAt).toLocaleDateString()}
                 </div>
               </div>
               <div className="neu-inset rounded-lg p-4">
-                <div className="text-xs text-muted-foreground mb-1">Last Updated</div>
+                <div className="mb-1 text-xs text-muted-foreground">Last Updated</div>
                 <div className="text-sm font-medium text-white">
                   {new Date(workflow.updatedAt).toLocaleDateString()}
                 </div>

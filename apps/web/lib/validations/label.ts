@@ -15,10 +15,24 @@ const MAX_NAME_LENGTH = 50;
 
 // Predefined color palette for labels (GitHub/Linear style)
 export const LABEL_COLORS = [
-  '#b60205', '#d93f0b', '#fbca04', '#0e8a16', '#006b75',
-  '#1d76db', '#0052cc', '#5319e7', '#e99695', '#f9d0c4',
-  '#fef2c0', '#c2e0c6', '#bfdadc', '#c5def5', '#bfd4f2',
-  '#d4c5f9', '#f5f5f5', '#6b7280',
+  '#b60205',
+  '#d93f0b',
+  '#fbca04',
+  '#0e8a16',
+  '#006b75',
+  '#1d76db',
+  '#0052cc',
+  '#5319e7',
+  '#e99695',
+  '#f9d0c4',
+  '#fef2c0',
+  '#c2e0c6',
+  '#bfdadc',
+  '#c5def5',
+  '#bfd4f2',
+  '#d4c5f9',
+  '#f5f5f5',
+  '#6b7280',
 ] as const;
 
 // ============================================================================
@@ -53,10 +67,9 @@ export type UpdateLabel = z.infer<typeof UpdateLabelSchema>;
  * Schema for label ID parameter
  */
 export const LabelIdParamSchema = z.object({
-  labelId: z.union([
-    z.number().int().positive(),
-    z.string().regex(/^\d+$/, 'Label ID must be numeric'),
-  ]).transform((value) => Number(value)),
+  labelId: z
+    .union([z.number().int().positive(), z.string().regex(/^\d+$/, 'Label ID must be numeric')])
+    .transform((value) => Number(value)),
 });
 
 // ============================================================================

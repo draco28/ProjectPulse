@@ -1,7 +1,7 @@
 /**
  * Admin Users Page
  * Sprint 11.5: User management interface
- * 
+ *
  * Features:
  * - User list with pagination
  * - Search and filters
@@ -20,10 +20,7 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <AdminHeader
-        title="Users"
-        description="Manage user accounts and permissions"
-      />
+      <AdminHeader title="Users" description="Manage user accounts and permissions" />
 
       {/* Users Table - Client Component */}
       <AdminUsersTable />

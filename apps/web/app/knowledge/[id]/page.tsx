@@ -128,7 +128,9 @@ export default async function KnowledgeDetailPage({ params, searchParams }: Page
               <ReactMarkdown
                 components={{
                   h1: ({ children }) => (
-                    <h1 className="mb-4 mt-8 text-2xl font-bold text-white first:mt-0">{children}</h1>
+                    <h1 className="mb-4 mt-8 text-2xl font-bold text-white first:mt-0">
+                      {children}
+                    </h1>
                   ),
                   h2: ({ children }) => (
                     <h2 className="mb-3 mt-6 text-xl font-bold text-white">{children}</h2>

@@ -51,12 +51,12 @@ export function SessionCard({
   const CardContent = (
     <div
       className={cn(
-        'neu-raised smooth-transition rounded-3xl p-6 h-full',
-        disabled ? 'opacity-50 cursor-not-allowed' : 'neu-float cursor-pointer hover:scale-[1.02]'
+        'neu-raised smooth-transition h-full rounded-3xl p-6',
+        disabled ? 'cursor-not-allowed opacity-50' : 'neu-float cursor-pointer hover:scale-[1.02]'
       )}
     >
       {/* Header with Session Number and Status */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="icon-coral flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg">
             {disabled ? (
@@ -69,7 +69,7 @@ export function SessionCard({
         </div>
         <span
           className={cn(
-            'px-3 py-1 rounded-full text-xs font-semibold',
+            'rounded-full px-3 py-1 text-xs font-semibold',
             config.color,
             config.bgColor
           )}
@@ -79,8 +79,8 @@ export function SessionCard({
       </div>
 
       {/* Title and Description */}
-      <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
-      <p className="text-sm text-slate leading-relaxed">{description}</p>
+      <h3 className="mb-2 text-xl font-bold text-white">{title}</h3>
+      <p className="text-sm leading-relaxed text-slate">{description}</p>
 
       {/* Locked Message */}
       {disabled && (

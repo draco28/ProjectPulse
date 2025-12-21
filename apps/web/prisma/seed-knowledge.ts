@@ -85,7 +85,13 @@ async function seedKnowledge() {
       title: 'Hybrid Search: Combining Semantic and Lexical Search',
       content: `Hybrid search combines semantic search (embedding similarity) with lexical search (keyword matching) for optimal relevance. Semantic search understands context and meaning, catching paraphrased queries. Lexical search provides exact keyword matches and acronyms. Merge strategy: compute separate scores (cosine similarity for semantic, ts_rank for lexical), normalize to 0-1 range, combine with weights (e.g., 0.7 semantic + 0.3 lexical). Deduplicate results. Adjust weights based on query type detection.`,
       category: 'Architecture',
-      tags: ['hybrid-search', 'semantic-search', 'full-text-search', 'information-retrieval', 'ranking'],
+      tags: [
+        'hybrid-search',
+        'semantic-search',
+        'full-text-search',
+        'information-retrieval',
+        'ranking',
+      ],
     },
     {
       title: 'React Custom Hooks Best Practices',
@@ -141,30 +147,90 @@ async function seedKnowledge() {
   // Create knowledge relationships (graph edges)
   const relationships = [
     // Next.js and React relationships
-    { from: 'Next.js App Router Server Components', to: 'React Server vs Client Components Decision Tree', type: 'RELATES_TO', weight: 0.9 },
-    { from: 'React Server vs Client Components Decision Tree', to: 'React Custom Hooks Best Practices', type: 'RELATES_TO', weight: 0.7 },
+    {
+      from: 'Next.js App Router Server Components',
+      to: 'React Server vs Client Components Decision Tree',
+      type: 'RELATES_TO',
+      weight: 0.9,
+    },
+    {
+      from: 'React Server vs Client Components Decision Tree',
+      to: 'React Custom Hooks Best Practices',
+      type: 'RELATES_TO',
+      weight: 0.7,
+    },
 
     // Database optimization relationships
-    { from: 'Prisma Query Optimization Patterns', to: 'PostgreSQL Indexing Strategies', type: 'DEPENDS_ON', weight: 0.85 },
-    { from: 'pgvector HNSW Index Configuration', to: 'PostgreSQL Indexing Strategies', type: 'EXTENDS', weight: 0.8 },
+    {
+      from: 'Prisma Query Optimization Patterns',
+      to: 'PostgreSQL Indexing Strategies',
+      type: 'DEPENDS_ON',
+      weight: 0.85,
+    },
+    {
+      from: 'pgvector HNSW Index Configuration',
+      to: 'PostgreSQL Indexing Strategies',
+      type: 'EXTENDS',
+      weight: 0.8,
+    },
 
     // Search system relationships
-    { from: 'Hybrid Search: Combining Semantic and Lexical Search', to: 'pgvector HNSW Index Configuration', type: 'DEPENDS_ON', weight: 0.9 },
-    { from: 'Hybrid Search: Combining Semantic and Lexical Search', to: 'PostgreSQL Full-Text Search with tsvector', type: 'DEPENDS_ON', weight: 0.9 },
+    {
+      from: 'Hybrid Search: Combining Semantic and Lexical Search',
+      to: 'pgvector HNSW Index Configuration',
+      type: 'DEPENDS_ON',
+      weight: 0.9,
+    },
+    {
+      from: 'Hybrid Search: Combining Semantic and Lexical Search',
+      to: 'PostgreSQL Full-Text Search with tsvector',
+      type: 'DEPENDS_ON',
+      weight: 0.9,
+    },
 
     // API design relationships
-    { from: 'RESTful API Design Best Practices', to: 'TypeScript Zod Validation Patterns', type: 'RELATES_TO', weight: 0.75 },
-    { from: 'API Rate Limiting and Throttling', to: 'RESTful API Design Best Practices', type: 'EXTENDS', weight: 0.7 },
+    {
+      from: 'RESTful API Design Best Practices',
+      to: 'TypeScript Zod Validation Patterns',
+      type: 'RELATES_TO',
+      weight: 0.75,
+    },
+    {
+      from: 'API Rate Limiting and Throttling',
+      to: 'RESTful API Design Best Practices',
+      type: 'EXTENDS',
+      weight: 0.7,
+    },
 
     // DevOps relationships
-    { from: 'Docker Multi-Stage Build Optimization', to: 'Next.js App Router Server Components', type: 'RELATES_TO', weight: 0.6 },
-    { from: 'Git Conventional Commits Standard', to: 'RESTful API Design Best Practices', type: 'RELATES_TO', weight: 0.5 },
+    {
+      from: 'Docker Multi-Stage Build Optimization',
+      to: 'Next.js App Router Server Components',
+      type: 'RELATES_TO',
+      weight: 0.6,
+    },
+    {
+      from: 'Git Conventional Commits Standard',
+      to: 'RESTful API Design Best Practices',
+      type: 'RELATES_TO',
+      weight: 0.5,
+    },
 
     // Testing relationships
-    { from: 'Playwright E2E Testing Strategy', to: 'Next.js App Router Server Components', type: 'RELATES_TO', weight: 0.65 },
+    {
+      from: 'Playwright E2E Testing Strategy',
+      to: 'Next.js App Router Server Components',
+      type: 'RELATES_TO',
+      weight: 0.65,
+    },
 
     // MCP architecture relationships
-    { from: 'MCP (Model Context Protocol) Architecture', to: 'RESTful API Design Best Practices', type: 'RELATES_TO', weight: 0.7 },
+    {
+      from: 'MCP (Model Context Protocol) Architecture',
+      to: 'RESTful API Design Best Practices',
+      type: 'RELATES_TO',
+      weight: 0.7,
+    },
   ];
 
   console.log('\n🔗 Creating knowledge relationships...');
@@ -185,7 +251,9 @@ async function seedKnowledge() {
     }
   }
 
-  console.log(`\n✅ Seeded ${createdItems.length} knowledge items with ${relationships.length} relationships`);
+  console.log(
+    `\n✅ Seeded ${createdItems.length} knowledge items with ${relationships.length} relationships`
+  );
 }
 
 async function main() {

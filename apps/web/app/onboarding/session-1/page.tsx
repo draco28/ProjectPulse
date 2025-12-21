@@ -41,8 +41,8 @@ interface QuestionsData {
 // Loading fallback component
 function LoadingFallback() {
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl flex items-center justify-center min-h-[60vh]">
-      <Loader2 className="h-8 w-8 animate-spin text-coral-500" />
+    <div className="container mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4 py-8">
+      <Loader2 className="text-coral-500 h-8 w-8 animate-spin" />
     </div>
   );
 }
@@ -80,7 +80,7 @@ function Session1Content() {
           if (data.currentPhase) {
             setCurrentPhase(data.currentPhase);
             setCompletedPhases(data.completedPhases || []);
-            
+
             // Pre-fill answers if we have them for the current phase
             if (data.answers) {
               const currentPhaseAnswers = data.answers[`phase${data.currentPhase}`] || {};
@@ -185,15 +185,15 @@ function Session1Content() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4 max-w-4xl flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-coral-500" />
+      <div className="container mx-auto flex min-h-[60vh] max-w-4xl items-center justify-center px-4 py-8">
+        <Loader2 className="text-coral-500 h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   if (!questionsData) {
     return (
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
         <Card className="neu-raised">
           <CardContent className="p-6">
             <p className="text-red-400">Failed to load questions. Please try again.</p>
@@ -204,7 +204,7 @@ function Session1Content() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
+    <div className="container mx-auto max-w-4xl px-4 py-8">
       {/* Page Header with Back Button */}
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-white">Strategic Planning</h1>
@@ -267,7 +267,7 @@ function Session1Content() {
         ))}
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <Button
             type="button"
             variant="outline"

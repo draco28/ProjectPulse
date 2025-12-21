@@ -22,13 +22,13 @@ export function WizardStepIndicator({
   return (
     <div className="mb-8">
       {/* Progress Line + Dots */}
-      <div className="relative flex items-center justify-between mb-4">
+      <div className="relative mb-4 flex items-center justify-between">
         {/* Background Line */}
-        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-dark-pressed" />
+        <div className="absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 bg-dark-pressed" />
 
         {/* Progress Line */}
         <div
-          className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 coral-gradient transition-all duration-300"
+          className="coral-gradient absolute left-0 top-1/2 h-0.5 -translate-y-1/2 transition-all duration-300"
           style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
         />
 
@@ -42,7 +42,7 @@ export function WizardStepIndicator({
             <div key={stepNum} className="relative z-10 flex flex-col items-center">
               <div
                 className={`
-                  w-10 h-10 rounded-full flex items-center justify-center
+                  flex h-10 w-10 items-center justify-center rounded-full
                   transition-all duration-300
                   ${isComplete ? 'coral-gradient text-white' : ''}
                   ${isCurrent ? 'coral-gradient text-white ring-4 ring-coral/30' : ''}
@@ -70,7 +70,7 @@ export function WizardStepIndicator({
             <div
               key={label}
               className={`
-                text-xs font-medium text-center w-20
+                w-20 text-center text-xs font-medium
                 ${isCurrent ? 'text-coral' : 'text-slate'}
               `}
             >

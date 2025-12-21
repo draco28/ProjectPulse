@@ -40,14 +40,15 @@ export function formatRelativeTime(isoString: string): string {
     const futureDiffDays = Math.floor(futureDiffHours / 24);
 
     if (futureDiffMins < 60) return `in ${futureDiffMins} minute${futureDiffMins === 1 ? '' : 's'}`;
-    if (futureDiffHours < 24) return `in ${futureDiffHours} hour${futureDiffHours === 1 ? '' : 's'}`;
+    if (futureDiffHours < 24)
+      return `in ${futureDiffHours} hour${futureDiffHours === 1 ? '' : 's'}`;
     if (futureDiffDays < 7) return `in ${futureDiffDays} day${futureDiffDays === 1 ? '' : 's'}`;
 
     // Future date more than a week away - show formatted date
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   }
 
@@ -61,7 +62,7 @@ export function formatRelativeTime(isoString: string): string {
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   });
 }
 
@@ -81,6 +82,6 @@ export function formatShortDate(date: Date | string): string {
   return dateObj.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   });
 }

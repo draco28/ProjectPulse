@@ -15,7 +15,11 @@ interface WikiRevisionTimelineProps {
   currentVersion: number;
 }
 
-export function WikiRevisionTimeline({ slug, revisions, currentVersion }: WikiRevisionTimelineProps) {
+export function WikiRevisionTimeline({
+  slug,
+  revisions,
+  currentVersion,
+}: WikiRevisionTimelineProps) {
   if (!revisions.length) {
     return null;
   }
@@ -40,10 +44,15 @@ export function WikiRevisionTimeline({ slug, revisions, currentVersion }: WikiRe
           const isMostRecent = index === 0;
 
           return (
-            <li key={revision.version} className="rounded-2xl border border-white/5 bg-black/20 p-4">
+            <li
+              key={revision.version}
+              className="rounded-2xl border border-white/5 bg-black/20 p-4"
+            >
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-slate">Version v{revision.version}</p>
+                  <p className="text-xs uppercase tracking-wide text-slate">
+                    Version v{revision.version}
+                  </p>
                   <div className="flex flex-wrap items-center gap-2 text-sm text-slate">
                     <span className="font-semibold text-white">{revision.createdBy}</span>
                     <span className="h-1 w-1 rounded-full bg-slate/50" aria-hidden="true" />
@@ -62,9 +71,7 @@ export function WikiRevisionTimeline({ slug, revisions, currentVersion }: WikiRe
               </div>
 
               {revision.diffSummary && (
-                <p className="mt-3 text-sm text-slate">
-                  {revision.diffSummary}
-                </p>
+                <p className="mt-3 text-sm text-slate">{revision.diffSummary}</p>
               )}
 
               <RevisionDiffViewer slug={slug} version={revision.version} isLatest={isMostRecent} />

@@ -9,13 +9,7 @@
 import { chromium, type Browser, type Page } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
 import { FindingCategory, FindingSeverity, ScannerType } from '@prisma/client';
-import type {
-  Scanner,
-  ScanResult,
-  ScanOptions,
-  FindingData,
-  SeverityMapper,
-} from './types';
+import type { Scanner, ScanResult, ScanOptions, FindingData, SeverityMapper } from './types';
 import { createSummary, ScannerError, ScannerTimeoutError } from './types';
 
 /**
@@ -27,21 +21,21 @@ type AxeImpact = 'minor' | 'moderate' | 'serious' | 'critical';
  * axe-core violation node structure
  */
 interface AxeNode {
-  html: string;              // HTML element that failed
-  target: string[];          // CSS selector array
-  failureSummary?: string;   // Detailed failure explanation
+  html: string; // HTML element that failed
+  target: string[]; // CSS selector array
+  failureSummary?: string; // Detailed failure explanation
 }
 
 /**
  * axe-core violation structure (from axe-core results)
  */
 interface AxeViolation {
-  id: string;                // Rule ID (e.g., "color-contrast", "label")
-  impact: AxeImpact;         // Severity level
-  help: string;              // Human-readable description
-  helpUrl: string;           // Documentation URL
-  description?: string;      // Additional context
-  nodes: AxeNode[];          // Elements that failed
+  id: string; // Rule ID (e.g., "color-contrast", "label")
+  impact: AxeImpact; // Severity level
+  help: string; // Human-readable description
+  helpUrl: string; // Documentation URL
+  description?: string; // Additional context
+  nodes: AxeNode[]; // Elements that failed
 }
 
 /**
@@ -98,7 +92,7 @@ export class AxeCoreScanner implements Scanner {
       browser = await chromium.launch({ headless: true });
 
       // Scan base URL (and additional pages if specified)
-      const pagesToScan = [baseUrl, ...(options?.pages?.map(p => `${baseUrl}${p}`) ?? [])];
+      const pagesToScan = [baseUrl, ...(options?.pages?.map((p) => `${baseUrl}${p}`) ?? [])];
       const allViolations: AxeViolation[] = [];
 
       for (const url of pagesToScan) {
@@ -161,8 +155,10 @@ export class AxeCoreScanner implements Scanner {
       await Promise.race([navigationPromise, timeoutPromise]);
 
       // Run axe-core analysis
-      const axeBuilder = new AxeBuilder({ page })
-        .withTags([`wcag${wcagLevel.toLowerCase()}`, 'best-practice']);
+      const axeBuilder = new AxeBuilder({ page }).withTags([
+        `wcag${wcagLevel.toLowerCase()}`,
+        'best-practice',
+      ]);
 
       const results = await axeBuilder.analyze();
 
@@ -189,7 +185,7 @@ export class AxeCoreScanner implements Scanner {
         severity: mapImpact(violation.impact),
         message: `${violation.help} (${affectedElements} element${affectedElements > 1 ? 's' : ''} affected)`,
         filePath: baseUrl, // URL is the "file" for page-level findings
-        lineNumber: null,  // Page-level finding (no line number)
+        lineNumber: null, // Page-level finding (no line number)
         codeSnippet: firstNode?.html?.trim()?.substring(0, 500) ?? undefined, // First violation instance (max 500 chars)
       });
     });

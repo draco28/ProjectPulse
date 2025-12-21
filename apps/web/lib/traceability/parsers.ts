@@ -203,7 +203,8 @@ export function parseBacklog(content: string): ParsedBacklog {
 
   // First, find all headers (epics and user stories)
   // Pattern matches: ## EPIC-001:, ## Epic 1:, ### US-001:, ### Feature 1.1:
-  const headerPattern = /^(#{2,4})\s*((?:EPIC-\d+|Epic\s+\d+|US-[\d.]+|Feature\s+[\d.]+))[:\s-]+(.+)$/gim;
+  const headerPattern =
+    /^(#{2,4})\s*((?:EPIC-\d+|Epic\s+\d+|US-[\d.]+|Feature\s+[\d.]+))[:\s-]+(.+)$/gim;
   const headers: Array<{
     type: 'epic' | 'item';
     rawId: string;

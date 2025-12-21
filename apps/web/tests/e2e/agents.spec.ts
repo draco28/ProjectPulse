@@ -34,7 +34,7 @@ test.describe('Agent Personas Page', () => {
   test('should toggle agent status with optimistic UI', async ({ page }) => {
     // Wait for agent cards to load
     await page.waitForSelector('.agent-card', { timeout: 10000 });
-    
+
     // Find the Code Reviewer card using data-testid
     const codeReviewerCard = page.locator('.agent-card').filter({ hasText: 'Code Reviewer' });
     const toggleButton = codeReviewerCard.getByTestId('agent-toggle');
@@ -56,7 +56,7 @@ test.describe('Agent Personas Page', () => {
   test('should persist agent state across page reloads', async ({ page }) => {
     // Wait for agent cards to load
     await page.waitForSelector('.agent-card', { timeout: 10000 });
-    
+
     // Activate Debugging Assistant
     const debuggerCard = page.locator('.agent-card').filter({ hasText: 'Debugging Assistant' });
     const toggleButton = debuggerCard.getByTestId('agent-toggle');
@@ -102,38 +102,38 @@ test.describe('Agent Detail Modal', () => {
   test('should display skills tab with full skill content', async ({ page }) => {
     // Open modal
     await page.locator('[data-testid="agent-card"]').first().click();
-    
+
     // Wait for modal to load
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
-    
+
     // Skills tab should be active by default
     await expect(page.getByRole('tabpanel')).toBeVisible();
-    
+
     // Verify search input present
     await expect(page.getByPlaceholder(/Search skills/i)).toBeVisible();
-    
+
     // Verify showing count text present
     await expect(page.getByText(/Showing.*skills/i)).toBeVisible();
   });
 
   test('should filter skills by search term', async ({ page }) => {
     await page.locator('[data-testid="agent-card"]').first().click();
-    
+
     // Wait for modal to load
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
-    
+
     // Wait for skills to load (if any exist)
     await page.waitForTimeout(1000);
-    
+
     // Get initial count text
     const countText = await page.getByText(/Showing.*skills/i).textContent();
-    
+
     // Type in search
     await page.getByPlaceholder(/Search skills/i).fill('nonexistent');
-    
+
     // Wait for filter to apply
     await page.waitForTimeout(500);
-    
+
     // Verify count changed or empty state shown
     const newCountText = await page.getByText(/Showing.*skills/i).textContent();
     expect(newCountText).not.toBe(countText);
@@ -141,26 +141,26 @@ test.describe('Agent Detail Modal', () => {
 
   test('should switch to workflows tab', async ({ page }) => {
     await page.locator('[data-testid="agent-card"]').first().click();
-    
+
     // Wait for modal to load
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
-    
+
     // Click workflows tab trigger
     await page.getByRole('tab', { name: /Workflows/i }).click();
-    
+
     // Verify workflows content displayed
     await expect(page.getByText(/Showing.*workflows/i)).toBeVisible();
   });
 
   test('should display config tab with system prompt', async ({ page }) => {
     await page.locator('[data-testid="agent-card"]').first().click();
-    
+
     // Wait for modal to load
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
-    
+
     // Click configuration tab
     await page.getByRole('tab', { name: /Configuration/i }).click();
-    
+
     // Verify sections present
     await expect(page.getByText('System Prompt')).toBeVisible();
     await expect(page.getByText('Rules & Guidelines')).toBeVisible();
@@ -171,33 +171,33 @@ test.describe('Agent Detail Modal', () => {
 
   test('should expand system prompt when clicked', async ({ page }) => {
     await page.locator('[data-testid="agent-card"]').first().click();
-    
+
     // Wait for modal and switch to config tab
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
     await page.getByRole('tab', { name: /Configuration/i }).click();
-    
+
     // Click show prompt button
     await page.getByText(/Show system prompt/i).click();
-    
+
     // Verify prompt content appears
     await expect(page.locator('pre')).toBeVisible();
-    
+
     // Click hide button
     await page.getByText(/Hide system prompt/i).click();
-    
+
     // Verify prompt hidden
     await expect(page.locator('pre')).not.toBeVisible();
   });
 
   test('should close modal when clicking close button', async ({ page }) => {
     await page.locator('[data-testid="agent-card"]').first().click();
-    
+
     // Verify modal open
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
-    
+
     // Press Escape key to close modal
     await page.keyboard.press('Escape');
-    
+
     // Verify modal closed
     await expect(page.getByRole('dialog')).not.toBeVisible();
   });
@@ -258,12 +258,14 @@ test.describe('Agent AI Hub Tabs', () => {
     await page.waitForTimeout(500);
 
     // Find status filter
-    const statusSelect = page.locator('[role="combobox"]').filter({ hasText: /Status|All Status/i });
-    
+    const statusSelect = page
+      .locator('[role="combobox"]')
+      .filter({ hasText: /Status|All Status/i });
+
     if (await statusSelect.isVisible()) {
       // Click to open
       await statusSelect.click();
-      
+
       // Select "Active"
       await page.getByRole('option', { name: /^Active$/i }).click();
       await page.waitForTimeout(500);
@@ -283,22 +285,22 @@ test.describe('Agent AI Hub Tabs', () => {
 
     // If SOPs exist, test category filter
     const categorySelect = page.locator('[role="combobox"]').first();
-    
+
     if (await categorySelect.isVisible()) {
       const initialCount = await page.getByText(/Showing.*SOPs/i).textContent();
-      
+
       // Try to select a category
       await categorySelect.click();
       await page.waitForTimeout(300);
-      
+
       // Select first non-"All" option if available
       const options = page.locator('[role="option"]');
       const count = await options.count();
-      
+
       if (count > 1) {
         await options.nth(1).click(); // Select second option (first is "All Categories")
         await page.waitForTimeout(500);
-        
+
         // Verify count changed or stayed same
         const newCount = await page.getByText(/Showing.*SOPs/i).textContent();
         expect(newCount).toBeDefined();

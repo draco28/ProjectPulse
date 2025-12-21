@@ -12,7 +12,6 @@
  * - Mobile search modal (full-screen overlay)
  */
 
-
 'use client';
 
 import { Search, Bell, Sun, Moon } from 'lucide-react';

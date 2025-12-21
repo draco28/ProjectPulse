@@ -145,7 +145,8 @@ async function ensureSystemProject() {
   systemProject = await prisma.project.create({
     data: {
       name: SYSTEM_PROJECT_NAME,
-      description: 'Master templates for default project documentation. Edit these pages to update defaults for new projects.',
+      description:
+        'Master templates for default project documentation. Edit these pages to update defaults for new projects.',
       ownerId: adminUser.id,
       repository: '',
     },

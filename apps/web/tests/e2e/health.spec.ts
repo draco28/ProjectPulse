@@ -282,7 +282,7 @@ test.describe('Health Dashboard - Security Timeline', () => {
 
     // Look for relative time patterns (e.g., "2h ago", "1d ago")
     const events = page.locator('[data-testid="timeline-event"]');
-    if (await events.count() > 0) {
+    if ((await events.count()) > 0) {
       const firstEvent = events.first();
       await expect(firstEvent).toBeVisible();
     }

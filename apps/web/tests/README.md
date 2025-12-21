@@ -43,27 +43,32 @@ apps/mcp-server/tests/
 ### Browser E2E Tests (Playwright)
 
 **Run all Sprint 10 ticket tests:**
+
 ```bash
 cd apps/web
 pnpm exec playwright test tests/e2e/tickets-*.spec.ts
 ```
 
 **Run specific test file:**
+
 ```bash
 pnpm exec playwright test tests/e2e/tickets-list.spec.ts
 ```
 
 **Run with UI mode (interactive debugging):**
+
 ```bash
 pnpm exec playwright test --ui
 ```
 
 **Run in headed mode (see browser):**
+
 ```bash
 pnpm exec playwright test --headed
 ```
 
 **View test report:**
+
 ```bash
 pnpm exec playwright show-report
 ```
@@ -71,7 +76,9 @@ pnpm exec playwright show-report
 ### MCP Tool Tests (Node.js)
 
 **Prerequisites:**
+
 1. MCP server must be running:
+
    ```bash
    cd apps/mcp-server
    pnpm dev
@@ -81,17 +88,20 @@ pnpm exec playwright show-report
    - Connection: `postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev`
 
 **Run all MCP tests:**
+
 ```bash
 cd apps/mcp-server
 node --test tests/e2e/*.test.ts
 ```
 
 **Run specific test file:**
+
 ```bash
 node --test tests/e2e/ticket-create.test.ts
 ```
 
 **Run with coverage:**
+
 ```bash
 node --test --experimental-test-coverage tests/e2e/*.test.ts
 ```
@@ -103,12 +113,14 @@ node --test --experimental-test-coverage tests/e2e/*.test.ts
 ### Browser Tests
 
 **Global Setup Pattern** (40x faster!):
+
 - Login happens **once** before all tests (`global-setup.ts`)
 - Session saved to `.auth/user.json`
 - All tests reuse the same auth state
 - No per-test login overhead
 
 **How it works:**
+
 1. `global-setup.ts` runs before test suite
 2. Navigates to `/login`, fills credentials, submits form
 3. Waits for redirect to `/app` (success)
@@ -116,6 +128,7 @@ node --test --experimental-test-coverage tests/e2e/*.test.ts
 5. All tests load with authenticated session
 
 **Test Credentials:**
+
 - Email: `dev@projectpulse.local`
 - Password: `dev123456`
 - (From seed data: `apps/web/prisma/seed.ts`)
@@ -123,20 +136,22 @@ node --test --experimental-test-coverage tests/e2e/*.test.ts
 ### MCP Tool Tests
 
 **Unique Project ID Strategy**:
+
 - Each test generates unique `projectId` (range: 10000-99999)
 - Avoids conflicts with seed data (IDs 1-9999)
 - Enables parallel test execution
 - Proper cleanup respects FK constraints
 
 **Fixture Functions:**
+
 ```typescript
 import {
-  generateUniqueProjectId,  // Random ID in safe range
-  createTestProject,         // Create test project
-  createTestTicket,          // Create single ticket
-  createTestTickets,         // Create multiple tickets
-  cleanupTestProject,        // Delete project + all related data
-  disconnectPrisma,          // Cleanup after all tests
+  generateUniqueProjectId, // Random ID in safe range
+  createTestProject, // Create test project
+  createTestTicket, // Create single ticket
+  createTestTickets, // Create multiple tickets
+  cleanupTestProject, // Delete project + all related data
+  disconnectPrisma, // Cleanup after all tests
 } from './setup/ticket-fixtures.js';
 ```
 
@@ -147,6 +162,7 @@ import {
 ### Browser E2E (60 tests)
 
 **tickets-list.spec.ts** (15 tests):
+
 - Display tickets with pagination
 - Filter by kind (feature, bug, task, etc.)
 - Filter by status, priority
@@ -158,6 +174,7 @@ import {
 - Navigation to detail page
 
 **tickets-detail.spec.ts** (12 tests):
+
 - Display header (title, #ID)
 - Kind/status/priority badges
 - Source indicator (manual, scanner, agent)
@@ -171,6 +188,7 @@ import {
 - Linked files display
 
 **tickets-create.spec.ts** (8 tests):
+
 - Form with all required fields
 - Kind dropdown (7 types)
 - Source dropdown (4 types)
@@ -181,6 +199,7 @@ import {
 - Cancel button returns to list
 
 **tickets-filters.spec.ts** (15 tests):
+
 - Multiple kind filters simultaneously
 - Combined filters (kind + status + priority)
 - Filter persistence in URL
@@ -198,6 +217,7 @@ import {
 - Browser history (back/forward)
 
 **tickets-redirects.spec.ts** (5 tests):
+
 - `/issues` → `/tickets?kind=issue,bug,scanner_finding`
 - `/issues/{id}` → `/tickets/{id}`
 - Query param preservation
@@ -205,6 +225,7 @@ import {
 - Navigation shows "Tickets" not "Issues"
 
 **tickets-mutations.spec.ts** (5 tests):
+
 - Update title and description
 - Change status (open → in_progress)
 - Change priority (medium → high)
@@ -214,6 +235,7 @@ import {
 ### MCP Tool Tests (44 tests)
 
 **ticket-create.test.ts** (8 tests):
+
 - Create with all 7 kinds
 - Create with all 4 sources
 - Create with optional fields (module, customFields)
@@ -221,6 +243,7 @@ import {
 - Validation: invalid kind
 
 **ticket-search.test.ts** (8 tests):
+
 - Search by free-text query
 - Filter by kind (single)
 - Filter by multiple kinds (OR logic)
@@ -230,6 +253,7 @@ import {
 - Empty results handling
 
 **ticket-update.test.ts** (6 tests):
+
 - Update title, description
 - Update priority, status, module
 - Update custom fields
@@ -237,18 +261,21 @@ import {
 - Validation: non-existent ticket
 
 **ticket-status.test.ts** (4 tests):
+
 - Status transition: open → in_progress
 - Status transition: in_progress → closed (sets closedAt)
 - Status transition: open → blocked
 - Validation: invalid status value
 
 **ticket-comments.test.ts** (4 tests):
+
 - Add comment to ticket
 - Add multiple comments
 - Include author metadata
 - Validation: non-existent ticket
 
 **ticket-bulk.test.ts** (6 tests):
+
 - Bulk create 5 tickets
 - Bulk create 20 tickets (efficiency test)
 - Mixed kinds in bulk
@@ -257,6 +284,7 @@ import {
 - Summary with created count
 
 **issue-adapters.test.ts** (8 tests):
+
 - `issue_create` → `ticket_create` (defaults to kind=issue)
 - `issue_search` → `ticket_search` (filters to issue/bug/scanner_finding)
 - `issue_update` → `ticket_update` (passthrough)
@@ -286,6 +314,7 @@ if ((await button.count()) > 0) {
 ```
 
 **Why this matters:**
+
 - Tests won't **completely fail** if features are missing
 - Provides **clear feedback** about what's missing (console logs)
 - Tests **automatically pass** once features are implemented
@@ -294,12 +323,14 @@ if ((await button.count()) > 0) {
 ### Test Isolation (MCP Tests)
 
 Each MCP test:
+
 1. Generates unique `projectId` (10000-99999 range)
 2. Creates test project in `beforeEach`
 3. Runs test operations
 4. Cleans up **all** related data in `afterEach` (respects FK constraints)
 
 **Cleanup Order (FK-aware):**
+
 ```
 1. TicketComment (references Ticket)
 2. TicketLinkedFile (references Ticket)
@@ -314,22 +345,26 @@ Each MCP test:
 ### Browser Tests
 
 **View test in UI mode:**
+
 ```bash
 pnpm exec playwright test --ui
 ```
 
 **Debug specific test:**
+
 ```bash
 pnpm exec playwright test --debug tests/e2e/tickets-list.spec.ts
 ```
 
 **Generate trace for failed tests:**
+
 ```bash
 pnpm exec playwright test --trace on
 pnpm exec playwright show-report
 ```
 
 **Take screenshots on failure:**
+
 - Already configured in `playwright.config.ts`:
   ```typescript
   use: {
@@ -341,16 +376,19 @@ pnpm exec playwright show-report
 ### MCP Tool Tests
 
 **Run with verbose output:**
+
 ```bash
 node --test --test-reporter=spec tests/e2e/*.test.ts
 ```
 
 **Run single test:**
+
 ```bash
 node --test --test-name-pattern="should create ticket" tests/e2e/ticket-create.test.ts
 ```
 
 **Check database state after test:**
+
 ```typescript
 // In test file
 console.log(await prisma.ticket.findMany({ where: { projectId } }));
@@ -364,17 +402,18 @@ console.log(await prisma.ticket.findMany({ where: { projectId } }));
 
 **If these tests fail, it means the feature needs implementation:**
 
-| Test | Missing Feature |
-|------|----------------|
-| `tickets-create` form tests | `/tickets/create` page not implemented |
-| `tickets-detail` tests | `/tickets/{id}` page not implemented |
-| Filter tests | Kind filter UI components missing |
-| Redirect tests | Middleware for `/issues` → `/tickets` not configured |
-| MCP tool tests | MCP server tools not implemented or server not running |
+| Test                        | Missing Feature                                        |
+| --------------------------- | ------------------------------------------------------ |
+| `tickets-create` form tests | `/tickets/create` page not implemented                 |
+| `tickets-detail` tests      | `/tickets/{id}` page not implemented                   |
+| Filter tests                | Kind filter UI components missing                      |
+| Redirect tests              | Middleware for `/issues` → `/tickets` not configured   |
+| MCP tool tests              | MCP server tools not implemented or server not running |
 
 ### Authentication Failures
 
 **If you see "not authenticated" or "401 Unauthorized":**
+
 1. Check global setup: `pnpm exec playwright test --project setup`
 2. Verify `.auth/user.json` exists and has session cookie
 3. Check seed data has test user: `dev@projectpulse.local`
@@ -383,7 +422,9 @@ console.log(await prisma.ticket.findMany({ where: { projectId } }));
 ### MCP Test Failures
 
 **If MCP tests fail:**
+
 1. **MCP server not running**:
+
    ```bash
    cd apps/mcp-server
    pnpm dev
@@ -391,6 +432,7 @@ console.log(await prisma.ticket.findMany({ where: { projectId } }));
    ```
 
 2. **Database not accessible**:
+
    ```bash
    docker compose -f docker-compose.cloud.yml ps
    # PostgreSQL should be up on 192.168.1.15:5432
@@ -411,6 +453,7 @@ console.log(await prisma.ticket.findMany({ where: { projectId } }));
 Location: `apps/web/playwright.config.ts`
 
 Key settings:
+
 ```typescript
 {
   globalSetup: './tests/setup/global-setup.ts',

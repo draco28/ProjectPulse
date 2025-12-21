@@ -2,7 +2,7 @@
  * Next.js Middleware
  * Sprint 8.9: Route protection and authentication
  * Sprint 11.5: Added admin route protection with role checking
- * 
+ *
  * Protected routes: /app, /dashboard, /issues, /wiki, etc.
  * Admin routes: /admin/* (requires ADMIN role)
  * Public routes: /login, /api/auth/*, /api/health
@@ -28,7 +28,15 @@ const publicApiPrefixes = [
 // The whitelist approach was a security vulnerability - anyone with curl could access APIs
 // Sprint 10: Removed '/issues' - it's a redirect page to /tickets, project context enforced there
 // Sprint 11.7: Added '/tickets' - requires project context for proper filtering
-const projectRoutes = ['/dashboard', '/wiki', '/knowledge', '/health', '/agents', '/roadmap', '/tickets'];
+const projectRoutes = [
+  '/dashboard',
+  '/wiki',
+  '/knowledge',
+  '/health',
+  '/agents',
+  '/roadmap',
+  '/tickets',
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -75,11 +83,11 @@ export async function middleware(request: NextRequest) {
 
   // Enforce project context on project-scoped routes
   const requiresProject = projectRoutes.some((route) => pathname.startsWith(route));
-  
+
   // Exception: Wiki detail pages (e.g., /wiki/project-slug/page-slug) derive context from the URL path
   // We allow these to bypass the query param check because the page component will resolve the project
   const isWikiDetailPage = pathname.startsWith('/wiki/') && pathname.split('/').length > 2;
-  
+
   if (requiresProject && !isWikiDetailPage) {
     const projectId = searchParams.get('project');
     if (!projectId) {

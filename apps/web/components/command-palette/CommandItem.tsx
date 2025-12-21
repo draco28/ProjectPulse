@@ -2,7 +2,7 @@
 
 /**
  * Command Item Component
- * 
+ *
  * Individual command row with icon, title, description, and shortcut
  */
 
@@ -16,12 +16,7 @@ interface CommandItemProps {
   onMouseEnter: () => void;
 }
 
-export function CommandItem({
-  command,
-  isSelected,
-  onClick,
-  onMouseEnter,
-}: CommandItemProps) {
+export function CommandItem({ command, isSelected, onClick, onMouseEnter }: CommandItemProps) {
   const IconComponent = command.icon;
   const isString = typeof command.icon === 'string';
 
@@ -30,7 +25,8 @@ export function CommandItem({
       className={cn(
         'command-item flex cursor-pointer items-center gap-4 rounded-2xl px-3 py-3 transition-all',
         'border-l-3 border-transparent',
-        isSelected && 'command-item-selected border-l-coral bg-gradient-to-r from-coral/15 to-transparent',
+        isSelected &&
+          'command-item-selected border-l-coral bg-gradient-to-r from-coral/15 to-transparent'
       )}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -41,10 +37,12 @@ export function CommandItem({
       <div
         className={cn(
           'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl',
-          command.type === 'action' && 'bg-gradient-to-br from-coral to-coral-dark shadow-lg shadow-coral/30',
-          command.type === 'agent' && 'bg-gradient-to-br from-coral to-coral-dark shadow-lg shadow-coral/30',
+          command.type === 'action' &&
+            'bg-gradient-to-br from-coral to-coral-dark shadow-lg shadow-coral/30',
+          command.type === 'agent' &&
+            'bg-gradient-to-br from-coral to-coral-dark shadow-lg shadow-coral/30',
           command.type === 'navigation' && 'bg-gradient-to-br from-slate/30 to-slate/20',
-          command.type === 'setting' && 'bg-gradient-to-br from-slate/30 to-slate/20',
+          command.type === 'setting' && 'bg-gradient-to-br from-slate/30 to-slate/20'
         )}
       >
         {isString ? (
@@ -55,10 +53,10 @@ export function CommandItem({
       </div>
 
       {/* Text content */}
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-white truncate">{command.title}</p>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold text-white">{command.title}</p>
         {command.description && (
-          <p className="text-sm text-slate truncate">{command.description}</p>
+          <p className="truncate text-sm text-slate">{command.description}</p>
         )}
       </div>
 
@@ -69,7 +67,7 @@ export function CommandItem({
         </span>
       )}
       {command.shortcut && !command.badge && (
-        <kbd className="rounded px-2 py-1 font-mono text-xs text-slate neu-raised">
+        <kbd className="neu-raised rounded px-2 py-1 font-mono text-xs text-slate">
           {command.shortcut}
         </kbd>
       )}

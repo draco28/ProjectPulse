@@ -1,17 +1,17 @@
 /**
  * Admin Password Reset API
  * Sprint 11.5: Reset user password
- * 
+ *
  * POST /api/admin/users/[id]/reset-password
- * 
+ *
  * Body:
  * - newPassword: Optional. If not provided, generates a temporary password.
- * 
+ *
  * Security:
  * - Requires ADMIN role
  * - Cannot reset own password (self-protection)
  * - Action is audit logged
- * 
+ *
  * Returns:
  * - success: boolean
  * - temporaryPassword: string (only if password was generated)

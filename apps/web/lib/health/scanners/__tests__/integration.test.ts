@@ -30,14 +30,7 @@ describeIntegration('Integration Tests', () => {
 
       const result = await scanner.scan(scanPath, {
         ruleConfig: 'auto',
-        exclude: [
-          'node_modules/**',
-          'dist/**',
-          'build/**',
-          '.next/**',
-          'coverage/**',
-          '*.min.js',
-        ],
+        exclude: ['node_modules/**', 'dist/**', 'build/**', '.next/**', 'coverage/**', '*.min.js'],
         timeout: 120000, // 2 minutes
       });
 
@@ -76,13 +69,7 @@ describeIntegration('Integration Tests', () => {
       // Scan with aggressive exclusions
       const result = await scanner.scan(scanPath, {
         ruleConfig: 'auto',
-        exclude: [
-          'node_modules/**',
-          '**/*.test.ts',
-          '**/__tests__/**',
-          'dist/**',
-          '.next/**',
-        ],
+        exclude: ['node_modules/**', '**/*.test.ts', '**/__tests__/**', 'dist/**', '.next/**'],
         timeout: 120000,
       });
 
@@ -90,12 +77,14 @@ describeIntegration('Integration Tests', () => {
       expect(Array.isArray(result.findings)).toBe(true);
 
       // Verify no findings in excluded directories
-      const testFindings = result.findings.filter(f =>
-        f.filePath.includes('__tests__') || f.filePath.includes('.test.ts')
+      const testFindings = result.findings.filter(
+        (f) => f.filePath.includes('__tests__') || f.filePath.includes('.test.ts')
       );
       expect(testFindings.length).toBe(0);
 
-      console.log(`\n✅ Exclude patterns working: ${result.findings.length} findings (no test files)`);
+      console.log(
+        `\n✅ Exclude patterns working: ${result.findings.length} findings (no test files)`
+      );
     });
   });
 
@@ -141,7 +130,9 @@ describeIntegration('Integration Tests', () => {
 
         // Verify code snippet if available
         if (firstFinding.codeSnippet) {
-          console.log(`   Code snippet available: ${firstFinding.codeSnippet.split('\n').length} lines`);
+          console.log(
+            `   Code snippet available: ${firstFinding.codeSnippet.split('\n').length} lines`
+          );
         }
       }
     });
@@ -153,10 +144,12 @@ describeIntegration('Integration Tests', () => {
       const result = await scanner.scan(scanPath);
 
       // Verify no findings with null ruleId
-      const parseErrors = result.findings.filter(f => !f.ruleId || f.ruleId === 'eslint.null');
+      const parseErrors = result.findings.filter((f) => !f.ruleId || f.ruleId === 'eslint.null');
       expect(parseErrors.length).toBe(0);
 
-      console.log(`\n✅ Parse error filtering: ${result.findings.length} valid findings (no parse errors)`);
+      console.log(
+        `\n✅ Parse error filtering: ${result.findings.length} valid findings (no parse errors)`
+      );
     });
   });
 

@@ -59,7 +59,10 @@ export async function GET(request: NextRequest) {
 
     if (!projectIdParam) {
       return NextResponse.json(
-        { success: false, error: { code: 'VALIDATION_ERROR', message: 'projectId query parameter required' } },
+        {
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: 'projectId query parameter required' },
+        },
         { status: 400 }
       );
     }
@@ -67,7 +70,10 @@ export async function GET(request: NextRequest) {
     const requestedProjectId = parseInt(projectIdParam, 10);
     if (isNaN(requestedProjectId) || requestedProjectId <= 0) {
       return NextResponse.json(
-        { success: false, error: { code: 'VALIDATION_ERROR', message: 'projectId must be a positive integer' } },
+        {
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: 'projectId must be a positive integer' },
+        },
         { status: 400 }
       );
     }
@@ -94,9 +100,10 @@ export async function GET(request: NextRequest) {
 
     // Transform to response format
     const roadmapsList = roadmaps.map((r) => {
-      const avgProgress = r.phases_rel.length > 0
-        ? Math.round(r.phases_rel.reduce((sum, p) => sum + p.progress, 0) / r.phases_rel.length)
-        : 0;
+      const avgProgress =
+        r.phases_rel.length > 0
+          ? Math.round(r.phases_rel.reduce((sum, p) => sum + p.progress, 0) / r.phases_rel.length)
+          : 0;
 
       return {
         id: r.id,
@@ -113,7 +120,6 @@ export async function GET(request: NextRequest) {
       success: true,
       data: { roadmaps: roadmapsList },
     });
-
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {
@@ -150,7 +156,14 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       return NextResponse.json(
-        { success: false, error: { code: 'CONFLICT', message: 'Roadmap already exists for this project. Delete it first or use PUT to update.' } },
+        {
+          success: false,
+          error: {
+            code: 'CONFLICT',
+            message:
+              'Roadmap already exists for this project. Delete it first or use PUT to update.',
+          },
+        },
         { status: 409 }
       );
     }
@@ -200,30 +213,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        roadmap: {
-          id: roadmap.id,
-          projectId: roadmap.projectId,
-          title: validated.title,
-          phases: roadmap.phases,
-          currentPhase: roadmap.currentPhase,
-          currentSprint: roadmap.currentSprint,
-          currentWeek: roadmap.currentWeek,
-          currentDay: roadmap.currentDay,
-          createdAt: roadmap.createdAt.toISOString(),
-          updatedAt: roadmap.updatedAt.toISOString(),
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          roadmap: {
+            id: roadmap.id,
+            projectId: roadmap.projectId,
+            title: validated.title,
+            phases: roadmap.phases,
+            currentPhase: roadmap.currentPhase,
+            currentSprint: roadmap.currentSprint,
+            currentWeek: roadmap.currentWeek,
+            currentDay: roadmap.currentDay,
+            createdAt: roadmap.createdAt.toISOString(),
+            updatedAt: roadmap.updatedAt.toISOString(),
+          },
+          materialization: materializationResult
+            ? {
+                phases: materializationResult.counts?.phases ?? 0,
+                sprints: materializationResult.counts?.sprints ?? 0,
+                weeks: materializationResult.counts?.weeks ?? 0,
+                days: materializationResult.counts?.days ?? 0,
+              }
+            : null,
         },
-        materialization: materializationResult ? {
-          phases: materializationResult.counts?.phases ?? 0,
-          sprints: materializationResult.counts?.sprints ?? 0,
-          weeks: materializationResult.counts?.weeks ?? 0,
-          days: materializationResult.counts?.days ?? 0,
-        } : null,
       },
-    }, { status: 201 });
-
+      { status: 201 }
+    );
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {
@@ -234,14 +251,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid request body',
-          details: error.errors.map((e) => ({ path: e.path, message: e.message })),
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request body',
+            details: error.errors.map((e) => ({ path: e.path, message: e.message })),
+          },
         },
-      }, { status: 400 });
+        { status: 400 }
+      );
     }
 
     console.error('[POST /api/roadmap] Error:', error);

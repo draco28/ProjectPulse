@@ -16,13 +16,7 @@ import { prisma } from '@/lib/prisma';
 const EntityTypeSchema = z.enum(['phases', 'sprints', 'weeks', 'days']);
 
 // Status values
-const StatusSchema = z.enum([
-  'NOT_STARTED',
-  'IN_PROGRESS',
-  'COMPLETED',
-  'BLOCKED',
-  'CANCELLED',
-]);
+const StatusSchema = z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'CANCELLED']);
 
 // Update request body
 const UpdateEntitySchema = z.object({
@@ -44,13 +38,10 @@ type RouteParams = {
   id: string;
 };
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<RouteParams> }) {
   try {
     const resolvedParams = await params;
-    
+
     // Validate entity type
     const entityResult = EntityTypeSchema.safeParse(resolvedParams.entity);
     if (!entityResult.success) {

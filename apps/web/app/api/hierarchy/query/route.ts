@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
   try {
     // Authenticate request
     await requireAuth(request);
-    
+
     const { searchParams } = new URL(request.url);
 
     // 1. Parse and validate query parameters
@@ -260,15 +260,17 @@ export async function GET(request: NextRequest) {
     }
 
     // 5. Return paginated results
-    return NextResponse.json<ApiResponse<{
-      entities: unknown[];
-      pagination: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-      };
-    }>>(
+    return NextResponse.json<
+      ApiResponse<{
+        entities: unknown[];
+        pagination: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
+      }>
+    >(
       {
         data: {
           entities,
@@ -296,7 +298,7 @@ export async function GET(request: NextRequest) {
         { status: error.status }
       );
     }
-    
+
     console.error('[GET /api/hierarchy/query] Error:', error);
 
     return NextResponse.json<ApiResponse<null>>(

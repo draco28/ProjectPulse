@@ -14,7 +14,7 @@ export class UserManager {
   constructor(initialUsers?: any[]) {
     this.users = new Map();
     if (initialUsers) {
-      initialUsers.forEach(user => this.users.set(user.id, user));
+      initialUsers.forEach((user) => this.users.set(user.id, user));
     }
   }
 

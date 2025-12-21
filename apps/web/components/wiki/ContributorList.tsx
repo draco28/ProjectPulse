@@ -13,9 +13,7 @@ interface ContributorListProps {
 
 export function ContributorList({ contributors }: ContributorListProps) {
   // Sort by edit count, show top 5
-  const topContributors = contributors
-    .sort((a, b) => b.editCount - a.editCount)
-    .slice(0, 5);
+  const topContributors = contributors.sort((a, b) => b.editCount - a.editCount).slice(0, 5);
 
   if (topContributors.length === 0) {
     return <p className="text-sm text-slate">No contributors yet</p>;
@@ -26,8 +24,8 @@ export function ContributorList({ contributors }: ContributorListProps) {
       {topContributors.map((contributor) => (
         <div key={contributor.name} className="flex items-center gap-3">
           <ContributorAvatar contributor={contributor} size="sm" showTooltip={false} />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{contributor.name}</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">{contributor.name}</p>
             <p className="text-xs text-slate">
               {contributor.editCount} {contributor.editCount === 1 ? 'edit' : 'edits'}
             </p>
@@ -36,7 +34,7 @@ export function ContributorList({ contributors }: ContributorListProps) {
       ))}
 
       {contributors.length > 5 && (
-        <button className="text-sm text-coral hover:underline smooth-transition w-full text-left">
+        <button className="smooth-transition w-full text-left text-sm text-coral hover:underline">
           View all {contributors.length} contributors →
         </button>
       )}

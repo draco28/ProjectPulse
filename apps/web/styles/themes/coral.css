@@ -5,78 +5,71 @@
  * Features floating hexagons and bubble effects
  */
 
-:root[data-theme="coral"] {
+:root[data-theme='coral'] {
   /* ========================================================================
      BACKGROUND LAYERS
      ======================================================================== */
-  --color-bg-darkest: #1A1A1A;   /* Dark */
-  --color-bg-dark: #242424;      /* Dark Lighter (sidebar) */
-  --color-bg-medium: #2A2A2A;    /* Dark Card */
-  --color-bg-light: #303030;     /* Hover state */
+  --color-bg-darkest: #1a1a1a; /* Dark */
+  --color-bg-dark: #242424; /* Dark Lighter (sidebar) */
+  --color-bg-medium: #2a2a2a; /* Dark Card */
+  --color-bg-light: #303030; /* Hover state */
 
   /* ========================================================================
      ACCENT COLORS
      ======================================================================== */
-  --color-accent-primary: #FF8B6A;   /* Coral */
-  --color-accent-secondary: #FFB299; /* Coral Light */
-  --color-accent-tertiary: #E67759;  /* Coral Dark */
+  --color-accent-primary: #ff8b6a; /* Coral */
+  --color-accent-secondary: #ffb299; /* Coral Light */
+  --color-accent-tertiary: #e67759; /* Coral Dark */
 
   /* ========================================================================
      TEXT COLORS
      ======================================================================== */
-  --color-text-primary: #E5E5E5;   /* Light gray */
-  --color-text-secondary: #A5A5A5; /* Slate Light */
-  --color-text-tertiary: #8B8B8B;  /* Slate */
-  --color-text-muted: #6B6B6B;     /* Dark Slate */
+  --color-text-primary: #e5e5e5; /* Light gray */
+  --color-text-secondary: #a5a5a5; /* Slate Light */
+  --color-text-tertiary: #8b8b8b; /* Slate */
+  --color-text-muted: #6b6b6b; /* Dark Slate */
 
   /* ========================================================================
      SEMANTIC COLORS
      ======================================================================== */
-  --color-success: #4CAF50;   /* Green */
-  --color-warning: #FFC107;   /* Amber */
-  --color-error: #F44336;     /* Red */
-  --color-info: #2196F3;      /* Blue */
+  --color-success: #4caf50; /* Green */
+  --color-warning: #ffc107; /* Amber */
+  --color-error: #f44336; /* Red */
+  --color-info: #2196f3; /* Blue */
 
   /* ========================================================================
      PRIORITY COLORS (for issue tracker)
      ======================================================================== */
-  --color-priority-critical: #FF8B6A;  /* Coral */
-  --color-priority-high: #FFC107;      /* Amber */
-  --color-priority-medium: #2196F3;    /* Blue */
-  --color-priority-low: #8B8B8B;       /* Slate */
+  --color-priority-critical: #ff8b6a; /* Coral */
+  --color-priority-high: #ffc107; /* Amber */
+  --color-priority-medium: #2196f3; /* Blue */
+  --color-priority-low: #8b8b8b; /* Slate */
 
   /* ========================================================================
      DARK NEUMORPHIC SHADOWS
      ======================================================================== */
   /* Raised effect - cards that pop out */
   --shadow-neu-float:
-    8px 8px 16px rgba(0, 0, 0, 0.6),
-    -8px -8px 16px rgba(60, 60, 60, 0.1),
+    8px 8px 16px rgba(0, 0, 0, 0.6), -8px -8px 16px rgba(60, 60, 60, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
   /* Pressed/Inset effect */
   --shadow-neu-inset:
-    inset 4px 4px 8px rgba(0, 0, 0, 0.5),
-    inset -2px -2px 6px rgba(60, 60, 60, 0.1);
+    inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -2px -2px 6px rgba(60, 60, 60, 0.1);
 
   /* Enhanced raised effect (hover) */
   --shadow-neu-dark:
-    12px 12px 24px rgba(0, 0, 0, 0.7),
-    -12px -12px 24px rgba(60, 60, 60, 0.15),
+    12px 12px 24px rgba(0, 0, 0, 0.7), -12px -12px 24px rgba(60, 60, 60, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
   /* Regular shadow */
   --shadow-regular: 0 8px 20px rgba(0, 0, 0, 0.4);
 
   /* Hexagon shadow */
-  --shadow-hexagon:
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --shadow-hexagon: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
   /* Bubble shadow */
-  --shadow-bubble:
-    0 10px 30px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --shadow-bubble: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
   /* ========================================================================
      CORAL GLOW EFFECTS
@@ -86,26 +79,23 @@
   --glow-tertiary: 0 12px 30px rgba(255, 139, 106, 0.5);
 
   /* Coral button glow */
-  --glow-coral-button:
-    0 8px 20px rgba(255, 139, 106, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  --glow-coral-button: 0 8px 20px rgba(255, 139, 106, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 
   --glow-coral-button-hover:
-    0 12px 30px rgba(255, 139, 106, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 12px 30px rgba(255, 139, 106, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 
   /* ========================================================================
      GRADIENTS
      ======================================================================== */
-  --gradient-primary: linear-gradient(135deg, #FF8B6A 0%, #E67759 100%);
-  --gradient-secondary: linear-gradient(135deg, #FFB299 0%, #FF8B6A 100%);
-  --gradient-background: #1A1A1A; /* Solid dark background */
+  --gradient-primary: linear-gradient(135deg, #ff8b6a 0%, #e67759 100%);
+  --gradient-secondary: linear-gradient(135deg, #ffb299 0%, #ff8b6a 100%);
+  --gradient-background: #1a1a1a; /* Solid dark background */
 
   /* Card gradients */
-  --gradient-card: linear-gradient(145deg, #2A2A2A, #242424);
+  --gradient-card: linear-gradient(145deg, #2a2a2a, #242424);
   --gradient-hexagon: linear-gradient(135deg, rgba(42, 42, 42, 0.8) 0%, rgba(26, 26, 26, 0.9) 100%);
   --gradient-bubble: linear-gradient(135deg, rgba(42, 42, 42, 0.6) 0%, rgba(36, 36, 36, 0.8) 100%);
-  --gradient-bubble-coral: linear-gradient(135deg, #FF8B6A 0%, #E67759 100%);
+  --gradient-bubble-coral: linear-gradient(135deg, #ff8b6a 0%, #e67759 100%);
 
   /* ========================================================================
      BORDERS
@@ -119,7 +109,7 @@
    CORAL THEME SPECIAL EFFECTS (Optional, can be applied via utility classes)
    ========================================================================== */
 
-[data-theme="coral"] .glass-effect {
+[data-theme='coral'] .glass-effect {
   background: rgba(42, 42, 42, 0.4);
   backdrop-filter: blur(30px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -129,6 +119,6 @@
 }
 
 /* Hexagon clip-path utility */
-[data-theme="coral"] .hexagon-shape {
+[data-theme='coral'] .hexagon-shape {
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }

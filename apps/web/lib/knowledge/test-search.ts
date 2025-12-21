@@ -22,7 +22,11 @@ async function testSearch() {
     // Note: Using projectId=1 for test purposes
     const testProjectId = 1;
     try {
-      const semanticResults = await semanticSearch(query, { projectId: testProjectId, limit: 3, threshold: 0.3 });
+      const semanticResults = await semanticSearch(query, {
+        projectId: testProjectId,
+        limit: 3,
+        threshold: 0.3,
+      });
       console.log(`  Semantic (${semanticResults.length} results):`);
       semanticResults.forEach((result, idx) => {
         console.log(`    ${idx + 1}. [${result.score.toFixed(3)}] ${result.title}`);

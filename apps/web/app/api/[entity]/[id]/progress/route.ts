@@ -30,10 +30,7 @@ type RouteParams = {
 // PUT HANDLER
 // ============================================================================
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: RouteParams }
-) {
+export async function PUT(request: NextRequest, { params }: { params: RouteParams }) {
   try {
     // 1. Validate path parameters
     const entity = EntityTypeSchema.parse(params.entity);
@@ -50,65 +47,81 @@ export async function PUT(
     const result = await updateProgressAndPropagate(entityId, entityType, progress);
 
     // 5. Success response
-    return NextResponse.json({
-      success: true,
-      data: {
-        entity: result.entity,
-        propagation: {
-          updated: result.propagated,
-          totalAffected: result.propagated.length,
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          entity: result.entity,
+          propagation: {
+            updated: result.propagated,
+            totalAffected: result.propagated.length,
+          },
         },
       },
-    }, { status: 200 });
-
+      { status: 200 }
+    );
   } catch (error) {
     // 6. Error handling
 
     // Zod validation errors (400)
     if (error instanceof z.ZodError) {
       const firstError = error.errors[0];
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: firstError?.message || 'Validation failed',
-          field: String(firstError?.path?.[0] || 'unknown'),
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: firstError?.message || 'Validation failed',
+            field: String(firstError?.path?.[0] || 'unknown'),
+          },
         },
-      }, { status: 400 });
+        { status: 400 }
+      );
     }
 
     // Entity not found (404)
-    if (error?.constructor?.name === 'PrismaClientKnownRequestError' &&
-        (error as any).code === 'P2025') {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'NOT_FOUND',
-          message: `Entity not found`,
+    if (
+      error?.constructor?.name === 'PrismaClientKnownRequestError' &&
+      (error as any).code === 'P2025'
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: `Entity not found`,
+          },
         },
-      }, { status: 404 });
+        { status: 404 }
+      );
     }
 
     // Database errors (500)
     if (error?.constructor?.name === 'PrismaClientKnownRequestError') {
       console.error('[API] Prisma error in PUT /api/:entity/:id/progress:', error);
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Database operation failed',
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Database operation failed',
+          },
         },
-      }, { status: 500 });
+        { status: 500 }
+      );
     }
 
     // Unknown errors (500)
     console.error('[API] Unexpected error in PUT /api/:entity/:id/progress:', error);
-    return NextResponse.json({
-      success: false,
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error occurred',
+        },
       },
-    }, { status: 500 });
+      { status: 500 }
+    );
   }
 }

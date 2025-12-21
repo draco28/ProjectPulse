@@ -53,15 +53,15 @@ export async function createAgent(data: {
 
     // TODO: Get projectId from auth/session when available
     const projectId = 1; // Default project for MVP
-    
+
     while (attempts < maxAttempts) {
       // Check if slug already exists (now scoped to project)
       const existing = await prisma.agentPersona.findUnique({
-        where: { 
+        where: {
           projectId_slug: {
             projectId: projectId,
             slug: slug,
-          }
+          },
         },
         select: { id: true },
       });

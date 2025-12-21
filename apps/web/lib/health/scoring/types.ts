@@ -104,10 +104,10 @@ export interface ScoreWeights {
  * Technical debt has the lowest weight as it's primarily a maintenance concern.
  */
 export const DEFAULT_SCORE_WEIGHTS: ScoreWeights = {
-  security: 0.40, // 40% - Critical for security posture
-  quality: 0.30, // 30% - Important for maintainability
-  accessibility: 0.20, // 20% - Important for inclusivity
-  debt: 0.10, // 10% - Long-term concern
+  security: 0.4, // 40% - Critical for security posture
+  quality: 0.3, // 30% - Important for maintainability
+  accessibility: 0.2, // 20% - Important for inclusivity
+  debt: 0.1, // 10% - Long-term concern
 };
 
 /**

@@ -51,13 +51,13 @@ export function JsonPasteArea({ value, onChange, onParse, isDisabled }: JsonPast
           disabled={isDisabled}
           rows={16}
           className={`
-            w-full px-4 py-3 rounded-xl
-            neu-pressed bg-transparent
-            text-white placeholder:text-slate/30
-            font-mono text-sm
-            focus:outline-none focus:ring-2 focus:ring-coral/50
-            resize-none
-            ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
+            neu-pressed w-full resize-none rounded-xl
+            bg-transparent px-4
+            py-3 font-mono
+            text-sm text-white
+            placeholder:text-slate/30 focus:outline-none focus:ring-2
+            focus:ring-coral/50
+            ${isDisabled ? 'cursor-not-allowed opacity-50' : ''}
           `}
         />
 
@@ -74,11 +74,12 @@ export function JsonPasteArea({ value, onChange, onParse, isDisabled }: JsonPast
           onClick={handleFormat}
           disabled={isDisabled || !value.trim()}
           className={`
-            inline-flex items-center gap-2 px-4 py-2 rounded-lg
+            inline-flex items-center gap-2 rounded-lg px-4 py-2
             text-sm font-medium transition-all
-            ${isDisabled || !value.trim()
-              ? 'opacity-50 cursor-not-allowed text-slate'
-              : 'neu-flat text-slate hover:text-white'
+            ${
+              isDisabled || !value.trim()
+                ? 'cursor-not-allowed text-slate opacity-50'
+                : 'neu-flat text-slate hover:text-white'
             }
           `}
         >
@@ -91,11 +92,12 @@ export function JsonPasteArea({ value, onChange, onParse, isDisabled }: JsonPast
           onClick={onParse}
           disabled={isDisabled || !value.trim()}
           className={`
-            inline-flex items-center gap-2 px-6 py-3 rounded-xl
+            inline-flex items-center gap-2 rounded-xl px-6 py-3
             font-semibold transition-all duration-200
-            ${isDisabled || !value.trim()
-              ? 'opacity-50 cursor-not-allowed bg-coral/50 text-white'
-              : 'coral-gradient text-white hover:shadow-lg hover:shadow-coral/20'
+            ${
+              isDisabled || !value.trim()
+                ? 'cursor-not-allowed bg-coral/50 text-white opacity-50'
+                : 'coral-gradient text-white hover:shadow-lg hover:shadow-coral/20'
             }
           `}
         >

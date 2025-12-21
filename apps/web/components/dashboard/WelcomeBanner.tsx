@@ -29,7 +29,7 @@ interface WelcomeBannerProps {
 export function WelcomeBanner({
   userName: _userName = 'Developer',
   projectName = 'Your Project',
-  projectId
+  projectId,
 }: WelcomeBannerProps) {
   // Client-only rendering - no SSR
   const [mounted, setMounted] = useState(false);
@@ -38,8 +38,7 @@ export function WelcomeBanner({
   useEffect(() => {
     setMounted(true);
     const hour = new Date().getHours();
-    const timeGreeting =
-      hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const timeGreeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     setGreeting(timeGreeting);
   }, []);
 
@@ -49,10 +48,10 @@ export function WelcomeBanner({
       <div className="neu-raised smooth-transition relative overflow-hidden rounded-3xl p-8">
         <div className="coral-gradient absolute right-8 top-1/2 h-32 w-32 -translate-y-1/2 rounded-full opacity-20 blur-3xl" />
         <div className="relative z-10">
-          <h2 className="mb-2 text-4xl font-bold text-white">
-            Good morning! 👋
-          </h2>
-          <p className="mb-6 text-lg text-slate">Here&apos;s your project pulse for <strong>{projectName}</strong></p>
+          <h2 className="mb-2 text-4xl font-bold text-white">Good morning! 👋</h2>
+          <p className="mb-6 text-lg text-slate">
+            Here&apos;s your project pulse for <strong>{projectName}</strong>
+          </p>
           <Link
             href={projectId ? `/tickets/create?project=${projectId}` : '/tickets/create'}
             className="coral-gradient smooth-transition inline-flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white"
@@ -72,10 +71,10 @@ export function WelcomeBanner({
 
       {/* Content */}
       <div className="relative z-10">
-        <h2 className="mb-2 text-4xl font-bold text-white">
-          {greeting}! 👋
-        </h2>
-        <p className="mb-6 text-lg text-slate">Here&apos;s your project pulse for <strong>{projectName}</strong></p>
+        <h2 className="mb-2 text-4xl font-bold text-white">{greeting}! 👋</h2>
+        <p className="mb-6 text-lg text-slate">
+          Here&apos;s your project pulse for <strong>{projectName}</strong>
+        </p>
         <Link
           href={projectId ? `/tickets/create?project=${projectId}` : '/tickets/create'}
           className="coral-gradient smooth-transition inline-flex items-center gap-2 rounded-2xl px-8 py-3 font-semibold text-white"

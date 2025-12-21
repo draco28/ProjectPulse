@@ -80,35 +80,39 @@ export async function POST(request: NextRequest) {
     if (sessionNumber === 2) {
       try {
         console.log('[Session 2] Creating Document records from response');
-        
+
         // Check if response contains any document data
         const responseData = data as any;
-        
+
         // Create 13-Project-Plan.md document (critical for Session 3)
         // Extract from response.projectPlanContent OR response.documentsGenerated OR response.projectContextJson
-        if (responseData.projectPlanContent || responseData.documentsGenerated || responseData.projectContextJson) {
-          
+        if (
+          responseData.projectPlanContent ||
+          responseData.documentsGenerated ||
+          responseData.projectContextJson
+        ) {
           // Create 13-Project-Plan.md (Session 3 dependency)
           await prisma.document.create({
             data: {
               onboardingSessionId: session.id,
               filename: '13-Project-Plan.md',
-              content: responseData.projectPlanContent || 
-                       '# Project Implementation Plan\n\n[Generated from Session 2]',
+              content:
+                responseData.projectPlanContent ||
+                '# Project Implementation Plan\n\n[Generated from Session 2]',
               wordCount: responseData.projectPlanWordCount || 0,
               category: 'planning',
               tags: ['roadmap', 'planning', 'session-2'],
             },
           });
-          
+
           console.log('[Session 2] Created 13-Project-Plan.md document');
-          
+
           // Optional: Create other documents if provided
           if (responseData.documentsGenerated && Array.isArray(responseData.documentsGenerated)) {
             for (const doc of responseData.documentsGenerated) {
               // Skip 13-Project-Plan.md (already created)
               if (doc.filename === '13-Project-Plan.md') continue;
-              
+
               await prisma.document.create({
                 data: {
                   onboardingSessionId: session.id,
@@ -120,8 +124,10 @@ export async function POST(request: NextRequest) {
                 },
               });
             }
-            
-            console.log(`[Session 2] Created ${responseData.documentsGenerated.length} documents total`);
+
+            console.log(
+              `[Session 2] Created ${responseData.documentsGenerated.length} documents total`
+            );
           }
         }
       } catch (docError) {
@@ -135,7 +141,9 @@ export async function POST(request: NextRequest) {
     if (sessionNumber === 3) {
       try {
         // Import from shared package (Sprint 8.5 Phase 1 - Architectural Fix)
-        const { parseProjectPlan, materializeRoadmap } = await import('@projectpulse/roadmap-tools');
+        const { parseProjectPlan, materializeRoadmap } = await import(
+          '@projectpulse/roadmap-tools'
+        );
 
         // Find 13-Project-Plan.md document
         const projectPlanDoc = await prisma.document.findFirst({
@@ -157,7 +165,10 @@ export async function POST(request: NextRequest) {
           const parsedRoadmap = await parseProjectPlan(projectPlanDoc.id);
           console.log('[Session 3] Parsed roadmap:', {
             phases: parsedRoadmap.phases.length,
-            sprints: parsedRoadmap.phases.reduce((sum: number, p: any) => sum + p.sprints.length, 0),
+            sprints: parsedRoadmap.phases.reduce(
+              (sum: number, p: any) => sum + p.sprints.length,
+              0
+            ),
           });
 
           // Create Roadmap record with phases JSON
@@ -236,7 +247,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to submit onboarding response', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to submit onboarding response',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

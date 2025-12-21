@@ -42,7 +42,7 @@ interface ParsedRoadmap {
 function calculateEndDate(startDate: Date, duration: string): Date {
   const weeks = parseInt(duration.match(/(\d+)\s*week/)?.[1] || '2', 10);
   const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + (weeks * 7) - 1);
+  endDate.setDate(endDate.getDate() + weeks * 7 - 1);
   return endDate;
 }
 
@@ -80,8 +80,12 @@ async function materializeRoadmap(roadmapId: string) {
     // Check if already materialized
     if (roadmap.phases_rel.length > 0) {
       console.log(`⚠️  Roadmap already materialized (${roadmap.phases_rel.length} phases exist)`);
-      console.log(`Do you want to delete existing records and re-materialize? (This will delete all hierarchy data)`);
-      console.log(`Skipping materialization. To force re-materialization, manually delete Phase records first.`);
+      console.log(
+        `Do you want to delete existing records and re-materialize? (This will delete all hierarchy data)`
+      );
+      console.log(
+        `Skipping materialization. To force re-materialization, manually delete Phase records first.`
+      );
       return;
     }
 
@@ -120,7 +124,9 @@ async function materializeRoadmap(roadmapId: string) {
 
       createdIds.phaseIds.push(phase.id);
       console.log(`   ✅ Phase created (${phase.id})`);
-      console.log(`   Duration: ${currentDate.toISOString().split('T')[0]} → ${phaseEndDate.toISOString().split('T')[0]}`);
+      console.log(
+        `   Duration: ${currentDate.toISOString().split('T')[0]} → ${phaseEndDate.toISOString().split('T')[0]}`
+      );
 
       // 3. Create Sprint records
       let sprintStartDate = new Date(currentDate);
@@ -144,7 +150,9 @@ async function materializeRoadmap(roadmapId: string) {
 
         createdIds.sprintIds.push(sprint.id);
         console.log(`     ✅ Sprint created (${sprint.id})`);
-        console.log(`     Duration: ${sprintStartDate.toISOString().split('T')[0]} → ${sprintEndDate.toISOString().split('T')[0]}`);
+        console.log(
+          `     Duration: ${sprintStartDate.toISOString().split('T')[0]} → ${sprintEndDate.toISOString().split('T')[0]}`
+        );
         console.log(`     Story Points: ${sprintJson.storyPoints}`);
 
         // 4. Create Week records
@@ -222,7 +230,6 @@ async function materializeRoadmap(roadmapId: string) {
 
     console.log(`\nNext step: View roadmap at /roadmap page`);
     console.log(`  (Task B: UI implementation)`);
-
   } catch (error) {
     console.error('\n❌ Materialization failed:', error);
     process.exit(1);

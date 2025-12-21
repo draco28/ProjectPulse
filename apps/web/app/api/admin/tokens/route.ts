@@ -64,10 +64,7 @@ export async function GET(request: NextRequest) {
       switch (status) {
         case 'active':
           where.isRevoked = false;
-          where.OR = [
-            { expiresAt: null },
-            { expiresAt: { gt: now } },
-          ];
+          where.OR = [{ expiresAt: null }, { expiresAt: { gt: now } }];
           break;
         case 'revoked':
           where.isRevoked = true;
@@ -155,9 +152,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch tokens' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch tokens' }, { status: 500 });
   }
 }

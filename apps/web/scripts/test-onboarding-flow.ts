@@ -135,7 +135,9 @@ async function testOnboardingFlow() {
     const prompt3 = await prompt3Response.json();
 
     console.log(`✅ Got Session ${prompt3.sessionNumber}: ${prompt3.sessionName}`);
-    console.log(`   Resolved variables from S1+S2: ${Object.keys(prompt3.resolvedVariables).length}`);
+    console.log(
+      `   Resolved variables from S1+S2: ${Object.keys(prompt3.resolvedVariables).length}`
+    );
 
     const session3Data = {
       memory_banks_created: true,

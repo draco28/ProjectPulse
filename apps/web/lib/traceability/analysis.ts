@@ -109,8 +109,7 @@ export function analyzeTraceability(
   }
 
   const missingFRs = allFRs.filter((fr) => !coveredFRs.has(fr));
-  const frCoveragePercent =
-    allFRs.length > 0 ? (coveredFRs.size / allFRs.length) * 100 : 100;
+  const frCoveragePercent = allFRs.length > 0 ? (coveredFRs.size / allFRs.length) * 100 : 100;
 
   // =========================================================================
   // 2. NFR Analysis
@@ -144,9 +143,7 @@ export function analyzeTraceability(
   }
 
   // Check which backlog items have sprint assignment (from backlog doc)
-  const backlogWithSprint = allBacklogItems.filter(
-    (item) => item.sprintNumber !== null
-  );
+  const backlogWithSprint = allBacklogItems.filter((item) => item.sprintNumber !== null);
 
   // Backlog items that are neither in plan scope nor have sprint assigned
   const missingBacklogInPlan = allBacklogItemIds.filter(
@@ -167,18 +164,14 @@ export function analyzeTraceability(
   ]);
 
   const backlogCoveragePercent =
-    allBacklogItemIds.length > 0
-      ? (mappedBacklogItems.size / allBacklogItemIds.length) * 100
-      : 100;
+    allBacklogItemIds.length > 0 ? (mappedBacklogItems.size / allBacklogItemIds.length) * 100 : 100;
 
   // =========================================================================
   // 4. Sprint Scope Quality
   // =========================================================================
 
   // % of sprints that have scope sections
-  const sprintsWithScope = allSprints.filter(
-    (sprint) => sprint.backlogItems.length > 0
-  ).length;
+  const sprintsWithScope = allSprints.filter((sprint) => sprint.backlogItems.length > 0).length;
 
   const planMappingCoveragePercent =
     allSprints.length > 0 ? (sprintsWithScope / allSprints.length) * 100 : 100;
@@ -199,8 +192,7 @@ export function analyzeTraceability(
       for (const prdRef of req.prdTraces) {
         // Check if this PRD section exists (partial match - 2.3 should match 2.3.1)
         const refExists = allPRDSections.some(
-          (section) =>
-            section === prdRef || section.startsWith(`${prdRef}.`)
+          (section) => section === prdRef || section.startsWith(`${prdRef}.`)
         );
 
         if (!refExists) {
@@ -293,32 +285,48 @@ export function getValidationSummary(
 
   // FR Coverage
   if (matrix.coverage.frCoveragePercent === 100) {
-    lines.push(`✅ FR Coverage: ${matrix.coverage.frCoveragePercent}% (${matrix.details.coveredFRs}/${matrix.details.totalFRs})`);
+    lines.push(
+      `✅ FR Coverage: ${matrix.coverage.frCoveragePercent}% (${matrix.details.coveredFRs}/${matrix.details.totalFRs})`
+    );
   } else if (strict) {
-    lines.push(`❌ FR Coverage: ${matrix.coverage.frCoveragePercent}% (${matrix.details.coveredFRs}/${matrix.details.totalFRs}) - ${matrix.gaps.missingFrRefsInBacklog.length} uncovered`);
+    lines.push(
+      `❌ FR Coverage: ${matrix.coverage.frCoveragePercent}% (${matrix.details.coveredFRs}/${matrix.details.totalFRs}) - ${matrix.gaps.missingFrRefsInBacklog.length} uncovered`
+    );
   } else {
-    lines.push(`⚠️ FR Coverage: ${matrix.coverage.frCoveragePercent}% (${matrix.details.coveredFRs}/${matrix.details.totalFRs})`);
+    lines.push(
+      `⚠️ FR Coverage: ${matrix.coverage.frCoveragePercent}% (${matrix.details.coveredFRs}/${matrix.details.totalFRs})`
+    );
   }
 
   // Backlog Coverage
   if (matrix.coverage.backlogItemCoveragePercent === 100) {
-    lines.push(`✅ Backlog Mapped: ${matrix.coverage.backlogItemCoveragePercent}% (${matrix.details.coveredBacklogItems}/${matrix.details.totalBacklogItems})`);
+    lines.push(
+      `✅ Backlog Mapped: ${matrix.coverage.backlogItemCoveragePercent}% (${matrix.details.coveredBacklogItems}/${matrix.details.totalBacklogItems})`
+    );
   } else {
-    lines.push(`⚠️ Backlog Mapped: ${matrix.coverage.backlogItemCoveragePercent}% (${matrix.details.coveredBacklogItems}/${matrix.details.totalBacklogItems})`);
+    lines.push(
+      `⚠️ Backlog Mapped: ${matrix.coverage.backlogItemCoveragePercent}% (${matrix.details.coveredBacklogItems}/${matrix.details.totalBacklogItems})`
+    );
   }
 
   // Plan Scopes
   if (matrix.coverage.planMappingCoveragePercent === 100) {
-    lines.push(`✅ Sprint Scopes: ${matrix.coverage.planMappingCoveragePercent}% (${matrix.details.sprintsWithScope}/${matrix.details.totalSprints})`);
+    lines.push(
+      `✅ Sprint Scopes: ${matrix.coverage.planMappingCoveragePercent}% (${matrix.details.sprintsWithScope}/${matrix.details.totalSprints})`
+    );
   } else {
-    lines.push(`⚠️ Sprint Scopes: ${matrix.coverage.planMappingCoveragePercent}% (${matrix.details.sprintsWithScope}/${matrix.details.totalSprints})`);
+    lines.push(
+      `⚠️ Sprint Scopes: ${matrix.coverage.planMappingCoveragePercent}% (${matrix.details.sprintsWithScope}/${matrix.details.totalSprints})`
+    );
   }
 
   // NFR Summary
   if (strictNfr && matrix.nfrSummary.unreferenced.length > 0) {
     lines.push(`❌ NFRs: ${matrix.nfrSummary.referenced}/${matrix.nfrSummary.total} referenced`);
   } else {
-    lines.push(`ℹ️ NFRs: ${matrix.nfrSummary.referenced}/${matrix.nfrSummary.total} referenced (informational)`);
+    lines.push(
+      `ℹ️ NFRs: ${matrix.nfrSummary.referenced}/${matrix.nfrSummary.total} referenced (informational)`
+    );
   }
 
   // Invalid PRD refs

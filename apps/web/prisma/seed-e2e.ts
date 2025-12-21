@@ -65,7 +65,10 @@ async function main() {
     prisma.label.create({ data: { name: 'feature', color: '#00D4FF', projectId: project.id } }),
     prisma.label.create({ data: { name: 'enhancement', color: '#FFD600', projectId: project.id } }),
   ]);
-  console.log('🏷️  Created labels:', labels.map(l => ({ id: l.id, name: l.name })));
+  console.log(
+    '🏷️  Created labels:',
+    labels.map((l) => ({ id: l.id, name: l.name }))
+  );
 
   // Create tickets with EXACT titles tests expect (Sprint 10: Renamed from issues)
   console.log('📝 Creating tickets...');
@@ -187,7 +190,7 @@ async function main() {
   // This ensures it appears in "recent issues" section (dashboard shows 5 most recent by createdAt DESC)
   // Set to 'in-progress' so pulse indicator appears for E2E test
   console.log('📝 Creating test-expected authentication ticket...');
-  const bugLabel = labels.find(l => l.name === 'bug')!;
+  const bugLabel = labels.find((l) => l.name === 'bug')!;
   console.log(`   Connecting to bug label: id=${bugLabel.id}`);
 
   // Create ticket first, then connect label (workaround for constraint timing issue)

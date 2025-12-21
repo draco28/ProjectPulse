@@ -82,16 +82,16 @@ describe('ESLintScanner', () => {
           warningCount: 2,
           fixableErrorCount: 0,
           fixableWarningCount: 0,
-        }
+        },
       ];
 
       jest.spyOn(ESLint.prototype, 'lintFiles').mockResolvedValue(fixture as ESLint.LintResult[]);
 
       const result = await scanner.scan('/fake/path');
 
-      expect(result.findings[0].severity).toBe(FindingSeverity.HIGH);   // Severity 2
+      expect(result.findings[0].severity).toBe(FindingSeverity.HIGH); // Severity 2
       expect(result.findings[1].severity).toBe(FindingSeverity.MEDIUM); // Severity 1
-      expect(result.findings[2].severity).toBe(FindingSeverity.LOW);    // Severity 0
+      expect(result.findings[2].severity).toBe(FindingSeverity.LOW); // Severity 0
     });
 
     it('should extract code snippet with 3-line context and marker', async () => {
@@ -105,14 +105,14 @@ describe('ESLintScanner', () => {
               message: 'Test finding',
               line: 3,
               column: 10,
-            }
+            },
           ],
           errorCount: 1,
           warningCount: 0,
           fixableErrorCount: 0,
           fixableWarningCount: 0,
-          source: 'line 1\nline 2 with code\nline 3 with problem here\nline 4 after\nline 5'
-        }
+          source: 'line 1\nline 2 with code\nline 3 with problem here\nline 4 after\nline 5',
+        },
       ];
 
       jest.spyOn(ESLint.prototype, 'lintFiles').mockResolvedValue(fixture as ESLint.LintResult[]);
@@ -121,10 +121,10 @@ describe('ESLintScanner', () => {
 
       const finding = result.findings[0];
       expect(finding.codeSnippet).toBeDefined();
-      expect(finding.codeSnippet).toContain('line 2 with code');       // Line before
-      expect(finding.codeSnippet).toContain('line 3 with problem');    // Problem line
-      expect(finding.codeSnippet).toContain('^');                       // Marker at column 10
-      expect(finding.codeSnippet).toContain('line 4 after');           // Line after
+      expect(finding.codeSnippet).toContain('line 2 with code'); // Line before
+      expect(finding.codeSnippet).toContain('line 3 with problem'); // Problem line
+      expect(finding.codeSnippet).toContain('^'); // Marker at column 10
+      expect(finding.codeSnippet).toContain('line 4 after'); // Line after
     });
 
     it('should generate accurate summary with counts by severity', async () => {
@@ -145,7 +145,7 @@ describe('ESLintScanner', () => {
       expect(result.summary.bySeverity.HIGH).toBe(1);
       expect(result.summary.bySeverity.MEDIUM).toBe(3);
       expect(result.summary.bySeverity.CRITICAL).toBeUndefined(); // No CRITICAL
-      expect(result.summary.bySeverity.LOW).toBeUndefined();      // No LOW
+      expect(result.summary.bySeverity.LOW).toBeUndefined(); // No LOW
     });
   });
 
@@ -163,7 +163,7 @@ describe('ESLintScanner', () => {
           warningCount: 1,
           fixableErrorCount: 0,
           fixableWarningCount: 0,
-        }
+        },
       ];
 
       jest.spyOn(ESLint.prototype, 'lintFiles').mockResolvedValue(fixture as ESLint.LintResult[]);
@@ -202,7 +202,7 @@ describe('ESLintScanner', () => {
           warningCount: 0,
           fixableErrorCount: 0,
           fixableWarningCount: 0,
-        }
+        },
       ];
 
       jest.spyOn(ESLint.prototype, 'lintFiles').mockResolvedValue(fixture as ESLint.LintResult[]);
@@ -218,7 +218,10 @@ describe('ESLintScanner', () => {
     it('should use custom ESLint config when specified', async () => {
       let capturedConfig: ESLint.Options | undefined;
 
-      jest.spyOn(ESLint.prototype, 'constructor' as any).mockImplementation(function(this: ESLint, config: ESLint.Options) {
+      jest.spyOn(ESLint.prototype, 'constructor' as any).mockImplementation(function (
+        this: ESLint,
+        config: ESLint.Options
+      ) {
         capturedConfig = config;
         return this;
       });
@@ -226,7 +229,7 @@ describe('ESLintScanner', () => {
       jest.spyOn(ESLint.prototype, 'lintFiles').mockResolvedValue([]);
 
       await scanner.scan('/fake/path', {
-        configPath: '/custom/.eslintrc.json'
+        configPath: '/custom/.eslintrc.json',
       });
 
       expect(capturedConfig?.overrideConfigFile).toBe('/custom/.eslintrc.json');
@@ -235,7 +238,10 @@ describe('ESLintScanner', () => {
     it('should respect custom file extensions', async () => {
       let capturedConfig: ESLint.Options | undefined;
 
-      jest.spyOn(ESLint.prototype, 'constructor' as any).mockImplementation(function(this: ESLint, config: ESLint.Options) {
+      jest.spyOn(ESLint.prototype, 'constructor' as any).mockImplementation(function (
+        this: ESLint,
+        config: ESLint.Options
+      ) {
         capturedConfig = config;
         return this;
       });
@@ -243,7 +249,7 @@ describe('ESLintScanner', () => {
       jest.spyOn(ESLint.prototype, 'lintFiles').mockResolvedValue([]);
 
       await scanner.scan('/fake/path', {
-        extensions: ['.js', '.vue']
+        extensions: ['.js', '.vue'],
       });
 
       expect(capturedConfig?.extensions).toEqual(['.js', '.vue']);
@@ -252,7 +258,10 @@ describe('ESLintScanner', () => {
     it('should apply exclude patterns via ignorePatterns', async () => {
       let capturedConfig: ESLint.Options | undefined;
 
-      jest.spyOn(ESLint.prototype, 'constructor' as any).mockImplementation(function(this: ESLint, config: ESLint.Options) {
+      jest.spyOn(ESLint.prototype, 'constructor' as any).mockImplementation(function (
+        this: ESLint,
+        config: ESLint.Options
+      ) {
         capturedConfig = config;
         return this;
       });
@@ -260,7 +269,7 @@ describe('ESLintScanner', () => {
       jest.spyOn(ESLint.prototype, 'lintFiles').mockResolvedValue([]);
 
       await scanner.scan('/fake/path', {
-        exclude: ['dist/**', '*.test.ts']
+        exclude: ['dist/**', '*.test.ts'],
       });
 
       expect(capturedConfig?.ignorePatterns).toEqual(['dist/**', '*.test.ts']);
@@ -269,9 +278,9 @@ describe('ESLintScanner', () => {
 
   describe('Error Scenarios', () => {
     it('should wrap ESLint errors in ScannerError', async () => {
-      jest.spyOn(ESLint.prototype, 'lintFiles').mockRejectedValue(
-        new Error('Failed to read config file')
-      );
+      jest
+        .spyOn(ESLint.prototype, 'lintFiles')
+        .mockRejectedValue(new Error('Failed to read config file'));
 
       await expect(scanner.scan('/fake/path')).rejects.toThrow(ScannerError);
       await expect(scanner.scan('/fake/path')).rejects.toThrow('ESLint scan failed');
@@ -288,14 +297,14 @@ describe('ESLintScanner', () => {
               message: 'Finding without source',
               line: 10,
               column: 5,
-            }
+            },
           ],
           errorCount: 1,
           warningCount: 0,
           fixableErrorCount: 0,
           fixableWarningCount: 0,
           // No 'source' field
-        }
+        },
       ];
 
       jest.spyOn(ESLint.prototype, 'lintFiles').mockResolvedValue(fixture as ESLint.LintResult[]);

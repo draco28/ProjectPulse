@@ -79,10 +79,13 @@ describe('AxeCoreScanner', () => {
     it('should map axe-core impact levels to FindingSeverity correctly', async () => {
       const result = await scanner.scan('/test/project');
 
-      const severityMap = result.findings.reduce((map, finding) => {
-        map[finding.ruleId] = finding.severity;
-        return map;
-      }, {} as Record<string, FindingSeverity>);
+      const severityMap = result.findings.reduce(
+        (map, finding) => {
+          map[finding.ruleId] = finding.severity;
+          return map;
+        },
+        {} as Record<string, FindingSeverity>
+      );
 
       // Critical impact → CRITICAL severity
       expect(severityMap['axe.label']).toBe(FindingSeverity.CRITICAL);
@@ -107,12 +110,12 @@ describe('AxeCoreScanner', () => {
       const result = await scanner.scan('/test/project');
 
       // color-contrast violation has 2 nodes
-      const colorContrastFinding = result.findings.find(f => f.ruleId === 'axe.color-contrast');
+      const colorContrastFinding = result.findings.find((f) => f.ruleId === 'axe.color-contrast');
       expect(colorContrastFinding).toBeDefined();
       expect(colorContrastFinding!.message).toContain('2 elements affected');
 
       // label violation has 1 node
-      const labelFinding = result.findings.find(f => f.ruleId === 'axe.label');
+      const labelFinding = result.findings.find((f) => f.ruleId === 'axe.label');
       expect(labelFinding).toBeDefined();
       expect(labelFinding!.message).toContain('1 element affected');
     });
@@ -124,9 +127,9 @@ describe('AxeCoreScanner', () => {
         totalFindings: 10,
         bySeverity: {
           critical: 4, // label, aria-required-attr, image-alt, button-name
-          high: 2,     // color-contrast, link-name
-          medium: 3,   // heading-order, landmark-one-main, region
-          low: 1,      // meta-viewport
+          high: 2, // color-contrast, link-name
+          medium: 3, // heading-order, landmark-one-main, region
+          low: 1, // meta-viewport
         },
       });
     });
@@ -170,9 +173,9 @@ describe('AxeCoreScanner', () => {
       // Mock timeout
       mockPage.goto.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 70000)));
 
-      await expect(
-        scanner.scan('/test/project', { timeout: 1000 })
-      ).rejects.toThrow(ScannerTimeoutError);
+      await expect(scanner.scan('/test/project', { timeout: 1000 })).rejects.toThrow(
+        ScannerTimeoutError
+      );
     });
 
     it('should throw ScannerError when browser fails to launch', async () => {

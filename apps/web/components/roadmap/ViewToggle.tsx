@@ -15,16 +15,13 @@ interface ViewToggleProps {
 
 export function ViewToggle({ view, onChange }: ViewToggleProps) {
   return (
-    <div className="inline-flex items-center gap-1 p-1 neu-pressed rounded-xl">
+    <div className="neu-pressed inline-flex items-center gap-1 rounded-xl p-1">
       <button
         onClick={() => onChange('tree')}
         className={`
-          inline-flex items-center gap-2 px-4 py-2 rounded-lg
+          inline-flex items-center gap-2 rounded-lg px-4 py-2
           text-sm font-medium transition-all duration-200
-          ${view === 'tree'
-            ? 'coral-gradient text-white shadow-sm'
-            : 'text-slate hover:text-white'
-          }
+          ${view === 'tree' ? 'coral-gradient text-white shadow-sm' : 'text-slate hover:text-white'}
         `}
         aria-pressed={view === 'tree'}
       >
@@ -34,11 +31,12 @@ export function ViewToggle({ view, onChange }: ViewToggleProps) {
       <button
         onClick={() => onChange('timeline')}
         className={`
-          inline-flex items-center gap-2 px-4 py-2 rounded-lg
+          inline-flex items-center gap-2 rounded-lg px-4 py-2
           text-sm font-medium transition-all duration-200
-          ${view === 'timeline'
-            ? 'coral-gradient text-white shadow-sm'
-            : 'text-slate hover:text-white'
+          ${
+            view === 'timeline'
+              ? 'coral-gradient text-white shadow-sm'
+              : 'text-slate hover:text-white'
           }
         `}
         aria-pressed={view === 'timeline'}

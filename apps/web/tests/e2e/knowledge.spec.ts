@@ -43,7 +43,9 @@ test.describe('Knowledge Base - Basic Rendering', () => {
     await expect(page).toHaveURL(/\bsearch=PostgreSQL/i);
 
     // Expect a seeded article title to appear (scope to main content, use flexible selector)
-    const resultsArea = page.locator('main, [class*="knowledge"], [class*="results"], [class*="grid"]').first();
+    const resultsArea = page
+      .locator('main, [class*="knowledge"], [class*="results"], [class*="grid"]')
+      .first();
     await expect(
       resultsArea.getByText(/PostgreSQL.*Full.*Text.*Search/i, { exact: false }).first()
     ).toBeVisible({ timeout: 10000 });
@@ -59,7 +61,9 @@ test.describe('Knowledge Base - Basic Rendering', () => {
     await expect(page).toHaveURL(/\btag=/i);
 
     // Expect the Next.js article becomes visible (scope to results, flexible selector)
-    const resultsArea = page.locator('main, [class*="knowledge"], [class*="results"], [class*="grid"]').first();
+    const resultsArea = page
+      .locator('main, [class*="knowledge"], [class*="results"], [class*="grid"]')
+      .first();
     await expect(
       resultsArea.getByText(/Next\.?js.*Server.*Components/i, { exact: false }).first()
     ).toBeVisible({ timeout: 10000 });
@@ -173,14 +177,14 @@ test.describe('Hybrid Search', () => {
     const bodyText = await page.textContent('body', { timeout: 10000 });
 
     // Just verify search returned SOME results (any knowledge item title)
-    const hasResults = bodyText && (
-      /PostgreSQL/i.test(bodyText) ||
-      /Next|React/i.test(bodyText) ||
-      /Prisma/i.test(bodyText) ||
-      /Database/i.test(bodyText) ||
-      /Server.*Components/i.test(bodyText) ||
-      /Performance/i.test(bodyText)
-    );
+    const hasResults =
+      bodyText &&
+      (/PostgreSQL/i.test(bodyText) ||
+        /Next|React/i.test(bodyText) ||
+        /Prisma/i.test(bodyText) ||
+        /Database/i.test(bodyText) ||
+        /Server.*Components/i.test(bodyText) ||
+        /Performance/i.test(bodyText));
 
     expect(hasResults).toBeTruthy();
   });
@@ -250,7 +254,9 @@ test.describe('Knowledge Item Linking', () => {
       const typeText = await relationTypes.first().textContent();
 
       // Should show one of the relationship types
-      expect(['REFERENCES', 'CONTRADICTS', 'EXTENDS', 'RELATED_TO']).toContain(typeText?.trim() || '');
+      expect(['REFERENCES', 'CONTRADICTS', 'EXTENDS', 'RELATED_TO']).toContain(
+        typeText?.trim() || ''
+      );
     }
   });
 
@@ -260,7 +266,9 @@ test.describe('Knowledge Item Linking', () => {
     await page.waitForLoadState('networkidle');
 
     // Look for "Add Relationship" button
-    const addRelationButton = page.getByRole('button', { name: /Add Relationship|Link Knowledge/i });
+    const addRelationButton = page.getByRole('button', {
+      name: /Add Relationship|Link Knowledge/i,
+    });
 
     if (await addRelationButton.isVisible()) {
       await addRelationButton.click();
@@ -493,7 +501,9 @@ test.describe('Cross-Linking & Relationships - Advanced', () => {
 
         // Should show duplicate warning
         const duplicateWarning = page.getByText(/already exists|duplicate|similar item/i);
-        const hasDupWarning = await duplicateWarning.isVisible({ timeout: 5000 }).catch(() => false);
+        const hasDupWarning = await duplicateWarning
+          .isVisible({ timeout: 5000 })
+          .catch(() => false);
 
         if (hasDupWarning) {
           await expect(duplicateWarning).toBeVisible();
@@ -531,7 +541,7 @@ test.describe('Cross-Linking & Relationships - Advanced', () => {
         const relationTypes = page.locator('[data-testid="relation-type"]');
         const types = await relationTypes.allTextContents();
 
-        const onlyReferences = types.every(t => t.includes('REFERENCES'));
+        const onlyReferences = types.every((t) => t.includes('REFERENCES'));
         expect(onlyReferences).toBeTruthy();
       } else {
         test.skip();
@@ -587,7 +597,8 @@ test.describe('Cross-Linking & Relationships - Advanced', () => {
       const strengthText = await strengthIndicator.textContent();
 
       // Should show numeric strength (e.g., "0.85", "85%")
-      const hasStrength = strengthText && (/\d+(\.\d+)?/.test(strengthText) || /\d+%/.test(strengthText));
+      const hasStrength =
+        strengthText && (/\d+(\.\d+)?/.test(strengthText) || /\d+%/.test(strengthText));
 
       expect(hasStrength).toBeTruthy();
     } else {
@@ -642,7 +653,7 @@ test.describe('Knowledge Base - Performance', () => {
     if (await pagination.isVisible().catch(() => false)) {
       // Verify pagination exists for large result sets
       const nextButton = page.getByRole('button', { name: /Next|>/ });
-      const hasNext = await nextButton.count() > 0;
+      const hasNext = (await nextButton.count()) > 0;
 
       expect(hasNext).toBeTruthy();
     } else {
@@ -674,7 +685,10 @@ test.describe('Knowledge Base - Accessibility', () => {
 
   test('should support keyboard navigation for tags', async ({ page }) => {
     // Focus on first tag
-    const firstTag = page.getByRole('button').filter({ hasText: /postgresql|nextjs|prisma/i }).first();
+    const firstTag = page
+      .getByRole('button')
+      .filter({ hasText: /postgresql|nextjs|prisma/i })
+      .first();
 
     if (await firstTag.isVisible().catch(() => false)) {
       await firstTag.focus();
@@ -698,15 +712,15 @@ test.describe('Knowledge Base - Accessibility', () => {
     // Look for aria-live region announcing results
     const liveRegion = page.locator('[aria-live="polite"], [aria-live="assertive"]');
 
-    if (await liveRegion.count() > 0) {
+    if ((await liveRegion.count()) > 0) {
       const announcement = await liveRegion.textContent();
 
       // Should announce result count or status
-      const hasAnnouncement = announcement && (
-        /results?/i.test(announcement) ||
-        /found/i.test(announcement) ||
-        /\d+/i.test(announcement)
-      );
+      const hasAnnouncement =
+        announcement &&
+        (/results?/i.test(announcement) ||
+          /found/i.test(announcement) ||
+          /\d+/i.test(announcement));
 
       expect(hasAnnouncement).toBeTruthy();
     } else {

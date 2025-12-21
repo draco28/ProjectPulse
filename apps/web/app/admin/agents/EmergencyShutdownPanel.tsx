@@ -73,7 +73,9 @@ export function EmergencyShutdownPanel() {
   };
 
   const handleDisable = async () => {
-    if (!confirm('Are you sure you want to disable emergency shutdown? MCP operations will resume.')) {
+    if (
+      !confirm('Are you sure you want to disable emergency shutdown? MCP operations will resume.')
+    ) {
       return;
     }
 
@@ -97,9 +99,7 @@ export function EmergencyShutdownPanel() {
   };
 
   if (loading) {
-    return (
-      <div className="h-24 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
-    );
+    return <div className="h-24 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />;
   }
 
   if (error) {
@@ -201,11 +201,7 @@ export function EmergencyShutdownPanel() {
                   disabled={actionLoading || !reason.trim()}
                   className="flex-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
                 >
-                  {actionLoading ? (
-                    <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                  ) : (
-                    'Confirm'
-                  )}
+                  {actionLoading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : 'Confirm'}
                 </button>
                 <button
                   onClick={() => {

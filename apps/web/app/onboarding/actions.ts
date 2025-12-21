@@ -12,13 +12,20 @@ import { revalidatePath } from 'next/cache';
 // Session 1: Strategic Planning
 // ============================================================================
 
-export async function submitAnswers(projectId: number, phase: number, answers: Record<string, string>) {
+export async function submitAnswers(
+  projectId: number,
+  phase: number,
+  answers: Record<string, string>
+) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/onboarding/phase`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId, phase, answers }),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/onboarding/phase`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, phase, answers }),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
@@ -28,20 +35,27 @@ export async function submitAnswers(projectId: number, phase: number, answers: R
     const result = await response.json();
     revalidatePath('/onboarding');
     revalidatePath('/onboarding/session-1');
-    
+
     return { success: true, data: result };
   } catch (error) {
     return { success: false, error: 'Network error' };
   }
 }
 
-export async function storeExecutiveSummary(projectId: number, executiveSummary: string, wordCount?: number) {
+export async function storeExecutiveSummary(
+  projectId: number,
+  executiveSummary: string,
+  wordCount?: number
+) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/onboarding/executive-summary`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId, executiveSummary, wordCount }),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/onboarding/executive-summary`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, executiveSummary, wordCount }),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
@@ -51,7 +65,7 @@ export async function storeExecutiveSummary(projectId: number, executiveSummary:
     const result = await response.json();
     revalidatePath('/onboarding');
     revalidatePath('/onboarding/session-1');
-    
+
     return { success: true, data: result };
   } catch (error) {
     return { success: false, error: 'Network error' };
@@ -71,11 +85,14 @@ export async function storeDocument(
   overwrite: boolean = false
 ) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/onboarding/documents`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId, filename, content, category, wordCount, overwrite }),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/onboarding/documents`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, filename, content, category, wordCount, overwrite }),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
@@ -85,7 +102,7 @@ export async function storeDocument(
     const result = await response.json();
     revalidatePath('/onboarding');
     revalidatePath('/onboarding/session-2');
-    
+
     return { success: true, data: result };
   } catch (error) {
     return { success: false, error: 'Network error' };

@@ -44,9 +44,6 @@ export async function POST(request: Request) {
     // Log error for debugging but don't expose details
     console.error('[Agent Auth] Validation failed:', error.message);
 
-    return NextResponse.json(
-      { error: 'Invalid or expired token' },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
   }
 }

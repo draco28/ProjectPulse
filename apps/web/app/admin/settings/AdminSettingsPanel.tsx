@@ -77,9 +77,7 @@ export function AdminSettingsPanel() {
           </div>
           <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-700/50">
             <p className="text-sm text-gray-500 dark:text-gray-400">Version</p>
-            <p className="mt-1 font-medium text-gray-900 dark:text-white">
-              Sprint 11.5
-            </p>
+            <p className="mt-1 font-medium text-gray-900 dark:text-white">Sprint 11.5</p>
           </div>
           <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-700/50">
             <p className="text-sm text-gray-500 dark:text-gray-400">Database</p>
@@ -114,13 +112,14 @@ export function AdminSettingsPanel() {
                 className="flex items-start gap-3 rounded-xl bg-gray-50 p-3 dark:bg-gray-700/50"
               >
                 <Clock className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400" />
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm">
                     <span className={`font-medium ${getActionColor(log.action)}`}>
                       {log.action.replace(/_/g, ' ')}
                     </span>
                     <span className="text-gray-600 dark:text-gray-300">
-                      {' '}on {log.targetType.toLowerCase()}{' '}
+                      {' '}
+                      on {log.targetType.toLowerCase()}{' '}
                     </span>
                     <span className="font-mono text-xs text-gray-500">
                       {log.targetId.slice(0, 12)}...

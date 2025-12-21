@@ -126,9 +126,9 @@ describe('EnhancedCodeBlock', () => {
       const user = userEvent.setup({ delay: null });
 
       // Mock slow clipboard API
-      navigator.clipboard.writeText = jest.fn().mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 500))
-      );
+      navigator.clipboard.writeText = jest
+        .fn()
+        .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 500)));
 
       render(<EnhancedCodeBlock language={mockLanguage} code={mockCode} />);
 
@@ -160,7 +160,9 @@ describe('EnhancedCodeBlock', () => {
       jest.useFakeTimers();
 
       // Mock clipboard API with rejection
-      navigator.clipboard.writeText = jest.fn().mockRejectedValue(new Error('Clipboard write failed'));
+      navigator.clipboard.writeText = jest
+        .fn()
+        .mockRejectedValue(new Error('Clipboard write failed'));
 
       (window as any).isSecureContext = true;
 
@@ -189,10 +191,7 @@ describe('EnhancedCodeBlock', () => {
       });
 
       // Verify console.error called
-      expect(console.error).toHaveBeenCalledWith(
-        'Copy to clipboard failed:',
-        expect.any(Error)
-      );
+      expect(console.error).toHaveBeenCalledWith('Copy to clipboard failed:', expect.any(Error));
     });
 
     it('should reset from error state after 2 seconds', async () => {

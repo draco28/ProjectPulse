@@ -8,10 +8,7 @@
 
 import { FindingSeverity } from '@prisma/client';
 import type { FindingData } from '../../scanners/types';
-import {
-  calculateHealthScore,
-  assignGrade,
-} from '../calculator';
+import { calculateHealthScore, assignGrade } from '../calculator';
 import { DEFAULT_SEVERITY_POINTS, MAX_POINTS_PER_CATEGORY } from '../types';
 
 /**

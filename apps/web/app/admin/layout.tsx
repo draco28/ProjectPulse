@@ -1,7 +1,7 @@
 /**
  * Admin Layout
  * Sprint 11.5: Separate layout for admin pages
- * 
+ *
  * Features:
  * - Admin-specific sidebar
  * - No project context required

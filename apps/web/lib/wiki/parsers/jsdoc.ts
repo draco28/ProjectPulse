@@ -105,7 +105,12 @@ export class JSDocParser {
     this.options = {
       basePath: options.basePath || process.cwd(),
       include: options.include || ['**/*.{ts,tsx,js,jsx}'],
-      exclude: options.exclude || ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**'],
+      exclude: options.exclude || [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/.next/**',
+      ],
       includePrivate: options.includePrivate ?? false,
     };
   }
@@ -180,7 +185,8 @@ export class JSDocParser {
     const exports: ParsedExport[] = [];
 
     // Regex to match JSDoc blocks followed by export declarations
-    const jsdocBlockRegex = /\/\*\*[\s\S]*?\*\/\s*(?:export\s+)?(?:const|function|class|interface|type|enum)\s+(\w+)/g;
+    const jsdocBlockRegex =
+      /\/\*\*[\s\S]*?\*\/\s*(?:export\s+)?(?:const|function|class|interface|type|enum)\s+(\w+)/g;
 
     let match;
     while ((match = jsdocBlockRegex.exec(content)) !== null) {

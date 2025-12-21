@@ -1,9 +1,9 @@
 /**
  * POST /api/admin/reset-onboarding
- * 
+ *
  * Resets onboarding state for a project by deleting all OnboardingSessions.
  * This allows restarting the onboarding wizard (Session 1-3) without deleting the project.
- * 
+ *
  * Usage:
  * curl -X POST /api/admin/reset-onboarding -H "Content-Type: application/json" -d '{"projectId": 3}'
  */
@@ -14,14 +14,14 @@ import { requireAdmin } from '@/lib/auth-server';
 import { z } from 'zod';
 
 const requestSchema = z.object({
-  projectId: z.number().int().positive()
+  projectId: z.number().int().positive(),
 });
 
 export async function POST(request: NextRequest) {
   try {
     // Sprint 11.5: Require admin role
     await requireAdmin();
-    
+
     const body = await request.json();
     const validation = requestSchema.safeParse(body);
 
@@ -38,13 +38,13 @@ export async function POST(request: NextRequest) {
 
     // 1. Delete Onboarding Sessions (Cascades to Documents)
     const deletedSessions = await prisma.onboardingSession.deleteMany({
-      where: { projectId }
+      where: { projectId },
     });
 
     // 2. Optional: Delete Project Plan / Roadmap artifacts if you want a FULL clean slate
     // For now, we just reset the wizard state.
-    
-    // 3. Optional: Reset Agent Personas? 
+
+    // 3. Optional: Reset Agent Personas?
     // Usually we want to keep them if they were manually tweaked, but for a full reset test:
     // await prisma.agentPersona.deleteMany({ where: { projectId } });
 
@@ -53,12 +53,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `Reset onboarding for project ${projectId}`,
-      deletedSessions: deletedSessions.count
+      deletedSessions: deletedSessions.count,
     });
-    
   } catch (error) {
     console.error('[Reset] Error:', error);
-    
+
     // Sprint 11.5: Handle auth errors with proper status codes
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {
@@ -68,9 +67,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
       }
     }
-    
+
     return NextResponse.json(
-      { error: 'Failed to reset onboarding', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to reset onboarding',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

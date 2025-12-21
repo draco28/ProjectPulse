@@ -108,7 +108,8 @@ export const SPRINT_HEADER_PATTERN = /^#{2,4}\s*Sprint\s+(\d+)[:\s-]*(.*)$/gim;
  * Scope section: "**Scope (Backlog Items):**" followed by list items
  * Captures the entire scope section until next header or double newline
  */
-export const SCOPE_SECTION_PATTERN = /\*\*Scope\s*\(Backlog\s*Items?\)\*?\*?:\*?\*?\s*\n((?:[-*]\s*.+\n?)+)/gi;
+export const SCOPE_SECTION_PATTERN =
+  /\*\*Scope\s*\(Backlog\s*Items?\)\*?\*?:\*?\*?\s*\n((?:[-*]\s*.+\n?)+)/gi;
 
 /**
  * Individual scope item: "- EPIC-001 / US-001 (FR-001, FR-002)"
@@ -229,7 +230,11 @@ export function extractPRDSections(text: string): string[] {
 /**
  * Parse a trace line and extract all referenced requirements
  */
-export function parseTraceLine(line: string): { frs: string[]; nfrs: string[]; prdSections: string[] } {
+export function parseTraceLine(line: string): {
+  frs: string[];
+  nfrs: string[];
+  prdSections: string[];
+} {
   return {
     frs: extractFRs(line),
     nfrs: extractNFRs(line),

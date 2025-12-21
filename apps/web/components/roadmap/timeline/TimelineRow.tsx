@@ -50,14 +50,14 @@ export function TimelineRow({
       className={`
         flex ${rowHeight}
         ${isNested ? 'bg-dark-pressed/30' : ''}
-        ${isCurrent ? 'bg-coral/5 border-l-2 border-coral' : ''}
-        hover:bg-dark-pressed/50 transition-colors
+        ${isCurrent ? 'border-l-2 border-coral bg-coral/5' : ''}
+        transition-colors hover:bg-dark-pressed/50
       `}
     >
       {/* Label Column */}
       <div
         className={`
-          w-48 flex-shrink-0 px-4 flex items-center gap-2 border-r border-dark-pressed
+          flex w-48 flex-shrink-0 items-center gap-2 border-r border-dark-pressed px-4
           ${isNested ? 'pl-10' : ''}
         `}
       >
@@ -65,7 +65,7 @@ export function TimelineRow({
         {hasChildren && onToggle && (
           <button
             onClick={onToggle}
-            className="p-0.5 rounded hover:bg-dark-pressed transition-colors"
+            className="rounded p-0.5 transition-colors hover:bg-dark-pressed"
           >
             {isExpanded ? (
               <ChevronDown className="h-4 w-4 text-coral" />
@@ -76,7 +76,7 @@ export function TimelineRow({
         )}
 
         {/* Title */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <span
             className={`
               block truncate
@@ -87,14 +87,12 @@ export function TimelineRow({
           >
             {title}
           </span>
-          {type === 'phase' && (
-            <span className="text-[10px] text-slate">{progress}% complete</span>
-          )}
+          {type === 'phase' && <span className="text-[10px] text-slate">{progress}% complete</span>}
         </div>
       </div>
 
       {/* Bar Area */}
-      <div className="flex-1 relative px-2 flex items-center">
+      <div className="relative flex flex-1 items-center px-2">
         <TimelineBar
           startDate={startDate}
           endDate={endDate}

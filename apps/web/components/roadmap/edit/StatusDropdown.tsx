@@ -57,13 +57,7 @@ const STATUS_CONFIG: Record<
   },
 };
 
-const STATUS_ORDER: Status[] = [
-  'NOT_STARTED',
-  'IN_PROGRESS',
-  'COMPLETED',
-  'BLOCKED',
-  'CANCELLED',
-];
+const STATUS_ORDER: Status[] = ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'CANCELLED'];
 
 export function StatusDropdown({
   value,
@@ -125,7 +119,7 @@ export function StatusDropdown({
           ${sizeClasses}
           font-medium transition-all
           hover:brightness-110
-          disabled:opacity-50 disabled:cursor-not-allowed
+          disabled:cursor-not-allowed disabled:opacity-50
         `}
       >
         {isSaving ? (
@@ -134,18 +128,16 @@ export function StatusDropdown({
           <Icon className="h-3.5 w-3.5" />
         )}
         <span>{currentConfig.label}</span>
-        <ChevronDown
-          className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        />
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
         <div
           className="
-            absolute z-50 top-full left-0 mt-1
-            min-w-[160px] py-1 rounded-xl
-            neu-raised border border-dark-pressed
+            neu-raised absolute left-0 top-full z-50
+            mt-1 min-w-[160px] rounded-xl
+            border border-dark-pressed py-1
             shadow-xl
           "
         >
@@ -159,17 +151,15 @@ export function StatusDropdown({
                 key={status}
                 onClick={() => handleSelect(status)}
                 className={`
-                  w-full flex items-center gap-2 px-3 py-2
-                  text-sm text-left transition-colors
+                  flex w-full items-center gap-2 px-3 py-2
+                  text-left text-sm transition-colors
                   ${isSelected ? 'bg-dark-pressed' : 'hover:bg-dark-pressed/50'}
                   ${config.color}
                 `}
               >
                 <StatusIcon className="h-4 w-4" />
                 <span>{config.label}</span>
-                {isSelected && (
-                  <CheckCircle className="h-3.5 w-3.5 ml-auto text-coral" />
-                )}
+                {isSelected && <CheckCircle className="ml-auto h-3.5 w-3.5 text-coral" />}
               </button>
             );
           })}

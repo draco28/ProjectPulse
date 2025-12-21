@@ -5,64 +5,61 @@
  * Perfect for professional, calm work environments
  */
 
-:root[data-theme="desert"] {
+:root[data-theme='desert'] {
   /* ========================================================================
      BACKGROUND LAYERS
      ======================================================================== */
-  --color-bg-darkest: #FAF9F6;  /* Feather - lightest base */
-  --color-bg-dark: #F4F1EA;     /* Mist */
-  --color-bg-medium: #E6DAC8;   /* Oat */
-  --color-bg-light: #CBB9A4;    /* Sandstone */
+  --color-bg-darkest: #faf9f6; /* Feather - lightest base */
+  --color-bg-dark: #f4f1ea; /* Mist */
+  --color-bg-medium: #e6dac8; /* Oat */
+  --color-bg-light: #cbb9a4; /* Sandstone */
 
   /* ========================================================================
      ACCENT COLORS
      ======================================================================== */
-  --color-accent-primary: #A48D78;   /* Desert */
-  --color-accent-secondary: #8B7766; /* Desert Dark */
-  --color-accent-tertiary: #6B5D52;  /* Desert Deep */
+  --color-accent-primary: #a48d78; /* Desert */
+  --color-accent-secondary: #8b7766; /* Desert Dark */
+  --color-accent-tertiary: #6b5d52; /* Desert Deep */
 
   /* ========================================================================
      TEXT COLORS
      ======================================================================== */
-  --color-text-primary: #6B5D52;   /* Desert Deep - dark on light */
-  --color-text-secondary: #8B7766; /* Desert Dark */
-  --color-text-tertiary: #A48D78;  /* Desert */
-  --color-text-muted: #CBB9A4;     /* Sandstone */
+  --color-text-primary: #6b5d52; /* Desert Deep - dark on light */
+  --color-text-secondary: #8b7766; /* Desert Dark */
+  --color-text-tertiary: #a48d78; /* Desert */
+  --color-text-muted: #cbb9a4; /* Sandstone */
 
   /* ========================================================================
      SEMANTIC COLORS
      ======================================================================== */
-  --color-success: #9BA785;   /* Sage green */
-  --color-warning: #B8956A;   /* Bronze */
-  --color-error: #C17B5C;     /* Terracotta */
-  --color-info: #8B7766;      /* Desert Dark */
+  --color-success: #9ba785; /* Sage green */
+  --color-warning: #b8956a; /* Bronze */
+  --color-error: #c17b5c; /* Terracotta */
+  --color-info: #8b7766; /* Desert Dark */
 
   /* ========================================================================
      PRIORITY COLORS (for issue tracker)
      ======================================================================== */
-  --color-priority-critical: #C17B5C;  /* Terracotta */
-  --color-priority-high: #B8956A;      /* Bronze */
-  --color-priority-medium: #9BA785;    /* Sage */
-  --color-priority-low: #CBB9A4;       /* Sandstone */
+  --color-priority-critical: #c17b5c; /* Terracotta */
+  --color-priority-high: #b8956a; /* Bronze */
+  --color-priority-medium: #9ba785; /* Sage */
+  --color-priority-low: #cbb9a4; /* Sandstone */
 
   /* ========================================================================
      NEUMORPHIC SHADOWS
      ======================================================================== */
   /* Floating/Raised effect - cards that pop out */
   --shadow-neu-float:
-    12px 12px 24px rgba(164, 141, 120, 0.25),
-    -12px -12px 24px rgba(255, 255, 255, 0.9),
+    12px 12px 24px rgba(164, 141, 120, 0.25), -12px -12px 24px rgba(255, 255, 255, 0.9),
     inset 2px 2px 4px rgba(255, 255, 255, 0.5);
 
   /* Pressed/Inset effect - input fields, pressed buttons */
   --shadow-neu-inset:
-    inset 4px 4px 8px rgba(164, 141, 120, 0.3),
-    inset -4px -4px 8px rgba(255, 255, 255, 0.9);
+    inset 4px 4px 8px rgba(164, 141, 120, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.9);
 
   /* Dark card variant - for emphasis */
   --shadow-neu-dark:
-    10px 10px 20px rgba(107, 93, 82, 0.4),
-    -10px -10px 20px rgba(203, 185, 164, 0.3),
+    10px 10px 20px rgba(107, 93, 82, 0.4), -10px -10px 20px rgba(203, 185, 164, 0.3),
     inset 2px 2px 4px rgba(255, 255, 255, 0.1);
 
   /* Regular shadow - fallback */
@@ -78,21 +75,21 @@
   /* ========================================================================
      GRADIENTS
      ======================================================================== */
-  --gradient-primary: linear-gradient(135deg, #A48D78 0%, #8B7766 100%);
-  --gradient-secondary: linear-gradient(135deg, #CBB9A4 0%, #E6DAC8 100%);
-  --gradient-background: linear-gradient(135deg, #FAF9F6 0%, #F4F1EA 50%, #E6DAC8 100%);
+  --gradient-primary: linear-gradient(135deg, #a48d78 0%, #8b7766 100%);
+  --gradient-secondary: linear-gradient(135deg, #cbb9a4 0%, #e6dac8 100%);
+  --gradient-background: linear-gradient(135deg, #faf9f6 0%, #f4f1ea 50%, #e6dac8 100%);
 
   /* Icon gradients */
-  --gradient-icon-clay: linear-gradient(135deg, #A48D78 0%, #8B7766 100%);
-  --gradient-icon-sand: linear-gradient(135deg, #CBB9A4 0%, #E6DAC8 100%);
-  --gradient-icon-terracotta: linear-gradient(135deg, #C17B5C 0%, #A48D78 100%);
-  --gradient-icon-bronze: linear-gradient(135deg, #B8956A 0%, #8B7766 100%);
-  --gradient-icon-sage: linear-gradient(135deg, #9BA785 0%, #8B9775 100%);
+  --gradient-icon-clay: linear-gradient(135deg, #a48d78 0%, #8b7766 100%);
+  --gradient-icon-sand: linear-gradient(135deg, #cbb9a4 0%, #e6dac8 100%);
+  --gradient-icon-terracotta: linear-gradient(135deg, #c17b5c 0%, #a48d78 100%);
+  --gradient-icon-bronze: linear-gradient(135deg, #b8956a 0%, #8b7766 100%);
+  --gradient-icon-sage: linear-gradient(135deg, #9ba785 0%, #8b9775 100%);
 
   /* ========================================================================
      BORDERS
      ======================================================================== */
   --border-subtle: 1px solid rgba(203, 185, 164, 0.3);
   --border-medium: 1px solid rgba(164, 141, 120, 0.4);
-  --border-strong: 1px solid #A48D78;
+  --border-strong: 1px solid #a48d78;
 }

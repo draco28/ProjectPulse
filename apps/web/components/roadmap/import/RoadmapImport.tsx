@@ -77,9 +77,7 @@ export function RoadmapImport({ projectId, projectName }: RoadmapImportProps) {
 
       // Validate basic structure
       if (!data.phases || !Array.isArray(data.phases)) {
-        setValidationErrors([
-          { path: ['phases'], message: 'Missing required "phases" array' },
-        ]);
+        setValidationErrors([{ path: ['phases'], message: 'Missing required "phases" array' }]);
         return null;
       }
 
@@ -218,16 +216,16 @@ export function RoadmapImport({ projectId, projectName }: RoadmapImportProps) {
       {/* Project Context */}
       <div className="mb-6 text-center">
         <span className="text-sm text-slate">
-          Importing to: <span className="text-coral font-medium">{projectName}</span>
+          Importing to: <span className="font-medium text-coral">{projectName}</span>
         </span>
       </div>
 
       {/* Success State */}
       {status === 'success' && (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+        <div className="py-12 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
             <svg
-              className="w-8 h-8 text-green-400"
+              className="h-8 w-8 text-green-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -240,7 +238,7 @@ export function RoadmapImport({ projectId, projectName }: RoadmapImportProps) {
               />
             </svg>
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">Import Successful!</h3>
+          <h3 className="mb-2 text-xl font-bold text-white">Import Successful!</h3>
           <p className="text-slate">Redirecting to your roadmap...</p>
         </div>
       )}
@@ -259,15 +257,16 @@ export function RoadmapImport({ projectId, projectName }: RoadmapImportProps) {
       {(status === 'idle' || status === 'parsing' || status === 'error') && (
         <>
           {/* Method Toggle */}
-          <div className="flex justify-center gap-4 mb-8">
+          <div className="mb-8 flex justify-center gap-4">
             <button
               onClick={() => setMethod('file')}
               className={`
-                flex items-center gap-2 px-6 py-3 rounded-xl
+                flex items-center gap-2 rounded-xl px-6 py-3
                 font-medium transition-all duration-200
-                ${method === 'file'
-                  ? 'coral-gradient text-white'
-                  : 'neu-flat text-slate hover:text-white'
+                ${
+                  method === 'file'
+                    ? 'coral-gradient text-white'
+                    : 'neu-flat text-slate hover:text-white'
                 }
               `}
             >
@@ -277,11 +276,12 @@ export function RoadmapImport({ projectId, projectName }: RoadmapImportProps) {
             <button
               onClick={() => setMethod('paste')}
               className={`
-                flex items-center gap-2 px-6 py-3 rounded-xl
+                flex items-center gap-2 rounded-xl px-6 py-3
                 font-medium transition-all duration-200
-                ${method === 'paste'
-                  ? 'coral-gradient text-white'
-                  : 'neu-flat text-slate hover:text-white'
+                ${
+                  method === 'paste'
+                    ? 'coral-gradient text-white'
+                    : 'neu-flat text-slate hover:text-white'
                 }
               `}
             >
@@ -291,23 +291,18 @@ export function RoadmapImport({ projectId, projectName }: RoadmapImportProps) {
           </div>
 
           {/* Validation Errors */}
-          {validationErrors.length > 0 && (
-            <ImportValidationErrors errors={validationErrors} />
-          )}
+          {validationErrors.length > 0 && <ImportValidationErrors errors={validationErrors} />}
 
           {/* Import Error */}
           {importError && (
-            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+            <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4">
               <p className="text-sm text-red-400">{importError}</p>
             </div>
           )}
 
           {/* File Upload */}
           {method === 'file' && (
-            <JsonFileUpload
-              onFileSelect={handleFileContent}
-              isDisabled={status === 'parsing'}
-            />
+            <JsonFileUpload onFileSelect={handleFileContent} isDisabled={status === 'parsing'} />
           )}
 
           {/* Paste Area */}
@@ -321,10 +316,10 @@ export function RoadmapImport({ projectId, projectName }: RoadmapImportProps) {
           )}
 
           {/* Example Format */}
-          <div className="mt-8 neu-flat rounded-xl p-4">
-            <h4 className="text-sm font-medium text-white mb-2">Expected JSON Format:</h4>
-            <pre className="text-xs text-slate overflow-x-auto">
-{`{
+          <div className="neu-flat mt-8 rounded-xl p-4">
+            <h4 className="mb-2 text-sm font-medium text-white">Expected JSON Format:</h4>
+            <pre className="overflow-x-auto text-xs text-slate">
+              {`{
   "phases": [
     {
       "title": "Phase 1: Foundation",

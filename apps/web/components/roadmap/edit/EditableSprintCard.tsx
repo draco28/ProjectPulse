@@ -23,10 +23,11 @@ interface EditableSprintCardProps {
 }
 
 export function EditableSprintCard({ sprint, isEditable = true }: EditableSprintCardProps) {
-  const { updateTitle, updateStatus, isUpdating: isEntityUpdating } = useEntityUpdate(
-    'sprints',
-    sprint.id
-  );
+  const {
+    updateTitle,
+    updateStatus,
+    isUpdating: isEntityUpdating,
+  } = useEntityUpdate('sprints', sprint.id);
   const { updateProgress, isUpdating: isProgressUpdating } = useProgressUpdate(
     'sprints',
     sprint.id
@@ -38,15 +39,15 @@ export function EditableSprintCard({ sprint, isEditable = true }: EditableSprint
   return (
     <div className={`flex-1 ${isUpdating ? 'opacity-75' : ''}`}>
       {/* Header with Icon + Title + Status */}
-      <div className="flex items-start gap-3 mb-3">
+      <div className="mb-3 flex items-start gap-3">
         {/* Icon Container */}
-        <div className="icon-blue flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0">
+        <div className="icon-blue flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl">
           <Target className="h-5 w-5 text-white" />
         </div>
 
         {/* Title and Status */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-start justify-between gap-3">
             {/* Editable Title */}
             {isEditable ? (
               <InlineEditForm
@@ -61,15 +62,11 @@ export function EditableSprintCard({ sprint, isEditable = true }: EditableSprint
 
             {/* Status Dropdown */}
             {isEditable ? (
-              <StatusDropdown
-                value={sprint.status}
-                onChange={updateStatus}
-                size="sm"
-              />
+              <StatusDropdown value={sprint.status} onChange={updateStatus} size="sm" />
             ) : (
               <span
                 className={`
-                  flex-shrink-0 text-xs px-2 py-1 rounded-lg
+                  flex-shrink-0 rounded-lg px-2 py-1 text-xs
                   ${sprint.status === 'COMPLETED' ? 'badge-green' : ''}
                   ${sprint.status === 'IN_PROGRESS' ? 'badge-blue' : ''}
                   ${sprint.status === 'NOT_STARTED' ? 'badge-slate' : ''}
@@ -83,17 +80,17 @@ export function EditableSprintCard({ sprint, isEditable = true }: EditableSprint
 
           {/* Description */}
           {sprint.description && (
-            <p className="text-sm text-slate leading-relaxed">{sprint.description}</p>
+            <p className="text-sm leading-relaxed text-slate">{sprint.description}</p>
           )}
         </div>
       </div>
 
       {/* Mini Stats */}
       {weekCount > 0 && (
-        <div className="flex gap-2 mb-3">
-          <div className="neu-pressed rounded-xl px-3 py-2 flex items-center gap-2">
+        <div className="mb-3 flex gap-2">
+          <div className="neu-pressed flex items-center gap-2 rounded-xl px-3 py-2">
             <div className="text-base font-bold text-white">{weekCount}</div>
-            <div className="text-xs text-slate font-medium">
+            <div className="text-xs font-medium text-slate">
               {weekCount === 1 ? 'Week' : 'Weeks'}
             </div>
           </div>
@@ -102,19 +99,15 @@ export function EditableSprintCard({ sprint, isEditable = true }: EditableSprint
 
       {/* Progress */}
       <div className="mb-3">
-        <div className="flex items-center justify-between mb-1.5">
+        <div className="mb-1.5 flex items-center justify-between">
           <span className="text-xs font-medium text-slate">Progress</span>
         </div>
         {isEditable ? (
-          <ProgressSlider
-            value={sprint.progress}
-            onCommit={updateProgress}
-            size="sm"
-          />
+          <ProgressSlider value={sprint.progress} onCommit={updateProgress} size="sm" />
         ) : (
-          <div className="neu-pressed rounded-full h-1.5 overflow-hidden">
+          <div className="neu-pressed h-1.5 overflow-hidden rounded-full">
             <div
-              className="bg-blue-500 h-1.5 rounded-full smooth-transition"
+              className="smooth-transition h-1.5 rounded-full bg-blue-500"
               style={{ width: `${sprint.progress}%` }}
             />
           </div>
@@ -122,9 +115,7 @@ export function EditableSprintCard({ sprint, isEditable = true }: EditableSprint
       </div>
 
       {/* Date Range */}
-      <div className="text-xs text-slate">
-        {formatDateRange(sprint.startDate, sprint.endDate)}
-      </div>
+      <div className="text-xs text-slate">{formatDateRange(sprint.startDate, sprint.endDate)}</div>
     </div>
   );
 }

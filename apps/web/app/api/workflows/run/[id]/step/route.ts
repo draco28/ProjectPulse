@@ -16,10 +16,7 @@ const executeStepSchema = z.object({
   stepResult: z.record(z.any()).optional(),
 });
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const runId = parseInt(params.id, 10);
 
@@ -108,9 +105,7 @@ export async function POST(
     }
 
     const currentStepNumber = workflowRun.currentStep;
-    const currentStep = workflowRun.steps.find(
-      (s) => s.stepNumber === currentStepNumber
-    );
+    const currentStep = workflowRun.steps.find((s) => s.stepNumber === currentStepNumber);
 
     if (!currentStep) {
       return NextResponse.json(

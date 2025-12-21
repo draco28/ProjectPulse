@@ -64,7 +64,10 @@ export async function resolveProjectId(projectId?: number) {
   return defaultProject.id;
 }
 
-export function buildTicketWhere(filters: TicketFilters, projectId: number): Prisma.TicketWhereInput {
+export function buildTicketWhere(
+  filters: TicketFilters,
+  projectId: number
+): Prisma.TicketWhereInput {
   const where: Prisma.TicketWhereInput = {
     projectId,
   };

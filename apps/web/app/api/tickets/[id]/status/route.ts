@@ -77,7 +77,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });
     }
-    
+
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',
@@ -87,6 +87,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     console.error('[API] PATCH /api/tickets/[id]/status failed', error);
-    return failure({ code: 'INTERNAL_ERROR', message: 'Failed to update ticket status', status: 500 });
+    return failure({
+      code: 'INTERNAL_ERROR',
+      message: 'Failed to update ticket status',
+      status: 500,
+    });
   }
 }

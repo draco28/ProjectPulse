@@ -2,7 +2,7 @@
 
 /**
  * Command Section Component
- * 
+ *
  * Section header with icon and label
  */
 

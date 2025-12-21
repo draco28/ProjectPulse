@@ -11,22 +11,28 @@
 ## Executive Summary
 
 ### The Problem
+
 Sprint 1 was marked 96% complete but **critical MCP server infrastructure was never built**. While we have:
+
 - ✅ Backend APIs (knowledge, issues, search)
 - ✅ MCP tool specifications (lib/mcp-tools/knowledge-tools.ts)
 - ✅ Database with pgvector embeddings
 
 We are **missing**:
+
 - ❌ MCP server transport layer (HTTP endpoint)
 - ❌ Tool registry system
 - ❌ Request/response handlers
 - ❌ Client connection infrastructure
 
 ### The Impact
+
 **90% of users will be AI agents** (Claude, GPT, etc.) connecting via MCP. Without MCP server infrastructure, they **cannot access the system at all**.
 
 ### The Solution
+
 Build MCP server infrastructure using:
+
 - **Protocol**: MCP 2025-03-26 (Streamable HTTP)
 - **Transport**: HTTP (network-accessible, not stdio)
 - **SDK**: @modelcontextprotocol/sdk (official)
@@ -94,6 +100,7 @@ Build MCP server infrastructure using:
 ### MCP Protocol Flow
 
 #### 1. Initialization Flow
+
 ```
 Client                          Server
   │                               │
@@ -107,6 +114,7 @@ Client                          Server
 ```
 
 #### 2. Tool Call Flow
+
 ```
 Client                          Server                Backend
   │                               │                      │
@@ -129,6 +137,7 @@ Client                          Server                Backend
 ```
 
 #### 3. Resource Access Flow
+
 ```
 Client                          Server                Backend
   │                               │                      │
@@ -186,11 +195,13 @@ apps/web/
 ## User Stories
 
 ### US-5.5-01: MCP Server Foundation (8 points)
+
 **As a** developer
 **I want** to set up the MCP server infrastructure
 **So that** AI agents can connect to ProjectPulse
 
 **Acceptance Criteria**:
+
 - [ ] Install @modelcontextprotocol/sdk dependency
 - [ ] Create lib/mcp/server.ts with MCP server instance
 - [ ] Create lib/mcp/types.ts with TypeScript types
@@ -201,6 +212,7 @@ apps/web/
 - [ ] Unit tests for server initialization
 
 **Technical Details**:
+
 ```typescript
 // lib/mcp/server.ts
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -220,6 +232,7 @@ export const mcpServer = new McpServer({
 ```
 
 **Dependencies**:
+
 - None (foundation story)
 
 **Estimated Duration**: 1 day
@@ -227,11 +240,13 @@ export const mcpServer = new McpServer({
 ---
 
 ### US-5.5-02: HTTP Transport Route (5 points)
+
 **As a** AI agent user
 **I want** an HTTP endpoint to connect to the MCP server
 **So that** I can configure Claude Desktop to use ProjectPulse tools
 
 **Acceptance Criteria**:
+
 - [ ] Create app/api/mcp/route.ts with POST handler
 - [ ] Create app/api/mcp/route.ts with GET handler (SSE)
 - [ ] Implement Mcp-Session-Id header handling
@@ -244,6 +259,7 @@ export const mcpServer = new McpServer({
 - [ ] Integration tests with real HTTP requests
 
 **Technical Details**:
+
 ```typescript
 // app/api/mcp/route.ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -253,18 +269,18 @@ import { mcpServer } from '@/lib/mcp/server';
 export async function POST(request: NextRequest) {
   const sessionId = request.headers.get('mcp-session-id');
   const body = await request.json();
-  
+
   // Create transport for this request
   const transport = new StreamableHTTPServerTransport({
     sessionId,
   });
-  
+
   // Connect transport to server
   await mcpServer.connect(transport);
-  
+
   // Handle request
   const response = await transport.handleRequest(body);
-  
+
   return NextResponse.json(response, {
     headers: {
       'mcp-session-id': sessionId || generateSessionId(),
@@ -280,6 +296,7 @@ export async function GET(request: NextRequest) {
 ```
 
 **Dependencies**:
+
 - US-5.5-01 (MCP Server Foundation)
 
 **Estimated Duration**: 0.5 days
@@ -287,11 +304,13 @@ export async function GET(request: NextRequest) {
 ---
 
 ### US-5.5-03: Knowledge Tools Handler (5 points)
+
 **As a** AI agent
 **I want** to call knowledge.search, knowledge.create, knowledge.related tools
 **So that** I can search and create knowledge items
 
 **Acceptance Criteria**:
+
 - [ ] Create lib/mcp/handlers/knowledge-handler.ts
 - [ ] Implement knowledge.search handler (calls hybridSearch)
 - [ ] Implement knowledge.create handler (calls createKnowledgeItem)
@@ -304,6 +323,7 @@ export async function GET(request: NextRequest) {
 - [ ] Unit tests for each handler
 
 **Technical Details**:
+
 ```typescript
 // lib/mcp/handlers/knowledge-handler.ts
 import { knowledgeTools } from '@/lib/mcp-tools/knowledge-tools';
@@ -343,6 +363,7 @@ mcpServer.tool(
 ```
 
 **Dependencies**:
+
 - US-5.5-01 (MCP Server Foundation)
 - Existing: lib/mcp-tools/knowledge-tools.ts
 - Existing: lib/knowledge/search.ts, create.ts, graph.ts
@@ -352,11 +373,13 @@ mcpServer.tool(
 ---
 
 ### US-5.5-04: Resource System for Knowledge Items (3 points)
+
 **As a** AI agent
 **I want** to access knowledge items as MCP resources
 **So that** I can inject full knowledge item context into my prompts
 
 **Acceptance Criteria**:
+
 - [ ] Create lib/mcp/resources/knowledge-resource.ts
 - [ ] Implement resources/list handler (list all knowledge items)
 - [ ] Implement resources/read handler (read single item by URI)
@@ -367,6 +390,7 @@ mcpServer.tool(
 - [ ] Unit tests for resource handlers
 
 **Technical Details**:
+
 ```typescript
 // lib/mcp/resources/knowledge-resource.ts
 import { mcpServer } from '../server';
@@ -378,8 +402,8 @@ mcpServer.resources('knowledge://item/*', async () => {
     select: { id: true, title: true, category: true },
     take: 100, // Limit for performance
   });
-  
-  return items.map(item => ({
+
+  return items.map((item) => ({
     uri: `knowledge://item/${item.id}`,
     name: item.title,
     description: `Knowledge item: ${item.category}`,
@@ -391,11 +415,11 @@ mcpServer.resources('knowledge://item/*', async () => {
 mcpServer.resource('knowledge://item/:id', async (uri) => {
   const id = parseInt(uri.split('/').pop());
   const item = await prisma.knowledgeItem.findUnique({ where: { id } });
-  
+
   if (!item) {
     throw new Error(`Knowledge item ${id} not found`);
   }
-  
+
   return {
     contents: [
       {
@@ -409,6 +433,7 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ```
 
 **Dependencies**:
+
 - US-5.5-01 (MCP Server Foundation)
 
 **Estimated Duration**: 0.5 days
@@ -416,11 +441,13 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ---
 
 ### US-5.5-05: Integration Testing with Real Claude Desktop (N/A - Testing)
+
 **As a** developer
 **I want** to test the MCP server with real Claude Desktop
 **So that** I can verify end-to-end functionality
 
 **Acceptance Criteria**:
+
 - [ ] Create claude_desktop_config.json example
 - [ ] Document configuration steps
 - [ ] Test initialize handshake
@@ -432,6 +459,7 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 - [ ] Document common issues and solutions
 
 **Technical Details**:
+
 ```json
 // Example: claude_desktop_config.json
 {
@@ -445,6 +473,7 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ```
 
 **Test Scenarios**:
+
 1. **Tool Discovery**: Claude should list 3 knowledge tools
 2. **Search**: "Search for PostgreSQL indexing strategies"
 3. **Create**: "Create a knowledge item about React hooks"
@@ -452,6 +481,7 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 5. **Resource**: Claude should see knowledge items in context menu
 
 **Dependencies**:
+
 - US-5.5-01, US-5.5-02, US-5.5-03, US-5.5-04
 
 **Estimated Duration**: 1 day
@@ -459,11 +489,13 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ---
 
 ### US-5.5-06: Documentation and User Guide (N/A - Documentation)
+
 **As a** end user (AI agent operator)
 **I want** clear setup documentation
 **So that** I can configure my AI agent to use ProjectPulse
 
 **Acceptance Criteria**:
+
 - [ ] Create docs/MCP_SETUP_GUIDE.md
 - [ ] Document claude_desktop_config.json setup
 - [ ] Document available tools with examples
@@ -473,12 +505,14 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 - [ ] Update project README with MCP section
 
 **Deliverables**:
+
 1. **MCP_SETUP_GUIDE.md**: User-facing setup guide
 2. **MCP_ARCHITECTURE.md**: Developer documentation
 3. **MCP_API_REFERENCE.md**: Tool/resource reference
 4. **README.md update**: Add MCP section to main README
 
 **Dependencies**:
+
 - US-5.5-05 (Integration Testing)
 
 **Estimated Duration**: 0.5 days
@@ -488,10 +522,13 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ## Implementation Phases
 
 ### Phase 1: Foundation (Day 1)
+
 **Goal**: MCP server core infrastructure
 
 **Tasks**:
+
 1. Install @modelcontextprotocol/sdk
+
    ```bash
    cd apps/web
    pnpm add @modelcontextprotocol/sdk
@@ -509,6 +546,7 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 4. Write unit tests for server initialization
 
 **Exit Criteria**:
+
 - [ ] MCP server instance created
 - [ ] Tests pass: server.test.ts
 - [ ] No TypeScript errors
@@ -516,9 +554,11 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ---
 
 ### Phase 2: HTTP Transport (Day 1 afternoon - Day 2 morning)
+
 **Goal**: HTTP endpoint for MCP connections
 
 **Tasks**:
+
 1. Create app/api/mcp/route.ts
    - POST handler for JSON-RPC
    - Session management (Mcp-Session-Id)
@@ -533,6 +573,7 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
    - Postman collection for manual testing
 
 **Exit Criteria**:
+
 - [ ] POST /api/mcp returns 200 for initialize
 - [ ] Session ID generated and returned
 - [ ] Integration tests pass
@@ -540,9 +581,11 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ---
 
 ### Phase 3: Knowledge Tools (Day 2 afternoon - Day 3 morning)
+
 **Goal**: Connect existing tool specs to MCP server
 
 **Tasks**:
+
 1. Create lib/mcp/handlers/knowledge-handler.ts
    - knowledge.search handler
    - knowledge.create handler
@@ -557,6 +600,7 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
    - Integration tests via HTTP
 
 **Exit Criteria**:
+
 - [ ] All 3 knowledge tools callable via MCP
 - [ ] Tests pass: knowledge-handler.test.ts
 - [ ] Tools return correct format
@@ -564,9 +608,11 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ---
 
 ### Phase 4: Resources (Day 3 afternoon)
+
 **Goal**: Expose knowledge items as MCP resources
 
 **Tasks**:
+
 1. Create lib/mcp/resources/knowledge-resource.ts
    - resources/list handler
    - resources/read handler
@@ -576,6 +622,7 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
    - Integration tests via HTTP
 
 **Exit Criteria**:
+
 - [ ] resources/list returns knowledge items
 - [ ] resources/read returns item content
 - [ ] Tests pass: knowledge-resource.test.ts
@@ -583,9 +630,11 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ---
 
 ### Phase 5: Integration Testing (Day 4)
+
 **Goal**: Test with real Claude Desktop
 
 **Tasks**:
+
 1. Create claude_desktop_config.json
 2. Configure Claude Desktop to use MCP server
 3. Test all tools from Claude:
@@ -596,6 +645,7 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 5. Document issues and edge cases
 
 **Exit Criteria**:
+
 - [ ] Claude Desktop connects successfully
 - [ ] All tools work from Claude
 - [ ] Resources accessible in Claude
@@ -604,9 +654,11 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ---
 
 ### Phase 6: Documentation (Day 5)
+
 **Goal**: Complete user and developer documentation
 
 **Tasks**:
+
 1. Write MCP_SETUP_GUIDE.md
 2. Write MCP_ARCHITECTURE.md
 3. Write MCP_API_REFERENCE.md
@@ -614,6 +666,7 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 5. Create troubleshooting guide
 
 **Exit Criteria**:
+
 - [ ] All documentation complete
 - [ ] Setup guide tested by fresh user
 - [ ] Architecture documented for future devs
@@ -623,9 +676,11 @@ mcpServer.resource('knowledge://item/:id', async (uri) => {
 ## Testing Strategy
 
 ### Unit Tests
+
 Location: `__tests__/mcp/`
 
 **Test Files**:
+
 1. **server.test.ts**
    - Server initialization
    - Capability negotiation
@@ -652,9 +707,11 @@ Location: `__tests__/mcp/`
 ---
 
 ### Integration Tests
+
 Location: `__tests__/mcp/integration/`
 
 **Test Files**:
+
 1. **mcp-endpoint.test.ts**
    - POST /api/mcp with initialize
    - POST /api/mcp with tool call
@@ -667,6 +724,7 @@ Location: `__tests__/mcp/integration/`
    - Error scenarios (invalid session, bad arguments)
 
 **Test Approach**:
+
 - Use supertest to call HTTP endpoints
 - Mock database with test fixtures
 - Use real @modelcontextprotocol/sdk client
@@ -676,6 +734,7 @@ Location: `__tests__/mcp/integration/`
 ### Manual Testing (Claude Desktop)
 
 **Test Plan**:
+
 1. **Setup**:
    - Configure claude_desktop_config.json
    - Restart Claude Desktop
@@ -697,6 +756,7 @@ Location: `__tests__/mcp/integration/`
    - Graph traversal (2-hop related items)
 
 **Success Criteria**:
+
 - ✅ All tools callable from Claude
 - ✅ Results formatted correctly
 - ✅ No errors in Claude logs
@@ -707,6 +767,7 @@ Location: `__tests__/mcp/integration/`
 ## Success Criteria & Exit Conditions
 
 ### Must Have (Sprint Exit)
+
 - ✅ MCP server running on Mac mini (http://192.168.1.15:3000/api/mcp)
 - ✅ Claude Desktop can connect via config
 - ✅ knowledge.search tool works from Claude
@@ -717,6 +778,7 @@ Location: `__tests__/mcp/integration/`
 - ✅ Documentation complete (setup guide, API reference)
 
 ### Should Have
+
 - ✅ Resource system working (knowledge items as resources)
 - ✅ Error handling for all edge cases
 - ✅ Session management working correctly
@@ -724,6 +786,7 @@ Location: `__tests__/mcp/integration/`
 - ✅ Troubleshooting guide for common issues
 
 ### Nice to Have (Future)
+
 - ⏭️ GET /api/mcp SSE streaming (for notifications)
 - ⏭️ OAuth 2.1 authentication (cloud deployment)
 - ⏭️ Multi-tenant support (API keys per user)
@@ -738,11 +801,13 @@ Location: `__tests__/mcp/integration/`
 ### Dependencies
 
 **External**:
+
 - @modelcontextprotocol/sdk (npm package) - ✅ Available
 - Claude Desktop (for testing) - ✅ Available
 - Mac mini server (192.168.1.15) - ✅ Running
 
 **Internal**:
+
 - lib/knowledge/search.ts - ✅ Complete
 - lib/knowledge/create.ts - ✅ Complete
 - lib/knowledge/graph.ts - ✅ Complete
@@ -755,14 +820,14 @@ Location: `__tests__/mcp/integration/`
 
 ### Risks
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| SDK API changes | High | Low | Pin version, monitor changelog |
-| Session management bugs | Medium | Medium | Thorough testing, use UUIDs |
-| Performance issues (large results) | Medium | Medium | Pagination, limit defaults |
-| Claude Desktop config issues | Low | Medium | Detailed setup guide, examples |
-| HTTP transport bugs | High | Low | Use official SDK transport |
-| Network latency (Mac mini) | Low | Low | Mac mini on local network (fast) |
+| Risk                               | Impact | Probability | Mitigation                       |
+| ---------------------------------- | ------ | ----------- | -------------------------------- |
+| SDK API changes                    | High   | Low         | Pin version, monitor changelog   |
+| Session management bugs            | Medium | Medium      | Thorough testing, use UUIDs      |
+| Performance issues (large results) | Medium | Medium      | Pagination, limit defaults       |
+| Claude Desktop config issues       | Low    | Medium      | Detailed setup guide, examples   |
+| HTTP transport bugs                | High   | Low         | Use official SDK transport       |
+| Network latency (Mac mini)         | Low    | Low         | Mac mini on local network (fast) |
 
 **Overall Risk**: LOW ✅
 
@@ -771,39 +836,49 @@ Location: `__tests__/mcp/integration/`
 ## Technical Decisions
 
 ### 1. Transport: Streamable HTTP vs SSE
+
 **Decision**: Use Streamable HTTP (2025-03-26 spec)
 **Rationale**:
+
 - Latest protocol revision
 - Cost-efficient (no persistent connections)
 - Serverless-ready (future cloud deployment)
 - SSE optional for advanced use cases
 
 ### 2. Integration: Standalone Server vs Next.js Routes
+
 **Decision**: Next.js App Router routes (app/api/mcp)
 **Rationale**:
+
 - Reuse existing Next.js infrastructure
 - Share Prisma client, env vars, utilities
 - No separate deployment needed
 - Easier for single developer setup
 
 ### 3. Authentication: Now vs Later
+
 **Decision**: No auth for Sprint 5.5 (single dev), OAuth 2.1 for cloud
 **Rationale**:
+
 - Mac mini local network (trusted environment)
 - Single developer, no multi-tenant needs
 - Can add OAuth 2.1 later (MCP 2025-03-26 supports it)
 
 ### 4. Session Storage: In-Memory vs Database
+
 **Decision**: In-memory (Map<sessionId, session>)
 **Rationale**:
+
 - Simple for single server
 - No database overhead
 - Sessions short-lived (tool calls stateless)
 - Can add Redis later if needed
 
 ### 5. Error Format: JSON-RPC vs Custom
+
 **Decision**: JSON-RPC 2.0 error format (per MCP spec)
 **Rationale**:
+
 - Standard format expected by clients
 - SDK handles formatting
 - Consistent with protocol
@@ -813,6 +888,7 @@ Location: `__tests__/mcp/integration/`
 ## Code Examples
 
 ### Example 1: MCP Server Setup
+
 ```typescript
 // lib/mcp/server.ts
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -830,26 +906,22 @@ export const mcpServer = new McpServer({
 
 // Register knowledge tools
 Object.entries(knowledgeTools).forEach(([name, tool]) => {
-  mcpServer.tool(
-    tool.name,
-    tool.description,
-    tool.inputSchema,
-    async (args) => {
-      const result = await tool.handler(args);
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(result, null, 2),
-          },
-        ],
-      };
-    }
-  );
+  mcpServer.tool(tool.name, tool.description, tool.inputSchema, async (args) => {
+    const result = await tool.handler(args);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
+  });
 });
 ```
 
 ### Example 2: HTTP Route Handler
+
 ```typescript
 // app/api/mcp/route.ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -905,6 +977,7 @@ export async function POST(request: NextRequest) {
 ```
 
 ### Example 3: Tool Handler
+
 ```typescript
 // lib/mcp/handlers/knowledge-handler.ts
 import { knowledgeSearchTool } from '@/lib/mcp-tools/knowledge-tools';
@@ -939,11 +1012,11 @@ export function registerKnowledgeTools() {
     async (args) => {
       try {
         const result = await knowledgeSearchTool(args);
-        
+
         // Format results for display
-        const formatted = result.results.map(r => 
-          `**${r.title}** (score: ${r.score})\n${r.excerpt}`
-        ).join('\n\n');
+        const formatted = result.results
+          .map((r) => `**${r.title}** (score: ${r.score})\n${r.excerpt}`)
+          .join('\n\n');
 
         return {
           content: [
@@ -970,6 +1043,7 @@ export function registerKnowledgeTools() {
 ```
 
 ### Example 4: Resource Handler
+
 ```typescript
 // lib/mcp/resources/knowledge-resource.ts
 import { mcpServer } from '../server';
@@ -984,7 +1058,7 @@ export function registerKnowledgeResources() {
       orderBy: { createdAt: 'desc' },
     });
 
-    return items.map(item => ({
+    return items.map((item) => ({
       uri: `knowledge://item/${item.id}`,
       name: item.title,
       description: `${item.category} knowledge item`,
@@ -995,7 +1069,7 @@ export function registerKnowledgeResources() {
   // Read specific knowledge item
   mcpServer.resource('knowledge://item/:id', async (uri) => {
     const id = parseInt(uri.split('/').pop() || '0');
-    
+
     const item = await prisma.knowledgeItem.findUnique({
       where: { id },
       include: {
@@ -1039,6 +1113,7 @@ ${item.content}
 ```
 
 ### Example 5: Claude Desktop Config
+
 ```json
 // claude_desktop_config.json
 {
@@ -1057,11 +1132,13 @@ ${item.content}
 ## Rollout Plan
 
 ### Development Environment (Mac mini)
+
 1. Develop and test on Mac mini (192.168.1.15)
 2. Use Claude Desktop from Windows (connects to Mac mini)
 3. Iterate until all tools working
 
 ### Production (Future Cloud Deployment)
+
 1. Deploy to Railway/Vercel/Cloudflare Workers
 2. Add OAuth 2.1 authentication
 3. Add API key management
@@ -1072,6 +1149,7 @@ ${item.content}
 ## Acceptance Testing Checklist
 
 ### Functional Requirements
+
 - [ ] MCP server starts without errors
 - [ ] POST /api/mcp returns 200 for initialize
 - [ ] Session IDs generated and persisted
@@ -1083,6 +1161,7 @@ ${item.content}
 - [ ] Error responses formatted correctly
 
 ### Non-Functional Requirements
+
 - [ ] Response time <2s per tool call
 - [ ] No memory leaks (sessions cleaned up)
 - [ ] Logs errors for debugging
@@ -1091,6 +1170,7 @@ ${item.content}
 - [ ] Unit test coverage >80%
 
 ### Documentation
+
 - [ ] MCP_SETUP_GUIDE.md complete
 - [ ] MCP_ARCHITECTURE.md complete
 - [ ] MCP_API_REFERENCE.md complete
@@ -1098,6 +1178,7 @@ ${item.content}
 - [ ] Code comments for complex logic
 
 ### User Experience
+
 - [ ] Claude Desktop connects successfully
 - [ ] Tool results readable in chat
 - [ ] Resource content useful for context
@@ -1109,6 +1190,7 @@ ${item.content}
 ## Future Enhancements (Post-Sprint 5.5)
 
 ### Sprint 6+: Additional Tools
+
 - [ ] issues.create - Create issues from chat
 - [ ] issues.search - Search issues
 - [ ] issues.update - Update issue status/priority
@@ -1117,6 +1199,7 @@ ${item.content}
 - [ ] wiki.create - Create wiki pages
 
 ### Sprint 7+: Advanced Features
+
 - [ ] Prompt templates (MCP prompts)
 - [ ] Batch operations (multiple tool calls)
 - [ ] Streaming responses (SSE)
@@ -1124,6 +1207,7 @@ ${item.content}
 - [ ] Analytics (tool usage, performance)
 
 ### Cloud Deployment
+
 - [ ] OAuth 2.1 authentication
 - [ ] Multi-tenant support
 - [ ] API key management
@@ -1136,18 +1220,21 @@ ${item.content}
 ## Metrics & KPIs
 
 ### Development Metrics
+
 - Story points completed: 21 / 21
 - Test coverage: >80%
 - Critical bugs: 0
 - Documentation completeness: 100%
 
 ### Performance Metrics
+
 - Tool call latency: <2s (p95)
 - Server startup time: <5s
 - Memory usage: <200MB
 - Concurrent connections: 10+ (local network)
 
 ### User Metrics
+
 - Setup time: <10 minutes
 - Tool success rate: >95%
 - Error rate: <5%
@@ -1160,6 +1247,7 @@ ${item.content}
 Sprint 5.5 closes the critical gap in Sprint 1 by building the MCP server infrastructure that enables **90% of users (AI agents) to access ProjectPulse**.
 
 With this infrastructure complete, AI agents can:
+
 - ✅ Search the knowledge base (semantic + full-text)
 - ✅ Create new knowledge items
 - ✅ Discover related knowledge (graph traversal)

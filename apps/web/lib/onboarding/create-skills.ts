@@ -1,9 +1,9 @@
 /**
  * Skills Creation for Session 3 Onboarding
- * 
+ *
  * Purpose: Create 5-10 Skill records based on detected tech stack
  * Used by: Bootstrap API route
- * 
+ *
  * Architecture: Template-based (NO AI generation)
  * - Pre-defined skill content templates (markdown)
  * - Conditional logic based on tech stack detection
@@ -21,7 +21,7 @@ interface SkillDefinition {
   title: string;
   category: 'frontend' | 'backend' | 'database' | 'testing' | 'devops' | 'general';
   description: string;
-  content: string;  // Markdown content
+  content: string; // Markdown content
   tags: string[];
   frameworks: string[];
 }
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
 - Use TypeScript for type safety
   `.trim(),
   tags: ['api', 'validation', 'error-handling', 'rest', 'pagination'],
-  frameworks: ['Next.js', 'Express', 'Fastify']
+  frameworks: ['Next.js', 'Express', 'Fastify'],
 };
 
 const NEXTJS_SERVER_COMPONENTS_SKILL: SkillDefinition = {
@@ -229,7 +229,7 @@ export default async function Page() {
 - Leverage automatic code splitting
   `.trim(),
   tags: ['nextjs', 'server-components', 'react', 'app-router'],
-  frameworks: ['Next.js', 'React']
+  frameworks: ['Next.js', 'React'],
 };
 
 const PRISMA_SCHEMA_DESIGN_SKILL: SkillDefinition = {
@@ -331,7 +331,7 @@ model Task {
 - Add \`createdAt\` and \`updatedAt\` timestamps
   `.trim(),
   tags: ['prisma', 'database', 'schema', 'relations'],
-  frameworks: ['Prisma', 'PostgreSQL', 'MySQL']
+  frameworks: ['Prisma', 'PostgreSQL', 'MySQL'],
 };
 
 const TESTING_PATTERNS_SKILL: SkillDefinition = {
@@ -436,7 +436,7 @@ test('user can create an issue', async ({ page }) => {
 - Aim for 80%+ coverage
   `.trim(),
   tags: ['testing', 'jest', 'vitest', 'playwright', 'tdd'],
-  frameworks: ['Jest', 'Vitest', 'Playwright', 'Cypress']
+  frameworks: ['Jest', 'Vitest', 'Playwright', 'Cypress'],
 };
 
 const GIT_WORKFLOW_SKILL: SkillDefinition = {
@@ -528,7 +528,7 @@ git branch -d feature/my-feature
 - Use \`.gitignore\` properly
   `.trim(),
   tags: ['git', 'workflow', 'branching', 'commits'],
-  frameworks: []
+  frameworks: [],
 };
 
 const SECURITY_PATTERNS_SKILL: SkillDefinition = {
@@ -651,7 +651,7 @@ const dbUrl = process.env.DATABASE_URL;
 - Keep dependencies updated
   `.trim(),
   tags: ['security', 'validation', 'authentication', 'xss', 'sql-injection'],
-  frameworks: []
+  frameworks: [],
 };
 
 // ============================================================================
@@ -660,28 +660,28 @@ const dbUrl = process.env.DATABASE_URL;
 
 /**
  * Get skills based on detected tech stack
- * 
+ *
  * @param techStack - Detected tech stack info
  * @returns Array of skill definitions to create
  */
 export function getSkillsForTechStack(techStack: TechStackInfo): SkillDefinition[] {
   const skills: SkillDefinition[] = [];
-  
+
   // Core skills (always included)
   skills.push(API_PATTERNS_SKILL);
   skills.push(TESTING_PATTERNS_SKILL);
   skills.push(GIT_WORKFLOW_SKILL);
   skills.push(SECURITY_PATTERNS_SKILL);
-  
+
   // Tech stack-specific skills
   if (techStack.frontend === 'Next.js') {
     skills.push(NEXTJS_SERVER_COMPONENTS_SKILL);
   }
-  
+
   if (techStack.orm === 'Prisma') {
     skills.push(PRISMA_SCHEMA_DESIGN_SKILL);
   }
-  
+
   return skills;
 }
 
@@ -691,7 +691,7 @@ export function getSkillsForTechStack(techStack: TechStackInfo): SkillDefinition
 
 /**
  * Create skills in database
- * 
+ *
  * @param projectId - Project ID
  * @param projectType - Project type (from project-context.json)
  * @param techStack - Detected tech stack info
@@ -703,16 +703,16 @@ export async function createSkills(
   techStack: TechStackInfo
 ): Promise<number> {
   const skillDefs = getSkillsForTechStack(techStack);
-  
+
   console.log('[Session 3] Creating skills', {
     projectId,
     projectType,
     techStack,
-    count: skillDefs.length
+    count: skillDefs.length,
   });
-  
+
   let created = 0;
-  
+
   for (const def of skillDefs) {
     try {
       await prisma.skill.create({
@@ -725,8 +725,8 @@ export async function createSkills(
           content: def.content,
           tags: def.tags,
           frameworks: def.frameworks,
-          usageCount: 0
-        }
+          usageCount: 0,
+        },
       });
       created++;
       console.log(`[Session 3] Created skill: ${def.title}`);
@@ -735,8 +735,8 @@ export async function createSkills(
       // Continue with other skills even if one fails
     }
   }
-  
+
   console.log(`[Session 3] Skills created: ${created}/${skillDefs.length}`);
-  
+
   return created;
 }

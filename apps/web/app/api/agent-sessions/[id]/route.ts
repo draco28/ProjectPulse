@@ -72,20 +72,14 @@ async function getAuthorizedSession(request: NextRequest, sessionId: string) {
  *
  * Security: Requires authentication + access to session's project
  */
-export async function GET(
-  request: NextRequest,
-  { params }: RouteParams
-) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
 
     const session = await getAuthorizedSession(request, id);
 
     if (!session) {
-      return NextResponse.json(
-        { error: 'Agent session not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Agent session not found' }, { status: 404 });
     }
 
     return NextResponse.json({ session });
@@ -99,10 +93,7 @@ export async function GET(
     }
 
     console.error('[GET /api/agent-sessions/[id]] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch agent session' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch agent session' }, { status: 500 });
   }
 }
 
@@ -113,10 +104,7 @@ export async function GET(
  *
  * Security: Requires authentication + access to session's project
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: RouteParams
-) {
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await request.json();
@@ -134,10 +122,7 @@ export async function PATCH(
     const existing = await getAuthorizedSession(request, id);
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Agent session not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Agent session not found' }, { status: 404 });
     }
 
     const { name, plan, todos, progress, activeTicketIds, status } = validation.data;
@@ -150,7 +135,7 @@ export async function PATCH(
     if (todos !== undefined) updateData.todos = todos;
     if (progress !== undefined) updateData.progress = progress;
     if (activeTicketIds !== undefined) {
-      updateData.activeTicketIds = activeTicketIds.map(id => String(id));
+      updateData.activeTicketIds = activeTicketIds.map((id) => String(id));
     }
     if (status !== undefined) {
       updateData.status = status;
@@ -179,10 +164,7 @@ export async function PATCH(
     }
 
     console.error('[PATCH /api/agent-sessions/[id]] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update agent session' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update agent session' }, { status: 500 });
   }
 }
 
@@ -193,10 +175,7 @@ export async function PATCH(
  *
  * Security: Requires authentication + access to session's project
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: RouteParams
-) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
 
@@ -204,10 +183,7 @@ export async function DELETE(
     const existing = await getAuthorizedSession(request, id);
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Agent session not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Agent session not found' }, { status: 404 });
     }
 
     // Delete session
@@ -226,9 +202,6 @@ export async function DELETE(
     }
 
     console.error('[DELETE /api/agent-sessions/[id]] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete agent session' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete agent session' }, { status: 500 });
   }
 }

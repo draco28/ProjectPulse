@@ -68,82 +68,80 @@ export async function updateProgressAndPropagate(
   }
 
   // 1. Update current entity and calculate parent progress in transaction
-  const { parentInfo, updatedEntity } = await prisma.$transaction(
-    async (tx) => {
-      let parentId: string | null = null;
-      let parentType: 'week' | 'sprint' | 'phase' | null = null;
-      let updatedEntity: { id: string; progress: number; status: Status } & Record<string, unknown>;
+  const { parentInfo, updatedEntity } = await prisma.$transaction(async (tx) => {
+    let parentId: string | null = null;
+    let parentType: 'week' | 'sprint' | 'phase' | null = null;
+    let updatedEntity: { id: string; progress: number; status: Status } & Record<string, unknown>;
 
-      switch (entityType) {
-        case 'day': {
-          const result = await tx.day.update({
-            where: { id: entityId },
-            data: {
-              progress: newProgress,
-              status: determineStatus(newProgress),
-              updatedAt: new Date(),
-            },
-            select: { id: true, progress: true, status: true, weekId: true },
-          });
-          updatedEntity = result;
-          parentId = result.weekId;
-          parentType = 'week';
-          break;
-        }
-        case 'week': {
-          const result = await tx.week.update({
-            where: { id: entityId },
-            data: {
-              progress: newProgress,
-              status: determineStatus(newProgress),
-              updatedAt: new Date(),
-            },
-            select: { id: true, progress: true, status: true, sprintId: true },
-          });
-          updatedEntity = result;
-          parentId = result.sprintId;
-          parentType = 'sprint';
-          break;
-        }
-        case 'sprint': {
-          const result = await tx.sprint.update({
-            where: { id: entityId },
-            data: {
-              progress: newProgress,
-              status: determineStatus(newProgress),
-              updatedAt: new Date(),
-            },
-            select: { id: true, progress: true, status: true, phaseId: true },
-          });
-          updatedEntity = result;
-          parentId = result.phaseId;
-          parentType = 'phase';
-          break;
-        }
-        case 'phase': {
-          const result = await tx.phase.update({
-            where: { id: entityId },
-            data: {
-              progress: newProgress,
-              status: determineStatus(newProgress),
-              updatedAt: new Date(),
-            },
-            select: { id: true, progress: true, status: true },
-          });
-          updatedEntity = result;
-          // Phase is root, no parent
-          break;
-        }
-        default:
-          throw new Error(`Invalid entity type: ${entityType}`);
+    switch (entityType) {
+      case 'day': {
+        const result = await tx.day.update({
+          where: { id: entityId },
+          data: {
+            progress: newProgress,
+            status: determineStatus(newProgress),
+            updatedAt: new Date(),
+          },
+          select: { id: true, progress: true, status: true, weekId: true },
+        });
+        updatedEntity = result;
+        parentId = result.weekId;
+        parentType = 'week';
+        break;
       }
-
-      return {
-        parentInfo: parentId && parentType ? { parentId, parentType } : null,
-        updatedEntity,
-      };
+      case 'week': {
+        const result = await tx.week.update({
+          where: { id: entityId },
+          data: {
+            progress: newProgress,
+            status: determineStatus(newProgress),
+            updatedAt: new Date(),
+          },
+          select: { id: true, progress: true, status: true, sprintId: true },
+        });
+        updatedEntity = result;
+        parentId = result.sprintId;
+        parentType = 'sprint';
+        break;
+      }
+      case 'sprint': {
+        const result = await tx.sprint.update({
+          where: { id: entityId },
+          data: {
+            progress: newProgress,
+            status: determineStatus(newProgress),
+            updatedAt: new Date(),
+          },
+          select: { id: true, progress: true, status: true, phaseId: true },
+        });
+        updatedEntity = result;
+        parentId = result.phaseId;
+        parentType = 'phase';
+        break;
+      }
+      case 'phase': {
+        const result = await tx.phase.update({
+          where: { id: entityId },
+          data: {
+            progress: newProgress,
+            status: determineStatus(newProgress),
+            updatedAt: new Date(),
+          },
+          select: { id: true, progress: true, status: true },
+        });
+        updatedEntity = result;
+        // Phase is root, no parent
+        break;
+      }
+      default:
+        throw new Error(`Invalid entity type: ${entityType}`);
     }
-  );
+
+    return {
+      parentInfo: parentId && parentType ? { parentId, parentType } : null,
+      updatedEntity,
+    };
+  });
 
   // 2. If we have a parent, calculate its new progress and propagate
   if (parentInfo) {
@@ -307,15 +305,18 @@ export async function getPhaseProgressSummary(phaseId: string) {
       days: days.filter((d) => d.status === 'COMPLETED').length,
     },
     averages: {
-      sprintProgress: sprints.length > 0
-        ? Math.round(sprints.reduce((sum, s) => sum + s.progress, 0) / sprints.length)
-        : 0,
-      weekProgress: weeks.length > 0
-        ? Math.round(weeks.reduce((sum, w) => sum + w.progress, 0) / weeks.length)
-        : 0,
-      dayProgress: days.length > 0
-        ? Math.round(days.reduce((sum, d) => sum + d.progress, 0) / days.length)
-        : 0,
+      sprintProgress:
+        sprints.length > 0
+          ? Math.round(sprints.reduce((sum, s) => sum + s.progress, 0) / sprints.length)
+          : 0,
+      weekProgress:
+        weeks.length > 0
+          ? Math.round(weeks.reduce((sum, w) => sum + w.progress, 0) / weeks.length)
+          : 0,
+      dayProgress:
+        days.length > 0
+          ? Math.round(days.reduce((sum, d) => sum + d.progress, 0) / days.length)
+          : 0,
     },
   };
 }

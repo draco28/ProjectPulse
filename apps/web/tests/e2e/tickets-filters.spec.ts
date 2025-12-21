@@ -68,7 +68,9 @@ test.describe('Tickets Advanced Filtering', () => {
     if (hasKind && hasStatus && hasPriority) {
       console.log('✓ All three filters applied: kind=issue, status=open, priority=high');
     } else {
-      console.log(`⚠️ Combined filters partial: kind=${hasKind}, status=${hasStatus}, priority=${hasPriority}`);
+      console.log(
+        `⚠️ Combined filters partial: kind=${hasKind}, status=${hasStatus}, priority=${hasPriority}`
+      );
     }
 
     // Verify results match all filters (if tickets exist)
@@ -108,7 +110,8 @@ test.describe('Tickets Advanced Filtering', () => {
     await page.waitForTimeout(500);
 
     // Look for filter count indicator
-    const filterCount = page.locator('[data-testid="filter-count"]')
+    const filterCount = page
+      .locator('[data-testid="filter-count"]')
       .or(page.getByText(/\d+ filters?.*applied/i))
       .or(page.locator('.badge').filter({ hasText: /\d+/ }));
 
@@ -127,7 +130,8 @@ test.describe('Tickets Advanced Filtering', () => {
     await page.waitForTimeout(500);
 
     // Look for clear filters button
-    const clearButton = page.getByRole('button', { name: /clear/i })
+    const clearButton = page
+      .getByRole('button', { name: /clear/i })
       .or(page.getByRole('button', { name: /reset/i }))
       .or(page.getByRole('button', { name: /remove all/i }));
 
@@ -141,7 +145,8 @@ test.describe('Tickets Advanced Filtering', () => {
 
       // Verify URL no longer has filter params
       const url = page.url();
-      const hasNoFilters = !url.includes('kind=') && !url.includes('status=') && !url.includes('priority=');
+      const hasNoFilters =
+        !url.includes('kind=') && !url.includes('status=') && !url.includes('priority=');
 
       if (hasNoFilters) {
         console.log('✓ All filters cleared');
@@ -172,7 +177,8 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should filter by module with autocomplete or dropdown', async ({ page }) => {
     // Look for module filter
-    const moduleFilter = page.locator('input[name="module"]')
+    const moduleFilter = page
+      .locator('input[name="module"]')
       .or(page.locator('select[name="module"]'))
       .or(page.locator('[data-testid="module-filter"]'));
 
@@ -187,7 +193,8 @@ test.describe('Tickets Advanced Filtering', () => {
         await page.waitForTimeout(500);
 
         // Look for autocomplete suggestions
-        const suggestions = page.locator('[role="listbox"]')
+        const suggestions = page
+          .locator('[role="listbox"]')
           .or(page.locator('.autocomplete-item'))
           .or(page.locator('[data-testid="module-suggestion"]'));
         if ((await suggestions.count()) > 0) {
@@ -212,7 +219,8 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should filter by date range (created date)', async ({ page }) => {
     // Look for date range filter
-    const dateFilter = page.locator('[data-testid="date-filter"]')
+    const dateFilter = page
+      .locator('[data-testid="date-filter"]')
       .or(page.locator('input[type="date"]'))
       .or(page.getByRole('button', { name: /date range/i }));
 
@@ -220,8 +228,12 @@ test.describe('Tickets Advanced Filtering', () => {
       console.log('✓ Date filter found');
 
       // If date inputs exist, set range
-      const startDateInput = page.locator('input[name="startDate"]').or(page.locator('input[name="from"]'));
-      const endDateInput = page.locator('input[name="endDate"]').or(page.locator('input[name="to"]'));
+      const startDateInput = page
+        .locator('input[name="startDate"]')
+        .or(page.locator('input[name="from"]'));
+      const endDateInput = page
+        .locator('input[name="endDate"]')
+        .or(page.locator('input[name="to"]'));
 
       if ((await startDateInput.count()) > 0 && (await endDateInput.count()) > 0) {
         // Set date range (last 30 days)
@@ -234,7 +246,8 @@ test.describe('Tickets Advanced Filtering', () => {
 
         // Verify URL includes date filters
         const url = page.url();
-        const hasDateFilter = url.includes('startDate') || url.includes('createdFrom') || url.includes('from');
+        const hasDateFilter =
+          url.includes('startDate') || url.includes('createdFrom') || url.includes('from');
 
         if (hasDateFilter) {
           console.log('✓ Date range filter applied');
@@ -262,7 +275,9 @@ test.describe('Tickets Advanced Filtering', () => {
     if (hasKindFilter && hasSearchQuery) {
       console.log('✓ Search combined with kind filter in URL');
     } else {
-      console.log(`⚠️ Combined search/filter partial: kind=${hasKindFilter}, search=${hasSearchQuery}`);
+      console.log(
+        `⚠️ Combined search/filter partial: kind=${hasKindFilter}, search=${hasSearchQuery}`
+      );
     }
 
     // Verify results match both search and filter
@@ -309,7 +324,8 @@ test.describe('Tickets Advanced Filtering', () => {
     await page.waitForTimeout(1000);
 
     // Look for empty state or no cards
-    const emptyState = page.getByText(/no tickets.*match/i)
+    const emptyState = page
+      .getByText(/no tickets.*match/i)
       .or(page.getByText(/no results/i))
       .or(page.locator('[data-testid="empty-state"]'));
 
@@ -332,7 +348,8 @@ test.describe('Tickets Advanced Filtering', () => {
     await page.waitForTimeout(500);
 
     // Look for individual filter remove buttons (X icons)
-    const removeFilterButton = page.locator('[data-testid="remove-filter"]')
+    const removeFilterButton = page
+      .locator('[data-testid="remove-filter"]')
       .or(page.locator('.filter-tag button'))
       .or(page.locator('.badge button'));
 
@@ -352,7 +369,7 @@ test.describe('Tickets Advanced Filtering', () => {
       // Alternative: Navigate to URL without one filter
       await page.goto('/tickets?project=3&kind=bug');
       await page.waitForTimeout(500);
-      
+
       const url = page.url();
       const noFeatureFilter = !url.includes('feature');
       if (noFeatureFilter) {
@@ -363,7 +380,8 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should support filter presets (e.g., "My Open Tickets")', async ({ page }) => {
     // Look for preset filter buttons
-    const presetButtons = page.locator('[data-testid="filter-preset"]')
+    const presetButtons = page
+      .locator('[data-testid="filter-preset"]')
       .or(page.getByRole('button', { name: /my tickets/i }))
       .or(page.getByRole('button', { name: /critical/i }));
 
@@ -377,7 +395,8 @@ test.describe('Tickets Advanced Filtering', () => {
 
       // Verify filters were applied
       const url = page.url();
-      const hasFilters = url.includes('status=') || url.includes('priority=') || url.includes('kind=');
+      const hasFilters =
+        url.includes('status=') || url.includes('priority=') || url.includes('kind=');
 
       if (hasFilters) {
         console.log('✓ Filter preset applied filters to URL');
@@ -395,7 +414,8 @@ test.describe('Tickets Advanced Filtering', () => {
     await page.waitForTimeout(500);
 
     // Look for active filter badges
-    const activeFilterBadges = page.locator('[data-testid="active-filter"]')
+    const activeFilterBadges = page
+      .locator('[data-testid="active-filter"]')
       .or(page.locator('.filter-badge'))
       .or(page.locator('.filter-chip'))
       .or(page.locator('.badge.active'));
@@ -404,7 +424,9 @@ test.describe('Tickets Advanced Filtering', () => {
       console.log(`✓ Found ${await activeFilterBadges.count()} active filter badge(s)`);
 
       // Verify badges have remove buttons (X icon)
-      const removeBadge = activeFilterBadges.first().locator('button')
+      const removeBadge = activeFilterBadges
+        .first()
+        .locator('button')
         .or(activeFilterBadges.first().locator('svg'))
         .or(activeFilterBadges.first().locator('.remove'));
       if ((await removeBadge.count()) > 0) {

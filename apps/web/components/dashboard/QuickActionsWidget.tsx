@@ -49,7 +49,7 @@ export function QuickActionsWidget({ onboardingStatus, projectId }: QuickActions
         {onboardingStatus?.isComplete && (
           <Link
             href={onboardingHref}
-            className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-green-400 hover:text-green-300 border border-green-500/20"
+            className="neu-raised smooth-transition flex w-full items-center justify-center gap-2 rounded-2xl border border-green-500/20 px-5 py-3 font-semibold text-green-400 hover:text-green-300"
             aria-label="View onboarding summary"
           >
             <CheckCircle2 className="h-5 w-5" aria-hidden="true" />

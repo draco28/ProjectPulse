@@ -1,9 +1,9 @@
 /**
  * Agent Persona Creation for Session 3 Onboarding
- * 
+ *
  * Purpose: Create 3-5 AgentPersona records based on detected tech stack
  * Used by: Bootstrap API route
- * 
+ *
  * Architecture: Template-based (NO AI generation)
  * - Pre-defined persona templates for common tech stacks
  * - Conditional logic based on tech stack detection
@@ -59,8 +59,8 @@ Provide detailed implementation guidance following React best practices. Help de
     'react performance',
     'state management',
     'component architecture',
-    'custom hook'
-  ]
+    'custom hook',
+  ],
 };
 
 const NEXTJS_EXPERT_PERSONA: AgentPersonaDefinition = {
@@ -91,8 +91,8 @@ Guide implementation decisions for Next.js applications. Help developers leverag
     'server components',
     'data fetching',
     'server actions',
-    'route handlers'
-  ]
+    'route handlers',
+  ],
 };
 
 const PRISMA_EXPERT_PERSONA: AgentPersonaDefinition = {
@@ -123,8 +123,8 @@ Provide guidance on database architecture and Prisma best practices. Help develo
     'schema design',
     'query optimization',
     'migration',
-    'relations'
-  ]
+    'relations',
+  ],
 };
 
 const TYPESCRIPT_EXPERT_PERSONA: AgentPersonaDefinition = {
@@ -154,8 +154,8 @@ Help developers leverage TypeScript's type system for maximum safety and develop
     'generics',
     'type safety',
     'type definition',
-    'interface'
-  ]
+    'interface',
+  ],
 };
 
 const POSTGRESQL_EXPERT_PERSONA: AgentPersonaDefinition = {
@@ -186,8 +186,8 @@ Provide guidance on PostgreSQL-specific optimizations and features. Help develop
     'query slow',
     'indexing',
     'full-text search',
-    'pgvector'
-  ]
+    'pgvector',
+  ],
 };
 
 const TESTING_EXPERT_PERSONA: AgentPersonaDefinition = {
@@ -212,14 +212,7 @@ Guide testing strategy and implementation. Help developers write comprehensive, 
   skills: ['testing-patterns', 'tdd', 'e2e-testing', 'api-testing'],
   tools: ['create_issue', 'search_knowledge'],
   autoActivate: false,
-  activationTriggers: [
-    'test',
-    'testing',
-    'coverage',
-    'e2e',
-    'unit test',
-    'integration test'
-  ]
+  activationTriggers: ['test', 'testing', 'coverage', 'e2e', 'unit test', 'integration test'],
 };
 
 const SECURITY_EXPERT_PERSONA: AgentPersonaDefinition = {
@@ -251,8 +244,8 @@ Audit code for security vulnerabilities and provide remediation guidance. Help d
     'authentication',
     'authorization',
     'xss',
-    'sql injection'
-  ]
+    'sql injection',
+  ],
 };
 
 const API_DESIGN_EXPERT_PERSONA: AgentPersonaDefinition = {
@@ -284,8 +277,8 @@ Guide API design decisions and implementation. Help developers build consistent,
     'validation',
     'error handling',
     'pagination',
-    'rest api'
-  ]
+    'rest api',
+  ],
 };
 
 const PERFORMANCE_EXPERT_PERSONA: AgentPersonaDefinition = {
@@ -310,14 +303,7 @@ Identify performance bottlenecks and provide optimization strategies. Help devel
   skills: ['performance-optimization', 'profiling', 'caching', 'bundle-optimization'],
   tools: ['create_issue', 'search_knowledge'],
   autoActivate: false,
-  activationTriggers: [
-    'performance',
-    'slow',
-    'optimization',
-    'bundle size',
-    'cache',
-    'lighthouse'
-  ]
+  activationTriggers: ['performance', 'slow', 'optimization', 'bundle size', 'cache', 'lighthouse'],
 };
 
 // ============================================================================
@@ -326,19 +312,19 @@ Identify performance bottlenecks and provide optimization strategies. Help devel
 
 /**
  * Get agent personas based on detected tech stack
- * 
+ *
  * @param techStack - Detected tech stack info
  * @returns Array of persona definitions to create
  */
 export function getAgentPersonasForTechStack(techStack: TechStackInfo): AgentPersonaDefinition[] {
   const personas: AgentPersonaDefinition[] = [];
-  
+
   // Core personas (always included)
   personas.push(TESTING_EXPERT_PERSONA);
   personas.push(SECURITY_EXPERT_PERSONA);
   personas.push(API_DESIGN_EXPERT_PERSONA);
   personas.push(PERFORMANCE_EXPERT_PERSONA);
-  
+
   // Tech stack-specific personas
   if (techStack.frontend === 'Next.js') {
     personas.push(NEXTJS_EXPERT_PERSONA);
@@ -346,20 +332,20 @@ export function getAgentPersonasForTechStack(techStack: TechStackInfo): AgentPer
   } else if (techStack.frontend === 'React') {
     personas.push(REACT_EXPERT_PERSONA);
   }
-  
+
   if (techStack.orm === 'Prisma') {
     personas.push(PRISMA_EXPERT_PERSONA);
   }
-  
+
   if (techStack.database === 'PostgreSQL') {
     personas.push(POSTGRESQL_EXPERT_PERSONA);
   }
-  
+
   // TypeScript is common, add if frontend or backend detected
   if (techStack.frontend || techStack.backend) {
     personas.push(TYPESCRIPT_EXPERT_PERSONA);
   }
-  
+
   return personas;
 }
 
@@ -369,7 +355,7 @@ export function getAgentPersonasForTechStack(techStack: TechStackInfo): AgentPer
 
 /**
  * Create agent personas in database
- * 
+ *
  * @param projectId - Project ID
  * @param techStack - Detected tech stack info
  * @returns Number of personas created
@@ -379,15 +365,15 @@ export async function createAgentPersonas(
   techStack: TechStackInfo
 ): Promise<number> {
   const personaDefs = getAgentPersonasForTechStack(techStack);
-  
+
   console.log('[Session 3] Creating agent personas', {
     projectId,
     techStack,
-    count: personaDefs.length
+    count: personaDefs.length,
   });
-  
+
   let created = 0;
-  
+
   for (const def of personaDefs) {
     try {
       await prisma.agentPersona.create({
@@ -401,8 +387,8 @@ export async function createAgentPersonas(
           skills: def.skills,
           tools: def.tools,
           autoActivate: def.autoActivate,
-          activationConditions: { triggers: def.activationTriggers } as any
-        }
+          activationConditions: { triggers: def.activationTriggers } as any,
+        },
       });
       created++;
       console.log(`[Session 3] Created persona: ${def.name}`);
@@ -411,8 +397,8 @@ export async function createAgentPersonas(
       // Continue with other personas even if one fails
     }
   }
-  
+
   console.log(`[Session 3] Agent personas created: ${created}/${personaDefs.length}`);
-  
+
   return created;
 }

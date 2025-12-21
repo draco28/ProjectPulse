@@ -60,13 +60,16 @@ const POST_Import = async (req: NextRequest) => {
     skipDuplicates: options?.skipDuplicates ?? false,
   });
 
-  return Response.json({
-    data: {
-      imported: results.count,
-      skipped: items.length - results.count,
-      failed: 0,
+  return Response.json(
+    {
+      data: {
+        imported: results.count,
+        skipped: items.length - results.count,
+        failed: 0,
+      },
     },
-  }, { status: 201 });
+    { status: 201 }
+  );
 };
 
 describe('Knowledge Export/Import APIs', () => {

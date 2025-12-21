@@ -3,7 +3,7 @@
  *
  * Template Generation API tests - Sprint 11 (EPIC-013: Client Agent Integration)
  * Tests POST /api/repo/write-minimal
- * 
+ *
  * US-013-07: Enhanced CLAUDE.md Template
  * US-013-08: Enhanced AGENTS.md Template
  */
@@ -32,7 +32,12 @@ jest.mock('@/lib/prisma', () => ({
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from 'next/server';
 import { POST } from '../route';
-import { testPersonas, testSOPs, testSkills, TEST_PROJECT_ID } from '@/tests/fixtures/sprint-11-data';
+import {
+  testPersonas,
+  testSOPs,
+  testSkills,
+  TEST_PROJECT_ID,
+} from '@/tests/fixtures/sprint-11-data';
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
@@ -59,9 +64,11 @@ describe('Template Generation API - Sprint 11', () => {
   // =========================================================================
   describe('POST /api/repo/write-minimal - Happy Path', () => {
     const mockProject = { name: 'Test Project' };
-    const activePersonas = testPersonas.filter(p => p.projectId === TEST_PROJECT_ID && p.isActive);
-    const projectSkills = testSkills.filter(s => s.projectId === TEST_PROJECT_ID);
-    const projectSOPs = testSOPs.filter(s => s.projectId === TEST_PROJECT_ID);
+    const activePersonas = testPersonas.filter(
+      (p) => p.projectId === TEST_PROJECT_ID && p.isActive
+    );
+    const projectSkills = testSkills.filter((s) => s.projectId === TEST_PROJECT_ID);
+    const projectSOPs = testSOPs.filter((s) => s.projectId === TEST_PROJECT_ID);
 
     beforeEach(() => {
       mockPrisma.project.findUnique.mockResolvedValue(mockProject as any);
@@ -153,7 +160,9 @@ describe('Template Generation API - Sprint 11', () => {
   // =========================================================================
   describe('CLAUDE.md Content Validation', () => {
     const mockProject = { name: 'Test Project' };
-    const activePersonas = testPersonas.filter(p => p.projectId === TEST_PROJECT_ID && p.isActive);
+    const activePersonas = testPersonas.filter(
+      (p) => p.projectId === TEST_PROJECT_ID && p.isActive
+    );
 
     beforeEach(() => {
       mockPrisma.project.findUnique.mockResolvedValue(mockProject as any);
@@ -237,9 +246,11 @@ describe('Template Generation API - Sprint 11', () => {
   // =========================================================================
   describe('AGENTS.md Content Validation', () => {
     const mockProject = { name: 'Test Project' };
-    const activePersonas = testPersonas.filter(p => p.projectId === TEST_PROJECT_ID && p.isActive);
-    const projectSkills = testSkills.filter(s => s.projectId === TEST_PROJECT_ID);
-    const projectSOPs = testSOPs.filter(s => s.projectId === TEST_PROJECT_ID);
+    const activePersonas = testPersonas.filter(
+      (p) => p.projectId === TEST_PROJECT_ID && p.isActive
+    );
+    const projectSkills = testSkills.filter((s) => s.projectId === TEST_PROJECT_ID);
+    const projectSOPs = testSOPs.filter((s) => s.projectId === TEST_PROJECT_ID);
 
     beforeEach(() => {
       mockPrisma.project.findUnique.mockResolvedValue(mockProject as any);

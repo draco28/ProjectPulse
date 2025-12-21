@@ -75,10 +75,7 @@ export async function PUT(request: Request) {
 
     // Ensure requested project matches authorized project
     if (authorizedProjectId !== validated.projectId) {
-      return NextResponse.json(
-        { error: 'Project access denied' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Project access denied' }, { status: 403 });
     }
 
     // Check if memory bank exists
@@ -119,9 +116,10 @@ export async function PUT(request: Request) {
         {
           error: 'Token budget exceeded',
           message: `Content would use ~${newTokens} tokens, but ${validated.bankType} has a budget of ${budget} tokens.`,
-          suggestion: validated.mode === 'append'
-            ? 'Consider using mode: "replace" to overwrite content, or trim your update.'
-            : 'Please trim your content to fit within the token budget.',
+          suggestion:
+            validated.mode === 'append'
+              ? 'Consider using mode: "replace" to overwrite content, or trim your update.'
+              : 'Please trim your content to fit within the token budget.',
         },
         { status: 400 }
       );
@@ -151,7 +149,6 @@ export async function PUT(request: Request) {
       budget,
       updatedAt: updatedBank.updatedAt.toISOString(),
     });
-
   } catch (error) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
@@ -165,9 +162,6 @@ export async function PUT(request: Request) {
     }
 
     console.error('PUT /api/context/update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update memory bank' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update memory bank' }, { status: 500 });
   }
 }

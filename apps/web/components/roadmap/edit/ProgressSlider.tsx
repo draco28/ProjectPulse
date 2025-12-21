@@ -80,12 +80,12 @@ export function ProgressSlider({
   const heightClass = size === 'sm' ? 'h-1.5' : 'h-2';
 
   return (
-    <div className="flex items-center gap-3 w-full">
+    <div className="flex w-full items-center gap-3">
       {/* Slider Track */}
       <div className="relative flex-1">
         <div className={`neu-pressed rounded-full ${heightClass} overflow-hidden`}>
           <div
-            className="h-full coral-gradient rounded-full transition-all duration-100"
+            className="coral-gradient h-full rounded-full transition-all duration-100"
             style={{ width: `${localValue}%` }}
           />
         </div>
@@ -103,7 +103,7 @@ export function ProgressSlider({
           onTouchEnd={handleMouseUp}
           disabled={isDisabled || isSaving}
           className={`
-            absolute inset-0 w-full opacity-0 cursor-pointer
+            absolute inset-0 w-full cursor-pointer opacity-0
             disabled:cursor-not-allowed
           `}
         />
@@ -111,7 +111,7 @@ export function ProgressSlider({
 
       {/* Label */}
       {showLabel && (
-        <div className="flex items-center gap-1 min-w-[48px] justify-end">
+        <div className="flex min-w-[48px] items-center justify-end gap-1">
           {isSaving ? (
             <Loader2 className="h-3 w-3 animate-spin text-coral" />
           ) : (

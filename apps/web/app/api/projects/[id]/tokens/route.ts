@@ -13,11 +13,7 @@ import { requireUser } from '@/lib/auth-server';
 import { generateProjectToken, listProjectTokens } from '@/lib/agent-tokens';
 
 const createTokenSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Token name is required')
-    .max(50, 'Name too long')
-    .trim(),
+  name: z.string().min(1, 'Token name is required').max(50, 'Name too long').trim(),
   expiresInDays: z
     .number()
     .int()
@@ -32,19 +28,13 @@ const createTokenSchema = z.object({
  *
  * List all agent tokens for a project (owner only).
  */
-export async function GET(
-  _request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try {
     const user = await requireUser();
     const projectId = parseInt(params.id, 10);
 
     if (isNaN(projectId)) {
-      return NextResponse.json(
-        { error: 'Invalid project ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
 
     // Verify ownership
@@ -54,10 +44,7 @@ export async function GET(
     });
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     if (project.ownerId !== user.id) {
@@ -77,10 +64,7 @@ export async function GET(
     }
 
     console.error('GET /api/projects/[id]/tokens error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -90,19 +74,13 @@ export async function GET(
  * Generate a new agent token for a project (owner only).
  * Returns plaintext token ONLY ONCE.
  */
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
     const user = await requireUser();
     const projectId = parseInt(params.id, 10);
 
     if (isNaN(projectId)) {
-      return NextResponse.json(
-        { error: 'Invalid project ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
 
     // Verify ownership
@@ -112,10 +90,7 @@ export async function POST(
     });
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     if (project.ownerId !== user.id) {
@@ -155,9 +130,6 @@ export async function POST(
     }
 
     console.error('POST /api/projects/[id]/tokens error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -225,9 +225,7 @@ describe('Skills CRUD APIs', () => {
         category: 'testing',
         tags: ['jest'],
         metadata: {},
-        knowledgeLinks: [
-          { knowledge: { id: 5, title: 'Testing Best Practices' } },
-        ],
+        knowledgeLinks: [{ knowledge: { id: 5, title: 'Testing Best Practices' } }],
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -261,10 +259,7 @@ describe('Skills CRUD APIs', () => {
       const { title, description, content, category, tags, metadata } = body;
 
       if (!title || !description || !content || !category) {
-        return Response.json(
-          { error: 'Missing required fields' },
-          { status: 400 }
-        );
+        return Response.json({ error: 'Missing required fields' }, { status: 400 });
       }
 
       const skill = await prisma.skill.create({

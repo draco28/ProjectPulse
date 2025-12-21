@@ -60,9 +60,9 @@ const IssueBaseSchema = z.object({
 });
 
 export const IssueIdParamSchema = z.object({
-  id: z.union([z.number().int().positive(), z.string().regex(/^\d+$/, 'ID must be numeric')]).transform(
-    (value) => Number(value)
-  ),
+  id: z
+    .union([z.number().int().positive(), z.string().regex(/^\d+$/, 'ID must be numeric')])
+    .transform((value) => Number(value)),
 });
 
 // ============================================================================
@@ -208,7 +208,10 @@ export const BulkIssueItemSchema = IssueBaseSchema.extend({
 
 export const IssueBulkCreateSchema = z.object({
   projectId: z.number().int().positive(),
-  issues: z.array(BulkIssueItemSchema).min(1, 'At least one issue is required').max(50, 'Max 50 issues'),
+  issues: z
+    .array(BulkIssueItemSchema)
+    .min(1, 'At least one issue is required')
+    .max(50, 'Max 50 issues'),
 });
 
 export type BulkIssueCreateInput = z.infer<typeof IssueBulkCreateSchema>;
@@ -230,9 +233,7 @@ export const IssueFilterSchema = z.object({
   includeRelations: z.boolean().optional(),
   page: z.number().int().min(1).default(1),
   pageSize: z.number().int().min(1).max(100).default(20),
-  sortBy: z
-    .enum(['createdAt', 'updatedAt', 'priority'])
-    .default('createdAt'),
+  sortBy: z.enum(['createdAt', 'updatedAt', 'priority']).default('createdAt'),
   sortDirection: z.enum(['asc', 'desc']).default('desc'),
 });
 

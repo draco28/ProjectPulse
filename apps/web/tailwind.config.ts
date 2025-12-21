@@ -107,8 +107,7 @@ const config: Config = {
         'coral-medium': '0 12px 30px rgba(255, 139, 106, 0.4)',
         'coral-strong': '0 0 40px rgba(255, 139, 106, 0.6)',
         // Glass Effect
-        'glass-dark':
-          '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
+        'glass-dark': '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
         // Legacy shadow support
         'neu-float': 'var(--shadow-neu-float)',
         'neu-inset': 'var(--shadow-neu-inset)',

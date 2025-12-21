@@ -64,8 +64,10 @@ export async function POST(request: NextRequest) {
   try {
     // Parse projectId from query params (multi-tenancy requirement)
     const searchParams = request.nextUrl.searchParams;
-    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
-    
+    const requestedProjectId = searchParams.get('projectId')
+      ? parseInt(searchParams.get('projectId')!, 10)
+      : undefined;
+
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
@@ -270,7 +272,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     // Handle JSON parse errors
     if (error instanceof SyntaxError) {
       return NextResponse.json(

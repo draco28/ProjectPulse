@@ -469,7 +469,6 @@ async function runTests() {
     console.log('\n--- Ticket Scheduling Tests ---\n');
 
     schedulingTicketId = await testTicketWithScheduling();
-
   } finally {
     // Cleanup
     console.log('\n--- Cleanup ---\n');
@@ -493,9 +492,11 @@ async function runTests() {
 
   if (failed > 0) {
     console.log('\nFailed Tests:');
-    results.filter((r) => !r.passed).forEach((r) => {
-      console.log(`  - ${r.name}: ${r.error}`);
-    });
+    results
+      .filter((r) => !r.passed)
+      .forEach((r) => {
+        console.log(`  - ${r.name}: ${r.error}`);
+      });
     process.exit(1);
   }
 

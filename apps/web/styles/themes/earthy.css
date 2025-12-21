@@ -5,45 +5,45 @@
  * Perfect for minimal, professional interfaces
  */
 
-:root[data-theme="earthy"] {
+:root[data-theme='earthy'] {
   /* ========================================================================
      BACKGROUND LAYERS
      ======================================================================== */
-  --color-bg-darkest: #11120D;   /* Smoky */
-  --color-bg-dark: #1A1B15;      /* Sidebar (slightly lighter) */
-  --color-bg-medium: #26271F;    /* Cards */
-  --color-bg-light: #3E3D35;     /* Olive Dark (hover) */
+  --color-bg-darkest: #11120d; /* Smoky */
+  --color-bg-dark: #1a1b15; /* Sidebar (slightly lighter) */
+  --color-bg-medium: #26271f; /* Cards */
+  --color-bg-light: #3e3d35; /* Olive Dark (hover) */
 
   /* ========================================================================
      ACCENT COLORS
      ======================================================================== */
-  --color-accent-primary: #D8CFBC;   /* Bone */
-  --color-accent-secondary: #6B6A5D; /* Olive Light */
-  --color-accent-tertiary: #565449;  /* Olive */
+  --color-accent-primary: #d8cfbc; /* Bone */
+  --color-accent-secondary: #6b6a5d; /* Olive Light */
+  --color-accent-tertiary: #565449; /* Olive */
 
   /* ========================================================================
      TEXT COLORS
      ======================================================================== */
-  --color-text-primary: #FFFBF4;   /* Floral (brightest) */
-  --color-text-secondary: #D8CFBC; /* Bone */
-  --color-text-tertiary: #6B6A5D;  /* Olive Light */
-  --color-text-muted: #565449;     /* Olive */
+  --color-text-primary: #fffbf4; /* Floral (brightest) */
+  --color-text-secondary: #d8cfbc; /* Bone */
+  --color-text-tertiary: #6b6a5d; /* Olive Light */
+  --color-text-muted: #565449; /* Olive */
 
   /* ========================================================================
      SEMANTIC COLORS
      ======================================================================== */
-  --color-success: #8B9775;   /* Sage green */
-  --color-warning: #B8956A;   /* Bronze */
-  --color-error: #C17B5C;     /* Terracotta */
-  --color-info: #6B6A5D;      /* Olive Light */
+  --color-success: #8b9775; /* Sage green */
+  --color-warning: #b8956a; /* Bronze */
+  --color-error: #c17b5c; /* Terracotta */
+  --color-info: #6b6a5d; /* Olive Light */
 
   /* ========================================================================
      PRIORITY COLORS (for issue tracker)
      ======================================================================== */
-  --color-priority-critical: #C17B5C;  /* Terracotta */
-  --color-priority-high: #B8956A;      /* Bronze */
-  --color-priority-medium: #8B9775;    /* Sage */
-  --color-priority-low: #6B6A5D;       /* Olive Light */
+  --color-priority-critical: #c17b5c; /* Terracotta */
+  --color-priority-high: #b8956a; /* Bronze */
+  --color-priority-medium: #8b9775; /* Sage */
+  --color-priority-low: #6b6a5d; /* Olive Light */
 
   /* ========================================================================
      SHADOWS
@@ -63,10 +63,10 @@
   /* ========================================================================
      GRADIENTS
      ======================================================================== */
-  --gradient-primary: linear-gradient(135deg, #565449 0%, #6B6A5D 50%, #D8CFBC 100%);
-  --gradient-secondary: linear-gradient(135deg, #D8CFBC 0%, #FFFBF4 100%);
-  --gradient-background: #11120D; /* Solid dark background */
-  --gradient-icon-earth: linear-gradient(135deg, #6B6A5D 0%, #D8CFBC 100%);
+  --gradient-primary: linear-gradient(135deg, #565449 0%, #6b6a5d 50%, #d8cfbc 100%);
+  --gradient-secondary: linear-gradient(135deg, #d8cfbc 0%, #fffbf4 100%);
+  --gradient-background: #11120d; /* Solid dark background */
+  --gradient-icon-earth: linear-gradient(135deg, #6b6a5d 0%, #d8cfbc 100%);
 
   /* ========================================================================
      BORDERS

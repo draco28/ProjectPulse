@@ -98,7 +98,7 @@ test.describe('Dashboard Page', () => {
     // Click on Roadmap
     await page.locator('a:has-text("Roadmap")').click();
     await expect(page).toHaveURL('/roadmap');
-    
+
     // Verify roadmap page loads (check for header)
     await expect(page.locator('h1:has-text("Development Roadmap")')).toBeVisible();
   });
@@ -117,7 +117,7 @@ test.describe('Dashboard Page', () => {
     // Check notification bell icon is present (scope to header to avoid mobile menu)
     const notificationButton = page.locator('header button[aria-label="Notifications"]');
     await expect(notificationButton).toBeVisible();
-    
+
     // Verify pulse indicator is present
     await expect(notificationButton.locator('.pulse-glow')).toBeVisible();
   });

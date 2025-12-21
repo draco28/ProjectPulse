@@ -102,10 +102,10 @@ describe('Knowledge Graph Service Layer', () => {
       });
 
       expect(mockPrisma.$queryRaw).toHaveBeenCalled();
-      
+
       const callArgs = mockPrisma.$queryRaw.mock.calls[0];
       const sqlQuery = String(callArgs[0]);
-      
+
       // Verify projectId filter in 1-hop query
       expect(sqlQuery).toContain('ki."projectId" = 3');
       expect(sqlQuery).toContain('ki."archivedAt" IS NULL');
@@ -143,9 +143,7 @@ describe('Knowledge Graph Service Layer', () => {
         .mockResolvedValueOnce(twoHopResults); // 2-hop
 
       // Mock intermediate items for 2-hop path
-      mockPrisma.knowledgeItem.findMany.mockResolvedValue([
-        { id: 2, title: 'Intermediate' },
-      ]);
+      mockPrisma.knowledgeItem.findMany.mockResolvedValue([{ id: 2, title: 'Intermediate' }]);
 
       await findRelatedKnowledgeItems(1, {
         projectId: 3,
@@ -155,7 +153,7 @@ describe('Knowledge Graph Service Layer', () => {
 
       // Should call $queryRaw twice (1-hop + 2-hop)
       expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(2);
-      
+
       // Both calls should include projectId filter
       mockPrisma.$queryRaw.mock.calls.forEach((call) => {
         const sqlQuery = String(call[0]);
@@ -190,9 +188,7 @@ describe('Knowledge Graph Service Layer', () => {
           },
         ]);
 
-      mockPrisma.knowledgeItem.findMany.mockResolvedValue([
-        { id: 2, title: 'Intermediate' },
-      ]);
+      mockPrisma.knowledgeItem.findMany.mockResolvedValue([{ id: 2, title: 'Intermediate' }]);
 
       await findRelatedKnowledgeItems(1, {
         projectId: 3,
@@ -225,7 +221,7 @@ describe('Knowledge Graph Service Layer', () => {
 
       const callArgs = mockPrisma.$queryRaw.mock.calls[0];
       const sqlQuery = String(callArgs[0]);
-      
+
       expect(sqlQuery).toContain('kr."type" IN');
     });
 
@@ -246,7 +242,7 @@ describe('Knowledge Graph Service Layer', () => {
 
       const callArgs = mockPrisma.$queryRaw.mock.calls[0];
       const sqlQuery = String(callArgs[0]);
-      
+
       expect(sqlQuery).toContain('kr."strength" >=');
     });
 
@@ -294,7 +290,7 @@ describe('Knowledge Graph Service Layer', () => {
   describe('GraphError', () => {
     it('includes error code and status code', () => {
       const error = new GraphError('Test error', 'TEST_CODE', 400);
-      
+
       expect(error.message).toBe('Test error');
       expect(error.code).toBe('TEST_CODE');
       expect(error.statusCode).toBe(400);

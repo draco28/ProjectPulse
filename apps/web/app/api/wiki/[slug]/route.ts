@@ -64,7 +64,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     if (!page) {
       return NextResponse.json({ error: 'Wiki page not found' }, { status: 404 });
     }
-    
+
     // Authenticate and validate project access
     await requireProjectAccess(request, page.projectId);
 
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('Failed to fetch wiki page:', error);
     return NextResponse.json({ error: 'Failed to fetch wiki page' }, { status: 500 });
   }
@@ -142,13 +142,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
       );
     }
 
-    const {
-      changelog,
-      updatedBy,
-      updatedByType,
-      parentPath,
-      ...partialUpdate
-    } = validation.data;
+    const { changelog, updatedBy, updatedByType, parentPath, ...partialUpdate } = validation.data;
 
     const hasPageFieldUpdates = Object.values(partialUpdate).some((value) => value !== undefined);
     const hasParentUpdate = typeof parentPath !== 'undefined';
@@ -158,9 +152,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
     }
 
     const actorName =
-      updatedBy ||
-      request.headers.get('x-projectpulse-actor') ||
-      DEFAULT_ACTOR_NAME;
+      updatedBy || request.headers.get('x-projectpulse-actor') || DEFAULT_ACTOR_NAME;
     const actorType =
       updatedByType ||
       (request.headers.get('x-projectpulse-actor-type') as 'human' | 'agent' | 'system' | null) ||
@@ -186,7 +178,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
       if (!existing) {
         throw 'NOT_FOUND';
       }
-      
+
       // Authenticate and validate project access
       await requireProjectAccess(request, existing.projectId);
 
@@ -305,7 +297,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     if (typeof error === 'string') {
       return mapUpdateError(error as WikiUpdateError);
     }

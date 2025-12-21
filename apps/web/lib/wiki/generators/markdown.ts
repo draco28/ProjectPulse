@@ -6,7 +6,12 @@
  * @module lib/wiki/generators/markdown
  */
 
-import type { ParsedDocumentation, ParsedExport, ParsedParameter, ParsedReturn } from '../parsers/jsdoc';
+import type {
+  ParsedDocumentation,
+  ParsedExport,
+  ParsedParameter,
+  ParsedReturn,
+} from '../parsers/jsdoc';
 
 /**
  * Options for markdown generation
@@ -37,11 +42,7 @@ export function generateMarkdown(
   doc: ParsedDocumentation,
   options: MarkdownGeneratorOptions = {}
 ): string {
-  const {
-    includeToc = true,
-    includeFilePath = true,
-    maxHeadingLevel = 2,
-  } = options;
+  const { includeToc = true, includeFilePath = true, maxHeadingLevel = 2 } = options;
 
   const sections: string[] = [];
 
@@ -175,7 +176,9 @@ function generateParametersTable(params: ParsedParameter[]): string {
     const description = param.description || '(no description)';
     const defaultVal = param.defaultValue ? ` (default: \`${param.defaultValue}\`)` : '';
 
-    lines.push(`| \`${param.name}\` | \`${param.type}\` | ${description}${defaultVal} | ${required} |`);
+    lines.push(
+      `| \`${param.name}\` | \`${param.type}\` | ${description}${defaultVal} | ${required} |`
+    );
   }
 
   lines.push(''); // Empty line after table
@@ -247,7 +250,11 @@ function generateSeeAlsoSection(seeRefs: string[]): string {
  */
 export function generateSlug(filePath: string): string {
   // Extract filename without extension
-  const filename = filePath.split('/').pop()?.replace(/\.(ts|tsx|js|jsx)$/, '') || 'untitled';
+  const filename =
+    filePath
+      .split('/')
+      .pop()
+      ?.replace(/\.(ts|tsx|js|jsx)$/, '') || 'untitled';
 
   // Get directory path (last segment)
   const pathParts = filePath.split('/');

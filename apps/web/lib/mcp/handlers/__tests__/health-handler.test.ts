@@ -417,19 +417,19 @@ describe('healthGetScoreHandler', () => {
     });
 
     it('should reject invalid projectId', async () => {
-      await expect(
-        healthGetScoreHandler({ projectId: 'invalid' })
-      ).rejects.toThrow('Invalid projectId');
+      await expect(healthGetScoreHandler({ projectId: 'invalid' })).rejects.toThrow(
+        'Invalid projectId'
+      );
     });
 
     it('should reject invalid limit (out of range)', async () => {
-      await expect(
-        healthGetScoreHandler({ projectId: 1, limit: 0 })
-      ).rejects.toThrow('Invalid limit');
+      await expect(healthGetScoreHandler({ projectId: 1, limit: 0 })).rejects.toThrow(
+        'Invalid limit'
+      );
 
-      await expect(
-        healthGetScoreHandler({ projectId: 1, limit: 11 })
-      ).rejects.toThrow('Invalid limit');
+      await expect(healthGetScoreHandler({ projectId: 1, limit: 11 })).rejects.toThrow(
+        'Invalid limit'
+      );
     });
 
     it('should use default limit of 1', async () => {
@@ -607,18 +607,18 @@ describe('healthGetScoreHandler', () => {
     it('should reject nonexistent project', async () => {
       prismaMock.project.findUnique.mockResolvedValue(null);
 
-      await expect(
-        healthGetScoreHandler({ projectId: 999 })
-      ).rejects.toThrow('Project not found: 999');
+      await expect(healthGetScoreHandler({ projectId: 999 })).rejects.toThrow(
+        'Project not found: 999'
+      );
     });
 
     it('should reject when no scores found', async () => {
       prismaMock.project.findUnique.mockResolvedValue({ id: 1 } as any);
       prismaMock.healthScore.findMany.mockResolvedValue([]);
 
-      await expect(
-        healthGetScoreHandler({ projectId: 1 })
-      ).rejects.toThrow('No health scores found for project 1');
+      await expect(healthGetScoreHandler({ projectId: 1 })).rejects.toThrow(
+        'No health scores found for project 1'
+      );
     });
   });
 });
@@ -641,19 +641,19 @@ describe('healthGetHistoryHandler', () => {
     });
 
     it('should reject invalid projectId', async () => {
-      await expect(
-        healthGetHistoryHandler({ projectId: 'invalid' })
-      ).rejects.toThrow('Invalid projectId');
+      await expect(healthGetHistoryHandler({ projectId: 'invalid' })).rejects.toThrow(
+        'Invalid projectId'
+      );
     });
 
     it('should reject invalid days (out of range)', async () => {
-      await expect(
-        healthGetHistoryHandler({ projectId: 1, days: 0 })
-      ).rejects.toThrow('Invalid days');
+      await expect(healthGetHistoryHandler({ projectId: 1, days: 0 })).rejects.toThrow(
+        'Invalid days'
+      );
 
-      await expect(
-        healthGetHistoryHandler({ projectId: 1, days: 91 })
-      ).rejects.toThrow('Invalid days');
+      await expect(healthGetHistoryHandler({ projectId: 1, days: 91 })).rejects.toThrow(
+        'Invalid days'
+      );
     });
 
     it('should reject invalid category', async () => {
@@ -826,18 +826,18 @@ describe('healthGetHistoryHandler', () => {
     it('should reject nonexistent project', async () => {
       prismaMock.project.findUnique.mockResolvedValue(null);
 
-      await expect(
-        healthGetHistoryHandler({ projectId: 999 })
-      ).rejects.toThrow('Project not found: 999');
+      await expect(healthGetHistoryHandler({ projectId: 999 })).rejects.toThrow(
+        'Project not found: 999'
+      );
     });
 
     it('should reject when no history found in time window', async () => {
       prismaMock.project.findUnique.mockResolvedValue({ id: 1 } as any);
       prismaMock.healthScore.findMany.mockResolvedValue([]);
 
-      await expect(
-        healthGetHistoryHandler({ projectId: 1, days: 7 })
-      ).rejects.toThrow('No health scores found for project 1 in the last 7 days');
+      await expect(healthGetHistoryHandler({ projectId: 1, days: 7 })).rejects.toThrow(
+        'No health scores found for project 1 in the last 7 days'
+      );
     });
   });
 });

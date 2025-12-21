@@ -1,12 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AgentSkillsTab } from './AgentSkillsTab';
 import { AgentWorkflowsTab } from './AgentWorkflowsTab';
@@ -46,11 +41,7 @@ interface AgentDetailModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function AgentDetailModal({
-  agentId,
-  open,
-  onOpenChange,
-}: AgentDetailModalProps) {
+export function AgentDetailModal({ agentId, open, onOpenChange }: AgentDetailModalProps) {
   const [activeTab, setActiveTab] = useState('skills');
   const [agent, setAgent] = useState<AgentWithDetails | null>(null);
   const [loading, setLoading] = useState(false);
@@ -61,7 +52,7 @@ export function AgentDetailModal({
     if (open && !agent) {
       setLoading(true);
       setError(null);
-      
+
       fetch(`/api/agents/${agentId}`)
         .then((res) => res.json())
         .then((data) => {
@@ -87,7 +78,7 @@ export function AgentDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">
             {loading ? (
@@ -118,12 +109,8 @@ export function AgentDetailModal({
         {agent && !loading && !error && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="skills">
-                Skills ({agent.skillDetails.length})
-              </TabsTrigger>
-              <TabsTrigger value="workflows">
-                Workflows ({agent.workflows.length})
-              </TabsTrigger>
+              <TabsTrigger value="skills">Skills ({agent.skillDetails.length})</TabsTrigger>
+              <TabsTrigger value="workflows">Workflows ({agent.workflows.length})</TabsTrigger>
               <TabsTrigger value="config">Configuration</TabsTrigger>
             </TabsList>
 

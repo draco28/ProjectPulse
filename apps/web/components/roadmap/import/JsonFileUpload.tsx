@@ -110,13 +110,14 @@ export function JsonFileUpload({ onFileSelect, isDisabled }: JsonFileUploadProps
         onDrop={handleDrop}
         onClick={handleClick}
         className={`
-          relative p-12 rounded-2xl border-2 border-dashed
-          transition-all duration-200 cursor-pointer
-          ${isDragging
-            ? 'border-coral bg-coral/10'
-            : 'border-slate/30 hover:border-coral/50 hover:bg-dark-pressed/50'
+          relative cursor-pointer rounded-2xl border-2 border-dashed
+          p-12 transition-all duration-200
+          ${
+            isDragging
+              ? 'border-coral bg-coral/10'
+              : 'border-slate/30 hover:border-coral/50 hover:bg-dark-pressed/50'
           }
-          ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
+          ${isDisabled ? 'cursor-not-allowed opacity-50' : ''}
         `}
       >
         <input
@@ -132,7 +133,7 @@ export function JsonFileUpload({ onFileSelect, isDisabled }: JsonFileUploadProps
           {/* Icon */}
           <div
             className={`
-              w-16 h-16 rounded-2xl flex items-center justify-center mb-4
+              mb-4 flex h-16 w-16 items-center justify-center rounded-2xl
               ${isDragging ? 'bg-coral/20' : 'neu-pressed'}
             `}
           >
@@ -146,16 +147,16 @@ export function JsonFileUpload({ onFileSelect, isDisabled }: JsonFileUploadProps
           {/* Text */}
           {fileName ? (
             <>
-              <p className="text-white font-medium mb-1">{fileName}</p>
+              <p className="mb-1 font-medium text-white">{fileName}</p>
               <p className="text-sm text-slate">Click or drop to replace</p>
             </>
           ) : (
             <>
-              <p className="text-white font-medium mb-1">
+              <p className="mb-1 font-medium text-white">
                 {isDragging ? 'Drop your file here' : 'Drag & drop your JSON file'}
               </p>
               <p className="text-sm text-slate">or click to browse</p>
-              <p className="text-xs text-slate/50 mt-2">Maximum file size: 1MB</p>
+              <p className="mt-2 text-xs text-slate/50">Maximum file size: 1MB</p>
             </>
           )}
         </div>
@@ -163,8 +164,8 @@ export function JsonFileUpload({ onFileSelect, isDisabled }: JsonFileUploadProps
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30">
-          <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
+        <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-400" />
           <p className="text-sm text-red-400">{error}</p>
         </div>
       )}

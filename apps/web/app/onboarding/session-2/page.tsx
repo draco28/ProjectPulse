@@ -39,8 +39,8 @@ interface Document {
 // Loading fallback component
 function LoadingFallback() {
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl flex items-center justify-center min-h-[60vh]">
-      <Loader2 className="h-8 w-8 animate-spin text-coral-500" />
+    <div className="container mx-auto flex min-h-[60vh] max-w-7xl items-center justify-center px-4 py-8">
+      <Loader2 className="text-coral-500 h-8 w-8 animate-spin" />
     </div>
   );
 }
@@ -164,9 +164,7 @@ function Session2Content() {
   const progress = (documents.length / 15) * 100;
 
   const filteredPrompts =
-    activeTab === 'all'
-      ? prompts
-      : prompts.filter((p) => p.category === activeTab);
+    activeTab === 'all' ? prompts : prompts.filter((p) => p.category === activeTab);
 
   // Helper to get counts for tabs
   const getCounts = (category: string) => {
@@ -177,18 +175,18 @@ function Session2Content() {
 
   if (isLoadingPrompts || isLoadingDocs) {
     return (
-      <div className="container mx-auto py-8 px-4 max-w-7xl flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-coral-500" />
+      <div className="container mx-auto flex min-h-[60vh] max-w-7xl items-center justify-center px-4 py-8">
+        <Loader2 className="text-coral-500 h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="container mx-auto max-w-7xl px-4 py-8">
       {/* Page Header with Back Button */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-4">Documentation Generation</h1>
+          <h1 className="mb-4 text-4xl font-bold text-white">Documentation Generation</h1>
           <p className="text-lg text-slate">
             Generate 15 industry-standard documents (~30,000 words total) to establish complete
             project documentation.
@@ -204,9 +202,11 @@ function Session2Content() {
 
       {/* Error State */}
       {!isLoadingPrompts && prompts.length === 0 && (
-        <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+        <div className="mb-8 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
           <p className="font-semibold">Failed to load document templates.</p>
-          <p className="text-sm mt-1">Please ensure Session 1 is complete and try refreshing the page.</p>
+          <p className="mt-1 text-sm">
+            Please ensure Session 1 is complete and try refreshing the page.
+          </p>
         </div>
       )}
 
@@ -214,9 +214,7 @@ function Session2Content() {
       <Card className="neu-raised mb-8">
         <CardHeader>
           <CardTitle>Overall Progress</CardTitle>
-          <CardDescription>
-            {documents.length} of 15 documents generated
-          </CardDescription>
+          <CardDescription>{documents.length} of 15 documents generated</CardDescription>
         </CardHeader>
         <CardContent>
           <ProgressBar value={progress} showPercentage />
@@ -241,10 +239,12 @@ function Session2Content() {
             Planning ({getCounts('planning').generated}/{getCounts('planning').required})
           </TabsTrigger>
           <TabsTrigger value="architecture">
-            Architecture ({getCounts('architecture').generated}/{getCounts('architecture').required})
+            Architecture ({getCounts('architecture').generated}/{getCounts('architecture').required}
+            )
           </TabsTrigger>
           <TabsTrigger value="implementation">
-            Implementation ({getCounts('implementation').generated}/{getCounts('implementation').required})
+            Implementation ({getCounts('implementation').generated}/
+            {getCounts('implementation').required})
           </TabsTrigger>
           <TabsTrigger value="operations">
             Operations ({getCounts('operations').generated}/{getCounts('operations').required})
@@ -253,7 +253,7 @@ function Session2Content() {
       </Tabs>
 
       {/* Document Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredPrompts.map((prompt) => {
           const doc = getDocument(prompt.filename);
           return (

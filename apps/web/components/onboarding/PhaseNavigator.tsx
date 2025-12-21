@@ -25,25 +25,23 @@ export function PhaseNavigator({
   return (
     <div className="mb-8">
       {/* Progress Text */}
-      <div className="flex justify-between items-center mb-2">
+      <div className="mb-2 flex items-center justify-between">
         <span className="text-sm text-slate">
           Phase {currentPhase} of {totalPhases}
         </span>
-        <span className="text-sm font-semibold text-white">
-          {Math.round(progress)}% Complete
-        </span>
+        <span className="text-sm font-semibold text-white">{Math.round(progress)}% Complete</span>
       </div>
 
       {/* Progress Bar */}
-      <div className="h-2 bg-slate-700/30 rounded-full overflow-hidden mb-4">
+      <div className="mb-4 h-2 overflow-hidden rounded-full bg-slate-700/30">
         <div
-          className="h-full bg-gradient-to-r from-coral-500 to-coral-400 rounded-full transition-all duration-500"
+          className="from-coral-500 to-coral-400 h-full rounded-full bg-gradient-to-r transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>
 
       {/* Phase Dots */}
-      <div className="flex justify-between items-center gap-2">
+      <div className="flex items-center justify-between gap-2">
         {Array.from({ length: totalPhases }, (_, i) => {
           const phase = i + 1;
           const isCompleted = completedPhases.includes(phase);
@@ -56,8 +54,8 @@ export function PhaseNavigator({
               onClick={() => isClickable && onPhaseSelect(phase)}
               disabled={!isClickable}
               className={cn(
-                'flex items-center justify-center h-8 w-8 rounded-full text-xs font-semibold transition-all',
-                isCurrent && 'bg-coral-500 text-white shadow-lg scale-110',
+                'flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-all',
+                isCurrent && 'bg-coral-500 scale-110 text-white shadow-lg',
                 isCompleted && !isCurrent && 'bg-green-500 text-white',
                 !isCurrent && !isCompleted && 'bg-slate-700/30 text-slate-400',
                 isClickable && 'cursor-pointer hover:scale-105',

@@ -41,17 +41,17 @@ export function TimelineTooltip({
   return (
     <div
       className="
-        absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2
-        w-56 p-3 rounded-xl
-        bg-dark-surface border border-dark-pressed shadow-xl
-        pointer-events-none
+        bg-dark-surface pointer-events-none absolute bottom-full left-1/2 z-50
+        mb-2 w-56 -translate-x-1/2
+        rounded-xl border border-dark-pressed p-3
+        shadow-xl
       "
     >
       {/* Arrow */}
       <div
         className="
-          absolute top-full left-1/2 -translate-x-1/2
-          border-8 border-transparent border-t-dark-surface
+          border-t-dark-surface absolute left-1/2 top-full
+          -translate-x-1/2 border-8 border-transparent
         "
       />
 
@@ -60,9 +60,7 @@ export function TimelineTooltip({
         {/* Title & Status */}
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-slate">{title}</span>
-          <span className={`text-xs font-medium ${statusInfo.color}`}>
-            {statusInfo.label}
-          </span>
+          <span className={`text-xs font-medium ${statusInfo.color}`}>{statusInfo.label}</span>
         </div>
 
         {/* Dates */}
@@ -83,11 +81,11 @@ export function TimelineTooltip({
         <div className="flex items-center gap-2">
           <TrendingUp className="h-3 w-3 text-coral" />
           <div className="flex-1">
-            <div className="flex items-center justify-between mb-1">
+            <div className="mb-1 flex items-center justify-between">
               <span className="text-xs text-slate">Progress</span>
               <span className="text-xs font-medium text-coral">{progress}%</span>
             </div>
-            <div className="h-1.5 rounded-full bg-dark-pressed overflow-hidden">
+            <div className="h-1.5 overflow-hidden rounded-full bg-dark-pressed">
               <div
                 className="h-full rounded-full bg-coral transition-all"
                 style={{ width: `${progress}%` }}

@@ -23,14 +23,12 @@ interface EditableWeekCardProps {
 }
 
 export function EditableWeekCard({ week, isEditable = true }: EditableWeekCardProps) {
-  const { updateTitle, updateStatus, isUpdating: isEntityUpdating } = useEntityUpdate(
-    'weeks',
-    week.id
-  );
-  const { updateProgress, isUpdating: isProgressUpdating } = useProgressUpdate(
-    'weeks',
-    week.id
-  );
+  const {
+    updateTitle,
+    updateStatus,
+    isUpdating: isEntityUpdating,
+  } = useEntityUpdate('weeks', week.id);
+  const { updateProgress, isUpdating: isProgressUpdating } = useProgressUpdate('weeks', week.id);
 
   const isUpdating = isEntityUpdating || isProgressUpdating;
   const dayCount = week.days?.length || 0;
@@ -38,14 +36,14 @@ export function EditableWeekCard({ week, isEditable = true }: EditableWeekCardPr
   return (
     <div className={`flex-1 ${isUpdating ? 'opacity-75' : ''}`}>
       {/* Header with Icon + Title + Status */}
-      <div className="flex items-start gap-2 mb-2">
+      <div className="mb-2 flex items-start gap-2">
         {/* Icon Container */}
-        <div className="icon-slate flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0">
+        <div className="icon-slate flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg">
           <CalendarDays className="h-4 w-4 text-white" />
         </div>
 
         {/* Title and Status */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             {/* Editable Title */}
             {isEditable ? (
@@ -61,15 +59,11 @@ export function EditableWeekCard({ week, isEditable = true }: EditableWeekCardPr
 
             {/* Status Dropdown */}
             {isEditable ? (
-              <StatusDropdown
-                value={week.status}
-                onChange={updateStatus}
-                size="sm"
-              />
+              <StatusDropdown value={week.status} onChange={updateStatus} size="sm" />
             ) : (
               <span
                 className={`
-                  flex-shrink-0 text-xs px-2 py-0.5 rounded
+                  flex-shrink-0 rounded px-2 py-0.5 text-xs
                   ${week.status === 'COMPLETED' ? 'badge-green' : ''}
                   ${week.status === 'IN_PROGRESS' ? 'badge-blue' : ''}
                   ${week.status === 'NOT_STARTED' ? 'badge-slate' : ''}
@@ -93,16 +87,12 @@ export function EditableWeekCard({ week, isEditable = true }: EditableWeekCardPr
         {/* Progress */}
         <div className="flex-1">
           {isEditable ? (
-            <ProgressSlider
-              value={week.progress}
-              onCommit={updateProgress}
-              size="sm"
-            />
+            <ProgressSlider value={week.progress} onCommit={updateProgress} size="sm" />
           ) : (
             <div className="flex items-center gap-2">
-              <div className="flex-1 neu-pressed rounded-full h-1 overflow-hidden">
+              <div className="neu-pressed h-1 flex-1 overflow-hidden rounded-full">
                 <div
-                  className="bg-slate-400 h-1 rounded-full smooth-transition"
+                  className="smooth-transition h-1 rounded-full bg-slate-400"
                   style={{ width: `${week.progress}%` }}
                 />
               </div>
@@ -113,7 +103,7 @@ export function EditableWeekCard({ week, isEditable = true }: EditableWeekCardPr
       </div>
 
       {/* Date Range */}
-      <div className="text-xs text-slate/70 mt-1">
+      <div className="mt-1 text-xs text-slate/70">
         {formatDateRange(week.startDate, week.endDate)}
       </div>
     </div>

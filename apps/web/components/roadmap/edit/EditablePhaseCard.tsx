@@ -23,38 +23,38 @@ interface EditablePhaseCardProps {
 }
 
 export function EditablePhaseCard({ phase, isEditable = true }: EditablePhaseCardProps) {
-  const { updateTitle, updateStatus, isUpdating: isEntityUpdating } = useEntityUpdate(
-    'phases',
-    phase.id
-  );
-  const { updateProgress, isUpdating: isProgressUpdating } = useProgressUpdate(
-    'phases',
-    phase.id
-  );
+  const {
+    updateTitle,
+    updateStatus,
+    isUpdating: isEntityUpdating,
+  } = useEntityUpdate('phases', phase.id);
+  const { updateProgress, isUpdating: isProgressUpdating } = useProgressUpdate('phases', phase.id);
 
   const isUpdating = isEntityUpdating || isProgressUpdating;
 
   // Calculate stats
   const sprintCount = phase.sprints?.length || 0;
-  const weekCount = phase.sprints?.reduce((acc, sprint) => acc + (sprint.weeks?.length || 0), 0) || 0;
-  const dayCount = phase.sprints?.reduce(
-    (acc, sprint) =>
-      acc + (sprint.weeks?.reduce((wAcc, week) => wAcc + (week.days?.length || 0), 0) || 0),
-    0
-  ) || 0;
+  const weekCount =
+    phase.sprints?.reduce((acc, sprint) => acc + (sprint.weeks?.length || 0), 0) || 0;
+  const dayCount =
+    phase.sprints?.reduce(
+      (acc, sprint) =>
+        acc + (sprint.weeks?.reduce((wAcc, week) => wAcc + (week.days?.length || 0), 0) || 0),
+      0
+    ) || 0;
 
   return (
     <div className={`flex-1 ${isUpdating ? 'opacity-75' : ''}`}>
       {/* Header with Icon + Title + Status */}
-      <div className="flex items-start gap-3 mb-4">
+      <div className="mb-4 flex items-start gap-3">
         {/* Icon Container */}
-        <div className="icon-coral flex h-12 w-12 items-center justify-center rounded-2xl flex-shrink-0">
+        <div className="icon-coral flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl">
           <Layers className="h-6 w-6 text-white" />
         </div>
 
         {/* Title and Status */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-start justify-between gap-3">
             {/* Editable Title */}
             {isEditable ? (
               <InlineEditForm
@@ -69,11 +69,7 @@ export function EditablePhaseCard({ phase, isEditable = true }: EditablePhaseCar
 
             {/* Status Dropdown */}
             {isEditable ? (
-              <StatusDropdown
-                value={phase.status}
-                onChange={updateStatus}
-                size="md"
-              />
+              <StatusDropdown value={phase.status} onChange={updateStatus} size="md" />
             ) : (
               <span
                 className={`
@@ -91,54 +87,48 @@ export function EditablePhaseCard({ phase, isEditable = true }: EditablePhaseCar
 
           {/* Description */}
           {phase.description && (
-            <p className="text-sm text-slate leading-relaxed">{phase.description}</p>
+            <p className="text-sm leading-relaxed text-slate">{phase.description}</p>
           )}
         </div>
       </div>
 
       {/* Stats Grid */}
       {(sprintCount > 0 || weekCount > 0 || dayCount > 0) && (
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="mb-4 grid grid-cols-3 gap-3">
           <div className="neu-pressed rounded-2xl p-3 text-center">
-            <div className="text-2xl font-bold text-coral mb-1">{sprintCount}</div>
-            <div className="text-xs text-slate font-medium">
+            <div className="mb-1 text-2xl font-bold text-coral">{sprintCount}</div>
+            <div className="text-xs font-medium text-slate">
               {sprintCount === 1 ? 'Sprint' : 'Sprints'}
             </div>
           </div>
           <div className="neu-pressed rounded-2xl p-3 text-center">
-            <div className="text-2xl font-bold text-coral mb-1">{weekCount}</div>
-            <div className="text-xs text-slate font-medium">
+            <div className="mb-1 text-2xl font-bold text-coral">{weekCount}</div>
+            <div className="text-xs font-medium text-slate">
               {weekCount === 1 ? 'Week' : 'Weeks'}
             </div>
           </div>
           <div className="neu-pressed rounded-2xl p-3 text-center">
-            <div className="text-2xl font-bold text-coral mb-1">{dayCount}</div>
-            <div className="text-xs text-slate font-medium">
-              {dayCount === 1 ? 'Day' : 'Days'}
-            </div>
+            <div className="mb-1 text-2xl font-bold text-coral">{dayCount}</div>
+            <div className="text-xs font-medium text-slate">{dayCount === 1 ? 'Day' : 'Days'}</div>
           </div>
         </div>
       )}
 
       {/* Progress */}
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <span className="text-xs font-medium text-slate">Progress</span>
         </div>
         {isEditable ? (
-          <ProgressSlider
-            value={phase.progress}
-            onCommit={updateProgress}
-            size="md"
-          />
+          <ProgressSlider value={phase.progress} onCommit={updateProgress} size="md" />
         ) : (
           <>
-            <div className="flex justify-end mb-1">
+            <div className="mb-1 flex justify-end">
               <span className="text-xs font-bold text-coral">{phase.progress}%</span>
             </div>
-            <div className="neu-pressed rounded-full h-2 overflow-hidden">
+            <div className="neu-pressed h-2 overflow-hidden rounded-full">
               <div
-                className="coral-gradient h-2 rounded-full smooth-transition"
+                className="coral-gradient smooth-transition h-2 rounded-full"
                 style={{ width: `${phase.progress}%` }}
               />
             </div>

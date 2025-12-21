@@ -128,7 +128,7 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
 
   const { search = '', tag } = searchParams;
 
-   const hasSearch = search.trim().length > 0;
+  const hasSearch = search.trim().length > 0;
 
   return (
     <>
@@ -147,11 +147,11 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <p className="text-xs text-slate/70 italic">
+                <p className="text-xs italic text-slate/70">
                   💡 Knowledge items are created and updated by AI agents via MCP tools
                 </p>
                 <button
-                  className="neu-raised smooth-transition flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-slate cursor-not-allowed opacity-50"
+                  className="neu-raised smooth-transition flex cursor-not-allowed items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-slate opacity-50"
                   aria-label="Add knowledge base item (agent-only)"
                   disabled
                   title="Knowledge items are managed by AI agents. Use MCP tools: projectpulse_knowledge_create"
@@ -173,7 +173,7 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
               <TagFilter allTags={allTags} selectedTag={tag} />
 
               {/* Knowledge Grid */}
-              {(articles.length > 0 || (!hasSearch && memoryBanks.length > 0)) ? (
+              {articles.length > 0 || (!hasSearch && memoryBanks.length > 0) ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {/* Pinned Memory Bank cards (visible only when not searching) */}
                   {!hasSearch &&
@@ -212,9 +212,9 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
                     ))}
 
                   {/* Regular Knowledge article cards - Suspense required for useSearchParams */}
-                  <Suspense fallback={
-                    <div className="neu-raised animate-pulse rounded-3xl p-6 h-48" />
-                  }>
+                  <Suspense
+                    fallback={<div className="neu-raised h-48 animate-pulse rounded-3xl p-6" />}
+                  >
                     {articles.map((article) => (
                       <ArticleCard key={article.id} article={article} />
                     ))}

@@ -59,9 +59,19 @@ async function getDashboardData(projectId: number) {
   ] = await Promise.all([
     // Current snapshot counts
     // Sprint 10: Use ticket model (issues are tickets with kind IN ('issue','bug','scanner_finding'))
-    prisma.ticket.count({ where: { projectId, status: 'open', kind: { in: ['issue', 'bug', 'scanner_finding'] } } }),
-    prisma.ticket.count({ where: { projectId, status: 'in-progress', kind: { in: ['issue', 'bug', 'scanner_finding'] } } }),
-    prisma.ticket.count({ where: { projectId, status: 'closed', kind: { in: ['issue', 'bug', 'scanner_finding'] } } }),
+    prisma.ticket.count({
+      where: { projectId, status: 'open', kind: { in: ['issue', 'bug', 'scanner_finding'] } },
+    }),
+    prisma.ticket.count({
+      where: {
+        projectId,
+        status: 'in-progress',
+        kind: { in: ['issue', 'bug', 'scanner_finding'] },
+      },
+    }),
+    prisma.ticket.count({
+      where: { projectId, status: 'closed', kind: { in: ['issue', 'bug', 'scanner_finding'] } },
+    }),
     prisma.knowledgeItem.count({ where: { projectId } }),
     prisma.securityFinding.count({ where: { projectId, status: 'open' } }),
     prisma.ticket.findMany({
@@ -192,7 +202,8 @@ async function getDashboardData(projectId: number) {
         name: agent.name,
         description: agent.description || '',
         status,
-        lastActivity: status === 'active' ? 'Active now' : status === 'idle' ? '2 mins ago' : '1 hour ago',
+        lastActivity:
+          status === 'active' ? 'Active now' : status === 'idle' ? '2 mins ago' : '1 hour ago',
         avatar: agent.name.slice(0, 2).toUpperCase(),
         color: colors[index % colors.length] || '#00D4FF',
       };
@@ -259,7 +270,7 @@ export default async function DashboardPage({
       {/* Back to Projects Link */}
       <Link
         href="/app"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Projects

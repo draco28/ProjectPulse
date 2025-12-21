@@ -43,9 +43,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json(
-      { error: 'Failed to run cleanup job' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to run cleanup job' }, { status: 500 });
   }
 }

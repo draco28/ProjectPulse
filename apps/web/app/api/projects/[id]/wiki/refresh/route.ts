@@ -26,10 +26,7 @@ interface RefreshResult {
   preview: boolean;
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = await requireUser();
     const projectId = parseInt(params.id, 10);
@@ -49,7 +46,10 @@ export async function POST(
     }
 
     if (project.ownerId !== user.id) {
-      return NextResponse.json({ error: 'Forbidden - only project owner can refresh wikis' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Forbidden - only project owner can refresh wikis' },
+        { status: 403 }
+      );
     }
 
     // Check if preview mode
@@ -124,7 +124,11 @@ export async function POST(
         continue;
       }
 
-      if (existingPage.lastEditedBy !== 'System Clone' && existingPage.lastEditedBy !== 'System Bootstrap' && existingPage.lastEditedBy !== 'System Refresh') {
+      if (
+        existingPage.lastEditedBy !== 'System Clone' &&
+        existingPage.lastEditedBy !== 'System Bootstrap' &&
+        existingPage.lastEditedBy !== 'System Refresh'
+      ) {
         // User has edited - skip
         result.skipped.push({
           title: existingPage.title,
@@ -179,9 +183,6 @@ export async function POST(
     return NextResponse.json(result);
   } catch (error) {
     console.error('POST /api/projects/[id]/wiki/refresh error:', error);
-    return NextResponse.json(
-      { error: 'Failed to refresh wikis' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to refresh wikis' }, { status: 500 });
   }
 }

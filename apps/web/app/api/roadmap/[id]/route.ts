@@ -56,10 +56,7 @@ async function getRoadmapWithAuth(roadmapId: string, request: Request) {
 // GET - Get Roadmap Details
 // ============================================================================
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -163,7 +160,6 @@ export async function GET(
         },
       },
     });
-
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {
@@ -185,10 +181,7 @@ export async function GET(
 // PUT - Update Roadmap
 // ============================================================================
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
@@ -222,7 +215,6 @@ export async function PUT(
         },
       },
     });
-
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {
@@ -233,14 +225,17 @@ export async function PUT(
     }
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid request body',
-          details: error.errors.map((e) => ({ path: e.path, message: e.message })),
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request body',
+            details: error.errors.map((e) => ({ path: e.path, message: e.message })),
+          },
         },
-      }, { status: 400 });
+        { status: 400 }
+      );
     }
 
     console.error('[PUT /api/roadmap/[id]] Error:', error);
@@ -274,7 +269,6 @@ export async function DELETE(
       success: true,
       message: 'Roadmap deleted successfully',
     });
-
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {

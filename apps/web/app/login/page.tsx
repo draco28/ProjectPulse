@@ -3,7 +3,7 @@
 /**
  * Login & Signup Page
  * Sprint 8.9: Public authentication page with neumorphic design
- * 
+ *
  * Features:
  * - Toggle between login and signup forms
  * - Email/password authentication
@@ -124,7 +124,7 @@ export default function LoginPage() {
 
       {/* Main Content */}
       <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-md glass-card">
+        <Card className="glass-card w-full max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">
               {mode === 'login' ? 'Welcome Back' : 'Create Account'}
@@ -202,8 +202,7 @@ export default function LoginPage() {
             <div className="mt-4 text-center text-sm">
               <span className="text-muted-foreground">
                 {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
-              </span>
-              {' '}
+              </span>{' '}
               <button
                 type="button"
                 onClick={toggleMode}
@@ -213,7 +212,6 @@ export default function LoginPage() {
                 {mode === 'login' ? 'Sign up' : 'Sign in'}
               </button>
             </div>
-
           </CardContent>
         </Card>
       </div>

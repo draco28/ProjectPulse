@@ -21,10 +21,7 @@ const eventSchema = z.object({
   metadata: z.record(z.any()).optional(),
 });
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const body = await request.json();
     const validated = eventSchema.safeParse(body);
@@ -75,7 +72,7 @@ export async function POST(
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('Failed to record wiki event', error);
     return NextResponse.json({ error: 'Failed to record wiki event' }, { status: 500 });
   }

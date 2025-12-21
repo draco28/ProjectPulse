@@ -8,10 +8,7 @@ import { prisma } from '@/lib/prisma';
  * @param params.id - Workflow run ID
  * @returns {run: {id, templateName, status, currentStep, totalSteps, completedSteps, context}}
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const runId = parseInt(params.id, 10);
 
@@ -56,9 +53,7 @@ export async function GET(
       ? workflowRun.template.steps
       : [];
     const totalSteps = templateSteps.length;
-    const completedSteps = workflowRun.steps.filter(
-      (s) => s.status === 'completed'
-    ).length;
+    const completedSteps = workflowRun.steps.filter((s) => s.status === 'completed').length;
 
     return NextResponse.json({
       data: {

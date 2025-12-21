@@ -11,7 +11,9 @@ async function testOllama() {
   // Check availability
   console.log('1. Checking Ollama availability...');
   const available = await isOllamaAvailable();
-  console.log(`   ${available ? '✅' : '❌'} Ollama is ${available ? 'available' : 'NOT available'}\n`);
+  console.log(
+    `   ${available ? '✅' : '❌'} Ollama is ${available ? 'available' : 'NOT available'}\n`
+  );
 
   if (!available) {
     console.log('❌ Ollama is not running or all-minilm model is not installed');
@@ -32,7 +34,12 @@ async function testOllama() {
     console.log(`   ✅ Generated embedding in ${duration}ms`);
     console.log(`   Dimensions: ${embedding.length}`);
     console.log(`   Model: nomic-embed-text`);
-    console.log(`   First 5 values: [${embedding.slice(0, 5).map(v => v.toFixed(4)).join(', ')}...]\n`);
+    console.log(
+      `   First 5 values: [${embedding
+        .slice(0, 5)
+        .map((v) => v.toFixed(4))
+        .join(', ')}...]\n`
+    );
 
     // Verify dimensions
     if (embedding.length === 768) {

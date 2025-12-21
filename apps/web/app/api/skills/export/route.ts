@@ -75,7 +75,9 @@ export async function GET(request: NextRequest) {
     const tags = tagsParam ? tagsParam.split(',').map((t) => t.trim()) : undefined;
 
     const frameworksParam = searchParams.get('frameworks');
-    const frameworks = frameworksParam ? frameworksParam.split(',').map((f) => f.trim()) : undefined;
+    const frameworks = frameworksParam
+      ? frameworksParam.split(',').map((f) => f.trim())
+      : undefined;
 
     const since = searchParams.get('since') || undefined;
     const limit = parseInt(searchParams.get('limit') || '0', 10);
@@ -114,10 +116,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      where.OR = [
-        { createdAt: { gte: sinceDate } },
-        { updatedAt: { gte: sinceDate } },
-      ];
+      where.OR = [{ createdAt: { gte: sinceDate } }, { updatedAt: { gte: sinceDate } }];
     }
 
     // Fetch skills
@@ -137,7 +136,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log(`[GET /api/skills/export] Exporting ${skills.length} skills for project ${projectId}`);
+    console.log(
+      `[GET /api/skills/export] Exporting ${skills.length} skills for project ${projectId}`
+    );
 
     // Create ZIP archive in memory
     const archive = archiver('zip', {
@@ -183,7 +184,9 @@ export async function GET(request: NextRequest) {
     const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const filename = `skills-export-${date}.zip`;
 
-    console.log(`[GET /api/skills/export] Created ${filename} (${zipBuffer.length} bytes, ${skills.length} files)`);
+    console.log(
+      `[GET /api/skills/export] Created ${filename} (${zipBuffer.length} bytes, ${skills.length} files)`
+    );
 
     // Return ZIP file
     return new NextResponse(zipBuffer, {

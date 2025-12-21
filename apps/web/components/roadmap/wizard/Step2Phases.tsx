@@ -64,11 +64,9 @@ export function Step2Phases({ phases, errors, onChange }: Step2Props) {
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white mb-2">Define Phases</h2>
-        <p className="text-slate text-sm">
-          Break your roadmap into major phases or milestones
-        </p>
+      <div className="mb-8 text-center">
+        <h2 className="mb-2 text-2xl font-bold text-white">Define Phases</h2>
+        <p className="text-sm text-slate">Break your roadmap into major phases or milestones</p>
       </div>
 
       {/* Phase List */}
@@ -81,7 +79,7 @@ export function Step2Phases({ phases, errors, onChange }: Step2Props) {
             <div
               key={phase.id}
               className={`
-                neu-raised rounded-2xl overflow-hidden
+                neu-raised overflow-hidden rounded-2xl
                 transition-all duration-300
                 ${isExpanded ? 'ring-2 ring-coral/30' : ''}
               `}
@@ -89,20 +87,21 @@ export function Step2Phases({ phases, errors, onChange }: Step2Props) {
               {/* Phase Header */}
               <div
                 onClick={() => setExpandedId(isExpanded ? null : phase.id)}
-                className="flex items-center gap-3 p-4 cursor-pointer hover:bg-dark-pressed/50 transition-colors"
+                className="flex cursor-pointer items-center gap-3 p-4 transition-colors hover:bg-dark-pressed/50"
               >
                 <GripVertical className="h-5 w-5 text-slate/50" />
-                
-                <div className="icon-coral flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0">
+
+                <div className="icon-coral flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl">
                   <Layers className="h-5 w-5 text-white" />
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white truncate">
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-semibold text-white">
                     {phase.title || `Phase ${index + 1}`}
                   </h3>
                   <p className="text-xs text-slate">
-                    {phase.duration} • {phase.sprints.length} sprint{phase.sprints.length !== 1 ? 's' : ''}
+                    {phase.duration} • {phase.sprints.length} sprint
+                    {phase.sprints.length !== 1 ? 's' : ''}
                   </p>
                 </div>
 
@@ -113,10 +112,11 @@ export function Step2Phases({ phases, errors, onChange }: Step2Props) {
                   }}
                   disabled={phases.length === 1}
                   className={`
-                    p-2 rounded-lg transition-colors
-                    ${phases.length === 1
-                      ? 'opacity-30 cursor-not-allowed'
-                      : 'hover:bg-red-500/20 text-slate hover:text-red-400'
+                    rounded-lg p-2 transition-colors
+                    ${
+                      phases.length === 1
+                        ? 'cursor-not-allowed opacity-30'
+                        : 'text-slate hover:bg-red-500/20 hover:text-red-400'
                     }
                   `}
                 >
@@ -126,10 +126,10 @@ export function Step2Phases({ phases, errors, onChange }: Step2Props) {
 
               {/* Phase Details (Expanded) */}
               {isExpanded && (
-                <div className="p-4 pt-0 space-y-4 border-t border-dark-pressed">
+                <div className="space-y-4 border-t border-dark-pressed p-4 pt-0">
                   {/* Title */}
                   <div>
-                    <label className="text-xs font-medium text-slate mb-1 block">
+                    <label className="mb-1 block text-xs font-medium text-slate">
                       Phase Title <span className="text-coral">*</span>
                     </label>
                     <input
@@ -139,21 +139,21 @@ export function Step2Phases({ phases, errors, onChange }: Step2Props) {
                       placeholder="e.g., Foundation, API Development, UI Polish"
                       maxLength={200}
                       className={`
-                        w-full px-3 py-2 rounded-lg
-                        neu-pressed bg-transparent
+                        neu-pressed w-full rounded-lg bg-transparent
+                        px-3 py-2
                         text-white placeholder:text-slate/50
                         focus:outline-none focus:ring-2 focus:ring-coral/50
                         ${titleError ? 'ring-2 ring-red-500' : ''}
                       `}
                     />
                     {titleError && (
-                      <span className="text-xs text-red-400 mt-1 block">{titleError}</span>
+                      <span className="mt-1 block text-xs text-red-400">{titleError}</span>
                     )}
                   </div>
 
                   {/* Duration */}
                   <div>
-                    <label className="flex items-center gap-1 text-xs font-medium text-slate mb-1">
+                    <label className="mb-1 flex items-center gap-1 text-xs font-medium text-slate">
                       <Clock className="h-3 w-3" />
                       Duration
                     </label>
@@ -161,11 +161,11 @@ export function Step2Phases({ phases, errors, onChange }: Step2Props) {
                       value={phase.duration}
                       onChange={(e) => handleUpdatePhase(phase.id, { duration: e.target.value })}
                       className="
-                        w-full px-3 py-2 rounded-lg
-                        neu-pressed bg-transparent
-                        text-white
-                        focus:outline-none focus:ring-2 focus:ring-coral/50
-                        [&>option]:bg-dark-surface [&>option]:text-white
+                        neu-pressed [&>option]:bg-dark-surface w-full rounded-lg
+                        bg-transparent px-3
+                        py-2
+                        text-white focus:outline-none focus:ring-2
+                        focus:ring-coral/50 [&>option]:text-white
                       "
                     >
                       {DURATION_OPTIONS.map((opt) => (
@@ -178,7 +178,7 @@ export function Step2Phases({ phases, errors, onChange }: Step2Props) {
 
                   {/* Description */}
                   <div>
-                    <label className="text-xs font-medium text-slate mb-1 block">
+                    <label className="mb-1 block text-xs font-medium text-slate">
                       Description <span className="text-slate/50">(optional)</span>
                     </label>
                     <textarea
@@ -188,11 +188,11 @@ export function Step2Phases({ phases, errors, onChange }: Step2Props) {
                       rows={2}
                       maxLength={500}
                       className="
-                        w-full px-3 py-2 rounded-lg
-                        neu-pressed bg-transparent
-                        text-white placeholder:text-slate/50
-                        focus:outline-none focus:ring-2 focus:ring-coral/50
-                        resize-none
+                        neu-pressed w-full resize-none rounded-lg
+                        bg-transparent px-3
+                        py-2 text-white
+                        placeholder:text-slate/50 focus:outline-none focus:ring-2
+                        focus:ring-coral/50
                       "
                     />
                   </div>
@@ -214,11 +214,11 @@ export function Step2Phases({ phases, errors, onChange }: Step2Props) {
       <button
         onClick={handleAddPhase}
         className="
-          w-full py-4 rounded-2xl
-          neu-flat border-2 border-dashed border-slate/30
-          text-slate hover:text-coral hover:border-coral/50
-          transition-all duration-200
-          flex items-center justify-center gap-2
+          neu-flat flex w-full
+          items-center justify-center gap-2 rounded-2xl
+          border-2 border-dashed border-slate/30
+          py-4 text-slate
+          transition-all duration-200 hover:border-coral/50 hover:text-coral
         "
       >
         <Plus className="h-5 w-5" />

@@ -72,20 +72,14 @@ export function useEntityUpdate(
     [entityType, entityId, refreshOnSuccess, router, onSuccess, onError]
   );
 
-  const updateTitle = useCallback(
-    (title: string) => updateEntity({ title }),
-    [updateEntity]
-  );
+  const updateTitle = useCallback((title: string) => updateEntity({ title }), [updateEntity]);
 
   const updateDescription = useCallback(
     (description: string) => updateEntity({ description }),
     [updateEntity]
   );
 
-  const updateStatus = useCallback(
-    (status: Status) => updateEntity({ status }),
-    [updateEntity]
-  );
+  const updateStatus = useCallback((status: Status) => updateEntity({ status }), [updateEntity]);
 
   return {
     updateEntity,

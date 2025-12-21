@@ -43,4 +43,3 @@ describe('GET /api/health', () => {
     expect(typeof body.timestamp).toBe('string');
   });
 });
-

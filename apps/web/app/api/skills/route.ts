@@ -103,7 +103,9 @@ export async function GET(request: NextRequest) {
     const tagsParam = searchParams.get('tags');
     const tags = tagsParam ? tagsParam.split(',').map((t) => t.trim()) : undefined;
     const frameworksParam = searchParams.get('frameworks');
-    const frameworks = frameworksParam ? frameworksParam.split(',').map((f) => f.trim()) : undefined;
+    const frameworks = frameworksParam
+      ? frameworksParam.split(',').map((f) => f.trim())
+      : undefined;
 
     // Extract sorting params
     const sortBy = searchParams.get('sortBy') || 'title';
@@ -208,7 +210,7 @@ export async function GET(request: NextRequest) {
         { status: error.status }
       );
     }
-    
+
     console.error('[GET /api/skills] Failed to list skills:', error);
     return NextResponse.json(
       {
@@ -267,7 +269,9 @@ export async function POST(request: NextRequest) {
     // Auto-generate slug from title if not provided
     if (!body.slug && body.title) {
       body.slug = generateSlugFromTitle(body.title);
-      console.log(`[POST /api/skills] Auto-generated slug: "${body.slug}" from title: "${body.title}"`);
+      console.log(
+        `[POST /api/skills] Auto-generated slug: "${body.slug}" from title: "${body.title}"`
+      );
     }
 
     const validation = createSkillSchema.safeParse(body);
@@ -285,8 +289,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { projectId: requestedProjectId, slug, title, content, category, description, tags, frameworks } =
-      validation.data;
+    const {
+      projectId: requestedProjectId,
+      slug,
+      title,
+      content,
+      category,
+      description,
+      tags,
+      frameworks,
+    } = validation.data;
 
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
@@ -350,7 +362,7 @@ export async function POST(request: NextRequest) {
         { status: error.status }
       );
     }
-    
+
     // Handle JSON parse errors
     if (error instanceof SyntaxError) {
       return NextResponse.json(

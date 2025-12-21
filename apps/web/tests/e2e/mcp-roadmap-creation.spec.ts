@@ -90,12 +90,9 @@ async function createAgentToken(
   tokenName: string
 ): Promise<string> {
   // First, try to create a new token
-  const response = await request.post(
-    `${API_SERVER_URL}/api/projects/${projectId}/tokens`,
-    {
-      data: { name: tokenName, expiresInDays: 1 }, // Short expiry for test
-    }
-  );
+  const response = await request.post(`${API_SERVER_URL}/api/projects/${projectId}/tokens`, {
+    data: { name: tokenName, expiresInDays: 1 }, // Short expiry for test
+  });
 
   if (response.ok()) {
     const result = await response.json();
@@ -105,12 +102,9 @@ async function createAgentToken(
   // If 409 (token name exists), try with timestamp suffix
   if (response.status() === 409) {
     const uniqueName = `${tokenName}-${Date.now()}`;
-    const retryResponse = await request.post(
-      `${API_SERVER_URL}/api/projects/${projectId}/tokens`,
-      {
-        data: { name: uniqueName, expiresInDays: 1 },
-      }
-    );
+    const retryResponse = await request.post(`${API_SERVER_URL}/api/projects/${projectId}/tokens`, {
+      data: { name: uniqueName, expiresInDays: 1 },
+    });
 
     if (retryResponse.ok()) {
       const result = await retryResponse.json();

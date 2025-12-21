@@ -2,7 +2,7 @@
 
 /**
  * Command Footer Component
- * 
+ *
  * Footer with keyboard navigation hints
  */
 
@@ -12,16 +12,16 @@ export function CommandFooter() {
       <div className="flex items-center justify-between text-xs text-slate">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1">
-            <kbd className="rounded px-1.5 py-0.5 font-mono neu-raised">↑</kbd>
-            <kbd className="rounded px-1.5 py-0.5 font-mono neu-raised ml-1">↓</kbd>
+            <kbd className="neu-raised rounded px-1.5 py-0.5 font-mono">↑</kbd>
+            <kbd className="neu-raised ml-1 rounded px-1.5 py-0.5 font-mono">↓</kbd>
             <span className="ml-1">to navigate</span>
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="rounded px-1.5 py-0.5 font-mono neu-raised">↵</kbd>
+            <kbd className="neu-raised rounded px-1.5 py-0.5 font-mono">↵</kbd>
             <span className="ml-1">to select</span>
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="rounded px-1.5 py-0.5 font-mono neu-raised">ESC</kbd>
+            <kbd className="neu-raised rounded px-1.5 py-0.5 font-mono">ESC</kbd>
             <span className="ml-1">to close</span>
           </span>
         </div>

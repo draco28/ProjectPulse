@@ -77,12 +77,7 @@ export async function generateEmbedding(
   text: string,
   options: EmbeddingServiceOptions = {}
 ): Promise<EmbeddingResult> {
-  const {
-    provider = 'auto',
-    ollamaBaseUrl,
-    openaiApiKey,
-    timeout = 10000,
-  } = options;
+  const { provider = 'auto', ollamaBaseUrl, openaiApiKey, timeout = 10000 } = options;
 
   const startTime = Date.now();
 
@@ -142,7 +137,8 @@ export async function generateEmbedding(
   } catch (ollamaError) {
     // Log Ollama failure for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.warn('[Embedding Service] Ollama failed, trying OpenAI fallback:',
+      console.warn(
+        '[Embedding Service] Ollama failed, trying OpenAI fallback:',
         ollamaError instanceof Error ? ollamaError.message : 'Unknown error'
       );
     }
@@ -200,12 +196,7 @@ export async function generateBatchEmbeddings(
     return { embeddings: [], provider: 'ollama', duration: 0 };
   }
 
-  const {
-    provider = 'auto',
-    ollamaBaseUrl,
-    openaiApiKey,
-    timeout = 30000,
-  } = options;
+  const { provider = 'auto', ollamaBaseUrl, openaiApiKey, timeout = 30000 } = options;
 
   const startTime = Date.now();
 
@@ -265,7 +256,8 @@ export async function generateBatchEmbeddings(
   } catch (ollamaError) {
     // Log Ollama failure for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.warn('[Embedding Service] Ollama batch failed, trying OpenAI fallback:',
+      console.warn(
+        '[Embedding Service] Ollama batch failed, trying OpenAI fallback:',
         ollamaError instanceof Error ? ollamaError.message : 'Unknown error'
       );
     }
@@ -309,9 +301,7 @@ export async function generateBatchEmbeddings(
  * }
  * ```
  */
-export async function checkEmbeddingProviders(
-  options: EmbeddingServiceOptions = {}
-): Promise<{
+export async function checkEmbeddingProviders(options: EmbeddingServiceOptions = {}): Promise<{
   ollama: boolean;
   openai: boolean;
   recommended: 'ollama' | 'openai' | 'none';

@@ -38,9 +38,7 @@ export function AgentWorkflowsTab({ agent }: AgentWorkflowsTabProps) {
   );
 
   // Extract unique categories
-  const categories = Array.from(
-    new Set(agent.workflows.map((w) => w.category))
-  ).sort();
+  const categories = Array.from(new Set(agent.workflows.map((w) => w.category))).sort();
 
   // Parse steps count from JSONB
   const getStepCount = (steps: unknown): number => {
@@ -62,8 +60,7 @@ export function AgentWorkflowsTab({ agent }: AgentWorkflowsTabProps) {
       {/* Filter Bar */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Showing {filteredWorkflows.length} of {agent.workflows.length}{' '}
-          workflows
+          Showing {filteredWorkflows.length} of {agent.workflows.length} workflows
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-48">
@@ -81,21 +78,16 @@ export function AgentWorkflowsTab({ agent }: AgentWorkflowsTabProps) {
       </div>
 
       {/* Workflows Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {filteredWorkflows.map((workflow) => {
           const stepCount = getStepCount(workflow.steps);
 
           return (
-            <Card
-              key={workflow.id}
-              className="neu-flat hover:neu-raised smooth-transition"
-            >
+            <Card key={workflow.id} className="neu-flat hover:neu-raised smooth-transition">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 space-y-1">
-                    <CardTitle className="text-base leading-tight">
-                      {workflow.name}
-                    </CardTitle>
+                    <CardTitle className="text-base leading-tight">{workflow.name}</CardTitle>
                     <div className="flex items-center gap-2">
                       <Badge
                         variant={workflow.isActive ? 'default' : 'secondary'}
@@ -118,11 +110,11 @@ export function AgentWorkflowsTab({ agent }: AgentWorkflowsTabProps) {
                       </Badge>
                     </div>
                   </div>
-                  <Workflow className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <Workflow className="h-5 w-5 shrink-0 text-muted-foreground" />
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
                   {workflow.description}
                 </p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -136,7 +128,7 @@ export function AgentWorkflowsTab({ agent }: AgentWorkflowsTabProps) {
 
       {/* Empty State */}
       {filteredWorkflows.length === 0 && (
-        <div className="text-center py-12 space-y-3">
+        <div className="space-y-3 py-12 text-center">
           <div className="text-4xl">🔄</div>
           <p className="text-lg font-medium">No workflows found</p>
           <p className="text-sm text-muted-foreground">
@@ -148,15 +140,13 @@ export function AgentWorkflowsTab({ agent }: AgentWorkflowsTabProps) {
       )}
 
       {/* Info Banner */}
-      <div className="neu-inset rounded-lg p-4 text-sm space-y-2">
+      <div className="neu-inset space-y-2 rounded-lg p-4 text-sm">
         <p className="font-medium">🔁 Configured Workflows</p>
-        <p className="text-muted-foreground leading-relaxed">
+        <p className="leading-relaxed text-muted-foreground">
           These workflows are <strong>configured for this agent</strong> based on expertise:{' '}
-          <span className="font-medium">
-            {agent.expertise.join(', ') || 'None'}
-          </span>.
-          Note: <strong>All project workflows</strong> are available to all agents. 
-          View all workflows in the <strong>Workflows Library</strong> tab.
+          <span className="font-medium">{agent.expertise.join(', ') || 'None'}</span>. Note:{' '}
+          <strong>All project workflows</strong> are available to all agents. View all workflows in
+          the <strong>Workflows Library</strong> tab.
         </p>
       </div>
     </div>

@@ -72,9 +72,17 @@ interface SidebarProps {
   counts?: SidebarCounts;
 }
 
-export function Sidebar({ projectId: propProjectId, projectName: propProjectName, counts: propCounts }: SidebarProps = {}) {
+export function Sidebar({
+  projectId: propProjectId,
+  projectName: propProjectName,
+  counts: propCounts,
+}: SidebarProps = {}) {
   // Fetch counts and project name client-side from URL params
-  const { counts: fetchedCounts, projectId: urlProjectId, projectName: fetchedProjectName } = useSidebarCounts();
+  const {
+    counts: fetchedCounts,
+    projectId: urlProjectId,
+    projectName: fetchedProjectName,
+  } = useSidebarCounts();
   const { data: session } = useSession();
 
   // Use prop values if provided, otherwise use fetched values
@@ -86,7 +94,12 @@ export function Sidebar({ projectId: propProjectId, projectName: propProjectName
   // Get user info from session
   const user = session?.user;
   const userInitials = user?.name
-    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    ? user.name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
     : 'U';
 
   // Get project display name (abbreviate if too long)
@@ -94,17 +107,18 @@ export function Sidebar({ projectId: propProjectId, projectName: propProjectName
   const getProjectInitials = (name: string) => {
     return name
       .split(' ')
-      .map(word => word[0])
+      .map((word) => word[0])
       .join('')
       .toUpperCase()
       .slice(0, 3);
   };
-  const projectDisplayName = projectName && projectName.length > MAX_PROJECT_NAME_LENGTH
-    ? getProjectInitials(projectName)
-    : projectName || 'Project';
+  const projectDisplayName =
+    projectName && projectName.length > MAX_PROJECT_NAME_LENGTH
+      ? getProjectInitials(projectName)
+      : projectName || 'Project';
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   // Helper to build href with projectId
   const buildHref = (path: string) => {
     if (!projectId) return path;
@@ -163,7 +177,7 @@ export function Sidebar({ projectId: propProjectId, projectName: propProjectName
           // Desktop: fixed width, always visible
           'md:w-64',
           // Mobile: full drawer behavior
-          'fixed inset-y-0 left-0 z-50 w-80 bg-background transition-transform duration-300 md:static md:translate-x-0 md:bg-transparent md:shadow-none md:border-none',
+          'fixed inset-y-0 left-0 z-50 w-80 bg-background transition-transform duration-300 md:static md:translate-x-0 md:border-none md:bg-transparent md:shadow-none',
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         )}
         aria-label="Main navigation"
@@ -185,7 +199,12 @@ export function Sidebar({ projectId: propProjectId, projectName: propProjectName
               <Heart className="h-6 w-6 text-white" fill="white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-xl font-bold text-white" title={projectName || undefined}>{projectDisplayName}</h1>
+              <h1
+                className="truncate text-xl font-bold text-white"
+                title={projectName || undefined}
+              >
+                {projectDisplayName}
+              </h1>
               <p className="text-xs text-slate">ProjectPulse</p>
             </div>
           </div>
@@ -203,7 +222,9 @@ export function Sidebar({ projectId: propProjectId, projectName: propProjectName
                 href={buildHref(item.href)}
                 className={cn(
                   'smooth-transition flex items-center gap-3 rounded-2xl px-5 py-4',
-                  isActive ? 'bg-accent-primary/20 text-white' : 'neu-raised text-slate hover:text-white'
+                  isActive
+                    ? 'bg-accent-primary/20 text-white'
+                    : 'neu-raised text-slate hover:text-white'
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -211,18 +232,21 @@ export function Sidebar({ projectId: propProjectId, projectName: propProjectName
                 {item.pulse && isActive && (
                   <div className="pulse-glow ml-auto h-2 w-2 rounded-full bg-white" />
                 )}
-                {item.badgeKey && counts && counts[item.badgeKey] !== undefined && counts[item.badgeKey]! > 0 && (
-                  <span
-                    className={cn(
-                      'ml-auto rounded-full px-2.5 py-1 text-xs font-semibold shadow-md',
-                      item.badgeVariant === 'warning'
-                        ? 'bg-red-500 text-white'
-                        : 'bg-coral text-white'
-                    )}
-                  >
-                    {counts[item.badgeKey]}
-                  </span>
-                )}
+                {item.badgeKey &&
+                  counts &&
+                  counts[item.badgeKey] !== undefined &&
+                  counts[item.badgeKey]! > 0 && (
+                    <span
+                      className={cn(
+                        'ml-auto rounded-full px-2.5 py-1 text-xs font-semibold shadow-md',
+                        item.badgeVariant === 'warning'
+                          ? 'bg-red-500 text-white'
+                          : 'bg-coral text-white'
+                      )}
+                    >
+                      {counts[item.badgeKey]}
+                    </span>
+                  )}
               </Link>
             );
           })}

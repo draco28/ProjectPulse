@@ -85,12 +85,11 @@ test.describe('API Authentication Security', () => {
 test.describe('Agent Token Project Isolation', () => {
   // These tests require a valid agent token for testing
   // They would be run in an environment where tokens can be created
-  
+
   test.skip('Agent token can only access its authorized project', async ({ request }) => {
     // This test requires:
     // 1. A valid agent token for project 3
     // 2. An attempt to access project 9999
-    
     // When fully implemented:
     // const validToken = process.env.TEST_AGENT_TOKEN_PROJECT_3;
     // const response = await request.post(`${API_BASE}/api/tickets`, {
@@ -109,7 +108,6 @@ test.describe('Agent Token Project Isolation', () => {
     // This test requires:
     // 1. A valid agent token for project 3
     // 2. An attempt to access project 3
-    
     // When fully implemented:
     // const validToken = process.env.TEST_AGENT_TOKEN_PROJECT_3;
     // const response = await request.post(`${API_BASE}/api/tickets`, {

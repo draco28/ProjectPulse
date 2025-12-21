@@ -161,9 +161,7 @@ export async function listKnowledgeResources(): Promise<ResourceMetadata[]> {
  * // }
  * ```
  */
-export async function readKnowledgeResource(
-  uri: string
-): Promise<ResourceContent> {
+export async function readKnowledgeResource(uri: string): Promise<ResourceContent> {
   try {
     // Parse URI
     if (!uri.startsWith('knowledge://')) {
@@ -214,8 +212,7 @@ export async function readKnowledgeResource(
     // Wrap unexpected errors
     console.error('[resources/read] Unexpected error:', error);
     throw new MCPError(
-      'Failed to read resource: ' +
-        (error instanceof Error ? error.message : 'Unknown error'),
+      'Failed to read resource: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
       500,
       { uri, operation: 'read_resource' }
@@ -231,10 +228,7 @@ export async function readKnowledgeResource(
  * @returns Resource content with item details
  * @throws MCPError if item not found
  */
-async function readKnowledgeItem(
-  uri: string,
-  itemId: number
-): Promise<ResourceContent> {
+async function readKnowledgeItem(uri: string, itemId: number): Promise<ResourceContent> {
   const item = await prisma.knowledgeItem.findUnique({
     where: { id: itemId },
     select: {

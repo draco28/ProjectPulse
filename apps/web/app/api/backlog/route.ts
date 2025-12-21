@@ -39,10 +39,7 @@ function failure({
   status?: number;
   details?: unknown;
 }) {
-  return Response.json(
-    { data: null, error: { code, message, details } },
-    { status }
-  );
+  return Response.json({ data: null, error: { code, message, details } }, { status });
 }
 
 /**
@@ -88,10 +85,7 @@ export async function GET(request: NextRequest) {
     // Fetch backlog items
     const items = await prisma.backlogItem.findMany({
       where,
-      orderBy: [
-        { sprintNumber: 'asc' },
-        { itemId: 'asc' },
-      ],
+      orderBy: [{ sprintNumber: 'asc' }, { itemId: 'asc' }],
       select: {
         id: true,
         itemId: true,

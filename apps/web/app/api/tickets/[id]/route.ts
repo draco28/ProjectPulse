@@ -60,13 +60,26 @@ export async function GET(request: NextRequest, context: RouteContext) {
           orderBy: { createdAt: 'desc' },
         },
         attachments: {
-          select: { id: true, filename: true, filepath: true, mimetype: true, size: true, uploadedAt: true },
+          select: {
+            id: true,
+            filename: true,
+            filepath: true,
+            mimetype: true,
+            size: true,
+            uploadedAt: true,
+          },
         },
         linkedFiles: {
           select: { id: true, filePath: true, lineNumber: true, createdAt: true },
         },
         linkedCommits: {
-          select: { id: true, commitHash: true, commitMessage: true, commitDate: true, createdAt: true },
+          select: {
+            id: true,
+            commitHash: true,
+            commitMessage: true,
+            commitDate: true,
+            createdAt: true,
+          },
         },
         // Sprint 12: linkedTask removed - tickets now schedule via scheduledWeek relation
         scheduledWeek: {
@@ -113,7 +126,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });
     }
-    
+
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',
@@ -139,7 +152,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     // Sprint 13: Also fetch kind for hierarchy validation
     const existing = await prisma.ticket.findUnique({
       where: { id },
-      select: { id: true, status: true, projectId: true, customFields: true, kind: true, parentTicketId: true },
+      select: {
+        id: true,
+        status: true,
+        projectId: true,
+        customFields: true,
+        kind: true,
+        parentTicketId: true,
+      },
     });
 
     if (!existing) {
@@ -229,11 +249,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     // Determine if closing ticket
-    const isClosing = status && status !== existing.status && (status === 'closed' || status === 'resolved');
+    const isClosing =
+      status && status !== existing.status && (status === 'closed' || status === 'resolved');
 
     // Build update data object explicitly
     const updateData: Parameters<typeof prisma.ticket.update>[0]['data'] = {};
-    
+
     if (data.title) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
     if (status) updateData.status = status;
@@ -351,7 +372,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });
     }
-    
+
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',

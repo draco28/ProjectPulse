@@ -2,7 +2,7 @@
 
 /**
  * Global Keyboard Shortcuts Hook
- * 
+ *
  * Registers individual command shortcuts (⌘D, ⌘I, ⌘W, etc.)
  */
 
@@ -27,11 +27,7 @@ export function useGlobalShortcuts() {
 
       // Check if we're in an input field
       const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
-      ) {
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         // Allow ⌘K even in input fields
         if (e.key === 'k') return;
         // Block other shortcuts in input fields
@@ -81,7 +77,9 @@ export function useGlobalShortcuts() {
           break;
         case '/':
           e.preventDefault();
-          alert('Keyboard Shortcuts:\n\n⌘K - Command Palette\n⌘D - Dashboard\n⌘I - Issues\n⌘B - Knowledge\n⌘W - Wiki\n⌘E - Security\n⌘A - Agents\n⌘R - Roadmap\n⌘N - New Issue\n⌘, - Settings');
+          alert(
+            'Keyboard Shortcuts:\n\n⌘K - Command Palette\n⌘D - Dashboard\n⌘I - Issues\n⌘B - Knowledge\n⌘W - Wiki\n⌘E - Security\n⌘A - Agents\n⌘R - Roadmap\n⌘N - New Issue\n⌘, - Settings'
+          );
           break;
       }
     };

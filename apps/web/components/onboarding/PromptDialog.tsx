@@ -58,7 +58,7 @@ export function PromptDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Agent Generation Prompt</DialogTitle>
           <DialogDescription>
@@ -70,7 +70,7 @@ export function PromptDialog({
         <div className="space-y-6">
           {/* System Prompt */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2 flex items-center justify-between">
               <label className="text-sm font-semibold text-white">System Prompt</label>
               <Button
                 type="button"
@@ -91,8 +91,8 @@ export function PromptDialog({
                 )}
               </Button>
             </div>
-            <div className="neu-inset bg-slate-900/50 border border-slate-700 rounded-md p-4 max-h-48 overflow-y-auto">
-              <pre className="text-xs text-slate-300 whitespace-pre-wrap font-mono">
+            <div className="neu-inset max-h-48 overflow-y-auto rounded-md border border-slate-700 bg-slate-900/50 p-4">
+              <pre className="whitespace-pre-wrap font-mono text-xs text-slate-300">
                 {systemPrompt}
               </pre>
             </div>
@@ -100,7 +100,7 @@ export function PromptDialog({
 
           {/* User Prompt */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2 flex items-center justify-between">
               <label className="text-sm font-semibold text-white">
                 User Prompt (All 96 Q&A Pairs)
               </label>
@@ -123,17 +123,17 @@ export function PromptDialog({
                 )}
               </Button>
             </div>
-            <div className="neu-inset bg-slate-900/50 border border-slate-700 rounded-md p-4 max-h-48 overflow-y-auto">
-              <pre className="text-xs text-slate-300 whitespace-pre-wrap font-mono">
+            <div className="neu-inset max-h-48 overflow-y-auto rounded-md border border-slate-700 bg-slate-900/50 p-4">
+              <pre className="whitespace-pre-wrap font-mono text-xs text-slate-300">
                 {userPrompt}
               </pre>
             </div>
           </div>
 
           {/* Instructions */}
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-md p-4">
-            <h4 className="text-sm font-semibold text-blue-400 mb-2">Instructions:</h4>
-            <ol className="text-sm text-slate-300 space-y-1 list-decimal list-inside">
+          <div className="rounded-md border border-blue-500/20 bg-blue-500/10 p-4">
+            <h4 className="mb-2 text-sm font-semibold text-blue-400">Instructions:</h4>
+            <ol className="list-inside list-decimal space-y-1 text-sm text-slate-300">
               <li>Copy the System Prompt and User Prompt above</li>
               <li>Open your AI agent (Claude Code, ChatGPT, etc.)</li>
               <li>Paste the System Prompt first, then the User Prompt</li>
@@ -144,7 +144,7 @@ export function PromptDialog({
 
           {/* Result Input */}
           <div>
-            <label className="text-sm font-semibold text-white mb-2 block">
+            <label className="mb-2 block text-sm font-semibold text-white">
               Paste Generated Summary
             </label>
             <Textarea
@@ -152,9 +152,9 @@ export function PromptDialog({
               value={result}
               onChange={(e) => setResult(e.target.value)}
               rows={10}
-              className="neu-inset bg-slate-900/50 border-slate-700 text-white"
+              className="neu-inset border-slate-700 bg-slate-900/50 text-white"
             />
-            <p className="text-xs text-slate-400 mt-2">
+            <p className="mt-2 text-xs text-slate-400">
               Word count: {result.split(/\s+/).filter((w) => w).length} words
             </p>
           </div>
@@ -164,11 +164,7 @@ export function PromptDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={!result.trim()}
-            >
+            <Button type="button" onClick={handleSubmit} disabled={!result.trim()}>
               Store Summary
             </Button>
           </div>

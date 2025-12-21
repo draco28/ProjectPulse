@@ -1,8 +1,8 @@
 /**
  * Skill Get by ID API - Sprint 11 Security Update
- * 
+ *
  * GET /api/skills/by-id?id=X&projectId=Y - Get full skill details by ID
- * 
+ *
  * Multi-tenancy: Validates projectId ownership
  * Security: Requires authentication (user session OR agent token)
  */
@@ -22,13 +22,13 @@ const querySchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     // 1. Validate query params
     const validation = querySchema.safeParse({
       id: searchParams.get('id'),
       projectId: searchParams.get('projectId'),
     });
-    
+
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
@@ -37,13 +37,13 @@ export async function GET(request: NextRequest) {
     }
 
     const { id: skillId, projectId: requestedProjectId } = validation.data;
-    
+
     // 2. Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // 3. Fetch skill with ownership validation
     const skill = await prisma.skill.findFirst({
-      where: { 
+      where: {
         id: skillId,
         projectId, // Validate ownership
       },
@@ -78,11 +78,8 @@ export async function GET(request: NextRequest) {
         { status: error.status }
       );
     }
-    
+
     console.error('[GET /api/skills/by-id] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

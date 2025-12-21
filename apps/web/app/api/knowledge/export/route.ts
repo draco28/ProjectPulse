@@ -50,8 +50,10 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
-    
+    const requestedProjectId = searchParams.get('projectId')
+      ? parseInt(searchParams.get('projectId')!, 10)
+      : undefined;
+
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
@@ -73,7 +75,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (tagsParam) {
-      const tags = tagsParam.split(',').map(t => t.trim());
+      const tags = tagsParam.split(',').map((t) => t.trim());
       where.tags = { hasSome: tags }; // Match any of the provided tags
     }
 
@@ -125,13 +127,10 @@ export async function GET(request: NextRequest) {
     // Fetch relationships if requested
     let relationships: any[] = [];
     if (includeRelationships && items.length > 0) {
-      const itemIds = items.map(item => item.id);
+      const itemIds = items.map((item) => item.id);
       relationships = await prisma.knowledgeRelationship.findMany({
         where: {
-          OR: [
-            { fromId: { in: itemIds } },
-            { toId: { in: itemIds } },
-          ],
+          OR: [{ fromId: { in: itemIds } }, { toId: { in: itemIds } }],
         },
         select: {
           id: true,
@@ -159,15 +158,17 @@ export async function GET(request: NextRequest) {
           since: sinceParam || null,
         },
       },
-      items: items.map(item => ({
+      items: items.map((item) => ({
         ...item,
         createdAt: item.createdAt.toISOString(),
         updatedAt: item.updatedAt.toISOString(),
         archivedAt: item.archivedAt?.toISOString() || null,
         // Convert embedding buffer to array if included
-        ...(includeEmbeddings && item.embedding ? {
-          embedding: Array.from(item.embedding as unknown as ArrayLike<number>),
-        } : {}),
+        ...(includeEmbeddings && item.embedding
+          ? {
+              embedding: Array.from(item.embedding as unknown as ArrayLike<number>),
+            }
+          : {}),
       })),
       relationships,
     };
@@ -179,7 +180,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('[GET /api/knowledge/export] Export failed:', error);
     return NextResponse.json(
       {

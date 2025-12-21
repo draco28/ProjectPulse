@@ -107,10 +107,7 @@ export function AdminStatsCards() {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <div
-            key={i}
-            className="h-32 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800"
-          />
+          <div key={i} className="h-32 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
         ))}
       </div>
     );
@@ -136,22 +133,9 @@ export function AdminStatsCards() {
         icon={Users}
         description={`${stats.users.active} active`}
       />
-      <StatCard
-        title="Admins"
-        value={stats.users.admins}
-        icon={Shield}
-        variant="coral"
-      />
-      <StatCard
-        title="Projects"
-        value={stats.projects.total}
-        icon={FolderKanban}
-      />
-      <StatCard
-        title="Tickets"
-        value={stats.tickets.total}
-        icon={Ticket}
-      />
+      <StatCard title="Admins" value={stats.users.admins} icon={Shield} variant="coral" />
+      <StatCard title="Projects" value={stats.projects.total} icon={FolderKanban} />
+      <StatCard title="Tickets" value={stats.tickets.total} icon={Ticket} />
       <StatCard
         title="Active Users"
         value={stats.users.active}
@@ -165,17 +149,8 @@ export function AdminStatsCards() {
         description="Last 7 days"
         variant="success"
       />
-      <StatCard
-        title="Total Tokens"
-        value={stats.tokens.total}
-        icon={Key}
-      />
-      <StatCard
-        title="Active Tokens"
-        value={stats.tokens.active}
-        icon={Key}
-        variant="success"
-      />
+      <StatCard title="Total Tokens" value={stats.tokens.total} icon={Key} />
+      <StatCard title="Active Tokens" value={stats.tokens.active} icon={Key} variant="success" />
     </div>
   );
 }

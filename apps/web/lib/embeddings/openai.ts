@@ -82,9 +82,7 @@ export async function generateOpenAIEmbedding(
 
   // Truncate if too long (OpenAI max: 8191 tokens ≈ 32000 chars)
   const maxLength = 32000;
-  const truncatedText = text.length > maxLength
-    ? text.substring(0, maxLength) + '...'
-    : text;
+  const truncatedText = text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -104,7 +102,7 @@ export async function generateOpenAIEmbedding(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal,
@@ -114,7 +112,8 @@ export async function generateOpenAIEmbedding(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMessage = (errorData as { error?: { message?: string } }).error?.message || response.statusText;
+      const errorMessage =
+        (errorData as { error?: { message?: string } }).error?.message || response.statusText;
       throw new OpenAIEmbeddingError(
         `OpenAI API returned ${response.status}: ${errorMessage}`,
         response.status
@@ -123,14 +122,19 @@ export async function generateOpenAIEmbedding(
 
     const data = (await response.json()) as OpenAIEmbeddingResponse;
 
-    if (!data.data || data.data.length === 0 || !data.data[0] || !Array.isArray(data.data[0].embedding)) {
+    if (
+      !data.data ||
+      data.data.length === 0 ||
+      !data.data[0] ||
+      !Array.isArray(data.data[0].embedding)
+    ) {
       throw new OpenAIEmbeddingError('Invalid response format from OpenAI API');
     }
 
     const embedding = data.data[0].embedding;
 
     // Verify dimensions
-    const expectedDims = model === 'text-embedding-ada-002' ? 1536 : (dimensions || 768);
+    const expectedDims = model === 'text-embedding-ada-002' ? 1536 : dimensions || 768;
     if (embedding.length !== expectedDims) {
       throw new OpenAIEmbeddingError(
         `Expected ${expectedDims} dimensions for model ${model}, got ${embedding.length}`
@@ -148,11 +152,7 @@ export async function generateOpenAIEmbedding(
     if (error instanceof Error) {
       // Handle timeout
       if (error.name === 'AbortError') {
-        throw new OpenAIEmbeddingError(
-          `OpenAI API timeout after ${timeout}ms`,
-          undefined,
-          error
-        );
+        throw new OpenAIEmbeddingError(`OpenAI API timeout after ${timeout}ms`, undefined, error);
       }
 
       // Handle network errors
@@ -246,7 +246,7 @@ export async function generateOpenAIBatchEmbeddings(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify(requestBody),
         signal: controller.signal,
@@ -256,7 +256,8 @@ export async function generateOpenAIBatchEmbeddings(
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = (errorData as { error?: { message?: string } }).error?.message || response.statusText;
+        const errorMessage =
+          (errorData as { error?: { message?: string } }).error?.message || response.statusText;
         throw new OpenAIEmbeddingError(
           `OpenAI API returned ${response.status}: ${errorMessage}`,
           response.status
@@ -266,9 +267,7 @@ export async function generateOpenAIBatchEmbeddings(
       const data = (await response.json()) as OpenAIEmbeddingResponse;
 
       // Sort by index to maintain order
-      const embeddings = data.data
-        .sort((a, b) => a.index - b.index)
-        .map((item) => item.embedding);
+      const embeddings = data.data.sort((a, b) => a.index - b.index).map((item) => item.embedding);
 
       allEmbeddings.push(...embeddings);
     } catch (error) {
@@ -303,7 +302,7 @@ export async function isOpenAIAvailable(apiKey?: string): Promise<boolean> {
     const response = await fetch('https://api.openai.com/v1/models', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${key}`,
+        Authorization: `Bearer ${key}`,
       },
       signal: AbortSignal.timeout(2000), // 2 second timeout
     });

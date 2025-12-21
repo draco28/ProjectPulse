@@ -39,9 +39,7 @@ export default async function AdminAgentsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Tokens Table (2/3 width) */}
         <div className="lg:col-span-2">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-            API Tokens
-          </h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">API Tokens</h2>
           <TokensTable />
         </div>
 

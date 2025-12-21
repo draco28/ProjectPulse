@@ -71,7 +71,7 @@ export function WorkflowsLibrarySection({ workflows }: WorkflowsLibrarySectionPr
         <div className="neu-raised smooth-transition rounded-3xl p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search workflows by name or description..."
                 value={searchTerm}
@@ -154,14 +154,14 @@ export function WorkflowsLibrarySection({ workflows }: WorkflowsLibrarySectionPr
                           </Badge>
                         </div>
                       </div>
-                      <WorkflowIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+                      <WorkflowIcon className="h-5 w-5 shrink-0 text-muted-foreground" />
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-slate leading-relaxed mb-3">
+                    <p className="mb-3 text-sm leading-relaxed text-slate">
                       {workflow.description}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-white/10">
+                    <div className="flex items-center gap-2 border-t border-white/10 pt-2 text-xs text-muted-foreground">
                       <span className="font-medium">{stepCount} steps</span>
                     </div>
                   </CardContent>
@@ -172,7 +172,7 @@ export function WorkflowsLibrarySection({ workflows }: WorkflowsLibrarySectionPr
         ) : (
           /* Empty State */
           <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
-            <div className="text-4xl mb-4">🔄</div>
+            <div className="mb-4 text-4xl">🔄</div>
             <h3 className="mb-2 text-xl font-bold text-white">No workflows found</h3>
             <p className="text-sm text-slate">
               {searchTerm || categoryFilter !== 'all' || statusFilter !== 'all'
@@ -185,13 +185,14 @@ export function WorkflowsLibrarySection({ workflows }: WorkflowsLibrarySectionPr
         {/* Info Banner */}
         <div className="neu-inset rounded-3xl p-6">
           <div className="space-y-2">
-            <p className="font-semibold text-white flex items-center gap-2">
+            <p className="flex items-center gap-2 font-semibold text-white">
               <span>🔁</span> How Workflows Work
             </p>
-            <p className="text-sm text-slate leading-relaxed">
-              Workflows are multi-step processes available to <strong>all agents</strong> in your project. 
-              Any agent can execute workflows when needed to accomplish complex tasks. Workflows are created 
-              during Session 3 and can be customized for your project&apos;s specific needs.
+            <p className="text-sm leading-relaxed text-slate">
+              Workflows are multi-step processes available to <strong>all agents</strong> in your
+              project. Any agent can execute workflows when needed to accomplish complex tasks.
+              Workflows are created during Session 3 and can be customized for your project&apos;s
+              specific needs.
             </p>
           </div>
         </div>

@@ -75,7 +75,11 @@ export function FindingsTable({ findings }: FindingsTableProps) {
         pages.push('...');
       }
 
-      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      for (
+        let i = Math.max(2, currentPage - 1);
+        i <= Math.min(totalPages - 1, currentPage + 1);
+        i++
+      ) {
         pages.push(i);
       }
 
@@ -131,7 +135,7 @@ export function FindingsTable({ findings }: FindingsTableProps) {
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="neu-raised flex h-10 w-10 items-center justify-center rounded-xl text-white transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+              className="neu-raised flex h-10 w-10 items-center justify-center rounded-xl text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -168,7 +172,7 @@ export function FindingsTable({ findings }: FindingsTableProps) {
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="neu-raised flex h-10 w-10 items-center justify-center rounded-xl text-white transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+              className="neu-raised flex h-10 w-10 items-center justify-center rounded-xl text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronRight className="h-5 w-5" />
             </button>

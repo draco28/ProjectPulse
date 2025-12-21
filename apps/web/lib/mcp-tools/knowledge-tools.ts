@@ -86,7 +86,7 @@ export async function knowledgeSearchTool(input: SearchKnowledgeInput) {
   const duration = Date.now() - startTime;
 
   // Format results for MCP response
-  const formattedResults = results.map(result => ({
+  const formattedResults = results.map((result) => ({
     id: result.id,
     title: result.title,
     excerpt: result.content.slice(0, 200) + (result.content.length > 200 ? '...' : ''),
@@ -94,7 +94,7 @@ export async function knowledgeSearchTool(input: SearchKnowledgeInput) {
     tags: result.tags,
     score: result.score,
     matchType: result.matchType,
-    relatedItems: result.relatedItems?.map(related => ({
+    relatedItems: result.relatedItems?.map((related) => ({
       id: related.id,
       title: related.title,
       relationshipType: related.relationshipType,
@@ -240,7 +240,14 @@ export async function knowledgeRelatedTool(input: {
   minStrength?: number;
   relationshipTypes?: string[];
 }) {
-  const { projectId, itemId, maxDepth = 2, limit = 10, minStrength = 0.6, relationshipTypes } = input;
+  const {
+    projectId,
+    itemId,
+    maxDepth = 2,
+    limit = 10,
+    minStrength = 0.6,
+    relationshipTypes,
+  } = input;
 
   const results = await findRelatedKnowledgeItems(itemId, {
     projectId,
@@ -251,7 +258,7 @@ export async function knowledgeRelatedTool(input: {
     includePath: true,
   });
 
-  const formattedResults = results.map(result => ({
+  const formattedResults = results.map((result) => ({
     id: result.id,
     title: result.title,
     excerpt: result.content.slice(0, 150) + (result.content.length > 150 ? '...' : ''),

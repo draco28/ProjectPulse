@@ -47,16 +47,92 @@ const featureImplementationTemplate = {
   createdAt: new Date('2025-01-01'),
   updatedAt: new Date('2025-01-01'),
   steps: [
-    { stepNumber: 1, name: 'Create Feature Branch', description: 'Create new git branch for feature', mcpTool: null, preconditions: ['git status is clean'], postconditions: ['branch exists', 'checked out to new branch'] },
-    { stepNumber: 2, name: 'Run Onboarding Session', description: 'Gather feature context via onboarding', mcpTool: 'onboarding.getPrompt', mcpToolArgs: { sessionNumber: 1 }, preconditions: ['project exists'], postconditions: ['context gathered'] },
-    { stepNumber: 3, name: 'Create Wiki Page', description: 'Document feature requirements and design', mcpTool: 'wiki.create', mcpToolArgs: { title: '{featureName} Documentation', category: 'features' }, preconditions: ['feature context ready'], postconditions: ['wiki page created'] },
-    { stepNumber: 4, name: 'Create Sprint Task', description: 'Track feature in sprint system', mcpTool: 'sprint.task.create', mcpToolArgs: { title: '{featureName}', dayId: '{currentDayId}' }, preconditions: ['dayId exists'], postconditions: ['taskId returned'] },
-    { stepNumber: 5, name: 'Implement Feature Code', description: 'Write implementation code', mcpTool: null, preconditions: ['task created'], postconditions: ['code committed'] },
-    { stepNumber: 6, name: 'Run Tests', description: 'Execute unit and integration tests', mcpTool: null, preconditions: ['code committed'], postconditions: ['all tests pass'] },
-    { stepNumber: 7, name: 'Create Checkpoint', description: 'Save progress checkpoint', mcpTool: 'sprint.checkpoint.create', mcpToolArgs: { sessionId: '{sessionId}' }, preconditions: ['tests passing'], postconditions: ['checkpoint created'] },
-    { stepNumber: 8, name: 'Create Pull Request', description: 'Open PR for code review', mcpTool: null, preconditions: ['branch pushed'], postconditions: ['PR created'] },
-    { stepNumber: 9, name: 'Update Wiki', description: 'Update wiki with implementation details', mcpTool: 'wiki.update', mcpToolArgs: { id: '{wikiPageId}' }, preconditions: ['PR merged'], postconditions: ['wiki updated'] },
-    { stepNumber: 10, name: 'Complete Task', description: 'Mark sprint task as complete', mcpTool: 'sprint.updateProgress', mcpToolArgs: { taskId: '{taskId}', progress: 100 }, preconditions: ['PR merged'], postconditions: ['task completed'] },
+    {
+      stepNumber: 1,
+      name: 'Create Feature Branch',
+      description: 'Create new git branch for feature',
+      mcpTool: null,
+      preconditions: ['git status is clean'],
+      postconditions: ['branch exists', 'checked out to new branch'],
+    },
+    {
+      stepNumber: 2,
+      name: 'Run Onboarding Session',
+      description: 'Gather feature context via onboarding',
+      mcpTool: 'onboarding.getPrompt',
+      mcpToolArgs: { sessionNumber: 1 },
+      preconditions: ['project exists'],
+      postconditions: ['context gathered'],
+    },
+    {
+      stepNumber: 3,
+      name: 'Create Wiki Page',
+      description: 'Document feature requirements and design',
+      mcpTool: 'wiki.create',
+      mcpToolArgs: { title: '{featureName} Documentation', category: 'features' },
+      preconditions: ['feature context ready'],
+      postconditions: ['wiki page created'],
+    },
+    {
+      stepNumber: 4,
+      name: 'Create Sprint Task',
+      description: 'Track feature in sprint system',
+      mcpTool: 'sprint.task.create',
+      mcpToolArgs: { title: '{featureName}', dayId: '{currentDayId}' },
+      preconditions: ['dayId exists'],
+      postconditions: ['taskId returned'],
+    },
+    {
+      stepNumber: 5,
+      name: 'Implement Feature Code',
+      description: 'Write implementation code',
+      mcpTool: null,
+      preconditions: ['task created'],
+      postconditions: ['code committed'],
+    },
+    {
+      stepNumber: 6,
+      name: 'Run Tests',
+      description: 'Execute unit and integration tests',
+      mcpTool: null,
+      preconditions: ['code committed'],
+      postconditions: ['all tests pass'],
+    },
+    {
+      stepNumber: 7,
+      name: 'Create Checkpoint',
+      description: 'Save progress checkpoint',
+      mcpTool: 'sprint.checkpoint.create',
+      mcpToolArgs: { sessionId: '{sessionId}' },
+      preconditions: ['tests passing'],
+      postconditions: ['checkpoint created'],
+    },
+    {
+      stepNumber: 8,
+      name: 'Create Pull Request',
+      description: 'Open PR for code review',
+      mcpTool: null,
+      preconditions: ['branch pushed'],
+      postconditions: ['PR created'],
+    },
+    {
+      stepNumber: 9,
+      name: 'Update Wiki',
+      description: 'Update wiki with implementation details',
+      mcpTool: 'wiki.update',
+      mcpToolArgs: { id: '{wikiPageId}' },
+      preconditions: ['PR merged'],
+      postconditions: ['wiki updated'],
+    },
+    {
+      stepNumber: 10,
+      name: 'Complete Task',
+      description: 'Mark sprint task as complete',
+      mcpTool: 'sprint.updateProgress',
+      mcpToolArgs: { taskId: '{taskId}', progress: 100 },
+      preconditions: ['PR merged'],
+      postconditions: ['task completed'],
+    },
   ],
 };
 
@@ -69,14 +145,73 @@ const bugFixTemplate = {
   createdAt: new Date('2025-01-01'),
   updatedAt: new Date('2025-01-01'),
   steps: [
-    { stepNumber: 1, name: 'Create Bug Fix Branch', description: 'Create new git branch for bug fix', mcpTool: null, preconditions: ['git status is clean'], postconditions: ['branch exists'] },
-    { stepNumber: 2, name: 'Investigate Issue', description: 'Reproduce bug and analyze root cause', mcpTool: null, preconditions: ['issue reported'], postconditions: ['root cause identified'] },
-    { stepNumber: 3, name: 'Document Investigation', description: 'Create or update wiki with findings', mcpTool: 'wiki.create', mcpToolArgs: { title: 'Bug: {bugTitle}', category: 'troubleshooting' }, preconditions: ['investigation complete'], postconditions: ['documentation created'] },
-    { stepNumber: 4, name: 'Create Sprint Task', description: 'Track bug fix in sprint', mcpTool: 'sprint.task.create', mcpToolArgs: { title: 'Fix: {bugTitle}' }, preconditions: ['investigation done'], postconditions: ['task created'] },
-    { stepNumber: 5, name: 'Implement Fix', description: 'Write fix code with tests', mcpTool: null, preconditions: ['root cause known'], postconditions: ['fix committed'] },
-    { stepNumber: 6, name: 'Run Tests', description: 'Verify fix and regression tests', mcpTool: null, preconditions: ['fix committed'], postconditions: ['all tests pass'] },
-    { stepNumber: 7, name: 'Create Pull Request', description: 'Open PR with fix', mcpTool: null, preconditions: ['tests pass'], postconditions: ['PR created'] },
-    { stepNumber: 8, name: 'Complete Task', description: 'Mark bug fix complete', mcpTool: 'sprint.updateProgress', mcpToolArgs: { taskId: '{taskId}', progress: 100 }, preconditions: ['PR merged'], postconditions: ['task completed'] },
+    {
+      stepNumber: 1,
+      name: 'Create Bug Fix Branch',
+      description: 'Create new git branch for bug fix',
+      mcpTool: null,
+      preconditions: ['git status is clean'],
+      postconditions: ['branch exists'],
+    },
+    {
+      stepNumber: 2,
+      name: 'Investigate Issue',
+      description: 'Reproduce bug and analyze root cause',
+      mcpTool: null,
+      preconditions: ['issue reported'],
+      postconditions: ['root cause identified'],
+    },
+    {
+      stepNumber: 3,
+      name: 'Document Investigation',
+      description: 'Create or update wiki with findings',
+      mcpTool: 'wiki.create',
+      mcpToolArgs: { title: 'Bug: {bugTitle}', category: 'troubleshooting' },
+      preconditions: ['investigation complete'],
+      postconditions: ['documentation created'],
+    },
+    {
+      stepNumber: 4,
+      name: 'Create Sprint Task',
+      description: 'Track bug fix in sprint',
+      mcpTool: 'sprint.task.create',
+      mcpToolArgs: { title: 'Fix: {bugTitle}' },
+      preconditions: ['investigation done'],
+      postconditions: ['task created'],
+    },
+    {
+      stepNumber: 5,
+      name: 'Implement Fix',
+      description: 'Write fix code with tests',
+      mcpTool: null,
+      preconditions: ['root cause known'],
+      postconditions: ['fix committed'],
+    },
+    {
+      stepNumber: 6,
+      name: 'Run Tests',
+      description: 'Verify fix and regression tests',
+      mcpTool: null,
+      preconditions: ['fix committed'],
+      postconditions: ['all tests pass'],
+    },
+    {
+      stepNumber: 7,
+      name: 'Create Pull Request',
+      description: 'Open PR with fix',
+      mcpTool: null,
+      preconditions: ['tests pass'],
+      postconditions: ['PR created'],
+    },
+    {
+      stepNumber: 8,
+      name: 'Complete Task',
+      description: 'Mark bug fix complete',
+      mcpTool: 'sprint.updateProgress',
+      mcpToolArgs: { taskId: '{taskId}', progress: 100 },
+      preconditions: ['PR merged'],
+      postconditions: ['task completed'],
+    },
   ],
 };
 
@@ -89,12 +224,60 @@ const sprintPlanningTemplate = {
   createdAt: new Date('2025-01-01'),
   updatedAt: new Date('2025-01-01'),
   steps: [
-    { stepNumber: 1, name: 'Create Sprint Phase', description: 'Initialize new phase', mcpTool: 'sprint.phase.create', mcpToolArgs: { title: '{sprintTitle}', description: '{sprintDescription}' }, preconditions: ['planning complete'], postconditions: ['phase created'] },
-    { stepNumber: 2, name: 'Create Week 1', description: 'Create first week', mcpTool: 'sprint.week.create', mcpToolArgs: { phaseId: '{phaseId}', title: 'Week 1' }, preconditions: ['phase exists'], postconditions: ['week 1 created'] },
-    { stepNumber: 3, name: 'Create Week 2', description: 'Create second week', mcpTool: 'sprint.week.create', mcpToolArgs: { phaseId: '{phaseId}', title: 'Week 2' }, preconditions: ['week 1 exists'], postconditions: ['week 2 created'] },
-    { stepNumber: 4, name: 'Create Days', description: 'Create day entries for each week', mcpTool: 'sprint.day.create', mcpToolArgs: { weekId: '{weekId}' }, preconditions: ['weeks created'], postconditions: ['days created'] },
-    { stepNumber: 5, name: 'Assign Tasks', description: 'Create and assign tasks to days', mcpTool: 'sprint.task.create', mcpToolArgs: { dayId: '{dayId}' }, preconditions: ['days exist'], postconditions: ['tasks assigned'] },
-    { stepNumber: 6, name: 'Set Sprint Goals', description: 'Document sprint objectives', mcpTool: 'wiki.create', mcpToolArgs: { title: '{sprintTitle} Goals', category: 'planning' }, preconditions: ['tasks assigned'], postconditions: ['goals documented'] },
+    {
+      stepNumber: 1,
+      name: 'Create Sprint Phase',
+      description: 'Initialize new phase',
+      mcpTool: 'sprint.phase.create',
+      mcpToolArgs: { title: '{sprintTitle}', description: '{sprintDescription}' },
+      preconditions: ['planning complete'],
+      postconditions: ['phase created'],
+    },
+    {
+      stepNumber: 2,
+      name: 'Create Week 1',
+      description: 'Create first week',
+      mcpTool: 'sprint.week.create',
+      mcpToolArgs: { phaseId: '{phaseId}', title: 'Week 1' },
+      preconditions: ['phase exists'],
+      postconditions: ['week 1 created'],
+    },
+    {
+      stepNumber: 3,
+      name: 'Create Week 2',
+      description: 'Create second week',
+      mcpTool: 'sprint.week.create',
+      mcpToolArgs: { phaseId: '{phaseId}', title: 'Week 2' },
+      preconditions: ['week 1 exists'],
+      postconditions: ['week 2 created'],
+    },
+    {
+      stepNumber: 4,
+      name: 'Create Days',
+      description: 'Create day entries for each week',
+      mcpTool: 'sprint.day.create',
+      mcpToolArgs: { weekId: '{weekId}' },
+      preconditions: ['weeks created'],
+      postconditions: ['days created'],
+    },
+    {
+      stepNumber: 5,
+      name: 'Assign Tasks',
+      description: 'Create and assign tasks to days',
+      mcpTool: 'sprint.task.create',
+      mcpToolArgs: { dayId: '{dayId}' },
+      preconditions: ['days exist'],
+      postconditions: ['tasks assigned'],
+    },
+    {
+      stepNumber: 6,
+      name: 'Set Sprint Goals',
+      description: 'Document sprint objectives',
+      mcpTool: 'wiki.create',
+      mcpToolArgs: { title: '{sprintTitle} Goals', category: 'planning' },
+      preconditions: ['tasks assigned'],
+      postconditions: ['goals documented'],
+    },
   ],
 };
 
@@ -106,7 +289,9 @@ describe('Workflow Integration Tests', () => {
   describe('Feature Implementation Workflow', () => {
     it('should complete all 10 steps successfully', async () => {
       // Step 1: Start workflow
-      (mockPrisma.workflowTemplate.findUnique as jest.Mock).mockResolvedValueOnce(featureImplementationTemplate);
+      (mockPrisma.workflowTemplate.findUnique as jest.Mock).mockResolvedValueOnce(
+        featureImplementationTemplate
+      );
       (mockPrisma.workflowRun.create as jest.Mock).mockResolvedValueOnce({
         id: 1,
         templateId: 1,
@@ -316,7 +501,9 @@ describe('Workflow Integration Tests', () => {
   describe('Sprint Planning Workflow', () => {
     it('should complete all 6 steps successfully', async () => {
       // Step 1: Start workflow
-      (mockPrisma.workflowTemplate.findUnique as jest.Mock).mockResolvedValueOnce(sprintPlanningTemplate);
+      (mockPrisma.workflowTemplate.findUnique as jest.Mock).mockResolvedValueOnce(
+        sprintPlanningTemplate
+      );
       (mockPrisma.workflowRun.create as jest.Mock).mockResolvedValueOnce({
         id: 3,
         templateId: 7,
@@ -336,7 +523,10 @@ describe('Workflow Integration Tests', () => {
         method: 'POST',
         body: JSON.stringify({
           templateId: 7,
-          initialContext: { sprintTitle: 'Sprint 4', sprintDescription: 'Performance improvements' },
+          initialContext: {
+            sprintTitle: 'Sprint 4',
+            sprintDescription: 'Performance improvements',
+          },
         }),
       });
 
@@ -393,7 +583,9 @@ describe('Workflow Integration Tests', () => {
   describe('Checkpoint Recovery', () => {
     it('should pause and resume workflow correctly', async () => {
       // Step 1: Start workflow
-      (mockPrisma.workflowTemplate.findUnique as jest.Mock).mockResolvedValueOnce(featureImplementationTemplate);
+      (mockPrisma.workflowTemplate.findUnique as jest.Mock).mockResolvedValueOnce(
+        featureImplementationTemplate
+      );
       (mockPrisma.workflowRun.create as jest.Mock).mockResolvedValueOnce({
         id: 4,
         templateId: 1,

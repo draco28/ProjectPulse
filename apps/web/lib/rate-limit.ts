@@ -1,7 +1,7 @@
 /**
  * Rate Limiting Utility
  * Sprint 8.9: Self-hosted Redis rate limiting for auth endpoints
- * 
+ *
  * Limits: 5 attempts per 15 minutes per IP
  */
 
@@ -64,7 +64,7 @@ export async function rateLimit(
   window = 900
 ): Promise<RateLimitResult> {
   const redis = getRedisClient();
-  
+
   // If Redis not available, fail open (allow request)
   if (!redis) {
     return {
@@ -121,7 +121,7 @@ export async function rateLimit(
 export async function resetRateLimit(identifier: string): Promise<void> {
   const redis = getRedisClient();
   if (!redis) return;
-  
+
   const key = `rate_limit:${identifier}`;
   await redis.del(key);
 }

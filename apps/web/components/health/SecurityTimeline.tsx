@@ -125,7 +125,7 @@ export function SecurityTimeline({ events, maxEvents = 5 }: SecurityTimelineProp
       {/* View all link */}
       {events.length > maxEvents && (
         <div className="mt-4 text-center">
-          <button className="text-sm font-medium text-coral-400 hover:text-coral-300">
+          <button className="text-coral-400 hover:text-coral-300 text-sm font-medium">
             View all {events.length} events →
           </button>
         </div>

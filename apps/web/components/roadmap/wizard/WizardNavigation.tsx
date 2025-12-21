@@ -31,18 +31,18 @@ export function WizardNavigation({
   const isLastStep = currentStep === totalSteps;
 
   return (
-    <div className="flex items-center justify-between mt-8 pt-6 border-t border-dark-pressed">
+    <div className="mt-8 flex items-center justify-between border-t border-dark-pressed pt-6">
       {/* Back Button */}
       <button
         onClick={onBack}
         disabled={isFirstStep || isSubmitting}
         className={`
-          inline-flex items-center gap-2 px-6 py-3 rounded-xl
+          inline-flex items-center gap-2 rounded-xl px-6 py-3
           font-medium transition-all duration-200
           ${
             isFirstStep || isSubmitting
-              ? 'opacity-50 cursor-not-allowed text-slate'
-              : 'neu-flat text-slate hover:text-white hover:neu-raised'
+              ? 'cursor-not-allowed text-slate opacity-50'
+              : 'neu-flat hover:neu-raised text-slate hover:text-white'
           }
         `}
       >
@@ -56,11 +56,11 @@ export function WizardNavigation({
           onClick={onSubmit}
           disabled={isSubmitting || !canProceed}
           className={`
-            inline-flex items-center gap-2 px-8 py-3 rounded-xl
+            inline-flex items-center gap-2 rounded-xl px-8 py-3
             font-semibold transition-all duration-200
             ${
               isSubmitting || !canProceed
-                ? 'opacity-50 cursor-not-allowed bg-coral/50 text-white'
+                ? 'cursor-not-allowed bg-coral/50 text-white opacity-50'
                 : 'coral-gradient text-white hover:shadow-lg hover:shadow-coral/20'
             }
           `}
@@ -82,11 +82,11 @@ export function WizardNavigation({
           onClick={onNext}
           disabled={!canProceed}
           className={`
-            inline-flex items-center gap-2 px-6 py-3 rounded-xl
+            inline-flex items-center gap-2 rounded-xl px-6 py-3
             font-semibold transition-all duration-200
             ${
               !canProceed
-                ? 'opacity-50 cursor-not-allowed bg-coral/50 text-white'
+                ? 'cursor-not-allowed bg-coral/50 text-white opacity-50'
                 : 'coral-gradient text-white hover:shadow-lg hover:shadow-coral/20'
             }
           `}

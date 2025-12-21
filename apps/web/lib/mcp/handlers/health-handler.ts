@@ -135,19 +135,13 @@ export interface HealthRunScanOutput {
  * // Returns: { projectId: 4, scannersRun: [...], healthScore: {...}, duration: 87500 }
  * ```
  */
-export async function healthRunScanHandler(
-  input: unknown
-): Promise<HealthRunScanOutput> {
+export async function healthRunScanHandler(input: unknown): Promise<HealthRunScanOutput> {
   const startTime = Date.now();
 
   try {
     // Validate input object
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as HealthRunScanInput;
@@ -415,17 +409,11 @@ export interface HealthGetScoreOutput {
  * // Returns: { projectId: 4, scores: [...], trend: { direction: 'improving', change: 5, ... } }
  * ```
  */
-export async function healthGetScoreHandler(
-  input: unknown
-): Promise<HealthGetScoreOutput> {
+export async function healthGetScoreHandler(input: unknown): Promise<HealthGetScoreOutput> {
   try {
     // Validate input object
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as HealthGetScoreInput;
@@ -626,17 +614,11 @@ export interface HealthGetHistoryOutput {
  * // Returns: { projectId: 4, category: 'security', period: {...}, history: [...], trend: {...} }
  * ```
  */
-export async function healthGetHistoryHandler(
-  input: unknown
-): Promise<HealthGetHistoryOutput> {
+export async function healthGetHistoryHandler(input: unknown): Promise<HealthGetHistoryOutput> {
   try {
     // Validate input object
     if (!input || typeof input !== 'object') {
-      throw new MCPError(
-        'Invalid input: expected object',
-        JSONRPC_ERROR_CODES.INVALID_PARAMS,
-        400
-      );
+      throw new MCPError('Invalid input: expected object', JSONRPC_ERROR_CODES.INVALID_PARAMS, 400);
     }
 
     const params = input as HealthGetHistoryInput;
@@ -754,8 +736,7 @@ export async function healthGetHistoryHandler(
     }
     const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
 
-    const direction =
-      Math.abs(slope) < 0.1 ? 'stable' : slope > 0 ? 'improving' : 'declining';
+    const direction = Math.abs(slope) < 0.1 ? 'stable' : slope > 0 ? 'improving' : 'declining';
 
     // Format history
     const history = historyRecords.map((record, index) => ({

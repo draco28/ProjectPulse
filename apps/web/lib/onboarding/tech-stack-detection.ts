@@ -1,25 +1,25 @@
 /**
  * Tech Stack Detection for Session 3 Onboarding
- * 
+ *
  * Purpose: Detect frameworks and technologies from project-context.json
  * Used by: Agent persona creation, skills creation
- * 
+ *
  * Architecture: Pure detection logic (NO AI generation)
  */
 
 export interface TechStackInfo {
-  frontend: string | null;  // "Next.js", "React", "Vue", "Angular", etc.
-  backend: string | null;   // "Node.js", "Express", "Fastify", "NestJS", etc.
-  database: string | null;  // "PostgreSQL", "MySQL", "MongoDB", "SQLite", etc.
-  orm: string | null;       // "Prisma", "TypeORM", "Sequelize", "Drizzle", etc.
-  hosting: string | null;   // "Vercel", "AWS", "Railway", "Render", etc.
-  testing: string | null;   // "Jest", "Vitest", "Playwright", etc.
-  styling: string | null;   // "Tailwind", "CSS Modules", "Styled Components", etc.
+  frontend: string | null; // "Next.js", "React", "Vue", "Angular", etc.
+  backend: string | null; // "Node.js", "Express", "Fastify", "NestJS", etc.
+  database: string | null; // "PostgreSQL", "MySQL", "MongoDB", "SQLite", etc.
+  orm: string | null; // "Prisma", "TypeORM", "Sequelize", "Drizzle", etc.
+  hosting: string | null; // "Vercel", "AWS", "Railway", "Render", etc.
+  testing: string | null; // "Jest", "Vitest", "Playwright", etc.
+  styling: string | null; // "Tailwind", "CSS Modules", "Styled Components", etc.
 }
 
 /**
  * Main tech stack detection function
- * 
+ *
  * @param projectContext - project-context.json from Session 1
  * @returns Detected tech stack info
  */
@@ -27,7 +27,7 @@ export function detectTechStack(projectContext: any): TechStackInfo {
   const techStack = projectContext.techStack || {};
   const dependencies = projectContext.dependencies || {};
   const devDependencies = projectContext.devDependencies || {};
-  
+
   return {
     frontend: detectFrontend(techStack, dependencies),
     backend: detectBackend(techStack, dependencies),
@@ -35,7 +35,7 @@ export function detectTechStack(projectContext: any): TechStackInfo {
     orm: detectORM(techStack, dependencies),
     hosting: detectHosting(techStack, projectContext.deployment),
     testing: detectTesting(devDependencies),
-    styling: detectStyling(dependencies, devDependencies)
+    styling: detectStyling(dependencies, devDependencies),
   };
 }
 
@@ -44,7 +44,7 @@ export function detectTechStack(projectContext: any): TechStackInfo {
  */
 function detectFrontend(techStack: any, dependencies: any): string | null {
   const frontend = techStack.frontend || '';
-  
+
   // Check explicit tech stack declaration
   if (frontend.toLowerCase().includes('next.js') || frontend.toLowerCase().includes('nextjs')) {
     return 'Next.js';
@@ -61,7 +61,7 @@ function detectFrontend(techStack: any, dependencies: any): string | null {
   if (frontend.toLowerCase().includes('svelte')) {
     return 'Svelte';
   }
-  
+
   // Check dependencies
   if (dependencies.next) {
     return 'Next.js';
@@ -78,7 +78,7 @@ function detectFrontend(techStack: any, dependencies: any): string | null {
   if (dependencies.svelte) {
     return 'Svelte';
   }
-  
+
   return null;
 }
 
@@ -87,7 +87,7 @@ function detectFrontend(techStack: any, dependencies: any): string | null {
  */
 function detectBackend(techStack: any, dependencies: any): string | null {
   const backend = techStack.backend || '';
-  
+
   // Check explicit tech stack declaration
   if (backend.toLowerCase().includes('express')) {
     return 'Express';
@@ -107,7 +107,7 @@ function detectBackend(techStack: any, dependencies: any): string | null {
   if (backend.toLowerCase().includes('node')) {
     return 'Node.js';
   }
-  
+
   // Check dependencies
   if (dependencies.express) {
     return 'Express';
@@ -124,12 +124,12 @@ function detectBackend(techStack: any, dependencies: any): string | null {
   if (dependencies.koa) {
     return 'Koa';
   }
-  
+
   // Next.js has built-in API routes (no explicit backend framework)
   if (dependencies.next) {
     return 'Next.js API Routes';
   }
-  
+
   return null;
 }
 
@@ -138,9 +138,12 @@ function detectBackend(techStack: any, dependencies: any): string | null {
  */
 function detectDatabase(techStack: any, dependencies: any): string | null {
   const database = techStack.database || '';
-  
+
   // Check explicit tech stack declaration
-  if (database.toLowerCase().includes('postgresql') || database.toLowerCase().includes('postgres')) {
+  if (
+    database.toLowerCase().includes('postgresql') ||
+    database.toLowerCase().includes('postgres')
+  ) {
     return 'PostgreSQL';
   }
   if (database.toLowerCase().includes('mysql')) {
@@ -155,7 +158,7 @@ function detectDatabase(techStack: any, dependencies: any): string | null {
   if (database.toLowerCase().includes('redis')) {
     return 'Redis';
   }
-  
+
   // Check dependencies
   if (dependencies.pg || dependencies['@types/pg']) {
     return 'PostgreSQL';
@@ -172,7 +175,7 @@ function detectDatabase(techStack: any, dependencies: any): string | null {
   if (dependencies.redis) {
     return 'Redis';
   }
-  
+
   return null;
 }
 
@@ -181,7 +184,7 @@ function detectDatabase(techStack: any, dependencies: any): string | null {
  */
 function detectORM(techStack: any, dependencies: any): string | null {
   const orm = techStack.orm || '';
-  
+
   // Check explicit tech stack declaration
   if (orm.toLowerCase().includes('prisma')) {
     return 'Prisma';
@@ -198,7 +201,7 @@ function detectORM(techStack: any, dependencies: any): string | null {
   if (orm.toLowerCase().includes('mongoose')) {
     return 'Mongoose';
   }
-  
+
   // Check dependencies
   if (dependencies['@prisma/client']) {
     return 'Prisma';
@@ -215,7 +218,7 @@ function detectORM(techStack: any, dependencies: any): string | null {
   if (dependencies.mongoose) {
     return 'Mongoose';
   }
-  
+
   return null;
 }
 
@@ -225,7 +228,7 @@ function detectORM(techStack: any, dependencies: any): string | null {
 function detectHosting(techStack: any, deployment: any): string | null {
   const hosting = techStack.hosting || '';
   const deploymentStr = deployment || '';
-  
+
   // Check explicit tech stack declaration
   if (hosting.toLowerCase().includes('vercel')) {
     return 'Vercel';
@@ -245,7 +248,7 @@ function detectHosting(techStack: any, deployment: any): string | null {
   if (hosting.toLowerCase().includes('docker')) {
     return 'Docker';
   }
-  
+
   // Check deployment field
   if (deploymentStr.toLowerCase().includes('vercel')) {
     return 'Vercel';
@@ -265,7 +268,7 @@ function detectHosting(techStack: any, deployment: any): string | null {
   if (deploymentStr.toLowerCase().includes('docker')) {
     return 'Docker';
   }
-  
+
   return null;
 }
 
@@ -288,7 +291,7 @@ function detectTesting(devDependencies: any): string | null {
   if (devDependencies.mocha) {
     return 'Mocha';
   }
-  
+
   return null;
 }
 
@@ -311,7 +314,7 @@ function detectStyling(dependencies: any, devDependencies: any): string | null {
   if (dependencies['css-modules']) {
     return 'CSS Modules';
   }
-  
+
   return null;
 }
 
@@ -320,11 +323,11 @@ function detectStyling(dependencies: any, devDependencies: any): string | null {
  */
 export function getTechStackSummary(techStack: TechStackInfo): string {
   const parts: string[] = [];
-  
+
   if (techStack.frontend) parts.push(techStack.frontend);
   if (techStack.backend && techStack.backend !== techStack.frontend) parts.push(techStack.backend);
   if (techStack.database) parts.push(techStack.database);
   if (techStack.orm) parts.push(techStack.orm);
-  
+
   return parts.join(' + ');
 }

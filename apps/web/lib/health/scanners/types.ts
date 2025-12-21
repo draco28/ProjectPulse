@@ -123,11 +123,7 @@ export class ScannerError extends Error {
   public scannerType: ScannerType;
   public override cause?: Error;
 
-  constructor(
-    message: string,
-    scannerType: ScannerType,
-    cause?: Error
-  ) {
+  constructor(message: string, scannerType: ScannerType, cause?: Error) {
     super(message);
     this.name = 'ScannerError';
     this.scannerType = scannerType;
@@ -137,20 +133,14 @@ export class ScannerError extends Error {
 
 export class ScannerTimeoutError extends ScannerError {
   constructor(scannerType: ScannerType, timeout: number) {
-    super(
-      `Scanner ${scannerType} exceeded timeout of ${timeout}ms`,
-      scannerType
-    );
+    super(`Scanner ${scannerType} exceeded timeout of ${timeout}ms`, scannerType);
     this.name = 'ScannerTimeoutError';
   }
 }
 
 export class ScannerNotFoundError extends ScannerError {
   constructor(scannerType: ScannerType, binaryPath?: string) {
-    super(
-      `Scanner ${scannerType} not found${binaryPath ? ` at ${binaryPath}` : ''}`,
-      scannerType
-    );
+    super(`Scanner ${scannerType} not found${binaryPath ? ` at ${binaryPath}` : ''}`, scannerType);
     this.name = 'ScannerNotFoundError';
   }
 }

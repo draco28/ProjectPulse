@@ -116,7 +116,9 @@ export async function GET(request: NextRequest) {
     const tagsParam = searchParams.get('tags');
     const tags = tagsParam ? tagsParam.split(',').map((t) => t.trim()) : undefined;
     const frameworksParam = searchParams.get('frameworks');
-    const frameworks = frameworksParam ? frameworksParam.split(',').map((f) => f.trim()) : undefined;
+    const frameworks = frameworksParam
+      ? frameworksParam.split(',').map((f) => f.trim())
+      : undefined;
 
     // Extract limit (default: 10, max: 50)
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));

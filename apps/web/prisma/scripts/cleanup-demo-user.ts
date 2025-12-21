@@ -120,7 +120,9 @@ async function main() {
   console.log('='.repeat(60));
   console.log('');
   console.log(`Target email: ${DEMO_USER_EMAIL}`);
-  console.log(`Mode: ${isDryRun ? '🔍 DRY RUN (no changes will be made)' : '⚠️  LIVE (will delete data)'}`);
+  console.log(
+    `Mode: ${isDryRun ? '🔍 DRY RUN (no changes will be made)' : '⚠️  LIVE (will delete data)'}`
+  );
   console.log('');
   console.log('-'.repeat(60));
 
@@ -190,7 +192,9 @@ async function main() {
   console.log('='.repeat(60));
   console.log('');
   console.log(`Deleted user: ${userData.email}`);
-  console.log(`Cascade deleted: ${userData.projectCount} project(s), ${userData.onboardingSessionCount} onboarding session(s)`);
+  console.log(
+    `Cascade deleted: ${userData.projectCount} project(s), ${userData.onboardingSessionCount} onboarding session(s)`
+  );
   console.log('');
 }
 

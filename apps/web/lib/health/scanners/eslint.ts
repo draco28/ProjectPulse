@@ -9,13 +9,7 @@
 // @ts-expect-error - eslint types not properly exported
 import { ESLint } from 'eslint';
 import { FindingCategory, FindingSeverity, ScannerType } from '@prisma/client';
-import type {
-  Scanner,
-  ScanResult,
-  ScanOptions,
-  FindingData,
-  SeverityMapper,
-} from './types';
+import type { Scanner, ScanResult, ScanOptions, FindingData, SeverityMapper } from './types';
 import { createSummary, ScannerError } from './types';
 
 /**
@@ -28,26 +22,26 @@ type ESLintSeverity = 0 | 1 | 2;
  * ESLint message structure (from ESLint API results)
  */
 interface ESLintMessage {
-  ruleId: string | null;      // Rule ID (e.g., "no-unused-vars")
-  severity: ESLintSeverity;   // 0 = off, 1 = warn, 2 = error
-  message: string;            // Finding description
-  line: number;               // Line number
-  column: number;             // Column number
-  nodeType?: string;          // AST node type
-  source?: string;            // Code snippet (if available)
+  ruleId: string | null; // Rule ID (e.g., "no-unused-vars")
+  severity: ESLintSeverity; // 0 = off, 1 = warn, 2 = error
+  message: string; // Finding description
+  line: number; // Line number
+  column: number; // Column number
+  nodeType?: string; // AST node type
+  source?: string; // Code snippet (if available)
 }
 
 /**
  * ESLint result structure (from ESLint API)
  */
 interface ESLintResult {
-  filePath: string;           // Absolute file path
-  messages: ESLintMessage[];  // Array of findings
-  errorCount: number;         // Number of errors
-  warningCount: number;       // Number of warnings
+  filePath: string; // Absolute file path
+  messages: ESLintMessage[]; // Array of findings
+  errorCount: number; // Number of errors
+  warningCount: number; // Number of warnings
   fixableErrorCount: number;
   fixableWarningCount: number;
-  source?: string;            // Full file source
+  source?: string; // Full file source
 }
 
 /**
@@ -70,12 +64,12 @@ export interface ESLintOptions extends ScanOptions {
 const mapSeverity: SeverityMapper<ESLintSeverity> = (eslintSeverity) => {
   switch (eslintSeverity) {
     case 2:
-      return FindingSeverity.HIGH;    // Error = HIGH
+      return FindingSeverity.HIGH; // Error = HIGH
     case 1:
-      return FindingSeverity.MEDIUM;  // Warning = MEDIUM
+      return FindingSeverity.MEDIUM; // Warning = MEDIUM
     case 0:
     default:
-      return FindingSeverity.LOW;     // Off/unknown = LOW
+      return FindingSeverity.LOW; // Off/unknown = LOW
   }
 };
 
@@ -132,7 +126,7 @@ export class ESLintScanner implements Scanner {
   ): Promise<ESLint> {
     const eslintConfig: ESLint.Options = {
       cwd: projectPath,
-      useEslintrc: true,               // Use .eslintrc.json if present
+      useEslintrc: true, // Use .eslintrc.json if present
       ignore: options?.useEslintIgnore ?? true,
       extensions: options?.extensions ?? ['.ts', '.tsx'], // TypeScript only by default
     };
@@ -162,10 +156,7 @@ export class ESLintScanner implements Scanner {
 
     // Default patterns (TypeScript only for this project)
     // Only scan files that exist to avoid ESLint "No files matching" errors
-    const defaultPatterns = [
-      `${projectPath}/**/*.ts`,
-      `${projectPath}/**/*.tsx`,
-    ];
+    const defaultPatterns = [`${projectPath}/**/*.ts`, `${projectPath}/**/*.tsx`];
 
     return defaultPatterns;
   }
@@ -184,11 +175,7 @@ export class ESLintScanner implements Scanner {
         }
 
         // Extract code snippet if available
-        const codeSnippet = this.extractCodeSnippet(
-          result.source,
-          message.line,
-          message.column
-        );
+        const codeSnippet = this.extractCodeSnippet(result.source, message.line, message.column);
 
         findings.push({
           ruleId: `eslint.${message.ruleId}`,

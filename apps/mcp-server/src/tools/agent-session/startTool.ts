@@ -126,7 +126,13 @@ Creates:
 
 Next Actions:
 → projectpulse_agent_session_update - Save progress checkpoints
-→ projectpulse_agent_session_end - Complete session (auto-syncs to memory banks)`,
+→ projectpulse_agent_session_end - Complete session (auto-syncs to memory banks)
+
+SESSION LIFECYCLE:
+1. START: Creates new session (IN_PROGRESS)
+2. UPDATE: Save progress, todos, plan changes
+3. PAUSE (optional): Set status='PAUSED' to take breaks - can resume later with full context
+4. END: Mark COMPLETED - syncs to memory banks, CANNOT be resumed`,
   schema: agentSessionStartSchema,
   inputSchema: {
     type: 'object',

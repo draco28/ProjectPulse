@@ -60,7 +60,8 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       },
     });
 
-    const nextCursor = revisions.length === limit ? revisions[revisions.length - 1]?.version ?? null : null;
+    const nextCursor =
+      revisions.length === limit ? (revisions[revisions.length - 1]?.version ?? null) : null;
 
     return NextResponse.json({
       data: revisions,
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     console.error('Failed to fetch wiki history:', error);
     return NextResponse.json({ error: 'Failed to fetch wiki history' }, { status: 500 });
   }

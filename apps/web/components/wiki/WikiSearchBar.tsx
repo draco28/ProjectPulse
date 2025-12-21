@@ -101,13 +101,13 @@ export function WikiSearchBar({ searchParams }: WikiSearchBarProps) {
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="     Search wiki pages..."
-          className="neu-pressed w-full rounded-xl py-3 pl-12 pr-12 text-white placeholder-slate focus:border-coral focus:ring-2 focus:ring-coral/20 bg-dark-pressed border-0"
+          className="neu-pressed w-full rounded-xl border-0 bg-dark-pressed py-3 pl-12 pr-12 text-white placeholder-slate focus:border-coral focus:ring-2 focus:ring-coral/20"
           aria-label="Search wiki pages"
         />
         {search && (
           <button
             onClick={handleClear}
-            className="absolute inset-y-0 right-4 flex items-center text-slate hover:text-white smooth-transition"
+            className="smooth-transition absolute inset-y-0 right-4 flex items-center text-slate hover:text-white"
             aria-label="Clear search"
           >
             <X className="h-5 w-5" />
@@ -124,7 +124,7 @@ export function WikiSearchBar({ searchParams }: WikiSearchBarProps) {
           id="wiki-sort"
           value={sortBy}
           onChange={(e) => handleSortChange(e.target.value)}
-          className="neu-pressed rounded-xl px-4 py-3 text-white focus:border-coral focus:ring-2 focus:ring-coral/20 bg-dark-pressed border-0"
+          className="neu-pressed rounded-xl border-0 bg-dark-pressed px-4 py-3 text-white focus:border-coral focus:ring-2 focus:ring-coral/20"
           aria-label="Sort wiki pages"
         >
           {SORT_OPTIONS.map((option) => (

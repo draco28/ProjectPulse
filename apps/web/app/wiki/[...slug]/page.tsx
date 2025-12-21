@@ -63,10 +63,10 @@ function extractHeadings(markdown: string): TOCItem[] {
 function getCategoryIcon(category: string): string {
   const iconMap: Record<string, string> = {
     'Getting Started': 'Rocket',
-    'Guides': 'BookOpen',
+    Guides: 'BookOpen',
     'API Documentation': 'Code',
-    'Reference': 'FileText',
-    'Troubleshooting': 'Wrench'
+    Reference: 'FileText',
+    Troubleshooting: 'Wrench',
   };
   return iconMap[category] || 'FileText';
 }
@@ -120,19 +120,19 @@ async function getWikiPage(slug: string) {
     prisma.wikiPage.findFirst({
       where: {
         category: page.category,
-        id: { lt: page.id }
+        id: { lt: page.id },
       },
       orderBy: { id: 'desc' },
-      select: { title: true, path: true }
+      select: { title: true, path: true },
     }),
     prisma.wikiPage.findFirst({
       where: {
         category: page.category,
-        id: { gt: page.id }
+        id: { gt: page.id },
       },
       orderBy: { id: 'asc' },
-      select: { title: true, path: true }
-    })
+      select: { title: true, path: true },
+    }),
   ]);
 
   // Safely parse and validate JSON fields using Zod
@@ -199,14 +199,14 @@ async function getCategoryStats(): Promise<Category[]> {
   const stats = await prisma.wikiPage.groupBy({
     by: ['category'],
     _count: { id: true },
-    where: { category: { not: null } }
+    where: { category: { not: null } },
   });
 
-  const data = stats.map(stat => ({
+  const data = stats.map((stat) => ({
     name: stat.category!,
     slug: stat.category!.toLowerCase().replace(/\s+/g, '-'),
     count: stat._count.id,
-    icon: getCategoryIcon(stat.category!)
+    icon: getCategoryIcon(stat.category!),
   }));
 
   // Update cache
@@ -297,7 +297,9 @@ export default async function WikiPage({ params }: PageProps) {
           {/* Left Sidebar: Quick Navigation */}
           <QuickNavigation
             categories={categories}
-            currentCategory={page.category ? page.category.toLowerCase().replace(/\s+/g, '-') : undefined}
+            currentCategory={
+              page.category ? page.category.toLowerCase().replace(/\s+/g, '-') : undefined
+            }
           />
 
           {/* Main Content */}
@@ -310,13 +312,13 @@ export default async function WikiPage({ params }: PageProps) {
                     <NextLink
                       // Pass project ID in query param when navigating back to list
                       href={`/wiki?project=${page.projectId}`}
-                      className="hover:text-white smooth-transition"
+                      className="smooth-transition hover:text-white"
                     >
                       Wiki
                     </NextLink>
                   </li>
                   <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                  <li aria-current="page" className="text-white font-semibold">
+                  <li aria-current="page" className="font-semibold text-white">
                     {page.title}
                   </li>
                 </ol>

@@ -27,21 +27,21 @@ export function SprintCard({ sprint }: SprintCardProps) {
     sprint.status === 'COMPLETED'
       ? 'badge-green'
       : sprint.status === 'IN_PROGRESS'
-      ? 'badge-blue'
-      : 'badge-slate';
+        ? 'badge-blue'
+        : 'badge-slate';
 
   return (
     <div className="flex-1">
       {/* Header with Icon + Title + Badge */}
-      <div className="flex items-start gap-3 mb-3">
+      <div className="mb-3 flex items-start gap-3">
         {/* Icon Container */}
-        <div className="icon-blue flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0">
+        <div className="icon-blue flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl">
           <Target className="h-5 w-5 text-white" />
         </div>
 
         {/* Title and Badge */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-start justify-between gap-3">
             <h3 className="text-xl font-semibold text-white">{sprint.title}</h3>
             <span className={`${badgeClass} flex-shrink-0 text-xs`}>
               {sprint.status.replace('_', ' ')}
@@ -50,18 +50,18 @@ export function SprintCard({ sprint }: SprintCardProps) {
 
           {/* Description */}
           {sprint.description && (
-            <p className="text-sm text-slate leading-relaxed">{sprint.description}</p>
+            <p className="text-sm leading-relaxed text-slate">{sprint.description}</p>
           )}
         </div>
       </div>
 
       {/* Mini Stats */}
       {weekCount > 0 && (
-        <div className="flex gap-2 mb-3">
+        <div className="mb-3 flex gap-2">
           {/* Week Count */}
-          <div className="neu-pressed rounded-xl px-3 py-2 flex items-center gap-2">
+          <div className="neu-pressed flex items-center gap-2 rounded-xl px-3 py-2">
             <div className="text-base font-bold text-white">{weekCount}</div>
-            <div className="text-xs text-slate font-medium">
+            <div className="text-xs font-medium text-slate">
               {weekCount === 1 ? 'Week' : 'Weeks'}
             </div>
           </div>
@@ -71,13 +71,13 @@ export function SprintCard({ sprint }: SprintCardProps) {
       {/* Progress Bar */}
       {sprint.progress > 0 && (
         <div className="mb-3">
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="mb-1.5 flex items-center justify-between">
             <span className="text-xs font-medium text-slate">Progress</span>
             <span className="text-xs font-semibold text-blue-400">{sprint.progress}%</span>
           </div>
-          <div className="neu-pressed rounded-full h-1.5 overflow-hidden">
+          <div className="neu-pressed h-1.5 overflow-hidden rounded-full">
             <div
-              className="bg-blue-500 h-1.5 rounded-full smooth-transition"
+              className="smooth-transition h-1.5 rounded-full bg-blue-500"
               style={{ width: `${sprint.progress}%` }}
             />
           </div>
@@ -85,9 +85,7 @@ export function SprintCard({ sprint }: SprintCardProps) {
       )}
 
       {/* Date Range */}
-      <div className="text-xs text-slate">
-        {formatDateRange(sprint.startDate, sprint.endDate)}
-      </div>
+      <div className="text-xs text-slate">{formatDateRange(sprint.startDate, sprint.endDate)}</div>
     </div>
   );
 }

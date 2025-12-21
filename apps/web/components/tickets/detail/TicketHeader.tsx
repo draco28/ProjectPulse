@@ -126,7 +126,10 @@ export function TicketHeader({
       {/* Breadcrumb Navigation */}
       <div className="mb-3 flex items-center justify-between">
         <nav className="flex items-center gap-3 text-sm" aria-label="Breadcrumb">
-          <Link href={`/tickets?project=${projectId}`} className="smooth-transition text-slate hover:text-coral">
+          <Link
+            href={`/tickets?project=${projectId}`}
+            className="smooth-transition text-slate hover:text-coral"
+          >
             Tickets
           </Link>
           <ChevronRight className="h-3 w-3 text-slate" aria-hidden="true" />

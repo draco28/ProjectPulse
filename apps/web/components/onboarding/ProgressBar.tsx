@@ -28,7 +28,7 @@ export function ProgressBar({ value, label, showPercentage = false, className }:
     <div className={cn('w-full', className)}>
       {/* Label and Percentage */}
       {(label || showPercentage) && (
-        <div className="flex justify-between items-center mb-2">
+        <div className="mb-2 flex items-center justify-between">
           {label && <span className="text-sm font-medium text-slate">{label}</span>}
           {showPercentage && (
             <span className="text-sm font-semibold text-white">{Math.round(clampedValue)}%</span>
@@ -37,7 +37,7 @@ export function ProgressBar({ value, label, showPercentage = false, className }:
       )}
 
       {/* Progress Bar Track */}
-      <div className="h-2 bg-slate-700/30 rounded-full overflow-hidden">
+      <div className="h-2 overflow-hidden rounded-full bg-slate-700/30">
         {/* Progress Bar Fill */}
         <div
           className={cn(

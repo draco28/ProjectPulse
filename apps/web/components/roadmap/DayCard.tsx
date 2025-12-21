@@ -29,42 +29,43 @@ export function DayCard({ day }: DayCardProps) {
     CANCELLED: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
   };
 
-  const statusColor = statusColors[day.status as keyof typeof statusColors] || statusColors.NOT_STARTED;
+  const statusColor =
+    statusColors[day.status as keyof typeof statusColors] || statusColors.NOT_STARTED;
 
   return (
-    <div className="neu-flat rounded-2xl p-4 border border-slate-700/30 hover:border-slate-600/50 transition-all">
+    <div className="neu-flat rounded-2xl border border-slate-700/30 p-4 transition-all hover:border-slate-600/50">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex flex-1 items-center gap-3">
           {/* Day Icon */}
-          <div className="neu-flat w-10 h-10 rounded-xl flex items-center justify-center bg-slate-700/30">
+          <div className="neu-flat flex h-10 w-10 items-center justify-center rounded-xl bg-slate-700/30">
             <Calendar className="h-5 w-5 text-slate-400" />
           </div>
 
           {/* Title */}
-          <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-white truncate">{day.title}</h4>
+          <div className="min-w-0 flex-1">
+            <h4 className="truncate font-semibold text-white">{day.title}</h4>
             {day.description && (
-              <p className="text-sm text-slate-400 truncate">{day.description}</p>
+              <p className="truncate text-sm text-slate-400">{day.description}</p>
             )}
           </div>
         </div>
 
         {/* Status Badge */}
-        <span className={`px-3 py-1 rounded-lg text-xs font-medium border ${statusColor}`}>
+        <span className={`rounded-lg border px-3 py-1 text-xs font-medium ${statusColor}`}>
           {day.status.replace('_', ' ')}
         </span>
       </div>
 
       {/* Progress Bar */}
       <div className="mt-3 flex items-center gap-3">
-        <div className="flex-1 h-2 neu-inset rounded-full overflow-hidden">
+        <div className="neu-inset h-2 flex-1 overflow-hidden rounded-full">
           <div
             className="h-full bg-gradient-to-r from-slate-500 to-slate-400 transition-all duration-300"
             style={{ width: `${day.progress}%` }}
           />
         </div>
-        <span className="text-xs font-medium text-slate-400 min-w-[3rem] text-right">
+        <span className="min-w-[3rem] text-right text-xs font-medium text-slate-400">
           {day.progress}%
         </span>
       </div>

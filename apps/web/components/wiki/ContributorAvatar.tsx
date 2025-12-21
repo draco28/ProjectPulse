@@ -24,7 +24,7 @@ const sizeClasses = {
 export function ContributorAvatar({
   contributor,
   size = 'sm',
-  showTooltip = true
+  showTooltip = true,
 }: ContributorAvatarProps) {
   const { wrapper, text } = sizeClasses[size];
   const initials = generateInitials(contributor.name);
@@ -39,7 +39,7 @@ export function ContributorAvatar({
     />
   ) : (
     <div
-      className={`${wrapper} coral-gradient rounded-full flex items-center justify-center ${text} font-bold text-white shadow-lg`}
+      className={`${wrapper} coral-gradient flex items-center justify-center rounded-full ${text} font-bold text-white shadow-lg`}
     >
       {initials}
     </div>
@@ -47,9 +47,9 @@ export function ContributorAvatar({
 
   if (showTooltip) {
     return (
-      <div className="relative group">
+      <div className="group relative">
         {avatar}
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-darkCard text-white text-xs rounded opacity-0 group-hover:opacity-100 smooth-transition whitespace-nowrap pointer-events-none z-10">
+        <div className="bg-darkCard smooth-transition pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100">
           {contributor.name}
         </div>
       </div>

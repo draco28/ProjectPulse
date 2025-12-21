@@ -182,9 +182,7 @@ export function LabelPicker({
         break;
       case 'ArrowDown':
         event.preventDefault();
-        setFocusedIndex((prev) =>
-          prev < filteredLabels.length - 1 ? prev + 1 : prev
-        );
+        setFocusedIndex((prev) => (prev < filteredLabels.length - 1 ? prev + 1 : prev));
         break;
       case 'ArrowUp':
         event.preventDefault();
@@ -215,9 +213,7 @@ export function LabelPicker({
   if (readOnly) {
     return (
       <div>
-        <label className="mb-2 block text-xs uppercase tracking-wider text-slate">
-          Labels
-        </label>
+        <label className="mb-2 block text-xs uppercase tracking-wider text-slate">Labels</label>
         {displayLabels.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {displayLabels.map((label) => (
@@ -225,7 +221,7 @@ export function LabelPicker({
             ))}
           </div>
         ) : (
-          <span className="text-sm text-slate italic">No labels</span>
+          <span className="text-sm italic text-slate">No labels</span>
         )}
       </div>
     );
@@ -233,9 +229,7 @@ export function LabelPicker({
 
   return (
     <div ref={containerRef} className="relative" onKeyDown={handleKeyDown}>
-      <label className="mb-2 block text-xs uppercase tracking-wider text-slate">
-        Labels
-      </label>
+      <label className="mb-2 block text-xs uppercase tracking-wider text-slate">Labels</label>
 
       {/* Trigger Button */}
       <button
@@ -250,9 +244,9 @@ export function LabelPicker({
       >
         <div className="flex flex-wrap items-center gap-1.5">
           {displayLabels.length > 0 ? (
-            displayLabels.slice(0, 3).map((label) => (
-              <LabelBadge key={label.id} label={label} size="sm" />
-            ))
+            displayLabels
+              .slice(0, 3)
+              .map((label) => <LabelBadge key={label.id} label={label} size="sm" />)
           ) : (
             <span className="flex items-center gap-2 text-sm text-slate">
               <Tag className="h-4 w-4" />
@@ -264,10 +258,7 @@ export function LabelPicker({
           )}
         </div>
         <ChevronDown
-          className={cn(
-            'h-4 w-4 text-slate transition-transform',
-            isOpen && 'rotate-180'
-          )}
+          className={cn('h-4 w-4 text-slate transition-transform', isOpen && 'rotate-180')}
         />
       </button>
 
@@ -298,9 +289,7 @@ export function LabelPicker({
             aria-label="Available labels"
           >
             {loading ? (
-              <div className="px-3 py-4 text-center text-sm text-slate">
-                Loading labels...
-              </div>
+              <div className="px-3 py-4 text-center text-sm text-slate">Loading labels...</div>
             ) : filteredLabels.length === 0 ? (
               <div className="px-3 py-4 text-center text-sm text-slate">
                 {search ? 'No labels match your search' : 'No labels available'}
@@ -323,30 +312,21 @@ export function LabelPicker({
                   <div
                     className={cn(
                       'flex h-4 w-4 items-center justify-center rounded border transition-colors',
-                      selectedIds.has(label.id)
-                        ? 'border-coral bg-coral'
-                        : 'border-slate'
+                      selectedIds.has(label.id) ? 'border-coral bg-coral' : 'border-slate'
                     )}
                   >
-                    {selectedIds.has(label.id) && (
-                      <Check className="h-3 w-3 text-white" />
-                    )}
+                    {selectedIds.has(label.id) && <Check className="h-3 w-3 text-white" />}
                   </div>
 
                   {/* Color dot */}
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: label.color }}
-                  />
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: label.color }} />
 
                   {/* Label name */}
                   <span className="flex-1 text-sm text-white">{label.name}</span>
 
                   {/* Usage count */}
                   {label.ticketCount !== undefined && (
-                    <span className="text-xs text-slate">
-                      {label.ticketCount}
-                    </span>
+                    <span className="text-xs text-slate">{label.ticketCount}</span>
                   )}
                 </button>
               ))

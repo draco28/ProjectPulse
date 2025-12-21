@@ -1,7 +1,7 @@
 /**
  * Admin Sidebar Component
  * Sprint 11.5: Navigation for admin panel
- * 
+ *
  * Features:
  * - Admin-specific navigation
  * - Back to main app link
@@ -9,16 +9,7 @@
  */
 'use client';
 
-import {
-  LayoutDashboard,
-  Users,
-  Settings,
-  ArrowLeft,
-  Shield,
-  Menu,
-  X,
-  Bot,
-} from 'lucide-react';
+import { LayoutDashboard, Users, Settings, ArrowLeft, Shield, Menu, X, Bot } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -135,11 +126,7 @@ export function AdminSidebar() {
           className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
           aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
         >
-          {isMobileOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
+          {isMobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 

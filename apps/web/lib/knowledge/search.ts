@@ -68,12 +68,7 @@ export async function semanticSearch(
   query: string,
   options: SemanticSearchOptions
 ): Promise<SearchResult[]> {
-  const {
-    projectId,
-    limit = 5,
-    threshold = 0.7,
-    category,
-  } = options;
+  const { projectId, limit = 5, threshold = 0.7, category } = options;
 
   // Validate projectId
   if (!projectId || projectId < 1) {
@@ -123,29 +118,31 @@ export async function semanticSearch(
       LIMIT ${limit * 2}
     `;
 
-    const results = await prisma.$queryRawUnsafe<Array<{
-      id: number;
-      title: string;
-      content: string;
-      category: string;
-      tags: string[];
-      distance: number;
-    }>>(sqlQuery);
+    const results = await prisma.$queryRawUnsafe<
+      Array<{
+        id: number;
+        title: string;
+        content: string;
+        category: string;
+        tags: string[];
+        distance: number;
+      }>
+    >(sqlQuery);
 
     // Convert distance to similarity score and filter by threshold
     // Similarity = 1 - (distance / 2)
     // Distance range: [0, 2] → Similarity range: [0, 1]
     const scoredResults: SearchResult[] = results
-      .map(result => ({
+      .map((result) => ({
         id: result.id,
         title: result.title,
         content: result.content,
         category: result.category,
         tags: result.tags,
-        score: 1 - (result.distance / 2),
+        score: 1 - result.distance / 2,
         matchType: 'semantic' as const,
       }))
-      .filter(result => result.score >= threshold)
+      .filter((result) => result.score >= threshold)
       .slice(0, limit); // Apply limit after filtering
 
     return scoredResults;
@@ -268,22 +265,24 @@ export async function fullTextSearch(
       LIMIT ${limit}
     `;
 
-    const results = await prisma.$queryRawUnsafe<Array<{
-      id: number;
-      title: string;
-      content: string;
-      category: string;
-      tags: string[];
-      rank: number;
-    }>>(sqlQuery);
+    const results = await prisma.$queryRawUnsafe<
+      Array<{
+        id: number;
+        title: string;
+        content: string;
+        category: string;
+        tags: string[];
+        rank: number;
+      }>
+    >(sqlQuery);
 
     // Convert rank to 0-1 similarity score
     // ts_rank_cd returns values typically in range [0, 1] but can exceed 1
     // We'll normalize to [0, 1] and filter by threshold
-    const maxRank = results.length > 0 ? Math.max(...results.map(r => r.rank)) : 1;
+    const maxRank = results.length > 0 ? Math.max(...results.map((r) => r.rank)) : 1;
 
     const scoredResults: SearchResult[] = results
-      .map(result => ({
+      .map((result) => ({
         id: result.id,
         title: result.title,
         content: result.content,
@@ -292,7 +291,7 @@ export async function fullTextSearch(
         score: maxRank > 0 ? result.rank / maxRank : 0,
         matchType: 'fulltext' as const,
       }))
-      .filter(result => result.score >= threshold);
+      .filter((result) => result.score >= threshold);
 
     return scoredResults;
   } catch (error) {
@@ -359,8 +358,18 @@ export async function hybridSearch(
   try {
     // Run both searches in parallel with higher limits to get more candidates
     const [semanticResults, fulltextResults] = await Promise.all([
-      semanticSearch(query, { ...options, limit: limit * 2, threshold: 0.5, includeRelated: false }), // Lower threshold for merging
-      fullTextSearch(query, { ...options, limit: limit * 2, threshold: 0.05, includeRelated: false }),
+      semanticSearch(query, {
+        ...options,
+        limit: limit * 2,
+        threshold: 0.5,
+        includeRelated: false,
+      }), // Lower threshold for merging
+      fullTextSearch(query, {
+        ...options,
+        limit: limit * 2,
+        threshold: 0.05,
+        includeRelated: false,
+      }),
     ]);
 
     // Merge results with weighted scoring
@@ -368,11 +377,14 @@ export async function hybridSearch(
     const FULLTEXT_WEIGHT = 0.3;
 
     // Create a map to track combined scores by ID
-    const scoreMap = new Map<number, {
-      result: SearchResult;
-      semanticScore: number;
-      fulltextScore: number;
-    }>();
+    const scoreMap = new Map<
+      number,
+      {
+        result: SearchResult;
+        semanticScore: number;
+        fulltextScore: number;
+      }
+    >();
 
     // Add semantic results
     for (const result of semanticResults) {
@@ -403,7 +415,7 @@ export async function hybridSearch(
     const hybridResults = Array.from(scoreMap.values())
       .map(({ result, semanticScore, fulltextScore }) => ({
         ...result,
-        score: (semanticScore * SEMANTIC_WEIGHT) + (fulltextScore * FULLTEXT_WEIGHT),
+        score: semanticScore * SEMANTIC_WEIGHT + fulltextScore * FULLTEXT_WEIGHT,
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);

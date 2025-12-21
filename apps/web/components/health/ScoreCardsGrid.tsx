@@ -29,19 +29,30 @@ export function ScoreCardsGrid({
   const scoreColor = getScoreColor(overallScore);
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="score-cards-grid">
+    <div
+      className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      data-testid="score-cards-grid"
+    >
       {/* Overall Score Card */}
-      <div className="neu-raised smooth-transition group relative overflow-hidden rounded-3xl p-6 hover:scale-105" data-testid="overall-score-card">
+      <div
+        className="neu-raised smooth-transition group relative overflow-hidden rounded-3xl p-6 hover:scale-105"
+        data-testid="overall-score-card"
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent"></div>
         <div className="relative">
-          <div className={`mb-1 text-4xl font-bold ${scoreColor}`} data-testid="overall-score">{overallScore}</div>
+          <div className={`mb-1 text-4xl font-bold ${scoreColor}`} data-testid="overall-score">
+            {overallScore}
+          </div>
           <div className="text-sm text-slate-400">Security Score</div>
           <Shield className="absolute right-0 top-0 h-8 w-8 text-green-400/20" aria-hidden="true" />
         </div>
       </div>
 
       {/* Critical Issues Card */}
-      <div className="neu-raised smooth-transition group relative overflow-hidden rounded-3xl p-6 hover:scale-105" data-testid="critical-count-card">
+      <div
+        className="neu-raised smooth-transition group relative overflow-hidden rounded-3xl p-6 hover:scale-105"
+        data-testid="critical-count-card"
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent"></div>
         <div className="relative">
           <div className="mb-1 flex items-baseline gap-2">
@@ -62,7 +73,10 @@ export function ScoreCardsGrid({
       </div>
 
       {/* High Priority Card */}
-      <div className="neu-raised smooth-transition group relative overflow-hidden rounded-3xl p-6 hover:scale-105" data-testid="high-priority-card">
+      <div
+        className="neu-raised smooth-transition group relative overflow-hidden rounded-3xl p-6 hover:scale-105"
+        data-testid="high-priority-card"
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent"></div>
         <div className="relative">
           <div className="mb-1 flex items-baseline gap-2">
@@ -83,7 +97,10 @@ export function ScoreCardsGrid({
       </div>
 
       {/* Last Scan Card */}
-      <div className="neu-raised smooth-transition group relative overflow-hidden rounded-3xl p-6 hover:scale-105" data-testid="last-scan-card">
+      <div
+        className="neu-raised smooth-transition group relative overflow-hidden rounded-3xl p-6 hover:scale-105"
+        data-testid="last-scan-card"
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent"></div>
         <div className="relative">
           <div className="mb-1 text-4xl font-bold text-blue-400">{lastScanTime}</div>

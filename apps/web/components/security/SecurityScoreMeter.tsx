@@ -7,10 +7,7 @@ interface SecurityScoreMeterProps {
   label?: string;
 }
 
-export function SecurityScoreMeter({
-  score,
-  label = 'Security Score',
-}: SecurityScoreMeterProps) {
+export function SecurityScoreMeter({ score, label = 'Security Score' }: SecurityScoreMeterProps) {
   const [animatedScore, setAnimatedScore] = useState(0);
 
   // Animate score on mount
@@ -24,8 +21,7 @@ export function SecurityScoreMeter({
   const strokeWidth = 12;
   const normalizedRadius = radius - strokeWidth / 2;
   const circumference = normalizedRadius * 2 * Math.PI;
-  const strokeDashoffset =
-    circumference - (animatedScore / 100) * circumference;
+  const strokeDashoffset = circumference - (animatedScore / 100) * circumference;
 
   // Color based on score
   const getScoreColor = (score: number) => {
@@ -40,7 +36,7 @@ export function SecurityScoreMeter({
     <div className="flex flex-col items-center">
       <div className="relative" style={{ width: radius * 2, height: radius * 2 }}>
         {/* Background circle */}
-        <svg className="transform -rotate-90" width={radius * 2} height={radius * 2}>
+        <svg className="-rotate-90 transform" width={radius * 2} height={radius * 2}>
           <circle
             stroke="rgba(255, 255, 255, 0.1)"
             fill="transparent"
@@ -68,10 +64,7 @@ export function SecurityScoreMeter({
 
         {/* Score text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span
-            className="text-5xl font-bold"
-            style={{ color: scoreColor }}
-          >
+          <span className="text-5xl font-bold" style={{ color: scoreColor }}>
             {animatedScore}
           </span>
           <span className="text-xs text-slate">/ 100</span>
@@ -79,9 +72,7 @@ export function SecurityScoreMeter({
       </div>
 
       {/* Label */}
-      {label && (
-        <p className="mt-4 text-sm font-semibold text-slate">{label}</p>
-      )}
+      {label && <p className="mt-4 text-sm font-semibold text-slate">{label}</p>}
     </div>
   );
 }

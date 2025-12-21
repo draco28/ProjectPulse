@@ -21,7 +21,12 @@ async function main() {
       });
 
       const existingTypes = new Set<MemoryBankType>(existingBanks.map((b) => b.type));
-      const toCreate: { projectId: number; type: MemoryBankType; content: string; summaryTokens: number }[] = [];
+      const toCreate: {
+        projectId: number;
+        type: MemoryBankType;
+        content: string;
+        summaryTokens: number;
+      }[] = [];
 
       for (const bank of INITIAL_MEMORY_BANKS) {
         if (!existingTypes.has(bank.type)) {

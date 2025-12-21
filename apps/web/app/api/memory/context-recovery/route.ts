@@ -1,7 +1,7 @@
 /**
  * API Route: GET /api/memory/context-recovery
  * Sprint 9: Memory Bank System - Context Recovery Workflow
- * 
+ *
  * Load ACTIVE_CONTEXT + PROGRESS for fast session resume
  * Target: ≤6K tokens total
  *
@@ -22,7 +22,9 @@ const querySchema = z.object({
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
+    const requestedProjectId = searchParams.get('projectId')
+      ? parseInt(searchParams.get('projectId')!, 10)
+      : undefined;
 
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
@@ -34,7 +36,7 @@ export async function GET(request: Request) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation failed', issues: error.issues },
@@ -43,9 +45,6 @@ export async function GET(request: Request) {
     }
 
     console.error('GET /api/memory/context-recovery error:', error);
-    return NextResponse.json(
-      { error: 'Failed to recover memory bank context' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to recover memory bank context' }, { status: 500 });
   }
 }

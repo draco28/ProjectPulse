@@ -97,7 +97,7 @@ export function FindingRow({ finding }: FindingRowProps) {
           {/* Header */}
           <div className="mb-2 flex items-start justify-between gap-4">
             <div>
-              <h3 className="font-medium text-white transition-colors duration-200 group-hover:text-coral-400">
+              <h3 className="group-hover:text-coral-400 font-medium text-white transition-colors duration-200">
                 {finding.message}
               </h3>
               <p className="mt-1 text-xs text-slate-400">

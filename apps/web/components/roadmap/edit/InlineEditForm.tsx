@@ -105,10 +105,10 @@ export function InlineEditForm({
     return (
       <span
         onDoubleClick={handleStartEdit}
-        className={`cursor-pointer hover:bg-dark-pressed/50 px-1 -mx-1 rounded transition-colors ${className}`}
+        className={`-mx-1 cursor-pointer rounded px-1 transition-colors hover:bg-dark-pressed/50 ${className}`}
         title="Double-click to edit"
       >
-        {value || <span className="text-slate/50 italic">{placeholder}</span>}
+        {value || <span className="italic text-slate/50">{placeholder}</span>}
       </span>
     );
   }
@@ -134,8 +134,8 @@ export function InlineEditForm({
         placeholder={placeholder}
         rows={multiline ? 2 : undefined}
         className={`
-          flex-1 px-2 py-1 rounded-lg text-sm
-          neu-pressed bg-transparent
+          neu-pressed flex-1 rounded-lg bg-transparent px-2
+          py-1 text-sm
           text-white placeholder:text-slate/50
           focus:outline-none focus:ring-2 focus:ring-coral/50
           disabled:opacity-50
@@ -150,19 +150,15 @@ export function InlineEditForm({
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="p-1.5 rounded-lg hover:bg-green-500/20 text-slate hover:text-green-400 transition-colors disabled:opacity-50"
+          className="rounded-lg p-1.5 text-slate transition-colors hover:bg-green-500/20 hover:text-green-400 disabled:opacity-50"
           title="Save (Enter)"
         >
-          {isSaving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Check className="h-4 w-4" />
-          )}
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
         </button>
         <button
           onClick={handleCancel}
           disabled={isSaving}
-          className="p-1.5 rounded-lg hover:bg-red-500/20 text-slate hover:text-red-400 transition-colors disabled:opacity-50"
+          className="rounded-lg p-1.5 text-slate transition-colors hover:bg-red-500/20 hover:text-red-400 disabled:opacity-50"
           title="Cancel (Esc)"
         >
           <X className="h-4 w-4" />

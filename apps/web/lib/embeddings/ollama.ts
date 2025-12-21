@@ -68,9 +68,7 @@ export async function generateOllamaEmbedding(
 
   // Truncate if too long (nomic-embed-text max context: 8192 tokens ≈ 32000 chars)
   const maxLength = 32000;
-  const truncatedText = text.length > maxLength
-    ? text.substring(0, maxLength) + '...'
-    : text;
+  const truncatedText = text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 
   // Determine expected dimensions based on model
   const dims = expectedDimensions ?? (model === 'all-minilm' ? 384 : 768);
@@ -125,11 +123,7 @@ export async function generateOllamaEmbedding(
     if (error instanceof Error) {
       // Handle timeout
       if (error.name === 'AbortError') {
-        throw new OllamaEmbeddingError(
-          `Ollama API timeout after ${timeout}ms`,
-          undefined,
-          error
-        );
+        throw new OllamaEmbeddingError(`Ollama API timeout after ${timeout}ms`, undefined, error);
       }
 
       // Handle network errors
@@ -189,7 +183,7 @@ export async function generateOllamaBatchEmbeddings(
 
     // Small delay between requests to avoid overwhelming Ollama
     if (texts.length > 1) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 
@@ -209,9 +203,7 @@ export async function generateOllamaBatchEmbeddings(
  * }
  * ```
  */
-export async function isOllamaAvailable(
-  baseUrl = 'http://localhost:11434'
-): Promise<boolean> {
+export async function isOllamaAvailable(baseUrl = 'http://localhost:11434'): Promise<boolean> {
   try {
     const response = await fetch(`${baseUrl}/api/tags`, {
       method: 'GET',
@@ -225,9 +217,7 @@ export async function isOllamaAvailable(
     const data = await response.json();
 
     // Check if nomic-embed-text model is available (default)
-    return data.models?.some((m: { name: string }) =>
-      m.name.includes('nomic-embed-text')
-    ) ?? false;
+    return data.models?.some((m: { name: string }) => m.name.includes('nomic-embed-text')) ?? false;
   } catch {
     return false;
   }

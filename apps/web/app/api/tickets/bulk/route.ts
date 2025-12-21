@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const data = TicketBulkCreateSchema.parse(payload);
-    
+
     // Sprint 10: Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, data.projectId);
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
           // Handle labels
           const labelIdSet = new Set<number>(ticketData.labelIds ?? []);
-          
+
           if (autoTags.labels?.length) {
             // Sprint 11.7: Filter labels by projectId (labels are now project-scoped)
             const existing = await tx.label.findMany({
@@ -91,7 +91,8 @@ export async function POST(request: NextRequest) {
             ...(ticketData.context?.metadata ?? {}),
             ...(snippets.length ? { contextSnippets: snippets } : {}),
           };
-          const customFields = Object.keys(customFieldsPayload).length > 0 ? customFieldsPayload : undefined;
+          const customFields =
+            Object.keys(customFieldsPayload).length > 0 ? customFieldsPayload : undefined;
 
           // Sprint 12: linkedTaskId removed - tickets now schedule via scheduledWeekId
 
@@ -111,9 +112,10 @@ export async function POST(request: NextRequest) {
               assigneeId: ticketData.assigneeId,
               // Sprint 12: linkedTaskId removed - tickets schedule via scheduledWeekId
               customFields,
-              labels: labelIdSet.size > 0
-                ? { connect: Array.from(labelIdSet).map((id) => ({ id })) }
-                : undefined,
+              labels:
+                labelIdSet.size > 0
+                  ? { connect: Array.from(labelIdSet).map((id) => ({ id })) }
+                  : undefined,
             },
             select: { id: true, title: true, kind: true },
           });
@@ -154,18 +156,21 @@ export async function POST(request: NextRequest) {
     revalidatePath('/tickets');
     revalidatePath('/issues');
 
-    return success({
-      created: successCount,
-      failed: failureCount,
-      total: data.tickets.length,
-      results,
-    }, successCount > 0 ? 201 : 400);
+    return success(
+      {
+        created: successCount,
+        failed: failureCount,
+        total: data.tickets.length,
+        results,
+      },
+      successCount > 0 ? 201 : 400
+    );
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });
     }
-    
+
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',

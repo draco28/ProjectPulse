@@ -1,7 +1,7 @@
 /**
  * API Route: GET /api/memory/pattern-lookup
  * Sprint 9: Memory Bank System - Pattern Lookup Workflow
- * 
+ *
  * Query a specific memory bank by type
  * Target: ≤1K tokens per lookup
  *
@@ -24,7 +24,9 @@ const querySchema = z.object({
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const requestedProjectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!, 10) : undefined;
+    const requestedProjectId = searchParams.get('projectId')
+      ? parseInt(searchParams.get('projectId')!, 10)
+      : undefined;
     const bankType = searchParams.get('bankType');
 
     // Authenticate and validate project access
@@ -39,7 +41,7 @@ export async function GET(request: Request) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation failed', issues: error.issues },
@@ -48,9 +50,6 @@ export async function GET(request: Request) {
     }
 
     console.error('GET /api/memory/pattern-lookup error:', error);
-    return NextResponse.json(
-      { error: 'Failed to lookup memory bank pattern' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to lookup memory bank pattern' }, { status: 500 });
   }
 }

@@ -102,10 +102,7 @@ export async function GET(request: NextRequest) {
     }
 
     console.error('[GET /api/agent-sessions] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch agent sessions' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch agent sessions' }, { status: 500 });
   }
 }
 
@@ -129,7 +126,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { projectId: requestedProjectId, name, plan, todos, progress, activeTicketIds } = validation.data;
+    const {
+      projectId: requestedProjectId,
+      name,
+      plan,
+      todos,
+      progress,
+      activeTicketIds,
+    } = validation.data;
 
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
@@ -141,14 +145,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     // Convert activeTicketIds to string[] for Prisma
-    const ticketIds = activeTicketIds?.map(id => String(id)) || [];
+    const ticketIds = activeTicketIds?.map((id) => String(id)) || [];
 
     // Create session
     const session = await prisma.agentSession.create({
@@ -174,9 +175,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('[POST /api/agent-sessions] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create agent session' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create agent session' }, { status: 500 });
   }
 }

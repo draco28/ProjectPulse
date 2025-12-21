@@ -15,8 +15,20 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { CreateTicketSchema, TicketFilterSchema, TicketKind } from '@/lib/validations/ticket';
-import { failure, success, resolveProjectId, buildTicketWhere, buildTicketOrderBy, ticketIncludeConfig } from './_utils';
-import { resolveModuleValue, resolvePriorityValue, resolveStatusValue, OptionValidationError } from '@/lib/issues/options';
+import {
+  failure,
+  success,
+  resolveProjectId,
+  buildTicketWhere,
+  buildTicketOrderBy,
+  ticketIncludeConfig,
+} from './_utils';
+import {
+  resolveModuleValue,
+  resolvePriorityValue,
+  resolveStatusValue,
+  OptionValidationError,
+} from '@/lib/issues/options';
 import { deriveAutoTags } from '@/lib/issues/tagging';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
@@ -29,7 +41,10 @@ export const dynamic = 'force-dynamic';
 function parseArrayParam(searchParams: URLSearchParams, key: string) {
   const direct = searchParams.getAll(key);
   if (direct.length > 0) {
-    return direct.flatMap((value) => value.split(',')).map((value) => value.trim()).filter(Boolean);
+    return direct
+      .flatMap((value) => value.split(','))
+      .map((value) => value.trim())
+      .filter(Boolean);
   }
   const single = searchParams.get(key);
   if (single) {
@@ -57,16 +72,24 @@ export async function GET(request: NextRequest) {
       search: url.searchParams.get('search') ?? undefined,
       // Sprint 12: Scheduling filters (linkedTaskId removed)
       scheduledWeekId: url.searchParams.get('scheduledWeekId') ?? undefined,
-      hasSchedule: url.searchParams.get('hasSchedule') === 'true' ? true :
-                   url.searchParams.get('hasSchedule') === 'false' ? false : undefined,
+      hasSchedule:
+        url.searchParams.get('hasSchedule') === 'true'
+          ? true
+          : url.searchParams.get('hasSchedule') === 'false'
+            ? false
+            : undefined,
       createdFrom: url.searchParams.get('createdFrom') ?? undefined,
       createdTo: url.searchParams.get('createdTo') ?? undefined,
       // Sprint 13: Hierarchy filters
       parentTicketId: url.searchParams.get('parentTicketId')
         ? Number(url.searchParams.get('parentTicketId'))
         : undefined,
-      hasChildren: url.searchParams.get('hasChildren') === 'true' ? true :
-                   url.searchParams.get('hasChildren') === 'false' ? false : undefined,
+      hasChildren:
+        url.searchParams.get('hasChildren') === 'true'
+          ? true
+          : url.searchParams.get('hasChildren') === 'false'
+            ? false
+            : undefined,
       isTopLevel: url.searchParams.get('isTopLevel') === 'true' ? true : undefined,
       // Sprint 13: Traceability filters
       epicRef: url.searchParams.get('epicRef') ?? undefined,
@@ -75,13 +98,16 @@ export async function GET(request: NextRequest) {
         : undefined,
       includeRelations: url.searchParams.get('includeRelations') === 'true',
       sortBy: (url.searchParams.get('sortBy') as TicketFilters['sortBy']) ?? undefined,
-      sortDirection: (url.searchParams.get('sortDirection') as TicketFilters['sortDirection']) ?? undefined,
+      sortDirection:
+        (url.searchParams.get('sortDirection') as TicketFilters['sortDirection']) ?? undefined,
       page: url.searchParams.get('page') ? Number(url.searchParams.get('page')) : undefined,
-      pageSize: url.searchParams.get('pageSize') ? Number(url.searchParams.get('pageSize')) : undefined,
+      pageSize: url.searchParams.get('pageSize')
+        ? Number(url.searchParams.get('pageSize'))
+        : undefined,
     };
 
     const filters = TicketFilterSchema.parse(rawFilters);
-    
+
     // Sprint 10: Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, filters.projectId);
     const where = buildTicketWhere(filters, projectId);
@@ -113,7 +139,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return failure({ code: error.code, message: error.message, status: error.status });
     }
-    
+
     if (error instanceof z.ZodError) {
       return failure({
         code: 'VALIDATION_ERROR',
@@ -131,7 +157,7 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const data = CreateTicketSchema.parse(payload);
-    
+
     // Sprint 10: Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, data.projectId);
 

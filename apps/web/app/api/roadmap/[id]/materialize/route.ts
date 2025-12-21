@@ -57,10 +57,7 @@ async function getRoadmapWithAuth(roadmapId: string, request: Request) {
 // POST - Trigger Materialization
 // ============================================================================
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -77,13 +74,16 @@ export async function POST(
     const isAlreadyMaterialized = roadmap.phases_rel.length > 0;
 
     if (isAlreadyMaterialized && !validated.force) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'ALREADY_MATERIALIZED',
-          message: 'Roadmap is already materialized. Use force=true to re-materialize.',
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'ALREADY_MATERIALIZED',
+            message: 'Roadmap is already materialized. Use force=true to re-materialize.',
+          },
         },
-      }, { status: 409 });
+        { status: 409 }
+      );
     }
 
     // If force re-materialize, delete existing records first
@@ -110,7 +110,6 @@ export async function POST(
         message: result.message,
       },
     });
-
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {
@@ -121,19 +120,25 @@ export async function POST(
     }
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid request body',
-          details: error.errors.map((e) => ({ path: e.path, message: e.message })),
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request body',
+            details: error.errors.map((e) => ({ path: e.path, message: e.message })),
+          },
         },
-      }, { status: 400 });
+        { status: 400 }
+      );
     }
 
     console.error('[POST /api/roadmap/[id]/materialize] Error:', error);
     return NextResponse.json(
-      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to materialize roadmap' } },
+      {
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message: 'Failed to materialize roadmap' },
+      },
       { status: 500 }
     );
   }

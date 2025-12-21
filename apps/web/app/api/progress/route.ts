@@ -24,10 +24,10 @@ const updateProgressSchema = z.object({
     errorMap: () => ({ message: 'entityType must be one of: day, week, sprint, phase' }),
   }),
 
-  entityId: z.string()
-    .uuid('entityId must be a valid UUID'),
+  entityId: z.string().uuid('entityId must be a valid UUID'),
 
-  progress: z.number()
+  progress: z
+    .number()
     .int('Progress must be an integer')
     .min(0, 'Progress must be between 0 and 100')
     .max(100, 'Progress must be between 0 and 100'),
@@ -63,83 +63,93 @@ export async function POST(request: NextRequest) {
     const validated = updateProgressSchema.parse(body);
 
     // 2. Update progress and propagate (uses incremental transactions)
-    await updateProgressAndPropagate(
-      validated.entityId,
-      validated.entityType,
-      validated.progress
-    );
+    await updateProgressAndPropagate(validated.entityId, validated.entityType, validated.progress);
 
     // 3. Fetch updated entity with hierarchy context
-    const updatedData = await fetchEntityWithContext(
-      validated.entityType,
-      validated.entityId
-    );
+    const updatedData = await fetchEntityWithContext(validated.entityType, validated.entityId);
 
     // 4. Success response
-    return NextResponse.json({
-      success: true,
-      data: updatedData,
-    }, { status: 200 });
-
+    return NextResponse.json(
+      {
+        success: true,
+        data: updatedData,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     // 5. Error handling
 
     // Zod validation errors (400)
     if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: error.errors[0]?.message || 'Validation error',
-          field: String(error.errors[0]?.path[0] || 'unknown'),
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: error.errors[0]?.message || 'Validation error',
+            field: String(error.errors[0]?.path[0] || 'unknown'),
+          },
         },
-      }, { status: 400 });
+        { status: 400 }
+      );
     }
 
     // Entity not found (400)
     if (error instanceof Error && error.message.includes('Record to update not found')) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'NOT_FOUND',
-          message: `Entity not found`,
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: `Entity not found`,
+          },
         },
-      }, { status: 400 });
+        { status: 400 }
+      );
     }
 
     // Progress utility errors (400)
     if (error instanceof Error && error.message.startsWith('Progress must be')) {
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: error.message,
-          field: 'progress',
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: error.message,
+            field: 'progress',
+          },
         },
-      }, { status: 400 });
+        { status: 400 }
+      );
     }
 
     // Prisma database errors (500)
     if (error?.constructor?.name === 'PrismaClientKnownRequestError') {
       console.error('[API] Prisma error in POST /api/progress:', error);
-      return NextResponse.json({
-        success: false,
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Database operation failed',
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Database operation failed',
+          },
         },
-      }, { status: 500 });
+        { status: 500 }
+      );
     }
 
     // Unknown errors (500)
     console.error('[API] Unexpected error in POST /api/progress:', error);
-    return NextResponse.json({
-      success: false,
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error occurred',
+        },
       },
-    }, { status: 500 });
+      { status: 500 }
+    );
   }
 }
 
@@ -202,24 +212,30 @@ async function fetchEntityWithContext(
           status: day!.status,
         },
         hierarchy: {
-          week: day!.week ? {
-            id: day!.week.id,
-            title: day!.week.title,
-            progress: day!.week.progress,
-            status: day!.week.status,
-          } : null,
-          sprint: day!.week?.sprint ? {
-            id: day!.week.sprint.id,
-            title: day!.week.sprint.title,
-            progress: day!.week.sprint.progress,
-            status: day!.week.sprint.status,
-          } : null,
-          phase: day!.week?.sprint?.phase ? {
-            id: day!.week.sprint.phase.id,
-            title: day!.week.sprint.phase.title,
-            progress: day!.week.sprint.phase.progress,
-            status: day!.week.sprint.phase.status,
-          } : null,
+          week: day!.week
+            ? {
+                id: day!.week.id,
+                title: day!.week.title,
+                progress: day!.week.progress,
+                status: day!.week.status,
+              }
+            : null,
+          sprint: day!.week?.sprint
+            ? {
+                id: day!.week.sprint.id,
+                title: day!.week.sprint.title,
+                progress: day!.week.sprint.progress,
+                status: day!.week.sprint.status,
+              }
+            : null,
+          phase: day!.week?.sprint?.phase
+            ? {
+                id: day!.week.sprint.phase.id,
+                title: day!.week.sprint.phase.title,
+                progress: day!.week.sprint.phase.progress,
+                status: day!.week.sprint.phase.status,
+              }
+            : null,
         },
       };
     }
@@ -261,18 +277,22 @@ async function fetchEntityWithContext(
           status: week!.status,
         },
         hierarchy: {
-          sprint: week!.sprint ? {
-            id: week!.sprint.id,
-            title: week!.sprint.title,
-            progress: week!.sprint.progress,
-            status: week!.sprint.status,
-          } : null,
-          phase: week!.sprint?.phase ? {
-            id: week!.sprint.phase.id,
-            title: week!.sprint.phase.title,
-            progress: week!.sprint.phase.progress,
-            status: week!.sprint.phase.status,
-          } : null,
+          sprint: week!.sprint
+            ? {
+                id: week!.sprint.id,
+                title: week!.sprint.title,
+                progress: week!.sprint.progress,
+                status: week!.sprint.status,
+              }
+            : null,
+          phase: week!.sprint?.phase
+            ? {
+                id: week!.sprint.phase.id,
+                title: week!.sprint.phase.title,
+                progress: week!.sprint.phase.progress,
+                status: week!.sprint.phase.status,
+              }
+            : null,
         },
       };
     }
@@ -306,12 +326,14 @@ async function fetchEntityWithContext(
           status: sprint!.status,
         },
         hierarchy: {
-          phase: sprint!.phase ? {
-            id: sprint!.phase.id,
-            title: sprint!.phase.title,
-            progress: sprint!.phase.progress,
-            status: sprint!.phase.status,
-          } : null,
+          phase: sprint!.phase
+            ? {
+                id: sprint!.phase.id,
+                title: sprint!.phase.title,
+                progress: sprint!.phase.progress,
+                status: sprint!.phase.status,
+              }
+            : null,
         },
       };
     }

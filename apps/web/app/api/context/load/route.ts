@@ -87,7 +87,10 @@ interface ContextLoadResponse {
 // ============================================================================
 
 const querySchema = z.object({
-  projectId: z.string().transform((val) => parseInt(val, 10)).optional(),
+  projectId: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .optional(),
   banksToLoad: z.enum(['all', 'active-only']).default('all'),
 });
 
@@ -116,7 +119,7 @@ function generateHints(
       // Session in progress - continue it
       hints.push(
         `🚀 ONBOARDING IN PROGRESS: Session ${onboardingStatus.inProgressSession} of 3 is active. ` +
-        `Continue with projectpulse_onboarding_getQuestions to get the next questions.`
+          `Continue with projectpulse_onboarding_getQuestions to get the next questions.`
       );
     } else {
       // No session in progress - start the next one
@@ -128,15 +131,13 @@ function generateHints(
       };
       hints.push(
         `🚨 ONBOARDING REQUIRED: Session ${nextSession} of 3 needed. ` +
-        `Call projectpulse_onboarding_start({ sessionNumber: ${nextSession} }) to begin ${sessionDescriptions[nextSession]}.`
+          `Call projectpulse_onboarding_start({ sessionNumber: ${nextSession} }) to begin ${sessionDescriptions[nextSession]}.`
       );
     }
 
     // For incomplete onboarding, only add a brief note about status
     if (onboardingStatus.completedSessions > 0) {
-      hints.push(
-        `✅ Sessions completed: ${onboardingStatus.completedSessions}/3`
-      );
+      hints.push(`✅ Sessions completed: ${onboardingStatus.completedSessions}/3`);
     }
 
     // Return early - don't suggest session management for non-onboarded projects
@@ -149,30 +150,28 @@ function generateHints(
   if (activeSession) {
     hints.push(
       `Active session '${activeSession.name || 'Unnamed'}' found (${activeSession.status}). ` +
-      `Consider resuming your previous work.`
+        `Consider resuming your previous work.`
     );
 
     if (activeSession.activeTicketIds.length > 0) {
       hints.push(
         `Working on tickets: ${activeSession.activeTicketIds.join(', ')}. ` +
-        `Use projectpulse_agent_session_update to track progress.`
+          `Use projectpulse_agent_session_update to track progress.`
       );
     }
 
     const todos = activeSession.todos as Array<{ content: string; status: string }> | null;
     if (todos && Array.isArray(todos)) {
-      const pending = todos.filter(t => t.status !== 'completed').length;
-      const completed = todos.filter(t => t.status === 'completed').length;
+      const pending = todos.filter((t) => t.status !== 'completed').length;
+      const completed = todos.filter((t) => t.status === 'completed').length;
       if (pending > 0) {
-        hints.push(
-          `${completed}/${todos.length} todos completed. ${pending} remaining.`
-        );
+        hints.push(`${completed}/${todos.length} todos completed. ${pending} remaining.`);
       }
     }
   } else {
     hints.push(
       `No active work session found. Consider calling projectpulse_agent_session_start ` +
-      `to track your work if you're starting a new task.`
+        `to track your work if you're starting a new task.`
     );
   }
 
@@ -182,7 +181,7 @@ function generateHints(
   if (resources.personas.count > 0) {
     hints.push(
       `${resources.personas.count} personas available. Use projectpulse_persona_get ` +
-      `to load specialized guidance.`
+        `to load specialized guidance.`
     );
   }
 
@@ -199,7 +198,7 @@ function generateHints(
   if (activeContextAge > 24) {
     hints.push(
       `ACTIVE_CONTEXT was last updated ${Math.floor(activeContextAge)}h ago. ` +
-      `Consider reviewing if focus has changed.`
+        `Consider reviewing if focus has changed.`
     );
   }
 
@@ -224,7 +223,7 @@ export async function GET(request: Request) {
     const requestedProjectId = searchParams.get('projectId')
       ? parseInt(searchParams.get('projectId')!, 10)
       : undefined;
-    const banksToLoad = searchParams.get('banksToLoad') as 'all' | 'active-only' || 'all';
+    const banksToLoad = (searchParams.get('banksToLoad') as 'all' | 'active-only') || 'all';
 
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
@@ -280,16 +279,18 @@ export async function GET(request: Request) {
       },
     });
 
-    const activeSessionData: ActiveSessionData | null = activeSession ? {
-      id: activeSession.id,
-      name: activeSession.name,
-      plan: activeSession.plan,
-      todos: activeSession.todos,
-      progress: activeSession.progress,
-      activeTicketIds: activeSession.activeTicketIds,
-      status: activeSession.status,
-      startedAt: activeSession.startedAt.toISOString(),
-    } : null;
+    const activeSessionData: ActiveSessionData | null = activeSession
+      ? {
+          id: activeSession.id,
+          name: activeSession.name,
+          plan: activeSession.plan,
+          todos: activeSession.todos,
+          progress: activeSession.progress,
+          activeTicketIds: activeSession.activeTicketIds,
+          status: activeSession.status,
+          startedAt: activeSession.startedAt.toISOString(),
+        }
+      : null;
 
     // 4. Get available resources metadata AND onboarding status
     const [personasList, skillsList, sopsList, onboardingSessions] = await Promise.all([
@@ -319,7 +320,9 @@ export async function GET(request: Request) {
     ]);
 
     // Dedupe skill categories
-    const skillCategories = [...new Set(skillsList.map((s: { category: string | null }) => s.category).filter(Boolean))];
+    const skillCategories = [
+      ...new Set(skillsList.map((s: { category: string | null }) => s.category).filter(Boolean)),
+    ];
 
     const availableResources: AvailableResources = {
       personas: {
@@ -337,15 +340,15 @@ export async function GET(request: Request) {
     };
 
     // 5. Calculate onboarding status
-    const completedSessions = onboardingSessions.filter(s => s.status === 'COMPLETED').length;
-    const inProgressSession = onboardingSessions.find(s => s.status === 'IN_PROGRESS');
+    const completedSessions = onboardingSessions.filter((s) => s.status === 'COMPLETED').length;
+    const inProgressSession = onboardingSessions.find((s) => s.status === 'IN_PROGRESS');
 
     // Determine next session (1, 2, or 3) - based on what's not yet completed
     let nextSession: number | null = null;
     if (completedSessions < 3) {
       // Find the first session that isn't completed
       for (let i = 1; i <= 3; i++) {
-        const sessionRecord = onboardingSessions.find(s => s.sessionNumber === i);
+        const sessionRecord = onboardingSessions.find((s) => s.sessionNumber === i);
         if (!sessionRecord || sessionRecord.status !== 'COMPLETED') {
           nextSession = i;
           break;
@@ -361,10 +364,18 @@ export async function GET(request: Request) {
     };
 
     // 6. Generate workflow hints (now with onboarding awareness)
-    const hints = generateHints(onboardingStatus, activeSessionData, memoryBanks, availableResources);
+    const hints = generateHints(
+      onboardingStatus,
+      activeSessionData,
+      memoryBanks,
+      availableResources
+    );
 
     // 7. Calculate total tokens
-    const bankTokens = Object.values(finalBanks).reduce((sum, bank) => sum + (bank?.tokens || 0), 0);
+    const bankTokens = Object.values(finalBanks).reduce(
+      (sum, bank) => sum + (bank?.tokens || 0),
+      0
+    );
     // Estimate session + resources at ~500 tokens
     const totalTokens = bankTokens + (activeSession ? 500 : 100);
 
@@ -382,7 +393,6 @@ export async function GET(request: Request) {
     };
 
     return NextResponse.json(response);
-
   } catch (error) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
@@ -396,9 +406,6 @@ export async function GET(request: Request) {
     }
 
     console.error('GET /api/context/load error:', error);
-    return NextResponse.json(
-      { error: 'Failed to load context' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to load context' }, { status: 500 });
   }
 }

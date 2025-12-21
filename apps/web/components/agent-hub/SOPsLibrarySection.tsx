@@ -57,7 +57,7 @@ export function SOPsLibrarySection({ sops }: SOPsLibrarySectionProps) {
         <div className="neu-raised smooth-transition rounded-3xl p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search SOPs by title, description, or tags..."
                 value={searchTerm}
@@ -105,11 +105,9 @@ export function SOPsLibrarySection({ sops }: SOPsLibrarySectionProps) {
                       <CardTitle className="text-lg leading-tight text-white">
                         {sop.title}
                       </CardTitle>
-                      <p className="text-sm text-slate line-clamp-2">
-                        {sop.description}
-                      </p>
+                      <p className="line-clamp-2 text-sm text-slate">{sop.description}</p>
                     </div>
-                    <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -137,9 +135,7 @@ export function SOPsLibrarySection({ sops }: SOPsLibrarySectionProps) {
                     {/* Last Updated */}
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      <span>
-                        Updated {new Date(sop.updatedAt).toLocaleDateString()}
-                      </span>
+                      <span>Updated {new Date(sop.updatedAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -149,7 +145,7 @@ export function SOPsLibrarySection({ sops }: SOPsLibrarySectionProps) {
         ) : (
           /* Empty State */
           <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
-            <div className="text-4xl mb-4">📋</div>
+            <div className="mb-4 text-4xl">📋</div>
             <h3 className="mb-2 text-xl font-bold text-white">No SOPs found</h3>
             <p className="text-sm text-slate">
               {searchTerm || categoryFilter !== 'all'
@@ -162,10 +158,10 @@ export function SOPsLibrarySection({ sops }: SOPsLibrarySectionProps) {
         {/* Info Banner */}
         <div className="neu-inset rounded-3xl p-6">
           <div className="space-y-2">
-            <p className="font-semibold text-white flex items-center gap-2">
+            <p className="flex items-center gap-2 font-semibold text-white">
               <span>📚</span> How SOPs Work
             </p>
-            <p className="text-sm text-slate leading-relaxed">
+            <p className="text-sm leading-relaxed text-slate">
               SOPs (Standard Operating Procedures) are project-wide documentation available to{' '}
               <strong>all agents</strong> in your project. Any agent can reference SOPs when
               performing tasks that require following specific procedures or guidelines. SOPs are

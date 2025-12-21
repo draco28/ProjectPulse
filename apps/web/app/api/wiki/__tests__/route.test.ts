@@ -108,7 +108,9 @@ describe('GET /api/wiki', () => {
     mockPrisma.$queryRaw.mockResolvedValueOnce(rows as any);
     mockPrisma.$queryRaw.mockResolvedValueOnce([{ count: 1 }] as any);
 
-    const request = new NextRequest('http://localhost/api/wiki?search=installation&limit=10&offset=0');
+    const request = new NextRequest(
+      'http://localhost/api/wiki?search=installation&limit=10&offset=0'
+    );
     const response = await GET(request);
     const body = await response.json();
 

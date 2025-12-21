@@ -20,38 +20,36 @@ interface EmptyRoadmapStateProps {
 
 export function EmptyRoadmapState({ projectId }: EmptyRoadmapStateProps) {
   return (
-    <div className="neu-raised rounded-3xl p-12 text-center max-w-2xl mx-auto">
+    <div className="neu-raised mx-auto max-w-2xl rounded-3xl p-12 text-center">
       {/* Icon */}
-      <div className="icon-coral flex h-20 w-20 items-center justify-center rounded-2xl mx-auto mb-6">
+      <div className="icon-coral mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl">
         <Map className="h-10 w-10 text-white" />
       </div>
 
       {/* Title */}
-      <h2 className="text-3xl font-bold text-white mb-4">
-        No Roadmap Found
-      </h2>
+      <h2 className="mb-4 text-3xl font-bold text-white">No Roadmap Found</h2>
 
       {/* Description */}
-      <p className="text-slate-400 text-lg mb-8 max-w-lg mx-auto">
+      <p className="mx-auto mb-8 max-w-lg text-lg text-slate-400">
         Create your development roadmap to track phases, sprints, weeks, days, and tasks.
       </p>
 
       {/* Primary CTAs */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+      <div className="mb-8 flex flex-col justify-center gap-4 sm:flex-row">
         {/* Create Roadmap - Primary */}
         <Link
           href={`/roadmap/create?project=${projectId}`}
-          className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 hover:to-coral-700 text-white font-semibold transition-all group"
+          className="from-coral-500 to-coral-600 hover:from-coral-600 hover:to-coral-700 group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r px-8 py-4 font-semibold text-white transition-all"
         >
           <Plus className="h-5 w-5" />
           <span>Create Roadmap</span>
-          <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
         </Link>
 
         {/* Import Roadmap - Secondary */}
         <Link
           href={`/roadmap/import?project=${projectId}`}
-          className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl neu-flat text-slate hover:text-white font-semibold transition-all group"
+          className="neu-flat group inline-flex items-center gap-2 rounded-2xl px-8 py-4 font-semibold text-slate transition-all hover:text-white"
         >
           <Upload className="h-5 w-5" />
           <span>Import JSON</span>
@@ -59,55 +57,49 @@ export function EmptyRoadmapState({ projectId }: EmptyRoadmapStateProps) {
       </div>
 
       {/* Info - Wizard Steps */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+      <div className="grid grid-cols-1 gap-4 text-left md:grid-cols-3">
         {/* Step 1 */}
         <div className="neu-flat rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg bg-coral-500/20 flex items-center justify-center">
-              <span className="text-xs font-bold text-coral-400">1</span>
+          <div className="mb-2 flex items-center gap-2">
+            <div className="bg-coral-500/20 flex h-6 w-6 items-center justify-center rounded-lg">
+              <span className="text-coral-400 text-xs font-bold">1</span>
             </div>
-            <h4 className="font-semibold text-white text-sm">Project Info</h4>
+            <h4 className="text-sm font-semibold text-white">Project Info</h4>
           </div>
-          <p className="text-xs text-slate-500">
-            Set roadmap title, description, and start date
-          </p>
+          <p className="text-xs text-slate-500">Set roadmap title, description, and start date</p>
         </div>
 
         {/* Step 2 */}
         <div className="neu-flat rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-500/20">
               <span className="text-xs font-bold text-blue-400">2</span>
             </div>
-            <h4 className="font-semibold text-white text-sm">Define Phases</h4>
+            <h4 className="text-sm font-semibold text-white">Define Phases</h4>
           </div>
-          <p className="text-xs text-slate-500">
-            Add phases with title, duration, and description
-          </p>
+          <p className="text-xs text-slate-500">Add phases with title, duration, and description</p>
         </div>
 
         {/* Step 3 */}
         <div className="neu-flat rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-500/20">
               <span className="text-xs font-bold text-emerald-400">3</span>
             </div>
-            <h4 className="font-semibold text-white text-sm">Add Sprints</h4>
+            <h4 className="text-sm font-semibold text-white">Add Sprints</h4>
           </div>
-          <p className="text-xs text-slate-500">
-            Define sprints with goals and deliverables
-          </p>
+          <p className="text-xs text-slate-500">Define sprints with goals and deliverables</p>
         </div>
       </div>
 
       {/* Onboarding Option */}
-      <div className="mt-8 pt-6 border-t border-slate-700/50">
-        <p className="text-sm text-slate-500 mb-4">
+      <div className="mt-8 border-t border-slate-700/50 pt-6">
+        <p className="mb-4 text-sm text-slate-500">
           Or use AI-assisted onboarding to generate your roadmap automatically
         </p>
         <Link
           href={`/onboarding?project=${projectId}`}
-          className="inline-flex items-center gap-2 text-sm text-coral-400 hover:text-coral-300 transition-colors"
+          className="text-coral-400 hover:text-coral-300 inline-flex items-center gap-2 text-sm transition-colors"
         >
           <Sparkles className="h-4 w-4" />
           Start AI Onboarding

@@ -21,7 +21,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Tickets List Page', () => {
   // Use project 3 (Client Test Project) which has test ticket data
   const PROJECT_ID = 3;
-  
+
   test.beforeEach(async ({ page }) => {
     // Navigate to tickets list page with project context
     await page.goto(`/tickets?project=${PROJECT_ID}`);
@@ -107,7 +107,9 @@ test.describe('Tickets List Page', () => {
 
   test('should search tickets by title/description', async ({ page }) => {
     // Look for search input
-    const searchInput = page.locator('input[type="search"]').or(page.locator('input[placeholder*="Search"]'));
+    const searchInput = page
+      .locator('input[type="search"]')
+      .or(page.locator('input[placeholder*="Search"]'));
     if ((await searchInput.count()) > 0) {
       // Type search query
       await searchInput.fill('test');
@@ -133,7 +135,7 @@ test.describe('Tickets List Page', () => {
       // Get first two ticket cards
       const firstCard = ticketCards.first();
       const secondCard = ticketCards.nth(1);
-      
+
       // Both should be visible (basic sorting verification)
       await expect(firstCard).toBeVisible();
       await expect(secondCard).toBeVisible();
@@ -149,7 +151,7 @@ test.describe('Tickets List Page', () => {
     // Verify URL contains both filters
     await expect(page).toHaveURL(/kind=feature/);
     await expect(page).toHaveURL(/status=open/);
-    
+
     console.log('✓ Combined filters applied via URL');
   });
 
@@ -160,7 +162,7 @@ test.describe('Tickets List Page', () => {
     if ((await filterSection.count()) > 0) {
       // Filter section exists
       console.log('✓ Filter section found');
-      
+
       // Check for kind options
       const kindOptions = filterSection.locator('[data-testid^="kind-option"]');
       if ((await kindOptions.count()) > 0) {
@@ -189,7 +191,7 @@ test.describe('Tickets List Page', () => {
     // Check for empty state or no cards
     const ticketCards = page.locator('[data-testid="ticket-card"]');
     const count = await ticketCards.count();
-    
+
     if (count === 0) {
       console.log('✓ No tickets shown for non-matching search');
     } else {
@@ -235,7 +237,8 @@ test.describe('Tickets List Page', () => {
 
   test('should show create ticket button', async ({ page }) => {
     // Look for create/new ticket button
-    const createButton = page.getByRole('link', { name: /create|new/i })
+    const createButton = page
+      .getByRole('link', { name: /create|new/i })
       .or(page.getByRole('button', { name: /create|new/i }));
 
     if ((await createButton.count()) > 0) {
@@ -248,7 +251,8 @@ test.describe('Tickets List Page', () => {
 
   test('should handle pagination (next/prev pages)', async ({ page }) => {
     // Check if pagination exists
-    const nextButton = page.getByRole('button', { name: /next/i })
+    const nextButton = page
+      .getByRole('button', { name: /next/i })
       .or(page.locator('[aria-label="Next page"]'));
 
     if ((await nextButton.count()) > 0 && (await nextButton.first().isEnabled())) {

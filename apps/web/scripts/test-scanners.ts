@@ -58,9 +58,11 @@ async function testScanners() {
 
     if (lighthouseResult.findings.length > 0) {
       console.log('\n   Sample findings:');
-      lighthouseResult.findings.slice(0, 3).forEach((finding: ScanResult['findings'][0], i: number) => {
-        console.log(`   ${i + 1}. [${finding.severity}] ${finding.ruleId}: ${finding.message}`);
-      });
+      lighthouseResult.findings
+        .slice(0, 3)
+        .forEach((finding: ScanResult['findings'][0], i: number) => {
+          console.log(`   ${i + 1}. [${finding.severity}] ${finding.ruleId}: ${finding.message}`);
+        });
     }
   } catch (error) {
     console.error('❌ Lighthouse scanner failed:', (error as Error).message);

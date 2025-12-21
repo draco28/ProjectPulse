@@ -172,7 +172,7 @@ export function TokensTable() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative min-w-[200px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -238,9 +238,7 @@ export function TokensTable() {
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
                     <Key className="mx-auto h-12 w-12 text-gray-400" />
-                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                      No tokens found
-                    </p>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No tokens found</p>
                   </td>
                 </tr>
               ) : (
@@ -266,9 +264,7 @@ export function TokensTable() {
                         {token.projectName}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      {getStatusBadge(token)}
-                    </td>
+                    <td className="px-6 py-4">{getStatusBadge(token)}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                         <Activity className="h-4 w-4" />
@@ -307,7 +303,7 @@ export function TokensTable() {
         {pagination && pagination.totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-800">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{' '}
+              Showing {(pagination.page - 1) * pagination.pageSize + 1} to{' '}
               {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of{' '}
               {pagination.totalCount} tokens
             </div>
