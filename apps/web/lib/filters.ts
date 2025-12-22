@@ -154,13 +154,18 @@ export async function getFilterCounts(projectId?: number) {
 
   // Sprint 10: Use ticket model with kind filter for backwards compatibility
   // Sprint 14: Add projectId to base filter to fix data bleeding bug (Ticket #19)
+  // Sprint 14: Add parentTicketId: null to only count top-level tickets (Ticket #55)
   const baseFilter = {
     ...(projectId && { projectId }),
     kind: { in: ['issue', 'bug', 'scanner_finding'] },
+    parentTicketId: null,
   };
 
   // Sprint 14: projectId-only filter for kind counts (all kinds, not just issues)
-  const projectFilter = projectId ? { projectId } : {};
+  // Sprint 14: Add parentTicketId: null to only count top-level tickets (Ticket #55)
+  const projectFilter = projectId
+    ? { projectId, parentTicketId: null }
+    : { parentTicketId: null };
 
   // Build count queries for all filter values
   const countQueries = [

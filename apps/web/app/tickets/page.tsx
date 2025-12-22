@@ -65,7 +65,8 @@ async function getTickets(projectId: number, searchParams: SearchParams) {
   const perPage = 10;
 
   // Build where clause with projectId
-  const where: WhereClause = { projectId };
+  // Only fetch top-level tickets - children display under their parents (Sprint 14 fix)
+  const where: WhereClause = { projectId, parentTicketId: null };
 
   // Filter by kind (all kinds by default)
   if (kindFilter.length > 0) {
