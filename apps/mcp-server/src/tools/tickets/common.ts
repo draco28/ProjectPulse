@@ -46,12 +46,14 @@ export interface TicketRecord {
   // Sprint 13: Hierarchy fields
   parentTicketId?: number | null;
   parentTicket?: { id: number; title: string; kind: string; status: string } | null;
-  childTickets?: Array<{ id: number; title: string; kind: string; status: string }>;
+  childTickets?: Array<{ id: number; title: string; kind: string; status: string; displayId?: string }>;
   _count?: { childTickets: number };
   // Sprint 13: Traceability fields
   epicRef?: string | null;
   backlogRefs?: string[];
   sprintNumber?: number | null;
+  // Sprint 14: Hierarchical display ID
+  displayId?: string;
 }
 
 export interface TicketListResponse {
@@ -265,6 +267,8 @@ export const buildErrorPayload = (message: string, code = 'ERROR', details?: unk
 
 export const summarizeTicket = (ticket: Partial<TicketRecord>) => ({
   id: ticket.id,
+  // Sprint 14: Hierarchical display ID (e.g., "30.1" for child of #30)
+  displayId: ticket.displayId ?? `${ticket.id}`,
   projectId: ticket.projectId,
   title: ticket.title,
   description: ticket.description ?? null,

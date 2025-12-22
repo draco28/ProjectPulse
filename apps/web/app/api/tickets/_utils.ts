@@ -214,6 +214,115 @@ export function buildTicketOrderBy(filters: TicketFilters): Prisma.TicketOrderBy
   }
 }
 
+/**
+ * Compute displayId for a ticket
+ *
+ * For child tickets: #{parentId}.{siblingPosition} (e.g., #30.1, #30.2)
+ * For top-level tickets: #{id} (e.g., #30)
+ *
+ * @param ticket - The ticket with id and parentTicketId
+ * @param siblingPosition - 1-based position among siblings (required for children)
+ */
+export function computeDisplayId(
+  ticket: { id: number; parentTicketId: number | null },
+  siblingPosition?: number
+): string {
+  if (ticket.parentTicketId && siblingPosition) {
+    return `${ticket.parentTicketId}.${siblingPosition}`;
+  }
+  return `${ticket.id}`;
+}
+
+/**
+ * Add displayId to a list of tickets
+ *
+ * Efficiently computes displayId by grouping children by parent
+ * and calculating their positions based on the order they appear.
+ *
+ * @param tickets - Array of tickets with id, parentTicketId, and optional childTickets
+ */
+export function addDisplayIdToTickets<
+  T extends {
+    id: number;
+    parentTicketId: number | null;
+    childTickets?: Array<{ id: number; parentTicketId?: number | null }>;
+  },
+>(tickets: T[]): (T & { displayId: string })[] {
+  // First pass: Group child tickets by parent
+  const childrenByParent = new Map<number, number[]>();
+
+  // Collect all child ticket IDs grouped by parent from the list
+  for (const ticket of tickets) {
+    if (ticket.parentTicketId) {
+      const siblings = childrenByParent.get(ticket.parentTicketId) ?? [];
+      siblings.push(ticket.id);
+      childrenByParent.set(ticket.parentTicketId, siblings);
+    }
+  }
+
+  // Also include children from childTickets arrays (for parent tickets with expanded children)
+  for (const ticket of tickets) {
+    if (ticket.childTickets?.length) {
+      const childIds = ticket.childTickets.map((c) => c.id);
+      childrenByParent.set(ticket.id, childIds);
+    }
+  }
+
+  // Second pass: Compute positions for each child
+  const positionMap = new Map<number, number>();
+
+  for (const [, childIds] of childrenByParent) {
+    // Children should already be sorted by createdAt from DB query
+    childIds.forEach((childId, index) => {
+      positionMap.set(childId, index + 1); // 1-based position
+    });
+  }
+
+  // Third pass: Add displayId to each ticket
+  return tickets.map((ticket) => {
+    const position = positionMap.get(ticket.id);
+    const displayId = computeDisplayId(ticket, position);
+
+    // Also add displayId to nested childTickets if present
+    const childTicketsWithDisplayId = ticket.childTickets?.map((child, index) => ({
+      ...child,
+      displayId: `${ticket.id}.${index + 1}`,
+    }));
+
+    return {
+      ...ticket,
+      displayId,
+      ...(childTicketsWithDisplayId ? { childTickets: childTicketsWithDisplayId } : {}),
+    };
+  });
+}
+
+/**
+ * Compute displayId for a single ticket by querying its sibling position
+ *
+ * @param prismaClient - Prisma client instance
+ * @param ticket - The ticket to compute displayId for
+ */
+export async function computeDisplayIdForSingleTicket(
+  prismaClient: typeof prisma,
+  ticket: { id: number; parentTicketId: number | null; createdAt: Date }
+): Promise<string> {
+  if (!ticket.parentTicketId) {
+    return `${ticket.id}`;
+  }
+
+  // Find position among siblings (ordered by createdAt)
+  const siblingCount = await prismaClient.ticket.count({
+    where: {
+      parentTicketId: ticket.parentTicketId,
+      createdAt: { lt: ticket.createdAt },
+    },
+  });
+
+  // Position is count of earlier siblings + 1
+  return `${ticket.parentTicketId}.${siblingCount + 1}`;
+}
+
 export function ticketIncludeConfig(includeRelations?: boolean): Prisma.TicketInclude {
   if (includeRelations) {
     return {

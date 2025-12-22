@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { TicketIdParamSchema, UpdateTicketSchema } from '@/lib/validations/ticket';
-import { failure, success, ticketIncludeConfig } from '../_utils';
+import { failure, success, ticketIncludeConfig, computeDisplayIdForSingleTicket } from '../_utils';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
@@ -120,7 +120,20 @@ export async function GET(request: NextRequest, context: RouteContext) {
       });
     }
 
-    return success(ticket);
+    // Sprint 14: Compute displayId for hierarchical display
+    const displayId = await computeDisplayIdForSingleTicket(prisma, ticket);
+
+    // Add displayId to child tickets as well
+    const childTicketsWithDisplayId = ticket.childTickets?.map((child, index) => ({
+      ...child,
+      displayId: `${ticket.id}.${index + 1}`,
+    }));
+
+    return success({
+      ...ticket,
+      displayId,
+      childTickets: childTicketsWithDisplayId,
+    });
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {

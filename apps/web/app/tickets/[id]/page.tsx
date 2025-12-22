@@ -29,6 +29,7 @@ import { CommentForm } from '@/components/tickets/detail/CommentForm';
 import { AttachmentList } from '@/components/tickets/detail/AttachmentList';
 import { TicketDetailSidebar } from '@/components/tickets/detail/TicketDetailSidebar';
 import { ImplementationContextSection } from '@/components/tickets/detail/ImplementationContextSection';
+import { ChildTicketsSection } from '@/components/tickets/detail/ChildTicketsSection';
 
 // Kind labels for display
 const kindLabels: Record<string, string> = {
@@ -112,6 +113,30 @@ async function getTicketDetail(id: number) {
       epicRef: true,
       backlogRefs: true,
       sprintNumber: true,
+
+      // Sprint 14: Include parent ticket details for breadcrumb
+      parentTicket: {
+        select: {
+          id: true,
+          title: true,
+          kind: true,
+          status: true,
+        },
+      },
+
+      // Sprint 14: Include child tickets for hierarchy display
+      childTickets: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          kind: true,
+          assignee: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'asc' },
+      },
 
       // Sprint 11.7: Milestone and Due Date
       dueDate: true,
@@ -303,6 +328,15 @@ export default async function TicketDetailPage({
                 ticketId={serializedTicket.id}
                 context={serializedTicket.implementationContext}
               />
+
+              {/* Child Tickets Section (Sprint 14) */}
+              {ticket.childTickets && ticket.childTickets.length > 0 && (
+                <ChildTicketsSection
+                  parentId={ticket.id}
+                  childTickets={ticket.childTickets}
+                  projectId={projectId}
+                />
+              )}
 
               {/* Code Section (Linked Files) */}
               {ticket.linkedFiles.length > 0 && (

@@ -13,7 +13,7 @@ import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
 import { TicketsPageClient } from '@/components/tickets/TicketsPageClient';
 import { SearchSortBar } from '@/components/tickets/SearchSortBar';
-import { TicketListCard } from '@/components/tickets/TicketListCard';
+import { TicketHierarchyList, type HierarchyTicket } from '@/components/tickets/TicketHierarchyList';
 import { Pagination } from '@/components/tickets/Pagination';
 import { prisma } from '@/lib/prisma';
 import { getFilterOptions, getFilterCounts as getFilterCountsFromLib } from '@/lib/filters';
@@ -133,6 +133,33 @@ async function getTickets(projectId: number, searchParams: SearchParams) {
         labels: {
           select: { id: true, name: true, color: true },
         },
+        // Sprint 14: Include hierarchy data for parent-child display
+        parentTicket: {
+          select: { id: true, title: true },
+        },
+        childTickets: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            kind: true,
+            module: true,
+            assignee: true,
+            createdAt: true,
+            description: true,
+            labels: {
+              select: { id: true, name: true, color: true },
+            },
+            comments: {
+              select: { id: true },
+            },
+            attachments: {
+              select: { id: true },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
       },
       orderBy,
       take: perPage,
@@ -251,45 +278,13 @@ export default async function TicketsPage({
               {/* Search & Sort */}
               <SearchSortBar searchParams={params} />
 
-              {/* Tickets */}
-              <div className="space-y-3">
-                {tickets.length === 0 ? (
-                  <div className="neu-raised smooth-transition flex flex-col items-center justify-center rounded-3xl p-12 text-center">
-                    <p className="text-lg font-semibold text-white">No tickets found</p>
-                    <p className="text-sm text-slate">Try adjusting your filters or search term</p>
-                  </div>
-                ) : (
-                  tickets.map((ticket) => (
-                    <div key={ticket.id} className="relative">
-                      {/* Kind Badge */}
-                      <div className="absolute right-3 top-3 z-10">
-                        <span
-                          className={`rounded px-2 py-0.5 text-xs font-medium ${kindColors[ticket.kind] || 'bg-gray-500/20 text-gray-400'}`}
-                        >
-                          {kindLabels[ticket.kind] || ticket.kind}
-                        </span>
-                      </div>
-                      <TicketListCard
-                        projectId={projectId}
-                        ticket={{
-                          id: ticket.id.toString(),
-                          title: ticket.title,
-                          description: ticket.description || '',
-                          priority: ticket.priority as 'critical' | 'high' | 'medium' | 'low',
-                          module: ticket.module || '',
-                          status: ticket.status as 'open' | 'in-progress' | 'closed',
-                          assignee: ticket.assignee || 'Unassigned',
-                          createdAt: ticket.createdAt,
-                          commentsCount: ticket.comments.length,
-                          attachmentsCount: ticket.attachments.length,
-                          // Sprint 11.7: Include labels for display
-                          labels: ticket.labels,
-                        }}
-                      />
-                    </div>
-                  ))
-                )}
-              </div>
+              {/* Tickets - Sprint 14: Hierarchical display with expand/collapse */}
+              <TicketHierarchyList
+                tickets={tickets as HierarchyTicket[]}
+                projectId={projectId}
+                kindLabels={kindLabels}
+                kindColors={kindColors}
+              />
 
               {/* Pagination */}
               {totalPages > 1 && (

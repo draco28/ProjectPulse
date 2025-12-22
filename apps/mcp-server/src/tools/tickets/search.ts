@@ -91,6 +91,8 @@ async function handler(input: TicketSearchInput, context: ToolContext): Promise<
     return JSON.stringify({
       tickets: response.data.tickets.map((ticket) => ({
         id: ticket.id,
+        // Sprint 14: Hierarchical display ID (e.g., "30.1" for child of #30)
+        displayId: ticket.displayId ?? `${ticket.id}`,
         title: ticket.title,
         kind: ticket.kind,
         source: ticket.source,

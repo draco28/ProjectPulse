@@ -22,6 +22,7 @@ import {
   buildTicketWhere,
   buildTicketOrderBy,
   ticketIncludeConfig,
+  addDisplayIdToTickets,
 } from './_utils';
 import {
   resolveModuleValue,
@@ -115,7 +116,7 @@ export async function GET(request: NextRequest) {
     const page = filters.page ?? 1;
     const pageSize = filters.pageSize ?? 20;
 
-    const [tickets, totalCount] = await Promise.all([
+    const [rawTickets, totalCount] = await Promise.all([
       prisma.ticket.findMany({
         where,
         orderBy,
@@ -125,6 +126,9 @@ export async function GET(request: NextRequest) {
       }),
       prisma.ticket.count({ where }),
     ]);
+
+    // Sprint 14: Add displayId to tickets (hierarchical display IDs for children)
+    const tickets = addDisplayIdToTickets(rawTickets);
 
     return success({
       tickets,
