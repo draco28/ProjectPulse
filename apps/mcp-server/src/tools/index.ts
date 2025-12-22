@@ -83,6 +83,8 @@ import { materializeRoadmapTool } from './roadmap/materializeTool.js';
 import { getCurrentPositionTool } from './roadmap/getCurrentPositionTool.js';
 import { getPhaseProgressTool } from './roadmap/getPhaseProgressTool.js';
 import { roadmapCreateTool } from './roadmap/createTool.js';
+// Sprint 14: Roadmap delete tool (Ticket #35)
+import { roadmapDeleteTool } from './roadmap/deleteTool.js';
 // ⚠️ DEPRECATED: Sprint 9 Memory Bank tools (kept for backward compatibility)
 // Use context tools below instead - they provide enhanced functionality
 import { memorySessionStartTool } from './memory/sessionStartTool.js';    // DEPRECATED → contextLoadTool
@@ -193,6 +195,8 @@ export const loadTools = (): ToolDefinition[] => [
   getPhaseProgressTool,
   // Sprint 9: Roadmap creation tool for MCP agents
   roadmapCreateTool,
+  // Sprint 14: Roadmap delete tool (Ticket #35)
+  roadmapDeleteTool,
   // ⚠️ DEPRECATED: Sprint 9 Memory Bank tools (kept for backward compatibility)
   // Use context tools below instead - they provide enhanced functionality
   memorySessionStartTool,       // DEPRECATED → use contextLoadTool
