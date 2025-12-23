@@ -1,11 +1,9 @@
 # ProjectPulse Windsurf Rules - Cascade Configuration
 
-**Version**: 2.1 (Protocol Enforcement)
-**Last Updated**: 2025-11-10
+**Version**: 3.0 (MCP-Based)
+**Last Updated**: 2025-12-23
 
-This file mirrors the authoritative workflow from `CLAUDE.md` so that Windsurf enforces the same rules and protocols.
-
-**CRITICAL UPDATE (2025-11-10)**: Protocol violations log added to enforce compliance. See `.agent/MANDATORY_SESSION_PROTOCOL.md` for violations history and enforcement checklist.
+This file mirrors the authoritative MCP-based workflow from `CLAUDE.md` so that Windsurf/Cascade enforces the same rules and protocols.
 
 ---
 
@@ -25,49 +23,19 @@ Work with Cascade in Windsurf the same way you would with Claude Code:
 
 **BEFORE starting ANY coding work:**
 
-### 1. Mac Mini Services Verification
-
-**CRITICAL**: All services run on Mac mini (192.168.1.15), NOT on Windows.
+### 1. Health Check
 
 ```bash
-# Check Mac mini services are running
-curl http://192.168.1.15:3000/api/health
+curl http://localhost:3000/api/health
 # ✅ MUST return: {"status":"healthy","database":"connected"}
 ```
 
 **If services down:**
-- Tell user to start Mac mini Docker services
-- Or use Git communication to tell Mac mini: "Start Docker services"
-
-**See**: `.agent/sops/mac-mini-cloud-architecture.md`
-
-### 2. Docker Services (Mac mini Runtime)
-
-> Default assumption: all runtime services (Next.js, PostgreSQL, MCP) run in
-> Docker on the **Mac mini itself**. Do **not** start extra local dev servers
-> (`pnpm dev`) unless explicitly requested and you know they will not conflict
-> with Docker.
-
 ```bash
-# On Mac mini, check containers
-docker compose -f docker-compose.cloud.yml ps
+docker compose -f docker-compose.cloud.yml up -d
 ```
 
-If services down or unhealthy:
-
-Start services on Mac mini: docker compose -f docker-compose.cloud.yml up -d
-Then re-run the health check from Step 1.
-See:
-
-docs/11-Infrastructure-and-Deployment.md
-.agent/sops/mac-mini-cloud-architecture.md
-
-
-
-
-
-
-### 3. Git Branch
+### 2. Git Branch
 
 ```bash
 git branch
@@ -77,124 +45,150 @@ git checkout master && git pull origin master
 git checkout -b feature/your-feature
 ```
 
-See `.agent/sops/git-workflow.md` for the full SOP.
-
----
-
-## 🚨 CRITICAL: Mandatory Session Protocol
-
-Every session in Windsurf MUST follow the same protocol described in `CLAUDE.md`.
-
-**Why this exists:** Cascade reads instructions but will not follow them unless confirmations are requested explicitly.
-
-**How it works:**
-
-1. Copy-paste the starter prompt at session start.
-2. Cascade must complete and confirm all six protocol steps (including Step 4.5 Verification Gate).
-3. Missing confirmation = workflow violation (call it out immediately).
-
-**📋 Full Protocol:** `.agent/MANDATORY_SESSION_PROTOCOL.md`  
-**🚀 Quick Start Guide:** `SESSION_START_QUICK_GUIDE.md`
-
----
-
-## Session Start Pattern (REQUIRED PROTOCOL)
-
-### Starter Prompt (Copy-Paste This)
+### 3. Load ProjectPulse Context (MCP)
 
 ```
-MANDATORY PROTOCOL - Read .agent/MANDATORY_SESSION_PROTOCOL.md and follow ALL steps.
-
-Current phase: [copy from .agent/active-context.md or .agent/progress.md]
-Requirements: [copy from docs/13-Project-Plan.md]
-
-ENFORCE:
-- ✅ Step 1: Initialize session
-- ✅ Step 2: Save plan BEFORE code
-- ✅ Step 3: Consult experts
-- ✅ Step 4: Checkpoints every 15K tokens
-- ✅ Step 4.5: Verification gate (evidence-based)
-- ✅ Step 5: Post-completion workflow
-
-Confirm each step explicitly. If you skip ANY step, I will stop you.
-
-Proceed with [phase name].
+projectpulse_context_load(projectId: 6)
 ```
 
-**IMPORTANT**: Before claiming any step "complete", check the Protocol Violations Log in `.agent/MANDATORY_SESSION_PROTOCOL.md` to see what happened when protocol was violated on 2025-11-10.
+This returns:
+- All 5 memory banks (project brief, patterns, tech context, active focus, progress)
+- Active sessions (check if PAUSED work exists)
+- Workflow hints
+
+**If PAUSED session found:** Resume with `projectpulse_agent_session_update(sessionId, status: "IN_PROGRESS")`
+**If no session:** Start new with `projectpulse_agent_session_start()`
+
+**See**: [.agent/sops/git-workflow.md](.agent/sops/git-workflow.md)
 
 ---
 
-## What Cascade Must Do (Per Protocol)
+## 🖥️ Mac Mini Cloud Architecture
 
-### STEP 1: INITIALIZATION
+**All development happens on Mac mini using Docker. Use `localhost` for all services.**
 
-- Read `.agent/MANDATORY_SESSION_PROTOCOL.md` **INCLUDING Protocol Violations Log section**
-- Read `.agent/active-context.md` and `.agent/progress.md` (current phase)
-- Read `docs/13-Project-Plan.md` and `docs/12-Backlog.md`
-- Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
-- **Confirm:** `✅ STEP 1 COMPLETE: Session initialized at [timestamp]`
+### Service URLs (Development)
 
-**Reading Path After Step 1**
+- **Web App**: http://localhost:3000
+- **MCP Server**: http://localhost:3001
+- **API Health**: http://localhost:3000/api/health
+- **Database**: `postgresql://postgres:postgres123@localhost:5432/projectpulse_dev`
+- **Redis**: `localhost:6379`
 
-- **Implementation phases:** `docs/03-Architecture.md` → `docs/04-Data-and-Model-Spec.md` → `docs/06-API/openapi.yaml`
-- **Planning phases:** `docs/01-PRD.md` → `docs/02-SRS.md` → `docs/12-Backlog.md`
+### Compose Files
 
-(See `docs/README.md` for full reading paths.)
+- **Mac mini runtime**: `docker-compose.cloud.yml` (primary)
+- **CI/local fallback**: `docker-compose.yml` (automated testing only)
 
-### STEP 2: PLAN CREATION
+> Default assumption: all runtime services (Next.js, PostgreSQL, MCP) run in
+> Docker on the **Mac mini itself**. Do **not** start extra local dev servers
+> (`pnpm dev`) unless explicitly requested.
 
-- Create an implementation plan (use ExitPlanMode if helpful).
-- Obtain user approval.
-- **Immediately save** plan to `.agent/task/current-plan.md`.
-- Create `.agent/task/current-todos.md`.
-- **Confirm:** `✅ STEP 2 COMPLETE: Plan saved to current-plan.md, todos saved to current-todos.md`.
+---
 
-### STEP 3: EXPERT CONSULTATION
+## 🔄 MCP-Based Session Workflow (REQUIRED)
 
-- Invoke `react-expert` for component architecture.
-- Invoke `next-js-expert` for Server/Client and data fetching decisions.
-- Invoke `prisma-expert` for database schema and query optimization.
-- **Confirm:** `✅ STEP 3 COMPLETE: Consulted [expert-name] for [decision-topic]`.
+**Project ID**: 6 (always use this for ProjectPulse itself)
 
-**When experts are required**
+Every session in Windsurf MUST follow this MCP-based protocol.
 
-- New component architectures or complex UI flows.
-- Complex backend features or performance-sensitive areas.
-- Any database schema changes or non-trivial Prisma queries.
+### STEP 1: LOAD CONTEXT (Entry Point)
 
-**When experts are optional**
+```
+projectpulse_context_load(projectId: 6)
+```
 
-- Routine CRUD following established patterns.
-- Minor UI updates that match existing conventions.
-- Small refactors within an established module.
+This returns:
+- All 5 memory banks (project brief, patterns, tech context, active focus, progress)
+- Active sessions (check if work in progress)
+- Available resources (personas, skills, SOPs)
+- Workflow hints
+
+**If PAUSED session exists:** → Resume it with `agent_session_update(status: "IN_PROGRESS")`
+**If no active session:** → Continue to Step 2
+
+**Confirm:** `✅ STEP 1 COMPLETE: Context loaded, [X] active sessions found`
+
+### STEP 2: START OR RESUME SESSION
+
+**If starting new session:**
+```
+projectpulse_agent_session_start({
+  projectId: 6,
+  name: "Implementing feature X",
+  plan: "## Plan\n1. Do X\n2. Do Y\n...",
+  todos: [{content: "Task 1", status: "pending"}, ...],
+  activeTicketIds: [25, 26]  // Link to tickets
+})
+```
+
+- Create implementation plan (use ExitPlanMode if helpful)
+- Get user approval for complex plans
+- Save plan and todos to MCP session (NOT to files)
+
+**If resuming PAUSED session:**
+```
+projectpulse_agent_session_update({
+  sessionId: "...",
+  status: "IN_PROGRESS"
+})
+```
+
+**Confirm:** `✅ STEP 2 COMPLETE: Session [started/resumed] - sessionId: [id]`
+
+### STEP 3: EXPERT CONSULTATION (When Required)
+
+Invoke expert sub-agents based on phase type:
+
+| Phase Contains | Sub-Agents to Invoke |
+|---|---|
+| "Architecture", "Design" | @devhub-architect |
+| "Component", "UI", "React" | @react-expert |
+| "Page", "Route", "Server Component" | @next-js-expert |
+| "Database", "Schema", "Prisma" | @prisma-expert |
+| "MCP", "Tool", "Resource" | @devhub-mcp-specialist |
+
+**When experts are required:**
+- New component architectures or complex UI flows
+- Complex backend features or performance-sensitive areas
+- Any database schema changes or non-trivial Prisma queries
+
+**When experts are optional:**
+- Routine CRUD following established patterns
+- Minor UI updates that match existing conventions
+- Small refactors within an established module
+
+**Confirm:** `✅ STEP 3 COMPLETE: Consulted [expert-name] for [decision-topic]`
 
 ### STEP 4: PROGRESS CHECKPOINTS
 
-- At 15K, 30K, 45K, 60K, 75K, 90K tokens:
-  - Update `.agent/task/current-session.md`.
-  - Update `.agent/task/current-todos.md`.
-- **Confirm:** `✅ CHECKPOINT at [X]K tokens: Progress saved`.
+At 15K, 30K, 45K, 60K, 75K, 90K tokens:
+
+```
+projectpulse_agent_session_update({
+  sessionId: "...",
+  todos: [{content: "Task 1", status: "completed"}, ...],
+  progress: "Checkpoint: Completed X, now working on Y"
+})
+```
+
+**Confirm:** `✅ CHECKPOINT at [X]K tokens: Progress saved to MCP session`
 
 ### STEP 4.5: VERIFICATION GATE (EVIDENCE-BASED)
 
-**CRITICAL**: This step was violated on 2025-11-10. See Protocol Violations Log.
-
 **Before marking ANY work complete:**
 
-- Re-read `.agent/task/current-plan.md` success criteria
+- Re-read plan success criteria
 - Verify EACH requirement with concrete evidence:
   - **Files**: Run `ls` commands, show output
   - **TypeScript**: Run `npx tsc --noEmit`, show clean output
   - **HTTP Endpoints**: Run `curl` commands, show 200 OK status
   - **Database**: Run queries, show counts
   - **Tests**: Run tests, show passing results
-- **Document ALL verification evidence in session file**
-- Create verification summary table with Expected/Actual/Status columns
 - **Fail-fast rule**: If ANY requirement fails → mark incomplete, continue work
 - Only proceed to Step 5 when ALL verified WITH EVIDENCE
 
-**Required Confirmation:**
+**Confirm:**
 ```
 ✅ STEP 4.5 COMPLETE: All verification criteria passed with documented evidence
 
@@ -203,73 +197,149 @@ Verification Results:
 |-----------|----------|--------|--------|
 | [item 1]  | [expect] | [actual] | ✅ PASS |
 | [item 2]  | [expect] | [actual] | ✅ PASS |
-
-Evidence documented in: .agent/task/current-session-[timestamp].md
 ```
 
-See `.agent/MANDATORY_SESSION_PROTOCOL.md` Step 4.5 for detailed examples and Protocol Violations Log.
+### STEP 5: SESSION COMPLETION
 
-### STEP 5: POST-COMPLETION WORKFLOW
-
-**CRITICAL**: This step was violated on 2025-11-10. See Protocol Violations Log.
-
-**After feature implementation complete, BEFORE committing code:**
-
-#### 5.1: Update Project Documentation (REQUIRED)
-
-- [ ] Update `docs/13-Project-Plan.md`:
-  - Mark completed user stories (e.g., US-016, US-017 complete)
-  - Add status tracking section with progress percentage
-  - Document quality metrics (TypeScript errors, HTTP status, tests)
-- [ ] Update `docs/12-Backlog.md` (ONLY if scope changed)
-
-#### 5.2: Update Memory Banks (REQUIRED)
-
-- [ ] Update `.agent/active-context.md` (current focus for next session)
-- [ ] Update `.agent/progress.md` (milestone completion, lessons learned)
-- [ ] Update `.agent/system-patterns.md` (if new patterns)
-- [ ] Update `.agent/tech-context.md` (if stack changed)
-
-#### 5.3: Invoke Sub-Agents (REQUIRED if applicable)
-
-- [ ] **If new patterns created**: Invoke `synthesize-docs` sub-agent
-  - Generates SOPs from implemented patterns
-  - Saves to `.agent/sops/[pattern-name].md`
-  - Updates `.agent/README.md` index
-- [ ] **If architecture changed**: Invoke `map-system` sub-agent
-  - Updates `.agent/system/api-catalog.md` (if new endpoints)
-  - Updates `.agent/system/database-schema.md` (if schema changed)
-  - Updates `.agent/system/component-patterns.md` (if new components)
-
-#### 5.4: Commit Documentation (REQUIRED)
-
-- [ ] **Documentation commit FIRST**: `git add .agent/ docs/ && git commit -m "docs: ..."`
-- [ ] **Code commit SECOND**: `git add [code files] && git commit -m "feat: ..."`
-- [ ] **Push**: `git push origin [branch]`
-
-**Required Confirmation:**
+**For breaks (lunch, EOD):** Use PAUSED status
 ```
-✅ STEP 5 COMPLETE: All post-completion workflow tasks executed
-
-Project docs updated:
-- docs/13-Project-Plan.md (US-XXX marked complete, status tracking added)
-- docs/12-Backlog.md (no changes - scope unchanged)
-
-Memory banks updated:
-- .agent/active-context.md (next session focus)
-- .agent/progress.md (milestone complete, metrics updated)
-
-Sub-agents invoked:
-- synthesize-docs: Created [N] SOPs ([X] lines total)
-- map-system: Updated component-patterns.md ([N] new patterns)
-
-Git commits:
-- Documentation: [commit hash] "docs: ..."
-- Code (if applicable): [commit hash] "feat: ..."
-- Pushed to origin/[branch]
+projectpulse_agent_session_update({
+  sessionId: "...",
+  status: "PAUSED",
+  progress: "Pausing for [reason]. Next: [what to do next]"
+})
 ```
 
-**If you cannot provide ALL these updates, Step 5 is NOT complete.**
+**When work is FULLY done:**
+```
+projectpulse_agent_session_end({
+  sessionId: "...",
+  progress: "Session complete. Implemented X, Y, Z."
+})
+```
+
+This auto-syncs:
+- PROGRESS bank: Session summary added
+- ACTIVE_CONTEXT bank: Updated with pending todos
+
+⚠️ **CRITICAL**: COMPLETED sessions CANNOT be resumed. Use PAUSED for breaks!
+
+**Confirm:** `✅ STEP 5 COMPLETE: Session [paused/ended], memory banks synced`
+
+### STEP 6: POST-COMPLETION WORKFLOW
+
+**After feature implementation complete:**
+
+1. **Close tickets** - `projectpulse_ticket_setStatus(ticketId, "closed")`
+2. **Commit and push** - Git operations as normal
+
+**Optional (when new patterns introduced):**
+
+3. **Generate SOP** - Invoke `synthesize-docs` sub-agent
+4. **Update system docs** - Invoke `map-system` sub-agent
+
+**Confirm:**
+```
+✅ STEP 6 COMPLETE: Post-completion workflow executed
+
+Tickets closed: [ticket IDs]
+Git commits: [commit hashes]
+Sub-agents invoked: [list if applicable]
+```
+
+---
+
+## 🎫 ProjectPulse Ticket Integration
+
+**Project ID**: 6 (always use this for ProjectPulse itself)
+
+| User Says | Ticket Kind |
+|-----------|-------------|
+| "Add feature X", "We need X" | `feature` |
+| "Do X", "Set up X", "Implement X" | `task` |
+| "X is broken", "X doesn't work" | `bug` |
+| "X needs refactoring", "Clean up X" | `tech_debt` |
+| "I'm concerned about X", "X seems off" | `issue` |
+
+### Agent Ticket Workflow
+
+| Step | Action | MCP Tool |
+|------|--------|----------|
+| 1. Create | Create ticket with assignee | `ticket_create` |
+| 2. Plan | Add implementation plan to customFields | `ticket_update` |
+| 3. Claim | Set status to `in-progress` | `ticket_update` |
+| 4. Work | Implement and commit | (code tools) |
+| 5. Comment | Add implementation details | `ticket_addComment` |
+| 6. Test+Close | After testing passes, set `closed` | `ticket_setStatus` |
+
+**Note**: Valid status values are `open`, `in-progress`, `closed` (NOT `completed`!)
+
+---
+
+## 📚 ProjectPulse Knowledge Items
+
+**Project ID**: 6 (always use this for ProjectPulse itself)
+
+### When to Store Knowledge
+- Important discoveries during development
+- Decisions made that affect future work
+- Solutions to recurring problems
+
+**Store**: Use `projectpulse_knowledge_create` with title, content (markdown), category, tags
+
+### When to Retrieve Knowledge
+- Before starting unfamiliar tasks
+- When confused about project context
+- Before making significant decisions
+
+**Search**: Use `projectpulse_knowledge_search` with query and `mode: "hybrid"`
+
+---
+
+## Memory Bank System (via MCP)
+
+**All 5 memory banks are loaded automatically via `projectpulse_context_load`.**
+
+No need to read `.agent/` files directly - the MCP tool returns all banks in one call.
+
+| Bank | Content |
+|------|---------|
+| **PROJECT_BRIEF** | What we're building, goals, success criteria |
+| **SYSTEM_PATTERNS** | Architecture patterns, coding conventions |
+| **TECH_CONTEXT** | Technical stack, dependencies, constraints |
+| **ACTIVE_CONTEXT** | Current focus, recent changes |
+| **PROGRESS** | What's done, milestones, velocity |
+
+**How to Access:**
+
+```
+# Load all banks at session start
+projectpulse_context_load(projectId: 6)
+→ Returns: memoryBanks { projectBrief, systemPatterns, techContext, activeContext, progress }
+
+# Load specific bank only (token-efficient)
+projectpulse_context_lookup(projectId: 6, bankType: "SYSTEM_PATTERNS")
+→ Returns: ~1K tokens of patterns
+
+# Update a bank (user-explicit only)
+projectpulse_context_update(projectId: 6, bankType: "PROGRESS", content: "...", mode: "append")
+```
+
+**Auto-Sync**: PROGRESS and ACTIVE_CONTEXT banks are auto-updated when you call `session_end`.
+
+---
+
+## MCP Tools Reference
+
+**ProjectPulse MCP Server** (projectId: 6 for this project):
+
+| Category | Tools |
+|----------|-------|
+| **Context** | `context_load`, `context_lookup`, `context_update` |
+| **Sessions** | `agent_session_start`, `agent_session_update`, `agent_session_end` |
+| **Tickets** | `ticket_create`, `ticket_search`, `ticket_update`, `ticket_setStatus`, `ticket_addComment`, `ticket_get` |
+| **Knowledge** | `knowledge_create`, `knowledge_search`, `knowledge_get` |
+| **Resources** | `persona_list`, `persona_get`, `skill_list`, `skill_get`, `sop_list`, `sop_get` |
 
 ---
 
@@ -277,53 +347,50 @@ Git commits:
 
 Cascade loads skills based on phase keywords:
 
-| Phase Contains                | Skills to Load                                      |
-| ----------------------------- | --------------------------------------------------- |
-| "API", "endpoint", "route"    | `.claude/skills/projectpulse/api-patterns.md`       |
-| "Component", "UI", "page"     | `.claude/skills/projectpulse/component-patterns.md` |
-| "Database", "Prisma", "query" | `.claude/skills/projectpulse/database-patterns.md`  |
-| "Test", "testing", "coverage" | `.claude/skills/projectpulse/testing-patterns.md`   |
+| Phase Contains | Skills to Load |
+|----------------|----------------|
+| "API", "endpoint", "route" | `.claude/skills/projectpulse/api-patterns.md` |
+| "Component", "UI", "page" | `.claude/skills/projectpulse/component-patterns.md` |
+| "Database", "Prisma", "query" | `.claude/skills/projectpulse/database-patterns.md` |
+| "Test", "testing", "coverage" | `.claude/skills/projectpulse/testing-patterns.md` |
 
 ---
 
 ## Sub-Agent Invocations
 
 **Research agents (planning):**
+- `explore-codebase` – identify existing patterns
+- `analyze-architecture` – trace data flows
 
-- `explore-codebase` – identify existing patterns.
-- `analyze-architecture` – trace data flows.
+**Expert agents (Step 3):**
+- `react-expert` – component architecture
+- `next-js-expert` – server/client boundaries
+- `prisma-expert` – database modeling and queries
 
-**Expert agents (protocol Step 3):**
-
-- `react-expert` – component architecture.
-- `next-js-expert` – server/client boundaries.
-- `prisma-expert` – database modeling and queries.
-
-**Documentation agents (protocol Step 5):**
-
-- `synthesize-docs` – generate or extend SOPs.
-- `map-system` – update architecture/system documentation.
+**Documentation agents (Step 6):**
+- `synthesize-docs` – generate or extend SOPs
+- `map-system` – update architecture/system documentation
 
 ---
 
-## Context File Workflow (REQUIRED)
+## 🔧 Dogfooding: We Use Our Own MCP Tools
 
-### At Session Start (Step 1)
+**We're building ProjectPulse AND using it to build itself!**
 
-Cascade must:
+### What We Use (Same as End Users)
+- `projectpulse_context_load` - Load memory banks at session start
+- `projectpulse_agent_session_*` - Track our work sessions
+- `projectpulse_ticket_*` - Create and manage our tickets
+- `projectpulse_knowledge_*` - Store and retrieve knowledge
 
-1. Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`.
-2. Document current phase, goals, and requirements derived from `STATUS.md`.
-3. Update this file at every protocol checkpoint.
+### What `.agent/` Folder Is For (Sub-Agent Outputs Only)
+- `.agent/sops/` - SOPs generated by `synthesize-docs` sub-agent
+- `.agent/system/` - System docs generated by `map-system` sub-agent
 
-### When Invoking Sub-Agents (Step 3)
-
-Cascade must:
-
-1. Pass the context file (`.agent/task/current-session.md`) to the specialist.
-2. Wait for the research/analysis report (saved under `.agent/task/`).
-3. Read and incorporate each report before implementing.
-4. Update the session file with implementation notes.
+**We no longer use:**
+- ~~`.agent/task/current-session-*.md`~~ → Use MCP sessions
+- ~~`.agent/progress.md`~~ → Use MCP context_load
+- ~~`.agent/active-context.md`~~ → Use MCP context_load
 
 ---
 
@@ -332,12 +399,12 @@ Cascade must:
 ### Daily Checklist
 
 ```markdown
-- [ ] Mac mini health OK: curl http://192.168.1.15:3000/api/health returns healthy
-- [ ] http://192.168.1.15:3000 loads application (from any other device, optional)
-- [ ] No extra local dev servers running (`pnpm dev`) unless explicitly requested
+Before starting work:
+- [ ] Health OK: curl http://localhost:3000/api/health returns healthy
+- [ ] Docker services running: docker compose -f docker-compose.cloud.yml ps
 - [ ] On feature branch (not master)
-- [ ] Read .agent/active-context.md, .agent/progress.md and docs/13-Project-Plan.md
-- [ ] Read .agent/MANDATORY_SESSION_PROTOCOL.md Protocol Violations Log
+- [ ] Called projectpulse_context_load(projectId: 6) to load memory banks
+- [ ] Resumed PAUSED session OR started new session
 ```
 
 ### Common Tasks
@@ -346,65 +413,84 @@ Cascade must:
 - **Need database schema?** → `.agent/system/database-schema.md`
 - **Port configuration broken?** → `.agent/sops/port-troubleshooting.md`
 - **Creating a branch?** → `.agent/sops/git-workflow.md`
-- **Deep codebase analysis?** → Use the Gemini CLI (`SIMPLE_GEMINI_WORKFLOW.md`)
+- **Found a bug?** → Create ticket via `projectpulse_ticket_create`
+- **Need to remember something?** → Store via `projectpulse_knowledge_create`
+- **Confused about context?** → Search via `projectpulse_knowledge_search`
 
-### Integration Checklist
+### Common Commands
 
-- [ ] MCP tools configured and working
-- [ ] Access to `.agent/` documentation verified
-- [ ] Docker services healthy (`docker compose -f docker-compose.cloud.yml ps`)
-- [ ] Actively working on the correct feature branch
-- [ ] `STATUS.md` and `docs/13-Project-Plan.md` reviewed
+```bash
+# Health check
+curl http://localhost:3000/api/health
+
+# Docker services
+docker compose -f docker-compose.cloud.yml ps
+docker compose -f docker-compose.cloud.yml up -d
+
+# Quality gates
+pnpm lint
+pnpm type-check
+pnpm test
+pnpm build
+
+# Git workflow
+git checkout -b feature/your-feature
+git add .
+git commit -m "feat: your feature"
+git push -u origin feature/your-feature
+```
+
+---
+
+## ✅ Quality Gates
+
+All work must pass these gates before completion:
+
+### Build Gate
+```bash
+pnpm lint        # ✅ Must pass
+pnpm type-check  # ✅ Must pass
+pnpm build       # ✅ Must succeed
+```
+
+### Test Gate
+```bash
+pnpm test        # ✅ Must pass (80%+ coverage for new code)
+```
+
+### Security Gate
+- ✅ No SQL injection vulnerabilities
+- ✅ Input validated with Zod schemas
+- ✅ No XSS vulnerabilities
+- ✅ No exposed secrets
+
+### Architecture Gate
+- ✅ Follows patterns in `docs/03-Architecture.md`
+- ✅ Data-driven (no hardcoded values)
+- ✅ Type-safe implementation (no `any` types)
+- ✅ Server Components by default
 
 ---
 
 ## Getting Help
 
 **Documentation:**
-
 1. `.agent/README.md` – Agent documentation index
-2. `.agent/active-context.md` – Current state and focus
-3. `.agent/progress.md` – Sprint/phase progress tracking
-4. `docs/13-Project-Plan.md` – Implementation roadmap
-5. `docs/README.md` – Complete documentation index
-6. `.agent/MANDATORY_SESSION_PROTOCOL.md` – **READ PROTOCOL VIOLATIONS LOG**
+2. `docs/13-Project-Plan.md` – Implementation roadmap
+3. `docs/README.md` – Complete documentation index
+4. `CLAUDE.md` – Primary workflow reference
 
-**Procedures:** `.agent/sops/`  
-**Common errors:** `.claude/CRITICAL_MISTAKES.md`  
+**Procedures:** `.agent/sops/`
 **System docs:** `.agent/system/`
 
 ---
 
 ## Ready to Code?
 
-1. Complete the pre-work checklist.
-2. Start the session with the mandatory protocol prompt.
-3. Cascade will handle sub-agents, documentation, and context optimization automatically—just enforce confirmations.
+1. Complete the pre-work checklist
+2. Load context via `projectpulse_context_load(projectId: 6)`
+3. Resume PAUSED session or start new session
+4. Follow the MCP-based workflow steps
+5. End session properly (PAUSED for breaks, END for completion)
 
-🚀 **Happy coding with optimized context!**
-
----
-
-## Protocol Violations Log Reference
-
-**CRITICAL**: Before starting any session, read the Protocol Violations Log in `.agent/MANDATORY_SESSION_PROTOCOL.md`.
-
-**What to check:**
-1. **Violation History** - See what went wrong on 2025-11-10
-2. **Future Session Checklist** - 9-point checklist MUST be satisfied before claiming any step "complete"
-3. **Enforcement Mechanism** - This log persists across sessions and context resets
-
-**Key Lesson from 2025-11-10 Violation:**
-- Claiming "protocol complete" without evidence = violation
-- User will stop you and demand RIGHT NOW execution
-- Without file updates, enforcement cannot persist
-- Required confirmations are NOT optional - they are proof of execution
-
-**If user says "you did not do step X":**
-1. You violated the protocol
-2. Execute step X RIGHT NOW with full documentation
-3. Update session file with evidence
-4. Provide required confirmation
-
----
-
+**Happy coding with MCP-powered context!**

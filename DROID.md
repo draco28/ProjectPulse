@@ -1,13 +1,14 @@
 # Factory Droid Integration Guide - ProjectPulse
 
-**Version:** 1.0  
-**Project:** ProjectPulse  
-**Stack:** Next.js 14 + PostgreSQL 16 + Prisma + MCP  
+**Version:** 2.0 (MCP-Based)
+**Project:** ProjectPulse
+**Stack:** Next.js 14 + PostgreSQL 16 + Prisma + MCP
 **Agent System:** Factory Droid with custom droid specialists
+**Last Updated:** 2025-12-23
 
 **Foundation Documents:**
-- **CLAUDE.md** - Original Claude Code integration guide (reference for workflows)
-- **AGENTS.md** - Original agent system architecture (reference for principles)
+- **CLAUDE.md** - Primary workflow reference (MCP-based)
+- **AGENTS.md** - Core principles and quality standards
 - **This file (DROID.md)** - Adapted for Factory Droid capabilities
 
 ---
@@ -27,6 +28,50 @@ I'll automatically invoke specialized droids as needed and manage the full workf
 
 ---
 
+## 🚨 CRITICAL: Pre-Work Checklist
+
+**BEFORE starting ANY coding work:**
+
+### 1. Health Check
+
+```bash
+curl http://localhost:3000/api/health
+# ✅ MUST return: {"status":"healthy","database":"connected"}
+```
+
+**If services down:**
+```bash
+docker compose -f docker-compose.cloud.yml up -d
+```
+
+### 2. Git Branch
+
+```bash
+git branch
+# ✅ MUST be on feature branch (NOT master!)
+# If on master:
+git checkout master && git pull origin master
+git checkout -b feature/your-feature
+```
+
+### 3. Load ProjectPulse Context (MCP)
+
+```
+projectpulse_context_load(projectId: 6)
+```
+
+This returns:
+- All 5 memory banks (project brief, patterns, tech context, active focus, progress)
+- Active sessions (check if PAUSED work exists)
+- Workflow hints
+
+**If PAUSED session found:** Resume with `projectpulse_agent_session_update(sessionId, status: "IN_PROGRESS")`
+**If no session:** Start new with `projectpulse_agent_session_start()`
+
+**See**: [.agent/sops/git-workflow.md](.agent/sops/git-workflow.md)
+
+---
+
 ## 🎯 Core Principles (Non-Negotiable)
 
 These principles from AGENTS.md apply to **all** Factory Droid work:
@@ -39,6 +84,35 @@ These principles from AGENTS.md apply to **all** Factory Droid work:
 6. **Testing Required**: All features must have tests (80%+ coverage) **[R-TEST-001]**
 7. **MCP Pattern**: MCP server calls Next.js API (not direct database) **[R-MCP-001]**
 8. **Local-First**: All data stored locally, no cloud dependencies **[R-PRIVACY-001]**
+
+---
+
+## 🖥️ Mac Mini Cloud Architecture
+
+**All development happens on Mac mini using Docker. Use `localhost` for all services.**
+
+### Service URLs (Development)
+
+- **Web App**: http://localhost:3000
+- **MCP Server**: http://localhost:3001
+- **API Health**: http://localhost:3000/api/health
+- **Database**: `postgresql://postgres:postgres123@localhost:5432/projectpulse_dev`
+- **Redis**: `localhost:6379`
+
+### Compose Files
+
+- **Mac mini runtime**: `docker-compose.cloud.yml` (primary)
+- **CI/local fallback**: `docker-compose.yml` (automated testing only)
+
+### Workflow
+
+**All work happens on Mac mini:**
+- Code editing (Read, Edit, Create tools)
+- Git operations (commits, pushes, branches)
+- Testing (unit, integration, E2E)
+- Docker management (restart, logs, migrations)
+
+**Complete Setup**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
 
 ---
 
@@ -57,6 +131,13 @@ These principles from AGENTS.md apply to **all** Factory Droid work:
 - ✅ **TodoWrite** - Real-time task tracking (visible to you)
 - ✅ **ExitSpecMode** - Present plans for approval before implementation
 
+**MCP Tools (ProjectPulse):**
+- ✅ **Context Tools** - `context_load`, `context_lookup`, `context_update`
+- ✅ **Session Tools** - `agent_session_start`, `agent_session_update`, `agent_session_end`
+- ✅ **Ticket Tools** - `ticket_create`, `ticket_search`, `ticket_update`, `ticket_setStatus`, `ticket_addComment`, `ticket_get`
+- ✅ **Knowledge Tools** - `knowledge_create`, `knowledge_search`, `knowledge_get`
+- ✅ **Resource Tools** - `persona_list`, `persona_get`, `skill_list`, `skill_get`, `sop_list`, `sop_get`
+
 **Droid Invocation:**
 - ✅ Invoke 14 custom specialist droids
 - ✅ Parallel droid coordination
@@ -67,21 +148,246 @@ These principles from AGENTS.md apply to **all** Factory Droid work:
 
 **Limitations:**
 - ❌ Python orchestrator system (`.claude/devhub_orchestrator.py`)
-- ❌ Memory MCP integration (long-term knowledge retention)
-- ❌ Slash commands (`/update-doc`)
+- ❌ Slash commands (`/update-doc`) - use explicit requests instead
 - ❌ ExitPlanMode tool (use **ExitSpecMode** instead)
-- ❌ Automatic context compaction (manual save required)
 
 **Workarounds:**
-- Instead of Memory MCP → Use `.agent/progress.md` and session files
 - Instead of orchestrator → Direct droid invocation in natural language
 - Instead of /update-doc → Explicit requests to update documentation
 
 ---
 
+## 🔧 Dogfooding: We Use Our Own MCP Tools
+
+**We're building ProjectPulse AND using it to build itself!**
+
+### What We Use (Same as End Users)
+- `projectpulse_context_load` - Load memory banks at session start
+- `projectpulse_agent_session_*` - Track our work sessions
+- `projectpulse_ticket_*` - Create and manage our tickets
+- `projectpulse_knowledge_*` - Store and retrieve knowledge
+
+### What `.agent/` Folder Is For (Sub-Agent Outputs Only)
+- `.agent/sops/` - SOPs generated by `synthesize-docs` sub-agent
+- `.agent/system/` - System docs generated by `map-system` sub-agent
+
+**We no longer use:**
+- ~~`.agent/task/current-session-*.md`~~ → Use MCP sessions
+- ~~`.agent/progress.md`~~ → Use MCP context_load
+- ~~`.agent/active-context.md`~~ → Use MCP context_load
+
+**End users get the same clean, database-backed experience we now use ourselves!**
+
+---
+
+## 🔄 MCP-Based Session Workflow
+
+**Project ID**: 6 (always use this for ProjectPulse itself)
+
+### What Are Agent Sessions?
+
+Sessions track work periods that survive context compaction. The **plan** is the crown jewel - deep implementation thoughts that would otherwise be lost.
+
+### Session Lifecycle
+
+| Step | MCP Tool | When to Use |
+|------|----------|-------------|
+| 1. Entry Point | `projectpulse_context_load` | ALWAYS start here |
+| 2. Resume Work | `projectpulse_agent_session_update` | If PAUSED session exists |
+| 3. Start New | `projectpulse_agent_session_start` | New task/feature |
+| 4. Checkpoint | `projectpulse_agent_session_update` | Every 15K tokens |
+| 5. Take Break | `session_update(status: PAUSED)` | Lunch, EOD, switching tasks |
+| 6. Complete | `projectpulse_agent_session_end` | Work FULLY done |
+
+### STEP 1: LOAD CONTEXT
+
+```
+projectpulse_context_load(projectId: 6)
+```
+
+This returns:
+- All 5 memory banks (project brief, patterns, tech context, active focus, progress)
+- Active sessions (check if work in progress)
+- Available resources (personas, skills, SOPs)
+- Workflow hints
+
+**If PAUSED session exists:** → Resume it
+**If no active session:** → Continue to Step 2
+
+### STEP 2: START SESSION
+
+```
+projectpulse_agent_session_start({
+  projectId: 6,
+  name: "Implementing feature X",
+  plan: "## Plan\n1. Do X\n2. Do Y\n...",
+  todos: [{content: "Task 1", status: "pending"}, ...],
+  activeTicketIds: [25, 26]  // Link to tickets
+})
+```
+
+- Create implementation plan (use ExitSpecMode for user approval if complex)
+- Save plan and todos to MCP session (NOT to files)
+
+### STEP 3: PROGRESS CHECKPOINTS
+
+At 15K, 30K, 45K, 60K, 75K, 90K tokens:
+
+```
+projectpulse_agent_session_update({
+  sessionId: "...",
+  todos: [{content: "Task 1", status: "completed"}, ...],
+  progress: "Checkpoint: Completed X, now working on Y"
+})
+```
+
+**For breaks (lunch, EOD):** Use `status: "PAUSED"` - can resume later with full context.
+
+### STEP 4: COMPLETE SESSION
+
+When work is FULLY done:
+
+```
+projectpulse_agent_session_end({
+  sessionId: "...",
+  progress: "Session complete. Implemented X, Y, Z."
+})
+```
+
+This auto-syncs:
+- PROGRESS bank: Session summary added
+- ACTIVE_CONTEXT bank: Updated with pending todos
+
+### Pause vs End - Critical Distinction
+
+| Use PAUSED for | Use END for |
+|----------------|-------------|
+| Lunch break | Feature fully complete |
+| End of day | Milestone reached |
+| Switching tasks temporarily | Ready for next feature |
+| Context compaction imminent | All tickets closed |
+
+⚠️ **CRITICAL**: COMPLETED sessions CANNOT be resumed. Use PAUSED for breaks!
+
+### Example Workflow
+
+```
+# Session start
+Me: projectpulse_context_load(projectId: 6)
+→ Returns: memory banks + no active sessions
+
+Me: projectpulse_agent_session_start({
+  name: "Implementing API endpoint",
+  plan: "## Plan\n1. Create route\n2. Add validation\n...",
+  todos: [{content: "Create route", status: "pending"}, ...]
+})
+→ Returns: sessionId: "abc123..."
+
+# ... work for 30 minutes ...
+
+Me: projectpulse_agent_session_update({
+  sessionId: "abc123...",
+  todos: [{content: "Create route", status: "completed"}, ...],
+  progress: "Completed route, now adding validation"
+})
+
+# ... lunch break ...
+
+Me: projectpulse_agent_session_update({
+  sessionId: "abc123...",
+  status: "PAUSED",
+  progress: "Pausing for lunch. Next: finish validation"
+})
+
+# ... return from lunch ...
+
+Me: projectpulse_context_load(projectId: 6)
+→ Returns: PAUSED session found!
+
+Me: projectpulse_agent_session_update({sessionId: "abc123...", status: "IN_PROGRESS"})
+→ Returns: full plan, todos, progress
+
+# ... complete the work ...
+
+Me: projectpulse_agent_session_end({
+  sessionId: "abc123...",
+  progress: "Session complete. API endpoint implemented and tested."
+})
+→ Auto-syncs to memory banks
+```
+
+---
+
+## 🎫 ProjectPulse Ticket Integration
+
+**Project ID**: 6 (always use this for ProjectPulse itself)
+
+When the user mentions work to be tracked, create a ticket via MCP:
+
+| User Says | Ticket Kind |
+|-----------|-------------|
+| "Add feature X", "We need X" | `feature` |
+| "Do X", "Set up X", "Implement X" | `task` |
+| "X is broken", "X doesn't work" | `bug` |
+| "X needs refactoring", "Clean up X" | `tech_debt` |
+| "I'm concerned about X", "X seems off" | `issue` |
+
+### Agent Ticket Workflow
+
+**Assignee**: Always set `assignee: "Factory Droid"` when:
+- I create a ticket that I will immediately work on
+- I'm claiming an existing ticket to work on
+
+**Status Transitions** (REQUIRED):
+| When | Action |
+|------|--------|
+| Create ticket | Status defaults to `open` |
+| Start working | Update to `in-progress` BEFORE coding |
+| Implement | Add comment with implementation details |
+| Test | Verify fix works (manual or automated) |
+| Close | Update to `closed` ONLY after testing passes |
+
+**Complete Workflow** (6 steps):
+| Step | Action | MCP Tool |
+|------|--------|----------|
+| 1. Create | Create ticket with assignee | `ticket_create` |
+| 2. Plan | Add implementation plan to customFields | `ticket_update` |
+| 3. Claim | Set status to `in-progress` | `ticket_update` |
+| 4. Work | Implement and commit | (code tools) |
+| 5. Comment | Add implementation details | `ticket_addComment` |
+| 6. Test+Close | After testing passes, set `closed` | `ticket_setStatus` |
+
+**Note**: Valid status values are `open`, `in-progress`, `closed` (NOT `completed`!)
+
+---
+
+## 📚 ProjectPulse Knowledge Items
+
+**Project ID**: 6 (always use this for ProjectPulse itself)
+
+### When to Store Knowledge
+- Important discoveries during development
+- Decisions made that affect future work
+- Solutions to recurring problems
+- When user explicitly asks to remember something
+
+**Store**: Use `projectpulse_knowledge_create` with title, content (markdown), category, tags
+
+### When to Retrieve Knowledge
+- Before starting unfamiliar tasks
+- When confused about project context
+- When user asks to check knowledge
+- Before making significant decisions
+
+**Search**: Use `projectpulse_knowledge_search` with query and `mode: "hybrid"`
+
+**Proactive Retrieval**: When unsure about something, FIRST search knowledge items before asking user.
+
+---
+
 ## 🤝 Custom Droid System
 
-You have **14 specialized droids** available (replicated from `.claude/agents/`). I'll invoke them automatically based on task requirements.
+You have **14 specialized droids** available. I'll invoke them automatically based on task requirements.
 
 ### Research Phase Droids
 
@@ -173,7 +479,7 @@ You have **14 specialized droids** available (replicated from `.claude/agents/`)
 ```
 User: "Implement issue filtering by priority"
 
-Me: [Reading context and planning...]
+Me: [Loading context via MCP...]
     [Invoking @devhub-architect for design...]
     [Architect creates design report]
     
@@ -196,220 +502,74 @@ Me: [Reading context and planning...]
 
 ---
 
-## 📋 Adapted Session Protocol
+## Memory Bank System (via MCP)
 
-This workflow adapts CLAUDE.md's Mandatory Session Protocol for Factory Droid capabilities.
+**All 5 memory banks are loaded automatically via `projectpulse_context_load`.**
 
-### Phase 1: Initialize
+No need to read `.agent/` files directly - the MCP tool returns all banks in one call (~10K tokens).
 
-**Required Steps:**
-1. Read `.agent/active-context.md` and `.agent/progress.md`
-2. Read `docs/13-Project-Plan.md` for current phase
-3. Create `.agent/task/current-session-[YYYYMMDD-HHMM].md`
-4. Create TodoWrite list (parallel with research)
+**Memory Banks Returned by context_load:**
 
-**Confirmation:** "✅ Session initialized - Reading context..."
+| Bank | Content |
+|------|---------|
+| **PROJECT_BRIEF** | What we're building, goals, success criteria |
+| **SYSTEM_PATTERNS** | Architecture patterns, coding conventions |
+| **TECH_CONTEXT** | Technical stack, dependencies, constraints |
+| **ACTIVE_CONTEXT** | Current focus, recent changes |
+| **PROGRESS** | What's done, milestones, velocity |
 
-### Phase 2: Research & Plan
+**How to Access:**
 
-**Required Steps:**
-1. Invoke research droids as needed:
-   - `@explore-codebase` - Find existing patterns
-   - `@analyze-architecture` - Understand current system
-2. Create implementation plan
-3. Use **ExitSpecMode** for user approval (not ExitPlanMode)
-4. **After approval:** Save plan to `.agent/task/current-plan.md`
-5. Save todos to `.agent/task/current-todos.md`
-
-**Confirmation:** "✅ Plan approved and saved - Proceeding to expert consultation..."
-
-### Phase 3: Expert Consultation
-
-**Required Steps - Invoke expert droids based on phase type:**
-
-| Phase Contains | Droids to Invoke |
-|---|---|
-| "Architecture", "Design" | @devhub-architect |
-| "Component", "UI", "React" | @react-expert |
-| "Page", "Route", "Server Component" | @next-js-expert |
-| "Database", "Schema", "Prisma" | @prisma-expert |
-| "MCP", "Tool", "Resource" | @devhub-mcp-specialist |
-
-**Process:**
-1. Invoke appropriate expert droids
-2. Wait for droid reports
-3. Read reports (saved to `.agent/task/[droid]-[topic]-[timestamp].md`)
-4. Apply recommendations in implementation
-5. Update session file with "Consulted X droid for Y"
-
-**Confirmation:** "✅ Expert consultation complete - Proceeding to implementation..."
-
-### Phase 4: Implementation
-
-**Required Steps:**
-1. Follow approved plan
-2. Invoke implementation droids as needed:
-   - `@devhub-fullstack` for standard features
-   - `@file-editor` for bulk operations (3+ files)
-3. Update session file at **15K token checkpoints**
-4. Update TodoWrite progress after each major step
-
-**Checkpoint Intervals:**
-- 15K tokens
-- 30K tokens
-- 45K tokens
-- 60K tokens
-- 75K tokens
-- 90K tokens
-
-**Checkpoint Format:**
 ```
-💾 CHECKPOINT at [X]K tokens:
-- Completed: [list]
-- In progress: [current task]
-- Remaining: [list]
+# Load all banks at session start
+projectpulse_context_load(projectId: 6)
+→ Returns: memoryBanks { projectBrief, systemPatterns, techContext, activeContext, progress }
+
+# Load specific bank only (token-efficient)
+projectpulse_context_lookup(projectId: 6, bankType: "SYSTEM_PATTERNS")
+→ Returns: ~1K tokens of patterns
+
+# Update a bank (user-explicit only)
+projectpulse_context_update(projectId: 6, bankType: "PROGRESS", content: "...", mode: "append")
 ```
 
-**Confirmation:** "✅ Implementation complete - Proceeding to testing..."
+**Auto-Sync**: PROGRESS and ACTIVE_CONTEXT banks are auto-updated when you call `session_end`.
 
-### Phase 5: Testing
-
-**Required Steps:**
-1. Invoke `@devhub-testing` for test strategy
-2. Run quality gates:
-   ```bash
-   pnpm lint        # Must pass
-   pnpm type-check  # Must pass
-   pnpm test        # Must pass (80%+ coverage)
-   pnpm build       # Must succeed
-   ```
-3. Fix any failures
-4. Update session file with test results
-
-**Confirmation:** "✅ All tests passing - Proceeding to review..."
-
-### Phase 6: Review
-
-**Required Steps:**
-1. Invoke `@devhub-auditor` for code review
-2. Review checks:
-   - Security vulnerabilities (SQL injection, XSS)
-   - Accessibility (WCAG 2.1 AA)
-   - Performance issues
-   - Type safety violations
-3. Address any issues found
-4. Update session file with review results
-
-**Confirmation:** "✅ Code review complete - Proceeding to documentation..."
-
-### Phase 7: Documentation
-
-**Required Steps:**
-1. **If new patterns created:** Invoke `@synthesize-docs`
-2. **If architecture changed:** Invoke `@map-system`
-3. Update core context files:
-   - `.agent/active-context.md`
-   - `.agent/progress.md`
-   - `docs/13-Project-Plan.md`
-4. Commit workflow:
-   ```bash
-   git add .agent/ docs/
-   git commit -m "docs: [description]"
-   
-   git add [implementation files]
-   git commit -m "feat|fix: [description]"
-   ```
-
-**Confirmation:** "✅ Documentation updated and committed - Phase complete!"
-
-### Recovery Workflow
-
-**If session interrupted or context lost:**
-
-```bash
-Step 1: Read .agent/active-context.md
-→ "Current: Phase 3.1, implementing issue API"
-
-Step 2: Read .agent/progress.md
-→ "60% complete, last checkpoint: CommentForm component"
-
-Step 3: Find latest .agent/task/current-session-[timestamp].md
-→ "Was implementing CommentList at 16:45"
-
-Step 4: Read .agent/task/current-todos.md
-→ "5/20 tasks done, CommentList in progress"
-
-Step 5: Resume work
-→ "Continuing from CommentList implementation..."
-```
+**Token Budgets:**
+- PROJECT_BRIEF: 3K tokens
+- SYSTEM_PATTERNS: 2K tokens
+- TECH_CONTEXT: 2K tokens
+- ACTIVE_CONTEXT: 1K tokens
+- PROGRESS: 2K tokens
 
 ---
 
-## 🖥️ Mac Mini Cloud Architecture
+## MCP Tools Reference
 
-**All development happens on Mac mini (192.168.1.15) using Docker.**
+**ProjectPulse MCP Server** (projectId: 6 for this project):
 
-### Service URLs
+| Category | Tools |
+|----------|-------|
+| **Context** | `context_load`, `context_lookup`, `context_update` |
+| **Sessions** | `agent_session_start`, `agent_session_update`, `agent_session_end` |
+| **Tickets** | `ticket_create`, `ticket_search`, `ticket_update`, `ticket_setStatus`, `ticket_addComment`, `ticket_get` |
+| **Knowledge** | `knowledge_create`, `knowledge_search`, `knowledge_get` |
+| **Resources** | `persona_list`, `persona_get`, `skill_list`, `skill_get`, `sop_list`, `sop_get` |
 
-- **Web App:** http://192.168.1.15:3000
-- **API Health:** http://192.168.1.15:3000/api/health
-- **Database:** `postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev`
+**Complete guide**: [docs/features/mcp-tools-guide.md](docs/features/mcp-tools-guide.md)
 
-### Compose Files
+---
 
-- **Mac mini runtime:** `docker-compose.cloud.yml` (primary)
-- **CI/local fallback:** `docker-compose.yml` (automated testing only)
+## Skills and Context Loading
 
-### Pre-Work Checklist
+Based on phase keywords, I load relevant skills:
 
-**BEFORE starting ANY coding work:**
-
-#### 1. Mac Mini Services Verification
-
-```bash
-# Check Mac mini services are running
-curl http://192.168.1.15:3000/api/health
-# ✅ MUST return: {"status":"healthy","database":"connected"}
-```
-
-**If services down:**
-- Ask user to start Mac mini Docker services
-- Or use Git communication to tell Mac mini: "Start Docker services"
-
-#### 2. Docker Services Check
-
-```bash
-# On Mac mini, check containers
-docker compose -f docker-compose.cloud.yml ps
-```
-
-**If services down or unhealthy:**
-```bash
-docker compose -f docker-compose.cloud.yml up -d
-```
-
-#### 3. Git Branch Check
-
-```bash
-git branch
-# ✅ MUST be on feature branch (NOT master!)
-```
-
-**If on master:**
-```bash
-git checkout master && git pull origin master
-git checkout -b feature/your-feature
-```
-
-### Workflow
-
-**All work happens on Mac mini:**
-- Code editing (Read, Edit, Create tools)
-- Git operations (commits, pushes, branches)
-- Testing (unit, integration, E2E)
-- Docker management (restart, logs, migrations)
-
-**Complete Setup:** `.agent/sops/mac-mini-cloud-architecture.md`
+| Phase Contains | Skills to Load |
+|----------------|----------------|
+| "API", "endpoint", "route" | [api-patterns](.claude/skills/projectpulse/api-patterns.md) |
+| "Component", "UI", "page" | [component-patterns](.claude/skills/projectpulse/component-patterns.md) |
+| "Database", "Prisma", "query" | [database-patterns](.claude/skills/projectpulse/database-patterns.md) |
+| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/projectpulse/testing-patterns.md) |
 
 ---
 
@@ -434,9 +594,6 @@ const issue: any = { ... };
 function isValidPriority(value: string): value is Issue['priority'] {
   return ['low', 'medium', 'high', 'critical'].includes(value);
 }
-
-// ❌ Bad: Type assertions without validation
-const priority = userInput as Issue['priority'];
 ```
 
 ### API Route Patterns
@@ -474,13 +631,6 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
-
-// ❌ Bad: No validation, poor error handling
-export async function POST(request: Request) {
-  const body = await request.json();
-  const issue = await prisma.issue.create({ data: body });
-  return Response.json(issue);
 }
 ```
 
@@ -551,15 +701,6 @@ export function IssueFilter({ onFilterChange }) {
     </select>
   );
 }
-
-// ❌ Bad: Using 'use client' unnecessarily
-'use client';
-
-export default async function IssuesPage() {
-  // This should be a Server Component!
-  const issues = await prisma.issue.findMany();
-  return <IssueList issues={issues} />;
-}
 ```
 
 ---
@@ -576,12 +717,6 @@ pnpm type-check  # ✅ Must pass
 pnpm build       # ✅ Must succeed
 ```
 
-**Requirements:**
-- No ESLint errors
-- No TypeScript errors
-- Build completes successfully
-- No console errors in build output
-
 ### Test Gate
 
 ```bash
@@ -589,49 +724,21 @@ pnpm test        # ✅ Must pass
 pnpm test:coverage  # ✅ 80%+ coverage for new code
 ```
 
-**Requirements:**
-- All tests pass
-- 80%+ line coverage for new features
-- All edge cases tested
-- No skipped tests without justification
-
 ### Security Gate
 
-**Requirements:**
 - ✅ No SQL injection vulnerabilities (parameterized queries only)
 - ✅ Input validated with Zod schemas
-- ✅ No XSS vulnerabilities (React escapes by default, verify)
+- ✅ No XSS vulnerabilities
 - ✅ No exposed secrets in code or logs
 - ✅ Authentication/authorization checked where applicable
 
-**Checklist:**
-```typescript
-// For every API endpoint:
-1. [ ] Input validated with Zod schema
-2. [ ] Database queries use parameterized syntax
-3. [ ] Error messages don't expose sensitive info
-4. [ ] Authentication checked (if protected route)
-5. [ ] Authorization verified (user can access resource)
-```
-
 ### Architecture Gate
 
-**Requirements:**
 - ✅ Follows patterns in `docs/03-Architecture.md`
 - ✅ Data-driven (no hardcoded values)
 - ✅ Proper module placement (components/, lib/, app/)
 - ✅ Type-safe implementation (no `any` types)
 - ✅ Server Components by default, Client Components when needed
-
-**Checklist:**
-```typescript
-// For every feature:
-1. [ ] Matches architectural patterns in docs/
-2. [ ] Configuration in database or config files (not hardcoded)
-3. [ ] Files in correct directories per project structure
-4. [ ] All types defined (interfaces/types exported)
-5. [ ] Uses Server Components unless interactivity required
-```
 
 ---
 
@@ -640,287 +747,41 @@ pnpm test:coverage  # ✅ 80%+ coverage for new code
 ### Do:
 
 ✅ **Use Server Components by default**
-```typescript
-// Default: Server Component
-export default async function Page() {
-  const data = await fetchData();
-  return <Component data={data} />;
-}
-```
-
 ✅ **Validate all input with Zod**
-```typescript
-const schema = z.object({
-  title: z.string().min(1).max(200),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
-});
-const validated = schema.parse(input);
-```
-
 ✅ **Write tests before marking complete**
-```typescript
-describe('POST /api/issues', () => {
-  it('creates issue with valid input', async () => {
-    const response = await fetch('/api/issues', {
-      method: 'POST',
-      body: JSON.stringify({ title: 'Test', priority: 'high' }),
-    });
-    expect(response.status).toBe(201);
-  });
-});
-```
-
 ✅ **Use Prisma for all database access**
-```typescript
-const issues = await prisma.issue.findMany({
-  where: { status: 'open' },
-  orderBy: { createdAt: 'desc' },
-});
-```
-
 ✅ **Follow patterns in docs/**
-```typescript
-// Check docs/03-Architecture.md before implementing
-// Use established patterns from .agent/system-patterns.md
-```
-
 ✅ **Keep commits small and focused**
-```bash
-git commit -m "feat: add issue priority filtering"
-git commit -m "test: add tests for issue filtering"
-git commit -m "docs: update API documentation"
-```
-
 ✅ **Use droids for structured workflows**
-```
-Complex feature → @devhub-architect for design
-Database change → @prisma-expert for schema
-Bulk edits → @file-editor for efficiency
-```
 
 ### Don't:
 
 ❌ **Use `any` types**
-```typescript
-// Bad
-const data: any = fetchData();
-
-// Good
-interface Data { id: number; title: string; }
-const data: Data = fetchData();
-```
-
 ❌ **Hardcode values**
-```typescript
-// Bad
-const priorities = ['low', 'medium', 'high'];
-
-// Good
-const priorities = await prisma.priority.findMany();
-```
-
 ❌ **Skip testing**
-```typescript
-// Always add tests for new features
-// Invoke @devhub-testing if unsure about test strategy
-```
-
 ❌ **Write raw SQL strings**
-```typescript
-// Bad - SQL injection risk
-await prisma.$queryRawUnsafe(`SELECT * FROM issues WHERE id = ${id}`);
-
-// Good - Parameterized
-await prisma.$queryRaw`SELECT * FROM issues WHERE id = ${id}`;
-
-// Best - Query builder
-await prisma.issue.findUnique({ where: { id } });
-```
-
 ❌ **Commit without running checks**
-```bash
-# Always run before commit:
-pnpm lint
-pnpm type-check
-pnpm test
-```
-
 ❌ **Bypass security validation**
-```typescript
-// Always validate input
-// Always use parameterized queries
-// Always check authentication/authorization
-```
-
 ❌ **Ignore accessibility**
-```typescript
-// Use semantic HTML
-// Add ARIA labels where needed
-// Test keyboard navigation
-// Invoke @devhub-auditor for accessibility review
-```
 
 ---
 
-## 🚀 Droid Invocation Examples
+## Maintenance Workflow
 
-### Feature Development Flow
+### After EVERY Feature Completion
 
-```
-User: "Implement issue filtering by priority and module"
+**MCP-Based Workflow:**
 
-Droid: ✅ Session initialized - Reading context...
-       [Reading .agent/active-context.md, docs/13-Project-Plan.md]
+1. **End session** - `projectpulse_agent_session_end()` auto-syncs memory banks
+2. **Close tickets** - `projectpulse_ticket_setStatus(ticketId, "closed")`
+3. **Commit and push** - Git operations as normal
 
-Droid: 🔍 Invoking @devhub-architect for filtering design...
-       [Architect analyzes requirements and designs filter architecture]
-       [Report saved to .agent/task/architect-issue-filtering-20251117-1530.md]
+**Optional (when new patterns introduced):**
 
-Droid: 🗄️ Invoking @prisma-expert for query optimization...
-       [Prisma expert designs efficient filter queries with indexes]
-       [Report saved to .agent/task/prisma-filtering-20251117-1532.md]
+4. **Generate SOP** - Invoke `synthesize-docs` sub-agent
+5. **Update system docs** - Invoke `map-system` sub-agent
 
-Droid: ⚛️ Invoking @react-expert for filter UI component...
-       [React expert designs FilterBar component with state management]
-       [Report saved to .agent/task/react-filter-ui-20251117-1534.md]
-
-Droid: 💻 Invoking @devhub-fullstack for implementation...
-       [Fullstack implements following all design recommendations]
-       [Creates API endpoint, Prisma queries, React components]
-
-Droid: 🧪 Invoking @devhub-testing for test suite...
-       [Testing creates unit tests, integration tests, E2E tests]
-       [Achieves 85% coverage]
-
-Droid: 🔍 Invoking @devhub-auditor for final review...
-       [Auditor checks security, accessibility, performance]
-       [All checks pass ✅]
-
-Droid: 📚 Invoking @synthesize-docs to document pattern...
-       [Synthesize-docs creates SOP for filter implementation]
-       [Saved to .agent/sops/implementing-filters.md]
-
-Droid: ✅ Feature complete!
-       - API endpoint: GET /api/issues?priority=high&module=auth
-       - UI component: FilterBar with priority and module dropdowns
-       - Tests: 85% coverage, all passing
-       - Documentation: SOP created
-       - Commits: 4 commits (docs, feat, test, docs)
-```
-
-### Bug Fix Flow
-
-```
-User: "Debug why POST /api/issues returns 400 for valid input"
-
-Droid: ✅ Session initialized - Reading context...
-
-Droid: 🔍 Invoking @analyze-architecture to trace request flow...
-       [Analyze-architecture traces: Client → API route → Prisma → DB]
-       [Identifies: Zod schema validation failing on 'module' field]
-       [Report: Schema expects 'moduleId' but client sends 'module']
-
-Droid: 💻 Fixing bug directly...
-       [Updates Zod schema to accept 'module' and transform to 'moduleId']
-       [Adds input transformation layer]
-
-Droid: 🧪 Invoking @devhub-testing for regression test...
-       [Testing creates test case for this exact scenario]
-       [Adds E2E test to prevent regression]
-
-Droid: ✅ Bug fixed!
-       - Root cause: Schema mismatch between client and API
-       - Solution: Added transformation layer
-       - Test: Regression test added
-       - Verified: All existing tests still pass
-```
-
-### Database Schema Change Flow
-
-```
-User: "Add comments feature to issues"
-
-Droid: ✅ Session initialized - Reading context...
-
-Droid: 🔍 Invoking @devhub-architect for feature design...
-       [Architect designs Comment model with Issue relation]
-       [Designs API endpoints: GET, POST, PATCH, DELETE /api/comments]
-
-Droid: 🗄️ Invoking @prisma-expert for schema design...
-       [Prisma expert creates Comment model]
-       [Designs one-to-many Issue → Comments relation]
-       [Adds indexes for performance]
-       [Creates migration strategy]
-
-Droid: 📋 Presenting migration plan for approval...
-       [Uses ExitSpecMode to show migration]
-       [Shows SQL changes, rollback strategy]
-
-User: [Approves migration]
-
-Droid: 💻 Applying migration...
-       [Creates Prisma migration]
-       [Runs migration on Mac mini database]
-       [Verifies schema changes]
-
-Droid: 💻 Invoking @devhub-fullstack for API + UI...
-       [Implements comment API endpoints]
-       [Creates CommentList and CommentForm components]
-
-Droid: 🧪 Invoking @devhub-testing for tests...
-       [Tests all CRUD operations]
-       [Tests relation loading]
-       [Tests edge cases (empty comments, long text, etc.)]
-
-Droid: 📊 Invoking @map-system to update docs...
-       [Updates .agent/system/database-schema.md]
-       [Updates .agent/system/api-catalog.md]
-
-Droid: ✅ Comments feature complete!
-       - Database: Comment model added with Issue relation
-       - API: Full CRUD for comments
-       - UI: CommentList + CommentForm components
-       - Tests: 88% coverage
-       - Docs: System docs updated
-```
-
-### MCP Tool Creation Flow
-
-```
-User: "Create MCP tool for searching issues by text"
-
-Droid: ✅ Session initialized - Reading context...
-
-Droid: 🔌 Invoking @devhub-mcp-specialist for tool design...
-       [MCP specialist designs tool structure]
-       [Defines input schema, output schema]
-       [Designs integration with Next.js API]
-
-Droid: 🔍 Invoking @analyze-architecture for API requirements...
-       [Traces how search should work]
-       [Identifies need for full-text search]
-
-Droid: 🗄️ Invoking @prisma-expert for search implementation...
-       [Prisma expert adds tsvector column]
-       [Creates indexes for full-text search]
-       [Designs efficient search query]
-
-Droid: 💻 Invoking @devhub-fullstack for implementation...
-       [Creates search API endpoint]
-       [Implements MCP tool calling the API]
-       [Adds error handling and validation]
-
-Droid: 🧪 Invoking @devhub-testing for MCP tool tests...
-       [Tests tool with various queries]
-       [Tests error handling]
-       [Tests performance with large datasets]
-
-Droid: ✅ MCP tool complete!
-       - Tool: search_issues(query: string, limit?: number)
-       - API: GET /api/search?q=query&limit=10
-       - Database: Full-text search with tsvector
-       - Tests: All scenarios covered
-```
+**Note**: You no longer need to manually update `.agent/progress.md` or `.agent/active-context.md`. The `session_end` tool auto-syncs these memory banks.
 
 ---
 
@@ -930,12 +791,11 @@ Droid: ✅ MCP tool complete!
 
 ```markdown
 Before starting work:
-- [ ] Mac mini health OK: curl http://192.168.1.15:3000/api/health
-- [ ] Application loads: http://192.168.1.15:3000
+- [ ] Health OK: curl http://localhost:3000/api/health returns healthy
+- [ ] Docker services running: docker compose -f docker-compose.cloud.yml ps
 - [ ] On feature branch (not master)
-- [ ] Read .agent/active-context.md for current work
-- [ ] Read .agent/progress.md for phase status
-- [ ] Read docs/13-Project-Plan.md for requirements
+- [ ] Called projectpulse_context_load(projectId: 6) to load memory banks
+- [ ] Resumed PAUSED session OR started new session
 ```
 
 ### Common Tasks → Droid Routing
@@ -955,37 +815,11 @@ Before starting work:
 | **"Update documentation"** | @synthesize-docs + @map-system |
 | **"Bulk file changes"** | @file-editor |
 
-### File Locations
-
-```
-Documentation:
-├── docs/                        # Main documentation
-│   ├── 13-Project-Plan.md       # Implementation roadmap
-│   ├── 03-Architecture.md       # System architecture
-│   └── README.md                # Docs index
-
-Agent Context:
-├── .agent/
-│   ├── active-context.md        # Current work
-│   ├── progress.md              # Phase progress
-│   ├── system-patterns.md       # How we build
-│   ├── sops/                    # Procedures
-│   ├── system/                  # System docs
-│   └── task/                    # Session tracking
-│       ├── current-session-*.md # Active session
-│       ├── current-plan.md      # Current plan
-│       └── current-todos.md     # Task list
-
-Droids:
-├── .factory/
-│   └── droids/                  # 14 custom droids
-```
-
 ### Common Commands
 
 ```bash
-# Mac mini health check
-curl http://192.168.1.15:3000/api/health
+# Health check
+curl http://localhost:3000/api/health
 
 # Docker services
 docker compose -f docker-compose.cloud.yml ps
@@ -1012,80 +846,19 @@ pnpm prisma generate            # Generate client
 
 ---
 
-## 🔄 Differences from CLAUDE.md
+## Key Documentation
 
-This section explicitly documents what's different between Factory Droid and Claude Code workflows.
+**Product Feature Docs** (for end users):
+- [Database Schema](docs/features/database-schema.md) - Prisma models
+- [API Reference](docs/features/api-reference.md) - All endpoints
+- [MCP Tools Guide](docs/features/mcp-tools-guide.md) - MCP tool usage
 
-### Tools & Features
+**Internal Dev References** (for agents building ProjectPulse):
+- [Component Patterns](.agent/system/component-patterns.md) - React conventions
 
-| Feature | Claude Code | Factory Droid |
-|---|---|---|
-| **Planning tool** | ExitPlanMode | ✅ **ExitSpecMode** |
-| **Task tracking** | File-only todos | ✅ **TodoWrite** (real-time UI) |
-| **Orchestrator** | Python devhub_orchestrator.py | ❌ Not available |
-| **Memory MCP** | Long-term knowledge retention | ❌ Not available (use session files) |
-| **Slash commands** | /update-doc | ❌ Not available (explicit requests) |
-| **Droid invocation** | Sub-agent system | ✅ **Custom droids via @mention** |
-
-### Workflow Differences
-
-**Claude Code Workflow:**
-```
-1. Start Python orchestrator
-2. Orchestrator routes to appropriate sub-agent
-3. Sub-agent creates plan
-4. Use ExitPlanMode for approval
-5. Sub-agent implements
-6. Continue to next sub-agent
-7. Update Memory MCP for long-term retention
-```
-
-**Factory Droid Workflow:**
-```
-1. Natural language request
-2. I automatically invoke appropriate droids
-3. Droids create reports in .agent/task/
-4. I read reports and implement
-5. Use ExitSpecMode for complex plans
-6. Update session files for context persistence
-7. Invoke documentation droids when needed
-```
-
-### Context Management
-
-**Claude Code:**
-- Uses Memory MCP for long-term knowledge
-- Python orchestrator maintains session state
-- Automatic context compaction
-
-**Factory Droid:**
-- Uses `.agent/task/` session files
-- Manual save at 15K token checkpoints
-- Session files survive context loss
-
-### Documentation Updates
-
-**Claude Code:**
-```bash
-/update-doc after-feature     # Slash command
-```
-
-**Factory Droid:**
-```
-User: "Update documentation after this feature"
-Droid: [Invokes @synthesize-docs and @map-system]
-```
-
-### Key Similarities (Unchanged)
-
-✅ All 8 Golden Rules
-✅ Quality gates (build, test, security, architecture)
-✅ Technical standards (TypeScript, Prisma, React patterns)
-✅ Mac mini Docker architecture
-✅ Git workflow
-✅ Pre-work checklist
-✅ Documentation structure (.agent/ and docs/)
-✅ Session file patterns
+**Procedures (SOPs)**:
+- [Port Troubleshooting](.agent/sops/port-troubleshooting.md) - Fix port issues
+- [Git Workflow](.agent/sops/git-workflow.md) - Branch management
 
 ---
 
@@ -1093,55 +866,30 @@ Droid: [Invokes @synthesize-docs and @map-system]
 
 ### Documentation Hierarchy
 
-1. **This file (DROID.md)** - Factory Droid workflows and droid invocation
-2. **AGENTS.md** - Core principles and quality standards
-3. **CLAUDE.md** - Original workflows (reference only)
+1. **CLAUDE.md** - Primary workflow reference (MCP-based)
+2. **This file (DROID.md)** - Factory Droid-specific features
+3. **AGENTS.md** - Core principles and quality standards
 4. **docs/README.md** - Complete documentation index
 5. **docs/13-Project-Plan.md** - Implementation roadmap
 6. **.agent/README.md** - Agent context documentation
 
 ### When Something Goes Wrong
 
-**Issue:** "Droid isn't invoking specialists"
-→ Check if task requires expertise (trivial tasks done directly)
-→ Request explicitly: "Invoke @devhub-architect for design"
-
 **Issue:** "Context lost after long session"
-→ Read `.agent/task/current-session-[latest].md`
-→ Read `.agent/task/current-todos.md`
-→ Resume from last checkpoint
+→ Call `projectpulse_context_load(projectId: 6)`
+→ Check for PAUSED sessions to resume
 
 **Issue:** "Quality gates failing"
 → Check specific gate output (lint, type-check, test, build)
 → Invoke `@devhub-auditor` for comprehensive review
-→ Fix issues systematically
 
-**Issue:** "Mac mini services down"
+**Issue:** "Services down"
 → Check pre-work checklist (curl health endpoint)
 → Start services: `docker compose -f docker-compose.cloud.yml up -d`
 
 **Issue:** "Don't know which droid to use"
 → Describe task in natural language, I'll route automatically
 → Check "Common Tasks → Droid Routing" table above
-
-### Key References
-
-**Architecture & Design:**
-- `docs/03-Architecture.md` - System architecture
-- `.agent/system-patterns.md` - Implementation patterns
-
-**Database:**
-- `docs/02-DATABASE-SCHEMA.md` - Schema reference
-- `.agent/system/database-schema.md` - Current schema state
-
-**API:**
-- `docs/06-API/openapi.yaml` - API specification
-- `.agent/system/api-catalog.md` - Endpoint catalog
-
-**Procedures:**
-- `.agent/sops/` - All standard operating procedures
-- `.agent/sops/git-workflow.md` - Git conventions
-- `.agent/sops/mac-mini-cloud-architecture.md` - Infrastructure setup
 
 ---
 
@@ -1157,7 +905,7 @@ Development is successful when:
 - [ ] All input validated with Zod schemas
 
 **Security:**
-- [ ] No SQL injection vulnerabilities (parameterized queries only)
+- [ ] No SQL injection vulnerabilities
 - [ ] No XSS vulnerabilities
 - [ ] No exposed secrets
 - [ ] Authentication/authorization checked
@@ -1165,41 +913,25 @@ Development is successful when:
 **Architecture:**
 - [ ] Follows patterns in docs/03-Architecture.md
 - [ ] Data-driven (no hardcoded values)
-- [ ] Proper module placement
 - [ ] Server Components by default
 
 **Testing:**
 - [ ] Unit tests for business logic
 - [ ] Integration tests for API endpoints
-- [ ] E2E tests for critical flows
 - [ ] All edge cases covered
 
 **Documentation:**
-- [ ] .agent/active-context.md updated
-- [ ] .agent/progress.md updated
-- [ ] docs/13-Project-Plan.md updated
+- [ ] MCP session ended (auto-syncs memory banks)
+- [ ] Tickets closed via MCP
 - [ ] New patterns documented (if applicable)
 
 **Git:**
 - [ ] Small, focused commits
 - [ ] Descriptive commit messages
 - [ ] Documentation committed first
-- [ ] Code committed after docs
-
-**Accessibility:**
-- [ ] Semantic HTML used
-- [ ] ARIA labels where needed
-- [ ] Keyboard navigation works
-- [ ] WCAG 2.1 AA compliance
-
-**Performance:**
-- [ ] Database queries optimized (indexes, efficient queries)
-- [ ] No N+1 query problems
-- [ ] Server Components used where possible
-- [ ] Build time acceptable
 
 ---
 
-**Remember:** I'm here to help you build high-quality software efficiently. I'll automatically invoke specialist droids when needed, manage the full workflow, and ensure all quality standards are met.
+**Remember:** I'm here to help you build high-quality software efficiently. I'll automatically invoke specialist droids when needed, manage the full MCP workflow, and ensure all quality standards are met.
 
-**Just describe what you want to build - I'll handle the rest!** 🚀
+**Just describe what you want to build - I'll handle the rest!**
