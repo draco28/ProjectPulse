@@ -48,9 +48,9 @@ jobs:
     name: Unit & Integration Tests
     runs-on: ubuntu-latest
     services:
-      # PostgreSQL service runs automatically in GitHub Actions
+      # PostgreSQL with pgvector extension for vector embeddings
       postgres:
-        image: postgres:15
+        image: pgvector/pgvector:pg15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres123
@@ -116,8 +116,9 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     services:
+      # PostgreSQL with pgvector extension for vector embeddings
       postgres:
-        image: postgres:15
+        image: pgvector/pgvector:pg15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres123
