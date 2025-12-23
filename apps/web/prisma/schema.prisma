@@ -637,6 +637,9 @@ model KnowledgeItem {
   // Links to skills (US-104: Sprint 6)
   linkedSkills SkillKnowledgeLink[]
 
+  // Ticket #59: Metadata for traceability matrices and other knowledge context
+  metadata   Json?    @db.JsonB
+
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   archivedAt DateTime? // Soft delete - archived items hidden from search by default
