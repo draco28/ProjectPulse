@@ -163,9 +163,7 @@ export async function getFilterCounts(projectId?: number) {
 
   // Sprint 14: projectId-only filter for kind counts (all kinds, not just issues)
   // Sprint 14: Add parentTicketId: null to only count top-level tickets (Ticket #55)
-  const projectFilter = projectId
-    ? { projectId, parentTicketId: null }
-    : { parentTicketId: null };
+  const projectFilter = projectId ? { projectId, parentTicketId: null } : { parentTicketId: null };
 
   // Build count queries for all filter values
   const countQueries = [

@@ -410,7 +410,7 @@ export async function GET(request: Request) {
       0
     );
     // Estimate sessions + resources at ~500 tokens per session
-    const totalTokens = bankTokens + (activeSessionsData.length * 500) + 100;
+    const totalTokens = bankTokens + activeSessionsData.length * 500 + 100;
 
     // 8. Build response (Sprint 14: activeSessions array for multi-instance)
     const response: ContextLoadResponse = {

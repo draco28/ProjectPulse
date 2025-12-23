@@ -75,7 +75,10 @@ export function ChildTicketsSection({
   const progressPercent = Math.round((completedCount / childTickets.length) * 100);
 
   return (
-    <div className="neu-raised smooth-transition rounded-3xl p-6" data-testid="child-tickets-section">
+    <div
+      className="neu-raised smooth-transition rounded-3xl p-6"
+      data-testid="child-tickets-section"
+    >
       {/* Header with progress */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -133,10 +136,7 @@ export function ChildTicketsSection({
 
               {/* Title */}
               <span
-                className={cn(
-                  'flex-1 truncate text-sm text-white',
-                  isClosed && 'line-through'
-                )}
+                className={cn('flex-1 truncate text-sm text-white', isClosed && 'line-through')}
               >
                 {child.title}
               </span>
@@ -147,9 +147,7 @@ export function ChildTicketsSection({
               </span>
 
               {/* Assignee */}
-              {child.assignee && (
-                <span className="text-xs text-slate">{child.assignee}</span>
-              )}
+              {child.assignee && <span className="text-xs text-slate">{child.assignee}</span>}
 
               {/* Arrow */}
               <ChevronRight className="h-4 w-4 text-slate opacity-0 transition-opacity group-hover:opacity-100" />

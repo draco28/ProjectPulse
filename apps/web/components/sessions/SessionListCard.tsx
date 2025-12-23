@@ -88,7 +88,9 @@ export function SessionListCard({ session, projectId }: SessionListCardProps) {
     session.todosTotal > 0 ? Math.round((session.todosCompleted / session.todosTotal) * 100) : 0;
 
   // Get first 150 chars of plan for preview
-  const planPreview = session.plan ? session.plan.slice(0, 150) + (session.plan.length > 150 ? '...' : '') : null;
+  const planPreview = session.plan
+    ? session.plan.slice(0, 150) + (session.plan.length > 150 ? '...' : '')
+    : null;
 
   return (
     <div className="neu-raised smooth-transition rounded-3xl p-6">
@@ -150,7 +152,7 @@ export function SessionListCard({ session, projectId }: SessionListCardProps) {
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-coral to-coralLight transition-all"
+              className="to-coralLight h-full rounded-full bg-gradient-to-r from-coral transition-all"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -161,17 +163,12 @@ export function SessionListCard({ session, projectId }: SessionListCardProps) {
       {session.activeTicketIds.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {session.activeTicketIds.slice(0, 5).map((ticketId) => (
-            <span
-              key={ticketId}
-              className="rounded-lg bg-white/5 px-2 py-1 text-xs text-slate"
-            >
+            <span key={ticketId} className="rounded-lg bg-white/5 px-2 py-1 text-xs text-slate">
               #{ticketId}
             </span>
           ))}
           {session.activeTicketIds.length > 5 && (
-            <span className="text-xs text-slate">
-              +{session.activeTicketIds.length - 5} more
-            </span>
+            <span className="text-xs text-slate">+{session.activeTicketIds.length - 5} more</span>
           )}
         </div>
       )}
@@ -181,13 +178,9 @@ export function SessionListCard({ session, projectId }: SessionListCardProps) {
         <div className="mt-4">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="smooth-transition flex w-full items-center gap-2 text-left text-sm font-medium text-coral hover:text-coralLight"
+            className="smooth-transition hover:text-coralLight flex w-full items-center gap-2 text-left text-sm font-medium text-coral"
           >
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
+            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             {isExpanded ? 'Hide Plan' : 'Show Plan'}
           </button>
 

@@ -138,13 +138,11 @@ function TicketCard({
   onToggleExpand,
   childrenCount = 0,
 }: TicketCardProps) {
-  const priorityInfo =
-    PRIORITY_CONFIG[ticket.priority as Priority] || PRIORITY_CONFIG.low;
-  const statusInfo =
-    STATUS_CONFIG[ticket.status as Status] || {
-      label: ticket.status,
-      className: 'neu-pressed text-slate',
-    };
+  const priorityInfo = PRIORITY_CONFIG[ticket.priority as Priority] || PRIORITY_CONFIG.low;
+  const statusInfo = STATUS_CONFIG[ticket.status as Status] || {
+    label: ticket.status,
+    className: 'neu-pressed text-slate',
+  };
   const isClosed = ticket.status === 'closed';
   const timeAgo = formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true });
 
@@ -162,7 +160,7 @@ function TicketCard({
         {hasChildren ? (
           <button
             onClick={onToggleExpand}
-            className="mt-1 flex-shrink-0 text-slate hover:text-coral transition-colors"
+            className="mt-1 flex-shrink-0 text-slate transition-colors hover:text-coral"
             aria-label={isExpanded ? 'Collapse children' : 'Expand children'}
             aria-expanded={isExpanded}
           >
@@ -182,10 +180,12 @@ function TicketCard({
           <div className="mb-3 flex items-start justify-between">
             <div className="flex flex-wrap items-center gap-2">
               {/* Display ID (hierarchical for children) */}
-              <span className={cn(
-                'font-mono text-sm font-semibold',
-                isChild ? 'text-coral' : 'text-slate'
-              )}>
+              <span
+                className={cn(
+                  'font-mono text-sm font-semibold',
+                  isChild ? 'text-coral' : 'text-slate'
+                )}
+              >
                 #{displayId}
               </span>
 

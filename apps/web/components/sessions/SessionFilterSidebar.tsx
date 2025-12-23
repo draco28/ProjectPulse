@@ -83,9 +83,7 @@ export function SessionFilterSidebar({ counts, projectId }: SessionFilterSidebar
               onClick={() => handleFilterChange(option.value)}
               className={cn(
                 'smooth-transition flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left',
-                isActive
-                  ? 'bg-coral/20 text-white'
-                  : 'text-slate hover:bg-white/5 hover:text-white'
+                isActive ? 'bg-coral/20 text-white' : 'text-slate hover:bg-white/5 hover:text-white'
               )}
             >
               <Icon className={cn('h-4 w-4', option.color)} />

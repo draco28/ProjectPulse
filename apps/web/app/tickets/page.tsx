@@ -13,7 +13,10 @@ import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
 import { TicketsPageClient } from '@/components/tickets/TicketsPageClient';
 import { SearchSortBar } from '@/components/tickets/SearchSortBar';
-import { TicketHierarchyList, type HierarchyTicket } from '@/components/tickets/TicketHierarchyList';
+import {
+  TicketHierarchyList,
+  type HierarchyTicket,
+} from '@/components/tickets/TicketHierarchyList';
 import { Pagination } from '@/components/tickets/Pagination';
 import { prisma } from '@/lib/prisma';
 import { getFilterOptions, getFilterCounts as getFilterCountsFromLib } from '@/lib/filters';

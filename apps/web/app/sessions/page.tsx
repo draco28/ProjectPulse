@@ -191,7 +191,10 @@ export default async function SessionsPage({
                         : 'Sessions will appear here when Claude Code starts working'}
                     </p>
                     <p className="mt-4 text-xs text-slate">
-                      Use <code className="rounded bg-white/10 px-1 py-0.5">projectpulse_agent_session_start</code>{' '}
+                      Use{' '}
+                      <code className="rounded bg-white/10 px-1 py-0.5">
+                        projectpulse_agent_session_start
+                      </code>{' '}
                       in Claude Code to begin a session
                     </p>
                   </div>
