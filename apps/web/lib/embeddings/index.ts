@@ -22,6 +22,62 @@ import {
   OpenAIEmbeddingError,
 } from './openai';
 
+// =============================================================================
+// Retry Logic for Ollama Cold Start (Ticket #56)
+// =============================================================================
+// When Ollama is idle, the first request often fails with EOF/500 error.
+// Retrying after 2-3 seconds typically succeeds once Ollama "wakes up".
+
+const RETRY_CONFIG = {
+  maxRetries: 2,
+  baseDelayMs: 2000, // Start with 2s delay (Ollama needs ~2-3s to wake)
+  maxDelayMs: 5000, // Cap at 5s
+};
+
+/**
+ * Generic retry wrapper with exponential backoff
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  isRetryable: (error: unknown) => boolean,
+  config = RETRY_CONFIG
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < config.maxRetries && isRetryable(error)) {
+        const delay = Math.min(config.baseDelayMs * Math.pow(2, attempt), config.maxDelayMs);
+        console.log(`[Embedding] Retry ${attempt + 1}/${config.maxRetries} after ${delay}ms`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
+}
+
+/**
+ * Detect Ollama cold start errors (EOF, connection reset, 500 status)
+ */
+function isOllamaColdStartError(error: unknown): boolean {
+  if (error instanceof OllamaEmbeddingError) {
+    const message = error.message.toLowerCase();
+    return (
+      message.includes('eof') ||
+      message.includes('econnreset') ||
+      message.includes('econnrefused') ||
+      error.statusCode === 500
+    );
+  }
+  return false;
+}
+
 export type EmbeddingProvider = 'ollama' | 'openai' | 'auto';
 
 export interface EmbeddingServiceOptions {
@@ -81,13 +137,13 @@ export async function generateEmbedding(
 
   const startTime = Date.now();
 
-  // Force Ollama
+  // Force Ollama (with retry for cold start)
   if (provider === 'ollama') {
     try {
-      const embedding = await generateOllamaEmbedding(text, {
-        baseUrl: ollamaBaseUrl,
-        timeout,
-      });
+      const embedding = await withRetry(
+        () => generateOllamaEmbedding(text, { baseUrl: ollamaBaseUrl, timeout }),
+        isOllamaColdStartError
+      );
       return {
         embedding,
         provider: 'ollama',
@@ -123,12 +179,12 @@ export async function generateEmbedding(
     }
   }
 
-  // Auto: Try Ollama first, fallback to OpenAI
+  // Auto: Try Ollama first (with retry for cold start), fallback to OpenAI
   try {
-    const embedding = await generateOllamaEmbedding(text, {
-      baseUrl: ollamaBaseUrl,
-      timeout,
-    });
+    const embedding = await withRetry(
+      () => generateOllamaEmbedding(text, { baseUrl: ollamaBaseUrl, timeout }),
+      isOllamaColdStartError
+    );
     return {
       embedding,
       provider: 'ollama',
@@ -200,13 +256,13 @@ export async function generateBatchEmbeddings(
 
   const startTime = Date.now();
 
-  // Force Ollama
+  // Force Ollama (with retry for cold start)
   if (provider === 'ollama') {
     try {
-      const embeddings = await generateOllamaBatchEmbeddings(texts, {
-        baseUrl: ollamaBaseUrl,
-        timeout,
-      });
+      const embeddings = await withRetry(
+        () => generateOllamaBatchEmbeddings(texts, { baseUrl: ollamaBaseUrl, timeout }),
+        isOllamaColdStartError
+      );
       return {
         embeddings,
         provider: 'ollama',
@@ -242,12 +298,12 @@ export async function generateBatchEmbeddings(
     }
   }
 
-  // Auto: Try Ollama first, fallback to OpenAI
+  // Auto: Try Ollama first (with retry for cold start), fallback to OpenAI
   try {
-    const embeddings = await generateOllamaBatchEmbeddings(texts, {
-      baseUrl: ollamaBaseUrl,
-      timeout,
-    });
+    const embeddings = await withRetry(
+      () => generateOllamaBatchEmbeddings(texts, { baseUrl: ollamaBaseUrl, timeout }),
+      isOllamaColdStartError
+    );
     return {
       embeddings,
       provider: 'ollama',
