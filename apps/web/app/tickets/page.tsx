@@ -43,6 +43,7 @@ interface SearchParams {
 
 type WhereClause = {
   projectId: number;
+  parentTicketId?: number | null; // Sprint 14: Filter for top-level tickets only
   kind?: { in: string[] };
   status?: { in: string[] };
   priority?: { in: string[] };
