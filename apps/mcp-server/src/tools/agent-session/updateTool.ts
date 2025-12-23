@@ -23,6 +23,7 @@ const agentSessionUpdateSchema = z.object({
   plan: z.string().optional(),
   todos: z.array(todoItemSchema).optional(),
   progress: z.string().optional(),
+  appendProgress: z.boolean().optional(), // Ticket #31: Append to existing progress
   activeTicketIds: z.array(z.number().int().positive()).optional(),
   status: z.enum(['IN_PROGRESS', 'PAUSED']).optional(),
 });
@@ -166,7 +167,11 @@ your session stays independent from other instances.`,
       },
       progress: {
         type: 'string',
-        description: 'Progress notes (appended to existing progress)',
+        description: 'Progress notes (use appendProgress: true to append instead of replace)',
+      },
+      appendProgress: {
+        type: 'boolean',
+        description: 'If true, append progress to existing notes instead of replacing (default: false)',
       },
       activeTicketIds: {
         type: 'array',

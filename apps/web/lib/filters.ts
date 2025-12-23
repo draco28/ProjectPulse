@@ -152,45 +152,40 @@ export async function getFilterCounts(projectId?: number) {
   // Fetch all options first (uses cache from getFilterOptions)
   const options = await getFilterOptions(projectId);
 
-  // Sprint 10: Use ticket model with kind filter for backwards compatibility
-  // Sprint 14: Add projectId to base filter to fix data bleeding bug (Ticket #19)
-  // Sprint 14: Add parentTicketId: null to only count top-level tickets (Ticket #55)
-  const baseFilter = {
-    ...(projectId && { projectId }),
-    kind: { in: ['issue', 'bug', 'scanner_finding'] },
-    parentTicketId: null,
-  };
-
-  // Sprint 14: projectId-only filter for kind counts (all kinds, not just issues)
+  // Sprint 14 (Ticket #28 fix): Use projectFilter for ALL counts
+  // Previously used kind-restricted baseFilter for status/priority/module, but these
+  // are universal attributes that apply to all ticket kinds (feature, task, bug, etc.)
   // Sprint 14: Add parentTicketId: null to only count top-level tickets (Ticket #55)
   const projectFilter = projectId ? { projectId, parentTicketId: null } : { parentTicketId: null };
 
   // Build count queries for all filter values
+  // Sprint 14 (Ticket #28 fix): Use projectFilter for ALL counts, not baseFilter
+  // Status/priority/module are universal attributes that apply to all ticket kinds
   const countQueries = [
-    // Status counts
+    // Status counts (Ticket #28: use projectFilter instead of baseFilter)
     ...options.status.map((opt) =>
       prisma.ticket
-        .count({ where: { ...baseFilter, status: opt.value } })
+        .count({ where: { ...projectFilter, status: opt.value } })
         .then((count) => ({ type: 'status', value: opt.value, count }))
     ),
-    // Priority counts
+    // Priority counts (Ticket #28: use projectFilter instead of baseFilter)
     ...options.priority.map((opt) =>
       prisma.ticket
-        .count({ where: { ...baseFilter, priority: opt.value } })
+        .count({ where: { ...projectFilter, priority: opt.value } })
         .then((count) => ({ type: 'priority', value: opt.value, count }))
     ),
-    // Module counts
+    // Module counts (Ticket #28: use projectFilter instead of baseFilter)
     ...options.modules.map((opt) =>
       prisma.ticket
-        .count({ where: { ...baseFilter, module: opt.value } })
+        .count({ where: { ...projectFilter, module: opt.value } })
         .then((count) => ({ type: 'module', value: opt.value, count }))
     ),
-    // Sprint 11.7: Label counts
+    // Sprint 11.7: Label counts (Ticket #28: use projectFilter instead of baseFilter)
     ...options.labels.map((label) =>
       prisma.ticket
         .count({
           where: {
-            ...baseFilter,
+            ...projectFilter,
             labels: { some: { id: label.id } },
           },
         })

@@ -25,13 +25,13 @@ import { test, expect } from '@playwright/test';
 test.describe('Tickets Advanced Filtering', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to tickets list page before each test
-    await page.goto('/tickets?project=3');
+    await page.goto('/tickets?project=2');
     await page.waitForSelector('[data-testid="ticket-card"]', { timeout: 10000 });
   });
 
   test('should allow selecting multiple kind filters simultaneously', async ({ page }) => {
     // Navigate with first filter
-    await page.goto('/tickets?project=3&kind=feature');
+    await page.goto('/tickets?project=2&kind=feature');
     await page.waitForTimeout(500);
 
     // Verify URL includes first filter
@@ -39,7 +39,7 @@ test.describe('Tickets Advanced Filtering', () => {
     console.log('✓ First kind filter applied: feature');
 
     // For multi-select, we would navigate to multi-filter URL
-    await page.goto('/tickets?project=3&kind=feature&kind=bug');
+    await page.goto('/tickets?project=2&kind=feature&kind=bug');
     await page.waitForTimeout(500);
 
     // Verify URL includes both filters (if supported)
@@ -56,7 +56,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should combine kind + status + priority filters with AND logic', async ({ page }) => {
     // Navigate with combined filters via URL
-    await page.goto('/tickets?project=3&kind=issue&status=open&priority=high');
+    await page.goto('/tickets?project=2&kind=issue&status=open&priority=high');
     await page.waitForTimeout(500);
 
     // Verify all filters are in URL
@@ -86,7 +86,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should persist filters in URL query params', async ({ page }) => {
     // Navigate with filters
-    const urlWithFilters = '/tickets?project=3&kind=feature';
+    const urlWithFilters = '/tickets?project=2&kind=feature';
     await page.goto(urlWithFilters);
     await page.waitForTimeout(500);
     console.log(`✓ URL with filters: ${urlWithFilters}`);
@@ -106,7 +106,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should display filter count indicator when filters are active', async ({ page }) => {
     // Apply filter via URL
-    await page.goto('/tickets?project=3&kind=feature');
+    await page.goto('/tickets?project=2&kind=feature');
     await page.waitForTimeout(500);
 
     // Look for filter count indicator
@@ -126,7 +126,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should provide clear all filters button', async ({ page }) => {
     // Apply a filter first via URL
-    await page.goto('/tickets?project=3&kind=feature');
+    await page.goto('/tickets?project=2&kind=feature');
     await page.waitForTimeout(500);
 
     // Look for clear filters button
@@ -160,7 +160,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should allow filtering by multiple statuses (open + in_progress)', async ({ page }) => {
     // Navigate with multiple statuses via URL
-    await page.goto('/tickets?project=3&status=open&status=in-progress');
+    await page.goto('/tickets?project=2&status=open&status=in-progress');
     await page.waitForTimeout(500);
 
     // Verify both statuses in URL
@@ -264,7 +264,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should combine search with filters', async ({ page }) => {
     // Navigate with filter and search
-    await page.goto('/tickets?project=3&kind=feature&search=api');
+    await page.goto('/tickets?project=2&kind=feature&search=api');
     await page.waitForTimeout(500);
 
     // Verify URL has both filter and search
@@ -293,7 +293,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should maintain filter state when navigating to detail and back', async ({ page }) => {
     // Navigate with filter
-    const urlWithFilter = '/tickets?project=3&kind=feature';
+    const urlWithFilter = '/tickets?project=2&kind=feature';
     await page.goto(urlWithFilter);
     await page.waitForSelector('[data-testid="ticket-card"]', { timeout: 10000 });
     console.log(`✓ Applied filter, URL: ${page.url()}`);
@@ -320,7 +320,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should show empty state message with active filters when no results', async ({ page }) => {
     // Apply unlikely combination of filters that should return no results
-    await page.goto('/tickets?project=3&kind=bug&search=xyzabc123nonexistent99999');
+    await page.goto('/tickets?project=2&kind=bug&search=xyzabc123nonexistent99999');
     await page.waitForTimeout(1000);
 
     // Look for empty state or no cards
@@ -344,7 +344,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should allow resetting individual filters', async ({ page }) => {
     // Apply multiple filters via URL
-    await page.goto('/tickets?project=3&kind=feature&kind=bug');
+    await page.goto('/tickets?project=2&kind=feature&kind=bug');
     await page.waitForTimeout(500);
 
     // Look for individual filter remove buttons (X icons)
@@ -367,7 +367,7 @@ test.describe('Tickets Advanced Filtering', () => {
       }
     } else {
       // Alternative: Navigate to URL without one filter
-      await page.goto('/tickets?project=3&kind=bug');
+      await page.goto('/tickets?project=2&kind=bug');
       await page.waitForTimeout(500);
 
       const url = page.url();
@@ -410,7 +410,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
   test('should display active filters as removable badges/chips', async ({ page }) => {
     // Apply filter via URL
-    await page.goto('/tickets?project=3&kind=feature');
+    await page.goto('/tickets?project=2&kind=feature');
     await page.waitForTimeout(500);
 
     // Look for active filter badges
@@ -441,12 +441,12 @@ test.describe('Tickets Advanced Filtering', () => {
   // Skip: Browser back/forward causes timeout issues in CI
   test.skip('should persist filter state in browser history', async ({ page }) => {
     // Apply first filter
-    await page.goto('/tickets?project=3&kind=feature');
+    await page.goto('/tickets?project=2&kind=feature');
     await page.waitForTimeout(500);
     const firstFilterUrl = page.url();
 
     // Apply second filter (navigate to new URL)
-    await page.goto('/tickets?project=3&kind=feature&kind=bug');
+    await page.goto('/tickets?project=2&kind=feature&kind=bug');
     await page.waitForTimeout(500);
     const secondFilterUrl = page.url();
 

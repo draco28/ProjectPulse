@@ -125,7 +125,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Agent session not found' }, { status: 404 });
     }
 
-    const { name, plan, todos, progress, activeTicketIds, status } = validation.data;
+    const { name, plan, todos, progress, appendProgress, activeTicketIds, status } = validation.data;
 
     // Build update data - using Prisma InputJsonValue for JSON fields
     const updateData: Record<string, unknown> = {};
@@ -133,7 +133,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (name !== undefined) updateData.name = name;
     if (plan !== undefined) updateData.plan = plan;
     if (todos !== undefined) updateData.todos = todos;
-    if (progress !== undefined) updateData.progress = progress;
+    // Sprint 14 (Ticket #31): Support append mode for progress
+    if (progress !== undefined) {
+      if (appendProgress && existing.progress) {
+        // Append new progress to existing with separator
+        updateData.progress = `${existing.progress}\n\n${progress}`;
+      } else {
+        // Replace mode (default)
+        updateData.progress = progress;
+      }
+    }
     if (activeTicketIds !== undefined) {
       updateData.activeTicketIds = activeTicketIds.map((id) => String(id));
     }

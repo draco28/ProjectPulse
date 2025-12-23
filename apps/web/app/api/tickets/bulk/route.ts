@@ -18,6 +18,7 @@ import { failure, success, resolveProjectId } from '../_utils';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
 import { deriveAutoTags } from '@/lib/issues/tagging';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
 import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
@@ -96,6 +97,18 @@ export async function POST(request: NextRequest) {
 
           // Sprint 12: linkedTaskId removed - tickets now schedule via scheduledWeekId
 
+          // Sprint 13: Validate parent ticket if provided (Ticket #39 fix)
+          // Note: Uses full prisma client (not tx) for validation reads - same pattern as regular create
+          if (ticketData.parentTicketId) {
+            await validateAndSetParent(
+              prisma,
+              null, // null ticketId for new ticket (no circular reference possible)
+              ticketData.parentTicketId,
+              projectId,
+              ticketData.kind ?? 'issue'
+            );
+          }
+
           // Create ticket
           const ticket = await tx.ticket.create({
             data: {
@@ -112,6 +125,12 @@ export async function POST(request: NextRequest) {
               assigneeId: ticketData.assigneeId,
               // Sprint 12: linkedTaskId removed - tickets schedule via scheduledWeekId
               customFields,
+              // Sprint 13: Hierarchy fields (Ticket #39 fix)
+              parentTicketId: ticketData.parentTicketId ?? null,
+              // Sprint 13: Traceability fields (Ticket #39 fix)
+              epicRef: ticketData.epicRef ?? null,
+              backlogRefs: ticketData.backlogRefs ?? [],
+              sprintNumber: ticketData.sprintNumber ?? null,
               labels:
                 labelIdSet.size > 0
                   ? { connect: Array.from(labelIdSet).map((id) => ({ id })) }
@@ -141,11 +160,20 @@ export async function POST(request: NextRequest) {
             },
           });
         } catch (ticketError) {
-          results.push({
-            success: false,
-            error: ticketError instanceof Error ? ticketError.message : 'Unknown error',
-            reference: ticketData.reference,
-          });
+          // Sprint 13: Handle hierarchy validation errors (Ticket #39 fix)
+          if (ticketError instanceof TicketHierarchyError) {
+            results.push({
+              success: false,
+              error: `Hierarchy error: ${ticketError.message}`,
+              reference: ticketData.reference,
+            });
+          } else {
+            results.push({
+              success: false,
+              error: ticketError instanceof Error ? ticketError.message : 'Unknown error',
+              reference: ticketData.reference,
+            });
+          }
         }
       }
     });
