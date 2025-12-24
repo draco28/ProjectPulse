@@ -3,6 +3,8 @@
  *
  * Sprint 9 Refactor: Optional write claude.md and agents.md to user repository
  * Sprint 11: Enhanced with dynamic persona/skill/SOP data from database
+ * Sprint 14: Comprehensive workflow templates with production URLs
+ *
  * Only writes if explicitly requested - keeps repos clean by default
  */
 
@@ -13,23 +15,34 @@ import { join } from 'path';
 import { prisma } from '@/lib/prisma';
 
 // ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+const DEFAULT_MCP_URL = 'https://projectpulsemcp.dracodev.dev/mcp';
+const DEFAULT_DASHBOARD_URL = 'https://projectpulse.dracodev.dev/';
+
+// ============================================================================
 // REQUEST VALIDATION
 // ============================================================================
 
 const requestSchema = z.object({
   projectId: z.number().int().positive(),
   repoPath: z.string().min(1).max(500),
+  mcpUrl: z.string().url().optional(),
+  dashboardUrl: z.string().url().optional(),
 });
 
 type WriteMinimalRequest = z.infer<typeof requestSchema>;
 
 // ============================================================================
-// TEMPLATE GENERATORS
+// TEMPLATE GENERATORS (Sprint 14 Enhanced)
 // ============================================================================
 
 interface ProjectData {
   projectId: number;
   projectName: string;
+  mcpUrl: string;
+  dashboardUrl: string;
   personas: Array<{
     name: string;
     slug: string;
@@ -47,85 +60,295 @@ function generateClaudeMd(data: ProjectData): string {
       ? data.personas
           .map(
             (p) =>
-              `- **${p.name}** (\`${p.slug}\`) ${p.icon || ''} - ${p.description || 'Expert agent'}`
+              `| ${p.name} | \`${p.slug}\` | ${p.expertise?.join(', ') || 'General'} |`
           )
           .join('\n')
-      : '- _No personas configured yet_';
+      : '| *(No personas configured yet)* | | |';
 
-  return `# CLAUDE.md - ProjectPulse AI Workflow
+  return `# ${data.projectName} - AI Workflow Guide
 
-**Project**: ${data.projectName}  
-**Project ID**: ${data.projectId}  
-**Generated**: ${new Date().toISOString()}
+**Project ID**: ${data.projectId}
+**MCP Server**: ${data.mcpUrl}
+**Dashboard**: ${data.dashboardUrl}
+
+---
 
 ## Quick Start
 
-This project uses ProjectPulse for AI-assisted development. Connect to the MCP server to access all workflows, personas, and tools.
+Just chat naturally with me (Claude Code / Windsurf / Droid):
 
-### MCP Connection
-
-\`\`\`json
-{
-  "mcpServers": {
-    "projectpulse": {
-      "url": "http://192.168.1.15:3001/mcp",
-      "transport": "streamable-http"
-    }
-  }
-}
+\`\`\`
+"Implement the user authentication feature"
+"Fix the bug in the search API"
+"Add tests for the payment module"
 \`\`\`
 
-## Available MCP Tools
+---
 
-### Personas & Skills
-- \`projectpulse_persona_list\` - List available expert personas
-- \`projectpulse_persona_get\` - Get persona with system prompt
-- \`projectpulse_skill_list\` - List available skills
-- \`projectpulse_skill_get\` - Load skill content on-demand
-- \`projectpulse_sop_list\` - List Standard Operating Procedures
-- \`projectpulse_sop_get\` - Get SOP with full procedure
+## CRITICAL: Start Every Session Here
 
-### Sprint & Tasks
-- \`projectpulse_sprint_getCurrentTask\` - See current work
-- \`projectpulse_sprint_updateProgress\` - Update task progress
-- \`projectpulse_sprint_queryHierarchy\` - Query phases/weeks/days
+### Step 1: Load Context
 
-### Workflows
-- \`projectpulse_workflow_list\` - List available workflows
-- \`projectpulse_workflow_start\` - Start a workflow
-- \`projectpulse_workflow_executeStep\` - Execute workflow step
+\`\`\`
+projectpulse_context_load(projectId: ${data.projectId})
+\`\`\`
 
-### Knowledge & Wiki
-- \`projectpulse_knowledge_search\` - Search knowledge base
-- \`projectpulse_wiki_search\` - Search wiki pages
+This returns:
+- All 5 memory banks (project brief, patterns, tech context, active focus, progress)
+- Active sessions (check if PAUSED work exists)
+- Available resources (personas, skills, SOPs)
+- Workflow hints
 
-### Tickets
-- \`projectpulse_ticket_create\` - Create feature/bug/task
-- \`projectpulse_ticket_search\` - Search tickets
+**If PAUSED session found:** Resume with \`projectpulse_agent_session_resume(sessionId)\`
+**If no session:** Start new with \`projectpulse_agent_session_start()\`
+
+---
+
+## Daily Workflow
+
+### Morning: Start Work
+
+\`\`\`
+Step 1: Load context
+─────────────────────
+projectpulse_context_load(projectId: ${data.projectId})
+→ Returns: memory banks, active sessions, available resources
+
+Step 2: Check roadmap position (if using roadmap)
+─────────────────────────────────────────────────
+projectpulse_sprint_getCurrentPosition(projectId: ${data.projectId})
+→ Returns: phase/sprint/week/day with progress
+
+Step 3: Find tickets for today
+──────────────────────────────
+projectpulse_ticket_search({
+  sprintNumber: 1,
+  status: ["open", "in-progress"]
+})
+→ Returns: Tickets assigned to current sprint
+
+Step 4: Start session with ticket(s)
+────────────────────────────────────
+projectpulse_agent_session_start({
+  projectId: ${data.projectId},
+  name: "Sprint 1 - Feature Implementation",
+  activeTicketIds: [42, 43],
+  plan: "## Today's Plan\\n1. Complete API endpoint\\n2. Write tests",
+  todos: [
+    {content: "Complete API endpoint", status: "pending"},
+    {content: "Write tests", status: "pending"}
+  ]
+})
+\`\`\`
+
+### During Work
+
+\`\`\`
+1. Claim ticket → ticket_update({ ticketId: 42, status: "in-progress" })
+2. Work on code → (your normal coding flow)
+3. Checkpoint every 15K tokens → agent_session_update({ progress: "..." })
+4. Add comments → ticket_addComment({ ticketId: 42, content: "Implemented X, Y, Z" })
+5. Close ticket → ticket_setStatus({ ticketId: 42, status: "closed" })
+\`\`\`
+
+### End of Day
+
+\`\`\`
+Step 5: Update roadmap progress (if using roadmap)
+──────────────────────────────────────────────────
+projectpulse_sprint_updateProgress({
+  entityType: "day",
+  entityId: "<day-uuid>",
+  progress: 75
+})
+→ Auto-propagates: Day → Week → Sprint → Phase
+
+Step 6: Pause or end session
+────────────────────────────
+# For breaks (lunch, EOD):
+projectpulse_agent_session_update({
+  sessionId: "...",
+  status: "PAUSED"
+})
+
+# When work is FULLY done:
+projectpulse_agent_session_end({
+  sessionId: "...",
+  progress: "Session complete."
+})
+\`\`\`
+
+---
+
+## Loading Project Resources (via MCP)
+
+### Personas (Expert Roles)
+
+\`\`\`
+# List available personas
+projectpulse_persona_list(projectId: ${data.projectId})
+
+# Load a specific persona
+projectpulse_persona_get(projectId: ${data.projectId}, slug: "backend-developer")
+\`\`\`
+
+### Skills (Coding Patterns)
+
+\`\`\`
+# List available skills
+projectpulse_skill_list(projectId: ${data.projectId}, category: "framework")
+
+# Load a skill
+projectpulse_skill_get(projectId: ${data.projectId}, slug: "react-hooks-patterns")
+\`\`\`
+
+### SOPs (Procedures)
+
+\`\`\`
+# List available SOPs
+projectpulse_sop_list(projectId: ${data.projectId}, category: "Development")
+
+# Load an SOP
+projectpulse_sop_get(projectId: ${data.projectId}, slug: "git-workflow")
+\`\`\`
+
+---
 
 ## Available Personas
 
+| Persona | Slug | Expertise |
+|---------|------|-----------|
 ${personaSection}
 
-## Example Usage
+---
+
+## Roadmap Workflow (Optional)
+
+**Use roadmap for multi-week projects with phases. Skip for single fixes.**
+
+### When to Use Roadmap
+
+- ✅ Greenfield projects with timeline structure
+- ✅ Multi-sprint initiatives
+- ❌ Single bug fixes (just use tickets)
+- ❌ Small improvements (tickets-only is fine)
+
+### Roadmap Tools
+
+| Tool | When to Use |
+|------|-------------|
+| \`roadmap_create\` | Once per project, after onboarding |
+| \`getCurrentPosition\` | Start of each work day |
+| \`getPhaseProgress\` | See full phase tree |
+| \`updateProgress\` | End of day (cascades up automatically) |
+
+### Ticket Scheduling
 
 \`\`\`
-// Start by getting your current task
-Use projectpulse_sprint_getCurrentTask
-
-// List available personas to adopt
-Use projectpulse_persona_list with projectId: ${data.projectId}
-
-// Load a specific persona's system prompt
-Use projectpulse_persona_get with slug: "react-expert"
-
-// Search for relevant skills
-Use projectpulse_skill_list with projectId: ${data.projectId}, category: "framework"
+projectpulse_ticket_create({
+  projectId: ${data.projectId},
+  title: "Implement feature X",
+  kind: "feature",
+  sprintNumber: 1,
+  scheduledWeekId: "<week-uuid>",
+  scheduledDays: ["Monday", "Tuesday"],
+  estimatedDays: 2
+})
 \`\`\`
+
+---
+
+## Ticket Workflow
+
+### Ticket Kinds
+
+| User Says | Ticket Kind |
+|-----------|-------------|
+| "Add feature X" | \`feature\` |
+| "Do X", "Set up X" | \`task\` |
+| "X is broken" | \`bug\` |
+| "X needs refactoring" | \`tech_debt\` |
+| "Concerned about X" | \`issue\` |
+
+### Complete Workflow (6 steps)
+
+| Step | Action | MCP Tool |
+|------|--------|----------|
+| 1 | Create ticket | \`ticket_create\` |
+| 2 | Add plan | \`ticket_update({ customFields: { _implementationContext: {...} } })\` |
+| 3 | Claim ticket | \`ticket_update({ status: "in-progress" })\` |
+| 4 | Implement | (code tools) |
+| 5 | Add comment | \`ticket_addComment("Implemented X, Y, Z")\` |
+| 6 | Close after testing | \`ticket_setStatus("closed")\` |
+
+---
+
+## Agent Session Lifecycle
+
+### Session States
+
+| Status | Use For |
+|--------|---------|
+| \`IN_PROGRESS\` | Actively working |
+| \`PAUSED\` | Breaks, EOD, context compaction |
+| \`COMPLETED\` | Work fully done (CANNOT resume!) |
+
+**CRITICAL**: COMPLETED sessions CANNOT be resumed. Use PAUSED for breaks!
+
+---
+
+## Knowledge & Wiki
+
+### Knowledge Items
+
+\`\`\`
+# Search for existing knowledge
+projectpulse_knowledge_search(projectId: ${data.projectId}, query: "authentication")
+
+# Store new knowledge
+projectpulse_knowledge_create(projectId: ${data.projectId}, title: "...", content: "...", category: "...")
+\`\`\`
+
+### Wiki Pages
+
+\`\`\`
+# Search wiki
+projectpulse_wiki_search(query: "API reference")
+
+# Get wiki page
+projectpulse_wiki_get(path: "/guides/api-reference")
+\`\`\`
+
+---
+
+## MCP Tools Reference
+
+| Category | Tools |
+|----------|-------|
+| **Context** | \`context_load\`, \`context_lookup\`, \`context_update\` |
+| **Sessions** | \`agent_session_start\`, \`agent_session_update\`, \`agent_session_resume\`, \`agent_session_end\` |
+| **Tickets** | \`ticket_create\`, \`ticket_search\`, \`ticket_update\`, \`ticket_setStatus\`, \`ticket_addComment\`, \`ticket_get\` |
+| **Roadmap** | \`roadmap_create\`, \`getCurrentPosition\`, \`getPhaseProgress\`, \`updateProgress\`, \`queryHierarchy\` |
+| **Knowledge** | \`knowledge_create\`, \`knowledge_search\`, \`knowledge_get\` |
+| **Wiki** | \`wiki_search\`, \`wiki_get\`, \`wiki_create\`, \`wiki_update\` |
+| **Resources** | \`persona_list\`, \`persona_get\`, \`skill_list\`, \`skill_get\`, \`sop_list\`, \`sop_get\` |
+| **Workflows** | \`workflow_list\`, \`workflow_start\`, \`workflow_executeStep\`, \`workflow_getStatus\` |
+
+---
+
+## Daily Checklist
+
+- [ ] Loaded context via \`context_load(projectId: ${data.projectId})\`
+- [ ] Resumed PAUSED session OR started new session
+- [ ] Checked roadmap position (if using roadmap)
+- [ ] Found tickets for current sprint/week
+- [ ] Working on feature branch (not main/master)
+
+---
 
 ## Dashboard
 
-For more details, visit: http://192.168.1.15:3000
+View all project resources: ${data.dashboardUrl}projects/${data.projectId}
 `;
 }
 
@@ -143,9 +366,9 @@ function generateAgentsMd(data: ProjectData): string {
       ? Object.entries(skillsByCategory)
           .map(([cat, skills]) => {
             const skillLines = skills
-              .map((s) => `  - **${s.title}** (\`${s.slug}\`) - ${s.description || 'Skill'}`)
+              .map((s) => `| ${s.title} | \`${s.slug}\` | ${s.description || 'Skill'} |`)
               .join('\n');
-            return `### ${cat}\n\n${skillLines}`;
+            return `#### ${cat}\n\n| Title | Slug | Description |\n|-------|------|-------------|\n${skillLines}`;
           })
           .join('\n\n')
       : '_No skills configured yet_';
@@ -163,9 +386,9 @@ function generateAgentsMd(data: ProjectData): string {
       ? Object.entries(sopsByCategory)
           .map(([cat, sops]) => {
             const sopLines = sops
-              .map((s) => `  - **${s.title}** (\`${s.slug}\`) - ${s.description || 'Procedure'}`)
+              .map((s) => `| ${s.title} | \`${s.slug}\` | ${s.description || 'Procedure'} |`)
               .join('\n');
-            return `### ${cat}\n\n${sopLines}`;
+            return `#### ${cat}\n\n| Title | Slug | Description |\n|-------|------|-------------|\n${sopLines}`;
           })
           .join('\n\n')
       : '_No SOPs configured yet_';
@@ -180,76 +403,185 @@ function generateAgentsMd(data: ProjectData): string {
           .join('\n\n')
       : '_No personas configured yet_';
 
-  return `# AGENTS.md - AI Agent System
+  return `# ${data.projectName} - AI Agent Resources
 
-**Project**: ${data.projectName}  
-**Project ID**: ${data.projectId}  
-**Generated**: ${new Date().toISOString()}
+**Project ID**: ${data.projectId}
+**MCP Server**: ${data.mcpUrl}
+**Dashboard**: ${data.dashboardUrl}
+
+---
 
 ## Overview
 
-This project uses ProjectPulse's MCP-based agent system. All personas, skills, and SOPs are stored in the database and accessible via MCP tools.
+This document catalogs all AI agent resources available for ${data.projectName} via ProjectPulse MCP.
 
-## Agent Personas
+Resources are loaded on-demand to save tokens. Use \`list\` tools to discover what's available, then \`get\` tools to load specific resources when needed.
+
+---
+
+## Available Personas
+
+Personas define expert behaviors and domain knowledge. Load one to adopt its expertise.
+
+### How to Use Personas
+
+\`\`\`
+# List all available personas
+projectpulse_persona_list(projectId: ${data.projectId})
+
+# Load a specific persona
+projectpulse_persona_get(projectId: ${data.projectId}, slug: "<persona-slug>")
+→ Returns: name, systemPrompt, expertise, rules, skills, tools
+\`\`\`
+
+### Persona Catalog
 
 ${personasSection}
 
-### Loading a Persona
+---
+
+## Available Skills
+
+Skills contain reusable coding patterns, templates, and conventions for the project.
+
+### How to Use Skills
 
 \`\`\`
-// List all personas
-Use projectpulse_persona_list with projectId: ${data.projectId}
+# List all skills
+projectpulse_skill_list(projectId: ${data.projectId})
 
-// Load full persona (includes system prompt)
-Use projectpulse_persona_get with projectId: ${data.projectId}, slug: "persona-slug"
+# Filter by category
+projectpulse_skill_list(projectId: ${data.projectId}, category: "framework")
+
+# Load a specific skill
+projectpulse_skill_get(projectId: ${data.projectId}, slug: "<skill-slug>")
+→ Returns: Full content with code examples
 \`\`\`
 
-## Skills Library
+### Skills by Category
 
 ${skillsSection}
 
-### Using Skills
-
-\`\`\`
-// List skills by category
-Use projectpulse_skill_list with projectId: ${data.projectId}, category: "framework"
-
-// Load skill content on-demand
-Use projectpulse_skill_get with projectId: ${data.projectId}, slug: "skill-slug"
-\`\`\`
+---
 
 ## Standard Operating Procedures (SOPs)
 
+SOPs provide step-by-step procedures for common tasks.
+
+### How to Use SOPs
+
+\`\`\`
+# List all SOPs
+projectpulse_sop_list(projectId: ${data.projectId})
+
+# Filter by category
+projectpulse_sop_list(projectId: ${data.projectId}, category: "Development")
+
+# Load a specific SOP
+projectpulse_sop_get(projectId: ${data.projectId}, slug: "<sop-slug>")
+→ Returns: Full procedure with steps and checklists
+\`\`\`
+
+### SOPs by Category
+
 ${sopsSection}
 
-### Using SOPs
+---
+
+## Workflow Templates
+
+Workflow templates define multi-step processes for common tasks.
+
+### How to Use Workflows
 
 \`\`\`
-// List all SOPs
-Use projectpulse_sop_list with projectId: ${data.projectId}
+# List available workflows
+projectpulse_workflow_list(projectId: ${data.projectId})
 
-// Load SOP with full procedure
-Use projectpulse_sop_get with projectId: ${data.projectId}, slug: "sop-slug"
+# Start a workflow
+projectpulse_workflow_start({
+  templateId: 1,
+  projectId: ${data.projectId},
+  initialContext: { featureName: "auth" }
+})
+
+# Execute current step
+projectpulse_workflow_executeStep({ runId: 123, stepResult: {...} })
+
+# Check status
+projectpulse_workflow_getStatus({ runId: 123 })
 \`\`\`
 
-## Workflow Integration
+---
 
-Workflows are available via \`projectpulse_workflow_*\` tools:
+## Knowledge Base
+
+Project knowledge items store decisions, discoveries, and solutions.
+
+### How to Access Knowledge
 
 \`\`\`
-// List available workflows
-Use projectpulse_workflow_list
+# Search knowledge
+projectpulse_knowledge_search({
+  projectId: ${data.projectId},
+  query: "authentication",
+  mode: "hybrid"
+})
 
-// Start a workflow
-Use projectpulse_workflow_start with templateId: 1
-
-// Execute next step
-Use projectpulse_workflow_executeStep with runId: 1
+# Get full item
+projectpulse_knowledge_get({
+  projectId: ${data.projectId},
+  itemId: 123
+})
 \`\`\`
+
+---
+
+## Wiki
+
+Project documentation in wiki format.
+
+### How to Access Wiki
+
+\`\`\`
+# Search wiki
+projectpulse_wiki_search({ query: "API reference" })
+
+# Get page by path
+projectpulse_wiki_get({ path: "/guides/api-reference" })
+\`\`\`
+
+---
+
+## Token-Efficient Loading Pattern
+
+To minimize token usage, follow this pattern:
+
+\`\`\`
+1. Start with context_load (all memory banks)
+   → Get project brief, patterns, tech context
+
+2. List resources when needed
+   → persona_list, skill_list, sop_list return metadata only (~100 tokens each)
+
+3. Load full content on-demand
+   → persona_get, skill_get, sop_get return full content
+
+4. Search before creating
+   → knowledge_search, wiki_search to find existing info
+\`\`\`
+
+---
 
 ## Dashboard
 
-For more details, visit: http://192.168.1.15:3000
+View and manage all resources:
+
+- **Overview**: ${data.dashboardUrl}projects/${data.projectId}
+- **Personas**: ${data.dashboardUrl}projects/${data.projectId}/personas
+- **Skills**: ${data.dashboardUrl}projects/${data.projectId}/skills
+- **SOPs**: ${data.dashboardUrl}projects/${data.projectId}/sops
+- **Knowledge**: ${data.dashboardUrl}projects/${data.projectId}/knowledge
 `;
 }
 
@@ -274,11 +606,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { projectId, repoPath }: WriteMinimalRequest = validation.data;
+    const { projectId, repoPath, mcpUrl, dashboardUrl }: WriteMinimalRequest = validation.data;
 
     console.log('[POST /api/repo/write-minimal] Request validated', {
       projectId,
       repoPath,
+      mcpUrl: mcpUrl || DEFAULT_MCP_URL,
+      dashboardUrl: dashboardUrl || DEFAULT_DASHBOARD_URL,
     });
 
     // 2. Query database for project data (Sprint 11 enhancement)
@@ -307,6 +641,8 @@ export async function POST(request: NextRequest) {
     const projectData: ProjectData = {
       projectId,
       projectName: project?.name || `Project ${projectId}`,
+      mcpUrl: mcpUrl || DEFAULT_MCP_URL,
+      dashboardUrl: dashboardUrl || DEFAULT_DASHBOARD_URL,
       personas,
       skills,
       sops,
