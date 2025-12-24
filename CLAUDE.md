@@ -539,6 +539,70 @@ Me: projectpulse_agent_session_end({
 
 ---
 
+## 🗺️ Roadmap Workflow (Optional)
+
+**Use roadmap for multi-week projects with defined phases. Skip for single fixes.**
+
+### What Roadmap Is (vs Tickets vs Sessions)
+
+| Layer | Purpose | Question Answered |
+|-------|---------|-------------------|
+| **Roadmap** | Phase → Sprint → Week → Day | "WHEN / sequence / progress" |
+| **Tickets** | Features, Tasks, Bugs | "WHAT to build" |
+| **Sessions** | Plan, todos, checkpoints | "WHAT happened this work session" |
+
+### When to Use Roadmap
+
+- ✅ **Use for**: Multi-week initiatives, greenfield projects, milestone reporting
+- ❌ **Skip for**: Small fixes, routine maintenance (tickets-only is fine)
+
+### Daily Workflow with Roadmap
+
+```
+# Morning: Know where you are
+projectpulse_sprint_getCurrentPosition(projectId: 6)
+→ Returns: phase/sprint/week/day with progress
+
+# Find tickets for current sprint
+projectpulse_ticket_search({ sprintNumber: 1, status: ["open", "in-progress"] })
+
+# Work tickets normally (claim, implement, close)
+
+# End of day: Update progress (auto-propagates up)
+projectpulse_sprint_updateProgress({
+  entityType: "day",
+  entityId: "<day-uuid>",
+  progress: 75
+})
+```
+
+### Roadmap Scheduling (Sprint 14)
+
+Tickets can now be scheduled to specific weeks/days via MCP:
+
+```
+projectpulse_ticket_create({
+  title: "Implement feature X",
+  kind: "feature",
+  sprintNumber: 1,
+  scheduledWeekId: "<week-uuid>",      // Link to roadmap week
+  scheduledDays: ["Monday", "Tuesday"], // Which days within the week
+  estimatedDays: 2                      // Estimated duration
+})
+```
+
+### MCP Tools Reference
+
+| Tool | When to Use |
+|------|-------------|
+| `roadmap_create` | Once per project, after onboarding |
+| `getCurrentPosition` | Start of each work day |
+| `getPhaseProgress` | See full phase tree |
+| `queryHierarchy` | Find low-progress or blocked items |
+| `updateProgress` | End of day (cascades up automatically) |
+
+---
+
 ## 🎫 ProjectPulse Ticket Integration
 
 **Project ID**: 6 (always use this for ProjectPulse itself)

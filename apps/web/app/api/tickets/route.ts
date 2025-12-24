@@ -261,7 +261,10 @@ export async function POST(request: NextRequest) {
           source: data.source ?? 'manual',
           assigneeType: data.assigneeType,
           assigneeId: data.assigneeId,
-          // Sprint 12: linkedTaskId removed - use scheduledWeekId for roadmap association
+          // Sprint 14: Roadmap scheduling fields
+          scheduledWeekId: data.scheduledWeekId ?? null,
+          scheduledDays: data.scheduledDays ?? [],
+          estimatedDays: data.estimatedDays ?? null,
           customFields,
           // Sprint 13: Hierarchy fields
           parentTicketId: data.parentTicketId ?? null,

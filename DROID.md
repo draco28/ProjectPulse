@@ -555,8 +555,60 @@ projectpulse_context_update(projectId: 6, bankType: "PROGRESS", content: "...", 
 | **Tickets** | `ticket_create`, `ticket_search`, `ticket_update`, `ticket_setStatus`, `ticket_addComment`, `ticket_get` |
 | **Knowledge** | `knowledge_create`, `knowledge_search`, `knowledge_get` |
 | **Resources** | `persona_list`, `persona_get`, `skill_list`, `skill_get`, `sop_list`, `sop_get` |
+| **Roadmap** | `roadmap_create`, `getCurrentPosition`, `getPhaseProgress`, `queryHierarchy`, `updateProgress` |
 
 **Complete guide**: [docs/features/mcp-tools-guide.md](docs/features/mcp-tools-guide.md)
+
+---
+
+## 🗺️ Roadmap Workflow (Optional)
+
+**Use roadmap for multi-week projects with defined phases. Skip for single fixes.**
+
+### What Roadmap Is (vs Tickets vs Sessions)
+- **Roadmap** = "WHEN / sequence / progress" (Phase → Sprint → Week → Day)
+- **Tickets** = "WHAT to build" (requirements + acceptance criteria + implementation context)
+- **Agent Sessions** = "WHAT happened during this work session" (plan/todos/checkpoints)
+
+### When to Use Roadmap
+- ✅ **Use for**: Multi-week initiatives (e.g., Ticket #29), greenfield projects, milestone reporting
+- ❌ **Skip for**: Small fixes, routine maintenance (tickets-only workflow is fine)
+
+### Daily Workflow with Roadmap
+```
+# Morning: Know where you are
+projectpulse_sprint_getCurrentPosition(projectId: 6)
+→ Returns: phase/sprint/week/day with progress
+
+# Find tickets for current sprint
+projectpulse_ticket_search({ sprintNumber: 1, status: ["open", "in-progress"] })
+
+# Work tickets normally (claim, implement, close)
+
+# End of day: Update progress (auto-propagates up)
+projectpulse_sprint_updateProgress({
+  entityType: "day",
+  entityId: "<day-uuid>",
+  progress: 75
+})
+```
+
+### Roadmap Scheduling (Sprint 14)
+Tickets can now be scheduled to specific weeks/days via MCP:
+```
+projectpulse_ticket_create({
+  title: "Implement feature X",
+  kind: "feature",
+  sprintNumber: 1,
+  scheduledWeekId: "<week-uuid>",      // Link to roadmap week
+  scheduledDays: ["Monday", "Tuesday"], // Which days within the week
+  estimatedDays: 2                      // Estimated duration
+})
+```
+
+### Notes / Current Limitations
+- Roadmap progress does NOT auto-update from ticket status (manual rollups for now)
+- `getCurrentPosition` requires a day with `status=IN_PROGRESS` (Ticket #61 to improve)
 
 ---
 

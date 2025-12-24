@@ -309,6 +309,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (data.epicRef !== undefined) updateData.epicRef = data.epicRef;
     if (data.backlogRefs !== undefined) updateData.backlogRefs = data.backlogRefs;
     if (data.sprintNumber !== undefined) updateData.sprintNumber = data.sprintNumber;
+    // Sprint 14: Roadmap scheduling fields
+    if (data.scheduledWeekId !== undefined) updateData.scheduledWeekId = data.scheduledWeekId;
+    if (data.scheduledDays !== undefined) updateData.scheduledDays = data.scheduledDays;
+    if (data.estimatedDays !== undefined) updateData.estimatedDays = data.estimatedDays;
 
     const ticket = await prisma.ticket.update({
       where: { id },
