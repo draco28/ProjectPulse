@@ -15,12 +15,9 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-    // Performance optimizations
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
+    // Note: Don't set datasources.db.url explicitly here!
+    // Prisma reads DATABASE_URL from environment automatically.
+    // Explicit undefined breaks Next.js production builds (Docker).
   });
 
 if (process.env.NODE_ENV !== 'production') {
