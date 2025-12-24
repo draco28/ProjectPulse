@@ -83,8 +83,8 @@ services:
     container_name: projectpulse-mcp-cloud
     working_dir: /app
     # Run HTTP transport server for production
-    # Install ALL deps (including devDeps for build), generate Prisma client, build MCP server, then run with HTTP transport
-    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install --no-frozen-lockfile --ignore-scripts --prod=false && cd apps/web && npx prisma@5.22.0 generate && cd /app/apps/mcp-server && pnpm build && node dist/index-http.js || tail -f /dev/null"
+    # pnpm workspace symlinks work correctly without volume shadowing
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install --no-frozen-lockfile --prod=false && cd apps/web && npx prisma@5.22.0 generate && cd /app/apps/mcp-server && pnpm build && node dist/index-http.js || tail -f /dev/null"
     environment:
       - PROJECTPULSE_API_URL=http://nextjs:3000
       - NODE_ENV=production
@@ -94,7 +94,8 @@ services:
       - "3001:3001"
     volumes:
       - ./:/app
-      - mcp_node_modules:/app/apps/mcp-server/node_modules
+      # NOTE: No separate volume for mcp-server/node_modules
+      # pnpm workspaces use symlinks to root store - volume would shadow them
     networks:
       - projectpulse
     depends_on:
@@ -116,5 +117,5 @@ volumes:
   redis_data:
   nextjs_node_modules:
   web_node_modules:
-  mcp_node_modules:
+  # mcp_node_modules removed - pnpm workspace symlinks don't work with separate volumes
   next_cache:

@@ -62,8 +62,14 @@ jobs:
         if: steps.schema.outputs.schema_changed == 'false'
         run: |
           cd ~/projects/AI_HUB
-          echo "🔄 Rebuilding and restarting dev containers..."
-          docker compose -f docker-compose.cloud.yml up -d --build nextjs mcp-server
+          echo "🔄 Rebuilding dev containers..."
+          # Stop and remove MCP to force fresh build
+          docker compose -f docker-compose.cloud.yml stop mcp-server || true
+          docker compose -f docker-compose.cloud.yml rm -f mcp-server || true
+          # Rebuild nextjs (has Dockerfile) and recreate mcp-server
+          docker compose -f docker-compose.cloud.yml build --no-cache nextjs
+          echo "🚀 Starting dev containers..."
+          docker compose -f docker-compose.cloud.yml up -d nextjs mcp-server
       
       - name: Wait for services to start
         if: steps.schema.outputs.schema_changed == 'false'

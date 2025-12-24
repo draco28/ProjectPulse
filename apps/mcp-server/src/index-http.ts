@@ -48,6 +48,24 @@ const PORT = config.mcpPort;
 // Middleware: Parse JSON bodies (CRITICAL - must be before routes)
 app.use(express.json());
 
+// Middleware: CORS for MCP session header exposure (Ticket #60)
+// Required for Gemini CLI and other remote MCP clients to read Mcp-Session-Id header
+// Without this, clients can't maintain session continuity → "Server not initialized" error
+app.use('/mcp', (_req, res, next) => {
+  // Allow any origin for MCP (auth is via Bearer token, not CORS)
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Mcp-Session-Id');
+  // CRITICAL: Expose the session ID header so clients can read it
+  res.header('Access-Control-Expose-Headers', 'Mcp-Session-Id, Content-Type');
+  next();
+});
+
+// Handle CORS preflight for /mcp
+app.options('/mcp', (_req, res) => {
+  res.sendStatus(204);
+});
+
 // Middleware: Fix Accept headers for client compatibility
 // Note: Claude Code and Factory Droid don't send required text/event-stream
 // This middleware transparently adds the missing header for MCP SDK compatibility
@@ -188,6 +206,98 @@ app.get('/health', (_req, res) => {
     toolCount: loadTools().length,
     endpoint: '/mcp',
   });
+});
+
+/**
+ * MCP SSE Endpoint (GET handler for Server-Sent Events)
+ *
+ * Required for bidirectional HTTP streaming transport (Gemini CLI, etc.).
+ * Clients connect via GET to receive server-to-client notifications.
+ *
+ * Flow:
+ * 1. Client sends GET /mcp with Accept: text/event-stream
+ * 2. Server keeps connection open and sends SSE events
+ * 3. Client sends POST /mcp for client-to-server messages
+ *
+ * Ticket #60: Add GET handler for MCP SSE to support Gemini CLI
+ */
+app.get('/mcp', async (req, res) => {
+  logger.info('Handling SSE connection request (GET /mcp)', {
+    accept: req.headers.accept,
+    userAgent: req.headers['user-agent'],
+  });
+
+  // Build auth context from validated middleware data
+  const reqAgentAuth = (req as any).agentAuth as {
+    projectId: number;
+    tokenId: number;
+    name: string;
+    blockedTools: string[];
+    allowedTools: string[];
+  } | undefined;
+  const rawToken = req.headers.authorization?.slice('Bearer '.length) || '';
+
+  // Create AgentAuth context for AsyncLocalStorage
+  const agentAuthContext: AgentAuth | undefined = reqAgentAuth ? {
+    projectId: reqAgentAuth.projectId,
+    tokenId: reqAgentAuth.tokenId,
+    tokenName: reqAgentAuth.name,
+    rawToken,
+    blockedTools: reqAgentAuth.blockedTools,
+    allowedTools: reqAgentAuth.allowedTools,
+  } : undefined;
+
+  const handleSseRequest = async () => {
+    // Create transport for SSE streaming
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+      enableJsonResponse: true,
+      enableDnsRebindingProtection: false,
+    });
+
+    // Cleanup on connection close
+    res.on('close', () => {
+      transport.close();
+      logger.debug('SSE transport closed (client disconnected)');
+    });
+
+    res.on('error', (error) => {
+      logger.error('SSE response error', { error: error.message });
+      transport.close();
+    });
+
+    try {
+      // Connect singleton server to this transport
+      await server.connect(transport);
+      logger.debug('SSE transport connected');
+
+      // Handle the SSE GET request
+      await transport.handleRequest(req, res);
+      logger.debug('SSE connection established');
+    } catch (error) {
+      logger.error('Failed to establish SSE connection', {
+        error: error instanceof Error ? error.message : error,
+      });
+
+      if (!res.headersSent) {
+        res.status(500).json({
+          jsonrpc: '2.0',
+          error: {
+            code: -32603,
+            message: 'Failed to establish SSE connection',
+          },
+          id: null,
+        });
+      }
+    }
+  };
+
+  // Execute with auth context (enables httpClient to access credentials)
+  if (agentAuthContext) {
+    await authContext.run(agentAuthContext, handleSseRequest);
+  } else {
+    await handleSseRequest();
+  }
 });
 
 /**
