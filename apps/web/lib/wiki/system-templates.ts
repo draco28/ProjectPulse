@@ -366,7 +366,118 @@ See [[Development Workflow]] for detailed development patterns.
     category: 'guides',
     content: `# Development Workflow
 
-Guidelines for AI-assisted development with ProjectPulse.
+Comprehensive guide for AI-assisted development with ProjectPulse.
+
+## Post-Onboarding Setup
+
+After completing Sessions 1-3, run these steps to start development:
+
+### Step 1: Validate Traceability
+\`\`\`
+projectpulse_traceability_validate_documents()
+\`\`\`
+- Validates PRD → SRS → Backlog → Project Plan coverage
+- Populates BacklogItem table for sprint queries
+- Creates coverage report as Knowledge Item
+
+### Step 2: Create Roadmap
+\`\`\`
+projectpulse_roadmap_create({
+  projectId: YOUR_ID,
+  title: "Project Roadmap",
+  startDate: "2025-01-01",
+  materialize: true,
+  phases: [...] // From 13-Project-Plan.md
+})
+\`\`\`
+- Creates Phase → Sprint → Week → Day hierarchy
+- Enables progress tracking via MCP tools
+
+### Step 3: Query Sprint Backlog
+\`\`\`
+projectpulse_backlog_getBySprint({ projectId: YOUR_ID, sprintNumber: 1 })
+\`\`\`
+- Returns user stories with frTraces, epicRef
+- Use backlog items to create tickets
+
+---
+
+## Daily Development Workflow
+
+### Morning Routine
+\`\`\`
+# 1. Load context and check for paused work
+projectpulse_context_load({ projectId: YOUR_ID })
+
+# 2. Know where you are in the roadmap
+projectpulse_sprint_getCurrentPosition({ projectId: YOUR_ID })
+
+# 3. Find work for your sprint
+projectpulse_ticket_search({ sprintNumber: 1, status: ["open"] })
+\`\`\`
+
+### During Work
+\`\`\`
+# Start tracking (if not resuming)
+projectpulse_agent_session_start({ name: "Feature X", ticketIds: [123] })
+
+# Checkpoint every 15K tokens
+projectpulse_agent_session_update({ progress: "Completed X, working on Y" })
+
+# Claim tickets you're working on
+projectpulse_ticket_update({ ticketId: 123, status: "in-progress" })
+\`\`\`
+
+### End of Day
+\`\`\`
+# Update roadmap progress (cascades to parent entities)
+projectpulse_sprint_updateProgress({ entityType: "day", entityId: "...", progress: 75 })
+
+# PAUSE session (NOT end!) - preserves context for next day
+projectpulse_agent_session_update({ sessionId: "...", status: "PAUSED" })
+\`\`\`
+
+---
+
+## Ticket Lifecycle
+
+| Step | Tool | Description |
+|------|------|-------------|
+| Search | \`ticket_search\` | Find existing tickets for your sprint |
+| Create | \`ticket_create\` | From backlog items with backlogRefs |
+| Claim | \`ticket_update\` | Set status: "in-progress", assignee |
+| Work | \`ticket_addComment\` | Log progress, decisions |
+| Test | - | Verify implementation works |
+| Close | \`ticket_setStatus\` | Set status: "closed" AFTER testing |
+
+**⚠️ Never close tickets until testing is complete!**
+
+### Creating Tickets from Backlog
+\`\`\`
+projectpulse_ticket_create({
+  title: "Implement user auth",
+  kind: "feature",
+  source: "agent",
+  sprintNumber: 1,
+  backlogRefs: ["US-001", "US-002"], // From backlog_getBySprint
+  epicRef: "Epic 1: User Management"
+})
+\`\`\`
+
+---
+
+## Roadmap & Progress Tracking
+
+| Tool | When to Use |
+|------|-------------|
+| \`sprint_getCurrentPosition\` | Start of day - know where you are |
+| \`sprint_updateProgress\` | End of day - update day/week progress |
+| \`sprint_queryHierarchy\` | Find blocked items, low-progress work |
+| \`roadmap_getPhaseProgress\` | See full phase with nested entities |
+
+**Progress cascades automatically**: Day → Week → Sprint → Phase
+
+---
 
 ## Git Workflow
 
@@ -374,10 +485,11 @@ Guidelines for AI-assisted development with ProjectPulse.
 - **Feature Branches**: \`feature/ticket-id-description\`
 - **Commits**: Semantic format (\`feat:\`, \`fix:\`, \`chore:\`, etc.)
 
+---
+
 ## Session Lifecycle
 
 ### Starting a Work Session
-
 \`\`\`
 # 1. Load project context
 projectpulse_context_load({ projectId: YOUR_ID })
@@ -387,23 +499,34 @@ projectpulse_context_load({ projectId: YOUR_ID })
 projectpulse_agent_session_start({
   projectId: YOUR_ID,
   name: "Implementing user auth",
-  ticketIds: ["TICKET-123"]
+  ticketIds: [123, 124]
 })
-# Returns: sessionId for tracking
 \`\`\`
 
-### During Development
+### PAUSED vs COMPLETED Sessions
 
-| Action | MCP Tool | When to Use |
-|--------|----------|-------------|
-| Create issue | \`projectpulse_ticket_create\` | Found bug, need feature |
-| Log progress | \`projectpulse_agent_session_update\` | Every 15-20 minutes |
-| Search docs | \`projectpulse_wiki_search\` | Need reference info |
-| Add knowledge | \`projectpulse_knowledge_create\` | Discovered pattern/solution |
-| Get persona | \`projectpulse_persona_get\` | Need specialized guidance |
-| Load skill | \`projectpulse_skill_get\` | Need code pattern |
+| Use PAUSED for | Use COMPLETED for |
+|----------------|-------------------|
+| Lunch break | Feature fully done |
+| End of day | Ready for next feature |
+| Switching tasks temporarily | All tests passing |
+| Context compaction imminent | PR merged |
 
-### Checkpoints (Critical)
+**⚠️ COMPLETED sessions cannot be resumed. Use PAUSED for breaks!**
+
+### Ending a Session
+\`\`\`
+# Only when work is TRULY complete
+projectpulse_agent_session_end({
+  sessionId: "...",
+  summary: "Completed user login with validation"
+})
+# Auto-syncs PROGRESS and ACTIVE_CONTEXT memory banks
+\`\`\`
+
+---
+
+## Checkpoints (Critical)
 
 **Why**: Prevents context loss when AI sessions reset.
 
@@ -420,16 +543,7 @@ projectpulse_agent_session_update({
 
 **Frequency**: Every 15K tokens or ~20 minutes of work.
 
-### Ending a Session
-
-\`\`\`
-projectpulse_agent_session_end({
-  sessionId: "...",
-  summary: "Completed user login form with validation",
-  completedTicketIds: ["TICKET-123"]
-})
-# Auto-syncs PROGRESS and ACTIVE_CONTEXT memory banks
-\`\`\`
+---
 
 ## Using Agent Personas
 
@@ -440,7 +554,7 @@ Select the right specialist for the task:
 projectpulse_persona_list({ projectId: YOUR_ID })
 
 # Load specific persona guidance
-projectpulse_persona_get({ personaId: "react-expert" })
+projectpulse_persona_get({ slug: "react-expert" })
 \`\`\`
 
 **Common Personas** (after onboarding):
@@ -448,6 +562,8 @@ projectpulse_persona_get({ personaId: "react-expert" })
 - **Next.js Expert**: App Router, Server Components, data fetching
 - **Prisma Expert**: Schema design, migrations, query optimization
 - **Testing Expert**: Jest, Playwright, test strategies
+
+---
 
 ## Using Skills
 
@@ -458,8 +574,76 @@ Skills are token-efficient code patterns:
 projectpulse_skill_list({ projectId: YOUR_ID, category: "api" })
 
 # Load full skill content
-projectpulse_skill_get({ skillId: "api-endpoint-pattern" })
+projectpulse_skill_get({ slug: "api-endpoint-pattern" })
 \`\`\`
+
+---
+
+## Using SOPs
+
+Standard Operating Procedures for common tasks:
+
+\`\`\`
+# List available procedures
+projectpulse_sop_list({ projectId: YOUR_ID })
+
+# Load specific procedure
+projectpulse_sop_get({ slug: "git-workflow" })
+\`\`\`
+
+SOPs contain step-by-step checklists generated during onboarding Session 3.
+
+---
+
+## Using Workflow Templates
+
+Pre-built development workflows:
+
+\`\`\`
+# List available workflows
+projectpulse_workflow_list({ category: "development" })
+
+# Start a workflow
+projectpulse_workflow_start({ templateId: 1, projectId: YOUR_ID })
+
+# Execute next step
+projectpulse_workflow_executeStep({ runId: 123 })
+
+# Check progress
+projectpulse_workflow_getStatus({ runId: 123 })
+\`\`\`
+
+**Available templates**: Feature Development, Bug Fix, Refactoring, Code Review, etc.
+
+---
+
+## Knowledge Management
+
+### Search BEFORE Asking
+\`\`\`
+projectpulse_knowledge_search({ projectId: YOUR_ID, query: "auth pattern" })
+\`\`\`
+Always check if an answer exists before asking the user!
+
+### Find Related Knowledge
+\`\`\`
+projectpulse_knowledge_related({ projectId: YOUR_ID, itemId: 5 })
+\`\`\`
+Discovers connected topics via graph traversal.
+
+### Store Discoveries
+\`\`\`
+projectpulse_knowledge_create({
+  projectId: YOUR_ID,
+  title: "JWT Auth Pattern",
+  content: "...",
+  category: "Architecture",
+  tags: ["auth", "jwt", "pattern"]
+})
+\`\`\`
+Save patterns, decisions, and solutions for future reference.
+
+---
 
 ## Wiki Documentation
 
@@ -479,6 +663,8 @@ projectpulse_wiki_create({
 })
 \`\`\`
 
+---
+
 ## Context Recovery
 
 If your agent loses context (session reset, compaction):
@@ -487,10 +673,15 @@ If your agent loses context (session reset, compaction):
 # Reload everything
 projectpulse_context_load({ projectId: YOUR_ID })
 
-# Check for active session
-# If found, resume work on existing todos
-# If not, start new session
+# Check for active/paused session
+# If PAUSED session found: Resume it
+projectpulse_agent_session_resume({ sessionId: "..." })
+
+# If no session: Start new one
+projectpulse_agent_session_start({ name: "..." })
 \`\`\`
+
+---
 
 ## System Pages
 
