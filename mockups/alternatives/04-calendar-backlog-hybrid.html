@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 4: Calendar + Backlog Hybrid - ProjectPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-bg': '#1a1a2e',
+            'dark-surface': '#16213e',
+            'dark-raised': '#1f2b47',
+            'dark-pressed': '#0f1629',
+            'coral': '#ff6b6b',
+            'coral-dark': '#ee5a5a',
+            'slate': '#8892b0',
+            'slate-light': '#a8b2d1',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    .neu-card {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      box-shadow: 8px 8px 16px #0f1629, -8px -8px 16px #243352;
+      border-radius: 16px;
+    }
+    .neu-inset {
+      background: #0f1629;
+      box-shadow: inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #141d2e;
+      border-radius: 12px;
+    }
+    .week-cell {
+      min-height: 180px;
+      background: linear-gradient(145deg, #1a2740, #16213e);
+      border: 1px solid #2a3d5c;
+      transition: all 0.2s ease;
+    }
+    .week-cell:hover {
+      border-color: #ff6b6b;
+      background: linear-gradient(145deg, #1f2b47, #182338);
+    }
+    .week-cell.current {
+      border-color: #ff6b6b;
+      box-shadow: 0 0 20px rgba(255, 107, 107, 0.2);
+    }
+    .ticket-chip {
+      background: linear-gradient(145deg, #243352, #1a2740);
+      box-shadow: 2px 2px 4px #0f1629;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      cursor: grab;
+      transition: all 0.15s ease;
+    }
+    .ticket-chip:hover {
+      transform: scale(1.02);
+      box-shadow: 3px 3px 6px #0f1629;
+    }
+    .ticket-chip.dragging {
+      opacity: 0.5;
+      cursor: grabbing;
+    }
+    .backlog-item {
+      background: linear-gradient(145deg, #1f2b47, #182338);
+      box-shadow: 3px 3px 6px #0f1629;
+      border-radius: 10px;
+      transition: all 0.15s ease;
+      cursor: grab;
+    }
+    .backlog-item:hover {
+      transform: translateX(4px);
+    }
+    .drop-zone {
+      border: 2px dashed transparent;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .drop-zone.drag-over {
+      border-color: #ff6b6b;
+      background: rgba(255, 107, 107, 0.1);
+    }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #0f1629; border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a3d5c; border-radius: 3px; }
+    .today-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #ff6b6b;
+      z-index: 10;
+    }
+    .today-marker::before {
+      content: 'Today';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #ff6b6b;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-coral flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold">Work Calendar</h1>
+          <p class="text-slate text-sm">Week-level scheduling with drag & drop</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="neu-card px-4 py-2 flex items-center gap-2 text-slate hover:text-white transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Previous
+        </button>
+        <div class="neu-card px-4 py-2 font-semibold">
+          December 2024 - January 2025
+        </div>
+        <button class="neu-card px-4 py-2 flex items-center gap-2 text-slate hover:text-white transition">
+          Next
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-6">
+    <!-- Calendar Grid -->
+    <div class="flex-1">
+      <div class="neu-card p-4">
+        <!-- Week Headers -->
+        <div class="grid grid-cols-6 gap-2 mb-4">
+          <div class="text-center text-slate text-sm font-medium py-2">Week 50<br><span class="text-xs">Dec 9-15</span></div>
+          <div class="text-center text-slate text-sm font-medium py-2">Week 51<br><span class="text-xs">Dec 16-22</span></div>
+          <div class="text-center text-coral text-sm font-medium py-2 bg-coral/10 rounded-lg">Week 52<br><span class="text-xs">Dec 23-29</span></div>
+          <div class="text-center text-slate text-sm font-medium py-2">Week 1<br><span class="text-xs">Dec 30-Jan 5</span></div>
+          <div class="text-center text-slate text-sm font-medium py-2">Week 2<br><span class="text-xs">Jan 6-12</span></div>
+          <div class="text-center text-slate text-sm font-medium py-2">Week 3<br><span class="text-xs">Jan 13-19</span></div>
+        </div>
+
+        <!-- Week Cells -->
+        <div class="grid grid-cols-6 gap-2 relative">
+          <!-- Today marker positioned at ~40% of Week 52 -->
+          <div class="today-marker" style="left: calc(33.33% + 40%)"></div>
+
+          <!-- Week 50 - Past -->
+          <div class="week-cell rounded-xl p-3 opacity-70">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs text-green-400 font-medium">✓ Complete</span>
+              <span class="text-xs text-slate">4 tickets</span>
+            </div>
+            <div class="space-y-1.5">
+              <div class="ticket-chip opacity-60">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span class="line-through text-slate">#28 Auth fixes</span>
+                </div>
+              </div>
+              <div class="ticket-chip opacity-60">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span class="line-through text-slate">#29 MCP tools</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Week 51 - Past -->
+          <div class="week-cell rounded-xl p-3 opacity-70">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs text-green-400 font-medium">✓ Complete</span>
+              <span class="text-xs text-slate">5 tickets</span>
+            </div>
+            <div class="space-y-1.5">
+              <div class="ticket-chip opacity-60">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span class="line-through text-slate">#30 Progress</span>
+                </div>
+              </div>
+              <div class="ticket-chip opacity-60">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span class="line-through text-slate">#31 Hierarchy</span>
+                </div>
+              </div>
+              <div class="ticket-chip opacity-60">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span class="line-through text-slate">#32 Backlog</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Week 52 - CURRENT -->
+          <div class="week-cell current rounded-xl p-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs text-coral font-medium">● Current Week</span>
+              <span class="text-xs text-slate">6 tickets</span>
+            </div>
+            <div class="space-y-1.5 drop-zone min-h-[100px]">
+              <div class="ticket-chip ring-1 ring-coral/50">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-coral animate-pulse"></span>
+                  <span class="text-coral font-medium">#67 Search filters</span>
+                </div>
+                <div class="text-[10px] text-coral/70 mt-1">In Progress • AI Session</div>
+              </div>
+              <div class="ticket-chip">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                  <span>#68 Ticket hierarchy</span>
+                </div>
+              </div>
+              <div class="ticket-chip">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate"></span>
+                  <span>#69 Bulk operations</span>
+                </div>
+              </div>
+              <div class="ticket-chip opacity-60">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  <span class="line-through text-slate">#65 Create API</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Week 1 - Planned -->
+          <div class="week-cell rounded-xl p-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs text-blue-400 font-medium">Planned</span>
+              <span class="text-xs text-slate">4 tickets</span>
+            </div>
+            <div class="space-y-1.5 drop-zone min-h-[100px]">
+              <div class="ticket-chip">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                  <span>#70 Knowledge API</span>
+                </div>
+              </div>
+              <div class="ticket-chip">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                  <span>#71 Semantic search</span>
+                </div>
+              </div>
+              <div class="ticket-chip">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                  <span>#72 Graph relations</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Week 2 - Planned -->
+          <div class="week-cell rounded-xl p-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs text-blue-400 font-medium">Planned</span>
+              <span class="text-xs text-slate">3 tickets</span>
+            </div>
+            <div class="space-y-1.5 drop-zone min-h-[100px]">
+              <div class="ticket-chip">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                  <span>#73 Wiki CRUD</span>
+                </div>
+              </div>
+              <div class="ticket-chip">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  <span>#74 Wiki search</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Week 3 - Empty -->
+          <div class="week-cell rounded-xl p-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs text-slate font-medium">Available</span>
+              <span class="text-xs text-slate">0 tickets</span>
+            </div>
+            <div class="drop-zone min-h-[100px] flex items-center justify-center border-2 border-dashed border-slate/20 rounded-lg">
+              <span class="text-xs text-slate/50">Drop tickets here</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Capacity Indicators -->
+        <div class="grid grid-cols-6 gap-2 mt-3">
+          <div class="text-center">
+            <div class="h-1.5 rounded-full bg-green-500 mx-4"></div>
+            <span class="text-[10px] text-slate">4/4 capacity</span>
+          </div>
+          <div class="text-center">
+            <div class="h-1.5 rounded-full bg-green-500 mx-4"></div>
+            <span class="text-[10px] text-slate">5/5 capacity</span>
+          </div>
+          <div class="text-center">
+            <div class="h-1.5 rounded-full bg-yellow-500 mx-4" style="width: 80%"></div>
+            <span class="text-[10px] text-coral">6/5 over!</span>
+          </div>
+          <div class="text-center">
+            <div class="h-1.5 rounded-full bg-blue-500 mx-4" style="width: 80%"></div>
+            <span class="text-[10px] text-slate">4/5 capacity</span>
+          </div>
+          <div class="text-center">
+            <div class="h-1.5 rounded-full bg-blue-500 mx-4" style="width: 40%"></div>
+            <span class="text-[10px] text-slate">2/5 capacity</span>
+          </div>
+          <div class="text-center">
+            <div class="h-1.5 rounded-full bg-slate/30 mx-4" style="width: 0%"></div>
+            <span class="text-[10px] text-slate">0/5 capacity</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Week Detail -->
+      <div class="neu-card p-4 mt-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-lg flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-coral animate-pulse"></div>
+            Week 52 Focus
+          </h3>
+          <div class="flex items-center gap-4 text-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-green-400">2 done</span>
+              <span class="text-slate">/</span>
+              <span class="text-coral">1 active</span>
+              <span class="text-slate">/</span>
+              <span class="text-slate-light">3 todo</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-4 bg-coral/10 rounded-xl border border-coral/30">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-coral/30 flex items-center justify-center">
+                <svg class="w-4 h-4 text-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="font-medium text-coral">#67 Add search filters for ticket MCP tool</div>
+                <div class="text-xs text-slate">scheduledWeekId, hasSchedule, scheduledDays filters</div>
+              </div>
+            </div>
+            <span class="px-2 py-1 bg-coral/20 text-coral text-xs rounded-lg">Agent Session Active</span>
+          </div>
+          <div class="flex items-center gap-4 text-sm">
+            <span class="text-slate">Progress:</span>
+            <div class="flex-1 neu-inset p-1">
+              <div class="h-2 rounded-full bg-gradient-to-r from-coral to-coral/50" style="width: 60%"></div>
+            </div>
+            <span class="text-coral font-medium">60%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backlog Sidebar -->
+    <div class="w-80 flex-shrink-0">
+      <div class="neu-card p-4 sticky top-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold">Backlog</h3>
+          <span class="px-2 py-1 bg-dark-pressed text-slate text-xs rounded">12 unscheduled</span>
+        </div>
+        
+        <div class="mb-4">
+          <input type="text" placeholder="Filter backlog..." class="w-full px-3 py-2 bg-dark-pressed text-white placeholder-slate/50 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-coral">
+        </div>
+
+        <div class="space-y-2 max-h-[500px] overflow-y-auto scrollbar-thin pr-1">
+          <!-- High Priority -->
+          <div class="text-xs text-red-400 font-medium mb-1 mt-2">HIGH PRIORITY</div>
+          <div class="backlog-item p-3">
+            <div class="flex items-start justify-between mb-1">
+              <span class="text-xs text-slate">#75</span>
+              <span class="px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[10px] rounded">critical</span>
+            </div>
+            <p class="text-sm font-medium mb-1">Fix memory leak in MCP server</p>
+            <div class="flex items-center gap-2 text-xs text-slate">
+              <span class="px-1.5 py-0.5 bg-dark-pressed rounded">bug</span>
+              <span>Est: 1 day</span>
+            </div>
+          </div>
+          <div class="backlog-item p-3">
+            <div class="flex items-start justify-between mb-1">
+              <span class="text-xs text-slate">#76</span>
+              <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 text-[10px] rounded">high</span>
+            </div>
+            <p class="text-sm font-medium mb-1">Session timeout handling</p>
+            <div class="flex items-center gap-2 text-xs text-slate">
+              <span class="px-1.5 py-0.5 bg-dark-pressed rounded">feature</span>
+              <span>Est: 2 days</span>
+            </div>
+          </div>
+
+          <!-- Medium Priority -->
+          <div class="text-xs text-yellow-400 font-medium mb-1 mt-4">MEDIUM PRIORITY</div>
+          <div class="backlog-item p-3">
+            <div class="flex items-start justify-between mb-1">
+              <span class="text-xs text-slate">#77</span>
+              <span class="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 text-[10px] rounded">medium</span>
+            </div>
+            <p class="text-sm font-medium mb-1">Add batch ticket creation</p>
+            <div class="text-xs text-slate">Est: 1 day</div>
+          </div>
+          <div class="backlog-item p-3">
+            <div class="flex items-start justify-between mb-1">
+              <span class="text-xs text-slate">#78</span>
+              <span class="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 text-[10px] rounded">medium</span>
+            </div>
+            <p class="text-sm font-medium mb-1">Improve error messages</p>
+            <div class="text-xs text-slate">Est: 0.5 day</div>
+          </div>
+          <div class="backlog-item p-3">
+            <div class="flex items-start justify-between mb-1">
+              <span class="text-xs text-slate">#79</span>
+              <span class="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 text-[10px] rounded">medium</span>
+            </div>
+            <p class="text-sm font-medium mb-1">Add ticket templates</p>
+            <div class="text-xs text-slate">Est: 1.5 days</div>
+          </div>
+
+          <!-- Low Priority -->
+          <div class="text-xs text-blue-400 font-medium mb-1 mt-4">LOW PRIORITY</div>
+          <div class="backlog-item p-3 opacity-70">
+            <div class="flex items-start justify-between mb-1">
+              <span class="text-xs text-slate">#80</span>
+              <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded">low</span>
+            </div>
+            <p class="text-sm font-medium mb-1">Dark mode refinements</p>
+            <div class="text-xs text-slate">Est: 0.5 day</div>
+          </div>
+          <div class="backlog-item p-3 opacity-70">
+            <div class="flex items-start justify-between mb-1">
+              <span class="text-xs text-slate">#81</span>
+              <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded">low</span>
+            </div>
+            <p class="text-sm font-medium mb-1">Keyboard shortcuts</p>
+            <div class="text-xs text-slate">Est: 1 day</div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-dark-pressed">
+          <div class="text-xs text-slate mb-2">Drag tickets to calendar to schedule</div>
+          <button class="w-full py-2 bg-coral/20 text-coral rounded-lg text-sm hover:bg-coral/30 transition">
+            + Create Ticket
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept Notes -->
+  <div class="mt-8 neu-card p-6">
+    <h2 class="text-xl font-bold mb-4 text-coral">Option 4: Calendar + Backlog Hybrid</h2>
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <h3 class="font-semibold text-green-400 mb-2">✓ Advantages</h3>
+        <ul class="text-slate text-sm space-y-1">
+          <li>• WEEK-level scheduling (no day noise)</li>
+          <li>• Visual capacity planning (see overloaded weeks)</li>
+          <li>• Drag-drop scheduling from backlog</li>
+          <li>• "Current week" is crystal clear</li>
+          <li>• Backlog is first-class (not hidden)</li>
+          <li>• Agent workflow: "What's scheduled this week?"</li>
+          <li>• Balances timeline + flexibility</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-semibold text-red-400 mb-2">✗ Disadvantages</h3>
+        <ul class="text-slate text-sm space-y-1">
+          <li>• Still needs "week" concept (though simpler than day)</li>
+          <li>• No phase/milestone grouping visible</li>
+          <li>• Capacity planning needs estimates on every ticket</li>
+          <li>• Drag-drop needs JS implementation</li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-4 p-3 bg-dark-pressed rounded-lg">
+      <span class="text-coral font-semibold">Key Change:</span>
+      <span class="text-slate-light ml-2">DELETE Phase, Sprint, Day models. Keep only Week model. Ticket.scheduledWeekId is the link. Weeks are numbered (W1, W2...) with date ranges. "Current week" = Week.startDate <= now <= Week.endDate. Much simpler than 4-level hierarchy!</span>
+    </div>
+  </div>
+</body>
+</html>

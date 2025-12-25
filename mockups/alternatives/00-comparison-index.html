@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadmap Alternatives Comparison - ProjectPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-bg': '#1a1a2e',
+            'dark-surface': '#16213e',
+            'dark-raised': '#1f2b47',
+            'dark-pressed': '#0f1629',
+            'coral': '#ff6b6b',
+            'coral-dark': '#ee5a5a',
+            'slate': '#8892b0',
+            'slate-light': '#a8b2d1',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    .neu-card {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      box-shadow: 8px 8px 16px #0f1629, -8px -8px 16px #243352;
+      border-radius: 16px;
+    }
+    .option-card {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      box-shadow: 6px 6px 12px #0f1629, -4px -4px 10px #243352;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    .option-card:hover {
+      transform: translateY(-4px);
+      border-color: #ff6b6b;
+      box-shadow: 8px 8px 16px #0f1629, -6px -6px 14px #243352, 0 0 30px rgba(255, 107, 107, 0.15);
+    }
+    .recommended {
+      border-color: #ff6b6b;
+      background: linear-gradient(145deg, #1f2b47, #16213e), linear-gradient(135deg, rgba(255, 107, 107, 0.1), transparent);
+    }
+    .score-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: #0f1629;
+    }
+    .score-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    table { border-collapse: separate; border-spacing: 0; }
+    th, td { padding: 12px 16px; text-align: left; }
+    th { background: #0f1629; }
+    td { background: #16213e; border-bottom: 1px solid #2a3d5c; }
+    tr:hover td { background: #1a2740; }
+  </style>
+</head>
+<body class="min-h-screen text-white p-8">
+  <!-- Header -->
+  <div class="text-center mb-12">
+    <h1 class="text-4xl font-bold mb-4">Roadmap Alternatives Analysis</h1>
+    <p class="text-slate text-lg max-w-2xl mx-auto">
+      Exploring simpler approaches to project tracking that replace the complex Phase → Sprint → Week → Day hierarchy
+    </p>
+  </div>
+
+  <!-- Current Problem Summary -->
+  <div class="neu-card p-6 mb-10 max-w-4xl mx-auto">
+    <h2 class="text-xl font-bold text-red-400 mb-4">❌ Current System Problems</h2>
+    <div class="grid grid-cols-2 gap-4 text-sm">
+      <div class="flex items-start gap-2">
+        <span class="text-red-400">•</span>
+        <span class="text-slate-light">4-level hierarchy too complex (Phase → Sprint → Week → Day)</span>
+      </div>
+      <div class="flex items-start gap-2">
+        <span class="text-red-400">•</span>
+        <span class="text-slate-light">"Current position" concept broken - AgentSession ≠ Roadmap position</span>
+      </div>
+      <div class="flex items-start gap-2">
+        <span class="text-red-400">•</span>
+        <span class="text-slate-light">Days are granular but never actually used operationally</span>
+      </div>
+      <div class="flex items-start gap-2">
+        <span class="text-red-400">•</span>
+        <span class="text-slate-light">Progress tracking is manual and drifts from reality</span>
+      </div>
+      <div class="flex items-start gap-2">
+        <span class="text-red-400">•</span>
+        <span class="text-slate-light">Roadmap.current* fields not updated by anything</span>
+      </div>
+      <div class="flex items-start gap-2">
+        <span class="text-red-400">•</span>
+        <span class="text-slate-light">Tickets link to weeks but connection feels arbitrary</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option Cards Grid -->
+  <div class="grid grid-cols-2 gap-6 mb-12 max-w-6xl mx-auto">
+    <!-- Option 1: Kanban -->
+    <a href="01-kanban-sprint-board.html" class="option-card p-6 block">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+          <svg class="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold">Option 1: Kanban Sprint Board</h3>
+          <p class="text-slate text-sm">Ticket columns by sprint status</p>
+        </div>
+      </div>
+      <p class="text-slate-light text-sm mb-4">
+        Pure kanban approach where tickets flow through status columns within a sprint. No phases, weeks, or days - just sprints and tickets.
+      </p>
+      <div class="flex flex-wrap gap-2 mb-4">
+        <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">Simple</span>
+        <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">Familiar UX</span>
+        <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded">No Timeline</span>
+      </div>
+      <div class="text-coral text-sm font-medium">Click to view mockup →</div>
+    </a>
+
+    <!-- Option 2: Milestone Timeline -->
+    <a href="02-milestone-timeline.html" class="option-card p-6 block">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center">
+          <svg class="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold">Option 2: Milestone Timeline</h3>
+          <p class="text-slate text-sm">Deliverable-focused progress</p>
+        </div>
+      </div>
+      <p class="text-slate-light text-sm mb-4">
+        Horizontal timeline with milestones as key deliverables. Tickets link to milestones. Progress = deliverables complete.
+      </p>
+      <div class="flex flex-wrap gap-2 mb-4">
+        <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">Clear Goals</span>
+        <span class="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded">Visual Timeline</span>
+        <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded">Needs Planning</span>
+      </div>
+      <div class="text-coral text-sm font-medium">Click to view mockup →</div>
+    </a>
+
+    <!-- Option 3: Epic Tree -->
+    <a href="03-epic-tree-view.html" class="option-card p-6 block">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-14 h-14 rounded-2xl bg-green-500/20 flex items-center justify-center">
+          <svg class="w-7 h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold">Option 3: Epic Tree View</h3>
+          <p class="text-slate text-sm">Work breakdown structure</p>
+        </div>
+      </div>
+      <p class="text-slate-light text-sm mb-4">
+        Pure work hierarchy: Epic → Feature → Task. No time dimension at all. Focus on WHAT needs to be done, not WHEN.
+      </p>
+      <div class="flex flex-wrap gap-2 mb-4">
+        <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">Scope Focused</span>
+        <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">Clear Hierarchy</span>
+        <span class="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded">No Timeline</span>
+      </div>
+      <div class="text-coral text-sm font-medium">Click to view mockup →</div>
+    </a>
+
+    <!-- Option 4: Calendar + Backlog (RECOMMENDED) -->
+    <a href="04-calendar-backlog-hybrid.html" class="option-card recommended p-6 block relative">
+      <div class="absolute -top-3 -right-3 px-3 py-1 bg-coral text-white text-xs font-bold rounded-full">
+        ★ RECOMMENDED
+      </div>
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-14 h-14 rounded-2xl bg-coral/20 flex items-center justify-center">
+          <svg class="w-7 h-7 text-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold">Option 4: Calendar + Backlog</h3>
+          <p class="text-slate text-sm">Week-level scheduling</p>
+        </div>
+      </div>
+      <p class="text-slate-light text-sm mb-4">
+        Calendar grid with week columns + backlog sidebar. Drag tickets from backlog to weeks. Simplest timeline that works.
+      </p>
+      <div class="flex flex-wrap gap-2 mb-4">
+        <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">Week-Only</span>
+        <span class="px-2 py-1 bg-coral/20 text-coral text-xs rounded">Drag & Drop</span>
+        <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">Capacity View</span>
+      </div>
+      <div class="text-coral text-sm font-medium">Click to view mockup →</div>
+    </a>
+  </div>
+
+  <!-- Comparison Matrix -->
+  <div class="neu-card p-6 mb-10 max-w-6xl mx-auto overflow-x-auto">
+    <h2 class="text-xl font-bold mb-6">Comparison Matrix</h2>
+    <table class="w-full text-sm rounded-xl overflow-hidden">
+      <thead>
+        <tr>
+          <th class="rounded-tl-xl">Criteria</th>
+          <th>Kanban Board</th>
+          <th>Milestone Timeline</th>
+          <th>Epic Tree</th>
+          <th class="rounded-tr-xl bg-coral/20 text-coral">Calendar + Backlog</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="font-medium">Complexity Reduction</td>
+          <td><span class="text-green-400">★★★★★</span> Delete 4 models</td>
+          <td><span class="text-green-400">★★★★</span> Delete 3 models</td>
+          <td><span class="text-green-400">★★★★★</span> Delete 4 models</td>
+          <td class="bg-coral/5"><span class="text-green-400">★★★★</span> Delete 3 models</td>
+        </tr>
+        <tr>
+          <td class="font-medium">Timeline Visibility</td>
+          <td><span class="text-red-400">★</span> None</td>
+          <td><span class="text-green-400">★★★★★</span> Excellent</td>
+          <td><span class="text-red-400">★</span> None</td>
+          <td class="bg-coral/5"><span class="text-green-400">★★★★</span> Week-level</td>
+        </tr>
+        <tr>
+          <td class="font-medium">Agent Workflow Fit</td>
+          <td><span class="text-green-400">★★★★</span> Simple ticket flow</td>
+          <td><span class="text-yellow-400">★★★</span> Needs milestone context</td>
+          <td><span class="text-green-400">★★★★</span> Pick any task</td>
+          <td class="bg-coral/5"><span class="text-green-400">★★★★★</span> "This week's work"</td>
+        </tr>
+        <tr>
+          <td class="font-medium">"Current Position" Clarity</td>
+          <td><span class="text-green-400">★★★★</span> Current sprint</td>
+          <td><span class="text-green-400">★★★★</span> Current milestone</td>
+          <td><span class="text-yellow-400">★★</span> No position concept</td>
+          <td class="bg-coral/5"><span class="text-green-400">★★★★★</span> Current week</td>
+        </tr>
+        <tr>
+          <td class="font-medium">Capacity Planning</td>
+          <td><span class="text-yellow-400">★★★</span> Sprint velocity</td>
+          <td><span class="text-yellow-400">★★</span> Limited</td>
+          <td><span class="text-red-400">★</span> None</td>
+          <td class="bg-coral/5"><span class="text-green-400">★★★★★</span> Per-week capacity</td>
+        </tr>
+        <tr>
+          <td class="font-medium">Backlog Management</td>
+          <td><span class="text-green-400">★★★★</span> Backlog column</td>
+          <td><span class="text-yellow-400">★★★</span> Unassigned tickets</td>
+          <td><span class="text-green-400">★★★★</span> Unstarted tasks</td>
+          <td class="bg-coral/5"><span class="text-green-400">★★★★★</span> Dedicated sidebar</td>
+        </tr>
+        <tr>
+          <td class="font-medium">Migration Effort</td>
+          <td><span class="text-green-400">★★★★</span> Low</td>
+          <td><span class="text-yellow-400">★★★</span> Medium (new Milestone model)</td>
+          <td><span class="text-green-400">★★★★★</span> Very low (use existing)</td>
+          <td class="bg-coral/5"><span class="text-green-400">★★★★</span> Low (keep Week)</td>
+        </tr>
+        <tr>
+          <td class="font-medium rounded-bl-xl">UX Familiarity</td>
+          <td><span class="text-green-400">★★★★★</span> Jira/Linear pattern</td>
+          <td><span class="text-green-400">★★★★</span> Gantt-like</td>
+          <td><span class="text-green-400">★★★★</span> Explorer tree</td>
+          <td class="bg-coral/5 rounded-br-xl"><span class="text-green-400">★★★★</span> Calendar + list</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Schema Changes -->
+  <div class="neu-card p-6 mb-10 max-w-6xl mx-auto">
+    <h2 class="text-xl font-bold mb-6">Schema Changes Required</h2>
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <h3 class="font-semibold text-coral mb-3">Current Schema (Complex)</h3>
+        <div class="bg-dark-pressed p-4 rounded-xl font-mono text-sm">
+          <div class="text-red-400">Roadmap</div>
+          <div class="ml-4 text-red-400">└── Phase (DELETE)</div>
+          <div class="ml-8 text-red-400">└── Sprint (DELETE or KEEP)</div>
+          <div class="ml-12 text-red-400">└── Week (KEEP for Option 4)</div>
+          <div class="ml-16 text-red-400">└── Day (DELETE)</div>
+          <div class="text-green-400 mt-2">Ticket</div>
+          <div class="ml-4 text-slate">├── scheduledWeekId</div>
+          <div class="ml-4 text-red-400">├── scheduledDays[] (DELETE)</div>
+          <div class="ml-4 text-slate">└── sprintNumber</div>
+        </div>
+      </div>
+      <div>
+        <h3 class="font-semibold text-green-400 mb-3">Option 4 Schema (Simple)</h3>
+        <div class="bg-dark-pressed p-4 rounded-xl font-mono text-sm">
+          <div class="text-green-400">Week</div>
+          <div class="ml-4 text-slate">├── id (cuid)</div>
+          <div class="ml-4 text-slate">├── projectId</div>
+          <div class="ml-4 text-slate">├── weekNumber (1, 2, 3...)</div>
+          <div class="ml-4 text-slate">├── startDate</div>
+          <div class="ml-4 text-slate">├── endDate</div>
+          <div class="ml-4 text-slate">└── capacity (default: 5)</div>
+          <div class="text-green-400 mt-2">Ticket</div>
+          <div class="ml-4 text-slate">├── scheduledWeekId (nullable)</div>
+          <div class="ml-4 text-slate">├── estimatedDays</div>
+          <div class="ml-4 text-slate">└── status</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendation -->
+  <div class="max-w-4xl mx-auto">
+    <div class="neu-card p-8 border-2 border-coral">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="w-16 h-16 rounded-2xl bg-coral flex items-center justify-center">
+          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold">Recommendation: Option 4 (Calendar + Backlog)</h2>
+          <p class="text-slate">Best balance of simplicity, timeline visibility, and agent workflow fit</p>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-dark-pressed p-4 rounded-xl text-center">
+          <div class="text-3xl font-bold text-coral mb-1">-3</div>
+          <div class="text-slate text-sm">Models deleted</div>
+          <div class="text-xs text-slate/60">(Phase, Sprint, Day)</div>
+        </div>
+        <div class="bg-dark-pressed p-4 rounded-xl text-center">
+          <div class="text-3xl font-bold text-green-400 mb-1">1</div>
+          <div class="text-slate text-sm">Simple concept</div>
+          <div class="text-xs text-slate/60">"Current Week"</div>
+        </div>
+        <div class="bg-dark-pressed p-4 rounded-xl text-center">
+          <div class="text-3xl font-bold text-blue-400 mb-1">∞</div>
+          <div class="text-slate text-sm">Weeks ahead</div>
+          <div class="text-xs text-slate/60">Infinite timeline</div>
+        </div>
+      </div>
+
+      <div class="bg-dark-pressed p-4 rounded-xl">
+        <h3 class="font-semibold mb-2">Why this option?</h3>
+        <ul class="text-slate text-sm space-y-1">
+          <li>• <strong class="text-white">Week-level is the sweet spot</strong> - specific enough to plan, not so granular that it needs constant updates</li>
+          <li>• <strong class="text-white">Current week is auto-determined</strong> - no manual "set current position" needed</li>
+          <li>• <strong class="text-white">Agent workflow is clear</strong> - "Get this week's scheduled tickets → work them"</li>
+          <li>• <strong class="text-white">Progress is derived</strong> - % = tickets done / tickets scheduled in week</li>
+          <li>• <strong class="text-white">Backlog is first-class</strong> - unscheduled work is visible, not hidden</li>
+          <li>• <strong class="text-white">Low migration</strong> - Week model already exists, just delete Phase/Sprint/Day</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="text-center mt-12 text-slate text-sm">
+    <p>Open each mockup HTML file in browser to see interactive preview</p>
+    <p class="mt-2">
+      <code class="bg-dark-pressed px-2 py-1 rounded text-coral">file:///Users/draco/projects/AI_HUB/mockups/alternatives/</code>
+    </p>
+  </div>
+</body>
+</html>
