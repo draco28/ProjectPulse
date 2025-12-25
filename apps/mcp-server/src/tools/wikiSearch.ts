@@ -44,7 +44,7 @@ type WikiSearchResponse = {
 export const wikiSearchTool: ToolDefinition = {
   name: 'projectpulse_wiki_search',
   description:
-    'Search wiki pages in ProjectPulse by query string. Searches both title and content. Optionally filter by category. Use this to find existing documentation, check if a topic is already covered, or discover related wiki pages.',
+    'Search wiki pages in ProjectPulse by query string. Searches both title and content. Optionally filter by category. Use this to find existing documentation, check if a topic is already covered, or discover related wiki pages. IMPORTANT: Use the returned "Path" value directly with wiki_get (e.g., wiki_get({ path: "/contextai/docs/04-project-plan" })).',
   schema: inputSchema,
   inputSchema: {
     type: 'object',
@@ -102,8 +102,9 @@ export const wikiSearchTool: ToolDefinition = {
       const resultsList = data.pages
         .map((page, index) => {
           const excerpt = page.highlight || page.excerpt || 'No excerpt available';
-          const cleanedPath = page.path.replace(/^\//, '');
-          return `${offset + index + 1}. **${page.title}** (/wiki/${cleanedPath})
+          // Use raw database path - this is what wiki_get expects
+          return `${offset + index + 1}. **${page.title}**
+Path: ${page.path}
 Category: ${page.category}
 Excerpt: ${excerpt}
 Updated: ${new Date(page.updatedAt).toLocaleDateString()}`;
