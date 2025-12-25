@@ -331,10 +331,20 @@ projectpulse_roadmap_create({
 - Enables progress tracking
 
 ### Step 3: [Optional] Generate Repo Files
-If you want CLAUDE.md and AGENTS.md in your repository:
-- Use your AI's file write tools
-- Reference the personas created in Session 3
-- Follow your project's conventions
+Generate CLAUDE.md and AGENTS.md workflow guides for your repository:
+
+\`\`\`
+projectpulse_repo_writeMinimal({
+  projectId: YOUR_ID,
+  repoPath: "/absolute/path/to/your/repo"
+})
+\`\`\`
+
+This creates:
+- **CLAUDE.md**: AI workflow guide with daily routines, ticket handling, session lifecycle
+- **AGENTS.md**: Resource catalog listing your personas, skills, SOPs
+
+Files are pre-populated with your project's actual data from Session 3.
 
 ---
 

@@ -23,18 +23,27 @@ type WriteMinimalInput = z.infer<typeof schema>;
 
 export const writeMinimalTool: ToolDefinition = {
   name: 'projectpulse_repo_writeMinimal',
-  description: 'Optional write claude.md and agents.md to user repository. Only called if agent/user explicitly requests. Keeps repositories clean by default.',
+  description: `Generate CLAUDE.md and AGENTS.md workflow guides for your project repository.
+
+Creates two files in your repo:
+- CLAUDE.md: AI workflow guide with daily routines, ticket handling, session lifecycle, MCP tools reference
+- AGENTS.md: Resource catalog listing personas, skills, SOPs available via MCP
+
+Files are pre-populated with your project's actual data (personas, skills, SOPs from Session 3).
+
+Example:
+  projectpulse_repo_writeMinimal({ projectId: 7, repoPath: "/Users/you/projects/my-app" })`,
   schema,
   inputSchema: {
     type: 'object',
     properties: {
       projectId: {
         type: 'number',
-        description: 'Project ID'
+        description: 'Your ProjectPulse project ID (find it in dashboard URL or from context_load)'
       },
       repoPath: {
         type: 'string',
-        description: 'Absolute path to repository (e.g., "/Users/user/projects/my-app")'
+        description: 'Absolute path to your repository (e.g., "/Users/you/projects/my-app")'
       }
     },
     required: ['projectId', 'repoPath']
