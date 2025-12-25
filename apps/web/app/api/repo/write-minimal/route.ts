@@ -30,6 +30,9 @@ const requestSchema = z.object({
   repoPath: z.string().min(1).max(500),
   mcpUrl: z.string().url().optional(),
   dashboardUrl: z.string().url().optional(),
+  // Sprint 14: Add dryRun to support Docker environments where API can't write to host paths
+  // When true (default), returns generated content for agent to write using its own tools
+  dryRun: z.boolean().optional().default(true),
 });
 
 type WriteMinimalRequest = z.infer<typeof requestSchema>;
@@ -606,13 +609,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { projectId, repoPath, mcpUrl, dashboardUrl }: WriteMinimalRequest = validation.data;
+    const { projectId, repoPath, mcpUrl, dashboardUrl, dryRun }: WriteMinimalRequest = validation.data;
 
     console.log('[POST /api/repo/write-minimal] Request validated', {
       projectId,
       repoPath,
       mcpUrl: mcpUrl || DEFAULT_MCP_URL,
       dashboardUrl: dashboardUrl || DEFAULT_DASHBOARD_URL,
+      dryRun,
     });
 
     // 2. Query database for project data (Sprint 11 enhancement)
@@ -660,7 +664,26 @@ export async function POST(request: NextRequest) {
     const claudeContent = generateClaudeMd(projectData);
     const agentsContent = generateAgentsMd(projectData);
 
-    // 4. Write files to repository
+    // 4. If dryRun, return content without writing files
+    // This is the default behavior for MCP calls from Docker containers
+    // which can't access host filesystem paths
+    if (dryRun) {
+      console.log('[POST /api/repo/write-minimal] DryRun mode - returning content for agent to write');
+      return NextResponse.json({
+        success: true,
+        dryRun: true,
+        projectId,
+        repoPath,
+        message: 'Generated CLAUDE.md and AGENTS.md content. Use your file writing tools to save them.',
+        files: [
+          { filename: 'CLAUDE.md', path: join(repoPath, 'CLAUDE.md'), content: claudeContent },
+          { filename: 'AGENTS.md', path: join(repoPath, 'AGENTS.md'), content: agentsContent },
+        ],
+        hint: 'Write each file using your Write tool (e.g., Write tool in Claude Code)',
+      });
+    }
+
+    // 5. Write files to repository (only if dryRun=false)
     const filesWritten: string[] = [];
 
     try {
