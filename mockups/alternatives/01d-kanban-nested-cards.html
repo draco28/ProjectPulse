@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 1d: Nested/Collapsible Cards - ProjectPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-bg': '#1a1a2e',
+            'dark-surface': '#16213e',
+            'dark-raised': '#1f2b47',
+            'dark-pressed': '#0f1629',
+            'coral': '#ff6b6b',
+            'coral-dark': '#ee5a5a',
+            'slate': '#8892b0',
+            'slate-light': '#a8b2d1',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    .neu-card {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      box-shadow: 8px 8px 16px #0f1629, -8px -8px 16px #243352;
+      border-radius: 16px;
+    }
+    .neu-inset {
+      background: #0f1629;
+      box-shadow: inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #141d2e;
+      border-radius: 12px;
+    }
+    .feature-card {
+      background: linear-gradient(145deg, #243352, #1a2740);
+      box-shadow: 4px 4px 8px #0f1629, -2px -2px 6px #2a3d5c;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    .feature-card:hover {
+      box-shadow: 6px 6px 12px #0f1629, -3px -3px 8px #2a3d5c;
+    }
+    .child-task {
+      background: linear-gradient(145deg, #1a2740, #141d2e);
+      border-radius: 8px;
+      border-left: 3px solid;
+      transition: all 0.2s ease;
+    }
+    .child-task:hover {
+      transform: translateX(4px);
+    }
+    .sprint-column { flex: 1; min-width: 320px; max-width: 380px; }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #0f1629; border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a3d5c; border-radius: 3px; }
+    .expand-icon { transition: transform 0.2s ease; }
+    .expanded .expand-icon { transform: rotate(90deg); }
+    .children-container {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .expanded .children-container {
+      max-height: 500px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-4">
+        <a href="00-comparison-index.html" class="p-2 rounded-lg hover:bg-white/5 text-slate">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+          <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold">Nested Cards</h1>
+          <p class="text-slate text-sm">Feature cards expand to show child tasks inline</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="neu-card px-4 py-2 text-sm text-slate hover:text-white transition">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            Collapse All
+          </span>
+        </button>
+        <button class="bg-coral hover:bg-coral-dark px-4 py-2 rounded-xl font-medium transition">
+          + New Feature
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kanban Board -->
+  <div class="flex gap-6 overflow-x-auto pb-4 h-[calc(100vh-140px)]">
+    
+    <!-- To Do Column -->
+    <div class="sprint-column flex flex-col">
+      <div class="flex items-center justify-between mb-4 px-2">
+        <h3 class="font-semibold text-slate-light flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-slate"></span> To Do
+        </h3>
+        <span class="bg-dark-surface px-2 py-1 rounded text-xs text-slate">2 features / 5 tasks</span>
+      </div>
+      <div class="flex-1 bg-dark-pressed/30 rounded-2xl p-3 space-y-4 overflow-y-auto scrollbar-thin">
+        
+        <!-- Feature Card (Collapsed) -->
+        <div class="feature-card overflow-hidden" onclick="this.classList.toggle('expanded')">
+          <div class="p-4 cursor-pointer">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#120</span>
+              </div>
+              <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] rounded font-bold">FEATURE</span>
+            </div>
+            <p class="font-semibold text-sm mb-3">User Profile Management</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate">3 tasks</span>
+                <div class="w-16 h-1 bg-dark-bg rounded-full overflow-hidden">
+                  <div class="h-full bg-slate w-[0%]"></div>
+                </div>
+              </div>
+              <span class="text-xs text-slate">0%</span>
+            </div>
+          </div>
+          
+          <!-- Child Tasks (Hidden by default) -->
+          <div class="children-container">
+            <div class="px-4 pb-4 space-y-2">
+              <div class="child-task p-3 border-slate">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#121</span>
+                  <span class="text-[10px] text-slate">Task</span>
+                </div>
+                <p class="text-xs">Create profile edit form component</p>
+              </div>
+              <div class="child-task p-3 border-slate">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#122</span>
+                  <span class="text-[10px] text-slate">Task</span>
+                </div>
+                <p class="text-xs">Add avatar upload functionality</p>
+              </div>
+              <div class="child-task p-3 border-red-400">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#123</span>
+                  <span class="text-[10px] text-red-400">Bug</span>
+                </div>
+                <p class="text-xs">Fix profile picture crop ratio</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature Card (Collapsed) -->
+        <div class="feature-card overflow-hidden" onclick="this.classList.toggle('expanded')">
+          <div class="p-4 cursor-pointer">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#130</span>
+              </div>
+              <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] rounded font-bold">FEATURE</span>
+            </div>
+            <p class="font-semibold text-sm mb-3">Email Notification System</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate">2 tasks</span>
+                <div class="w-16 h-1 bg-dark-bg rounded-full overflow-hidden">
+                  <div class="h-full bg-slate w-[0%]"></div>
+                </div>
+              </div>
+              <span class="text-xs text-slate">0%</span>
+            </div>
+          </div>
+          <div class="children-container">
+            <div class="px-4 pb-4 space-y-2">
+              <div class="child-task p-3 border-slate">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#131</span>
+                  <span class="text-[10px] text-slate">Task</span>
+                </div>
+                <p class="text-xs">Setup SendGrid integration</p>
+              </div>
+              <div class="child-task p-3 border-slate">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#132</span>
+                  <span class="text-[10px] text-slate">Task</span>
+                </div>
+                <p class="text-xs">Create email templates</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- In Progress Column -->
+    <div class="sprint-column flex flex-col">
+      <div class="flex items-center justify-between mb-4 px-2">
+        <h3 class="font-semibold text-slate-light flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span> In Progress
+        </h3>
+        <span class="bg-dark-surface px-2 py-1 rounded text-xs text-slate">1 feature / 3 tasks</span>
+      </div>
+      <div class="flex-1 bg-dark-pressed/30 rounded-2xl p-3 space-y-4 overflow-y-auto scrollbar-thin">
+        
+        <!-- Feature Card (Expanded by default for active work) -->
+        <div class="feature-card overflow-hidden expanded border-l-4 border-coral" onclick="this.classList.toggle('expanded')">
+          <div class="p-4 cursor-pointer">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-coral expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#100</span>
+              </div>
+              <span class="px-2 py-0.5 bg-coral/20 text-coral text-[10px] rounded font-bold">FEATURE</span>
+            </div>
+            <p class="font-semibold text-sm mb-3">OAuth Authentication</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate">3 tasks</span>
+                <div class="w-16 h-1 bg-dark-bg rounded-full overflow-hidden">
+                  <div class="h-full bg-coral w-[66%]"></div>
+                </div>
+              </div>
+              <span class="text-xs text-coral font-bold">66%</span>
+            </div>
+          </div>
+          
+          <div class="children-container">
+            <div class="px-4 pb-4 space-y-2">
+              <div class="child-task p-3 border-green-400 opacity-60">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#101</span>
+                  <span class="text-green-400 text-xs">✓ Done</span>
+                </div>
+                <p class="text-xs line-through">Setup NextAuth config</p>
+              </div>
+              <div class="child-task p-3 border-green-400 opacity-60">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#102</span>
+                  <span class="text-green-400 text-xs">✓ Done</span>
+                </div>
+                <p class="text-xs line-through">Google OAuth provider</p>
+              </div>
+              <div class="child-task p-3 border-yellow-400 ring-1 ring-yellow-500/30">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#103</span>
+                  <span class="text-yellow-400 text-xs font-bold">● Active</span>
+                </div>
+                <p class="text-xs font-medium">GitHub OAuth provider</p>
+                <div class="flex items-center gap-2 mt-2">
+                  <div class="w-5 h-5 rounded-full bg-coral text-white text-[8px] flex items-center justify-center font-bold">AI</div>
+                  <span class="text-[10px] text-slate">Agent working...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Review Column -->
+    <div class="sprint-column flex flex-col">
+      <div class="flex items-center justify-between mb-4 px-2">
+        <h3 class="font-semibold text-slate-light flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-purple-500"></span> Review
+        </h3>
+        <span class="bg-dark-surface px-2 py-1 rounded text-xs text-slate">1 feature / 2 tasks</span>
+      </div>
+      <div class="flex-1 bg-dark-pressed/30 rounded-2xl p-3 space-y-4 overflow-y-auto scrollbar-thin">
+        
+        <div class="feature-card overflow-hidden" onclick="this.classList.toggle('expanded')">
+          <div class="p-4 cursor-pointer">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#90</span>
+              </div>
+              <span class="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] rounded font-bold">FEATURE</span>
+            </div>
+            <p class="font-semibold text-sm mb-3">Dashboard Analytics</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate">2 tasks</span>
+                <div class="w-16 h-1 bg-dark-bg rounded-full overflow-hidden">
+                  <div class="h-full bg-purple-500 w-[100%]"></div>
+                </div>
+              </div>
+              <span class="text-xs text-purple-400">PR Open</span>
+            </div>
+          </div>
+          <div class="children-container">
+            <div class="px-4 pb-4 space-y-2">
+              <div class="child-task p-3 border-purple-400">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#91</span>
+                  <span class="text-purple-400 text-xs">PR #45</span>
+                </div>
+                <p class="text-xs">Chart components for metrics</p>
+              </div>
+              <div class="child-task p-3 border-purple-400">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#92</span>
+                  <span class="text-purple-400 text-xs">PR #45</span>
+                </div>
+                <p class="text-xs">API endpoints for aggregations</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Done Column -->
+    <div class="sprint-column flex flex-col">
+      <div class="flex items-center justify-between mb-4 px-2">
+        <h3 class="font-semibold text-slate-light flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-green-500"></span> Done
+        </h3>
+        <span class="bg-dark-surface px-2 py-1 rounded text-xs text-slate">2 features</span>
+      </div>
+      <div class="flex-1 bg-dark-pressed/30 rounded-2xl p-3 space-y-4 overflow-y-auto scrollbar-thin">
+        
+        <div class="feature-card overflow-hidden opacity-60" onclick="this.classList.toggle('expanded')">
+          <div class="p-4 cursor-pointer">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#80</span>
+              </div>
+              <span class="text-green-400">✓</span>
+            </div>
+            <p class="font-semibold text-sm mb-1 line-through">Database Schema Setup</p>
+            <span class="text-xs text-slate">4 tasks completed</span>
+          </div>
+          <div class="children-container">
+            <div class="px-4 pb-4 text-xs text-slate">
+              All 4 child tasks completed on Dec 20
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-card overflow-hidden opacity-60" onclick="this.classList.toggle('expanded')">
+          <div class="p-4 cursor-pointer">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#70</span>
+              </div>
+              <span class="text-green-400">✓</span>
+            </div>
+            <p class="font-semibold text-sm mb-1 line-through">Project Setup & Config</p>
+            <span class="text-xs text-slate">3 tasks completed</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Info Panel -->
+  <div class="fixed bottom-6 right-6 max-w-sm neu-card p-4 border border-emerald-500/30 shadow-2xl">
+    <h4 class="font-bold text-emerald-400 mb-2">Why Nested Cards?</h4>
+    <p class="text-xs text-slate mb-2">
+      <strong class="text-white">Solves clutter</strong> by hiding child tasks inside parent features by default. Click to expand and see all subtasks inline without leaving the board view.
+    </p>
+    <ul class="text-xs text-slate space-y-1">
+      <li>• <strong class="text-white">Compact by default</strong> - See feature-level progress at a glance</li>
+      <li>• <strong class="text-white">Expand on demand</strong> - Drill into tasks when needed</li>
+      <li>• <strong class="text-white">Progress rolls up</strong> - Feature shows % based on child completion</li>
+      <li>• <strong class="text-white">Active tasks highlighted</strong> - Yellow ring on currently worked items</li>
+    </ul>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 1b: Kanban Focus Mode - ProjectPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-bg': '#1a1a2e',
+            'dark-surface': '#16213e',
+            'dark-raised': '#1f2b47',
+            'dark-pressed': '#0f1629',
+            'coral': '#ff6b6b',
+            'coral-dark': '#ee5a5a',
+            'slate': '#8892b0',
+            'slate-light': '#a8b2d1',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    .neu-card {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      box-shadow: 8px 8px 16px #0f1629, -8px -8px 16px #243352;
+      border-radius: 16px;
+    }
+    .neu-inset {
+      background: #0f1629;
+      box-shadow: inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #141d2e;
+      border-radius: 12px;
+    }
+    .ticket-card {
+      background: linear-gradient(145deg, #243352, #1a2740);
+      box-shadow: 4px 4px 8px #0f1629, -2px -2px 6px #2a3d5c;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    .ticket-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 6px 6px 12px #0f1629, -3px -3px 8px #2a3d5c;
+    }
+    .sprint-column {
+      flex: 1;
+      min-width: 250px;
+    }
+    .nav-item {
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(255, 107, 107, 0.1), transparent);
+      border-left-color: #ff6b6b;
+    }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #0f1629; border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a3d5c; border-radius: 3px; }
+  </style>
+</head>
+<body class="min-h-screen text-white flex overflow-hidden">
+  
+  <!-- Sidebar (Parent Context) -->
+  <div class="w-80 bg-dark-surface border-r border-white/5 flex flex-col h-screen">
+    <div class="p-6">
+      <div class="flex items-center gap-3 mb-6">
+        <a href="00-comparison-index.html" class="p-2 rounded-lg hover:bg-white/5 text-slate">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <h1 class="text-xl font-bold">Focus Mode</h1>
+      </div>
+      
+      <div class="relative mb-6">
+        <input type="text" placeholder="Filter context..." class="w-full bg-dark-pressed rounded-lg py-2 px-4 text-sm text-slate focus:outline-none focus:ring-1 focus:ring-coral">
+        <svg class="w-4 h-4 text-slate absolute right-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+      
+      <div class="text-xs font-bold text-slate uppercase tracking-wider mb-3">Active Epics</div>
+    </div>
+    
+    <div class="flex-1 overflow-y-auto scrollbar-thin px-2 space-y-1">
+      <div class="nav-item p-3 cursor-pointer">
+        <div class="flex justify-between mb-1">
+          <span class="text-sm font-medium">All Tickets</span>
+          <span class="text-xs text-slate bg-dark-pressed px-1.5 rounded">24</span>
+        </div>
+      </div>
+      
+      <div class="nav-item active p-3 cursor-pointer">
+        <div class="flex justify-between mb-1">
+          <span class="text-sm font-medium text-white">Auth System Overhaul</span>
+          <span class="text-xs text-coral font-bold">8</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-slate">
+          <div class="w-2 h-2 rounded-full bg-green-400"></div>
+          <span>In Progress</span>
+          <span class="text-slate-light ml-auto">60%</span>
+        </div>
+        <div class="mt-2 h-1 bg-dark-bg rounded-full overflow-hidden">
+          <div class="h-full bg-coral w-[60%]"></div>
+        </div>
+      </div>
+      
+      <div class="nav-item p-3 cursor-pointer">
+        <div class="flex justify-between mb-1">
+          <span class="text-sm font-medium text-slate-light">Global Search</span>
+          <span class="text-xs text-slate bg-dark-pressed px-1.5 rounded">12</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-slate">
+          <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+          <span>Planning</span>
+          <span class="text-slate-light ml-auto">20%</span>
+        </div>
+        <div class="mt-2 h-1 bg-dark-bg rounded-full overflow-hidden">
+          <div class="h-full bg-blue-500 w-[20%]"></div>
+        </div>
+      </div>
+      
+      <div class="nav-item p-3 cursor-pointer">
+        <div class="flex justify-between mb-1">
+          <span class="text-sm font-medium text-slate-light">Mobile Response</span>
+          <span class="text-xs text-slate bg-dark-pressed px-1.5 rounded">4</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-slate">
+          <div class="w-2 h-2 rounded-full bg-slate"></div>
+          <span>Backlog</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Board Area -->
+  <div class="flex-1 flex flex-col h-screen bg-dark-bg">
+    <!-- Context Header -->
+    <div class="p-6 border-b border-white/5 bg-dark-surface/50 backdrop-blur-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2 text-sm text-coral mb-1">
+            <span>EPIC-01</span>
+            <span>•</span>
+            <span>High Priority</span>
+          </div>
+          <h2 class="text-2xl font-bold">Auth System Overhaul</h2>
+          <p class="text-slate text-sm mt-1">Focusing only on tickets related to authentication migration.</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="px-4 py-2 rounded-lg bg-dark-raised hover:bg-dark-pressed text-sm font-medium transition">Edit Epic</button>
+          <button class="px-4 py-2 rounded-lg bg-coral hover:bg-coral-dark text-sm font-medium transition shadow-lg shadow-coral/20">+ Add Ticket</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kanban Columns -->
+    <div class="flex-1 overflow-x-auto p-6">
+      <div class="flex gap-6 h-full min-w-[1000px]">
+        
+        <!-- To Do -->
+        <div class="sprint-column flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-slate-light flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-slate"></span> To Do
+            </h3>
+            <span class="bg-dark-surface px-2 py-1 rounded text-xs text-slate">2</span>
+          </div>
+          <div class="flex-1 bg-dark-surface/30 rounded-xl p-3 space-y-3 overflow-y-auto scrollbar-thin">
+            <div class="ticket-card p-4 border border-white/5">
+              <div class="flex justify-between mb-2">
+                <span class="text-xs font-mono text-slate">AUTH-104</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-slate/20 text-slate">Task</span>
+              </div>
+              <p class="font-medium text-sm mb-3">Implement 2FA backup codes generation logic</p>
+              <div class="flex items-center justify-between">
+                 <div class="flex -space-x-2">
+                   <div class="w-6 h-6 rounded-full bg-slate-500 border border-dark-bg"></div>
+                 </div>
+                 <span class="text-xs text-slate">Est: 4h</span>
+              </div>
+            </div>
+            
+             <div class="ticket-card p-4 border border-white/5">
+              <div class="flex justify-between mb-2">
+                <span class="text-xs font-mono text-slate">AUTH-108</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-slate/20 text-slate">Task</span>
+              </div>
+              <p class="font-medium text-sm mb-3">Update user settings UI for security tab</p>
+              <div class="flex items-center gap-2">
+                 <span class="text-xs text-red-400 flex items-center gap-1">
+                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                   Blocked by #104
+                 </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="sprint-column flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-slate-light flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-yellow-500"></span> In Progress
+            </h3>
+            <span class="bg-dark-surface px-2 py-1 rounded text-xs text-slate">1</span>
+          </div>
+          <div class="flex-1 bg-dark-surface/30 rounded-xl p-3 space-y-3 overflow-y-auto scrollbar-thin">
+             <div class="ticket-card p-4 border-l-2 border-yellow-500">
+              <div class="flex justify-between mb-2">
+                <span class="text-xs font-mono text-slate">AUTH-102</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-500">Feature</span>
+              </div>
+              <p class="font-medium text-sm mb-3">OAuth provider integration (Google, GitHub)</p>
+              <div class="neu-inset p-2 mb-2 rounded bg-dark-bg/50">
+                <div class="flex justify-between text-[10px] text-slate mb-1">
+                  <span>Subtasks</span>
+                  <span>2/3</span>
+                </div>
+                <div class="h-1 bg-dark-raised rounded-full overflow-hidden">
+                  <div class="h-full bg-yellow-500 w-[66%]"></div>
+                </div>
+              </div>
+               <div class="flex items-center justify-between mt-2">
+                 <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-coral text-white text-[10px] flex items-center justify-center font-bold">AI</div>
+                    <span class="text-xs text-slate">Active Session</span>
+                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review -->
+        <div class="sprint-column flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-slate-light flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-purple-500"></span> Review
+            </h3>
+            <span class="bg-dark-surface px-2 py-1 rounded text-xs text-slate">1</span>
+          </div>
+          <div class="flex-1 bg-dark-surface/30 rounded-xl p-3 space-y-3 overflow-y-auto scrollbar-thin">
+             <div class="ticket-card p-4 border border-white/5 opacity-90">
+              <div class="flex justify-between mb-2">
+                <span class="text-xs font-mono text-slate">AUTH-101</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-slate/20 text-slate">Backend</span>
+              </div>
+              <p class="font-medium text-sm mb-3">Session management middleware refactor</p>
+              <div class="text-xs text-purple-400 bg-purple-500/10 px-2 py-1 rounded inline-block">
+                PR #45: Changes requested
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Done -->
+        <div class="sprint-column flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-slate-light flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-green-500"></span> Done
+            </h3>
+            <span class="bg-dark-surface px-2 py-1 rounded text-xs text-slate">4</span>
+          </div>
+          <div class="flex-1 bg-dark-surface/30 rounded-xl p-3 space-y-3 overflow-y-auto scrollbar-thin">
+            <div class="ticket-card p-4 border border-white/5 opacity-50">
+               <div class="flex justify-between mb-2">
+                <span class="text-xs font-mono text-slate">AUTH-99</span>
+                <span class="text-green-400">✓</span>
+              </div>
+              <p class="font-medium text-sm mb-1 line-through">Database schema for Users</p>
+            </div>
+            <div class="ticket-card p-4 border border-white/5 opacity-50">
+               <div class="flex justify-between mb-2">
+                <span class="text-xs font-mono text-slate">AUTH-98</span>
+                <span class="text-green-400">✓</span>
+              </div>
+              <p class="font-medium text-sm mb-1 line-through">Login UI components</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  
+  <!-- Info Panel -->
+  <div class="fixed bottom-6 right-6 max-w-sm neu-card p-4 border border-coral/30 shadow-2xl z-50">
+    <h4 class="font-bold text-coral mb-2">Why Focus Mode?</h4>
+    <p class="text-xs text-slate">
+      Solves clutter by NOT showing everything at once. You select a "Context" (Parent Epic/Feature) on the left, and the board filters to show <strong>only</strong> that tree. Great for deep work on complex features without distraction.
+    </p>
+  </div>
+
+</body>
+</html>

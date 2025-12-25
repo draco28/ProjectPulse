@@ -106,28 +106,131 @@
   <!-- Option Cards Grid -->
   <div class="grid grid-cols-2 gap-6 mb-12 max-w-6xl mx-auto">
     <!-- Option 1: Kanban -->
-    <a href="01-kanban-sprint-board.html" class="option-card p-6 block">
-      <div class="flex items-center gap-4 mb-4">
-        <div class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
-          <svg class="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
-          </svg>
-        </div>
-        <div>
-          <h3 class="text-xl font-bold">Option 1: Kanban Sprint Board</h3>
-          <p class="text-slate text-sm">Ticket columns by sprint status</p>
-        </div>
+    <div class="col-span-2">
+      <h2 class="text-xl font-bold mb-4 pl-2 border-l-4 border-coral">Option 1: Kanban Variations (Enhancements)</h2>
+      <div class="grid grid-cols-4 gap-4">
+        
+        <!-- 1a: Swimlanes -->
+        <a href="01a-kanban-swimlanes.html" class="option-card p-4 block">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">1a. Swimlanes</h3>
+              <p class="text-slate text-[10px]">Group by Feature/Epic</p>
+            </div>
+          </div>
+          <p class="text-slate-light text-[10px] mb-2">Horizontal rows for each parent feature.</p>
+          <div class="text-purple-400 text-[10px] font-bold">Best for: Hierarchy</div>
+        </a>
+
+        <!-- 1b: Focus Mode -->
+        <a href="01b-kanban-focus-mode.html" class="option-card p-4 block">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-coral/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">1b. Focus Mode</h3>
+              <p class="text-slate text-[10px]">Sidebar Filter</p>
+            </div>
+          </div>
+          <p class="text-slate-light text-[10px] mb-2">Select a feature, see only its tickets.</p>
+          <div class="text-coral text-[10px] font-bold">Best for: Deep work</div>
+        </a>
+
+        <!-- 1c: Dependencies -->
+        <a href="01c-kanban-dependencies.html" class="option-card p-4 block">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">1c. Dependencies</h3>
+              <p class="text-slate text-[10px]">Blocker Visualization</p>
+            </div>
+          </div>
+          <p class="text-slate-light text-[10px] mb-2">Red for blocked, yellow for blockers.</p>
+          <div class="text-red-400 text-[10px] font-bold">Best for: Bottlenecks</div>
+        </a>
+
+        <!-- 1d: Nested Cards -->
+        <a href="01d-kanban-nested-cards.html" class="option-card p-4 block">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">1d. Nested Cards</h3>
+              <p class="text-slate text-[10px]">Collapsible Hierarchy</p>
+            </div>
+          </div>
+          <p class="text-slate-light text-[10px] mb-2">Features expand to show child tasks.</p>
+          <div class="text-emerald-400 text-[10px] font-bold">Best for: Compact view</div>
+        </a>
+
+        <!-- 1e: Tree + Board Hybrid -->
+        <a href="01e-kanban-tree-hybrid.html" class="option-card p-4 block">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">1e. Tree + Board</h3>
+              <p class="text-slate text-[10px]">Navigation Sidebar</p>
+            </div>
+          </div>
+          <p class="text-slate-light text-[10px] mb-2">Tree nav on left, board on right.</p>
+          <div class="text-cyan-400 text-[10px] font-bold">Best for: Large volumes</div>
+        </a>
+
+        <!-- 1f: Agent Session Board -->
+        <a href="01f-kanban-agent-sessions.html" class="option-card p-4 block border border-coral/30">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-coral/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">1f. Agent Sessions</h3>
+              <p class="text-slate text-[10px]">AI Workflow Centric</p>
+            </div>
+          </div>
+          <p class="text-slate-light text-[10px] mb-2">Organize by active AI sessions.</p>
+          <div class="text-coral text-[10px] font-bold">Best for: AI workflows</div>
+        </a>
+
+        <!-- 1g: Sprint Timeline -->
+        <a href="01g-kanban-sprint-timeline.html" class="option-card p-4 block">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">1g. Sprint Timeline</h3>
+              <p class="text-slate text-[10px]">Expandable Blocks</p>
+            </div>
+          </div>
+          <p class="text-slate-light text-[10px] mb-2">Sprint blocks with mini-kanban inside.</p>
+          <div class="text-indigo-400 text-[10px] font-bold">Best for: Timeline + Board</div>
+        </a>
+
+        <!-- Original -->
+        <a href="01-kanban-sprint-board.html" class="option-card p-4 block opacity-70 hover:opacity-100">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-slate-500/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-slate" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">Original (Flat)</h3>
+              <p class="text-slate text-[10px]">Standard Board</p>
+            </div>
+          </div>
+          <p class="text-slate-light text-[10px] mb-2">Basic sprint board without enhancements.</p>
+        </a>
+
       </div>
-      <p class="text-slate-light text-sm mb-4">
-        Pure kanban approach where tickets flow through status columns within a sprint. No phases, weeks, or days - just sprints and tickets.
-      </p>
-      <div class="flex flex-wrap gap-2 mb-4">
-        <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">Simple</span>
-        <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">Familiar UX</span>
-        <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded">No Timeline</span>
-      </div>
-      <div class="text-coral text-sm font-medium">Click to view mockup →</div>
-    </a>
+    </div>
 
     <!-- Option 2: Milestone Timeline -->
     <a href="02-milestone-timeline.html" class="option-card p-6 block">

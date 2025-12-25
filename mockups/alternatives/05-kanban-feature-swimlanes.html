@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban Enhancement A: Feature Swimlanes - ProjectPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-bg': '#1a1a2e',
+            'dark-surface': '#16213e',
+            'dark-raised': '#1f2b47',
+            'dark-pressed': '#0f1629',
+            'coral': '#ff6b6b',
+            'coral-dark': '#ee5a5a',
+            'slate': '#8892b0',
+            'slate-light': '#a8b2d1',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    .neu-card {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      box-shadow: 8px 8px 16px #0f1629, -8px -8px 16px #243352;
+      border-radius: 16px;
+    }
+    .neu-inset {
+      background: #0f1629;
+      box-shadow: inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #141d2e;
+      border-radius: 12px;
+    }
+    .ticket-card {
+      background: linear-gradient(145deg, #243352, #1a2740);
+      box-shadow: 4px 4px 8px #0f1629, -2px -2px 6px #2a3d5c;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    .ticket-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 6px 6px 12px #0f1629, -3px -3px 8px #2a3d5c;
+    }
+    .progress-bar {
+      background: linear-gradient(90deg, #ff6b6b, #ee5a5a);
+      border-radius: 4px;
+      height: 4px;
+    }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #0f1629; border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a3d5c; border-radius: 3px; }
+  </style>
+</head>
+<body class="min-h-screen text-white p-6">
+  <div class="mb-6 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-coral flex items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-3xl font-bold">Feature Swimlanes Board</h1>
+        <p class="text-slate text-sm">Kanban optimized for Feature → child tickets (reduces clutter)</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="00-comparison-index.html" class="neu-card px-4 py-2 rounded-xl text-sm text-slate-light hover:text-white transition">
+        ← Comparison
+      </a>
+      <button class="bg-coral hover:bg-coral-dark px-4 py-2 rounded-xl font-medium transition">
+        + New Ticket
+      </button>
+    </div>
+  </div>
+
+  <div class="neu-card p-4 mb-6">
+    <div class="grid grid-cols-12 gap-4 items-center">
+      <div class="col-span-5">
+        <div class="text-xs text-slate mb-1">Scope</div>
+        <div class="flex flex-wrap gap-2">
+          <span class="px-3 py-1 rounded-lg bg-dark-pressed text-slate-light text-sm">Project: ProjectPulse</span>
+          <span class="px-3 py-1 rounded-lg bg-dark-pressed text-slate-light text-sm">Sprint: 13</span>
+          <span class="px-3 py-1 rounded-lg bg-dark-pressed text-slate-light text-sm">Week: 12</span>
+        </div>
+      </div>
+      <div class="col-span-4">
+        <div class="text-xs text-slate mb-1">Filters</div>
+        <div class="flex flex-wrap gap-2">
+          <span class="px-3 py-1 rounded-lg bg-coral/20 text-coral text-sm">kind: feature</span>
+          <span class="px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-sm">show children</span>
+          <span class="px-3 py-1 rounded-lg bg-yellow-500/20 text-yellow-400 text-sm">show blocked</span>
+        </div>
+      </div>
+      <div class="col-span-3">
+        <div class="text-xs text-slate mb-1">Why swimlanes?</div>
+        <div class="text-sm text-slate-light">
+          Parent features collapse/expand; children stay grouped.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-5 gap-3 mb-3">
+    <div class="neu-card p-3 text-center font-semibold">Backlog</div>
+    <div class="neu-card p-3 text-center font-semibold">To Do</div>
+    <div class="neu-card p-3 text-center font-semibold">In Progress</div>
+    <div class="neu-card p-3 text-center font-semibold">Review</div>
+    <div class="neu-card p-3 text-center font-semibold">Done</div>
+  </div>
+
+  <div class="space-y-4">
+    <div class="neu-card p-4">
+      <div class="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <div class="text-xs text-slate">Feature #120 · epicRef: Epic 1: User Management · sprintNumber: 13</div>
+          <h2 class="text-lg font-bold">Auth: Token refresh + session handling</h2>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <span class="px-2 py-0.5 bg-coral/20 text-coral text-xs rounded">feature</span>
+            <span class="px-2 py-0.5 bg-dark-pressed text-slate text-xs rounded">scheduledWeekId: W-12</span>
+            <span class="px-2 py-0.5 bg-dark-pressed text-slate text-xs rounded">milestone: v1.0.0</span>
+          </div>
+        </div>
+        <div class="w-64">
+          <div class="flex items-center justify-between text-xs text-slate mb-2">
+            <span>Children: 7</span>
+            <span class="text-coral font-semibold">4/7 done</span>
+          </div>
+          <div class="neu-inset p-1">
+            <div class="progress-bar" style="width: 57%"></div>
+          </div>
+          <div class="mt-2 text-xs text-slate">Rollup from `childTickets` (not separate dependency graph)</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-5 gap-3">
+        <div class="neu-inset p-3 min-h-[140px] space-y-2">
+          <div class="ticket-card p-3">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#211</span>
+              <span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">task</span>
+            </div>
+            <p class="text-sm font-medium">Add refresh token rotation</p>
+            <div class="mt-2 flex items-center justify-between text-xs text-slate">
+              <span>Est: 1 day</span>
+              <span class="px-2 py-0.5 bg-dark-pressed rounded text-slate">Mon</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="neu-inset p-3 min-h-[140px] space-y-2">
+          <div class="ticket-card p-3">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#205</span>
+              <span class="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded">issue</span>
+            </div>
+            <p class="text-sm font-medium">Handle session expiry edge cases</p>
+            <div class="mt-2 text-xs text-slate">Est: 1 day</div>
+          </div>
+          <div class="ticket-card p-3 opacity-60">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#206</span>
+              <span class="px-2 py-0.5 bg-orange-500/20 text-orange-400 text-xs rounded">bug</span>
+            </div>
+            <p class="text-sm font-medium">Refresh fails after long idle</p>
+            <div class="mt-2 text-xs text-slate">Blocked: waiting on #211</div>
+          </div>
+        </div>
+
+        <div class="neu-inset p-3 min-h-[140px] space-y-2">
+          <div class="ticket-card p-3 ring-2 ring-coral/50">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#203</span>
+              <span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">task</span>
+            </div>
+            <p class="text-sm font-medium">Implement refresh endpoint</p>
+            <div class="neu-inset p-1 mt-2">
+              <div class="progress-bar" style="width: 70%"></div>
+            </div>
+            <div class="mt-2 text-xs text-slate">Session active</div>
+          </div>
+        </div>
+
+        <div class="neu-inset p-3 min-h-[140px] space-y-2">
+          <div class="ticket-card p-3">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#204</span>
+              <span class="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded">tech_debt</span>
+            </div>
+            <p class="text-sm font-medium">Refactor auth middleware</p>
+            <div class="mt-2 text-xs text-slate">PR open</div>
+          </div>
+        </div>
+
+        <div class="neu-inset p-3 min-h-[140px] space-y-2">
+          <div class="ticket-card p-3 opacity-70">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#199</span>
+              <span class="text-green-400 text-xs">✓</span>
+            </div>
+            <p class="text-sm font-medium line-through">Add token storage strategy</p>
+            <div class="mt-2 text-xs text-slate">Closed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="neu-card p-4">
+      <div class="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <div class="text-xs text-slate">Feature #138 · epicRef: Epic 2: Knowledge + Context · sprintNumber: 13</div>
+          <h2 class="text-lg font-bold">Session workflow: checkpoints + resume</h2>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <span class="px-2 py-0.5 bg-coral/20 text-coral text-xs rounded">feature</span>
+            <span class="px-2 py-0.5 bg-dark-pressed text-slate text-xs rounded">scheduledWeekId: W-12</span>
+            <span class="px-2 py-0.5 bg-dark-pressed text-slate text-xs rounded">active sessions: 1</span>
+          </div>
+        </div>
+        <div class="w-64">
+          <div class="flex items-center justify-between text-xs text-slate mb-2">
+            <span>Children: 5</span>
+            <span class="text-coral font-semibold">1/5 done</span>
+          </div>
+          <div class="neu-inset p-1">
+            <div class="progress-bar" style="width: 20%"></div>
+          </div>
+          <div class="mt-2 text-xs text-slate">Maps cleanly to `AgentSession.activeTicketIds`</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-5 gap-3">
+        <div class="neu-inset p-3 min-h-[140px] space-y-2">
+          <div class="ticket-card p-3">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#251</span>
+              <span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">task</span>
+            </div>
+            <p class="text-sm font-medium">Add appendProgress support</p>
+            <div class="mt-2 text-xs text-slate">Est: 0.5 day</div>
+          </div>
+        </div>
+
+        <div class="neu-inset p-3 min-h-[140px] space-y-2">
+          <div class="ticket-card p-3">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#252</span>
+              <span class="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded">issue</span>
+            </div>
+            <p class="text-sm font-medium">Session resume shows stale todos</p>
+            <div class="mt-2 text-xs text-slate">Est: 1 day</div>
+          </div>
+        </div>
+
+        <div class="neu-inset p-3 min-h-[140px] space-y-2">
+          <div class="ticket-card p-3 ring-2 ring-coral/50">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#250</span>
+              <span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">task</span>
+            </div>
+            <p class="text-sm font-medium">Sync activeTicketIds → UI badges</p>
+            <div class="mt-2 text-xs text-slate">Session active</div>
+          </div>
+        </div>
+
+        <div class="neu-inset p-3 min-h-[140px] space-y-2"></div>
+
+        <div class="neu-inset p-3 min-h-[140px] space-y-2">
+          <div class="ticket-card p-3 opacity-70">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#248</span>
+              <span class="text-green-400 text-xs">✓</span>
+            </div>
+            <p class="text-sm font-medium line-through">Increase plan/progress limits</p>
+            <div class="mt-2 text-xs text-slate">Closed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="neu-card p-4">
+      <div class="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <div class="text-xs text-slate">Unparented tickets (no parentTicketId)</div>
+          <h2 class="text-lg font-bold">Unparented Issues / Bugs</h2>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <span class="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded">issue-like</span>
+            <span class="px-2 py-0.5 bg-dark-pressed text-slate text-xs rounded">Filter: isTopLevel=true</span>
+          </div>
+        </div>
+        <div class="w-64 text-xs text-slate">
+          Keeps reactive work visible without polluting Feature swimlanes.
+        </div>
+      </div>
+
+      <div class="grid grid-cols-5 gap-3">
+        <div class="neu-inset p-3 min-h-[140px] space-y-2">
+          <div class="ticket-card p-3">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-slate">#410</span>
+              <span class="px-2 py-0.5 bg-orange-500/20 text-orange-400 text-xs rounded">bug</span>
+            </div>
+            <p class="text-sm font-medium">Login page flashes unauthenticated state</p>
+            <div class="mt-2 text-xs text-slate">Est: 0.5 day</div>
+          </div>
+        </div>
+
+        <div class="neu-inset p-3 min-h-[140px] space-y-2"></div>
+        <div class="neu-inset p-3 min-h-[140px] space-y-2"></div>
+        <div class="neu-inset p-3 min-h-[140px] space-y-2"></div>
+        <div class="neu-inset p-3 min-h-[140px] space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-8 neu-card p-6">
+    <h2 class="text-xl font-bold mb-4 text-coral">Enhancement A: Feature Swimlanes</h2>
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <h3 class="font-semibold text-green-400 mb-2">What this solves</h3>
+        <ul class="text-slate text-sm space-y-1">
+          <li>• Parent/child clutter: children stay inside their feature lane</li>
+          <li>• Faster scanning: you read work per feature, not per status</li>
+          <li>• Easy rollups: % complete is derived from `childTickets`</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-semibold text-yellow-400 mb-2">Tradeoffs</h3>
+        <ul class="text-slate text-sm space-y-1">
+          <li>• Slightly heavier layout (grid inside each feature)</li>
+          <li>• Still needs a “focus mode” for cross-feature bugs</li>
+          <li>• If a feature has 50 children, it still needs collapse</li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-4 p-3 bg-dark-pressed rounded-lg text-sm">
+      <span class="text-coral font-semibold">Data mapping:</span>
+      <span class="text-slate-light ml-2">Swimlane = Ticket(kind='feature'); cards inside lane = Ticket(parentTicketId=feature.id). Scheduling uses scheduledWeekId + scheduledDays + estimatedDays.</span>
+    </div>
+  </div>
+</body>
+</html>

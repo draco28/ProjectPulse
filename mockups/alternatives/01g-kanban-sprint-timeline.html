@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 1g: Sprint Timeline Kanban - ProjectPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-bg': '#1a1a2e',
+            'dark-surface': '#16213e',
+            'dark-raised': '#1f2b47',
+            'dark-pressed': '#0f1629',
+            'coral': '#ff6b6b',
+            'coral-dark': '#ee5a5a',
+            'slate': '#8892b0',
+            'slate-light': '#a8b2d1',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    .neu-card {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      box-shadow: 8px 8px 16px #0f1629, -8px -8px 16px #243352;
+      border-radius: 16px;
+    }
+    .neu-inset {
+      background: #0f1629;
+      box-shadow: inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #141d2e;
+      border-radius: 12px;
+    }
+    .sprint-block {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.3s ease;
+    }
+    .sprint-block:hover {
+      border-color: rgba(255,255,255,0.1);
+    }
+    .sprint-block.current {
+      border-color: #ff6b6b;
+      box-shadow: 0 0 20px rgba(255, 107, 107, 0.1);
+    }
+    .sprint-block.expanded {
+      grid-column: span 2;
+    }
+    .ticket-mini {
+      background: linear-gradient(145deg, #243352, #1a2740);
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+    .ticket-mini:hover {
+      transform: translateY(-1px);
+    }
+    .timeline-connector {
+      height: 2px;
+      background: linear-gradient(90deg, #2a3d5c, transparent);
+    }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #0f1629; border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a3d5c; border-radius: 3px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .kanban-mini-col { min-width: 100px; flex: 1; }
+  </style>
+</head>
+<body class="min-h-screen text-white p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-4">
+        <a href="00-comparison-index.html" class="p-2 rounded-lg hover:bg-white/5 text-slate">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <div class="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+          <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold">Sprint Timeline</h1>
+          <p class="text-slate text-sm">Horizontal sprint blocks with expandable Kanban boards</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="neu-card px-4 py-2 text-sm">
+          <span class="text-slate">Phase 1:</span>
+          <span class="text-white font-medium ml-1">Foundation</span>
+          <span class="text-coral ml-2">Sprint 3 of 4</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline Progress Bar -->
+    <div class="neu-card p-4 mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm text-slate">Phase 1 Progress</span>
+        <span class="text-coral font-bold">68%</span>
+      </div>
+      <div class="relative h-3 bg-dark-pressed rounded-full overflow-hidden">
+        <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 via-coral to-coral/50 w-[68%] rounded-full"></div>
+        <!-- Sprint markers -->
+        <div class="absolute top-0 bottom-0 left-[25%] w-0.5 bg-white/20"></div>
+        <div class="absolute top-0 bottom-0 left-[50%] w-0.5 bg-white/20"></div>
+        <div class="absolute top-0 bottom-0 left-[75%] w-0.5 bg-white/20"></div>
+      </div>
+      <div class="flex justify-between mt-2 text-xs text-slate">
+        <span>Sprint 1</span>
+        <span>Sprint 2</span>
+        <span class="text-coral font-medium">Sprint 3 ←</span>
+        <span>Sprint 4</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sprint Timeline Grid -->
+  <div class="grid grid-cols-4 gap-4 mb-6">
+    
+    <!-- Sprint 1 (Completed) -->
+    <div class="sprint-block p-4 opacity-70">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-green-400">✓</span>
+          <h3 class="font-bold">Sprint 1</h3>
+        </div>
+        <span class="text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded">Complete</span>
+      </div>
+      <div class="text-xs text-slate mb-3">Dec 1 - Dec 8</div>
+      
+      <!-- Compact stats -->
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <div class="bg-dark-pressed rounded-lg p-2 text-center">
+          <div class="text-lg font-bold text-green-400">8</div>
+          <div class="text-[10px] text-slate">Done</div>
+        </div>
+        <div class="bg-dark-pressed rounded-lg p-2 text-center">
+          <div class="text-lg font-bold text-slate">0</div>
+          <div class="text-[10px] text-slate">Open</div>
+        </div>
+      </div>
+      
+      <!-- Mini feature list -->
+      <div class="space-y-1">
+        <div class="text-xs text-slate-light line-through">Project setup</div>
+        <div class="text-xs text-slate-light line-through">Database schema</div>
+        <div class="text-xs text-slate-light line-through">CI/CD pipeline</div>
+      </div>
+      
+      <button class="w-full mt-3 text-xs text-slate hover:text-white py-1.5 rounded bg-dark-pressed/50 transition">
+        View Details →
+      </button>
+    </div>
+
+    <!-- Sprint 2 (Completed) -->
+    <div class="sprint-block p-4 opacity-70">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-green-400">✓</span>
+          <h3 class="font-bold">Sprint 2</h3>
+        </div>
+        <span class="text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded">Complete</span>
+      </div>
+      <div class="text-xs text-slate mb-3">Dec 9 - Dec 15</div>
+      
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <div class="bg-dark-pressed rounded-lg p-2 text-center">
+          <div class="text-lg font-bold text-green-400">10</div>
+          <div class="text-[10px] text-slate">Done</div>
+        </div>
+        <div class="bg-dark-pressed rounded-lg p-2 text-center">
+          <div class="text-lg font-bold text-slate">0</div>
+          <div class="text-[10px] text-slate">Open</div>
+        </div>
+      </div>
+      
+      <div class="space-y-1">
+        <div class="text-xs text-slate-light line-through">API foundation</div>
+        <div class="text-xs text-slate-light line-through">Basic UI components</div>
+        <div class="text-xs text-slate-light line-through">MCP server setup</div>
+      </div>
+      
+      <button class="w-full mt-3 text-xs text-slate hover:text-white py-1.5 rounded bg-dark-pressed/50 transition">
+        View Details →
+      </button>
+    </div>
+
+    <!-- Sprint 3 (Current - Expanded) -->
+    <div class="sprint-block current p-4 col-span-2">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-coral animate-pulse"></div>
+          <h3 class="font-bold text-lg">Sprint 3</h3>
+          <span class="text-xs text-coral bg-coral/10 px-2 py-0.5 rounded font-medium">CURRENT</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-slate">Dec 16 - Dec 22</span>
+          <span class="text-coral font-bold">67%</span>
+        </div>
+      </div>
+      
+      <!-- Mini Kanban inside sprint block -->
+      <div class="flex gap-3 mb-3">
+        <!-- To Do -->
+        <div class="kanban-mini-col">
+          <div class="flex items-center gap-1 mb-2">
+            <div class="status-dot bg-slate"></div>
+            <span class="text-[10px] text-slate font-medium">To Do (4)</span>
+          </div>
+          <div class="space-y-1.5 max-h-[180px] overflow-y-auto scrollbar-thin pr-1">
+            <div class="ticket-mini p-2">
+              <div class="text-[10px] text-slate mb-0.5">#104</div>
+              <div class="text-xs">Session middleware</div>
+            </div>
+            <div class="ticket-mini p-2">
+              <div class="text-[10px] text-slate mb-0.5">#108</div>
+              <div class="text-xs">Email templates</div>
+            </div>
+            <div class="ticket-mini p-2 opacity-60">
+              <div class="text-xs text-slate">+2 more</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- In Progress -->
+        <div class="kanban-mini-col">
+          <div class="flex items-center gap-1 mb-2">
+            <div class="status-dot bg-yellow-500"></div>
+            <span class="text-[10px] text-yellow-400 font-medium">Active (2)</span>
+          </div>
+          <div class="space-y-1.5">
+            <div class="ticket-mini p-2 ring-1 ring-coral/40">
+              <div class="flex justify-between">
+                <span class="text-[10px] text-slate">#103</span>
+                <div class="w-4 h-4 rounded bg-coral text-[8px] flex items-center justify-center font-bold">AI</div>
+              </div>
+              <div class="text-xs font-medium">GitHub OAuth</div>
+            </div>
+            <div class="ticket-mini p-2 ring-1 ring-blue-500/40">
+              <div class="flex justify-between">
+                <span class="text-[10px] text-slate">#111</span>
+                <div class="w-4 h-4 rounded bg-blue-500 text-[8px] flex items-center justify-center font-bold">UI</div>
+              </div>
+              <div class="text-xs font-medium">Chart library</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Review -->
+        <div class="kanban-mini-col">
+          <div class="flex items-center gap-1 mb-2">
+            <div class="status-dot bg-purple-500"></div>
+            <span class="text-[10px] text-purple-400 font-medium">Review (2)</span>
+          </div>
+          <div class="space-y-1.5">
+            <div class="ticket-mini p-2">
+              <div class="text-[10px] text-slate mb-0.5">#101</div>
+              <div class="text-xs">NextAuth config</div>
+              <div class="text-[10px] text-purple-400 mt-1">PR #52</div>
+            </div>
+            <div class="ticket-mini p-2">
+              <div class="text-[10px] text-slate mb-0.5">#105</div>
+              <div class="text-xs">Login redirect fix</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Done -->
+        <div class="kanban-mini-col">
+          <div class="flex items-center gap-1 mb-2">
+            <div class="status-dot bg-green-500"></div>
+            <span class="text-[10px] text-green-400 font-medium">Done (6)</span>
+          </div>
+          <div class="space-y-1.5 max-h-[180px] overflow-y-auto scrollbar-thin pr-1">
+            <div class="ticket-mini p-2 opacity-60">
+              <div class="text-[10px] text-slate mb-0.5">#100</div>
+              <div class="text-xs line-through">Google OAuth</div>
+            </div>
+            <div class="ticket-mini p-2 opacity-60">
+              <div class="text-[10px] text-slate mb-0.5">#99</div>
+              <div class="text-xs line-through">Auth setup</div>
+            </div>
+            <div class="ticket-mini p-2 opacity-40">
+              <div class="text-xs text-slate">+4 more</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sprint features summary -->
+      <div class="flex gap-4 text-xs border-t border-white/5 pt-3">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded bg-coral"></div>
+          <span class="text-slate-light">OAuth Authentication</span>
+          <span class="text-coral font-medium">60%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded bg-blue-500"></div>
+          <span class="text-slate-light">Dashboard Charts</span>
+          <span class="text-blue-400 font-medium">40%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded bg-slate"></div>
+          <span class="text-slate-light">Email System</span>
+          <span class="text-slate">0%</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Upcoming Sprints (Collapsed) -->
+  <div class="grid grid-cols-4 gap-4">
+    <!-- Sprint 4 (Planned) -->
+    <div class="sprint-block p-4 opacity-60">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold">Sprint 4</h3>
+        <span class="text-xs text-slate bg-dark-pressed px-2 py-0.5 rounded">Planned</span>
+      </div>
+      <div class="text-xs text-slate mb-3">Dec 23 - Dec 29</div>
+      
+      <div class="space-y-1">
+        <div class="text-xs text-slate-light">User profiles</div>
+        <div class="text-xs text-slate-light">Search improvements</div>
+        <div class="text-xs text-slate-light">Settings page</div>
+      </div>
+      
+      <div class="mt-3 text-center">
+        <span class="text-xs text-slate">8 tickets planned</span>
+      </div>
+    </div>
+
+    <!-- Phase 2 Preview -->
+    <div class="col-span-3 neu-card p-4 border border-dashed border-white/10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs text-slate mb-1">NEXT PHASE</div>
+          <h3 class="font-bold text-lg">Phase 2: Growth</h3>
+          <p class="text-sm text-slate">Advanced features, integrations, and polish</p>
+        </div>
+        <div class="text-right">
+          <div class="text-2xl font-bold text-slate/50">4</div>
+          <div class="text-xs text-slate">sprints planned</div>
+        </div>
+      </div>
+      
+      <div class="mt-4 flex gap-4">
+        <div class="flex-1 bg-dark-pressed/50 rounded-lg p-3 text-center">
+          <div class="text-xs text-slate mb-1">Sprint 5</div>
+          <div class="text-sm text-slate-light">Notifications</div>
+        </div>
+        <div class="flex-1 bg-dark-pressed/50 rounded-lg p-3 text-center">
+          <div class="text-xs text-slate mb-1">Sprint 6</div>
+          <div class="text-sm text-slate-light">Integrations</div>
+        </div>
+        <div class="flex-1 bg-dark-pressed/50 rounded-lg p-3 text-center">
+          <div class="text-xs text-slate mb-1">Sprint 7</div>
+          <div class="text-sm text-slate-light">Analytics</div>
+        </div>
+        <div class="flex-1 bg-dark-pressed/50 rounded-lg p-3 text-center">
+          <div class="text-xs text-slate mb-1">Sprint 8</div>
+          <div class="text-sm text-slate-light">Polish</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Panel -->
+  <div class="fixed bottom-6 right-6 max-w-sm neu-card p-4 border border-indigo-500/30 shadow-2xl">
+    <h4 class="font-bold text-indigo-400 mb-2">Why Sprint Timeline?</h4>
+    <p class="text-xs text-slate mb-2">
+      <strong class="text-white">Timeline meets Kanban.</strong> Each sprint is a block on a horizontal timeline. The current sprint expands to show its full Kanban board inline.
+    </p>
+    <ul class="text-xs text-slate space-y-1">
+      <li>• <strong class="text-white">Big picture view</strong> - See all sprints at once</li>
+      <li>• <strong class="text-white">Current sprint focus</strong> - Expanded with mini-kanban</li>
+      <li>• <strong class="text-white">Feature progress</strong> - See which features span sprints</li>
+      <li>• <strong class="text-white">Phase boundaries</strong> - Understand long-term roadmap</li>
+    </ul>
+  </div>
+
+</body>
+</html>

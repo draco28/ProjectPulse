@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 1f: Agent Session Board - ProjectPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-bg': '#1a1a2e',
+            'dark-surface': '#16213e',
+            'dark-raised': '#1f2b47',
+            'dark-pressed': '#0f1629',
+            'coral': '#ff6b6b',
+            'coral-dark': '#ee5a5a',
+            'slate': '#8892b0',
+            'slate-light': '#a8b2d1',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    .neu-card {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      box-shadow: 8px 8px 16px #0f1629, -8px -8px 16px #243352;
+      border-radius: 16px;
+    }
+    .neu-inset {
+      background: #0f1629;
+      box-shadow: inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #141d2e;
+      border-radius: 12px;
+    }
+    .session-lane {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .ticket-card {
+      background: linear-gradient(145deg, #243352, #1a2740);
+      box-shadow: 4px 4px 8px #0f1629, -2px -2px 6px #2a3d5c;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    .ticket-card:hover {
+      transform: translateY(-2px);
+    }
+    .agent-avatar {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    }
+    .pulse-ring {
+      animation: pulse-ring 2s infinite;
+    }
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+    }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #0f1629; border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a3d5c; border-radius: 3px; }
+    .status-live { background: linear-gradient(90deg, rgba(34, 197, 94, 0.1), transparent); }
+    .status-paused { background: linear-gradient(90deg, rgba(234, 179, 8, 0.1), transparent); }
+  </style>
+</head>
+<body class="min-h-screen text-white p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-4">
+        <a href="00-comparison-index.html" class="p-2 rounded-lg hover:bg-white/5 text-slate">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-coral to-coral-dark flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold">Agent Session Board</h1>
+          <p class="text-slate text-sm">Work organized by active AI agent sessions</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="neu-card px-4 py-2 flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span class="text-sm text-slate">2 Active</span>
+          </div>
+          <div class="w-px h-4 bg-white/10"></div>
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+            <span class="text-sm text-slate">1 Paused</span>
+          </div>
+        </div>
+        <button class="bg-coral hover:bg-coral-dark px-4 py-2 rounded-xl font-medium transition flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          New Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Sessions Grid -->
+  <div class="space-y-6">
+    
+    <!-- Active Session 1 -->
+    <div class="session-lane status-live p-5">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <div class="agent-avatar w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold pulse-ring">
+              AI
+            </div>
+            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-dark-surface"></div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-lg">Backend Agent Session</h3>
+              <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full font-medium">● LIVE</span>
+            </div>
+            <p class="text-slate text-sm">Working on OAuth Authentication feature</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <div class="text-xs text-slate">Session Duration</div>
+            <div class="text-lg font-mono text-white">02:34:12</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate">Tokens Used</div>
+            <div class="text-lg font-mono text-coral">45.2K</div>
+          </div>
+          <button class="p-2 rounded-lg bg-dark-pressed hover:bg-dark-raised transition">
+            <svg class="w-5 h-5 text-slate" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Session's Ticket Pipeline -->
+      <div class="flex gap-4 overflow-x-auto pb-2">
+        <!-- Queued -->
+        <div class="min-w-[200px] flex-1">
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="w-2 h-2 rounded-full bg-slate"></span>
+            <span class="text-xs font-medium text-slate">Queued</span>
+            <span class="text-xs text-slate ml-auto">2</span>
+          </div>
+          <div class="space-y-2">
+            <div class="ticket-card p-3">
+              <div class="flex justify-between mb-1">
+                <span class="text-[10px] font-mono text-slate">#104</span>
+              </div>
+              <p class="text-xs font-medium">Session management middleware</p>
+            </div>
+            <div class="ticket-card p-3">
+              <div class="flex justify-between mb-1">
+                <span class="text-[10px] font-mono text-slate">#105</span>
+                <span class="text-[10px] text-red-400">Bug</span>
+              </div>
+              <p class="text-xs font-medium">Fix login redirect loop</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Currently Working -->
+        <div class="min-w-[240px] flex-1">
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="w-2 h-2 rounded-full bg-coral animate-pulse"></span>
+            <span class="text-xs font-medium text-coral">Currently Working</span>
+          </div>
+          <div class="space-y-2">
+            <div class="ticket-card p-3 ring-2 ring-coral/50 bg-gradient-to-r from-coral/5 to-transparent">
+              <div class="flex justify-between mb-1">
+                <span class="text-[10px] font-mono text-slate">#103</span>
+                <span class="text-[10px] text-yellow-400">In Progress</span>
+              </div>
+              <p class="text-xs font-medium mb-2">GitHub OAuth provider integration</p>
+              <div class="neu-inset p-1.5 rounded">
+                <div class="flex justify-between text-[10px] text-slate mb-1">
+                  <span>Progress</span>
+                  <span>75%</span>
+                </div>
+                <div class="h-1 bg-dark-raised rounded-full overflow-hidden">
+                  <div class="h-full bg-coral w-[75%]"></div>
+                </div>
+              </div>
+              <div class="mt-2 text-[10px] text-slate">
+                Last action: Implementing callback handler...
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Completed This Session -->
+        <div class="min-w-[200px] flex-1">
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+            <span class="text-xs font-medium text-green-400">Completed</span>
+            <span class="text-xs text-slate ml-auto">2</span>
+          </div>
+          <div class="space-y-2">
+            <div class="ticket-card p-3 opacity-60">
+              <div class="flex justify-between mb-1">
+                <span class="text-[10px] font-mono text-slate">#101</span>
+                <span class="text-green-400 text-xs">✓</span>
+              </div>
+              <p class="text-xs font-medium line-through">NextAuth config setup</p>
+            </div>
+            <div class="ticket-card p-3 opacity-60">
+              <div class="flex justify-between mb-1">
+                <span class="text-[10px] font-mono text-slate">#102</span>
+                <span class="text-green-400 text-xs">✓</span>
+              </div>
+              <p class="text-xs font-medium line-through">Google OAuth provider</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Session 2 -->
+    <div class="session-lane status-live p-5">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold" style="box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+              UI
+            </div>
+            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-dark-surface"></div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-lg">Frontend Agent Session</h3>
+              <span class="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full font-medium">● LIVE</span>
+            </div>
+            <p class="text-slate text-sm">Working on Dashboard Charts feature</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <div class="text-xs text-slate">Session Duration</div>
+            <div class="text-lg font-mono text-white">00:45:33</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate">Tokens Used</div>
+            <div class="text-lg font-mono text-blue-400">18.7K</div>
+          </div>
+          <button class="p-2 rounded-lg bg-dark-pressed hover:bg-dark-raised transition">
+            <svg class="w-5 h-5 text-slate" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="flex gap-4 overflow-x-auto pb-2">
+        <div class="min-w-[200px] flex-1">
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="w-2 h-2 rounded-full bg-slate"></span>
+            <span class="text-xs font-medium text-slate">Queued</span>
+            <span class="text-xs text-slate ml-auto">1</span>
+          </div>
+          <div class="space-y-2">
+            <div class="ticket-card p-3">
+              <div class="flex justify-between mb-1">
+                <span class="text-[10px] font-mono text-slate">#112</span>
+              </div>
+              <p class="text-xs font-medium">Analytics export button</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="min-w-[240px] flex-1">
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+            <span class="text-xs font-medium text-blue-400">Currently Working</span>
+          </div>
+          <div class="space-y-2">
+            <div class="ticket-card p-3 ring-2 ring-blue-500/50">
+              <div class="flex justify-between mb-1">
+                <span class="text-[10px] font-mono text-slate">#111</span>
+              </div>
+              <p class="text-xs font-medium mb-2">Chart component library integration</p>
+              <div class="mt-2 text-[10px] text-slate">
+                Installing recharts dependencies...
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="min-w-[200px] flex-1">
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+            <span class="text-xs font-medium text-green-400">Completed</span>
+            <span class="text-xs text-slate ml-auto">1</span>
+          </div>
+          <div class="space-y-2">
+            <div class="ticket-card p-3 opacity-60">
+              <div class="flex justify-between mb-1">
+                <span class="text-[10px] font-mono text-slate">#110</span>
+                <span class="text-green-400 text-xs">✓</span>
+              </div>
+              <p class="text-xs font-medium line-through">Dashboard layout grid</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paused Session -->
+    <div class="session-lane status-paused p-5 opacity-80">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate to-slate-light flex items-center justify-center text-dark-bg font-bold">
+              DB
+            </div>
+            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full border-2 border-dark-surface"></div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-lg">Database Agent Session</h3>
+              <span class="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded-full font-medium">◼ PAUSED</span>
+            </div>
+            <p class="text-slate text-sm">Paused - waiting for schema review approval</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <div class="text-xs text-slate">Paused For</div>
+            <div class="text-lg font-mono text-yellow-400">1h 22m</div>
+          </div>
+          <button class="px-4 py-2 rounded-lg bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 text-sm font-medium transition">
+            Resume
+          </button>
+        </div>
+      </div>
+      
+      <div class="flex gap-4 overflow-x-auto pb-2">
+        <div class="min-w-[200px] flex-1">
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+            <span class="text-xs font-medium text-purple-400">Awaiting Review</span>
+          </div>
+          <div class="space-y-2">
+            <div class="ticket-card p-3 border border-yellow-500/30">
+              <div class="flex justify-between mb-1">
+                <span class="text-[10px] font-mono text-slate">#120</span>
+                <span class="text-[10px] text-purple-400">PR #67</span>
+              </div>
+              <p class="text-xs font-medium">User settings schema migration</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="min-w-[200px] flex-1">
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+            <span class="text-xs font-medium text-green-400">Completed</span>
+            <span class="text-xs text-slate ml-auto">3</span>
+          </div>
+          <div class="space-y-2">
+            <div class="ticket-card p-3 opacity-60">
+              <p class="text-xs line-through">3 tickets completed before pause</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unassigned Tickets -->
+    <div class="neu-card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-dark-pressed flex items-center justify-center">
+            <svg class="w-5 h-5 text-slate" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          </div>
+          <div>
+            <h3 class="font-bold">Unassigned Tickets</h3>
+            <p class="text-xs text-slate">Ready to be picked up by an agent session</p>
+          </div>
+        </div>
+        <span class="px-3 py-1 bg-dark-pressed rounded-lg text-sm text-slate">6 tickets</span>
+      </div>
+      
+      <div class="flex gap-3 overflow-x-auto pb-2">
+        <div class="ticket-card p-3 min-w-[180px]">
+          <div class="flex justify-between mb-1">
+            <span class="text-[10px] font-mono text-slate">#130</span>
+            <span class="text-[10px] text-emerald-400">Feature</span>
+          </div>
+          <p class="text-xs font-medium">Email notification system</p>
+          <div class="mt-2 text-[10px] text-slate">Est: 2 days</div>
+        </div>
+        <div class="ticket-card p-3 min-w-[180px]">
+          <div class="flex justify-between mb-1">
+            <span class="text-[10px] font-mono text-slate">#131</span>
+          </div>
+          <p class="text-xs font-medium">User profile page</p>
+        </div>
+        <div class="ticket-card p-3 min-w-[180px]">
+          <div class="flex justify-between mb-1">
+            <span class="text-[10px] font-mono text-slate">#132</span>
+            <span class="text-[10px] text-red-400">Bug</span>
+          </div>
+          <p class="text-xs font-medium">Fix mobile nav overflow</p>
+        </div>
+        <div class="ticket-card p-3 min-w-[180px] opacity-60">
+          <p class="text-xs text-slate">+3 more...</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Info Panel -->
+  <div class="fixed bottom-6 right-6 max-w-sm neu-card p-4 border border-coral/30 shadow-2xl">
+    <h4 class="font-bold text-coral mb-2">Why Agent Session Board?</h4>
+    <p class="text-xs text-slate mb-2">
+      <strong class="text-white">Optimized for AI-assisted workflows.</strong> Each agent session is a swimlane showing its ticket pipeline: queued → working → completed.
+    </p>
+    <ul class="text-xs text-slate space-y-1">
+      <li>• <strong class="text-white">Session-centric view</strong> - See what each AI agent is doing</li>
+      <li>• <strong class="text-white">Live status indicators</strong> - Active, paused, or completed</li>
+      <li>• <strong class="text-white">Token usage tracking</strong> - Monitor resource consumption</li>
+      <li>• <strong class="text-white">Unassigned pool</strong> - Tickets ready for next session</li>
+    </ul>
+  </div>
+
+</body>
+</html>

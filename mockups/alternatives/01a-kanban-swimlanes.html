@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 1a: Kanban Swimlanes - ProjectPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-bg': '#1a1a2e',
+            'dark-surface': '#16213e',
+            'dark-raised': '#1f2b47',
+            'dark-pressed': '#0f1629',
+            'coral': '#ff6b6b',
+            'coral-dark': '#ee5a5a',
+            'slate': '#8892b0',
+            'slate-light': '#a8b2d1',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    .neu-card {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      box-shadow: 8px 8px 16px #0f1629, -8px -8px 16px #243352;
+      border-radius: 16px;
+    }
+    .neu-inset {
+      background: #0f1629;
+      box-shadow: inset 4px 4px 8px #0a0f1a, inset -4px -4px 8px #141d2e;
+      border-radius: 12px;
+    }
+    .ticket-card {
+      background: linear-gradient(145deg, #243352, #1a2740);
+      box-shadow: 4px 4px 8px #0f1629, -2px -2px 6px #2a3d5c;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    .ticket-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 6px 6px 12px #0f1629, -3px -3px 8px #2a3d5c;
+    }
+    .sprint-column {
+      min-width: 280px;
+      max-width: 280px;
+    }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #0f1629; border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a3d5c; border-radius: 3px; }
+  </style>
+</head>
+<body class="min-h-screen text-white p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-4">
+        <a href="00-comparison-index.html" class="p-2 rounded-lg hover:bg-white/5 text-slate">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+          <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold">Kanban with Swimlanes</h1>
+          <p class="text-slate text-sm">Organized by Parent Feature/Epic</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="neu-card px-4 py-2 flex items-center gap-2">
+          <span class="text-slate text-sm">Grouping:</span>
+          <span class="text-purple-400 font-semibold">By Feature</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board Header (Columns) -->
+  <div class="flex gap-4 mb-4 pl-[260px] pr-4">
+    <div class="sprint-column">
+      <h3 class="font-semibold text-slate-light flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-slate"></div> To Do
+      </h3>
+    </div>
+    <div class="sprint-column">
+      <h3 class="font-semibold text-slate-light flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-yellow-500"></div> In Progress
+      </h3>
+    </div>
+    <div class="sprint-column">
+      <h3 class="font-semibold text-slate-light flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-purple-500"></div> Review
+      </h3>
+    </div>
+    <div class="sprint-column">
+      <h3 class="font-semibold text-slate-light flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-green-500"></div> Done
+      </h3>
+    </div>
+  </div>
+
+  <!-- Swimlanes Container -->
+  <div class="space-y-6 pb-12">
+    
+    <!-- Swimlane 1: Authentication Overhaul -->
+    <div class="relative">
+      <!-- Parent Header (Sticky Left) -->
+      <div class="absolute left-0 top-0 bottom-0 w-[240px] neu-card p-4 flex flex-col justify-between border-l-4 border-coral">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-coral font-bold">EPIC-01</span>
+            <span class="px-2 py-0.5 bg-coral/10 text-coral text-[10px] rounded">High</span>
+          </div>
+          <h3 class="font-bold text-lg mb-2 leading-tight">Auth System Overhaul</h3>
+          <p class="text-xs text-slate mb-4">Migration to NextAuth v5 and role-based access control implementation.</p>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs text-slate mb-1">
+            <span>Progress</span>
+            <span>60%</span>
+          </div>
+          <div class="h-1.5 bg-dark-bg rounded-full overflow-hidden">
+            <div class="h-full bg-coral w-[60%]"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Swimlane Content -->
+      <div class="flex gap-4 ml-[260px] overflow-x-auto pb-2 min-h-[160px]">
+        <!-- To Do -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+          <div class="ticket-card p-3">
+            <div class="flex justify-between mb-2"><span class="text-xs text-slate">#104</span></div>
+            <p class="text-sm font-medium mb-2">Implement 2FA backup codes</p>
+            <div class="flex gap-2"><span class="px-2 py-0.5 bg-dark-pressed text-xs rounded text-slate">backend</span></div>
+          </div>
+        </div>
+        <!-- In Progress -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+          <div class="ticket-card p-3 ring-1 ring-yellow-500/50">
+            <div class="flex justify-between mb-2"><span class="text-xs text-slate">#102</span><span class="text-[10px] bg-yellow-500/20 text-yellow-500 px-1 rounded">WIP</span></div>
+            <p class="text-sm font-medium mb-2">OAuth provider integration</p>
+            <div class="flex items-center gap-2">
+              <div class="w-5 h-5 rounded-full bg-coral text-white text-[10px] flex items-center justify-center">AI</div>
+              <span class="text-xs text-slate">Agent active</span>
+            </div>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+          <div class="ticket-card p-3 opacity-80">
+            <div class="flex justify-between mb-2"><span class="text-xs text-slate">#101</span></div>
+            <p class="text-sm font-medium mb-2">Session management middleware</p>
+            <div class="text-xs text-purple-400">PR #45 needs review</div>
+          </div>
+        </div>
+        <!-- Done -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+          <div class="ticket-card p-3 opacity-50">
+            <div class="flex justify-between mb-2"><span class="text-xs text-slate">#99</span><span class="text-green-400">✓</span></div>
+            <p class="text-sm font-medium mb-2 line-through">Database schema for Users</p>
+          </div>
+          <div class="ticket-card p-3 opacity-50">
+            <div class="flex justify-between mb-2"><span class="text-xs text-slate">#98</span><span class="text-green-400">✓</span></div>
+            <p class="text-sm font-medium mb-2 line-through">Login UI components</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Swimlane 2: Global Search -->
+    <div class="relative">
+      <div class="absolute left-0 top-0 bottom-0 w-[240px] neu-card p-4 flex flex-col justify-between border-l-4 border-blue-500">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-blue-400 font-bold">EPIC-02</span>
+            <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] rounded">Med</span>
+          </div>
+          <h3 class="font-bold text-lg mb-2 leading-tight">Global Search</h3>
+          <p class="text-xs text-slate mb-4">Full-text search across tickets, wiki, and knowledge base.</p>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs text-slate mb-1">
+            <span>Progress</span>
+            <span>20%</span>
+          </div>
+          <div class="h-1.5 bg-dark-bg rounded-full overflow-hidden">
+            <div class="h-full bg-blue-500 w-[20%]"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-4 ml-[260px] overflow-x-auto pb-2 min-h-[160px]">
+        <!-- To Do -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+          <div class="ticket-card p-3">
+            <div class="flex justify-between mb-2"><span class="text-xs text-slate">#115</span></div>
+            <p class="text-sm font-medium mb-2">Frontend search result component</p>
+          </div>
+          <div class="ticket-card p-3">
+            <div class="flex justify-between mb-2"><span class="text-xs text-slate">#116</span></div>
+            <p class="text-sm font-medium mb-2">Search results filtering logic</p>
+          </div>
+        </div>
+        <!-- In Progress -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+           <div class="ticket-card p-3 ring-1 ring-blue-500/50">
+            <div class="flex justify-between mb-2"><span class="text-xs text-slate">#114</span><span class="text-[10px] bg-yellow-500/20 text-yellow-500 px-1 rounded">WIP</span></div>
+            <p class="text-sm font-medium mb-2">PostgreSQL Full-Text Search Index</p>
+             <div class="flex items-center gap-2">
+              <div class="w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] flex items-center justify-center">Me</div>
+            </div>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+          <!-- Empty -->
+        </div>
+        <!-- Done -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+          <div class="ticket-card p-3 opacity-50">
+            <div class="flex justify-between mb-2"><span class="text-xs text-slate">#112</span><span class="text-green-400">✓</span></div>
+            <p class="text-sm font-medium mb-2 line-through">Search bar UI mockup</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Swimlane 3: Tech Debt / Unparented -->
+    <div class="relative">
+      <div class="absolute left-0 top-0 bottom-0 w-[240px] neu-card p-4 flex flex-col justify-between border-l-4 border-slate">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-slate font-bold">MISC</span>
+          </div>
+          <h3 class="font-bold text-lg mb-2 leading-tight">General Tasks & Tech Debt</h3>
+          <p class="text-xs text-slate mb-4">Items without a specific parent feature.</p>
+        </div>
+        <div>
+           <!-- No progress bar for misc -->
+        </div>
+      </div>
+
+      <div class="flex gap-4 ml-[260px] overflow-x-auto pb-2 min-h-[160px]">
+        <!-- To Do -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+          <div class="ticket-card p-3">
+             <div class="flex justify-between mb-2"><span class="text-xs text-slate">#88</span><span class="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] rounded">Bug</span></div>
+            <p class="text-sm font-medium mb-2">Fix mobile layout overflow on Safari</p>
+          </div>
+        </div>
+        <!-- In Progress -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+          <!-- Empty -->
+        </div>
+         <!-- Review -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+           <div class="ticket-card p-3">
+            <div class="flex justify-between mb-2"><span class="text-xs text-slate">#92</span></div>
+            <p class="text-sm font-medium mb-2">Update dependency packages</p>
+            <div class="text-xs text-purple-400">Automated PR</div>
+          </div>
+        </div>
+        <!-- Done -->
+        <div class="sprint-column space-y-3 p-2 rounded-xl bg-dark-pressed/30">
+           <!-- Empty -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  <!-- Info Panel -->
+  <div class="fixed bottom-6 right-6 max-w-sm neu-card p-4 border border-purple-500/30 shadow-2xl">
+    <h4 class="font-bold text-purple-400 mb-2">Why Swimlanes?</h4>
+    <p class="text-xs text-slate">
+      Addresses the "clutter" by physically separating tickets into their parent contexts. You only see tickets relevant to one feature at a time in each horizontal slice. Good for maintaining context of "Why are we doing this ticket?".
+    </p>
+  </div>
+
+</body>
+</html>

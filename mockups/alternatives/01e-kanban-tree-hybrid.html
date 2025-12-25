@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 1e: Tree + Board Hybrid - ProjectPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-bg': '#1a1a2e',
+            'dark-surface': '#16213e',
+            'dark-raised': '#1f2b47',
+            'dark-pressed': '#0f1629',
+            'coral': '#ff6b6b',
+            'coral-dark': '#ee5a5a',
+            'slate': '#8892b0',
+            'slate-light': '#a8b2d1',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    .neu-card {
+      background: linear-gradient(145deg, #1f2b47, #16213e);
+      box-shadow: 8px 8px 16px #0f1629, -8px -8px 16px #243352;
+      border-radius: 16px;
+    }
+    .ticket-card {
+      background: linear-gradient(145deg, #243352, #1a2740);
+      box-shadow: 4px 4px 8px #0f1629, -2px -2px 6px #2a3d5c;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    .ticket-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 6px 6px 12px #0f1629, -3px -3px 8px #2a3d5c;
+    }
+    .tree-item {
+      transition: all 0.15s ease;
+      border-left: 2px solid transparent;
+    }
+    .tree-item:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    .tree-item.selected {
+      background: linear-gradient(90deg, rgba(255, 107, 107, 0.15), transparent);
+      border-left-color: #ff6b6b;
+    }
+    .tree-item.selected .tree-title {
+      color: white;
+      font-weight: 600;
+    }
+    .tree-connector {
+      border-left: 1px dashed #2a3d5c;
+      margin-left: 11px;
+    }
+    .sprint-column { flex: 1; min-width: 220px; }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #0f1629; border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #2a3d5c; border-radius: 3px; }
+    .breadcrumb-item::after {
+      content: '/';
+      margin: 0 8px;
+      color: #8892b0;
+    }
+    .breadcrumb-item:last-child::after {
+      content: '';
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white flex overflow-hidden">
+  
+  <!-- Left Panel: Hierarchy Tree -->
+  <div class="w-80 bg-dark-surface border-r border-white/5 flex flex-col h-screen">
+    <div class="p-4 border-b border-white/5">
+      <div class="flex items-center gap-3 mb-4">
+        <a href="00-comparison-index.html" class="p-2 rounded-lg hover:bg-white/5 text-slate">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <h1 class="text-lg font-bold">Hierarchy Navigator</h1>
+      </div>
+      
+      <div class="relative">
+        <input type="text" placeholder="Search tickets..." class="w-full bg-dark-pressed rounded-lg py-2 px-4 pr-10 text-sm text-slate focus:outline-none focus:ring-1 focus:ring-coral">
+        <svg class="w-4 h-4 text-slate absolute right-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+    </div>
+    
+    <!-- Tree View -->
+    <div class="flex-1 overflow-y-auto scrollbar-thin py-2">
+      
+      <!-- Root: All Tickets -->
+      <div class="tree-item px-4 py-2 cursor-pointer flex items-center gap-2">
+        <svg class="w-4 h-4 text-slate" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+        <span class="tree-title text-slate-light text-sm">All Tickets</span>
+        <span class="ml-auto text-xs text-slate bg-dark-pressed px-1.5 rounded">24</span>
+      </div>
+      
+      <!-- Sprint 3 (Current) -->
+      <div class="mt-2">
+        <div class="tree-item px-4 py-2 cursor-pointer flex items-center gap-2">
+          <svg class="w-4 h-4 text-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          <span class="tree-title text-coral text-sm font-medium">Sprint 3 (Current)</span>
+          <span class="ml-auto text-xs text-coral bg-coral/10 px-1.5 rounded">12</span>
+        </div>
+        
+        <div class="tree-connector pl-6">
+          <!-- Feature 1 -->
+          <div class="tree-item selected px-4 py-2 cursor-pointer flex items-center gap-2 ml-2">
+            <svg class="w-4 h-4 text-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            <span class="tree-title text-sm">OAuth Authentication</span>
+            <span class="ml-auto text-xs text-slate bg-dark-pressed px-1.5 rounded">5</span>
+          </div>
+          
+          <div class="tree-connector pl-6 ml-2">
+            <div class="tree-item px-4 py-1.5 cursor-pointer flex items-center gap-2 ml-2">
+              <div class="w-2 h-2 rounded-full bg-green-500"></div>
+              <span class="tree-title text-xs text-slate">NextAuth setup</span>
+            </div>
+            <div class="tree-item px-4 py-1.5 cursor-pointer flex items-center gap-2 ml-2">
+              <div class="w-2 h-2 rounded-full bg-green-500"></div>
+              <span class="tree-title text-xs text-slate">Google provider</span>
+            </div>
+            <div class="tree-item px-4 py-1.5 cursor-pointer flex items-center gap-2 ml-2">
+              <div class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+              <span class="tree-title text-xs text-white">GitHub provider</span>
+            </div>
+            <div class="tree-item px-4 py-1.5 cursor-pointer flex items-center gap-2 ml-2">
+              <div class="w-2 h-2 rounded-full bg-slate"></div>
+              <span class="tree-title text-xs text-slate">Session management</span>
+            </div>
+            <div class="tree-item px-4 py-1.5 cursor-pointer flex items-center gap-2 ml-2">
+              <div class="w-2 h-2 rounded-full bg-red-400"></div>
+              <span class="tree-title text-xs text-slate">Fix login redirect bug</span>
+            </div>
+          </div>
+          
+          <!-- Feature 2 -->
+          <div class="tree-item px-4 py-2 cursor-pointer flex items-center gap-2 ml-2">
+            <svg class="w-4 h-4 text-slate" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="tree-title text-sm text-slate-light">Dashboard Charts</span>
+            <span class="ml-auto text-xs text-slate bg-dark-pressed px-1.5 rounded">3</span>
+          </div>
+          
+          <!-- Feature 3 -->
+          <div class="tree-item px-4 py-2 cursor-pointer flex items-center gap-2 ml-2">
+            <svg class="w-4 h-4 text-slate" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="tree-title text-sm text-slate-light">Search Improvements</span>
+            <span class="ml-auto text-xs text-slate bg-dark-pressed px-1.5 rounded">4</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sprint 2 (Completed) -->
+      <div class="mt-2 opacity-60">
+        <div class="tree-item px-4 py-2 cursor-pointer flex items-center gap-2">
+          <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="tree-title text-slate-light text-sm">Sprint 2</span>
+          <span class="ml-auto text-xs text-green-400">✓</span>
+        </div>
+      </div>
+      
+      <!-- Sprint 1 (Completed) -->
+      <div class="opacity-60">
+        <div class="tree-item px-4 py-2 cursor-pointer flex items-center gap-2">
+          <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="tree-title text-slate-light text-sm">Sprint 1</span>
+          <span class="ml-auto text-xs text-green-400">✓</span>
+        </div>
+      </div>
+      
+      <!-- Backlog -->
+      <div class="mt-4 pt-4 border-t border-white/5">
+        <div class="tree-item px-4 py-2 cursor-pointer flex items-center gap-2">
+          <svg class="w-4 h-4 text-slate" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="tree-title text-slate-light text-sm">Backlog</span>
+          <span class="ml-auto text-xs text-slate bg-dark-pressed px-1.5 rounded">8</span>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Tree Legend -->
+    <div class="p-4 border-t border-white/5 text-xs text-slate">
+      <div class="flex flex-wrap gap-3">
+        <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-slate"></div> To Do</span>
+        <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-yellow-500"></div> Active</span>
+        <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div> Done</span>
+        <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-400"></div> Bug</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Board Area -->
+  <div class="flex-1 flex flex-col h-screen bg-dark-bg">
+    <!-- Context Header / Breadcrumb -->
+    <div class="p-4 border-b border-white/5 bg-dark-surface/50 backdrop-blur-sm">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center text-sm">
+          <span class="breadcrumb-item text-slate cursor-pointer hover:text-white">Sprint 3</span>
+          <span class="breadcrumb-item text-coral font-semibold">OAuth Authentication</span>
+        </div>
+        <div class="flex gap-3">
+          <button class="px-3 py-1.5 rounded-lg bg-dark-raised hover:bg-dark-pressed text-xs font-medium transition">View All Sprint 3</button>
+          <button class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-dark text-xs font-medium transition">+ Add Task</button>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold">#100 OAuth Authentication</h2>
+          <p class="text-slate text-xs mt-1">Showing 5 child tickets for this feature</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <div class="text-2xl font-bold text-coral">60%</div>
+            <div class="text-xs text-slate">3 of 5 done</div>
+          </div>
+          <div class="w-24 h-2 bg-dark-pressed rounded-full overflow-hidden">
+            <div class="h-full bg-coral w-[60%]"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kanban Columns (Filtered to selected node) -->
+    <div class="flex-1 overflow-x-auto p-4">
+      <div class="flex gap-4 h-full min-w-[900px]">
+        
+        <!-- To Do -->
+        <div class="sprint-column flex flex-col">
+          <div class="flex items-center justify-between mb-3 px-2">
+            <h3 class="font-semibold text-slate-light text-sm flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-slate"></span> To Do
+            </h3>
+            <span class="text-xs text-slate">1</span>
+          </div>
+          <div class="flex-1 bg-dark-surface/30 rounded-xl p-2 space-y-2 overflow-y-auto scrollbar-thin">
+            <div class="ticket-card p-3">
+              <div class="flex justify-between mb-2">
+                <span class="text-[10px] font-mono text-slate">#104</span>
+                <span class="px-1.5 py-0.5 bg-slate/20 text-slate text-[10px] rounded">Task</span>
+              </div>
+              <p class="text-sm font-medium mb-2">Session management middleware</p>
+              <div class="flex items-center justify-between text-[10px] text-slate">
+                <span>Est: 4h</span>
+                <span class="text-red-400">Blocked by #103</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="sprint-column flex flex-col">
+          <div class="flex items-center justify-between mb-3 px-2">
+            <h3 class="font-semibold text-slate-light text-sm flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-yellow-500"></span> In Progress
+            </h3>
+            <span class="text-xs text-slate">1</span>
+          </div>
+          <div class="flex-1 bg-dark-surface/30 rounded-xl p-2 space-y-2 overflow-y-auto scrollbar-thin">
+            <div class="ticket-card p-3 ring-1 ring-coral/50">
+              <div class="flex justify-between mb-2">
+                <span class="text-[10px] font-mono text-slate">#103</span>
+                <span class="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 text-[10px] rounded">Task</span>
+              </div>
+              <p class="text-sm font-medium mb-2">GitHub OAuth provider integration</p>
+              <div class="flex items-center gap-2 mt-2">
+                <div class="w-5 h-5 rounded-full bg-coral text-white text-[8px] flex items-center justify-center font-bold">AI</div>
+                <span class="text-[10px] text-slate">Agent session active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review -->
+        <div class="sprint-column flex flex-col">
+          <div class="flex items-center justify-between mb-3 px-2">
+            <h3 class="font-semibold text-slate-light text-sm flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-purple-500"></span> Review
+            </h3>
+            <span class="text-xs text-slate">1</span>
+          </div>
+          <div class="flex-1 bg-dark-surface/30 rounded-xl p-2 space-y-2 overflow-y-auto scrollbar-thin">
+            <div class="ticket-card p-3 border-l-2 border-red-400">
+              <div class="flex justify-between mb-2">
+                <span class="text-[10px] font-mono text-slate">#105</span>
+                <span class="px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[10px] rounded">Bug</span>
+              </div>
+              <p class="text-sm font-medium mb-2">Fix login redirect loop issue</p>
+              <div class="text-[10px] text-purple-400">PR #52 open</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Done -->
+        <div class="sprint-column flex flex-col">
+          <div class="flex items-center justify-between mb-3 px-2">
+            <h3 class="font-semibold text-slate-light text-sm flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-green-500"></span> Done
+            </h3>
+            <span class="text-xs text-slate">2</span>
+          </div>
+          <div class="flex-1 bg-dark-surface/30 rounded-xl p-2 space-y-2 overflow-y-auto scrollbar-thin">
+            <div class="ticket-card p-3 opacity-60">
+              <div class="flex justify-between mb-2">
+                <span class="text-[10px] font-mono text-slate">#101</span>
+                <span class="text-green-400 text-xs">✓</span>
+              </div>
+              <p class="text-sm font-medium line-through">Setup NextAuth configuration</p>
+            </div>
+            <div class="ticket-card p-3 opacity-60">
+              <div class="flex justify-between mb-2">
+                <span class="text-[10px] font-mono text-slate">#102</span>
+                <span class="text-green-400 text-xs">✓</span>
+              </div>
+              <p class="text-sm font-medium line-through">Google OAuth provider</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  
+  <!-- Info Panel -->
+  <div class="fixed bottom-6 right-6 max-w-sm neu-card p-4 border border-cyan-500/30 shadow-2xl z-50">
+    <h4 class="font-bold text-cyan-400 mb-2">Why Tree + Board Hybrid?</h4>
+    <p class="text-xs text-slate mb-2">
+      <strong class="text-white">Best of both worlds:</strong> Navigate the full hierarchy on the left (Sprints → Features → Tasks), then see the selected context as a clean Kanban on the right.
+    </p>
+    <ul class="text-xs text-slate space-y-1">
+      <li>• <strong class="text-white">Context always visible</strong> - Know exactly where you are</li>
+      <li>• <strong class="text-white">Click to zoom</strong> - Select any node to filter the board</li>
+      <li>• <strong class="text-white">Status dots in tree</strong> - See progress without expanding</li>
+      <li>• <strong class="text-white">Breadcrumb navigation</strong> - Jump up hierarchy levels</li>
+    </ul>
+  </div>
+
+</body>
+</html>
