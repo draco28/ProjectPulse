@@ -218,7 +218,9 @@
       "Bash(DATABASE_URL=\"postgresql://postgres:postgres123@localhost:5432/projectpulse_dev\" npx prisma migrate dev:*)",
       "mcp__projectpulse__projectpulse_onboarding_savePhase",
       "mcp__projectpulse__projectpulse_onboarding_getPhasedQuestions",
-      "mcp__projectpulse__projectpulse_onboarding_storeDocument"
+      "mcp__projectpulse__projectpulse_onboarding_storeDocument",
+      "mcp__projectpulse__projectpulse_ticket_get",
+      "mcp__projectpulse__projectpulse_ticket_addComment"
     ],
     "deny": [],
     "ask": [

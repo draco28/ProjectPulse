@@ -257,10 +257,10 @@ export function Sidebar({
           {/* Settings at bottom of nav */}
           <div className="mt-auto">
             <Link
-              href={projectId ? `/projects/${projectId}/settings` : '/app'}
+              href={buildHref('/settings')}
               className={cn(
                 'smooth-transition flex items-center gap-3 rounded-2xl px-5 py-4',
-                pathname.includes('/settings')
+                pathname === '/settings'
                   ? 'coral-gradient text-white'
                   : 'neu-raised text-slate hover:text-white'
               )}
