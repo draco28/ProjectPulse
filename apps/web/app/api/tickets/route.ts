@@ -247,6 +247,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Sprint 15: Auto-populate backlogRefs from BacklogItem table when sprintNumber provided
+    let backlogRefsToUse = data.backlogRefs ?? [];
+    let backlogRefsAutoPopulated = false;
+
+    if (data.sprintNumber && backlogRefsToUse.length === 0) {
+      const backlogItems = await prisma.backlogItem.findMany({
+        where: { projectId, sprintNumber: data.sprintNumber },
+        select: { itemId: true },
+      });
+
+      if (backlogItems.length > 0) {
+        backlogRefsToUse = backlogItems.map((item) => item.itemId);
+        backlogRefsAutoPopulated = true;
+      }
+    }
+
     const ticket = await prisma.$transaction(async (tx) => {
       const created = await tx.ticket.create({
         data: {
@@ -270,7 +286,8 @@ export async function POST(request: NextRequest) {
           parentTicketId: data.parentTicketId ?? null,
           // Sprint 13: Traceability fields
           epicRef: data.epicRef ?? null,
-          backlogRefs: data.backlogRefs ?? [],
+          // Sprint 15: Use auto-populated backlogRefs if available
+          backlogRefs: backlogRefsToUse,
           sprintNumber: data.sprintNumber ?? null,
           labels:
             labelIdSet.size > 0
@@ -304,7 +321,18 @@ export async function POST(request: NextRequest) {
     revalidatePath('/issues');
     revalidatePath(`/issues/${ticket.id}`);
 
-    return success(ticket, 201);
+    // Sprint 15: Include auto-population hint in response for MCP tool awareness
+    const response = {
+      ...ticket,
+      _suggestions: backlogRefsAutoPopulated
+        ? {
+            backlogRefsAutoPopulated: true,
+            message: `Auto-populated ${backlogRefsToUse.length} backlogRefs from Sprint ${data.sprintNumber} scope`,
+          }
+        : undefined,
+    };
+
+    return success(response, 201);
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {

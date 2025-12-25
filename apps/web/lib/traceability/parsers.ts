@@ -16,10 +16,11 @@ import {
   extractSprintNumber,
   extractPRDSections,
   parseTraceLine,
+  expandBacklogRange,
   NUMBERED_SECTION_PATTERN,
   TRACE_LINE_PATTERN,
   SPRINT_HEADER_PATTERN,
-  SCOPE_SECTION_PATTERN,
+  SCOPE_SECTION_PATTERNS,
   SCOPE_ITEM_PATTERN,
 } from './patterns';
 
@@ -307,9 +308,17 @@ export function parseBacklog(content: string): ParsedBacklog {
 // ============================================================================
 
 /**
- * Parse Project Plan document to extract sprint scopes
+ * Parse Project Plan document to extract sprint scopes.
+ *
+ * Sprint 15: Enhanced with multi-pattern matching and backlog fallback.
+ *
+ * @param content - Project Plan markdown content
+ * @param backlogItems - Optional parsed backlog items for fallback aggregation
  */
-export function parseProjectPlan(content: string): ParsedProjectPlan {
+export function parseProjectPlan(
+  content: string,
+  backlogItems?: BacklogItem[]
+): ParsedProjectPlan {
   const sprints: SprintScope[] = [];
 
   // Split by sprint headers
@@ -338,41 +347,63 @@ export function parseProjectPlan(content: string): ParsedProjectPlan {
     const nextIndex = nextHeader ? nextHeader.index : content.length;
     const sprintContent = content.slice(header.index, nextIndex);
 
-    // Look for Scope section
-    const scopeRegex = new RegExp(SCOPE_SECTION_PATTERN.source, SCOPE_SECTION_PATTERN.flags);
-    const scopeMatch = scopeRegex.exec(sprintContent);
+    let backlogItemsFound: string[] = [];
+    let frRefs: string[] = [];
+    let nfrRefs: string[] = [];
 
-    const backlogItems: string[] = [];
-    const frRefs: string[] = [];
-    const nfrRefs: string[] = [];
+    // Sprint 15: Try each pattern in order until one matches
+    for (const pattern of SCOPE_SECTION_PATTERNS) {
+      const scopeRegex = new RegExp(pattern.source, pattern.flags);
+      const scopeMatch = scopeRegex.exec(sprintContent);
 
-    if (scopeMatch?.[1]) {
-      const scopeContent = scopeMatch[1];
+      if (scopeMatch?.[1]) {
+        const scopeContent = scopeMatch[1];
 
-      // Extract each line item
-      const itemRegex = new RegExp(SCOPE_ITEM_PATTERN.source, SCOPE_ITEM_PATTERN.flags);
-      let itemMatch: RegExpExecArray | null;
+        // Use expandBacklogRange to handle "US-001 to US-014" notation
+        backlogItemsFound.push(...expandBacklogRange(scopeContent));
 
-      while ((itemMatch = itemRegex.exec(scopeContent)) !== null) {
-        const lineContent = itemMatch[1];
-        if (!lineContent) continue;
-
-        // Extract backlog item IDs
-        backlogItems.push(...extractBacklogItems(lineContent));
-
-        // Also include epic references as backlog items
-        backlogItems.push(...extractEpics(lineContent));
+        // Also include epic references
+        backlogItemsFound.push(...extractEpics(scopeContent));
 
         // Extract FR/NFR references
-        frRefs.push(...extractFRs(lineContent));
-        nfrRefs.push(...extractNFRs(lineContent));
+        frRefs.push(...extractFRs(scopeContent));
+        nfrRefs.push(...extractNFRs(scopeContent));
+
+        // Also try extracting from bullet list items if present
+        const itemRegex = new RegExp(SCOPE_ITEM_PATTERN.source, SCOPE_ITEM_PATTERN.flags);
+        let itemMatch: RegExpExecArray | null;
+
+        while ((itemMatch = itemRegex.exec(scopeContent)) !== null) {
+          const lineContent = itemMatch[1];
+          if (!lineContent) continue;
+
+          backlogItemsFound.push(...expandBacklogRange(lineContent));
+          backlogItemsFound.push(...extractEpics(lineContent));
+          frRefs.push(...extractFRs(lineContent));
+          nfrRefs.push(...extractNFRs(lineContent));
+        }
+
+        break; // Found a match, stop trying other patterns
+      }
+    }
+
+    // Sprint 15: FALLBACK - Aggregate from BacklogItem records by sprintNumber
+    if (backlogItemsFound.length === 0 && backlogItems && backlogItems.length > 0) {
+      const itemsInSprint = backlogItems.filter(
+        (item) => item.sprintNumber === header.number
+      );
+
+      if (itemsInSprint.length > 0) {
+        backlogItemsFound = itemsInSprint.map((item) => item.id);
+        frRefs = itemsInSprint.flatMap((item) => item.frTraces);
+        nfrRefs = itemsInSprint.flatMap((item) => item.nfrTraces);
       }
     }
 
     sprints.push({
       sprintNumber: header.number,
       title: header.title,
-      backlogItems: [...new Set(backlogItems)],
+      backlogItems: [...new Set(backlogItemsFound)],
       frRefs: [...new Set(frRefs)],
       nfrRefs: [...new Set(nfrRefs)],
       rawBlock: sprintContent,
@@ -433,13 +464,21 @@ export interface RawDocumentSet {
 }
 
 /**
- * Parse all documents in a set
+ * Parse all documents in a set.
+ *
+ * Sprint 15: Passes parsed backlog items to parseProjectPlan for fallback aggregation.
  */
 export function parseDocumentSet(docs: RawDocumentSet): DocumentSet {
+  // Parse backlog first so we can pass items to project plan parser
+  const backlog = docs.backlog ? parseBacklog(docs.backlog) : null;
+
   return {
     prd: docs.prd ? parsePRD(docs.prd) : null,
     srs: docs.srs ? parseSRS(docs.srs) : null,
-    backlog: docs.backlog ? parseBacklog(docs.backlog) : null,
-    projectPlan: docs.projectPlan ? parseProjectPlan(docs.projectPlan) : null,
+    backlog,
+    // Sprint 15: Pass backlog items for fallback aggregation by sprint number
+    projectPlan: docs.projectPlan
+      ? parseProjectPlan(docs.projectPlan, backlog?.items)
+      : null,
   };
 }

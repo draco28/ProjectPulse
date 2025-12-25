@@ -241,3 +241,73 @@ export function parseTraceLine(line: string): {
     prdSections: extractPRDSections(line),
   };
 }
+
+// ============================================================================
+// SPRINT 15: FLEXIBLE SCOPE SECTION PATTERNS
+// ============================================================================
+
+/**
+ * Array of patterns to try for extracting scope sections from Project Plan.
+ * Tried in order - first match wins.
+ *
+ * Supports various document formats:
+ * - Original: **Scope (Backlog Items):** followed by bullet list
+ * - User Stories inline: **User Stories:** US-001 to US-014
+ * - Backlog Items inline: **Backlog Items:** US-001, US-002
+ * - Features inline: **Features:** Feature 1.1, Feature 1.2
+ * - Simple scope: **Scope:** followed by content
+ */
+export const SCOPE_SECTION_PATTERNS: readonly RegExp[] = [
+  // Original pattern (backward compatible) - bullet list format
+  /\*\*Scope\s*\(Backlog\s*Items?\)\*?\*?:\*?\*?\s*\n((?:[-*]\s*.+\n?)+)/gi,
+  // User Stories inline: "**User Stories:** US-001 to US-014"
+  /\*\*User\s+Stories:?\*?\*?\s*(.+?)(?=\n\*\*|\n#{2,}|\n\n|$)/gis,
+  // Backlog Items inline
+  /\*\*Backlog(?:\s+Items)?:?\*?\*?\s*(.+?)(?=\n\*\*|\n#{2,}|\n\n|$)/gis,
+  // Features inline
+  /\*\*Features:?\*?\*?\s*(.+?)(?=\n\*\*|\n#{2,}|\n\n|$)/gis,
+  // Scope without parenthetical - bullet list
+  /\*\*Scope:?\*?\*?\s*\n((?:[-*]\s*.+\n?)+)/gi,
+  // Scope without parenthetical - inline
+  /\*\*Scope:?\*?\*?\s*([^\n]+?)(?=\n\*\*|\n#{2,}|\n\n|$)/gi,
+] as const;
+
+/**
+ * Expand range notation like "US-001 to US-014" into individual item IDs.
+ * Also extracts any individually listed items.
+ *
+ * @example
+ * expandBacklogRange("US-001 to US-003, US-010")
+ * // Returns: ["US-001", "US-002", "US-003", "US-010"]
+ */
+export function expandBacklogRange(text: string): string[] {
+  const results: string[] = [];
+
+  // Pattern for range: US-001 to US-014
+  const usRangePattern = /US-(\d+)\s+to\s+US-(\d+)/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = usRangePattern.exec(text)) !== null) {
+    const startStr = match[1];
+    const endStr = match[2];
+    if (!startStr || !endStr) continue;
+
+    const start = parseInt(startStr, 10);
+    const end = parseInt(endStr, 10);
+    const padding = startStr.length;
+
+    // Handle both ascending and descending ranges
+    const min = Math.min(start, end);
+    const max = Math.max(start, end);
+
+    for (let i = min; i <= max; i++) {
+      results.push(`US-${String(i).padStart(padding, '0')}`);
+    }
+  }
+
+  // Also extract any individually listed items
+  const individualItems = extractBacklogItems(text);
+
+  // Combine and dedupe
+  return [...new Set([...results, ...individualItems])];
+}

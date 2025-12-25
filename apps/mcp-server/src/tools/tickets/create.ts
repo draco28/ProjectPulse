@@ -18,10 +18,18 @@ const ticketCreateSchema = baseTicketFields.extend({
 
 type TicketCreateInput = z.infer<typeof ticketCreateSchema>;
 
+// Extended response type that includes _suggestions from Sprint 15 auto-population
+interface TicketCreateResponse extends TicketRecord {
+  _suggestions?: {
+    backlogRefsAutoPopulated: boolean;
+    message: string;
+  };
+}
+
 async function handler(input: TicketCreateInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
   try {
-    const response = await httpClient.post<ApiResponse<TicketRecord>>('/api/tickets', input);
+    const response = await httpClient.post<ApiResponse<TicketCreateResponse>>('/api/tickets', input);
 
     if (!response.data) {
       return buildErrorPayload(
@@ -30,13 +38,25 @@ async function handler(input: TicketCreateInput, context: ToolContext): Promise<
       );
     }
 
+    // Sprint 15: Extract _suggestions before summarizing (it's response-level, not persisted)
+    const { _suggestions, ...ticketData } = response.data;
+
     logger.info('[ticket.create] Ticket created', {
       id: response.data.id,
       kind: response.data.kind,
       source: response.data.source,
+      backlogRefsAutoPopulated: _suggestions?.backlogRefsAutoPopulated ?? false,
     });
+
+    // Build response with summarized ticket + any suggestions
+    const result = {
+      ...summarizeTicket(ticketData),
+      // Sprint 15: Include auto-population hints for agent awareness
+      ..._suggestions && { _suggestions },
+    };
+
     // Return ticket data directly (tests expect flat structure without status/data wrapper)
-    return JSON.stringify(summarizeTicket(response.data), null, 2);
+    return JSON.stringify(result, null, 2);
   } catch (error) {
     logger.error('[ticket.create] Unexpected error', { error });
     return buildErrorPayload(error instanceof Error ? error.message : 'Unexpected error');
