@@ -90,8 +90,19 @@ jobs:
         if: steps.schema.outputs.schema_changed == 'false'
         run: |
           echo "🏥 Checking MCP health..."
-          curl -sf http://localhost:3001/health || exit 1
-          echo "✅ MCP Server healthy"
+          # MCP server takes longer to start (pnpm install + prisma generate + build)
+          # Retry up to 12 times with 10 second intervals (2 minutes total)
+          for i in {1..12}; do
+            if curl -sf http://localhost:3001/health > /dev/null 2>&1; then
+              echo "✅ MCP Server healthy (attempt $i)"
+              exit 0
+            fi
+            echo "⏳ Waiting for MCP server... (attempt $i/12)"
+            sleep 10
+          done
+          echo "❌ MCP Server health check failed after 12 attempts"
+          docker logs projectpulse-mcp-cloud --tail 50
+          exit 1
       
       - name: Dev deployment summary
         if: steps.schema.outputs.schema_changed == 'false'
