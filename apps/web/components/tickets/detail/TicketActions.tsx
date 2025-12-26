@@ -10,13 +10,20 @@
  * - Explicit props (not full issue object)
  *
  * Features:
- * - Change issue status (Open → In Progress → Closed)
+ * - Change issue status through kanban workflow
  * - Visual feedback during API calls
  * - Error handling with toast notifications
  *
+ * Sprint 15: Updated for 5-status kanban workflow
+ * - backlog → in-progress (start working)
+ * - todo → in-progress (start working)
+ * - in-progress → done (complete)
+ * - in-review → done (approve)
+ * - done → backlog (reopen)
+ *
  * Props:
  * - ticketId: Ticket identifier
- * - currentStatus: Current issue status
+ * - currentStatus: Current ticket status
  *
  * Reference: mockups/Default theme/03-issue-detail-dark-neumorphic-coral.html
  */
@@ -25,7 +32,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { RotateCw, Play, Check, MoreVertical } from 'lucide-react';
+import { RotateCw, Play, Check, MoreVertical, Eye } from 'lucide-react';
+import { TICKET_STATUSES, type TicketStatus } from '@/lib/constants/status';
 
 // ============================================================================
 // TYPES
@@ -33,10 +41,8 @@ import { RotateCw, Play, Check, MoreVertical } from 'lucide-react';
 
 interface TicketActionsProps {
   ticketId: string;
-  currentStatus: 'open' | 'in-progress' | 'closed';
+  currentStatus: TicketStatus;
 }
-
-type StatusOption = 'open' | 'in-progress' | 'closed';
 
 // ============================================================================
 // HELPERS
@@ -44,39 +50,48 @@ type StatusOption = 'open' | 'in-progress' | 'closed';
 
 /**
  * Get next logical status based on current status
+ * Sprint 15: Updated for 5-status kanban workflow
  */
-function getNextStatus(current: StatusOption): StatusOption {
-  const transitions: Record<StatusOption, StatusOption> = {
-    open: 'in-progress',
-    'in-progress': 'closed',
-    closed: 'open',
+function getNextStatus(current: TicketStatus): TicketStatus {
+  const transitions: Record<TicketStatus, TicketStatus> = {
+    [TICKET_STATUSES.BACKLOG]: TICKET_STATUSES.IN_PROGRESS,
+    [TICKET_STATUSES.TODO]: TICKET_STATUSES.IN_PROGRESS,
+    [TICKET_STATUSES.IN_PROGRESS]: TICKET_STATUSES.DONE,
+    [TICKET_STATUSES.IN_REVIEW]: TICKET_STATUSES.DONE,
+    [TICKET_STATUSES.DONE]: TICKET_STATUSES.BACKLOG,
   };
-  return transitions[current];
+  return transitions[current] || TICKET_STATUSES.BACKLOG;
 }
 
 /**
  * Get button text for status transition
+ * Sprint 15: Updated labels for 5-status workflow
  */
-function getStatusButtonText(current: StatusOption): string {
+function getStatusButtonText(current: TicketStatus): string {
   const nextStatus = getNextStatus(current);
-  const labels: Record<StatusOption, string> = {
-    open: 'Reopen',
-    'in-progress': 'Start Progress',
-    closed: 'Close',
+  const labels: Record<TicketStatus, string> = {
+    [TICKET_STATUSES.BACKLOG]: 'Reopen',
+    [TICKET_STATUSES.TODO]: 'Move to Todo',
+    [TICKET_STATUSES.IN_PROGRESS]: 'Start Progress',
+    [TICKET_STATUSES.IN_REVIEW]: 'Start Review',
+    [TICKET_STATUSES.DONE]: 'Complete',
   };
-  return labels[nextStatus];
+  return labels[nextStatus] || 'Update Status';
 }
 
 /**
  * Get button icon component for status transition
+ * Sprint 15: Updated icons for 5-status workflow
  */
-function getStatusButtonIcon(nextStatus: StatusOption) {
+function getStatusButtonIcon(nextStatus: TicketStatus) {
   const icons = {
-    open: RotateCw,
-    'in-progress': Play,
-    closed: Check,
+    [TICKET_STATUSES.BACKLOG]: RotateCw,
+    [TICKET_STATUSES.TODO]: RotateCw,
+    [TICKET_STATUSES.IN_PROGRESS]: Play,
+    [TICKET_STATUSES.IN_REVIEW]: Eye,
+    [TICKET_STATUSES.DONE]: Check,
   };
-  return icons[nextStatus];
+  return icons[nextStatus] || RotateCw;
 }
 
 // ============================================================================

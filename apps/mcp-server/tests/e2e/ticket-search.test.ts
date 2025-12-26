@@ -36,14 +36,14 @@ describe('MCP Tool: projectpulse_ticket_search', () => {
     authToken = token;
     projectId = newProjectId;
 
-    // Create test tickets with different kinds, statuses, priorities
+    // Sprint 15: Create test tickets with different kinds, statuses, priorities (5-status kanban)
     await createTestTickets(projectId, 5, (index) => ({
       title: `Test Ticket ${index + 1}`,
       description: `Description for ticket ${index + 1}`,
       kind: ['feature', 'bug', 'task', 'issue', 'epic'][index],
       source: 'agent',
       priority: ['critical', 'high', 'medium', 'low', 'medium'][index],
-      status: ['open', 'in_progress', 'open', 'blocked', 'open'][index],
+      status: ['backlog', 'in-progress', 'backlog', 'todo', 'backlog'][index],
       module: index % 2 === 0 ? 'API' : 'UI',
     }));
 
@@ -115,24 +115,25 @@ describe('MCP Tool: projectpulse_ticket_search', () => {
     console.log(`✓ Found ${searchResults.tickets.length} tickets with kind=feature OR task`);
   });
 
-  test('should filter tickets by status=open', async () => {
+  // Sprint 15: Updated for 5-status kanban workflow
+  test('should filter tickets by status=backlog', async () => {
     const result = await client.callTool('projectpulse_ticket_search', {
       projectId,
-      status: ['open'],
+      status: ['backlog'],
       page: 1,
       pageSize: 10,
     });
 
     const searchResults = JSON.parse(result.content[0].text);
 
-    assert.ok(searchResults.tickets.length >= 3, 'Should find open tickets (we created 3)');
+    assert.ok(searchResults.tickets.length >= 3, 'Should find backlog tickets (we created 3)');
 
-    // Verify all results are open
+    // Verify all results are backlog
     for (const ticket of searchResults.tickets) {
-      assert.strictEqual(ticket.status, 'open', 'All tickets should have status=open');
+      assert.strictEqual(ticket.status, 'backlog', 'All tickets should have status=backlog');
     }
 
-    console.log(`✓ Found ${searchResults.tickets.length} open ticket(s)`);
+    console.log(`✓ Found ${searchResults.tickets.length} backlog ticket(s)`);
   });
 
   test('should filter tickets by priority=critical', async () => {
@@ -171,35 +172,36 @@ describe('MCP Tool: projectpulse_ticket_search', () => {
     console.log(`✓ Found ${searchResults.tickets.length} ticket(s) in API module`);
   });
 
-  test('should combine multiple filters with AND logic (kind=bug + status=open)', async () => {
-    // First create a bug with status=open to ensure we have one
+  // Sprint 15: Updated for 5-status kanban workflow
+  test('should combine multiple filters with AND logic (kind=bug + status=backlog)', async () => {
+    // First create a bug with status=backlog to ensure we have one
     await client.callTool('projectpulse_ticket_create', {
       projectId,
-      title: 'Open Bug for Search Test',
+      title: 'Backlog Bug for Search Test',
       description: 'Testing combined filters',
       kind: 'bug',
       source: 'agent',
       priority: 'high',
-      status: 'open',
+      status: 'backlog',
     });
 
     const result = await client.callTool('projectpulse_ticket_search', {
       projectId,
       kind: ['bug'],
-      status: ['open'],
+      status: ['backlog'],
       page: 1,
       pageSize: 10,
     });
 
     const searchResults = JSON.parse(result.content[0].text);
 
-    // Should find tickets that are BOTH bug AND open
+    // Should find tickets that are BOTH bug AND backlog
     for (const ticket of searchResults.tickets) {
       assert.strictEqual(ticket.kind, 'bug', 'Ticket should be bug');
-      assert.strictEqual(ticket.status, 'open', 'Ticket should be open');
+      assert.strictEqual(ticket.status, 'backlog', 'Ticket should be backlog');
     }
 
-    console.log(`✓ Found ${searchResults.tickets.length} ticket(s) matching bug + open`);
+    console.log(`✓ Found ${searchResults.tickets.length} ticket(s) matching bug + backlog`);
   });
 
   test('should handle pagination correctly', async () => {

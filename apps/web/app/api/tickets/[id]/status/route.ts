@@ -16,6 +16,7 @@ import { failure, success } from '../../_utils';
 import { resolveStatusValue } from '@/lib/issues/options';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { revalidatePath } from 'next/cache';
+import { TICKET_STATUSES } from '@/lib/constants/status';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,7 +49,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     await requireProjectAccess(request, existing.projectId);
 
     const status = await resolveStatusValue(rawStatus);
-    const isClosing = status !== existing.status && (status === 'closed' || status === 'resolved');
+    // Sprint 15: Use status constant for completion check
+    const isClosing = status !== existing.status && status === TICKET_STATUSES.DONE;
 
     const ticket = await prisma.ticket.update({
       where: { id },

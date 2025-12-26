@@ -20,6 +20,7 @@ import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
 import { revalidatePath } from 'next/cache';
+import { TICKET_STATUSES } from '@/lib/constants/status';
 
 export const dynamic = 'force-dynamic';
 
@@ -261,9 +262,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Determine if closing ticket
+    // Sprint 15: Determine if closing ticket using status constant
     const isClosing =
-      status && status !== existing.status && (status === 'closed' || status === 'resolved');
+      status && status !== existing.status && status === TICKET_STATUSES.DONE;
 
     // Build update data object explicitly
     const updateData: Parameters<typeof prisma.ticket.update>[0]['data'] = {};

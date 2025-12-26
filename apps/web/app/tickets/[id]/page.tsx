@@ -14,6 +14,7 @@ import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
 import { getCurrentUser } from '@/lib/auth-server';
 import { getActiveProjectForUser } from '@/lib/project-context';
+import type { TicketStatus } from '@/lib/constants/status';
 
 // Ticket detail components (Sprint 10.5: renamed from issue)
 import { TicketHeader } from '@/components/tickets/detail/TicketHeader';
@@ -107,6 +108,8 @@ async function getTicketDetail(id: number) {
       estimatedDays: true,
       scheduledWeekId: true,
       scheduledDays: true,
+      // Sprint 15: Kanban ordering
+      displayOrder: true,
 
       // Sprint 13: Two-level hierarchy (Feature → Task)
       parentTicketId: true,
@@ -297,7 +300,7 @@ export default async function TicketDetailPage({
             <TicketHeader
               id={ticket.id}
               title={ticket.title}
-              status={ticket.status as 'open' | 'in-progress' | 'closed'}
+              status={ticket.status as TicketStatus}
               priority={ticket.priority as 'critical' | 'high' | 'medium' | 'low'}
               module={ticket.module}
               projectName={ticket.project.name}
@@ -316,7 +319,7 @@ export default async function TicketDetailPage({
               <div className="flex items-center justify-end">
                 <TicketActions
                   ticketId={serializedTicket.id}
-                  currentStatus={ticket.status as 'open' | 'in-progress' | 'closed'}
+                  currentStatus={ticket.status as TicketStatus}
                 />
               </div>
 

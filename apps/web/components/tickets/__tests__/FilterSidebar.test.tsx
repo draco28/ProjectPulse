@@ -46,11 +46,14 @@ jest.mock('next/navigation', () => ({
 }));
 
 describe('FilterSidebar', () => {
+  // Sprint 15: Updated to 5-status kanban workflow
   const mockFilterOptions: FiltersDTO = {
     status: [
-      { value: 'open', label: 'Open', colorClass: 'text-blue-600' },
+      { value: 'backlog', label: 'Backlog', colorClass: 'text-gray-400' },
+      { value: 'todo', label: 'To Do', colorClass: 'text-slate-300' },
       { value: 'in-progress', label: 'In Progress', colorClass: 'text-yellow-600' },
-      { value: 'closed', label: 'Closed', colorClass: 'text-green-600' },
+      { value: 'in-review', label: 'In Review', colorClass: 'text-purple-400' },
+      { value: 'done', label: 'Done', colorClass: 'text-green-600' },
     ],
     priority: [
       {
@@ -76,11 +79,14 @@ describe('FilterSidebar', () => {
     ],
   };
 
+  // Sprint 15: Updated counts for 5-status kanban workflow
   const mockFilterCounts = {
     status: {
-      open: 5,
+      backlog: 5,
+      todo: 2,
       'in-progress': 3,
-      closed: 2,
+      'in-review': 1,
+      done: 4,
     },
     priority: {
       critical: 1,
@@ -124,10 +130,12 @@ describe('FilterSidebar', () => {
         />
       );
 
-      // All status options should be rendered
-      expect(screen.getByText('Open')).toBeInTheDocument();
+      // Sprint 15: All 5 kanban status options should be rendered
+      expect(screen.getByText('Backlog')).toBeInTheDocument();
+      expect(screen.getByText('To Do')).toBeInTheDocument();
       expect(screen.getByText('In Progress')).toBeInTheDocument();
-      expect(screen.getByText('Closed')).toBeInTheDocument();
+      expect(screen.getByText('In Review')).toBeInTheDocument();
+      expect(screen.getByText('Done')).toBeInTheDocument();
     });
 
     it('should render all priority options from database', () => {
@@ -143,7 +151,8 @@ describe('FilterSidebar', () => {
       expect(screen.getByText('High')).toBeInTheDocument();
     });
 
-    it('should render all module options from database', () => {
+    it('should render all module options from database', async () => {
+      const user = userEvent.setup();
       render(
         <FilterSidebar
           options={mockFilterOptions}
@@ -151,6 +160,11 @@ describe('FilterSidebar', () => {
           searchParams={mockSearchParams}
         />
       );
+
+      // Module section is collapsed by default - expand it first
+      const moduleSection = screen.getByTestId('module-filter');
+      const trigger = moduleSection.querySelector('button');
+      await user.click(trigger!);
 
       expect(screen.getByText('Combat')).toBeInTheDocument();
       expect(screen.getByText('Animation')).toBeInTheDocument();
@@ -165,14 +179,12 @@ describe('FilterSidebar', () => {
         />
       );
 
-      // Status counts
-      expect(screen.getByText('5')).toBeInTheDocument(); // Open
-      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1); // In Progress & Animation
-      expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(1); // Closed & Combat
-
-      // Priority counts
-      expect(screen.getByText('1')).toBeInTheDocument(); // Critical
-      expect(screen.getByText('4')).toBeInTheDocument(); // High
+      // Sprint 15: Status counts (backlog=5, todo=2, in-progress=3, in-review=1, done=4)
+      expect(screen.getByText('5')).toBeInTheDocument(); // Backlog
+      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1); // In Progress
+      expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(1); // Todo
+      expect(screen.getAllByText('4').length).toBeGreaterThanOrEqual(1); // Done & High priority
+      expect(screen.getAllByText('1').length).toBeGreaterThanOrEqual(1); // In Review & Critical (both have count 1)
     });
   });
 
@@ -188,13 +200,13 @@ describe('FilterSidebar', () => {
         />
       );
 
-      // Find and click "Open" checkbox
-      const openLabel = screen.getByText('Open').closest('label');
-      const checkbox = openLabel?.querySelector('input[type="checkbox"]') as HTMLInputElement;
+      // Sprint 15: Find and click "Backlog" checkbox (first status in kanban)
+      const backlogLabel = screen.getByText('Backlog').closest('label');
+      const checkbox = backlogLabel?.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
       await user.click(checkbox);
 
-      expect(mockUpdateFilter).toHaveBeenCalledWith('status', 'open', true);
+      expect(mockUpdateFilter).toHaveBeenCalledWith('status', 'backlog', true);
     });
 
     it('should call updateFilter when priority checkbox is clicked', async () => {
@@ -228,6 +240,11 @@ describe('FilterSidebar', () => {
         />
       );
 
+      // Module section is collapsed by default - expand it first
+      const moduleSection = screen.getByTestId('module-filter');
+      const trigger = moduleSection.querySelector('button');
+      await user.click(trigger!);
+
       // Find and click "Combat" checkbox
       const combatLabel = screen.getByText('Combat').closest('label');
       const checkbox = combatLabel?.querySelector('input[type="checkbox"]') as HTMLInputElement;
@@ -240,8 +257,8 @@ describe('FilterSidebar', () => {
     it('should pass unchecked state to updateFilter when unchecking', async () => {
       const user = userEvent.setup();
       mockIsActive.mockImplementation((type, value) => {
-        // "open" status is initially active (checked)
-        return type === 'status' && value === 'open';
+        // Sprint 15: "backlog" status is initially active (checked)
+        return type === 'status' && value === 'backlog';
       });
 
       render(
@@ -252,8 +269,8 @@ describe('FilterSidebar', () => {
         />
       );
 
-      const openLabel = screen.getByText('Open').closest('label');
-      const checkbox = openLabel?.querySelector('input[type="checkbox"]') as HTMLInputElement;
+      const backlogLabel = screen.getByText('Backlog').closest('label');
+      const checkbox = backlogLabel?.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
       // Checkbox should be checked initially
       expect(checkbox.checked).toBe(true);
@@ -263,14 +280,15 @@ describe('FilterSidebar', () => {
 
       // Should be called with false (unchecking)
       // onChange handler receives e.target.checked which will be false after clicking a checked box
-      expect(mockUpdateFilter).toHaveBeenCalledWith('status', 'open', false);
+      expect(mockUpdateFilter).toHaveBeenCalledWith('status', 'backlog', false);
     });
   });
 
   describe('Active State', () => {
     it('should check checkboxes for active filters', () => {
       mockIsActive.mockImplementation((type, value) => {
-        return type === 'status' && value === 'open';
+        // Sprint 15: backlog is the active filter
+        return type === 'status' && value === 'backlog';
       });
 
       render(
@@ -281,21 +299,22 @@ describe('FilterSidebar', () => {
         />
       );
 
-      const openLabel = screen.getByText('Open').closest('label');
-      const openCheckbox = openLabel?.querySelector('input[type="checkbox"]') as HTMLInputElement;
+      const backlogLabel = screen.getByText('Backlog').closest('label');
+      const backlogCheckbox = backlogLabel?.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
-      const closedLabel = screen.getByText('Closed').closest('label');
-      const closedCheckbox = closedLabel?.querySelector(
+      const doneLabel = screen.getByText('Done').closest('label');
+      const doneCheckbox = doneLabel?.querySelector(
         'input[type="checkbox"]'
       ) as HTMLInputElement;
 
-      expect(openCheckbox.checked).toBe(true);
-      expect(closedCheckbox.checked).toBe(false);
+      expect(backlogCheckbox.checked).toBe(true);
+      expect(doneCheckbox.checked).toBe(false);
     });
 
     it('should apply color class to active status filters', () => {
       mockIsActive.mockImplementation((type, value) => {
-        return type === 'status' && value === 'open';
+        // Sprint 15: backlog is the active filter
+        return type === 'status' && value === 'backlog';
       });
 
       render(
@@ -306,12 +325,13 @@ describe('FilterSidebar', () => {
         />
       );
 
-      // Find the count badge for "Open" status
-      const openLabel = screen.getByText('Open').closest('label');
-      const badge = openLabel?.querySelector('span:last-child');
+      // Sprint 15: Find the count badge for "Backlog" status
+      const backlogLabel = screen.getByText('Backlog').closest('label');
+      const badge = backlogLabel?.querySelector('span:last-child');
 
-      // When active with count > 0, should have colorClass
-      expect(badge?.className).toContain('text-blue-600');
+      // When count > 0, should have the semantic badge color (bg-gray-500 text-white for backlog)
+      expect(badge?.className).toContain('bg-gray-500');
+      expect(badge?.className).toContain('text-white');
     });
 
     it('should apply priority badge color classes when active', () => {
@@ -332,8 +352,9 @@ describe('FilterSidebar', () => {
       const allSpans = criticalLabel?.querySelectorAll('span');
       const badge = allSpans?.[allSpans.length - 1]; // Last span is the count badge
 
-      // Should have badgeColorClass when active and count > 0
-      expect(badge?.className).toContain('bg-red-100 text-red-800');
+      // Should have semantic badge color (bg-red-500 text-white for critical)
+      expect(badge?.className).toContain('bg-red-500');
+      expect(badge?.className).toContain('text-white');
     });
   });
 
@@ -404,7 +425,8 @@ describe('FilterSidebar', () => {
       expect(badge?.textContent).toBe('0');
     });
 
-    it('should render options in order provided by database', () => {
+    it('should render options in order provided by database', async () => {
+      const user = userEvent.setup();
       render(
         <FilterSidebar
           options={mockFilterOptions}
@@ -413,17 +435,22 @@ describe('FilterSidebar', () => {
         />
       );
 
+      // Module section is collapsed by default - expand it first
+      const moduleSection = screen.getByTestId('module-filter');
+      const trigger = moduleSection.querySelector('button');
+      await user.click(trigger!);
+
       const labels = screen.getAllByRole('checkbox').map((cb) => {
         const label = cb.closest('label');
         return label?.textContent?.replace(/\d+/g, '').trim();
       });
 
-      // Status options should appear first in order
-      expect(labels.slice(0, 3)).toEqual(['Open', 'In Progress', 'Closed']);
+      // Sprint 15: Status options should appear first in order (5 statuses)
+      expect(labels.slice(0, 5)).toEqual(['Backlog', 'To Do', 'In Progress', 'In Review', 'Done']);
       // Priority options next
-      expect(labels.slice(3, 5)).toEqual(['Critical', 'High']);
+      expect(labels.slice(5, 7)).toEqual(['Critical', 'High']);
       // Module options last
-      expect(labels.slice(5, 7)).toEqual(['Combat', 'Animation']);
+      expect(labels.slice(7, 9)).toEqual(['Combat', 'Animation']);
     });
   });
 
@@ -437,11 +464,12 @@ describe('FilterSidebar', () => {
         />
       );
 
-      const openLabel = screen.getByText('Open').closest('label');
-      const checkbox = openLabel?.querySelector('input[type="checkbox"]');
+      // Sprint 15: Updated to use 'Backlog' (first kanban status)
+      const backlogLabel = screen.getByText('Backlog').closest('label');
+      const checkbox = backlogLabel?.querySelector('input[type="checkbox"]');
 
       // Checkbox should be inside label (implicit association)
-      expect(openLabel).toContainElement(checkbox as HTMLElement);
+      expect(backlogLabel).toContainElement(checkbox as HTMLElement);
     });
 
     it('should have keyboard-accessible checkboxes', () => {

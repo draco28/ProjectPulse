@@ -39,14 +39,14 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
     authToken = token;
     projectId = newProjectId;
 
-    // Create a test ticket to update
+    // Sprint 15: Create a test ticket to update (uses backlog as default status)
     testTicket = await createTestTicket(projectId, {
       title: 'Original Title',
       description: 'Original description',
       kind: 'feature',
       source: 'agent',
       priority: 'medium',
-      status: 'open',
+      status: 'backlog',
       module: 'API',
     });
 
@@ -121,7 +121,8 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
     console.log('✓ Updated priority to critical');
   });
 
-  test('should update ticket status from open to in-progress', async () => {
+  // Sprint 15: Updated for 5-status kanban workflow
+  test('should update ticket status from backlog to in-progress', async () => {
     const result = await client.callTool('projectpulse_ticket_update', {
       ticketId: testTicket.id,
       status: 'in-progress',
@@ -203,7 +204,8 @@ describe('MCP Tool: projectpulse_ticket_update', () => {
     assert.strictEqual(dbTicket?.priority, 'high', 'Priority should be updated');
     assert.strictEqual(dbTicket?.title, 'Original Title', 'Title should remain unchanged');
     assert.strictEqual(dbTicket?.description, 'Original description', 'Description should remain unchanged');
-    assert.strictEqual(dbTicket?.status, 'open', 'Status should remain unchanged');
+    // Sprint 15: Default status is now 'backlog'
+    assert.strictEqual(dbTicket?.status, 'backlog', 'Status should remain unchanged');
     assert.strictEqual(dbTicket?.module, 'API', 'Module should remain unchanged');
 
     console.log('✓ Partial update successful - only priority changed');

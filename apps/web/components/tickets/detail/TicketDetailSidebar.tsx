@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { Calendar, AlertTriangle } from 'lucide-react';
 import { LabelPicker } from '@/components/tickets/LabelPicker';
 import type { LabelProps, MilestoneProps } from '@/types/issue';
+import { TICKET_STATUSES } from '@/lib/constants/status';
 
 interface TicketDetailSidebarProps {
   ticketId: string;
@@ -49,8 +50,8 @@ export function TicketDetailSidebar({
     setLabels(newLabels.map((l) => ({ ...l, id: String(l.id) })));
   };
 
-  // Sprint 11.7: Check if ticket is overdue
-  const isOverdue = dueDate && status !== 'closed' && new Date(dueDate) < new Date();
+  // Sprint 11.7: Check if ticket is overdue (Sprint 15: use status constant)
+  const isOverdue = dueDate && status !== TICKET_STATUSES.DONE && new Date(dueDate) < new Date();
 
   // Format due date for display
   const formatDueDate = (dateString: string) => {

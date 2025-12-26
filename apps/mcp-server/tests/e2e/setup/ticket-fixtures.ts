@@ -45,7 +45,7 @@ export function generateTicketData(overrides: Partial<any> = {}): any {
     kind: 'feature',
     source: 'agent',
     priority: 'high',
-    status: 'open',
+    status: 'backlog', // Sprint 15: Updated default to backlog
     module: 'Testing',
     ...overrides,
   };
@@ -124,7 +124,8 @@ export async function createTestTicket(
   const ticketData = generateTicketData(overrides);
 
   // Normalize status: convert underscores to hyphens (database uses hyphenated format)
-  const normalizedStatus = ticketData.status?.replace(/_/g, '-') ?? 'open';
+  // Sprint 15: Default status changed from 'open' to 'backlog'
+  const normalizedStatus = ticketData.status?.replace(/_/g, '-') ?? 'backlog';
 
   return await prisma.ticket.create({
     data: {

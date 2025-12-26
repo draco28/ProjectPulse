@@ -46,11 +46,13 @@ const priorityOptions = [
   { value: 'low', label: 'Low' },
 ];
 
+// Sprint 15: Updated for 5-status kanban workflow
 const statusOptions = [
-  { value: 'open', label: 'Open' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'blocked', label: 'Blocked' },
-  { value: 'closed', label: 'Closed' },
+  { value: 'backlog', label: 'Backlog' },
+  { value: 'todo', label: 'To Do' },
+  { value: 'in-progress', label: 'In Progress' },
+  { value: 'in-review', label: 'In Review' },
+  { value: 'done', label: 'Done' },
 ];
 
 async function createTicket(formData: FormData) {
@@ -85,7 +87,7 @@ async function createTicket(formData: FormData) {
       kind: kind || 'issue',
       source: source || 'manual',
       priority: priority || 'medium',
-      status: status || 'open',
+      status: status || 'backlog', // Sprint 15: Default to backlog
       module: moduleValue?.trim() || null,
       assignee: assignee?.trim() || null,
     },
@@ -226,7 +228,7 @@ export default async function CreateTicketPage({
                   </select>
                 </div>
 
-                {/* Status */}
+                {/* Status - Sprint 15: 5-status kanban workflow */}
                 <div>
                   <label htmlFor="status" className="mb-2 block text-sm font-medium text-white">
                     Status
@@ -234,7 +236,7 @@ export default async function CreateTicketPage({
                   <select
                     id="status"
                     name="status"
-                    defaultValue="open"
+                    defaultValue="backlog"
                     className="bg-surface-dark border-surface-light w-full rounded-xl border px-4 py-3 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-coral"
                   >
                     {statusOptions.map((option) => (

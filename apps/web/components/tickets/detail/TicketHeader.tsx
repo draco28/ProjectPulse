@@ -3,6 +3,7 @@
  *
  * Server Component that displays ticket metadata and action buttons
  * Sprint 10.5: Renamed from IssueHeader
+ * Sprint 15: Updated for 5-status kanban workflow
  *
  * Architecture (per react-expert recommendation):
  * - Server Component (static rendering, no interactivity here)
@@ -12,7 +13,7 @@
  * Props:
  * - id: Ticket ID number
  * - title: Ticket title
- * - status: open | in-progress | closed
+ * - status: backlog | todo | in-progress | in-review | done (Sprint 15)
  * - priority: critical | high | medium | low
  * - module: Combat | Animation | etc (optional)
  * - projectName: Associated project name
@@ -22,6 +23,7 @@
  */
 
 import Link from 'next/link';
+import type { TicketStatus } from '@/lib/constants/status';
 import { format } from 'date-fns';
 import {
   ChevronRight,
@@ -41,7 +43,7 @@ import {
 interface TicketHeaderProps {
   id: number;
   title: string;
-  status: 'open' | 'in-progress' | 'closed';
+  status: TicketStatus; // Sprint 15: Uses centralized TicketStatus type
   priority: 'critical' | 'high' | 'medium' | 'low';
   module: string | null;
   projectName: string;
@@ -70,14 +72,17 @@ function getPriorityStyles(priority: string): string {
 
 /**
  * Get Tailwind classes for status badges
+ * Sprint 15: Updated for 5-status kanban workflow
  */
 function getStatusStyles(status: string): string {
   const styles: Record<string, string> = {
-    open: 'bg-green-500 text-white',
-    'in-progress': 'bg-blue-500 text-white',
-    closed: 'bg-gray-500 text-white',
+    backlog: 'bg-gray-500 text-white',
+    todo: 'bg-slate-500 text-white',
+    'in-progress': 'bg-yellow-500 text-white',
+    'in-review': 'bg-purple-500 text-white',
+    done: 'bg-green-500 text-white',
   };
-  return (styles[status] || styles.open) as string;
+  return (styles[status] || styles.backlog) as string;
 }
 
 /**

@@ -14,6 +14,7 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { CheckCircle2, Circle, Clock, AlertCircle, ChevronRight } from 'lucide-react';
+import { TICKET_STATUSES } from '@/lib/constants/status';
 
 interface ChildTicket {
   id: number;
@@ -68,9 +69,9 @@ export function ChildTicketsSection({
     return null;
   }
 
-  // Calculate progress
+  // Calculate progress (Sprint 15: use status constant)
   const completedCount = childTickets.filter(
-    (t) => t.status === 'closed' || t.status === 'resolved'
+    (t) => t.status === TICKET_STATUSES.DONE
   ).length;
   const progressPercent = Math.round((completedCount / childTickets.length) * 100);
 
@@ -110,7 +111,8 @@ export function ChildTicketsSection({
           const statusColor = STATUS_COLORS[child.status] || 'text-slate';
           const priorityColor = PRIORITY_COLORS[child.priority] || PRIORITY_COLORS.low;
           const kindColor = KIND_COLORS[child.kind] || 'bg-gray-500/20 text-gray-400';
-          const isClosed = child.status === 'closed' || child.status === 'resolved';
+          // Sprint 15: Use status constant for completion check
+          const isClosed = child.status === TICKET_STATUSES.DONE;
 
           return (
             <Link

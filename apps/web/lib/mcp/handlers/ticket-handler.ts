@@ -24,6 +24,7 @@
 import { prisma } from '@/lib/prisma';
 import { MCPError, JSONRPC_ERROR_CODES } from '../types';
 import { Prisma } from '@prisma/client';
+import { TICKET_STATUSES, TicketStatusSystem, type TicketStatus } from '@/lib/constants/status';
 
 // ============================================================================
 // Types
@@ -302,7 +303,7 @@ export async function ticketCreateHandler(input: unknown): Promise<TicketCreateO
       description: params.description || null,
       kind: params.kind || 'issue',
       source: params.source || 'manual',
-      status: params.status || 'open',
+      status: params.status || TICKET_STATUSES.BACKLOG,
       priority: params.priority || 'medium',
       module: params.module || null,
       assignee: params.assignee || null,
@@ -439,7 +440,7 @@ export async function ticketBulkCreateHandler(input: unknown): Promise<TicketBul
             description: ticket.description || null,
             kind: ticket.kind || 'issue',
             source: ticket.source || 'manual',
-            status: ticket.status || 'open',
+            status: ticket.status || TICKET_STATUSES.BACKLOG,
             priority: ticket.priority || 'medium',
             module: ticket.module || null,
             assignee: ticket.assignee || null,
@@ -736,10 +737,10 @@ export async function ticketSearchHandler(input: unknown): Promise<TicketSearchO
       };
     }
 
-    // Sprint 11.7: Overdue filter (dueDate < now AND not closed)
+    // Sprint 11.7: Overdue filter (dueDate < now AND not done)
     if (params.overdue === true) {
       where.dueDate = { lt: new Date() };
-      where.status = { not: 'closed' };
+      where.status = { not: TICKET_STATUSES.DONE };
     }
 
     // Sprint 11.7: Implementation Context filters (JSONB path queries)
@@ -967,20 +968,47 @@ export async function ticketSetStatusHandler(input: unknown): Promise<TicketSetS
       );
     }
 
-    // Determine if closing
-    const closedStatuses = ['closed', 'resolved', 'done', 'completed', 'cancelled'];
-    const isClosing =
-      closedStatuses.includes(params.status.toLowerCase()) &&
-      !closedStatuses.includes(existing.status.toLowerCase());
-    const isReopening =
-      !closedStatuses.includes(params.status.toLowerCase()) &&
-      closedStatuses.includes(existing.status.toLowerCase());
+    // Sprint 15: Normalize incoming status for backwards compatibility
+    const statusBackwardsCompat: Record<string, string> = {
+      open: TICKET_STATUSES.BACKLOG,
+      closed: TICKET_STATUSES.DONE,
+      resolved: TICKET_STATUSES.DONE,
+      blocked: TICKET_STATUSES.BACKLOG,
+      completed: TICKET_STATUSES.DONE,
+      cancelled: TICKET_STATUSES.DONE,
+    };
+    const normalizedStatus =
+      statusBackwardsCompat[params.status.toLowerCase()] || params.status;
 
-    // Update status
+    // Validate the normalized status
+    if (!TicketStatusSystem.isValid(normalizedStatus)) {
+      throw new MCPError(
+        `Invalid status: "${params.status}". Valid values: ${TicketStatusSystem.values.join(', ')}`,
+        JSONRPC_ERROR_CODES.INVALID_PARAMS,
+        400
+      );
+    }
+
+    // Sprint 15: Type assertion after validation - we know normalizedStatus is valid
+    const validatedStatus = normalizedStatus as TicketStatus;
+    // existing.status from database may contain old values, so check if it's a valid new status
+    const existingStatus = TicketStatusSystem.isValid(existing.status)
+      ? (existing.status as TicketStatus)
+      : TICKET_STATUSES.BACKLOG;
+
+    // Determine if closing/reopening using status system
+    const isClosing =
+      TicketStatusSystem.isCompleted(validatedStatus) &&
+      !TicketStatusSystem.isCompleted(existingStatus);
+    const isReopening =
+      !TicketStatusSystem.isCompleted(validatedStatus) &&
+      TicketStatusSystem.isCompleted(existingStatus);
+
+    // Update status with validated value
     const ticket = await prisma.ticket.update({
       where: { id: params.ticketId },
       data: {
-        status: params.status,
+        status: validatedStatus,
         closedAt: isClosing ? new Date() : isReopening ? null : undefined,
       },
       select: {

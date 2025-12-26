@@ -365,7 +365,7 @@ model Ticket {
   // Core fields (inherited from Issue)
   title       String
   description String? @db.Text
-  status      String  @default("open")
+  status      String  @default("backlog")
   priority    String  @default("medium")
   module      String? // UI, API, Database, etc.
   assignee    String? // Legacy: simple string assignee
@@ -424,6 +424,9 @@ model Ticket {
   backlogRefs  String[] @default([])     // SRS traceability: ["FR-001", "FR-002", "NFR-003"]
   sprintNumber Int?                      // Sprint number for filtering (1, 2, 3, ...)
 
+  // Sprint 15: Kanban ordering within column
+  displayOrder Int @default(0)
+
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   closedAt      DateTime?
@@ -447,6 +450,7 @@ model Ticket {
   @@index([projectId, parentTicketId]) // Sprint 13: Project-scoped hierarchy queries
   @@index([projectId, sprintNumber]) // Sprint 13: Find tickets by sprint
   @@index([projectId, epicRef]) // Sprint 13: Find tickets by epic reference
+  @@index([projectId, sprintNumber, status, displayOrder]) // Sprint 15: Kanban column queries
   @@map("tickets") // Sprint 10: Renamed from "issues" to "tickets"
 }
 

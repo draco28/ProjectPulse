@@ -9,6 +9,7 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { ApiResponse } from '@/lib/types/api';
 import type { TicketFilters, TicketKind } from '@/lib/validations/ticket';
+import { TICKET_STATUSES } from '@/lib/constants/status';
 
 export function success<T>(data: T, status = 200) {
   return NextResponse.json<ApiResponse<T>>(
@@ -158,10 +159,10 @@ export function buildTicketWhere(
     };
   }
 
-  // Filter for overdue tickets (dueDate is set and < now, and status is not closed)
+  // Filter for overdue tickets (dueDate is set and < now, and status is not done)
   if (filters.overdue === true) {
     where.dueDate = { lt: new Date() };
-    where.status = { not: 'closed' };
+    where.status = { not: TICKET_STATUSES.DONE };
   }
 
   // Sprint 13: Hierarchy filters

@@ -25,9 +25,11 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { LabelBadgeList } from '@/components/ui/LabelBadge';
+import { TICKET_STATUSES, type TicketStatus } from '@/lib/constants/status';
 
 type Priority = 'critical' | 'high' | 'medium' | 'low';
-type Status = 'open' | 'in-progress' | 'closed';
+// Sprint 15: Use centralized TicketStatus type
+type Status = TicketStatus;
 
 interface Label {
   id: number | string;
@@ -86,10 +88,13 @@ const PRIORITY_CONFIG: Record<Priority, { label: string; className: string }> = 
   low: { label: 'Low', className: 'neu-pressed text-slate' },
 };
 
+// Sprint 15: Updated for 5-status kanban workflow
 const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
-  open: { label: 'Open', className: 'bg-green-500 text-white shadow-md' },
+  backlog: { label: 'Backlog', className: 'neu-pressed text-slate' },
+  todo: { label: 'To Do', className: 'bg-slate-500 text-white shadow-md' },
   'in-progress': { label: 'In Progress', className: 'bg-yellow-500 text-white shadow-md' },
-  closed: { label: 'Closed', className: 'neu-pressed text-slate' },
+  'in-review': { label: 'In Review', className: 'bg-purple-500 text-white shadow-md' },
+  done: { label: 'Done', className: 'bg-green-500 text-white shadow-md' },
 };
 
 // Compute displayId for a ticket
@@ -143,7 +148,8 @@ function TicketCard({
     label: ticket.status,
     className: 'neu-pressed text-slate',
   };
-  const isClosed = ticket.status === 'closed';
+  // Sprint 15: Use status constant for completion check
+  const isClosed = ticket.status === TICKET_STATUSES.DONE;
   const timeAgo = formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true });
 
   return (
