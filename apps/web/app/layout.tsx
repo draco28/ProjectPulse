@@ -3,6 +3,7 @@ import { ThemeProvider } from '@/lib/theme-provider';
 import { SessionProvider } from '@/components/SessionProvider';
 // import { CommandPaletteProvider } from '@/components/command-palette';
 import { CommandPaletteProvider } from '@/components/command-palette/CommandPaletteProvider';
+import { QueryProvider } from '@/components/QueryProvider';
 import { Toaster } from 'sonner';
 import './globals.css';
 
@@ -23,17 +24,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <SessionProvider>
-          <ThemeProvider>
-            {/* CommandPaletteProvider temporarily disabled - causing webpack errors */}
-            <CommandPaletteProvider>{children}</CommandPaletteProvider>
-            <Toaster
+          <QueryProvider>
+            <ThemeProvider>
+              {/* CommandPaletteProvider temporarily disabled - causing webpack errors */}
+              <CommandPaletteProvider>{children}</CommandPaletteProvider>
+              <Toaster
               position="bottom-right"
               theme="dark"
               toastOptions={{
                 className: 'bg-slate-800 border-slate-700',
               }}
-            />
-          </ThemeProvider>
+              />
+            </ThemeProvider>
+          </QueryProvider>
         </SessionProvider>
       </body>
     </html>
