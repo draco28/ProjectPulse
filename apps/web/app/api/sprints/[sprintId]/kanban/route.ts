@@ -1,0 +1,308 @@
+/**
+ * Kanban Board API Route - Sprint 15 Phase B
+ *
+ * GET /api/sprints/[sprintId]/kanban
+ *
+ * Returns the kanban board data for a specific sprint:
+ * - Tickets grouped by status (column)
+ * - Ghost cards for parent/child relationships
+ * - Board statistics (total, done, progress)
+ * - Sprint context (title, phase, etc.)
+ *
+ * Security (Sprint 10):
+ * - All requests MUST be authenticated (user session OR agent token)
+ * - Sprint's project must match authenticated context
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { TICKET_STATUSES, TICKET_STATUS_VALUES, TicketStatusSystem, type TicketStatus } from '@/lib/constants/status';
+import { getSprintProgressStats } from '@/lib/tickets/progress-calculator';
+import type {
+  KanbanBoardResponse,
+  KanbanTicket,
+  GhostCard,
+  BoardStats,
+  ColumnStats,
+  SprintContext,
+} from '@/types/kanban';
+
+export const dynamic = 'force-dynamic';
+
+type RouteContext = {
+  params: Promise<{ sprintId: string }>;
+};
+
+// ============================================================================
+// GHOST CARD ALGORITHM
+// ============================================================================
+
+/**
+ * Generate ghost cards for parent/child relationships.
+ *
+ * When a parent ticket and its children are in different columns,
+ * create ghost cards to show the relationship visually.
+ */
+function generateGhostCards(tickets: KanbanTicket[]): GhostCard[] {
+  const ghosts: GhostCard[] = [];
+  const ticketById = new Map(tickets.map((t) => [t.id, t]));
+
+  for (const ticket of tickets) {
+    // If ticket has a parent in a different column
+    if (ticket.parentTicketId && ticket.parentTicket) {
+      const parent = ticketById.get(ticket.parentTicketId);
+      if (parent && parent.status !== ticket.status) {
+        // Create ghost card for parent in child's column
+        ghosts.push({
+          ticketId: parent.id,
+          title: parent.title,
+          kind: parent.kind,
+          actualStatus: parent.status,
+          ghostInStatus: ticket.status,
+          ghostType: 'parent',
+          relatedTicketId: ticket.id,
+        });
+      }
+    }
+
+    // If ticket has children in different columns
+    if (ticket.childTickets && ticket.childTickets.length > 0) {
+      const childColumns = new Set(ticket.childTickets.map((c) => c.status));
+      for (const childStatus of childColumns) {
+        if (childStatus !== ticket.status) {
+          // Create ghost card for this parent in child's column
+          ghosts.push({
+            ticketId: ticket.id,
+            title: ticket.title,
+            kind: ticket.kind,
+            actualStatus: ticket.status,
+            ghostInStatus: childStatus as TicketStatus,
+            ghostType: 'child',
+            relatedTicketId: ticket.childTickets.find((c) => c.status === childStatus)?.id ?? ticket.id,
+          });
+        }
+      }
+    }
+  }
+
+  // Deduplicate ghosts (same ticket might ghost into same column multiple times)
+  const seen = new Set<string>();
+  return ghosts.filter((g) => {
+    const key = `${g.ticketId}-${g.ghostInStatus}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+// ============================================================================
+// MAIN HANDLER
+// ============================================================================
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  try {
+    const { sprintId } = await context.params;
+
+    if (!sprintId) {
+      return NextResponse.json(
+        { success: false, error: { code: 'MISSING_PARAM', message: 'Sprint ID is required' } },
+        { status: 400 }
+      );
+    }
+
+    // Fetch sprint with phase context
+    const sprint = await prisma.sprint.findUnique({
+      where: { id: sprintId },
+      select: {
+        id: true,
+        sprintNumber: true,
+        title: true,
+        status: true,
+        progress: true,
+        phase: {
+          select: {
+            id: true,
+            title: true,
+            roadmap: {
+              select: {
+                projectId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!sprint) {
+      return NextResponse.json(
+        { success: false, error: { code: 'NOT_FOUND', message: 'Sprint not found' } },
+        { status: 404 }
+      );
+    }
+
+    if (!sprint.phase?.roadmap?.projectId) {
+      return NextResponse.json(
+        { success: false, error: { code: 'ORPHAN_SPRINT', message: 'Sprint has no associated project' } },
+        { status: 400 }
+      );
+    }
+
+    // Authenticate and validate project access
+    const projectId = sprint.phase.roadmap.projectId;
+    await requireProjectAccess(request, projectId);
+
+    // Fetch tickets for this sprint with hierarchy
+    const rawTickets = await prisma.ticket.findMany({
+      where: { sprintId },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        priority: true,
+        kind: true,
+        displayOrder: true,
+        parentTicketId: true,
+        parentTicket: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+          },
+        },
+        childTickets: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+        assignee: true,
+        assigneeType: true,
+        epicRef: true,
+        sprintNumber: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
+    });
+
+    // Transform to KanbanTicket type
+    const tickets: KanbanTicket[] = rawTickets.map((t) => {
+      // Calculate child progress for feature tickets
+      let childProgress: number | undefined;
+      if (t.childTickets && t.childTickets.length > 0) {
+        const doneCount = t.childTickets.filter((c) => c.status === TICKET_STATUSES.DONE).length;
+        childProgress = Math.round((doneCount / t.childTickets.length) * 100);
+      }
+
+      return {
+        id: t.id,
+        title: t.title,
+        status: t.status as TicketStatus,
+        priority: t.priority,
+        kind: t.kind,
+        displayOrder: t.displayOrder,
+        parentTicketId: t.parentTicketId,
+        parentTicket: t.parentTicket
+          ? {
+              id: t.parentTicket.id,
+              title: t.parentTicket.title,
+              status: t.parentTicket.status as TicketStatus,
+            }
+          : null,
+        childTickets: t.childTickets?.map((c) => ({
+          id: c.id,
+          status: c.status as TicketStatus,
+        })),
+        childProgress,
+        assignee: t.assignee,
+        assigneeType: t.assigneeType,
+        epicRef: t.epicRef,
+        sprintNumber: t.sprintNumber,
+        createdAt: t.createdAt.toISOString(),
+        updatedAt: t.updatedAt.toISOString(),
+      };
+    });
+
+    // Group tickets by status (column)
+    const columns: Record<TicketStatus, KanbanTicket[]> = {
+      [TICKET_STATUSES.BACKLOG]: [],
+      [TICKET_STATUSES.TODO]: [],
+      [TICKET_STATUSES.IN_PROGRESS]: [],
+      [TICKET_STATUSES.IN_REVIEW]: [],
+      [TICKET_STATUSES.DONE]: [],
+    };
+
+    for (const ticket of tickets) {
+      const status = ticket.status as TicketStatus;
+      if (columns[status]) {
+        columns[status].push(ticket);
+      } else {
+        // Fallback to backlog for unknown status
+        columns[TICKET_STATUSES.BACKLOG].push(ticket);
+      }
+    }
+
+    // Generate ghost cards
+    const ghosts = generateGhostCards(tickets);
+
+    // Get progress stats
+    const progressStats = await getSprintProgressStats(prisma, sprintId);
+
+    // Build column stats
+    const columnStats: ColumnStats[] = TICKET_STATUS_VALUES.map((status) => ({
+      status: status as TicketStatus,
+      count: columns[status as TicketStatus]?.length ?? 0,
+      label: TicketStatusSystem.getLabel(status),
+      colorClass: TicketStatusSystem.getColorClass(status),
+    }));
+
+    // Build board stats
+    const stats: BoardStats = {
+      total: progressStats.total,
+      done: progressStats.done,
+      inProgress: progressStats.inProgress,
+      blocked: 0, // Blocked status removed in Sprint 15
+      progress: progressStats.progress,
+      columns: columnStats,
+    };
+
+    // Build sprint context
+    const sprintContext: SprintContext = {
+      id: sprint.id,
+      sprintNumber: sprint.sprintNumber,
+      title: sprint.title,
+      status: sprint.status,
+      progress: sprint.progress,
+      phase: {
+        id: sprint.phase.id,
+        title: sprint.phase.title,
+      },
+    };
+
+    // Build response
+    const response: KanbanBoardResponse = {
+      sprint: sprintContext,
+      columns,
+      ghosts,
+      stats,
+    };
+
+    return NextResponse.json({ success: true, data: response });
+  } catch (error) {
+    // Handle auth errors
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: { code: error.code, message: error.message } },
+        { status: error.status }
+      );
+    }
+
+    console.error('[GET /api/sprints/[sprintId]/kanban] Error:', error);
+    return NextResponse.json(
+      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch kanban board' } },
+      { status: 500 }
+    );
+  }
+}

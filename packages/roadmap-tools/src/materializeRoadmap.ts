@@ -119,6 +119,7 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
         const sprint = await tx.sprint.create({
           data: {
             phaseId: phase.id,
+            sprintNumber: sprintOrder, // Sprint 15: Set sprint number for FK correlation
             title: sprintData.name,
             description: sprintData.goals.join('\n'),
             status: 'NOT_STARTED' as const,

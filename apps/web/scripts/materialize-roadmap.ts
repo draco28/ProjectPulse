@@ -130,9 +130,11 @@ async function materializeRoadmap(roadmapId: string) {
 
       // 3. Create Sprint records
       let sprintStartDate = new Date(currentDate);
+      let sprintNumber = 0; // Sprint 15: Track sprint number within phase
 
       for (const sprintJson of phaseJson.sprints) {
-        console.log(`\n  ⚡ Creating Sprint: "${sprintJson.name}"`);
+        sprintNumber++; // Sprint 15: Increment before creating
+        console.log(`\n  ⚡ Creating Sprint: "${sprintJson.name}" (Sprint ${sprintNumber})`);
 
         const sprintEndDate = calculateEndDate(sprintStartDate, sprintJson.duration);
 
@@ -145,6 +147,7 @@ async function materializeRoadmap(roadmapId: string) {
             startDate: sprintStartDate,
             endDate: sprintEndDate,
             phaseId: phase.id,
+            sprintNumber: sprintNumber, // Sprint 15: Set sprint number for FK correlation
           },
         });
 

@@ -116,6 +116,8 @@ async function getTicketDetail(id: number) {
       epicRef: true,
       backlogRefs: true,
       sprintNumber: true,
+      // Sprint 15: FK to Sprint for kanban board
+      sprintId: true,
 
       // Sprint 14: Include parent ticket details for breadcrumb
       parentTicket: {
