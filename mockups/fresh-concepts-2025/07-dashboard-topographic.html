@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Topographic Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            background: #0d1117;
+            overflow-x: hidden;
+        }
+
+        /* Topographic Background */
+        .topo-bg {
+            position: fixed;
+            inset: 0;
+            opacity: 0.15;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'%3E%3Cpath fill='none' stroke='%2358a6ff' stroke-width='1' d='M0,300 Q200,250 400,300 T800,300'/%3E%3Cpath fill='none' stroke='%2358a6ff' stroke-width='1' d='M0,280 Q200,230 400,280 T800,280'/%3E%3Cpath fill='none' stroke='%2358a6ff' stroke-width='1' d='M0,260 Q200,210 400,260 T800,260'/%3E%3Cpath fill='none' stroke='%2358a6ff' stroke-width='1' d='M0,320 Q200,270 400,320 T800,320'/%3E%3Cpath fill='none' stroke='%2358a6ff' stroke-width='1' d='M0,340 Q200,290 400,340 T800,340'/%3E%3Cpath fill='none' stroke='%2358a6ff' stroke-width='1' d='M0,360 Q200,310 400,360 T800,360'/%3E%3C/svg%3E");
+            background-size: 100% 100%;
+            animation: topo-shift 30s linear infinite;
+        }
+
+        @keyframes topo-shift {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-5%) translateY(2%); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+
+        /* Contour Lines Animation */
+        .contour-lines {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .contour {
+            position: absolute;
+            border: 1px solid rgba(88, 166, 255, 0.1);
+            border-radius: 50%;
+            animation: contour-pulse 8s ease-in-out infinite;
+        }
+
+        .contour-1 { width: 300px; height: 200px; top: 10%; left: 5%; animation-delay: 0s; }
+        .contour-2 { width: 400px; height: 250px; top: 8%; left: 3%; animation-delay: 0.5s; }
+        .contour-3 { width: 500px; height: 300px; top: 6%; left: 1%; animation-delay: 1s; }
+        .contour-4 { width: 250px; height: 180px; bottom: 20%; right: 10%; animation-delay: 2s; }
+        .contour-5 { width: 350px; height: 230px; bottom: 18%; right: 8%; animation-delay: 2.5s; }
+
+        @keyframes contour-pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.02); }
+        }
+
+        /* Elevation Markers */
+        .elevation-marker {
+            position: fixed;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: rgba(88, 166, 255, 0.3);
+            pointer-events: none;
+        }
+
+        /* Card Style */
+        .topo-card {
+            background: rgba(22, 27, 34, 0.9);
+            border: 1px solid rgba(88, 166, 255, 0.15);
+            border-radius: 12px;
+            position: relative;
+            transition: all 0.4s ease;
+            overflow: hidden;
+        }
+
+        .topo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #58a6ff, #3fb950, #f0883e);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .topo-card:hover::before {
+            opacity: 1;
+        }
+
+        .topo-card:hover {
+            border-color: rgba(88, 166, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(88, 166, 255, 0.1);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: rgba(13, 17, 23, 0.95);
+            border-right: 1px solid rgba(88, 166, 255, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #8b949e;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item::after {
+            content: attr(data-elevation);
+            position: absolute;
+            right: 12px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: rgba(88, 166, 255, 0.4);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav-item:hover::after {
+            opacity: 1;
+        }
+
+        .nav-item:hover {
+            color: #c9d1d9;
+            background: rgba(88, 166, 255, 0.08);
+        }
+
+        .nav-item.active {
+            color: #58a6ff;
+            background: rgba(88, 166, 255, 0.12);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            background: #58a6ff;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* Stat Card */
+        .stat-elevation {
+            position: relative;
+            padding-left: 16px;
+        }
+
+        .stat-elevation::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 2px;
+        }
+
+        .stat-elevation.high::before { background: linear-gradient(180deg, #58a6ff, #1f6feb); }
+        .stat-elevation.medium::before { background: linear-gradient(180deg, #3fb950, #238636); }
+        .stat-elevation.low::before { background: linear-gradient(180deg, #f0883e, #bd561d); }
+        .stat-elevation.base::before { background: linear-gradient(180deg, #8b949e, #484f58); }
+
+        .stat-value {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #c9d1d9;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #8b949e;
+            margin-top: 4px;
+        }
+
+        .stat-coords {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: rgba(88, 166, 255, 0.5);
+            margin-top: 8px;
+        }
+
+        /* Terrain Progress */
+        .terrain-progress {
+            position: relative;
+            height: 8px;
+            background: rgba(88, 166, 255, 0.1);
+            border-radius: 4px;
+            overflow: visible;
+        }
+
+        .terrain-fill {
+            height: 100%;
+            border-radius: 4px;
+            position: relative;
+            transition: width 0.5s ease;
+        }
+
+        .terrain-fill::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: inherit;
+            border: 2px solid #0d1117;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .terrain-marker {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            padding: 2px 6px;
+            background: rgba(13, 17, 23, 0.9);
+            border: 1px solid currentColor;
+            border-radius: 4px;
+        }
+
+        /* Activity Item */
+        .activity-contour {
+            display: flex;
+            gap: 16px;
+            padding: 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .activity-contour::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 50px;
+            bottom: -14px;
+            width: 1px;
+            background: linear-gradient(180deg, rgba(88, 166, 255, 0.3), transparent);
+        }
+
+        .activity-contour:last-child::before {
+            display: none;
+        }
+
+        .activity-contour:hover {
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        .activity-point {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .activity-point::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1px dashed currentColor;
+            opacity: 0.3;
+        }
+
+        /* Agent Waypoint */
+        .agent-waypoint {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 8px;
+            background: rgba(88, 166, 255, 0.05);
+            border: 1px solid rgba(88, 166, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .agent-waypoint:hover {
+            border-color: rgba(88, 166, 255, 0.2);
+            background: rgba(88, 166, 255, 0.08);
+        }
+
+        .waypoint-marker {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            position: relative;
+        }
+
+        .waypoint-marker::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 10px;
+            background: inherit;
+            opacity: 0.3;
+            filter: blur(8px);
+        }
+
+        .signal-indicator {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 16px;
+        }
+
+        .signal-bar {
+            width: 3px;
+            background: #3fb950;
+            border-radius: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 8px; }
+        .signal-bar:nth-child(3) { height: 12px; }
+        .signal-bar:nth-child(4) { height: 16px; }
+
+        .agent-waypoint.idle .signal-bar {
+            background: #484f58;
+        }
+
+        /* Buttons */
+        .topo-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topo-btn.secondary {
+            background: rgba(88, 166, 255, 0.1);
+            color: #58a6ff;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+        }
+
+        .topo-btn.secondary:hover {
+            background: rgba(88, 166, 255, 0.15);
+            border-color: rgba(88, 166, 255, 0.3);
+        }
+
+        .topo-btn.primary {
+            background: #238636;
+            color: white;
+        }
+
+        .topo-btn.primary:hover {
+            background: #2ea043;
+        }
+
+        /* Logo */
+        .logo-peak {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #58a6ff, #1f6feb);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            position: relative;
+        }
+
+        .logo-peak::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 12px;
+            border: 1px dashed rgba(88, 166, 255, 0.3);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(88, 166, 255, 0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(88, 166, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(88, 166, 255, 0.3); }
+
+        /* Section Title */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-title h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #c9d1d9;
+        }
+
+        .section-title .coords {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: rgba(88, 166, 255, 0.5);
+        }
+
+        /* Progress Ring */
+        .topo-ring {
+            position: relative;
+        }
+
+        .topo-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .topo-ring .track {
+            fill: none;
+            stroke: rgba(88, 166, 255, 0.1);
+            stroke-width: 8;
+        }
+
+        .topo-ring .progress {
+            fill: none;
+            stroke: url(#topo-gradient);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        /* Grid Coordinates */
+        .grid-coords {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: rgba(88, 166, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Topographic Background -->
+    <div class="topo-bg"></div>
+    
+    <!-- Contour Lines -->
+    <div class="contour-lines">
+        <div class="contour contour-1"></div>
+        <div class="contour contour-2"></div>
+        <div class="contour contour-3"></div>
+        <div class="contour contour-4"></div>
+        <div class="contour contour-5"></div>
+    </div>
+
+    <!-- Elevation Markers -->
+    <div class="elevation-marker" style="top: 15%; left: 8%;">+2400m</div>
+    <div class="elevation-marker" style="top: 25%; right: 5%;">+1800m</div>
+    <div class="elevation-marker" style="bottom: 30%; left: 3%;">+1200m</div>
+
+    <div class="relative z-10 flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 p-5 flex flex-col">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 mb-8">
+                <div class="logo-peak">
+                    <i class="fas fa-mountain"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-lg text-[#c9d1d9]">ProjectPulse</div>
+                    <div class="text-xs text-[#8b949e]">Terrain View</div>
+                </div>
+            </div>
+
+            <!-- Grid Reference -->
+            <div class="grid-coords mb-6 p-3 bg-[rgba(88,166,255,0.05)] rounded-lg">
+                <div class="flex justify-between mb-1">
+                    <span>GRID REF:</span>
+                    <span class="text-[#58a6ff]">N42°15'30"</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>ZONE:</span>
+                    <span class="text-[#3fb950]">ACTIVE</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 space-y-1">
+                <div class="nav-item active" data-elevation="+2400">
+                    <i class="fas fa-layer-group w-5"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-elevation="+2200">
+                    <i class="fas fa-ticket w-5"></i>
+                    <span>Tickets</span>
+                </div>
+                <div class="nav-item" data-elevation="+2000">
+                    <i class="fas fa-route w-5"></i>
+                    <span>Roadmap</span>
+                </div>
+                <div class="nav-item" data-elevation="+1800">
+                    <i class="fas fa-database w-5"></i>
+                    <span>Knowledge</span>
+                </div>
+                <div class="nav-item" data-elevation="+1600">
+                    <i class="fas fa-book w-5"></i>
+                    <span>Wiki</span>
+                </div>
+                <div class="nav-item" data-elevation="+1400">
+                    <i class="fas fa-robot w-5"></i>
+                    <span>AI Agents</span>
+                </div>
+                <div class="nav-item" data-elevation="+1200">
+                    <i class="fas fa-chart-area w-5"></i>
+                    <span>Analytics</span>
+                </div>
+            </nav>
+
+            <!-- User -->
+            <div class="topo-card p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#58a6ff] to-[#1f6feb] flex items-center justify-center font-bold">
+                        D
+                    </div>
+                    <div>
+                        <div class="font-semibold text-[#c9d1d9]">Draco</div>
+                        <div class="text-xs text-[#8b949e]">Base Camp</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 overflow-y-auto">
+            <!-- Header -->
+            <header class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-[#c9d1d9] mb-1">Terrain Overview</h1>
+                    <p class="text-[#8b949e] text-sm flex items-center gap-2">
+                        <span class="grid-coords">LAT: 42.2583° N | LON: 71.0628° W</span>
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="topo-btn secondary">
+                        <i class="fas fa-search"></i>Search
+                    </button>
+                    <button class="topo-btn primary">
+                        <i class="fas fa-plus"></i>New Waypoint
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <div class="topo-card p-5">
+                    <div class="stat-elevation high">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">Active Sprints</div>
+                        <div class="stat-coords">ELV: +2400m</div>
+                    </div>
+                </div>
+
+                <div class="topo-card p-5">
+                    <div class="stat-elevation medium">
+                        <div class="stat-value">24</div>
+                        <div class="stat-label">Open Tickets</div>
+                        <div class="stat-coords">ELV: +1800m</div>
+                    </div>
+                </div>
+
+                <div class="topo-card p-5">
+                    <div class="stat-elevation low">
+                        <div class="stat-value">156</div>
+                        <div class="stat-label">Knowledge Items</div>
+                        <div class="stat-coords">ELV: +1200m</div>
+                    </div>
+                </div>
+
+                <div class="topo-card p-5">
+                    <div class="stat-elevation base">
+                        <div class="stat-value">89</div>
+                        <div class="stat-label">AI Sessions</div>
+                        <div class="stat-coords">ELV: +600m</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="grid grid-cols-3 gap-4">
+                <!-- Sprint Progress -->
+                <div class="topo-card p-5 col-span-2">
+                    <div class="section-title">
+                        <h2>Elevation Profile</h2>
+                        <span class="coords">SPRINT 14 | SECTOR A</span>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-sm text-[#c9d1d9]">Phase 1: Foundation</span>
+                                <span class="grid-coords">SUMMIT REACHED</span>
+                            </div>
+                            <div class="terrain-progress">
+                                <div class="terrain-fill bg-[#58a6ff]" style="width: 100%">
+                                    <span class="terrain-marker text-[#58a6ff]">100%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-sm text-[#c9d1d9]">Phase 2: Core Features</span>
+                                <span class="grid-coords">ASCENDING</span>
+                            </div>
+                            <div class="terrain-progress">
+                                <div class="terrain-fill bg-[#3fb950]" style="width: 78%">
+                                    <span class="terrain-marker text-[#3fb950]">78%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-sm text-[#c9d1d9]">Phase 3: AI Integration</span>
+                                <span class="grid-coords">BASE CAMP</span>
+                            </div>
+                            <div class="terrain-progress">
+                                <div class="terrain-fill bg-[#f0883e]" style="width: 45%">
+                                    <span class="terrain-marker text-[#f0883e]">45%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-sm text-[#c9d1d9]">Phase 4: Deployment</span>
+                                <span class="grid-coords">TRAILHEAD</span>
+                            </div>
+                            <div class="terrain-progress">
+                                <div class="terrain-fill bg-[#8b949e]" style="width: 12%">
+                                    <span class="terrain-marker text-[#8b949e]">12%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overall Progress -->
+                <div class="topo-card p-5 flex flex-col items-center justify-center">
+                    <div class="section-title justify-center">
+                        <h2>Summit Progress</h2>
+                    </div>
+                    <div class="topo-ring relative" style="width: 150px; height: 150px;">
+                        <svg width="150" height="150" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="topo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#58a6ff"/>
+                                    <stop offset="50%" stop-color="#3fb950"/>
+                                    <stop offset="100%" stop-color="#f0883e"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="track" cx="50" cy="50" r="42"/>
+                            <circle class="progress" cx="50" cy="50" r="42" 
+                                    stroke-dasharray="264" stroke-dashoffset="66"/>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-3xl font-bold text-[#c9d1d9]">75%</span>
+                            <span class="text-xs text-[#8b949e]">Elevation</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center grid-coords">
+                        <div>SUMMIT ETA</div>
+                        <div class="text-[#58a6ff] text-sm font-semibold">Jan 15, 2025</div>
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="topo-card p-5 col-span-2">
+                    <div class="section-title">
+                        <h2>Route Log</h2>
+                        <span class="coords">RECENT WAYPOINTS</span>
+                    </div>
+                    <div class="space-y-0">
+                        <div class="activity-contour">
+                            <div class="activity-point bg-[rgba(88,166,255,0.2)] text-[#58a6ff]">
+                                <i class="fas fa-flag"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-[#c9d1d9]">Ticket #142 completed</div>
+                                <div class="text-sm text-[#8b949e]">MCP Tool optimization</div>
+                            </div>
+                            <div class="grid-coords">+2400m | 2min</div>
+                        </div>
+                        <div class="activity-contour">
+                            <div class="activity-point bg-[rgba(63,185,80,0.2)] text-[#3fb950]">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-[#c9d1d9]">AI Session started</div>
+                                <div class="text-sm text-[#8b949e]">devhub-fullstack ascending</div>
+                            </div>
+                            <div class="grid-coords">+2200m | 15min</div>
+                        </div>
+                        <div class="activity-contour">
+                            <div class="activity-point bg-[rgba(240,136,62,0.2)] text-[#f0883e]">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-[#c9d1d9]">Knowledge cached</div>
+                                <div class="text-sm text-[#8b949e]">Database patterns stored</div>
+                            </div>
+                            <div class="grid-coords">+1800m | 1hr</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Agents -->
+                <div class="topo-card p-5">
+                    <div class="section-title">
+                        <h2>Active Expeditions</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="agent-waypoint">
+                            <div class="waypoint-marker bg-[#58a6ff] text-white">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm text-[#c9d1d9]">devhub-fullstack</div>
+                                <div class="text-xs text-[#3fb950]">Ascending #143</div>
+                            </div>
+                            <div class="signal-indicator">
+                                <div class="signal-bar"></div>
+                                <div class="signal-bar"></div>
+                                <div class="signal-bar"></div>
+                                <div class="signal-bar"></div>
+                            </div>
+                        </div>
+                        <div class="agent-waypoint">
+                            <div class="waypoint-marker bg-[#3fb950] text-white">
+                                <i class="fas fa-vial"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm text-[#c9d1d9]">devhub-testing</div>
+                                <div class="text-xs text-[#3fb950]">Running tests</div>
+                            </div>
+                            <div class="signal-indicator">
+                                <div class="signal-bar"></div>
+                                <div class="signal-bar"></div>
+                                <div class="signal-bar"></div>
+                                <div class="signal-bar"></div>
+                            </div>
+                        </div>
+                        <div class="agent-waypoint idle" style="opacity: 0.5;">
+                            <div class="waypoint-marker bg-[#484f58] text-[#8b949e]">
+                                <i class="fas fa-compass"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm text-[#8b949e]">devhub-architect</div>
+                                <div class="text-xs text-[#484f58]">Base camp</div>
+                            </div>
+                            <div class="signal-indicator">
+                                <div class="signal-bar"></div>
+                                <div class="signal-bar"></div>
+                                <div class="signal-bar" style="background: #484f58;"></div>
+                                <div class="signal-bar" style="background: #484f58;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

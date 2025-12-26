@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Aurora Waves Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            background: #0c0c14;
+            overflow-x: hidden;
+        }
+
+        /* Aurora Background */
+        .aurora-bg {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .aurora-wave {
+            position: absolute;
+            width: 200%;
+            height: 300px;
+            opacity: 0.4;
+            filter: blur(60px);
+        }
+
+        .wave-1 {
+            top: -50px;
+            left: -50%;
+            background: linear-gradient(90deg, 
+                transparent 0%,
+                #00d9ff 20%,
+                #00ff94 40%,
+                #00d9ff 60%,
+                transparent 80%
+            );
+            animation: wave-flow 15s ease-in-out infinite;
+        }
+
+        .wave-2 {
+            top: 150px;
+            left: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%,
+                #ff6bea 25%,
+                #a855f7 50%,
+                #ff6bea 75%,
+                transparent 100%
+            );
+            animation: wave-flow 20s ease-in-out infinite reverse;
+            animation-delay: -5s;
+        }
+
+        .wave-3 {
+            bottom: 100px;
+            left: -25%;
+            background: linear-gradient(90deg, 
+                transparent 0%,
+                #3b82f6 30%,
+                #06b6d4 50%,
+                #3b82f6 70%,
+                transparent 100%
+            );
+            animation: wave-flow 18s ease-in-out infinite;
+            animation-delay: -10s;
+        }
+
+        @keyframes wave-flow {
+            0%, 100% { transform: translateX(-25%) skewY(-3deg); }
+            50% { transform: translateX(25%) skewY(3deg); }
+        }
+
+        /* Stars */
+        .stars {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.3), transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.2), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.2), transparent),
+                radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.3), transparent);
+            background-size: 200px 200px;
+            animation: twinkle 5s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Floating Particles */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float-up 10s linear infinite;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+        }
+
+        /* Card Style */
+        .aurora-card {
+            background: rgba(20, 20, 35, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .aurora-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        }
+
+        .aurora-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 
+                0 20px 40px -15px rgba(0, 0, 0, 0.5),
+                0 0 60px -30px rgba(0, 217, 255, 0.3);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: rgba(15, 15, 25, 0.8);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active {
+            color: white;
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.15), rgba(0, 255, 148, 0.1));
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .nav-item.active i {
+            color: #00d9ff;
+            filter: drop-shadow(0 0 8px #00d9ff);
+        }
+
+        /* Stats */
+        .stat-card {
+            position: relative;
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            position: relative;
+        }
+
+        .stat-icon::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 20px;
+            background: inherit;
+            filter: blur(15px);
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        .stat-value {
+            font-size: 2.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .stat-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stat-trend.up {
+            background: rgba(0, 255, 148, 0.15);
+            color: #00ff94;
+        }
+
+        .stat-trend.stable {
+            background: rgba(255, 200, 0, 0.15);
+            color: #ffc800;
+        }
+
+        /* Progress Waves */
+        .progress-container {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-wave {
+            height: 100%;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-wave::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer-wave 2s infinite;
+        }
+
+        @keyframes shimmer-wave {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Activity Item */
+        .activity-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .activity-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        /* Buttons */
+        .aurora-btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .aurora-btn.secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .aurora-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .aurora-btn.primary {
+            background: linear-gradient(135deg, #00d9ff 0%, #00ff94 100%);
+            color: #0c0c14;
+            box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .aurora-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 217, 255, 0.4);
+        }
+
+        /* Agent Card */
+        .agent-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .agent-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .agent-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .status-dot.active {
+            background: #00ff94;
+            box-shadow: 0 0 12px #00ff94;
+        }
+
+        .status-dot.active::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid #00ff94;
+            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes ping {
+            75%, 100% { transform: scale(2); opacity: 0; }
+        }
+
+        .status-dot.idle {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Overall Progress Ring */
+        .progress-ring-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring .bg {
+            stroke: rgba(255, 255, 255, 0.08);
+        }
+
+        .progress-ring .progress {
+            stroke: url(#aurora-gradient);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+            filter: drop-shadow(0 0 8px rgba(0, 217, 255, 0.5));
+        }
+
+        /* Logo */
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #00d9ff, #00ff94);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #0c0c14;
+            position: relative;
+        }
+
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 17px;
+            background: linear-gradient(135deg, #00d9ff, #00ff94);
+            filter: blur(15px);
+            opacity: 0.4;
+            z-index: -1;
+            animation: logo-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes logo-pulse {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+        /* Color Accents */
+        .accent-cyan { color: #00d9ff; }
+        .accent-green { color: #00ff94; }
+        .accent-purple { color: #a855f7; }
+        .accent-pink { color: #ff6bea; }
+        .accent-blue { color: #3b82f6; }
+
+        .bg-accent-cyan { background: linear-gradient(135deg, #00d9ff, #06b6d4); }
+        .bg-accent-green { background: linear-gradient(135deg, #00ff94, #10b981); }
+        .bg-accent-purple { background: linear-gradient(135deg, #a855f7, #8b5cf6); }
+        .bg-accent-pink { background: linear-gradient(135deg, #ff6bea, #ec4899); }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Aurora Background -->
+    <div class="aurora-bg">
+        <div class="aurora-wave wave-1"></div>
+        <div class="aurora-wave wave-2"></div>
+        <div class="aurora-wave wave-3"></div>
+    </div>
+    <div class="stars"></div>
+
+    <!-- Floating Particles -->
+    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 25%; animation-delay: 2s;"></div>
+    <div class="particle" style="left: 45%; animation-delay: 4s;"></div>
+    <div class="particle" style="left: 65%; animation-delay: 1s;"></div>
+    <div class="particle" style="left: 85%; animation-delay: 3s;"></div>
+
+    <div class="relative z-10 flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-72 p-6 flex flex-col">
+            <!-- Logo -->
+            <div class="flex items-center gap-4 mb-10">
+                <div class="logo-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-lg">ProjectPulse</div>
+                    <div class="text-xs text-white/40">AI-Powered Development</div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 space-y-2">
+                <div class="nav-item active">
+                    <i class="fas fa-grid-2 w-5"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-ticket w-5"></i>
+                    <span>Tickets</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-map w-5"></i>
+                    <span>Roadmap</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-brain w-5"></i>
+                    <span>Knowledge Base</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-book-open w-5"></i>
+                    <span>Wiki</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-robot w-5"></i>
+                    <span>AI Agents</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-chart-mixed w-5"></i>
+                    <span>Analytics</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-gear w-5"></i>
+                    <span>Settings</span>
+                </div>
+            </nav>
+
+            <!-- User Card -->
+            <div class="aurora-card p-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-lg font-bold">
+                        D
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-semibold">Draco</div>
+                        <div class="text-sm text-white/40">Administrator</div>
+                    </div>
+                    <button class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
+                        <i class="fas fa-ellipsis-vertical text-white/50"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <!-- Header -->
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">Welcome back, Draco</h1>
+                    <p class="text-white/50">Your projects are making great progress today</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="aurora-btn secondary">
+                        <i class="fas fa-search mr-2"></i>Search
+                    </button>
+                    <button class="aurora-btn primary">
+                        <i class="fas fa-plus mr-2"></i>New Ticket
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="aurora-card stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-accent-cyan text-[#0c0c14]">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <span class="stat-trend up">
+                            <i class="fas fa-arrow-up text-xs"></i>12%
+                        </span>
+                    </div>
+                    <div class="stat-value">3</div>
+                    <div class="text-white/50 text-sm mt-2">Active Sprints</div>
+                </div>
+
+                <div class="aurora-card stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-accent-pink text-white">
+                            <i class="fas fa-ticket"></i>
+                        </div>
+                        <span class="stat-trend stable">
+                            <i class="fas fa-minus text-xs"></i>Stable
+                        </span>
+                    </div>
+                    <div class="stat-value">24</div>
+                    <div class="text-white/50 text-sm mt-2">Open Tickets</div>
+                </div>
+
+                <div class="aurora-card stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-accent-purple text-white">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <span class="stat-trend up">
+                            <i class="fas fa-arrow-up text-xs"></i>8%
+                        </span>
+                    </div>
+                    <div class="stat-value">156</div>
+                    <div class="text-white/50 text-sm mt-2">Knowledge Items</div>
+                </div>
+
+                <div class="aurora-card stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-accent-green text-[#0c0c14]">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <span class="stat-trend up">
+                            <i class="fas fa-arrow-up text-xs"></i>23%
+                        </span>
+                    </div>
+                    <div class="stat-value">89</div>
+                    <div class="text-white/50 text-sm mt-2">AI Sessions Today</div>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Sprint Progress -->
+                <div class="aurora-card p-6 col-span-2">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold">Sprint Progress</h2>
+                        <select class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#00d9ff] transition-colors">
+                            <option>Sprint 14 (Current)</option>
+                            <option>Sprint 13</option>
+                            <option>Sprint 12</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-accent-cyan"></div>
+                                    <span class="font-medium">Phase 1: Foundation</span>
+                                </div>
+                                <span class="text-white/60 text-sm font-semibold">100%</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-wave bg-gradient-to-r from-[#00d9ff] to-[#00ff94]" style="width: 100%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-accent-purple"></div>
+                                    <span class="font-medium">Phase 2: Core Features</span>
+                                </div>
+                                <span class="text-white/60 text-sm font-semibold">78%</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-wave bg-gradient-to-r from-[#a855f7] to-[#ff6bea]" style="width: 78%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-accent-pink"></div>
+                                    <span class="font-medium">Phase 3: AI Integration</span>
+                                </div>
+                                <span class="text-white/60 text-sm font-semibold">45%</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-wave bg-gradient-to-r from-[#ff6bea] to-[#ec4899]" style="width: 45%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-accent-green"></div>
+                                    <span class="font-medium">Phase 4: Polish & Deploy</span>
+                                </div>
+                                <span class="text-white/60 text-sm font-semibold">12%</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-wave bg-gradient-to-r from-[#00ff94] to-[#10b981]" style="width: 12%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overall Progress -->
+                <div class="aurora-card p-6 flex flex-col items-center justify-center">
+                    <h2 class="text-xl font-bold mb-6">Overall Progress</h2>
+                    <div class="progress-ring-container">
+                        <svg class="progress-ring w-full h-full" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="aurora-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#00d9ff"/>
+                                    <stop offset="50%" stop-color="#00ff94"/>
+                                    <stop offset="100%" stop-color="#a855f7"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="bg" cx="50" cy="50" r="42" fill="none" stroke-width="8"/>
+                            <circle class="progress" cx="50" cy="50" r="42" fill="none" stroke-width="8" 
+                                    stroke-dasharray="264" stroke-dashoffset="66"/>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-bold">75%</span>
+                            <span class="text-white/50 text-sm">Complete</span>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <div class="text-sm text-white/40">Estimated completion</div>
+                        <div class="font-semibold accent-cyan">January 15, 2025</div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="aurora-card p-6 col-span-2">
+                    <h2 class="text-xl font-bold mb-6">Recent Activity</h2>
+                    <div class="space-y-2">
+                        <div class="activity-item">
+                            <div class="activity-icon bg-accent-green/20 text-[#00ff94]">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium">Ticket #142 completed</div>
+                                <div class="text-sm text-white/40">MCP Tool: ticket_search optimization</div>
+                            </div>
+                            <div class="text-sm text-white/30">2 min ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-accent-cyan/20 accent-cyan">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium">AI Session started</div>
+                                <div class="text-sm text-white/40">devhub-fullstack working on API routes</div>
+                            </div>
+                            <div class="text-sm text-white/30">15 min ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-accent-purple/20 accent-purple">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium">Knowledge item added</div>
+                                <div class="text-sm text-white/40">Database optimization patterns</div>
+                            </div>
+                            <div class="text-sm text-white/30">1 hour ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-accent-pink/20 accent-pink">
+                                <i class="fas fa-flag"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium">Sprint 14 started</div>
+                                <div class="text-sm text-white/40">12 tickets planned, 4 weeks duration</div>
+                            </div>
+                            <div class="text-sm text-white/30">3 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Agents -->
+                <div class="aurora-card p-6">
+                    <h2 class="text-xl font-bold mb-6">Active Agents</h2>
+                    <div class="space-y-3">
+                        <div class="agent-item">
+                            <div class="agent-avatar bg-accent-cyan text-[#0c0c14]">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">devhub-fullstack</div>
+                                <div class="text-xs accent-green">Working on Ticket #143</div>
+                            </div>
+                            <div class="status-dot active"></div>
+                        </div>
+                        <div class="agent-item">
+                            <div class="agent-avatar bg-accent-pink text-white">
+                                <i class="fas fa-vial"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">devhub-testing</div>
+                                <div class="text-xs accent-green">Running test suite</div>
+                            </div>
+                            <div class="status-dot active"></div>
+                        </div>
+                        <div class="agent-item opacity-50">
+                            <div class="agent-avatar bg-white/10 text-white/50">
+                                <i class="fas fa-drafting-compass"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">devhub-architect</div>
+                                <div class="text-xs text-white/30">Idle</div>
+                            </div>
+                            <div class="status-dot idle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

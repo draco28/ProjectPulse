@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Constellation Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            background: #08090d;
+            overflow-x: hidden;
+        }
+
+        /* Star Field */
+        .starfield {
+            position: fixed;
+            inset: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Constellation Lines */
+        .constellation-svg {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .constellation-line {
+            stroke: rgba(147, 197, 253, 0.15);
+            stroke-width: 1;
+            fill: none;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw-line 3s ease forwards;
+        }
+
+        @keyframes draw-line {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .constellation-node {
+            fill: rgba(147, 197, 253, 0.6);
+            animation: node-pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes node-pulse {
+            0%, 100% { r: 3; opacity: 0.6; }
+            50% { r: 5; opacity: 1; }
+        }
+
+        /* Nebula Glow */
+        .nebula {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            animation: nebula-drift 30s infinite ease-in-out;
+        }
+
+        .nebula-1 {
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(ellipse, #6366f1 0%, transparent 70%);
+            top: -100px;
+            left: -100px;
+        }
+
+        .nebula-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(ellipse, #ec4899 0%, transparent 70%);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -10s;
+        }
+
+        .nebula-3 {
+            width: 400px;
+            height: 300px;
+            background: radial-gradient(ellipse, #06b6d4 0%, transparent 70%);
+            top: 40%;
+            left: 30%;
+            animation-delay: -20s;
+        }
+
+        @keyframes nebula-drift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -20px) scale(1.1); }
+            66% { transform: translate(-20px, 30px) scale(0.95); }
+        }
+
+        /* Node Card */
+        .node-card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(147, 197, 253, 0.1);
+            border-radius: 16px;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .node-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.3), transparent);
+        }
+
+        .node-card:hover {
+            border-color: rgba(147, 197, 253, 0.3);
+            box-shadow: 
+                0 0 40px rgba(147, 197, 253, 0.1),
+                inset 0 0 40px rgba(147, 197, 253, 0.02);
+            transform: translateY(-4px);
+        }
+
+        /* Connection indicator on hover */
+        .node-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -20px;
+            width: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.5));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .node-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: rgba(8, 9, 13, 0.9);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(147, 197, 253, 0.08);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            color: rgba(203, 213, 225, 0.6);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-item .node-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(147, 197, 253, 0.3);
+            position: absolute;
+            left: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            color: #e2e8f0;
+            background: rgba(147, 197, 253, 0.05);
+        }
+
+        .nav-item:hover .node-dot {
+            background: rgba(147, 197, 253, 0.6);
+            box-shadow: 0 0 10px rgba(147, 197, 253, 0.5);
+        }
+
+        .nav-item.active {
+            color: #93c5fd;
+            background: rgba(147, 197, 253, 0.1);
+        }
+
+        .nav-item.active .node-dot {
+            background: #93c5fd;
+            box-shadow: 0 0 15px #93c5fd;
+        }
+
+        /* Star Stats */
+        .star-stat {
+            position: relative;
+        }
+
+        .star-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            position: relative;
+        }
+
+        .star-icon::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            opacity: 0.3;
+        }
+
+        .star-icon::after {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            border: 1px dashed currentColor;
+            opacity: 0.15;
+            animation: orbit 20s linear infinite;
+        }
+
+        @keyframes orbit {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .stat-value {
+            font-size: 2.75rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: rgba(203, 213, 225, 0.5);
+            margin-top: 4px;
+        }
+
+        /* Orbital Progress */
+        .orbital-progress {
+            height: 6px;
+            background: rgba(147, 197, 253, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .orbital-fill {
+            height: 100%;
+            border-radius: 3px;
+            position: relative;
+        }
+
+        .orbital-fill::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 0 15px currentColor, 0 0 30px currentColor;
+        }
+
+        /* Activity Stream */
+        .stream-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .stream-item::before {
+            content: '';
+            position: absolute;
+            left: 28px;
+            top: 56px;
+            bottom: -16px;
+            width: 1px;
+            background: linear-gradient(180deg, rgba(147, 197, 253, 0.2), transparent);
+        }
+
+        .stream-item:last-child::before {
+            display: none;
+        }
+
+        .stream-item:hover {
+            background: rgba(147, 197, 253, 0.03);
+        }
+
+        .stream-node {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stream-node::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            opacity: 0.3;
+        }
+
+        /* Agent Satellite */
+        .satellite-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(147, 197, 253, 0.03);
+            border: 1px solid rgba(147, 197, 253, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .satellite-card:hover {
+            border-color: rgba(147, 197, 253, 0.2);
+            background: rgba(147, 197, 253, 0.06);
+        }
+
+        .satellite-body {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            position: relative;
+        }
+
+        .satellite-body::before {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            opacity: 0.2;
+            animation: satellite-ping 2s infinite;
+        }
+
+        @keyframes satellite-ping {
+            0% { transform: scale(1); opacity: 0.2; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .transmission-status {
+            display: flex;
+            gap: 3px;
+        }
+
+        .signal-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: signal-blink 1s infinite;
+        }
+
+        .signal-dot:nth-child(2) { animation-delay: 0.2s; }
+        .signal-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes signal-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .satellite-card.offline .signal-dot {
+            background: rgba(203, 213, 225, 0.2);
+            animation: none;
+        }
+
+        /* Buttons */
+        .cosmos-btn {
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cosmos-btn.secondary {
+            background: rgba(147, 197, 253, 0.1);
+            color: #93c5fd;
+            border: 1px solid rgba(147, 197, 253, 0.2);
+        }
+
+        .cosmos-btn.secondary:hover {
+            background: rgba(147, 197, 253, 0.15);
+            box-shadow: 0 0 20px rgba(147, 197, 253, 0.1);
+        }
+
+        .cosmos-btn.primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .cosmos-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Logo */
+        .logo-star {
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            position: relative;
+        }
+
+        .logo-star::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1px solid rgba(147, 197, 253, 0.3);
+        }
+
+        .logo-star::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 1px dashed rgba(147, 197, 253, 0.15);
+            animation: orbit 15s linear infinite reverse;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(147, 197, 253, 0.02); }
+        ::-webkit-scrollbar-thumb { background: rgba(147, 197, 253, 0.15); border-radius: 3px; }
+
+        /* Progress Ring */
+        .cosmos-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .cosmos-ring .track {
+            fill: none;
+            stroke: rgba(147, 197, 253, 0.1);
+            stroke-width: 6;
+        }
+
+        .cosmos-ring .progress {
+            fill: none;
+            stroke: url(#cosmos-gradient);
+            stroke-width: 6;
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 8px rgba(147, 197, 253, 0.5));
+        }
+
+        /* Color Classes */
+        .text-nebula-blue { color: #93c5fd; }
+        .text-nebula-purple { color: #a78bfa; }
+        .text-nebula-pink { color: #f472b6; }
+        .text-nebula-cyan { color: #22d3ee; }
+        .bg-nebula-blue { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+        .bg-nebula-purple { background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+        .bg-nebula-pink { background: linear-gradient(135deg, #ec4899, #f472b6); }
+        .bg-nebula-cyan { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Star Field -->
+    <div class="starfield">
+        <div class="star" style="top: 10%; left: 15%; animation-delay: 0s;"></div>
+        <div class="star" style="top: 25%; left: 80%; animation-delay: 0.5s;"></div>
+        <div class="star" style="top: 40%; left: 45%; animation-delay: 1s;"></div>
+        <div class="star" style="top: 60%; left: 20%; animation-delay: 1.5s;"></div>
+        <div class="star" style="top: 75%; left: 70%; animation-delay: 2s;"></div>
+        <div class="star" style="top: 85%; left: 35%; animation-delay: 2.5s;"></div>
+        <div class="star" style="top: 15%; left: 55%; animation-delay: 0.8s;"></div>
+        <div class="star" style="top: 50%; left: 90%; animation-delay: 1.3s;"></div>
+    </div>
+
+    <!-- Nebula Glow -->
+    <div class="nebula nebula-1"></div>
+    <div class="nebula nebula-2"></div>
+    <div class="nebula nebula-3"></div>
+
+    <!-- Constellation Lines -->
+    <svg class="constellation-svg" viewBox="0 0 1920 1080">
+        <path class="constellation-line" d="M200,200 L400,300 L600,250 L800,350 L1000,280" style="animation-delay: 0.5s;"/>
+        <path class="constellation-line" d="M1200,400 L1400,350 L1600,450 L1750,380" style="animation-delay: 1s;"/>
+        <path class="constellation-line" d="M300,600 L500,550 L700,650 L900,580" style="animation-delay: 1.5s;"/>
+        <circle class="constellation-node" cx="200" cy="200" r="4"/>
+        <circle class="constellation-node" cx="400" cy="300" r="4" style="animation-delay: 0.5s;"/>
+        <circle class="constellation-node" cx="600" cy="250" r="4" style="animation-delay: 1s;"/>
+        <circle class="constellation-node" cx="800" cy="350" r="4" style="animation-delay: 1.5s;"/>
+        <circle class="constellation-node" cx="1000" cy="280" r="4" style="animation-delay: 2s;"/>
+    </svg>
+
+    <div class="relative z-10 flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-72 p-6 flex flex-col">
+            <!-- Logo -->
+            <div class="flex items-center gap-4 mb-10">
+                <div class="logo-star">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-lg text-white">ProjectPulse</div>
+                    <div class="text-xs text-[rgba(203,213,225,0.4)]">Constellation View</div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 space-y-2">
+                <div class="nav-item active">
+                    <span class="node-dot"></span>
+                    <i class="fas fa-solar-system w-5 ml-4"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item">
+                    <span class="node-dot"></span>
+                    <i class="fas fa-meteor w-5 ml-4"></i>
+                    <span>Tickets</span>
+                </div>
+                <div class="nav-item">
+                    <span class="node-dot"></span>
+                    <i class="fas fa-shuttle-space w-5 ml-4"></i>
+                    <span>Roadmap</span>
+                </div>
+                <div class="nav-item">
+                    <span class="node-dot"></span>
+                    <i class="fas fa-atom w-5 ml-4"></i>
+                    <span>Knowledge</span>
+                </div>
+                <div class="nav-item">
+                    <span class="node-dot"></span>
+                    <i class="fas fa-scroll w-5 ml-4"></i>
+                    <span>Wiki</span>
+                </div>
+                <div class="nav-item">
+                    <span class="node-dot"></span>
+                    <i class="fas fa-satellite w-5 ml-4"></i>
+                    <span>AI Agents</span>
+                </div>
+                <div class="nav-item">
+                    <span class="node-dot"></span>
+                    <i class="fas fa-chart-line w-5 ml-4"></i>
+                    <span>Analytics</span>
+                </div>
+            </nav>
+
+            <!-- User -->
+            <div class="node-card p-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-full bg-gradient-to-br from-[#6366f1] to-[#ec4899] flex items-center justify-center font-bold">
+                        D
+                    </div>
+                    <div>
+                        <div class="font-semibold text-white">Draco</div>
+                        <div class="text-xs text-[rgba(203,213,225,0.4)]">Star Commander</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <!-- Header -->
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2 text-white">Stellar Overview</h1>
+                    <p class="text-[rgba(203,213,225,0.5)]">All systems nominal across the constellation</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="cosmos-btn secondary">
+                        <i class="fas fa-search"></i>Search
+                    </button>
+                    <button class="cosmos-btn primary">
+                        <i class="fas fa-plus"></i>New Star
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="node-card p-6 star-stat">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="star-icon bg-nebula-blue text-white">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Active Orbits</div>
+                </div>
+
+                <div class="node-card p-6 star-stat">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="star-icon bg-nebula-pink text-white">
+                            <i class="fas fa-ticket"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">24</div>
+                    <div class="stat-label">Open Signals</div>
+                </div>
+
+                <div class="node-card p-6 star-stat">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="star-icon bg-nebula-purple text-white">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">Data Clusters</div>
+                </div>
+
+                <div class="node-card p-6 star-stat">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="star-icon bg-nebula-cyan text-white">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">89</div>
+                    <div class="stat-label">AI Transmissions</div>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Sprint Progress -->
+                <div class="node-card p-6 col-span-2">
+                    <h2 class="text-lg font-bold mb-6 text-white">Orbital Progress</h2>
+
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-medium text-[rgba(203,213,225,0.8)]">Orbit 1: Foundation</span>
+                                <span class="text-sm text-nebula-blue">100%</span>
+                            </div>
+                            <div class="orbital-progress">
+                                <div class="orbital-fill bg-gradient-to-r from-[#3b82f6] to-[#6366f1] text-[#6366f1]" style="width: 100%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-medium text-[rgba(203,213,225,0.8)]">Orbit 2: Core Features</span>
+                                <span class="text-sm text-nebula-purple">78%</span>
+                            </div>
+                            <div class="orbital-progress">
+                                <div class="orbital-fill bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] text-[#a855f7]" style="width: 78%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-medium text-[rgba(203,213,225,0.8)]">Orbit 3: AI Integration</span>
+                                <span class="text-sm text-nebula-pink">45%</span>
+                            </div>
+                            <div class="orbital-progress">
+                                <div class="orbital-fill bg-gradient-to-r from-[#ec4899] to-[#f472b6] text-[#f472b6]" style="width: 45%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-medium text-[rgba(203,213,225,0.8)]">Orbit 4: Deployment</span>
+                                <span class="text-sm text-nebula-cyan">12%</span>
+                            </div>
+                            <div class="orbital-progress">
+                                <div class="orbital-fill bg-gradient-to-r from-[#06b6d4] to-[#22d3ee] text-[#22d3ee]" style="width: 12%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overall Progress -->
+                <div class="node-card p-6 flex flex-col items-center justify-center">
+                    <h2 class="text-lg font-bold mb-6 text-white">Mission Status</h2>
+                    <div class="cosmos-ring relative" style="width: 160px; height: 160px;">
+                        <svg width="160" height="160" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="cosmos-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#6366f1"/>
+                                    <stop offset="50%" stop-color="#a855f7"/>
+                                    <stop offset="100%" stop-color="#ec4899"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="track" cx="50" cy="50" r="42"/>
+                            <circle class="progress" cx="50" cy="50" r="42" 
+                                    stroke-dasharray="264" stroke-dashoffset="66"/>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-bold text-white">75%</span>
+                            <span class="text-xs text-[rgba(203,213,225,0.4)]">Complete</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <div class="text-xs text-[rgba(203,213,225,0.3)]">ARRIVAL DATE</div>
+                        <div class="text-sm font-semibold text-nebula-blue">Jan 15, 2025</div>
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="node-card p-6 col-span-2">
+                    <h2 class="text-lg font-bold mb-6 text-white">Transmission Log</h2>
+                    <div class="space-y-0">
+                        <div class="stream-item">
+                            <div class="stream-node bg-[rgba(34,197,94,0.2)] text-[#22c55e]">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-white">Signal #142 received</div>
+                                <div class="text-sm text-[rgba(203,213,225,0.4)]">MCP Tool transmission complete</div>
+                            </div>
+                            <div class="text-sm text-[rgba(203,213,225,0.3)]">2 min ago</div>
+                        </div>
+                        <div class="stream-item">
+                            <div class="stream-node bg-[rgba(99,102,241,0.2)] text-[#6366f1]">
+                                <i class="fas fa-satellite"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-white">Satellite activated</div>
+                                <div class="text-sm text-[rgba(203,213,225,0.4)]">devhub-fullstack now transmitting</div>
+                            </div>
+                            <div class="text-sm text-[rgba(203,213,225,0.3)]">15 min ago</div>
+                        </div>
+                        <div class="stream-item">
+                            <div class="stream-node bg-[rgba(168,85,247,0.2)] text-[#a855f7]">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-white">Data cluster uploaded</div>
+                                <div class="text-sm text-[rgba(203,213,225,0.4)]">Database patterns archived</div>
+                            </div>
+                            <div class="text-sm text-[rgba(203,213,225,0.3)]">1 hour ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Agents -->
+                <div class="node-card p-6">
+                    <h2 class="text-lg font-bold mb-6 text-white">Active Satellites</h2>
+                    <div class="space-y-3">
+                        <div class="satellite-card">
+                            <div class="satellite-body bg-nebula-blue text-white">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm text-white">devhub-fullstack</div>
+                                <div class="text-xs text-[#22c55e]">Transmitting #143</div>
+                            </div>
+                            <div class="transmission-status">
+                                <div class="signal-dot"></div>
+                                <div class="signal-dot"></div>
+                                <div class="signal-dot"></div>
+                            </div>
+                        </div>
+                        <div class="satellite-card">
+                            <div class="satellite-body bg-nebula-pink text-white">
+                                <i class="fas fa-vial"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm text-white">devhub-testing</div>
+                                <div class="text-xs text-[#22c55e]">Running scans</div>
+                            </div>
+                            <div class="transmission-status">
+                                <div class="signal-dot"></div>
+                                <div class="signal-dot"></div>
+                                <div class="signal-dot"></div>
+                            </div>
+                        </div>
+                        <div class="satellite-card offline" style="opacity: 0.5;">
+                            <div class="satellite-body bg-[rgba(203,213,225,0.1)] text-[rgba(203,213,225,0.4)]">
+                                <i class="fas fa-compass"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm text-[rgba(203,213,225,0.4)]">devhub-architect</div>
+                                <div class="text-xs text-[rgba(203,213,225,0.2)]">Offline</div>
+                            </div>
+                            <div class="transmission-status">
+                                <div class="signal-dot"></div>
+                                <div class="signal-dot"></div>
+                                <div class="signal-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

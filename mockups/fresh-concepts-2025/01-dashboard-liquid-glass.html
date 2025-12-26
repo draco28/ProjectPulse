@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Liquid Glass Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: #0a0a0f;
+            overflow-x: hidden;
+        }
+
+        /* Living Gradient Background */
+        .living-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .blob-1 {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            top: -200px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            top: 50%;
+            right: -150px;
+            animation-delay: -5s;
+        }
+
+        .blob-3 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            bottom: -100px;
+            left: 30%;
+            animation-delay: -10s;
+        }
+
+        .blob-4 {
+            width: 350px;
+            height: 350px;
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            top: 40%;
+            left: 10%;
+            animation-delay: -15s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -50px) scale(1.1); }
+            50% { transform: translate(-30px, 30px) scale(0.95); }
+            75% { transform: translate(40px, 40px) scale(1.05); }
+        }
+
+        /* Glass Card */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-subtle {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            color: white;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+        }
+
+        /* Stat Cards with Breathing Animation */
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.05), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulse-value 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-value {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Progress Ring */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .progress-ring .progress {
+            stroke-linecap: round;
+            animation: progress-pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes progress-pulse {
+            0%, 100% { filter: drop-shadow(0 0 6px currentColor); }
+            50% { filter: drop-shadow(0 0 12px currentColor); }
+        }
+
+        /* Activity Feed */
+        .activity-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .activity-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 6px;
+            animation: dot-pulse 2s infinite;
+        }
+
+        @keyframes dot-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        /* Sprint Progress Bar */
+        .sprint-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .sprint-progress {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            background-size: 200% 100%;
+            animation: gradient-flow 3s linear infinite;
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        /* Logo Pulse */
+        .logo-pulse {
+            animation: logo-breathe 3s infinite ease-in-out;
+        }
+
+        @keyframes logo-breathe {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.6)); }
+            50% { filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.9)); }
+        }
+
+        /* Quick Action Buttons */
+        .quick-action {
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .quick-action:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: scale(1.02);
+        }
+
+        .quick-action.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+        }
+
+        .quick-action.primary:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Living Background -->
+    <div class="living-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="blob blob-4"></div>
+    </div>
+
+    <div class="relative z-10 flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 p-6 flex flex-col">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 mb-10">
+                <div class="logo-pulse w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <i class="fas fa-bolt text-white"></i>
+                </div>
+                <span class="text-xl font-bold">ProjectPulse</span>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 space-y-2">
+                <div class="nav-item active">
+                    <i class="fas fa-th-large w-5"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-ticket-alt w-5"></i>
+                    <span>Tickets</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-road w-5"></i>
+                    <span>Roadmap</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-brain w-5"></i>
+                    <span>Knowledge</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-book w-5"></i>
+                    <span>Wiki</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-robot w-5"></i>
+                    <span>AI Agents</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span>Analytics</span>
+                </div>
+            </nav>
+
+            <!-- User Section -->
+            <div class="glass-subtle p-4 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+                    <span class="font-semibold">D</span>
+                </div>
+                <div class="flex-1">
+                    <div class="font-medium text-sm">Draco</div>
+                    <div class="text-xs text-white/50">Admin</div>
+                </div>
+                <i class="fas fa-cog text-white/40 hover:text-white cursor-pointer transition-colors"></i>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <!-- Header -->
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold mb-1">Good evening, Draco</h1>
+                    <p class="text-white/50">Here's what's happening with your projects</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="quick-action">
+                        <i class="fas fa-search mr-2"></i>Search
+                    </button>
+                    <button class="quick-action primary">
+                        <i class="fas fa-plus mr-2"></i>New Ticket
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <!-- Active Sprints -->
+                <div class="glass stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-gradient-to-br from-indigo-500 to-purple-600">
+                            <i class="fas fa-running"></i>
+                        </div>
+                        <span class="text-green-400 text-sm font-medium">
+                            <i class="fas fa-arrow-up mr-1"></i>12%
+                        </span>
+                    </div>
+                    <div class="stat-value">3</div>
+                    <div class="text-white/50 text-sm mt-1">Active Sprints</div>
+                </div>
+
+                <!-- Open Tickets -->
+                <div class="glass stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-gradient-to-br from-pink-500 to-rose-500">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <span class="text-amber-400 text-sm font-medium">
+                            <i class="fas fa-minus mr-1"></i>Same
+                        </span>
+                    </div>
+                    <div class="stat-value">24</div>
+                    <div class="text-white/50 text-sm mt-1">Open Tickets</div>
+                </div>
+
+                <!-- Knowledge Items -->
+                <div class="glass stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-gradient-to-br from-cyan-500 to-blue-500">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <span class="text-green-400 text-sm font-medium">
+                            <i class="fas fa-arrow-up mr-1"></i>8%
+                        </span>
+                    </div>
+                    <div class="stat-value">156</div>
+                    <div class="text-white/50 text-sm mt-1">Knowledge Items</div>
+                </div>
+
+                <!-- AI Sessions -->
+                <div class="glass stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-gradient-to-br from-emerald-500 to-teal-500">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <span class="text-green-400 text-sm font-medium">
+                            <i class="fas fa-arrow-up mr-1"></i>23%
+                        </span>
+                    </div>
+                    <div class="stat-value">89</div>
+                    <div class="text-white/50 text-sm mt-1">AI Sessions Today</div>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Sprint Progress -->
+                <div class="glass p-6 col-span-2">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold">Sprint Progress</h2>
+                        <select class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                            <option>Sprint 14</option>
+                            <option>Sprint 13</option>
+                            <option>Sprint 12</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Phase 1 -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium">Phase 1: Foundation</span>
+                                <span class="text-white/50 text-sm">100%</span>
+                            </div>
+                            <div class="sprint-bar">
+                                <div class="sprint-progress" style="width: 100%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Phase 2 -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium">Phase 2: Core Features</span>
+                                <span class="text-white/50 text-sm">78%</span>
+                            </div>
+                            <div class="sprint-bar">
+                                <div class="sprint-progress" style="width: 78%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Phase 3 -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium">Phase 3: AI Integration</span>
+                                <span class="text-white/50 text-sm">45%</span>
+                            </div>
+                            <div class="sprint-bar">
+                                <div class="sprint-progress" style="width: 45%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Phase 4 -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium">Phase 4: Polish & Deploy</span>
+                                <span class="text-white/50 text-sm">12%</span>
+                            </div>
+                            <div class="sprint-bar">
+                                <div class="sprint-progress" style="width: 12%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overall Progress Ring -->
+                <div class="glass p-6 flex flex-col items-center justify-center">
+                    <h2 class="text-xl font-semibold mb-6">Overall Progress</h2>
+                    <div class="relative">
+                        <svg class="progress-ring w-40 h-40" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+                            <circle class="progress" cx="50" cy="50" r="42" fill="none" stroke="url(#gradient)" stroke-width="8" 
+                                    stroke-dasharray="264" stroke-dashoffset="66"/>
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#667eea"/>
+                                    <stop offset="50%" stop-color="#764ba2"/>
+                                    <stop offset="100%" stop-color="#f093fb"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-bold">75%</span>
+                            <span class="text-white/50 text-sm">Complete</span>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <div class="text-sm text-white/50">Estimated completion</div>
+                        <div class="font-semibold text-indigo-400">Jan 15, 2025</div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="glass p-6 col-span-2">
+                    <h2 class="text-xl font-semibold mb-6">Recent Activity</h2>
+                    <div class="space-y-2">
+                        <div class="activity-item">
+                            <div class="activity-dot bg-green-500"></div>
+                            <div class="flex-1">
+                                <div class="font-medium">Ticket #142 completed</div>
+                                <div class="text-sm text-white/50">MCP Tool: ticket_search optimization</div>
+                            </div>
+                            <div class="text-sm text-white/40">2 min ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot bg-indigo-500"></div>
+                            <div class="flex-1">
+                                <div class="font-medium">AI Session started</div>
+                                <div class="text-sm text-white/50">Agent: devhub-fullstack working on API routes</div>
+                            </div>
+                            <div class="text-sm text-white/40">15 min ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot bg-pink-500"></div>
+                            <div class="flex-1">
+                                <div class="font-medium">Knowledge item added</div>
+                                <div class="text-sm text-white/50">Database optimization patterns</div>
+                            </div>
+                            <div class="text-sm text-white/40">1 hour ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot bg-amber-500"></div>
+                            <div class="flex-1">
+                                <div class="font-medium">Sprint 14 started</div>
+                                <div class="text-sm text-white/50">12 tickets planned, 4 weeks duration</div>
+                            </div>
+                            <div class="text-sm text-white/40">3 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Agents -->
+                <div class="glass p-6">
+                    <h2 class="text-xl font-semibold mb-6">Active Agents</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 p-3 glass-subtle">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">devhub-fullstack</div>
+                                <div class="text-xs text-green-400">Working on Ticket #143</div>
+                            </div>
+                            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        </div>
+                        <div class="flex items-center gap-4 p-3 glass-subtle">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+                                <i class="fas fa-vial"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">devhub-testing</div>
+                                <div class="text-xs text-green-400">Running test suite</div>
+                            </div>
+                            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        </div>
+                        <div class="flex items-center gap-4 p-3 glass-subtle opacity-50">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                                <i class="fas fa-drafting-compass"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">devhub-architect</div>
+                                <div class="text-xs text-white/40">Idle</div>
+                            </div>
+                            <div class="w-2 h-2 rounded-full bg-white/20"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

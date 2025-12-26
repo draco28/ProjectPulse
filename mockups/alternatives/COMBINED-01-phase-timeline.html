@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phase Timeline - ProjectPulse Roadmap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // Official ProjectPulse Theme Colors
+            'dark': {
+              DEFAULT: '#1A1A1A',
+              lighter: '#242424',
+              card: '#2A2A2A',
+              pressed: '#1F1F1F',
+            },
+            'coral': {
+              DEFAULT: '#FF8B6A',
+              light: '#FFB299',
+              dark: '#E67759',
+            },
+            'slate': {
+              DEFAULT: '#8B8B8B',
+              light: '#A5A5A5',
+              dark: '#6B6B6B',
+            },
+            'accent': {
+              green: '#4ADE80',
+              blue: '#60A5FA',
+              yellow: '#FBBF24',
+              red: '#EF4444',
+              purple: '#A78BFA',
+            },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      /* Official ProjectPulse CSS Variables */
+      --dark: #1A1A1A;
+      --dark-lighter: #242424;
+      --dark-card: #2A2A2A;
+      --dark-pressed: #1F1F1F;
+
+      --coral: #FF8B6A;
+      --coral-light: #FFB299;
+      --coral-dark: #E67759;
+
+      --slate: #8B8B8B;
+      --slate-light: #A5A5A5;
+      --slate-dark: #6B6B6B;
+
+      --text-primary: #E5E5E5;
+      --text-secondary: var(--slate);
+      --text-muted: #6B6B6B;
+
+      --accent-green: #4ADE80;
+      --accent-blue: #60A5FA;
+      --accent-yellow: #FBBF24;
+      --accent-red: #EF4444;
+      --accent-purple: #A78BFA;
+
+      --border-subtle: rgba(255, 255, 255, 0.05);
+      --border-medium: rgba(255, 255, 255, 0.08);
+
+      --shadow-dark: rgba(0, 0, 0, 0.6);
+      --shadow-light: rgba(60, 60, 60, 0.1);
+      --shadow-coral-soft: rgba(255, 139, 106, 0.3);
+      --shadow-coral-medium: rgba(255, 139, 106, 0.4);
+    }
+
+    body {
+      background: var(--dark);
+      font-family: 'Inter', system-ui, sans-serif;
+      color: var(--text-primary);
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Neumorphic Cards */
+    .neu-card {
+      background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+      box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .neu-inset {
+      background: var(--dark-pressed);
+      box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -2px -2px 6px var(--shadow-light);
+      border-radius: 12px;
+    }
+
+    /* Sprint Blocks */
+    .sprint-block {
+      background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+      box-shadow: 6px 6px 12px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .sprint-block:hover {
+      border-color: var(--border-medium);
+      transform: translateY(-2px);
+      box-shadow: 8px 8px 20px var(--shadow-dark), -6px -6px 16px var(--shadow-light);
+    }
+
+    .sprint-block.current {
+      border-color: var(--coral);
+      box-shadow: 0 0 30px var(--shadow-coral-soft), 6px 6px 12px var(--shadow-dark);
+    }
+
+    .sprint-block.completed {
+      opacity: 0.7;
+    }
+
+    .sprint-block.planned {
+      opacity: 0.6;
+    }
+
+    /* Ticket Mini Cards */
+    .ticket-mini {
+      background: linear-gradient(145deg, #333333, var(--dark-card));
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .ticket-mini:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Custom Scrollbar */
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: var(--dark-pressed); border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--slate-dark); border-radius: 3px; }
+
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .kanban-mini-col { min-width: 90px; flex: 1; }
+
+    .progress-bar {
+      background: linear-gradient(90deg, var(--coral), var(--coral-dark));
+      border-radius: 4px;
+      height: 6px;
+    }
+
+    /* Phase Dropdown */
+    .phase-dropdown {
+      background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+      border: 1px solid var(--border-medium);
+      border-radius: 12px;
+      color: var(--text-primary);
+    }
+
+    .phase-dropdown:focus {
+      outline: none;
+      border-color: var(--coral);
+      box-shadow: 0 0 0 2px var(--shadow-coral-soft);
+    }
+
+    /* Mini Kanban Columns */
+    .mini-kanban-col {
+      background: rgba(31, 31, 31, 0.5);
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    /* Primary Button */
+    .btn-coral {
+      background: linear-gradient(135deg, var(--coral) 0%, var(--coral-dark) 100%);
+      box-shadow: 0 8px 20px var(--shadow-coral-soft);
+      transition: all 0.3s ease;
+    }
+
+    .btn-coral:hover {
+      box-shadow: 0 12px 30px var(--shadow-coral-medium);
+      transform: translateY(-2px);
+    }
+
+    /* Utility Classes */
+    .text-coral { color: var(--coral); }
+    .text-slate { color: var(--slate); }
+    .text-slate-light { color: var(--slate-light); }
+    .bg-dark-pressed { background: var(--dark-pressed); }
+
+    /* Animations */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+  </style>
+</head>
+<body class="min-h-screen p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-4">
+        <a href="00-comparison-index.html" class="p-2 rounded-lg hover:bg-white/5 text-slate transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-coral to-coral-dark flex items-center justify-center shadow-lg" style="box-shadow: 0 4px 12px var(--shadow-coral-soft);">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold">Roadmap</h1>
+          <p class="text-slate text-sm">Phase Timeline View</p>
+        </div>
+      </div>
+
+      <!-- Phase Selector Dropdown -->
+      <div class="flex items-center gap-4">
+        <select class="phase-dropdown px-4 py-2.5 cursor-pointer">
+          <option selected>Phase 1: Foundation</option>
+          <option>Phase 2: Growth</option>
+          <option>Phase 3: Scale</option>
+        </select>
+        <button class="btn-coral px-4 py-2 rounded-xl font-medium text-white flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          New Ticket
+        </button>
+      </div>
+    </div>
+
+    <!-- Phase Progress Overview -->
+    <div class="neu-card p-4 mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <span class="text-slate-light font-medium">Phase 1 Progress</span>
+          <span class="text-xs text-slate bg-dark-pressed px-2 py-1 rounded">Dec 1 - Dec 29</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-coral font-bold text-lg">68%</span>
+          <span class="text-slate text-sm">26/38 tickets</span>
+        </div>
+      </div>
+      <div class="relative h-3 bg-dark-pressed rounded-full overflow-hidden">
+        <div class="absolute inset-y-0 left-0 rounded-full transition-all duration-500" style="width: 68%; background: linear-gradient(90deg, var(--accent-green), var(--coral));"></div>
+        <!-- Sprint markers -->
+        <div class="absolute top-0 bottom-0 left-[25%] w-0.5 bg-white/30"></div>
+        <div class="absolute top-0 bottom-0 left-[50%] w-0.5 bg-white/30"></div>
+        <div class="absolute top-0 bottom-0 left-[75%] w-0.5 bg-white/30"></div>
+      </div>
+      <div class="flex justify-between mt-2 text-xs text-slate">
+        <span style="color: var(--accent-green);">Sprint 1 <span class="opacity-60">(100%)</span></span>
+        <span style="color: var(--accent-green);">Sprint 2 <span class="opacity-60">(100%)</span></span>
+        <span class="text-coral font-medium">Sprint 3 <span class="opacity-60">(67%)</span></span>
+        <span>Sprint 4 <span class="opacity-60">(0%)</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sprint Timeline Grid -->
+  <div class="grid grid-cols-4 gap-5 mb-6">
+
+    <!-- Sprint 1 (Completed) -->
+    <a href="COMBINED-02-sprint-kanban.html?sprint=1" class="sprint-block completed p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span style="color: var(--accent-green);" class="text-lg">&#10003;</span>
+          <h3 class="font-bold">Sprint 1</h3>
+        </div>
+        <span class="text-xs px-2 py-0.5 rounded font-medium" style="background: rgba(74, 222, 128, 0.15); color: var(--accent-green);">Complete</span>
+      </div>
+      <div class="text-xs text-slate mb-4">Dec 1 - Dec 8</div>
+
+      <!-- Compact stats -->
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <div class="bg-dark-pressed rounded-lg p-2.5 text-center">
+          <div class="text-xl font-bold" style="color: var(--accent-green);">8</div>
+          <div class="text-[10px] text-slate uppercase tracking-wide">Done</div>
+        </div>
+        <div class="bg-dark-pressed rounded-lg p-2.5 text-center">
+          <div class="text-xl font-bold text-slate">0</div>
+          <div class="text-[10px] text-slate uppercase tracking-wide">Open</div>
+        </div>
+      </div>
+
+      <!-- Feature list -->
+      <div class="space-y-1.5">
+        <div class="text-xs text-slate-light line-through opacity-70">Project setup</div>
+        <div class="text-xs text-slate-light line-through opacity-70">Database schema</div>
+        <div class="text-xs text-slate-light line-through opacity-70">CI/CD pipeline</div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-white/5 text-center">
+        <span class="text-xs text-slate hover:text-coral transition">View Details &rarr;</span>
+      </div>
+    </a>
+
+    <!-- Sprint 2 (Completed) -->
+    <a href="COMBINED-02-sprint-kanban.html?sprint=2" class="sprint-block completed p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span style="color: var(--accent-green);" class="text-lg">&#10003;</span>
+          <h3 class="font-bold">Sprint 2</h3>
+        </div>
+        <span class="text-xs px-2 py-0.5 rounded font-medium" style="background: rgba(74, 222, 128, 0.15); color: var(--accent-green);">Complete</span>
+      </div>
+      <div class="text-xs text-slate mb-4">Dec 9 - Dec 15</div>
+
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <div class="bg-dark-pressed rounded-lg p-2.5 text-center">
+          <div class="text-xl font-bold" style="color: var(--accent-green);">10</div>
+          <div class="text-[10px] text-slate uppercase tracking-wide">Done</div>
+        </div>
+        <div class="bg-dark-pressed rounded-lg p-2.5 text-center">
+          <div class="text-xl font-bold text-slate">0</div>
+          <div class="text-[10px] text-slate uppercase tracking-wide">Open</div>
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <div class="text-xs text-slate-light line-through opacity-70">API foundation</div>
+        <div class="text-xs text-slate-light line-through opacity-70">Basic UI components</div>
+        <div class="text-xs text-slate-light line-through opacity-70">MCP server setup</div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-white/5 text-center">
+        <span class="text-xs text-slate hover:text-coral transition">View Details &rarr;</span>
+      </div>
+    </a>
+
+    <!-- Sprint 3 (Current - Expanded, spans 2 columns) -->
+    <a href="COMBINED-02-sprint-kanban.html?sprint=3" class="sprint-block current p-5 col-span-2">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-2.5 h-2.5 rounded-full animate-pulse" style="background: var(--coral);"></div>
+          <h3 class="font-bold text-xl">Sprint 3</h3>
+          <span class="text-xs px-2.5 py-1 rounded font-bold uppercase tracking-wide" style="background: rgba(255, 139, 106, 0.15); color: var(--coral);">Current</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="text-xs text-slate">Dec 16 - Dec 22</span>
+          <div class="flex items-center gap-2">
+            <span class="text-coral font-bold text-lg">67%</span>
+            <span class="text-xs text-slate">12/18 tickets</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini Kanban Preview -->
+      <div class="flex gap-3 mb-4">
+        <!-- To Do -->
+        <div class="kanban-mini-col mini-kanban-col">
+          <div class="flex items-center gap-1.5 mb-2">
+            <div class="status-dot bg-slate"></div>
+            <span class="text-[10px] text-slate font-medium uppercase tracking-wide">To Do</span>
+            <span class="text-[10px] text-slate opacity-60">(4)</span>
+          </div>
+          <div class="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-thin">
+            <div class="ticket-mini p-2">
+              <div class="text-[9px] text-slate mb-0.5 font-mono">#104</div>
+              <div class="text-[11px] leading-tight">Session middleware</div>
+            </div>
+            <div class="ticket-mini p-2">
+              <div class="text-[9px] text-slate mb-0.5 font-mono">#108</div>
+              <div class="text-[11px] leading-tight">Email templates</div>
+            </div>
+            <div class="ticket-mini p-2 opacity-50 text-center">
+              <div class="text-[10px] text-slate">+2 more</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="kanban-mini-col mini-kanban-col">
+          <div class="flex items-center gap-1.5 mb-2">
+            <div class="status-dot animate-pulse" style="background: var(--accent-yellow);"></div>
+            <span class="text-[10px] font-medium uppercase tracking-wide" style="color: var(--accent-yellow);">Active</span>
+            <span class="text-[10px] opacity-60" style="color: var(--accent-yellow);">(2)</span>
+          </div>
+          <div class="space-y-1.5">
+            <div class="ticket-mini p-2" style="box-shadow: inset 0 0 0 1px rgba(255, 139, 106, 0.5);">
+              <div class="flex justify-between items-start">
+                <span class="text-[9px] text-slate font-mono">#103</span>
+                <div class="w-4 h-4 rounded text-[8px] flex items-center justify-center font-bold text-white" style="background: var(--coral);">AI</div>
+              </div>
+              <div class="text-[11px] font-medium leading-tight mt-1">GitHub OAuth</div>
+            </div>
+            <div class="ticket-mini p-2" style="box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.4);">
+              <div class="flex justify-between items-start">
+                <span class="text-[9px] text-slate font-mono">#111</span>
+                <div class="w-4 h-4 rounded text-[8px] flex items-center justify-center font-bold text-white" style="background: var(--accent-blue);">UI</div>
+              </div>
+              <div class="text-[11px] font-medium leading-tight mt-1">Chart library</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review -->
+        <div class="kanban-mini-col mini-kanban-col">
+          <div class="flex items-center gap-1.5 mb-2">
+            <div class="status-dot" style="background: var(--accent-purple);"></div>
+            <span class="text-[10px] font-medium uppercase tracking-wide" style="color: var(--accent-purple);">Review</span>
+            <span class="text-[10px] opacity-60" style="color: var(--accent-purple);">(2)</span>
+          </div>
+          <div class="space-y-1.5">
+            <div class="ticket-mini p-2">
+              <div class="text-[9px] text-slate mb-0.5 font-mono">#101</div>
+              <div class="text-[11px] leading-tight">NextAuth config</div>
+              <div class="text-[9px] mt-1" style="color: var(--accent-purple);">PR #52</div>
+            </div>
+            <div class="ticket-mini p-2">
+              <div class="text-[9px] text-slate mb-0.5 font-mono">#105</div>
+              <div class="text-[11px] leading-tight">Login redirect</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Done -->
+        <div class="kanban-mini-col mini-kanban-col">
+          <div class="flex items-center gap-1.5 mb-2">
+            <div class="status-dot" style="background: var(--accent-green);"></div>
+            <span class="text-[10px] font-medium uppercase tracking-wide" style="color: var(--accent-green);">Done</span>
+            <span class="text-[10px] opacity-60" style="color: var(--accent-green);">(10)</span>
+          </div>
+          <div class="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-thin">
+            <div class="ticket-mini p-2 opacity-60">
+              <div class="text-[9px] text-slate mb-0.5 font-mono">#100</div>
+              <div class="text-[11px] line-through leading-tight">Google OAuth</div>
+            </div>
+            <div class="ticket-mini p-2 opacity-60">
+              <div class="text-[9px] text-slate mb-0.5 font-mono">#99</div>
+              <div class="text-[11px] line-through leading-tight">Auth setup</div>
+            </div>
+            <div class="ticket-mini p-2 opacity-40 text-center">
+              <div class="text-[10px] text-slate">+8 more</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature progress indicators -->
+      <div class="flex gap-6 text-xs border-t border-white/10 pt-4">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded" style="background: var(--coral);"></div>
+          <span class="text-slate-light">OAuth Authentication</span>
+          <span class="text-coral font-bold">60%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded" style="background: var(--accent-blue);"></div>
+          <span class="text-slate-light">Dashboard Charts</span>
+          <span class="font-bold" style="color: var(--accent-blue);">40%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded bg-slate"></div>
+          <span class="text-slate-light">Email System</span>
+          <span class="text-slate">0%</span>
+        </div>
+        <div class="ml-auto">
+          <span class="text-coral hover:underline font-medium">View Full Board &rarr;</span>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Sprint 4 (Planned) + Next Phase Preview -->
+  <div class="grid grid-cols-4 gap-5">
+    <!-- Sprint 4 (Planned) -->
+    <a href="COMBINED-02-sprint-kanban.html?sprint=4" class="sprint-block planned p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold">Sprint 4</h3>
+        <span class="text-xs text-slate bg-dark-pressed px-2 py-0.5 rounded">Planned</span>
+      </div>
+      <div class="text-xs text-slate mb-4">Dec 23 - Dec 29</div>
+
+      <div class="space-y-1.5">
+        <div class="text-xs text-slate-light">User profiles</div>
+        <div class="text-xs text-slate-light">Search improvements</div>
+        <div class="text-xs text-slate-light">Settings page</div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-white/5 text-center">
+        <span class="text-sm text-slate">8 tickets planned</span>
+      </div>
+    </a>
+
+    <!-- Next Phase Preview -->
+    <div class="col-span-3 neu-card p-5 border border-dashed border-white/10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs text-slate mb-1 uppercase tracking-wider">Next Phase</div>
+          <h3 class="font-bold text-xl">Phase 2: Growth</h3>
+          <p class="text-sm text-slate mt-1">Advanced features, integrations, and polish</p>
+        </div>
+        <div class="text-right">
+          <div class="text-3xl font-bold text-slate/40">4</div>
+          <div class="text-xs text-slate">sprints planned</div>
+        </div>
+      </div>
+
+      <div class="mt-5 flex gap-4">
+        <div class="flex-1 bg-dark-pressed/50 rounded-lg p-3 text-center hover:bg-dark-pressed/70 transition cursor-pointer">
+          <div class="text-xs text-slate mb-1">Sprint 5</div>
+          <div class="text-sm text-slate-light">Notifications</div>
+        </div>
+        <div class="flex-1 bg-dark-pressed/50 rounded-lg p-3 text-center hover:bg-dark-pressed/70 transition cursor-pointer">
+          <div class="text-xs text-slate mb-1">Sprint 6</div>
+          <div class="text-sm text-slate-light">Integrations</div>
+        </div>
+        <div class="flex-1 bg-dark-pressed/50 rounded-lg p-3 text-center hover:bg-dark-pressed/70 transition cursor-pointer">
+          <div class="text-xs text-slate mb-1">Sprint 7</div>
+          <div class="text-sm text-slate-light">Analytics</div>
+        </div>
+        <div class="flex-1 bg-dark-pressed/50 rounded-lg p-3 text-center hover:bg-dark-pressed/70 transition cursor-pointer">
+          <div class="text-xs text-slate mb-1">Sprint 8</div>
+          <div class="text-sm text-slate-light">Polish</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Stats -->
+  <div class="mt-8 grid grid-cols-5 gap-4">
+    <div class="neu-card p-4 text-center">
+      <div class="text-2xl font-bold text-coral mb-1">38</div>
+      <div class="text-slate text-xs uppercase tracking-wide">Total Tickets</div>
+    </div>
+    <div class="neu-card p-4 text-center">
+      <div class="text-2xl font-bold mb-1" style="color: var(--accent-green);">26</div>
+      <div class="text-slate text-xs uppercase tracking-wide">Completed</div>
+    </div>
+    <div class="neu-card p-4 text-center">
+      <div class="text-2xl font-bold mb-1" style="color: var(--accent-yellow);">2</div>
+      <div class="text-slate text-xs uppercase tracking-wide">In Progress</div>
+    </div>
+    <div class="neu-card p-4 text-center">
+      <div class="text-2xl font-bold mb-1" style="color: var(--accent-purple);">2</div>
+      <div class="text-slate text-xs uppercase tracking-wide">In Review</div>
+    </div>
+    <div class="neu-card p-4 text-center">
+      <div class="text-2xl font-bold text-slate-light mb-1">3.8</div>
+      <div class="text-slate text-xs uppercase tracking-wide">Avg Days/Ticket</div>
+    </div>
+  </div>
+
+  <!-- Concept Info Panel -->
+  <div class="fixed bottom-6 right-6 max-w-md neu-card p-5 border shadow-2xl" style="border-color: rgba(255, 139, 106, 0.3);">
+    <h4 class="font-bold text-coral mb-3 flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Combined Design: Phase Timeline
+    </h4>
+    <p class="text-xs text-slate mb-3">
+      <strong style="color: var(--text-primary);">Main roadmap page.</strong> Shows all sprints in a phase at a glance. Current sprint is expanded with a mini-kanban preview. Click any sprint to open the full Sprint Kanban view.
+    </p>
+    <ul class="text-xs text-slate space-y-1.5">
+      <li class="flex items-start gap-2">
+        <span class="text-coral">&bull;</span>
+        <span><strong style="color: var(--text-primary);">Phase dropdown</strong> - Switch between phases easily</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-coral">&bull;</span>
+        <span><strong style="color: var(--text-primary);">Progress bar</strong> - Visual sprint markers show phase progress</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-coral">&bull;</span>
+        <span><strong style="color: var(--text-primary);">Current sprint expanded</strong> - See mini-kanban without leaving</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-coral">&bull;</span>
+        <span><strong style="color: var(--text-primary);">Future preview</strong> - Next phase teaser at bottom</span>
+      </li>
+    </ul>
+    <div class="mt-4 pt-3 border-t border-white/10">
+      <a href="COMBINED-02-sprint-kanban.html" class="text-coral hover:underline text-sm font-medium">
+        View Sprint Kanban Page &rarr;
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>

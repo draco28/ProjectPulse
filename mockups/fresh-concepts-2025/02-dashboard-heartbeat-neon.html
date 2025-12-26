@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Heartbeat Neon Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: #050508;
+            overflow-x: hidden;
+        }
+
+        /* Grid Background */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid-scroll 20s linear infinite;
+        }
+
+        @keyframes grid-scroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+
+        /* Scanline Effect */
+        .scanline {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 4px
+            );
+            z-index: 100;
+        }
+
+        /* Neon Colors */
+        :root {
+            --neon-green: #00ff88;
+            --neon-cyan: #00f0ff;
+            --neon-pink: #ff00aa;
+            --neon-purple: #aa00ff;
+            --neon-orange: #ff6600;
+        }
+
+        /* Heartbeat Line */
+        .heartbeat-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            overflow: hidden;
+            opacity: 0.3;
+        }
+
+        .heartbeat-line {
+            position: absolute;
+            bottom: 50px;
+            width: 200%;
+            height: 2px;
+            background: var(--neon-green);
+            animation: heartbeat-scroll 4s linear infinite;
+        }
+
+        .heartbeat-line::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -25px;
+            width: 100%;
+            height: 50px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 50'%3E%3Cpath d='M0,25 L50,25 L60,25 L70,10 L80,40 L90,5 L100,45 L110,25 L120,25 L400,25' fill='none' stroke='%2300ff88' stroke-width='2'/%3E%3C/svg%3E") repeat-x;
+            background-size: 400px 50px;
+        }
+
+        @keyframes heartbeat-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Neon Card */
+        .neon-card {
+            background: rgba(0, 20, 15, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .neon-card::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 4px;
+            padding: 1px;
+            background: linear-gradient(135deg, var(--neon-green), transparent, var(--neon-cyan));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .neon-card:hover::before {
+            opacity: 1;
+        }
+
+        .neon-card:hover {
+            box-shadow: 
+                0 0 20px rgba(0, 255, 136, 0.2),
+                inset 0 0 20px rgba(0, 255, 136, 0.05);
+        }
+
+        /* Pulsing Glow */
+        .pulse-glow {
+            animation: neon-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes neon-pulse {
+            0%, 100% { 
+                filter: drop-shadow(0 0 5px var(--neon-green));
+                opacity: 1;
+            }
+            50% { 
+                filter: drop-shadow(0 0 20px var(--neon-green)) drop-shadow(0 0 40px var(--neon-green));
+                opacity: 0.9;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(180deg, rgba(0, 20, 15, 0.95) 0%, rgba(0, 10, 8, 0.98) 100%);
+            border-right: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nav-item:hover {
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .nav-item.active {
+            color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 2px solid var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-green);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Stats */
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            text-shadow: 0 0 20px var(--neon-green);
+            animation: value-flicker 4s infinite;
+        }
+
+        @keyframes value-flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+            95% { opacity: 0.9; }
+            96% { opacity: 1; }
+        }
+
+        .stat-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Progress Bar - Heartbeat Style */
+        .progress-bar {
+            height: 4px;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--neon-green);
+            border-radius: 2px;
+            position: relative;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -3px;
+            width: 10px;
+            height: 10px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--neon-green);
+            animation: pulse-dot 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+
+        /* Activity Timeline */
+        .timeline-item {
+            position: relative;
+            padding-left: 24px;
+            padding-bottom: 20px;
+            border-left: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 0;
+            width: 8px;
+            height: 8px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .timeline-item:last-child {
+            border-left: 1px solid transparent;
+        }
+
+        /* Cyber Button */
+        .cyber-btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            cursor: pointer;
+            position: relative;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: all 0.3s ease;
+        }
+
+        .cyber-btn:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-green);
+        }
+
+        .cyber-btn.primary {
+            background: var(--neon-green);
+            color: #000;
+        }
+
+        .cyber-btn.primary:hover {
+            background: #00ffaa;
+            box-shadow: 0 0 40px var(--neon-green);
+        }
+
+        /* Data Display */
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .data-label {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+        }
+
+        .data-value {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-cyan);
+            font-size: 12px;
+        }
+
+        /* Agent Status */
+        .agent-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .agent-card:hover {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+
+        .agent-avatar {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--neon-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--neon-green);
+        }
+
+        .agent-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+            animation: status-pulse 1.5s ease-in-out infinite;
+        }
+
+        .agent-status.idle {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: none;
+            animation: none;
+        }
+
+        @keyframes status-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        /* Logo */
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--neon-green);
+            text-shadow: 0 0 20px var(--neon-green);
+            letter-spacing: 2px;
+        }
+
+        /* Header Title */
+        h1, h2, h3 {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 255, 136, 0.05); }
+        ::-webkit-scrollbar-thumb { background: var(--neon-green); }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Background Effects -->
+    <div class="grid-bg"></div>
+    <div class="scanline"></div>
+    <div class="heartbeat-container">
+        <div class="heartbeat-line"></div>
+    </div>
+
+    <div class="relative z-10 flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 p-6 flex flex-col">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 mb-10">
+                <div class="pulse-glow w-10 h-10 border border-[var(--neon-green)] flex items-center justify-center">
+                    <i class="fas fa-heartbeat text-[var(--neon-green)]"></i>
+                </div>
+                <span class="logo-text">PULSE</span>
+            </div>
+
+            <!-- System Status -->
+            <div class="mb-8 p-3 border border-[rgba(0,255,136,0.2)] bg-[rgba(0,255,136,0.05)]">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-2 h-2 rounded-full bg-[var(--neon-green)] animate-pulse"></div>
+                    <span class="text-xs text-[var(--neon-green)] font-mono uppercase tracking-wider">System Online</span>
+                </div>
+                <div class="text-xs text-white/40 font-mono">UPTIME: 99.98%</div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 space-y-1">
+                <div class="nav-item active">
+                    <i class="fas fa-chart-network w-5"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-tasks w-5"></i>
+                    <span>Tickets</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-project-diagram w-5"></i>
+                    <span>Roadmap</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-database w-5"></i>
+                    <span>Knowledge</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-file-code w-5"></i>
+                    <span>Wiki</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-microchip w-5"></i>
+                    <span>AI Agents</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span>Analytics</span>
+                </div>
+            </nav>
+
+            <!-- User -->
+            <div class="border border-[rgba(0,255,136,0.2)] p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 border border-[var(--neon-cyan)] flex items-center justify-center text-[var(--neon-cyan)]">
+                        <span class="font-bold">D</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-sm font-medium text-[var(--neon-cyan)]">DRACO</div>
+                        <div class="text-xs text-white/40 font-mono">ADMIN</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <!-- Header -->
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold text-[var(--neon-green)] tracking-wider mb-1">COMMAND CENTER</h1>
+                    <p class="text-white/40 text-sm font-mono">LAST SYNC: 2 SECONDS AGO</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="cyber-btn">
+                        <i class="fas fa-search mr-2"></i>SEARCH
+                    </button>
+                    <button class="cyber-btn primary">
+                        <i class="fas fa-plus mr-2"></i>NEW TICKET
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-4 gap-4 mb-8">
+                <div class="neon-card p-6">
+                    <div class="stat-label mb-2">Active Sprints</div>
+                    <div class="stat-value">03</div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <i class="fas fa-arrow-up text-[var(--neon-green)] text-xs"></i>
+                        <span class="text-xs text-[var(--neon-green)]">+12%</span>
+                    </div>
+                </div>
+                <div class="neon-card p-6">
+                    <div class="stat-label mb-2">Open Tickets</div>
+                    <div class="stat-value" style="color: var(--neon-cyan); text-shadow: 0 0 20px var(--neon-cyan);">24</div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <i class="fas fa-minus text-[var(--neon-orange)] text-xs"></i>
+                        <span class="text-xs text-[var(--neon-orange)]">STABLE</span>
+                    </div>
+                </div>
+                <div class="neon-card p-6">
+                    <div class="stat-label mb-2">Knowledge Base</div>
+                    <div class="stat-value" style="color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple);">156</div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <i class="fas fa-arrow-up text-[var(--neon-green)] text-xs"></i>
+                        <span class="text-xs text-[var(--neon-green)]">+8%</span>
+                    </div>
+                </div>
+                <div class="neon-card p-6">
+                    <div class="stat-label mb-2">AI Sessions</div>
+                    <div class="stat-value" style="color: var(--neon-pink); text-shadow: 0 0 20px var(--neon-pink);">89</div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <i class="fas fa-arrow-up text-[var(--neon-green)] text-xs"></i>
+                        <span class="text-xs text-[var(--neon-green)]">+23%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Sprint Progress -->
+                <div class="neon-card p-6 col-span-2">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-bold tracking-wider text-white">SPRINT PROGRESS</h2>
+                        <span class="text-xs text-[var(--neon-green)] font-mono border border-[var(--neon-green)] px-3 py-1">SPRINT 14</span>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm text-white/70">PHASE_01: FOUNDATION</span>
+                                <span class="text-sm font-mono text-[var(--neon-green)]">100%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm text-white/70">PHASE_02: CORE_FEATURES</span>
+                                <span class="text-sm font-mono text-[var(--neon-cyan)]">78%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 78%; background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan);"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm text-white/70">PHASE_03: AI_INTEGRATION</span>
+                                <span class="text-sm font-mono text-[var(--neon-purple)]">45%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 45%; background: var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple);"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm text-white/70">PHASE_04: DEPLOYMENT</span>
+                                <span class="text-sm font-mono text-[var(--neon-pink)]">12%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 12%; background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Vitals -->
+                <div class="neon-card p-6">
+                    <h2 class="text-lg font-bold tracking-wider text-white mb-6">SYSTEM VITALS</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="data-row">
+                            <span class="data-label">CPU USAGE</span>
+                            <span class="data-value">23%</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">MEMORY</span>
+                            <span class="data-value">4.2 GB</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">DB QUERIES/S</span>
+                            <span class="data-value">142</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">API LATENCY</span>
+                            <span class="data-value">24ms</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">UPTIME</span>
+                            <span class="data-value">14d 6h</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 p-3 border border-[var(--neon-green)] bg-[rgba(0,255,136,0.05)]">
+                        <div class="text-xs text-[var(--neon-green)] font-mono text-center">
+                            ALL SYSTEMS NOMINAL
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="neon-card p-6 col-span-2">
+                    <h2 class="text-lg font-bold tracking-wider text-white mb-6">ACTIVITY STREAM</h2>
+                    
+                    <div class="space-y-0">
+                        <div class="timeline-item">
+                            <div class="text-sm text-white/80 mb-1">Ticket #142 completed</div>
+                            <div class="text-xs text-white/40 font-mono">MCP Tool: ticket_search optimization</div>
+                            <div class="text-xs text-[var(--neon-green)] mt-1">2 MIN AGO</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="text-sm text-white/80 mb-1">AI Session initialized</div>
+                            <div class="text-xs text-white/40 font-mono">Agent: devhub-fullstack | Task: API routes</div>
+                            <div class="text-xs text-[var(--neon-cyan)] mt-1">15 MIN AGO</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="text-sm text-white/80 mb-1">Knowledge item indexed</div>
+                            <div class="text-xs text-white/40 font-mono">Category: Database optimization patterns</div>
+                            <div class="text-xs text-[var(--neon-purple)] mt-1">1 HOUR AGO</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="text-sm text-white/80 mb-1">Sprint 14 activated</div>
+                            <div class="text-xs text-white/40 font-mono">12 tickets | 4 weeks | Priority: HIGH</div>
+                            <div class="text-xs text-[var(--neon-pink)] mt-1">3 HOURS AGO</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Agents -->
+                <div class="neon-card p-6">
+                    <h2 class="text-lg font-bold tracking-wider text-white mb-6">ACTIVE AGENTS</h2>
+                    
+                    <div class="space-y-3">
+                        <div class="agent-card">
+                            <div class="agent-avatar">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-white">devhub-fullstack</div>
+                                <div class="text-xs text-[var(--neon-green)] font-mono">PROCESSING #143</div>
+                            </div>
+                            <div class="agent-status"></div>
+                        </div>
+                        <div class="agent-card">
+                            <div class="agent-avatar" style="border-color: var(--neon-cyan); color: var(--neon-cyan);">
+                                <i class="fas fa-vial"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-white">devhub-testing</div>
+                                <div class="text-xs text-[var(--neon-cyan)] font-mono">RUNNING TESTS</div>
+                            </div>
+                            <div class="agent-status" style="background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan);"></div>
+                        </div>
+                        <div class="agent-card" style="opacity: 0.5;">
+                            <div class="agent-avatar" style="border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.3);">
+                                <i class="fas fa-drafting-compass"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-white/50">devhub-architect</div>
+                                <div class="text-xs text-white/30 font-mono">STANDBY</div>
+                            </div>
+                            <div class="agent-status idle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
