@@ -27,6 +27,9 @@
     "db:cleanup-demo-dry": "tsx prisma/scripts/cleanup-demo-user.ts --dry-run"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@fontsource/inter": "^5.0.16",
     "@fontsource/jetbrains-mono": "^5.0.18",
     "@hookform/resolvers": "^5.2.2",
@@ -44,6 +47,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
     "@tanstack/react-query": "^5.90.11",
+    "@tanstack/react-virtual": "^3.13.13",
     "@tiptap/extension-code-block-lowlight": "^2.1.16",
     "@tiptap/extension-color": "^2.1.16",
     "@tiptap/extension-highlight": "^2.1.16",
@@ -79,6 +83,7 @@
     "react-syntax-highlighter": "^16.0.0",
     "recharts": "^3.4.1",
     "refractor": "^5.0.0",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.22.4"

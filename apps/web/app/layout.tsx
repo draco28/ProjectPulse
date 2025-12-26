@@ -3,6 +3,7 @@ import { ThemeProvider } from '@/lib/theme-provider';
 import { SessionProvider } from '@/components/SessionProvider';
 // import { CommandPaletteProvider } from '@/components/command-palette';
 import { CommandPaletteProvider } from '@/components/command-palette/CommandPaletteProvider';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -25,6 +26,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ThemeProvider>
             {/* CommandPaletteProvider temporarily disabled - causing webpack errors */}
             <CommandPaletteProvider>{children}</CommandPaletteProvider>
+            <Toaster
+              position="bottom-right"
+              theme="dark"
+              toastOptions={{
+                className: 'bg-slate-800 border-slate-700',
+              }}
+            />
           </ThemeProvider>
         </SessionProvider>
       </body>
