@@ -14,6 +14,12 @@ import { seedOnboardingPromptTemplates } from './seeds/onboarding-prompt-templat
 import { seedOnboardingQuestions } from './seeds/onboarding-questions';
 import bcrypt from 'bcryptjs';
 
+// Sprint 15: Import status system for consistent seeding
+import {
+  TICKET_STATUSES,
+  TicketStatusSystem,
+} from '../lib/constants/status';
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -89,12 +95,13 @@ async function main() {
   // ========================================================================
   console.log('🎯 Seeding filter options...');
 
-  // STATUS OPTIONS
-  const statusOptions = [
-    { value: 'open', label: 'Open', order: 0, colorClass: 'text-blue-600' },
-    { value: 'in-progress', label: 'In Progress', order: 1, colorClass: 'text-yellow-600' },
-    { value: 'closed', label: 'Closed', order: 2, colorClass: 'text-green-600' },
-  ];
+  // STATUS OPTIONS - Sprint 15: 5 kanban-compatible statuses from status system
+  const statusOptions = TicketStatusSystem.values.map((value) => ({
+    value,
+    label: TicketStatusSystem.getLabel(value),
+    order: TicketStatusSystem.getOrder(value),
+    colorClass: TicketStatusSystem.getColorClass(value),
+  }));
 
   for (const option of statusOptions) {
     await prisma.ticketStatusOption.upsert({
@@ -452,7 +459,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
           'Add full-text search using tsvector and semantic search using pgvector embeddings for knowledge base articles.',
         kind: 'issue',
         source: 'manual',
-        status: 'open',
+        status: TICKET_STATUSES.BACKLOG,
         priority: 'high',
         module: 'Search',
         assignee: 'Developer',
@@ -468,7 +475,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
           'Implement user authentication and authorization using NextAuth.js with GitHub OAuth provider.',
         kind: 'issue',
         source: 'manual',
-        status: 'open',
+        status: TICKET_STATUSES.BACKLOG,
         priority: 'critical',
         module: 'Auth',
         assignee: 'Developer',
@@ -484,7 +491,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
           'Theme CSS variables not applying when switching between Desert, Neon, Earthy, and Coral themes.',
         kind: 'bug',
         source: 'manual',
-        status: 'in-progress',
+        status: TICKET_STATUSES.IN_PROGRESS,
         priority: 'high',
         module: 'UI',
         assignee: 'Developer',
@@ -500,7 +507,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
           'Issue list page loading slowly with 100+ issues. Need to add pagination and optimize N+1 queries.',
         kind: 'issue',
         source: 'manual',
-        status: 'open',
+        status: TICKET_STATUSES.BACKLOG,
         priority: 'medium',
         module: 'Performance',
         projectId: project.id,
@@ -515,7 +522,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
           'Document all API endpoints using OpenAPI 3.0 specification and generate interactive Swagger UI.',
         kind: 'issue',
         source: 'manual',
-        status: 'open',
+        status: TICKET_STATUSES.BACKLOG,
         priority: 'low',
         module: 'Documentation',
         projectId: project.id,
@@ -531,7 +538,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
           'Configure PostgreSQL 16 container with pgvector extension for semantic search capabilities.',
         kind: 'issue',
         source: 'manual',
-        status: 'closed',
+        status: TICKET_STATUSES.DONE,
         priority: 'high',
         module: 'Infrastructure',
         projectId: project.id,
@@ -545,7 +552,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
         description: 'Create 4 unique themes with neumorphic design and CSS custom properties.',
         kind: 'issue',
         source: 'manual',
-        status: 'closed',
+        status: TICKET_STATUSES.DONE,
         priority: 'high',
         module: 'UI',
         assignee: 'Developer',
@@ -562,7 +569,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
           'Implement Dashboard layout with Sidebar, Header, WelcomeBanner, StatCards, and IssueCards.',
         kind: 'issue',
         source: 'manual',
-        status: 'closed',
+        status: TICKET_STATUSES.DONE,
         priority: 'critical',
         module: 'UI',
         assignee: 'Developer',
@@ -2001,7 +2008,7 @@ pnpm prisma migrate status
         filePath: 'apps/web/app/api/issues/route.ts',
         lineNumber: 42,
         codeSnippet: 'app.use(methodOverride());',
-        status: 'open',
+        status: TICKET_STATUSES.BACKLOG,
       },
     }),
 
@@ -2014,7 +2021,7 @@ pnpm prisma migrate status
         filePath: 'apps/web/components/KnowledgeArticle.tsx',
         lineNumber: 78,
         codeSnippet: '<div dangerouslySetInnerHTML={{ __html: content }} />',
-        status: 'open',
+        status: TICKET_STATUSES.BACKLOG,
       },
     }),
 

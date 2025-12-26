@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sprint Kanban - ProjectPulse Roadmap</title>
+  <!-- Google Fonts: Inter + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // Official ProjectPulse Dark Theme (pure grays, not blue-tinted)
+            'dark': '#1A1A1A',
+            'dark-lighter': '#242424',
+            'dark-card': '#2A2A2A',
+            'dark-pressed': '#1F1F1F',
+            // Official Coral Theme Colors
+            'coral': '#FF8B6A',
+            'coral-light': '#FFB299',
+            'coral-dark': '#E67759',
+            // Official Slate (neutral gray, not blue-tinted)
+            'slate': '#8B8B8B',
+            'slate-light': '#A5A5A5',
+            'slate-dark': '#6B6B6B',
+            // Accent Colors
+            'accent-green': '#4ADE80',
+            'accent-blue': '#60A5FA',
+            'accent-yellow': '#FBBF24',
+            'accent-red': '#EF4444',
+            'accent-purple': '#A78BFA',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          },
+          boxShadow: {
+            'neu-raised': '8px 8px 16px rgba(0, 0, 0, 0.6), -8px -8px 16px rgba(60, 60, 60, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+            'neu-raised-sm': '4px 4px 8px rgba(0, 0, 0, 0.6), -2px -2px 6px rgba(60, 60, 60, 0.1)',
+            'neu-pressed': 'inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -2px -2px 6px rgba(60, 60, 60, 0.1)',
+            'coral-glow': '0 0 30px rgba(255, 139, 106, 0.4)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* CSS Variables matching globals.css */
+    :root {
+      --dark: #1A1A1A;
+      --dark-lighter: #242424;
+      --dark-card: #2A2A2A;
+      --dark-pressed: #1F1F1F;
+      --coral: #FF8B6A;
+      --coral-light: #FFB299;
+      --coral-dark: #E67759;
+      --slate: #8B8B8B;
+      --slate-light: #A5A5A5;
+      --slate-dark: #6B6B6B;
+      --accent-green: #4ADE80;
+      --accent-yellow: #FBBF24;
+      --accent-red: #EF4444;
+      --accent-purple: #A78BFA;
+      /* Shadow tokens */
+      --shadow-dark: rgba(0, 0, 0, 0.6);
+      --shadow-light: rgba(60, 60, 60, 0.1);
+    }
+
+    * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    body { background: var(--dark); }
+
+    .font-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+
+    .neu-card {
+      background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+      box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+      border-radius: 16px;
+    }
+    .neu-inset {
+      background: var(--dark-pressed);
+      box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -4px -4px 8px rgba(60, 60, 60, 0.1);
+      border-radius: 12px;
+    }
+    .kanban-column {
+      min-width: 280px;
+      max-width: 320px;
+      flex: 1;
+    }
+    .column-header {
+      background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+      border-radius: 12px 12px 0 0;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .column-content {
+      background: rgba(26, 26, 26, 0.5);
+      border-radius: 0 0 12px 12px;
+      padding: 12px;
+      min-height: 500px;
+    }
+    .feature-card {
+      background: linear-gradient(145deg, #333333, var(--dark-card));
+      box-shadow: 4px 4px 8px var(--shadow-dark), -2px -2px 6px var(--shadow-light);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .feature-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 6px 6px 12px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
+    }
+    .feature-card.active-work {
+      box-shadow: 0 0 0 2px var(--coral), 4px 4px 8px var(--shadow-dark);
+    }
+    .child-task {
+      background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+      border-radius: 8px;
+      border-left: 3px solid;
+      transition: all 0.2s ease;
+    }
+    .child-task:hover {
+      transform: translateX(4px);
+    }
+    .child-task.active {
+      box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.4);
+    }
+    .expand-icon {
+      transition: transform 0.2s ease;
+    }
+    .feature-card.expanded .expand-icon {
+      transform: rotate(90deg);
+    }
+    .children-container {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .feature-card.expanded .children-container {
+      max-height: 500px;
+    }
+    .progress-bar {
+      background: linear-gradient(90deg, var(--coral), var(--coral-dark));
+      border-radius: 4px;
+      height: 4px;
+    }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: var(--dark-pressed); border-radius: 3px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--slate-dark); border-radius: 3px; }
+
+    /* Side Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 40;
+    }
+    .drawer-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 480px;
+      background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+      box-shadow: -10px 0 30px rgba(0,0,0,0.3);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 50;
+      overflow-y: auto;
+    }
+    .drawer-overlay.open .drawer-panel {
+      transform: translateX(0);
+    }
+
+    /* Standalone ticket (no parent) */
+    .standalone-ticket {
+      background: linear-gradient(145deg, #333333, var(--dark-card));
+      box-shadow: 3px 3px 6px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .standalone-ticket:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Coral Gradient Button */
+    .btn-coral {
+      background: linear-gradient(135deg, var(--coral) 0%, var(--coral-dark) 100%);
+      transition: all 0.2s ease;
+    }
+    .btn-coral:hover {
+      box-shadow: 0 0 20px rgba(255, 139, 106, 0.4);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white">
+
+  <!-- Header -->
+  <div class="p-6 pb-0">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-4">
+        <!-- Back to Phase Timeline -->
+        <a href="COMBINED-01-phase-timeline.html" class="p-2 rounded-lg hover:bg-white/5 text-slate transition flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          <span class="text-sm">Phase 1</span>
+        </a>
+        <span class="text-slate">/</span>
+        <div class="flex items-center gap-3">
+          <div class="w-2.5 h-2.5 rounded-full bg-coral animate-pulse"></div>
+          <h1 class="text-2xl font-bold">Sprint 3</h1>
+          <span class="text-xs text-coral bg-coral/15 px-2.5 py-1 rounded font-bold uppercase tracking-wide">Current</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <!-- Sprint Progress -->
+        <div class="neu-card px-4 py-2 flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <span class="text-slate text-sm">Progress</span>
+            <span class="text-coral font-bold">67%</span>
+          </div>
+          <div class="w-32 h-2 bg-dark-pressed rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-coral to-coral-dark rounded-full" style="width: 67%"></div>
+          </div>
+        </div>
+
+        <button class="neu-card px-3 py-2 text-sm text-slate hover:text-white transition" onclick="toggleCollapseAll()">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            Collapse All
+          </span>
+        </button>
+
+        <button class="btn-coral px-4 py-2 rounded-xl font-medium flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          New Ticket
+        </button>
+      </div>
+    </div>
+
+    <!-- Sprint Info Bar -->
+    <div class="flex items-center gap-6 text-sm text-slate mb-4">
+      <span>Dec 16 - Dec 22</span>
+      <span>•</span>
+      <span>5 days remaining</span>
+      <span>•</span>
+      <span>12/18 tickets done</span>
+      <span>•</span>
+      <span class="flex items-center gap-1">
+        <div class="w-4 h-4 rounded bg-coral text-[8px] flex items-center justify-center font-bold text-white">AI</div>
+        <span>1 agent session active</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Kanban Board -->
+  <div class="flex gap-4 overflow-x-auto p-6 pt-2 h-[calc(100vh-180px)]">
+
+    <!-- Backlog Column -->
+    <div class="kanban-column flex flex-col">
+      <div class="column-header">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-slate"></div>
+            <h3 class="font-semibold">Backlog</h3>
+          </div>
+          <span class="text-slate text-sm bg-dark-pressed px-2 py-0.5 rounded">6</span>
+        </div>
+      </div>
+      <div class="column-content flex-1 overflow-y-auto scrollbar-thin space-y-3">
+
+        <!-- Feature: User Profiles (collapsed) -->
+        <div class="feature-card" onclick="toggleExpand(this)">
+          <div class="p-4">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#120</span>
+              </div>
+              <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] rounded font-bold">FEATURE</span>
+            </div>
+            <p class="font-semibold text-sm mb-3">User Profile Management</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate">3 tasks</span>
+                <div class="w-16 h-1 bg-dark rounded-full overflow-hidden">
+                  <div class="h-full bg-slate w-[0%]"></div>
+                </div>
+              </div>
+              <span class="text-xs text-slate">0%</span>
+            </div>
+          </div>
+          <!-- Child Tasks (hidden) -->
+          <div class="children-container">
+            <div class="px-4 pb-4 space-y-2">
+              <div class="child-task p-3 border-slate">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#121</span>
+                  <span class="text-[10px] text-slate">Task</span>
+                </div>
+                <p class="text-xs">Create profile edit form</p>
+              </div>
+              <div class="child-task p-3 border-slate">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#122</span>
+                  <span class="text-[10px] text-slate">Task</span>
+                </div>
+                <p class="text-xs">Add avatar upload</p>
+              </div>
+              <div class="child-task p-3 border-accent-red">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#123</span>
+                  <span class="text-[10px] text-accent-red">Bug</span>
+                </div>
+                <p class="text-xs">Fix crop ratio</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature: Email System (collapsed) -->
+        <div class="feature-card" onclick="toggleExpand(this)">
+          <div class="p-4">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#130</span>
+              </div>
+              <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] rounded font-bold">FEATURE</span>
+            </div>
+            <p class="font-semibold text-sm mb-3">Email Notification System</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate">2 tasks</span>
+                <div class="w-16 h-1 bg-dark rounded-full overflow-hidden">
+                  <div class="h-full bg-slate w-[0%]"></div>
+                </div>
+              </div>
+              <span class="text-xs text-slate">0%</span>
+            </div>
+          </div>
+          <div class="children-container">
+            <div class="px-4 pb-4 space-y-2">
+              <div class="child-task p-3 border-slate">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#131</span>
+                  <span class="text-[10px] text-slate">Task</span>
+                </div>
+                <p class="text-xs">Setup SendGrid</p>
+              </div>
+              <div class="child-task p-3 border-slate">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#132</span>
+                  <span class="text-[10px] text-slate">Task</span>
+                </div>
+                <p class="text-xs">Create email templates</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Standalone Bug (no parent) -->
+        <div class="standalone-ticket p-3" onclick="openDrawer()">
+          <div class="flex items-start justify-between mb-2">
+            <span class="text-xs font-mono text-slate">#145</span>
+            <span class="px-2 py-0.5 bg-red-500/20 text-accent-red text-[10px] rounded font-bold">BUG</span>
+          </div>
+          <p class="text-sm font-medium mb-2">Memory leak in dev mode</p>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 bg-dark-pressed text-slate text-xs rounded">DevOps</span>
+            <span class="px-2 py-0.5 bg-yellow-500/20 text-accent-yellow text-xs rounded">medium</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- To Do Column -->
+    <div class="kanban-column flex flex-col">
+      <div class="column-header border-l-4 border-coral">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-coral"></div>
+            <h3 class="font-semibold">To Do</h3>
+          </div>
+          <span class="text-slate text-sm bg-dark-pressed px-2 py-0.5 rounded">4</span>
+        </div>
+      </div>
+      <div class="column-content flex-1 overflow-y-auto scrollbar-thin space-y-3">
+
+        <!-- Feature: Search (collapsed) -->
+        <div class="feature-card" onclick="toggleExpand(this)">
+          <div class="p-4">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#110</span>
+              </div>
+              <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] rounded font-bold">FEATURE</span>
+            </div>
+            <p class="font-semibold text-sm mb-3">Advanced Search Filters</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate">2 tasks</span>
+                <div class="w-16 h-1 bg-dark rounded-full overflow-hidden">
+                  <div class="h-full bg-slate w-[0%]"></div>
+                </div>
+              </div>
+              <span class="text-xs text-slate">0%</span>
+            </div>
+          </div>
+          <div class="children-container">
+            <div class="px-4 pb-4 space-y-2">
+              <div class="child-task p-3 border-slate">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#111</span>
+                  <span class="text-[10px] text-slate">Task</span>
+                </div>
+                <p class="text-xs">Filter by date range</p>
+              </div>
+              <div class="child-task p-3 border-slate">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#112</span>
+                  <span class="text-[10px] text-slate">Task</span>
+                </div>
+                <p class="text-xs">Filter by assignee</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Standalone critical bug -->
+        <div class="standalone-ticket p-3 border-l-4 border-accent-red" onclick="openDrawer()">
+          <div class="flex items-start justify-between mb-2">
+            <span class="text-xs font-mono text-slate">#38</span>
+            <span class="px-2 py-0.5 bg-red-500/20 text-accent-red text-[10px] rounded font-bold">critical</span>
+          </div>
+          <p class="text-sm font-medium mb-2">Fix auth token refresh</p>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-dark-pressed text-slate text-xs rounded">bug</span>
+            <span class="px-2 py-0.5 bg-dark-pressed text-slate text-xs rounded">Auth</span>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate">
+            <span>Est: 2 days</span>
+            <div class="w-6 h-6 rounded-full bg-coral/30 flex items-center justify-center text-[10px]">AI</div>
+          </div>
+        </div>
+
+        <!-- Standalone task -->
+        <div class="standalone-ticket p-3" onclick="openDrawer()">
+          <div class="flex items-start justify-between mb-2">
+            <span class="text-xs font-mono text-slate">#40</span>
+            <span class="px-2 py-0.5 bg-yellow-500/20 text-accent-yellow text-[10px] rounded">medium</span>
+          </div>
+          <p class="text-sm font-medium">Add pagination to KB</p>
+          <div class="text-xs text-slate mt-2">Est: 0.5 day</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- In Progress Column -->
+    <div class="kanban-column flex flex-col">
+      <div class="column-header border-l-4 border-accent-yellow">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-accent-yellow animate-pulse"></div>
+            <h3 class="font-semibold">In Progress</h3>
+          </div>
+          <span class="text-slate text-sm bg-dark-pressed px-2 py-0.5 rounded">2</span>
+        </div>
+      </div>
+      <div class="column-content flex-1 overflow-y-auto scrollbar-thin space-y-3">
+
+        <!-- Feature: OAuth (EXPANDED - Active Work) -->
+        <div class="feature-card expanded active-work" onclick="toggleExpand(this)">
+          <div class="p-4">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-coral expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#100</span>
+              </div>
+              <span class="px-2 py-0.5 bg-coral/20 text-coral text-[10px] rounded font-bold">FEATURE</span>
+            </div>
+            <p class="font-semibold text-sm mb-3">OAuth Authentication</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate">3 tasks</span>
+                <div class="w-16 h-1 bg-dark rounded-full overflow-hidden">
+                  <div class="h-full bg-coral w-[66%]"></div>
+                </div>
+              </div>
+              <span class="text-xs text-coral font-bold">66%</span>
+            </div>
+          </div>
+
+          <div class="children-container">
+            <div class="px-4 pb-4 space-y-2">
+              <!-- Done child -->
+              <div class="child-task p-3 border-accent-green opacity-60">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#101</span>
+                  <span class="text-accent-green text-xs">✓ Done</span>
+                </div>
+                <p class="text-xs line-through">Setup NextAuth config</p>
+              </div>
+              <!-- Done child -->
+              <div class="child-task p-3 border-accent-green opacity-60">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#102</span>
+                  <span class="text-accent-green text-xs">✓ Done</span>
+                </div>
+                <p class="text-xs line-through">Google OAuth provider</p>
+              </div>
+              <!-- Active child - Agent working -->
+              <div class="child-task active p-3 border-accent-yellow" onclick="event.stopPropagation(); openDrawer()">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#103</span>
+                  <span class="text-accent-yellow text-xs font-bold flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-yellow animate-pulse"></span>
+                    Active
+                  </span>
+                </div>
+                <p class="text-xs font-medium">GitHub OAuth provider</p>
+                <div class="flex items-center gap-2 mt-2">
+                  <div class="w-5 h-5 rounded-full bg-coral text-white text-[8px] flex items-center justify-center font-bold">AI</div>
+                  <span class="text-[10px] text-slate">Agent working...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature: Dashboard Charts (collapsed) -->
+        <div class="feature-card" onclick="toggleExpand(this)">
+          <div class="p-4">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#105</span>
+              </div>
+              <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] rounded font-bold">FEATURE</span>
+            </div>
+            <p class="font-semibold text-sm mb-3">Dashboard Charts</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate">2 tasks</span>
+                <div class="w-16 h-1 bg-dark rounded-full overflow-hidden">
+                  <div class="h-full bg-accent-yellow w-[50%]"></div>
+                </div>
+              </div>
+              <span class="text-xs text-accent-yellow">50%</span>
+            </div>
+          </div>
+          <div class="children-container">
+            <div class="px-4 pb-4 space-y-2">
+              <div class="child-task p-3 border-accent-green opacity-60">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#106</span>
+                  <span class="text-accent-green text-xs">✓ Done</span>
+                </div>
+                <p class="text-xs line-through">Chart library setup</p>
+              </div>
+              <div class="child-task p-3 border-accent-yellow">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#107</span>
+                  <span class="text-accent-yellow text-xs">In Progress</span>
+                </div>
+                <p class="text-xs">Velocity chart component</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Review Column -->
+    <div class="kanban-column flex flex-col">
+      <div class="column-header border-l-4 border-accent-purple">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-accent-purple"></div>
+            <h3 class="font-semibold">Review</h3>
+          </div>
+          <span class="text-slate text-sm bg-dark-pressed px-2 py-0.5 rounded">2</span>
+        </div>
+      </div>
+      <div class="column-content flex-1 overflow-y-auto scrollbar-thin space-y-3">
+
+        <!-- Feature in review -->
+        <div class="feature-card" onclick="toggleExpand(this)">
+          <div class="p-4">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#90</span>
+              </div>
+              <span class="px-2 py-0.5 bg-purple-500/20 text-accent-purple text-[10px] rounded font-bold">FEATURE</span>
+            </div>
+            <p class="font-semibold text-sm mb-3">Traceability Matrix</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate">2 tasks</span>
+                <div class="w-16 h-1 bg-dark rounded-full overflow-hidden">
+                  <div class="h-full bg-accent-purple w-[100%]"></div>
+                </div>
+              </div>
+              <span class="text-xs text-accent-purple font-medium">PR #45</span>
+            </div>
+          </div>
+          <div class="children-container">
+            <div class="px-4 pb-4 space-y-2">
+              <div class="child-task p-3 border-accent-purple">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#91</span>
+                  <span class="text-accent-purple text-xs">PR #45</span>
+                </div>
+                <p class="text-xs">Matrix generation logic</p>
+              </div>
+              <div class="child-task p-3 border-accent-purple">
+                <div class="flex justify-between mb-1">
+                  <span class="text-[10px] font-mono text-slate">#92</span>
+                  <span class="text-accent-purple text-xs">PR #45</span>
+                </div>
+                <p class="text-xs">Coverage report UI</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Standalone in review -->
+        <div class="standalone-ticket p-3" onclick="openDrawer()">
+          <div class="flex items-start justify-between mb-2">
+            <span class="text-xs font-mono text-slate">#34</span>
+            <span class="px-2 py-0.5 bg-purple-500/20 text-accent-purple text-[10px] rounded">PR #127</span>
+          </div>
+          <p class="text-sm font-medium">Agent session resume</p>
+          <div class="text-xs text-slate mt-2">Awaiting review</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Done Column -->
+    <div class="kanban-column flex flex-col">
+      <div class="column-header border-l-4 border-accent-green">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-accent-green"></div>
+            <h3 class="font-semibold">Done</h3>
+          </div>
+          <span class="text-slate text-sm bg-dark-pressed px-2 py-0.5 rounded">10</span>
+        </div>
+      </div>
+      <div class="column-content flex-1 overflow-y-auto scrollbar-thin space-y-3">
+
+        <!-- Completed feature -->
+        <div class="feature-card opacity-60" onclick="toggleExpand(this)">
+          <div class="p-4">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#80</span>
+              </div>
+              <span class="text-accent-green">✓</span>
+            </div>
+            <p class="font-semibold text-sm mb-1 line-through">Database Schema Setup</p>
+            <span class="text-xs text-slate">4 tasks completed</span>
+          </div>
+          <div class="children-container">
+            <div class="px-4 pb-4 text-xs text-slate">
+              All 4 child tasks completed on Dec 20
+            </div>
+          </div>
+        </div>
+
+        <!-- Completed feature -->
+        <div class="feature-card opacity-60" onclick="toggleExpand(this)">
+          <div class="p-4">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-xs font-mono text-slate">#70</span>
+              </div>
+              <span class="text-accent-green">✓</span>
+            </div>
+            <p class="font-semibold text-sm mb-1 line-through">Project Setup & Config</p>
+            <span class="text-xs text-slate">3 tasks completed</span>
+          </div>
+        </div>
+
+        <!-- More completed items -->
+        <div class="standalone-ticket p-3 opacity-60" onclick="openDrawer()">
+          <div class="flex items-start justify-between mb-2">
+            <span class="text-xs font-mono text-slate">#32</span>
+            <span class="text-accent-green text-xs">✓</span>
+          </div>
+          <p class="text-sm line-through">Backlog extraction from docs</p>
+          <div class="text-xs text-slate mt-1">Closed Dec 23</div>
+        </div>
+
+        <div class="standalone-ticket p-3 opacity-60" onclick="openDrawer()">
+          <div class="flex items-start justify-between mb-2">
+            <span class="text-xs font-mono text-slate">#31</span>
+            <span class="text-accent-green text-xs">✓</span>
+          </div>
+          <p class="text-sm line-through">Sprint hierarchy query</p>
+          <div class="text-xs text-slate mt-1">Closed Dec 22</div>
+        </div>
+
+        <div class="text-center py-3">
+          <span class="text-xs text-slate">+6 more completed</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Stats -->
+  <div class="fixed bottom-0 left-0 right-0 bg-dark-lighter/95 backdrop-blur border-t border-white/5 px-6 py-3">
+    <div class="flex items-center justify-between max-w-screen-2xl mx-auto">
+      <div class="flex items-center gap-8">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl font-bold text-coral">18</span>
+          <span class="text-slate text-xs uppercase tracking-wide">Total</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-2xl font-bold text-accent-green">10</span>
+          <span class="text-slate text-xs uppercase tracking-wide">Completed</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-2xl font-bold text-accent-yellow">2</span>
+          <span class="text-slate text-xs uppercase tracking-wide">In Progress</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-2xl font-bold text-accent-purple">2</span>
+          <span class="text-slate text-xs uppercase tracking-wide">In Review</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="text-right">
+          <div class="text-lg font-bold text-slate-light">4.2</div>
+          <div class="text-xs text-slate">Avg Days/Ticket</div>
+        </div>
+        <div class="text-right">
+          <div class="text-lg font-bold text-coral">2.5</div>
+          <div class="text-xs text-slate">Tickets/Day</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Side Drawer (Hidden by default) -->
+  <div class="drawer-overlay" id="drawer" onclick="closeDrawer()">
+    <div class="drawer-panel p-6" onclick="event.stopPropagation()">
+      <!-- Drawer Header -->
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xs font-mono text-slate">#103</span>
+            <span class="px-2 py-0.5 bg-slate/20 text-slate text-xs rounded">Task</span>
+            <span class="px-2 py-0.5 bg-yellow-500/20 text-accent-yellow text-xs rounded">In Progress</span>
+          </div>
+          <h2 class="text-xl font-bold">GitHub OAuth Provider</h2>
+        </div>
+        <button onclick="closeDrawer()" class="p-2 rounded-lg hover:bg-white/5 text-slate">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Parent Feature -->
+      <div class="bg-dark-pressed rounded-lg p-3 mb-6">
+        <div class="text-xs text-slate mb-1">Parent Feature</div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono text-slate">#100</span>
+          <span class="text-sm font-medium">OAuth Authentication</span>
+          <span class="text-xs text-coral">66%</span>
+        </div>
+      </div>
+
+      <!-- Agent Session -->
+      <div class="bg-coral/10 border border-coral/30 rounded-lg p-4 mb-6">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-6 h-6 rounded-full bg-coral text-white text-[10px] flex items-center justify-center font-bold">AI</div>
+          <span class="text-coral font-medium">Agent Session Active</span>
+        </div>
+        <p class="text-xs text-slate mb-3">Claude Code is implementing this task</p>
+        <div class="flex items-center gap-2">
+          <button class="text-xs bg-coral/20 text-coral px-3 py-1.5 rounded hover:bg-coral/30 transition">
+            View Session
+          </button>
+          <button class="text-xs text-slate hover:text-white transition">
+            Session Logs →
+          </button>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="mb-6">
+        <h3 class="text-sm font-medium text-slate-light mb-2">Description</h3>
+        <p class="text-sm text-slate">
+          Implement GitHub OAuth provider using NextAuth.js. This includes setting up the GitHub OAuth app, configuring callbacks, and handling user session creation.
+        </p>
+      </div>
+
+      <!-- Details -->
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <div class="text-xs text-slate mb-1">Priority</div>
+          <span class="px-2 py-1 bg-orange-500/20 text-orange-400 text-xs rounded">High</span>
+        </div>
+        <div>
+          <div class="text-xs text-slate mb-1">Estimate</div>
+          <span class="text-sm text-white">1 day</span>
+        </div>
+        <div>
+          <div class="text-xs text-slate mb-1">Assignee</div>
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded-full bg-coral text-white text-[8px] flex items-center justify-center font-bold">AI</div>
+            <span class="text-sm text-white">Claude Code</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs text-slate mb-1">Module</div>
+          <span class="text-sm text-white">Auth</span>
+        </div>
+      </div>
+
+      <!-- Activity -->
+      <div>
+        <h3 class="text-sm font-medium text-slate-light mb-3">Activity</h3>
+        <div class="space-y-3">
+          <div class="flex gap-3">
+            <div class="w-6 h-6 rounded-full bg-coral text-white text-[8px] flex items-center justify-center font-bold flex-shrink-0">AI</div>
+            <div>
+              <p class="text-xs text-slate-light">Started working on this task</p>
+              <p class="text-xs text-slate">2 hours ago</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <div class="w-6 h-6 rounded-full bg-slate/30 flex items-center justify-center text-[10px] flex-shrink-0">👤</div>
+            <div>
+              <p class="text-xs text-slate-light">Moved from To Do to In Progress</p>
+              <p class="text-xs text-slate">3 hours ago</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <div class="w-6 h-6 rounded-full bg-slate/30 flex items-center justify-center text-[10px] flex-shrink-0">👤</div>
+            <div>
+              <p class="text-xs text-slate-light">Created this task under #100</p>
+              <p class="text-xs text-slate">Yesterday</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5 bg-dark-lighter">
+        <div class="flex gap-3">
+          <button class="flex-1 btn-coral text-white py-2 rounded-lg font-medium">
+            Edit Ticket
+          </button>
+          <button class="px-4 py-2 rounded-lg border border-white/10 text-slate hover:text-white hover:border-white/20 transition">
+            Add Comment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept Info Panel -->
+  <div class="fixed bottom-20 right-6 max-w-sm neu-card p-5 border border-coral/30 shadow-2xl">
+    <h4 class="font-bold text-coral mb-3 flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Combined Design: Sprint Kanban
+    </h4>
+    <p class="text-xs text-slate mb-3">
+      <strong class="text-white">Full sprint board with nested cards.</strong> Feature tickets expand to show child tasks inline. Active work is highlighted. Side drawer for ticket details.
+    </p>
+    <ul class="text-xs text-slate space-y-1.5">
+      <li class="flex items-start gap-2">
+        <span class="text-coral">•</span>
+        <span><strong class="text-white">Click feature</strong> → Expand/collapse children</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-coral">•</span>
+        <span><strong class="text-white">Click task</strong> → Open side drawer</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-coral">•</span>
+        <span><strong class="text-white">Yellow ring</strong> → Active task being worked</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-coral">•</span>
+        <span><strong class="text-white">AI badge</strong> → Agent session indicator</span>
+      </li>
+    </ul>
+    <div class="mt-4 pt-3 border-t border-white/10">
+      <a href="COMBINED-01-phase-timeline.html" class="text-coral hover:underline text-sm font-medium">
+        ← Back to Phase Timeline
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function toggleExpand(card) {
+      card.classList.toggle('expanded');
+    }
+
+    function toggleCollapseAll() {
+      const allCards = document.querySelectorAll('.feature-card');
+      const anyExpanded = Array.from(allCards).some(c => c.classList.contains('expanded'));
+
+      allCards.forEach(card => {
+        if (anyExpanded) {
+          card.classList.remove('expanded');
+        } else {
+          card.classList.add('expanded');
+        }
+      });
+    }
+
+    function openDrawer() {
+      document.getElementById('drawer').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawer').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // Close drawer on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDrawer();
+    });
+  </script>
+
+</body>
+</html>

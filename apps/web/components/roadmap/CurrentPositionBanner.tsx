@@ -1,4 +1,8 @@
 /**
+ * @deprecated Sprint 15 Phase E - Replaced by components/roadmap-timeline/
+ * This component will be removed in Sprint 16.
+ * The new Phase Timeline view shows current sprint inline.
+ *
  * CurrentPositionBanner Component - Sprint 8.5
  *
  * Displays current position in roadmap hierarchy with premium neumorphic design:

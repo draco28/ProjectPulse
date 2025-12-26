@@ -49,7 +49,8 @@ test.describe('Ticket Badges Visual', () => {
   });
 
   test.describe('Status Badge States', () => {
-    const statuses = ['open', 'closed', 'in-progress'];
+    // Sprint 15: Updated to 5-status kanban system
+    const statuses = ['backlog', 'todo', 'in-progress', 'in-review', 'done'];
 
     statuses.forEach((status) => {
       test(`should display ${status} status badge`, async ({ page }) => {

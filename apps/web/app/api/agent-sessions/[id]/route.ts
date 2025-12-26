@@ -125,7 +125,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Agent session not found' }, { status: 404 });
     }
 
-    const { name, plan, todos, progress, appendProgress, activeTicketIds, status } = validation.data;
+    const { name, plan, todos, progress, appendProgress, activeTicketIds, status, tokenCount } = validation.data;
 
     // Build update data - using Prisma InputJsonValue for JSON fields
     const updateData: Record<string, unknown> = {};
@@ -154,6 +154,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       } else {
         updateData.completedAt = null;
       }
+    }
+    // Sprint 15: Phase F - Token usage tracking
+    if (tokenCount !== undefined) {
+      updateData.tokenCount = tokenCount;
     }
 
     // Update session

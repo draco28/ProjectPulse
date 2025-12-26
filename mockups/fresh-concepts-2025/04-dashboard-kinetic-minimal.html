@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPulse - Kinetic Minimal Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #64748b;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-tertiary: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            min-height: 100vh;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Shapes */
+        .shape-bg {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+
+        .shape-1 {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            top: -200px;
+            right: -100px;
+            animation: morph 20s ease-in-out infinite;
+        }
+
+        .shape-2 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+            bottom: -100px;
+            left: -50px;
+            animation: morph 15s ease-in-out infinite reverse;
+        }
+
+        .shape-3 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            top: 40%;
+            left: 30%;
+            animation: morph 18s ease-in-out infinite;
+            animation-delay: -5s;
+        }
+
+        @keyframes morph {
+            0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: rotate(0deg); }
+            50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; transform: rotate(180deg); }
+        }
+
+        /* Card Style */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-primary);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: var(--accent-primary);
+            border-radius: 0 2px 2px 0;
+            transition: height 0.3s ease;
+        }
+
+        .nav-item:hover {
+            color: var(--text-primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .nav-item:hover::before {
+            height: 24px;
+        }
+
+        .nav-item.active {
+            color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .nav-item.active::before {
+            height: 24px;
+        }
+
+        /* Stats Card */
+        .stat-card {
+            position: relative;
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover .stat-value {
+            color: var(--accent-primary);
+        }
+
+        /* Animated Counter Effect */
+        .counter {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover .counter {
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Progress Bar */
+        .progress-track {
+            height: 10px;
+            background: #f1f5f9;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 5px;
+            position: relative;
+            transition: width 1s ease;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Activity Item */
+        .activity-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .activity-item:hover {
+            background: #f8fafc;
+            transform: translateX(8px);
+        }
+
+        .activity-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover .activity-icon {
+            transform: scale(1.1);
+        }
+
+        /* Button */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Agent Card */
+        .agent-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 14px;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .agent-card:hover {
+            background: #f1f5f9;
+            transform: scale(1.02);
+        }
+
+        .agent-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card:hover .agent-avatar {
+            transform: rotate(-5deg);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .status-indicator.active {
+            background: var(--success);
+        }
+
+        .status-indicator.active::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 2px solid var(--success);
+            animation: ripple 1.5s ease-out infinite;
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        .status-indicator.idle {
+            background: #cbd5e1;
+        }
+
+        /* Progress Circle */
+        .progress-circle {
+            position: relative;
+            width: 180px;
+            height: 180px;
+        }
+
+        .progress-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-circle .track {
+            fill: none;
+            stroke: #f1f5f9;
+            stroke-width: 10;
+        }
+
+        .progress-circle .progress {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Logo */
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: rotate(-10deg) scale(1.05);
+        }
+
+        /* Tag */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .tag-success {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .tag-warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+        /* Phase Label */
+        .phase-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .phase-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover .phase-dot {
+            transform: rotate(45deg);
+        }
+
+        /* User Card */
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            transition: all 0.3s ease;
+        }
+
+        .user-card:hover {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--accent-tertiary), #f472b6);
+            transition: all 0.3s ease;
+        }
+
+        .user-card:hover .user-avatar {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="shape-bg">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <div class="relative z-10 flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-72 p-6 flex flex-col">
+            <!-- Logo -->
+            <div class="flex items-center gap-4 mb-10">
+                <div class="logo">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-xl">ProjectPulse</div>
+                    <div class="text-xs text-[var(--text-secondary)]">Development Hub</div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 space-y-2">
+                <div class="nav-item active">
+                    <i class="fas fa-grid-2 w-5"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-ticket w-5"></i>
+                    <span>Tickets</span>
+                    <span class="ml-auto bg-[var(--accent-primary)] text-white text-xs px-2 py-0.5 rounded-full">24</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-map w-5"></i>
+                    <span>Roadmap</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-brain w-5"></i>
+                    <span>Knowledge</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-book-open w-5"></i>
+                    <span>Wiki</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-robot w-5"></i>
+                    <span>AI Agents</span>
+                    <span class="ml-auto w-2 h-2 rounded-full bg-[var(--success)]"></span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-chart-pie w-5"></i>
+                    <span>Analytics</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>Settings</span>
+                </div>
+            </nav>
+
+            <!-- User Card -->
+            <div class="user-card">
+                <div class="user-avatar">D</div>
+                <div class="flex-1">
+                    <div class="font-semibold">Draco</div>
+                    <div class="text-sm text-[var(--text-secondary)]">Admin</div>
+                </div>
+                <button class="w-9 h-9 rounded-lg hover:bg-white/50 flex items-center justify-center transition-colors">
+                    <i class="fas fa-chevron-right text-[var(--text-secondary)] text-sm"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <!-- Header -->
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">Good evening, Draco 👋</h1>
+                    <p class="text-[var(--text-secondary)]">Here's what's happening with your projects today</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-search"></i>
+                        Search
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        New Ticket
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="card stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-indigo-100 text-[var(--accent-primary)]">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <span class="tag tag-success">
+                            <i class="fas fa-arrow-up text-xs"></i>12%
+                        </span>
+                    </div>
+                    <div class="stat-value counter">3</div>
+                    <div class="text-[var(--text-secondary)] text-sm mt-2">Active Sprints</div>
+                </div>
+
+                <div class="card stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-pink-100 text-[var(--accent-tertiary)]">
+                            <i class="fas fa-ticket"></i>
+                        </div>
+                        <span class="tag tag-warning">
+                            <i class="fas fa-minus text-xs"></i>Stable
+                        </span>
+                    </div>
+                    <div class="stat-value counter">24</div>
+                    <div class="text-[var(--text-secondary)] text-sm mt-2">Open Tickets</div>
+                </div>
+
+                <div class="card stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-purple-100 text-[var(--accent-secondary)]">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <span class="tag tag-success">
+                            <i class="fas fa-arrow-up text-xs"></i>8%
+                        </span>
+                    </div>
+                    <div class="stat-value counter">156</div>
+                    <div class="text-[var(--text-secondary)] text-sm mt-2">Knowledge Items</div>
+                </div>
+
+                <div class="card stat-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="stat-icon bg-emerald-100 text-[var(--success)]">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <span class="tag tag-success">
+                            <i class="fas fa-arrow-up text-xs"></i>23%
+                        </span>
+                    </div>
+                    <div class="stat-value counter">89</div>
+                    <div class="text-[var(--text-secondary)] text-sm mt-2">AI Sessions Today</div>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Sprint Progress -->
+                <div class="card p-6 col-span-2">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold">Sprint Progress</h2>
+                        <select class="bg-[#f1f5f9] border-none rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]">
+                            <option>Sprint 14 (Current)</option>
+                            <option>Sprint 13</option>
+                            <option>Sprint 12</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="phase-label">
+                                    <div class="phase-dot bg-[var(--accent-primary)]"></div>
+                                    <span class="font-medium">Phase 1: Foundation</span>
+                                </div>
+                                <span class="text-sm font-semibold text-[var(--accent-primary)]">100%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)]" style="width: 100%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="phase-label">
+                                    <div class="phase-dot bg-[var(--accent-secondary)]"></div>
+                                    <span class="font-medium">Phase 2: Core Features</span>
+                                </div>
+                                <span class="text-sm font-semibold text-[var(--accent-secondary)]">78%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill bg-gradient-to-r from-[var(--accent-secondary)] to-[var(--accent-tertiary)]" style="width: 78%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="phase-label">
+                                    <div class="phase-dot bg-[var(--accent-tertiary)]"></div>
+                                    <span class="font-medium">Phase 3: AI Integration</span>
+                                </div>
+                                <span class="text-sm font-semibold text-[var(--accent-tertiary)]">45%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill bg-gradient-to-r from-[var(--accent-tertiary)] to-pink-400" style="width: 45%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="phase-label">
+                                    <div class="phase-dot bg-[var(--success)]"></div>
+                                    <span class="font-medium">Phase 4: Polish & Deploy</span>
+                                </div>
+                                <span class="text-sm font-semibold text-[var(--success)]">12%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill bg-gradient-to-r from-[var(--success)] to-emerald-400" style="width: 12%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overall Progress -->
+                <div class="card p-6 flex flex-col items-center justify-center">
+                    <h2 class="text-xl font-bold mb-6">Overall Progress</h2>
+                    <div class="progress-circle">
+                        <svg width="180" height="180" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#6366f1"/>
+                                    <stop offset="50%" stop-color="#8b5cf6"/>
+                                    <stop offset="100%" stop-color="#ec4899"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="track" cx="50" cy="50" r="42"/>
+                            <circle class="progress" cx="50" cy="50" r="42" 
+                                    stroke-dasharray="264" stroke-dashoffset="66"/>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="text-4xl font-bold">75%</span>
+                            <span class="text-[var(--text-secondary)] text-sm">Complete</span>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <div class="text-sm text-[var(--text-secondary)]">Estimated completion</div>
+                        <div class="font-semibold text-[var(--accent-primary)]">January 15, 2025</div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card p-6 col-span-2">
+                    <h2 class="text-xl font-bold mb-6">Recent Activity</h2>
+                    <div class="space-y-2">
+                        <div class="activity-item">
+                            <div class="activity-icon bg-emerald-100 text-[var(--success)]">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium">Ticket #142 completed</div>
+                                <div class="text-sm text-[var(--text-secondary)]">MCP Tool: ticket_search optimization</div>
+                            </div>
+                            <div class="text-sm text-[var(--text-secondary)]">2 min ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-indigo-100 text-[var(--accent-primary)]">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium">AI Session started</div>
+                                <div class="text-sm text-[var(--text-secondary)]">devhub-fullstack working on API routes</div>
+                            </div>
+                            <div class="text-sm text-[var(--text-secondary)]">15 min ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-purple-100 text-[var(--accent-secondary)]">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium">Knowledge item added</div>
+                                <div class="text-sm text-[var(--text-secondary)]">Database optimization patterns</div>
+                            </div>
+                            <div class="text-sm text-[var(--text-secondary)]">1 hour ago</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon bg-pink-100 text-[var(--accent-tertiary)]">
+                                <i class="fas fa-flag"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium">Sprint 14 started</div>
+                                <div class="text-sm text-[var(--text-secondary)]">12 tickets planned, 4 weeks duration</div>
+                            </div>
+                            <div class="text-sm text-[var(--text-secondary)]">3 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Agents -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-6">Active Agents</h2>
+                    <div class="space-y-3">
+                        <div class="agent-card">
+                            <div class="agent-avatar bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)]">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">devhub-fullstack</div>
+                                <div class="text-xs text-[var(--success)]">Working on Ticket #143</div>
+                            </div>
+                            <div class="status-indicator active"></div>
+                        </div>
+                        <div class="agent-card">
+                            <div class="agent-avatar bg-gradient-to-br from-[var(--accent-tertiary)] to-pink-400">
+                                <i class="fas fa-vial"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">devhub-testing</div>
+                                <div class="text-xs text-[var(--success)]">Running test suite</div>
+                            </div>
+                            <div class="status-indicator active"></div>
+                        </div>
+                        <div class="agent-card opacity-60">
+                            <div class="agent-avatar bg-gradient-to-br from-gray-400 to-gray-500">
+                                <i class="fas fa-drafting-compass"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">devhub-architect</div>
+                                <div class="text-xs text-[var(--text-secondary)]">Idle</div>
+                            </div>
+                            <div class="status-indicator idle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

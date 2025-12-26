@@ -901,6 +901,221 @@
   animation: spin 1s linear infinite;
 }
 
+/* Slide In Right (for drawers) */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Slide In Up (for modals) */
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.25s ease-out;
+}
+
+/* Fade In Animation */
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* ============================================================================
+   DRAWER & MODAL OVERLAYS - Sprint 15 Phase F
+   ========================================================================== */
+
+/* Drawer Overlay */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.drawer-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Drawer Panel */
+.drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 480px;
+  max-width: 100vw;
+  background: var(--dark-card);
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  overflow: hidden;
+}
+
+.drawer-overlay.open .drawer-panel {
+  transform: translateX(0);
+}
+
+/* Mobile drawer full width */
+@media (max-width: 640px) {
+  .drawer-panel {
+    width: 100vw;
+  }
+}
+
+/* ============================================================================
+   SESSION LANE & CARD STYLES - Sprint 15 Phase F
+   ========================================================================== */
+
+/* Session Lane Base */
+.session-lane {
+  background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+}
+
+/* Active (Live) Session Lane */
+.session-lane.status-live {
+  background: linear-gradient(90deg, rgba(74, 222, 128, 0.08), transparent 50%);
+  border-left: 3px solid rgba(74, 222, 128, 0.6);
+}
+
+/* Paused Session Lane */
+.session-lane.status-paused {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.06), transparent 50%);
+  border-left: 3px solid rgba(251, 191, 36, 0.5);
+}
+
+/* Collapsed Session Card */
+.session-collapsed {
+  background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.2s ease;
+}
+
+.session-collapsed:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.session-collapsed.status-paused {
+  border-left: 3px solid rgba(251, 191, 36, 0.5);
+}
+
+/* ============================================================================
+   FILTER PILLS - Sprint 15 Phase F
+   ========================================================================== */
+
+.filter-pill {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--dark-pressed);
+  color: var(--slate);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-pill:hover {
+  background: var(--dark-lighter);
+  color: var(--text-primary);
+}
+
+.filter-pill.active {
+  background: rgba(255, 139, 106, 0.15);
+  color: var(--coral);
+  border-color: rgba(255, 139, 106, 0.3);
+}
+
+/* ============================================================================
+   PULSE ANIMATIONS - Sprint 15 Phase F
+   ========================================================================== */
+
+/* Coral Pulse Ring (for agent avatars) */
+@keyframes pulse-ring-coral {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 139, 106, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 139, 106, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 139, 106, 0);
+  }
+}
+
+.pulse-ring {
+  animation: pulse-ring-coral 2s infinite;
+}
+
+/* Green Pulse (for active status) */
+@keyframes pulse-green {
+  0% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(74, 222, 128, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
+}
+
+.pulse-green {
+  animation: pulse-green 2s infinite;
+}
+
+/* ============================================================================
+   CUSTOM SCROLLBAR (for session content) - Sprint 15 Phase F
+   ========================================================================== */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--slate-dark);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--slate);
+}
+
 /* ============================================================================
    SCROLLBAR
    ========================================================================== */

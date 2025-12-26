@@ -42,6 +42,10 @@ async function migrateToSprintLayer() {
       console.log(`   Weeks to migrate: ${phase.weeks.length}`);
 
       // Create Sprint for this Phase
+      // Sprint 15: Count existing sprints in phase to determine sprintNumber
+      const existingSprintCount = await prisma.sprint.count({
+        where: { phaseId: phase.id },
+      });
       const sprint = await prisma.sprint.create({
         data: {
           title: `${phase.title} - Default Sprint`,
@@ -52,6 +56,7 @@ async function migrateToSprintLayer() {
           startDate: phase.startDate,
           endDate: phase.endDate,
           phaseId: phase.id,
+          sprintNumber: existingSprintCount + 1, // Sprint 15: Required field
         },
       });
 

@@ -39,6 +39,7 @@ export type CreateAgentSessionInput = z.infer<typeof CreateAgentSessionSchema>;
  * Update agent session request
  *
  * Sprint 14 (Ticket #31): Increased plan/progress limits + added appendProgress
+ * Sprint 15 (Phase F): Added tokenCount for usage tracking
  */
 export const UpdateAgentSessionSchema = z.object({
   name: z.string().min(1).max(255).optional(),
@@ -48,6 +49,7 @@ export const UpdateAgentSessionSchema = z.object({
   appendProgress: z.boolean().optional(), // Ticket #31: Append to existing progress instead of replace
   activeTicketIds: z.array(z.number().int().positive()).max(50).optional(),
   status: z.enum(['IN_PROGRESS', 'COMPLETED', 'PAUSED']).optional(),
+  tokenCount: z.number().int().nonnegative().optional(), // Sprint 15: Phase F - Token usage tracking
 });
 
 export type UpdateAgentSessionInput = z.infer<typeof UpdateAgentSessionSchema>;
@@ -86,9 +88,11 @@ export type ListAgentSessionsQuery = z.infer<typeof ListAgentSessionsQuerySchema
  * End session request (optional completion notes)
  *
  * Sprint 14 (Ticket #31): Increased progress limit from 10K to 500K chars
+ * Sprint 15 (Phase F): Added tokenCount for final usage tracking
  */
 export const EndAgentSessionSchema = z.object({
   progress: z.string().max(500000).optional(), // Ticket #31: 10K → 500K - Final progress notes
+  tokenCount: z.number().int().nonnegative().optional(), // Sprint 15: Phase F - Final token usage
 });
 
 export type EndAgentSessionInput = z.infer<typeof EndAgentSessionSchema>;

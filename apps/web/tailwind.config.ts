@@ -137,6 +137,7 @@ const config: Config = {
         'pulse-glow': 'pulse-glow-coral 2s ease-in-out infinite',
         'fade-in': 'fade-in 0.3s ease-in',
         'slide-up': 'slide-up 0.4s ease-out',
+        'slide-in-right': 'slide-in-right 0.3s ease-out',
         shimmer: 'shimmer 2s infinite',
         // Legacy animations
         breathing: 'breathing 3s ease-in-out infinite',
@@ -170,6 +171,10 @@ const config: Config = {
         'slide-up': {
           from: { opacity: '0', transform: 'translateY(20px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'slide-in-right': {
+          from: { opacity: '0', transform: 'translateX(100%)' },
+          to: { opacity: '1', transform: 'translateX(0)' },
         },
         shimmer: {
           '0%': { transform: 'translateX(-100%)' },

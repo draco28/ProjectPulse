@@ -54,6 +54,8 @@ function parseWeekRange(weeks: string | undefined): number[] {
  * @throws Error if roadmap not found or transaction fails
  */
 export async function materializeRoadmap(roadmapId: string): Promise<MaterializationResult> {
+  console.log('[materializeRoadmap] Starting materialization for roadmap:', roadmapId);
+
   // 1. Fetch Roadmap with phases JSON
   const roadmap = await prisma.roadmap.findUnique({
     where: { id: roadmapId },
@@ -64,9 +66,14 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
     },
   });
 
+  console.log('[materializeRoadmap] Roadmap found:', !!roadmap);
+
   if (!roadmap) {
     throw new Error(`Roadmap not found: ${roadmapId}`);
   }
+
+  console.log('[materializeRoadmap] Phases JSON type:', typeof roadmap.phases);
+  console.log('[materializeRoadmap] Phases JSON structure:', JSON.stringify(roadmap.phases, null, 2).slice(0, 500));
 
   if (!roadmap.phases) {
     throw new Error(`Roadmap ${roadmapId} has no phases JSON`);
@@ -76,8 +83,15 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
   const parsedRoadmap = roadmap.phases as unknown as ParsedRoadmap;
   const phases = parsedRoadmap.phases;
 
+  console.log('[materializeRoadmap] Parsed phases array:', Array.isArray(phases) ? `Array(${phases.length})` : typeof phases);
+
   if (!Array.isArray(phases) || phases.length === 0) {
-    throw new Error(`Invalid phases structure in roadmap ${roadmapId}`);
+    console.error('[materializeRoadmap] Invalid phases structure:', {
+      isArray: Array.isArray(phases),
+      length: phases?.length,
+      keys: typeof phases === 'object' && phases ? Object.keys(phases) : 'N/A'
+    });
+    throw new Error(`Invalid phases structure in roadmap ${roadmapId}. Expected { phases: [...] }, got: ${JSON.stringify(Object.keys(roadmap.phases as object))}`);
   }
 
   // Track created IDs
@@ -89,6 +103,8 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
   // 2. Transaction: Create Phase → Sprint → Week → Day records
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     let phaseOrder = 0;
+    // Sprint counter OUTSIDE phase loop for continuous numbering across all phases
+    let globalSprintOrder = 0;
 
     for (const phaseData of phases) {
       phaseOrder++;
@@ -112,13 +128,14 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
       phaseIds.push(phase.id);
 
       // Create Sprint records for this phase
-      let sprintOrder = 0;
+      // Note: globalSprintOrder is declared OUTSIDE phase loop for continuous numbering
       for (const sprintData of phaseData.sprints) {
-        sprintOrder++;
+        globalSprintOrder++;
 
         const sprint = await tx.sprint.create({
           data: {
             phaseId: phase.id,
+            sprintNumber: globalSprintOrder, // Sprint 15: Continuous across phases
             title: sprintData.name,
             description: sprintData.goals.join('\n'),
             status: 'NOT_STARTED' as const,

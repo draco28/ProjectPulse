@@ -20,6 +20,8 @@ import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
 import { revalidatePath } from 'next/cache';
+import { TICKET_STATUSES } from '@/lib/constants/status';
+import { calculateAndCascadeProgress } from '@/lib/tickets/progress-calculator';
 
 export const dynamic = 'force-dynamic';
 
@@ -172,6 +174,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         customFields: true,
         kind: true,
         parentTicketId: true,
+        // Sprint 15: Include sprint fields for FK resolution and progress cascade
+        sprintNumber: true,
+        sprintId: true,
       },
     });
 
@@ -261,9 +266,39 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Determine if closing ticket
+    // Sprint 15: Resolve sprintId from sprintNumber when sprintNumber changes
+    let resolvedSprintId: string | null | undefined = undefined; // undefined = no change
+    const newSprintNumber = data.sprintNumber;
+    const sprintNumberChanged = newSprintNumber !== undefined && newSprintNumber !== existing.sprintNumber;
+
+    if (sprintNumberChanged) {
+      if (newSprintNumber === null) {
+        // Clearing sprintNumber → also clear sprintId
+        resolvedSprintId = null;
+      } else if (!data.sprintId) {
+        // sprintNumber set/changed → resolve sprintId from roadmap hierarchy
+        const sprint = await prisma.sprint.findFirst({
+          where: {
+            phase: { roadmap: { projectId: existing.projectId } },
+            sprintNumber: newSprintNumber,
+          },
+          select: { id: true },
+        });
+        resolvedSprintId = sprint?.id ?? null;
+      }
+    }
+
+    // If sprintId is explicitly provided, use it
+    if (data.sprintId !== undefined) {
+      resolvedSprintId = data.sprintId;
+    }
+
+    // Sprint 15: Determine if closing ticket using status constant
     const isClosing =
-      status && status !== existing.status && (status === 'closed' || status === 'resolved');
+      status && status !== existing.status && status === TICKET_STATUSES.DONE;
+
+    // Sprint 15: Detect status changes for progress cascade
+    const statusChanged = status && status !== existing.status;
 
     // Build update data object explicitly
     const updateData: Parameters<typeof prisma.ticket.update>[0]['data'] = {};
@@ -309,6 +344,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (data.epicRef !== undefined) updateData.epicRef = data.epicRef;
     if (data.backlogRefs !== undefined) updateData.backlogRefs = data.backlogRefs;
     if (data.sprintNumber !== undefined) updateData.sprintNumber = data.sprintNumber;
+    // Sprint 15: Set resolved sprintId (FK to Sprint for progress calculation)
+    if (resolvedSprintId !== undefined) updateData.sprintId = resolvedSprintId;
     // Sprint 14: Roadmap scheduling fields
     if (data.scheduledWeekId !== undefined) updateData.scheduledWeekId = data.scheduledWeekId;
     if (data.scheduledDays !== undefined) updateData.scheduledDays = data.scheduledDays;
@@ -319,6 +356,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       data: updateData,
       include: ticketIncludeConfig(true),
     });
+
+    // Sprint 15: Trigger progress cascade when status changes
+    // This updates parent ticket, sprint, and phase progress automatically
+    if (statusChanged) {
+      await calculateAndCascadeProgress(prisma, id);
+    }
 
     revalidatePath('/tickets');
     revalidatePath(`/tickets/${id}`);

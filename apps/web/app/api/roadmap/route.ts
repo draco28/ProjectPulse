@@ -202,14 +202,42 @@ export async function POST(request: NextRequest) {
     if (validated.materialize) {
       try {
         materializationResult = await materializeRoadmap(roadmap.id);
+
+        // Check if materialization returned success: false (e.g., invalid JSON structure)
+        if (!materializationResult.success) {
+          console.error('[POST /api/roadmap] Materialization failed:', materializationResult.message);
+          // Rollback: delete the orphaned roadmap record
+          await prisma.roadmap.delete({ where: { id: roadmap.id } });
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'MATERIALIZATION_FAILED',
+                message: 'Failed to create roadmap phases. Please check your input and try again.',
+                details: materializationResult.message,
+              },
+            },
+            { status: 422 }
+          );
+        }
       } catch (matError) {
         console.error('[POST /api/roadmap] Materialization error:', matError);
-        // Don't fail the request, just note the error
-        materializationResult = {
-          success: false,
-          message: matError instanceof Error ? matError.message : 'Materialization failed',
-          counts: { phases: 0, sprints: 0, weeks: 0, days: 0 },
-        };
+        // Rollback: delete the orphaned roadmap record
+        try {
+          await prisma.roadmap.delete({ where: { id: roadmap.id } });
+        } catch (deleteError) {
+          console.error('[POST /api/roadmap] Failed to rollback roadmap:', deleteError);
+        }
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'MATERIALIZATION_FAILED',
+              message: matError instanceof Error ? matError.message : 'Failed to create roadmap phases',
+            },
+          },
+          { status: 422 }
+        );
       }
     }
 

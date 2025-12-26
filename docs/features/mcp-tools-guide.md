@@ -36,7 +36,7 @@
 
 **ProjectPulse Tools**:
 
-- [projectpulse](#projectpulse-mcp-server) - Sprint management, onboarding, wiki, issues, workflows (40 tools active)
+- [projectpulse](#projectpulse-mcp-server) - Sprint management, onboarding, wiki, issues, workflows, kanban (42 tools active)
 
 ---
 
@@ -522,11 +522,11 @@ docker_compose_status();
 
 ## ProjectPulse MCP Server
 
-**Server**: `projectpulse` (Sprint 8.7 - Stateless HTTP Streaming)  
-**URL**: `http://192.168.1.15:3001/mcp`  
-**Transport**: HTTP (stateless streaming)  
-**Protocol**: MCP 2024-11-05  
-**Tools**: 40 tools across 8 categories  
+**Server**: `projectpulse` (Sprint 8.7 - Stateless HTTP Streaming)
+**URL**: `http://192.168.1.15:3001/mcp`
+**Transport**: HTTP (stateless streaming)
+**Protocol**: MCP 2024-11-05
+**Tools**: 42 tools across 9 categories
 **Status**: ✅ Production Ready (Validated 2025-11-20)
 
 **When to use**: Sprint management, onboarding workflows, wiki documentation, issue tracking, workflow orchestration, roadmap planning, blueprint management, **context management (Memory Banks)**
@@ -1991,6 +1991,179 @@ projectpulse.issue.setStatus({
 
 ---
 
+### Kanban Board Tools (Sprint 15)
+
+These tools support the 5-column kanban workflow for sprint-based ticket management.
+
+#### `projectpulse_kanban_getBoard`
+
+Get complete kanban board for a sprint with tickets grouped by column
+
+**Parameters**:
+
+```typescript
+{
+  sprintId: string   // Sprint ID (cuid) to fetch kanban board for
+}
+```
+
+**Example**:
+
+```typescript
+// Get kanban board for current sprint
+projectpulse_kanban_getBoard({
+  sprintId: 'cm5abc123xyz789...',
+});
+```
+
+**Returns**:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "sprint": {
+      "id": "cm5abc123...",
+      "sprintNumber": 1,
+      "title": "Sprint 1: Foundation",
+      "status": "IN_PROGRESS",
+      "progress": 45,
+      "phase": {
+        "id": "cm5phase...",
+        "title": "Phase 1: Core Features"
+      }
+    },
+    "columns": {
+      "backlog": [],
+      "todo": [
+        {
+          "id": 25,
+          "title": "Implement search API",
+          "status": "todo",
+          "priority": "high",
+          "kind": "feature",
+          "displayOrder": 0,
+          "parentTicketId": null,
+          "assignee": "Claude Code"
+        }
+      ],
+      "in-progress": [...],
+      "in-review": [...],
+      "done": [...]
+    },
+    "ghosts": [
+      {
+        "ticketId": 30,
+        "title": "Parent Feature",
+        "kind": "feature",
+        "actualStatus": "in-progress",
+        "ghostInStatus": "todo",
+        "ghostType": "parent",
+        "relatedTicketId": 31
+      }
+    ],
+    "stats": {
+      "total": 15,
+      "done": 5,
+      "inProgress": 3,
+      "progress": 33,
+      "columnSummary": "Backlog: 2, Todo: 5, In Progress: 3, In Review: 0, Done: 5"
+    }
+  }
+}
+```
+
+**Features**:
+- **5-Column Workflow**: backlog → todo → in-progress → in-review → done
+- **Ghost Cards**: Shows parent/child relationships when tickets are in different columns
+- **Board Statistics**: Total counts, completion progress, per-column breakdown
+- **Sprint Context**: Full sprint and phase metadata for navigation
+
+**When to use**:
+- Rendering kanban board UI for a sprint
+- Getting complete board state for ticket management
+- Checking sprint progress and ticket distribution
+- Understanding parent-child relationships across columns
+
+**API**: `GET /api/sprints/[sprintId]/kanban`
+**Source**: [apps/mcp-server/src/tools/kanban/getBoardTool.ts](../../apps/mcp-server/src/tools/kanban/getBoardTool.ts)
+
+---
+
+#### `projectpulse_kanban_moveTicket`
+
+Move a ticket to a new column and/or position with automatic progress cascade
+
+**Parameters**:
+
+```typescript
+{
+  ticketId: number,      // Ticket ID to move (positive integer)
+  status: string,        // Target column: 'backlog' | 'todo' | 'in-progress' | 'in-review' | 'done'
+  displayOrder: number   // Target position in column (0-indexed, 0 = top)
+}
+```
+
+**Example**:
+
+```typescript
+// Move ticket to in-progress column at position 0 (top)
+projectpulse_kanban_moveTicket({
+  ticketId: 25,
+  status: 'in-progress',
+  displayOrder: 0,
+});
+```
+
+**Returns**:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "ticket": {
+      "id": 25,
+      "title": "Implement search API",
+      "status": "in-progress",
+      "displayOrder": 0,
+      "priority": "high",
+      "kind": "feature",
+      "parentTicketId": null,
+      "assignee": "Claude Code"
+    },
+    "progressUpdates": {
+      "ticketId": 25,
+      "parentProgress": "75%",
+      "sprintProgress": "45%",
+      "phaseProgress": "30%"
+    },
+    "message": "Progress updated: Parent feature: 75%, Sprint: 45%, Phase: 30%"
+  }
+}
+```
+
+**Features**:
+- **Automatic Reordering**: Other tickets in column shift to accommodate
+- **Progress Cascade**: Moving to 'done' triggers parent/sprint/phase progress recalculation
+- **Timestamp Management**: Sets `closedAt` when moving to 'done', clears when moving away
+- **Validation**: Enforces valid status values and position bounds
+
+**When to use**:
+- Drag-drop operations in kanban UI
+- Moving tickets between workflow stages
+- Reordering tickets within a column
+- Completing work (move to 'done' triggers progress cascade)
+
+**Prefer over `ticket_update` because**:
+1. Handles reordering of other tickets in column automatically
+2. Returns progress cascade for immediate UI feedback
+3. Manages `closedAt` timestamp automatically
+
+**API**: `PATCH /api/tickets/[id]/move`
+**Source**: [apps/mcp-server/src/tools/kanban/moveTicketTool.ts](../../apps/mcp-server/src/tools/kanban/moveTicketTool.ts)
+
+---
+
 ### When to Use ProjectPulse Tools
 
 **Use `sprint.phase.create` when**:
@@ -2048,6 +2221,27 @@ projectpulse.issue.setStatus({
 - Finding nearly complete items to prioritize finishing
 - Daily standup: "What's blocked?"
 - Risk assessment: "What's stuck with low progress?"
+
+**Use `kanban_getBoard` when**:
+
+- Rendering kanban board UI for a sprint
+- Need complete board state with all columns, tickets, and stats
+- Checking sprint progress and ticket distribution
+- Understanding parent-child relationships via ghost cards
+- Getting sprint context (phase, progress, metadata)
+
+**Use `kanban_moveTicket` when**:
+
+- Implementing drag-drop in kanban UI
+- Moving tickets between workflow stages (backlog → todo → in-progress → in-review → done)
+- Reordering tickets within a column
+- Completing work (triggers progress cascade automatically)
+- Need automatic `closedAt` timestamp management
+
+**Prefer `kanban_moveTicket` over `ticket_update` for status changes because**:
+- Handles reordering of other tickets in column automatically
+- Returns progress cascade for immediate UI feedback
+- Manages `closedAt` timestamp automatically
 
 **Common Workflows**:
 
@@ -2952,8 +3146,8 @@ projectpulse.skill.linkKnowledge({
 
 ---
 
-**Last Updated:** 2025-11-13
-**MCP Status:** Core tools configured + ProjectPulse MCP server active (40 tools - Sprint 8.7)
-**Completed:** Sprint 1-6 complete (8 sprint + 6 workflow + 6 issue + 7 knowledge + 7 skills)
+**Last Updated:** 2025-12-26
+**MCP Status:** Core tools configured + ProjectPulse MCP server active (42 tools - Sprint 15)
+**Completed:** Sprint 1-15 (8 sprint + 6 workflow + 6 issue + 7 knowledge + 7 skills + 2 kanban)
 
 **See also**: [.agent/progress.md](../progress.md) for current project status

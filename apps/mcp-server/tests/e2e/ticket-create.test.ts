@@ -48,6 +48,7 @@ describe('MCP Tool: projectpulse_ticket_create', () => {
     console.log(`✓ Test cleanup complete for project ${projectId}`);
   });
 
+  // Sprint 15: Updated for 5-status kanban workflow (default status is now 'backlog')
   test('should create ticket with kind=feature', async () => {
     const result = await client.callTool('projectpulse_ticket_create', {
       projectId,
@@ -56,7 +57,7 @@ describe('MCP Tool: projectpulse_ticket_create', () => {
       kind: 'feature',
       source: 'agent',
       priority: 'high',
-      status: 'open',
+      status: 'backlog',
     });
 
     // Verify result structure
@@ -94,7 +95,7 @@ describe('MCP Tool: projectpulse_ticket_create', () => {
       kind: 'bug',
       source: 'scanner',
       priority: 'critical',
-      status: 'open',
+      status: 'backlog',
     });
 
     const ticketData = JSON.parse(result.content[0].text);
@@ -114,7 +115,7 @@ describe('MCP Tool: projectpulse_ticket_create', () => {
       kind: 'task',
       source: 'manual',
       priority: 'medium',
-      status: 'open',
+      status: 'backlog',
     });
 
     const ticketData = JSON.parse(result.content[0].text);
@@ -131,7 +132,7 @@ describe('MCP Tool: projectpulse_ticket_create', () => {
       kind: 'epic',
       source: 'agent',
       priority: 'high',
-      status: 'open',
+      status: 'backlog',
     });
 
     const ticketData = JSON.parse(result.content[0].text);
@@ -148,7 +149,7 @@ describe('MCP Tool: projectpulse_ticket_create', () => {
       kind: 'scanner_finding',
       source: 'scanner',
       priority: 'high',
-      status: 'open',
+      status: 'backlog',
       module: 'Security',
     });
 
@@ -168,7 +169,7 @@ describe('MCP Tool: projectpulse_ticket_create', () => {
       kind: 'issue',
       source: 'agent',
       priority: 'low',
-      status: 'open',
+      status: 'backlog',
       module: 'API',
       customFields: {
         environment: 'production',

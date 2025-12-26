@@ -23,10 +23,13 @@ import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 // Sprint 14: Semantic badge colors for filter counts (Ticket #23)
+// Sprint 15: Updated for 5-status kanban workflow
 const STATUS_BADGE_COLORS: Record<string, string> = {
-  open: 'bg-emerald-500',
+  backlog: 'bg-gray-500',
+  todo: 'bg-slate-500',
   'in-progress': 'bg-amber-500',
-  closed: 'bg-slate-500',
+  'in-review': 'bg-purple-500',
+  done: 'bg-green-500',
 };
 
 const PRIORITY_BADGE_COLORS: Record<string, string> = {

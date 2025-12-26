@@ -71,6 +71,9 @@ model Sprint {
   status      Status  @default(NOT_STARTED)
   progress    Int     @default(0) // 0-100, validated in application
 
+  // Sprint 15: Sprint number within phase for ticket correlation
+  sprintNumber Int // 1, 2, 3, ... (set during materialization)
+
   // Time window
   startDate DateTime
   endDate   DateTime?
@@ -82,13 +85,18 @@ model Sprint {
   // Hierarchy - Children
   weeks Week[]
 
+  // Sprint 15: Tickets assigned to this sprint (FK relationship)
+  tickets Ticket[]
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Indexes for performance
+  @@unique([phaseId, sprintNumber]) // Sprint 15: Ensure uniqueness per phase
   @@index([phaseId])
   @@index([phaseId, startDate]) // Composite index recommended by prisma-expert
+  @@index([phaseId, sprintNumber]) // Sprint 15: Fast lookup by sprint number
   @@index([startDate, endDate])
   @@index([status])
   @@index([phaseId, status])
@@ -213,17 +221,17 @@ model Project {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  tickets             Ticket[] // Sprint 10: Unified Ticket model (replaces Issue)
-  skills              Skill[] // Sprint 6: Skills lazy-loading system
-  onboardingSessions  OnboardingSession[]
-  workflowRuns        WorkflowRun[]
-  workflowTemplates   WorkflowTemplate[] // Sprint 8.5 Phase 3: Project-scoped workflow templates
-  healthScanners      HealthScanner[] // Sprint 7: Health monitoring system
-  healthScores        HealthScore[] // Sprint 7: Health scores
-  roadmap             Roadmap? // Sprint 8.5: Development roadmap (one-to-one)
-  agentPersonas       AgentPersona[] // Sprint 8.5 Phase 3: Project-scoped agent personas
-  sops                SOP[] // Sprint 8.5 Phase 3E: SOPs for this project
-  agentSessions       AgentSession[] // Sprint 12: Agent work sessions (replaces DevelopmentSession)
+  tickets            Ticket[] // Sprint 10: Unified Ticket model (replaces Issue)
+  skills             Skill[] // Sprint 6: Skills lazy-loading system
+  onboardingSessions OnboardingSession[]
+  workflowRuns       WorkflowRun[]
+  workflowTemplates  WorkflowTemplate[] // Sprint 8.5 Phase 3: Project-scoped workflow templates
+  healthScanners     HealthScanner[] // Sprint 7: Health monitoring system
+  healthScores       HealthScore[] // Sprint 7: Health scores
+  roadmap            Roadmap? // Sprint 8.5: Development roadmap (one-to-one)
+  agentPersonas      AgentPersona[] // Sprint 8.5 Phase 3: Project-scoped agent personas
+  sops               SOP[] // Sprint 8.5 Phase 3E: SOPs for this project
+  agentSessions      AgentSession[] // Sprint 12: Agent work sessions (replaces DevelopmentSession)
 
   // Sprint 8.9: Additional project-scoped entities
   knowledgeItems   KnowledgeItem[]
@@ -306,7 +314,7 @@ model MCPToolLog {
   tokenId   Int
   projectId Int
   toolName  String   @db.VarChar(100)
-  duration  Int      // Execution time in milliseconds
+  duration  Int // Execution time in milliseconds
   success   Boolean
   error     String?  @db.Text
   metadata  Json?    @db.JsonB // Request params (sanitized, no secrets)
@@ -365,7 +373,7 @@ model Ticket {
   // Core fields (inherited from Issue)
   title       String
   description String? @db.Text
-  status      String  @default("open")
+  status      String  @default("backlog")
   priority    String  @default("medium")
   module      String? // UI, API, Database, etc.
   assignee    String? // Legacy: simple string assignee
@@ -380,10 +388,10 @@ model Ticket {
 
   // Sprint 12: Ticket Scheduling (replaces linkedTaskId → Task linkage)
   // Tickets are now scheduled directly to Weeks with day-level assignment
-  estimatedDays    Int?     // How many days to complete (required for scheduling)
-  scheduledWeekId  String?  // Primary week this ticket is scheduled to
-  scheduledWeek    Week?    @relation("ScheduledTickets", fields: [scheduledWeekId], references: [id], onDelete: SetNull)
-  scheduledDays    String[] @default([]) // ["Monday", "Tuesday", "Wednesday"] - which days within the week
+  estimatedDays   Int? // How many days to complete (required for scheduling)
+  scheduledWeekId String? // Primary week this ticket is scheduled to
+  scheduledWeek   Week?    @relation("ScheduledTickets", fields: [scheduledWeekId], references: [id], onDelete: SetNull)
+  scheduledDays   String[] @default([]) // ["Monday", "Tuesday", "Wednesday"] - which days within the week
 
   // Custom fields (flexible schema)
   customFields Json? @db.JsonB
@@ -421,8 +429,15 @@ model Ticket {
 
   // Sprint 13: Traceability fields for industry workflow (PRD → SRS → Backlog → ProjectPlan)
   epicRef      String?  @db.VarChar(200) // Soft reference: "Epic 1: User Management"
-  backlogRefs  String[] @default([])     // SRS traceability: ["FR-001", "FR-002", "NFR-003"]
-  sprintNumber Int?                      // Sprint number for filtering (1, 2, 3, ...)
+  backlogRefs  String[] @default([]) // SRS traceability: ["FR-001", "FR-002", "NFR-003"]
+  sprintNumber Int? // Sprint number for filtering (1, 2, 3, ...)
+
+  // Sprint 15: FK to actual Sprint record (proper relationship for progress calculation)
+  sprintId String?
+  sprint   Sprint? @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+
+  // Sprint 15: Kanban ordering within column
+  displayOrder Int @default(0)
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -447,6 +462,9 @@ model Ticket {
   @@index([projectId, parentTicketId]) // Sprint 13: Project-scoped hierarchy queries
   @@index([projectId, sprintNumber]) // Sprint 13: Find tickets by sprint
   @@index([projectId, epicRef]) // Sprint 13: Find tickets by epic reference
+  @@index([projectId, sprintNumber, status, displayOrder]) // Sprint 15: Kanban column queries
+  @@index([sprintId]) // Sprint 15: FK to Sprint for progress calculation
+  @@index([sprintId, status, displayOrder]) // Sprint 15: Kanban board queries by sprintId
   @@map("tickets") // Sprint 10: Renamed from "issues" to "tickets"
 }
 
@@ -469,8 +487,8 @@ model BacklogItem {
 
   // Traceability fields (for ticket creation)
   epicRef      String?  @db.VarChar(200) // "Epic 1: User Management" (was epicId in parser)
-  frTraces     String[] @default([])     // ["FR-001", "FR-002"] - functional requirements
-  nfrTraces    String[] @default([])     // ["NFR-001"] - non-functional requirements
+  frTraces     String[] @default([]) // ["FR-001", "FR-002"] - functional requirements
+  nfrTraces    String[] @default([]) // ["NFR-001"] - non-functional requirements
   sprintNumber Int? // Sprint assignment (1, 2, 3, ...)
 
   // Source tracking
@@ -509,7 +527,7 @@ model Label {
 // Sprint 11.7: Milestone model for grouping tickets into releases/versions
 model Milestone {
   id          Int       @id @default(autoincrement())
-  name        String    // e.g., "v1.2.0", "Q1 2025 Release"
+  name        String // e.g., "v1.2.0", "Q1 2025 Release"
   description String?   @db.Text
   targetDate  DateTime? // Target completion date
   status      String    @default("active") // active, completed, cancelled
@@ -638,7 +656,7 @@ model KnowledgeItem {
   linkedSkills SkillKnowledgeLink[]
 
   // Ticket #59: Metadata for traceability matrices and other knowledge context
-  metadata   Json?    @db.JsonB
+  metadata Json? @db.JsonB
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -886,7 +904,7 @@ model WikiPage {
 
   // Full-text search (generated column via migration)
   // Note: searchVector was a placeholder, content_tsv is the actual tsvector column
-  searchVector String?                   @db.Text // Legacy placeholder (unused)
+  searchVector String?                  @db.Text // Legacy placeholder (unused)
   contentTsv   Unsupported("tsvector")? @map("content_tsv") // Actual FTS column
 
   // Links
@@ -1459,6 +1477,9 @@ model AgentSession {
   // Status tracking
   status String @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED | PAUSED
 
+  // Token usage tracking (Sprint 15: Phase F)
+  tokenCount Int? // Total tokens used in this session
+
   // Timestamps
   startedAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -1686,7 +1707,7 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   name         String?
-  passwordHash String   // bcrypt hash
+  passwordHash String // bcrypt hash
   role         UserRole @default(USER) // Sprint 11.5: Admin role system
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -1715,10 +1736,10 @@ model AuthSession {
 // Sprint 11.5: Admin audit logging for accountability
 model AdminAuditLog {
   id         Int      @id @default(autoincrement())
-  adminId    String   // User ID of admin who performed action
-  action     String   // DEACTIVATE_USER, ACTIVATE_USER, RESET_PASSWORD, PROMOTE_TO_ADMIN, etc.
-  targetType String   // USER, PROJECT_TOKEN, MCP_TOOL
-  targetId   String   // Target entity ID
+  adminId    String // User ID of admin who performed action
+  action     String // DEACTIVATE_USER, ACTIVATE_USER, RESET_PASSWORD, PROMOTE_TO_ADMIN, etc.
+  targetType String // USER, PROJECT_TOKEN, MCP_TOOL
+  targetId   String // Target entity ID
   metadata   Json?    @db.JsonB // Additional context (old values, new values, reason, etc.)
   ipAddress  String?
   userAgent  String?

@@ -17,6 +17,7 @@
 
 import { useReducer, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { WizardStepIndicator } from './WizardStepIndicator';
 import { WizardNavigation } from './WizardNavigation';
 import { Step1ProjectInfo } from './Step1ProjectInfo';
@@ -284,20 +285,38 @@ export function RoadmapWizard({ projectId, projectName }: RoadmapWizardProps) {
       const result = await response.json();
 
       if (!response.ok) {
+        // Build detailed error message
+        const errorMessage = result.error?.message || 'Failed to create roadmap';
+        const errorDetails = result.error?.details;
+        const fullMessage = errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage;
+
+        // Show toast for immediate visibility
+        toast.error(fullMessage, {
+          duration: 5000,
+          description: result.error?.code === 'MATERIALIZATION_FAILED'
+            ? 'The roadmap structure could not be created. Please check your phases and sprints.'
+            : undefined,
+        });
+
         dispatch({
           type: 'SET_ERRORS',
-          errors: { submit: result.error?.message || 'Failed to create roadmap' },
+          errors: { submit: fullMessage },
         });
         return;
       }
 
-      // Success - clear draft and redirect (preserve project context)
+      // Success - show success toast, clear draft and redirect
+      // Use window.location for FULL page reload to ensure fresh server-side data fetch
+      // (router.push uses client-side cache which may not have the new roadmap)
+      toast.success('Roadmap created successfully!');
       clearDraft();
-      router.push(`/roadmap?project=${projectId}`);
+      window.location.href = `/roadmap?project=${projectId}`;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Network error';
+      toast.error(errorMessage, { duration: 5000 });
       dispatch({
         type: 'SET_ERRORS',
-        errors: { submit: error instanceof Error ? error.message : 'Network error' },
+        errors: { submit: errorMessage },
       });
     } finally {
       dispatch({ type: 'SET_SUBMITTING', isSubmitting: false });

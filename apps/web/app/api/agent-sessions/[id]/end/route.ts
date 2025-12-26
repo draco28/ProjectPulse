@@ -111,17 +111,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Session is already completed' }, { status: 400 });
     }
 
-    const { progress } = validation.data;
+    const { progress, tokenCount } = validation.data;
 
     // Build update data
     const updateData: {
       status: string;
       completedAt: Date;
       progress?: string;
+      tokenCount?: number;
     } = {
       status: 'COMPLETED',
       completedAt: new Date(),
     };
+
+    // Sprint 15: Phase F - Token usage tracking
+    if (tokenCount !== undefined) {
+      updateData.tokenCount = tokenCount;
+    }
 
     // Append final progress if provided
     if (progress) {

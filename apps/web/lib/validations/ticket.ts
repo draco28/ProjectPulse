@@ -209,6 +209,9 @@ const TicketBaseSchema = z.object({
   epicRef: z.string().max(200, 'Epic reference too long').optional().nullable(), // "Epic 1: User Management"
   backlogRefs: z.array(z.string().max(50)).max(50).default([]), // ["FR-001", "FR-002", "NFR-003"]
   sprintNumber: z.number().int().min(1).max(999).optional().nullable(), // Sprint 1, 2, 3, ...
+
+  // Sprint 15: FK to Sprint record for kanban board (auto-resolved from sprintNumber if not provided)
+  sprintId: z.string().optional().nullable(),
 });
 
 export const TicketIdParamSchema = z.object({

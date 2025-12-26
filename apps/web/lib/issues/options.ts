@@ -1,5 +1,6 @@
 import type { IssueOptionSets } from '@/lib/types/issues';
 import { prisma } from '@/lib/prisma';
+import { TICKET_STATUSES } from '@/lib/constants/status';
 
 /**
  * Custom error for option validation failures
@@ -63,11 +64,26 @@ export async function getIssueOptionSets(force = false): Promise<IssueOptionSets
   return cachedOptions;
 }
 
+// Sprint 15: Backwards compatibility mapping for legacy status values
+const STATUS_BACKWARDS_COMPAT: Record<string, string> = {
+  open: TICKET_STATUSES.BACKLOG,
+  closed: TICKET_STATUSES.DONE,
+  resolved: TICKET_STATUSES.DONE,
+  blocked: TICKET_STATUSES.BACKLOG,
+};
+
 export async function resolveStatusValue(input?: string) {
   const options = await getIssueOptionSets();
   if (input) {
     // Normalize input: convert underscores to hyphens for backwards compatibility
-    const normalizedInput = input.replace(/_/g, '-');
+    let normalizedInput = input.replace(/_/g, '-');
+
+    // Sprint 15: Map legacy status values to new kanban statuses
+    const mappedStatus = STATUS_BACKWARDS_COMPAT[normalizedInput];
+    if (mappedStatus) {
+      normalizedInput = mappedStatus;
+    }
+
     const match = options.statuses.find(
       (option) => option.value === normalizedInput || option.value === input
     );

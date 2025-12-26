@@ -247,6 +247,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Sprint 15: Resolve sprintId from sprintNumber (via roadmap hierarchy)
+    let resolvedSprintId: string | null = null;
+    if (data.sprintNumber && !data.sprintId) {
+      const sprint = await prisma.sprint.findFirst({
+        where: {
+          phase: {
+            roadmap: { projectId },
+          },
+          sprintNumber: data.sprintNumber,
+        },
+        select: { id: true },
+      });
+      if (sprint) {
+        resolvedSprintId = sprint.id;
+      }
+    }
+
+    // Sprint 15: Auto-assign displayOrder (max + 1 in same status column within sprint)
+    let autoDisplayOrder = 0;
+    const targetSprintId = data.sprintId ?? resolvedSprintId;
+    if (targetSprintId) {
+      const maxOrderResult = await prisma.ticket.aggregate({
+        where: {
+          sprintId: targetSprintId,
+          status: status,
+        },
+        _max: { displayOrder: true },
+      });
+      autoDisplayOrder = (maxOrderResult._max.displayOrder ?? -1) + 1;
+    }
+
     // Sprint 15: Auto-populate backlogRefs from BacklogItem table when sprintNumber provided
     let backlogRefsToUse = data.backlogRefs ?? [];
     let backlogRefsAutoPopulated = false;
@@ -289,6 +320,10 @@ export async function POST(request: NextRequest) {
           // Sprint 15: Use auto-populated backlogRefs if available
           backlogRefs: backlogRefsToUse,
           sprintNumber: data.sprintNumber ?? null,
+          // Sprint 15: FK to Sprint for kanban board (resolved from sprintNumber)
+          sprintId: data.sprintId ?? resolvedSprintId,
+          // Sprint 15: Auto-assigned displayOrder for kanban column positioning
+          displayOrder: autoDisplayOrder,
           labels:
             labelIdSet.size > 0
               ? {

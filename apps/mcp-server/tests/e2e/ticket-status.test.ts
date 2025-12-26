@@ -43,10 +43,11 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
     console.log(`✓ Test cleanup complete for project ${projectId}`);
   });
 
-  test('should change status from open to in-progress', async () => {
+  // Sprint 15: Updated tests for 5-status kanban workflow
+  test('should change status from backlog to in-progress', async () => {
     const ticket = await createTestTicket(projectId, {
       title: 'Test Status Transition',
-      status: 'open',
+      status: 'backlog',
     });
 
     const result = await client.callTool('projectpulse_ticket_setStatus', {
@@ -62,10 +63,10 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
     const dbTicket = await prisma.ticket.findUnique({ where: { id: ticket.id } });
     assert.strictEqual(dbTicket?.status, 'in-progress', 'Status should be in-progress in database');
 
-    console.log('✓ Status changed: open → in-progress');
+    console.log('✓ Status changed: backlog → in-progress');
   });
 
-  test('should change status from in-progress to completed and set closedAt', async () => {
+  test('should change status from in-progress to done and set closedAt', async () => {
     const ticket = await createTestTicket(projectId, {
       title: 'Test Completion',
       status: 'in-progress',
@@ -73,47 +74,49 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
 
     const result = await client.callTool('projectpulse_ticket_setStatus', {
       ticketId: ticket.id,
-      status: 'closed',
+      status: 'done',
     });
 
     const updatedTicket = JSON.parse(result.content[0].text);
 
-    assert.strictEqual(updatedTicket.status, 'closed', 'Status should be closed');
+    assert.strictEqual(updatedTicket.status, 'done', 'Status should be done');
 
     // Verify closedAt timestamp was set
     const dbTicket = await prisma.ticket.findUnique({ where: { id: ticket.id } });
-    assert.ok(dbTicket?.closedAt, 'closedAt should be set when status=closed');
-    assert.strictEqual(dbTicket?.status, 'closed', 'Status should be closed in database');
+    assert.ok(dbTicket?.closedAt, 'closedAt should be set when status=done');
+    assert.strictEqual(dbTicket?.status, 'done', 'Status should be done in database');
 
-    console.log(`✓ Status changed: in-progress → closed, closedAt set to ${dbTicket?.closedAt}`);
+    console.log(`✓ Status changed: in-progress → done, closedAt set to ${dbTicket?.closedAt}`);
   });
 
-  test('should change status from open to blocked', async () => {
+  // Sprint 15: Test backwards compatibility - 'closed' should be normalized to 'done'
+  test('should normalize legacy "closed" status to "done"', async () => {
     const ticket = await createTestTicket(projectId, {
-      title: 'Test Blocked Status',
-      status: 'open',
+      title: 'Test Legacy Status',
+      status: 'backlog',
     });
 
     const result = await client.callTool('projectpulse_ticket_setStatus', {
       ticketId: ticket.id,
-      status: 'blocked',
+      status: 'closed', // Legacy value
     });
 
     const updatedTicket = JSON.parse(result.content[0].text);
 
-    assert.strictEqual(updatedTicket.status, 'blocked', 'Status should be blocked');
+    // Sprint 15: 'closed' should be normalized to 'done'
+    assert.strictEqual(updatedTicket.status, 'done', 'Status should be normalized to done');
 
     // Verify in database
     const dbTicket = await prisma.ticket.findUnique({ where: { id: ticket.id } });
-    assert.strictEqual(dbTicket?.status, 'blocked', 'Status should be blocked in database');
+    assert.strictEqual(dbTicket?.status, 'done', 'Status should be done in database');
 
-    console.log('✓ Status changed: open → blocked');
+    console.log('✓ Legacy status "closed" normalized to "done"');
   });
 
   test('should fail validation when status value is invalid', async () => {
     const ticket = await createTestTicket(projectId, {
       title: 'Test Invalid Status',
-      status: 'open',
+      status: 'backlog',
     });
 
     try {
