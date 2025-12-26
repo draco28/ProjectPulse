@@ -113,6 +113,8 @@ import { sopListTool } from './sops/listTool.js';
 import { sopGetTool } from './sops/getTool.js';
 // Sprint 14: Backlog items tools for traceability workflow
 import { backlogGetBySprintTool, backlogListTool } from './backlog/index.js';
+// Sprint 15: Kanban board tools
+import { kanbanGetBoardTool, kanbanMoveTicketTool } from './kanban/index.js';
 
 export const loadTools = (): ToolDefinition[] => [
   healthCheckTool,
@@ -225,6 +227,9 @@ export const loadTools = (): ToolDefinition[] => [
   // Sprint 14: Backlog items for traceability workflow
   backlogGetBySprintTool,
   backlogListTool,
+  // Sprint 15: Kanban board tools
+  kanbanGetBoardTool,
+  kanbanMoveTicketTool,
 ];
 
 export const registerTools = (server: Server, context: ToolContext) => {

@@ -37,7 +37,9 @@ const ticketUpdateSchema = baseTicketFields
       data.parentTicketId !== undefined ||
       data.epicRef !== undefined ||
       data.backlogRefs !== undefined ||
-      data.sprintNumber !== undefined,
+      data.sprintNumber !== undefined ||
+      // Sprint 15: Kanban ordering
+      data.displayOrder !== undefined,
     {
       message: 'Provide at least one field to update',
       path: [],
@@ -109,6 +111,8 @@ HIERARCHY (Sprint 13):
       epicRef: ticketInputProperties.epicRef,
       backlogRefs: ticketInputProperties.backlogRefs,
       sprintNumber: ticketInputProperties.sprintNumber,
+      // Sprint 15: Kanban ordering
+      displayOrder: ticketInputProperties.displayOrder,
     },
     required: ['ticketId'],
   },

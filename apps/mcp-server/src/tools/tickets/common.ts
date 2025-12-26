@@ -127,6 +127,8 @@ export const baseTicketFields = z.object({
   scheduledWeekId: z.string().optional().nullable(),
   scheduledDays: z.array(z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])).optional(),
   estimatedDays: z.number().int().min(1).max(365).optional().nullable(),
+  // Sprint 15: Kanban ordering
+  displayOrder: z.number().int().min(0).max(10000).optional(),
 });
 
 export const ticketIdSchema = z
@@ -219,6 +221,11 @@ export const ticketInputProperties = {
   estimatedDays: {
     type: 'number',
     description: 'Estimated days to complete this ticket (1-365). Used for planning and scheduling.',
+  },
+  // Sprint 15: Kanban ordering
+  displayOrder: {
+    type: 'number',
+    description: 'Position in kanban column (0-indexed, max 10000). Used for drag-drop reordering within a status.',
   },
   labelIds: {
     type: 'array',
