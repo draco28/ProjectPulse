@@ -1,6 +1,10 @@
 'use client';
 
 /**
+ * @deprecated Sprint 15 Phase E - Replaced by components/roadmap-timeline/
+ * This component will be removed in Sprint 16.
+ * Use PhaseTimelineClient from components/roadmap-timeline instead.
+ *
  * FilterableRoadmapView Component - Standalone Roadmap UI Phase D
  *
  * Wrapper component that allows toggling between Tree and Timeline views

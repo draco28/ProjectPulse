@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch roadmap with phases, sprints, and ticket counts
     // Note: Roadmap model doesn't have title field - we derive it from project name
+    // Sprint 15 Phase E: Include startDate/endDate for Phase Timeline view
     const roadmap = await prisma.roadmap.findUnique({
       where: { projectId },
       select: {
@@ -61,6 +62,8 @@ export async function GET(request: NextRequest) {
             title: true,
             status: true,
             progress: true,
+            startDate: true,
+            endDate: true,
             sprints: {
               select: {
                 id: true,
@@ -68,6 +71,8 @@ export async function GET(request: NextRequest) {
                 title: true,
                 status: true,
                 progress: true,
+                startDate: true,
+                endDate: true,
                 // Get ticket stats via subquery
                 tickets: {
                   select: {
@@ -91,8 +96,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform to overview format with calculated stats
+    // Sprint 15 Phase E: Extended for Phase Timeline view
     let totalTickets = 0;
     let completedTickets = 0;
+    let inProgressTickets = 0;
+    let inReviewTickets = 0;
 
     const phases: PhaseOverview[] = roadmap.phases_rel.map((phase) => {
       const sprints: SprintOverview[] = phase.sprints.map((sprint) => {
@@ -100,12 +108,14 @@ export async function GET(request: NextRequest) {
         const total = tickets.length;
         const done = tickets.filter((t) => t.status === TICKET_STATUSES.DONE).length;
         const inProgress = tickets.filter((t) => t.status === TICKET_STATUSES.IN_PROGRESS).length;
-        const backlog = tickets.filter(
-          (t) => t.status === TICKET_STATUSES.BACKLOG || t.status === TICKET_STATUSES.TODO
-        ).length;
+        const inReview = tickets.filter((t) => t.status === TICKET_STATUSES.IN_REVIEW).length;
+        const todo = tickets.filter((t) => t.status === TICKET_STATUSES.TODO).length;
+        const backlog = tickets.filter((t) => t.status === TICKET_STATUSES.BACKLOG).length;
 
         totalTickets += total;
         completedTickets += done;
+        inProgressTickets += inProgress;
+        inReviewTickets += inReview;
 
         return {
           id: sprint.id,
@@ -113,10 +123,14 @@ export async function GET(request: NextRequest) {
           title: sprint.title,
           status: sprint.status,
           progress: sprint.progress,
+          startDate: sprint.startDate?.toISOString(),
+          endDate: sprint.endDate?.toISOString(),
           ticketCounts: {
             total,
             done,
             inProgress,
+            inReview,
+            todo,
             backlog,
           },
         };
@@ -127,22 +141,32 @@ export async function GET(request: NextRequest) {
         title: phase.title,
         status: phase.status,
         progress: phase.progress,
+        startDate: phase.startDate?.toISOString(),
+        endDate: phase.endDate?.toISOString(),
         sprints,
       };
     });
 
     const overallProgress = totalTickets > 0 ? Math.round((completedTickets / totalTickets) * 100) : 0;
 
+    // Determine current phase (first IN_PROGRESS, or first NOT_STARTED, or first)
+    const currentPhase = phases.find((p) => p.status === 'IN_PROGRESS') ??
+      phases.find((p) => p.status === 'NOT_STARTED') ??
+      phases[0];
+
     const response: RoadmapOverviewResponse = {
       projectId,
       roadmapId: roadmap.id,
       title: `${roadmap.project?.name ?? 'Project'} Roadmap`,
       phases,
+      currentPhaseId: currentPhase?.id,
       stats: {
         totalPhases: phases.length,
         totalSprints: phases.reduce((sum, p) => sum + p.sprints.length, 0),
         totalTickets,
         completedTickets,
+        inProgressTickets,
+        inReviewTickets,
         overallProgress,
       },
     };

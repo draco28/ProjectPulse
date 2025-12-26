@@ -185,6 +185,7 @@ export interface BulkReorderResponse {
 
 /**
  * Sprint summary for roadmap overview.
+ * Extended in Sprint 15 Phase E for Phase Timeline view.
  */
 export interface SprintOverview {
   id: string;
@@ -192,38 +193,58 @@ export interface SprintOverview {
   title: string;
   status: string;
   progress: number;
+
+  /** Date range for the sprint (ISO strings) */
+  startDate?: string;
+  endDate?: string;
+
   ticketCounts: {
     total: number;
     done: number;
     inProgress: number;
+    inReview: number;
     backlog: number;
+    todo: number;
   };
 }
 
 /**
  * Phase summary with nested sprints for roadmap overview.
+ * Extended in Sprint 15 Phase E for Phase Timeline view.
  */
 export interface PhaseOverview {
   id: string;
   title: string;
   status: string;
   progress: number;
+
+  /** Date range for the phase (ISO strings) */
+  startDate?: string;
+  endDate?: string;
+
   sprints: SprintOverview[];
 }
 
 /**
  * Complete roadmap overview response.
+ * Extended in Sprint 15 Phase E for Phase Timeline view.
  */
 export interface RoadmapOverviewResponse {
   projectId: number;
   roadmapId: string;
   title: string;
   phases: PhaseOverview[];
+
+  /** ID of the current/active phase for default selection */
+  currentPhaseId?: string;
+
   stats: {
     totalPhases: number;
     totalSprints: number;
     totalTickets: number;
     completedTickets: number;
+    inProgressTickets: number;
+    inReviewTickets: number;
     overallProgress: number;
   };
 }

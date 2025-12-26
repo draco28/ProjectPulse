@@ -1,6 +1,10 @@
 'use client';
 
 /**
+ * @deprecated Sprint 15 Phase E - Replaced by components/roadmap-timeline/
+ * This component will be removed in Sprint 16.
+ * The new Phase Timeline view replaces the Gantt-style timeline.
+ *
  * RoadmapTimeline Component - Standalone Roadmap UI Phase D
  *
  * Horizontal Gantt-style timeline visualization
