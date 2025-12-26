@@ -66,6 +66,7 @@ export interface PhaseProgressBarProps {
  * Props for SprintGrid layout.
  */
 export interface SprintGridProps {
+  projectId: number;
   sprints: SprintOverview[];
   currentSprintNumber?: number;
   onSprintClick: (sprint: SprintOverview, variant: SprintCardVariant) => void;
@@ -115,6 +116,7 @@ export interface PhaseStatsBarProps {
  * Props for SprintHistoryDrawer.
  */
 export interface SprintHistoryDrawerProps {
+  projectId: number;
   sprint: SprintOverview | null;
   isOpen: boolean;
   onClose: () => void;

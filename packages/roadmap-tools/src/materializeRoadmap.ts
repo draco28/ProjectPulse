@@ -103,6 +103,8 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
   // 2. Transaction: Create Phase → Sprint → Week → Day records
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     let phaseOrder = 0;
+    // Sprint counter OUTSIDE phase loop for continuous numbering across all phases
+    let globalSprintOrder = 0;
 
     for (const phaseData of phases) {
       phaseOrder++;
@@ -126,14 +128,14 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
       phaseIds.push(phase.id);
 
       // Create Sprint records for this phase
-      let sprintOrder = 0;
+      // Note: globalSprintOrder is declared OUTSIDE phase loop for continuous numbering
       for (const sprintData of phaseData.sprints) {
-        sprintOrder++;
+        globalSprintOrder++;
 
         const sprint = await tx.sprint.create({
           data: {
             phaseId: phase.id,
-            sprintNumber: sprintOrder, // Sprint 15: Set sprint number for FK correlation
+            sprintNumber: globalSprintOrder, // Sprint 15: Continuous across phases
             title: sprintData.name,
             description: sprintData.goals.join('\n'),
             status: 'NOT_STARTED' as const,

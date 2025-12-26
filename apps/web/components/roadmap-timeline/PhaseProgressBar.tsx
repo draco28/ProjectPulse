@@ -71,7 +71,11 @@ export function PhaseProgressBar({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <span className="text-slate-light font-medium">{phase.title} Progress</span>
-          <span className="text-xs text-slate bg-dark-pressed px-2 py-1 rounded">
+          {/* suppressHydrationWarning: Date formatting may differ between server/client timezones */}
+          <span
+            className="text-xs text-slate bg-dark-pressed px-2 py-1 rounded"
+            suppressHydrationWarning
+          >
             {formatDateRange(startDate, endDate)}
           </span>
         </div>

@@ -59,9 +59,11 @@ function StatCard({
  * Main drawer component - renders via portal.
  */
 function DrawerContent({
+  projectId,
   sprint,
   onClose,
 }: {
+  projectId: number;
   sprint: NonNullable<SprintHistoryDrawerProps['sprint']>;
   onClose: () => void;
 }) {
@@ -135,7 +137,9 @@ function DrawerContent({
           {/* Date range */}
           <div className="flex items-center gap-2 text-sm text-slate mb-6">
             <Calendar className="w-4 h-4" />
-            {formatDateRange(sprint.startDate, sprint.endDate)}
+            <span suppressHydrationWarning>
+              {formatDateRange(sprint.startDate, sprint.endDate)}
+            </span>
           </div>
 
           {/* Stats grid */}
@@ -240,7 +244,7 @@ function DrawerContent({
         {/* Footer */}
         <div className="absolute bottom-0 left-0 right-0 p-5 border-t border-white/10 bg-dark-card">
           <button
-            onClick={() => router.push(`/roadmap/sprint/${sprint.sprintNumber}`)}
+            onClick={() => router.push(`/roadmap/sprint/${sprint.sprintNumber}?project=${projectId}`)}
             className={cn(
               'w-full py-3 px-4 rounded-lg',
               'bg-coral hover:bg-coral/90',
@@ -262,6 +266,7 @@ function DrawerContent({
  * SprintHistoryDrawer - Portal wrapper.
  */
 export function SprintHistoryDrawer({
+  projectId,
   sprint,
   isOpen,
   onClose,
@@ -277,7 +282,7 @@ export function SprintHistoryDrawer({
   }
 
   return createPortal(
-    <DrawerContent sprint={sprint} onClose={onClose} />,
+    <DrawerContent projectId={projectId} sprint={sprint} onClose={onClose} />,
     document.body
   );
 }

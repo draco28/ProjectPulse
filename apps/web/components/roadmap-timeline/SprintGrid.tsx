@@ -16,6 +16,7 @@ import type { SprintCardVariant } from '@/types/phase-timeline';
 import { SprintCard } from './SprintCard';
 
 interface SprintGridProps {
+  projectId: number;
   sprints: SprintOverview[];
   currentSprintNumber: number;
   onCompletedSprintClick: (sprint: SprintOverview) => void;
@@ -43,6 +44,7 @@ function getSprintVariant(
  * - Current sprint spans 2 columns for emphasis
  */
 export function SprintGrid({
+  projectId,
   sprints,
   currentSprintNumber,
   onCompletedSprintClick,
@@ -54,8 +56,8 @@ export function SprintGrid({
       // Open drawer for completed sprints
       onCompletedSprintClick(sprint);
     } else {
-      // Navigate to kanban for current/planned sprints
-      router.push(`/roadmap/sprint/${sprint.sprintNumber}`);
+      // Navigate to kanban for current/planned sprints (with project context)
+      router.push(`/roadmap/sprint/${sprint.sprintNumber}?project=${projectId}`);
     }
   };
 

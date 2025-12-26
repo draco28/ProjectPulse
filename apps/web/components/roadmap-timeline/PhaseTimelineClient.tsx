@@ -112,8 +112,8 @@ export function PhaseTimelineClient({
         <button
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-coral hover:bg-coral/90 text-white font-medium transition-colors"
           onClick={() => {
-            // Navigate to ticket creation or open modal
-            window.location.href = `/tickets/new?sprintNumber=${currentSprintNumber}`;
+            // Navigate to ticket creation with project context
+            window.location.href = `/tickets/new?project=${projectId}&sprintNumber=${currentSprintNumber}`;
           }}
         >
           <Plus className="w-4 h-4" />
@@ -129,6 +129,7 @@ export function PhaseTimelineClient({
 
       {/* Sprint Grid */}
       <SprintGrid
+        projectId={projectId}
         sprints={selectedPhase.sprints}
         currentSprintNumber={currentSprintNumber}
         onCompletedSprintClick={handleCompletedSprintClick}
@@ -147,6 +148,7 @@ export function PhaseTimelineClient({
 
       {/* Sprint History Drawer */}
       <SprintHistoryDrawer
+        projectId={projectId}
         sprint={drawerSprint}
         isOpen={isDrawerOpen}
         onClose={handleDrawerClose}

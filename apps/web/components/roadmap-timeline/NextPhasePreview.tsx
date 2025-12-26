@@ -63,7 +63,7 @@ export function NextPhasePreview({ phase, onPhaseSelect }: NextPhasePreviewProps
         <div className="flex-1">
           <h3 className="text-xl font-bold text-text-primary mb-1">{phase.title}</h3>
           <div className="flex items-center gap-4 text-sm text-slate">
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5" suppressHydrationWarning>
               <Calendar className="w-4 h-4" />
               Starts {formatDate(phase.startDate)}
             </span>

@@ -77,7 +77,7 @@ function CompactSprintCard({
       </div>
 
       {/* Date range */}
-      <div className="text-xs text-slate mb-4">
+      <div className="text-xs text-slate mb-4" suppressHydrationWarning>
         {formatDateRange(sprint.startDate, sprint.endDate)}
       </div>
 
@@ -145,7 +145,7 @@ function CurrentSprintCard({
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-xs text-slate">
+          <span className="text-xs text-slate" suppressHydrationWarning>
             {formatDateRange(sprint.startDate, sprint.endDate)}
           </span>
           <div className="flex items-center gap-2">

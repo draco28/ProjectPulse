@@ -306,9 +306,11 @@ export function RoadmapWizard({ projectId, projectName }: RoadmapWizardProps) {
       }
 
       // Success - show success toast, clear draft and redirect
+      // Use window.location for FULL page reload to ensure fresh server-side data fetch
+      // (router.push uses client-side cache which may not have the new roadmap)
       toast.success('Roadmap created successfully!');
       clearDraft();
-      router.push(`/roadmap?project=${projectId}`);
+      window.location.href = `/roadmap?project=${projectId}`;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Network error';
       toast.error(errorMessage, { duration: 5000 });

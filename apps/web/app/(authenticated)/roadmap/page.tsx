@@ -19,6 +19,7 @@
 
 import { Map } from 'lucide-react';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { getCurrentUser } from '@/lib/auth-server';
 import { getActiveProjectForUser } from '@/lib/project-context';
 import { PhaseTimelineClient } from '@/components/roadmap-timeline';
@@ -28,11 +29,21 @@ import type { RoadmapOverviewResponse } from '@/types/kanban';
 /**
  * Fetch roadmap overview from API.
  * Returns phase/sprint summary data optimized for Phase Timeline view.
+ *
+ * CRITICAL: Must forward cookies for server-side auth to work.
+ * Server-side fetch doesn't automatically include cookies.
  */
 async function getRoadmapOverview(
   projectId: number
 ): Promise<RoadmapOverviewResponse | null> {
   try {
+    // Get cookies from incoming request to forward to internal API
+    // CRITICAL: cookies().toString() returns "[object Object]", not the cookie string!
+    // Must use getAll() and manually format as "name=value; name2=value2"
+    const cookieStore = await cookies();
+    const allCookies = cookieStore.getAll();
+    const cookieHeader = allCookies.map((c) => `${c.name}=${c.value}`).join('; ');
+
     // Internal API call - use absolute URL for server-side fetch
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const response = await fetch(
@@ -41,19 +52,30 @@ async function getRoadmapOverview(
         cache: 'no-store', // Always fresh data for roadmap
         headers: {
           'Content-Type': 'application/json',
+          // Forward cookies for authentication
+          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
         },
       }
     );
 
     if (!response.ok) {
       if (response.status === 404) {
+        console.log('[getRoadmapOverview] 404 - No roadmap exists');
         return null; // No roadmap exists
       }
-      console.error('Failed to fetch roadmap overview:', response.status);
+      const errorText = await response.text();
+      console.error('[getRoadmapOverview] Failed:', response.status, errorText);
       return null;
     }
 
-    return response.json();
+    // API returns { success, data } - extract the data property
+    const result = await response.json();
+    console.log('[getRoadmapOverview] Response success:', result.success, 'hasData:', !!result.data);
+    if (!result.success || !result.data) {
+      console.error('[getRoadmapOverview] Invalid response:', result);
+      return null;
+    }
+    return result.data;
   } catch (error) {
     console.error('Error fetching roadmap overview:', error);
     return null;
