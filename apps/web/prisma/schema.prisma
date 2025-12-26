@@ -1477,6 +1477,9 @@ model AgentSession {
   // Status tracking
   status String @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED | PAUSED
 
+  // Token usage tracking (Sprint 15: Phase F)
+  tokenCount Int? // Total tokens used in this session
+
   // Timestamps
   startedAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

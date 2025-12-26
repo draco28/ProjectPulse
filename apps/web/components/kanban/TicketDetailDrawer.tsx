@@ -20,6 +20,7 @@
 import { memo, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { KanbanTicket } from '@/types/kanban';
+import type { TicketSessionContext } from '@/types/sessions';
 import { TicketStatusSystem, TICKET_STATUSES } from '@/lib/constants/status';
 import { cn } from '@/lib/utils';
 
@@ -36,6 +37,10 @@ interface TicketDetailDrawerProps {
   onClose: () => void;
   /** Optional edit handler */
   onEdit?: (ticket: KanbanTicket) => void;
+  /** Optional session context when ticket is being worked on in a session */
+  sessionContext?: TicketSessionContext;
+  /** Handler to view the session */
+  onViewSession?: (sessionId: string) => void;
 }
 
 // ============================================================================
@@ -106,6 +111,8 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
   isOpen,
   onClose,
   onEdit,
+  sessionContext,
+  onViewSession,
 }: TicketDetailDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -191,6 +198,41 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
 
             {/* Body */}
             <div className="p-4 space-y-6">
+              {/* Session Context (if ticket is being worked on) */}
+              {sessionContext && (
+                <div className="neu-raised p-4 rounded-lg bg-coral/5 border border-coral/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* Agent Avatar */}
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-coral to-coral-dark flex items-center justify-center text-white text-sm font-bold pulse-ring">
+                          AI
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-white">
+                          {sessionContext.agentName}
+                        </p>
+                        <p className="text-xs text-coral">
+                          Working for {sessionContext.workingDuration}
+                        </p>
+                      </div>
+                    </div>
+                    {onViewSession && (
+                      <button
+                        onClick={() => onViewSession(sessionContext.sessionId)}
+                        className="text-sm text-coral hover:text-coral-light transition"
+                      >
+                        View Session →
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate mt-2">
+                    Session: {sessionContext.sessionName}
+                  </p>
+                </div>
+              )}
+
               {/* Parent Feature (if applicable) */}
               {ticket.parentTicket && (
                 <div className="neu-inset p-4 rounded-lg">

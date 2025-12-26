@@ -11,6 +11,7 @@ import type { ToolDefinition, ToolContext } from '../types.js';
 const agentSessionEndSchema = z.object({
   sessionId: z.string().min(1),
   progress: z.string().optional(), // Final progress notes
+  tokenCount: z.number().int().nonnegative().optional(), // Sprint 15: Phase F - Final token usage
 });
 
 type AgentSessionEndInput = z.infer<typeof agentSessionEndSchema>;
@@ -39,10 +40,12 @@ interface EndResponse {
 
 async function handler(input: AgentSessionEndInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
-  const { sessionId, progress } = input;
+  const { sessionId, progress, tokenCount } = input;
 
   try {
-    const body = progress ? { progress } : {};
+    const body: Record<string, unknown> = {};
+    if (progress) body.progress = progress;
+    if (tokenCount !== undefined) body.tokenCount = tokenCount;
     const response = await httpClient.post<EndResponse>(`/api/agent-sessions/${sessionId}/end`, body);
 
     if (!response || typeof response !== 'object') {
@@ -144,6 +147,10 @@ Next: Call projectpulse_context_load to start new work.
       progress: {
         type: 'string',
         description: 'Final progress notes to append before completion',
+      },
+      tokenCount: {
+        type: 'number',
+        description: 'Total tokens used in this session (Sprint 15: Phase F)',
       },
     },
     required: ['sessionId'],

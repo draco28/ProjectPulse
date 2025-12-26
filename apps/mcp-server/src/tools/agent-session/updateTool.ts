@@ -26,6 +26,7 @@ const agentSessionUpdateSchema = z.object({
   appendProgress: z.boolean().optional(), // Ticket #31: Append to existing progress
   activeTicketIds: z.array(z.number().int().positive()).optional(),
   status: z.enum(['IN_PROGRESS', 'PAUSED']).optional(),
+  tokenCount: z.number().int().nonnegative().optional(), // Sprint 15: Phase F - Token usage tracking
 });
 
 type AgentSessionUpdateInput = z.infer<typeof agentSessionUpdateSchema>;
@@ -182,6 +183,10 @@ your session stays independent from other instances.`,
         type: 'string',
         enum: ['IN_PROGRESS', 'PAUSED'],
         description: 'Session status (use agent_session_end to complete)',
+      },
+      tokenCount: {
+        type: 'number',
+        description: 'Total tokens used in this session (Sprint 15: Phase F)',
       },
     },
     required: ['sessionId'],
