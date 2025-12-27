@@ -132,6 +132,8 @@ export interface SprintHistoryDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onViewFullBoard?: (sprintNumber: number) => void;
+  /** Callback when a sprint is set as current (triggers data refresh) */
+  onSprintSetCurrent?: () => void;
 }
 
 // ---------------------------------------------------------------------------

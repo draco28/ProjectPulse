@@ -11,9 +11,9 @@
  * @see mockups/alternatives/COMBINED-01-phase-timeline.html
  */
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, CheckCircle2, ArrowRight, Calendar, TrendingUp } from 'lucide-react';
+import { X, CheckCircle2, ArrowRight, Calendar, TrendingUp, Play, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { SprintHistoryDrawerProps } from '@/types/phase-timeline';
 import { cn } from '@/lib/utils';
@@ -63,14 +63,41 @@ function DrawerContent({
   sprint,
   variant,
   onClose,
+  onSprintSetCurrent,
 }: {
   projectId: number;
   sprint: NonNullable<SprintHistoryDrawerProps['sprint']>;
   variant: 'completed' | 'planned';
   onClose: () => void;
+  onSprintSetCurrent?: () => void;
 }) {
   const router = useRouter();
+  const [isSettingCurrent, setIsSettingCurrent] = useState(false);
   const isCompleted = variant === 'completed';
+  const isPlanned = variant === 'planned';
+
+  // Handler for Set as Current button
+  const handleSetCurrent = async () => {
+    setIsSettingCurrent(true);
+    try {
+      const response = await fetch(`/api/sprints/${sprint.id}/set-current`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error?.message || 'Failed to set current sprint');
+      }
+      // Success - close drawer and refresh
+      onClose();
+      onSprintSetCurrent?.();
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to set current sprint:', error);
+      alert(error instanceof Error ? error.message : 'Failed to set current sprint');
+    } finally {
+      setIsSettingCurrent(false);
+    }
+  };
 
   // Handle escape key
   const handleKeyDown = useCallback(
@@ -124,7 +151,7 @@ function DrawerContent({
               'w-3 h-3 rounded-full',
               isCompleted ? 'bg-accent-green' : 'bg-slate'
             )} />
-            <h2 className="text-xl font-bold">Sprint {sprint.sprintNumber}</h2>
+            <h2 className="text-xl font-bold">Sprint {sprint.globalSprintNumber}</h2>
             <span className={cn(
               'text-xs px-2 py-0.5 rounded font-medium',
               isCompleted
@@ -262,19 +289,51 @@ function DrawerContent({
 
         {/* Footer */}
         <div className="absolute bottom-0 left-0 right-0 p-5 border-t border-white/10 bg-dark-card">
-          <button
-            onClick={() => router.push(`/roadmap/sprint/${sprint.sprintNumber}?project=${projectId}`)}
-            className={cn(
-              'w-full py-3 px-4 rounded-lg',
-              'bg-coral hover:bg-coral/90',
-              'text-white font-medium',
-              'flex items-center justify-center gap-2',
-              'transition-colors'
+          <div className="flex gap-3">
+            {/* View Full Board */}
+            <button
+              onClick={() => router.push(`/roadmap/sprint/${sprint.globalSprintNumber}?project=${projectId}`)}
+              className={cn(
+                'flex-1 py-3 px-4 rounded-lg',
+                'flex items-center justify-center gap-2',
+                'transition-colors',
+                isPlanned
+                  ? 'bg-dark-pressed hover:bg-dark-lighter text-slate-light'
+                  : 'bg-coral hover:bg-coral/90 text-white font-medium'
+              )}
+            >
+              View Full Board
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            {/* Set as Current - Only for planned sprints */}
+            {isPlanned && (
+              <button
+                onClick={handleSetCurrent}
+                disabled={isSettingCurrent}
+                className={cn(
+                  'flex-1 py-3 px-4 rounded-lg',
+                  'bg-coral hover:bg-coral/90',
+                  'text-white font-medium',
+                  'flex items-center justify-center gap-2',
+                  'transition-colors',
+                  'disabled:opacity-50 disabled:cursor-not-allowed'
+                )}
+              >
+                {isSettingCurrent ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Setting...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    Set as Current
+                  </>
+                )}
+              </button>
             )}
-          >
-            View Full Board
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          </div>
         </div>
       </div>
     </>
@@ -291,6 +350,7 @@ export function SprintHistoryDrawer({
   variant,
   isOpen,
   onClose,
+  onSprintSetCurrent,
 }: SprintHistoryDrawerProps) {
   // Don't render if not open or no sprint
   if (!isOpen || !sprint) {
@@ -303,7 +363,13 @@ export function SprintHistoryDrawer({
   }
 
   return createPortal(
-    <DrawerContent projectId={projectId} sprint={sprint} variant={variant} onClose={onClose} />,
+    <DrawerContent
+      projectId={projectId}
+      sprint={sprint}
+      variant={variant}
+      onClose={onClose}
+      onSprintSetCurrent={onSprintSetCurrent}
+    />,
     document.body
   );
 }

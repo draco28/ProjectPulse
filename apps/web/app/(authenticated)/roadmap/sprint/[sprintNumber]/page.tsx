@@ -51,11 +51,35 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 // Data Fetching
 // ============================================================================
 
-async function getSprintByNumber(sprintNumber: number) {
-  // Find the first sprint matching this number
-  // In a multi-project system, you'd also filter by projectId
-  const sprint = await prisma.sprint.findFirst({
-    where: { sprintNumber },
+/**
+ * Get sprint by its global sprint number within a specific project.
+ *
+ * The URL uses globalSprintNumber (sequential across all phases: 1, 2, 3, 4, 5...),
+ * but the database stores sprintNumber (sequential within each phase: 1, 2, 3...).
+ *
+ * This function:
+ * 1. Fetches all sprints for the project ordered by phase and sprint number
+ * 2. Calculates global position for each
+ * 3. Returns the sprint matching the requested global position
+ *
+ * @param globalSprintNumber - The global sprint number from the URL
+ * @param projectId - The project ID to scope the query (prevents cross-project pollution)
+ */
+async function getSprintByGlobalNumber(globalSprintNumber: number, projectId?: number) {
+  // Build where clause with project filter
+  const whereClause: { phase?: { roadmap: { projectId: number } } } = {};
+
+  if (projectId) {
+    whereClause.phase = {
+      roadmap: {
+        projectId: projectId,
+      },
+    };
+  }
+
+  // Get all sprints for the project ordered by phase start date and sprint number
+  const sprints = await prisma.sprint.findMany({
+    where: whereClause,
     select: {
       id: true,
       sprintNumber: true,
@@ -66,6 +90,7 @@ async function getSprintByNumber(sprintNumber: number) {
         select: {
           id: true,
           title: true,
+          startDate: true,
           roadmap: {
             select: {
               projectId: true,
@@ -74,10 +99,22 @@ async function getSprintByNumber(sprintNumber: number) {
         },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [
+      { phase: { startDate: 'asc' } },
+      { sprintNumber: 'asc' },
+    ],
   });
 
-  return sprint;
+  // Calculate global sprint number and find the matching sprint
+  let globalCounter = 0;
+  for (const sprint of sprints) {
+    globalCounter++;
+    if (globalCounter === globalSprintNumber) {
+      return sprint;
+    }
+  }
+
+  return null;
 }
 
 // ============================================================================
@@ -88,21 +125,25 @@ export default async function SprintKanbanPage({ params, searchParams }: PagePro
   const { sprintNumber } = await params;
   const { project } = await searchParams;
   const num = parseInt(sprintNumber, 10);
+  const projectIdFromUrl = project ? parseInt(project, 10) : undefined;
 
   // Validate sprint number
   if (isNaN(num) || num < 1) {
     notFound();
   }
 
-  // Fetch sprint data
-  const sprint = await getSprintByNumber(num);
+  // Fetch sprint data using global sprint number and project filter
+  // This prevents cross-project pollution where Sprint 1 from Project 7
+  // could be returned when user navigated from Project 6
+  const sprint = await getSprintByGlobalNumber(num, projectIdFromUrl);
 
   if (!sprint) {
     notFound();
   }
 
-  // Get projectId from sprint's roadmap, or fallback to searchParams
-  const projectId = sprint.phase?.roadmap?.projectId ?? (project ? parseInt(project, 10) : undefined);
+  // Use projectId from sprint's roadmap (authoritative source)
+  // This should match projectIdFromUrl after our fix
+  const projectId = sprint.phase?.roadmap?.projectId ?? projectIdFromUrl;
 
   // Render client component with sprint data
   return (

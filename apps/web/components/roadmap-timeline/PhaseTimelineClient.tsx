@@ -11,6 +11,7 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import type { PhaseTimelineClientProps } from '@/types/phase-timeline';
 import type { SprintOverview, PhaseOverview } from '@/types/kanban';
@@ -25,6 +26,7 @@ export function PhaseTimelineClient({
   projectId,
   initialData,
 }: PhaseTimelineClientProps) {
+  const router = useRouter();
   const { phases, currentPhaseId, currentGlobalSprintNumber } = initialData;
 
   // Phase selection state - default to current phase from API
@@ -67,6 +69,11 @@ export function PhaseTimelineClient({
     // Delay clearing sprint data to allow close animation
     setTimeout(() => setDrawerSprint(null), 300);
   }, []);
+
+  const handleSprintSetCurrent = useCallback(() => {
+    // Refresh the page to get updated sprint data
+    router.refresh();
+  }, [router]);
 
   // Guard against no phases
   if (!selectedPhase) {
@@ -135,6 +142,7 @@ export function PhaseTimelineClient({
         variant={drawerVariant}
         isOpen={isDrawerOpen}
         onClose={handleDrawerClose}
+        onSprintSetCurrent={handleSprintSetCurrent}
       />
     </div>
   );
