@@ -43,8 +43,9 @@ model Phase {
   endDate   DateTime?
 
   // Hierarchy - Parent (Sprint 8.5: Link to Roadmap after materialization)
+  // Sprint 15 Fix: Changed from SetNull to Cascade to properly delete phases when roadmap deleted
   roadmapId String?
-  roadmap   Roadmap? @relation(fields: [roadmapId], references: [id], onDelete: SetNull)
+  roadmap   Roadmap? @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
 
   // Hierarchy - Children (Sprint 15: 2-level only)
   sprints Sprint[]

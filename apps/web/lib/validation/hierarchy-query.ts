@@ -51,8 +51,17 @@ export const HierarchyQuerySchema = z
     progressMax: z.coerce.number().int().min(0).max(100).optional(),
 
     // Optional: pagination
-    page: z.coerce.number().int().min(1).default(1),
-    limit: z.coerce.number().int().min(1).max(100).default(20),
+    // Note: z.preprocess() normalizes null/undefined/'' to undefined BEFORE coercion
+    // This allows .default() to work correctly when query params are missing
+    // (searchParams.get() returns null for missing params, which coerce.number() turns to 0)
+    page: z.preprocess(
+      (val) => (val === null || val === undefined || val === '' ? undefined : val),
+      z.coerce.number().int().min(1).default(1)
+    ),
+    limit: z.preprocess(
+      (val) => (val === null || val === undefined || val === '' ? undefined : val),
+      z.coerce.number().int().min(1).max(100).default(20)
+    ),
   })
   .refine(
     (data) => {
