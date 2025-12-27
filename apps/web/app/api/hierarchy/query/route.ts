@@ -57,8 +57,10 @@ function buildWhereClause(filters: {
  *
  * Query hierarchy entities with filters.
  *
+ * Sprint 15: Simplified to 2-level hierarchy (Week/Day removed)
+ *
  * Query parameters:
- * - level: "phase" | "sprint" | "week" | "day" | "task" | "session" (required)
+ * - level: "phase" | "sprint" (required)
  * - status[]: Status filter (can pass multiple, e.g., ?status=IN_PROGRESS&status=BLOCKED)
  * - progressMin: Minimum progress (0-100)
  * - progressMax: Maximum progress (0-100)
@@ -146,13 +148,14 @@ export async function GET(request: NextRequest) {
         break;
       }
 
-      // Sprint 8.5: NEW - Sprint level query
+      // Sprint 15: Sprint level query (leaf node in 2-level hierarchy)
       case 'sprint': {
         [entities, total] = await Promise.all([
           prisma.sprint.findMany({
             where: where as Prisma.SprintWhereInput,
             select: {
               id: true,
+              sprintNumber: true,
               title: true,
               description: true,
               status: true,
@@ -165,6 +168,8 @@ export async function GET(request: NextRequest) {
                 select: {
                   id: true,
                   title: true,
+                  status: true,
+                  progress: true,
                 },
               },
             },
@@ -177,86 +182,8 @@ export async function GET(request: NextRequest) {
         break;
       }
 
-      case 'week': {
-        [entities, total] = await Promise.all([
-          prisma.week.findMany({
-            where: where as Prisma.WeekWhereInput,
-            select: {
-              id: true,
-              title: true,
-              description: true,
-              status: true,
-              progress: true,
-              startDate: true,
-              endDate: true,
-              createdAt: true,
-              // Sprint 8.5: Parent context via Sprint → Phase (5-level hierarchy)
-              sprint: {
-                select: {
-                  id: true,
-                  title: true,
-                  phase: {
-                    select: {
-                      id: true,
-                      title: true,
-                    },
-                  },
-                },
-              },
-            },
-            orderBy: { startDate: 'desc' },
-            skip,
-            take: limit,
-          }),
-          prisma.week.count({ where: where as Prisma.WeekWhereInput }),
-        ]);
-        break;
-      }
-
-      case 'day': {
-        [entities, total] = await Promise.all([
-          prisma.day.findMany({
-            where: where as Prisma.DayWhereInput,
-            select: {
-              id: true,
-              title: true,
-              description: true,
-              status: true,
-              progress: true,
-              startDate: true,
-              endDate: true,
-              createdAt: true,
-              // Sprint 8.5: Parent context via Week → Sprint → Phase (5-level hierarchy)
-              week: {
-                select: {
-                  id: true,
-                  title: true,
-                  sprint: {
-                    select: {
-                      id: true,
-                      title: true,
-                      phase: {
-                        select: {
-                          id: true,
-                          title: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            orderBy: { startDate: 'desc' },
-            skip,
-            take: limit,
-          }),
-          prisma.day.count({ where: where as Prisma.DayWhereInput }),
-        ]);
-        break;
-      }
-
-      // Sprint 12: Task and Session models removed - hierarchy now 4-level (Phase → Sprint → Week → Day)
-      // Tickets schedule directly to Weeks with optional day assignment
+      // Sprint 15: Week/Day cases removed - hierarchy now 2-level (Phase → Sprint)
+      // Tickets link to Sprints via sprintId FK for Kanban board
     }
 
     // 5. Return paginated results

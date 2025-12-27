@@ -1,11 +1,12 @@
 /**
- * PhaseCard Component - Sprint 8.5
+ * PhaseCard Component
  *
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
  * Displays phase information with premium neumorphic design:
  * - Icon container with coral accent
  * - Title and color-coded status badge
  * - Description
- * - Stats grid (sprints, weeks, days)
+ * - Stats grid (sprints, tickets)
  * - Coral gradient progress bar
  * - Date range with calendar icon
  */
@@ -20,15 +21,10 @@ interface PhaseCardProps {
 
 export function PhaseCard({ phase }: PhaseCardProps) {
   // Calculate stats from nested data
+  // Sprint 15: Week/Day removed (Ticket #80)
   const sprintCount = phase.sprints?.length || 0;
-  const weekCount =
-    phase.sprints?.reduce((acc, sprint) => acc + (sprint.weeks?.length || 0), 0) || 0;
-  const dayCount =
-    phase.sprints?.reduce(
-      (acc, sprint) =>
-        acc + (sprint.weeks?.reduce((wAcc, week) => wAcc + (week.days?.length || 0), 0) || 0),
-      0
-    ) || 0;
+  const ticketCount =
+    phase.sprints?.reduce((acc, sprint) => acc + (sprint.tickets?.length || 0), 0) || 0;
 
   // Badge class based on status
   const badgeClass =
@@ -61,9 +57,9 @@ export function PhaseCard({ phase }: PhaseCardProps) {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      {(sprintCount > 0 || weekCount > 0 || dayCount > 0) && (
-        <div className="mb-4 grid grid-cols-3 gap-3">
+      {/* Stats Grid - Sprint 15: Week/Day removed (Ticket #80) */}
+      {(sprintCount > 0 || ticketCount > 0) && (
+        <div className="mb-4 grid grid-cols-2 gap-3">
           {/* Sprint Count */}
           <div className="neu-pressed rounded-2xl p-3 text-center">
             <div className="mb-1 text-2xl font-bold text-coral">{sprintCount}</div>
@@ -72,18 +68,12 @@ export function PhaseCard({ phase }: PhaseCardProps) {
             </div>
           </div>
 
-          {/* Week Count */}
+          {/* Ticket Count */}
           <div className="neu-pressed rounded-2xl p-3 text-center">
-            <div className="mb-1 text-2xl font-bold text-coral">{weekCount}</div>
+            <div className="mb-1 text-2xl font-bold text-coral">{ticketCount}</div>
             <div className="text-xs font-medium text-slate">
-              {weekCount === 1 ? 'Week' : 'Weeks'}
+              {ticketCount === 1 ? 'Ticket' : 'Tickets'}
             </div>
-          </div>
-
-          {/* Day Count */}
-          <div className="neu-pressed rounded-2xl p-3 text-center">
-            <div className="mb-1 text-2xl font-bold text-coral">{dayCount}</div>
-            <div className="text-xs font-medium text-slate">{dayCount === 1 ? 'Day' : 'Days'}</div>
           </div>
         </div>
       )}

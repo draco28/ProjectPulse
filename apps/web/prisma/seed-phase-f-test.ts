@@ -1,6 +1,9 @@
 /**
  * Phase F Test Data Seed
  *
+ * Sprint 15: Updated for 2-level hierarchy (Phase → Sprint only)
+ * Week and Day models removed (Ticket #80)
+ *
  * Populates project 3 with comprehensive test data to verify:
  * - Sessions page (Phase F redesign)
  * - Roadmap page (Phase E timeline)
@@ -31,11 +34,9 @@ async function main() {
   await prisma.agentSession.deleteMany({ where: { projectId: PROJECT_ID } });
   await prisma.ticket.deleteMany({ where: { projectId: PROJECT_ID } });
 
-  // Clean roadmap hierarchy (cascade should handle children but being explicit)
+  // Clean roadmap hierarchy (Sprint 15: 2-level only)
   const existingRoadmap = await prisma.roadmap.findUnique({ where: { projectId: PROJECT_ID } });
   if (existingRoadmap) {
-    await prisma.day.deleteMany({ where: { week: { sprint: { phase: { roadmapId: existingRoadmap.id } } } } });
-    await prisma.week.deleteMany({ where: { sprint: { phase: { roadmapId: existingRoadmap.id } } } });
     await prisma.sprint.deleteMany({ where: { phase: { roadmapId: existingRoadmap.id } } });
     await prisma.phase.deleteMany({ where: { roadmapId: existingRoadmap.id } });
     await prisma.roadmap.delete({ where: { id: existingRoadmap.id } });
@@ -64,12 +65,11 @@ async function main() {
   ];
 
   // Build the phases JSON in the correct format expected by the UI
-  // Format: { phases: [{ name, duration, sprints: [{ name, duration, weeks, goals, deliverables, storyPoints }] }] }
   const phasesJson = {
     phases: phaseData.map((phase, pIdx) => ({
       name: phase.title,
       duration: '6 weeks',
-      sprints: sprintTitles[pIdx].map((sprintTitle, sIdx) => ({
+      sprints: sprintTitles[pIdx]!.map((sprintTitle, sIdx) => ({
         name: sprintTitle,
         duration: '2 weeks',
         weeks: `${pIdx * 6 + sIdx * 2 + 1}-${pIdx * 6 + sIdx * 2 + 2}`,
@@ -84,27 +84,28 @@ async function main() {
     data: {
       projectId: PROJECT_ID,
       phases: phasesJson,
-      currentPhase: phaseData[0].title,
-      currentSprint: sprintTitles[0][1], // Sprint 1.2
+      currentPhase: phaseData[0]!.title,
+      currentSprint: sprintTitles[0]![1], // Sprint 1.2
     },
   });
   console.log(`   Roadmap created: ${roadmap.id}`);
 
   const phases: any[] = [];
   const sprints: any[] = [];
-  const weeks: any[] = [];
+  let globalSprintNumber = 0;
 
   for (let p = 0; p < phaseData.length; p++) {
+    const pd = phaseData[p]!;
     const phaseStart = new Date(startDate);
-    phaseStart.setDate(phaseStart.getDate() + phaseData[p].weekOffset * 7);
+    phaseStart.setDate(phaseStart.getDate() + pd.weekOffset * 7);
     const phaseEnd = new Date(phaseStart);
     phaseEnd.setDate(phaseEnd.getDate() + 42); // 6 weeks
 
     const phase = await prisma.phase.create({
       data: {
         roadmap: { connect: { id: roadmap.id } },
-        title: phaseData[p].title,
-        description: phaseData[p].description,
+        title: pd.title,
+        description: pd.description,
         startDate: phaseStart,
         endDate: phaseEnd,
         progress: p === 0 ? 65 : p === 1 ? 10 : 0,
@@ -115,7 +116,9 @@ async function main() {
     console.log(`   Phase ${p + 1}: ${phase.title}`);
 
     // Create 3 sprints per phase
+    const phaseSprints = sprintTitles[p]!;
     for (let s = 0; s < 3; s++) {
+      globalSprintNumber++;
       const sprintStart = new Date(phaseStart);
       sprintStart.setDate(sprintStart.getDate() + s * 14); // 2 weeks per sprint
       const sprintEnd = new Date(sprintStart);
@@ -124,8 +127,8 @@ async function main() {
       const sprint = await prisma.sprint.create({
         data: {
           phase: { connect: { id: phase.id } },
-          title: sprintTitles[p][s],
-          sprintNumber: p * 3 + s + 1,
+          title: phaseSprints[s]!,
+          sprintNumber: globalSprintNumber,
           startDate: sprintStart,
           endDate: sprintEnd,
           progress: p === 0 && s < 2 ? (s === 0 ? 100 : 50) : 0,
@@ -133,50 +136,9 @@ async function main() {
         },
       });
       sprints.push(sprint);
-
-      // Create 2 weeks per sprint
-      for (let w = 0; w < 2; w++) {
-        const weekStart = new Date(sprintStart);
-        weekStart.setDate(weekStart.getDate() + w * 7);
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 7);
-
-        const week = await prisma.week.create({
-          data: {
-            phase: { connect: { id: phase.id } },
-            sprint: { connect: { id: sprint.id } },
-            title: `Week ${(p * 3 + s) * 2 + w + 1}`,
-            startDate: weekStart,
-            endDate: weekEnd,
-            progress: p === 0 && s === 0 ? 100 : p === 0 && s === 1 && w === 0 ? 80 : 0,
-            status: p === 0 && s === 0 ? 'COMPLETED' : p === 0 && s === 1 && w === 0 ? 'IN_PROGRESS' : 'NOT_STARTED',
-          },
-        });
-        weeks.push(week);
-
-        // Create 5 days per week
-        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-        for (let d = 0; d < 5; d++) {
-          const dayStart = new Date(weekStart);
-          dayStart.setDate(dayStart.getDate() + d);
-          const dayEnd = new Date(dayStart);
-          dayEnd.setDate(dayEnd.getDate() + 1);
-
-          await prisma.day.create({
-            data: {
-              week: { connect: { id: week.id } },
-              title: dayNames[d],
-              startDate: dayStart,
-              endDate: dayEnd,
-              progress: p === 0 && s === 0 ? 100 : p === 0 && s === 1 && w === 0 && d < 3 ? 100 : 0,
-              status: p === 0 && s === 0 ? 'COMPLETED' : p === 0 && s === 1 && w === 0 && d < 3 ? 'COMPLETED' : 'NOT_STARTED',
-            },
-          });
-        }
-      }
     }
   }
-  console.log(`   Created ${phases.length} phases, ${sprints.length} sprints, ${weeks.length} weeks`);
+  console.log(`   Created ${phases.length} phases, ${sprints.length} sprints`);
 
   // =========================================================================
   // 2. CREATE 25 TICKETS OF DIFFERENT KINDS
@@ -220,6 +182,9 @@ async function main() {
     { title: 'Security audit findings', kind: 'issue', status: 'in-progress', priority: 'critical', module: 'Security', sprintNumber: 2, assignee: 'Claude Code' },
   ];
 
+  // Find sprint IDs for linking tickets
+  const sprintMap = new Map(sprints.map((s) => [s.sprintNumber, s.id]));
+
   const createdTickets: any[] = [];
   for (const t of ticketData) {
     const ticket = await prisma.ticket.create({
@@ -233,6 +198,7 @@ async function main() {
         priority: t.priority,
         module: t.module,
         sprintNumber: t.sprintNumber,
+        sprintId: sprintMap.get(t.sprintNumber) ?? null, // Sprint 15: FK to Sprint for Kanban
         assignee: t.assignee || null,
         assigneeType: t.assignee ? 'agent_persona' : null,
       },
@@ -247,7 +213,7 @@ async function main() {
   console.log('🤖 Creating agent sessions...');
 
   // Get tickets assigned to Claude Code for sessions
-  const assignedTickets = createdTickets.filter((t) => ticketData[createdTickets.indexOf(t)].assignee === 'Claude Code');
+  const assignedTickets = createdTickets.filter((t) => ticketData[createdTickets.indexOf(t)]?.assignee === 'Claude Code');
 
   // Session 1: Active (IN_PROGRESS) - working on auth and schema
   const session1 = await prisma.agentSession.create({
@@ -307,7 +273,7 @@ Waiting for Safari test device`,
         { content: 'Implement fix', status: 'pending' },
       ],
       progress: 'Reproduced issue. Found it relates to SameSite cookie handling.',
-      activeTicketIds: [String(assignedTickets[2]?.id || createdTickets[0].id)],
+      activeTicketIds: [String(assignedTickets[2]?.id || createdTickets[0]!.id)],
       tokenCount: 28000,
     },
   });
@@ -332,7 +298,7 @@ Waiting for Safari test device`,
         { content: 'Update dependencies', status: 'pending' },
       ],
       progress: 'Reviewing security audit report.',
-      activeTicketIds: [String(assignedTickets[3]?.id || createdTickets[1].id)],
+      activeTicketIds: [String(assignedTickets[3]?.id || createdTickets[1]!.id)],
       tokenCount: 12000,
     },
   });
@@ -378,11 +344,9 @@ Waiting for Safari test device`,
 
 📊 Summary for Project ${PROJECT_ID} (${project.name}):
 
-🗺️  Roadmap:
+🗺️  Roadmap (Sprint 15: 2-level hierarchy):
    - 4 Phases (Foundation, Core, Advanced, Launch)
    - 12 Sprints (3 per phase)
-   - 24 Weeks (2 per sprint)
-   - 120 Days (5 per week)
 
 🎫 Tickets: ${createdTickets.length} total
    - Features: 5

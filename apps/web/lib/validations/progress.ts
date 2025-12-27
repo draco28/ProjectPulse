@@ -3,6 +3,7 @@
  *
  * Zod schemas for validating progress update requests
  * Used by API routes and MCP tools
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
  */
 
 import { z } from 'zod';
@@ -10,9 +11,9 @@ import { z } from 'zod';
 /**
  * Entity type enum (maps to Prisma models)
  * Plural form for REST API routes
- * Sprint 12: Removed sessions and tasks - now 4-level hierarchy
+ * Sprint 15: Week/Day removed - now 2-level hierarchy (Ticket #80)
  */
-export const EntityTypeSchema = z.enum(['days', 'weeks', 'sprints', 'phases']);
+export const EntityTypeSchema = z.enum(['sprints', 'phases']);
 
 /**
  * Progress update request body
@@ -30,11 +31,9 @@ export type UpdateProgressInput = z.infer<typeof UpdateProgressSchema>;
 
 /**
  * Map plural entity types (API) to singular (Prisma)
- * Sprint 12: Updated for 4-level hierarchy
+ * Sprint 15: Week/Day removed (Ticket #80)
  */
 export const entityTypeMap = {
-  days: 'day',
-  weeks: 'week',
   sprints: 'sprint',
   phases: 'phase',
 } as const;

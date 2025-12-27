@@ -363,20 +363,22 @@ async function testTicketRemoveImplementationContext(ticketId: number): Promise<
 async function testTicketWithScheduling(): Promise<number | null> {
   const testName = 'Ticket: Create with scheduling fields';
   try {
+    // Sprint 15: scheduledWeekId and scheduledDays removed (Week model deleted - Ticket #80)
+    // Tickets now link to Sprint via sprintId FK for Kanban board
+    // Test now only verifies estimatedDays and sprintNumber fields
     const response = await fetch(`${BASE_URL}/api/tickets`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         projectId: TEST_PROJECT_ID,
-        title: 'Sprint 12 Test: Ticket Scheduling',
-        description: 'Test ticket with scheduling fields',
+        title: 'Sprint 15 Test: Ticket Scheduling',
+        description: 'Test ticket with planning fields (Sprint 15 simplified)',
         kind: 'task',
         source: 'manual',
         priority: 'medium',
         status: 'BACKLOG',
         estimatedDays: 3,
-        scheduledDays: ['Monday', 'Tuesday', 'Wednesday'],
-        // Note: scheduledWeekId requires a valid Week ID from the roadmap
+        sprintNumber: 1, // Sprint number for Kanban filtering
       }),
     });
 
@@ -397,7 +399,7 @@ async function testTicketWithScheduling(): Promise<number | null> {
     logSuccess(testName, {
       id: data.ticket.id,
       estimatedDays: data.ticket.estimatedDays,
-      scheduledDays: data.ticket.scheduledDays,
+      sprintNumber: data.ticket.sprintNumber,
     });
 
     return data.ticket.id;

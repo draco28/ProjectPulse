@@ -3,8 +3,10 @@
  *
  * Sprint 8.5 Phase 1 Part A - Task A.3
  * Created: 2025-11-18
+ * Updated: Sprint 15 - Simplified to 2-level hierarchy (Phase → Sprint)
+ * Week and Day models removed (Ticket #80)
  *
- * Materializes Roadmap.phases JSON → normalized Phase/Sprint/Week/Day/Task records
+ * Materializes Roadmap.phases JSON → normalized Phase/Sprint records
  * Enables Phase 4 tools (getCurrentPosition, getPhaseProgress) to query hierarchical data
  */
 
@@ -23,7 +25,7 @@ const prisma = new PrismaClient();
  * Flow:
  * 1. Validate roadmapId exists and belongs to projectId (security)
  * 2. Call materializeRoadmap() from shared package
- * 3. Return summary: {phases: 3, sprints: 9, weeks: 36, days: 180}
+ * 3. Return summary: {phases: 3, sprints: 9} (Sprint 15: Week/Day removed)
  *
  * Called by:
  * - Session 3 onboarding (bootstrapTool) - automatic after Roadmap creation
@@ -37,7 +39,7 @@ const materializeRoadmapSchema = z.object({
 export const materializeRoadmapTool = {
   name: 'projectpulse_roadmap_materialize',
   description:
-    'Materialize Roadmap JSON to Phase/Sprint/Week/Day records. Creates 5-level hierarchy for roadmap navigation and progress tracking.',
+    'Materialize Roadmap JSON to Phase/Sprint records. Creates 2-level hierarchy for roadmap navigation and progress tracking.',
 
   schema: materializeRoadmapSchema,
   inputSchema: {
@@ -111,10 +113,11 @@ export const materializeRoadmapTool = {
       }
 
       // 2. Call shared package materialization function
-      // This creates Phase/Sprint/Week/Day records in a transaction
+      // Sprint 15: Creates Phase/Sprint records in a transaction (Week/Day removed)
       const result: MaterializationResult = await materializeRoadmap(roadmapId);
 
       // 3. Return success with detailed counts
+      // Sprint 15: Simplified to 2-level hierarchy (Week/Day removed per Ticket #80)
       return {
         content: [
           {
@@ -128,15 +131,11 @@ export const materializeRoadmapTool = {
                 materialization: {
                   phases: result.counts.phases,
                   sprints: result.counts.sprints,
-                  weeks: result.counts.weeks,
-                  days: result.counts.days,
-                  total: result.counts.phases + result.counts.sprints + result.counts.weeks + result.counts.days,
+                  total: result.counts.phases + result.counts.sprints,
                 },
                 ids: {
                   phases: result.phaseIds,
                   sprints: result.sprintIds,
-                  weeks: result.weekIds,
-                  days: result.dayIds,
                 },
                 timestamp: new Date().toISOString(),
               },

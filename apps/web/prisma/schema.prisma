@@ -13,12 +13,13 @@ datasource db {
 }
 
 // ============================================================================
-// SPRINT HIERARCHY (4-LEVEL ROADMAP STRUCTURE)
+// SPRINT HIERARCHY (2-LEVEL ROADMAP STRUCTURE)
 // ============================================================================
 // Architecture: Adjacency List (FK relationships)
 // Progress: Stored field with application-managed roll-up
 // Query Strategy: Prisma nested includes for tree traversal
-// Sprint 12 Redesign: Removed Task/Session/Checkpoint (unused), tickets schedule to Weeks
+// Sprint 15 Ticket #80: Simplified to Phase → Sprint only (removed Week/Day for Kanban UI)
+// Sprint 12 Redesign: Removed Task/Session/Checkpoint (unused)
 
 enum Status {
   NOT_STARTED
@@ -45,9 +46,8 @@ model Phase {
   roadmapId String?
   roadmap   Roadmap? @relation(fields: [roadmapId], references: [id], onDelete: SetNull)
 
-  // Hierarchy - Children
-  weeks   Week[] // Sprint 8: Week relationship (will be migrated to Sprint → Week in Task 0.3)
-  sprints Sprint[] // Sprint 8.5: NEW 5th level - Phase → Sprint → Week → Day → Task
+  // Hierarchy - Children (Sprint 15: 2-level only)
+  sprints Sprint[]
 
   // Metadata
   createdAt DateTime @default(now())
@@ -61,7 +61,7 @@ model Phase {
   @@map("phases")
 }
 
-// Sprint 8.5: NEW 5th level in hierarchy (Phase → Sprint → Week → Day → Task)
+// Sprint 15: 2-level hierarchy (Phase → Sprint)
 model Sprint {
   id String @id @default(cuid())
 
@@ -82,9 +82,6 @@ model Sprint {
   phaseId String
   phase   Phase  @relation(fields: [phaseId], references: [id], onDelete: Cascade)
 
-  // Hierarchy - Children
-  weeks Week[]
-
   // Sprint 15: Tickets assigned to this sprint (FK relationship)
   tickets Ticket[]
 
@@ -104,85 +101,10 @@ model Sprint {
   @@map("sprints")
 }
 
-model Week {
-  id String @id @default(cuid())
-
-  // Core fields
-  title       String
-  description String? @db.Text
-  status      Status  @default(NOT_STARTED)
-  progress    Int     @default(0) // 0-100, validated in application
-
-  // Time window
-  startDate DateTime
-  endDate   DateTime?
-
-  // Hierarchy - Parent
-  phaseId String // Sprint 8: Legacy parent (will be removed in Task 0.3 after data migration)
-  phase   Phase  @relation(fields: [phaseId], references: [id], onDelete: Cascade)
-
-  sprintId String? // Sprint 8.5: NEW parent (optional during migration, required after Task 0.3)
-  sprint   Sprint? @relation(fields: [sprintId], references: [id], onDelete: Cascade)
-
-  // Hierarchy - Children
-  days Day[]
-
-  // Sprint 12: Scheduled tickets for this week
-  scheduledTickets Ticket[] @relation("ScheduledTickets")
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Indexes for performance
-  @@index([phaseId]) // Sprint 8: Legacy parent (will be removed in Task 0.3)
-  @@index([sprintId]) // Sprint 8.5: NEW parent index
-  @@index([startDate, endDate])
-  @@index([status])
-  @@index([phaseId, status]) // Sprint 8: Legacy composite (will be removed in Task 0.3)
-  @@index([sprintId, status]) // Sprint 8.5: NEW composite index
-  @@index([phaseId, startDate, endDate, status]) // Sprint 8: Legacy (will be removed in Task 0.3)
-  @@index([sprintId, startDate, endDate, status]) // Sprint 8.5: NEW full composite
-  @@map("weeks")
-}
-
-model Day {
-  id String @id @default(cuid())
-
-  // Core fields
-  title       String
-  description String? @db.Text
-  status      Status  @default(NOT_STARTED)
-  progress    Int     @default(0) // 0-100, validated in application
-
-  // Time window
-  startDate DateTime
-  endDate   DateTime?
-
-  // Hierarchy - Parent
-  weekId String
-  week   Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
-
-  // Sprint 12: Task model removed - Days are now leaf nodes
-  // Tickets are scheduled at Week level with scheduledDays[] specifying which days
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Indexes for performance
-  @@index([weekId])
-  @@index([startDate, endDate])
-  @@index([status])
-  @@index([weekId, status])
-  @@index([weekId, startDate, endDate, status])
-  @@map("days")
-}
-
-// Sprint 12: Task, Session, and Checkpoint models REMOVED
-// These were never populated (Task never auto-created during roadmap materialization)
-// Tickets now schedule directly to Weeks with scheduledDays[] for day-level assignment
-// Agent work tracking moved to new AgentSession model (see below)
+// Sprint 15: Week and Day models REMOVED (Ticket #80)
+// Roadmap simplified to 2-level: Phase → Sprint
+// Tickets now link directly to Sprint via sprintId FK
+// Progress cascades: Ticket status → Sprint % → Phase %
 
 // ============================================================================
 // USER PREFERENCES (for theme system and future UI preferences)
@@ -386,12 +308,8 @@ model Ticket {
   assigneeType String? // human, agent_persona
   assigneeId   String? // User ID or AgentPersona ID
 
-  // Sprint 12: Ticket Scheduling (replaces linkedTaskId → Task linkage)
-  // Tickets are now scheduled directly to Weeks with day-level assignment
-  estimatedDays   Int? // How many days to complete (required for scheduling)
-  scheduledWeekId String? // Primary week this ticket is scheduled to
-  scheduledWeek   Week?    @relation("ScheduledTickets", fields: [scheduledWeekId], references: [id], onDelete: SetNull)
-  scheduledDays   String[] @default([]) // ["Monday", "Tuesday", "Wednesday"] - which days within the week
+  // Sprint 15: Planning estimate (optional)
+  estimatedDays Int? // How many days to complete
 
   // Custom fields (flexible schema)
   customFields Json? @db.JsonB
@@ -454,7 +372,6 @@ model Ticket {
   @@index([projectId, kind]) // Sprint 10: Project + kind filter
   @@index([projectId, status]) // Sprint 10: Project + status filter
   @@index([kind, status]) // Sprint 10: Kind + status filter
-  @@index([scheduledWeekId]) // Sprint 12: Find tickets by scheduled week
   @@index([createdAt(sort: Desc)])
   @@index([milestoneId]) // Sprint 11.7: Find tickets by milestone
   @@index([dueDate]) // Sprint 11.7: Sort/filter by due date

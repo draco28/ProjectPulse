@@ -1,9 +1,9 @@
 /**
  * API Route: /api/roadmap/[id]/materialize
  *
- * Standalone Roadmap UI - Phase A
+ * Sprint 15: Simplified to 2-level hierarchy (Phase → Sprint)
  *
- * POST - Trigger materialization of roadmap JSON to Phase/Sprint/Week/Day records
+ * POST - Trigger materialization of roadmap JSON to Phase/Sprint records
  *
  * Security (Sprint 10):
  * - All requests MUST be authenticated (user session OR agent token)
@@ -88,13 +88,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // If force re-materialize, delete existing records first
     if (isAlreadyMaterialized && validated.force) {
-      // Delete phases (cascades to sprints/weeks/days via schema)
+      // Delete phases (cascades to sprints via schema)
       await prisma.phase.deleteMany({
         where: { roadmapId: id },
       });
     }
 
-    // Materialize roadmap
+    // Materialize roadmap (Sprint 15: Phase/Sprint only)
     const result = await materializeRoadmap(id);
 
     return NextResponse.json({
@@ -103,9 +103,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         materialization: {
           phases: result.counts.phases,
           sprints: result.counts.sprints,
-          weeks: result.counts.weeks,
-          days: result.counts.days,
-          tasks: 0, // Tasks are created separately
         },
         message: result.message,
       },

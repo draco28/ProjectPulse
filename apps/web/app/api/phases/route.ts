@@ -1,12 +1,10 @@
 /**
  * API Route: POST /api/phases
  *
- * Purpose: Create a new phase with auto-generated child weeks
+ * Purpose: Create a new phase (no auto-generated children)
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
  *
- * Pattern: Next.js 14 API Route → Zod validation → Prisma nested write
- *
- * Performance: Uses Prisma nested write (3x faster than loop + transaction)
- * See: .agent/task/prisma-sprint-tools-20251107-0630.md
+ * Pattern: Next.js 14 API Route → Zod validation → Prisma create
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -59,20 +57,20 @@ type CreatePhaseInput = z.infer<typeof createPhaseSchema>;
 // ============================================================================
 
 /**
- * Create a new phase with auto-generated weeks
+ * Create a new phase
+ * Sprint 15: Week/Day removed - no auto-generated children (Ticket #80)
  *
  * Flow:
  * 1. Parse and validate request body
- * 2. Calculate number of weeks from date range
- * 3. Use Prisma nested write to create phase + weeks atomically
- * 4. Return phase and weeks data
+ * 2. Create phase record
+ * 3. Return phase data
  *
  * Error Handling:
  * - 400: Validation errors (Zod)
  * - 500: Database errors (Prisma)
  *
  * Response Format:
- * Success: { success: true, data: { phase, weeks } }
+ * Success: { success: true, data: { phase } }
  * Error: { success: false, error: { code, message, field? } }
  */
 export async function POST(request: NextRequest) {
@@ -85,34 +83,7 @@ export async function POST(request: NextRequest) {
     const startDate = new Date(validated.startDate);
     const endDate = new Date(validated.endDate);
 
-    // 3. Calculate number of weeks
-    const durationMs = endDate.getTime() - startDate.getTime();
-    const durationWeeks = Math.ceil(durationMs / (7 * 24 * 60 * 60 * 1000));
-
-    // 4. Prepare week data for nested write
-    const weeksData = [];
-    for (let i = 0; i < durationWeeks; i++) {
-      const weekStart = new Date(startDate);
-      weekStart.setDate(weekStart.getDate() + i * 7);
-
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 7);
-
-      // Cap week end date at phase end date
-      if (weekEnd > endDate) {
-        weekEnd.setTime(endDate.getTime());
-      }
-
-      weeksData.push({
-        title: `${validated.title} - Week ${i + 1}`,
-        startDate: weekStart,
-        endDate: weekEnd,
-        status: 'NOT_STARTED' as const,
-        progress: 0,
-      });
-    }
-
-    // 5. Create phase + weeks using Prisma nested write (atomic, single query)
+    // 3. Create phase (Sprint 15: no nested weeks/days)
     const phase = await prisma.phase.create({
       data: {
         title: validated.title,
@@ -121,22 +92,10 @@ export async function POST(request: NextRequest) {
         endDate,
         status: validated.status,
         progress: validated.progress,
-        // Nested write: Create weeks inline (3x faster than manual transaction)
-        weeks: {
-          create: weeksData,
-        },
-      },
-      // Include weeks in response
-      include: {
-        weeks: {
-          orderBy: {
-            startDate: 'asc',
-          },
-        },
       },
     });
 
-    // 6. Success response
+    // 4. Success response
     return NextResponse.json(
       {
         success: true,
@@ -152,21 +111,12 @@ export async function POST(request: NextRequest) {
             createdAt: phase.createdAt.toISOString(),
             updatedAt: phase.updatedAt.toISOString(),
           },
-          weeks: phase.weeks.map((week) => ({
-            id: week.id,
-            title: week.title,
-            phaseId: week.phaseId,
-            startDate: week.startDate.toISOString(),
-            endDate: week.endDate?.toISOString() || null,
-            status: week.status,
-            progress: week.progress,
-          })),
         },
       },
       { status: 201 }
     );
   } catch (error) {
-    // 7. Error handling
+    // 5. Error handling
 
     // Zod validation errors (400)
     if (error instanceof z.ZodError) {

@@ -99,16 +99,8 @@ export function buildTicketWhere(
     where.assigneeType = filters.assigneeType;
   }
 
-  // Sprint 12: Scheduling filters (replaces linkedTaskId)
-  if (filters.scheduledWeekId) {
-    where.scheduledWeekId = filters.scheduledWeekId;
-  }
-
-  if (filters.hasSchedule === true) {
-    where.scheduledWeekId = { not: null };
-  } else if (filters.hasSchedule === false) {
-    where.scheduledWeekId = null;
-  }
+  // Sprint 15: scheduledWeekId removed (Week model deleted - Ticket #80)
+  // Tickets now link to Sprint via sprintId FK for Kanban board
 
   if (filters.source?.length) {
     where.source = { in: filters.source };
@@ -341,15 +333,10 @@ export function ticketIncludeConfig(includeRelations?: boolean): Prisma.TicketIn
       attachments: {
         select: { id: true, filename: true, filepath: true },
       },
-      // Sprint 12: Include scheduled week (replaces linkedTask)
-      scheduledWeek: {
-        select: {
-          id: true,
-          title: true,
-          sprint: {
-            select: { id: true, title: true },
-          },
-        },
+      // Sprint 15: scheduledWeek removed (Week model deleted - Ticket #80)
+      // Tickets now include sprint directly via sprintId FK
+      sprint: {
+        select: { id: true, title: true, sprintNumber: true },
       },
       // Sprint 11.7: Include milestone
       milestone: {
@@ -380,9 +367,10 @@ export function ticketIncludeConfig(includeRelations?: boolean): Prisma.TicketIn
     attachments: {
       select: { id: true },
     },
-    // Sprint 12: Include scheduled week (basic info)
-    scheduledWeek: {
-      select: { id: true, title: true },
+    // Sprint 15: scheduledWeek removed (Week model deleted - Ticket #80)
+    // Tickets now include sprint directly via sprintId FK
+    sprint: {
+      select: { id: true, title: true, sprintNumber: true },
     },
     // Sprint 11.7: Include milestone (basic info)
     milestone: {

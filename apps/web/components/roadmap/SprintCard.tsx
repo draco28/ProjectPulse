@@ -1,11 +1,12 @@
 /**
- * SprintCard Component - Sprint 8.5
+ * SprintCard Component
  *
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
  * Displays sprint information with mid-level neumorphic design:
  * - Icon container with blue accent
  * - Title and color-coded status badge
  * - Description
- * - Mini stats (week count)
+ * - Mini stats (ticket count)
  * - Blue progress bar
  * - Date range
  */
@@ -20,7 +21,8 @@ interface SprintCardProps {
 
 export function SprintCard({ sprint }: SprintCardProps) {
   // Calculate stats from nested data
-  const weekCount = sprint.weeks?.length || 0;
+  // Sprint 15: Week/Day removed - now count tickets directly (Ticket #80)
+  const ticketCount = sprint.tickets?.length || 0;
 
   // Badge class based on status
   const badgeClass =
@@ -55,14 +57,14 @@ export function SprintCard({ sprint }: SprintCardProps) {
         </div>
       </div>
 
-      {/* Mini Stats */}
-      {weekCount > 0 && (
+      {/* Mini Stats - Sprint 15: Week/Day removed (Ticket #80) */}
+      {ticketCount > 0 && (
         <div className="mb-3 flex gap-2">
-          {/* Week Count */}
+          {/* Ticket Count */}
           <div className="neu-pressed flex items-center gap-2 rounded-xl px-3 py-2">
-            <div className="text-base font-bold text-white">{weekCount}</div>
+            <div className="text-base font-bold text-white">{ticketCount}</div>
             <div className="text-xs font-medium text-slate">
-              {weekCount === 1 ? 'Week' : 'Weeks'}
+              {ticketCount === 1 ? 'Ticket' : 'Tickets'}
             </div>
           </div>
         </div>

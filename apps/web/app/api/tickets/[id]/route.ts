@@ -83,19 +83,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
             createdAt: true,
           },
         },
-        // Sprint 12: linkedTask removed - tickets now schedule via scheduledWeek relation
-        scheduledWeek: {
+        // Sprint 15: scheduledWeek removed (Week model deleted - Ticket #80)
+        // Tickets now include sprint directly via sprintId FK
+        sprint: {
           select: {
             id: true,
             title: true,
-            sprint: {
-              select: {
-                id: true,
-                title: true,
-                phase: {
-                  select: { id: true, title: true },
-                },
-              },
+            sprintNumber: true,
+            phase: {
+              select: { id: true, title: true },
             },
           },
         },
@@ -346,9 +342,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (data.sprintNumber !== undefined) updateData.sprintNumber = data.sprintNumber;
     // Sprint 15: Set resolved sprintId (FK to Sprint for progress calculation)
     if (resolvedSprintId !== undefined) updateData.sprintId = resolvedSprintId;
-    // Sprint 14: Roadmap scheduling fields
-    if (data.scheduledWeekId !== undefined) updateData.scheduledWeekId = data.scheduledWeekId;
-    if (data.scheduledDays !== undefined) updateData.scheduledDays = data.scheduledDays;
+    // Sprint 15: scheduledWeekId/scheduledDays removed (Week model deleted - Ticket #80)
+    // Tickets now link to Sprint via sprintId FK for Kanban board
     if (data.estimatedDays !== undefined) updateData.estimatedDays = data.estimatedDays;
 
     const ticket = await prisma.ticket.update({

@@ -2,10 +2,11 @@
  * API Route: /api/roadmap/[id]
  *
  * Standalone Roadmap UI - Phase A
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
  *
- * GET    - Get roadmap details with full hierarchy
+ * GET    - Get roadmap details with full hierarchy (Phase → Sprint)
  * PUT    - Update roadmap metadata
- * DELETE - Delete roadmap (cascades to phases/sprints/weeks/days)
+ * DELETE - Delete roadmap (cascades to phases/sprints)
  *
  * Security (Sprint 10):
  * - All requests MUST be authenticated (user session OR agent token)
@@ -23,13 +24,12 @@ import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 // VALIDATION SCHEMAS
 // ============================================================================
 
+// Sprint 15: Week/Day removed (Ticket #80) - removed currentWeek, currentDay fields
 const updateRoadmapSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).optional(),
   currentPhase: z.string().nullable().optional(),
   currentSprint: z.string().nullable().optional(),
-  currentWeek: z.string().nullable().optional(),
-  currentDay: z.string().nullable().optional(),
 });
 
 // ============================================================================
@@ -63,33 +63,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Sprint 10: Authenticate and validate project access
     await getRoadmapWithAuth(id, request);
 
-    // Fetch roadmap with full 5-level hierarchy
+    // Sprint 15: Fetch roadmap with 2-level hierarchy (Phase → Sprint only)
     const roadmap = await prisma.roadmap.findUnique({
       where: { id },
       include: {
         phases_rel: {
           include: {
             sprints: {
+              // Sprint 15: Include tickets scheduled to sprints
               include: {
-                weeks: {
-                  include: {
-                    days: {
-                      select: {
-                        id: true,
-                        title: true,
-                        description: true,
-                        status: true,
-                        progress: true,
-                        startDate: true,
-                        endDate: true,
-                        weekId: true,
-                        createdAt: true,
-                        updatedAt: true,
-                        // Sprint 12: Tasks removed - tickets now schedule to weeks directly
-                      },
-                    },
+                tickets: {
+                  select: {
+                    id: true,
+                    title: true,
+                    status: true,
+                    priority: true,
+                    kind: true,
+                    estimatedDays: true,
                   },
-                  orderBy: { startDate: 'asc' },
                 },
               },
               orderBy: { startDate: 'asc' },
@@ -130,31 +121,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
               progress: sprint.progress,
               startDate: sprint.startDate?.toISOString() || null,
               endDate: sprint.endDate?.toISOString() || null,
-              weeks: sprint.weeks.map((week) => ({
-                id: week.id,
-                title: week.title,
-                description: week.description,
-                status: week.status,
-                progress: week.progress,
-                startDate: week.startDate?.toISOString() || null,
-                endDate: week.endDate?.toISOString() || null,
-                days: week.days.map((day) => ({
-                  id: day.id,
-                  title: day.title,
-                  description: day.description,
-                  status: day.status,
-                  progress: day.progress,
-                  startDate: day.startDate?.toISOString() || null,
-                  endDate: day.endDate?.toISOString() || null,
-                  // Sprint 12: Tasks removed - tickets schedule to weeks via scheduledTickets relation
-                })),
+              // Sprint 15: Tickets directly on sprints (no weeks/days)
+              tickets: sprint.tickets.map((ticket) => ({
+                id: ticket.id,
+                title: ticket.title,
+                status: ticket.status,
+                priority: ticket.priority,
+                kind: ticket.kind,
+                estimatedDays: ticket.estimatedDays,
               })),
             })),
           })),
           currentPhase: roadmap.currentPhase,
           currentSprint: roadmap.currentSprint,
-          currentWeek: roadmap.currentWeek,
-          currentDay: roadmap.currentDay,
+          // Sprint 15: Week/Day removed (Ticket #80)
           createdAt: roadmap.createdAt.toISOString(),
           updatedAt: roadmap.updatedAt.toISOString(),
         },
@@ -190,14 +170,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Sprint 10: Authenticate and validate project access
     await getRoadmapWithAuth(id, request);
 
-    // Update roadmap
+    // Sprint 15: Update roadmap (Week/Day fields removed)
     const roadmap = await prisma.roadmap.update({
       where: { id },
       data: {
         currentPhase: validated.currentPhase,
         currentSprint: validated.currentSprint,
-        currentWeek: validated.currentWeek,
-        currentDay: validated.currentDay,
       },
     });
 
@@ -209,8 +187,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           projectId: roadmap.projectId,
           currentPhase: roadmap.currentPhase,
           currentSprint: roadmap.currentSprint,
-          currentWeek: roadmap.currentWeek,
-          currentDay: roadmap.currentDay,
+          // Sprint 15: Week/Day removed (Ticket #80)
           updatedAt: roadmap.updatedAt.toISOString(),
         },
       },
@@ -260,7 +237,7 @@ export async function DELETE(
     // Sprint 10: Authenticate and validate project access
     await getRoadmapWithAuth(id, request);
 
-    // Delete roadmap (cascades to phases/sprints/weeks/days via Prisma schema)
+    // Sprint 15: Delete roadmap (cascades to phases/sprints via Prisma schema)
     await prisma.roadmap.delete({
       where: { id },
     });

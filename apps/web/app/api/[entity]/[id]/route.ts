@@ -2,7 +2,7 @@
  * API Route: PATCH /api/:entity/:id
  *
  * Generic entity update for roadmap hierarchy items
- * Supports: phases, sprints, weeks, days, tasks
+ * Sprint 15: Simplified to 2-level hierarchy - Phase → Sprint only (Ticket #80)
  *
  * Updates: title, description, status
  * For progress updates, use PUT /api/:entity/:id/progress
@@ -12,8 +12,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 
-// Valid entity types (Task model removed in Sprint 12 redesign)
-const EntityTypeSchema = z.enum(['phases', 'sprints', 'weeks', 'days']);
+// Sprint 15: Week/Day removed - now 2-level hierarchy (Phase → Sprint)
+const EntityTypeSchema = z.enum(['phases', 'sprints']);
 
 // Status values
 const StatusSchema = z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'CANCELLED']);
@@ -25,12 +25,10 @@ const UpdateEntitySchema = z.object({
   status: StatusSchema.optional(),
 });
 
-// Map plural to Prisma model names (Task removed in Sprint 12)
+// Sprint 15: Week/Day removed (Ticket #80)
 const entityModelMap = {
   phases: 'phase',
   sprints: 'sprint',
-  weeks: 'week',
-  days: 'day',
 } as const;
 
 type RouteParams = {

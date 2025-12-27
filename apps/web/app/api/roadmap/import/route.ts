@@ -2,6 +2,7 @@
  * API Route: /api/roadmap/import
  *
  * Standalone Roadmap UI - Phase A
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
  *
  * POST - Import roadmap from JSON structure
  *
@@ -29,7 +30,7 @@ import { materializeRoadmap } from '@projectpulse/roadmap-tools';
 const sprintSchema = z.object({
   name: z.string().min(1).max(200),
   duration: z.string().optional(),
-  weeks: z.string().optional(),
+  weeks: z.string().optional(), // Keep for backward compatibility, but ignored
   goals: z.array(z.string()).default([]),
   deliverables: z.array(z.string()).default([]),
   storyPoints: z.number().int().positive().optional(),
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
         sprints: p.sprints.map((s) => ({
           name: s.name,
           duration: s.duration,
-          weeks: s.weeks,
+          weeks: s.weeks, // Keep for backward compatibility
           goals: s.goals,
           deliverables: s.deliverables,
           storyPoints: s.storyPoints,
@@ -193,11 +194,12 @@ export async function POST(request: NextRequest) {
         materializationResult = {
           success: false,
           message: matError instanceof Error ? matError.message : 'Materialization failed',
-          counts: { phases: 0, sprints: 0, weeks: 0, days: 0 },
+          counts: { phases: 0, sprints: 0 },
         };
       }
     }
 
+    // Sprint 15: Week/Day removed from materialization counts (Ticket #80)
     return NextResponse.json(
       {
         success: true,
@@ -216,8 +218,6 @@ export async function POST(request: NextRequest) {
             ? {
                 phases: materializationResult.counts?.phases ?? 0,
                 sprints: materializationResult.counts?.sprints ?? 0,
-                weeks: materializationResult.counts?.weeks ?? 0,
-                days: materializationResult.counts?.days ?? 0,
               }
             : null,
           warnings,

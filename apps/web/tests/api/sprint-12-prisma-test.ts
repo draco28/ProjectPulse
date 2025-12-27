@@ -285,6 +285,8 @@ async function testTicketScheduling(): Promise<number | null> {
   let ticketId: number | null = null;
 
   // Create ticket with scheduling fields
+  // Sprint 15: scheduledDays removed (Week model deleted - Ticket #80)
+  // Now only testing estimatedDays and sprintNumber
   try {
     const ticket = await prisma.ticket.create({
       data: {
@@ -296,7 +298,7 @@ async function testTicketScheduling(): Promise<number | null> {
         priority: 'medium',
         status: 'backlog',
         estimatedDays: 3,
-        scheduledDays: ['Monday', 'Tuesday', 'Wednesday'],
+        sprintNumber: 1,
       },
     });
     ticketId = ticket.id;
@@ -304,14 +306,14 @@ async function testTicketScheduling(): Promise<number | null> {
     if (ticket.estimatedDays !== 3) {
       throw new Error(`Expected estimatedDays=3, got ${ticket.estimatedDays}`);
     }
-    if (ticket.scheduledDays.length !== 3) {
-      throw new Error(`Expected 3 scheduled days, got ${ticket.scheduledDays.length}`);
+    if (ticket.sprintNumber !== 1) {
+      throw new Error(`Expected sprintNumber=1, got ${ticket.sprintNumber}`);
     }
 
     logSuccess('Ticket: Create with scheduling fields', {
       id: ticket.id,
       estimatedDays: ticket.estimatedDays,
-      scheduledDays: ticket.scheduledDays,
+      sprintNumber: ticket.sprintNumber,
     });
   } catch (error) {
     logFailure(
@@ -322,12 +324,13 @@ async function testTicketScheduling(): Promise<number | null> {
   }
 
   // Update scheduling fields
+  // Sprint 15: scheduledDays removed (Week model deleted - Ticket #80)
   try {
     const ticket = await prisma.ticket.update({
       where: { id: ticketId },
       data: {
         estimatedDays: 5,
-        scheduledDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        sprintNumber: 2,
       },
     });
 
@@ -337,7 +340,7 @@ async function testTicketScheduling(): Promise<number | null> {
 
     logSuccess('Ticket: Update scheduling fields', {
       estimatedDays: ticket.estimatedDays,
-      scheduledDays: ticket.scheduledDays,
+      sprintNumber: ticket.sprintNumber,
     });
   } catch (error) {
     logFailure(

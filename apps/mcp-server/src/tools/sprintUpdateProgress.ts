@@ -1,13 +1,13 @@
 /**
  * MCP Tool: sprint.updateProgress
  *
- * Sprint 12: Updated for 4-level hierarchy (day, week, sprint, phase)
- * Task/Session models removed
+ * Sprint 15: Updated for 2-level hierarchy (sprint, phase)
+ * Week/Day models removed (Ticket #80)
  *
  * Purpose: Update progress for any sprint entity and trigger automatic roll-up
  *
- * Use Case: Agent invokes when user says "Mark day X as 100% complete"
- * or "Update week progress to 75%"
+ * Use Case: Agent invokes when user says "Mark sprint X as 100% complete"
+ * or "Update phase progress to 75%"
  *
  * Pattern: Zod schema → HTTP API call → Progress roll-up utility
  */
@@ -19,10 +19,10 @@ import type { ToolDefinition, ToolContext } from './types.js';
 // INPUT SCHEMA
 // ============================================================================
 
-// Sprint 12: 4-level hierarchy (Task/Session removed)
+// Sprint 15: 2-level hierarchy (Week/Day removed)
 const sprintUpdateProgressSchema = z.object({
-  entityType: z.enum(['day', 'week', 'sprint', 'phase'], {
-    errorMap: () => ({ message: 'entityType must be one of: day, week, sprint, phase' }),
+  entityType: z.enum(['sprint', 'phase'], {
+    errorMap: () => ({ message: 'entityType must be one of: sprint, phase' }),
   }),
 
   entityId: z.string()
@@ -177,18 +177,16 @@ async function handler(
 export const sprintUpdateProgressTool: ToolDefinition = {
   name: 'projectpulse_sprint_updateProgress',
 
-  description: `Update progress for any sprint entity (day/week/sprint/phase) and automatically propagate to parent entities.
+  description: `Update progress for any sprint entity (sprint/phase) and automatically propagate to parent entities.
 
-  Sprint 12: Updated for 4-level hierarchy. Task/Session models removed.
+  Sprint 15: Updated for 2-level hierarchy. Week/Day models removed.
 
   Use this tool when:
-  - User says "Mark day X as complete" (progress = 100)
-  - User says "Update week Y to 75% progress"
+  - User says "Mark sprint X as complete" (progress = 100)
+  - User says "Update phase Y to 75% progress"
   - User wants to track progress at any hierarchy level
 
   Progress automatically rolls up:
-  - Day updated → Week recalculates from all days
-  - Week updated → Sprint recalculates from all weeks
   - Sprint updated → Phase recalculates from all sprints
 
   Returns updated entity + full hierarchy showing propagation.`,
@@ -200,8 +198,8 @@ export const sprintUpdateProgressTool: ToolDefinition = {
     properties: {
       entityType: {
         type: 'string',
-        enum: ['day', 'week', 'sprint', 'phase'],
-        description: 'Type of entity to update (day, week, sprint, or phase)',
+        enum: ['sprint', 'phase'],
+        description: 'Type of entity to update (sprint or phase)',
       },
       entityId: {
         type: 'string',

@@ -189,10 +189,8 @@ const TicketBaseSchema = z.object({
   assigneeType: AssigneeTypeSchema.optional(),
   assigneeId: z.string().optional(),
 
-  // Sprint 12: Ticket scheduling (replaces linkedTaskId)
+  // Sprint 15: Planning estimate (Week/Day scheduling removed - Ticket #80)
   estimatedDays: z.number().int().min(1).max(365).optional().nullable(),
-  scheduledWeekId: z.string().optional().nullable(),
-  scheduledDays: z.array(z.string()).max(7).optional(), // ["Monday", "Tuesday", ...]
 
   // Sprint 11.7: Milestone and Due Date
   dueDate: z.string().datetime().optional().nullable(),
@@ -317,9 +315,7 @@ export const TicketFilterSchema = z.object({
   assigneeType: AssigneeTypeSchema.optional(),
   source: z.array(TicketSourceSchema).optional(),
 
-  // Sprint 12: Scheduling filters
-  scheduledWeekId: z.string().optional(),
-  hasSchedule: z.boolean().optional(), // Filter for tickets with/without schedule
+  // Sprint 15: Scheduling filters (Week scheduling removed - Ticket #80)
 
   // Date filters
   createdFrom: z.string().datetime().optional(),

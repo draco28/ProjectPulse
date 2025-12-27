@@ -24,7 +24,17 @@ const TEST_PROJECT_ID = parseInt(process.env.TEST_PROJECT_ID || '2', 10); // Use
 
 // Agent token for authenticated API tests (optional)
 const AGENT_TOKEN = process.env.AGENT_TOKEN || '';
-const AUTH_HEADER = AGENT_TOKEN ? { Authorization: `Bearer ${AGENT_TOKEN}` } : {};
+// Type-safe headers that work with fetch
+const getAuthHeaders = (withContentType = false): HeadersInit => {
+  const headers: Record<string, string> = {};
+  if (AGENT_TOKEN) {
+    headers['Authorization'] = `Bearer ${AGENT_TOKEN}`;
+  }
+  if (withContentType) {
+    headers['Content-Type'] = 'application/json';
+  }
+  return headers;
+};
 
 const prisma = new PrismaClient();
 
@@ -198,14 +208,14 @@ async function testCalculateSprintProgress() {
   }
 
   try {
-    const progress = await calculateSprintProgress(prisma, fixtures.sprintId);
+    const result = await calculateSprintProgress(prisma, fixtures.sprintId);
 
     // Progress should be a valid percentage (0-100)
-    if (progress < 0 || progress > 100) {
-      throw new Error(`Invalid progress value: ${progress}`);
+    if (result.progress < 0 || result.progress > 100) {
+      throw new Error(`Invalid progress value: ${result.progress}`);
     }
 
-    logSuccess(testName, { sprintId: fixtures.sprintId, progress });
+    logSuccess(testName, { sprintId: fixtures.sprintId, progress: result.progress, total: result.total });
   } catch (error) {
     logFailure(testName, error instanceof Error ? error.message : String(error));
   }
@@ -290,7 +300,7 @@ async function testKanbanBoardEndpoint() {
 
   try {
     const response = await fetch(`${BASE_URL}/api/sprints/${fixtures.sprintId}/kanban`, {
-      headers: AUTH_HEADER,
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -357,7 +367,7 @@ async function testMoveTicketEndpoint() {
   try {
     const response = await fetch(`${BASE_URL}/api/tickets/${ticketId}/move`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
+      headers: getAuthHeaders(true),
       body: JSON.stringify({
         status: 'in-progress',
         displayOrder: 0,
@@ -423,7 +433,7 @@ async function testBulkReorderEndpoint() {
 
     const response = await fetch(`${BASE_URL}/api/tickets/reorder`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
+      headers: getAuthHeaders(true),
       body: JSON.stringify({ moves }),
     });
 
@@ -477,7 +487,7 @@ async function testRoadmapOverviewEndpoint() {
 
   try {
     const response = await fetch(`${BASE_URL}/api/roadmap/overview?projectId=${TEST_PROJECT_ID}`, {
-      headers: AUTH_HEADER,
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -539,7 +549,7 @@ async function testTicketCreateWithSprintNumber() {
   try {
     const response = await fetch(`${BASE_URL}/api/tickets`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
+      headers: getAuthHeaders(true),
       body: JSON.stringify({
         projectId: TEST_PROJECT_ID,
         title: 'Test Ticket - SprintNumber Resolution Test',
@@ -606,7 +616,7 @@ async function testTicketCreateWithDisplayOrder() {
 
     const response = await fetch(`${BASE_URL}/api/tickets`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
+      headers: getAuthHeaders(true),
       body: JSON.stringify({
         projectId: TEST_PROJECT_ID,
         title: 'Test Ticket - DisplayOrder Test',

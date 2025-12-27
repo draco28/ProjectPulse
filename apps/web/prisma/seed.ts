@@ -28,9 +28,7 @@ async function main() {
   // Clean existing data (in reverse dependency order)
   console.log('🧹 Cleaning existing data...');
 
-  // Clean Sprint Hierarchy (Sprint 12: 4-level - Task/Session models removed)
-  await prisma.day.deleteMany();
-  await prisma.week.deleteMany();
+  // Clean Sprint Hierarchy (Sprint 15: 2-level - Phase/Sprint only, Week/Day removed per Ticket #80)
   await prisma.sprint.deleteMany();
   await prisma.phase.deleteMany();
   await prisma.roadmap.deleteMany();

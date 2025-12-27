@@ -18,17 +18,17 @@ export interface ParsedRoadmap {
   }>;
 }
 
+/**
+ * Sprint 15: Simplified to 2-level hierarchy (Phase → Sprint)
+ * Week/Day creation removed - Kanban board uses Ticket.sprintId instead
+ */
 export interface MaterializationResult {
   success: boolean;
   message: string;
   phaseIds: string[];
   sprintIds: string[];
-  weekIds: string[];
-  dayIds: string[];
   counts: {
     phases: number;
     sprints: number;
-    weeks: number;
-    days: number;
   };
 }

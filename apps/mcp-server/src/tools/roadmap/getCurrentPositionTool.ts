@@ -1,19 +1,19 @@
 /**
  * Get Current Position Tool
  *
- * Sprint 12: Updated for 4-level hierarchy (Phase → Sprint → Week → Day)
- * Task model removed - Days are now leaf nodes
+ * Sprint 15: Updated for 2-level hierarchy (Phase → Sprint)
+ * Week/Day models removed (Ticket #80)
  *
- * Returns agent's current position in 4-level hierarchy with 1 query
- * Query: Latest IN_PROGRESS day with nested includes
- * Returns: Full hierarchy breadcrumb (Phase → Sprint → Week → Day)
+ * Returns agent's current position in 2-level hierarchy with 1 query
+ * Query: Latest IN_PROGRESS sprint with phase parent
+ * Returns: Full hierarchy breadcrumb (Phase → Sprint)
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
 
 /**
- * Current position in hierarchy (Sprint 12: 4-level)
+ * Current position in hierarchy (Sprint 15: 2-level)
  */
 export interface CurrentPosition {
   phase: {
@@ -24,18 +24,7 @@ export interface CurrentPosition {
   } | null;
   sprint: {
     id: string;
-    title: string;
-    status: string;
-    progress: number;
-  } | null;
-  week: {
-    id: string;
-    title: string;
-    status: string;
-    progress: number;
-  } | null;
-  day: {
-    id: string;
+    sprintNumber: number;
     title: string;
     status: string;
     progress: number;
@@ -56,12 +45,12 @@ type GetCurrentPositionInput = z.infer<typeof getCurrentPositionSchema>;
 /**
  * MCP Tool: projectpulse.sprint.getCurrentPosition
  *
- * Sprint 12: Updated for 4-level hierarchy
+ * Sprint 15: Updated for 2-level hierarchy (Phase → Sprint)
  * Get agent's current position in development hierarchy
  */
 export const getCurrentPositionTool: ToolDefinition = {
   name: 'projectpulse_sprint_getCurrentPosition',
-  description: 'Get current position in development hierarchy (Phase → Sprint → Week → Day) in 1 query. Sprint 12: Task model removed, Days are now leaf nodes.',
+  description: 'Get current position in development hierarchy (Phase → Sprint) in 1 query. Sprint 15: Week/Day models removed for Kanban-based UI.',
   schema: getCurrentPositionSchema,
   inputSchema: {
     type: 'object',
@@ -80,109 +69,98 @@ export const getCurrentPositionTool: ToolDefinition = {
     try {
       context.logger.info('Getting current position', { projectId: validated.projectId });
 
-      // Query the API for current roadmap position
-      // Sprint 12: This now queries the roadmap's currentDay/currentWeek/currentSprint/currentPhase
-      const response = await context.httpClient.get<{
-        roadmap: {
-          id: string;
-          currentPhase: string | null;
-          currentSprint: string | null;
-          currentWeek: string | null;
-          currentDay: string | null;
-        } | null;
-        phase: { id: string; title: string; status: string; progress: number } | null;
-        sprint: { id: string; title: string; status: string; progress: number } | null;
-        week: { id: string; title: string; status: string; progress: number } | null;
-        day: { id: string; title: string; status: string; progress: number } | null;
-        message?: string;
-      }>(`/api/roadmap?projectId=${validated.projectId}`);
-
-      // Build position from roadmap data
-      const position: CurrentPosition = {
-        phase: null,
-        sprint: null,
-        week: null,
-        day: null,
-      };
-
-      // If we have a roadmap, query for the active day
-      if (response.roadmap) {
-        // Query for IN_PROGRESS day in this project's roadmap
-        const dayResponse = await context.httpClient.get<{
-          data?: {
-            entities: Array<{
+      // Sprint 15: Query for active sprint directly (no week/day)
+      const sprintResponse = await context.httpClient.get<{
+        data?: {
+          entities: Array<{
+            id: string;
+            sprintNumber?: number;
+            title: string;
+            status: string;
+            progress: number;
+            phase?: {
               id: string;
               title: string;
               status: string;
               progress: number;
-              week?: {
+            };
+          }>;
+        };
+      }>(`/api/hierarchy/query?level=sprint&status=IN_PROGRESS&limit=1`);
+
+      // Build position from sprint data
+      const position: CurrentPosition = {
+        phase: null,
+        sprint: null,
+      };
+
+      if (sprintResponse.data?.entities?.[0]) {
+        const sprint = sprintResponse.data.entities[0];
+        position.sprint = {
+          id: sprint.id,
+          sprintNumber: sprint.sprintNumber ?? 0,
+          title: sprint.title,
+          status: sprint.status,
+          progress: sprint.progress,
+        };
+
+        if (sprint.phase) {
+          position.phase = {
+            id: sprint.phase.id,
+            title: sprint.phase.title,
+            status: sprint.phase.status,
+            progress: sprint.phase.progress,
+          };
+        }
+      } else {
+        // Try to find the first NOT_STARTED sprint if none is IN_PROGRESS
+        const firstSprintResponse = await context.httpClient.get<{
+          data?: {
+            entities: Array<{
+              id: string;
+              sprintNumber?: number;
+              title: string;
+              status: string;
+              progress: number;
+              phase?: {
                 id: string;
                 title: string;
                 status: string;
                 progress: number;
-                sprint?: {
-                  id: string;
-                  title: string;
-                  status: string;
-                  progress: number;
-                  phase?: {
-                    id: string;
-                    title: string;
-                    status: string;
-                    progress: number;
-                  };
-                };
               };
             }>;
           };
-        }>(`/api/hierarchy/query?level=day&status=IN_PROGRESS&limit=1`);
+        }>(`/api/hierarchy/query?level=sprint&status=NOT_STARTED&limit=1`);
 
-        if (dayResponse.data?.entities?.[0]) {
-          const day = dayResponse.data.entities[0];
-          position.day = {
-            id: day.id,
-            title: day.title,
-            status: day.status,
-            progress: day.progress,
+        if (firstSprintResponse.data?.entities?.[0]) {
+          const sprint = firstSprintResponse.data.entities[0];
+          position.sprint = {
+            id: sprint.id,
+            sprintNumber: sprint.sprintNumber ?? 0,
+            title: sprint.title,
+            status: sprint.status,
+            progress: sprint.progress,
           };
 
-          if (day.week) {
-            position.week = {
-              id: day.week.id,
-              title: day.week.title,
-              status: day.week.status,
-              progress: day.week.progress,
+          if (sprint.phase) {
+            position.phase = {
+              id: sprint.phase.id,
+              title: sprint.phase.title,
+              status: sprint.phase.status,
+              progress: sprint.phase.progress,
             };
-
-            if (day.week.sprint) {
-              position.sprint = {
-                id: day.week.sprint.id,
-                title: day.week.sprint.title,
-                status: day.week.sprint.status,
-                progress: day.week.sprint.progress,
-              };
-
-              if (day.week.sprint.phase) {
-                position.phase = {
-                  id: day.week.sprint.phase.id,
-                  title: day.week.sprint.phase.title,
-                  status: day.week.sprint.phase.status,
-                  progress: day.week.sprint.phase.progress,
-                };
-              }
-            }
           }
+          position.message = 'No sprint is IN_PROGRESS. Showing first NOT_STARTED sprint.';
         } else {
-          position.message = 'No active day found. Set a day to IN_PROGRESS to track position.';
+          position.message = 'No roadmap found or no sprints exist. Create a roadmap first.';
         }
-      } else {
-        position.message = 'No roadmap found for this project. Create a roadmap first.';
       }
 
       context.logger.info('Current position retrieved', {
         projectId: validated.projectId,
-        hasDay: !!position.day,
+        hasSprint: !!position.sprint,
         phase: position.phase?.title,
+        sprintNumber: position.sprint?.sprintNumber,
       });
 
       return {

@@ -1,11 +1,10 @@
 /**
  * GET /api/roadmap/phases/[id]/progress
  *
- * Sprint 8.5 Phase 4 - Task B.2
- * Sprint 12: Updated for 4-level hierarchy (Tasks removed)
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
  *
- * Returns full phase progress with nested sprints, weeks, and days
- * Single query with 3-level nested includes (replaces 10+ sequential calls)
+ * Returns full phase progress with nested sprints (tickets scheduled to sprints)
+ * Single query with 1-level nested includes
  *
  * Query Parameters:
  * - projectId: number (required) - Project ID for security validation
@@ -14,7 +13,7 @@
  * - id: string (required) - Phase ID (UUID)
  *
  * Response:
- * - 200: Phase with full nested tree (sprints → weeks → days)
+ * - 200: Phase with nested sprints and tickets
  * - 400: Validation error (missing/invalid projectId)
  * - 404: Phase not found or doesn't belong to project
  * - 500: Server error
@@ -49,8 +48,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     // Sprint 10: Authenticate and validate project access
     await requireProjectAccess(request, projectIdNum);
 
-    // Query phase with full nested tree + projectId validation
-    // Sprint 12: 3-level nested includes (Tasks removed - tickets schedule to weeks)
+    // Sprint 15: Query phase with sprints only (Week/Day removed - Ticket #80)
     const phase = await prisma.phase.findFirst({
       where: {
         id: params.id,
@@ -60,39 +58,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       },
       include: {
         sprints: {
+          // Sprint 15: Include tickets scheduled to sprints (no weeks)
           include: {
-            weeks: {
-              include: {
-                days: {
-                  select: {
-                    id: true,
-                    title: true,
-                    description: true,
-                    status: true,
-                    progress: true,
-                    startDate: true,
-                    endDate: true,
-                    createdAt: true,
-                    updatedAt: true,
-                  },
-                  orderBy: {
-                    title: 'asc', // Monday, Tuesday, Wednesday...
-                  },
-                },
-                // Sprint 12: Include scheduled tickets for week view
-                scheduledTickets: {
-                  select: {
-                    id: true,
-                    title: true,
-                    status: true,
-                    priority: true,
-                    estimatedDays: true,
-                    scheduledDays: true,
-                  },
-                },
-              },
-              orderBy: {
-                title: 'asc', // Week 1, Week 2, Week 3...
+            tickets: {
+              select: {
+                id: true,
+                title: true,
+                status: true,
+                priority: true,
+                kind: true,
+                estimatedDays: true,
               },
             },
           },
@@ -114,15 +89,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       );
     }
 
-    // Return full nested tree
+    // Return phase with nested sprints
     return NextResponse.json(phase);
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: error.status }
-      );
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
     }
 
     console.error('[GET /api/roadmap/phases/[id]/progress] Error:', error);

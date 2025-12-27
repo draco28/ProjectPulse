@@ -54,9 +54,8 @@ export interface TicketRecord {
   sprintNumber?: number | null;
   // Sprint 14: Hierarchical display ID
   displayId?: string;
-  // Sprint 14: Roadmap scheduling fields
-  scheduledWeekId?: string | null;
-  scheduledDays?: string[];
+  // Sprint 15: scheduledWeekId/scheduledDays removed (Week model deleted - Ticket #80)
+  // Tickets now link to Sprint via sprintId FK for Kanban board
   estimatedDays?: number | null;
 }
 
@@ -123,9 +122,8 @@ export const baseTicketFields = z.object({
   epicRef: z.string().max(200).optional().nullable(),
   backlogRefs: z.array(z.string().max(50)).max(50).optional(),
   sprintNumber: z.number().int().min(1).max(999).optional().nullable(),
-  // Sprint 14: Roadmap scheduling fields
-  scheduledWeekId: z.string().optional().nullable(),
-  scheduledDays: z.array(z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])).optional(),
+  // Sprint 15: scheduledWeekId/scheduledDays removed (Week model deleted - Ticket #80)
+  // Tickets now link to Sprint via sprintId FK for Kanban board
   estimatedDays: z.number().int().min(1).max(365).optional().nullable(),
   // Sprint 15: Kanban ordering
   displayOrder: z.number().int().min(0).max(10000).optional(),
@@ -208,16 +206,8 @@ export const ticketInputProperties = {
     type: 'number',
     description: 'Sprint number for filtering (1, 2, 3, ...). Agents use this to find work for a specific sprint.',
   },
-  // Sprint 14: Roadmap scheduling fields
-  scheduledWeekId: {
-    type: 'string',
-    description: 'Week ID (cuid) to schedule this ticket to. Links ticket to a specific week in the roadmap hierarchy.',
-  },
-  scheduledDays: {
-    type: 'array',
-    items: { type: 'string', enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
-    description: 'Days within the scheduled week when work is planned (e.g., ["Monday", "Tuesday"]). Requires scheduledWeekId.',
-  },
+  // Sprint 15: scheduledWeekId/scheduledDays removed (Week model deleted - Ticket #80)
+  // Tickets now link to Sprint via sprintId FK for Kanban board
   estimatedDays: {
     type: 'number',
     description: 'Estimated days to complete this ticket (1-365). Used for planning and scheduling.',
@@ -325,8 +315,7 @@ export const summarizeTicket = (ticket: Partial<TicketRecord>) => ({
   epicRef: ticket.epicRef ?? null,
   backlogRefs: ticket.backlogRefs ?? [],
   sprintNumber: ticket.sprintNumber ?? null,
-  // Sprint 14: Roadmap scheduling fields
-  scheduledWeekId: ticket.scheduledWeekId ?? null,
-  scheduledDays: ticket.scheduledDays ?? [],
+  // Sprint 15: scheduledWeekId/scheduledDays removed (Week model deleted - Ticket #80)
+  // Tickets now link to Sprint via sprintId FK for Kanban board
   estimatedDays: ticket.estimatedDays ?? null,
 });

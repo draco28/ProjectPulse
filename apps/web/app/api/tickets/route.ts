@@ -71,14 +71,8 @@ export async function GET(request: NextRequest) {
       assignee: parseArrayParam(url.searchParams, 'assignee'),
       tags: parseArrayParam(url.searchParams, 'tags'),
       search: url.searchParams.get('search') ?? undefined,
-      // Sprint 12: Scheduling filters (linkedTaskId removed)
-      scheduledWeekId: url.searchParams.get('scheduledWeekId') ?? undefined,
-      hasSchedule:
-        url.searchParams.get('hasSchedule') === 'true'
-          ? true
-          : url.searchParams.get('hasSchedule') === 'false'
-            ? false
-            : undefined,
+      // Sprint 15: scheduledWeekId filter removed (Week model deleted - Ticket #80)
+      // Tickets now filter by sprintNumber for sprint-based work
       createdFrom: url.searchParams.get('createdFrom') ?? undefined,
       createdTo: url.searchParams.get('createdTo') ?? undefined,
       // Sprint 13: Hierarchy filters
@@ -308,9 +302,8 @@ export async function POST(request: NextRequest) {
           source: data.source ?? 'manual',
           assigneeType: data.assigneeType,
           assigneeId: data.assigneeId,
-          // Sprint 14: Roadmap scheduling fields
-          scheduledWeekId: data.scheduledWeekId ?? null,
-          scheduledDays: data.scheduledDays ?? [],
+          // Sprint 15: scheduledWeekId/scheduledDays removed (Week model deleted - Ticket #80)
+          // Tickets now link to Sprint via sprintId FK for Kanban board
           estimatedDays: data.estimatedDays ?? null,
           customFields,
           // Sprint 13: Hierarchy fields

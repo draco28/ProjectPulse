@@ -3,6 +3,7 @@
 /**
  * EditableSprintCard Component - Standalone Roadmap UI Phase E
  *
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
  * Sprint card with inline editing capabilities:
  * - Double-click title to edit
  * - Progress slider
@@ -34,7 +35,8 @@ export function EditableSprintCard({ sprint, isEditable = true }: EditableSprint
   );
 
   const isUpdating = isEntityUpdating || isProgressUpdating;
-  const weekCount = sprint.weeks?.length || 0;
+  // Sprint 15: Week/Day removed - now count tickets directly (Ticket #80)
+  const ticketCount = sprint.tickets?.length || 0;
 
   return (
     <div className={`flex-1 ${isUpdating ? 'opacity-75' : ''}`}>
@@ -85,13 +87,13 @@ export function EditableSprintCard({ sprint, isEditable = true }: EditableSprint
         </div>
       </div>
 
-      {/* Mini Stats */}
-      {weekCount > 0 && (
+      {/* Mini Stats - Sprint 15: Week/Day removed (Ticket #80) */}
+      {ticketCount > 0 && (
         <div className="mb-3 flex gap-2">
           <div className="neu-pressed flex items-center gap-2 rounded-xl px-3 py-2">
-            <div className="text-base font-bold text-white">{weekCount}</div>
+            <div className="text-base font-bold text-white">{ticketCount}</div>
             <div className="text-xs font-medium text-slate">
-              {weekCount === 1 ? 'Week' : 'Weeks'}
+              {ticketCount === 1 ? 'Ticket' : 'Tickets'}
             </div>
           </div>
         </div>

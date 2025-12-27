@@ -1,7 +1,8 @@
 /**
  * API Route: POST /api/progress
  *
- * Purpose: Update progress for any entity (session/task/day/week/phase) and trigger roll-up
+ * Purpose: Update progress for any entity (sprint/phase) and trigger roll-up
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
  *
  * Pattern: Next.js 14 API Route → Zod validation → Progress utility (incremental transactions)
  *
@@ -18,10 +19,10 @@ import { prisma } from '@/lib/prisma';
 // VALIDATION SCHEMA
 // ============================================================================
 
-// Sprint 12: Removed 'session' and 'task' - hierarchy now 4-level (Phase → Sprint → Week → Day)
+// Sprint 15: Week/Day removed - now 2-level hierarchy (Phase → Sprint) (Ticket #80)
 const updateProgressSchema = z.object({
-  entityType: z.enum(['day', 'week', 'sprint', 'phase'], {
-    errorMap: () => ({ message: 'entityType must be one of: day, week, sprint, phase' }),
+  entityType: z.enum(['sprint', 'phase'], {
+    errorMap: () => ({ message: 'entityType must be one of: sprint, phase' }),
   }),
 
   entityId: z.string().uuid('entityId must be a valid UUID'),
@@ -41,6 +42,7 @@ type UpdateProgressInput = z.infer<typeof updateProgressSchema>;
 
 /**
  * Update entity progress and propagate to parents
+ * Sprint 15: Week/Day removed - simplified hierarchy (Ticket #80)
  *
  * Flow:
  * 1. Parse and validate request body
@@ -160,143 +162,10 @@ export async function POST(request: NextRequest) {
 /**
  * Fetch entity with hierarchical context after update
  * Returns entity + parent chain for full visibility
- * Sprint 12: Removed 'session' and 'task' - now 4-level hierarchy
+ * Sprint 15: Week/Day removed - now 2-level hierarchy (Ticket #80)
  */
-async function fetchEntityWithContext(
-  entityType: 'day' | 'week' | 'sprint' | 'phase',
-  entityId: string
-) {
+async function fetchEntityWithContext(entityType: 'sprint' | 'phase', entityId: string) {
   switch (entityType) {
-    case 'day': {
-      const day = await prisma.day.findUnique({
-        where: { id: entityId },
-        select: {
-          id: true,
-          title: true,
-          progress: true,
-          status: true,
-          updatedAt: true,
-          week: {
-            select: {
-              id: true,
-              title: true,
-              progress: true,
-              status: true,
-              sprint: {
-                select: {
-                  id: true,
-                  title: true,
-                  progress: true,
-                  status: true,
-                  phase: {
-                    select: {
-                      id: true,
-                      title: true,
-                      progress: true,
-                      status: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      return {
-        updated: {
-          type: 'day',
-          id: day!.id,
-          title: day!.title,
-          progress: day!.progress,
-          status: day!.status,
-        },
-        hierarchy: {
-          week: day!.week
-            ? {
-                id: day!.week.id,
-                title: day!.week.title,
-                progress: day!.week.progress,
-                status: day!.week.status,
-              }
-            : null,
-          sprint: day!.week?.sprint
-            ? {
-                id: day!.week.sprint.id,
-                title: day!.week.sprint.title,
-                progress: day!.week.sprint.progress,
-                status: day!.week.sprint.status,
-              }
-            : null,
-          phase: day!.week?.sprint?.phase
-            ? {
-                id: day!.week.sprint.phase.id,
-                title: day!.week.sprint.phase.title,
-                progress: day!.week.sprint.phase.progress,
-                status: day!.week.sprint.phase.status,
-              }
-            : null,
-        },
-      };
-    }
-
-    case 'week': {
-      const week = await prisma.week.findUnique({
-        where: { id: entityId },
-        select: {
-          id: true,
-          title: true,
-          progress: true,
-          status: true,
-          updatedAt: true,
-          sprint: {
-            select: {
-              id: true,
-              title: true,
-              progress: true,
-              status: true,
-              phase: {
-                select: {
-                  id: true,
-                  title: true,
-                  progress: true,
-                  status: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      return {
-        updated: {
-          type: 'week',
-          id: week!.id,
-          title: week!.title,
-          progress: week!.progress,
-          status: week!.status,
-        },
-        hierarchy: {
-          sprint: week!.sprint
-            ? {
-                id: week!.sprint.id,
-                title: week!.sprint.title,
-                progress: week!.sprint.progress,
-                status: week!.sprint.status,
-              }
-            : null,
-          phase: week!.sprint?.phase
-            ? {
-                id: week!.sprint.phase.id,
-                title: week!.sprint.phase.title,
-                progress: week!.sprint.phase.progress,
-                status: week!.sprint.phase.status,
-              }
-            : null,
-        },
-      };
-    }
-
     case 'sprint': {
       const sprint = await prisma.sprint.findUnique({
         where: { id: entityId },

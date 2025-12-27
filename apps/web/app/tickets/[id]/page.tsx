@@ -2,6 +2,7 @@
  * Ticket Detail Page
  *
  * Sprint 10: Unified ticket system for all work items
+ * Sprint 15: Week/Day removed - tickets now link directly to Sprint via sprintId (Ticket #80)
  * Displays complete ticket information with comments, attachments, and activity timeline
  */
 
@@ -104,19 +105,17 @@ async function getTicketDetail(id: number) {
       source: true,
       assigneeType: true,
       assigneeId: true,
-      // Sprint 12: Ticket scheduling (replaces linkedTaskId)
+      // Sprint 15: Ticket scheduling simplified (Week/Day removed - Ticket #80)
       estimatedDays: true,
-      scheduledWeekId: true,
-      scheduledDays: true,
       // Sprint 15: Kanban ordering
       displayOrder: true,
 
-      // Sprint 13: Two-level hierarchy (Feature → Task)
+      // Sprint 13: Two-level hierarchy (Feature -> Task)
       parentTicketId: true,
       epicRef: true,
       backlogRefs: true,
       sprintNumber: true,
-      // Sprint 15: FK to Sprint for kanban board
+      // Sprint 15: FK to Sprint for kanban board (replaces scheduledWeekId)
       sprintId: true,
 
       // Sprint 14: Include parent ticket details for breadcrumb
@@ -219,21 +218,15 @@ async function getTicketDetail(id: number) {
         take: 10,
       },
 
-      // Sprint 12: Scheduled week (for roadmap integration)
-      scheduledWeek: {
+      // Sprint 15: Include sprint for roadmap integration (Week/Day removed)
+      sprint: {
         select: {
           id: true,
           title: true,
-          sprint: {
+          phase: {
             select: {
               id: true,
               title: true,
-              phase: {
-                select: {
-                  id: true,
-                  title: true,
-                },
-              },
             },
           },
         },
@@ -467,34 +460,21 @@ export default async function TicketDetailPage({
               <WatchersSection ticketId={serializedTicket.id} />
               */}
 
-              {/* Scheduled Week Breadcrumb (Sprint 12) */}
-              {ticket.scheduledWeek && (
+              {/* Sprint 15: Sprint Breadcrumb (Week/Day removed - Ticket #80) */}
+              {ticket.sprint && (
                 <div
                   className="neu-raised smooth-transition rounded-3xl p-4"
-                  data-testid="scheduled-week-breadcrumb"
+                  data-testid="scheduled-sprint-breadcrumb"
                 >
                   <h4 className="mb-2 text-sm font-semibold text-white">Scheduled in Roadmap</h4>
                   <div className="space-y-1 text-sm text-slate">
-                    <p className="truncate text-white" data-testid="scheduled-week-title">
-                      {ticket.scheduledWeek.title}
+                    <p className="truncate text-white" data-testid="scheduled-sprint-title">
+                      {ticket.sprint.title}
                     </p>
-                    {ticket.scheduledWeek.sprint && (
-                      <p className="text-xs">
-                        Sprint:{' '}
-                        <span className="text-white">{ticket.scheduledWeek.sprint.title}</span>
-                      </p>
-                    )}
-                    {ticket.scheduledWeek.sprint?.phase && (
+                    {ticket.sprint.phase && (
                       <p className="text-xs">
                         Phase:{' '}
-                        <span className="text-white">
-                          {ticket.scheduledWeek.sprint.phase.title}
-                        </span>
-                      </p>
-                    )}
-                    {ticket.scheduledDays && ticket.scheduledDays.length > 0 && (
-                      <p className="text-xs">
-                        Days: <span className="text-white">{ticket.scheduledDays.join(', ')}</span>
+                        <span className="text-white">{ticket.sprint.phase.title}</span>
                       </p>
                     )}
                   </div>

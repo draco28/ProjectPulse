@@ -1,7 +1,8 @@
 /**
  * Roadmap Materialization
  *
- * Converts Roadmap.phases JSON → normalized Phase/Sprint/Week/Day database records
+ * Sprint 15: Simplified to 2-level hierarchy (Phase → Sprint)
+ * Week/Day creation removed - Kanban board uses Ticket.sprintId instead
  */
 
 import { PrismaClient, Prisma } from '@prisma/client';
@@ -10,44 +11,14 @@ import type { ParsedRoadmap, MaterializationResult } from './types.js';
 const prisma = new PrismaClient();
 
 /**
- * Helper: Parse duration string to number of weeks
- */
-function parseDuration(duration: string | undefined): number {
-  if (!duration) return 1;
-  const match = duration.match(/(\d+)\s*weeks?/i);
-  return match ? parseInt(match[1], 10) : 1;
-}
-
-/**
- * Helper: Parse week range to array of week numbers
- * @example "Weeks 1-2" → [1, 2]
- */
-function parseWeekRange(weeks: string | undefined): number[] {
-  if (!weeks) return [1];
-  
-  const match = weeks.match(/Weeks?\s*(\d+)-(\d+)/i);
-  if (!match) return [1];
-
-  const start = parseInt(match[1] ?? '1', 10);
-  const end = parseInt(match[2] ?? String(start), 10);
-  const range: number[] = [];
-
-  for (let i = start; i <= end; i++) {
-    range.push(i);
-  }
-
-  return range;
-}
-
-/**
  * Materialize Roadmap: Convert phases JSON → normalized database tables
  *
- * Creates 5-level hierarchy:
+ * Sprint 15: Creates 2-level hierarchy:
  * - Roadmap (existing)
  *   → Phase (created)
- *     → Sprint (created)
- *       → Week (created, linked to Sprint NOT Phase)
- *         → Day (created, 5 per week Mon-Fri)
+ *     → Sprint (created, with continuous sprintNumber)
+ *
+ * Tickets link to Sprints via sprintId FK for Kanban board.
  *
  * @param roadmapId - Roadmap.id to materialize
  * @returns Materialization result with created IDs
@@ -97,10 +68,8 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
   // Track created IDs
   const phaseIds: string[] = [];
   const sprintIds: string[] = [];
-  const weekIds: string[] = [];
-  const dayIds: string[] = [];
 
-  // 2. Transaction: Create Phase → Sprint → Week → Day records
+  // 2. Transaction: Create Phase → Sprint records
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     let phaseOrder = 0;
     // Sprint counter OUTSIDE phase loop for continuous numbering across all phases
@@ -146,48 +115,7 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
         });
 
         sprintIds.push(sprint.id);
-
-        // Create Week records for this sprint
-        // CRITICAL: Week.sprintId (NOT Week.phaseId) - 5-level hierarchy
-        const weekRange = parseWeekRange(sprintData.weeks);
-
-        for (const weekNum of weekRange) {
-          const week = await tx.week.create({
-            data: {
-              phaseId: phase.id, // Legacy field (required until migration)
-              sprintId: sprint.id, // NEW parent (Sprint 8.5)
-              title: `Week ${weekNum}`,
-              description: `Week ${weekNum} of ${sprint.title}`,
-              status: 'NOT_STARTED' as const,
-              progress: 0,
-              startDate: new Date(),
-              endDate: null,
-            },
-          });
-
-          weekIds.push(week.id);
-
-          // Create Day records (5 days per week: Mon-Fri)
-          const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-
-          for (let dayOrder = 0; dayOrder < daysOfWeek.length; dayOrder++) {
-            const dayName = daysOfWeek[dayOrder] ?? 'Monday';
-
-            const day = await tx.day.create({
-              data: {
-                weekId: week.id,
-                title: dayName,
-                description: `${dayName} of Week ${weekNum}`,
-                status: 'NOT_STARTED' as const,
-                progress: 0,
-                startDate: new Date(),
-                endDate: null,
-              },
-            });
-
-            dayIds.push(day.id);
-          }
-        }
+        // Sprint 15: Week/Day creation removed - Kanban uses Ticket.sprintId
       }
     }
 
@@ -206,16 +134,12 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
   // 3. Return materialization result
   return {
     success: true,
-    message: `Materialized roadmap ${roadmapId}: ${phaseIds.length} phases, ${sprintIds.length} sprints, ${weekIds.length} weeks, ${dayIds.length} days`,
+    message: `Materialized roadmap ${roadmapId}: ${phaseIds.length} phases, ${sprintIds.length} sprints`,
     phaseIds,
     sprintIds,
-    weekIds,
-    dayIds,
     counts: {
       phases: phaseIds.length,
       sprints: sprintIds.length,
-      weeks: weekIds.length,
-      days: dayIds.length,
     },
   };
 }

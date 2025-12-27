@@ -1,24 +1,21 @@
 'use client';
 
 /**
- * RoadmapTree Component - Sprint 12
+ * RoadmapTree Component
  *
- * Displays collapsible 4-level hierarchy tree with neumorphic design
- * - Phase → Sprint → Week → Day (Days are leaf nodes)
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
+ * Displays collapsible 2-level hierarchy tree with neumorphic design
+ * - Phase -> Sprint (Sprints are leaf nodes with tickets)
  * - Expandable/collapsible sections
  * - Progress visualization
  * - Status badges
  * - Coral theme matching Agent Personas
- *
- * Sprint 12: Task model removed - Days are now leaf nodes
  */
 
 import { useState, useMemo } from 'react';
 import { ChevronDown, ChevronRight, Map } from 'lucide-react';
 import { PhaseCard } from './PhaseCard';
 import { SprintCard } from './SprintCard';
-import { WeekCard } from './WeekCard';
-import { DayCard } from './DayCard';
 import type { RoadmapWithRelations } from '@/types/roadmap';
 import type { RoadmapFilterState } from './RoadmapFilters';
 
@@ -28,11 +25,9 @@ interface RoadmapTreeProps {
 }
 
 export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
-  // Sprint 12: 4-level hierarchy (Phase → Sprint → Week → Day)
-  // Days are now leaf nodes, no expandedDays state needed
+  // Sprint 15: 2-level hierarchy (Phase -> Sprint)
+  // Sprints are now leaf nodes
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
-  const [expandedSprints, setExpandedSprints] = useState<Set<string>>(new Set());
-  const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
 
   // Filter helper function
   const matchesFilters = (item: { title: string; description?: string | null; status: string }) => {
@@ -64,14 +59,8 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
       // If phase matches, include it
       if (phaseMatches) return true;
 
-      // If any child matches, include the phase
-      const hasMatchingChildren = phase.sprints?.some((sprint) => {
-        const sprintMatches = matchesFilters(sprint);
-        if (sprintMatches) return true;
-
-        // Check weeks
-        return sprint.weeks?.some((week) => matchesFilters(week));
-      });
+      // If any sprint matches, include the phase
+      const hasMatchingChildren = phase.sprints?.some((sprint) => matchesFilters(sprint));
 
       return hasMatchingChildren;
     });
@@ -89,32 +78,6 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
     });
   };
 
-  const toggleSprint = (sprintId: string) => {
-    setExpandedSprints((prev) => {
-      const next = new Set(prev);
-      if (next.has(sprintId)) {
-        next.delete(sprintId);
-      } else {
-        next.add(sprintId);
-      }
-      return next;
-    });
-  };
-
-  const toggleWeek = (weekId: string) => {
-    setExpandedWeeks((prev) => {
-      const next = new Set(prev);
-      if (next.has(weekId)) {
-        next.delete(weekId);
-      } else {
-        next.add(weekId);
-      }
-      return next;
-    });
-  };
-
-  // Sprint 12: toggleDay removed - Days are now leaf nodes
-
   if (roadmap.phases_rel.length === 0) {
     return (
       <div className="neu-raised rounded-3xl p-12 text-center">
@@ -123,7 +86,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
         </div>
         <p className="mb-2 text-lg font-semibold text-white">No roadmap data available</p>
         <p className="text-sm text-slate">
-          Run materialization to create Phase/Sprint/Week/Day records
+          Run materialization to create Phase/Sprint records
         </p>
       </div>
     );
@@ -165,78 +128,17 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
               </div>
             </div>
 
-            {/* Sprints (collapsible) */}
+            {/* Sprint 15: Sprints are now leaf nodes (Week/Day removed - Ticket #80) */}
             {isPhaseExpanded && phase.sprints && (
               <div className="border-t border-white/5 bg-dark-card/50">
-                {phase.sprints.map((sprint) => {
-                  const isSprintExpanded = expandedSprints.has(sprint.id);
-
-                  return (
-                    <div key={sprint.id} className="mb-4 ml-6 border-l-4 border-coral/30 last:mb-6">
-                      {/* Sprint Card */}
-                      <div
-                        className="smooth-transition cursor-pointer hover:bg-white/5"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleSprint(sprint.id);
-                        }}
-                      >
-                        <div className="flex items-start gap-3 p-5">
-                          <button className="neu-flat smooth-transition flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl hover:shadow-lg">
-                            {isSprintExpanded ? (
-                              <ChevronDown className="h-4 w-4 text-coral" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4 text-slate" />
-                            )}
-                          </button>
-                          <SprintCard sprint={sprint} />
-                        </div>
-                      </div>
-
-                      {/* Weeks (collapsible) */}
-                      {isSprintExpanded && sprint.weeks && (
-                        <div className="ml-6 bg-dark-lighter/30">
-                          {sprint.weeks.map((week) => {
-                            const isWeekExpanded = expandedWeeks.has(week.id);
-
-                            return (
-                              <div key={week.id} className="mb-3 last:mb-4">
-                                {/* Week Card */}
-                                <div
-                                  className="smooth-transition cursor-pointer rounded-xl hover:bg-white/5"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleWeek(week.id);
-                                  }}
-                                >
-                                  <div className="flex items-start gap-3 p-4">
-                                    <button className="neu-flat smooth-transition flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl hover:shadow-lg">
-                                      {isWeekExpanded ? (
-                                        <ChevronDown className="h-4 w-4 text-coral" />
-                                      ) : (
-                                        <ChevronRight className="h-4 w-4 text-slate" />
-                                      )}
-                                    </button>
-                                    <WeekCard week={week} />
-                                  </div>
-                                </div>
-
-                                {/* Days - Sprint 12: 4-level hierarchy (Days are leaf nodes) */}
-                                {isWeekExpanded && week.days && (
-                                  <div className="mb-4 ml-12 mt-3 space-y-2">
-                                    {week.days.map((day) => (
-                                      <DayCard key={day.id} day={day} />
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                {phase.sprints.map((sprint) => (
+                  <div key={sprint.id} className="mb-4 ml-6 border-l-4 border-coral/30 last:mb-6">
+                    {/* Sprint Card - Now a leaf node */}
+                    <div className="p-5">
+                      <SprintCard sprint={sprint} />
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>

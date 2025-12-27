@@ -3,6 +3,7 @@
 /**
  * EditablePhaseCard Component - Standalone Roadmap UI Phase E
  *
+ * Sprint 15: Week/Day removed - simplified 2-level hierarchy (Ticket #80)
  * Phase card with inline editing capabilities:
  * - Double-click title to edit
  * - Progress slider
@@ -32,16 +33,10 @@ export function EditablePhaseCard({ phase, isEditable = true }: EditablePhaseCar
 
   const isUpdating = isEntityUpdating || isProgressUpdating;
 
-  // Calculate stats
+  // Calculate stats - Sprint 15: Week/Day removed (Ticket #80)
   const sprintCount = phase.sprints?.length || 0;
-  const weekCount =
-    phase.sprints?.reduce((acc, sprint) => acc + (sprint.weeks?.length || 0), 0) || 0;
-  const dayCount =
-    phase.sprints?.reduce(
-      (acc, sprint) =>
-        acc + (sprint.weeks?.reduce((wAcc, week) => wAcc + (week.days?.length || 0), 0) || 0),
-      0
-    ) || 0;
+  const ticketCount =
+    phase.sprints?.reduce((acc, sprint) => acc + (sprint.tickets?.length || 0), 0) || 0;
 
   return (
     <div className={`flex-1 ${isUpdating ? 'opacity-75' : ''}`}>
@@ -92,9 +87,9 @@ export function EditablePhaseCard({ phase, isEditable = true }: EditablePhaseCar
         </div>
       </div>
 
-      {/* Stats Grid */}
-      {(sprintCount > 0 || weekCount > 0 || dayCount > 0) && (
-        <div className="mb-4 grid grid-cols-3 gap-3">
+      {/* Stats Grid - Sprint 15: Week/Day removed (Ticket #80) */}
+      {(sprintCount > 0 || ticketCount > 0) && (
+        <div className="mb-4 grid grid-cols-2 gap-3">
           <div className="neu-pressed rounded-2xl p-3 text-center">
             <div className="mb-1 text-2xl font-bold text-coral">{sprintCount}</div>
             <div className="text-xs font-medium text-slate">
@@ -102,14 +97,10 @@ export function EditablePhaseCard({ phase, isEditable = true }: EditablePhaseCar
             </div>
           </div>
           <div className="neu-pressed rounded-2xl p-3 text-center">
-            <div className="mb-1 text-2xl font-bold text-coral">{weekCount}</div>
+            <div className="mb-1 text-2xl font-bold text-coral">{ticketCount}</div>
             <div className="text-xs font-medium text-slate">
-              {weekCount === 1 ? 'Week' : 'Weeks'}
+              {ticketCount === 1 ? 'Ticket' : 'Tickets'}
             </div>
-          </div>
-          <div className="neu-pressed rounded-2xl p-3 text-center">
-            <div className="mb-1 text-2xl font-bold text-coral">{dayCount}</div>
-            <div className="text-xs font-medium text-slate">{dayCount === 1 ? 'Day' : 'Days'}</div>
           </div>
         </div>
       )}
