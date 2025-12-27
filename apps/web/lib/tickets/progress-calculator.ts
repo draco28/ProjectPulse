@@ -33,6 +33,12 @@ export interface ProgressCascadeResult {
   phaseId?: string | null;
   phaseProgress?: number;
   autoCompletedSprint?: boolean;
+  /** Sprint 15: Auto-activated next sprint when current completed */
+  autoActivatedNextSprint?: boolean;
+  nextSprintId?: string | null;
+  /** Sprint 15: Auto-activated next phase when current phase's last sprint completed */
+  autoActivatedNextPhase?: boolean;
+  nextPhaseId?: string | null;
 }
 
 /**
@@ -192,6 +198,76 @@ async function updatePhaseProgress(
 }
 
 /**
+ * Sprint 15: Activate next sprint when current sprint completes.
+ *
+ * Uses global sprint numbering to find next sprint regardless of phase.
+ * If next sprint is in a different phase, also activates that phase.
+ *
+ * @param prisma - Transaction client
+ * @param currentSprintId - Sprint that just completed
+ * @returns Info about activated sprint/phase, or null if no next sprint
+ */
+async function activateNextSprint(
+  prisma: Prisma.TransactionClient,
+  currentSprintId: string
+): Promise<{ nextSprintId: string; nextPhaseId?: string } | null> {
+  // Get current sprint with phase and roadmap context
+  const currentSprint = await prisma.sprint.findUnique({
+    where: { id: currentSprintId },
+    include: {
+      phase: {
+        include: {
+          roadmap: true,
+        },
+      },
+    },
+  });
+
+  if (!currentSprint?.phase?.roadmap) {
+    return null;
+  }
+
+  // Find next sprint by global sprint number (works across phases)
+  const nextSprint = await prisma.sprint.findFirst({
+    where: {
+      phase: {
+        roadmapId: currentSprint.phase.roadmapId,
+      },
+      sprintNumber: currentSprint.sprintNumber + 1,
+    },
+    include: {
+      phase: true,
+    },
+  });
+
+  if (!nextSprint) {
+    return null; // No more sprints - roadmap complete!
+  }
+
+  // Activate next sprint
+  await prisma.sprint.update({
+    where: { id: nextSprint.id },
+    data: { status: 'IN_PROGRESS' },
+  });
+
+  let nextPhaseId: string | undefined;
+
+  // If next sprint is in a different phase, activate that phase too
+  if (nextSprint.phaseId !== currentSprint.phaseId) {
+    await prisma.phase.update({
+      where: { id: nextSprint.phaseId },
+      data: { status: 'IN_PROGRESS' },
+    });
+    nextPhaseId = nextSprint.phaseId;
+  }
+
+  return {
+    nextSprintId: nextSprint.id,
+    nextPhaseId,
+  };
+}
+
+/**
  * Calculate and cascade progress after a ticket status change.
  *
  * This function:
@@ -252,6 +328,19 @@ export async function calculateAndCascadeProgress(
       const sprintSummary = await calculateSprintProgress(tx, ticket.sprintId);
       result.sprintProgress = sprintSummary.progress;
       result.autoCompletedSprint = await updateSprintProgress(tx, ticket.sprintId, sprintSummary.progress);
+
+      // Sprint 15: Auto-activate next sprint when current completes
+      if (result.autoCompletedSprint) {
+        const nextActivation = await activateNextSprint(tx, ticket.sprintId);
+        if (nextActivation) {
+          result.autoActivatedNextSprint = true;
+          result.nextSprintId = nextActivation.nextSprintId;
+          if (nextActivation.nextPhaseId) {
+            result.autoActivatedNextPhase = true;
+            result.nextPhaseId = nextActivation.nextPhaseId;
+          }
+        }
+      }
 
       // 3. Update phase progress (if sprint has phase)
       if (ticket.sprint?.phaseId) {

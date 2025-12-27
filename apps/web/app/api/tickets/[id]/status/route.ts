@@ -17,6 +17,7 @@ import { resolveStatusValue } from '@/lib/issues/options';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { revalidatePath } from 'next/cache';
 import { TICKET_STATUSES } from '@/lib/constants/status';
+import { calculateAndCascadeProgress } from '@/lib/tickets/progress-calculator';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     // Check ticket exists and get projectId for auth
     const existing = await prisma.ticket.findUnique({
       where: { id },
-      select: { id: true, status: true, projectId: true },
+      select: { id: true, status: true, projectId: true, sprintId: true },
     });
 
     if (!existing) {
@@ -67,6 +68,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         updatedAt: true,
       },
     });
+
+    // Sprint 15: Cascade progress updates when status changes
+    if (existing.sprintId && status !== existing.status) {
+      await calculateAndCascadeProgress(prisma, id);
+    }
 
     revalidatePath('/tickets');
     revalidatePath(`/tickets/${id}`);

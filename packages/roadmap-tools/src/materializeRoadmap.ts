@@ -81,13 +81,16 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
       // Create Phase record
       // Hard fallback to ensure title is never undefined
       const phaseTitle = phaseData.title || phaseData.name || `Phase ${phaseOrder}`;
-      
+
+      // Sprint 15: First phase starts as IN_PROGRESS
+      const isFirstPhase = phaseOrder === 1;
+
       const phase = await tx.phase.create({
         data: {
           roadmapId: roadmap.id,
           title: phaseTitle,
           description: `Phase ${phaseOrder}`,
-          status: 'NOT_STARTED' as const,
+          status: isFirstPhase ? 'IN_PROGRESS' as const : 'NOT_STARTED' as const,
           progress: 0,
           startDate: new Date(),
           endDate: null,
@@ -101,13 +104,16 @@ export async function materializeRoadmap(roadmapId: string): Promise<Materializa
       for (const sprintData of phaseData.sprints) {
         globalSprintOrder++;
 
+        // Sprint 15: First sprint (globally) starts as IN_PROGRESS
+        const isFirstSprint = globalSprintOrder === 1;
+
         const sprint = await tx.sprint.create({
           data: {
             phaseId: phase.id,
             sprintNumber: globalSprintOrder, // Sprint 15: Continuous across phases
             title: sprintData.name,
             description: sprintData.goals.join('\n'),
-            status: 'NOT_STARTED' as const,
+            status: isFirstSprint ? 'IN_PROGRESS' as const : 'NOT_STARTED' as const,
             progress: 0,
             startDate: new Date(),
             endDate: null,
