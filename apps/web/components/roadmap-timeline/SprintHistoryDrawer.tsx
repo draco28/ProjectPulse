@@ -61,13 +61,16 @@ function StatCard({
 function DrawerContent({
   projectId,
   sprint,
+  variant,
   onClose,
 }: {
   projectId: number;
   sprint: NonNullable<SprintHistoryDrawerProps['sprint']>;
+  variant: 'completed' | 'planned';
   onClose: () => void;
 }) {
   const router = useRouter();
+  const isCompleted = variant === 'completed';
 
   // Handle escape key
   const handleKeyDown = useCallback(
@@ -117,10 +120,18 @@ function DrawerContent({
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-accent-green" />
+            <div className={cn(
+              'w-3 h-3 rounded-full',
+              isCompleted ? 'bg-accent-green' : 'bg-slate'
+            )} />
             <h2 className="text-xl font-bold">Sprint {sprint.sprintNumber}</h2>
-            <span className="text-xs px-2 py-0.5 rounded font-medium bg-accent-green/15 text-accent-green">
-              Complete
+            <span className={cn(
+              'text-xs px-2 py-0.5 rounded font-medium',
+              isCompleted
+                ? 'bg-accent-green/15 text-accent-green'
+                : 'bg-slate/15 text-slate'
+            )}>
+              {isCompleted ? 'Complete' : 'Not Started'}
             </span>
           </div>
           <button
@@ -165,16 +176,22 @@ function DrawerContent({
           <div className="neu-card p-4 mb-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-slate-light font-medium">
-                Sprint Completion
+                {isCompleted ? 'Sprint Completion' : 'Sprint Progress'}
               </span>
-              <span className="text-sm font-bold text-accent-green">
-                {completionRate}%
+              <span className={cn(
+                'text-sm font-bold',
+                isCompleted ? 'text-accent-green' : 'text-slate'
+              )}>
+                {isCompleted ? `${completionRate}%` : '0%'}
               </span>
             </div>
             <div className="h-2 bg-dark-pressed rounded-full overflow-hidden">
               <div
-                className="h-full bg-accent-green rounded-full transition-all duration-500"
-                style={{ width: `${completionRate}%` }}
+                className={cn(
+                  'h-full rounded-full transition-all duration-500',
+                  isCompleted ? 'bg-accent-green' : 'bg-slate/30'
+                )}
+                style={{ width: isCompleted ? `${completionRate}%` : '0%' }}
               />
             </div>
           </div>
@@ -212,8 +229,8 @@ function DrawerContent({
             </div>
           </div>
 
-          {/* Success indicator */}
-          {completionRate >= 80 && (
+          {/* Success indicator - only for completed sprints with >= 80% completion */}
+          {isCompleted && completionRate >= 80 && (
             <div className="flex items-center gap-3 p-4 bg-accent-green/10 rounded-lg mb-6">
               <CheckCircle2 className="w-6 h-6 text-accent-green" />
               <div>
@@ -229,13 +246,15 @@ function DrawerContent({
 
           {/* Velocity indicator */}
           <div className="flex items-center gap-3 p-4 bg-dark-pressed rounded-lg">
-            <TrendingUp className="w-5 h-5 text-coral" />
+            <TrendingUp className={cn('w-5 h-5', isCompleted ? 'text-coral' : 'text-slate')} />
             <div>
               <div className="text-sm font-medium text-slate-light">
-                {ticketCounts.done} tickets delivered
+                {isCompleted
+                  ? `${ticketCounts.done} tickets delivered`
+                  : `${ticketCounts.total} tickets planned`}
               </div>
               <div className="text-xs text-slate">
-                Sprint velocity contribution
+                {isCompleted ? 'Sprint velocity contribution' : 'Sprint scope'}
               </div>
             </div>
           </div>
@@ -264,10 +283,12 @@ function DrawerContent({
 
 /**
  * SprintHistoryDrawer - Portal wrapper.
+ * Supports both 'completed' and 'planned' sprint variants.
  */
 export function SprintHistoryDrawer({
   projectId,
   sprint,
+  variant,
   isOpen,
   onClose,
 }: SprintHistoryDrawerProps) {
@@ -282,7 +303,7 @@ export function SprintHistoryDrawer({
   }
 
   return createPortal(
-    <DrawerContent projectId={projectId} sprint={sprint} onClose={onClose} />,
+    <DrawerContent projectId={projectId} sprint={sprint} variant={variant} onClose={onClose} />,
     document.body
   );
 }

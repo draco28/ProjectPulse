@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 
 interface SprintKanbanHeaderProps {
   sprint: SprintContext;
+  projectId?: number;
   stats?: BoardStats;
   onCollapseAll?: () => void;
   onNewTicket?: () => void;
@@ -25,12 +26,16 @@ interface SprintKanbanHeaderProps {
 
 export const SprintKanbanHeader = memo(function SprintKanbanHeader({
   sprint,
+  projectId,
   stats,
   onCollapseAll,
   onNewTicket,
 }: SprintKanbanHeaderProps) {
   const progress = stats?.progress ?? sprint.progress ?? 0;
   const isCurrentSprint = sprint.status === 'IN_PROGRESS';
+
+  // Build back link with project context
+  const backHref = projectId ? `/roadmap?project=${projectId}` : '/roadmap';
 
   return (
     <div className="p-6 pb-0">
@@ -39,7 +44,7 @@ export const SprintKanbanHeader = memo(function SprintKanbanHeader({
         <div className="flex items-center gap-4">
           {/* Back to Phase Timeline */}
           <Link
-            href="/roadmap"
+            href={backHref}
             className="p-2 rounded-lg hover:bg-white/5 text-slate transition flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

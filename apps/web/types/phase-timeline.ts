@@ -122,10 +122,13 @@ export interface PhaseStatsBarProps {
 
 /**
  * Props for SprintHistoryDrawer.
+ * Now supports both completed and planned sprint variants.
  */
 export interface SprintHistoryDrawerProps {
   projectId: number;
   sprint: SprintOverview | null;
+  /** Variant determines drawer styling: 'completed' or 'planned' */
+  variant: 'completed' | 'planned';
   isOpen: boolean;
   onClose: () => void;
   onViewFullBoard?: (sprintNumber: number) => void;

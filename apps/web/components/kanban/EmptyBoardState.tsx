@@ -12,13 +12,18 @@ import { cn } from '@/lib/utils';
 
 interface EmptyBoardStateProps {
   sprintId: string;
+  projectId?: number;
   className?: string;
 }
 
 export const EmptyBoardState = memo(function EmptyBoardState({
   sprintId,
+  projectId,
   className,
 }: EmptyBoardStateProps) {
+  // Build roadmap link with project context
+  const roadmapHref = projectId ? `/roadmap?project=${projectId}` : '/roadmap';
+
   return (
     <div
       className={cn(
@@ -67,7 +72,7 @@ export const EmptyBoardState = memo(function EmptyBoardState({
         </button>
 
         <Link
-          href="/roadmap"
+          href={roadmapHref}
           className="px-6 py-3 rounded-xl font-medium text-slate hover:text-white border border-slate/30 hover:border-slate/50 transition"
         >
           View Roadmap

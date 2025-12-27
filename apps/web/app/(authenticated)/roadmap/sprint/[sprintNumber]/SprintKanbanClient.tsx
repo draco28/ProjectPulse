@@ -17,10 +17,11 @@ import TicketDetailDrawer from '@/components/kanban/TicketDetailDrawer';
 
 interface SprintKanbanClientProps {
   sprintId: string;
+  projectId?: number;
   initialSprint: SprintContext;
 }
 
-export default function SprintKanbanClient({ sprintId, initialSprint }: SprintKanbanClientProps) {
+export default function SprintKanbanClient({ sprintId, projectId, initialSprint }: SprintKanbanClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -82,6 +83,7 @@ export default function SprintKanbanClient({ sprintId, initialSprint }: SprintKa
       {/* Main Kanban Board */}
       <SprintKanbanBoard
         sprintId={sprintId}
+        projectId={projectId}
         onTicketClick={handleTicketClick}
         className="flex-1 min-h-0"
       />

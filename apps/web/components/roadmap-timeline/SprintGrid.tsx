@@ -20,7 +20,8 @@ interface SprintGridProps {
   sprints: SprintOverview[];
   /** Global sprint number of the current sprint (across all phases) */
   currentGlobalSprintNumber?: number;
-  onCompletedSprintClick: (sprint: SprintOverview) => void;
+  /** Callback when a sprint drawer should open (completed or planned sprints) */
+  onSprintDrawerOpen: (sprint: SprintOverview, variant: 'completed' | 'planned') => void;
 }
 
 /**
@@ -56,17 +57,17 @@ export function SprintGrid({
   projectId,
   sprints,
   currentGlobalSprintNumber,
-  onCompletedSprintClick,
+  onSprintDrawerOpen,
 }: SprintGridProps) {
   const router = useRouter();
 
   const handleSprintClick = (sprint: SprintOverview, variant: SprintCardVariant) => {
-    if (variant === 'completed') {
-      // Open drawer for completed sprints
-      onCompletedSprintClick(sprint);
-    } else {
-      // Navigate to kanban for current/planned sprints using global sprint number
+    if (variant === 'current') {
+      // Only current sprint navigates directly to kanban (it shows mini-kanban inline)
       router.push(`/roadmap/sprint/${sprint.globalSprintNumber}?project=${projectId}`);
+    } else {
+      // Both completed and planned sprints open the drawer
+      onSprintDrawerOpen(sprint, variant);
     }
   };
 

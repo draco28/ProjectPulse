@@ -32,8 +32,9 @@ export function PhaseTimelineClient({
     currentPhaseId ?? phases[0]?.id ?? ''
   );
 
-  // Drawer state for completed sprint history
+  // Drawer state for sprint details (completed or planned)
   const [drawerSprint, setDrawerSprint] = useState<SprintOverview | null>(null);
+  const [drawerVariant, setDrawerVariant] = useState<'completed' | 'planned'>('completed');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Get selected phase
@@ -55,8 +56,9 @@ export function PhaseTimelineClient({
     setSelectedPhaseId(phaseId);
   }, []);
 
-  const handleCompletedSprintClick = useCallback((sprint: SprintOverview) => {
+  const handleSprintDrawerOpen = useCallback((sprint: SprintOverview, variant: 'completed' | 'planned') => {
     setDrawerSprint(sprint);
+    setDrawerVariant(variant);
     setIsDrawerOpen(true);
   }, []);
 
@@ -112,7 +114,7 @@ export function PhaseTimelineClient({
         projectId={projectId}
         sprints={selectedPhase.sprints}
         currentGlobalSprintNumber={currentGlobalSprintNumber}
-        onCompletedSprintClick={handleCompletedSprintClick}
+        onSprintDrawerOpen={handleSprintDrawerOpen}
       />
 
       {/* Next Phase Preview (if not on last phase) */}
@@ -130,6 +132,7 @@ export function PhaseTimelineClient({
       <SprintHistoryDrawer
         projectId={projectId}
         sprint={drawerSprint}
+        variant={drawerVariant}
         isOpen={isDrawerOpen}
         onClose={handleDrawerClose}
       />

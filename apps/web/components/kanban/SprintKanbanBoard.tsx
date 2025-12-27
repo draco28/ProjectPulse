@@ -32,7 +32,7 @@ import TaskCard from './TaskCard';
 import FeatureCard from './FeatureCard';
 import SprintKanbanHeader from './SprintKanbanHeader';
 import BoardStatsBar from './BoardStatsBar';
-import EmptyBoardState from './EmptyBoardState';
+// EmptyBoardState removed - we now always render 5 columns with EmptyColumnState per column
 
 // ============================================================================
 // Types
@@ -41,6 +41,8 @@ import EmptyBoardState from './EmptyBoardState';
 interface SprintKanbanBoardProps {
   /** Sprint ID to load kanban data for */
   sprintId: string;
+  /** Project ID for navigation context */
+  projectId?: number;
   /** Callback when a ticket card is clicked */
   onTicketClick?: (ticket: KanbanTicket) => void;
   /** Additional class names */
@@ -51,7 +53,7 @@ interface SprintKanbanBoardProps {
 // Component
 // ============================================================================
 
-export function SprintKanbanBoard({ sprintId, onTicketClick, className }: SprintKanbanBoardProps) {
+export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, className }: SprintKanbanBoardProps) {
   // Data fetching and mutations
   const { boardQuery, moveTicket, isMoving, refetch } = useKanbanBoard(sprintId);
 
@@ -175,14 +177,8 @@ export function SprintKanbanBoard({ sprintId, onTicketClick, className }: Sprint
     []
   );
 
-  // Check if board is empty
-  const isEmpty = useMemo(() => {
-    if (!columns) return true;
-    return TICKET_STATUS_VALUES.every((status) => {
-      const col = columns[status as TicketStatus];
-      return !col || col.length === 0;
-    });
-  }, [columns]);
+  // Note: isEmpty check removed - we always render 5 columns now
+  // Each KanbanColumn handles its own empty state via EmptyColumnState
 
   // Loading state
   if (boardQuery.isLoading) {
@@ -204,17 +200,10 @@ export function SprintKanbanBoard({ sprintId, onTicketClick, className }: Sprint
     );
   }
 
-  // Empty state
-  if (isEmpty) {
-    return (
-      <div className={cn('flex flex-col h-full', className)}>
-        {sprint && (
-          <SprintKanbanHeader sprint={sprint} stats={stats} onCollapseAll={handleCollapseAll} />
-        )}
-        <EmptyBoardState sprintId={sprintId} />
-      </div>
-    );
-  }
+  // Note: We no longer short-circuit for empty boards.
+  // The 5-column layout always renders, and each KanbanColumn
+  // shows EmptyColumnState when it has no tickets.
+  // This matches the mockup design and allows drag-drop into empty sprints.
 
   // Determine drag overlay content
   const renderDragOverlay = () => {
@@ -233,7 +222,7 @@ export function SprintKanbanBoard({ sprintId, onTicketClick, className }: Sprint
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header */}
       {sprint && (
-        <SprintKanbanHeader sprint={sprint} stats={stats} onCollapseAll={handleCollapseAll} />
+        <SprintKanbanHeader sprint={sprint} projectId={projectId} stats={stats} onCollapseAll={handleCollapseAll} />
       )}
 
       {/* Kanban Board */}

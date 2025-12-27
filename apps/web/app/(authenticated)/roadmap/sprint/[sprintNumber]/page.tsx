@@ -24,6 +24,9 @@ interface PageProps {
   params: Promise<{
     sprintNumber: string;
   }>;
+  searchParams: Promise<{
+    project?: string;
+  }>;
 }
 
 // ============================================================================
@@ -81,8 +84,9 @@ async function getSprintByNumber(sprintNumber: number) {
 // Page Component
 // ============================================================================
 
-export default async function SprintKanbanPage({ params }: PageProps) {
+export default async function SprintKanbanPage({ params, searchParams }: PageProps) {
   const { sprintNumber } = await params;
+  const { project } = await searchParams;
   const num = parseInt(sprintNumber, 10);
 
   // Validate sprint number
@@ -97,10 +101,14 @@ export default async function SprintKanbanPage({ params }: PageProps) {
     notFound();
   }
 
+  // Get projectId from sprint's roadmap, or fallback to searchParams
+  const projectId = sprint.phase?.roadmap?.projectId ?? (project ? parseInt(project, 10) : undefined);
+
   // Render client component with sprint data
   return (
     <SprintKanbanClient
       sprintId={sprint.id}
+      projectId={projectId}
       initialSprint={{
         id: sprint.id,
         sprintNumber: sprint.sprintNumber,
