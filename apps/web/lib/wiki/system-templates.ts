@@ -121,7 +121,7 @@ Welcome! ProjectPulse is your AI-powered project management system designed for 
 ## What is ProjectPulse?
 
 ProjectPulse provides:
-- **Sprint Tracking**: 5-level hierarchy (Phase → Week → Day → Task → Session)
+- **Sprint Tracking**: 2-level hierarchy (Phase → Sprint) with Kanban boards
 - **MCP Integration**: 73+ tools for AI agents to read/write project data
 - **Knowledge Base**: Semantic search across documentation and code patterns
 - **Issue Tracking**: Full-featured ticketing with AI auto-categorization
@@ -168,13 +168,21 @@ When starting work, your agent should:
 
 ## Core Features
 
-### Sprint Hierarchy
-Track work at 5 levels:
-- **Phase**: Major milestones (e.g., "MVP Launch")
-- **Week**: Weekly goals and focus
-- **Day**: Daily tasks and priorities
-- **Task**: Specific work items
-- **Session**: Granular work units with AI checkpoints
+### Sprint Hierarchy & Kanban
+Track work with a streamlined 2-level hierarchy:
+- **Phase**: Major project milestones (e.g., "MVP Launch")
+- **Sprint**: 2-week development cycles with Kanban boards
+
+Each sprint has a **Kanban board** with 5 columns:
+| Column | Status |
+|--------|--------|
+| Backlog | \`backlog\` |
+| Todo | \`todo\` |
+| In Progress | \`in-progress\` |
+| In Review | \`in-review\` |
+| Done | \`done\` |
+
+Navigate: \`/roadmap\` (Phase Timeline) → \`/roadmap/sprint/1\` (Sprint Kanban)
 
 ### Issue Tracking
 Manage bugs and features with rich context:
@@ -317,18 +325,20 @@ projectpulse_backlog_list({ projectId: YOUR_ID })
 - Use for product backlog overview
 - Optional: filter by epicRef
 
-### Step 2: Create Roadmap
+### Step 2: Create Roadmap (Materialization)
 \`\`\`
 projectpulse_roadmap_create({
   projectId: YOUR_ID,
   title: "Project Roadmap",
+  startDate: "2025-01-01T00:00:00.000Z",
   materialize: true,
-  phases: [...] // From Project-Plan document
+  phases: [...] // From 13-Project-Plan.md
 })
 \`\`\`
-- Parses 13-Project-Plan.md structure
-- Creates Phase → Sprint → Week → Day hierarchy
-- Enables progress tracking
+- Creates: Phase records (with title, description, goals)
+- Creates: Sprint records (with sprintNumber, linked to Phase)
+- Result: ~12 records (3 phases × 4 sprints)
+- Enables Kanban board per sprint at \`/roadmap/sprint/[sprintNumber]\`
 
 ### Step 3: [Optional] Generate Repo Files
 Generate CLAUDE.md and AGENTS.md workflow guides for your repository:
@@ -345,6 +355,41 @@ This creates:
 - **AGENTS.md**: Resource catalog listing your personas, skills, SOPs
 
 Files are pre-populated with your project's actual data from Session 3.
+
+### Step 4: Start Working with Kanban
+
+After roadmap creation, use Kanban boards for ticket management:
+
+**Get backlog items for a sprint:**
+\`\`\`
+projectpulse_backlog_getBySprint({ projectId: YOUR_ID, sprintNumber: 1 })
+\`\`\`
+Returns items with itemId, title, epicRef, frTraces for ticket creation.
+
+**Create tickets from backlog:**
+\`\`\`
+projectpulse_ticket_create({
+  title: item.title,
+  kind: "feature",
+  source: "agent",
+  sprintNumber: 1,
+  backlogRefs: item.frTraces,  // ["FR-001", "FR-002"]
+  epicRef: item.epicRef        // "Epic 1: User Management"
+})
+\`\`\`
+Tickets appear in Kanban "backlog" column.
+
+**Move tickets through columns:**
+\`\`\`
+projectpulse_kanban_moveTicket({ ticketId: 123, status: "in-progress", displayOrder: 0 })
+\`\`\`
+
+**Kanban UI Navigation:**
+- \`/roadmap\` - Phase Timeline with sprint cards
+- \`/roadmap/sprint/1\` - Sprint 1 Kanban board (5 columns)
+
+**Progress Calculation:**
+Ticket status → Sprint progress → Phase progress (auto-cascades)
 
 ---
 
@@ -385,13 +430,13 @@ projectpulse_traceability_validate_documents()
 projectpulse_roadmap_create({
   projectId: YOUR_ID,
   title: "Project Roadmap",
-  startDate: "2025-01-01",
+  startDate: "2025-01-01T00:00:00.000Z",
   materialize: true,
   phases: [...] // From 13-Project-Plan.md
 })
 \`\`\`
-- Creates Phase → Sprint → Week → Day hierarchy
-- Enables progress tracking via MCP tools
+- Creates Phase → Sprint hierarchy (2 levels only)
+- Each sprint gets a Kanban board for ticket management
 
 ### Step 3: Query Sprint Backlog
 \`\`\`
@@ -430,8 +475,8 @@ projectpulse_ticket_update({ ticketId: 123, status: "in-progress" })
 
 ### End of Day
 \`\`\`
-# Update roadmap progress (cascades to parent entities)
-projectpulse_sprint_updateProgress({ entityType: "day", entityId: "...", progress: 75 })
+# Move completed tickets to "done" (progress auto-cascades to Sprint → Phase)
+projectpulse_kanban_moveTicket({ ticketId: 123, status: "done", displayOrder: 0 })
 
 # PAUSE session (NOT end!) - preserves context for next day
 projectpulse_agent_session_update({ sessionId: "...", status: "PAUSED" })
@@ -466,16 +511,52 @@ projectpulse_ticket_create({
 
 ---
 
-## Roadmap & Progress Tracking
+## Roadmap & Kanban Progress
 
 | Tool | When to Use |
 |------|-------------|
-| \`sprint_getCurrentPosition\` | Start of day - know where you are |
-| \`sprint_updateProgress\` | End of day - update day/week progress |
-| \`sprint_queryHierarchy\` | Find blocked items, low-progress work |
-| \`roadmap_getPhaseProgress\` | See full phase with nested entities |
+| \`sprint_getCurrentPosition\` | Start of day - know current Phase/Sprint |
+| \`kanban_getBoard\` | Get sprint's Kanban board with all tickets |
+| \`kanban_moveTicket\` | Move ticket between columns |
+| \`roadmap_getPhaseProgress\` | See phase with sprints and progress |
 
-**Progress cascades automatically**: Day → Week → Sprint → Phase
+**Progress cascades automatically**: Ticket "done" → Sprint → Phase
+
+---
+
+## Kanban Board Workflow
+
+Each sprint has a 5-column Kanban board:
+
+| Column | Status | Description |
+|--------|--------|-------------|
+| Backlog | \`backlog\` | Not yet scheduled |
+| Todo | \`todo\` | Ready to start |
+| In Progress | \`in-progress\` | Being worked on |
+| In Review | \`in-review\` | Awaiting review |
+| Done | \`done\` | Completed |
+
+### Moving Tickets (MCP)
+
+\`\`\`
+projectpulse_kanban_moveTicket({
+  ticketId: 123,
+  status: "in-progress",
+  displayOrder: 0  // Position in column (0 = top)
+})
+\`\`\`
+
+### Progress Auto-Cascade
+
+When tickets move to "done":
+1. Parent feature ticket progress updates (if child)
+2. Sprint progress recalculates (% of tickets done)
+3. Phase progress recalculates (% of sprints complete)
+
+### UI Navigation
+
+- **Phase Timeline**: \`/roadmap\` - Overview of all phases and sprints
+- **Sprint Kanban**: \`/roadmap/sprint/[sprintNumber]\` - 5-column board
 
 ---
 

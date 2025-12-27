@@ -178,7 +178,7 @@ console.log(JSON.stringify(result.created, null, 2));
 //   skills: 8,
 //   workflows: 3,
 //   sops: 5,
-//   roadmap: { phases: 3, weeks: 16 },
+//   roadmap: { phases: 3, sprints: 6 },  // Sprint 15: 2-level hierarchy
 //   currentPlan: true,
 //   currentTodos: true,
 //   files: { claudeMd: true, agentsMd: true }
@@ -421,6 +421,96 @@ Bootstrap complete workflow (template-based)
 
 > **Note (Sprint 11 – EPIC-013: Client Agent Integration APIs & Templates):**
 > Session 3 bootstraps agent personas, skills, workflows, SOPs, and writes `CLAUDE.md` / `AGENTS.md` into the user's repository. A dedicated post-MVP epic will add client-facing MCP/HTTP read APIs for personas, skills, and SOPs, and will refine these repo templates so external client agents can consume the AI workflows without relying on `.agent/` or `.claude/` folders.
+
+---
+
+## Post-Onboarding: Kanban Workflow
+
+After Session 3 completes, use the Kanban-based workflow for development:
+
+### 1. Validate Traceability & Populate Backlog
+
+```typescript
+await mcp.call('projectpulse.traceability.validateDocuments', { projectId });
+// Parses 12-Backlog.md → stores BacklogItem records
+```
+
+### 2. Create Roadmap (2-Level Hierarchy)
+
+```typescript
+await mcp.call('projectpulse.roadmap.create', {
+  projectId,
+  title: "Project Roadmap",
+  startDate: "2025-01-01T00:00:00.000Z",
+  materialize: true,
+  phases: [
+    {
+      title: "Phase 1: Foundation",
+      sprints: [
+        { name: "Sprint 1", duration: "2 weeks" },
+        { name: "Sprint 2", duration: "2 weeks" }
+      ]
+    }
+  ]
+});
+// Creates Phase → Sprint records (no Week/Day)
+```
+
+### 3. Get Sprint Backlog & Create Tickets
+
+```typescript
+// Get backlog items for Sprint 1
+const backlog = await mcp.call('projectpulse.backlog.getBySprint', {
+  projectId,
+  sprintNumber: 1
+});
+
+// Create tickets with traceability
+for (const item of backlog.items) {
+  await mcp.call('projectpulse.ticket.create', {
+    title: item.title,
+    kind: 'feature',
+    source: 'agent',
+    sprintNumber: 1,
+    backlogRefs: item.frTraces,
+    epicRef: item.epicRef
+  });
+}
+```
+
+### 4. Work via Kanban Board
+
+**Navigate UI:**
+- `/roadmap` - Phase Timeline
+- `/roadmap/sprint/1` - Sprint 1 Kanban
+
+**Move tickets via MCP:**
+
+```typescript
+// Start working on ticket
+await mcp.call('projectpulse.kanban.moveTicket', {
+  ticketId: 123,
+  status: 'in-progress',
+  displayOrder: 0
+});
+
+// Complete ticket (auto-cascades progress)
+await mcp.call('projectpulse.kanban.moveTicket', {
+  ticketId: 123,
+  status: 'done',
+  displayOrder: 0
+});
+```
+
+**5-Status Columns:**
+
+| Status | Description |
+|--------|-------------|
+| `backlog` | Not yet scheduled |
+| `todo` | Ready to start |
+| `in-progress` | Being worked on |
+| `in-review` | Awaiting review |
+| `done` | Completed |
 
 ---
 

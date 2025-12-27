@@ -181,23 +181,23 @@ projectpulse.workflow.start({
 
 ## Project Management Workflows
 
-### 7. Sprint Planning (6 steps)
+### 7. Sprint Planning (4 steps)
 
 **Category**: project-management
-**Description**: Setup new sprint with phases, weeks, days, and tasks
+**Description**: Setup new sprint with Kanban board (Sprint 15: simplified 2-level hierarchy)
 
 **Steps**:
 
-1. **Create Sprint Phase** - Initialize new phase (MCP: `sprint.phase.create`)
-2. **Create Week 1** - Create first week (MCP: `sprint.week.create`)
-3. **Create Week 2** - Create second week (MCP: `sprint.week.create`)
-4. **Create Days** - Create day entries for each week (MCP: `sprint.day.create`)
-5. **Assign Tasks** - Create and assign tasks to days (MCP: `sprint.task.create`)
-6. **Set Sprint Goals** - Document sprint objectives (MCP: `wiki.create`)
+1. **Validate Traceability** - Parse backlog items (MCP: `traceability.validateDocuments`)
+2. **Create Roadmap** - Create Phase → Sprint hierarchy (MCP: `roadmap.create` with materialize: true)
+3. **Create Sprint Tickets** - From backlog items (MCP: `ticket.create` with sprintNumber, backlogRefs)
+4. **Set Sprint Goals** - Document sprint objectives (MCP: `wiki.create`)
+
+> **Note (Sprint 15)**: Week/Day models were removed. Work is now tracked via Kanban boards at `/roadmap/sprint/[sprintNumber]`.
 
 **Use When**:
 - Starting new sprint or phase
-- Planning multi-week development cycle
+- Planning multi-sprint development cycle
 - Setting up sprint structure and goals
 
 **MCP Command**:
@@ -221,9 +221,9 @@ projectpulse.workflow.start({
 
 **Steps**:
 
-1. **Gather Sprint Metrics** - Collect completion statistics (MCP: `sprint.getCurrentTask`)
+1. **Gather Sprint Metrics** - Collect completion statistics (MCP: `sprint.getCurrentPosition`, `kanban.getBoard`)
 2. **Create Completion Document** - Generate sprint summary (MCP: `wiki.create`)
-3. **Update Progress Tracker** - Update project progress (MCP: `sprint.updateProgress`)
+3. **Review Kanban Board** - Check all tickets are in "done" column (MCP: `kanban.getBoard`)
 4. **Sprint Demo** - Present completed work
 5. **Archive Sprint** - Archive sprint artifacts
 
@@ -241,10 +241,12 @@ projectpulse.workflow.start({
 
 **Steps**:
 
-1. **Query Current Task** - Get current task context (MCP: `sprint.getCurrentTask`)
-2. **Create Checkpoint** - Save progress snapshot (MCP: `sprint.checkpoint.create`)
-3. **Update Progress** - Update task progress (MCP: `sprint.updateProgress`)
+1. **Query Current Position** - Get current Phase/Sprint context (MCP: `sprint.getCurrentPosition`)
+2. **Move Tickets** - Update ticket status via Kanban (MCP: `kanban.moveTicket`)
+3. **Update Session** - Save session progress (MCP: `agent.session.update`)
 4. **Save Session Log** - Document session notes
+
+> **Note (Sprint 15)**: Task/Checkpoint models were removed. Progress is now tracked via ticket status in Kanban boards.
 
 **Use When**:
 - Every 15K tokens during AI session
@@ -334,9 +336,11 @@ projectpulse.workflow.start({
 | Category | Templates | Total Steps | Avg Steps/Template |
 |----------|-----------|-------------|--------------------|
 | Development | 6 | 51 | 8.5 |
-| Project Management | 3 | 15 | 5.0 |
+| Project Management | 3 | 13 | 4.3 |
 | Knowledge | 3 | 16 | 5.3 |
-| **Total** | **12** | **82** | **6.8** |
+| **Total** | **12** | **80** | **6.7** |
+
+> **Note**: Sprint 15 simplified Project Management workflows by removing Week/Day-level tracking. Progress is now tracked via Kanban boards.
 
 ---
 
