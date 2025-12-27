@@ -338,9 +338,10 @@ projectpulse_context_update(projectId: 6, bankType: "PROGRESS", content: "...", 
 | **Context** | `context_load`, `context_lookup`, `context_update` |
 | **Sessions** | `agent_session_start`, `agent_session_update`, `agent_session_end` |
 | **Tickets** | `ticket_create`, `ticket_search`, `ticket_update`, `ticket_setStatus`, `ticket_addComment`, `ticket_get` |
+| **Kanban** | `kanban_moveTicket`, `kanban_getBoard` |
 | **Knowledge** | `knowledge_create`, `knowledge_search`, `knowledge_get` |
 | **Resources** | `persona_list`, `persona_get`, `skill_list`, `skill_get`, `sop_list`, `sop_get` |
-| **Roadmap** | `roadmap_create`, `getCurrentPosition`, `getPhaseProgress`, `queryHierarchy`, `updateProgress` |
+| **Roadmap** | `roadmap_create`, `getCurrentPosition`, `getPhaseProgress`, `updateProgress` |
 
 ---
 
@@ -349,7 +350,7 @@ projectpulse_context_update(projectId: 6, bankType: "PROGRESS", content: "...", 
 **Use roadmap for multi-week projects with defined phases. Skip for single fixes.**
 
 ### What Roadmap Is (vs Tickets vs Sessions)
-- **Roadmap** = "WHEN / sequence / progress" (Phase → Sprint → Week → Day)
+- **Roadmap** = "WHEN / sequence / progress" (Phase → Sprint)
 - **Tickets** = "WHAT to build" (requirements + acceptance criteria + implementation context)
 - **Agent Sessions** = "WHAT happened during this work session" (plan/todos/checkpoints)
 
@@ -360,35 +361,39 @@ projectpulse_context_update(projectId: 6, bankType: "PROGRESS", content: "...", 
 ### Planning Flow
 1. Create/import ONE roadmap per project (UI: /roadmap/create or /roadmap/import)
 2. Create tickets for actual work (feature/task/bug/etc.)
-3. (Optional) Schedule tickets to roadmap weeks via MCP: `scheduledWeekId` + `scheduledDays`
+3. Assign tickets to sprints via `sprintNumber` field
 
 ### Execution Flow (Daily)
 1. Start/resume agent session (`projectpulse_agent_session_start` / `resume`)
 2. Get current position: `projectpulse_sprint_getCurrentPosition(projectId: 6)`
-3. Pick ticket(s) for current sprint/week (usually by `sprintNumber` and `status`)
-4. Work ticket normally (update implementation context, code, tests, close ticket)
-5. Update roadmap progress at day/week level:
+3. Pick ticket(s) for current sprint (by `sprintNumber` and `status`)
+4. Work ticket normally (update implementation context, code, tests)
+5. Move completed tickets via Kanban (auto-cascades progress):
    ```
-   projectpulse_sprint_updateProgress({ entityType: "day", entityId, progress: 75 })
+   projectpulse_kanban_moveTicket({ ticketId: 42, status: "done", displayOrder: 0 })
+   → Auto-propagates: Ticket → Sprint → Phase
    ```
 6. End session (pause for breaks, end when fully done)
 
-### Roadmap Scheduling (Sprint 14)
-Tickets can now be scheduled to specific weeks/days via MCP:
+### Ticket Scheduling with Kanban
+Tickets are assigned to sprints and managed via Kanban boards:
 ```
 projectpulse_ticket_create({
   title: "Implement feature X",
   kind: "feature",
-  sprintNumber: 1,
-  scheduledWeekId: "<week-uuid>",      // Link to roadmap week
-  scheduledDays: ["Monday", "Tuesday"], // Which days within the week
-  estimatedDays: 2                      // Estimated duration
+  sprintNumber: 1,    // Sprint for Kanban board
+  estimatedDays: 2    // Estimated duration
 })
+
+# View Kanban board at: /roadmap/sprint/1
+# 5-column workflow: backlog → todo → in-progress → in-review → done
 ```
 
-### Notes / Current Limitations
-- Roadmap progress does NOT auto-update from ticket status (manual rollups for now)
-- `getCurrentPosition` requires a day with `status=IN_PROGRESS` (Ticket #61 to improve)
+### Kanban Tools
+| Tool | When to Use |
+|------|-------------|
+| `kanban_moveTicket` | Move tickets across columns (auto-cascades progress) |
+| `kanban_getBoard` | Get sprint's Kanban board with all tickets |
 
 ---
 
