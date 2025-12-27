@@ -120,7 +120,7 @@ projectpulse_context_load(projectId: ${data.projectId})
 Step 2: Check roadmap position (if using roadmap)
 ─────────────────────────────────────────────────
 projectpulse_sprint_getCurrentPosition(projectId: ${data.projectId})
-→ Returns: phase/sprint/week/day with progress
+→ Returns: phase/sprint with progress
 
 Step 3: Find tickets for today
 ──────────────────────────────
@@ -157,14 +157,14 @@ projectpulse_agent_session_start({
 ### End of Day
 
 \`\`\`
-Step 5: Update roadmap progress (if using roadmap)
-──────────────────────────────────────────────────
-projectpulse_sprint_updateProgress({
-  entityType: "day",
-  entityId: "<day-uuid>",
-  progress: 75
+Step 5: Move completed tickets to "done" (progress auto-cascades)
+─────────────────────────────────────────────────────────────────
+projectpulse_kanban_moveTicket({
+  ticketId: 42,
+  status: "done",
+  displayOrder: 0
 })
-→ Auto-propagates: Day → Week → Sprint → Phase
+→ Auto-propagates: Ticket → Sprint → Phase
 
 Step 6: Pause or end session
 ────────────────────────────
@@ -243,7 +243,8 @@ ${personaSection}
 | \`roadmap_create\` | Once per project, after onboarding |
 | \`getCurrentPosition\` | Start of each work day |
 | \`getPhaseProgress\` | See full phase tree |
-| \`updateProgress\` | End of day (cascades up automatically) |
+| \`kanban_moveTicket\` | Move tickets across columns (auto-cascades progress) |
+| \`kanban_getBoard\` | Get sprint's Kanban board with all tickets |
 
 ### Ticket Scheduling
 
@@ -252,10 +253,8 @@ projectpulse_ticket_create({
   projectId: ${data.projectId},
   title: "Implement feature X",
   kind: "feature",
-  sprintNumber: 1,
-  scheduledWeekId: "<week-uuid>",
-  scheduledDays: ["Monday", "Tuesday"],
-  estimatedDays: 2
+  sprintNumber: 1,    // Sprint for Kanban board
+  estimatedDays: 2    // Estimated duration
 })
 \`\`\`
 
@@ -331,7 +330,8 @@ projectpulse_wiki_get(path: "/guides/api-reference")
 | **Context** | \`context_load\`, \`context_lookup\`, \`context_update\` |
 | **Sessions** | \`agent_session_start\`, \`agent_session_update\`, \`agent_session_resume\`, \`agent_session_end\` |
 | **Tickets** | \`ticket_create\`, \`ticket_search\`, \`ticket_update\`, \`ticket_setStatus\`, \`ticket_addComment\`, \`ticket_get\` |
-| **Roadmap** | \`roadmap_create\`, \`getCurrentPosition\`, \`getPhaseProgress\`, \`updateProgress\`, \`queryHierarchy\` |
+| **Kanban** | \`kanban_moveTicket\`, \`kanban_getBoard\` |
+| **Roadmap** | \`roadmap_create\`, \`getCurrentPosition\`, \`getPhaseProgress\`, \`updateProgress\` |
 | **Knowledge** | \`knowledge_create\`, \`knowledge_search\`, \`knowledge_get\` |
 | **Wiki** | \`wiki_search\`, \`wiki_get\`, \`wiki_create\`, \`wiki_update\` |
 | **Resources** | \`persona_list\`, \`persona_get\`, \`skill_list\`, \`skill_get\`, \`sop_list\`, \`sop_get\` |

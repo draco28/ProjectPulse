@@ -547,7 +547,7 @@ Me: projectpulse_agent_session_end({
 
 | Layer | Purpose | Question Answered |
 |-------|---------|-------------------|
-| **Roadmap** | Phase → Sprint → Week → Day | "WHEN / sequence / progress" |
+| **Roadmap** | Phase → Sprint | "WHEN / sequence / progress" |
 | **Tickets** | Features, Tasks, Bugs | "WHAT to build" |
 | **Sessions** | Plan, todos, checkpoints | "WHAT happened this work session" |
 
@@ -561,34 +561,36 @@ Me: projectpulse_agent_session_end({
 ```
 # Morning: Know where you are
 projectpulse_sprint_getCurrentPosition(projectId: 6)
-→ Returns: phase/sprint/week/day with progress
+→ Returns: phase/sprint with progress
 
 # Find tickets for current sprint
 projectpulse_ticket_search({ sprintNumber: 1, status: ["open", "in-progress"] })
 
 # Work tickets normally (claim, implement, close)
 
-# End of day: Update progress (auto-propagates up)
-projectpulse_sprint_updateProgress({
-  entityType: "day",
-  entityId: "<day-uuid>",
-  progress: 75
+# End of day: Move completed tickets to "done" (auto-cascades progress)
+projectpulse_kanban_moveTicket({
+  ticketId: 42,
+  status: "done",
+  displayOrder: 0
 })
+→ Auto-propagates: Ticket → Sprint → Phase
 ```
 
-### Roadmap Scheduling (Sprint 14)
+### Ticket Scheduling with Kanban
 
-Tickets can now be scheduled to specific weeks/days via MCP:
+Tickets are assigned to sprints and managed via Kanban boards:
 
 ```
 projectpulse_ticket_create({
   title: "Implement feature X",
   kind: "feature",
-  sprintNumber: 1,
-  scheduledWeekId: "<week-uuid>",      // Link to roadmap week
-  scheduledDays: ["Monday", "Tuesday"], // Which days within the week
-  estimatedDays: 2                      // Estimated duration
+  sprintNumber: 1,    // Sprint for Kanban board
+  estimatedDays: 2    // Estimated duration
 })
+
+# View Kanban board at: /roadmap/sprint/1
+# Move tickets between columns using kanban_moveTicket
 ```
 
 ### MCP Tools Reference
@@ -598,8 +600,8 @@ projectpulse_ticket_create({
 | `roadmap_create` | Once per project, after onboarding |
 | `getCurrentPosition` | Start of each work day |
 | `getPhaseProgress` | See full phase tree |
-| `queryHierarchy` | Find low-progress or blocked items |
-| `updateProgress` | End of day (cascades up automatically) |
+| `kanban_moveTicket` | Move tickets across columns (auto-cascades progress) |
+| `kanban_getBoard` | Get sprint's Kanban board with all tickets |
 
 ---
 
