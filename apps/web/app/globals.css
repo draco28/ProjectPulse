@@ -390,6 +390,35 @@
   }
 
   /* ============================================================================
+     SPRINT BLOCK CARDS - Phase Timeline
+     ========================================================================== */
+
+  /* Base sprint block card - neumorphic styling */
+  .sprint-block {
+    background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+    box-shadow: 6px 6px 12px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+    border-radius: 16px;
+    border: 1px solid var(--border-subtle);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .sprint-block:hover {
+    border-color: var(--border-medium);
+    box-shadow: 8px 8px 20px var(--shadow-dark), -6px -6px 16px var(--shadow-light);
+  }
+
+  /* Current sprint variant - coral glow effect */
+  .sprint-block.current {
+    border-color: var(--coral);
+    box-shadow: 0 0 30px var(--shadow-coral-soft), 6px 6px 12px var(--shadow-dark);
+  }
+
+  .sprint-block.current:hover {
+    box-shadow: 0 0 40px var(--shadow-coral-medium), 8px 8px 20px var(--shadow-dark);
+  }
+
+  /* ============================================================================
      BUTTONS
      ========================================================================== */
 
@@ -1113,6 +1142,26 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--slate);
+}
+
+/* Thin scrollbar - for sprint mini-kanban and compact areas */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: var(--dark-pressed);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--slate-dark);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: var(--slate);
 }
 
