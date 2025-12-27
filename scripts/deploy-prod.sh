@@ -98,6 +98,21 @@ run_smoke_tests() {
     log_success "All smoke tests passed!"
 }
 
+cleanup_old_images() {
+    header "Cleanup Old Images"
+
+    log_info "Pruning dangling images (old layer caches)..."
+    docker image prune -f
+
+    log_info "Pruning build cache older than 7 days..."
+    docker builder prune -f --filter "until=168h" 2>/dev/null || true
+
+    log_info "Current Docker disk usage:"
+    docker system df
+
+    log_success "Cleanup complete"
+}
+
 quick_restart() {
     header "Quick Restart (No Rebuild)"
 
@@ -165,6 +180,9 @@ full_deploy() {
 
     # Step 5: Run smoke tests
     run_smoke_tests
+
+    # Step 6: Cleanup old images to prevent storage bloat
+    cleanup_old_images
 
     # Done!
     header "Deployment Complete!"
