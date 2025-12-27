@@ -21,26 +21,11 @@ import { NextPhasePreview } from './NextPhasePreview';
 import { PhaseStatsBar } from './PhaseStatsBar';
 import { SprintHistoryDrawer } from './SprintHistoryDrawer';
 
-/**
- * Find the current sprint number within a phase.
- * Returns the first IN_PROGRESS sprint, or the first NOT_STARTED if none active.
- */
-function findCurrentSprintNumber(phase: PhaseOverview): number {
-  const activeSprint = phase.sprints.find((s) => s.status === 'IN_PROGRESS');
-  if (activeSprint) return activeSprint.sprintNumber;
-
-  const plannedSprint = phase.sprints.find((s) => s.status === 'NOT_STARTED');
-  if (plannedSprint) return plannedSprint.sprintNumber;
-
-  // All completed - return last sprint
-  return phase.sprints[phase.sprints.length - 1]?.sprintNumber ?? 1;
-}
-
 export function PhaseTimelineClient({
   projectId,
   initialData,
 }: PhaseTimelineClientProps) {
-  const { phases, currentPhaseId } = initialData;
+  const { phases, currentPhaseId, currentGlobalSprintNumber } = initialData;
 
   // Phase selection state - default to current phase from API
   const [selectedPhaseId, setSelectedPhaseId] = useState<string>(
@@ -51,15 +36,10 @@ export function PhaseTimelineClient({
   const [drawerSprint, setDrawerSprint] = useState<SprintOverview | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Get selected phase and compute derived data
+  // Get selected phase
   const selectedPhase = useMemo(
     () => phases.find((p) => p.id === selectedPhaseId) ?? phases[0],
     [phases, selectedPhaseId]
-  );
-
-  const currentSprintNumber = useMemo(
-    () => (selectedPhase ? findCurrentSprintNumber(selectedPhase) : 1),
-    [selectedPhase]
   );
 
   // Find next phase for preview (if any)
@@ -112,8 +92,8 @@ export function PhaseTimelineClient({
         <button
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-coral hover:bg-coral/90 text-white font-medium transition-colors"
           onClick={() => {
-            // Navigate to ticket creation with project context
-            window.location.href = `/tickets/new?project=${projectId}&sprintNumber=${currentSprintNumber}`;
+            // Navigate to ticket creation with project context and current global sprint
+            window.location.href = `/tickets/new?project=${projectId}&sprintNumber=${currentGlobalSprintNumber ?? 1}`;
           }}
         >
           <Plus className="w-4 h-4" />
@@ -124,14 +104,14 @@ export function PhaseTimelineClient({
       {/* Phase Progress Bar */}
       <PhaseProgressBar
         phase={selectedPhase}
-        currentSprintNumber={currentSprintNumber}
+        currentGlobalSprintNumber={currentGlobalSprintNumber}
       />
 
       {/* Sprint Grid */}
       <SprintGrid
         projectId={projectId}
         sprints={selectedPhase.sprints}
-        currentSprintNumber={currentSprintNumber}
+        currentGlobalSprintNumber={currentGlobalSprintNumber}
         onCompletedSprintClick={handleCompletedSprintClick}
       />
 

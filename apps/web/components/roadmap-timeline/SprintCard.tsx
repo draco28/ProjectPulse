@@ -63,7 +63,7 @@ function CompactSprintCard({
               <Check className="w-5 h-5" />
             </span>
           )}
-          <h3 className="font-bold">Sprint {sprint.sprintNumber}</h3>
+          <h3 className="font-bold">Sprint {sprint.globalSprintNumber}</h3>
         </div>
         <span
           className={cn(
@@ -139,7 +139,7 @@ function CurrentSprintCard({
         <div className="flex items-center gap-3">
           {/* Pulsing coral dot */}
           <div className="w-2.5 h-2.5 rounded-full bg-coral animate-pulse" />
-          <h3 className="font-bold text-xl">Sprint {sprint.sprintNumber}</h3>
+          <h3 className="font-bold text-xl">Sprint {sprint.globalSprintNumber}</h3>
           <span className="text-xs px-2.5 py-1 rounded font-bold uppercase tracking-wide bg-coral/15 text-coral">
             Current
           </span>

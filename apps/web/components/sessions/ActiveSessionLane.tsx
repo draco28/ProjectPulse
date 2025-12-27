@@ -14,7 +14,8 @@
  * - Embedded SessionTicketPipeline
  */
 
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
+import { Copy, Check } from 'lucide-react';
 import type { SessionWithTickets } from '@/types/sessions';
 import type { KanbanTicket } from '@/types/kanban';
 import { SessionDurationTimer } from './SessionDurationTimer';
@@ -81,10 +82,20 @@ export const ActiveSessionLane = memo(function ActiveSessionLane({
   onPause,
   onTicketClick,
 }: ActiveSessionLaneProps) {
+  // Copy ID state
+  const [copiedId, setCopiedId] = useState(false);
+
   // Get currently working ticket for header display
   const workingTicket = useMemo(() => {
     return session.tickets.working[0] || null;
   }, [session.tickets.working]);
+
+  // Copy session ID to clipboard
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(session.id);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
 
   return (
     <div className="session-lane status-live p-6 space-y-4">
@@ -94,12 +105,28 @@ export const ActiveSessionLane = memo(function ActiveSessionLane({
         <div className="flex items-start gap-4">
           <AgentAvatar />
           <div className="space-y-1">
-            {/* Session Name + Live Badge */}
+            {/* Session Name + Live Badge + Copy ID */}
             <div className="flex items-center gap-3">
               <h3 className="text-lg font-semibold text-white">
                 {session.name || 'Unnamed Session'}
               </h3>
               <LiveBadge />
+              {/* Copy ID Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyToClipboard();
+                }}
+                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-slate hover:bg-white/10 transition-colors"
+                title="Copy session ID"
+              >
+                {copiedId ? (
+                  <Check className="h-3 w-3 text-green-400" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+                <span className="font-mono">{copiedId ? 'Copied!' : session.id.slice(-8)}</span>
+              </button>
             </div>
 
             {/* Working On */}

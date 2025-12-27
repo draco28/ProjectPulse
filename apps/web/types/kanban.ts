@@ -190,6 +190,8 @@ export interface BulkReorderResponse {
 export interface SprintOverview {
   id: string;
   sprintNumber: number;
+  /** Global sprint number across all phases (1, 2, 3, ... n) */
+  globalSprintNumber: number;
   title: string;
   status: string;
   progress: number;
@@ -237,6 +239,9 @@ export interface RoadmapOverviewResponse {
 
   /** ID of the current/active phase for default selection */
   currentPhaseId?: string;
+
+  /** Global sprint number of the current sprint (for cross-phase navigation) */
+  currentGlobalSprintNumber?: number;
 
   stats: {
     totalPhases: number;

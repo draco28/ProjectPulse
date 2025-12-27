@@ -18,19 +18,28 @@ import { SprintCard } from './SprintCard';
 interface SprintGridProps {
   projectId: number;
   sprints: SprintOverview[];
-  currentSprintNumber: number;
+  /** Global sprint number of the current sprint (across all phases) */
+  currentGlobalSprintNumber?: number;
   onCompletedSprintClick: (sprint: SprintOverview) => void;
 }
 
 /**
- * Determine the card variant based on sprint status.
+ * Determine the card variant based on sprint status and global sprint number.
+ * Uses globalSprintNumber for cross-phase current sprint identification.
  */
 function getSprintVariant(
   sprint: SprintOverview,
-  currentSprintNumber: number
+  currentGlobalSprintNumber?: number
 ): SprintCardVariant {
   if (sprint.status === 'COMPLETED') return 'completed';
-  if (sprint.sprintNumber === currentSprintNumber) return 'current';
+  // Use globalSprintNumber for consistent current sprint across all phases
+  if (currentGlobalSprintNumber && sprint.globalSprintNumber === currentGlobalSprintNumber) {
+    return 'current';
+  }
+  // Fallback: if no global current sprint is set, use IN_PROGRESS status
+  if (!currentGlobalSprintNumber && sprint.status === 'IN_PROGRESS') {
+    return 'current';
+  }
   return 'planned';
 }
 
@@ -46,7 +55,7 @@ function getSprintVariant(
 export function SprintGrid({
   projectId,
   sprints,
-  currentSprintNumber,
+  currentGlobalSprintNumber,
   onCompletedSprintClick,
 }: SprintGridProps) {
   const router = useRouter();
@@ -56,15 +65,15 @@ export function SprintGrid({
       // Open drawer for completed sprints
       onCompletedSprintClick(sprint);
     } else {
-      // Navigate to kanban for current/planned sprints (with project context)
-      router.push(`/roadmap/sprint/${sprint.sprintNumber}?project=${projectId}`);
+      // Navigate to kanban for current/planned sprints using global sprint number
+      router.push(`/roadmap/sprint/${sprint.globalSprintNumber}?project=${projectId}`);
     }
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {sprints.map((sprint) => {
-        const variant = getSprintVariant(sprint, currentSprintNumber);
+        const variant = getSprintVariant(sprint, currentGlobalSprintNumber);
 
         return (
           <SprintCard

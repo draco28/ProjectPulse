@@ -97,13 +97,26 @@ export async function GET(request: NextRequest) {
 
     // Transform to overview format with calculated stats
     // Sprint 15 Phase E: Extended for Phase Timeline view
+    // Sprint 15 Phase F-fix: Calculate global sprint numbers across all phases
     let totalTickets = 0;
     let completedTickets = 0;
     let inProgressTickets = 0;
     let inReviewTickets = 0;
 
+    // Track global sprint counter and current sprint
+    let globalSprintCounter = 0;
+    let currentGlobalSprintNumber: number | undefined = undefined;
+
     const phases: PhaseOverview[] = roadmap.phases_rel.map((phase) => {
       const sprints: SprintOverview[] = phase.sprints.map((sprint) => {
+        // Increment global sprint counter
+        globalSprintCounter++;
+
+        // Track the current sprint (first IN_PROGRESS sprint found)
+        if (sprint.status === 'IN_PROGRESS' && currentGlobalSprintNumber === undefined) {
+          currentGlobalSprintNumber = globalSprintCounter;
+        }
+
         const tickets = sprint.tickets ?? [];
         const total = tickets.length;
         const done = tickets.filter((t) => t.status === TICKET_STATUSES.DONE).length;
@@ -120,6 +133,7 @@ export async function GET(request: NextRequest) {
         return {
           id: sprint.id,
           sprintNumber: sprint.sprintNumber,
+          globalSprintNumber: globalSprintCounter,
           title: sprint.title,
           status: sprint.status,
           progress: sprint.progress,
@@ -160,6 +174,7 @@ export async function GET(request: NextRequest) {
       title: `${roadmap.project?.name ?? 'Project'} Roadmap`,
       phases,
       currentPhaseId: currentPhase?.id,
+      currentGlobalSprintNumber,
       stats: {
         totalPhases: phases.length,
         totalSprints: phases.reduce((sum, p) => sum + p.sprints.length, 0),

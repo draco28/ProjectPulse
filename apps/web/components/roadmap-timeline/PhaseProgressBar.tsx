@@ -33,7 +33,7 @@ function formatDateRange(startDate?: string, endDate?: string): string {
 
 export function PhaseProgressBar({
   phase,
-  currentSprintNumber,
+  currentGlobalSprintNumber,
 }: PhaseProgressBarProps) {
   const { sprints, progress, startDate, endDate } = phase;
 
@@ -44,21 +44,21 @@ export function PhaseProgressBar({
     const totalSprints = sprints.length;
     return sprints.slice(0, -1).map((sprint, index) => ({
       id: sprint.id,
-      sprintNumber: sprint.sprintNumber,
+      globalSprintNumber: sprint.globalSprintNumber,
       position: ((index + 1) / totalSprints) * 100,
       isCompleted: sprint.status === 'COMPLETED',
-      isCurrent: sprint.sprintNumber === currentSprintNumber,
+      isCurrent: sprint.globalSprintNumber === currentGlobalSprintNumber,
     }));
-  }, [sprints, currentSprintNumber]);
+  }, [sprints, currentGlobalSprintNumber]);
 
-  // Sprint labels for the bottom row
+  // Sprint labels for the bottom row (using globalSprintNumber for display)
   const sprintLabels = sprints.map((sprint) => {
     const isCompleted = sprint.status === 'COMPLETED';
-    const isCurrent = sprint.sprintNumber === currentSprintNumber;
+    const isCurrent = sprint.globalSprintNumber === currentGlobalSprintNumber;
 
     return {
       id: sprint.id,
-      label: `Sprint ${sprint.sprintNumber}`,
+      label: `Sprint ${sprint.globalSprintNumber}`,
       progress: sprint.progress,
       isCompleted,
       isCurrent,

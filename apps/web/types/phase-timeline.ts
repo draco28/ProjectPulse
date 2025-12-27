@@ -20,14 +20,20 @@ import type { PhaseOverview, SprintOverview, RoadmapOverviewResponse } from './k
 export type SprintCardVariant = 'completed' | 'current' | 'planned';
 
 /**
- * Determines the variant based on sprint status.
+ * Determines the variant based on sprint status and global sprint number.
+ * Uses globalSprintNumber for consistent current sprint identification across phases.
  */
 export function getSprintVariant(
   sprint: SprintOverview,
-  currentSprintNumber?: number
+  currentGlobalSprintNumber?: number
 ): SprintCardVariant {
   if (sprint.status === 'COMPLETED') return 'completed';
-  if (sprint.sprintNumber === currentSprintNumber || sprint.status === 'IN_PROGRESS') {
+  // Use globalSprintNumber for cross-phase current sprint identification
+  if (currentGlobalSprintNumber && sprint.globalSprintNumber === currentGlobalSprintNumber) {
+    return 'current';
+  }
+  // Fallback to status-based detection if no global number provided
+  if (!currentGlobalSprintNumber && sprint.status === 'IN_PROGRESS') {
     return 'current';
   }
   return 'planned';
@@ -59,7 +65,8 @@ export interface PhaseSelectorProps {
  */
 export interface PhaseProgressBarProps {
   phase: PhaseOverview;
-  currentSprintNumber?: number;
+  /** Global sprint number of the current sprint (across all phases) */
+  currentGlobalSprintNumber?: number;
 }
 
 /**
@@ -68,7 +75,8 @@ export interface PhaseProgressBarProps {
 export interface SprintGridProps {
   projectId: number;
   sprints: SprintOverview[];
-  currentSprintNumber?: number;
+  /** Global sprint number of the current sprint (across all phases) */
+  currentGlobalSprintNumber?: number;
   onSprintClick: (sprint: SprintOverview, variant: SprintCardVariant) => void;
 }
 

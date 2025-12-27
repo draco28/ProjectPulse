@@ -12,7 +12,8 @@
  * - "Resume Session" button (yellow)
  */
 
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
+import { Copy, Check } from 'lucide-react';
 import type { AgentSession } from '@/types/sessions';
 import { useSessionDuration } from '@/hooks/useSessionDuration';
 import { cn } from '@/lib/utils';
@@ -57,6 +58,16 @@ export const PausedSessionCard = memo(function PausedSessionCard({
   onResume,
   onClick,
 }: PausedSessionCardProps) {
+  // Copy ID state
+  const [copiedId, setCopiedId] = useState(false);
+
+  // Copy session ID to clipboard
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(session.id);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
+
   // Get work duration (from start to last update)
   const { durationShort } = useSessionDuration(session.startedAt, false);
 
@@ -82,10 +93,28 @@ export const PausedSessionCard = memo(function PausedSessionCard({
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          {/* Session Name */}
-          <h4 className="text-base font-medium text-white truncate">
-            {session.name || 'Unnamed Session'}
-          </h4>
+          {/* Session Name + Copy ID */}
+          <div className="flex items-center gap-2">
+            <h4 className="text-base font-medium text-white truncate">
+              {session.name || 'Unnamed Session'}
+            </h4>
+            {/* Copy ID Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                copyToClipboard();
+              }}
+              className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-slate hover:bg-white/10 transition-colors flex-shrink-0"
+              title="Copy session ID"
+            >
+              {copiedId ? (
+                <Check className="h-3 w-3 text-green-400" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
+              <span className="font-mono">{copiedId ? 'Copied!' : session.id.slice(-8)}</span>
+            </button>
+          </div>
 
           {/* Status Line */}
           <div className="flex items-center gap-2 text-sm text-slate mt-0.5">

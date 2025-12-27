@@ -12,7 +12,8 @@
  * - Muted styling (opacity-70)
  */
 
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
+import { Copy, Check } from 'lucide-react';
 import type { AgentSession } from '@/types/sessions';
 import { calculateSessionDuration } from '@/hooks/useSessionDuration';
 import { cn } from '@/lib/utils';
@@ -59,6 +60,16 @@ export const CompletedSessionCard = memo(function CompletedSessionCard({
   session,
   onClick,
 }: CompletedSessionCardProps) {
+  // Copy ID state
+  const [copiedId, setCopiedId] = useState(false);
+
+  // Copy session ID to clipboard
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(session.id);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
+
   // Calculate session duration
   const duration = useMemo(() => {
     if (!session.completedAt) return { durationShort: '—' };
@@ -107,8 +118,26 @@ export const CompletedSessionCard = memo(function CompletedSessionCard({
             {session.name || 'Unnamed Session'}
           </h4>
 
-          {/* Completion Time */}
-          <p className="text-xs text-slate mt-0.5">{completedTime}</p>
+          {/* Completion Time + Copy ID */}
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-slate">{completedTime}</p>
+            {/* Copy ID Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                copyToClipboard();
+              }}
+              className="flex items-center gap-1 rounded px-1 py-0.5 text-xs text-slate/70 hover:bg-white/10 hover:text-slate transition-colors"
+              title="Copy session ID"
+            >
+              {copiedId ? (
+                <Check className="h-2.5 w-2.5 text-green-400" />
+              ) : (
+                <Copy className="h-2.5 w-2.5" />
+              )}
+              <span className="font-mono text-[10px]">{copiedId ? 'Copied!' : session.id.slice(-6)}</span>
+            </button>
+          </div>
 
           {/* Stats */}
           <div className="flex items-center gap-2 text-xs text-slate/70 mt-2">
