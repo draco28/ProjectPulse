@@ -22,7 +22,8 @@ import { AgentPersonasWidget } from '@/components/dashboard/AgentPersonasWidget'
 import { ActiveSessionsWidget } from '@/components/dashboard/ActiveSessionsWidget';
 import { ListTodo, Lightbulb, Shield, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { PrismaClient } from '@prisma/client';
-import { getCurrentUser } from '@/lib/auth-server';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 import Link from 'next/link';
 
 // Singleton pattern for PrismaClient to avoid too many connections
@@ -256,41 +257,8 @@ export default async function DashboardPage({
 }: {
   searchParams: { project?: string };
 }) {
-  // Get current user
-  const user = await getCurrentUser();
-  if (!user) {
-    redirect('/login');
-  }
-
-  // Get projectId from query param or use first owned project
-  let projectId: number;
-  if (searchParams.project) {
-    projectId = parseInt(searchParams.project, 10);
-  } else {
-    // Get user's first project
-    const firstProject = await prisma.project.findFirst({
-      where: { ownerId: user.id },
-      select: { id: true },
-    });
-
-    if (!firstProject) {
-      // No projects - redirect to /app to create one
-      redirect('/app');
-    }
-
-    projectId = firstProject.id;
-  }
-
-  // Verify ownership
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    select: { id: true, name: true, ownerId: true },
-  });
-
-  if (!project || project.ownerId !== user.id) {
-    // Unauthorized or project doesn't exist - redirect to /app
-    redirect('/app');
-  }
+  // Unified auth + project resolution (replaces inline project logic)
+  const { project, projectId } = await withProjectAuth(searchParams.project);
 
   const data = await getDashboardData(projectId);
   const hasTrendActivity =
@@ -302,7 +270,8 @@ export default async function DashboardPage({
   const trendLabel = hasTrendActivity ? 'vs previous period' : 'no data yet';
 
   return (
-    <div className="space-y-4">
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
+      <div className="space-y-4">
       {/* Back to Projects Link */}
       <Link
         href="/app"
@@ -381,6 +350,7 @@ export default async function DashboardPage({
           <AgentPersonasWidget agents={data.agents} />
         </div>
       </div>
-    </div>
+      </div>
+    </ProjectLayoutWrapper>
   );
 }

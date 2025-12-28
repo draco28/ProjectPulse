@@ -22,8 +22,8 @@ import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
 import { SessionsPageRedesigned } from '@/components/sessions/SessionsPageRedesigned';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth-server';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 import type { SessionCounts } from '@/types/sessions';
 
 export const metadata: Metadata = {
@@ -59,22 +59,20 @@ export default async function SessionsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  // Auth check
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
   const params = await searchParams;
-  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
+  
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(params.project);
 
   // Fetch initial counts for SSR
   const initialCounts = await getSessionCounts(projectId);
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <FloatingBackground />
 
       <div className="content-wrapper flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col overflow-hidden">
@@ -107,6 +105,6 @@ export default async function SessionsPage({
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }
