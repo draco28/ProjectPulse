@@ -10,8 +10,8 @@
  * @see mockups/alternatives/COMBINED-01-phase-timeline.html
  */
 
-import { useRouter } from 'next/navigation';
 import type { SprintOverview } from '@/types/kanban';
+import { useProject } from '@/lib/project';
 import type { SprintCardVariant } from '@/types/phase-timeline';
 import { SprintCard } from './SprintCard';
 
@@ -54,17 +54,17 @@ function getSprintVariant(
  * - Current sprint spans 2 columns for emphasis
  */
 export function SprintGrid({
-  projectId,
+  projectId: _projectId,
   sprints,
   currentGlobalSprintNumber,
   onSprintDrawerOpen,
 }: SprintGridProps) {
-  const router = useRouter();
+  const { navigateTo } = useProject();
 
   const handleSprintClick = (sprint: SprintOverview, variant: SprintCardVariant) => {
     if (variant === 'current') {
       // Only current sprint navigates directly to kanban (it shows mini-kanban inline)
-      router.push(`/roadmap/sprint/${sprint.globalSprintNumber}?project=${projectId}`);
+      navigateTo(`/roadmap/sprint/${sprint.globalSprintNumber}`);
     } else {
       // Both completed and planned sprints open the drawer
       onSprintDrawerOpen(sprint, variant);

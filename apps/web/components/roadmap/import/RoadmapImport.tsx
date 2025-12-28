@@ -13,8 +13,8 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { FileJson, ClipboardPaste } from 'lucide-react';
+import { useProject } from '@/lib/project';
 import { JsonFileUpload } from './JsonFileUpload';
 import { JsonPasteArea } from './JsonPasteArea';
 import { ImportPreview } from './ImportPreview';
@@ -61,7 +61,7 @@ interface RoadmapImportProps {
 }
 
 export function RoadmapImport({ projectId, projectName }: RoadmapImportProps) {
-  const router = useRouter();
+  const { navigateTo } = useProject();
 
   const [method, setMethod] = useState<ImportMethod>('file');
   const [rawInput, setRawInput] = useState('');
@@ -203,13 +203,13 @@ export function RoadmapImport({ projectId, projectName }: RoadmapImportProps) {
       setStatus('success');
       // Redirect to roadmap page after short delay (preserve project context)
       setTimeout(() => {
-        router.push(`/roadmap?project=${projectId}`);
+        navigateTo('/roadmap');
       }, 1500);
     } catch (err) {
       setImportError(err instanceof Error ? err.message : 'Network error');
       setStatus('error');
     }
-  }, [parsed, projectId, router]);
+  }, [parsed, projectId, navigateTo]);
 
   return (
     <div className="neu-raised rounded-3xl p-8">
