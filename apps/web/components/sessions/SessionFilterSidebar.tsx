@@ -6,9 +6,10 @@
  */
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Play, Pause, Check, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useProject } from '@/lib/project';
 
 interface SessionFilterSidebarProps {
   counts: {
@@ -28,8 +29,8 @@ const statusOptions: { value: StatusFilter; label: string; icon: typeof Play; co
   { value: 'COMPLETED', label: 'Completed', icon: Check, color: 'text-slate' },
 ];
 
-export function SessionFilterSidebar({ counts, projectId }: SessionFilterSidebarProps) {
-  const router = useRouter();
+export function SessionFilterSidebar({ counts, projectId: _projectId }: SessionFilterSidebarProps) {
+  const { updateSearchParams } = useProject();
   const searchParams = useSearchParams();
   const currentStatus = (searchParams.get('status') as StatusFilter) || 'all';
 
@@ -48,23 +49,11 @@ export function SessionFilterSidebar({ counts, projectId }: SessionFilterSidebar
   };
 
   const handleFilterChange = (status: StatusFilter) => {
-    const params = new URLSearchParams(searchParams.toString());
-
     if (status === 'all') {
-      params.delete('status');
+      updateSearchParams({ status: null, page: null });
     } else {
-      params.set('status', status);
+      updateSearchParams({ status, page: null });
     }
-
-    // Reset to page 1 when filter changes
-    params.delete('page');
-
-    // Ensure project is included
-    if (projectId) {
-      params.set('project', projectId.toString());
-    }
-
-    router.push(`/sessions?${params.toString()}`);
   };
 
   return (
