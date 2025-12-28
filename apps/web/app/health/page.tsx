@@ -5,8 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { Activity, TrendingUp, TrendingDown, Minus, ArrowLeft } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
-import { getCurrentUser } from '@/lib/auth-server';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 import { ScoreCardsGrid } from '@/components/health/ScoreCardsGrid';
 import { VulnerabilityBreakdown } from '@/components/health/VulnerabilityBreakdown';
 import { ScannerStatusCards } from '@/components/health/ScannerStatusCards';
@@ -211,13 +211,10 @@ export default async function HealthPage({
 }: {
   searchParams: Promise<{ project?: string }>;
 }) {
-  // Auth check
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
   const params = await searchParams;
-
-  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
+  
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(params.project);
 
   const { latestScore, historicalScores, findings, scanners, vulnerabilityCounts, trend } =
     await getHealthData(projectId);
@@ -225,10 +222,10 @@ export default async function HealthPage({
   // Handle no data case (never scanned)
   if (!latestScore) {
     return (
-      <>
+      <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
         <FloatingBackground />
         <div className="flex h-screen overflow-hidden">
-          <Sidebar projectId={projectId} />
+          <Sidebar />
 
           <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
             <header className="neu-raised smooth-transition rounded-3xl px-8 py-5">
@@ -262,7 +259,7 @@ export default async function HealthPage({
             </main>
           </div>
         </div>
-      </>
+      </ProjectLayoutWrapper>
     );
   }
 
@@ -348,10 +345,10 @@ export default async function HealthPage({
   ];
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
@@ -440,6 +437,6 @@ export default async function HealthPage({
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }
