@@ -18,10 +18,9 @@
  */
 
 import { Map } from 'lucide-react';
-import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import { getCurrentUser } from '@/lib/auth-server';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 import { PhaseTimelineClient } from '@/components/roadmap-timeline';
 import { EmptyRoadmapState } from '@/components/roadmap/EmptyRoadmapState';
 import type { RoadmapOverviewResponse } from '@/types/kanban';
@@ -90,23 +89,25 @@ export default async function RoadmapPage({
 }: {
   searchParams: Promise<{ project?: string }>;
 }) {
-  // Auth check
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
   const params = await searchParams;
-  const { projectId } = await getActiveProjectForUser(user.id, params.project);
+  
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(params.project);
 
   // Fetch roadmap overview
   const overview = await getRoadmapOverview(projectId);
 
   // Empty state - no roadmap exists
   if (!overview) {
-    return <EmptyRoadmapState projectId={projectId} />;
+    return (
+      <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
+        <EmptyRoadmapState projectId={projectId} />
+      </ProjectLayoutWrapper>
+    );
   }
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       {/* Page Header */}
       <div className="mb-6">
         <div className="mb-2 flex items-center gap-3">
@@ -122,6 +123,6 @@ export default async function RoadmapPage({
 
       {/* Phase Timeline Client */}
       <PhaseTimelineClient projectId={projectId} initialData={overview} />
-    </>
+    </ProjectLayoutWrapper>
   );
 }

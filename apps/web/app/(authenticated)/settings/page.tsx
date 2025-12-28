@@ -8,8 +8,8 @@
  */
 
 import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth-server';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 import { prisma } from '@/lib/prisma';
 import { SettingsClient } from './SettingsClient';
 
@@ -70,13 +70,10 @@ export default async function SettingsPage({
 }: {
   searchParams: Promise<{ project?: string }>;
 }) {
-  const user = await getCurrentUser();
-  if (!user) {
-    redirect('/login');
-  }
-
   const params = await searchParams;
-  const { projectId } = await getActiveProjectForUser(user.id, params.project);
+  
+  // Unified auth + project resolution
+  const { user, project, projectId } = await withProjectAuth(params.project);
 
   const data = await getProjectSettings(projectId, user.id);
 
@@ -84,18 +81,20 @@ export default async function SettingsPage({
     redirect('/app');
   }
 
-  const { project, tokens, labels } = data;
+  const { project: projectSettings, tokens, labels } = data;
 
   // MCP endpoint (configurable via env, fallback to production URL)
   const mcpEndpoint =
     process.env.NEXT_PUBLIC_MCP_URL || 'https://projectpulsemcp.dracodev.dev/mcp';
 
   return (
-    <SettingsClient
-      project={project}
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
+      <SettingsClient
+      project={projectSettings}
       tokens={tokens}
       labels={labels}
-      mcpEndpoint={mcpEndpoint}
-    />
+        mcpEndpoint={mcpEndpoint}
+      />
+    </ProjectLayoutWrapper>
   );
 }
