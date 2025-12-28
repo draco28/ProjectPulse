@@ -33,6 +33,7 @@ import {
 import { deriveAutoTags } from '@/lib/issues/tagging';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
+import { resolveSprintByNumber } from '@/lib/sprints/resolution';
 import type { TicketFilters } from '@/lib/validations/ticket';
 import type { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
@@ -242,21 +243,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Sprint 15: Resolve sprintId from sprintNumber (via roadmap hierarchy)
-    let resolvedSprintId: string | null = null;
-    if (data.sprintNumber && !data.sprintId) {
-      const sprint = await prisma.sprint.findFirst({
-        where: {
-          phase: {
-            roadmap: { projectId },
-          },
-          sprintNumber: data.sprintNumber,
-        },
-        select: { id: true },
-      });
-      if (sprint) {
-        resolvedSprintId = sprint.id;
-      }
-    }
+    // Ticket #91: Use helper with deterministic ordering (global numbering)
+    const resolvedSprintId =
+      data.sprintNumber && !data.sprintId
+        ? await resolveSprintByNumber(prisma, projectId, data.sprintNumber)
+        : null;
 
     // Sprint 15: Auto-assign displayOrder (max + 1 in same status column within sprint)
     let autoDisplayOrder = 0;

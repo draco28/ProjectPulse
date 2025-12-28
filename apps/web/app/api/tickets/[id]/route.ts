@@ -19,6 +19,7 @@ import { failure, success, ticketIncludeConfig, computeDisplayIdForSingleTicket 
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
+import { resolveSprintByNumber } from '@/lib/sprints/resolution';
 import { revalidatePath } from 'next/cache';
 import { TICKET_STATUSES } from '@/lib/constants/status';
 import { calculateAndCascadeProgress } from '@/lib/tickets/progress-calculator';
@@ -273,14 +274,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         resolvedSprintId = null;
       } else if (!data.sprintId) {
         // sprintNumber set/changed → resolve sprintId from roadmap hierarchy
-        const sprint = await prisma.sprint.findFirst({
-          where: {
-            phase: { roadmap: { projectId: existing.projectId } },
-            sprintNumber: newSprintNumber,
-          },
-          select: { id: true },
-        });
-        resolvedSprintId = sprint?.id ?? null;
+        // Ticket #91: Use helper with deterministic ordering (global numbering)
+        resolvedSprintId = await resolveSprintByNumber(
+          prisma,
+          existing.projectId,
+          newSprintNumber
+        );
       }
     }
 

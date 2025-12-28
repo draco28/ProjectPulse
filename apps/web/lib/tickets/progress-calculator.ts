@@ -20,6 +20,7 @@
 
 import type { PrismaClient, Prisma } from '@prisma/client';
 import { TICKET_STATUSES, type TicketStatus } from '@/lib/constants/status';
+import { findNextSprint } from '@/lib/sprints/resolution';
 
 /**
  * Result of progress calculation and cascade.
@@ -200,8 +201,11 @@ async function updatePhaseProgress(
 /**
  * Sprint 15: Activate next sprint when current sprint completes.
  *
- * Uses global sprint numbering to find next sprint regardless of phase.
+ * Uses findNextSprint helper to find next sprint by global ordering.
+ * This correctly handles phase boundaries and gaps in sprint numbers.
  * If next sprint is in a different phase, also activates that phase.
+ *
+ * Ticket #91: Fixed to use deterministic ordering instead of sprintNumber + 1
  *
  * @param prisma - Transaction client
  * @param currentSprintId - Sprint that just completed
@@ -211,58 +215,43 @@ async function activateNextSprint(
   prisma: Prisma.TransactionClient,
   currentSprintId: string
 ): Promise<{ nextSprintId: string; nextPhaseId?: string } | null> {
-  // Get current sprint with phase and roadmap context
+  // Get current sprint's phase for comparison
   const currentSprint = await prisma.sprint.findUnique({
     where: { id: currentSprintId },
-    include: {
-      phase: {
-        include: {
-          roadmap: true,
-        },
-      },
-    },
+    select: { phaseId: true },
   });
 
-  if (!currentSprint?.phase?.roadmap) {
+  if (!currentSprint) {
     return null;
   }
 
-  // Find next sprint by global sprint number (works across phases)
-  const nextSprint = await prisma.sprint.findFirst({
-    where: {
-      phase: {
-        roadmapId: currentSprint.phase.roadmapId,
-      },
-      sprintNumber: currentSprint.sprintNumber + 1,
-    },
-    include: {
-      phase: true,
-    },
-  });
+  // Ticket #91: Use helper with deterministic ordering (global numbering)
+  // This correctly finds next sprint by sprintNumber > current, ordered by sprintNumber ASC
+  const nextSprintRef = await findNextSprint(prisma, currentSprintId);
 
-  if (!nextSprint) {
+  if (!nextSprintRef) {
     return null; // No more sprints - roadmap complete!
   }
 
   // Activate next sprint
   await prisma.sprint.update({
-    where: { id: nextSprint.id },
+    where: { id: nextSprintRef.id },
     data: { status: 'IN_PROGRESS' },
   });
 
   let nextPhaseId: string | undefined;
 
   // If next sprint is in a different phase, activate that phase too
-  if (nextSprint.phaseId !== currentSprint.phaseId) {
+  if (nextSprintRef.phaseId !== currentSprint.phaseId) {
     await prisma.phase.update({
-      where: { id: nextSprint.phaseId },
+      where: { id: nextSprintRef.phaseId },
       data: { status: 'IN_PROGRESS' },
     });
-    nextPhaseId = nextSprint.phaseId;
+    nextPhaseId = nextSprintRef.phaseId;
   }
 
   return {
-    nextSprintId: nextSprint.id,
+    nextSprintId: nextSprintRef.id,
     nextPhaseId,
   };
 }
