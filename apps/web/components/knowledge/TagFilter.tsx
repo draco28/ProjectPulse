@@ -1,8 +1,8 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useProject } from '@/lib/project';
 
 interface TagFilterProps {
   allTags: string[];
@@ -10,29 +10,19 @@ interface TagFilterProps {
 }
 
 export function TagFilter({ allTags, selectedTag }: TagFilterProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { updateSearchParams } = useProject();
 
   const handleTagClick = (tag: string) => {
-    const params = new URLSearchParams(searchParams?.toString());
-
     if (tag === selectedTag) {
       // Deselect if clicking the same tag
-      params.delete('tag');
+      updateSearchParams({ tag: null, page: null });
     } else {
-      params.set('tag', tag);
+      updateSearchParams({ tag, page: null });
     }
-
-    // Reset to page 1 when tag changes
-    params.delete('page');
-
-    router.push(`/knowledge?${params.toString()}`);
   };
 
   const handleClearFilters = () => {
-    const params = new URLSearchParams(searchParams?.toString());
-    params.delete('tag');
-    router.push(`/knowledge?${params.toString()}`);
+    updateSearchParams({ tag: null });
   };
 
   // Show only top 10 popular tags
