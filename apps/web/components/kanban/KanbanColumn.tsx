@@ -95,14 +95,24 @@ export const KanbanColumn = memo(function KanbanColumn({
     const features: KanbanTicket[] = [];
     const standaloneTickets: KanbanTicket[] = [];
 
+    // Build set of ticket IDs in this sprint for parent lookup
+    const ticketIdsInSprint = new Set(tickets.map((t) => t.id));
+
     for (const ticket of tickets) {
       if (ticket.childTickets && ticket.childTickets.length > 0) {
         features.push(ticket);
       } else if (!ticket.parentTicketId) {
-        // Only standalone if it has no parent AND no children
+        // No parent - render as standalone
         standaloneTickets.push(ticket);
+      } else {
+        // Has parent - check if parent is in this sprint
+        const parentInSprint = ticketIdsInSprint.has(ticket.parentTicketId);
+        if (!parentInSprint) {
+          // Parent NOT in this sprint - render as standalone (orphaned child)
+          standaloneTickets.push(ticket);
+        }
+        // If parent IS in sprint, skip - will render inside parent's FeatureCard
       }
-      // Skip child tickets - they render inside their parent FeatureCard
     }
 
     return { features, standaloneTickets };
