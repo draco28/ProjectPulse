@@ -99,12 +99,18 @@ async function fetchSessionsByStatus(
 
 /**
  * Fetch tickets by IDs for session enrichment.
+ * @param ticketIds - Array of ticket IDs to fetch
+ * @param projectId - Project ID for authorization (defense-in-depth)
  */
-async function fetchTicketsByIds(ticketIds: number[]): Promise<KanbanTicket[]> {
+async function fetchTicketsByIds(
+  ticketIds: number[],
+  projectId: number
+): Promise<KanbanTicket[]> {
   if (ticketIds.length === 0) return [];
 
   // Use ticket search with IDs filter
   const params = new URLSearchParams();
+  params.set('projectId', String(projectId)); // SECURITY: Add projectId for auth
   ticketIds.forEach((id) => params.append('ids', String(id)));
 
   const res = await fetch(`/api/tickets?${params}`);
@@ -242,9 +248,9 @@ export function useSessionsData(projectId: number): UseSessionsDataReturn {
   // Query for ticket enrichment (only for active sessions)
   // --------------------------------------------------------------------------
   const ticketsQuery = useQuery({
-    queryKey: ['session-tickets', activeTicketIds],
-    queryFn: () => fetchTicketsByIds(activeTicketIds),
-    enabled: activeTicketIds.length > 0,
+    queryKey: ['session-tickets', projectId, activeTicketIds],
+    queryFn: () => fetchTicketsByIds(activeTicketIds, projectId),
+    enabled: activeTicketIds.length > 0 && projectId > 0,
     staleTime: 30_000,
   });
 
