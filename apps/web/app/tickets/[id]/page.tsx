@@ -13,8 +13,8 @@ import { prisma } from '@/lib/prisma';
 import { serializeIssueDetail } from '@/types/issue';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
-import { getCurrentUser } from '@/lib/auth-server';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 import type { TicketStatus } from '@/lib/constants/status';
 
 // Ticket detail components (Sprint 10.5: renamed from issue)
@@ -257,20 +257,15 @@ export default async function TicketDetailPage({
   const { id } = await params;
   const ticketId = parseInt(id, 10);
 
-  // Auth check
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
-  // Fetch ticket with all relations
+  // Fetch ticket first to check existence
   const ticket = await getTicketDetail(ticketId);
-
   if (!ticket) {
     notFound();
   }
 
-  // Verify project ownership
+  // Unified auth + project resolution
   const searchParamsResolved = await searchParams;
-  const { projectId } = await getActiveProjectForUser(user.id, searchParamsResolved.project);
+  const { user, projectId } = await withProjectAuth(searchParamsResolved.project);
 
   if (ticket.projectId !== projectId) {
     redirect(`/tickets/${ticketId}?project=${ticket.projectId}`);
@@ -283,10 +278,10 @@ export default async function TicketDetailPage({
   const kindColor = kindColors[ticket.kind] || 'bg-gray-500/20 text-gray-400';
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={ticket.project.name}>
       <FloatingBackground />
       <div className="content-wrapper flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
@@ -505,7 +500,7 @@ export default async function TicketDetailPage({
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }
 

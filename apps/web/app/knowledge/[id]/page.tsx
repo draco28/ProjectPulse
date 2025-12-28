@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
-import { getCurrentUser } from '@/lib/auth-server';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 import { ArrowLeft, Calendar, Clock, Tag, Folder } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
@@ -42,13 +42,11 @@ async function getKnowledgeItem(id: number, projectId: number) {
 }
 
 export default async function KnowledgeDetailPage({ params, searchParams }: PageProps) {
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
 
-  const { projectId } = await getActiveProjectForUser(user.id, resolvedSearchParams.project);
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(resolvedSearchParams.project);
 
   const id = parseInt(resolvedParams.id, 10);
   if (isNaN(id) || id < 1) {
@@ -64,10 +62,10 @@ export default async function KnowledgeDetailPage({ params, searchParams }: Page
   const updatedAgo = formatDistanceToNow(new Date(item.updatedAt), { addSuffix: true });
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Back Navigation */}
@@ -191,6 +189,6 @@ export default async function KnowledgeDetailPage({ params, searchParams }: Page
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }
