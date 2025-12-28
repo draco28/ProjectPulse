@@ -6,9 +6,9 @@
 
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useProject } from '@/lib/project';
 
 interface WikiSearchBarProps {
   searchParams: {
@@ -26,8 +26,7 @@ const SORT_OPTIONS = [
 ];
 
 export function WikiSearchBar({ searchParams }: WikiSearchBarProps) {
-  const router = useRouter();
-  const currentSearchParams = useSearchParams();
+  const { updateSearchParams } = useProject();
   const [search, setSearch] = useState(searchParams.search || '');
   const sortBy = searchParams.sort || 'newest';
 
@@ -41,23 +40,16 @@ export function WikiSearchBar({ searchParams }: WikiSearchBarProps) {
     if (search === prevSearch) return;
 
     const handler = setTimeout(() => {
-      const params = new URLSearchParams(currentSearchParams?.toString());
-
-      if (search) {
-        params.set('search', search);
-      } else {
-        params.delete('search');
-      }
-
-      // Reset to page 1 when searching (only when search actually changed)
-      params.delete('page');
-
       setPrevSearch(search);
-      router.push(`/wiki?${params.toString()}`);
+      if (search) {
+        updateSearchParams({ search, page: null });
+      } else {
+        updateSearchParams({ search: null, page: null });
+      }
     }, 300);
 
     return () => clearTimeout(handler);
-  }, [search, prevSearch, router, currentSearchParams]);
+  }, [search, prevSearch, updateSearchParams]);
 
   const handleClear = () => {
     setSearch('');
@@ -71,18 +63,11 @@ export function WikiSearchBar({ searchParams }: WikiSearchBarProps) {
   };
 
   const handleSortChange = (newSort: string) => {
-    const params = new URLSearchParams(currentSearchParams?.toString());
-
     if (newSort !== 'newest') {
-      params.set('sort', newSort);
+      updateSearchParams({ sort: newSort, page: null });
     } else {
-      params.delete('sort');
+      updateSearchParams({ sort: null, page: null });
     }
-
-    // Reset to page 1 when sorting changes
-    params.delete('page');
-
-    router.push(`/wiki?${params.toString()}`);
   };
 
   return (
