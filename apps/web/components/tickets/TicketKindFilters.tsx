@@ -13,9 +13,10 @@
  */
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 import { X } from 'lucide-react';
+import { useProject } from '@/lib/project';
 
 // Kind configuration
 const kindConfig: Record<string, { label: string; color: string; activeColor: string }> = {
@@ -63,7 +64,7 @@ interface TicketKindFiltersProps {
 }
 
 export function TicketKindFilters({ projectId, counts, totalCount }: TicketKindFiltersProps) {
-  const router = useRouter();
+  const { updateSearchParams, clearSearchParams } = useProject();
   const searchParams = useSearchParams();
 
   // Get current selected kinds from URL
@@ -85,8 +86,6 @@ export function TicketKindFilters({ projectId, counts, totalCount }: TicketKindF
   // Toggle a kind filter
   const toggleKind = useCallback(
     (kind: string) => {
-      const newParams = new URLSearchParams(searchParams.toString());
-
       let newKinds: string[];
       if (selectedKinds.includes(kind)) {
         // Remove kind
@@ -97,35 +96,23 @@ export function TicketKindFilters({ projectId, counts, totalCount }: TicketKindF
       }
 
       if (newKinds.length > 0) {
-        newParams.set('kind', newKinds.join(','));
+        updateSearchParams({ kind: newKinds.join(','), page: null });
       } else {
-        newParams.delete('kind');
+        updateSearchParams({ kind: null, page: null });
       }
-
-      // Ensure project is preserved
-      newParams.set('project', projectId.toString());
-
-      // Reset to page 1 when filters change
-      newParams.delete('page');
-
-      router.push(`/tickets?${newParams.toString()}`);
     },
-    [router, searchParams, selectedKinds, projectId]
+    [updateSearchParams, selectedKinds]
   );
 
   // Clear all kind filters
   const clearKindFilters = useCallback(() => {
-    const newParams = new URLSearchParams(searchParams.toString());
-    newParams.delete('kind');
-    newParams.set('project', projectId.toString());
-    newParams.delete('page');
-    router.push(`/tickets?${newParams.toString()}`);
-  }, [router, searchParams, projectId]);
+    updateSearchParams({ kind: null, page: null });
+  }, [updateSearchParams]);
 
   // Clear all filters
   const clearAllFilters = useCallback(() => {
-    router.push(`/tickets?project=${projectId}`);
-  }, [router, projectId]);
+    clearSearchParams();
+  }, [clearSearchParams]);
 
   return (
     <div className="space-y-3" data-testid="kind-filters">
