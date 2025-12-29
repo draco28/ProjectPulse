@@ -171,6 +171,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             select: {
               id: true,
               status: true,
+              title: true,
+              kind: true,
+              priority: true,
             },
           },
           assignee: true,
@@ -222,6 +225,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       childTickets: updatedTicket.childTickets?.map((c) => ({
         id: c.id,
         status: c.status as TicketStatus,
+        title: c.title,
+        kind: c.kind,
+        priority: c.priority,
       })),
       assignee: updatedTicket.assignee,
       assigneeType: updatedTicket.assigneeType,

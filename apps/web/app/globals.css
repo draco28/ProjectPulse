@@ -448,6 +448,72 @@
     min-height: 400px;
   }
 
+  /* Feature Card - Neumorphic expandable card for parent tickets */
+  .feature-card {
+    background: linear-gradient(145deg, #333333, var(--dark-card));
+    box-shadow:
+      4px 4px 8px var(--shadow-dark),
+      -2px -2px 6px var(--shadow-light);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      6px 6px 12px var(--shadow-dark),
+      -3px -3px 8px var(--shadow-light);
+  }
+
+  .feature-card.expanded {
+    box-shadow:
+      6px 6px 12px var(--shadow-dark),
+      -3px -3px 8px var(--shadow-light);
+  }
+
+  .feature-card.active-work {
+    box-shadow:
+      0 0 0 2px var(--coral),
+      4px 4px 8px var(--shadow-dark);
+  }
+
+  /* Expand Icon Animation */
+  .feature-card .expand-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .feature-card.expanded .expand-icon {
+    transform: rotate(90deg);
+  }
+
+  /* Children Container - Collapsible with smooth animation */
+  .children-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+  }
+
+  .feature-card.expanded .children-container {
+    max-height: 500px;
+  }
+
+  /* Child Task - Nested card inside feature */
+  .child-task {
+    background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .child-task:hover {
+    transform: translateX(4px);
+  }
+
+  .child-task.active {
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.4);
+  }
+
   /* ============================================================================
      BUTTONS
      ========================================================================== */

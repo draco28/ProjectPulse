@@ -175,6 +175,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
           select: {
             id: true,
             status: true,
+            title: true,
+            kind: true,
+            priority: true,
           },
         },
         assignee: true,
@@ -214,6 +217,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
         childTickets: t.childTickets?.map((c) => ({
           id: c.id,
           status: c.status as TicketStatus,
+          title: c.title,
+          kind: c.kind,
+          priority: c.priority,
         })),
         childProgress,
         assignee: t.assignee,

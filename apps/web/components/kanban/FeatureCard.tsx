@@ -49,6 +49,8 @@ interface ChildTaskCardProps {
   childId: number;
   status: TicketStatus;
   title?: string;
+  kind?: string;
+  priority?: string;
   onClick?: () => void;
 }
 
@@ -62,8 +64,20 @@ const CHILD_STATUS_COLORS: Record<TicketStatus, { border: string; text: string; 
 
 const DEFAULT_COLORS = { border: 'border-slate', text: 'text-slate', label: 'Unknown' };
 
-function ChildTaskCard({ childId, status, title, onClick }: ChildTaskCardProps) {
+// Kind badge colors for child tasks
+const KIND_COLORS: Record<string, { bg: string; text: string }> = {
+  task: { bg: 'bg-slate/20', text: 'text-slate' },
+  bug: { bg: 'bg-red-500/20', text: 'text-red-400' },
+  issue: { bg: 'bg-orange-500/20', text: 'text-orange-400' },
+  tech_debt: { bg: 'bg-purple-500/20', text: 'text-purple-400' },
+  feature: { bg: 'bg-emerald-500/20', text: 'text-emerald-400' },
+};
+
+const DEFAULT_KIND_COLORS = { bg: 'bg-slate/20', text: 'text-slate' };
+
+function ChildTaskCard({ childId, status, title, kind, priority, onClick }: ChildTaskCardProps) {
   const colors = CHILD_STATUS_COLORS[status] ?? DEFAULT_COLORS;
+  const kindColors = KIND_COLORS[kind ?? ''] ?? DEFAULT_KIND_COLORS;
   const isDone = status === TICKET_STATUSES.DONE;
 
   return (
@@ -90,9 +104,16 @@ function ChildTaskCard({ childId, status, title, onClick }: ChildTaskCardProps) 
     >
       <div className="flex justify-between mb-1">
         <span className="text-[10px] font-mono text-slate">#{childId}</span>
-        <span className={cn('text-xs', colors.text)}>{colors.label}</span>
+        <div className="flex items-center gap-1">
+          {kind && (
+            <span className={cn('px-1.5 py-0.5 text-[10px] rounded capitalize', kindColors.bg, kindColors.text)}>
+              {kind.replace('_', ' ')}
+            </span>
+          )}
+          <span className={cn('text-[10px]', colors.text)}>{colors.label}</span>
+        </div>
       </div>
-      {title && <p className={cn('text-xs', isDone && 'line-through')}>{title || `Task #${childId}`}</p>}
+      <p className={cn('text-xs', isDone && 'line-through')}>{title || `Task #${childId}`}</p>
     </div>
   );
 }
@@ -210,6 +231,9 @@ export const FeatureCard = memo(
                   key={child.id}
                   childId={child.id}
                   status={child.status}
+                  title={child.title}
+                  kind={child.kind}
+                  priority={child.priority}
                   onClick={() => onChildClick?.(child.id)}
                 />
               ))}

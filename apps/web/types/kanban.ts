@@ -35,6 +35,9 @@ export interface KanbanTicket {
   childTickets?: Array<{
     id: number;
     status: TicketStatus;
+    title: string;
+    kind: string;
+    priority: string;
   }>;
   childProgress?: number; // 0-100, calculated from children
 
