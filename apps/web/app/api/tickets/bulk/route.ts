@@ -19,6 +19,7 @@ import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/
 import { deriveAutoTags } from '@/lib/issues/tagging';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
+import { resolveSprintByNumber } from '@/lib/sprints/resolution';
 import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
@@ -109,6 +110,13 @@ export async function POST(request: NextRequest) {
             );
           }
 
+          // Sprint 15 Fix: Resolve sprintId from sprintNumber (via roadmap hierarchy)
+          // Bug fix: Bulk create was missing this, causing tickets to not appear on kanban
+          const resolvedSprintId =
+            ticketData.sprintNumber && !ticketData.sprintId
+              ? await resolveSprintByNumber(prisma, projectId, ticketData.sprintNumber)
+              : (ticketData.sprintId ?? null);
+
           // Create ticket
           const ticket = await tx.ticket.create({
             data: {
@@ -131,6 +139,8 @@ export async function POST(request: NextRequest) {
               epicRef: ticketData.epicRef ?? null,
               backlogRefs: ticketData.backlogRefs ?? [],
               sprintNumber: ticketData.sprintNumber ?? null,
+              // Sprint 15 Fix: Set sprintId for kanban board queries
+              sprintId: resolvedSprintId,
               labels:
                 labelIdSet.size > 0
                   ? { connect: Array.from(labelIdSet).map((id) => ({ id })) }

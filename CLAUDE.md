@@ -63,19 +63,44 @@ This returns:
 
 ## 🖥️ Mac Mini Cloud Architecture
 
-**All development happens on Mac mini using Docker. Use `localhost` for all services.**
+### ⚠️ CRITICAL: Dev vs Prod Understanding
 
-### Service URLs (Development)
+**MCP is connected to PRODUCTION, not localhost!**
 
-- **Web App**: http://localhost:3000
-- **MCP Server**: http://localhost:3001
+| Environment | URL | When Changes Are Visible |
+|-------------|-----|-------------------------|
+| **PRODUCTION** | Docker containers on Mac mini | After `git push origin master` → auto-deploy |
+| **Development** | `pnpm dev` (rarely used) | Immediately (but MCP won't see them) |
+
+### What This Means for Agents
+
+1. **MCP tools** (ticket_create, context_load, etc.) → Talk to **PROD database**
+2. **Code edits** → Only visible in prod after **push to master**
+3. **API testing via curl** → Tests the **PROD** instance (Docker)
+4. **Don't expect** code changes to appear in MCP results until deployed
+
+### Deployment Flow
+
+```
+Code Edit → git add → git commit → git push origin master → Auto-deploy → Changes visible in PROD
+```
+
+**Time to deploy:** ~2-3 minutes after push to master
+
+### Service URLs (PRODUCTION - Docker on Mac mini)
+
+- **Web App**: http://localhost:3000 (inside Mac mini Docker network)
+- **MCP Server**: http://localhost:3001 (MCP tools connect here)
 - **API Health**: http://localhost:3000/api/health
 - **Database**: `postgresql://postgres:postgres123@localhost:5432/projectpulse_dev`
 - **Redis**: `localhost:6379`
 
+> **Note**: "localhost" here means the Mac mini's Docker network, NOT a local dev server.
+> These URLs are from the perspective of processes running ON the Mac mini.
+
 ### Compose Files
 
-- **Mac mini runtime**: `docker-compose.cloud.yml` (primary)
+- **Mac mini runtime**: `docker-compose.cloud.yml` (PRODUCTION)
 - **CI/local fallback**: `docker-compose.yml` (automated testing only)
 
 ### Workflow
@@ -85,6 +110,15 @@ This returns:
 - Git operations (commits, pushes, branches)
 - Testing (unit, integration, E2E)
 - Docker management (restart, logs, migrations)
+
+### When to Verify Changes
+
+| Task | How to Verify |
+|------|---------------|
+| Code logic fix | Write tests, run `pnpm test` |
+| API route change | Push to master, wait for deploy, then test |
+| Database schema | Migration via `prisma migrate deploy` in Docker |
+| MCP tool behavior | Push to master, wait for deploy, then use MCP tool |
 
 **Complete Setup**: [.agent/sops/mac-mini-cloud-architecture.md](.agent/sops/mac-mini-cloud-architecture.md)
 
