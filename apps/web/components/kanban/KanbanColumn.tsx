@@ -29,6 +29,7 @@ import { TicketStatusSystem, TICKET_STATUSES } from '@/lib/constants/status';
 import { cn } from '@/lib/utils';
 import { SortableTaskCard } from './TaskCard';
 import { SortableFeatureCard } from './FeatureCard';
+import { SortableChildCard } from './ChildCard';
 import GhostCard from './GhostCard';
 import EmptyColumnState from './EmptyColumnState';
 
@@ -90,32 +91,33 @@ export const KanbanColumn = memo(function KanbanColumn({
   const label = TicketStatusSystem.getLabel(status);
   const colors = STATUS_COLORS[status];
 
-  // Separate features (tickets with children) from standalone tickets
-  const { features, standaloneTickets } = useMemo(() => {
+  // Categorize tickets: features (parents), children, and standalone
+  // ALL tickets are now independently draggable
+  const { features, childTickets, standaloneTickets } = useMemo(() => {
     const features: KanbanTicket[] = [];
+    const childTickets: KanbanTicket[] = [];
     const standaloneTickets: KanbanTicket[] = [];
 
-    // Build set of ticket IDs in this sprint for parent lookup
-    const ticketIdsInSprint = new Set(tickets.map((t) => t.id));
+    // Build set of ticket IDs in this column for parent lookup
+    const ticketIdsInColumn = new Set(tickets.map((t) => t.id));
 
     for (const ticket of tickets) {
       if (ticket.childTickets && ticket.childTickets.length > 0) {
+        // Has children - this is a feature/parent ticket
         features.push(ticket);
       } else if (!ticket.parentTicketId) {
-        // No parent - render as standalone
+        // No parent, no children - standalone ticket
         standaloneTickets.push(ticket);
       } else {
-        // Has parent - check if parent is in this sprint
-        const parentInSprint = ticketIdsInSprint.has(ticket.parentTicketId);
-        if (!parentInSprint) {
-          // Parent NOT in this sprint - render as standalone (orphaned child)
-          standaloneTickets.push(ticket);
-        }
-        // If parent IS in sprint, skip - will render inside parent's FeatureCard
+        // Has parent - this is a child ticket, render independently
+        // Check if parent is in this column for visual grouping
+        const parentInColumn = ticketIdsInColumn.has(ticket.parentTicketId);
+        // Child tickets are now rendered independently (not hidden inside parent)
+        childTickets.push(ticket);
       }
     }
 
-    return { features, standaloneTickets };
+    return { features, childTickets, standaloneTickets };
   }, [tickets]);
 
   // Get ghosts for this column
@@ -124,10 +126,10 @@ export const KanbanColumn = memo(function KanbanColumn({
     [ghosts, status]
   );
 
-  // Sortable IDs for @dnd-kit
+  // Sortable IDs for @dnd-kit - ALL tickets are now draggable
   const sortableIds = useMemo(
-    () => [...features, ...standaloneTickets].map((t) => String(t.id)),
-    [features, standaloneTickets]
+    () => [...features, ...childTickets, ...standaloneTickets].map((t) => String(t.id)),
+    [features, childTickets, standaloneTickets]
   );
 
   return (
@@ -161,7 +163,7 @@ export const KanbanColumn = memo(function KanbanColumn({
             <GhostCard key={`ghost-${ghost.ticketId}`} ghost={ghost} onClick={onGhostClick} />
           ))}
 
-          {/* Feature Cards (expandable with children) */}
+          {/* Feature Cards (parent tickets with children) */}
           {features.map((ticket) => (
             <SortableFeatureCard
               key={ticket.id}
@@ -171,16 +173,26 @@ export const KanbanColumn = memo(function KanbanColumn({
               onToggle={(expanded) => onFeatureToggle?.(ticket.id, expanded)}
               onClick={() => onTicketClick?.(ticket)}
               onChildClick={(childId) => {
-                const child = ticket.childTickets?.find((c) => c.id === childId);
-                if (child) {
-                  // Find full ticket data - for now just use what we have
-                  onTicketClick?.({ ...ticket, id: childId } as KanbanTicket);
+                // Find full child ticket data from the column
+                const childTicket = childTickets.find((c) => c.id === childId);
+                if (childTicket) {
+                  onTicketClick?.(childTicket);
                 }
               }}
             />
           ))}
 
-          {/* Standalone Tickets */}
+          {/* Child Tickets (independently draggable) */}
+          {childTickets.map((ticket) => (
+            <SortableChildCard
+              key={ticket.id}
+              id={ticket.id}
+              ticket={ticket}
+              onClick={() => onTicketClick?.(ticket)}
+            />
+          ))}
+
+          {/* Standalone Tickets (no parent, no children) */}
           {standaloneTickets.map((ticket) => (
             <SortableTaskCard
               key={ticket.id}

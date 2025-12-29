@@ -514,6 +514,59 @@
     box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.4);
   }
 
+  /* Child Ticket Card - Independent draggable child in column */
+  .child-ticket-card {
+    position: relative;
+    background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  /* Connecting line from parent */
+  .child-ticket-card::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 50%;
+    width: 12px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--slate) 0%, rgba(107, 114, 128, 0.3) 100%);
+    border-radius: 1px;
+  }
+
+  /* Vertical line connecting siblings */
+  .child-ticket-card::after {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(107, 114, 128, 0.2) 0%, rgba(107, 114, 128, 0.1) 100%);
+    border-radius: 1px;
+  }
+
+  /* First child - vertical line starts at middle */
+  .child-ticket-card:first-of-type::after {
+    top: 50%;
+    height: 50%;
+  }
+
+  /* Last child - vertical line ends at middle */
+  .child-ticket-card:last-of-type::after {
+    height: 50%;
+  }
+
+  .child-ticket-card:hover {
+    transform: translateX(4px);
+    border-color: rgba(255, 127, 80, 0.6);
+  }
+
+  .child-ticket-card.dragging {
+    opacity: 0.5;
+    transform: rotate(1deg) scale(1.02);
+  }
+
   /* ============================================================================
      BUTTONS
      ========================================================================== */

@@ -52,11 +52,20 @@ export interface DragState {
   overIndex: number | null;
 }
 
+/** Single move operation */
+export interface MoveOperation {
+  ticketId: number;
+  status: TicketStatus;
+  displayOrder: number;
+}
+
 interface UseKanbanDragDropParams {
   /** Current columns data from the board */
   columns: Record<TicketStatus, KanbanTicket[]>;
-  /** Callback when a ticket is dropped in a new position */
+  /** Callback when a single ticket is dropped in a new position */
   onMove: (ticketId: number, status: TicketStatus, displayOrder: number) => void;
+  /** Callback when a parent with children is dropped (batch move) */
+  onBatchMove?: (moves: MoveOperation[]) => void;
   /** Callback when drag starts (for undo preparation) */
   onDragStart?: (ticket: KanbanTicket) => void;
 }
@@ -156,6 +165,7 @@ function calculateDropIndex(
 export function useKanbanDragDrop({
   columns,
   onMove,
+  onBatchMove,
   onDragStart: onDragStartCallback,
 }: UseKanbanDragDropParams): UseKanbanDragDropReturn {
   // --------------------------------------------------------------------------
@@ -233,6 +243,7 @@ export function useKanbanDragDrop({
 
   /**
    * Handle drag end - trigger the move callback
+   * For parent tickets with children, moves all children together using onBatchMove
    */
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -243,7 +254,8 @@ export function useKanbanDragDrop({
         return;
       }
 
-      const ticketId = dragState.activeTicket.id;
+      const ticket = dragState.activeTicket;
+      const ticketId = ticket.id;
       const targetColumn = getColumnFromId(over.id, columns);
 
       if (!targetColumn) {
@@ -254,20 +266,39 @@ export function useKanbanDragDrop({
       const column = columns[targetColumn] || [];
       const dropIndex = calculateDropIndex(column, over.id, ticketId);
 
-      // Only call onMove if actually changing position
-      const currentStatus = dragState.activeTicket.status;
+      // Only proceed if actually changing position
+      const currentStatus = ticket.status;
       const currentIndex = columns[currentStatus]?.findIndex((t) => t.id === ticketId) ?? -1;
 
       const isStatusChange = targetColumn !== currentStatus;
       const isOrderChange = !isStatusChange && dropIndex !== currentIndex;
 
       if (isStatusChange || isOrderChange) {
-        onMove(ticketId, targetColumn, dropIndex);
+        // Check if this is a parent ticket with children
+        const hasChildren = ticket.childTickets && ticket.childTickets.length > 0;
+
+        if (hasChildren && onBatchMove) {
+          // Batch move: parent + all children to the same column
+          const moves: MoveOperation[] = [
+            // Parent move
+            { ticketId, status: targetColumn, displayOrder: dropIndex },
+            // Children moves - place after parent
+            ...ticket.childTickets!.map((child, idx) => ({
+              ticketId: child.id,
+              status: targetColumn,
+              displayOrder: dropIndex + 1 + idx,
+            })),
+          ];
+          onBatchMove(moves);
+        } else {
+          // Single ticket move (child or standalone)
+          onMove(ticketId, targetColumn, dropIndex);
+        }
       }
 
       setDragState({ activeTicket: null, overColumn: null, overIndex: null });
     },
-    [columns, dragState.activeTicket, onMove]
+    [columns, dragState.activeTicket, onMove, onBatchMove]
   );
 
   /**

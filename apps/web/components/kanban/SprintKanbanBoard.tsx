@@ -24,12 +24,13 @@ import type { KanbanTicket, KanbanBoardResponse } from '@/types/kanban';
 import type { TicketStatus } from '@/lib/constants/status';
 import { TICKET_STATUS_VALUES } from '@/lib/constants/status';
 import { useKanbanBoard } from '@/hooks/useKanbanBoard';
-import { useKanbanDragDrop } from '@/hooks/useKanbanDragDrop';
+import { useKanbanDragDrop, type MoveOperation } from '@/hooks/useKanbanDragDrop';
 import { useUndoToast } from '@/hooks/useUndoToast';
 import { cn } from '@/lib/utils';
 import KanbanColumn from './KanbanColumn';
 import TaskCard from './TaskCard';
 import FeatureCard from './FeatureCard';
+import { ChildCard } from './ChildCard';
 import SprintKanbanHeader from './SprintKanbanHeader';
 import BoardStatsBar from './BoardStatsBar';
 // EmptyBoardState removed - we now always render 5 columns with EmptyColumnState per column
@@ -55,7 +56,7 @@ interface SprintKanbanBoardProps {
 
 export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, className }: SprintKanbanBoardProps) {
   // Data fetching and mutations
-  const { boardQuery, moveTicket, isMoving, refetch } = useKanbanBoard(sprintId);
+  const { boardQuery, moveTicket, batchMoveTickets, isMoving, refetch } = useKanbanBoard(sprintId);
 
   // Track expanded feature cards
   const [expandedFeatures, setExpandedFeatures] = useState<Set<number>>(new Set());
@@ -125,11 +126,56 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
     [columns, moveTicket, showUndoToast, previousMove]
   );
 
+  // Handle batch move (parent + children)
+  const handleBatchMove = useCallback(
+    async (moves: MoveOperation[]) => {
+      if (moves.length === 0) return;
+
+      // Store first ticket's original position for undo
+      const firstMove = moves[0]!; // Safe: checked length > 0 above
+      let fromStatus: TicketStatus | null = null;
+      let fromOrder = 0;
+
+      for (const s of TICKET_STATUS_VALUES) {
+        const col = columns[s as TicketStatus];
+        const idx = col?.findIndex((t) => t.id === firstMove.ticketId);
+        if (idx !== undefined && idx !== -1) {
+          fromStatus = s as TicketStatus;
+          fromOrder = idx;
+          break;
+        }
+      }
+
+      if (fromStatus) {
+        setPreviousMove({ ticketId: firstMove.ticketId, fromStatus, fromOrder });
+      }
+
+      try {
+        await batchMoveTickets({ moves });
+
+        // Show undo toast
+        const ticketCount = moves.length;
+        showUndoToast({
+          message: `Moved ${ticketCount} ticket${ticketCount > 1 ? 's' : ''}`,
+          onUndo: async () => {
+            // For undo, we'd need to track all previous positions
+            // For now, refetch to get accurate state
+            refetch();
+          },
+        });
+      } catch (error) {
+        console.error('[SprintKanbanBoard] Batch move failed:', error);
+      }
+    },
+    [columns, batchMoveTickets, showUndoToast, refetch]
+  );
+
   // Drag and drop handlers
   const { dragState, sensors, handleDragStart, handleDragOver, handleDragEnd, handleDragCancel } =
     useKanbanDragDrop({
       columns,
       onMove: handleMove,
+      onBatchMove: handleBatchMove,
       onDragStart: (ticket) => {
         // Store original position for potential undo
         const currentCol = columns[ticket.status];
@@ -211,10 +257,17 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
 
     const ticket = dragState.activeTicket;
     const hasChildren = ticket.childTickets && ticket.childTickets.length > 0;
+    const isChildTicket = !!ticket.parentTicketId;
 
     if (hasChildren) {
+      // Parent/feature card with children
       return <FeatureCard ticket={ticket} isExpanded={false} isOverlay />;
     }
+    if (isChildTicket) {
+      // Child ticket being dragged independently
+      return <ChildCard ticket={ticket} isOverlay />;
+    }
+    // Standalone task ticket
     return <TaskCard ticket={ticket} isOverlay />;
   };
 

@@ -38,11 +38,18 @@ interface MoveTicketParams {
   displayOrder: number;
 }
 
+/** Batch move operation for moving multiple tickets atomically */
+export interface BatchMoveParams {
+  moves: MoveTicketParams[];
+}
+
 interface UseKanbanBoardReturn {
   /** Board data query result */
   boardQuery: ReturnType<typeof useQuery<KanbanBoardResponse>>;
   /** Move a ticket to a new status/position */
   moveTicket: (params: MoveTicketParams) => Promise<MoveTicketResponse | undefined>;
+  /** Batch move multiple tickets atomically (e.g., parent + all children) */
+  batchMoveTickets: (params: BatchMoveParams) => Promise<void>;
   /** Whether a move is currently in progress */
   isMoving: boolean;
   /** Invalidate and refetch board data */
@@ -186,6 +193,64 @@ export function useKanbanBoard(sprintId: string): UseKanbanBoardReturn {
   });
 
   // --------------------------------------------------------------------------
+  // Mutation: Batch move tickets (parent + children) with optimistic update
+  // --------------------------------------------------------------------------
+  const batchMoveMutation = useMutation<
+    void,
+    Error,
+    BatchMoveParams,
+    { previousData: KanbanBoardResponse | undefined }
+  >({
+    mutationFn: async ({ moves }) => {
+      const res = await fetch('/api/tickets/reorder', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ moves }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ error: { message: 'Batch move failed' } }));
+        throw new Error(error.error?.message || 'Failed to batch move tickets');
+      }
+    },
+
+    // Optimistic update - move all tickets before API response
+    onMutate: async ({ moves }) => {
+      // Cancel in-flight queries
+      await queryClient.cancelQueries({ queryKey });
+
+      // Snapshot previous data for rollback
+      const previousData = queryClient.getQueryData<KanbanBoardResponse>(queryKey);
+
+      // Optimistically update all tickets
+      if (previousData) {
+        let newColumns = { ...previousData.columns };
+        for (const move of moves) {
+          newColumns = moveTicketInColumns(newColumns, move.ticketId, move.status, move.displayOrder);
+        }
+        queryClient.setQueryData<KanbanBoardResponse>(queryKey, {
+          ...previousData,
+          columns: newColumns,
+        });
+      }
+
+      return { previousData };
+    },
+
+    // Rollback on error
+    onError: (_err, _variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData);
+      }
+    },
+
+    // Refetch after settle to ensure consistency
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  // --------------------------------------------------------------------------
   // Exposed methods
   // --------------------------------------------------------------------------
   const moveTicket = useCallback(
@@ -200,6 +265,18 @@ export function useKanbanBoard(sprintId: string): UseKanbanBoardReturn {
     [moveTicketMutation]
   );
 
+  const batchMoveTickets = useCallback(
+    async (params: BatchMoveParams) => {
+      try {
+        await batchMoveMutation.mutateAsync(params);
+      } catch (error) {
+        console.error('[useKanbanBoard] Batch move failed:', error);
+        throw error;
+      }
+    },
+    [batchMoveMutation]
+  );
+
   const refetch = useCallback(() => {
     queryClient.invalidateQueries({ queryKey });
   }, [queryClient, queryKey]);
@@ -207,7 +284,8 @@ export function useKanbanBoard(sprintId: string): UseKanbanBoardReturn {
   return {
     boardQuery,
     moveTicket,
-    isMoving: moveTicketMutation.isPending,
+    batchMoveTickets,
+    isMoving: moveTicketMutation.isPending || batchMoveMutation.isPending,
     refetch,
   };
 }
