@@ -276,3 +276,57 @@ Starter_template/
 !scripts/init-db.sql
 !prisma/schema.prisma
 tiny-fullstack-practice-app.md
+
+# ============================================================================
+# INTERNAL AI/AGENT DOCUMENTATION (PUBLIC SHOWCASE CLEANUP)
+# ============================================================================
+# These directories contain internal AI workflow documentation that should
+# not be in the public repository. They are kept locally for development.
+
+# Agent documentation and session files
+.agent/
+
+# Claude Code configuration (agents, skills, workflows)
+.claude/
+
+# Kilocode editor configuration
+.kilocode/
+.kilocodemodes
+
+# AI integration guides (internal use only)
+CLAUDE.md
+
+# ============================================================================
+# PERSONAL/INTERNAL DOCUMENTATION
+# ============================================================================
+# Internal marketing and personal files
+
+docs/linkedin-posts.md
+docs/CAREER_ROADMAP.md
+docs/INTERVIEW_PREP_GUIDE.md
+
+# Internal archives (old planning docs)
+docs/archive/
+docs/audits/
+
+# ============================================================================
+# BACKUP & TEMPORARY FILES
+# ============================================================================
+# Config backups
+*.json.backup
+claude_code_config.json.backup
+
+# Document backups
+*.before-*
+*.backup
+
+# Analysis outputs
+claude_analysis.md
+
+# ============================================================================
+# INTERNAL PLANNING DOCUMENTS
+# ============================================================================
+Sprint*.md
+Sprint*_alignment_plan
+*alignment_plan*
+BEGINNER-WORKFLOW-GUIDE.md
