@@ -99,6 +99,8 @@ export const ChildCard = memo(
     ref
   ) {
     const isAgentAssigned = ticket.assigneeType === 'agent_persona';
+    // Sprint 16: Session linkage indicator
+    const isLinkedToSession = !!ticket.linkedSessionId;
 
     return (
       <div
@@ -108,7 +110,11 @@ export const ChildCard = memo(
           // Indentation and child-specific styling
           'child-ticket-card ml-6 p-3 cursor-pointer',
           'bg-gradient-to-br from-dark-card to-dark-lighter',
-          'rounded-lg border-l-2 border-slate/40',
+          'rounded-lg border-l-2',
+          // Sprint 16: Session linkage styling
+          isLinkedToSession
+            ? 'border-emerald-500 ring-1 ring-emerald-500/30'
+            : 'border-slate/40',
           'hover:border-coral/60 hover:translate-x-1 transition-all',
           // Dragging states
           isDragging && 'opacity-50 rotate-1 scale-105',
@@ -137,7 +143,16 @@ export const ChildCard = memo(
           </div>
           <div className="flex items-center gap-1.5">
             <PriorityDot priority={ticket.priority} />
-            {isAgentAssigned && (
+            {/* Sprint 16: Session linkage indicator */}
+            {isLinkedToSession && (
+              <div
+                className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[7px] flex items-center justify-center font-bold animate-pulse"
+                title={`Linked to session: ${ticket.linkedSessionId?.slice(0, 8)}...`}
+              >
+                ⚡
+              </div>
+            )}
+            {isAgentAssigned && !isLinkedToSession && (
               <div
                 className="w-4 h-4 rounded-full bg-coral text-white text-[7px] flex items-center justify-center font-bold"
                 title="Agent assigned"

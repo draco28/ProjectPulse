@@ -143,8 +143,77 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         updateData.progress = progress;
       }
     }
+    // Sprint 16: Dynamic ticket claim/unclaim when activeTicketIds changes
+    let ticketsClaimed: { id: number; previousStatus: string }[] = [];
+    let ticketsUnclaimed: number[] = [];
+
     if (activeTicketIds !== undefined) {
-      updateData.activeTicketIds = activeTicketIds.map((id) => String(id));
+      const currentTicketIds = existing.activeTicketIds.map((id: string) => parseInt(id));
+      const newTicketIds = activeTicketIds;
+
+      // Find newly added tickets (to be claimed)
+      const addedTicketIds = newTicketIds.filter((id) => !currentTicketIds.includes(id));
+
+      // Find removed tickets (to be unclaimed)
+      const removedTicketIds = currentTicketIds.filter((id) => !newTicketIds.includes(id));
+
+      // Validate and prepare to claim added tickets
+      if (addedTicketIds.length > 0) {
+        const addedTickets = await prisma.ticket.findMany({
+          where: {
+            id: { in: addedTicketIds },
+            projectId: existing.projectId, // Security: same project only
+          },
+          select: { id: true, status: true, linkedSessionId: true },
+        });
+
+        // Check all tickets were found
+        if (addedTickets.length !== addedTicketIds.length) {
+          const foundIds = addedTickets.map((t) => t.id);
+          const missingIds = addedTicketIds.filter((ticketId) => !foundIds.includes(ticketId));
+          return NextResponse.json(
+            {
+              error: 'TICKETS_NOT_FOUND',
+              missingTicketIds: missingIds,
+              message: `Tickets ${missingIds.join(', ')} not found in this project`,
+            },
+            { status: 404 }
+          );
+        }
+
+        // Validate ALL added tickets are in "todo" status (same rule as session_start)
+        const invalidStatusTickets = addedTickets.filter((t) => t.status !== 'todo');
+        if (invalidStatusTickets.length > 0) {
+          return NextResponse.json(
+            {
+              error: 'TICKETS_INVALID_STATUS',
+              tickets: invalidStatusTickets.map((t) => ({ id: t.id, status: t.status })),
+              message: `Only tickets in "todo" status can be claimed. Invalid: ${invalidStatusTickets.map((t) => `#${t.id} (${t.status})`).join(', ')}`,
+            },
+            { status: 400 }
+          );
+        }
+
+        // Check none are already linked to ANOTHER session
+        const alreadyLinked = addedTickets.filter(
+          (t) => t.linkedSessionId !== null && t.linkedSessionId !== id
+        );
+        if (alreadyLinked.length > 0) {
+          return NextResponse.json(
+            {
+              error: 'TICKETS_ALREADY_CLAIMED',
+              ticketIds: alreadyLinked.map((t) => t.id),
+              message: `Tickets ${alreadyLinked.map((t) => t.id).join(', ')} are already linked to another session`,
+            },
+            { status: 409 }
+          );
+        }
+
+        ticketsClaimed = addedTickets.map((t) => ({ id: t.id, previousStatus: t.status }));
+      }
+
+      ticketsUnclaimed = removedTicketIds;
+      updateData.activeTicketIds = newTicketIds.map((ticketId) => String(ticketId));
     }
     if (status !== undefined) {
       updateData.status = status;
@@ -160,13 +229,50 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       updateData.tokenCount = tokenCount;
     }
 
-    // Update session
-    const session = await prisma.agentSession.update({
-      where: { id },
-      data: updateData,
+    // Sprint 16: Transaction - claim/unclaim tickets + update session
+    const session = await prisma.$transaction(async (tx) => {
+      // Claim newly added tickets
+      if (ticketsClaimed.length > 0) {
+        const claimIds = ticketsClaimed.map((t) => t.id);
+        await tx.ticket.updateMany({
+          where: { id: { in: claimIds } },
+          data: {
+            status: 'in-progress',
+            assignee: 'Claude Code',
+            linkedSessionId: id,
+          },
+        });
+      }
+
+      // Unclaim removed tickets (clear linkedSessionId only, keep status)
+      if (ticketsUnclaimed.length > 0) {
+        await tx.ticket.updateMany({
+          where: { id: { in: ticketsUnclaimed } },
+          data: { linkedSessionId: null },
+        });
+      }
+
+      // Update session
+      return tx.agentSession.update({
+        where: { id },
+        data: updateData,
+      });
     });
 
-    return NextResponse.json({ session, success: true });
+    // Sprint 16: Enhanced response with claim/unclaim info
+    return NextResponse.json({
+      session,
+      success: true,
+      ticketsClaimed:
+        ticketsClaimed.length > 0
+          ? ticketsClaimed.map((t) => ({
+              ticketId: t.id,
+              previousStatus: t.previousStatus,
+              newStatus: 'in-progress',
+            }))
+          : undefined,
+      ticketsUnclaimed: ticketsUnclaimed.length > 0 ? ticketsUnclaimed : undefined,
+    });
   } catch (error) {
     // Handle authentication errors
     if (error instanceof AuthError) {

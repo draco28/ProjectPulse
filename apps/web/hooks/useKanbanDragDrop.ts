@@ -35,9 +35,55 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { toast } from 'sonner';
 import type { KanbanTicket } from '@/types/kanban';
 import type { TicketStatus } from '@/lib/constants/status';
-import { TICKET_STATUS_VALUES } from '@/lib/constants/status';
+import { TICKET_STATUS_VALUES, TICKET_STATUSES } from '@/lib/constants/status';
+
+// Sprint 16: Allowed user-initiated transitions
+// Only certain moves are allowed via UI drag-drop
+// Agent workflow handles: todo → in-progress (session_start) → in-review (session_end)
+const ALLOWED_USER_MOVES: Record<string, string[]> = {
+  [TICKET_STATUSES.BACKLOG]: [TICKET_STATUSES.TODO], // User preps work
+  [TICKET_STATUSES.IN_REVIEW]: [TICKET_STATUSES.DONE], // User verifies work
+  // All other transitions require agent workflow
+};
+
+/**
+ * Check if a status transition is allowed via UI drag-drop
+ * Returns true if allowed, false with message if blocked
+ */
+function validateMoveAllowed(
+  fromStatus: TicketStatus,
+  toStatus: TicketStatus,
+  ticketId: number
+): { allowed: boolean; message?: string } {
+  // Same column reordering is always allowed
+  if (fromStatus === toStatus) {
+    return { allowed: true };
+  }
+
+  const allowedTargets = ALLOWED_USER_MOVES[fromStatus] || [];
+  if (allowedTargets.includes(toStatus)) {
+    return { allowed: true };
+  }
+
+  // Build helpful message based on the move type
+  let message: string;
+  if (toStatus === TICKET_STATUSES.IN_PROGRESS) {
+    message = `To move ticket #${ticketId} to in-progress, command your agent: "Start a session with ticket ${ticketId}"`;
+  } else if (fromStatus === TICKET_STATUSES.IN_PROGRESS && toStatus === TICKET_STATUSES.IN_REVIEW) {
+    message = `To move ticket #${ticketId} to in-review, command your agent: "End the current session"`;
+  } else if (fromStatus === TICKET_STATUSES.IN_PROGRESS) {
+    message = `Ticket #${ticketId} is being worked on by an agent session. Cannot move manually.`;
+  } else if (fromStatus === TICKET_STATUSES.TODO) {
+    message = `To work on ticket #${ticketId}, command your agent: "Start a session with ticket ${ticketId}"`;
+  } else {
+    message = `This move requires agent workflow. Only backlog→todo and in-review→done are allowed via drag-drop.`;
+  }
+
+  return { allowed: false, message };
+}
 
 // ============================================================================
 // Types
@@ -274,6 +320,20 @@ export function useKanbanDragDrop({
       const isOrderChange = !isStatusChange && dropIndex !== currentIndex;
 
       if (isStatusChange || isOrderChange) {
+        // Sprint 16: Validate move is allowed via UI drag-drop
+        // Only backlog→todo and in-review→done are allowed
+        // All other moves require agent workflow
+        if (isStatusChange) {
+          const validation = validateMoveAllowed(currentStatus, targetColumn, ticketId);
+          if (!validation.allowed) {
+            toast.error(validation.message || 'This move requires agent workflow', {
+              duration: 5000,
+            });
+            setDragState({ activeTicket: null, overColumn: null, overIndex: null });
+            return;
+          }
+        }
+
         // Check if this is a parent ticket with children
         const hasChildren = ticket.childTickets && ticket.childTickets.length > 0;
 

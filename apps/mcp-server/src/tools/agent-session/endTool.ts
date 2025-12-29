@@ -34,6 +34,7 @@ interface EndResponse {
     completedAt: string;
   };
   syncStatus?: SyncStatus | null;
+  ticketsMovedToReview?: number[]; // Sprint 16: Tickets moved to in-review
   message?: string;
   error?: string;
 }
@@ -75,6 +76,12 @@ async function handler(input: AgentSessionEndInput, context: ToolContext): Promi
         message: response.message || 'Agent session completed',
         session: response.session,
       };
+
+      // Sprint 16: Include tickets moved to in-review
+      if (response.ticketsMovedToReview && response.ticketsMovedToReview.length > 0) {
+        result.ticketsMovedToReview = response.ticketsMovedToReview;
+        result.ticketMessage = `${response.ticketsMovedToReview.length} ticket(s) moved to in-review for user verification.`;
+      }
 
       // Parse sync status and add warnings if any sync failed
       if (response.syncStatus) {
@@ -135,7 +142,16 @@ Next: Call projectpulse_context_load to start new work.
 ⚠️ IMPORTANT:
 - COMPLETED sessions CANNOT be resumed - use PAUSED for breaks instead
 - If you need to take a break: call projectpulse_agent_session_update({ status: 'PAUSED' })
-- Only call session_end when work is truly FINISHED`,
+- Only call session_end when work is truly FINISHED
+
+TICKET AUTO-MOVE (Sprint 16):
+When session ends, linked tickets are automatically moved:
+1. Tickets in "in-progress" → "in-review"
+2. Tickets already in "done" are skipped (user may have closed manually)
+3. linkedSessionId is preserved for traceability
+4. Returns ticketsMovedToReview array
+
+User then verifies completed work and moves tickets: in-review → done.`,
   schema: agentSessionEndSchema,
   inputSchema: {
     type: 'object',

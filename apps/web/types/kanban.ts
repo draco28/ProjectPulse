@@ -45,6 +45,9 @@ export interface KanbanTicket {
   assignee?: string | null;
   assigneeType?: string | null;
 
+  // Sprint 16: Session linkage
+  linkedSessionId?: string | null;
+
   // Traceability
   epicRef?: string | null;
   sprintNumber?: number | null;

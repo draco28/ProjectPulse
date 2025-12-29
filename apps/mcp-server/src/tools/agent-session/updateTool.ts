@@ -44,10 +44,19 @@ interface AgentSession {
   updatedAt: string;
 }
 
+// Sprint 16: Ticket claim/unclaim info
+interface TicketClaimInfo {
+  ticketId: number;
+  previousStatus: string;
+  newStatus: string;
+}
+
 interface ApiResponse {
   session?: AgentSession;
   success?: boolean;
   error?: string;
+  ticketsClaimed?: TicketClaimInfo[];
+  ticketsUnclaimed?: number[];
 }
 
 async function handler(input: AgentSessionUpdateInput, context: ToolContext): Promise<string> {
@@ -92,9 +101,18 @@ async function handler(input: AgentSessionUpdateInput, context: ToolContext): Pr
       hint: '💡 Tip: If you lost context, call projectpulse_context_load to recover your full session state.',
     });
 
+    // Sprint 16: Build message with claim/unclaim info
+    const messages: string[] = ['Agent session updated'];
+    if (response.ticketsClaimed && response.ticketsClaimed.length > 0) {
+      messages.push(`${response.ticketsClaimed.length} ticket(s) claimed and moved to in-progress.`);
+    }
+    if (response.ticketsUnclaimed && response.ticketsUnclaimed.length > 0) {
+      messages.push(`${response.ticketsUnclaimed.length} ticket(s) unclaimed.`);
+    }
+
     return JSON.stringify({
       status: 'success',
-      message: 'Agent session updated',
+      message: messages.join(' '),
       session: {
         id: session.id,
         name: session.name,
@@ -103,6 +121,9 @@ async function handler(input: AgentSessionUpdateInput, context: ToolContext): Pr
         todosCount: session.todos ? (session.todos as unknown[]).length : 0,
         activeTicketsCount: session.activeTicketIds?.length || 0,
       },
+      // Sprint 16: Ticket claim/unclaim results
+      ticketsClaimed: response.ticketsClaimed,
+      ticketsUnclaimed: response.ticketsUnclaimed,
       _context: contextHint,
     }, null, 2);
   } catch (error) {
@@ -136,7 +157,16 @@ PAUSING vs ENDING:
   → Syncs to memory banks, CANNOT be resumed
 
 Multi-Instance: Each Claude Code instance should have its own session. When pausing,
-your session stays independent from other instances.`,
+your session stays independent from other instances.
+
+DYNAMIC TICKET CLAIM/UNCLAIM (Sprint 16):
+When activeTicketIds changes:
+- NEW tickets added: Same rules as session_start (must be "todo", not claimed)
+  → Auto-claims: status → "in-progress", assignee → "Claude Code"
+- Tickets REMOVED: Clears linkedSessionId only, keeps current status
+  → Allows other sessions/agents to pick up the work
+
+Returns: ticketsClaimed and ticketsUnclaimed arrays in response.`,
   schema: agentSessionUpdateSchema,
   inputSchema: {
     type: 'object',

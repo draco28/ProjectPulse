@@ -120,6 +120,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         },
         assignee: true,
         assigneeType: true,
+        linkedSessionId: true, // Sprint 16: Session linkage
         epicRef: true,
         sprintNumber: true,
         createdAt: true,
@@ -162,6 +163,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         childProgress,
         assignee: t.assignee,
         assigneeType: t.assigneeType,
+        linkedSessionId: t.linkedSessionId, // Sprint 16
         epicRef: t.epicRef,
         sprintNumber: t.sprintNumber,
         createdAt: t.createdAt.toISOString(),

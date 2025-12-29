@@ -109,6 +109,8 @@ async function getTicketDetail(id: number) {
       estimatedDays: true,
       // Sprint 15: Kanban ordering
       displayOrder: true,
+      // Sprint 16: Session linkage for agent workflow
+      linkedSessionId: true,
 
       // Sprint 13: Two-level hierarchy (Feature -> Task)
       parentTicketId: true,

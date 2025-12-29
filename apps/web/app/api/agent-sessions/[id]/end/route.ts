@@ -136,10 +136,51 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         : progress;
     }
 
-    // Update session
-    const session = await prisma.agentSession.update({
+    // Sprint 16: Fetch activeTicketIds to move linked tickets to in-review
+    const sessionForTickets = await prisma.agentSession.findUnique({
       where: { id },
-      data: updateData,
+      select: { activeTicketIds: true },
+    });
+
+    const linkedTicketIds =
+      sessionForTickets?.activeTicketIds
+        .map((ticketId) => parseInt(ticketId))
+        .filter((ticketId) => !isNaN(ticketId)) || [];
+
+    // Sprint 16: Transaction - move tickets to in-review + complete session
+    let ticketsMovedToReview: number[] = [];
+
+    const session = await prisma.$transaction(async (tx) => {
+      // Move linked tickets to in-review (if not already done)
+      if (linkedTicketIds.length > 0) {
+        // Only move tickets that:
+        // 1. Are linked to THIS session (linkedSessionId = id)
+        // 2. Are NOT already in 'done' status (user may have closed manually)
+        const ticketsToMove = await tx.ticket.findMany({
+          where: {
+            id: { in: linkedTicketIds },
+            linkedSessionId: id,
+            status: { not: 'done' },
+          },
+          select: { id: true },
+        });
+
+        if (ticketsToMove.length > 0) {
+          const idsToMove = ticketsToMove.map((t) => t.id);
+          await tx.ticket.updateMany({
+            where: { id: { in: idsToMove } },
+            data: { status: 'in-review' },
+            // Keep linkedSessionId for traceability - don't clear it
+          });
+          ticketsMovedToReview = idsToMove;
+        }
+      }
+
+      // Mark session complete
+      return tx.agentSession.update({
+        where: { id },
+        data: updateData,
+      });
     });
 
     // Phase 2: Auto-sync Memory Banks (fire-and-forget - don't block response)
@@ -212,11 +253,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Sprint 16: Enhanced response with ticket movement info
     return NextResponse.json({
       success: true,
       session,
+      ticketsMovedToReview: ticketsMovedToReview.length > 0 ? ticketsMovedToReview : undefined,
       syncStatus,
-      message: 'Session completed successfully',
+      message:
+        ticketsMovedToReview.length > 0
+          ? `Session complete. ${ticketsMovedToReview.length} ticket(s) moved to in-review for verification.`
+          : 'Session completed successfully',
     });
   } catch (error) {
     // Handle authentication errors

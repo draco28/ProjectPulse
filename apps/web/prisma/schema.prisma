@@ -355,6 +355,11 @@ model Ticket {
   sprintId String?
   sprint   Sprint? @relation(fields: [sprintId], references: [id], onDelete: SetNull)
 
+  // Sprint 16: Session linkage for agent workflow automation
+  // Links ticket to the AgentSession that claimed it (todo → in-progress)
+  linkedSessionId String?       @map("linked_session_id")
+  linkedSession   AgentSession? @relation(fields: [linkedSessionId], references: [id], onDelete: SetNull)
+
   // Sprint 15: Kanban ordering within column
   displayOrder Int @default(0)
 
@@ -383,6 +388,7 @@ model Ticket {
   @@index([projectId, sprintNumber, status, displayOrder]) // Sprint 15: Kanban column queries
   @@index([sprintId]) // Sprint 15: FK to Sprint for progress calculation
   @@index([sprintId, status, displayOrder]) // Sprint 15: Kanban board queries by sprintId
+  @@index([linkedSessionId]) // Sprint 16: Find tickets by session
   @@map("tickets") // Sprint 10: Renamed from "issues" to "tickets"
 }
 
@@ -1391,6 +1397,10 @@ model AgentSession {
   // Active ticket tracking (simple array, no join table)
   // Stores ticket IDs being worked on in this session
   activeTicketIds String[] @default([])
+
+  // Sprint 16: Linked tickets (reverse relation)
+  // Tickets that have been claimed by this session (linkedSessionId → this session)
+  linkedTickets Ticket[]
 
   // Status tracking
   status String @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED | PAUSED

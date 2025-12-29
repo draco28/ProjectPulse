@@ -81,6 +81,55 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const statusChanged = oldStatus !== newStatus;
     const sameColumn = !statusChanged;
 
+    // Sprint 16: Validate allowed moves based on agent workflow
+    // Only certain transitions are allowed via UI drag-drop
+    // Agent workflow: todo → in-progress (session_start) → in-review (session_end) → done (user verifies)
+    if (statusChanged) {
+      // Define allowed user-initiated transitions
+      const ALLOWED_USER_MOVES: Record<string, string[]> = {
+        [TICKET_STATUSES.BACKLOG]: [TICKET_STATUSES.TODO], // User preps work
+        [TICKET_STATUSES.IN_REVIEW]: [TICKET_STATUSES.DONE], // User verifies work
+        // All other transitions are BLOCKED for users - require agent workflow
+      };
+
+      const allowedTargets = ALLOWED_USER_MOVES[oldStatus] || [];
+      const isAllowedMove = allowedTargets.includes(newStatus);
+
+      if (!isAllowedMove) {
+        // Build helpful error message based on the move type
+        let message = 'This move is not allowed via UI drag-drop.';
+        let hint = 'Use agent workflow for in-progress and in-review transitions.';
+
+        if (newStatus === TICKET_STATUSES.IN_PROGRESS) {
+          message = `To move ticket #${ticketId} to in-progress, command your agent: "Start a session with ticket ${ticketId}"`;
+          hint = 'Only agent sessions can claim tickets and move them to in-progress.';
+        } else if (oldStatus === TICKET_STATUSES.IN_PROGRESS && newStatus === TICKET_STATUSES.IN_REVIEW) {
+          message = `To move ticket #${ticketId} to in-review, command your agent: "End the current session"`;
+          hint = 'Session end automatically moves linked tickets to in-review for verification.';
+        } else if (oldStatus === TICKET_STATUSES.IN_PROGRESS) {
+          message = `Ticket #${ticketId} is being worked on by an agent session. Cannot move manually.`;
+          hint = 'Wait for the agent session to complete or command the agent to release this ticket.';
+        } else if (oldStatus === TICKET_STATUSES.TODO && newStatus !== TICKET_STATUSES.BACKLOG) {
+          message = `To work on ticket #${ticketId}, command your agent: "Start a session with ticket ${ticketId}"`;
+          hint = 'Tickets move from todo to in-progress via agent session start.';
+        }
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'MOVE_NOT_ALLOWED',
+              message,
+              hint,
+              fromStatus: oldStatus,
+              toStatus: newStatus,
+            },
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     // Use transaction for atomic reordering
     const updatedTicket = await prisma.$transaction(async (tx) => {
       // Get sprint context for column queries

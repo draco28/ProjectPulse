@@ -109,7 +109,12 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/agent-sessions
  *
- * Creates a new agent session
+ * Creates a new agent session with optional ticket claiming.
+ *
+ * Sprint 16: Auto-claim tickets from "todo" status
+ * - When activeTicketIds provided, validates all tickets are in "todo" status
+ * - Claims tickets atomically: status → "in-progress", assignee → "Claude Code"
+ * - Links tickets to session via linkedSessionId
  *
  * Security: Requires authentication + project access
  */
@@ -148,23 +153,116 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    // Convert activeTicketIds to string[] for Prisma
-    const ticketIds = activeTicketIds?.map((id) => String(id)) || [];
+    // Convert activeTicketIds to numbers for ticket lookup
+    const ticketIdNumbers = activeTicketIds?.map((id) => Number(id)) || [];
 
-    // Create session
-    const session = await prisma.agentSession.create({
-      data: {
-        projectId,
-        name,
-        plan,
-        todos: todos || [],
-        progress,
-        activeTicketIds: ticketIds,
-        status: 'IN_PROGRESS',
-      },
+    // Sprint 16: Validate and claim tickets if provided
+    let claimedTickets: { id: number; previousStatus: string }[] = [];
+
+    if (ticketIdNumbers.length > 0) {
+      // 1. Validate all tickets exist and belong to this project
+      const tickets = await prisma.ticket.findMany({
+        where: {
+          id: { in: ticketIdNumbers },
+          projectId, // Security: only tickets in this project
+        },
+        select: { id: true, status: true, linkedSessionId: true },
+      });
+
+      // Check all tickets were found
+      if (tickets.length !== ticketIdNumbers.length) {
+        const foundIds = tickets.map((t) => t.id);
+        const missingIds = ticketIdNumbers.filter((id) => !foundIds.includes(id));
+        return NextResponse.json(
+          {
+            error: 'TICKETS_NOT_FOUND',
+            missingTicketIds: missingIds,
+            message: `Tickets ${missingIds.join(', ')} not found in this project`,
+          },
+          { status: 404 }
+        );
+      }
+
+      // 2. CRITICAL: Validate ALL tickets are in "todo" status
+      // Only "todo" tickets can be claimed - not backlog/in-progress/in-review/done
+      const invalidStatusTickets = tickets.filter((t) => t.status !== 'todo');
+      if (invalidStatusTickets.length > 0) {
+        return NextResponse.json(
+          {
+            error: 'TICKETS_INVALID_STATUS',
+            tickets: invalidStatusTickets.map((t) => ({ id: t.id, status: t.status })),
+            message: `Only tickets in "todo" status can be claimed. Invalid: ${invalidStatusTickets.map((t) => `#${t.id} (${t.status})`).join(', ')}`,
+          },
+          { status: 400 }
+        );
+      }
+
+      // 3. Check none are already linked to another session
+      const alreadyLinked = tickets.filter((t) => t.linkedSessionId !== null);
+      if (alreadyLinked.length > 0) {
+        return NextResponse.json(
+          {
+            error: 'TICKETS_ALREADY_CLAIMED',
+            ticketIds: alreadyLinked.map((t) => t.id),
+            message: `Tickets ${alreadyLinked.map((t) => t.id).join(', ')} are already linked to another session`,
+          },
+          { status: 409 }
+        );
+      }
+
+      // Store previous status for response (will always be 'todo')
+      claimedTickets = tickets.map((t) => ({ id: t.id, previousStatus: t.status }));
+    }
+
+    // Create session + claim tickets in transaction
+    const session = await prisma.$transaction(async (tx) => {
+      const newSession = await tx.agentSession.create({
+        data: {
+          projectId,
+          name,
+          plan,
+          todos: todos || [],
+          progress,
+          activeTicketIds: ticketIdNumbers.map(String),
+          status: 'IN_PROGRESS',
+        },
+      });
+
+      // Claim all tickets if any
+      if (ticketIdNumbers.length > 0) {
+        await tx.ticket.updateMany({
+          where: { id: { in: ticketIdNumbers } },
+          data: {
+            status: 'in-progress',
+            assignee: 'Claude Code',
+            linkedSessionId: newSession.id,
+          },
+        });
+      }
+
+      return newSession;
     });
 
-    return NextResponse.json({ session, success: true }, { status: 201 });
+    // Enhanced response with claim info
+    return NextResponse.json(
+      {
+        session,
+        success: true,
+        ticketsClaimed:
+          claimedTickets.length > 0
+            ? claimedTickets.map((t) => ({
+                ticketId: t.id,
+                previousStatus: t.previousStatus,
+                newStatus: 'in-progress',
+              }))
+            : undefined,
+        message:
+          claimedTickets.length > 0
+            ? `Session started. ${claimedTickets.length} ticket(s) claimed and moved to in-progress.`
+            : 'Session started.',
+      },
+      { status: 201 }
+    );
   } catch (error) {
     // Handle authentication errors
     if (error instanceof AuthError) {

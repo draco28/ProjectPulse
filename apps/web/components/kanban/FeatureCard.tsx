@@ -49,6 +49,9 @@ export const FeatureCard = memo(
     // Check if any agent is working on this feature's children
     const isAgentWorking = ticket.assigneeType === 'agent_persona';
 
+    // Sprint 16: Session linkage indicator
+    const isLinkedToSession = !!ticket.linkedSessionId;
+
     // Progress bar color based on status
     const progressColor =
       progress === 100
@@ -65,6 +68,8 @@ export const FeatureCard = memo(
         className={cn(
           'feature-card',
           isAgentWorking && 'active-work',
+          // Sprint 16: Session linkage styling
+          isLinkedToSession && 'ring-2 ring-emerald-500/50',
           isDragging && 'opacity-50 rotate-2',
           isOverlay && 'shadow-2xl ring-2 ring-coral/50'
         )}
@@ -82,7 +87,18 @@ export const FeatureCard = memo(
         {/* Header */}
         <div className="p-4">
           <div className="flex items-start justify-between mb-2">
-            <span className="text-xs font-mono text-slate">#{ticket.id}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-mono text-slate">#{ticket.id}</span>
+              {/* Sprint 16: Session linkage indicator */}
+              {isLinkedToSession && (
+                <div
+                  className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[7px] flex items-center justify-center font-bold animate-pulse"
+                  title={`Linked to session: ${ticket.linkedSessionId?.slice(0, 8)}...`}
+                >
+                  ⚡
+                </div>
+              )}
+            </div>
             <span
               className={cn(
                 'px-2 py-0.5 text-[10px] rounded font-bold',

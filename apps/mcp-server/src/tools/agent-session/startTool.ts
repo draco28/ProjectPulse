@@ -39,10 +39,19 @@ interface AgentSession {
   startedAt: string;
 }
 
+// Sprint 16: Ticket claim info returned by API
+interface TicketClaimInfo {
+  ticketId: number;
+  previousStatus: string;
+  newStatus: string;
+}
+
 interface ApiResponse {
   session?: AgentSession;
   success?: boolean;
   error?: string;
+  ticketsClaimed?: TicketClaimInfo[];
+  message?: string;
 }
 
 async function handler(input: AgentSessionStartInput, context: ToolContext): Promise<string> {
@@ -86,9 +95,17 @@ async function handler(input: AgentSessionStartInput, context: ToolContext): Pro
       hint: '💡 Tip: Call projectpulse_context_load to see full project context including memory banks and available resources.',
     });
 
+    // Sprint 16: Include ticket claim info in response
+    const ticketsClaimed = response.ticketsClaimed;
+    const claimMessage = ticketsClaimed && ticketsClaimed.length > 0
+      ? `${ticketsClaimed.length} ticket(s) claimed and moved to in-progress.`
+      : undefined;
+
     return JSON.stringify({
       status: 'success',
-      message: 'Agent session started',
+      message: claimMessage
+        ? `Agent session started. ${claimMessage}`
+        : 'Agent session started',
       session: {
         id: session.id,
         name: session.name,
@@ -97,6 +114,8 @@ async function handler(input: AgentSessionStartInput, context: ToolContext): Pro
         todosCount: session.todos ? (session.todos as unknown[]).length : 0,
         activeTicketsCount: session.activeTicketIds?.length || 0,
       },
+      // Sprint 16: Ticket claiming results
+      ticketsClaimed: ticketsClaimed,
       _context: contextHint,
     }, null, 2);
   } catch (error) {
@@ -132,7 +151,16 @@ SESSION LIFECYCLE:
 1. START: Creates new session (IN_PROGRESS)
 2. UPDATE: Save progress, todos, plan changes
 3. PAUSE (optional): Set status='PAUSED' to take breaks - can resume later with full context
-4. END: Mark COMPLETED - syncs to memory banks, CANNOT be resumed`,
+4. END: Mark COMPLETED - syncs to memory banks, CANNOT be resumed
+
+TICKET AUTO-CLAIM (Sprint 16):
+When activeTicketIds is provided:
+1. Validates ALL tickets are in "todo" status (not backlog/in-progress/in-review/done)
+2. Validates tickets aren't already claimed by another session
+3. Auto-claims: status → "in-progress", assignee → "Claude Code", linkedSessionId → this session
+4. Returns ticketsClaimed array with claim details
+
+Only "todo" tickets can be claimed. Use ticket_search({ status: ['todo'] }) to find claimable tickets.`,
   schema: agentSessionStartSchema,
   inputSchema: {
     type: 'object',
