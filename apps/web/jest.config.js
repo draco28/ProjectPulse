@@ -8,6 +8,9 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
+  // Global polyfills (runs before everything, including module loading)
+  setupFiles: ['<rootDir>/jest.setup.globals.js'],
+
   // Add more setup options before each test is run
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 
