@@ -293,8 +293,26 @@ tiny-fullstack-practice-app.md
 .kilocode/
 .kilocodemodes
 
-# AI integration guides (internal use only)
-CLAUDE.md
+# Windsurf/Cascade configuration
+.cascade/
+
+# Cursor IDE configuration
+.cursor/
+
+# Factory (AI agent) configuration
+.factory/
+
+# Junie AI configuration
+.junie/
+
+# SuperDesign tool output
+.superdesign/
+
+# Agent workflow templates (internal)
+8_agentworflow_template/
+
+# Session guide (internal protocol)
+SESSION_START_QUICK_GUIDE.md
 
 # ============================================================================
 # PERSONAL/INTERNAL DOCUMENTATION
