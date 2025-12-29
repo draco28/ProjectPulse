@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { WikiEditor } from '@/components/wiki/WikiEditor';
+import { ProjectLayoutWrapper } from '@/components/layout';
+import { withProjectAuth } from '@/lib/project';
 import type { CreateWikiPageInput, UpdateWikiPageInput } from '@/lib/validations/wiki';
 
 /**
@@ -14,12 +16,29 @@ import type { CreateWikiPageInput, UpdateWikiPageInput } from '@/lib/validations
  * @see next-js-expert: Server Component wrapper pattern
  */
 
+// Force dynamic rendering to prevent pre-render errors with useProject
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Create New Wiki Page | ProjectPulse',
   description: 'Create a new wiki page with rich text editor',
 };
 
-export default function NewWikiPage() {
+interface SearchParams {
+  project?: string;
+  [key: string]: string | undefined;
+}
+
+export default async function NewWikiPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(params.project);
+
   /**
    * Handle wiki page creation
    * Uses Server Action pattern for form submission (next-js-expert recommendation)
@@ -48,6 +67,7 @@ export default function NewWikiPage() {
           content,
           category,
           excerpt,
+          projectId, // Include projectId for multi-tenancy
         }),
       });
 
@@ -61,7 +81,7 @@ export default function NewWikiPage() {
       // Redirect to the new wiki page detail view
       // Remove leading slash from path for URL
       const urlPath = newPage.path.startsWith('/') ? newPage.path.slice(1) : newPage.path;
-      redirect(`/wiki/${urlPath}`);
+      redirect(`/wiki/${urlPath}?project=${projectId}`);
     } catch (error) {
       console.error('Error creating wiki page:', error);
       throw error; // Re-throw to be handled by Client Component
@@ -69,8 +89,14 @@ export default function NewWikiPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8">
-      <WikiEditor mode="create" onSave={handleCreateWikiPage} onCancelPath="/wiki" />
-    </div>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        <WikiEditor
+          mode="create"
+          onSave={handleCreateWikiPage}
+          onCancelPath={`/wiki?project=${projectId}`}
+        />
+      </div>
+    </ProjectLayoutWrapper>
   );
 }

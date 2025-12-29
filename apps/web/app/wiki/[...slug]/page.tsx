@@ -1,7 +1,5 @@
-import { notFound, redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
+import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '@/lib/auth';
 import { ChevronRight } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
@@ -12,12 +10,18 @@ import { WikiContributors } from '@/components/wiki/WikiContributors';
 import { WikiFooterNav } from '@/components/wiki/WikiFooterNav';
 import { WikiRevisionTimeline } from '@/components/wiki/WikiRevisionTimeline';
 import { WikiViewTracker } from '@/components/wiki/WikiViewTracker';
+import { ProjectLayoutWrapper } from '@/components/layout';
+import { withProjectAuth } from '@/lib/project';
 import { parseContributors, parseTags, type Contributor } from '@/lib/validations/wiki';
 import NextLink from 'next/link';
 
 interface PageProps {
   params: Promise<{
     slug: string[];
+  }>;
+  searchParams: Promise<{
+    project?: string;
+    [key: string]: string | undefined;
   }>;
 }
 
@@ -71,10 +75,10 @@ function getCategoryIcon(category: string): string {
   return iconMap[category] || 'FileText';
 }
 
-async function getWikiPage(slug: string) {
+async function getWikiPage(slug: string, projectId: number) {
   // Optimized: Single query with include for analytics + parallel prev/next
   const page = await prisma.wikiPage.findUnique({
-    where: { path: `/${slug}` },
+    where: { path: `/${slug}`, projectId }, // Ensure project isolation
     select: {
       id: true,
       projectId: true, // Need projectId for Sidebar
@@ -120,6 +124,7 @@ async function getWikiPage(slug: string) {
     prisma.wikiPage.findFirst({
       where: {
         category: page.category,
+        projectId,
         id: { lt: page.id },
       },
       orderBy: { id: 'desc' },
@@ -128,6 +133,7 @@ async function getWikiPage(slug: string) {
     prisma.wikiPage.findFirst({
       where: {
         category: page.category,
+        projectId,
         id: { gt: page.id },
       },
       orderBy: { id: 'asc' },
@@ -186,33 +192,19 @@ async function getRecentRevisions(pageId: number, limit = 10) {
   }));
 }
 
-// Cache category stats for 1 hour (expensive GROUP BY query)
-let categoryStatsCache: { data: Category[]; timestamp: number } | null = null;
-const CACHE_TTL = 3600000; // 1 hour in milliseconds
-
-async function getCategoryStats(): Promise<Category[]> {
-  // Return cached data if still fresh
-  if (categoryStatsCache && Date.now() - categoryStatsCache.timestamp < CACHE_TTL) {
-    return categoryStatsCache.data;
-  }
-
+async function getCategoryStats(projectId: number): Promise<Category[]> {
   const stats = await prisma.wikiPage.groupBy({
     by: ['category'],
     _count: { id: true },
-    where: { category: { not: null } },
+    where: { category: { not: null }, projectId },
   });
 
-  const data = stats.map((stat) => ({
+  return stats.map((stat) => ({
     name: stat.category!,
     slug: stat.category!.toLowerCase().replace(/\s+/g, '-'),
     count: stat._count.id,
     icon: getCategoryIcon(stat.category!),
   }));
-
-  // Update cache
-  categoryStatsCache = { data, timestamp: Date.now() };
-
-  return data;
 }
 
 // Generate static params for ISR
@@ -233,43 +225,24 @@ export async function generateStaticParams() {
   }
 }
 
-export default async function WikiPage({ params }: PageProps) {
-  // Auth check: Require authentication
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    redirect('/login');
-  }
+export default async function WikiPage({ params, searchParams }: PageProps) {
+  const [resolvedParams, queryParams] = await Promise.all([params, searchParams]);
 
-  const resolvedParams = await params;
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(queryParams.project);
+
   // Handle nested slugs (e.g., ['my-project', 'getting-started'])
   const slugArray = resolvedParams.slug;
   const slugPath = Array.isArray(slugArray) ? slugArray.join('/') : slugArray;
 
-  const page = await getWikiPage(slugPath);
+  const page = await getWikiPage(slugPath, projectId);
 
   if (!page) {
     notFound();
   }
 
-  // Auth check: Verify user owns this project
-  const userId = (session.user as { id?: string }).id;
-  if (userId) {
-    const hasAccess = await prisma.project.findFirst({
-      where: {
-        id: page.projectId,
-        ownerId: userId,
-      },
-      select: { id: true },
-    });
-
-    if (!hasAccess) {
-      // User doesn't own this project - show 404 (don't reveal page exists)
-      notFound();
-    }
-  }
-
   const [categories, revisions] = await Promise.all([
-    getCategoryStats(),
+    getCategoryStats(projectId),
     getRecentRevisions(page.id),
   ]);
   const normalizedSlug = page.path.replace(/^\//, '');
@@ -286,12 +259,12 @@ export default async function WikiPage({ params }: PageProps) {
   };
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <WikiViewTracker slug={normalizedSlug} />
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
         {/* Inject projectId from the wiki page record to ensure Sidebar highlights correctly */}
-        <Sidebar projectId={page.projectId} />
+        <Sidebar projectId={projectId} />
 
         <div className="content-wrapper flex flex-1 gap-4 overflow-hidden p-4">
           {/* Left Sidebar: Quick Navigation */}
@@ -311,7 +284,7 @@ export default async function WikiPage({ params }: PageProps) {
                   <li>
                     <NextLink
                       // Pass project ID in query param when navigating back to list
-                      href={`/wiki?project=${page.projectId}`}
+                      href={`/wiki?project=${projectId}`}
                       className="smooth-transition hover:text-white"
                     >
                       Wiki
@@ -368,6 +341,6 @@ export default async function WikiPage({ params }: PageProps) {
           />
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }
