@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Search, FileText } from 'lucide-react';
 import * as Icons from 'lucide-react';
+import { useProject } from '@/lib/project';
 
 interface Category {
   name: string;
@@ -20,13 +20,12 @@ interface QuickNavigationProps {
 
 export function QuickNavigation({ categories, currentCategory }: QuickNavigationProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const router = useRouter();
+  const { updateSearchParams, buildHref } = useProject();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Use Next.js router for client-side navigation
-      router.push(`/wiki?q=${encodeURIComponent(searchQuery)}`);
+      updateSearchParams({ q: searchQuery.trim() });
     }
   };
 
@@ -39,7 +38,7 @@ export function QuickNavigation({ categories, currentCategory }: QuickNavigation
       return (
         <Link
           key={category.slug}
-          href={`/wiki?category=${category.slug}`}
+          href={buildHref('/wiki', { category: category.slug })}
           className={`sidebar-item smooth-transition block rounded-xl px-3 py-2.5 text-sm ${
             isActive
               ? 'active bg-coral/10 text-coral'

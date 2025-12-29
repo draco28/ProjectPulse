@@ -1,9 +1,9 @@
 'use client';
 
 import { useReducer, useEffect, useCallback, useRef, KeyboardEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import { Search, Loader2, Keyboard, Bug, Book, FileText, Bot, LucideIcon } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useProjectOptional } from '@/lib/project';
 
 // Icon Mapper for dynamic rendering
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -92,7 +92,7 @@ const initialState: CommandState = {
 
 export function CommandPalette() {
   const [state, dispatch] = useReducer(commandReducer, initialState);
-  const router = useRouter();
+  const projectContext = useProjectOptional();
   const inputRef = useRef<HTMLInputElement>(null);
   const debouncedQuery = useDebounce(state.query, 300);
 
@@ -207,7 +207,11 @@ export function CommandPalette() {
         e.preventDefault();
         const selectedResult = state.results[state.selectedIndex];
         if (selectedResult) {
-          router.push(selectedResult.url);
+          if (projectContext) {
+            projectContext.navigateTo(selectedResult.url);
+          } else {
+            window.location.href = selectedResult.url;
+          }
           dispatch({ type: 'CLOSE' });
         }
         break;
@@ -220,7 +224,11 @@ export function CommandPalette() {
   };
 
   const handleResultClick = (url: string) => {
-    router.push(url);
+    if (projectContext) {
+      projectContext.navigateTo(url);
+    } else {
+      window.location.href = url;
+    }
     dispatch({ type: 'CLOSE' });
   };
 

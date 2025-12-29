@@ -8,9 +8,8 @@ import { FloatingBackground } from '@/components/FloatingBackground';
 import { ArticleCard } from '@/components/knowledge/ArticleCard';
 import { TagFilter } from '@/components/knowledge/TagFilter';
 import { SearchBar } from '@/components/knowledge/SearchBar';
-import { getCurrentUser } from '@/lib/auth-server';
-import { redirect } from 'next/navigation';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 
 interface PageProps {
   searchParams: {
@@ -117,10 +116,8 @@ async function getProjectMemoryBanks(projectId: number): Promise<MemoryBankView[
 }
 
 export default async function KnowledgeBasePage({ searchParams }: PageProps) {
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
-  const { project, projectId } = await getActiveProjectForUser(user.id, searchParams.project);
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(searchParams.project);
 
   const { articles, allTags, totalCount } = await getKnowledgeArticles(projectId, searchParams);
 
@@ -131,10 +128,10 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
   const hasSearch = search.trim().length > 0;
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
@@ -231,6 +228,6 @@ export default async function KnowledgeBasePage({ searchParams }: PageProps) {
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }

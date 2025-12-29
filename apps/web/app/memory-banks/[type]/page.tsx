@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
-import { getCurrentUser } from '@/lib/auth-server';
-import { redirect, notFound } from 'next/navigation';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { notFound } from 'next/navigation';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 
 interface PageProps {
   params: {
@@ -43,10 +43,8 @@ function formatMemoryBankType(type: MemoryBankType): string {
 }
 
 export default async function MemoryBankDetailPage({ params, searchParams }: PageProps) {
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
-  const { project, projectId } = await getActiveProjectForUser(user.id, searchParams.project);
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(searchParams.project);
 
   const bankType = parseMemoryBankType(params.type);
   if (!bankType) {
@@ -71,10 +69,10 @@ export default async function MemoryBankDetailPage({ params, searchParams }: Pag
   const tokenLabel = `${bank.summaryTokens ?? 0} tokens`;
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
@@ -114,6 +112,6 @@ export default async function MemoryBankDetailPage({ params, searchParams }: Pag
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }

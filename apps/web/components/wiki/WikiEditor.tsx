@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useProject } from '@/lib/project';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -61,7 +61,7 @@ interface WikiEditorProps {
 }
 
 export function WikiEditor({ mode, initialData, onSave, onCancelPath }: WikiEditorProps) {
-  const router = useRouter();
+  const { navigateTo } = useProject();
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [previewContent, setPreviewContent] = useState('');
@@ -165,8 +165,8 @@ export function WikiEditor({ mode, initialData, onSave, onCancelPath }: WikiEdit
       const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?');
       if (!confirmed) return;
     }
-    router.push(onCancelPath);
-  }, [hasUnsavedChanges, onCancelPath, router]);
+    navigateTo(onCancelPath);
+  }, [hasUnsavedChanges, onCancelPath, navigateTo]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {

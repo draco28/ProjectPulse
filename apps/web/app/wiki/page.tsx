@@ -17,8 +17,8 @@ import { WikiSearchBar } from '@/components/wiki/WikiSearchBar';
 import { WikiCard } from '@/components/wiki/WikiCard';
 import { Pagination } from '@/components/tickets/Pagination';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth-server';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 
 // Sprint 14: Use force-dynamic instead of ISR to support pagination
 // ISR caches page 1 for 1 hour, breaking pagination (Ticket #21)
@@ -293,23 +293,20 @@ async function getCategoryStats(projectId: number) {
 }
 
 export default async function WikiPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  // Auth check
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
   const params = await searchParams;
-
-  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
+  
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(params.project);
 
   const [{ pages, totalCount, currentPage, totalPages, perPage }, categoryStats] =
     await Promise.all([getWikiPages(projectId, params), getCategoryStats(projectId)]);
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <FloatingBackground />
 
       <div className="content-wrapper flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
@@ -396,6 +393,6 @@ export default async function WikiPage({ searchParams }: { searchParams: Promise
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }

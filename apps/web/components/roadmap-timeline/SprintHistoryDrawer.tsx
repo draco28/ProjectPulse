@@ -17,6 +17,7 @@ import { X, CheckCircle2, ArrowRight, Calendar, TrendingUp, Play, Loader2 } from
 import { useRouter } from 'next/navigation';
 import type { SprintHistoryDrawerProps } from '@/types/phase-timeline';
 import { cn } from '@/lib/utils';
+import { useProject } from '@/lib/project';
 
 /**
  * Format date range for display.
@@ -72,6 +73,7 @@ function DrawerContent({
   onSprintSetCurrent?: () => void;
 }) {
   const router = useRouter();
+  const { navigateTo } = useProject();
   const [isSettingCurrent, setIsSettingCurrent] = useState(false);
   const isCompleted = variant === 'completed';
   const isPlanned = variant === 'planned';
@@ -292,7 +294,7 @@ function DrawerContent({
           <div className="flex gap-3">
             {/* View Full Board */}
             <button
-              onClick={() => router.push(`/roadmap/sprint/${sprint.globalSprintNumber}?project=${projectId}`)}
+              onClick={() => navigateTo(`/roadmap/sprint/${sprint.globalSprintNumber}`)}
               className={cn(
                 'flex-1 py-3 px-4 rounded-lg',
                 'flex items-center justify-center gap-2',

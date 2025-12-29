@@ -15,6 +15,8 @@ import { getCurrentUser } from '@/lib/auth-server';
 import { getActiveProjectForUser } from '@/lib/project-context';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 
 export const metadata: Metadata = {
   title: 'Create Ticket | ProjectPulse',
@@ -102,17 +104,16 @@ export default async function CreateTicketPage({
 }: {
   searchParams: Promise<{ project?: string }>;
 }) {
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
   const params = await searchParams;
-  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
+  
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(params.project);
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <FloatingBackground />
       <div className="content-wrapper flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         <div className="flex flex-1 flex-col gap-4 overflow-auto p-4">
           {/* Header */}
@@ -295,6 +296,6 @@ export default async function CreateTicketPage({
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }

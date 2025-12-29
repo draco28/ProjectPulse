@@ -20,8 +20,8 @@ import {
 import { Pagination } from '@/components/tickets/Pagination';
 import { prisma } from '@/lib/prisma';
 import { getFilterOptions, getFilterCounts as getFilterCountsFromLib } from '@/lib/filters';
-import { getCurrentUser } from '@/lib/auth-server';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 
 export const metadata: Metadata = {
   title: 'Tickets | ProjectPulse',
@@ -209,13 +209,10 @@ export default async function TicketsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  // Auth check
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
   const params = await searchParams;
-
-  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
+  
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(params.project);
 
   // Sprint 11.7: Use library's getFilterCounts (includes label counts) and pass projectId for project-scoped labels
   const [{ tickets, totalCount, currentPage, totalPages, perPage }, filterCounts, filterOptions] =
@@ -232,11 +229,11 @@ export default async function TicketsPage({
   };
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <FloatingBackground />
 
       <div className="content-wrapper flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
@@ -307,6 +304,6 @@ export default async function TicketsPage({
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }

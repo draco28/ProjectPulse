@@ -8,6 +8,18 @@ import path from 'path';
 
 config({ path: path.resolve(__dirname, '.env.test') });
 
+// ============================================================================
+// Web API polyfills for Next.js server components testing
+// Required for testing files that import from 'next/server' (NextRequest, NextResponse)
+// Note: TextEncoder/TextDecoder are set up in jest.setup.globals.js (runs first)
+// ============================================================================
+
+// Web APIs from undici for Next.js server testing
+import { Request, Response, Headers, FormData, Blob, File } from 'undici';
+
+// Assign Web APIs to global scope
+Object.assign(global, { Request, Response, Headers, FormData, Blob, File });
+
 // Mock Next.js revalidation functions
 jest.mock('next/cache', () => ({
   revalidatePath: jest.fn(),

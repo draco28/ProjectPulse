@@ -33,6 +33,7 @@ import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useSidebarCounts } from '@/hooks/useSidebarCounts';
+import { useProjectOptional } from '@/lib/project';
 
 interface NavItem {
   icon: typeof Home;
@@ -122,8 +123,13 @@ export function Sidebar({
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Helper to build href with projectId
+  // Use unified project context if available, otherwise fallback to local buildHref
+  const projectContext = useProjectOptional();
   const buildHref = (path: string) => {
+    if (projectContext) {
+      return projectContext.buildHref(path);
+    }
+    // Fallback for when Sidebar is used outside ProjectProvider
     if (!projectId) return path;
     return `${path}?project=${projectId}`;
   };

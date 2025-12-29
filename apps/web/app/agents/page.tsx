@@ -1,11 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { Plus, Info, Bot, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
-import { getCurrentUser } from '@/lib/auth-server';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 import { AgentCard } from '@/components/agents/AgentCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SkillsLibrarySection } from '@/components/agent-hub/SkillsLibrarySection';
@@ -115,13 +114,10 @@ export default async function AgentsPage({
 }: {
   searchParams: Promise<{ project?: string }>;
 }) {
-  // Auth check
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
   const params = await searchParams;
-
-  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
+  
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(params.project);
 
   const [agents, stats, skills, workflows, sops] = await Promise.all([
     getAgents(projectId),
@@ -132,10 +128,10 @@ export default async function AgentsPage({
   ]);
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 px-6 py-4 md:px-8">
           {/* Header */}
@@ -306,6 +302,6 @@ export default async function AgentsPage({
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }

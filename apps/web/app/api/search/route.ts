@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import {
+  getAuthorizedProjectId,
+  AuthError,
+  authErrorResponse,
+} from '@/lib/auth/validateRequest';
 
 // Search result type for unified search
 interface SearchResult {
@@ -31,6 +36,13 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type') || 'all';
     const limit = Math.min(parseInt(searchParams.get('limit') || '5', 10), 10);
 
+    // SECURITY: Authenticate and get authorized project
+    const requestedProjectId = searchParams.get('projectId');
+    const { projectId } = await getAuthorizedProjectId(
+      request,
+      requestedProjectId ? parseInt(requestedProjectId, 10) : undefined
+    );
+
     if (!query.trim()) {
       return NextResponse.json({
         data: {
@@ -47,6 +59,7 @@ export async function GET(request: NextRequest) {
     if (type === 'all' || type === 'issues') {
       const issues = await prisma.ticket.findMany({
         where: {
+          projectId, // SECURITY: Filter by authorized project
           kind: { in: ['issue', 'bug', 'scanner_finding'] },
           OR: [
             { title: { contains: searchTerm, mode: 'insensitive' as const } },
@@ -80,6 +93,7 @@ export async function GET(request: NextRequest) {
     if (type === 'all' || type === 'knowledge') {
       const articles = await prisma.knowledgeItem.findMany({
         where: {
+          projectId, // SECURITY: Filter by authorized project
           OR: [
             { title: { contains: searchTerm, mode: 'insensitive' as const } },
             { content: { contains: searchTerm, mode: 'insensitive' as const } },
@@ -133,7 +147,8 @@ export async function GET(request: NextRequest) {
           ) AS highlight,
           ts_rank_cd("content_tsv", plainto_tsquery('english', ${searchTerm})) * ${categoryBoost} AS rank
         FROM "WikiPage"
-        WHERE "content_tsv" @@ plainto_tsquery('english', ${searchTerm})
+        WHERE "projectId" = ${projectId}
+          AND "content_tsv" @@ plainto_tsquery('english', ${searchTerm})
         ORDER BY rank DESC, "updatedAt" DESC
         LIMIT ${limit};
       `);
@@ -155,6 +170,7 @@ export async function GET(request: NextRequest) {
     if (type === 'all' || type === 'agents') {
       const agents = await prisma.agentPersona.findMany({
         where: {
+          projectId, // SECURITY: Filter by authorized project
           OR: [
             { name: { contains: searchTerm, mode: 'insensitive' as const } },
             { description: { contains: searchTerm, mode: 'insensitive' as const } },
@@ -200,6 +216,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    // Handle authentication errors
+    if (error instanceof AuthError) {
+      return authErrorResponse(error);
+    }
     console.error('Search failed:', error);
     return NextResponse.json({ error: 'Search failed' }, { status: 500 });
   }

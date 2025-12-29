@@ -8,8 +8,8 @@
  */
 'use client';
 
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useProject } from '@/lib/project';
 
 interface PaginationProps {
   currentPage: number;
@@ -31,25 +31,14 @@ export function Pagination({
   totalCount,
   showing: _showing,
   perPage,
-  basePath,
+  basePath: _basePath,
   itemLabel = 'items',
-  projectId,
+  projectId: _projectId,
 }: PaginationProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-
-  // Use provided basePath, or fall back to current pathname
-  const targetPath = basePath ?? pathname;
+  const { updateSearchParams } = useProject();
 
   const goToPage = (page: number) => {
-    const params = new URLSearchParams(searchParams?.toString());
-    params.set('page', page.toString());
-    // Sprint 14: Ensure project context is preserved (Ticket #20)
-    if (projectId && !params.has('project')) {
-      params.set('project', projectId.toString());
-    }
-    router.push(`${targetPath}?${params.toString()}`);
+    updateSearchParams({ page: page.toString() });
   };
 
   // Generate page numbers to show

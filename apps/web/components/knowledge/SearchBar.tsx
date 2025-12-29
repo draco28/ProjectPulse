@@ -1,16 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Search, Brain, Type, Wand2, Info } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useProject } from '@/lib/project';
 
 interface SearchBarProps {
   initialSearch?: string;
 }
 
 export function SearchBar({ initialSearch = '' }: SearchBarProps) {
-  const router = useRouter();
+  const { updateSearchParams } = useProject();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [searchMode, setSearchMode] = useState(
@@ -22,19 +23,12 @@ export function SearchBar({ initialSearch = '' }: SearchBarProps) {
 
   // Update URL when debounced search changes
   useEffect(() => {
-    const params = new URLSearchParams(searchParams?.toString());
-
     if (debouncedSearch) {
-      params.set('search', debouncedSearch);
+      updateSearchParams({ search: debouncedSearch, page: null });
     } else {
-      params.delete('search');
+      updateSearchParams({ search: null, page: null });
     }
-
-    // Reset to page 1 when search changes
-    params.delete('page');
-
-    router.push(`/knowledge?${params.toString()}`);
-  }, [debouncedSearch, router, searchParams]);
+  }, [debouncedSearch, updateSearchParams]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -42,11 +36,7 @@ export function SearchBar({ initialSearch = '' }: SearchBarProps) {
 
   const handleModeChange = (mode: string) => {
     setSearchMode(mode);
-
-    // Update URL with new search mode
-    const params = new URLSearchParams(searchParams?.toString());
-    params.set('mode', mode);
-    router.push(`/knowledge?${params.toString()}`);
+    updateSearchParams({ mode });
   };
 
   return (

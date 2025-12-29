@@ -52,6 +52,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     // Fetch workflows matching agent expertise
     const workflows = await prisma.workflowTemplate.findMany({
       where: {
+        projectId: agent.projectId, // SECURITY: Filter by agent's project
         // Filter by categories that match agent's expertise
         category: { in: agent.expertise },
         isActive: true,

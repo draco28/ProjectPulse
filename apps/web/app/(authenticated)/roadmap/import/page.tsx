@@ -9,9 +9,8 @@
 import { Suspense } from 'react';
 import { Upload, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth-server';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 import { RoadmapImport } from '@/components/roadmap/import/RoadmapImport';
 
 export default async function ImportRoadmapPage({
@@ -19,14 +18,13 @@ export default async function ImportRoadmapPage({
 }: {
   searchParams: Promise<{ project?: string }>;
 }) {
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
   const params = await searchParams;
-  const { project, projectId } = await getActiveProjectForUser(user.id, params.project);
+  
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(params.project);
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       {/* Page Header */}
       <div className="mb-6">
         <Link
@@ -59,6 +57,6 @@ export default async function ImportRoadmapPage({
       >
         <RoadmapImport projectId={projectId} projectName={project.name} />
       </Suspense>
-    </>
+    </ProjectLayoutWrapper>
   );
 }

@@ -8,8 +8,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { SlidersHorizontal, X } from 'lucide-react';
+import { useProject } from '@/lib/project';
 
 interface WikiListClientProps {
   categoryStats: Record<string, number>;
@@ -20,8 +20,7 @@ interface WikiListClientProps {
 }
 
 export function WikiListClient({ categoryStats, searchParams }: WikiListClientProps) {
-  const router = useRouter();
-  const currentSearchParams = useSearchParams();
+  const { updateSearchParams, clearSearchParams } = useProject();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Parse active categories from URL
@@ -35,33 +34,26 @@ export function WikiListClient({ categoryStats, searchParams }: WikiListClientPr
    * Handles multi-select logic (comma-separated categories in URL)
    */
   const toggleCategory = (category: string) => {
-    const params = new URLSearchParams(currentSearchParams?.toString());
-
     if (activeCategories.includes(category)) {
       // Remove category
       const newCategories = activeCategories.filter((c) => c !== category);
       if (newCategories.length === 0) {
-        params.delete('category');
+        updateSearchParams({ category: null, page: null });
       } else {
-        params.set('category', newCategories.join(','));
+        updateSearchParams({ category: newCategories.join(','), page: null });
       }
     } else {
       // Add category
       const newCategories = [...activeCategories, category];
-      params.set('category', newCategories.join(','));
+      updateSearchParams({ category: newCategories.join(','), page: null });
     }
-
-    // Reset to page 1 when filter changes
-    params.delete('page');
-
-    router.push(`/wiki?${params.toString()}`);
   };
 
   /**
    * Clear all filters
    */
   const clearFilters = () => {
-    router.push('/wiki');
+    clearSearchParams();
   };
 
   // Render filter content (shared between desktop and mobile)

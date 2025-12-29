@@ -6,9 +6,8 @@ import { FloatingBackground } from '@/components/FloatingBackground';
 import { SecurityScoreMeter } from '@/components/security/SecurityScoreMeter';
 import { VulnerabilityCard } from '@/components/security/VulnerabilityCard';
 import { VulnerabilityFilter } from '@/components/security/VulnerabilityFilter';
-import { getCurrentUser } from '@/lib/auth-server';
-import { redirect } from 'next/navigation';
-import { getActiveProjectForUser } from '@/lib/project-context';
+import { withProjectAuth } from '@/lib/project';
+import { ProjectLayoutWrapper } from '@/components/layout';
 
 interface PageProps {
   searchParams: {
@@ -111,10 +110,8 @@ async function getSecurityFindings(projectId: number, searchParams: PageProps['s
 }
 
 export default async function SecurityPage({ searchParams }: PageProps) {
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-
-  const { project, projectId } = await getActiveProjectForUser(user.id, searchParams.project);
+  // Unified auth + project resolution
+  const { project, projectId } = await withProjectAuth(searchParams.project);
 
   // Parallel queries for performance
   const [securityScore, stats, findings] = await Promise.all([
@@ -124,10 +121,10 @@ export default async function SecurityPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <>
+    <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <FloatingBackground />
       <div className="flex h-screen overflow-hidden">
-        <Sidebar projectId={projectId} />
+        <Sidebar />
 
         <div className="content-wrapper flex flex-1 flex-col gap-4 overflow-hidden p-4">
           {/* Header */}
@@ -203,6 +200,6 @@ export default async function SecurityPage({ searchParams }: PageProps) {
           </main>
         </div>
       </div>
-    </>
+    </ProjectLayoutWrapper>
   );
 }

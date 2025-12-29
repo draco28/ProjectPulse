@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import {
+  getAuthorizedProjectId,
+  AuthError,
+  authErrorResponse,
+} from '@/lib/auth/validateRequest';
 
 /**
  * GET /api/workflows
@@ -18,10 +23,18 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const isActiveParam = searchParams.get('isActive');
 
+    // SECURITY: Authenticate and get authorized project
+    const requestedProjectId = searchParams.get('projectId');
+    const { projectId } = await getAuthorizedProjectId(
+      request,
+      requestedProjectId ? parseInt(requestedProjectId, 10) : undefined
+    );
+
     const isActive = isActiveParam === 'false' ? false : true;
 
     const templates = await prisma.workflowTemplate.findMany({
       where: {
+        projectId, // SECURITY: Filter by authorized project
         ...(category && { category }),
         isActive,
       },
@@ -52,6 +65,10 @@ export async function GET(request: NextRequest) {
       error: null,
     });
   } catch (error) {
+    // Handle authentication errors
+    if (error instanceof AuthError) {
+      return authErrorResponse(error);
+    }
     console.error('Error fetching workflow templates:', error);
     return NextResponse.json(
       {
