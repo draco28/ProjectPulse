@@ -5,9 +5,11 @@
  *
  * Returns the kanban board data for a specific sprint:
  * - Tickets grouped by status (column)
- * - Ghost cards for parent/child relationships
  * - Board statistics (total, done, progress)
  * - Sprint context (title, phase, etc.)
+ *
+ * Note: Child tickets are rendered independently (not nested in parents),
+ * with visual parent reference. Ghost cards removed in Sprint 15.
  *
  * Security (Sprint 10):
  * - All requests MUST be authenticated (user session OR agent token)
@@ -15,7 +17,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { TICKET_STATUSES, TICKET_STATUS_VALUES, TicketStatusSystem, type TicketStatus } from '@/lib/constants/status';
@@ -23,7 +24,6 @@ import { getSprintProgressStats } from '@/lib/tickets/progress-calculator';
 import type {
   KanbanBoardResponse,
   KanbanTicket,
-  GhostCard,
   BoardStats,
   ColumnStats,
   SprintContext,
@@ -34,68 +34,6 @@ export const dynamic = 'force-dynamic';
 type RouteContext = {
   params: Promise<{ sprintId: string }>;
 };
-
-// ============================================================================
-// GHOST CARD ALGORITHM
-// ============================================================================
-
-/**
- * Generate ghost cards for parent/child relationships.
- *
- * When a parent ticket and its children are in different columns,
- * create ghost cards to show the relationship visually.
- */
-function generateGhostCards(tickets: KanbanTicket[]): GhostCard[] {
-  const ghosts: GhostCard[] = [];
-  const ticketById = new Map(tickets.map((t) => [t.id, t]));
-
-  for (const ticket of tickets) {
-    // If ticket has a parent in a different column
-    if (ticket.parentTicketId && ticket.parentTicket) {
-      const parent = ticketById.get(ticket.parentTicketId);
-      if (parent && parent.status !== ticket.status) {
-        // Create ghost card for parent in child's column
-        ghosts.push({
-          ticketId: parent.id,
-          title: parent.title,
-          kind: parent.kind,
-          actualStatus: parent.status,
-          ghostInStatus: ticket.status,
-          ghostType: 'parent',
-          relatedTicketId: ticket.id,
-        });
-      }
-    }
-
-    // If ticket has children in different columns
-    if (ticket.childTickets && ticket.childTickets.length > 0) {
-      const childColumns = new Set(ticket.childTickets.map((c) => c.status));
-      for (const childStatus of childColumns) {
-        if (childStatus !== ticket.status) {
-          // Create ghost card for this parent in child's column
-          ghosts.push({
-            ticketId: ticket.id,
-            title: ticket.title,
-            kind: ticket.kind,
-            actualStatus: ticket.status,
-            ghostInStatus: childStatus as TicketStatus,
-            ghostType: 'child',
-            relatedTicketId: ticket.childTickets.find((c) => c.status === childStatus)?.id ?? ticket.id,
-          });
-        }
-      }
-    }
-  }
-
-  // Deduplicate ghosts (same ticket might ghost into same column multiple times)
-  const seen = new Set<string>();
-  return ghosts.filter((g) => {
-    const key = `${g.ticketId}-${g.ghostInStatus}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
 
 // ============================================================================
 // MAIN HANDLER
@@ -250,9 +188,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
       }
     }
 
-    // Generate ghost cards
-    const ghosts = generateGhostCards(tickets);
-
     // Get progress stats
     const progressStats = await getSprintProgressStats(prisma, sprintId);
 
@@ -291,7 +226,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const response: KanbanBoardResponse = {
       sprint: sprintContext,
       columns,
-      ghosts,
+      ghosts: [], // Ghost cards removed - children rendered independently
       stats,
     };
 

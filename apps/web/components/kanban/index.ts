@@ -12,7 +12,7 @@ export { SprintKanbanBoard, default as SprintKanbanBoardDefault } from './Sprint
 // Cards
 export { TaskCard, SortableTaskCard } from './TaskCard';
 export { FeatureCard, SortableFeatureCard } from './FeatureCard';
-export { GhostCard } from './GhostCard';
+export { ChildCard, SortableChildCard } from './ChildCard';
 
 // Layout
 export { KanbanColumn } from './KanbanColumn';

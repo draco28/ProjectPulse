@@ -7,7 +7,7 @@
  * - 5 status columns (backlog → todo → in-progress → in-review → done)
  * - Drag and drop between columns and within columns
  * - Optimistic updates with undo capability
- * - Ghost cards for parent/child relationships
+ * - Parent/child tickets rendered independently (children with indentation)
  *
  * @example
  * ```tsx
@@ -18,7 +18,7 @@
  * ```
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { DndContext, DragOverlay, closestCenter, MeasuringStrategy } from '@dnd-kit/core';
 import type { KanbanTicket, KanbanBoardResponse } from '@/types/kanban';
 import type { TicketStatus } from '@/lib/constants/status';
@@ -33,7 +33,6 @@ import FeatureCard from './FeatureCard';
 import { ChildCard } from './ChildCard';
 import SprintKanbanHeader from './SprintKanbanHeader';
 import BoardStatsBar from './BoardStatsBar';
-// EmptyBoardState removed - we now always render 5 columns with EmptyColumnState per column
 
 // ============================================================================
 // Types
@@ -58,9 +57,6 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
   // Data fetching and mutations
   const { boardQuery, moveTicket, batchMoveTickets, isMoving, refetch } = useKanbanBoard(sprintId);
 
-  // Track expanded feature cards
-  const [expandedFeatures, setExpandedFeatures] = useState<Set<number>>(new Set());
-
   // Store previous state for undo
   const [previousMove, setPreviousMove] = useState<{
     ticketId: number;
@@ -74,7 +70,6 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
   // Extract board data
   const boardData = boardQuery.data;
   const columns = boardData?.columns ?? ({} as KanbanBoardResponse['columns']);
-  const ghosts = boardData?.ghosts ?? [];
   const stats = boardData?.stats;
   const sprint = boardData?.sprint;
 
@@ -188,41 +183,6 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
       },
     });
 
-  // Feature toggle handler
-  const handleFeatureToggle = useCallback((ticketId: number, expanded: boolean) => {
-    setExpandedFeatures((prev) => {
-      const next = new Set(prev);
-      if (expanded) {
-        next.add(ticketId);
-      } else {
-        next.delete(ticketId);
-      }
-      return next;
-    });
-  }, []);
-
-  // Collapse all features
-  const handleCollapseAll = useCallback(() => {
-    setExpandedFeatures(new Set());
-  }, []);
-
-  // Ghost card click - scroll to actual ticket
-  const handleGhostClick = useCallback(
-    (ghost: { ticketId: number; actualStatus: TicketStatus }) => {
-      // Find the actual ticket element and scroll to it
-      const element = document.querySelector(`[data-ticket-id="${ghost.ticketId}"]`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Flash highlight
-        element.classList.add('ring-2', 'ring-coral');
-        setTimeout(() => {
-          element.classList.remove('ring-2', 'ring-coral');
-        }, 2000);
-      }
-    },
-    []
-  );
-
   // Note: isEmpty check removed - we always render 5 columns now
   // Each KanbanColumn handles its own empty state via EmptyColumnState
 
@@ -260,8 +220,8 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
     const isChildTicket = !!ticket.parentTicketId;
 
     if (hasChildren) {
-      // Parent/feature card with children
-      return <FeatureCard ticket={ticket} isExpanded={false} isOverlay />;
+      // Parent/feature card (children are rendered independently)
+      return <FeatureCard ticket={ticket} isOverlay />;
     }
     if (isChildTicket) {
       // Child ticket being dragged independently
@@ -274,9 +234,7 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header */}
-      {sprint && (
-        <SprintKanbanHeader sprint={sprint} projectId={projectId} stats={stats} onCollapseAll={handleCollapseAll} />
-      )}
+      {sprint && <SprintKanbanHeader sprint={sprint} projectId={projectId} stats={stats} />}
 
       {/* Kanban Board */}
       <DndContext
@@ -298,11 +256,7 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
               key={status}
               status={status as TicketStatus}
               tickets={columns[status as TicketStatus] ?? []}
-              ghosts={ghosts}
               onTicketClick={onTicketClick}
-              onGhostClick={handleGhostClick}
-              onFeatureToggle={handleFeatureToggle}
-              expandedFeatures={expandedFeatures}
             />
           ))}
         </div>

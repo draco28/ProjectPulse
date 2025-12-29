@@ -23,14 +23,13 @@
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { memo, useMemo } from 'react';
-import type { KanbanTicket, GhostCard as GhostCardType } from '@/types/kanban';
+import type { KanbanTicket } from '@/types/kanban';
 import type { TicketStatus } from '@/lib/constants/status';
 import { TicketStatusSystem, TICKET_STATUSES } from '@/lib/constants/status';
 import { cn } from '@/lib/utils';
 import { SortableTaskCard } from './TaskCard';
 import { SortableFeatureCard } from './FeatureCard';
 import { SortableChildCard } from './ChildCard';
-import GhostCard from './GhostCard';
 import EmptyColumnState from './EmptyColumnState';
 
 // ============================================================================
@@ -42,16 +41,8 @@ interface KanbanColumnProps {
   status: TicketStatus;
   /** Tickets in this column */
   tickets: KanbanTicket[];
-  /** Ghost cards to display (tickets from other columns) */
-  ghosts?: GhostCardType[];
   /** Handler when a ticket card is clicked */
   onTicketClick?: (ticket: KanbanTicket) => void;
-  /** Handler when a ghost card is clicked (scroll to actual ticket) */
-  onGhostClick?: (ghost: GhostCardType) => void;
-  /** Handler when a feature card is expanded/collapsed */
-  onFeatureToggle?: (ticketId: number, expanded: boolean) => void;
-  /** Set of expanded feature IDs */
-  expandedFeatures?: Set<number>;
   /** Additional class names */
   className?: string;
 }
@@ -75,11 +66,7 @@ const STATUS_COLORS: Record<TicketStatus, { dot: string; border: string; pulse?:
 export const KanbanColumn = memo(function KanbanColumn({
   status,
   tickets,
-  ghosts = [],
   onTicketClick,
-  onGhostClick,
-  onFeatureToggle,
-  expandedFeatures = new Set(),
   className,
 }: KanbanColumnProps) {
   // Droppable setup - column can receive dropped tickets
@@ -120,12 +107,6 @@ export const KanbanColumn = memo(function KanbanColumn({
     return { features, childTickets, standaloneTickets };
   }, [tickets]);
 
-  // Get ghosts for this column
-  const columnGhosts = useMemo(
-    () => ghosts.filter((g) => g.ghostInStatus === status),
-    [ghosts, status]
-  );
-
   // Sortable IDs for @dnd-kit - ALL tickets are now draggable
   const sortableIds = useMemo(
     () => [...features, ...childTickets, ...standaloneTickets].map((t) => String(t.id)),
@@ -158,27 +139,13 @@ export const KanbanColumn = memo(function KanbanColumn({
         )}
       >
         <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-          {/* Ghost Cards */}
-          {columnGhosts.map((ghost) => (
-            <GhostCard key={`ghost-${ghost.ticketId}`} ghost={ghost} onClick={onGhostClick} />
-          ))}
-
           {/* Feature Cards (parent tickets with children) */}
           {features.map((ticket) => (
             <SortableFeatureCard
               key={ticket.id}
               id={ticket.id}
               ticket={ticket}
-              isExpanded={expandedFeatures.has(ticket.id)}
-              onToggle={(expanded) => onFeatureToggle?.(ticket.id, expanded)}
               onClick={() => onTicketClick?.(ticket)}
-              onChildClick={(childId) => {
-                // Find full child ticket data from the column
-                const childTicket = childTickets.find((c) => c.id === childId);
-                if (childTicket) {
-                  onTicketClick?.(childTicket);
-                }
-              }}
             />
           ))}
 
@@ -203,9 +170,7 @@ export const KanbanColumn = memo(function KanbanColumn({
           ))}
 
           {/* Empty State */}
-          {tickets.length === 0 && columnGhosts.length === 0 && (
-            <EmptyColumnState status={status} />
-          )}
+          {tickets.length === 0 && <EmptyColumnState status={status} />}
         </SortableContext>
       </div>
     </div>
