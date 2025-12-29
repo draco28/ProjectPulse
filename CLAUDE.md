@@ -147,13 +147,19 @@ projectpulse_agent_session_start({
   name: "Implementing feature X",
   plan: "## Plan\n1. Do X\n2. Do Y\n...",
   todos: [{content: "Task 1", status: "pending"}, ...],
-  activeTicketIds: [25, 26]  // Link to tickets
+  activeTicketIds: [25, 26]  // ONLY "todo" tickets - auto-claimed to "in-progress"
 })
 ```
 
 - Create implementation plan (use EnterPlanMode if needed)
 - Get user approval
 - Save plan and todos to MCP session (NOT to files)
+
+**Sprint 16 Auto-Claim**: When `activeTicketIds` are provided:
+- System validates ALL tickets are in "todo" status
+- System moves them to "in-progress" automatically
+- Sets `assignee: "Claude Code"` and links `linkedSessionId`
+- Session start FAILS if any ticket is not in "todo" status
 
 **STEP 3: PROGRESS CHECKPOINTS**
 
@@ -183,6 +189,11 @@ projectpulse_agent_session_end({
 This auto-syncs:
 - PROGRESS bank: Session summary added
 - ACTIVE_CONTEXT bank: Updated with pending todos
+
+**Sprint 16 Ticket Flow**: When session ends:
+- All linked tickets (in "in-progress") → moved to "in-review"
+- Tickets already in "done" are skipped
+- User verifies work and moves "in-review" → "done" via Kanban
 
 ⚠️ **CRITICAL**: COMPLETED sessions CANNOT be resumed. Use PAUSED for breaks!
 
@@ -590,19 +601,32 @@ Me: projectpulse_agent_session_end({
 - ✅ **Use for**: Multi-week initiatives, greenfield projects, milestone reporting
 - ❌ **Skip for**: Small fixes, routine maintenance (tickets-only is fine)
 
-### Daily Workflow with Roadmap
+### Daily Workflow with Roadmap (Sprint 16)
 
 ```
 # Morning: Know where you are
 projectpulse_sprint_getCurrentPosition(projectId: 6)
 → Returns: phase/sprint with progress
 
-# Find tickets for current sprint
-projectpulse_ticket_search({ sprintNumber: 1, status: ["open", "in-progress"] })
+# Find "todo" tickets ready to be claimed
+projectpulse_ticket_search({ sprintNumber: 1, status: ["todo"] })
 
-# Work tickets normally (claim, implement, close)
+# Start session WITH tickets (auto-claims to in-progress)
+projectpulse_agent_session_start({
+  projectId: 6,
+  name: "Sprint 1 work",
+  activeTicketIds: [42, 43]  // Must be "todo" status
+})
+→ System: tickets move to in-progress, assignee="Claude Code"
 
-# End of day: Move completed tickets to "done" (auto-cascades progress)
+# Work on tickets, checkpoint progress
+projectpulse_agent_session_update({ progress: "Completed X, working on Y" })
+
+# End session → tickets auto-move to in-review
+projectpulse_agent_session_end({ sessionId: "..." })
+→ System: tickets move to in-review
+
+# User verifies and moves to done (auto-cascades progress)
 projectpulse_kanban_moveTicket({
   ticketId: 42,
   status: "done",
@@ -667,49 +691,56 @@ Me: [Creates ticket via MCP: kind="bug", priority="medium",
      title="Search returns wrong results with special characters"]
 ```
 
-### Agent Ticket Workflow
+### Agent Ticket Workflow (Sprint 16)
 
-**Assignee**: Always set `assignee: "Claude Code"` when:
-- I create a ticket that I will immediately work on
-- I'm claiming an existing ticket to work on
+**Status Flow (Agent-Managed)**:
+```
+backlog ──[user drag]──► todo ──[session_start]──► in-progress ──[session_end]──► in-review ──[user drag]──► done
+```
 
-**Status Transitions** (REQUIRED):
-| When | Action |
-|------|--------|
-| Create ticket | Status defaults to `open` |
-| Start working | Update to `in-progress` BEFORE coding |
-| Implement | Add comment with implementation details |
-| Test | Verify fix works (manual or automated) |
-| Close | Update to `closed` ONLY after testing passes |
+**What Happens Automatically**:
+| Event | System Action |
+|-------|---------------|
+| `session_start({ activeTicketIds: [42] })` | Validates "todo" → moves to "in-progress", sets assignee="Claude Code", links sessionId |
+| `session_end({ sessionId })` | Moves linked tickets to "in-review" (except already "done") |
 
-**⚠️ NEVER close a ticket until testing is complete!**
-- After implementation: Add comment describing what was done (commit hash, files changed)
-- After testing passes: Then close the ticket
-- If no testing possible: Note in comment, get user approval to close
+**User-Only Moves** (via Kanban drag):
+- ✅ `backlog → todo` - Preparing ticket for agent work
+- ✅ `in-review → done` - Verifying completed work
 
-**Complete Workflow** (6 steps):
-| Step | Action | MCP Tool |
-|------|--------|----------|
-| 1. Create | Create ticket with assignee | `ticket_create` |
-| 2. Plan | Add implementation plan to customFields | `ticket_update` |
-| 3. Claim | Set status to `in-progress` | `ticket_update` |
-| 4. Work | Implement and commit | (code tools) |
-| 5. Comment | Add implementation details | `ticket_addComment` |
-| 6. Test+Close | After testing passes, set `closed` | `ticket_setStatus` |
+**Blocked Moves** (require agent workflow):
+- ❌ `todo → in-progress` - Use `session_start`
+- ❌ `in-progress → in-review` - Use `session_end`
+- ❌ `any → in-progress` - Only agent sessions can claim
+
+**Complete Workflow (5 steps)**:
+| Step | Action | How |
+|------|--------|-----|
+| 1 | Find work | `ticket_search({ status: ["todo"], sprintNumber: X })` |
+| 2 | Start session | `agent_session_start({ activeTicketIds: [42] })` → **AUTO-CLAIMS** |
+| 3 | Implement | Code, test, commit |
+| 4 | Document | `ticket_addComment({ content: "Implemented X, Y" })` |
+| 5 | End session | `agent_session_end()` → **AUTO-MOVES TO IN-REVIEW** |
+
+**Then User**:
+6. Verifies work in Kanban
+7. Drags `in-review → done`
 
 **Workflow Example**:
 ```
 1. User: "Fix the search bug"
-2. Me: [Create ticket: kind=bug, assignee="Claude Code", status=open]
-3. Me: [Update ticket: add plan to customFields._implementationContext]
-4. Me: [Update ticket: status="in-progress"]
+2. Me: [Create ticket: kind=bug, status=todo]
+3. Me: [Search for todo tickets in sprint]
+4. Me: [Start session: agent_session_start({ activeTicketIds: [42] })]
+   → System: ticket moves to in-progress, assignee="Claude Code"
 5. Me: [Implement fix, commit]
 6. Me: [Add comment: "Fixed in commit abc123. Changed X, Y, Z."]
-7. User/Me: [Test the fix]
-8. Me: [Update ticket: status="closed"] ← ONLY after testing passes!
+7. Me: [End session: agent_session_end()]
+   → System: ticket moves to in-review
+8. User: [Verifies fix, drags to done in Kanban]
 ```
 
-**Note**: Valid status values are `open`, `in-progress`, `closed` (NOT `completed`!)
+**Note**: Valid status values are `backlog`, `todo`, `in-progress`, `in-review`, `done`
 
 ---
 

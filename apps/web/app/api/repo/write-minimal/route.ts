@@ -122,64 +122,68 @@ Step 2: Check roadmap position (if using roadmap)
 projectpulse_sprint_getCurrentPosition(projectId: ${data.projectId})
 → Returns: phase/sprint with progress
 
-Step 3: Find tickets for today
-──────────────────────────────
+Step 3: Find "todo" tickets to work on (Sprint 16)
+──────────────────────────────────────────────────
 projectpulse_ticket_search({
   sprintNumber: 1,
-  status: ["open", "in-progress"]
+  status: ["todo"]  // Only "todo" tickets can be claimed
 })
-→ Returns: Tickets assigned to current sprint
+→ Returns: Tickets ready to be claimed by session
 
-Step 4: Start session with ticket(s)
-────────────────────────────────────
+Step 4: Start session WITH tickets (Sprint 16: auto-claims)
+───────────────────────────────────────────────────────────
 projectpulse_agent_session_start({
   projectId: ${data.projectId},
   name: "Sprint 1 - Feature Implementation",
-  activeTicketIds: [42, 43],
+  activeTicketIds: [42, 43],  // MUST be "todo" status
   plan: "## Today's Plan\\n1. Complete API endpoint\\n2. Write tests",
   todos: [
     {content: "Complete API endpoint", status: "pending"},
     {content: "Write tests", status: "pending"}
   ]
 })
+→ System: tickets move to "in-progress", assignee="Claude Code"
 \`\`\`
 
 ### During Work
 
 \`\`\`
-1. Claim ticket → ticket_update({ ticketId: 42, status: "in-progress" })
-2. Work on code → (your normal coding flow)
-3. Checkpoint every 15K tokens → agent_session_update({ progress: "..." })
-4. Add comments → ticket_addComment({ ticketId: 42, content: "Implemented X, Y, Z" })
-5. Close ticket → ticket_setStatus({ ticketId: 42, status: "closed" })
+1. Work on code → (your normal coding flow - tickets already claimed by session_start)
+2. Checkpoint every 15K tokens → agent_session_update({ progress: "..." })
+3. Add comments → ticket_addComment({ ticketId: 42, content: "Implemented X, Y, Z" })
 \`\`\`
+
+Note: Tickets were auto-claimed when session started. Don't manually change status.
 
 ### End of Day
 
 \`\`\`
-Step 5: Move completed tickets to "done" (progress auto-cascades)
-─────────────────────────────────────────────────────────────────
-projectpulse_kanban_moveTicket({
-  ticketId: 42,
-  status: "done",
-  displayOrder: 0
+Option A: Session complete → tickets go to in-review for user verification
+──────────────────────────────────────────────────────────────────────────
+projectpulse_agent_session_end({
+  sessionId: "...",
+  progress: "Completed API endpoint and tests"
 })
-→ Auto-propagates: Ticket → Sprint → Phase
+→ System: linked tickets auto-move to "in-review"
+→ User can verify and drag "in-review" → "done" in Kanban
 
-Step 6: Pause or end session
-────────────────────────────
-# For breaks (lunch, EOD):
+Option B: Taking a break → tickets stay in-progress
+──────────────────────────────────────────────────
 projectpulse_agent_session_update({
   sessionId: "...",
   status: "PAUSED"
 })
-
-# When work is FULLY done:
-projectpulse_agent_session_end({
-  sessionId: "...",
-  progress: "Session complete."
-})
+→ Tickets stay in "in-progress", can resume tomorrow
 \`\`\`
+
+### Kanban Drag Rules (Sprint 16)
+
+| User CAN Drag | User CANNOT Drag |
+|---------------|------------------|
+| backlog → todo | todo → in-progress |
+| in-review → done | in-progress → anywhere |
+
+**Why?** Agent sessions control the middle columns to ensure proper work tracking.
 
 ---
 

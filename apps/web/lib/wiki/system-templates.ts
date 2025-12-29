@@ -356,7 +356,7 @@ This creates:
 
 Files are pre-populated with your project's actual data from Session 3.
 
-### Step 4: Start Working with Kanban
+### Step 4: Start Working with Kanban (Sprint 16)
 
 After roadmap creation, use Kanban boards for ticket management:
 
@@ -373,16 +373,25 @@ projectpulse_ticket_create({
   kind: "feature",
   source: "agent",
   sprintNumber: 1,
+  status: "todo",  // Ready for agent to claim
   backlogRefs: item.frTraces,  // ["FR-001", "FR-002"]
   epicRef: item.epicRef        // "Epic 1: User Management"
 })
 \`\`\`
-Tickets appear in Kanban "backlog" column.
+Tickets appear in Kanban "todo" column, ready for agent sessions.
 
-**Move tickets through columns:**
+**Work on tickets via sessions (NOT manual moves):**
 \`\`\`
-projectpulse_kanban_moveTicket({ ticketId: 123, status: "in-progress", displayOrder: 0 })
+# Agent claims via session start (auto: todo → in-progress)
+projectpulse_agent_session_start({ activeTicketIds: [123] })
+
+# Agent releases via session end (auto: in-progress → in-review)
+projectpulse_agent_session_end({ sessionId: "..." })
 \`\`\`
+
+**User-allowed moves (drag-drop):**
+- \`backlog → todo\` - Prep work for agent
+- \`in-review → done\` - Verify completed work
 
 **Kanban UI Navigation:**
 - \`/roadmap\` - Phase Timeline with sprint cards
@@ -393,14 +402,30 @@ Ticket status → Sprint progress → Phase progress (auto-cascades)
 
 ---
 
-## Starting Development
+## Starting Development (Sprint 16 Workflow)
 
 After post-onboarding setup, your agent workflow is:
 
-1. \`projectpulse_context_load({ projectId: YOUR_ID })\` - Load context + hints
-2. \`projectpulse_agent_session_start({ name: "Feature X" })\` - Start work session
-3. [Do your development work]
-4. \`projectpulse_agent_session_end({ summary: "..." })\` - End session
+\`\`\`
+1. projectpulse_context_load({ projectId: YOUR_ID })
+   → Loads memory banks, checks for paused sessions
+
+2. projectpulse_ticket_search({ status: ["todo"], sprintNumber: 1 })
+   → Find tickets ready to work on
+
+3. projectpulse_agent_session_start({
+     name: "Feature X",
+     activeTicketIds: [42, 43]  // Only "todo" tickets
+   })
+   → AUTO-CLAIMS tickets (todo → in-progress)
+
+4. [Do your development work]
+
+5. projectpulse_agent_session_end({ progress: "..." })
+   → AUTO-MOVES tickets to "in-review"
+
+6. User verifies and drags in-review → done
+\`\`\`
 
 See [[Development Workflow]] for detailed development patterns.
 `,
@@ -462,40 +487,86 @@ projectpulse_ticket_search({ sprintNumber: 1, status: ["open"] })
 \`\`\`
 
 ### During Work
+
+**Sprint 16: Session-Based Workflow**
 \`\`\`
-# Start tracking (if not resuming)
-projectpulse_agent_session_start({ name: "Feature X", ticketIds: [123] })
+# 1. Start session WITH tickets (auto-claims them)
+projectpulse_agent_session_start({
+  projectId: YOUR_ID,
+  name: "Feature Implementation",
+  activeTicketIds: [42, 43]  // Must be in "todo" status
+})
+# → System: tickets move to "in-progress", assignee="Claude Code"
 
-# Checkpoint every 15K tokens
-projectpulse_agent_session_update({ progress: "Completed X, working on Y" })
+# 2. Work on code (your normal flow)
 
-# Claim tickets you're working on
-projectpulse_ticket_update({ ticketId: 123, status: "in-progress" })
+# 3. Checkpoint progress every 15K tokens
+projectpulse_agent_session_update({ progress: "Completed API, working on tests" })
+
+# 4. Add ticket comments for tracking
+projectpulse_ticket_addComment({ ticketId: 42, content: "Implemented endpoint" })
+
+# 5. End session → tickets auto-move to "in-review"
+projectpulse_agent_session_end({ sessionId: "..." })
 \`\`\`
 
 ### End of Day
 \`\`\`
-# Move completed tickets to "done" (progress auto-cascades to Sprint → Phase)
-projectpulse_kanban_moveTicket({ ticketId: 123, status: "done", displayOrder: 0 })
+# Option A: Work complete → tickets go to in-review for user verification
+projectpulse_agent_session_end({ sessionId: "...", progress: "Completed feature X" })
+# → System: linked tickets move to "in-review" automatically
 
-# PAUSE session (NOT end!) - preserves context for next day
+# Option B: Taking a break → tickets stay in-progress
 projectpulse_agent_session_update({ sessionId: "...", status: "PAUSED" })
+# → Tickets stay in "in-progress", resume tomorrow
 \`\`\`
+
+**Then User Verifies:**
+User drags verified tickets from "in-review" → "done" in Kanban board.
 
 ---
 
-## Ticket Lifecycle
+## Ticket Lifecycle (Sprint 16)
 
-| Step | Tool | Description |
-|------|------|-------------|
-| Search | \`ticket_search\` | Find existing tickets for your sprint |
-| Create | \`ticket_create\` | From backlog items with backlogRefs |
-| Claim | \`ticket_update\` | Set status: "in-progress", assignee |
-| Work | \`ticket_addComment\` | Log progress, decisions |
-| Test | - | Verify implementation works |
-| Close | \`ticket_setStatus\` | Set status: "closed" AFTER testing |
+### Status Flow
 
-**⚠️ Never close tickets until testing is complete!**
+\`\`\`
+backlog ──► todo ──► in-progress ──► in-review ──► done
+  │          │            │              │
+  └──────────┼────────────┼──────────────┘
+     USER    │  SESSION   │    USER
+    DRAG     │  CONTROLS  │   VERIFIES
+\`\`\`
+
+### Who Controls What
+
+| Transition | Controlled By | How |
+|------------|---------------|-----|
+| backlog → todo | User | Kanban drag |
+| todo → in-progress | Agent Session | \`session_start({ activeTicketIds })\` |
+| in-progress → in-review | Agent Session | \`session_end()\` |
+| in-review → done | User | Kanban drag (after verification) |
+
+### Complete Workflow (5 steps)
+
+| Step | Action | How |
+|------|--------|-----|
+| 1 | Find work | \`ticket_search({ status: ["todo"], sprintNumber: X })\` |
+| 2 | Start session | \`agent_session_start({ activeTicketIds: [42] })\` → **AUTO-CLAIMS** |
+| 3 | Implement | Code, test, commit |
+| 4 | Document | \`ticket_addComment({ content: "Implemented X, Y" })\` |
+| 5 | End session | \`agent_session_end()\` → **AUTO-MOVES TO IN-REVIEW** |
+
+### Ticket Claiming Rules
+
+**✅ Can Claim (via session_start)**:
+- Tickets in "todo" status only
+
+**❌ Cannot Claim**:
+- Tickets in "backlog" (not ready)
+- Tickets in "in-progress" (already claimed by another session)
+- Tickets in "in-review" (awaiting verification)
+- Tickets in "done" (completed)
 
 ### Creating Tickets from Backlog
 \`\`\`
@@ -531,20 +602,23 @@ Each sprint has a 5-column Kanban board:
 | Column | Status | Description |
 |--------|--------|-------------|
 | Backlog | \`backlog\` | Not yet scheduled |
-| Todo | \`todo\` | Ready to start |
-| In Progress | \`in-progress\` | Being worked on |
-| In Review | \`in-review\` | Awaiting review |
+| Todo | \`todo\` | Ready to start - claimable by agents |
+| In Progress | \`in-progress\` | Being worked on (agent-controlled) |
+| In Review | \`in-review\` | Awaiting user verification |
 | Done | \`done\` | Completed |
 
-### Moving Tickets (MCP)
+### Drag Restrictions (Sprint 16)
 
-\`\`\`
-projectpulse_kanban_moveTicket({
-  ticketId: 123,
-  status: "in-progress",
-  displayOrder: 0  // Position in column (0 = top)
-})
-\`\`\`
+**User CAN Drag**:
+- ✅ \`backlog → todo\` - Preparing ticket for agent work
+- ✅ \`in-review → done\` - Verifying completed work
+
+**User CANNOT Drag** (shows error toast):
+- ❌ \`todo → in-progress\` - Use agent \`session_start\`
+- ❌ \`in-progress → in-review\` - Use agent \`session_end\`
+- ❌ \`in-progress → anywhere\` - Agent owns this ticket
+
+**Why?** The middle columns (in-progress, in-review) are agent-controlled to ensure proper session linkage and work tracking.
 
 ### Progress Auto-Cascade
 
@@ -570,17 +644,20 @@ When tickets move to "done":
 
 ## Session Lifecycle
 
-### Starting a Work Session
+### Starting a Work Session (Sprint 16)
 \`\`\`
 # 1. Load project context
 projectpulse_context_load({ projectId: YOUR_ID })
 # Returns: memory banks, active session, workflow hints
 
-# 2. Start tracking your work
+# 2. Find "todo" tickets to work on
+projectpulse_ticket_search({ sprintNumber: 1, status: ["todo"] })
+
+# 3. Start session WITH tickets (auto-claims them!)
 projectpulse_agent_session_start({
   projectId: YOUR_ID,
   name: "Implementing user auth",
-  ticketIds: [123, 124]
+  activeTicketIds: [123, 124]  // Must be "todo" - auto-moves to "in-progress"
 })
 \`\`\`
 
@@ -600,9 +677,9 @@ projectpulse_agent_session_start({
 # Only when work is TRULY complete
 projectpulse_agent_session_end({
   sessionId: "...",
-  summary: "Completed user login with validation"
+  progress: "Completed user login with validation"
 })
-# Auto-syncs PROGRESS and ACTIVE_CONTEXT memory banks
+# Auto-syncs: PROGRESS/ACTIVE_CONTEXT banks + moves tickets to "in-review"
 \`\`\`
 
 ---
