@@ -27,8 +27,15 @@ const ticketSearchSchema = z.object({
   // Sprint 13: Traceability filters
   epicRef: z.string().max(200).optional(),
   sprintNumber: z.number().int().min(1).max(999).optional(),
+  // Sprint 16: Milestone & due date filters
+  milestoneId: z.number().int().positive().optional(),
+  dueDateFrom: z.string().datetime().optional(),
+  dueDateTo: z.string().datetime().optional(),
+  overdue: z.boolean().optional(),
+  // Sprint 16: Label ID filter (more efficient than tags)
+  labelIds: z.array(z.number().int().positive()).optional(),
   includeRelations: z.boolean().optional(),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'sprintNumber']).optional(),
+  sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'sprintNumber', 'kind', 'dueDate']).optional(),
   sortDirection: z.enum(['asc', 'desc']).optional(),
   page: z.number().int().min(1).optional(),
   pageSize: z.number().int().min(1).max(100).optional(),
@@ -63,6 +70,13 @@ async function handler(input: TicketSearchInput, context: ToolContext): Promise<
   // Sprint 13: Traceability filters
   if (input.epicRef) params.set('epicRef', input.epicRef);
   if (input.sprintNumber) params.set('sprintNumber', String(input.sprintNumber));
+  // Sprint 16: Milestone & due date filters
+  if (input.milestoneId) params.set('milestoneId', String(input.milestoneId));
+  if (input.dueDateFrom) params.set('dueDateFrom', input.dueDateFrom);
+  if (input.dueDateTo) params.set('dueDateTo', input.dueDateTo);
+  if (input.overdue !== undefined) params.set('overdue', String(input.overdue));
+  // Sprint 16: Label ID filter
+  if (input.labelIds?.length) params.set('labelIds', input.labelIds.join(','));
   if (input.includeRelations !== undefined)
     params.set('includeRelations', String(input.includeRelations));
   if (input.sortBy) params.set('sortBy', input.sortBy);
@@ -133,6 +147,8 @@ When to Use:
 - Filtering by kind (feature, task, bug, etc.)
 - Finding feature tickets for a specific sprint (sprintNumber filter)
 - Finding children of a feature (parentTicketId filter)
+- Finding tickets due soon or overdue (dueDateFrom/To, overdue filters)
+- Finding tickets by milestone (milestoneId filter)
 
 HIERARCHY FILTERS (Sprint 13):
 - parentTicketId: Find children of a specific feature ticket
@@ -141,12 +157,27 @@ HIERARCHY FILTERS (Sprint 13):
 - sprintNumber: Find tickets assigned to a specific sprint
 - epicRef: Find tickets referencing a specific epic
 
+MILESTONE & DUE DATE FILTERS (Sprint 16):
+- milestoneId: Filter by milestone ID
+- dueDateFrom: Tickets due on or after this date (ISO 8601)
+- dueDateTo: Tickets due on or before this date (ISO 8601)
+- overdue: true = only overdue tickets (dueDate < now, status != done)
+
+LABEL FILTERS (Sprint 16):
+- labelIds: Filter by label IDs (more efficient than tags array)
+
+SORT OPTIONS:
+- sortBy: createdAt, updatedAt, priority, sprintNumber, kind, dueDate
+- sortDirection: asc, desc
+
 Returns: Paginated ticket summaries with hierarchy info
 
 AGENT WORKFLOW:
 1. Search for feature tickets by sprintNumber to find your sprint work
 2. Use parentTicketId to find existing tasks under a feature
 3. Create new tasks with the same parentTicketId
+4. Find overdue tickets: overdue=true
+5. Find tickets due this week: dueDateTo with end-of-week date
 
 Related:
 → projectpulse_ticket_create - Create if no matching ticket found
@@ -199,8 +230,31 @@ Related:
         type: 'number',
         description: 'Filter by sprint number (1, 2, 3, ...)',
       },
+      // Sprint 16: Milestone & due date filters
+      milestoneId: {
+        type: 'number',
+        description: 'Filter by milestone ID',
+      },
+      dueDateFrom: {
+        type: 'string',
+        description: 'Filter tickets due on or after this date (ISO 8601)',
+      },
+      dueDateTo: {
+        type: 'string',
+        description: 'Filter tickets due on or before this date (ISO 8601)',
+      },
+      overdue: {
+        type: 'boolean',
+        description: 'true = only overdue tickets (dueDate < now and status != done)',
+      },
+      // Sprint 16: Label ID filter
+      labelIds: {
+        type: 'array',
+        items: { type: 'number' },
+        description: 'Filter by label IDs (more efficient than tags)',
+      },
       includeRelations: { type: 'boolean' },
-      sortBy: { type: 'string', enum: ['createdAt', 'updatedAt', 'priority', 'sprintNumber'] },
+      sortBy: { type: 'string', enum: ['createdAt', 'updatedAt', 'priority', 'sprintNumber', 'kind', 'dueDate'] },
       sortDirection: { type: 'string', enum: ['asc', 'desc'] },
       page: { type: 'number', minimum: 1 },
       pageSize: { type: 'number', minimum: 1, maximum: 100 },
