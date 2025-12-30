@@ -101,14 +101,17 @@ run_smoke_tests() {
 cleanup_old_images() {
     header "Cleanup Old Images"
 
+    # Note: All cleanup commands use || true to prevent non-critical errors
+    # from failing the deployment (e.g., stale BuildKit cache snapshots)
+
     log_info "Pruning dangling images (old layer caches)..."
-    docker image prune -f
+    docker image prune -f || true
 
     log_info "Pruning build cache older than 7 days..."
     docker builder prune -f --filter "until=168h" 2>/dev/null || true
 
     log_info "Current Docker disk usage:"
-    docker system df
+    docker system df 2>/dev/null || log_warn "Could not get disk usage (non-critical)"
 
     log_success "Cleanup complete"
 }
