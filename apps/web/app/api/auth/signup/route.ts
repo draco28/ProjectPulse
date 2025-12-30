@@ -1,13 +1,14 @@
 /**
  * Signup API Route
  * Sprint 8.9: User registration with validation and rate limiting
+ * Sprint 17: Migrated to withRateLimit HOC (Ticket #130)
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { withRateLimit } from '@/lib/rate-limit/withRateLimit';
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email address').toLowerCase(),
@@ -18,30 +19,12 @@ const signupSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long').trim(),
 });
 
-export async function POST(request: Request) {
+/**
+ * Signup handler
+ * Rate limited by withRateLimit HOC: 5 requests per 15 minutes (auth tier)
+ */
+async function signupHandler(request: NextRequest): Promise<NextResponse> {
   try {
-    // Rate limiting: 5 signups per IP per 15 minutes
-    const clientIp = getClientIp(request);
-    const rateLimitResult = await rateLimit(clientIp, 5, 900);
-
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Too many signup attempts',
-          message: 'Please try again later',
-          reset: rateLimitResult.reset,
-        },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': rateLimitResult.reset.toString(),
-          },
-        }
-      );
-    }
-
     // Parse and validate request body
     const body = await request.json();
     const validationResult = signupSchema.safeParse(body);
@@ -111,3 +94,12 @@ export async function POST(request: Request) {
     );
   }
 }
+
+/**
+ * POST /api/auth/signup
+ * Creates a new user account
+ *
+ * Rate Limited: 5 requests per 15 minutes per IP (auth tier)
+ * Response Headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
+ */
+export const POST = withRateLimit(signupHandler, { tier: 'auth' });
