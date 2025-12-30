@@ -126,7 +126,7 @@ export function parseCrossLinks(content: string): ParsedCrossLink[] {
 export async function resolveCrossLinks(
   content: string,
   sourcePagePath: string,
-  projectId?: number
+  _projectId?: number // Reserved for future multi-tenant scoping
 ): Promise<CrossLinkResolution> {
   // Parse all cross-links
   const parsedLinks = parseCrossLinks(content);

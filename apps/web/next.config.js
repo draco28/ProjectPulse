@@ -7,14 +7,17 @@ const nextConfig = {
   // This creates a minimal server.js with all dependencies bundled
   output: 'standalone',
 
-  // Disable ESLint during production builds (run separately in CI)
+  // ESLint: Skip during build, enforce via CI `pnpm lint --max-warnings 0`
+  // Rationale: Next.js build lint doesn't support warning thresholds,
+  // and we have 400+ warnings that need gradual cleanup (tech debt)
   eslint: {
     ignoreDuringBuilds: true,
   },
 
-  // Allow TypeScript errors during builds (strict checking in dev/CI)
+  // TypeScript: STRICT - fail build on any type error
+  // Type errors break runtime, must be caught before deploy
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 
   // Experimental features

@@ -12,16 +12,7 @@
  * - Invalid PRD references in SRS
  */
 
-import type {
-  DocumentSet,
-  ParsedPRD,
-  ParsedSRS,
-  ParsedBacklog,
-  ParsedProjectPlan,
-  SRSRequirement,
-  BacklogItem,
-  SprintScope,
-} from './parsers';
+import type { DocumentSet } from './parsers';
 
 // ============================================================================
 // TYPES
@@ -80,7 +71,8 @@ export function analyzeTraceability(
   docs: DocumentSet,
   options: AnalysisOptions = {}
 ): TraceabilityMatrix {
-  const { strict = true, strictNfr = false } = options;
+  // TODO: Use strict/strictNfr for validation thresholds
+  const { strict: _strict = true, strictNfr: _strictNfr = false } = options;
 
   // Get all requirement IDs from SRS
   const allFRs = docs.srs?.functionalRequirements.map((fr) => fr.id) || [];

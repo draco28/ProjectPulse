@@ -12,7 +12,9 @@ describe('formatRelativeTime', () => {
   // Helper to create a mock date
   const mockDate = (isoString: string) => {
     const mockNow = new Date(isoString);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Date constructor mock requires dynamic typing
     global.Date = class extends RealDate {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Date constructor accepts variable args
       constructor(...args: any[]) {
         if (args.length === 0) {
           super();
@@ -23,7 +25,7 @@ describe('formatRelativeTime', () => {
       static now() {
         return mockNow.getTime();
       }
-    } as any;
+    } as DateConstructor;
   };
 
   afterEach(() => {
@@ -159,14 +161,17 @@ describe('formatRelativeTime', () => {
     });
 
     it('should return "Unknown date" for null', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Testing runtime safety with invalid input
       expect(formatRelativeTime(null as any)).toBe('Unknown date');
     });
 
     it('should return "Unknown date" for undefined', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Testing runtime safety with invalid input
       expect(formatRelativeTime(undefined as any)).toBe('Unknown date');
     });
 
     it('should return "Unknown date" for non-string input', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Testing runtime safety with invalid input
       expect(formatRelativeTime(123 as any)).toBe('Unknown date');
     });
 

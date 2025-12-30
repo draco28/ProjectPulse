@@ -3,10 +3,8 @@
  * Tests valid parsing, malformed comments, edge cases, and file scanning
  */
 
-import { JSDocParser, parseJSDocFromProject, type ParsedDocumentation } from '../jsdoc';
-import * as fs from 'fs/promises';
+import { JSDocParser, parseJSDocFromProject } from '../jsdoc';
 import * as path from 'path';
-import { jest } from '@jest/globals';
 
 // Test fixtures directory
 const FIXTURES_DIR = path.join(__dirname, 'fixtures');

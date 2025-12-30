@@ -12,7 +12,6 @@ import {
   parseTraceLine,
   extractAllMatches,
   FR_PATTERN,
-  NFR_PATTERN,
 } from '../patterns';
 
 describe('Pattern Extraction', () => {

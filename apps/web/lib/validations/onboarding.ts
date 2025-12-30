@@ -82,5 +82,6 @@ export interface SubmitResponseResponse {
  */
 export interface TemplateVariables {
   expectedVariables: string[];
-  [key: string]: any; // Additional metadata
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Index signature for dynamic template metadata
+  [key: string]: any;
 }

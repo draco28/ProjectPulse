@@ -6,7 +6,7 @@
     "plugin:react/recommended",
     "prettier"
   ],
-  "ignorePatterns": ["lib/wiki/parsers/__tests__/fixtures/malformed-*.ts"],
+  "ignorePatterns": ["lib/wiki/parsers/__tests__/fixtures/**"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2022,

@@ -54,14 +54,17 @@ describe('generateInitials', () => {
     });
 
     it('should return "U" for null input', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Testing runtime safety with invalid input
       expect(generateInitials(null as any)).toBe('U');
     });
 
     it('should return "U" for undefined input', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Testing runtime safety with invalid input
       expect(generateInitials(undefined as any)).toBe('U');
     });
 
     it('should return "U" for non-string input', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Testing runtime safety with invalid input
       expect(generateInitials(123 as any)).toBe('U');
     });
   });

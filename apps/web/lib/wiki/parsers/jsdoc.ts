@@ -279,8 +279,10 @@ export class JSDocParser {
   /**
    * Helper method to extract plain text from TSDoc nodes
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TSDoc library nodes are dynamically typed
   private extractTextFromNodes(nodes: readonly any[]): string {
     return nodes
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TSDoc node types vary by kind
       .map((node: any) => {
         if (node.kind === 'Paragraph') {
           return this.extractTextFromNodes(node.getChildNodes());

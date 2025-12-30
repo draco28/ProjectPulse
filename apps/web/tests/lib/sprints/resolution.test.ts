@@ -193,6 +193,11 @@ async function testFindNextSprint() {
 
     const [sprint1, sprint2] = sprints;
 
+    // TypeScript strict mode: guard against undefined after destructuring
+    if (!sprint1 || !sprint2) {
+      throw new Error('Expected at least 2 sprints after length check');
+    }
+
     // Find next after sprint1
     const nextSprint = await findNextSprint(prisma, sprint1.id);
 
@@ -267,10 +272,18 @@ async function testGetOrderedSprints() {
 
     // Verify ordering is ascending by sprintNumber
     for (let i = 1; i < sprints.length; i++) {
-      if (sprints[i].sprintNumber < sprints[i - 1].sprintNumber) {
+      const current = sprints[i];
+      const previous = sprints[i - 1];
+
+      // TypeScript strict mode: guard against undefined array access
+      if (!current || !previous) {
+        throw new Error(`Unexpected undefined sprint at index ${i}`);
+      }
+
+      if (current.sprintNumber < previous.sprintNumber) {
         throw new Error(
-          `Sprints not ordered: sprint ${sprints[i].sprintNumber} at index ${i} ` +
-            `is less than sprint ${sprints[i - 1].sprintNumber} at index ${i - 1}`
+          `Sprints not ordered: sprint ${current.sprintNumber} at index ${i} ` +
+            `is less than sprint ${previous.sprintNumber} at index ${i - 1}`
         );
       }
     }
