@@ -157,7 +157,7 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
             <div className="sticky top-0 bg-dark-card border-b border-white/10 p-4 z-10">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-lg font-mono text-slate">#{ticket.id}</span>
+                  <span className="text-lg font-mono text-slate">#{ticket.ticketNumber}</span>
                   <KindBadge kind={ticket.kind} />
                 </div>
                 <button

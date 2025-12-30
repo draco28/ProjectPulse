@@ -5,18 +5,25 @@ import {
   TicketRecord,
   baseTicketFields,
   buildErrorPayload,
-  buildSuccessPayload,
-  ticketIdSchema,
   ticketInputProperties,
   summarizeTicket,
+  ticketNumberSchema,
+  projectIdSchema,
 } from './common.js';
 
+// Sprint 17: Dual-input schema - accept either ticketId OR (ticketNumber + projectId)
 const ticketUpdateSchema = baseTicketFields
   .omit({ projectId: true })
   .partial() // All fields optional for updates
   .extend({
-    ticketId: ticketIdSchema, // Required
+    ticketId: z.number().int().positive().optional(),         // Global ID (existing)
+    ticketNumber: ticketNumberSchema.optional(),              // Project-scoped (NEW)
+    projectId: projectIdSchema.optional(),                    // Required with ticketNumber
   })
+  .refine(
+    (data) => data.ticketId || (data.ticketNumber && data.projectId),
+    { message: 'Either ticketId OR (ticketNumber + projectId) required' }
+  )
   .refine(
     (data) =>
       data.title !== undefined ||
@@ -51,11 +58,28 @@ type TicketUpdateInput = z.infer<typeof ticketUpdateSchema>;
 async function handler(input: TicketUpdateInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
 
-  const { ticketId, ...payload } = input;
+  // Sprint 17: Extract identifier fields, rest is payload
+  const { ticketId, ticketNumber, projectId, ...payload } = input;
 
   try {
+    // Sprint 17: Resolve ticketId if ticketNumber was provided
+    let resolvedTicketId = ticketId;
+    if (!resolvedTicketId && ticketNumber && projectId) {
+      // Look up the ticket by project-scoped number first
+      const lookupResponse = await httpClient.get<ApiResponse<{ id: number }>>(
+        `/api/tickets/by-number/${projectId}/${ticketNumber}`
+      );
+      if (!lookupResponse.data) {
+        return buildErrorPayload(
+          `Ticket #${ticketNumber} not found in project ${projectId}`,
+          'NOT_FOUND'
+        );
+      }
+      resolvedTicketId = lookupResponse.data.id;
+    }
+
     const response = await httpClient.patch<ApiResponse<TicketRecord>>(
-      `/api/tickets/${ticketId}`,
+      `/api/tickets/${resolvedTicketId}`,
       payload
     );
 
@@ -66,11 +90,13 @@ async function handler(input: TicketUpdateInput, context: ToolContext): Promise<
       );
     }
 
-    logger.info('[ticket.update] Ticket updated', { id: ticketId });
+    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId };
+    logger.info('[ticket.update] Ticket updated', { id: resolvedTicketId, ...identifier });
     // Return ticket data directly (tests expect flat structure without status/data wrapper)
     return JSON.stringify(summarizeTicket(response.data), null, 2);
   } catch (error) {
-    logger.error('[ticket.update] Unexpected error', { error, ticketId });
+    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId };
+    logger.error('[ticket.update] Unexpected error', { error, ...identifier });
     return buildErrorPayload(error instanceof Error ? error.message : 'Unexpected error');
   }
 }
@@ -78,6 +104,10 @@ async function handler(input: TicketUpdateInput, context: ToolContext): Promise<
 export const ticketUpdateTool: ToolDefinition = {
   name: 'projectpulse_ticket_update',
   description: `Update an existing ticket (kind, source, status, priority, module, assignee, labels, custom fields, or context metadata). Does not change comments; use ticket.addComment for notes.
+
+TICKET IDENTIFICATION (Sprint 17):
+- Use \`ticketNumber\` (+ projectId) for user-referenced tickets: "Ticket #5"
+- Use \`ticketId\` for internal/API-retrieved tickets (global ID)
 
 HIERARCHY (Sprint 13):
 - Set parentTicketId to link ticket under a feature
@@ -90,7 +120,15 @@ HIERARCHY (Sprint 13):
     properties: {
       ticketId: {
         type: 'number',
-        description: 'Numeric ticket identifier',
+        description: 'Global ticket ID (use if you have it from API responses)',
+      },
+      ticketNumber: {
+        type: 'number',
+        description: 'Project-scoped ticket number (use for user-referenced tickets like "#5")',
+      },
+      projectId: {
+        type: 'number',
+        description: 'Project ID (required when using ticketNumber)',
       },
       title: ticketInputProperties.title,
       description: ticketInputProperties.description,
@@ -114,7 +152,7 @@ HIERARCHY (Sprint 13):
       // Sprint 15: Kanban ordering
       displayOrder: ticketInputProperties.displayOrder,
     },
-    required: ['ticketId'],
+    required: [],  // No single field required - validation uses refine() for either/or
   },
   execute: async (params: unknown, context: ToolContext) => {
     const parsed = ticketUpdateSchema.parse(params ?? {});

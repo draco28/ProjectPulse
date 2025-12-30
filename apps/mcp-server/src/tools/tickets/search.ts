@@ -102,11 +102,15 @@ async function handler(input: TicketSearchInput, context: ToolContext): Promise<
     });
 
     // Return flat structure (tests expect tickets array and pagination at root level)
+    // Sprint 17: ticketNumber and displayId are PRIMARY identifiers for user display
     return JSON.stringify({
       tickets: response.data.tickets.map((ticket) => ({
+        // Sprint 17: Project-scoped identifiers FIRST (what users see)
+        ticketNumber: ticket.ticketNumber,
+        // Sprint 14: Hierarchical display ID (e.g., "5.1" for child of #5)
+        displayId: ticket.displayId ?? `${ticket.ticketNumber ?? ticket.id}`,
+        // Global ID (for API calls and FK references)
         id: ticket.id,
-        // Sprint 14: Hierarchical display ID (e.g., "30.1" for child of #30)
-        displayId: ticket.displayId ?? `${ticket.id}`,
         title: ticket.title,
         kind: ticket.kind,
         source: ticket.source,

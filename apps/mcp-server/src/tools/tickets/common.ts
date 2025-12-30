@@ -25,6 +25,7 @@ export interface TicketLinkedFile {
 
 export interface TicketRecord {
   id: number;
+  ticketNumber: number; // Sprint 17: Project-scoped sequential number
   projectId: number;
   title: string;
   description?: string | null;
@@ -132,6 +133,12 @@ export const baseTicketFields = z.object({
 export const ticketIdSchema = z
   .union([z.number().int().positive(), z.string().regex(/^\d+$/)])
   .transform((value) => Number(value));
+
+// Sprint 17: Project-scoped ticket number (for user-facing "#5" style references)
+export const ticketNumberSchema = z.number().int().positive();
+
+// Sprint 17: Project ID schema (for dual-input support)
+export const projectIdSchema = z.number().int().positive();
 
 // JSON Schema properties for MCP tool descriptions
 export const ticketInputProperties = {
@@ -285,9 +292,12 @@ export const buildErrorPayload = (message: string, code = 'ERROR', details?: unk
   );
 
 export const summarizeTicket = (ticket: Partial<TicketRecord>) => ({
+  // Sprint 17: Project-scoped identifiers FIRST (what users see)
+  ticketNumber: ticket.ticketNumber,
+  // Sprint 14: Hierarchical display ID (e.g., "5.1" for child of #5)
+  displayId: ticket.displayId ?? `${ticket.ticketNumber ?? ticket.id}`,
+  // Global ID (for API calls and FK references)
   id: ticket.id,
-  // Sprint 14: Hierarchical display ID (e.g., "30.1" for child of #30)
-  displayId: ticket.displayId ?? `${ticket.id}`,
   projectId: ticket.projectId,
   title: ticket.title,
   description: ticket.description ?? null,

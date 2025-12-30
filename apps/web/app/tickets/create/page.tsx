@@ -17,6 +17,7 @@ import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
 import { withProjectAuth } from '@/lib/project';
 import { ProjectLayoutWrapper } from '@/components/layout';
+import { getNextTicketNumber } from '@/lib/tickets/ticketNumber';
 
 export const metadata: Metadata = {
   title: 'Create Ticket | ProjectPulse',
@@ -81,18 +82,23 @@ async function createTicket(formData: FormData) {
     throw new Error('Title is required');
   }
 
-  const ticket = await prisma.ticket.create({
-    data: {
-      projectId,
-      title: title.trim(),
-      description: description?.trim() || null,
-      kind: kind || 'issue',
-      source: source || 'manual',
-      priority: priority || 'medium',
-      status: status || 'backlog', // Sprint 15: Default to backlog
-      module: moduleValue?.trim() || null,
-      assignee: assignee?.trim() || null,
-    },
+  // Sprint 17: Generate project-scoped ticketNumber in transaction
+  const ticket = await prisma.$transaction(async (tx) => {
+    const ticketNumber = await getNextTicketNumber(tx, projectId);
+    return tx.ticket.create({
+      data: {
+        projectId,
+        ticketNumber,
+        title: title.trim(),
+        description: description?.trim() || null,
+        kind: kind || 'issue',
+        source: source || 'manual',
+        priority: priority || 'medium',
+        status: status || 'backlog', // Sprint 15: Default to backlog
+        module: moduleValue?.trim() || null,
+        assignee: assignee?.trim() || null,
+      },
+    });
   });
 
   revalidatePath('/tickets');

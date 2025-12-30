@@ -39,6 +39,7 @@ interface Label {
 
 interface ChildTicket {
   id: number;
+  ticketNumber: number;  // Sprint 17: Project-scoped number for display
   title: string;
   status: string;
   priority: string;
@@ -54,11 +55,13 @@ interface ChildTicket {
 
 interface ParentTicket {
   id: number;
+  ticketNumber: number;  // Sprint 17: Project-scoped number for display
   title: string;
 }
 
 export interface HierarchyTicket {
   id: number;
+  ticketNumber: number;  // Sprint 17: Project-scoped number for display
   title: string;
   description: string | null;
   priority: string;
@@ -97,17 +100,18 @@ const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
   done: { label: 'Done', className: 'bg-green-500 text-white shadow-md' },
 };
 
-// Compute displayId for a ticket
-function getDisplayId(ticket: { id: number }, parentId?: number, childIndex?: number): string {
-  if (parentId !== undefined && childIndex !== undefined) {
-    return `${parentId}.${childIndex + 1}`;
+// Sprint 17: Compute displayId using project-scoped ticketNumber
+function getDisplayId(ticket: { ticketNumber: number }, parentTicketNumber?: number, childIndex?: number): string {
+  if (parentTicketNumber !== undefined && childIndex !== undefined) {
+    return `${parentTicketNumber}.${childIndex + 1}`;
   }
-  return `${ticket.id}`;
+  return `${ticket.ticketNumber}`;
 }
 
 interface TicketCardProps {
   ticket: {
     id: number;
+    ticketNumber: number;  // Sprint 17: Project-scoped number for display
     title: string;
     description: string | null;
     priority: string;
@@ -348,6 +352,7 @@ export function TicketHierarchyList({
             <TicketCard
               ticket={{
                 id: ticket.id,
+                ticketNumber: ticket.ticketNumber,
                 title: ticket.title,
                 description: ticket.description,
                 priority: ticket.priority,
@@ -378,6 +383,7 @@ export function TicketHierarchyList({
                     key={child.id}
                     ticket={{
                       id: child.id,
+                      ticketNumber: child.ticketNumber,
                       title: child.title,
                       description: child.description,
                       priority: child.priority,
@@ -390,7 +396,7 @@ export function TicketHierarchyList({
                       commentsCount: child.comments.length,
                       attachmentsCount: child.attachments.length,
                     }}
-                    displayId={getDisplayId(child, ticket.id, index)}
+                    displayId={getDisplayId(child, ticket.ticketNumber, index)}
                     projectId={projectId}
                     kindLabel={kindLabels[child.kind] || child.kind}
                     kindColor={kindColors[child.kind] || 'bg-gray-500/20 text-gray-400'}

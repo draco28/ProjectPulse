@@ -1,7 +1,9 @@
 /**
- * MCP Tool: Ticket Get (Sprint 14)
+ * MCP Tool: Ticket Get (Sprint 14, Sprint 17)
  *
  * Get full ticket details by ID including customFields, description, comments
+ *
+ * Sprint 17: Added dual-input support (ticketId OR ticketNumber+projectId)
  */
 
 import { z } from 'zod';
@@ -9,7 +11,7 @@ import type { ToolDefinition, ToolContext } from '../types.js';
 import {
   ApiResponse,
   buildErrorPayload,
-  ticketIdSchema,
+  projectIdSchema,
 } from './common.js';
 
 interface TicketLabel {
@@ -52,6 +54,8 @@ interface TicketLinkedCommit {
 
 interface FullTicketResponse {
   id: number;
+  ticketNumber: number;  // Sprint 17: Project-scoped number for display
+  displayId: string;     // Sprint 17: Computed display ID (ticketNumber or parentNum.position)
   projectId: number;
   title: string;
   description: string | null;
@@ -92,9 +96,15 @@ interface FullTicketResponse {
   sprintNumber: number | null;
 }
 
+// Sprint 17: Dual-input schema - accept either ticketId OR (ticketNumber + projectId)
 const getTicketSchema = z.object({
-  ticketId: ticketIdSchema,
-});
+  ticketId: z.number().int().positive().optional(),      // Global ID (existing)
+  ticketNumber: z.number().int().positive().optional(),  // Project-scoped (NEW)
+  projectId: projectIdSchema.optional(),                 // Required with ticketNumber
+}).refine(
+  (data) => data.ticketId || (data.ticketNumber && data.projectId),
+  { message: 'Either ticketId OR (ticketNumber + projectId) required' }
+);
 
 type GetTicketInput = z.infer<typeof getTicketSchema>;
 
@@ -102,13 +112,23 @@ async function handler(input: GetTicketInput, context: ToolContext): Promise<str
   const { httpClient, logger } = context;
 
   try {
-    const response = await httpClient.get<ApiResponse<FullTicketResponse>>(
-      `/api/tickets/${input.ticketId}`
-    );
+    // Sprint 17: Choose API endpoint based on input type
+    let endpoint: string;
+    if (input.ticketId) {
+      endpoint = `/api/tickets/${input.ticketId}`;
+    } else {
+      // Use ticketNumber + projectId lookup
+      endpoint = `/api/tickets/by-number/${input.projectId}/${input.ticketNumber}`;
+    }
+
+    const response = await httpClient.get<ApiResponse<FullTicketResponse>>(endpoint);
 
     if (!response.data) {
+      const identifier = input.ticketId
+        ? `ID ${input.ticketId}`
+        : `#${input.ticketNumber} in project ${input.projectId}`;
       return buildErrorPayload(
-        response.error?.message ?? 'Failed to get ticket',
+        response.error?.message ?? `Failed to get ticket ${identifier}`,
         response.error?.code
       );
     }
@@ -116,51 +136,58 @@ async function handler(input: GetTicketInput, context: ToolContext): Promise<str
     const ticket = response.data;
 
     logger.info('[ticket.get] Ticket fetched', {
-      ticketId: input.ticketId,
+      ticketId: ticket.id,
+      ticketNumber: ticket.ticketNumber,
+      usedTicketNumber: !input.ticketId,
       hasCustomFields: !!ticket.customFields,
       hasImplementationContext: !!(ticket.customFields as Record<string, unknown>)?._implementationContext,
       commentsCount: ticket.comments?.length ?? 0,
     });
 
-    // Return full ticket data (no summarization - that's the point of this tool)
+    // Return full ticket data directly (consistent with ticket_create - flat structure)
+    // Sprint 17: ticketNumber and displayId are now PRIMARY identifiers for user display
     return JSON.stringify({
-      status: 'success',
-      data: {
-        id: ticket.id,
-        projectId: ticket.projectId,
-        title: ticket.title,
-        description: ticket.description,
-        kind: ticket.kind,
-        source: ticket.source,
-        status: ticket.status,
-        priority: ticket.priority,
-        module: ticket.module,
-        assignee: ticket.assignee,
-        assigneeType: ticket.assigneeType,
-        assigneeId: ticket.assigneeId,
-        customFields: ticket.customFields,  // Full customFields including _implementationContext!
-        createdAt: ticket.createdAt,
-        updatedAt: ticket.updatedAt,
-        closedAt: ticket.closedAt,
-        // Relations
-        labels: ticket.labels?.map((l) => ({ id: l.id, name: l.name, color: l.color })) ?? [],
-        comments: ticket.comments ?? [],
-        attachments: ticket.attachments ?? [],
-        linkedFiles: ticket.linkedFiles ?? [],
-        linkedCommits: ticket.linkedCommits ?? [],
-        scheduledWeek: ticket.scheduledWeek,
-        project: ticket.project,
-        // Hierarchy
-        parentTicket: ticket.parentTicket,
-        childTickets: ticket.childTickets ?? [],
-        // Traceability
-        epicRef: ticket.epicRef,
-        backlogRefs: ticket.backlogRefs ?? [],
-        sprintNumber: ticket.sprintNumber,
-      },
+      // Sprint 17: Project-scoped identifiers FIRST (what users see)
+      ticketNumber: ticket.ticketNumber,
+      displayId: ticket.displayId,
+      // Global ID (for API calls and FK references)
+      id: ticket.id,
+      projectId: ticket.projectId,
+      title: ticket.title,
+      description: ticket.description,
+      kind: ticket.kind,
+      source: ticket.source,
+      status: ticket.status,
+      priority: ticket.priority,
+      module: ticket.module,
+      assignee: ticket.assignee,
+      assigneeType: ticket.assigneeType,
+      assigneeId: ticket.assigneeId,
+      customFields: ticket.customFields,  // Full customFields including _implementationContext!
+      createdAt: ticket.createdAt,
+      updatedAt: ticket.updatedAt,
+      closedAt: ticket.closedAt,
+      // Relations
+      labels: ticket.labels?.map((l) => ({ id: l.id, name: l.name, color: l.color })) ?? [],
+      comments: ticket.comments ?? [],
+      attachments: ticket.attachments ?? [],
+      linkedFiles: ticket.linkedFiles ?? [],
+      linkedCommits: ticket.linkedCommits ?? [],
+      scheduledWeek: ticket.scheduledWeek,
+      project: ticket.project,
+      // Hierarchy
+      parentTicket: ticket.parentTicket,
+      childTickets: ticket.childTickets ?? [],
+      // Traceability
+      epicRef: ticket.epicRef,
+      backlogRefs: ticket.backlogRefs ?? [],
+      sprintNumber: ticket.sprintNumber,
     }, null, 2);
   } catch (error) {
-    logger.error('[ticket.get] Unexpected error', { error, ticketId: input.ticketId });
+    const identifier = input.ticketId
+      ? { ticketId: input.ticketId }
+      : { ticketNumber: input.ticketNumber, projectId: input.projectId };
+    logger.error('[ticket.get] Unexpected error', { error, ...identifier });
     return buildErrorPayload(error instanceof Error ? error.message : 'Unexpected error');
   }
 }
@@ -169,6 +196,11 @@ export const ticketGetTool: ToolDefinition = {
   name: 'projectpulse_ticket_get',
   description: `[QUERY] Get full ticket details by ID including customFields and implementation context.
 
+TICKET IDENTIFICATION (Sprint 17):
+- Use \`ticketNumber\` (+ projectId) for user-referenced tickets: "Ticket #5"
+- Use \`ticketId\` for internal/API-retrieved tickets (global ID)
+- Response shows both - prefer ticketNumber for user display
+
 When to Use:
 - Resuming work on a ticket from a previous session
 - Reading implementation context from customFields._implementationContext
@@ -176,6 +208,8 @@ When to Use:
 - Understanding ticket history and linked resources
 
 Returns: Complete ticket with ALL fields including:
+- ticketNumber (project-scoped, what users see: #5)
+- displayId (for hierarchy: "5.1", "5.2" for children)
 - Full description (up to 50k chars)
 - customFields with _implementationContext (implementation blueprint, files to modify, etc.)
 - All comments
@@ -190,19 +224,27 @@ AGENT WORKFLOW:
 4. Continue work based on the plan
 
 Related:
-\u2192 projectpulse_ticket_search - Find tickets by filters (summaries only)
-\u2192 projectpulse_ticket_getHierarchy - Get parent/child relationships
-\u2192 projectpulse_ticket_update - Modify ticket after reading`,
+→ projectpulse_ticket_search - Find tickets by filters (summaries only)
+→ projectpulse_ticket_getHierarchy - Get parent/child relationships
+→ projectpulse_ticket_update - Modify ticket after reading`,
   schema: getTicketSchema,
   inputSchema: {
     type: 'object',
     properties: {
       ticketId: {
         type: 'number',
-        description: 'ID of the ticket to retrieve',
+        description: 'Global ticket ID (use if you have it from API responses)',
+      },
+      ticketNumber: {
+        type: 'number',
+        description: 'Project-scoped ticket number (use for user-referenced tickets like "#5")',
+      },
+      projectId: {
+        type: 'number',
+        description: 'Project ID (required when using ticketNumber)',
       },
     },
-    required: ['ticketId'],
+    required: [],  // No single field required - validation uses refine()
   },
   execute: async (params: unknown, context: ToolContext) => {
     const parsed = getTicketSchema.parse(params ?? {});

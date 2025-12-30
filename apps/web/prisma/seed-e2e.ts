@@ -77,6 +77,9 @@ async function main() {
   // "recent issues" section which shows top 5 by createdAt DESC
 
   // Create 11 open tickets first (IDs 1-11)
+  // Sprint 17: Track project-scoped ticketNumber
+  let ticketNumber = 1;
+
   const ticketsData = [
     { title: 'Add dark mode toggle', priority: 'high', module: 'UI' },
     { title: 'Fix pagination bug', priority: 'medium', module: 'Core' },
@@ -94,6 +97,7 @@ async function main() {
   for (const data of ticketsData) {
     await prisma.ticket.create({
       data: {
+        ticketNumber: ticketNumber++, // Sprint 17: Project-scoped number
         title: data.title,
         description: `Description for ${data.title}`,
         kind: 'issue',
@@ -113,6 +117,7 @@ async function main() {
   for (let i = 1; i <= 24; i++) {
     await prisma.ticket.create({
       data: {
+        ticketNumber: ticketNumber++, // Sprint 17: Project-scoped number
         title: `Completed issue ${i}`,
         description: `Completed task ${i}`,
         kind: 'issue',
@@ -132,6 +137,7 @@ async function main() {
 
   await prisma.ticket.create({
     data: {
+      ticketNumber: ticketNumber++, // Sprint 17: Project-scoped number
       title: 'Performance regression in API endpoints',
       description: 'API response times increased significantly - RESOLVED',
       kind: 'issue',
@@ -146,6 +152,7 @@ async function main() {
 
   await prisma.ticket.create({
     data: {
+      ticketNumber: ticketNumber++,
       title: 'Update documentation for new features',
       description: 'Documentation updated to reflect recent changes',
       kind: 'issue',
@@ -160,6 +167,7 @@ async function main() {
 
   await prisma.ticket.create({
     data: {
+      ticketNumber: ticketNumber++,
       title: 'Minor UI alignment issue in footer',
       description: 'Footer text alignment fixed',
       kind: 'issue',
@@ -174,6 +182,7 @@ async function main() {
 
   await prisma.ticket.create({
     data: {
+      ticketNumber: ticketNumber++,
       title: 'Optimize database connection pooling',
       description: 'Connection pool settings tuned and optimized',
       kind: 'issue',
@@ -196,6 +205,7 @@ async function main() {
   // Create ticket first, then connect label (workaround for constraint timing issue)
   const authTicket = await prisma.ticket.create({
     data: {
+      ticketNumber: ticketNumber++, // Sprint 17: Project-scoped number (last ticket)
       title: 'Authentication flow not handling session timeout',
       description: 'Session timeout not being handled correctly in auth flow',
       kind: 'issue',

@@ -16,7 +16,8 @@ interface TicketBulkResponse {
   total: number;
   results: Array<{
     success: boolean;
-    ticket?: { id: number; title: string; kind: string; reference?: string };
+    // Sprint 17: Added ticketNumber for user-friendly display
+    ticket?: { id: number; ticketNumber: number; title: string; kind: string; reference?: string };
     error?: string;
     reference?: string;
   }>;
@@ -56,11 +57,18 @@ async function handler(input: TicketBulkCreateInput, context: ToolContext): Prom
     });
 
     // Return flat structure (tests expect created/failed/tickets at root level)
+    // Sprint 17: Output ticketNumber first for user-friendly display
     return JSON.stringify({
       created: response.data.created,
       failed: response.data.failed,
       total: response.data.total,
-      tickets: successResults.map((r) => r.ticket),
+      tickets: successResults.map((r) => r.ticket ? {
+        ticketNumber: r.ticket.ticketNumber,  // Sprint 17: Project-scoped number first
+        id: r.ticket.id,
+        title: r.ticket.title,
+        kind: r.ticket.kind,
+        reference: r.ticket.reference,
+      } : r.ticket),
     }, null, 2);
   } catch (error) {
     logger.error('[ticket.bulkCreate] Unexpected error', { error });

@@ -25,6 +25,7 @@ import { prisma } from '@/lib/prisma';
 import { MCPError, JSONRPC_ERROR_CODES } from '../types';
 import { Prisma } from '@prisma/client';
 import { TICKET_STATUSES, TicketStatusSystem, type TicketStatus } from '@/lib/constants/status';
+import { getNextTicketNumber } from '@/lib/tickets/ticketNumber';
 
 // ============================================================================
 // Types
@@ -81,6 +82,7 @@ export interface TicketCreateInput {
 
 export interface TicketCreateOutput {
   id: number;
+  ticketNumber: number; // Sprint 17: Project-scoped ticket number
   projectId: number;
   title: string;
   description: string | null;
@@ -94,7 +96,7 @@ export interface TicketCreateOutput {
   createdAt: string;
   // Sprint 11.7: Milestone and Due Date
   dueDate: string | null;
-  milestone: { id: number; name: string } | null;
+  milestone?: { id: number; name: string } | null; // Optional for bulk create
 }
 
 export interface TicketBulkCreateInput {
@@ -296,8 +298,8 @@ export async function ticketCreateHandler(input: unknown): Promise<TicketCreateO
       };
     }
 
-    // Build create data
-    const createData: Prisma.TicketCreateInput = {
+    // Build create data (ticketNumber added later in transaction)
+    const createData: Omit<Prisma.TicketCreateInput, 'ticketNumber'> = {
       project: { connect: { id: projectId } },
       title: params.title,
       description: params.description || null,
@@ -335,28 +337,35 @@ export async function ticketCreateHandler(input: unknown): Promise<TicketCreateO
       createData.milestone = { connect: { id: params.milestoneId } };
     }
 
-    // Create ticket
-    const ticket = await prisma.ticket.create({
-      data: createData,
-      select: {
-        id: true,
-        projectId: true,
-        title: true,
-        description: true,
-        kind: true,
-        source: true,
-        status: true,
-        priority: true,
-        module: true,
-        assignee: true,
-        customFields: true,
-        createdAt: true,
-        // Sprint 11.7: Include milestone and dueDate
-        dueDate: true,
-        milestone: {
-          select: { id: true, name: true },
+    // Sprint 17: Create ticket in transaction to generate project-scoped ticketNumber
+    const ticket = await prisma.$transaction(async (tx) => {
+      const ticketNumber = await getNextTicketNumber(tx, projectId);
+      return tx.ticket.create({
+        data: {
+          ...createData,
+          ticketNumber,
         },
-      },
+        select: {
+          id: true,
+          ticketNumber: true, // Sprint 17: Include ticketNumber
+          projectId: true,
+          title: true,
+          description: true,
+          kind: true,
+          source: true,
+          status: true,
+          priority: true,
+          module: true,
+          assignee: true,
+          customFields: true,
+          createdAt: true,
+          // Sprint 11.7: Include milestone and dueDate
+          dueDate: true,
+          milestone: {
+            select: { id: true, name: true },
+          },
+        },
+      });
     });
 
     // Connect labels if provided
@@ -373,6 +382,7 @@ export async function ticketCreateHandler(input: unknown): Promise<TicketCreateO
 
     return {
       id: ticket.id,
+      ticketNumber: ticket.ticketNumber, // Sprint 17: Project-scoped ticket number
       projectId: ticket.projectId,
       title: ticket.title,
       description: ticket.description,
@@ -429,27 +439,33 @@ export async function ticketBulkCreateHandler(input: unknown): Promise<TicketBul
     // Resolve project ID
     const projectId = await resolveProjectId(params.projectId);
 
-    // Create tickets in transaction
+    // Sprint 17: Create tickets in interactive transaction for sequential ticketNumbers
     // Note: bulkCreate doesn't support milestone linking (use single create for that)
-    const createdTickets = await prisma.$transaction(
-      params.tickets.map((ticket) =>
-        prisma.ticket.create({
+    const createdTickets = await prisma.$transaction(async (tx) => {
+      // Get starting ticket number for the batch
+      let nextTicketNumber = await getNextTicketNumber(tx, projectId);
+
+      const tickets = [];
+      for (const ticketInput of params.tickets) {
+        const ticket = await tx.ticket.create({
           data: {
             project: { connect: { id: projectId } },
-            title: ticket.title,
-            description: ticket.description || null,
-            kind: ticket.kind || 'issue',
-            source: ticket.source || 'manual',
-            status: ticket.status || TICKET_STATUSES.BACKLOG,
-            priority: ticket.priority || 'medium',
-            module: ticket.module || null,
-            assignee: ticket.assignee || null,
-            customFields: (ticket.customFields as Prisma.InputJsonValue) || Prisma.JsonNull,
+            ticketNumber: nextTicketNumber++, // Sprint 17: Assign and increment
+            title: ticketInput.title,
+            description: ticketInput.description || null,
+            kind: ticketInput.kind || 'issue',
+            source: ticketInput.source || 'manual',
+            status: ticketInput.status || TICKET_STATUSES.BACKLOG,
+            priority: ticketInput.priority || 'medium',
+            module: ticketInput.module || null,
+            assignee: ticketInput.assignee || null,
+            customFields: (ticketInput.customFields as Prisma.InputJsonValue) || Prisma.JsonNull,
             // Sprint 11.7: Support dueDate in bulk create
-            dueDate: ticket.dueDate ? new Date(ticket.dueDate) : null,
+            dueDate: ticketInput.dueDate ? new Date(ticketInput.dueDate) : null,
           },
           select: {
             id: true,
+            ticketNumber: true, // Sprint 17: Include ticketNumber
             projectId: true,
             title: true,
             description: true,
@@ -461,20 +477,20 @@ export async function ticketBulkCreateHandler(input: unknown): Promise<TicketBul
             assignee: true,
             customFields: true,
             createdAt: true,
-            // Sprint 11.7: Include dueDate and milestone
+            // Sprint 11.7: Include dueDate
             dueDate: true,
-            milestone: {
-              select: { id: true, name: true },
-            },
           },
-        })
-      )
-    );
+        });
+        tickets.push(ticket);
+      }
+      return tickets;
+    });
 
     return {
       created: createdTickets.length,
       tickets: createdTickets.map((t) => ({
         id: t.id,
+        ticketNumber: t.ticketNumber, // Sprint 17: Project-scoped ticket number
         projectId: t.projectId,
         title: t.title,
         description: t.description,
@@ -486,9 +502,8 @@ export async function ticketBulkCreateHandler(input: unknown): Promise<TicketBul
         assignee: t.assignee,
         customFields: t.customFields as Record<string, unknown> | null,
         createdAt: t.createdAt.toISOString(),
-        // Sprint 11.7: Include dueDate and milestone
+        // Sprint 11.7: Include dueDate
         dueDate: t.dueDate?.toISOString() || null,
-        milestone: t.milestone ? { id: t.milestone.id, name: t.milestone.name } : null,
       })),
     };
   } catch (error) {

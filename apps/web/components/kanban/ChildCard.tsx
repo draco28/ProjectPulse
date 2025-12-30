@@ -134,10 +134,10 @@ export const ChildCard = memo(
         {/* Header: ID + Parent Ref + Priority */}
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono text-slate">#{ticket.id}</span>
+            <span className="text-[10px] font-mono text-slate">#{ticket.ticketNumber}</span>
             {ticket.parentTicket && (
               <span className="text-[9px] text-slate/60">
-                ↳ #{ticket.parentTicket.id}
+                ↳ #{ticket.parentTicket.ticketNumber}
               </span>
             )}
           </div>

@@ -23,7 +23,7 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient({
   datasourceUrl: process.env.DATABASE_URL ||
-    'postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev',
+    'postgresql://postgres:postgres123@localhost:5432/projectpulse_dev',
 });
 
 /**

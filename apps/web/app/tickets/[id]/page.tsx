@@ -65,7 +65,7 @@ export async function generateMetadata({
 
   const ticket = await prisma.ticket.findUnique({
     where: { id: ticketId },
-    select: { title: true, id: true, kind: true },
+    select: { title: true, id: true, ticketNumber: true, kind: true },  // Sprint 17
   });
 
   if (!ticket) {
@@ -77,9 +77,10 @@ export async function generateMetadata({
 
   const kindLabel = kindLabels[ticket.kind] || ticket.kind;
 
+  // Sprint 17: Use ticketNumber for user-friendly display
   return {
-    title: `#${ticket.id} ${ticket.title} | ${kindLabel} | ProjectPulse`,
-    description: `View details and activity for ${kindLabel.toLowerCase()} #${ticket.id}: ${ticket.title}`,
+    title: `#${ticket.ticketNumber} ${ticket.title} | ${kindLabel} | ProjectPulse`,
+    description: `View details and activity for ${kindLabel.toLowerCase()} #${ticket.ticketNumber}: ${ticket.title}`,
   };
 }
 
@@ -89,6 +90,7 @@ async function getTicketDetail(id: number) {
     select: {
       // Core ticket fields
       id: true,
+      ticketNumber: true, // Sprint 17: Project-scoped number for display
       title: true,
       description: true,
       status: true,
@@ -291,6 +293,7 @@ export default async function TicketDetailPage({
           <div className="relative" data-testid="ticket-header">
             <TicketHeader
               id={ticket.id}
+              ticketNumber={ticket.ticketNumber}
               title={ticket.title}
               status={ticket.status as TicketStatus}
               priority={ticket.priority as 'critical' | 'high' | 'medium' | 'low'}

@@ -3,10 +3,18 @@
  *
  * MCP tool that wraps PATCH /api/tickets/[id]/move
  * Moves a ticket to a new column and/or position with automatic progress cascade.
+ *
+ * Sprint 17: Added dual-input support (ticketId OR ticketNumber+projectId)
  */
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+
+// Sprint 17: API response for ticketNumber lookup
+interface TicketLookupResponse {
+  data?: { id: number };
+  error?: string;
+}
 
 // Valid kanban statuses (5-column workflow)
 const KANBAN_STATUSES = ['backlog', 'todo', 'in-progress', 'in-review', 'done'] as const;
@@ -60,9 +68,12 @@ interface ApiResponse {
   };
 }
 
-// Input schema
+// Input schema - Sprint 17: Dual-input support
 const moveTicketSchema = z.object({
-  ticketId: z.number().int().positive('Ticket ID must be a positive integer'),
+  // Sprint 17: Accept either ticketId OR (ticketNumber + projectId)
+  ticketId: z.number().int().positive('Ticket ID must be a positive integer').optional(),
+  ticketNumber: z.number().int().positive('Ticket number must be a positive integer').optional(),
+  projectId: z.number().int().positive('Project ID must be a positive integer').optional(),
   status: z.enum(KANBAN_STATUSES, {
     errorMap: () => ({
       message: `Status must be one of: ${KANBAN_STATUSES.join(', ')}`,
@@ -73,17 +84,38 @@ const moveTicketSchema = z.object({
     .int()
     .min(0, 'Display order must be non-negative')
     .max(10000, 'Display order must be at most 10000'),
-});
+}).refine(
+  (data) => data.ticketId || (data.ticketNumber && data.projectId),
+  { message: 'Either ticketId OR (ticketNumber + projectId) required' }
+);
 
 type MoveTicketInput = z.infer<typeof moveTicketSchema>;
 
 // Handler
 async function handler(input: MoveTicketInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
-  const { ticketId, status, displayOrder } = input;
+  const { ticketId, ticketNumber, projectId, status, displayOrder } = input;
 
   try {
-    const response = await httpClient.patch<ApiResponse>(`/api/tickets/${ticketId}/move`, {
+    // Sprint 17: Resolve ticketId if ticketNumber was provided
+    let resolvedTicketId = ticketId;
+    if (!resolvedTicketId && ticketNumber && projectId) {
+      const lookupResponse = await httpClient.get<TicketLookupResponse>(
+        `/api/tickets/by-number/${projectId}/${ticketNumber}`
+      );
+      if (!lookupResponse.data?.id) {
+        return JSON.stringify({
+          status: 'error',
+          error: {
+            code: 'NOT_FOUND',
+            message: `Ticket #${ticketNumber} not found in project ${projectId}`,
+          },
+        }, null, 2);
+      }
+      resolvedTicketId = lookupResponse.data.id;
+    }
+
+    const response = await httpClient.patch<ApiResponse>(`/api/tickets/${resolvedTicketId}/move`, {
       status,
       displayOrder,
     });
@@ -105,8 +137,10 @@ async function handler(input: MoveTicketInput, context: ToolContext): Promise<st
 
     const { ticket, progressUpdates } = response.data;
 
+    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId };
     logger.info('[kanban.moveTicket] Ticket moved', {
-      ticketId,
+      ...identifier,
+      resolvedTicketId,
       newStatus: status,
       newPosition: displayOrder,
       hadProgressCascade: !!progressUpdates,
@@ -150,7 +184,8 @@ async function handler(input: MoveTicketInput, context: ToolContext): Promise<st
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    logger.error('[kanban.moveTicket] Unexpected error', { error, ticketId, status, displayOrder });
+    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId };
+    logger.error('[kanban.moveTicket] Unexpected error', { error, ...identifier, status, displayOrder });
     return JSON.stringify(
       {
         status: 'error',
@@ -188,6 +223,10 @@ export const kanbanMoveTicketTool: ToolDefinition = {
   name: 'projectpulse_kanban_moveTicket',
   description: `[KANBAN] Move a ticket to a new column and/or position with automatic progress cascade.
 
+TICKET IDENTIFICATION (Sprint 17):
+- Use \`ticketNumber\` (+ projectId) for user-referenced tickets: "Move Ticket #5 to done"
+- Use \`ticketId\` for internal/API-retrieved tickets (global ID)
+
 Use this for kanban drag-drop operations. Returns:
 - ticket: Updated ticket with new status and position
 - progressUpdates: Progress changes at parent/sprint/phase levels (only if status changed)
@@ -214,7 +253,15 @@ Related tools:
     properties: {
       ticketId: {
         type: 'number',
-        description: 'Ticket ID to move (positive integer)',
+        description: 'Global ticket ID (use if you have it from API responses)',
+      },
+      ticketNumber: {
+        type: 'number',
+        description: 'Project-scoped ticket number (use for user-referenced tickets like "#5")',
+      },
+      projectId: {
+        type: 'number',
+        description: 'Project ID (required when using ticketNumber)',
       },
       status: {
         type: 'string',
@@ -226,7 +273,7 @@ Related tools:
         description: 'Target position in column (0-indexed). 0 = top of column.',
       },
     },
-    required: ['ticketId', 'status', 'displayOrder'],
+    required: ['status', 'displayOrder'],  // ticketId or (ticketNumber + projectId) validated via refine()
   },
   execute: async (params: unknown, context: ToolContext) => {
     const parsed = moveTicketSchema.parse(params ?? {});

@@ -208,39 +208,48 @@ export function buildTicketOrderBy(filters: TicketFilters): Prisma.TicketOrderBy
 }
 
 /**
- * Compute displayId for a ticket
+ * Compute displayId for a ticket (Sprint 17: Uses project-scoped ticketNumber)
  *
- * For child tickets: #{parentId}.{siblingPosition} (e.g., #30.1, #30.2)
- * For top-level tickets: #{id} (e.g., #30)
+ * For child tickets: #{parentTicketNumber}.{siblingPosition} (e.g., #5.1, #5.2)
+ * For top-level tickets: #{ticketNumber} (e.g., #5)
  *
- * @param ticket - The ticket with id and parentTicketId
+ * @param ticket - The ticket with ticketNumber and parentTicketId
+ * @param parentTicketNumber - Parent's ticketNumber (required for children)
  * @param siblingPosition - 1-based position among siblings (required for children)
  */
 export function computeDisplayId(
-  ticket: { id: number; parentTicketId: number | null },
+  ticket: { id: number; ticketNumber: number; parentTicketId: number | null },
+  parentTicketNumber?: number,
   siblingPosition?: number
 ): string {
-  if (ticket.parentTicketId && siblingPosition) {
-    return `${ticket.parentTicketId}.${siblingPosition}`;
+  if (ticket.parentTicketId && parentTicketNumber && siblingPosition) {
+    return `${parentTicketNumber}.${siblingPosition}`;
   }
-  return `${ticket.id}`;
+  return `${ticket.ticketNumber}`;
 }
 
 /**
- * Add displayId to a list of tickets
+ * Add displayId to a list of tickets (Sprint 17: Uses project-scoped ticketNumber)
  *
  * Efficiently computes displayId by grouping children by parent
  * and calculating their positions based on the order they appear.
  *
- * @param tickets - Array of tickets with id, parentTicketId, and optional childTickets
+ * @param tickets - Array of tickets with id, ticketNumber, parentTicketId, and optional childTickets
  */
 export function addDisplayIdToTickets<
   T extends {
     id: number;
+    ticketNumber: number;
     parentTicketId: number | null;
-    childTickets?: Array<{ id: number; parentTicketId?: number | null }>;
+    childTickets?: Array<{ id: number; ticketNumber: number; parentTicketId?: number | null }>;
   },
 >(tickets: T[]): (T & { displayId: string })[] {
+  // Build a map of id -> ticketNumber for parent lookups
+  const ticketNumberMap = new Map<number, number>();
+  for (const ticket of tickets) {
+    ticketNumberMap.set(ticket.id, ticket.ticketNumber);
+  }
+
   // First pass: Group child tickets by parent
   const childrenByParent = new Map<number, number[]>();
 
@@ -258,6 +267,10 @@ export function addDisplayIdToTickets<
     if (ticket.childTickets?.length) {
       const childIds = ticket.childTickets.map((c) => c.id);
       childrenByParent.set(ticket.id, childIds);
+      // Also add child ticketNumbers to the map
+      for (const child of ticket.childTickets) {
+        ticketNumberMap.set(child.id, child.ticketNumber);
+      }
     }
   }
 
@@ -274,12 +287,15 @@ export function addDisplayIdToTickets<
   // Third pass: Add displayId to each ticket
   return tickets.map((ticket) => {
     const position = positionMap.get(ticket.id);
-    const displayId = computeDisplayId(ticket, position);
+    const parentTicketNumber = ticket.parentTicketId
+      ? ticketNumberMap.get(ticket.parentTicketId)
+      : undefined;
+    const displayId = computeDisplayId(ticket, parentTicketNumber, position);
 
     // Also add displayId to nested childTickets if present
     const childTicketsWithDisplayId = ticket.childTickets?.map((child, index) => ({
       ...child,
-      displayId: `${ticket.id}.${index + 1}`,
+      displayId: `${ticket.ticketNumber}.${index + 1}`,
     }));
 
     return {
@@ -292,16 +308,28 @@ export function addDisplayIdToTickets<
 
 /**
  * Compute displayId for a single ticket by querying its sibling position
+ * (Sprint 17: Uses project-scoped ticketNumber)
  *
  * @param prismaClient - Prisma client instance
  * @param ticket - The ticket to compute displayId for
  */
 export async function computeDisplayIdForSingleTicket(
   prismaClient: typeof prisma,
-  ticket: { id: number; parentTicketId: number | null; createdAt: Date }
+  ticket: { id: number; ticketNumber: number; parentTicketId: number | null; createdAt: Date }
 ): Promise<string> {
   if (!ticket.parentTicketId) {
-    return `${ticket.id}`;
+    return `${ticket.ticketNumber}`;
+  }
+
+  // Get parent's ticketNumber for child display
+  const parent = await prismaClient.ticket.findUnique({
+    where: { id: ticket.parentTicketId },
+    select: { ticketNumber: true },
+  });
+
+  if (!parent) {
+    // Parent not found, fall back to own ticketNumber
+    return `${ticket.ticketNumber}`;
   }
 
   // Find position among siblings (ordered by createdAt)
@@ -313,7 +341,7 @@ export async function computeDisplayIdForSingleTicket(
   });
 
   // Position is count of earlier siblings + 1
-  return `${ticket.parentTicketId}.${siblingCount + 1}`;
+  return `${parent.ticketNumber}.${siblingCount + 1}`;
 }
 
 export function ticketIncludeConfig(includeRelations?: boolean): Prisma.TicketInclude {

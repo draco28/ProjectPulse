@@ -185,10 +185,14 @@ async function main() {
   // Find sprint IDs for linking tickets
   const sprintMap = new Map(sprints.map((s) => [s.sprintNumber, s.id]));
 
+  // Sprint 17: Track project-scoped ticketNumber
+  let ticketNumber = 1;
+
   const createdTickets: any[] = [];
   for (const t of ticketData) {
     const ticket = await prisma.ticket.create({
       data: {
+        ticketNumber: ticketNumber++, // Sprint 17: Project-scoped number
         projectId: PROJECT_ID,
         title: t.title,
         description: `Detailed description for: ${t.title}`,

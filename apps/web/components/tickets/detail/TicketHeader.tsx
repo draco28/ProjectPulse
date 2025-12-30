@@ -4,6 +4,7 @@
  * Server Component that displays ticket metadata and action buttons
  * Sprint 10.5: Renamed from IssueHeader
  * Sprint 15: Updated for 5-status kanban workflow
+ * Sprint 17: Added ticketNumber prop for project-scoped display
  *
  * Architecture (per react-expert recommendation):
  * - Server Component (static rendering, no interactivity here)
@@ -11,7 +12,8 @@
  * - Badge styling uses helper functions for consistency
  *
  * Props:
- * - id: Ticket ID number
+ * - id: Ticket ID (global, used for URL routing)
+ * - ticketNumber: Project-scoped ticket number (displayed to users)
  * - title: Ticket title
  * - status: backlog | todo | in-progress | in-review | done (Sprint 15)
  * - priority: critical | high | medium | low
@@ -42,6 +44,7 @@ import {
 
 interface TicketHeaderProps {
   id: number;
+  ticketNumber: number;  // Sprint 17: Project-scoped number for display
   title: string;
   status: TicketStatus; // Sprint 15: Uses centralized TicketStatus type
   priority: 'critical' | 'high' | 'medium' | 'low';
@@ -116,6 +119,7 @@ function formatStatus(status: string): string {
 
 export function TicketHeader({
   id,
+  ticketNumber,
   title,
   status,
   priority,
@@ -139,7 +143,7 @@ export function TicketHeader({
           </Link>
           <ChevronRight className="h-3 w-3 text-slate" aria-hidden="true" />
           <span className="font-medium text-white">
-            #{id} {title}
+            #{ticketNumber} {title}
           </span>
         </nav>
         <Link
@@ -157,7 +161,7 @@ export function TicketHeader({
         <div className="flex-1">
           {/* Badges Row */}
           <div className="mb-2 flex items-center gap-3">
-            <span className="font-mono text-lg font-semibold text-slate">#{id}</span>
+            <span className="font-mono text-lg font-semibold text-slate">#{ticketNumber}</span>
 
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold shadow-md ${getPriorityStyles(priority)}`}

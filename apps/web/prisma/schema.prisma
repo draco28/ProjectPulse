@@ -293,6 +293,11 @@ model MCPToolAggregate {
 model Ticket {
   id Int @id @default(autoincrement())
 
+  // Sprint 17: Project-scoped ticket number for user-friendly display
+  // Each project has independent sequence: 1, 2, 3... (not global auto-increment)
+  // Use ticketNumber for display; use id for FK references and URLs
+  ticketNumber Int @map("ticket_number")
+
   // Core fields (inherited from Issue)
   title       String
   description String? @db.Text
@@ -389,6 +394,8 @@ model Ticket {
   @@index([sprintId]) // Sprint 15: FK to Sprint for progress calculation
   @@index([sprintId, status, displayOrder]) // Sprint 15: Kanban board queries by sprintId
   @@index([linkedSessionId]) // Sprint 16: Find tickets by session
+  @@unique([projectId, ticketNumber]) // Sprint 17: Project-scoped ticket number uniqueness
+  @@index([projectId, ticketNumber]) // Sprint 17: Fast lookup by project + ticket number
   @@map("tickets") // Sprint 10: Renamed from "issues" to "tickets"
 }
 

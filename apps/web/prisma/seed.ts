@@ -445,13 +445,18 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
 
   // ========================================================================
   // TICKETS (Sprint 10: Renamed from Issues)
+  // Sprint 17: Added project-scoped ticketNumber
   // ========================================================================
   console.log('📝 Creating tickets...');
+
+  // Sprint 17: Sequential ticketNumbers starting at 1 (fresh seed)
+  let ticketNum = 1;
 
   const tickets = await Promise.all([
     // Open tickets
     prisma.ticket.create({
       data: {
+        ticketNumber: ticketNum++, // Sprint 17: Project-scoped number
         title: 'Implement hybrid search with PostgreSQL tsvector + pgvector',
         description:
           'Add full-text search using tsvector and semantic search using pgvector embeddings for knowledge base articles.',
@@ -468,6 +473,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
 
     prisma.ticket.create({
       data: {
+        ticketNumber: ticketNum++,
         title: 'Add authentication with NextAuth.js',
         description:
           'Implement user authentication and authorization using NextAuth.js with GitHub OAuth provider.',
@@ -484,6 +490,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
 
     prisma.ticket.create({
       data: {
+        ticketNumber: ticketNum++,
         title: 'Dashboard theme switching not working correctly',
         description:
           'Theme CSS variables not applying when switching between Desert, Neon, Earthy, and Coral themes.',
@@ -500,6 +507,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
 
     prisma.ticket.create({
       data: {
+        ticketNumber: ticketNum++,
         title: 'Optimize database queries for issue list page',
         description:
           'Issue list page loading slowly with 100+ issues. Need to add pagination and optimize N+1 queries.',
@@ -515,6 +523,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
 
     prisma.ticket.create({
       data: {
+        ticketNumber: ticketNum++,
         title: 'Add API documentation with OpenAPI/Swagger',
         description:
           'Document all API endpoints using OpenAPI 3.0 specification and generate interactive Swagger UI.',
@@ -531,6 +540,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
     // Closed tickets (for completed stat)
     prisma.ticket.create({
       data: {
+        ticketNumber: ticketNum++,
         title: 'Setup Docker PostgreSQL container with pgvector',
         description:
           'Configure PostgreSQL 16 container with pgvector extension for semantic search capabilities.',
@@ -546,6 +556,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
 
     prisma.ticket.create({
       data: {
+        ticketNumber: ticketNum++,
         title: 'Implement 4 theme system (Desert, Neon, Earthy, Coral)',
         description: 'Create 4 unique themes with neumorphic design and CSS custom properties.',
         kind: 'issue',
@@ -562,6 +573,7 @@ Based on your project documentation (PRD, SRS, Architecture), create your AI wor
 
     prisma.ticket.create({
       data: {
+        ticketNumber: ticketNum++,
         title: 'Build Dashboard UI with shadcn/ui components',
         description:
           'Implement Dashboard layout with Sidebar, Header, WelcomeBanner, StatCards, and IssueCards.',

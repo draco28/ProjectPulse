@@ -1,7 +1,8 @@
 /**
- * MCP Tool: Ticket Get Hierarchy (Sprint 13)
+ * MCP Tool: Ticket Get Hierarchy (Sprint 13, Sprint 17)
  *
  * Get complete hierarchy context for a ticket (parent + children + siblings)
+ * Sprint 17: Added dual-input support (ticketId OR ticketNumber+projectId)
  */
 
 import { z } from 'zod';
@@ -9,7 +10,8 @@ import type { ToolDefinition, ToolContext } from '../types.js';
 import {
   ApiResponse,
   buildErrorPayload,
-  ticketIdSchema,
+  ticketNumberSchema,
+  projectIdSchema,
 } from './common.js';
 
 interface TicketLabel {
@@ -20,6 +22,7 @@ interface TicketLabel {
 
 interface TicketSummary {
   id: number;
+  ticketNumber: number;  // Sprint 17
   title: string;
   kind: string;
   status: string;
@@ -28,6 +31,7 @@ interface TicketSummary {
 interface HierarchyResponse {
   ticket: {
     id: number;
+    ticketNumber: number;  // Sprint 17
     title: string;
     description: string | null;
     kind: string;
@@ -45,6 +49,7 @@ interface HierarchyResponse {
   hierarchy: {
     parent: {
       id: number;
+      ticketNumber: number;  // Sprint 17
       title: string;
       kind: string;
       status: string;
@@ -65,18 +70,39 @@ interface HierarchyResponse {
   canHaveParent: boolean;
 }
 
+// Sprint 17: Dual-input schema - accept either ticketId OR (ticketNumber + projectId)
 const getHierarchySchema = z.object({
-  ticketId: ticketIdSchema,
-});
+  ticketId: z.number().int().positive().optional(),      // Global ID (existing)
+  ticketNumber: ticketNumberSchema.optional(),           // Project-scoped (NEW)
+  projectId: projectIdSchema.optional(),                 // Required with ticketNumber
+}).refine(
+  (data) => data.ticketId || (data.ticketNumber && data.projectId),
+  { message: 'Either ticketId OR (ticketNumber + projectId) required' }
+);
 
 type GetHierarchyInput = z.infer<typeof getHierarchySchema>;
 
 async function handler(input: GetHierarchyInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
 
+  // Sprint 17: Resolve ticketId if ticketNumber was provided
+  let resolvedTicketId = input.ticketId;
+  if (!resolvedTicketId && input.ticketNumber && input.projectId) {
+    const lookupResponse = await httpClient.get<ApiResponse<{ id: number }>>(
+      `/api/tickets/by-number/${input.projectId}/${input.ticketNumber}`
+    );
+    if (!lookupResponse.data) {
+      return buildErrorPayload(
+        `Ticket #${input.ticketNumber} not found in project ${input.projectId}`,
+        'NOT_FOUND'
+      );
+    }
+    resolvedTicketId = lookupResponse.data.id;
+  }
+
   try {
     const response = await httpClient.get<ApiResponse<HierarchyResponse>>(
-      `/api/tickets/${input.ticketId}/hierarchy`
+      `/api/tickets/${resolvedTicketId}/hierarchy`
     );
 
     if (!response.data) {
@@ -88,14 +114,19 @@ async function handler(input: GetHierarchyInput, context: ToolContext): Promise<
 
     const data = response.data;
 
+    const identifier = input.ticketId
+      ? { ticketId: input.ticketId }
+      : { ticketNumber: input.ticketNumber, projectId: input.projectId };
     logger.info('[ticket.getHierarchy] Hierarchy fetched', {
-      ticketId: input.ticketId,
+      ...identifier,
       hasParent: !!data.hierarchy.parent,
       childrenCount: data.hierarchy.childrenCount,
     });
 
     return JSON.stringify({
       ticket: {
+        // Sprint 17: ticketNumber first
+        ticketNumber: data.ticket.ticketNumber,
         id: data.ticket.id,
         title: data.ticket.title,
         kind: data.ticket.kind,
@@ -110,6 +141,8 @@ async function handler(input: GetHierarchyInput, context: ToolContext): Promise<
       },
       hierarchy: {
         parent: data.hierarchy.parent ? {
+          // Sprint 17: ticketNumber first
+          ticketNumber: data.hierarchy.parent.ticketNumber,
           id: data.hierarchy.parent.id,
           title: data.hierarchy.parent.title,
           kind: data.hierarchy.parent.kind,
@@ -118,6 +151,8 @@ async function handler(input: GetHierarchyInput, context: ToolContext): Promise<
           totalChildren: data.hierarchy.parent.totalChildren,
         } : null,
         children: data.hierarchy.children.map((c) => ({
+          // Sprint 17: ticketNumber first
+          ticketNumber: c.ticketNumber,
           id: c.id,
           title: c.title,
           kind: c.kind,
@@ -126,6 +161,8 @@ async function handler(input: GetHierarchyInput, context: ToolContext): Promise<
         childrenCount: data.hierarchy.childrenCount,
         childrenStatusCounts: data.hierarchy.childrenStatusCounts,
         siblings: data.hierarchy.siblings.map((s) => ({
+          // Sprint 17: ticketNumber first
+          ticketNumber: s.ticketNumber,
           id: s.id,
           title: s.title,
           kind: s.kind,
@@ -139,7 +176,10 @@ async function handler(input: GetHierarchyInput, context: ToolContext): Promise<
       canHaveParent: data.canHaveParent,
     }, null, 2);
   } catch (error) {
-    logger.error('[ticket.getHierarchy] Unexpected error', { error, ticketId: input.ticketId });
+    const identifier = input.ticketId
+      ? { ticketId: input.ticketId }
+      : { ticketNumber: input.ticketNumber, projectId: input.projectId };
+    logger.error('[ticket.getHierarchy] Unexpected error', { error, ...identifier });
     return buildErrorPayload(error instanceof Error ? error.message : 'Unexpected error');
   }
 }
@@ -148,8 +188,12 @@ export const ticketGetHierarchyTool: ToolDefinition = {
   name: 'projectpulse_ticket_getHierarchy',
   description: `[QUERY] Get complete hierarchy context for a ticket.
 
+TICKET IDENTIFICATION (Sprint 17):
+- Use \`ticketNumber\` (+ projectId) for user-referenced tickets: "Ticket #5"
+- Use \`ticketId\` for internal/API-retrieved tickets (global ID)
+
 Returns all hierarchy information in a single call:
-- The ticket itself with full details
+- The ticket itself with full details (includes ticketNumber)
 - Parent ticket (if this is a child task)
 - Children (if this is a feature with tasks)
 - Siblings (other tasks under same parent)
@@ -179,10 +223,18 @@ Related:
     properties: {
       ticketId: {
         type: 'number',
-        description: 'ID of the ticket to get hierarchy for',
+        description: 'Global ticket ID (use if you have it from API responses)',
+      },
+      ticketNumber: {
+        type: 'number',
+        description: 'Project-scoped ticket number (use for user-referenced tickets like "#5")',
+      },
+      projectId: {
+        type: 'number',
+        description: 'Project ID (required when using ticketNumber)',
       },
     },
-    required: ['ticketId'],
+    required: [],  // Validation uses refine()
   },
   execute: async (params: unknown, context: ToolContext) => {
     const parsed = getHierarchySchema.parse(params ?? {});

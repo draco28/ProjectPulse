@@ -35,7 +35,8 @@ interface Label {
 
 interface TicketListCardProps {
   ticket: {
-    id: string;
+    id: number;  // Global ID for routing/API
+    ticketNumber: number;  // Sprint 17: Project-scoped number for display
     title: string;
     description: string;
     priority: Priority;
@@ -95,8 +96,8 @@ export function TicketListCard({ ticket, projectId }: TicketListCardProps) {
           {/* Top Row: Ticket Number + Badges + Menu */}
           <div className="mb-3 flex items-start justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              {/* Ticket Number */}
-              <span className="font-mono text-sm font-semibold text-slate">#{ticket.id}</span>
+              {/* Ticket Number - Sprint 17: Use project-scoped ticketNumber */}
+              <span className="font-mono text-sm font-semibold text-slate">#{ticket.ticketNumber}</span>
 
               {/* Priority Badge */}
               <span

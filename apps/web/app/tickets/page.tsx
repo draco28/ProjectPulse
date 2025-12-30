@@ -139,12 +139,14 @@ async function getTickets(projectId: number, searchParams: SearchParams) {
           select: { id: true, name: true, color: true },
         },
         // Sprint 14: Include hierarchy data for parent-child display
+        // Sprint 17: Include ticketNumber for project-scoped display
         parentTicket: {
-          select: { id: true, title: true },
+          select: { id: true, ticketNumber: true, title: true },
         },
         childTickets: {
           select: {
             id: true,
+            ticketNumber: true,  // Sprint 17
             title: true,
             status: true,
             priority: true,

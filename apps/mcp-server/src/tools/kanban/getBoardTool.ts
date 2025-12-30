@@ -3,6 +3,8 @@
  *
  * MCP tool that wraps GET /api/sprints/[sprintId]/kanban
  * Returns complete kanban board with columns, ghost cards, and statistics.
+ *
+ * Sprint 17: Added ticketNumber to response for user-friendly display
  */
 
 import { z } from 'zod';
@@ -11,6 +13,7 @@ import type { ToolDefinition, ToolContext } from '../types.js';
 // Response types (mirroring apps/web/types/kanban.ts)
 interface KanbanTicket {
   id: number;
+  ticketNumber: number;  // Sprint 17: Project-scoped ticket number
   title: string;
   status: string;
   priority: string | null;
@@ -37,6 +40,7 @@ interface KanbanTicket {
 
 interface GhostCard {
   ticketId: number;
+  ticketNumber: number;  // Sprint 17: Project-scoped ticket number
   title: string;
   kind: string;
   actualStatus: string;
@@ -179,6 +183,7 @@ export const kanbanGetBoardTool: ToolDefinition = {
 Returns:
 - sprint: Sprint context (id, title, sprintNumber, progress, phase)
 - columns: Record<status, KanbanTicket[]> - Tickets grouped by 5 columns
+  - Each ticket includes ticketNumber (Sprint 17) for user-friendly display
 - ghosts: GhostCard[] - Parent/child relationship indicators across columns
 - stats: Board statistics (total, done, inProgress, progress)
 

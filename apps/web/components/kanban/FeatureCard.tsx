@@ -88,7 +88,7 @@ export const FeatureCard = memo(
         <div className="p-4">
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-mono text-slate">#{ticket.id}</span>
+              <span className="text-xs font-mono text-slate">#{ticket.ticketNumber}</span>
               {/* Sprint 16: Session linkage indicator */}
               {isLinkedToSession && (
                 <div

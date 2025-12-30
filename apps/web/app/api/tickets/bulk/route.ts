@@ -34,13 +34,20 @@ export async function POST(request: NextRequest) {
 
     const results: Array<{
       success: boolean;
-      ticket?: { id: number; title: string; kind: string; reference?: string };
+      ticket?: { id: number; ticketNumber: number; title: string; kind: string; reference?: string };
       error?: string;
       reference?: string;
     }> = [];
 
     // Process tickets in transaction for atomicity
     await prisma.$transaction(async (tx) => {
+      // Sprint 17: Get starting ticketNumber for project (increment for each ticket in batch)
+      const maxResult = await tx.ticket.aggregate({
+        where: { projectId },
+        _max: { ticketNumber: true },
+      });
+      let nextTicketNumber = (maxResult._max.ticketNumber ?? 0) + 1;
+
       for (const ticketData of data.tickets) {
         try {
           const autoTags = await deriveAutoTags(ticketData.context?.files);
@@ -117,10 +124,11 @@ export async function POST(request: NextRequest) {
               ? await resolveSprintByNumber(prisma, projectId, ticketData.sprintNumber)
               : (ticketData.sprintId ?? null);
 
-          // Create ticket
+          // Create ticket with project-scoped ticketNumber
           const ticket = await tx.ticket.create({
             data: {
               projectId,
+              ticketNumber: nextTicketNumber++, // Sprint 17: Assign and increment
               title: ticketData.title,
               description: ticketData.description,
               status,
@@ -146,7 +154,7 @@ export async function POST(request: NextRequest) {
                   ? { connect: Array.from(labelIdSet).map((id) => ({ id })) }
                   : undefined,
             },
-            select: { id: true, title: true, kind: true },
+            select: { id: true, ticketNumber: true, title: true, kind: true },
           });
 
           // Create linked files
@@ -164,6 +172,7 @@ export async function POST(request: NextRequest) {
             success: true,
             ticket: {
               id: ticket.id,
+              ticketNumber: ticket.ticketNumber, // Sprint 17: Include project-scoped number
               title: ticket.title,
               kind: ticket.kind,
               reference: ticketData.reference,

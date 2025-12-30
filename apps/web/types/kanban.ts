@@ -14,9 +14,11 @@ import type { TicketStatus } from '@/lib/constants/status';
 /**
  * Ticket representation in the kanban board.
  * Minimal fields needed for kanban card display and drag-drop.
+ * Sprint 17: Added ticketNumber for project-scoped display
  */
 export interface KanbanTicket {
   id: number;
+  ticketNumber: number;  // Sprint 17: Project-scoped ticket number for display
   title: string;
   status: TicketStatus;
   priority: string;
@@ -27,6 +29,7 @@ export interface KanbanTicket {
   parentTicketId: number | null;
   parentTicket?: {
     id: number;
+    ticketNumber: number;  // Sprint 17
     title: string;
     status: TicketStatus;
   } | null;
@@ -34,6 +37,7 @@ export interface KanbanTicket {
   // Child ticket summary (for features)
   childTickets?: Array<{
     id: number;
+    ticketNumber: number;  // Sprint 17
     status: TicketStatus;
     title: string;
     kind: string;
@@ -68,6 +72,7 @@ export interface KanbanTicket {
 export interface GhostCard {
   /** The actual ticket ID this ghost represents */
   ticketId: number;
+  ticketNumber: number;  // Sprint 17: Project-scoped ticket number
   title: string;
   kind: string;
 

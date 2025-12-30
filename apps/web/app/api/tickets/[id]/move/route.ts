@@ -201,8 +201,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             ? { closedAt: null }
             : {}),
         },
+        // Sprint 17: Include ticketNumber for project-scoped display
         select: {
           id: true,
+          ticketNumber: true,  // Sprint 17
           title: true,
           status: true,
           priority: true,
@@ -212,6 +214,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           parentTicket: {
             select: {
               id: true,
+              ticketNumber: true,  // Sprint 17
               title: true,
               status: true,
             },
@@ -219,6 +222,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           childTickets: {
             select: {
               id: true,
+              ticketNumber: true,  // Sprint 17
               status: true,
               title: true,
               kind: true,
@@ -255,9 +259,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     revalidatePath('/issues');
     revalidatePath(`/issues/${ticketId}`);
 
-    // Transform to KanbanTicket
+    // Transform to KanbanTicket - Sprint 17: Include ticketNumber
     const kanbanTicket: KanbanTicket = {
       id: updatedTicket.id,
+      ticketNumber: updatedTicket.ticketNumber,  // Sprint 17
       title: updatedTicket.title,
       status: updatedTicket.status as TicketStatus,
       priority: updatedTicket.priority,
@@ -267,12 +272,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       parentTicket: updatedTicket.parentTicket
         ? {
             id: updatedTicket.parentTicket.id,
+            ticketNumber: updatedTicket.parentTicket.ticketNumber,  // Sprint 17
             title: updatedTicket.parentTicket.title,
             status: updatedTicket.parentTicket.status as TicketStatus,
           }
         : null,
       childTickets: updatedTicket.childTickets?.map((c) => ({
         id: c.id,
+        ticketNumber: c.ticketNumber,  // Sprint 17
         status: c.status as TicketStatus,
         title: c.title,
         kind: c.kind,

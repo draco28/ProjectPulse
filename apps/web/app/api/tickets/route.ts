@@ -280,9 +280,18 @@ export async function POST(request: NextRequest) {
     }
 
     const ticket = await prisma.$transaction(async (tx) => {
+      // Sprint 17: Generate project-scoped ticket number
+      // Each project has independent sequence: 1, 2, 3...
+      const maxResult = await tx.ticket.aggregate({
+        where: { projectId },
+        _max: { ticketNumber: true },
+      });
+      const nextTicketNumber = (maxResult._max.ticketNumber ?? 0) + 1;
+
       const created = await tx.ticket.create({
         data: {
           projectId,
+          ticketNumber: nextTicketNumber,
           title: data.title,
           description: data.description,
           status,

@@ -138,6 +138,7 @@ async function testImplementationContext(): Promise<number | null> {
     const ticket = await prisma.ticket.create({
       data: {
         projectId: TEST_PROJECT_ID,
+        ticketNumber: 9001, // Sprint 17: Test-specific ticket number
         title: 'Prisma Test: Implementation Context',
         description: 'Testing implementation context storage',
         kind: 'feature',
@@ -291,6 +292,7 @@ async function testTicketScheduling(): Promise<number | null> {
     const ticket = await prisma.ticket.create({
       data: {
         projectId: TEST_PROJECT_ID,
+        ticketNumber: 9002, // Sprint 17: Test-specific ticket number
         title: 'Prisma Test: Scheduling Fields',
         description: 'Testing ticket scheduling',
         kind: 'task',

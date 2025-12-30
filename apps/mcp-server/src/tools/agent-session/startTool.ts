@@ -5,6 +5,7 @@
  * Creates an AgentSession record for tracking work across tickets
  *
  * Phase 3 (Self-Guiding MCP): Includes context hints in response
+ * Sprint 17: Added activeTicketNumbers for project-scoped ticket references
  */
 
 import { z } from 'zod';
@@ -22,7 +23,9 @@ const agentSessionStartSchema = z.object({
   name: z.string().min(1).max(255).optional(),
   plan: z.string().optional(),
   todos: z.array(todoItemSchema).optional(),
+  // Sprint 17: Support both global IDs and project-scoped ticket numbers
   activeTicketIds: z.array(z.number().int().positive()).optional(),
+  activeTicketNumbers: z.array(z.number().int().positive()).optional(),
 });
 
 type AgentSessionStartInput = z.infer<typeof agentSessionStartSchema>;
@@ -57,7 +60,34 @@ interface ApiResponse {
 async function handler(input: AgentSessionStartInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
   try {
-    const response = await httpClient.post<ApiResponse>('/api/agent-sessions', input);
+    // Sprint 17: Resolve activeTicketNumbers to global IDs if provided
+    let resolvedTicketIds = input.activeTicketIds || [];
+    if (input.activeTicketNumbers && input.activeTicketNumbers.length > 0) {
+      const resolvedIds: number[] = [];
+      for (const ticketNumber of input.activeTicketNumbers) {
+        const lookupResponse = await httpClient.get<{ data?: { id: number }; error?: string }>(
+          `/api/tickets/by-number/${input.projectId}/${ticketNumber}`
+        );
+        if (!lookupResponse.data?.id) {
+          return JSON.stringify({
+            status: 'error',
+            message: `Ticket #${ticketNumber} not found in project ${input.projectId}`,
+          });
+        }
+        resolvedIds.push(lookupResponse.data.id);
+      }
+      // Merge with any explicitly provided IDs (dedup)
+      resolvedTicketIds = [...new Set([...resolvedTicketIds, ...resolvedIds])];
+    }
+
+    // Build payload with resolved ticket IDs
+    const payload = {
+      ...input,
+      activeTicketIds: resolvedTicketIds.length > 0 ? resolvedTicketIds : undefined,
+      activeTicketNumbers: undefined, // Don't send to API - it only accepts IDs
+    };
+
+    const response = await httpClient.post<ApiResponse>('/api/agent-sessions', payload);
 
     if (!response || typeof response !== 'object') {
       return JSON.stringify({
@@ -153,8 +183,13 @@ SESSION LIFECYCLE:
 3. PAUSE (optional): Set status='PAUSED' to take breaks - can resume later with full context
 4. END: Mark COMPLETED - syncs to memory banks, CANNOT be resumed
 
+TICKET IDENTIFICATION (Sprint 17):
+- Use \`activeTicketNumbers\` for user-referenced tickets: "Tickets #5 and #7"
+- Use \`activeTicketIds\` for internal/API-retrieved tickets (global ID)
+- Can provide both - they will be merged with deduplication
+
 TICKET AUTO-CLAIM (Sprint 16):
-When activeTicketIds is provided:
+When activeTicketIds or activeTicketNumbers is provided:
 1. Validates ALL tickets are in "todo" status (not backlog/in-progress/in-review/done)
 2. Validates tickets aren't already claimed by another session
 3. Auto-claims: status → "in-progress", assignee → "Claude Code", linkedSessionId → this session
@@ -192,7 +227,12 @@ Only "todo" tickets can be claimed. Use ticket_search({ status: ['todo'] }) to f
       },
       activeTicketIds: {
         type: 'array',
-        description: 'IDs of tickets being worked on in this session',
+        description: 'Global ticket IDs to claim (use if you have them from API responses)',
+        items: { type: 'number' },
+      },
+      activeTicketNumbers: {
+        type: 'array',
+        description: 'Project-scoped ticket numbers to claim (use for user-referenced tickets like "#5, #7")',
         items: { type: 'number' },
       },
     },

@@ -141,7 +141,7 @@ export const TaskCard = memo(
       >
         {/* Header: ID + Priority */}
         <div className="flex items-start justify-between mb-2">
-          <span className="text-xs font-mono text-slate">#{ticket.id}</span>
+          <span className="text-xs font-mono text-slate">#{ticket.ticketNumber}</span>
           <PriorityBadge priority={ticket.priority} />
         </div>
 

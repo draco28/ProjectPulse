@@ -102,9 +102,12 @@ async function setupTestData() {
     }
 
     // Create a parent feature ticket for hierarchy tests
+    // Sprint 17: Start at 9100 to avoid conflicts with other test data
+    let testTicketNumber = 9100;
     const parentTicket = await prisma.ticket.create({
       data: {
         projectId: TEST_PROJECT_ID,
+        ticketNumber: testTicketNumber++,
         title: 'Test Parent Feature - Sprint 15 Kanban Test',
         kind: 'feature',
         source: 'agent',
@@ -126,6 +129,7 @@ async function setupTestData() {
       const child = await prisma.ticket.create({
         data: {
           projectId: TEST_PROJECT_ID,
+          ticketNumber: testTicketNumber++, // Sprint 17: Sequential test ticket numbers
           title: `Test Child Task ${i + 1} - Sprint 15`,
           kind: 'task',
           source: 'agent',

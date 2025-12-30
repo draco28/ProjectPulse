@@ -92,10 +92,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
     await requireProjectAccess(request, projectId);
 
     // Fetch tickets for this sprint with hierarchy
+    // Sprint 17: Include ticketNumber for project-scoped display
     const rawTickets = await prisma.ticket.findMany({
       where: { sprintId },
       select: {
         id: true,
+        ticketNumber: true,  // Sprint 17
         title: true,
         status: true,
         priority: true,
@@ -105,6 +107,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         parentTicket: {
           select: {
             id: true,
+            ticketNumber: true,  // Sprint 17
             title: true,
             status: true,
           },
@@ -112,6 +115,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         childTickets: {
           select: {
             id: true,
+            ticketNumber: true,  // Sprint 17
             status: true,
             title: true,
             kind: true,
@@ -140,6 +144,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
       return {
         id: t.id,
+        ticketNumber: t.ticketNumber,  // Sprint 17
         title: t.title,
         status: t.status as TicketStatus,
         priority: t.priority,
@@ -149,12 +154,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
         parentTicket: t.parentTicket
           ? {
               id: t.parentTicket.id,
+              ticketNumber: t.parentTicket.ticketNumber,  // Sprint 17
               title: t.parentTicket.title,
               status: t.parentTicket.status as TicketStatus,
             }
           : null,
         childTickets: t.childTickets?.map((c) => ({
           id: c.id,
+          ticketNumber: c.ticketNumber,  // Sprint 17
           status: c.status as TicketStatus,
           title: c.title,
           kind: c.kind,
