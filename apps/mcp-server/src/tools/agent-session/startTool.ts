@@ -18,8 +18,9 @@ const todoItemSchema = z.object({
   ticketId: z.number().nullable().optional(),
 });
 
+// Sprint 18: projectId now auto-fills from auth context when omitted
 const agentSessionStartSchema = z.object({
-  projectId: z.number().int().positive(),
+  projectId: z.number().int().positive().optional(),  // Auto-fills from auth context
   name: z.string().min(1).max(255).optional(),
   plan: z.string().optional(),
   todos: z.array(todoItemSchema).optional(),
@@ -59,6 +60,18 @@ interface ApiResponse {
 
 async function handler(input: AgentSessionStartInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
+
+  // Sprint 18: Auto-fill projectId from authenticated context
+  const resolvedProjectId = input.projectId ?? context.projectId;
+
+  // Validate we have projectId (required for session creation)
+  if (!resolvedProjectId) {
+    return JSON.stringify({
+      status: 'error',
+      message: 'projectId required (not available from auth context)',
+    });
+  }
+
   try {
     // Sprint 17: Resolve activeTicketNumbers to global IDs if provided
     let resolvedTicketIds = input.activeTicketIds || [];
@@ -66,12 +79,12 @@ async function handler(input: AgentSessionStartInput, context: ToolContext): Pro
       const resolvedIds: number[] = [];
       for (const ticketNumber of input.activeTicketNumbers) {
         const lookupResponse = await httpClient.get<{ data?: { id: number }; error?: string }>(
-          `/api/tickets/by-number/${input.projectId}/${ticketNumber}`
+          `/api/tickets/by-number/${resolvedProjectId}/${ticketNumber}`
         );
         if (!lookupResponse.data?.id) {
           return JSON.stringify({
             status: 'error',
-            message: `Ticket #${ticketNumber} not found in project ${input.projectId}`,
+            message: `Ticket #${ticketNumber} not found in project ${resolvedProjectId}`,
           });
         }
         resolvedIds.push(lookupResponse.data.id);
@@ -80,9 +93,10 @@ async function handler(input: AgentSessionStartInput, context: ToolContext): Pro
       resolvedTicketIds = [...new Set([...resolvedTicketIds, ...resolvedIds])];
     }
 
-    // Build payload with resolved ticket IDs
+    // Build payload with resolved ticket IDs and projectId
     const payload = {
       ...input,
+      projectId: resolvedProjectId,  // Sprint 18: Use resolved projectId
       activeTicketIds: resolvedTicketIds.length > 0 ? resolvedTicketIds : undefined,
       activeTicketNumbers: undefined, // Don't send to API - it only accepts IDs
     };
@@ -202,7 +216,7 @@ Only "todo" tickets can be claimed. Use ticket_search({ status: ['todo'] }) to f
     properties: {
       projectId: {
         type: 'number',
-        description: 'Project ID to create the session for',
+        description: 'Project ID (auto-fills from auth context when omitted)',
       },
       name: {
         type: 'string',

@@ -7,17 +7,19 @@ import {
   summarizeTicket,
   ticketNumberSchema,
   projectIdSchema,
+  resolveProjectId,
 } from './common.js';
 
-// Sprint 17: Dual-input schema - accept either ticketId OR (ticketNumber + projectId)
+// Sprint 17: Dual-input schema - accept either ticketId OR ticketNumber
+// Sprint 18: projectId now auto-fills from auth context when omitted
 const ticketSetStatusSchema = z.object({
   ticketId: z.number().int().positive().optional(),      // Global ID (existing)
   ticketNumber: ticketNumberSchema.optional(),           // Project-scoped (NEW)
-  projectId: projectIdSchema.optional(),                 // Required with ticketNumber
+  projectId: projectIdSchema.optional(),                 // Auto-fills from auth context
   status: z.string().min(1, 'Status is required'),
 }).refine(
-  (data) => data.ticketId || (data.ticketNumber && data.projectId),
-  { message: 'Either ticketId OR (ticketNumber + projectId) required' }
+  (data) => data.ticketId || data.ticketNumber,
+  { message: 'Either ticketId OR ticketNumber required' }
 );
 
 type TicketSetStatusInput = z.infer<typeof ticketSetStatusSchema>;
@@ -26,16 +28,27 @@ async function handler(input: TicketSetStatusInput, context: ToolContext): Promi
   const { httpClient, logger } = context;
   const { ticketId, ticketNumber, projectId, status } = input;
 
+  // Sprint 18: Auto-fill projectId from authenticated context
+  const resolvedProjectId = resolveProjectId(projectId, context.projectId);
+
+  // Validate we have projectId when using ticketNumber
+  if (ticketNumber && !ticketId && !resolvedProjectId) {
+    return buildErrorPayload(
+      'projectId required when using ticketNumber (not available from auth context)',
+      'MISSING_PROJECT_ID'
+    );
+  }
+
   try {
     // Sprint 17: Resolve ticketId if ticketNumber was provided
     let resolvedTicketId = ticketId;
-    if (!resolvedTicketId && ticketNumber && projectId) {
+    if (!resolvedTicketId && ticketNumber && resolvedProjectId) {
       const lookupResponse = await httpClient.get<ApiResponse<{ id: number }>>(
-        `/api/tickets/by-number/${projectId}/${ticketNumber}`
+        `/api/tickets/by-number/${resolvedProjectId}/${ticketNumber}`
       );
       if (!lookupResponse.data) {
         return buildErrorPayload(
-          `Ticket #${ticketNumber} not found in project ${projectId}`,
+          `Ticket #${ticketNumber} not found in project ${resolvedProjectId}`,
           'NOT_FOUND'
         );
       }
@@ -54,12 +67,12 @@ async function handler(input: TicketSetStatusInput, context: ToolContext): Promi
       );
     }
 
-    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId };
+    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId: resolvedProjectId };
     logger.info('[ticket.setStatus] Status updated', { id: resolvedTicketId, status, ...identifier });
     // Return ticket data directly (tests expect flat structure without status/data wrapper)
     return JSON.stringify(summarizeTicket(response.data), null, 2);
   } catch (error) {
-    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId };
+    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId: resolvedProjectId };
     logger.error('[ticket.setStatus] Unexpected error', { error, ...identifier });
     return buildErrorPayload(error instanceof Error ? error.message : 'Unexpected error');
   }
@@ -86,7 +99,7 @@ TICKET IDENTIFICATION (Sprint 17):
       },
       projectId: {
         type: 'number',
-        description: 'Project ID (required when using ticketNumber)',
+        description: 'Project ID (auto-fills from auth context when omitted)',
       },
       status: { type: 'string', description: 'New status value' },
     },

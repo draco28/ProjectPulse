@@ -12,6 +12,7 @@ import {
   ApiResponse,
   buildErrorPayload,
   projectIdSchema,
+  resolveProjectId,
 } from './common.js';
 
 interface TicketLabel {
@@ -96,14 +97,15 @@ interface FullTicketResponse {
   sprintNumber: number | null;
 }
 
-// Sprint 17: Dual-input schema - accept either ticketId OR (ticketNumber + projectId)
+// Sprint 17: Dual-input schema - accept either ticketId OR ticketNumber
+// Sprint 18: projectId now auto-fills from auth context when omitted
 const getTicketSchema = z.object({
   ticketId: z.number().int().positive().optional(),      // Global ID (existing)
   ticketNumber: z.number().int().positive().optional(),  // Project-scoped (NEW)
-  projectId: projectIdSchema.optional(),                 // Required with ticketNumber
+  projectId: projectIdSchema.optional(),                 // Auto-fills from auth context
 }).refine(
-  (data) => data.ticketId || (data.ticketNumber && data.projectId),
-  { message: 'Either ticketId OR (ticketNumber + projectId) required' }
+  (data) => data.ticketId || data.ticketNumber,
+  { message: 'Either ticketId OR ticketNumber required' }
 );
 
 type GetTicketInput = z.infer<typeof getTicketSchema>;
@@ -111,14 +113,25 @@ type GetTicketInput = z.infer<typeof getTicketSchema>;
 async function handler(input: GetTicketInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
 
+  // Sprint 18: Auto-fill projectId from authenticated context
+  const resolvedProjectId = resolveProjectId(input.projectId, context.projectId);
+
+  // Validate we have projectId when using ticketNumber
+  if (input.ticketNumber && !input.ticketId && !resolvedProjectId) {
+    return buildErrorPayload(
+      'projectId required when using ticketNumber (not available from auth context)',
+      'MISSING_PROJECT_ID'
+    );
+  }
+
   try {
     // Sprint 17: Choose API endpoint based on input type
     let endpoint: string;
     if (input.ticketId) {
       endpoint = `/api/tickets/${input.ticketId}`;
     } else {
-      // Use ticketNumber + projectId lookup
-      endpoint = `/api/tickets/by-number/${input.projectId}/${input.ticketNumber}`;
+      // Use ticketNumber + resolved projectId lookup
+      endpoint = `/api/tickets/by-number/${resolvedProjectId}/${input.ticketNumber}`;
     }
 
     const response = await httpClient.get<ApiResponse<FullTicketResponse>>(endpoint);
@@ -126,7 +139,7 @@ async function handler(input: GetTicketInput, context: ToolContext): Promise<str
     if (!response.data) {
       const identifier = input.ticketId
         ? `ID ${input.ticketId}`
-        : `#${input.ticketNumber} in project ${input.projectId}`;
+        : `#${input.ticketNumber} in project ${resolvedProjectId}`;
       return buildErrorPayload(
         response.error?.message ?? `Failed to get ticket ${identifier}`,
         response.error?.code
@@ -186,7 +199,7 @@ async function handler(input: GetTicketInput, context: ToolContext): Promise<str
   } catch (error) {
     const identifier = input.ticketId
       ? { ticketId: input.ticketId }
-      : { ticketNumber: input.ticketNumber, projectId: input.projectId };
+      : { ticketNumber: input.ticketNumber, projectId: resolvedProjectId };
     logger.error('[ticket.get] Unexpected error', { error, ...identifier });
     return buildErrorPayload(error instanceof Error ? error.message : 'Unexpected error');
   }
@@ -241,7 +254,7 @@ Related:
       },
       projectId: {
         type: 'number',
-        description: 'Project ID (required when using ticketNumber)',
+        description: 'Project ID (auto-fills from auth context when omitted)',
       },
     },
     required: [],  // No single field required - validation uses refine()

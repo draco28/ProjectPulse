@@ -9,6 +9,7 @@
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from '../types.js';
+import { resolveProjectId } from '../tickets/common.js';
 
 // Sprint 17: API response for ticketNumber lookup
 interface TicketLookupResponse {
@@ -69,11 +70,12 @@ interface ApiResponse {
 }
 
 // Input schema - Sprint 17: Dual-input support
+// Sprint 18: projectId now auto-fills from auth context when omitted
 const moveTicketSchema = z.object({
-  // Sprint 17: Accept either ticketId OR (ticketNumber + projectId)
+  // Sprint 17: Accept either ticketId OR ticketNumber
   ticketId: z.number().int().positive('Ticket ID must be a positive integer').optional(),
   ticketNumber: z.number().int().positive('Ticket number must be a positive integer').optional(),
-  projectId: z.number().int().positive('Project ID must be a positive integer').optional(),
+  projectId: z.number().int().positive('Project ID must be a positive integer').optional(),  // Auto-fills from auth context
   status: z.enum(KANBAN_STATUSES, {
     errorMap: () => ({
       message: `Status must be one of: ${KANBAN_STATUSES.join(', ')}`,
@@ -85,8 +87,8 @@ const moveTicketSchema = z.object({
     .min(0, 'Display order must be non-negative')
     .max(10000, 'Display order must be at most 10000'),
 }).refine(
-  (data) => data.ticketId || (data.ticketNumber && data.projectId),
-  { message: 'Either ticketId OR (ticketNumber + projectId) required' }
+  (data) => data.ticketId || data.ticketNumber,
+  { message: 'Either ticketId OR ticketNumber required' }
 );
 
 type MoveTicketInput = z.infer<typeof moveTicketSchema>;
@@ -96,19 +98,33 @@ async function handler(input: MoveTicketInput, context: ToolContext): Promise<st
   const { httpClient, logger } = context;
   const { ticketId, ticketNumber, projectId, status, displayOrder } = input;
 
+  // Sprint 18: Auto-fill projectId from authenticated context
+  const resolvedProjectId = resolveProjectId(projectId, context.projectId);
+
+  // Validate we have projectId when using ticketNumber
+  if (ticketNumber && !ticketId && !resolvedProjectId) {
+    return JSON.stringify({
+      status: 'error',
+      error: {
+        code: 'MISSING_PROJECT_ID',
+        message: 'projectId required when using ticketNumber (not available from auth context)',
+      },
+    }, null, 2);
+  }
+
   try {
     // Sprint 17: Resolve ticketId if ticketNumber was provided
     let resolvedTicketId = ticketId;
-    if (!resolvedTicketId && ticketNumber && projectId) {
+    if (!resolvedTicketId && ticketNumber && resolvedProjectId) {
       const lookupResponse = await httpClient.get<TicketLookupResponse>(
-        `/api/tickets/by-number/${projectId}/${ticketNumber}`
+        `/api/tickets/by-number/${resolvedProjectId}/${ticketNumber}`
       );
       if (!lookupResponse.data?.id) {
         return JSON.stringify({
           status: 'error',
           error: {
             code: 'NOT_FOUND',
-            message: `Ticket #${ticketNumber} not found in project ${projectId}`,
+            message: `Ticket #${ticketNumber} not found in project ${resolvedProjectId}`,
           },
         }, null, 2);
       }
@@ -137,7 +153,7 @@ async function handler(input: MoveTicketInput, context: ToolContext): Promise<st
 
     const { ticket, progressUpdates } = response.data;
 
-    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId };
+    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId: resolvedProjectId };
     logger.info('[kanban.moveTicket] Ticket moved', {
       ...identifier,
       resolvedTicketId,
@@ -184,7 +200,7 @@ async function handler(input: MoveTicketInput, context: ToolContext): Promise<st
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId };
+    const identifier = ticketId ? { ticketId } : { ticketNumber, projectId: resolvedProjectId };
     logger.error('[kanban.moveTicket] Unexpected error', { error, ...identifier, status, displayOrder });
     return JSON.stringify(
       {
@@ -261,7 +277,7 @@ Related tools:
       },
       projectId: {
         type: 'number',
-        description: 'Project ID (required when using ticketNumber)',
+        description: 'Project ID (auto-fills from auth context when omitted)',
       },
       status: {
         type: 'string',

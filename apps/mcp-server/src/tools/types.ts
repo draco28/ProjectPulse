@@ -8,6 +8,8 @@ export interface ToolContext {
   config: AppConfig;
   logger: Logger;
   httpClient: HttpClient;
+  /** Authenticated project ID from agent token (Sprint 18: auto-inject) */
+  projectId?: number;
 }
 
 export interface ToolDefinition {

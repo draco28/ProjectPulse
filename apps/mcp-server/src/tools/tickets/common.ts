@@ -291,6 +291,15 @@ export const buildErrorPayload = (message: string, code = 'ERROR', details?: unk
     2
   );
 
+/**
+ * Resolve projectId from input or context (Sprint 18: auto-inject)
+ * Priority: explicit input > authenticated context > undefined
+ */
+export const resolveProjectId = (
+  inputProjectId: number | undefined,
+  contextProjectId: number | undefined
+): number | undefined => inputProjectId ?? contextProjectId;
+
 export const summarizeTicket = (ticket: Partial<TicketRecord>) => ({
   // Sprint 17: Project-scoped identifiers FIRST (what users see)
   ticketNumber: ticket.ticketNumber,

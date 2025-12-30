@@ -128,13 +128,10 @@ app.use('/mcp', (req, _res, next) => {
 // Middleware: Agent Bearer Auth (Sprint 9)
 // Validates agent tokens via web app and attaches projectId to request
 //
-// NOTE: Currently, validated projectId is attached to req.agentAuth but not
-// automatically passed to tool context. Tools that require project scoping
-// should accept projectId as a parameter, which the web app APIs will validate
-// against the token's projectId for defense-in-depth security.
-//
-// TODO (Future): Refactor tool execution to pass req.agentAuth.projectId
-// as part of ToolContext so tools can use validated projectId directly.
+// Sprint 18: Authenticated projectId is now auto-injected into ToolContext.
+// Tools can access context.projectId and use resolveProjectId() to auto-fill
+// when agents omit projectId in their requests. Defense-in-depth security
+// is maintained: MCP layer auto-fills, web API layer still validates.
 app.use('/mcp', async (req, res, next) => {
   const authHeader = req.headers.authorization;
   

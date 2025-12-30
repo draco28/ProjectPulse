@@ -334,7 +334,12 @@ export const registerTools = (server: Server, context: ToolContext) => {
 
     try {
       const parsed = tool.schema.parse(rawArgs ?? {});
-      const result = await tool.execute(parsed, context);
+      // Sprint 18: Inject authenticated projectId into tool context for auto-fill
+      const contextWithAuth: ToolContext = {
+        ...context,
+        projectId: auth?.projectId,
+      };
+      const result = await tool.execute(parsed, contextWithAuth);
       const duration = Date.now() - startTime;
 
       // Sprint 11.5: Log successful tool call (fire-and-forget)

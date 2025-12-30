@@ -12,6 +12,7 @@ import {
   buildErrorPayload,
   ticketNumberSchema,
   projectIdSchema,
+  resolveProjectId,
 } from './common.js';
 
 interface TicketChildSummary {
@@ -42,17 +43,18 @@ interface ChildrenResponse {
   statusCounts: Record<string, number>;
 }
 
-// Sprint 17: Dual-input schema - accept either ticketId OR (ticketNumber + projectId)
+// Sprint 17: Dual-input schema - accept either ticketId OR ticketNumber
+// Sprint 18: projectId now auto-fills from auth context when omitted
 const getChildrenSchema = z.object({
   ticketId: z.number().int().positive().optional(),      // Global ID (existing)
   ticketNumber: ticketNumberSchema.optional(),           // Project-scoped (NEW)
-  projectId: projectIdSchema.optional(),                 // Required with ticketNumber
+  projectId: projectIdSchema.optional(),                 // Auto-fills from auth context
   status: z.string().optional(),
   page: z.number().int().min(1).default(1),
   pageSize: z.number().int().min(1).max(100).default(20),
 }).refine(
-  (data) => data.ticketId || (data.ticketNumber && data.projectId),
-  { message: 'Either ticketId OR (ticketNumber + projectId) required' }
+  (data) => data.ticketId || data.ticketNumber,
+  { message: 'Either ticketId OR ticketNumber required' }
 );
 
 type GetChildrenInput = z.infer<typeof getChildrenSchema>;
@@ -60,15 +62,26 @@ type GetChildrenInput = z.infer<typeof getChildrenSchema>;
 async function handler(input: GetChildrenInput, context: ToolContext): Promise<string> {
   const { httpClient, logger } = context;
 
+  // Sprint 18: Auto-fill projectId from authenticated context
+  const resolvedProjectId = resolveProjectId(input.projectId, context.projectId);
+
+  // Validate we have projectId when using ticketNumber
+  if (input.ticketNumber && !input.ticketId && !resolvedProjectId) {
+    return buildErrorPayload(
+      'projectId required when using ticketNumber (not available from auth context)',
+      'MISSING_PROJECT_ID'
+    );
+  }
+
   // Sprint 17: Resolve ticketId if ticketNumber was provided
   let resolvedTicketId = input.ticketId;
-  if (!resolvedTicketId && input.ticketNumber && input.projectId) {
+  if (!resolvedTicketId && input.ticketNumber && resolvedProjectId) {
     const lookupResponse = await httpClient.get<ApiResponse<{ id: number }>>(
-      `/api/tickets/by-number/${input.projectId}/${input.ticketNumber}`
+      `/api/tickets/by-number/${resolvedProjectId}/${input.ticketNumber}`
     );
     if (!lookupResponse.data) {
       return buildErrorPayload(
-        `Ticket #${input.ticketNumber} not found in project ${input.projectId}`,
+        `Ticket #${input.ticketNumber} not found in project ${resolvedProjectId}`,
         'NOT_FOUND'
       );
     }
@@ -96,7 +109,7 @@ async function handler(input: GetChildrenInput, context: ToolContext): Promise<s
 
     const identifier = input.ticketId
       ? { parentId: input.ticketId }
-      : { parentTicketNumber: input.ticketNumber, projectId: input.projectId };
+      : { parentTicketNumber: input.ticketNumber, projectId: resolvedProjectId };
     logger.info('[ticket.getChildren] Children fetched', {
       ...identifier,
       childrenCount: response.data.totalCount,
@@ -132,7 +145,7 @@ async function handler(input: GetChildrenInput, context: ToolContext): Promise<s
   } catch (error) {
     const identifier = input.ticketId
       ? { ticketId: input.ticketId }
-      : { ticketNumber: input.ticketNumber, projectId: input.projectId };
+      : { ticketNumber: input.ticketNumber, projectId: resolvedProjectId };
     logger.error('[ticket.getChildren] Unexpected error', { error, ...identifier });
     return buildErrorPayload(error instanceof Error ? error.message : 'Unexpected error');
   }
@@ -176,7 +189,7 @@ Related:
       },
       projectId: {
         type: 'number',
-        description: 'Project ID (required when using ticketNumber)',
+        description: 'Project ID (auto-fills from auth context when omitted)',
       },
       status: {
         type: 'string',
