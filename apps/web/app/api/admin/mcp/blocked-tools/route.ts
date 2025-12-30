@@ -1,13 +1,14 @@
 /**
  * Global MCP Tool Blocklist API
  * Sprint 11.5: Manage globally blocked MCP tools
+ * Sprint 17 / Phase 1: Upgraded to HMAC signature verification (Ticket #129)
  *
  * GET /api/admin/mcp/blocked-tools - List blocked tools
  * POST /api/admin/mcp/blocked-tools - Add tool to blocklist
  * DELETE /api/admin/mcp/blocked-tools - Remove tool from blocklist
  *
  * Storage: Setting table with key 'mcp_blocked_tools'
- * Security: Requires ADMIN role
+ * Security: Requires ADMIN role (or HMAC signature for internal GET requests)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -15,6 +16,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-server';
 import { logAdminAction } from '@/lib/audit';
+import { verifyInternalRequest } from '@/lib/internal-auth';
 
 const SETTING_KEY = 'mcp_blocked_tools';
 
@@ -29,7 +31,12 @@ const removeToolSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAdmin();
+    // Allow internal requests with valid HMAC signature (for MCP server)
+    const isInternal = await verifyInternalRequest(request);
+
+    if (!isInternal) {
+      await requireAdmin();
+    }
 
     const setting = await prisma.setting.findUnique({
       where: { key: SETTING_KEY },

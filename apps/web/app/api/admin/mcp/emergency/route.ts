@@ -1,6 +1,7 @@
 /**
  * MCP Emergency Shutdown API
  * Sprint 11.5: Enable/disable emergency shutdown for all MCP operations
+ * Sprint 17 / Phase 1: Upgraded to HMAC signature verification (Ticket #129)
  *
  * GET /api/admin/mcp/emergency - Check emergency shutdown status
  * POST /api/admin/mcp/emergency - Enable emergency shutdown
@@ -8,7 +9,7 @@
  *
  * When enabled, ALL MCP tool calls are rejected with admin message
  * Storage: Setting table with key 'mcp_emergency_shutdown'
- * Security: Requires ADMIN role
+ * Security: Requires ADMIN role (or HMAC signature for internal requests)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -16,6 +17,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-server';
 import { logAdminAction } from '@/lib/audit';
+import { verifyInternalRequest } from '@/lib/internal-auth';
 import type { Prisma } from '@prisma/client';
 
 const SETTING_KEY = 'mcp_emergency_shutdown';
@@ -33,8 +35,8 @@ const enableSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    // Allow internal requests without admin check (for MCP server)
-    const isInternal = request.headers.get('x-internal-request') === 'true';
+    // Allow internal requests with valid HMAC signature (for MCP server)
+    const isInternal = await verifyInternalRequest(request);
 
     if (!isInternal) {
       await requireAdmin();

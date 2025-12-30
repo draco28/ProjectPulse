@@ -58,6 +58,9 @@ services:
       - REDIS_PORT=6379
       - NEXTAUTH_SECRET=dev-secret-change-in-production
       - NEXTAUTH_URL=http://localhost:3000
+      # MCP Internal Authentication (Sprint 17 - Ticket #129)
+      # Must match MCP_INTERNAL_SECRET in mcp-server service
+      - MCP_INTERNAL_SECRET=${MCP_INTERNAL_SECRET:-dev-mcp-secret-32-chars-minimum-ok}
     ports:
       - "3000:3000"
     volumes:
@@ -90,6 +93,9 @@ services:
       - NODE_ENV=production
       - MCP_PORT=3001
       - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/projectpulse_dev
+      # MCP Internal Authentication (Sprint 17 - Ticket #129)
+      # Must match MCP_INTERNAL_SECRET in nextjs service
+      - MCP_INTERNAL_SECRET=${MCP_INTERNAL_SECRET:-dev-mcp-secret-32-chars-minimum-ok}
     ports:
       - "3001:3001"
     volumes:

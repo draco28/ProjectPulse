@@ -2,24 +2,25 @@
  * MCP HTTP Route Handler
  *
  * Sprint 5.5 - MCP Server Infrastructure
+ * Sprint 17 / Phase 1 - Authentication required (Ticket #129)
  * Created: 2025-11-12
  *
  * Handles JSON-RPC 2.0 requests for MCP (Model Context Protocol) tools via HTTP transport.
  * Enables AI coding agents (Claude Code, Cursor AI, Codex) to connect to ProjectPulse.
  *
  * Request flow:
- * 1. Client sends JSON-RPC request via POST /api/mcp
- * 2. Extract/validate session ID from Mcp-Session-Id header
- * 3. Parse JSON-RPC 2.0 request body
- * 4. Create StreamableHTTPServerTransport for this request
- * 5. Connect transport to singleton MCP server
- * 6. Execute tool/method via server
- * 7. Return JSON-RPC 2.0 response
+ * 1. Client sends JSON-RPC request via POST /api/mcp with Authorization header
+ * 2. Validate authentication (Bearer token or session)
+ * 3. Extract/validate session ID from Mcp-Session-Id header
+ * 4. Parse JSON-RPC 2.0 request body
+ * 5. Execute tool/method via server
+ * 6. Return JSON-RPC 2.0 response
  *
  * Architecture:
  * - HTTP Transport: Streamable HTTP (2025-03-26 spec)
  * - Session Management: UUID v4 with 1-hour TTL
  * - Server Pattern: Singleton MCPServer, per-request transport
+ * - Security: Requires Bearer token or session authentication
  * - Target Users: Developers using AI coding agents on local network
  *
  * @see apps/web/.agent/task/sprint-5.5-mcp-server-plan.md
@@ -30,6 +31,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getMCPServer } from '@/lib/mcp/server';
 import { validateSession, generateSessionId } from '@/lib/mcp/session-manager';
 import { MCPError, JSONRPC_ERROR_CODES, isMCPError } from '@/lib/mcp/types';
+import { getAuthContext } from '@/lib/auth/validateRequest';
 import {
   knowledgeSearchHandler,
   knowledgeCreateHandler,
@@ -118,6 +120,27 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
+    // Step 0: Authentication required (Sprint 17 / Ticket #129)
+    const auth = await getAuthContext(request);
+    if (auth.type === 'none') {
+      console.warn('[POST /api/mcp] Authentication required - no valid token or session');
+      return NextResponse.json(
+        {
+          jsonrpc: '2.0',
+          id: null,
+          error: {
+            code: -32000, // Server error
+            message: 'Authentication required. Provide a Bearer token or valid session.',
+          },
+        },
+        { status: 401 }
+      );
+    }
+
+    console.log(
+      `[POST /api/mcp] Authenticated: ${auth.type}${auth.type === 'agent' ? ` (project ${auth.projectId})` : ''}`
+    );
+
     // Step 1: Extract or generate session ID
     const sessionIdHeader = request.headers.get('Mcp-Session-Id');
     const sessionId = sessionIdHeader || generateSessionId();

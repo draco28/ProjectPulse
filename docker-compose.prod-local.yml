@@ -86,6 +86,8 @@ services:
       DEFAULT_PROJECT_ID: ${PROD_DEFAULT_PROJECT_ID:-1}
       # MCP Server internal URL (container-to-container)
       MCP_SERVER_URL: http://prod-mcp:3001
+      # MCP Internal Authentication (Sprint 17 - Ticket #129)
+      MCP_INTERNAL_SECRET: ${PROD_MCP_INTERNAL_SECRET:?PROD_MCP_INTERNAL_SECRET is required}
     ports:
       - "8080:3000"
     networks:
@@ -117,6 +119,8 @@ services:
       MCP_PORT: 3001
       DATABASE_URL: postgresql://${PROD_POSTGRES_USER:-projectpulse}:${PROD_POSTGRES_PASSWORD}@prod-postgres:5432/${PROD_POSTGRES_DB:-projectpulse_prod}
       REDIS_URL: redis://:${PROD_REDIS_PASSWORD}@prod-redis:6379
+      # MCP Internal Authentication (Sprint 17 - Ticket #129)
+      MCP_INTERNAL_SECRET: ${PROD_MCP_INTERNAL_SECRET:?PROD_MCP_INTERNAL_SECRET is required}
     ports:
       - "8081:3001"
     networks:

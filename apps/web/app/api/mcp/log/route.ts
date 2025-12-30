@@ -1,19 +1,21 @@
 /**
  * Internal MCP Tool Logging API
  * Sprint 11.5: Called by MCP server to log tool invocations
+ * Sprint 17 / Phase 1: Upgraded to HMAC signature verification (Ticket #129)
  *
  * POST /api/mcp/log - Log a tool call
  *
  * Security:
- * - Only accepts requests with x-internal-request header
+ * - Requires HMAC-SHA256 signature (x-internal-timestamp, x-internal-signature)
+ * - Timestamp-based replay protection (5-minute window)
  * - Fire-and-forget from MCP server (non-blocking)
- * - No auth required (internal only)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
+import { verifyInternalRequest } from '@/lib/internal-auth';
 
 const logSchema = z.object({
   tokenId: z.number().int().positive(),
@@ -26,9 +28,13 @@ const logSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  // Only allow internal requests
-  if (request.headers.get('x-internal-request') !== 'true') {
-    return NextResponse.json({ error: 'Forbidden: Internal use only' }, { status: 403 });
+  // Verify HMAC signature for internal requests
+  const isValid = await verifyInternalRequest(request);
+  if (!isValid) {
+    return NextResponse.json(
+      { error: 'Forbidden: Invalid or missing internal signature' },
+      { status: 403 }
+    );
   }
 
   try {

@@ -1,6 +1,7 @@
 /**
  * Admin Controls for MCP Server
  * Sprint 11.5: Integrates with Next.js API for emergency shutdown, tool blocking, and logging
+ * Sprint 17 / Phase 1: Upgraded to HMAC signature authentication (Ticket #129)
  *
  * Features:
  * - Emergency shutdown check (5-second cache)
@@ -8,10 +9,12 @@
  * - Tool call logging (fire-and-forget)
  *
  * Security:
- * - Uses x-internal-request header for internal API calls
+ * - Uses HMAC-SHA256 signatures for internal API calls
+ * - Timestamp-based replay protection (5-minute window)
  * - Fails open on errors (availability over security for non-critical checks)
  */
 
+import crypto from 'crypto';
 import { config } from './config.js';
 import { createLogger } from './logger.js';
 
@@ -53,6 +56,37 @@ let emergencyCache: CacheEntry<EmergencyStatus> | null = null;
 let blockedToolsCache: CacheEntry<string[]> | null = null;
 
 // ============================================================================
+// HMAC Signing for Internal Requests (Sprint 17 / Ticket #129)
+// ============================================================================
+
+/**
+ * Create signed headers for internal service requests
+ * Uses HMAC-SHA256 with timestamp for replay protection
+ *
+ * @param body - Request body (null for GET requests)
+ * @returns Headers object with timestamp and signature
+ */
+function createSignedHeaders(body: unknown): Record<string, string> {
+  const secret = config.mcpInternalSecret;
+  if (!secret) {
+    // Fallback to legacy header if secret not configured (during migration)
+    logger.warn('MCP_INTERNAL_SECRET not configured, using legacy header');
+    return { 'x-internal-request': 'true' };
+  }
+
+  const timestamp = Date.now().toString();
+  const bodyString = body !== null ? JSON.stringify(body) : '';
+  const payload = `${timestamp}.${bodyString}`;
+
+  const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+
+  return {
+    'x-internal-timestamp': timestamp,
+    'x-internal-signature': signature,
+  };
+}
+
+// ============================================================================
 // Emergency Shutdown
 // ============================================================================
 
@@ -71,7 +105,7 @@ export async function checkEmergencyShutdown(): Promise<EmergencyStatus> {
 
   try {
     const res = await fetch(`${API_BASE}/api/admin/mcp/emergency`, {
-      headers: { 'x-internal-request': 'true' },
+      headers: createSignedHeaders(null),
     });
 
     if (!res.ok) {
@@ -114,7 +148,7 @@ export async function checkBlockedTool(toolName: string): Promise<boolean> {
 
   try {
     const res = await fetch(`${API_BASE}/api/admin/mcp/blocked-tools`, {
-      headers: { 'x-internal-request': 'true' },
+      headers: createSignedHeaders(null),
     });
 
     if (!res.ok) {
@@ -122,7 +156,7 @@ export async function checkBlockedTool(toolName: string): Promise<boolean> {
       return false; // Fail open
     }
 
-    const data = await res.json() as { blockedTools: string[] };
+    const data = (await res.json()) as { blockedTools: string[] };
     blockedToolsCache = { data: data.blockedTools || [], timestamp: now };
 
     const isBlocked = blockedToolsCache.data.includes(toolName);
@@ -152,14 +186,14 @@ export async function getBlockedTools(): Promise<string[]> {
 
   try {
     const res = await fetch(`${API_BASE}/api/admin/mcp/blocked-tools`, {
-      headers: { 'x-internal-request': 'true' },
+      headers: createSignedHeaders(null),
     });
 
     if (!res.ok) {
       return [];
     }
 
-    const data = await res.json() as { blockedTools: string[] };
+    const data = (await res.json()) as { blockedTools: string[] };
     blockedToolsCache = { data: data.blockedTools || [], timestamp: now };
     return blockedToolsCache.data;
   } catch (error) {
@@ -182,7 +216,7 @@ export async function logToolCall(params: ToolCallLogParams): Promise<void> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-internal-request': 'true',
+        ...createSignedHeaders(params),
       },
       body: JSON.stringify(params),
     });
