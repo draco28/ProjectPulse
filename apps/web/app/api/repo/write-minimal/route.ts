@@ -276,6 +276,18 @@ projectpulse_ticket_create({
 | "X needs refactoring" | \`tech_debt\` |
 | "Concerned about X" | \`issue\` |
 
+### ⚠️ CRITICAL: Ticket Identification (Sprint 17)
+
+**Users see #123 in the UI** - this is \`ticketNumber\` (project-scoped).
+**DO NOT** use this as \`ticketId\` - that's a different number (global database ID)!
+
+| User Says | Parameter to Use | Example |
+|-----------|------------------|---------|
+| "#5", "ticket 5" | \`ticketNumber\` + \`projectId\` | \`ticket_get({ ticketNumber: 5, projectId: ${projectId} })\` |
+| (from API response) | \`ticketId\` | \`ticket_update({ ticketId: 42, ... })\` |
+
+**Rule**: If USER gave you the number, use \`ticketNumber\`. If API returned it, use \`ticketId\`.
+
 ### Complete Workflow (6 steps)
 
 | Step | Action | MCP Tool |
