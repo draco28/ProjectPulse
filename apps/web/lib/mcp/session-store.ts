@@ -84,6 +84,9 @@ export class RedisSessionStore {
 
     await this.redis.setex(`session:${sessionId}`, this.TTL_SECONDS, JSON.stringify(data));
 
+    // Track session in per-project Set for efficient listing
+    await this.redis.sadd(`project:${projectId}:sessions`, sessionId);
+
     return toMCPSession(data);
   }
 
@@ -99,6 +102,9 @@ export class RedisSessionStore {
     };
 
     await this.redis.setex(`session:${sessionId}`, this.TTL_SECONDS, JSON.stringify(data));
+
+    // Track session in per-project Set for efficient listing
+    await this.redis.sadd(`project:${projectId}:sessions`, sessionId);
 
     return toMCPSession(data);
   }
@@ -117,6 +123,16 @@ export class RedisSessionStore {
   }
 
   async deleteSession(sessionId: string): Promise<void> {
+    // Get projectId to remove from Set
+    const raw = await this.redis.get(`session:${sessionId}`);
+    if (raw) {
+      try {
+        const data: SessionData = JSON.parse(raw);
+        await this.redis.srem(`project:${data.projectId}:sessions`, sessionId);
+      } catch {
+        // Ignore parse errors - lazy cleanup will handle stale entries
+      }
+    }
     await this.redis.del(`session:${sessionId}`);
   }
 
@@ -126,30 +142,55 @@ export class RedisSessionStore {
   }
 
   async getActiveSessions(projectId: number): Promise<MCPSession[]> {
-    const pattern = 'session:*';
-    const keys = await this.redis.keys(pattern);
+    // Use per-project Set instead of scanning all keys (O(n) per-project vs O(N) global)
+    const setKey = `project:${projectId}:sessions`;
+    const sessionIds = await this.redis.smembers(setKey);
 
-    if (keys.length === 0) return [];
+    if (sessionIds.length === 0) return [];
 
-    const sessions = await Promise.all(
-      keys.map(async (key) => {
-        try {
-          const raw = await this.redis.get(key);
-          if (!raw) return null;
-          const data: SessionData = JSON.parse(raw);
-          return data.projectId === projectId ? toMCPSession(data) : null;
-        } catch {
-          return null;
-        }
-      })
-    );
+    // Batch get all sessions for this project (MGET is efficient)
+    const sessionKeys = sessionIds.map((id) => `session:${id}`);
+    const rawSessions = await this.redis.mget(...sessionKeys);
 
-    return sessions.filter((s) => s !== null) as MCPSession[];
+    const sessions: MCPSession[] = [];
+    const staleIds: string[] = [];
+
+    for (let i = 0; i < rawSessions.length; i++) {
+      const raw = rawSessions[i];
+      const sessionId = sessionIds[i];
+      if (!sessionId) continue; // Guard against undefined (noUncheckedIndexedAccess)
+
+      if (!raw) {
+        // Session expired via TTL but Set entry remains - mark for cleanup
+        staleIds.push(sessionId);
+        continue;
+      }
+      try {
+        const data: SessionData = JSON.parse(raw);
+        sessions.push(toMCPSession(data));
+      } catch {
+        staleIds.push(sessionId);
+      }
+    }
+
+    // Lazy cleanup of stale entries
+    if (staleIds.length > 0) {
+      await this.redis.srem(setKey, ...staleIds);
+    }
+
+    return sessions;
   }
 
   async getActiveSessionCount(): Promise<number> {
-    const keys = await this.redis.keys('session:*');
-    return keys.length;
+    // Use SCAN instead of KEYS for non-blocking iteration
+    let count = 0;
+    let cursor = '0';
+    do {
+      const result = await this.redis.scan(cursor, 'MATCH', 'session:*', 'COUNT', 100);
+      cursor = result[0];
+      count += result[1].length;
+    } while (cursor !== '0');
+    return count;
   }
 
   async healthCheck(): Promise<boolean> {
@@ -174,6 +215,7 @@ export class RedisSessionStore {
  */
 export class InMemorySessionStore {
   private sessions: Map<string, SessionData> = new Map();
+  private sessionsByProject: Map<number, Set<string>> = new Map(); // Per-project tracking
   private readonly TTL_MS = 3600000; // 1 hour
   private cleanupInterval: NodeJS.Timeout;
 
@@ -197,6 +239,13 @@ export class InMemorySessionStore {
     };
 
     this.sessions.set(sessionId, data);
+
+    // Track session in per-project Set (matching Redis behavior)
+    if (!this.sessionsByProject.has(projectId)) {
+      this.sessionsByProject.set(projectId, new Set());
+    }
+    this.sessionsByProject.get(projectId)!.add(sessionId);
+
     return toMCPSession(data);
   }
 
@@ -212,6 +261,13 @@ export class InMemorySessionStore {
     };
 
     this.sessions.set(sessionId, data);
+
+    // Track session in per-project Set (matching Redis behavior)
+    if (!this.sessionsByProject.has(projectId)) {
+      this.sessionsByProject.set(projectId, new Set());
+    }
+    this.sessionsByProject.get(projectId)!.add(sessionId);
+
     return toMCPSession(data);
   }
 
@@ -229,6 +285,10 @@ export class InMemorySessionStore {
   }
 
   async deleteSession(sessionId: string): Promise<void> {
+    const session = this.sessions.get(sessionId);
+    if (session) {
+      this.sessionsByProject.get(session.projectId)?.delete(sessionId);
+    }
     this.sessions.delete(sessionId);
   }
 
@@ -241,9 +301,28 @@ export class InMemorySessionStore {
 
   async getActiveSessions(projectId: number): Promise<MCPSession[]> {
     const now = Date.now();
-    return Array.from(this.sessions.values())
-      .filter((data) => data.projectId === projectId && data.expiresAt > now)
-      .map((data) => toMCPSession(data));
+    const projectSessionIds = this.sessionsByProject.get(projectId);
+    if (!projectSessionIds) return [];
+
+    const sessions: MCPSession[] = [];
+    const staleIds: string[] = [];
+
+    for (const sessionId of projectSessionIds) {
+      const data = this.sessions.get(sessionId);
+      if (!data || data.expiresAt <= now) {
+        staleIds.push(sessionId);
+      } else {
+        sessions.push(toMCPSession(data));
+      }
+    }
+
+    // Cleanup stale entries (matching Redis lazy cleanup behavior)
+    for (const id of staleIds) {
+      projectSessionIds.delete(id);
+      this.sessions.delete(id);
+    }
+
+    return sessions;
   }
 
   async getActiveSessionCount(): Promise<number> {
@@ -257,12 +336,14 @@ export class InMemorySessionStore {
   async disconnect(): Promise<void> {
     clearInterval(this.cleanupInterval);
     this.sessions.clear();
+    this.sessionsByProject.clear();
   }
 
   private cleanup(): void {
     const now = Date.now();
     for (const [sessionId, data] of this.sessions.entries()) {
       if (data.expiresAt < now) {
+        this.sessionsByProject.get(data.projectId)?.delete(sessionId);
         this.sessions.delete(sessionId);
       }
     }
