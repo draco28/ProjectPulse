@@ -315,6 +315,7 @@ export default async function WikiPage({ params, searchParams }: PageProps) {
                 helpfulRatio={helpfulRatio}
                 uniqueVisitors={page.analytics?.uniqueVisitors}
                 popularity={page.analytics?.popularity}
+                projectId={projectId}
               />
 
               {/* Wiki Content with Markdown Rendering */}
@@ -328,7 +329,7 @@ export default async function WikiPage({ params, searchParams }: PageProps) {
               />
 
               {/* Footer Navigation */}
-              <WikiFooterNav prevPage={page.prevPage} nextPage={page.nextPage} />
+              <WikiFooterNav prevPage={page.prevPage} nextPage={page.nextPage} projectId={projectId} />
             </div>
           </main>
 

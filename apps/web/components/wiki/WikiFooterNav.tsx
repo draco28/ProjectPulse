@@ -4,9 +4,10 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 interface WikiFooterNavProps {
   prevPage?: { title: string; path: string };
   nextPage?: { title: string; path: string };
+  projectId: number;
 }
 
-export function WikiFooterNav({ prevPage, nextPage }: WikiFooterNavProps) {
+export function WikiFooterNav({ prevPage, nextPage, projectId }: WikiFooterNavProps) {
   // Don't render if both are missing
   if (!prevPage && !nextPage) {
     return null;
@@ -19,7 +20,7 @@ export function WikiFooterNav({ prevPage, nextPage }: WikiFooterNavProps) {
     >
       {prevPage ? (
         <Link
-          href={`/wiki${prevPage.path}`}
+          href={`/wiki${prevPage.path}?project=${projectId}`}
           className="smooth-transition group flex items-center gap-2 text-slate hover:text-coral"
         >
           <ArrowLeft
@@ -37,7 +38,7 @@ export function WikiFooterNav({ prevPage, nextPage }: WikiFooterNavProps) {
 
       {nextPage ? (
         <Link
-          href={`/wiki${nextPage.path}`}
+          href={`/wiki${nextPage.path}?project=${projectId}`}
           className="smooth-transition group flex items-center gap-2 text-right text-slate hover:text-coral"
         >
           <div>

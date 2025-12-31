@@ -15,7 +15,11 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { updateWikiPageSchema } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
-import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import {
+  getAuthorizedProjectId,
+  requireProjectAccess,
+  AuthError,
+} from '@/lib/auth/validateRequest';
 
 /**
  * GET /api/wiki/:slug
@@ -33,9 +37,18 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     // Normalize slug to match database path format
     const path = slug.startsWith('/') ? slug : `/${slug}`;
 
-    // Fetch the wiki page
-    const page = await prisma.wikiPage.findUnique({
-      where: { path },
+    // Get projectId from query params or auth context (Sprint 18 pattern)
+    const { searchParams } = new URL(request.url);
+    const requestedProjectId = searchParams.get('project')
+      ? parseInt(searchParams.get('project')!, 10)
+      : undefined;
+
+    // Authenticate and get authorized projectId FIRST
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
+
+    // Fetch the wiki page - filter by projectId at query time for security
+    const page = await prisma.wikiPage.findFirst({
+      where: { path, projectId },
       select: {
         id: true,
         title: true,
@@ -45,7 +58,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
         createdAt: true,
         updatedAt: true,
         projectId: true,
-        // Related pages via outgoing links
+        // Related pages via outgoing links (same project only)
         outgoingLinks: {
           select: {
             targetPage: {
@@ -64,9 +77,6 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     if (!page) {
       return NextResponse.json({ error: 'Wiki page not found' }, { status: 404 });
     }
-
-    // Authenticate and validate project access
-    await requireProjectAccess(request, page.projectId);
 
     // Extract related pages from outgoing links
     const relatedPages = page.outgoingLinks.map((link) => link.targetPage);
@@ -132,6 +142,14 @@ function mapUpdateError(error: WikiUpdateError) {
 export async function PATCH(request: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const slugPath = params.slug.startsWith('/') ? params.slug : `/${params.slug}`;
+
+    // Get projectId from query params or auth context BEFORE transaction (Sprint 18 pattern)
+    const { searchParams } = new URL(request.url);
+    const requestedProjectId = searchParams.get('project')
+      ? parseInt(searchParams.get('project')!, 10)
+      : undefined;
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
+
     const body = await request.json();
     const validation = updateWikiPageSchema.safeParse(body);
 
@@ -159,8 +177,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
       DEFAULT_ACTOR_TYPE;
 
     const updatedPage = await prisma.$transaction(async (tx) => {
-      const existing = await tx.wikiPage.findUnique({
-        where: { path: slugPath },
+      // Filter by both path AND projectId at query time for security
+      const existing = await tx.wikiPage.findFirst({
+        where: { path: slugPath, projectId },
         select: {
           id: true,
           title: true,
@@ -178,9 +197,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
       if (!existing) {
         throw 'NOT_FOUND';
       }
-
-      // Authenticate and validate project access
-      await requireProjectAccess(request, existing.projectId);
 
       const parentUpdate: Prisma.WikiPageUpdateInput = {};
       if (hasParentUpdate) {

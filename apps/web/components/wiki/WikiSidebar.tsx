@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { TableOfContents } from './TableOfContents';
+import { useProject } from '@/lib/project/ProjectContext';
 
 interface TOCItem {
   id: string;
@@ -22,6 +23,8 @@ interface WikiSidebarProps {
 }
 
 export function WikiSidebar({ tocItems, relatedPages }: WikiSidebarProps) {
+  const { buildHref } = useProject();
+
   return (
     <aside className="w-64 flex-shrink-0 space-y-4">
       {/* Table of Contents */}
@@ -37,7 +40,7 @@ export function WikiSidebar({ tocItems, relatedPages }: WikiSidebarProps) {
             {relatedPages.map((page) => (
               <Link
                 key={page.id}
-                href={`/wiki${page.path}`}
+                href={buildHref(`/wiki${page.path}`)}
                 className="smooth-transition flex items-center gap-2 text-sm text-slate hover:text-coral"
               >
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />

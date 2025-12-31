@@ -27,6 +27,7 @@ interface WikiHeaderProps {
   popularity?: number | null;
   path: string;
   readingTime?: number;
+  projectId: number;
 }
 
 export function WikiHeader({
@@ -46,6 +47,7 @@ export function WikiHeader({
   popularity,
   path,
   readingTime,
+  projectId,
 }: WikiHeaderProps) {
   // Sort contributors by edit count
   const sortedContributors = [...contributors].sort((a, b) => b.editCount - a.editCount);
@@ -64,7 +66,7 @@ export function WikiHeader({
           {description && <p className="text-lg text-slate">{description}</p>}
         </div>
         <Link
-          href={`/wiki/edit${path.startsWith('/') ? path : '/' + path}`}
+          href={`/wiki/edit${path.startsWith('/') ? path : '/' + path}?project=${projectId}`}
           className="neu-raised hover:bg-darkCard smooth-transition whitespace-nowrap rounded-xl px-4 py-2 text-sm"
         >
           <Edit className="mr-2 inline-block h-4 w-4" aria-hidden="true" />

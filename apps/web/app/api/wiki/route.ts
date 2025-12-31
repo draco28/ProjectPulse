@@ -148,9 +148,9 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const requestedProjectId = searchParams.get('projectId')
-      ? parseInt(searchParams.get('projectId')!, 10)
-      : undefined;
+    // Accept both 'project' (MCP tools) and 'projectId' (legacy) query params
+    const projectParam = searchParams.get('project') || searchParams.get('projectId');
+    const requestedProjectId = projectParam ? parseInt(projectParam, 10) : undefined;
 
     // Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);

@@ -1,10 +1,13 @@
 import { z } from 'zod';
 import type { ToolDefinition } from './types.js';
+import { resolveProjectId } from './tickets/common.js';
 
 /**
  * MCP Tool: projectpulse.wiki.search
  *
  * Search wiki pages by query string and optional category filter.
+ *
+ * Sprint 18: Auto-injects projectId from auth context when omitted.
  *
  * @see US-021: wiki.search MCP tool (3 points)
  * @see GET /api/wiki endpoint (with query params)
@@ -18,6 +21,7 @@ const inputSchema = z.object({
     .describe('Filter by category (optional)'),
   limit: z.number().int().min(1).max(50).default(10).describe('Maximum number of results (default: 10)'),
   offset: z.number().int().min(0).default(0).describe('Offset for pagination (default: 0)'),
+  projectId: z.number().int().positive().optional().describe('Project ID (auto-fills from auth context when omitted)'),
 });
 
 type WikiSearchInput = z.infer<typeof inputSchema>;
@@ -68,11 +72,33 @@ export const wikiSearchTool: ToolDefinition = {
         description: 'Offset for pagination (default: 0)',
         default: 0,
       },
+      projectId: {
+        type: 'number',
+        description: 'Project ID (auto-fills from auth context when omitted)',
+      },
     },
     required: ['query'],
   },
   execute: async (params, context) => {
-    const { query, category, limit = 10, offset = 0 } = params as WikiSearchInput;
+    const { query, category, limit = 10, offset = 0, projectId: inputProjectId } = params as WikiSearchInput;
+
+    // Sprint 18: Auto-inject projectId from auth context
+    const projectId = resolveProjectId(inputProjectId, context.projectId);
+
+    if (!projectId) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `❌ projectId required (not available from auth context)
+
+💡 This usually means the agent token doesn't have a project associated.
+   Provide projectId explicitly or check your auth configuration.`,
+          },
+        ],
+        isError: true,
+      };
+    }
 
     try {
       // Build query params for GET /api/wiki
@@ -80,6 +106,7 @@ export const wikiSearchTool: ToolDefinition = {
         search: query,
         limit: limit.toString(),
         offset: offset.toString(),
+        project: projectId.toString(),
       });
 
       if (category) {
@@ -118,6 +145,7 @@ Showing results ${offset + 1}-${Math.min(offset + limit, data.pagination.total)}
 ${resultsList}`;
 
       context.logger.info('Wiki search completed', {
+        projectId,
         query,
         category,
         resultsCount: data.pages.length,
@@ -137,6 +165,7 @@ ${resultsList}`;
 
       context.logger.error('Failed to search wiki pages', {
         error: errorMessage,
+        projectId,
         query,
         category,
       });

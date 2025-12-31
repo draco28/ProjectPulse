@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { ToolDefinition, ToolContext } from './types.js';
+import { resolveProjectId } from './tickets/common.js';
 
 /**
  * MCP Tool: projectpulse_wiki_get
@@ -7,12 +8,17 @@ import type { ToolDefinition, ToolContext } from './types.js';
  * Retrieve a wiki page's full content by path.
  * Use this after wiki_search to find pages, then get their full content.
  *
+ * Sprint 18: Auto-injects projectId from auth context when omitted.
+ *
  * @see GET /api/wiki/[slug] endpoint
  */
 
 const inputSchema = z.object({
   path: z.string().min(1).max(500).describe(
     'Wiki page path (e.g., "/contextai/docs/04-project-plan" or "getting-started")'
+  ),
+  projectId: z.number().int().positive().optional().describe(
+    'Project ID (auto-fills from auth context when omitted)'
   ),
 });
 
@@ -63,20 +69,40 @@ Example paths:
         type: 'string',
         description: 'Wiki page path from search results or known path',
       },
+      projectId: {
+        type: 'number',
+        description: 'Project ID (auto-fills from auth context when omitted)',
+      },
     },
     required: ['path'],
   },
 
   async execute(params: unknown, context: ToolContext) {
-    const { path } = inputSchema.parse(params) as WikiGetInput;
+    const { path, projectId: inputProjectId } = inputSchema.parse(params) as WikiGetInput;
+
+    // Sprint 18: Auto-inject projectId from auth context
+    const projectId = resolveProjectId(inputProjectId, context.projectId);
+
+    if (!projectId) {
+      return {
+        content: [{
+          type: 'text',
+          text: `❌ projectId required (not available from auth context)
+
+💡 This usually means the agent token doesn't have a project associated.
+   Provide projectId explicitly or check your auth configuration.`,
+        }],
+        isError: true,
+      };
+    }
 
     try {
       // Normalize path - remove leading slash for URL construction
       const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
 
-      // Call GET /api/wiki/[slug]
+      // Call GET /api/wiki/[slug] with project context
       const data = await context.httpClient.get<WikiPageResponse>(
-        `/api/wiki/${encodeURIComponent(normalizedPath)}`
+        `/api/wiki/${encodeURIComponent(normalizedPath)}?project=${projectId}`
       );
 
       const { page, relatedPages } = data.data;
@@ -97,6 +123,7 @@ Example paths:
 ${page.content}${relatedList}`;
 
       context.logger.info('Wiki page retrieved', {
+        projectId,
         path: page.path,
         title: page.title,
         contentLength: page.content.length,
@@ -112,6 +139,7 @@ ${page.content}${relatedList}`;
 
       context.logger.error('Failed to retrieve wiki page', {
         error: errorMessage,
+        projectId,
         path,
       });
 
