@@ -41,11 +41,19 @@ const nextConfig = {
   },
 
   // Headers for security and performance
-  // Note: X-Frame-Options is only set in production so that local / in-IDE
-  // previews can embed the app during development, while keeping framing
-  // disabled in deployed environments for security.
+  // Production Hardening Spec Section 1.2: CSP and Security Headers
+  // @see docs/PRODUCTION-HARDENING-SPEC.md
+  // @see lib/security/csp.ts for CSP directive documentation
   async headers() {
+    const isDev = process.env.NODE_ENV !== 'production';
+
+    // CSP directives - relaxed in dev for HMR WebSocket
+    const cspValue = isDev
+      ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' ws: wss:; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none';"
+      : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none';";
+
     const securityHeaders = [
+      // Existing headers
       {
         key: 'X-Content-Type-Options',
         value: 'nosniff',
@@ -54,12 +62,34 @@ const nextConfig = {
         key: 'Referrer-Policy',
         value: 'strict-origin-when-cross-origin',
       },
+      // NEW: Content-Security-Policy (Phase 1 Security Hardening)
+      {
+        key: 'Content-Security-Policy',
+        value: cspValue,
+      },
+      // NEW: X-XSS-Protection (legacy browser support)
+      {
+        key: 'X-XSS-Protection',
+        value: '1; mode=block',
+      },
+      // NEW: Permissions-Policy (disable unused device APIs)
+      {
+        key: 'Permissions-Policy',
+        value: 'camera=(), microphone=(), geolocation=()',
+      },
     ];
 
-    if (process.env.NODE_ENV === 'production') {
+    // Production-only headers
+    if (!isDev) {
+      // X-Frame-Options: Prevent clickjacking (redundant with CSP frame-ancestors but kept for legacy browsers)
       securityHeaders.push({
         key: 'X-Frame-Options',
         value: 'DENY',
+      });
+      // NEW: HSTS - Force HTTPS (only safe in production with valid certificate)
+      securityHeaders.push({
+        key: 'Strict-Transport-Security',
+        value: 'max-age=31536000; includeSubDomains',
       });
     }
 
