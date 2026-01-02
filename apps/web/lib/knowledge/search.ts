@@ -4,11 +4,10 @@
  * Provides semantic, full-text, and hybrid search capabilities for knowledge items.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { generateEmbedding } from '../embeddings';
 import { findRelatedKnowledgeItems, type RelatedKnowledgeItem } from './graph';
-
-const prisma = new PrismaClient();
 
 export interface SearchResult {
   id: number;
@@ -91,34 +90,21 @@ export async function semanticSearch(
   try {
     // Generate query embedding (same 768 dimensions as stored embeddings)
     const embeddingResult = await generateEmbedding(query);
+    // Vector literal is safe - comes from our embedding service, not user input
     const queryVector = `[${embeddingResult.embedding.join(',')}]`;
 
-    // Build SQL query with optional category filter
+    // SECURITY FIX: Use Prisma.sql for parameterized category filter
+    const categoryFilter = category
+      ? Prisma.sql`AND category = ${category}`
+      : Prisma.empty;
+
     // pgvector uses <=> operator for cosine distance (0 = identical, 2 = opposite)
     // We convert to similarity: 1 - (distance / 2)
-    let sqlQuery = `
-      SELECT
-        id,
-        title,
-        content,
-        category,
-        tags,
-        (embedding <=> '${queryVector}'::vector(768)) AS distance
-      FROM knowledge_items
-      WHERE "projectId" = ${projectId}
-        AND "archivedAt" IS NULL
-    `;
-
-    if (category) {
-      sqlQuery += ` AND category = '${category.replace(/'/g, "''")}'`; // Escape single quotes
-    }
-
-    sqlQuery += `
-      ORDER BY embedding <=> '${queryVector}'::vector(768)
-      LIMIT ${limit * 2}
-    `;
-
-    const results = await prisma.$queryRawUnsafe<
+    // SECURITY FIX: Converted from $queryRawUnsafe to $queryRaw with parameterized values
+    // Note: queryVector uses Prisma.raw because pgvector requires string literal syntax,
+    // but this is safe since embeddings come from our service, not user input
+    const queryLimit = limit * 2;
+    const results = await prisma.$queryRaw<
       Array<{
         id: number;
         title: string;
@@ -127,7 +113,21 @@ export async function semanticSearch(
         tags: string[];
         distance: number;
       }>
-    >(sqlQuery);
+    >`
+      SELECT
+        id,
+        title,
+        content,
+        category,
+        tags,
+        (embedding <=> ${queryVector}::vector(768)) AS distance
+      FROM knowledge_items
+      WHERE "projectId" = ${projectId}
+        AND "archivedAt" IS NULL
+        ${categoryFilter}
+      ORDER BY embedding <=> ${queryVector}::vector(768)
+      LIMIT ${queryLimit}
+    `;
 
     // Convert distance to similarity score and filter by threshold
     // Similarity = 1 - (distance / 2)
@@ -234,38 +234,18 @@ export async function fullTextSearch(
   }
 
   try {
+    // SECURITY FIX: Use Prisma.sql for parameterized category filter
+    const categoryFilter = category
+      ? Prisma.sql`AND category = ${category}`
+      : Prisma.empty;
+
     // Build SQL query with optional category filter
     // Use ts_rank_cd for ranking (considers word frequency and document length)
     // Weights: {D-weight, C-weight, B-weight, A-weight} = {0.1, 0.2, 0.4, 1.0}
     // A = title (highest), B = content, C = tags, D = category (lowest)
-    let sqlQuery = `
-      SELECT
-        id,
-        title,
-        content,
-        category,
-        tags,
-        ts_rank_cd(
-          "contentTsvector",
-          plainto_tsquery('english', '${query.replace(/'/g, "''")}'),
-          32
-        ) AS rank
-      FROM knowledge_items
-      WHERE "projectId" = ${projectId}
-        AND "archivedAt" IS NULL
-        AND "contentTsvector" @@ plainto_tsquery('english', '${query.replace(/'/g, "''")}')
-    `;
-
-    if (category) {
-      sqlQuery += ` AND category = '${category.replace(/'/g, "''")}'`;
-    }
-
-    sqlQuery += `
-      ORDER BY rank DESC
-      LIMIT ${limit}
-    `;
-
-    const results = await prisma.$queryRawUnsafe<
+    // SECURITY FIX: Converted from $queryRawUnsafe to $queryRaw with parameterized values
+    // CRITICAL: query is user input - must be parameterized to prevent SQL injection
+    const results = await prisma.$queryRaw<
       Array<{
         id: number;
         title: string;
@@ -274,7 +254,26 @@ export async function fullTextSearch(
         tags: string[];
         rank: number;
       }>
-    >(sqlQuery);
+    >`
+      SELECT
+        id,
+        title,
+        content,
+        category,
+        tags,
+        ts_rank_cd(
+          "contentTsvector",
+          plainto_tsquery('english', ${query}),
+          32
+        ) AS rank
+      FROM knowledge_items
+      WHERE "projectId" = ${projectId}
+        AND "archivedAt" IS NULL
+        AND "contentTsvector" @@ plainto_tsquery('english', ${query})
+        ${categoryFilter}
+      ORDER BY rank DESC
+      LIMIT ${limit}
+    `;
 
     // Convert rank to 0-1 similarity score
     // ts_rank_cd returns values typically in range [0, 1] but can exceed 1

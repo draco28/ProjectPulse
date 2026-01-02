@@ -4,9 +4,8 @@
  * Provides graph-based navigation and relationship discovery for knowledge items.
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { Prisma } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
 export interface RelatedKnowledgeItem {
   id: number;
@@ -114,16 +113,29 @@ export async function findRelatedKnowledgeItems(
     }
 
     // Build relationship type filter (using correct Prisma column name: relationType)
+    // SECURITY FIX: Use Prisma.sql for parameterized array handling instead of string interpolation
     const typeFilter =
       relationshipTypes && relationshipTypes.length > 0
-        ? `AND "relationType" = ANY(ARRAY[${relationshipTypes.map((t) => `'${t.replace(/'/g, "''")}'`).join(', ')}])`
-        : '';
+        ? Prisma.sql`AND "relationType" = ANY(${relationshipTypes}::text[])`
+        : Prisma.empty;
 
     // ========================================
     // STEP 1: Find 1-hop relationships
     // ========================================
     // NOTE: Using Prisma column names (fromId, toId, relationType, weight) not snake_case
-    const oneHopSql = `
+    // SECURITY FIX: Converted from $queryRawUnsafe to $queryRaw with parameterized values
+    const oneHopResults = await prisma.$queryRaw<
+      Array<{
+        id: number;
+        title: string;
+        content: string;
+        category: string;
+        tags: string[];
+        relationship_type: string;
+        strength: number;
+        depth: number;
+      }>
+    >`
       WITH direct_relations AS (
         SELECT
           kr."toId" AS related_id,
@@ -164,19 +176,6 @@ export async function findRelatedKnowledgeItems(
       LIMIT ${limit}
     `;
 
-    const oneHopResults = await prisma.$queryRawUnsafe<
-      Array<{
-        id: number;
-        title: string;
-        content: string;
-        category: string;
-        tags: string[];
-        relationship_type: string;
-        strength: number;
-        depth: number;
-      }>
-    >(oneHopSql);
-
     // If maxDepth=1, return only 1-hop results
     if (maxDepth === 1) {
       return oneHopResults.map((result) => ({
@@ -202,7 +201,22 @@ export async function findRelatedKnowledgeItems(
     }
 
     // NOTE: Using Prisma column names (fromId, toId, relationType, weight) not snake_case
-    const twoHopSql = `
+    // SECURITY FIX: Converted from $queryRawUnsafe to $queryRaw with parameterized values
+    // Note: oneHopIds are from our DB query (safe), but we parameterize for consistency
+    const twoHopMinStrength = minStrength * 0.8;
+    const twoHopResults = await prisma.$queryRaw<
+      Array<{
+        id: number;
+        title: string;
+        content: string;
+        category: string;
+        tags: string[];
+        relationship_type: string;
+        strength: number;
+        intermediate_id: number;
+        depth: number;
+      }>
+    >`
       WITH two_hop_relations AS (
         SELECT
           kr."toId" AS related_id,
@@ -211,10 +225,10 @@ export async function findRelatedKnowledgeItems(
           kr."fromId" AS intermediate_id,
           2 AS depth
         FROM knowledge_relationships kr
-        WHERE kr."fromId" = ANY(ARRAY[${oneHopIds.join(', ')}])
+        WHERE kr."fromId" = ANY(${oneHopIds}::int[])
           AND kr."toId" != ${itemId}
-          AND kr."toId" != ALL(ARRAY[${oneHopIds.join(', ')}])
-          AND kr."weight" >= ${minStrength * 0.8}
+          AND kr."toId" != ALL(${oneHopIds}::int[])
+          AND kr."weight" >= ${twoHopMinStrength}
           ${typeFilter}
 
         UNION
@@ -226,10 +240,10 @@ export async function findRelatedKnowledgeItems(
           kr."toId" AS intermediate_id,
           2 AS depth
         FROM knowledge_relationships kr
-        WHERE kr."toId" = ANY(ARRAY[${oneHopIds.join(', ')}])
+        WHERE kr."toId" = ANY(${oneHopIds}::int[])
           AND kr."fromId" != ${itemId}
-          AND kr."fromId" != ALL(ARRAY[${oneHopIds.join(', ')}])
-          AND kr."weight" >= ${minStrength * 0.8}
+          AND kr."fromId" != ALL(${oneHopIds}::int[])
+          AND kr."weight" >= ${twoHopMinStrength}
           ${typeFilter}
       )
       SELECT
@@ -249,20 +263,6 @@ export async function findRelatedKnowledgeItems(
       ORDER BY thr.strength DESC, ki.id
       LIMIT ${limit}
     `;
-
-    const twoHopResults = await prisma.$queryRawUnsafe<
-      Array<{
-        id: number;
-        title: string;
-        content: string;
-        category: string;
-        tags: string[];
-        relationship_type: string;
-        strength: number;
-        intermediate_id: number;
-        depth: number;
-      }>
-    >(twoHopSql);
 
     // ========================================
     // STEP 3: Combine and deduplicate results
@@ -376,7 +376,14 @@ export async function getRelationshipStats(itemId: number): Promise<{
 }> {
   try {
     // NOTE: Using Prisma column names (fromId, toId, relationType) not snake_case
-    const sqlQuery = `
+    // SECURITY FIX: Converted from $queryRawUnsafe to $queryRaw with parameterized values
+    const stats = await prisma.$queryRaw<
+      Array<{
+        type: string;
+        direction: 'outgoing' | 'incoming';
+        count: bigint;
+      }>
+    >`
       SELECT
         "relationType" AS type,
         'outgoing' AS direction,
@@ -395,14 +402,6 @@ export async function getRelationshipStats(itemId: number): Promise<{
       WHERE "toId" = ${itemId}
       GROUP BY "relationType"
     `;
-
-    const stats = await prisma.$queryRawUnsafe<
-      Array<{
-        type: string;
-        direction: 'outgoing' | 'incoming';
-        count: bigint;
-      }>
-    >(sqlQuery);
 
     const byType: Record<string, number> = {};
     let outgoing = 0;
