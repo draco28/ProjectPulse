@@ -61,6 +61,9 @@ services:
       # MCP Internal Authentication (Sprint 17 - Ticket #129)
       # Must match MCP_INTERNAL_SECRET in mcp-server service
       - MCP_INTERNAL_SECRET=${MCP_INTERNAL_SECRET:-dev-mcp-secret-32-chars-minimum-ok}
+      # CORS Configuration (Ticket #125)
+      # Allowed origins for browser-based MCP clients (comma-separated)
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
     ports:
       - "3000:3000"
     volumes:
@@ -96,6 +99,9 @@ services:
       # MCP Internal Authentication (Sprint 17 - Ticket #129)
       # Must match MCP_INTERNAL_SECRET in nextjs service
       - MCP_INTERNAL_SECRET=${MCP_INTERNAL_SECRET:-dev-mcp-secret-32-chars-minimum-ok}
+      # CORS Configuration (Ticket #125)
+      # Allowed origins for browser-based MCP clients (comma-separated)
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
     ports:
       - "3001:3001"
     volumes:

@@ -75,6 +75,85 @@ import {
   readKnowledgeResource,
 } from '@/lib/mcp/resources/knowledge-resource';
 
+// =============================================================================
+// CORS Configuration (Ticket #125 - Production Security)
+// =============================================================================
+
+/**
+ * Parse ALLOWED_ORIGINS environment variable
+ * Format: comma-separated list of full origins (e.g., "https://example.com,http://localhost:3000")
+ */
+const ALLOWED_ORIGINS =
+  process.env.ALLOWED_ORIGINS?.split(',')
+    .map((o) => o.trim())
+    .filter(Boolean) || [];
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+/**
+ * Check if the request origin is allowed for CORS (Ticket #125)
+ *
+ * Rules:
+ * - Development mode: All origins allowed
+ * - No Origin header (CLI tools): Always allowed (CORS is browser-only)
+ * - Production with configured origins: Only matching origins allowed
+ * - Production without configured origins: All browser requests denied (safe default)
+ *
+ * @param origin - The Origin header value (null if not present)
+ * @returns true if the origin should be allowed
+ */
+function isOriginAllowed(origin: string | null): boolean {
+  // Development mode: allow all origins for local testing
+  if (!IS_PRODUCTION) {
+    return true;
+  }
+
+  // No Origin header (CLI tools like Claude Code, curl): always allow
+  // CORS is a browser security mechanism, not applicable to CLI tools
+  if (!origin) {
+    return true;
+  }
+
+  // Production without configured origins: deny all browser requests (safe default)
+  if (ALLOWED_ORIGINS.length === 0) {
+    return false;
+  }
+
+  // Check against allowed list
+  return ALLOWED_ORIGINS.includes(origin);
+}
+
+/**
+ * Get CORS headers based on request origin (Ticket #125)
+ *
+ * Returns appropriate CORS headers or empty object if origin denied.
+ * When origin is denied, browser will block the request (no headers = block).
+ *
+ * @param origin - The Origin header value (null if not present)
+ * @returns Record of CORS headers or empty object
+ */
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  if (!isOriginAllowed(origin)) {
+    return {}; // No CORS headers = browser will block
+  }
+
+  // In production with specific origin: reflect that origin back (not '*')
+  // In development or no origin: use '*' for convenience
+  const allowOrigin = IS_PRODUCTION && origin ? origin : '*';
+
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Mcp-Session-Id, Authorization',
+    // CRITICAL: Expose session ID header for client access (Ticket #60)
+    'Access-Control-Expose-Headers': 'Mcp-Session-Id, Content-Type',
+    'Access-Control-Max-Age': '86400', // 24 hours
+  };
+}
+
+// =============================================================================
+// Route Handlers
+// =============================================================================
+
 /**
  * POST /api/mcp
  *
@@ -1280,17 +1359,23 @@ export async function GET(request: NextRequest) {
  *
  * Handle CORS preflight requests for cross-origin MCP clients.
  *
- * Note: For MVP on local network (192.168.1.15), CORS is permissive.
- * For cloud deployment, restrict to specific origins.
+ * Ticket #125: Restrict CORS to configured origins in production.
+ * - Development: All origins allowed
+ * - Production: Only ALLOWED_ORIGINS env var origins allowed
+ * - No origin header (CLI tools): Always allowed
  */
-export async function OPTIONS(_request: NextRequest) {
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+
+  // If origin not allowed in production, return 403 Forbidden
+  if (Object.keys(corsHeaders).length === 0) {
+    console.warn(`[OPTIONS /api/mcp] CORS denied for origin: ${origin}`);
+    return new NextResponse(null, { status: 403 });
+  }
+
   return new NextResponse(null, {
     status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*', // MVP: Allow all origins on local network
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Mcp-Session-Id, Authorization',
-      'Access-Control-Max-Age': '86400', // 24 hours
-    },
+    headers: corsHeaders,
   });
 }

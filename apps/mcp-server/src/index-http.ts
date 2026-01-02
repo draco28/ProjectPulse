@@ -48,21 +48,74 @@ const PORT = config.mcpPort;
 // Middleware: Parse JSON bodies (CRITICAL - must be before routes)
 app.use(express.json());
 
-// Middleware: CORS for MCP session header exposure (Ticket #60)
+/**
+ * Check if the request origin is allowed for CORS (Ticket #125)
+ *
+ * Rules:
+ * - Development mode: All origins allowed
+ * - No Origin header (CLI tools like Claude Code): Always allowed
+ * - Production with configured origins: Only matching origins allowed
+ * - Production without configured origins: All browser requests denied (safe default)
+ *
+ * @param origin - The Origin header value (null if not present)
+ * @returns true if the origin should be allowed
+ */
+function isOriginAllowed(origin: string | null): boolean {
+  // Development mode: allow all origins for local testing
+  if (config.nodeEnv !== 'production') {
+    return true;
+  }
+
+  // No Origin header (CLI tools like Claude Code, curl): always allow
+  // CORS is a browser security mechanism, not applicable to CLI tools
+  if (!origin) {
+    return true;
+  }
+
+  // Production without configured origins: deny all browser requests (safe default)
+  if (config.allowedOrigins.length === 0) {
+    logger.warn('CORS denied: No ALLOWED_ORIGINS configured in production', { origin });
+    return false;
+  }
+
+  // Check against allowed list
+  return config.allowedOrigins.includes(origin);
+}
+
+// Middleware: CORS for MCP session header exposure (Ticket #60, #125)
 // Required for Gemini CLI and other remote MCP clients to read Mcp-Session-Id header
 // Without this, clients can't maintain session continuity → "Server not initialized" error
-app.use('/mcp', (_req, res, next) => {
-  // Allow any origin for MCP (auth is via Bearer token, not CORS)
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Mcp-Session-Id');
-  // CRITICAL: Expose the session ID header so clients can read it
-  res.header('Access-Control-Expose-Headers', 'Mcp-Session-Id, Content-Type');
+// Ticket #125: Restricted to configured origins in production
+app.use('/mcp', (req, res, next) => {
+  const origin = req.headers.origin || null;
+
+  if (isOriginAllowed(origin)) {
+    // In production: reflect the specific origin back (not '*')
+    // In development: use '*' for convenience
+    const corsOrigin = origin || (config.nodeEnv !== 'production' ? '*' : '');
+    res.header('Access-Control-Allow-Origin', corsOrigin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, Accept, Mcp-Session-Id'
+    );
+    // CRITICAL: Expose the session ID header so clients can read it (Ticket #60)
+    res.header('Access-Control-Expose-Headers', 'Mcp-Session-Id, Content-Type');
+  }
+  // If origin not allowed, no CORS headers → browser will block the request
+
   next();
 });
 
 // Handle CORS preflight for /mcp
-app.options('/mcp', (_req, res) => {
+app.options('/mcp', (req, res) => {
+  const origin = req.headers.origin || null;
+
+  if (!isOriginAllowed(origin)) {
+    logger.warn('CORS preflight denied', { origin });
+    return res.sendStatus(403);
+  }
+
   res.sendStatus(204);
 });
 
