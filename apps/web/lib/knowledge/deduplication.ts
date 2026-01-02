@@ -8,6 +8,7 @@
  * US-089: Detect duplicate knowledge items
  */
 
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export interface DuplicateCandidate {
@@ -83,25 +84,20 @@ export async function findDuplicates(options: DeduplicationOptions): Promise<Ded
     try {
       // Use pgvector cosine similarity (<=> operator)
       // Note: Raw SQL required for vector operations
+      // Vector literal is safe - comes from our embedding service, not user input
       const embeddingStr = `[${embedding.join(',')}]`;
       const excludedIds = candidates.map((c) => c.id);
 
-      // Build WHERE clause parts (always include projectId for multi-tenancy)
-      const whereClauses: string[] = [
-        `"projectId" = ${projectId}`, // Multi-tenancy: scope to project
-        '"archivedAt" IS NULL',
-      ];
-      if (excludedIds.length > 0) {
-        whereClauses.push(`id NOT IN (${excludedIds.join(',')})`);
-      }
-      if (category) {
-        whereClauses.push(`category = '${category.replace(/'/g, "''")}'`); // Escape single quotes
-      }
-      whereClauses.push(`1 - (embedding <=> '${embeddingStr}'::vector) >= ${similarityThreshold}`);
+      // SECURITY FIX: Build WHERE clause with Prisma.sql for parameterized values
+      // excludedIds are from our DB query (safe), category is user input (parameterized)
+      const excludeFilter =
+        excludedIds.length > 0
+          ? Prisma.sql`AND id NOT IN (${Prisma.join(excludedIds)})`
+          : Prisma.empty;
+      const categoryFilter = category ? Prisma.sql`AND category = ${category}` : Prisma.empty;
 
-      const whereClause = whereClauses.join(' AND ');
-
-      const semanticMatches = await prisma.$queryRawUnsafe<
+      // SECURITY FIX: Converted from $queryRawUnsafe to $queryRaw with parameterized values
+      const semanticMatches = await prisma.$queryRaw<
         Array<{
           id: number;
           title: string;
@@ -110,19 +106,23 @@ export async function findDuplicates(options: DeduplicationOptions): Promise<Ded
           similarity: number;
           createdAt: Date;
         }>
-      >(`
+      >`
         SELECT
           id,
           title,
           category,
           tags,
-          1 - (embedding <=> '${embeddingStr}'::vector) AS similarity,
+          1 - (embedding <=> ${embeddingStr}::vector) AS similarity,
           "createdAt"
         FROM knowledge_items
-        WHERE ${whereClause}
+        WHERE "projectId" = ${projectId}
+          AND "archivedAt" IS NULL
+          ${excludeFilter}
+          ${categoryFilter}
+          AND 1 - (embedding <=> ${embeddingStr}::vector) >= ${similarityThreshold}
         ORDER BY similarity DESC
         LIMIT ${limit}
-      `);
+      `;
 
       // Add semantic matches
       for (const match of semanticMatches) {
