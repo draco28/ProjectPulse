@@ -12,6 +12,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -27,6 +29,8 @@ const querySchema = z.object({
 //=============================================================================
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { searchParams } = new URL(request.url);
 
@@ -37,7 +41,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!validation.success) {
-      console.error('[GET /api/sops] Validation failed', validation.error);
+      log.warn({ validationErrors: validation.error.errors }, 'SOPs list validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -52,7 +56,7 @@ export async function GET(request: NextRequest) {
     // 2. Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
-    console.log('[GET /api/sops] Listing SOPs', { projectId, category });
+    log.debug({ projectId, category }, 'Listing SOPs');
 
     // 3. Query SOPs (metadata only, no content)
     const sops = await prisma.sOP.findMany({
@@ -74,10 +78,7 @@ export async function GET(request: NextRequest) {
       orderBy: { title: 'asc' },
     });
 
-    console.log('[GET /api/sops] Found SOPs', {
-      projectId,
-      count: sops.length,
-    });
+    log.debug({ projectId, count: sops.length }, 'Found SOPs');
 
     return NextResponse.json({
       sops,
@@ -92,7 +93,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.error('[GET /api/sops] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to list SOPs');
     return NextResponse.json(
       {
         error: 'Failed to list SOPs',

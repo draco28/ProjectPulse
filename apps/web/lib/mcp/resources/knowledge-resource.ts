@@ -28,6 +28,9 @@
 
 import { PrismaClient } from '@prisma/client';
 import { MCPError, JSONRPC_ERROR_CODES } from '../types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'MCP:KnowledgeResource' });
 
 const prisma = new PrismaClient();
 
@@ -128,7 +131,7 @@ export async function listKnowledgeResources(): Promise<ResourceMetadata[]> {
 
     return resources;
   } catch (error) {
-    console.error('[resources/list] Database error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Database error listing resources');
     throw new MCPError(
       'Failed to list knowledge resources: ' +
         (error instanceof Error ? error.message : 'Unknown error'),
@@ -210,7 +213,7 @@ export async function readKnowledgeResource(uri: string): Promise<ResourceConten
     }
 
     // Wrap unexpected errors
-    console.error('[resources/read] Unexpected error:', error);
+    log.error({ uri, error: error instanceof Error ? error.message : String(error) }, 'Unexpected error reading resource');
     throw new MCPError(
       'Failed to read resource: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,

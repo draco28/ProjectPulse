@@ -14,6 +14,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { generateEmbedding } from '@/lib/embeddings';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -123,6 +125,7 @@ function generateMarkdownMatrix(matrix: TraceabilityMatrix, projectName: string)
 }
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const payload = await request.json();
     const data = GenerateRequestSchema.parse(payload);
@@ -297,7 +300,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.error('[API] POST /api/traceability/generate failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to generate traceability matrix');
     return failure({
       code: 'INTERNAL_ERROR',
       message: 'Failed to generate traceability matrix',

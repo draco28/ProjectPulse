@@ -20,6 +20,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-server';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import type { Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
@@ -35,6 +37,7 @@ const querySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     await requireAdmin();
 
@@ -134,7 +137,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[Admin Tokens] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch tokens');
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

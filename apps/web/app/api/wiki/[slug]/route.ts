@@ -20,6 +20,8 @@ import {
   requireProjectAccess,
   AuthError,
 } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/wiki/:slug
@@ -31,6 +33,7 @@ import {
  * - slug: The wiki page path (e.g., 'getting-started')
  */
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const slug = params.slug;
 
@@ -101,7 +104,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('Failed to fetch wiki page:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch wiki page');
     return NextResponse.json({ error: 'Failed to fetch wiki page' }, { status: 500 });
   }
 }
@@ -140,6 +143,7 @@ function mapUpdateError(error: WikiUpdateError) {
  * Updates a wiki page, creates a WikiRevision snapshot, and logs a WikiPageEvent.
  */
 export async function PATCH(request: NextRequest, { params }: { params: { slug: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const slugPath = params.slug.startsWith('/') ? params.slug : `/${params.slug}`;
 
@@ -266,9 +270,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
 
         // Log warnings
         if (crossLinkResult.unresolvedLinks.length > 0) {
-          console.warn(
-            `[Wiki Update] Unresolved cross-links in ${slugPath}:`,
-            crossLinkResult.unresolvedLinks.map((l) => l.slug).join(', ')
+          log.warn(
+            { slugPath, unresolvedLinks: crossLinkResult.unresolvedLinks.map((l) => l.slug) },
+            'Unresolved cross-links in wiki page update'
           );
         }
 
@@ -318,7 +322,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
       return mapUpdateError(error as WikiUpdateError);
     }
 
-    console.error('Failed to update wiki page:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update wiki page');
     return NextResponse.json({ error: 'Failed to update wiki page' }, { status: 500 });
   }
 }

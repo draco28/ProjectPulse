@@ -13,6 +13,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { updateProgressAndPropagate } from '@/lib/db/progress';
 import { EntityTypeSchema, UpdateProgressSchema, entityTypeMap } from '@/lib/validations/progress';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // Force dynamic rendering (no caching for progress updates)
 export const dynamic = 'force-dynamic';
@@ -31,6 +33,7 @@ type RouteParams = {
 // ============================================================================
 
 export async function PUT(request: NextRequest, { params }: { params: RouteParams }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // 1. Validate path parameters
     const entity = EntityTypeSchema.parse(params.entity);
@@ -98,7 +101,7 @@ export async function PUT(request: NextRequest, { params }: { params: RouteParam
 
     // Database errors (500)
     if (error?.constructor?.name === 'PrismaClientKnownRequestError') {
-      console.error('[API] Prisma error in PUT /api/:entity/:id/progress:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Prisma error in progress update');
       return NextResponse.json(
         {
           success: false,
@@ -112,7 +115,7 @@ export async function PUT(request: NextRequest, { params }: { params: RouteParam
     }
 
     // Unknown errors (500)
-    console.error('[API] Unexpected error in PUT /api/:entity/:id/progress:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error in progress update');
     return NextResponse.json(
       {
         success: false,

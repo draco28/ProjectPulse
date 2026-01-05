@@ -26,12 +26,15 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const requestSchema = z.object({
   projectId: z.number().int().positive('Project ID must be positive'),
 });
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
     const validation = requestSchema.safeParse(body);
@@ -127,7 +130,7 @@ export async function POST(request: NextRequest) {
       return handleAuthError(error);
     }
 
-    console.error('[POST /api/onboarding/sync-session3] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to sync Session 3');
     return NextResponse.json(
       {
         error: 'Failed to sync Session 3',

@@ -5,9 +5,11 @@
  * Returns projectId and token metadata on success, 401 on failure.
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { validateProjectToken } from '@/lib/agent-tokens';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const validateRequestSchema = z.object({
   token: z.string().min(1, 'Token is required'),
@@ -19,7 +21,8 @@ const validateRequestSchema = z.object({
  * Validate an agent bearer token and return project context.
  * Called by MCP server on every authenticated request.
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
     const validationResult = validateRequestSchema.safeParse(body);
@@ -40,9 +43,9 @@ export async function POST(request: Request) {
     const result = await validateProjectToken(token);
 
     return NextResponse.json(result, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     // Log error for debugging but don't expose details
-    console.error('[Agent Auth] Validation failed:', error.message);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Agent auth validation failed');
 
     return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
   }

@@ -18,6 +18,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { EndAgentSessionSchema } from '@/lib/validations/agent-session';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import {
@@ -80,6 +82,7 @@ async function getAuthorizedSession(request: NextRequest, sessionId: string) {
  * Security: Requires authentication + access to session's project
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id } = await params;
 
@@ -240,16 +243,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
       // Log any failures
       if (!syncStatus.progress.success) {
-        console.error(
-          '[POST /api/agent-sessions/[id]/end] PROGRESS sync failed:',
-          syncStatus.progress.error
-        );
+        log.warn({ error: syncStatus.progress.error }, 'PROGRESS sync failed');
       }
       if (!syncStatus.activeContext.success) {
-        console.error(
-          '[POST /api/agent-sessions/[id]/end] ACTIVE_CONTEXT sync failed:',
-          syncStatus.activeContext.error
-        );
+        log.warn({ error: syncStatus.activeContext.error }, 'ACTIVE_CONTEXT sync failed');
       }
     }
 
@@ -273,7 +270,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    console.error('[POST /api/agent-sessions/[id]/end] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to end agent session');
     return NextResponse.json({ error: 'Failed to end agent session' }, { status: 500 });
   }
 }

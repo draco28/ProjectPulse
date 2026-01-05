@@ -17,6 +17,8 @@ import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { RoadmapOverviewQuerySchema } from '@/lib/validations/kanban';
 import { TICKET_STATUSES } from '@/lib/constants/status';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import type {
   RoadmapOverviewResponse,
   PhaseOverview,
@@ -26,6 +28,8 @@ import type {
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { searchParams } = new URL(request.url);
     const projectIdParam = searchParams.get('projectId');
@@ -211,7 +215,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.error('[GET /api/roadmap/overview] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Fetch roadmap overview failed');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch roadmap overview' } },
       { status: 500 }

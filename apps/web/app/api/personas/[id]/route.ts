@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -25,6 +27,8 @@ const querySchema = z.object({
 //=============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id: idParam } = await params;
     const id = parseInt(idParam);
@@ -41,7 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     if (!validation.success) {
-      console.error('[GET /api/personas/[id]] Validation failed', validation.error);
+      log.warn({ validationError: validation.error.errors }, 'Persona get validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -56,7 +60,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // 2. Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
-    console.log('[GET /api/personas/[id]] Getting persona', { id, projectId });
+    log.debug({ id, projectId }, 'Getting persona by ID');
 
     // 3. Query persona with ownership validation
     const persona = await prisma.agentPersona.findFirst({
@@ -70,11 +74,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Persona not found', id, projectId }, { status: 404 });
     }
 
-    console.log('[GET /api/personas/[id]] Found persona', {
-      id,
-      name: persona.name,
-      projectId,
-    });
+    log.debug({ id, name: persona.name, projectId }, 'Found persona');
 
     return NextResponse.json(persona);
   } catch (error) {
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    console.error('[GET /api/personas/[id]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Persona get failed');
     return NextResponse.json(
       {
         error: 'Failed to get persona',

@@ -16,6 +16,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError, authErrorResponse } from '@/lib/auth/validateRequest';
 import { UpdateLabelSchema } from '@/lib/validations/label';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 type RouteParams = { params: Promise<{ id: string; labelId: string }> };
 
@@ -27,6 +29,8 @@ type RouteParams = { params: Promise<{ id: string; labelId: string }> };
  * Auth: User session OR Agent token (project-scoped)
  */
 export async function GET(request: Request, { params }: RouteParams) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id, labelId } = await params;
     const projectId = parseInt(id, 10);
@@ -79,7 +83,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       return authErrorResponse(error);
     }
 
-    console.error('GET /api/projects/[id]/labels/[labelId] error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Label get failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -93,6 +97,8 @@ export async function GET(request: Request, { params }: RouteParams) {
  * Note: requireProjectAccess enforces owner-only for users
  */
 export async function PUT(request: Request, { params }: RouteParams) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id, labelId } = await params;
     const projectId = parseInt(id, 10);
@@ -191,7 +197,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return authErrorResponse(error);
     }
 
-    console.error('PUT /api/projects/[id]/labels/[labelId] error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Label update failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -205,6 +211,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
  * Note: requireProjectAccess enforces owner-only for users
  */
 export async function DELETE(request: Request, { params }: RouteParams) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id, labelId } = await params;
     const projectId = parseInt(id, 10);
@@ -257,7 +265,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       return authErrorResponse(error);
     }
 
-    console.error('DELETE /api/projects/[id]/labels/[labelId] error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Label delete failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

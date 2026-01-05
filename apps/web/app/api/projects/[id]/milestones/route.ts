@@ -15,6 +15,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError, authErrorResponse } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // Validation schema for creating a milestone
 const createMilestoneSchema = z.object({
@@ -34,6 +36,8 @@ const createMilestoneSchema = z.object({
  * Auth: User session OR Agent token (project-scoped)
  */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id } = await params;
     const projectId = parseInt(id, 10);
@@ -75,7 +79,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return authErrorResponse(error);
     }
 
-    console.error('GET /api/projects/[id]/milestones error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Milestones list failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -88,6 +92,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
  * Auth: User session OR Agent token (project-scoped)
  */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id } = await params;
     const projectId = parseInt(id, 10);
@@ -158,7 +164,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return authErrorResponse(error);
     }
 
-    console.error('POST /api/projects/[id]/milestones error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Milestone creation failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -9,6 +9,9 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Onboarding:RepoFiles' });
 
 // ============================================================================
 // CLAUDE.md TEMPLATE GENERATION
@@ -401,11 +404,7 @@ export async function writeRepoFiles(
   projectName: string,
   agentPersonas: any[]
 ): Promise<{ claudeMd: boolean; agentsMd: boolean }> {
-  console.log('[Session 3] Writing repo files', {
-    repoPath,
-    projectName,
-    agentCount: agentPersonas.length,
-  });
+  log.info({ repoPath, projectName, agentCount: agentPersonas.length }, 'Writing repo files');
 
   const results = {
     claudeMd: false,
@@ -422,9 +421,9 @@ export async function writeRepoFiles(
       const claudePath = path.join(repoPath, 'CLAUDE.md');
       await fs.writeFile(claudePath, claudeContent, 'utf-8');
       results.claudeMd = true;
-      console.log('[Session 3] CLAUDE.md written successfully');
+      log.info({ path: claudePath }, 'CLAUDE.md written successfully');
     } catch (error) {
-      console.error('[Session 3] Failed to write CLAUDE.md:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write CLAUDE.md');
     }
 
     // Write AGENTS.md
@@ -432,15 +431,15 @@ export async function writeRepoFiles(
       const agentsPath = path.join(repoPath, 'AGENTS.md');
       await fs.writeFile(agentsPath, agentsContent, 'utf-8');
       results.agentsMd = true;
-      console.log('[Session 3] AGENTS.md written successfully');
+      log.info({ path: agentsPath }, 'AGENTS.md written successfully');
     } catch (error) {
-      console.error('[Session 3] Failed to write AGENTS.md:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write AGENTS.md');
     }
 
-    console.log('[Session 3] Repo files written:', results);
+    log.info({ results }, 'Repo files written');
     return results;
   } catch (error) {
-    console.error('[Session 3] Failed to write repo files:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write repo files');
     return results;
   }
 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getPromptSchema, type GetPromptResponse } from '@/lib/validations/onboarding';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/onboarding/prompt
@@ -24,6 +26,7 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 export const dynamic = 'force-dynamic'; // No caching for session state
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // Parse and validate query parameters
     const { searchParams } = new URL(request.url);
@@ -126,7 +129,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.error('[GET /api/onboarding/prompt] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch onboarding prompt');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

@@ -16,6 +16,8 @@ import { prisma } from '@/lib/prisma';
 import { createWikiPageSchema, normalizePath } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks } from '@/lib/wiki/cross-linking';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * POST /api/wiki
@@ -44,6 +46,7 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
  * }
  */
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // Parse request body
     const body = await request.json();
@@ -91,9 +94,9 @@ export async function POST(request: NextRequest) {
 
     // Log warnings for unresolved links
     if (crossLinkResult.unresolvedLinks.length > 0) {
-      console.warn(
-        `[Wiki Create] Unresolved cross-links in ${title}:`,
-        crossLinkResult.unresolvedLinks.map((l) => l.slug).join(', ')
+      log.warn(
+        { title, unresolvedLinks: crossLinkResult.unresolvedLinks.map((l) => l.slug) },
+        'Unresolved cross-links in wiki page'
       );
     }
 
@@ -126,7 +129,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('Error creating wiki page:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error creating wiki page');
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -146,6 +149,7 @@ export async function POST(request: NextRequest) {
  * @see US-016: Wiki List Page (5 points) - already complete
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const searchParams = request.nextUrl.searchParams;
     // Accept both 'project' (MCP tools) and 'projectId' (legacy) query params
@@ -276,7 +280,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('Error fetching wiki pages:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error fetching wiki pages');
     return NextResponse.json(
       {
         error: 'Internal server error',

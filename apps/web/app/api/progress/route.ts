@@ -14,6 +14,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { updateProgressAndPropagate } from '@/lib/db/progress';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // VALIDATION SCHEMA
@@ -59,6 +61,7 @@ type UpdateProgressInput = z.infer<typeof updateProgressSchema>;
  * Error: { success: false, error: { code, message, field? } }
  */
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // 1. Parse and validate request
     const body = await request.json();
@@ -127,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     // Prisma database errors (500)
     if (error?.constructor?.name === 'PrismaClientKnownRequestError') {
-      console.error('[API] Prisma error in POST /api/progress:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Prisma error in progress update');
       return NextResponse.json(
         {
           success: false,
@@ -141,7 +144,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Unknown errors (500)
-    console.error('[API] Unexpected error in POST /api/progress:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error in progress update');
     return NextResponse.json(
       {
         success: false,

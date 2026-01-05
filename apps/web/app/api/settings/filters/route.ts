@@ -10,9 +10,11 @@
  * @see apps/web/types/filters.ts for response types
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getFilterOptions } from '@/lib/filters';
 import { filtersDTOSchema } from '@/types/filters';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET handler - Fetch all filter options
@@ -34,7 +36,8 @@ import { filtersDTOSchema } from '@/types/filters';
  *   "error": "Failed to fetch filter options"
  * }
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // Fetch filter options (uses unstable_cache with 1-hour revalidation)
     const options = await getFilterOptions();
@@ -43,7 +46,7 @@ export async function GET() {
     const validationResult = filtersDTOSchema.safeParse(options);
 
     if (!validationResult.success) {
-      console.error('Filter options validation failed:', validationResult.error);
+      log.error({ error: validationResult.error.message }, 'Filter options validation failed');
       return NextResponse.json({ error: 'Invalid filter options format' }, { status: 500 });
     }
 
@@ -58,7 +61,7 @@ export async function GET() {
       }
     );
   } catch (error) {
-    console.error('Error fetching filter options:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error fetching filter options');
     return NextResponse.json({ error: 'Failed to fetch filter options' }, { status: 500 });
   }
 }

@@ -15,6 +15,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { BulkReorderSchema } from '@/lib/validations/kanban';
 import { calculateAndCascadeProgress } from '@/lib/tickets/progress-calculator';
@@ -25,6 +27,7 @@ import { revalidatePath } from 'next/cache';
 export const dynamic = 'force-dynamic';
 
 export async function PATCH(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // Parse and validate request body
     const body = await request.json();
@@ -171,7 +174,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    console.error('[PATCH /api/tickets/reorder] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to reorder tickets');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to reorder tickets' } },
       { status: 500 }

@@ -1,4 +1,7 @@
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Wiki:SystemTemplates' });
 
 const SYSTEM_PROJECT_SLUG = 'system-wiki-templates';
 
@@ -859,7 +862,7 @@ Pages marked "System" (like this one) are defaults from templates. You can:
 export async function cloneWikiTemplates(targetProjectId: number, targetProjectName: string) {
   try {
     if (INITIAL_TEMPLATES.length === 0) {
-      console.warn('⚠️ No wiki templates defined. Skipping wiki cloning.');
+      log.warn('No wiki templates defined. Skipping wiki cloning.');
       return;
     }
 
@@ -883,16 +886,16 @@ export async function cloneWikiTemplates(targetProjectId: number, targetProjectN
       };
     });
 
-    console.log(`🔄 Cloning ${newPages.length} wiki pages to project ${targetProjectId}...`);
+    log.info({ count: newPages.length, targetProjectId }, 'Cloning wiki pages');
 
     await prisma.wikiPage.createMany({
       data: newPages,
       skipDuplicates: true, // Safety net against collisions
     });
 
-    console.log('✅ Wiki cloning complete.');
+    log.info({ targetProjectId }, 'Wiki cloning complete');
   } catch (error) {
-    console.error('❌ Wiki cloning failed:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error), targetProjectId }, 'Wiki cloning failed');
     // We do NOT throw here. Project creation should succeed even if wiki seeding fails.
   }
 }

@@ -13,6 +13,8 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { TicketBulkCreateSchema } from '@/lib/validations/ticket';
 import { failure, success, resolveProjectId } from '../_utils';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
@@ -25,6 +27,7 @@ import { revalidatePath } from 'next/cache';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const payload = await request.json();
     const data = TicketBulkCreateSchema.parse(payload);
@@ -226,7 +229,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.error('[API] POST /api/tickets/bulk failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to bulk create tickets');
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to create tickets', status: 500 });
   }
 }

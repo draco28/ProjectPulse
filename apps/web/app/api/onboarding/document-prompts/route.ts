@@ -20,8 +20,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { DOCUMENT_PROMPTS, getTotalEstimatedWords } from '@/lib/onboarding/document-prompts';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const searchParams = request.nextUrl.searchParams;
     const projectIdParam = searchParams.get('projectId');
@@ -84,11 +87,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('[GET /api/onboarding/document-prompts] Generating prompts', {
-      projectId,
-      projectName: projectContext.metadata?.projectName,
-      totalPrompts: DOCUMENT_PROMPTS.length,
-    });
+    log.info({ projectId, projectName: projectContext.metadata?.projectName, totalPrompts: DOCUMENT_PROMPTS.length }, 'Generating prompts');
 
     // Generate all 15 prompts with project context injected
     const documentPrompts = DOCUMENT_PROMPTS.map((promptDef) => {
@@ -106,15 +105,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    console.log('[GET /api/onboarding/document-prompts] Prompts generated successfully', {
-      projectId,
-      totalDocuments: documentPrompts.length,
-      estimatedWords: getTotalEstimatedWords(),
-      userPromptSizes: documentPrompts.map((p) => ({
-        filename: p.filename,
-        chars: p.userPrompt.length,
-      })),
-    });
+    log.info({ projectId, totalDocuments: documentPrompts.length, estimatedWords: getTotalEstimatedWords() }, 'Prompts generated successfully');
 
     // Get word count from metrics (preferred) or response (deprecated)
     const executiveSummaryWordCount =
@@ -135,7 +126,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[GET /api/onboarding/document-prompts] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to generate document prompts');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

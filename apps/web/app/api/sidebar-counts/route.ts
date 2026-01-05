@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-server';
 import { getSidebarCounts } from '@/lib/sidebar-counts';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // Auth check
     const user = await getCurrentUser();
@@ -38,7 +41,7 @@ export async function GET(request: NextRequest) {
     // Return counts + project name for Sidebar display
     return NextResponse.json({ ...counts, projectName: project.name });
   } catch (error) {
-    console.error('Sidebar counts error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Sidebar counts error');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

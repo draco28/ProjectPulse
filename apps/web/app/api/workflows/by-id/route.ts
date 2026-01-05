@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const workflowId = parseInt(params.id, 10);
 
@@ -21,7 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(workflow);
   } catch (error) {
-    console.error('[API] Error fetching workflow:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error fetching workflow');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

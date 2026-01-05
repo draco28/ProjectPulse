@@ -22,6 +22,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { materializeRoadmap } from '@projectpulse/roadmap-tools';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -123,6 +125,8 @@ function parseRoadmapData(source: z.infer<typeof importRoadmapSchema>['source'])
 // ============================================================================
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const body = await request.json();
     const validated = importRoadmapSchema.parse(body);
@@ -187,7 +191,7 @@ export async function POST(request: NextRequest) {
       try {
         materializationResult = await materializeRoadmap(roadmap.id);
       } catch (matError) {
-        console.error('[POST /api/roadmap/import] Materialization error:', matError);
+        log.error({ error: matError instanceof Error ? matError.message : String(matError) }, 'Roadmap import materialization error');
         warnings.push(
           `Materialization failed: ${matError instanceof Error ? matError.message : 'Unknown error'}`
         );
@@ -263,7 +267,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.error('[POST /api/roadmap/import] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Import roadmap failed');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to import roadmap' } },
       { status: 500 }

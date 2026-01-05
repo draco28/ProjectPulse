@@ -15,6 +15,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { UpdateAgentSessionSchema } from '@/lib/validations/agent-session';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
@@ -73,6 +75,7 @@ async function getAuthorizedSession(request: NextRequest, sessionId: string) {
  * Security: Requires authentication + access to session's project
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id } = await params;
 
@@ -92,7 +95,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    console.error('[GET /api/agent-sessions/[id]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch agent session');
     return NextResponse.json({ error: 'Failed to fetch agent session' }, { status: 500 });
   }
 }
@@ -105,6 +108,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * Security: Requires authentication + access to session's project
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id } = await params;
     const body = await request.json();
@@ -282,7 +286,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    console.error('[PATCH /api/agent-sessions/[id]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update agent session');
     return NextResponse.json({ error: 'Failed to update agent session' }, { status: 500 });
   }
 }
@@ -295,6 +299,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  * Security: Requires authentication + access to session's project
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id } = await params;
 
@@ -320,7 +325,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    console.error('[DELETE /api/agent-sessions/[id]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to delete agent session');
     return NextResponse.json({ error: 'Failed to delete agent session' }, { status: 500 });
   }
 }

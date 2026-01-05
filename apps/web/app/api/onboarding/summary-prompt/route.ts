@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -40,7 +42,8 @@ function injectVariables(template: string, variables: Record<string, any>): stri
 // ============================================================================
 
 export async function GET(request: NextRequest) {
-  console.log('[GET /api/onboarding/summary-prompt] Fetching executive summary prompt...');
+  const log = createRequestLogger(getRequestId(request));
+  log.info({}, 'Fetching executive summary prompt');
 
   try {
     // 1. Validate query params
@@ -50,7 +53,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!validation.success) {
-      console.error('[GET /api/onboarding/summary-prompt] Validation failed:', validation.error);
+      log.warn({ error: validation.error }, 'Validation failed');
 
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
@@ -60,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     const { projectId } = validation.data;
 
-    console.log('[GET /api/onboarding/summary-prompt] Request validated', { projectId });
+    log.info({ projectId }, 'Request validated');
 
     // Sprint 12: Require authentication (session OR bearer token)
     await requireOnboardingAuth(request, projectId);
@@ -78,7 +81,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!session) {
-      console.error('[GET /api/onboarding/summary-prompt] Session 1 not found');
+      log.warn({}, 'Session 1 not found');
 
       return NextResponse.json(
         { error: 'Session 1 not found', hint: 'Complete at least one phase first' },
@@ -89,9 +92,7 @@ export async function GET(request: NextRequest) {
     const planningAnswers = (session.planningAnswers as any) || {};
     const metrics = (session.metrics as any) || { phasesComplete: 0 };
 
-    console.log('[GET /api/onboarding/summary-prompt] Session found', {
-      phasesComplete: metrics.phasesComplete,
-    });
+    log.info({ phasesComplete: metrics.phasesComplete }, 'Session found');
 
     // 3. Fetch prompt template from OnboardingPromptTemplate
     const template = await prisma.onboardingPromptTemplate.findFirst({
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!template) {
-      console.error('[GET /api/onboarding/summary-prompt] Template not found');
+      log.warn({}, 'Template not found');
 
       return NextResponse.json(
         {
@@ -120,7 +121,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('[GET /api/onboarding/summary-prompt] Template found');
+    log.info({}, 'Template found');
 
     // 4. Inject all 96 Q&A pairs into userPrompt
     const variables: Record<string, any> = {};
@@ -140,7 +141,7 @@ export async function GET(request: NextRequest) {
       estimatedTokens: Math.ceil(userPrompt.length / 3), // Rough estimate: 1 token ≈ 3 chars
     };
 
-    console.log('[GET /api/onboarding/summary-prompt] Prompt ready', metadata);
+    log.info({ ...metadata }, 'Prompt ready');
 
     return NextResponse.json({
       projectId,
@@ -153,7 +154,7 @@ export async function GET(request: NextRequest) {
       guidance: 'Generate the summary now with your AI provider, then call storeExecutiveSummary.',
     });
   } catch (error) {
-    console.error('[GET /api/onboarding/summary-prompt] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch executive summary prompt');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

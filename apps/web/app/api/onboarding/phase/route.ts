@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -59,7 +61,8 @@ function mergePhaseToContext(
 // ============================================================================
 
 export async function POST(request: NextRequest) {
-  console.log('[POST /api/onboarding/phase] Saving phase answers...');
+  const log = createRequestLogger(getRequestId(request));
+  log.info({}, 'Saving phase answers');
 
   try {
     // 1. Validate request
@@ -67,7 +70,7 @@ export async function POST(request: NextRequest) {
     const validation = requestSchema.safeParse(body);
 
     if (!validation.success) {
-      console.error('[POST /api/onboarding/phase] Validation failed:', validation.error);
+      log.warn({ error: validation.error }, 'Validation failed');
 
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
@@ -77,11 +80,7 @@ export async function POST(request: NextRequest) {
 
     const { projectId, phase, answers }: PhaseRequest = validation.data;
 
-    console.log('[POST /api/onboarding/phase] Request validated', {
-      projectId,
-      phase,
-      answerCount: Object.keys(answers).length,
-    });
+    log.info({ projectId, phase, answerCount: Object.keys(answers).length }, 'Request validated');
 
     // Sprint 12: Require authentication (session OR bearer token)
     await requireOnboardingAuth(request, projectId);
@@ -101,7 +100,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session) {
-      console.log('[POST /api/onboarding/phase] Creating new Session 1...');
+      log.info({}, 'Creating new Session 1');
 
       session = await prisma.onboardingSession.create({
         data: {
@@ -125,7 +124,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      console.log('[POST /api/onboarding/phase] Session 1 created', { sessionId: session.id });
+      log.info({ sessionId: session.id }, 'Session 1 created');
     }
 
     // 3. Merge answers into planningAnswers
@@ -160,12 +159,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('[POST /api/onboarding/phase] Phase answers saved', {
-      projectId,
-      phase,
-      phasesComplete: phase,
-      isComplete,
-    });
+    log.info({ projectId, phase, phasesComplete: phase, isComplete }, 'Phase answers saved');
 
     // 7. Calculate progress
     const phasesComplete = phase;
@@ -183,7 +177,7 @@ export async function POST(request: NextRequest) {
       message: `Phase ${phase} saved ✅. ${nextPhase ? `Proceed to Phase ${nextPhase}.` : 'All phases complete! Call finalizeSummary.'}`,
     });
   } catch (error) {
-    console.error('[POST /api/onboarding/phase] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to save phase answers');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

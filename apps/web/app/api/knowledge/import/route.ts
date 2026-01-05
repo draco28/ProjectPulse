@@ -12,6 +12,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import matter from 'gray-matter';
 import { createKnowledgeItem, KnowledgeCreationError } from '@/lib/knowledge/create';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * POST /api/knowledge/import
@@ -61,6 +63,8 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
  * ```
  */
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     // Parse projectId from query params (multi-tenancy requirement)
     const searchParams = request.nextUrl.searchParams;
@@ -284,7 +288,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('[POST /api/knowledge/import] Import failed:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge import failed');
     return NextResponse.json(
       {
         error: 'Import failed',

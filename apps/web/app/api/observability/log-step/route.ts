@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -27,17 +29,15 @@ const requestSchema = z.object({
 //=============================================================================
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
-    console.log('[POST /api/observability/log-step] Request received', {
-      sessionId: body.sessionId,
-      stepName: body.stepName,
-    });
+    log.debug({ sessionId: body.sessionId, stepName: body.stepName }, 'Request received');
 
     // 1. Validate request
     const validation = requestSchema.safeParse(body);
     if (!validation.success) {
-      console.error('[POST /api/observability/log-step] Validation failed', validation.error);
+      log.warn({ error: validation.error.message }, 'Validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -93,11 +93,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('[POST /api/observability/log-step] Action logged', {
-      sessionId,
-      stepName,
-      totalSteps: actions.length,
-    });
+    log.info({ sessionId, stepName, totalSteps: actions.length }, 'Action logged');
 
     return NextResponse.json({
       success: true,
@@ -108,7 +104,7 @@ export async function POST(request: NextRequest) {
       message: `Step "${stepName}" logged. Total: ${actions.length} steps.`,
     });
   } catch (error) {
-    console.error('[POST /api/observability/log-step] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to log step');
     return NextResponse.json(
       {
         error: 'Failed to log step',

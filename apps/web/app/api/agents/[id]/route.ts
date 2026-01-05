@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic'; // No caching
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const agentId = parseInt(params.id, 10);
 
@@ -74,7 +77,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       workflows,
     });
   } catch (error) {
-    console.error('[API] Error fetching agent:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch agent');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

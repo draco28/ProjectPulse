@@ -17,6 +17,9 @@
  */
 
 import crypto from 'crypto';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'InternalAuth' });
 
 const REPLAY_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -102,10 +105,7 @@ export async function verifyInternalRequest(request: Request): Promise<boolean> 
 
     const age = Math.abs(Date.now() - requestTime);
     if (age > REPLAY_WINDOW_MS) {
-      console.warn('[internal-auth] Request timestamp expired', {
-        age: Math.round(age / 1000),
-        maxAge: REPLAY_WINDOW_MS / 1000,
-      });
+      log.warn({ ageSeconds: Math.round(age / 1000), maxAgeSeconds: REPLAY_WINDOW_MS / 1000 }, 'Request timestamp expired');
       return false;
     }
 
@@ -124,7 +124,7 @@ export async function verifyInternalRequest(request: Request): Promise<boolean> 
 
     return crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
   } catch (error) {
-    console.error('[internal-auth] Verification error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Verification error');
     return false;
   }
 }

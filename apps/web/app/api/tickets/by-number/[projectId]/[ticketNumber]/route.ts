@@ -12,6 +12,8 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { failure, success } from '../../../_utils';
 import { ticketIncludeConfig, addDisplayIdToTickets } from '../../../_utils';
@@ -27,6 +29,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ projectId: string; ticketNumber: string }> }
 ) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const rawParams = await params;
     const { projectId, ticketNumber } = paramsSchema.parse(rawParams);
@@ -70,7 +73,7 @@ export async function GET(
       });
     }
 
-    console.error('[API] GET /api/tickets/by-number/[projectId]/[ticketNumber] failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch ticket by number');
     return failure({
       code: 'INTERNAL_ERROR',
       message: 'Failed to fetch ticket',

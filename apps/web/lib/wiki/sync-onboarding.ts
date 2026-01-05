@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Wiki:SyncOnboarding' });
 
 /**
  * Sync Onboarding Documents to Wiki
@@ -13,7 +16,7 @@ import { revalidatePath } from 'next/cache';
  * - Filename -> Title & Slug
  */
 export async function syncOnboardingToWiki(projectId: number) {
-  console.log(`[WikiSync] Starting sync for project ${projectId}...`);
+  log.info({ projectId }, 'Starting wiki sync');
 
   // 1. Fetch Project and Session 2 documents
   const [project, session2] = await Promise.all([
@@ -32,17 +35,17 @@ export async function syncOnboardingToWiki(projectId: number) {
   ]);
 
   if (!project) {
-    console.error(`[WikiSync] Project ${projectId} not found.`);
+    log.error({ projectId }, 'Project not found');
     return;
   }
 
   if (!session2 || session2.documents.length === 0) {
-    console.log('[WikiSync] No Session 2 documents found to sync.');
+    log.info('No Session 2 documents found to sync');
     return;
   }
 
   const documents = session2.documents;
-  console.log(`[WikiSync] Found ${documents.length} documents to sync.`);
+  log.info({ count: documents.length }, 'Found documents to sync');
 
   const projectSlug = project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
@@ -111,11 +114,11 @@ export async function syncOnboardingToWiki(projectId: number) {
       }
       syncedCount++;
     } catch (error) {
-      console.error(`[WikiSync] Failed to sync document ${doc.filename}:`, error);
+      log.error({ error: error instanceof Error ? error.message : String(error), filename: doc.filename }, 'Failed to sync document');
     }
   }
 
-  console.log(`[WikiSync] Successfully synced ${syncedCount} documents.`);
+  log.info({ syncedCount }, 'Wiki sync complete');
 
   // Revalidate wiki paths
   revalidatePath('/wiki');

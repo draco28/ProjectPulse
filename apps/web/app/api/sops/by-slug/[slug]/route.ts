@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -25,6 +27,8 @@ const querySchema = z.object({
 //=============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { slug } = await params;
 
@@ -40,7 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     if (!validation.success) {
-      console.error('[GET /api/sops/by-slug/[slug]] Validation failed', validation.error);
+      log.warn({ validationErrors: validation.error.errors }, 'SOP by slug validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -55,7 +59,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // 2. Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
-    console.log('[GET /api/sops/by-slug/[slug]] Getting SOP', { slug, projectId });
+    log.debug({ slug, projectId }, 'Getting SOP by slug');
 
     // 3. Query SOP with ownership validation
     const sop = await prisma.sOP.findFirst({
@@ -69,11 +73,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'SOP not found', slug, projectId }, { status: 404 });
     }
 
-    console.log('[GET /api/sops/by-slug/[slug]] Found SOP', {
-      slug,
-      title: sop.title,
-      projectId,
-    });
+    log.debug({ slug, title: sop.title, projectId }, 'Found SOP by slug');
 
     return NextResponse.json(sop);
   } catch (error) {
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    console.error('[GET /api/sops/by-slug/[slug]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Get SOP by slug failed');
     return NextResponse.json(
       {
         error: 'Failed to get SOP',

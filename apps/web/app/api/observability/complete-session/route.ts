@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -26,20 +28,15 @@ const requestSchema = z.object({
 //=============================================================================
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
-    console.log('[POST /api/observability/complete-session] Request received', {
-      sessionId: body.sessionId,
-      hasValidationReport: !!body.validationReport,
-    });
+    log.debug({ sessionId: body.sessionId, hasValidationReport: !!body.validationReport }, 'Request received');
 
     // 1. Validate request
     const validation = requestSchema.safeParse(body);
     if (!validation.success) {
-      console.error(
-        '[POST /api/observability/complete-session] Validation failed',
-        validation.error
-      );
+      log.warn({ error: validation.error.message }, 'Validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -82,11 +79,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('[POST /api/observability/complete-session] Session completed', {
-      sessionId,
-      sessionNumber: updatedSession.sessionNumber,
-      status: updatedSession.status,
-    });
+    log.info({ sessionId, sessionNumber: updatedSession.sessionNumber, status: updatedSession.status }, 'Session completed');
 
     return NextResponse.json({
       success: true,
@@ -98,7 +91,7 @@ export async function POST(request: NextRequest) {
       message: `Session ${updatedSession.sessionNumber} marked as completed.`,
     });
   } catch (error) {
-    console.error('[POST /api/observability/complete-session] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to complete session');
     return NextResponse.json(
       {
         error: 'Failed to complete session',

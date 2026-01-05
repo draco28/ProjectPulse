@@ -10,7 +10,10 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
 import type { TechStackInfo } from './tech-stack-detection';
+
+const log = createLogger({ module: 'Onboarding:Personas' });
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -366,11 +369,7 @@ export async function createAgentPersonas(
 ): Promise<number> {
   const personaDefs = getAgentPersonasForTechStack(techStack);
 
-  console.log('[Session 3] Creating agent personas', {
-    projectId,
-    techStack,
-    count: personaDefs.length,
-  });
+  log.info({ projectId, techStack, count: personaDefs.length }, 'Creating agent personas');
 
   let created = 0;
 
@@ -391,14 +390,14 @@ export async function createAgentPersonas(
         },
       });
       created++;
-      console.log(`[Session 3] Created persona: ${def.name}`);
+      log.info({ personaName: def.name }, 'Created persona');
     } catch (error) {
-      console.error(`[Session 3] Failed to create persona ${def.name}:`, error);
+      log.error({ personaName: def.name, error: error instanceof Error ? error.message : String(error) }, 'Failed to create persona');
       // Continue with other personas even if one fails
     }
   }
 
-  console.log(`[Session 3] Agent personas created: ${created}/${personaDefs.length}`);
+  log.info({ created, total: personaDefs.length }, 'Agent personas created');
 
   return created;
 }

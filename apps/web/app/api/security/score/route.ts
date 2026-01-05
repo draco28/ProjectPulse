@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/security/score
@@ -13,7 +15,8 @@ import { prisma } from '@/lib/prisma';
  * - breakdown: Count by severity
  * - trend: Score change over time (future feature)
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // Fetch all open findings with severity counts
     const findings = await prisma.securityFinding.findMany({
@@ -46,7 +49,7 @@ export async function GET(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Failed to calculate security score:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to calculate security score');
     return NextResponse.json({ error: 'Failed to calculate security score' }, { status: 500 });
   }
 }

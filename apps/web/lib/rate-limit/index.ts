@@ -23,6 +23,9 @@ import { RATE_LIMIT_TIERS, getTierForRoute } from './tiers';
 import { generateKey, getClientIp } from './key-generator';
 import { RedisRateLimitStore } from './redis-store';
 import { MemoryRateLimitStore } from './memory-store';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'RateLimit' });
 
 // Re-export types and utilities
 export type { RateLimitTier, RateLimitKeyContext, RateLimitResult, WithRateLimitOptions } from './types';
@@ -63,7 +66,7 @@ async function initStore(): Promise<RateLimitStore> {
   // Check feature flag
   const enabled = process.env.RATE_LIMIT_V2_ENABLED !== 'false';
   if (!enabled) {
-    console.log('[RateLimit] V2 disabled, using memory store');
+    log.info('V2 disabled, using memory store');
     return new MemoryRateLimitStore();
   }
 
@@ -72,13 +75,13 @@ async function initStore(): Promise<RateLimitStore> {
     const redisStore = new RedisRateLimitStore();
     const healthy = await redisStore.healthCheck();
     if (healthy) {
-      console.log('[RateLimit] Using Redis store');
+      log.info('Using Redis store');
       return redisStore;
     }
-    console.warn('[RateLimit] Redis unhealthy, falling back to memory');
+    log.warn('Redis unhealthy, falling back to memory');
   }
 
-  console.log('[RateLimit] Using in-memory store');
+  log.info('Using in-memory store');
   return new MemoryRateLimitStore();
 }
 

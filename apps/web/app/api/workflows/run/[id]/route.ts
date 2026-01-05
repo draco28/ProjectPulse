@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/workflows/run/:id
@@ -9,6 +11,7 @@ import { prisma } from '@/lib/prisma';
  * @returns {run: {id, templateName, status, currentStep, totalSteps, completedSteps, context}}
  */
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const runId = parseInt(params.id, 10);
 
@@ -81,7 +84,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       error: null,
     });
   } catch (error) {
-    console.error('Error fetching workflow run:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error fetching workflow run');
     return NextResponse.json(
       {
         data: null,

@@ -27,6 +27,9 @@
 import { randomUUID } from 'crypto';
 import type { MCPSession } from './types';
 import { RedisSessionStore, InMemorySessionStore } from './session-store';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'MCP:SessionManager' });
 
 /**
  * Module-level session store instance (lazy initialized)
@@ -60,11 +63,11 @@ function getStore(): RedisSessionStore | InMemorySessionStore {
   const isProduction = process.env.NODE_ENV === 'production';
 
   if (redisUrl && isProduction) {
-    console.log('[SessionManager] Initializing Redis session store');
+    log.info('Initializing Redis session store');
     store = new RedisSessionStore(redisUrl);
     storeType = 'redis';
   } else {
-    console.log('[SessionManager] Initializing in-memory session store (development)');
+    log.info('Initializing in-memory session store (development)');
     store = new InMemorySessionStore();
     storeType = 'memory';
   }
@@ -129,7 +132,7 @@ export async function validateSession(sessionId: string): Promise<MCPSession> {
 
   // Invalid format → create new
   if (!isValidSessionId(sessionId)) {
-    console.warn(`[Session] Invalid session ID format: ${sessionId}`);
+    log.warn({ sessionId }, 'Invalid session ID format');
     return await sessionStore.createSession(DEFAULT_PROJECT_ID);
   }
 
@@ -141,7 +144,7 @@ export async function validateSession(sessionId: string): Promise<MCPSession> {
   }
 
   // Not found → create new with provided ID
-  console.warn(`[Session] Session not found: ${sessionId}, creating new`);
+  log.warn({ sessionId }, 'Session not found, creating new');
   return await sessionStore.createSessionWithId(sessionId, DEFAULT_PROJECT_ID);
 }
 
@@ -211,7 +214,7 @@ export async function clearAllSessions(): Promise<void> {
   const sessionStore = getStore();
   const sessions = await sessionStore.getActiveSessions(DEFAULT_PROJECT_ID);
   await Promise.all(sessions.map((s) => sessionStore.deleteSession(s.id)));
-  console.log(`[Session] Cleared all sessions (${sessions.length} removed)`);
+  log.info({ count: sessions.length }, 'Cleared all sessions');
 }
 
 /**

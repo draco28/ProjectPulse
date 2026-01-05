@@ -18,6 +18,8 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth-server';
 import { INITIAL_TEMPLATES } from '@/lib/wiki/system-templates';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 interface RefreshResult {
   updated: Array<{ title: string; path: string; reason: string }>;
@@ -27,6 +29,8 @@ interface RefreshResult {
 }
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const user = await requireUser();
     const projectId = parseInt(params.id, 10);
@@ -182,7 +186,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('POST /api/projects/[id]/wiki/refresh error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Wiki refresh failed');
     return NextResponse.json({ error: 'Failed to refresh wikis' }, { status: 500 });
   }
 }

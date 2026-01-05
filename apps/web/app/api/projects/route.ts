@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth-server';
 import { cloneWikiTemplates } from '@/lib/wiki/system-templates';
 import { cloneMemoryBanks } from '@/lib/memory/system-templates';
+import { logger } from '@/lib/logger';
 
 const createProjectSchema = z.object({
   name: z.string().min(1, 'Project name is required').max(100, 'Name too long').trim(),
@@ -78,7 +79,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.error('GET /api/projects error:', error);
+    logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Projects list failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -151,7 +152,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.error('POST /api/projects error:', error);
+    logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Project creation failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

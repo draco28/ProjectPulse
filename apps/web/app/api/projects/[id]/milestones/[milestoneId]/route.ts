@@ -16,6 +16,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError, authErrorResponse } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // Validation schema for updating a milestone
 const updateMilestoneSchema = z.object({
@@ -36,6 +38,8 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string; milestoneId: string }> }
 ) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id, milestoneId } = await params;
     const projectId = parseInt(id, 10);
@@ -83,7 +87,7 @@ export async function GET(
       return authErrorResponse(error);
     }
 
-    console.error('GET /api/projects/[id]/milestones/[milestoneId] error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Milestone get failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -99,6 +103,8 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string; milestoneId: string }> }
 ) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id, milestoneId } = await params;
     const projectId = parseInt(id, 10);
@@ -193,7 +199,7 @@ export async function PUT(
       return authErrorResponse(error);
     }
 
-    console.error('PUT /api/projects/[id]/milestones/[milestoneId] error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Milestone update failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -210,6 +216,8 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string; milestoneId: string }> }
 ) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id, milestoneId } = await params;
     const projectId = parseInt(id, 10);
@@ -254,7 +262,7 @@ export async function DELETE(
       return authErrorResponse(error);
     }
 
-    console.error('DELETE /api/projects/[id]/milestones/[milestoneId] error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Milestone delete failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

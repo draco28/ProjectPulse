@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { syncOnboardingToWiki } from '@/lib/wiki/sync-onboarding';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -33,7 +35,8 @@ type BatchDocumentsRequest = z.infer<typeof requestSchema>;
 // ============================================================================
 
 export async function POST(request: NextRequest) {
-  console.log('[POST /api/onboarding/documents/batch] Storing document batch...');
+  const log = createRequestLogger(getRequestId(request));
+  log.info({}, 'Storing document batch');
 
   try {
     // 1. Validate request
@@ -41,7 +44,7 @@ export async function POST(request: NextRequest) {
     const validation = requestSchema.safeParse(body);
 
     if (!validation.success) {
-      console.error('[POST /api/onboarding/documents/batch] Validation failed:', validation.error);
+      log.warn({ error: validation.error }, 'Validation failed');
 
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
@@ -51,11 +54,7 @@ export async function POST(request: NextRequest) {
 
     const { projectId, documents }: BatchDocumentsRequest = validation.data;
 
-    console.log('[POST /api/onboarding/documents/batch] Request validated', {
-      projectId,
-      documentCount: documents.length,
-      filenames: documents.map((d) => d.filename),
-    });
+    log.info({ projectId, documentCount: documents.length, filenames: documents.map((d) => d.filename) }, 'Request validated');
 
     // 2. Get or create Session 2
     let session = await prisma.onboardingSession.findUnique({
@@ -72,7 +71,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session) {
-      console.log('[POST /api/onboarding/documents/batch] Creating new Session 2...');
+      log.info({}, 'Creating new Session 2');
 
       session = await prisma.onboardingSession.create({
         data: {
@@ -94,9 +93,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      console.log('[POST /api/onboarding/documents/batch] Session 2 created', {
-        sessionId: session.id,
-      });
+      log.info({ sessionId: session.id }, 'Session 2 created');
     }
 
     // 3. Check for duplicate filenames
@@ -109,10 +106,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingDocs.length > 0) {
-      console.error(
-        '[POST /api/onboarding/documents/batch] Duplicate filenames found:',
-        existingDocs
-      );
+      log.warn({ duplicates: existingDocs.map((d) => d.filename) }, 'Duplicate filenames found');
 
       return NextResponse.json(
         {
@@ -125,7 +119,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Bulk insert documents in transaction
-    console.log('[POST /api/onboarding/documents/batch] Bulk inserting documents...');
+    log.info({}, 'Bulk inserting documents');
 
     const createdDocs = await prisma.$transaction(
       documents.map((doc) =>
@@ -144,10 +138,7 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    console.log('[POST /api/onboarding/documents/batch] Documents created', {
-      count: createdDocs.length,
-      filenames: createdDocs.map((d) => d.filename),
-    });
+    log.info({ count: createdDocs.length, filenames: createdDocs.map((d) => d.filename) }, 'Documents created');
 
     // 5. Update metrics and mark complete if all 15 documents stored
     const currentMetrics = (session.metrics as any) || { tokensUsed: 0, batchesComplete: 0 };
@@ -170,26 +161,18 @@ export async function POST(request: NextRequest) {
     });
 
     if (isComplete) {
-      console.log(
-        '[POST /api/onboarding/documents/batch] Session 2 marked complete (15 documents stored)'
-      );
+      log.info({}, 'Session 2 marked complete (15 documents stored)');
 
       // Sync documents to Wiki (Sprint 9 Fix)
       // Fire and forget to avoid blocking response
       syncOnboardingToWiki(projectId).catch((err) =>
-        console.error('[POST /api/onboarding/documents/batch] Failed to sync wiki:', err)
+        log.error({ error: err instanceof Error ? err.message : String(err) }, 'Failed to sync wiki')
       );
     }
 
     // 6. Calculate progress
 
-    console.log('[POST /api/onboarding/documents/batch] Batch stored successfully', {
-      projectId,
-      created: documents.length,
-      batchesComplete,
-      totalDocuments,
-      progress,
-    });
+    log.info({ projectId, created: documents.length, batchesComplete, totalDocuments, progress }, 'Batch stored successfully');
 
     return NextResponse.json({
       success: true,
@@ -201,7 +184,7 @@ export async function POST(request: NextRequest) {
       message: `Batch ${batchesComplete} stored ✅. ${totalDocuments}/15 documents complete.${batchesComplete === 4 ? ' Session 2 complete!' : ` Proceed to batch ${batchesComplete + 1}.`}`,
     });
   } catch (error) {
-    console.error('[POST /api/onboarding/documents/batch] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to store document batch');
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 

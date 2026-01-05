@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { submitResponseSchema, type SubmitResponseResponse } from '@/lib/validations/onboarding';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * POST /api/onboarding/responses
@@ -25,6 +27,7 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 export const dynamic = 'force-dynamic'; // No caching for session mutations
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // Parse and validate request body
     const body = await request.json();
@@ -79,7 +82,7 @@ export async function POST(request: NextRequest) {
     // Sprint 8.5: Session 2 Document Creation
     if (sessionNumber === 2) {
       try {
-        console.log('[Session 2] Creating Document records from response');
+        log.info({ session: 2 }, 'Creating Document records from response');
 
         // Check if response contains any document data
         const responseData = data as any;
@@ -105,7 +108,7 @@ export async function POST(request: NextRequest) {
             },
           });
 
-          console.log('[Session 2] Created 13-Project-Plan.md document');
+          log.info({ session: 2 }, 'Created 13-Project-Plan.md document');
 
           // Optional: Create other documents if provided
           if (responseData.documentsGenerated && Array.isArray(responseData.documentsGenerated)) {
@@ -125,13 +128,11 @@ export async function POST(request: NextRequest) {
               });
             }
 
-            console.log(
-              `[Session 2] Created ${responseData.documentsGenerated.length} documents total`
-            );
+            log.info({ session: 2, count: responseData.documentsGenerated.length }, 'Documents created');
           }
         }
       } catch (docError) {
-        console.error('[Session 2] Document creation failed:', docError);
+        log.error({ session: 2, error: docError instanceof Error ? docError.message : String(docError) }, 'Document creation failed');
         // Non-blocking: Continue even if document creation fails
         // Session 3 will use fallback logic
       }
@@ -159,17 +160,18 @@ export async function POST(request: NextRequest) {
         });
 
         if (projectPlanDoc) {
-          console.log('[Session 3] Found 13-Project-Plan.md, starting materialization');
+          log.info({ session: 3 }, 'Found 13-Project-Plan.md, starting materialization');
 
           // Parse markdown to extract roadmap structure
           const parsedRoadmap = await parseProjectPlan(projectPlanDoc.id);
-          console.log('[Session 3] Parsed roadmap:', {
+          log.info({
+            session: 3,
             phases: parsedRoadmap.phases.length,
             sprints: parsedRoadmap.phases.reduce(
               (sum: number, p: any) => sum + p.sprints.length,
               0
             ),
-          });
+          }, 'Parsed roadmap');
 
           // Create Roadmap record with phases JSON
           const roadmap = await prisma.roadmap.create({
@@ -178,11 +180,11 @@ export async function POST(request: NextRequest) {
               phases: parsedRoadmap as any, // JSONB field - cast for Prisma
             },
           });
-          console.log('[Session 3] Created Roadmap record:', roadmap.id);
+          log.info({ session: 3, roadmapId: roadmap.id }, 'Created Roadmap record');
 
           // Materialize JSON → Phase/Sprint/Week/Day records
           const materializationResult = await materializeRoadmap(roadmap.id);
-          console.log('[Session 3] Materialization complete:', materializationResult.counts);
+          log.info({ session: 3, counts: materializationResult.counts }, 'Materialization complete');
 
           // Update session response with roadmap data
           await prisma.onboardingSession.update({
@@ -198,14 +200,14 @@ export async function POST(request: NextRequest) {
 
           // Sprint 12: DevelopmentSession model removed
           // Agent sessions are now created on-demand via MCP tools
-          console.log('[Session 3] Roadmap materialization complete - ready for agent sessions');
+          log.info({ session: 3 }, 'Roadmap materialization complete - ready for agent sessions');
         } else {
-          console.warn('[Session 3] 13-Project-Plan.md not found, skipping materialization');
+          log.warn({ session: 3 }, '13-Project-Plan.md not found, skipping materialization');
         }
       } catch (error) {
         // Log error but don't fail the request
-        console.error('[Session 3] Materialization failed:', error);
-        console.error('[Session 3] Continuing without roadmap materialization');
+        log.error({ session: 3, error: error instanceof Error ? error.message : String(error) }, 'Materialization failed');
+        log.warn({ session: 3 }, 'Continuing without roadmap materialization');
       }
     }
 
@@ -239,7 +241,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: statusCode });
   } catch (error) {
-    console.error('[POST /api/onboarding/responses] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to submit onboarding response');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

@@ -6,6 +6,8 @@ import {
   AuthError,
   authErrorResponse,
 } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // Search result type for unified search
 interface SearchResult {
@@ -30,6 +32,7 @@ interface SearchResult {
  * - limit: Max results per type (default: 5, max: 10)
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('q') || '';
@@ -220,7 +223,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return authErrorResponse(error);
     }
-    console.error('Search failed:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Search failed');
     return NextResponse.json({ error: 'Search failed' }, { status: 500 });
   }
 }

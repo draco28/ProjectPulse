@@ -8,6 +8,9 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Knowledge:Metrics' });
 
 export type QueryMode = 'semantic' | 'fulltext' | 'hybrid';
 
@@ -44,7 +47,7 @@ export async function recordQueryMetric(data: QueryMetricData): Promise<void> {
     });
   } catch (error) {
     // Log error but don't throw (metrics shouldn't break search)
-    console.error('[Knowledge Metrics] Failed to record query metric:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to record query metric');
   }
 }
 
@@ -109,7 +112,7 @@ export async function getLatencyPercentile(
     const index = Math.ceil((percentile / 100) * metrics.length) - 1;
     return metrics[index]?.latencyMs ?? null;
   } catch (error) {
-    console.error('[Knowledge Metrics] Failed to calculate percentile:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to calculate percentile');
     return null;
   }
 }
@@ -168,7 +171,7 @@ export async function getMetricsSummary(days: number = 7) {
       ),
     };
   } catch (error) {
-    console.error('[Knowledge Metrics] Failed to get metrics summary:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to get metrics summary');
     throw error;
   }
 }

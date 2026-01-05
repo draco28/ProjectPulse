@@ -28,6 +28,9 @@ import { getScanner, type Scanner } from '@/lib/health/scanners';
 import { calculateHealthScore } from '@/lib/health/scoring';
 import { MCPError, JSONRPC_ERROR_CODES } from '../types';
 import { ScannerType, FindingCategory, FindingSeverity } from '@prisma/client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'MCP:HealthHandler' });
 
 // ============================================================================
 // Tool 1: health.runScan
@@ -263,7 +266,7 @@ export async function healthRunScanHandler(input: unknown): Promise<HealthRunSca
         });
       } catch (error) {
         // Log error and continue with other scanners (partial success)
-        console.error(`[health.runScan] Scanner ${scannerType} failed:`, error);
+        log.error({ scannerType, error: error instanceof Error ? error.message : String(error) }, 'Scanner failed');
         scanResults.push({
           type: scannerType,
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -330,7 +333,7 @@ export async function healthRunScanHandler(input: unknown): Promise<HealthRunSca
     };
   } catch (error) {
     if (error instanceof MCPError) throw error;
-    console.error('[health.runScan] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Scan execution failed');
     throw new MCPError(
       `Scan execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
@@ -518,7 +521,7 @@ export async function healthGetScoreHandler(input: unknown): Promise<HealthGetSc
     };
   } catch (error) {
     if (error instanceof MCPError) throw error;
-    console.error('[health.getScore] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to retrieve health scores');
     throw new MCPError(
       `Failed to retrieve health scores: ${error instanceof Error ? error.message : 'Unknown error'}`,
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
@@ -763,7 +766,7 @@ export async function healthGetHistoryHandler(input: unknown): Promise<HealthGet
     };
   } catch (error) {
     if (error instanceof MCPError) throw error;
-    console.error('[health.getHistory] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to retrieve health history');
     throw new MCPError(
       `Failed to retrieve health history: ${error instanceof Error ? error.message : 'Unknown error'}`,
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,

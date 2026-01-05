@@ -1,5 +1,8 @@
 import { PrismaClient, MemoryBankType } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Memory:SystemTemplates' });
 
 const SYSTEM_PROJECT_NAME = 'System Wiki Templates';
 
@@ -113,7 +116,7 @@ async function ensureSystemProject() {
   if (systemProject) {
     // If the System project exists but has no MemoryBanks yet, seed them now
     if (!systemProject.memoryBanks || systemProject.memoryBanks.length === 0) {
-      console.log('📦 Seeding default Memory Bank templates for existing System Project...');
+      log.info('Seeding default Memory Bank templates for existing System Project');
       await prisma.memoryBank.createMany({
         data: INITIAL_MEMORY_BANKS.map((bank) => ({
           projectId: systemProject!.id,
@@ -133,12 +136,12 @@ async function ensureSystemProject() {
     return systemProject;
   }
 
-  console.log('🛠️ Bootstrapping System Project for Memory Banks...');
+  log.info('Bootstrapping System Project for Memory Banks');
 
   const adminUser = await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } });
 
   if (!adminUser) {
-    console.warn('⚠️ No users found. Cannot bootstrap System Project yet.');
+    log.warn('No users found. Cannot bootstrap System Project yet.');
     return null;
   }
 
@@ -154,7 +157,7 @@ async function ensureSystemProject() {
   });
 
   // Seed Memory Banks for freshly created System project
-  console.log('📦 Seeding default Memory Bank templates...');
+  log.info('Seeding default Memory Bank templates');
   await prisma.memoryBank.createMany({
     data: INITIAL_MEMORY_BANKS.map((bank) => ({
       projectId: systemProject!.id,
@@ -180,7 +183,7 @@ export async function cloneMemoryBanks(targetProjectId: number) {
     const systemProject = await ensureSystemProject();
 
     if (!systemProject || systemProject.memoryBanks.length === 0) {
-      console.warn('⚠️ System Project not ready or Memory Banks empty. Skipping cloning.');
+      log.warn('System Project not ready or Memory Banks empty. Skipping cloning.');
       // Create minimal defaults inline as fallback
       await prisma.memoryBank.createMany({
         data: INITIAL_MEMORY_BANKS.map((bank) => ({
@@ -201,16 +204,16 @@ export async function cloneMemoryBanks(targetProjectId: number) {
       summaryTokens: bank.summaryTokens,
     }));
 
-    console.log(`🔄 Cloning ${newBanks.length} Memory Banks to project ${targetProjectId}...`);
+    log.info({ count: newBanks.length, targetProjectId }, 'Cloning Memory Banks');
 
     await prisma.memoryBank.createMany({
       data: newBanks,
       skipDuplicates: true,
     });
 
-    console.log('✅ Memory Bank cloning complete.');
+    log.info({ targetProjectId }, 'Memory Bank cloning complete');
   } catch (error) {
-    console.error('❌ Memory Bank cloning failed:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error), targetProjectId }, 'Memory Bank cloning failed');
     // Do NOT throw - project creation should succeed even if Memory Bank seeding fails
   }
 }

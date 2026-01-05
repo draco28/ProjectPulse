@@ -13,6 +13,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import {
   CreateAgentSessionSchema,
   ListAgentSessionsQuerySchema,
@@ -30,6 +32,7 @@ export const dynamic = 'force-dynamic';
  * Security: Requires authentication + project access
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { searchParams } = new URL(request.url);
     const rawParams = {
@@ -101,7 +104,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.error('[GET /api/agent-sessions] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch agent sessions');
     return NextResponse.json({ error: 'Failed to fetch agent sessions' }, { status: 500 });
   }
 }
@@ -119,6 +122,7 @@ export async function GET(request: NextRequest) {
  * Security: Requires authentication + project access
  */
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
 
@@ -272,7 +276,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('[POST /api/agent-sessions] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create agent session');
     return NextResponse.json({ error: 'Failed to create agent session' }, { status: 500 });
   }
 }

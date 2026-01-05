@@ -11,6 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/knowledge/export
@@ -48,6 +50,8 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
  * ```
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const requestedProjectId = searchParams.get('projectId')
@@ -181,7 +185,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('[GET /api/knowledge/export] Export failed:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge export failed');
     return NextResponse.json(
       {
         error: 'Failed to export knowledge graph',

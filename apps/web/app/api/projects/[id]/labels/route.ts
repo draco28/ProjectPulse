@@ -15,6 +15,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError, authErrorResponse } from '@/lib/auth/validateRequest';
 import { CreateLabelSchema } from '@/lib/validations/label';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/projects/[id]/labels
@@ -26,6 +28,8 @@ import { CreateLabelSchema } from '@/lib/validations/label';
  * Auth: User session OR Agent token (project-scoped)
  */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id } = await params;
     const projectId = parseInt(id, 10);
@@ -81,7 +85,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return authErrorResponse(error);
     }
 
-    console.error('GET /api/projects/[id]/labels error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Labels list failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -95,6 +99,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
  * Note: requireProjectAccess already enforces owner-only for users
  */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id } = await params;
     const projectId = parseInt(id, 10);
@@ -176,7 +182,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return authErrorResponse(error);
     }
 
-    console.error('POST /api/projects/[id]/labels error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Label creation failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -26,17 +28,15 @@ const requestSchema = z.object({
 //=============================================================================
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
-    console.log('[POST /api/batch/skills] Request received', {
-      projectId: body.projectId,
-      count: body.skills?.length,
-    });
+    log.info({ projectId: body.projectId, count: body.skills?.length }, 'Request received');
 
     // 1. Validate request
     const validation = requestSchema.safeParse(body);
     if (!validation.success) {
-      console.error('[POST /api/batch/skills] Validation failed', validation.error);
+      log.warn({ error: validation.error }, 'Validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     const duplicates = existingSkills.map((s) => s.slug);
 
     if (duplicates.length > 0) {
-      console.warn('[POST /api/batch/skills] Duplicates found', { duplicates });
+      log.warn({ duplicates }, 'Duplicates found');
     }
 
     // 4. Filter out duplicates
@@ -98,11 +98,7 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    console.log('[POST /api/batch/skills] Skills created', {
-      projectId,
-      created: createdSkills.length,
-      duplicates: duplicates.length,
-    });
+    log.info({ projectId, created: createdSkills.length, duplicates: duplicates.length }, 'Skills created');
 
     return NextResponse.json({
       success: true,
@@ -114,7 +110,7 @@ export async function POST(request: NextRequest) {
       message: `Created ${createdSkills.length}/${skills.length} skills. ${duplicates.length} duplicates skipped.`,
     });
   } catch (error) {
-    console.error('[POST /api/batch/skills] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create skill batch');
     return NextResponse.json(
       {
         error: 'Failed to create skill batch',

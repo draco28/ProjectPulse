@@ -9,8 +9,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-server';
 import { runMCPLogCleanup } from '@/lib/jobs/mcp-log-cleanup';
 import { logAdminAction } from '@/lib/audit';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const admin = await requireAdmin();
 
@@ -37,7 +40,7 @@ export async function POST(request: NextRequest) {
       errors: result.errors.length > 0 ? result.errors : undefined,
     });
   } catch (error) {
-    console.error('MCP cleanup error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to run MCP cleanup job');
 
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

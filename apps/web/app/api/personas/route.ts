@@ -12,6 +12,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -30,6 +32,8 @@ const querySchema = z.object({
 //=============================================================================
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { searchParams } = new URL(request.url);
 
@@ -40,7 +44,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!validation.success) {
-      console.error('[GET /api/personas] Validation failed', validation.error);
+      log.warn({ validationError: validation.error.errors }, 'Personas list validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -55,7 +59,7 @@ export async function GET(request: NextRequest) {
     // 2. Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
-    console.log('[GET /api/personas] Listing personas', { projectId, isActive });
+    log.debug({ projectId, isActive }, 'Listing personas');
 
     // 3. Query personas (metadata only, no systemPrompt)
     const personas = await prisma.agentPersona.findMany({
@@ -79,10 +83,7 @@ export async function GET(request: NextRequest) {
       orderBy: { name: 'asc' },
     });
 
-    console.log('[GET /api/personas] Found personas', {
-      projectId,
-      count: personas.length,
-    });
+    log.debug({ projectId, count: personas.length }, 'Found personas');
 
     return NextResponse.json({
       personas,
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.error('[GET /api/personas] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Personas list failed');
     return NextResponse.json(
       {
         error: 'Failed to list personas',

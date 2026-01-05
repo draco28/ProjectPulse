@@ -18,6 +18,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
 export const dynamic = 'force-dynamic';
@@ -80,6 +82,7 @@ async function getAuthorizedSession(request: NextRequest, sessionId: string) {
  * Security: Requires authentication + access to session's project
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id } = await params;
 
@@ -149,7 +152,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    console.error('[POST /api/agent-sessions/[id]/resume] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to resume agent session');
     return NextResponse.json({ error: 'Failed to resume agent session' }, { status: 500 });
   }
 }

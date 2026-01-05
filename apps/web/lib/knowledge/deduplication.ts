@@ -10,6 +10,9 @@
 
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Knowledge:Deduplication' });
 
 export interface DuplicateCandidate {
   id: number;
@@ -137,7 +140,7 @@ export async function findDuplicates(options: DeduplicationOptions): Promise<Ded
         });
       }
     } catch (error) {
-      console.error('[findDuplicates] Semantic search failed:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Semantic search failed');
       // Continue with exact matches only
     }
   }

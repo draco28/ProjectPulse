@@ -10,10 +10,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-server';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     await requireAdmin();
 
@@ -63,7 +66,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error('[Admin Stats] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch stats');
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {

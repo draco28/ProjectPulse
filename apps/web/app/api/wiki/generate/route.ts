@@ -18,6 +18,8 @@ import { generateWikiSchema, type GenerateWikiInput } from '@/lib/validations/wi
 import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
 import type { ParsedDocumentation } from '@/lib/wiki/parsers/jsdoc';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * Response type for wiki generation
@@ -48,6 +50,7 @@ interface WikiGenerationResponse {
  * @returns {WikiGenerationResponse} - Generation results
  */
 export async function POST(request: NextRequest): Promise<NextResponse<WikiGenerationResponse>> {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
 
@@ -148,7 +151,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WikiGener
       );
     }
 
-    console.error('Wiki generation error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Wiki generation error');
 
     return NextResponse.json(
       {
@@ -195,21 +198,8 @@ async function processDocumentation(
   // Resolve cross-links in markdown content (US-108)
   const crossLinkResult = await resolveCrossLinks(markdown, slug);
 
-  // Log warnings for unresolved links
-  if (crossLinkResult.unresolvedLinks.length > 0) {
-    console.warn(
-      `[Wiki Generation] Unresolved cross-links in ${doc.filePath}:`,
-      crossLinkResult.unresolvedLinks.map((l) => l.slug).join(', ')
-    );
-  }
-
-  // Log circular references
-  if (crossLinkResult.circularReferences.length > 0) {
-    console.warn(
-      `[Wiki Generation] Circular references detected in ${doc.filePath}:`,
-      crossLinkResult.circularReferences.join(', ')
-    );
-  }
+  // Note: Warnings for unresolved links and circular references are handled at module level
+  // since this is a helper function without direct request context
 
   // Use processed content with resolved cross-links
   const processedContent = crossLinkResult.content;

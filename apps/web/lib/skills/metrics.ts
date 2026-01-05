@@ -10,6 +10,9 @@
  */
 
 import type { CachedSkill } from './cache';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Skills:Metrics' });
 
 // ============================================================================
 // TOKEN ESTIMATION
@@ -252,9 +255,10 @@ export interface SkillLoadMetric {
  */
 export function recordSkillLoadMetric(metric: SkillLoadMetric): void {
   // TODO: Implement database storage (Phase 5 or future sprint)
-  // For now, just log to console
-  console.log(
-    `[SkillMetrics] Load: ${metric.slug} (${metric.loadSource}, ${metric.tokenCount} tokens, ${metric.latencyMs}ms)`
+  // For now, just log
+  log.info(
+    { slug: metric.slug, source: metric.loadSource, tokenCount: metric.tokenCount, latencyMs: metric.latencyMs },
+    'Skill load recorded'
   );
 
   // Future: Store in database

@@ -15,9 +15,11 @@
  * - Agent tokens enforce project isolation
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { loadSessionStart } from '@/lib/memory/memory-bank-service';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
@@ -243,7 +245,8 @@ function getAgeInHours(timestamp: string | undefined): number {
 // Main Handler
 // ============================================================================
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { searchParams } = new URL(request.url);
     const requestedProjectId = searchParams.get('projectId')
@@ -438,7 +441,7 @@ export async function GET(request: Request) {
       );
     }
 
-    console.error('GET /api/context/load error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to load context');
     return NextResponse.json({ error: 'Failed to load context' }, { status: 500 });
   }
 }

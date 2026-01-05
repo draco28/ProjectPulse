@@ -20,6 +20,8 @@ import { createSkillSchema } from '@/lib/validations/skill';
 import { generateSlugFromTitle } from '@/lib/skills/constants';
 import { findSkillDuplicates, SkillDuplicationError } from '@/lib/skills/deduplication';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/skills
@@ -69,6 +71,8 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
  * Response (500): { "error": "Failed to list skills" }
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const searchParams = request.nextUrl.searchParams;
 
@@ -211,7 +215,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.error('[GET /api/skills] Failed to list skills:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to list skills');
     return NextResponse.json(
       {
         error: 'Failed to list skills',
@@ -262,6 +266,8 @@ export async function GET(request: NextRequest) {
  * Response (500): { "error": "Failed to create skill" }
  */
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     // Parse and validate request body
     const body = await request.json();
@@ -269,9 +275,7 @@ export async function POST(request: NextRequest) {
     // Auto-generate slug from title if not provided
     if (!body.slug && body.title) {
       body.slug = generateSlugFromTitle(body.title);
-      console.log(
-        `[POST /api/skills] Auto-generated slug: "${body.slug}" from title: "${body.title}"`
-      );
+      log.debug({ slug: body.slug, title: body.title }, 'Auto-generated slug from title');
     }
 
     const validation = createSkillSchema.safeParse(body);
@@ -347,7 +351,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(`[POST /api/skills] Created skill: ${skill.slug} (id: ${skill.id})`);
+    log.info({ slug: skill.slug, id: skill.id }, 'Created skill');
 
     return NextResponse.json(
       {
@@ -374,7 +378,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('[POST /api/skills] Failed to create skill:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create skill');
 
     return NextResponse.json(
       {

@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -40,7 +42,8 @@ function injectVariables(template: string, variables: Record<string, any>): stri
 // ============================================================================
 
 export async function GET(request: NextRequest) {
-  console.log('[GET /api/onboarding/bootstrap-prompt] Fetching bootstrap prompt...');
+  const log = createRequestLogger(getRequestId(request));
+  log.info({}, 'Fetching bootstrap prompt');
 
   try {
     // 1. Validate query params
@@ -50,7 +53,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!validation.success) {
-      console.error('[GET /api/onboarding/bootstrap-prompt] Validation failed:', validation.error);
+      log.warn({ error: validation.error }, 'Validation failed');
 
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
@@ -60,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     const { projectId } = validation.data;
 
-    console.log('[GET /api/onboarding/bootstrap-prompt] Request validated', { projectId });
+    log.info({ projectId }, 'Request validated');
 
     // Sprint 12: Require authentication (session OR bearer token)
     await requireOnboardingAuth(request, projectId);
@@ -80,7 +83,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!session2 || session2.documents.length === 0) {
-      console.error('[GET /api/onboarding/bootstrap-prompt] 13-Project-Plan.md not found');
+      log.warn({}, '13-Project-Plan.md not found');
 
       return NextResponse.json(
         {
@@ -93,9 +96,7 @@ export async function GET(request: NextRequest) {
 
     const projectPlanMarkdown = session2.documents[0]?.content ?? '';
 
-    console.log('[GET /api/onboarding/bootstrap-prompt] Project plan found', {
-      length: projectPlanMarkdown.length,
-    });
+    log.info({ length: projectPlanMarkdown.length }, 'Project plan found');
 
     // 3. Get tech stack from Session 1 projectContextJson
     const session1 = await prisma.onboardingSession.findUnique({
@@ -110,9 +111,7 @@ export async function GET(request: NextRequest) {
     const projectContext = (session1?.projectContextJson as any) || {};
     const techStack = projectContext.metadata?.techStack || projectContext.techStack || [];
 
-    console.log('[GET /api/onboarding/bootstrap-prompt] Tech stack extracted', {
-      techStackCount: Array.isArray(techStack) ? techStack.length : 0,
-    });
+    log.info({ techStackCount: Array.isArray(techStack) ? techStack.length : 0 }, 'Tech stack extracted');
 
     // 4. Fetch bootstrap prompt template
     const template = await prisma.onboardingPromptTemplate.findFirst({
@@ -129,7 +128,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!template) {
-      console.error('[GET /api/onboarding/bootstrap-prompt] Template not found');
+      log.warn({}, 'Template not found');
 
       return NextResponse.json(
         {
@@ -140,7 +139,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('[GET /api/onboarding/bootstrap-prompt] Template found');
+    log.info({}, 'Template found');
 
     // 5. Inject variables into userPrompt
     const userPrompt = injectVariables(template.userPrompt, {
@@ -177,7 +176,7 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    console.log('[GET /api/onboarding/bootstrap-prompt] Bootstrap prompt ready');
+    log.info({}, 'Bootstrap prompt ready');
 
     return NextResponse.json({
       projectId,
@@ -192,7 +191,7 @@ export async function GET(request: NextRequest) {
         'Parse the project plan, then use the JSON to call roadmap.createHierarchy() and batch create tools',
     });
   } catch (error) {
-    console.error('[GET /api/onboarding/bootstrap-prompt] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch bootstrap prompt');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

@@ -21,6 +21,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const answerSchema = z.object({
   projectId: z.number().int().positive('Project ID must be positive'),
@@ -31,6 +33,7 @@ const answerSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
     const validation = answerSchema.safeParse(body);
@@ -134,7 +137,7 @@ export async function POST(request: NextRequest) {
       return handleAuthError(error);
     }
 
-    console.error('[POST /api/onboarding/answers] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to save answers');
     return NextResponse.json(
       {
         error: 'Failed to save answers',

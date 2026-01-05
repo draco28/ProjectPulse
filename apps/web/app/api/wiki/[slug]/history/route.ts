@@ -11,11 +11,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const DEFAULT_HISTORY_LIMIT = 10;
 const MAX_HISTORY_LIMIT = 50;
 
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const slugPath = params.slug.startsWith('/') ? params.slug : `/${params.slug}`;
     const page = await prisma.wikiPage.findUnique({
@@ -76,7 +79,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('Failed to fetch wiki history:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch wiki history');
     return NextResponse.json({ error: 'Failed to fetch wiki history' }, { status: 500 });
   }
 }

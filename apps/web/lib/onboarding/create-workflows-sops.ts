@@ -8,6 +8,9 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Onboarding:WorkflowsSOPs' });
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -890,7 +893,7 @@ API_KEY="..."
 export async function createWorkflowsAndSOPs(
   projectId: number
 ): Promise<{ workflows: number; sops: number }> {
-  console.log('[Session 3] Creating workflows and SOPs', { projectId });
+  log.info({ projectId }, 'Creating workflows and SOPs');
 
   // Create workflows
   const workflowDefs = [FEATURE_DEVELOPMENT_WORKFLOW, BUG_FIX_WORKFLOW, CODE_REVIEW_WORKFLOW];
@@ -910,9 +913,9 @@ export async function createWorkflowsAndSOPs(
         },
       });
       workflowsCreated++;
-      console.log(`[Session 3] Created workflow: ${def.name}`);
+      log.info({ workflowName: def.name }, 'Created workflow');
     } catch (error) {
-      console.error(`[Session 3] Failed to create workflow ${def.name}:`, error);
+      log.error({ workflowName: def.name, error: error instanceof Error ? error.message : String(error) }, 'Failed to create workflow');
     }
   }
 
@@ -941,14 +944,14 @@ export async function createWorkflowsAndSOPs(
         },
       });
       sopsCreated++;
-      console.log(`[Session 3] Created SOP: ${def.title}`);
+      log.info({ sopTitle: def.title }, 'Created SOP');
     } catch (error) {
-      console.error(`[Session 3] Failed to create SOP ${def.title}:`, error);
+      log.error({ sopTitle: def.title, error: error instanceof Error ? error.message : String(error) }, 'Failed to create SOP');
     }
   }
 
-  console.log(`[Session 3] Workflows created: ${workflowsCreated}/${workflowDefs.length}`);
-  console.log(`[Session 3] SOPs created: ${sopsCreated}/${sopDefs.length}`);
+  log.info({ created: workflowsCreated, total: workflowDefs.length }, 'Workflows created');
+  log.info({ created: sopsCreated, total: sopDefs.length }, 'SOPs created');
 
   return {
     workflows: workflowsCreated,

@@ -9,6 +9,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth-server';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const updateProjectSchema = z.object({
   mcpWriteFiles: z.boolean().optional(),
@@ -23,6 +25,8 @@ const updateProjectSchema = z.object({
  * Update project settings (owner only).
  */
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const user = await requireUser();
     const projectId = parseInt(params.id, 10);
@@ -84,7 +88,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.error('PATCH /api/projects/[id] error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Project update failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

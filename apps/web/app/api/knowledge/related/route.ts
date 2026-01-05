@@ -11,6 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findRelatedKnowledgeItems, GraphError } from '@/lib/knowledge/graph';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/knowledge/related
@@ -31,6 +33,8 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
  * - 500: Server error
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const requestedProjectId = searchParams.get('projectId')
@@ -105,7 +109,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Log unexpected errors
-    console.error('[GET /api/knowledge/related] Unexpected error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge related items fetch failed');
 
     // Return generic error
     return NextResponse.json(

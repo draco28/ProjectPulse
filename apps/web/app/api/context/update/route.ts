@@ -11,9 +11,11 @@
  * - Agent tokens enforce project isolation
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { MemoryBankType } from '@prisma/client';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 
@@ -62,7 +64,8 @@ const TOKEN_BUDGETS: Record<string, number> = {
 // Main Handler
 // ============================================================================
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
     const validated = requestSchema.parse(body);
@@ -161,7 +164,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    console.error('PUT /api/context/update error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update memory bank');
     return NextResponse.json({ error: 'Failed to update memory bank' }, { status: 500 });
   }
 }

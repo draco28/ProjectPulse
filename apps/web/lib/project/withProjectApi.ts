@@ -20,6 +20,9 @@ import {
   authErrorResponse,
   type AuthResult,
 } from '@/lib/auth/validateRequest';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Project:withProjectApi' });
 
 export interface ProjectApiContext {
   projectId: number;
@@ -126,7 +129,7 @@ export async function withProjectApi<T>(
     }
 
     // Log unexpected errors
-    console.error('[withProjectApi] Unexpected error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error');
 
     // Return generic error
     return NextResponse.json(

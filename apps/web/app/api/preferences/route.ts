@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // Validation schema
 const PreferencesSchema = z.object({
@@ -12,6 +14,7 @@ const PreferencesSchema = z.object({
  * Update user preferences (theme)
  */
 export async function PATCH(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
     const { theme } = PreferencesSchema.parse(body);
@@ -38,7 +41,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Database error or other errors
-    console.error('Preferences API error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Preferences PATCH API error');
     return NextResponse.json({ data: null, error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -47,7 +50,8 @@ export async function PATCH(request: NextRequest) {
  * GET /api/preferences
  * Get user preferences
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // TODO: Get userId from session when auth is implemented
     const userId = 1;
@@ -62,7 +66,7 @@ export async function GET(_request: NextRequest) {
       error: null,
     });
   } catch (error) {
-    console.error('Preferences API error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Preferences GET API error');
     return NextResponse.json({ data: null, error: 'Internal server error' }, { status: 500 });
   }
 }

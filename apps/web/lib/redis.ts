@@ -12,6 +12,9 @@
  */
 
 import Redis from 'ioredis';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Redis' });
 
 /**
  * Singleton Redis client instance
@@ -33,9 +36,7 @@ export function getRedisClient(): Redis | null {
   // Development fallback - no Redis required
   if (!redisUrl) {
     if (process.env.NODE_ENV === 'production') {
-      console.warn(
-        '[Redis] REDIS_URL not set in production - sessions will not persist across restarts'
-      );
+      log.warn('REDIS_URL not set in production - sessions will not persist across restarts');
     }
     return null;
   }
@@ -71,24 +72,24 @@ export function getRedisClient(): Redis | null {
 
     // Event handlers
     redisClient.on('connect', () => {
-      console.log('[Redis] Connected successfully');
+      log.info('Connected successfully');
     });
 
     redisClient.on('error', (err) => {
-      console.error('[Redis] Connection error:', err.message);
+      log.error({ error: err.message }, 'Connection error');
     });
 
     redisClient.on('close', () => {
-      console.log('[Redis] Connection closed');
+      log.info('Connection closed');
     });
 
     redisClient.on('reconnecting', () => {
-      console.log('[Redis] Reconnecting...');
+      log.info('Reconnecting...');
     });
 
     return redisClient;
   } catch (error) {
-    console.error('[Redis] Failed to initialize client:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to initialize client');
     return null;
   }
 }
@@ -117,7 +118,7 @@ export async function closeRedisConnection(): Promise<void> {
   if (redisClient) {
     await redisClient.quit();
     redisClient = null;
-    console.log('[Redis] Connection closed gracefully');
+    log.info('Connection closed gracefully');
   }
 }
 

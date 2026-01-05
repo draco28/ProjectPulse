@@ -15,6 +15,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { MoveTicketSchema } from '@/lib/validations/kanban';
 import { calculateAndCascadeProgress } from '@/lib/tickets/progress-calculator';
@@ -29,6 +31,7 @@ type RouteContext = {
 };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id: rawId } = await context.params;
     const ticketId = parseInt(rawId, 10);
@@ -324,7 +327,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       );
     }
 
-    console.error('[PATCH /api/tickets/[id]/move] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to move ticket');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to move ticket' } },
       { status: 500 }

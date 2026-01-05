@@ -12,6 +12,9 @@
 import { prisma } from '@/lib/prisma';
 import { MemoryBankType } from '@prisma/client';
 import { formatDateTime } from '@/lib/date-utils';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Memory:BankService' });
 import {
   parseProgressBank,
   generateProgressMarkdown,
@@ -372,11 +375,11 @@ export async function autoSyncProgressBank(
       },
     });
 
-    console.log(`[auto-sync] PROGRESS bank updated for project ${projectId} (${newTokens} tokens)`);
+    log.info({ projectId, tokens: newTokens }, 'PROGRESS bank updated');
     return { success: true };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[auto-sync] Failed to sync PROGRESS bank:', error);
+    log.error({ error: errorMessage, projectId }, 'Failed to sync PROGRESS bank');
     return { success: false, error: errorMessage };
   }
 }
@@ -473,13 +476,11 @@ ${session.name || 'Unnamed Session'} - ${session.status}`;
       },
     });
 
-    console.log(
-      `[auto-sync] ACTIVE_CONTEXT bank updated for project ${projectId} (${newTokens} tokens)`
-    );
+    log.info({ projectId, tokens: newTokens }, 'ACTIVE_CONTEXT bank updated');
     return { success: true };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[auto-sync] Failed to sync ACTIVE_CONTEXT bank:', error);
+    log.error({ error: errorMessage, projectId }, 'Failed to sync ACTIVE_CONTEXT bank');
     return { success: false, error: errorMessage };
   }
 }

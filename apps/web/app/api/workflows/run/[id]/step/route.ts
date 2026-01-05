@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * POST /api/workflows/run/:id/step
@@ -17,6 +19,7 @@ const executeStepSchema = z.object({
 });
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const runId = parseInt(params.id, 10);
 
@@ -203,7 +206,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       error: null,
     });
   } catch (error) {
-    console.error('Error executing workflow step:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error executing workflow step');
     return NextResponse.json(
       {
         data: null,

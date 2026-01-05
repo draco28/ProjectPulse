@@ -14,6 +14,8 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { TicketIdParamSchema, UpdateTicketSchema } from '@/lib/validations/ticket';
 import { failure, success, ticketIncludeConfig, computeDisplayIdForSingleTicket } from '../_utils';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
@@ -31,6 +33,7 @@ type RouteContext = {
 };
 
 export async function GET(request: NextRequest, context: RouteContext) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id: rawId } = await context.params;
     const { id } = TicketIdParamSchema.parse({ id: rawId });
@@ -147,12 +150,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
       });
     }
 
-    console.error('[API] GET /api/tickets/[id] failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch ticket');
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to fetch ticket', status: 500 });
   }
 }
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id: rawId } = await context.params;
     const { id } = TicketIdParamSchema.parse({ id: rawId });
@@ -386,12 +390,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       });
     }
 
-    console.error('[API] PATCH /api/tickets/[id] failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update ticket');
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to update ticket', status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id: rawId } = await context.params;
     const { id } = TicketIdParamSchema.parse({ id: rawId });
@@ -435,7 +440,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       });
     }
 
-    console.error('[API] DELETE /api/tickets/[id] failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to delete ticket');
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to delete ticket', status: 500 });
   }
 }

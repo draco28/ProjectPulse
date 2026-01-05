@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -33,17 +35,15 @@ const requestSchema = z.object({
 //=============================================================================
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
-    console.log('[POST /api/batch/workflow-templates] Request received', {
-      projectId: body.projectId,
-      count: body.workflows?.length,
-    });
+    log.info({ projectId: body.projectId, count: body.workflows?.length }, 'Request received');
 
     // 1. Validate request
     const validation = requestSchema.safeParse(body);
     if (!validation.success) {
-      console.error('[POST /api/batch/workflow-templates] Validation failed', validation.error);
+      log.warn({ error: validation.error }, 'Validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const duplicates = existingWorkflows.map((w) => w.name);
 
     if (duplicates.length > 0) {
-      console.warn('[POST /api/batch/workflow-templates] Duplicates found', { duplicates });
+      log.warn({ duplicates }, 'Duplicates found');
     }
 
     // 4. Filter out duplicates
@@ -105,11 +105,7 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    console.log('[POST /api/batch/workflow-templates] Workflow templates created', {
-      projectId,
-      created: createdWorkflows.length,
-      duplicates: duplicates.length,
-    });
+    log.info({ projectId, created: createdWorkflows.length, duplicates: duplicates.length }, 'Workflow templates created');
 
     return NextResponse.json({
       success: true,
@@ -121,7 +117,7 @@ export async function POST(request: NextRequest) {
       message: `Created ${createdWorkflows.length}/${workflows.length} workflow templates. ${duplicates.length} duplicates skipped.`,
     });
   } catch (error) {
-    console.error('[POST /api/batch/workflow-templates] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create workflow template batch');
     return NextResponse.json(
       {
         error: 'Failed to create workflow template batch',

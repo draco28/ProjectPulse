@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * POST /api/workflows/run
@@ -21,6 +23,7 @@ const startWorkflowSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
     const validation = startWorkflowSchema.safeParse(body);
@@ -128,7 +131,7 @@ export async function POST(request: NextRequest) {
       error: null,
     });
   } catch (error) {
-    console.error('Error starting workflow run:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error starting workflow run');
     return NextResponse.json(
       {
         data: null,

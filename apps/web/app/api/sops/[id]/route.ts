@@ -9,6 +9,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -23,6 +25,8 @@ const querySchema = z.object({
 //=============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id: idParam } = await params;
     const id = parseInt(idParam);
@@ -39,7 +43,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     if (!validation.success) {
-      console.error('[GET /api/sops/[id]] Validation failed', validation.error);
+      log.warn({ validationErrors: validation.error.errors }, 'SOP GET validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -51,7 +55,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const { projectId } = validation.data;
 
-    console.log('[GET /api/sops/[id]] Getting SOP', { id, projectId });
+    log.debug({ id, projectId }, 'Getting SOP by ID');
 
     // 2. Query SOP with ownership validation
     const sop = await prisma.sOP.findFirst({
@@ -65,15 +69,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'SOP not found', id, projectId }, { status: 404 });
     }
 
-    console.log('[GET /api/sops/[id]] Found SOP', {
-      id,
-      title: sop.title,
-      projectId,
-    });
+    log.debug({ id, title: sop.title, projectId }, 'Found SOP');
 
     return NextResponse.json(sop);
   } catch (error) {
-    console.error('[GET /api/sops/[id]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to get SOP by ID');
     return NextResponse.json(
       {
         error: 'Failed to get SOP',

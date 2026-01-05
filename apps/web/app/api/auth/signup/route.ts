@@ -9,6 +9,8 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { withRateLimit } from '@/lib/rate-limit/withRateLimit';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email address').toLowerCase(),
@@ -24,6 +26,8 @@ const signupSchema = z.object({
  * Rate limited by withRateLimit HOC: 5 requests per 15 minutes (auth tier)
  */
 async function signupHandler(request: NextRequest): Promise<NextResponse> {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     // Parse and validate request body
     const body = await request.json();
@@ -84,7 +88,7 @@ async function signupHandler(request: NextRequest): Promise<NextResponse> {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Signup error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Signup failed');
     return NextResponse.json(
       {
         error: 'Internal server error',

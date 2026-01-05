@@ -18,10 +18,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-server';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     await requireAdmin();
 
@@ -126,7 +129,7 @@ export async function GET(request: NextRequest) {
       blockedTools: blockedToolsValue ?? [],
     });
   } catch (error) {
-    console.error('[Admin MCP Stats] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch MCP statistics');
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {

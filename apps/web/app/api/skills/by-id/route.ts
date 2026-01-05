@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +22,8 @@ const querySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { searchParams } = new URL(request.url);
 
@@ -79,7 +83,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.error('[GET /api/skills/by-id] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Get skill by ID failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

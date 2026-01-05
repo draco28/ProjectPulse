@@ -8,6 +8,9 @@
 import Redis from 'ioredis';
 import { randomUUID } from 'crypto';
 import type { MCPSession } from './types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'MCP:SessionStore' });
 
 /**
  * Internal session data structure for Redis storage
@@ -62,11 +65,11 @@ export class RedisSessionStore {
     });
 
     this.redis.on('error', (err) => {
-      console.error('[RedisSessionStore] Error:', err.message);
+      log.error({ error: err.message }, 'Redis connection error');
     });
 
     this.redis.on('connect', () => {
-      console.log('[RedisSessionStore] Connected to Redis');
+      log.info('Connected to Redis');
     });
   }
 

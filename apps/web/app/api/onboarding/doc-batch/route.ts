@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -78,7 +80,8 @@ function injectVariables(template: string, variables: Record<string, any>): stri
 // ============================================================================
 
 export async function GET(request: NextRequest) {
-  console.log('[GET /api/onboarding/doc-batch] Fetching doc batch prompt...');
+  const log = createRequestLogger(getRequestId(request));
+  log.info({}, 'Fetching doc batch prompt');
 
   try {
     // 1. Validate query params
@@ -89,7 +92,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!validation.success) {
-      console.error('[GET /api/onboarding/doc-batch] Validation failed:', validation.error);
+      log.warn({ error: validation.error }, 'Validation failed');
 
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
@@ -100,12 +103,7 @@ export async function GET(request: NextRequest) {
     const { projectId, batch } = validation.data;
     const batchConfig = BATCH_CONFIGS[batch as keyof typeof BATCH_CONFIGS];
 
-    console.log('[GET /api/onboarding/doc-batch] Request validated', {
-      projectId,
-      batch,
-      batchName: batchConfig.name,
-      docCount: batchConfig.docs.length,
-    });
+    log.info({ projectId, batch, batchName: batchConfig.name, docCount: batchConfig.docs.length }, 'Request validated');
 
     // Sprint 12: Require authentication (session OR bearer token)
     await requireOnboardingAuth(request, projectId);
@@ -121,7 +119,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!session1 || !session1.projectContextJson) {
-      console.error('[GET /api/onboarding/doc-batch] Session 1 not found or incomplete');
+      log.warn({}, 'Session 1 not found or incomplete');
 
       return NextResponse.json(
         {
@@ -135,7 +133,7 @@ export async function GET(request: NextRequest) {
     const projectContext = session1.projectContextJson as any;
     const executiveSummary = projectContext.executiveSummary || '';
 
-    console.log('[GET /api/onboarding/doc-batch] Session 1 found');
+    log.info({}, 'Session 1 found');
 
     // 3. Fetch batch prompt template
     const template = await prisma.onboardingPromptTemplate.findFirst({
@@ -152,7 +150,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!template) {
-      console.error('[GET /api/onboarding/doc-batch] Template not found');
+      log.warn({}, 'Template not found');
 
       return NextResponse.json(
         {
@@ -163,7 +161,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('[GET /api/onboarding/doc-batch] Template found');
+    log.info({}, 'Template found');
 
     // 4. Build document structure (template only, context sent once via sharedContext)
     // NOTE: Previously injected full context per document causing 42K+ token responses
@@ -178,12 +176,7 @@ export async function GET(request: NextRequest) {
       dependencies: batch === 1 && index === 0 ? ['executive-summary'] : [],
     }));
 
-    console.log('[GET /api/onboarding/doc-batch] Batch prompt ready', {
-      projectId,
-      batch,
-      documentCount: documents.length,
-      estimatedTotalTokens: batchConfig.estimatedTokens,
-    });
+    log.info({ projectId, batch, documentCount: documents.length, estimatedTotalTokens: batchConfig.estimatedTokens }, 'Batch prompt ready');
 
     return NextResponse.json({
       projectId,
@@ -202,7 +195,7 @@ Use sharedContext to inject {executiveSummary} and {projectContextJson} into eac
 Maintain consistency and traceability across documents.`,
     });
   } catch (error) {
-    console.error('[GET /api/onboarding/doc-batch] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch doc batch prompt');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

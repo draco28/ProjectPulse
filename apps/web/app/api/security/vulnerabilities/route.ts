@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/security/vulnerabilities
@@ -14,6 +16,7 @@ import type { Prisma } from '@prisma/client';
  * - limit: Items per page (default: 20, max: 50)
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const searchParams = request.nextUrl.searchParams;
     const severity = searchParams.get('severity') || '';
@@ -84,7 +87,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Failed to fetch vulnerabilities:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch vulnerabilities');
     return NextResponse.json({ error: 'Failed to fetch vulnerabilities' }, { status: 500 });
   }
 }

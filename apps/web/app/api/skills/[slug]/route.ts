@@ -20,6 +20,8 @@ import { prisma } from '@/lib/prisma';
 import { updateSkillSchema } from '@/lib/validations/skill';
 import { skillsCache } from '@/lib/skills/cache';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/skills/[slug]
@@ -54,6 +56,8 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
  * Response (500): { "error": "Failed to load skill" }
  */
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { slug } = params;
     const searchParams = request.nextUrl.searchParams;
@@ -91,7 +95,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     // US-094: Check cache first (auto-unload after 5 minutes)
     const cached = skillsCache.get(projectId, slug);
     if (cached) {
-      console.log(`[GET /api/skills/${slug}] Cache hit (id: ${cached.id})`);
+      log.debug({ slug, id: cached.id }, 'Skill cache hit');
 
       // Still increment usage even for cached hits
       if (incrementUsage) {
@@ -104,7 +108,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
               lastLoadedAt: new Date(),
             },
           })
-          .catch((err) => console.error(`[GET /api/skills/${slug}] Failed to update usage:`, err));
+          .catch((err) => log.error({ error: err instanceof Error ? err.message : String(err), slug }, 'Failed to update skill usage'));
 
         // Update cached value
         cached.usageCount += 1;
@@ -152,9 +156,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     // US-094: Store in cache (auto-unload after 5 minutes)
     skillsCache.set(projectId, slug, skill);
 
-    console.log(
-      `[GET /api/skills/${slug}] Loaded skill from DB and cached (id: ${skill.id}, usage: ${skill.usageCount})`
-    );
+    log.debug({ slug, id: skill.id, usageCount: skill.usageCount }, 'Loaded skill from DB and cached');
 
     return NextResponse.json({
       data: skill,
@@ -167,7 +169,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       );
     }
 
-    console.error(`[GET /api/skills/[slug]] Failed to load skill:`, error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to load skill');
     return NextResponse.json(
       {
         error: 'Failed to load skill',
@@ -214,6 +216,8 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
  * Response (500): { "error": "Failed to update skill" }
  */
 export async function PATCH(request: NextRequest, { params }: { params: { slug: string } }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { slug } = params;
     const searchParams = request.nextUrl.searchParams;
@@ -289,9 +293,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
     // US-094: Invalidate cache after update
     skillsCache.invalidate(projectId, slug);
 
-    console.log(
-      `[PATCH /api/skills/${slug}] Updated skill (id: ${updated.id}) and invalidated cache`
-    );
+    log.info({ slug, id: updated.id }, 'Updated skill and invalidated cache');
 
     return NextResponse.json({
       data: updated,
@@ -315,7 +317,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
       );
     }
 
-    console.error(`[PATCH /api/skills/[slug]] Failed to update skill:`, error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update skill');
     return NextResponse.json(
       {
         error: 'Failed to update skill',
@@ -348,6 +350,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
  * Response (500): { "error": "Failed to delete skill" }
  */
 export async function DELETE(request: NextRequest, { params }: { params: { slug: string } }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { slug } = params;
     const searchParams = request.nextUrl.searchParams;
@@ -405,9 +409,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { slug:
     // US-094: Invalidate cache after deletion
     skillsCache.invalidate(projectId, slug);
 
-    console.log(
-      `[DELETE /api/skills/${slug}] Deleted skill (id: ${skill.id}) and invalidated cache`
-    );
+    log.info({ slug, id: skill.id }, 'Deleted skill and invalidated cache');
 
     return NextResponse.json({
       data: {
@@ -424,7 +426,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { slug:
       );
     }
 
-    console.error(`[DELETE /api/skills/[slug]] Failed to delete skill:`, error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to delete skill');
     return NextResponse.json(
       {
         error: 'Failed to delete skill',

@@ -15,6 +15,9 @@ import {
   isBuiltInCategory,
   isValidSlug,
 } from '../skills/constants';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Validations:Skill' });
 
 // ============================================================================
 // BASE SCHEMAS (Reusable field validators)
@@ -77,9 +80,7 @@ const categorySchema = z
     (cat) => {
       // Allow any string, but warn if not built-in
       if (!isBuiltInCategory(cat)) {
-        console.warn(
-          `[Skill Validation] Custom category detected: "${cat}". Built-in categories: ${Object.values(SKILL_CATEGORIES).join(', ')}`
-        );
+        log.warn({ category: cat, builtInCategories: Object.values(SKILL_CATEGORIES) }, 'Custom category detected');
       }
       return true;
     },

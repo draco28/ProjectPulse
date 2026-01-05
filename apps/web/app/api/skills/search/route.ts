@@ -13,6 +13,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/skills/search
@@ -63,6 +65,8 @@ import type { Prisma } from '@prisma/client';
  * Response (500): { "error": "Failed to search skills" }
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const searchParams = request.nextUrl.searchParams;
 
@@ -245,7 +249,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[GET /api/skills/search] Failed to search skills:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to search skills');
     return NextResponse.json(
       {
         error: 'Failed to search skills',

@@ -18,6 +18,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const PHASE_NAMES: Record<number, string> = {
   1: 'Product Manager - Foundation',
@@ -33,6 +35,7 @@ const PHASE_NAMES: Record<number, string> = {
 };
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const searchParams = request.nextUrl.searchParams;
     const projectIdParam = searchParams.get('projectId');
@@ -120,7 +123,7 @@ export async function GET(request: NextRequest) {
       totalQuestions: questions.length,
     });
   } catch (error) {
-    console.error('[GET /api/onboarding/questions] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch questions');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

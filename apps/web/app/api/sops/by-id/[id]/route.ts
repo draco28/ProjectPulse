@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +21,8 @@ const querySchema = z.object({
 });
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id: idParam } = await params;
     const sopId = parseInt(idParam, 10);
@@ -78,7 +82,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    console.error('[GET /api/sops/by-id/[id]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Get SOP by ID failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

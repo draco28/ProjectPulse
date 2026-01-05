@@ -17,6 +17,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-server';
 import { logAdminAction } from '@/lib/audit';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +33,7 @@ interface RouteContext {
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     await requireAdmin();
     const { id } = await context.params;
@@ -69,7 +72,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ user });
   } catch (error) {
-    console.error('[Admin User GET] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch user');
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {
@@ -85,6 +88,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const admin = await requireAdmin();
     const { id } = await context.params;
@@ -179,7 +183,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ user: updatedUser });
   } catch (error) {
-    console.error('[Admin User PATCH] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update user');
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

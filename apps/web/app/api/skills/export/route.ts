@@ -14,6 +14,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import archiver from 'archiver';
 import type { Prisma } from '@prisma/client';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/skills/export
@@ -39,6 +41,8 @@ import type { Prisma } from '@prisma/client';
  * Response (500): { "error": "Failed to export skills" }
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const searchParams = request.nextUrl.searchParams;
 
@@ -136,9 +140,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log(
-      `[GET /api/skills/export] Exporting ${skills.length} skills for project ${projectId}`
-    );
+    log.info({ count: skills.length, projectId }, 'Exporting skills');
 
     // Create ZIP archive in memory
     const archive = archiver('zip', {
@@ -153,7 +155,7 @@ export async function GET(request: NextRequest) {
     let archiveError: Error | null = null;
     archive.on('error', (err) => {
       archiveError = err;
-      console.error('[GET /api/skills/export] Archive error:', err);
+      log.error({ error: err instanceof Error ? err.message : String(err) }, 'Skills export archive error');
     });
 
     // Convert skills to markdown files
@@ -184,9 +186,7 @@ export async function GET(request: NextRequest) {
     const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const filename = `skills-export-${date}.zip`;
 
-    console.log(
-      `[GET /api/skills/export] Created ${filename} (${zipBuffer.length} bytes, ${skills.length} files)`
-    );
+    log.info({ filename, bytes: zipBuffer.length, fileCount: skills.length }, 'Created skills export archive');
 
     // Return ZIP file
     return new NextResponse(zipBuffer, {
@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[GET /api/skills/export] Failed to export skills:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to export skills');
     return NextResponse.json(
       {
         error: 'Failed to export skills',

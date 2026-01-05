@@ -23,6 +23,8 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-server';
 import { logAdminAction } from '@/lib/audit';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +46,7 @@ interface RouteContext {
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const admin = await requireAdmin();
     const { id } = await context.params;
@@ -108,7 +111,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       });
     }
   } catch (error) {
-    console.error('[Admin Reset Password] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to reset password');
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

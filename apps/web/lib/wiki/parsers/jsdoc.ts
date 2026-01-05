@@ -14,6 +14,9 @@ import { TSDocParser, DocComment, type ParserContext } from '@microsoft/tsdoc';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { glob } from 'glob';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Wiki:JSDocParser' });
 
 /**
  * Represents a parameter in a function or method
@@ -142,7 +145,7 @@ export class JSDocParser {
           results.push(doc);
         }
       } catch (error) {
-        console.warn(`Failed to parse ${filePath}:`, error);
+        log.warn({ error: error instanceof Error ? error.message : String(error), filePath }, 'Failed to parse file');
         // Continue parsing other files
       }
     }
@@ -205,7 +208,7 @@ export class JSDocParser {
           exports.push(parsedExport);
         }
       } catch (error) {
-        console.warn(`Failed to parse JSDoc for ${exportName} in ${filePath}:`, error);
+        log.warn({ error: error instanceof Error ? error.message : String(error), exportName, filePath }, 'Failed to parse JSDoc');
       }
     }
 

@@ -17,6 +17,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
 import { materializeRoadmap } from '@projectpulse/roadmap-tools';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -58,6 +60,8 @@ async function getRoadmapWithAuth(roadmapId: string, request: Request) {
 // ============================================================================
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id } = await params;
 
@@ -130,7 +134,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    console.error('[POST /api/roadmap/[id]/materialize] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Materialize roadmap failed');
     return NextResponse.json(
       {
         success: false,

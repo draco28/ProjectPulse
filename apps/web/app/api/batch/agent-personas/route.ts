@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -31,17 +33,15 @@ const requestSchema = z.object({
 //=============================================================================
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
-    console.log('[POST /api/batch/agent-personas] Request received', {
-      projectId: body.projectId,
-      count: body.personas?.length,
-    });
+    log.info({ projectId: body.projectId, count: body.personas?.length }, 'Request received');
 
     // 1. Validate request
     const validation = requestSchema.safeParse(body);
     if (!validation.success) {
-      console.error('[POST /api/batch/agent-personas] Validation failed', validation.error);
+      log.warn({ error: validation.error }, 'Validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     const duplicates = [...new Set([...duplicateNames, ...duplicateSlugs])];
 
     if (duplicates.length > 0) {
-      console.warn('[POST /api/batch/agent-personas] Duplicates found', { duplicates });
+      log.warn({ duplicates }, 'Duplicates found');
     }
 
     // 4. Filter out duplicates, create only new personas
@@ -110,11 +110,7 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    console.log('[POST /api/batch/agent-personas] Personas created', {
-      projectId,
-      created: createdPersonas.length,
-      duplicates: duplicates.length,
-    });
+    log.info({ projectId, created: createdPersonas.length, duplicates: duplicates.length }, 'Personas created');
 
     return NextResponse.json({
       success: true,
@@ -126,7 +122,7 @@ export async function POST(request: NextRequest) {
       message: `Created ${createdPersonas.length}/${personas.length} personas. ${duplicates.length} duplicates skipped.`,
     });
   } catch (error) {
-    console.error('[POST /api/batch/agent-personas] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create agent persona batch');
     return NextResponse.json(
       {
         error: 'Failed to create agent persona batch',

@@ -15,6 +15,8 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,6 +51,7 @@ function failure({
  * Can filter by sprint number or epic reference.
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const url = new URL(request.url);
     const params = {
@@ -141,7 +144,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.error('[API] GET /api/backlog failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch backlog items');
     return failure({
       code: 'INTERNAL_ERROR',
       message: 'Failed to fetch backlog items',

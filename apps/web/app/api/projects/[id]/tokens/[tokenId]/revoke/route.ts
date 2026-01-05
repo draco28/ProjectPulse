@@ -8,6 +8,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth-server';
 import { revokeProjectTokenById } from '@/lib/agent-tokens';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * POST /api/projects/[id]/tokens/[tokenId]/revoke
@@ -18,6 +20,8 @@ export async function POST(
   _request: Request,
   { params }: { params: { id: string; tokenId: string } }
 ) {
+  const log = createRequestLogger(getRequestId(_request));
+
   try {
     const user = await requireUser();
     const projectId = parseInt(params.id, 10);
@@ -53,7 +57,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.error('POST /api/projects/[id]/tokens/[tokenId]/revoke error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Token revocation failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

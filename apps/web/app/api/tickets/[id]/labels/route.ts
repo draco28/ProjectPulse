@@ -10,8 +10,10 @@
  * - Uses requireProjectAccess for defense-in-depth
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { requireProjectAccess, AuthError, authErrorResponse } from '@/lib/auth/validateRequest';
 import { TicketLabelManageSchema } from '@/lib/validations/label';
 
@@ -35,7 +37,8 @@ type RouteParams = { params: Promise<{ id: string }> };
  *
  * Auth: User session OR Agent token (project-scoped)
  */
-export async function PATCH(request: Request, { params }: RouteParams) {
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id } = await params;
     const ticketId = parseInt(id, 10);
@@ -166,7 +169,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return authErrorResponse(error);
     }
 
-    console.error('PATCH /api/tickets/[id]/labels error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update ticket labels');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

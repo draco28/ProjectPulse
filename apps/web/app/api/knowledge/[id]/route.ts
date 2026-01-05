@@ -11,8 +11,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const id = parseInt(params.id, 10);
 
@@ -67,7 +71,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('[GET /api/knowledge/[id]] Get failed:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error), id: params.id }, 'Knowledge item get failed');
     return NextResponse.json(
       { error: 'Failed to retrieve knowledge item', code: 'GET_ERROR' },
       { status: 500 }

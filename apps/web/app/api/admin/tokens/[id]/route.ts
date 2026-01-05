@@ -14,6 +14,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-server';
 import { logAdminAction } from '@/lib/audit';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const revokeSchema = z.object({
   isRevoked: z.literal(true), // Can only revoke, not un-revoke
@@ -21,6 +23,7 @@ const revokeSchema = z.object({
 });
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const admin = await requireAdmin();
     const tokenId = parseInt(params.id);
@@ -101,7 +104,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       recentActivity: token.toolLogs,
     });
   } catch (error) {
-    console.error('[Admin Token Details] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch token details');
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {
@@ -117,6 +120,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const admin = await requireAdmin();
     const tokenId = parseInt(params.id);
@@ -171,7 +175,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       message: `Token "${token.name}" has been revoked`,
     });
   } catch (error) {
-    console.error('[Admin Token Revoke] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to revoke token');
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

@@ -12,12 +12,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-server';
 import { z } from 'zod';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const requestSchema = z.object({
   projectId: z.number().int().positive(),
 });
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // Sprint 11.5: Require admin role
     await requireAdmin();
@@ -34,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     const { projectId } = validation.data;
 
-    console.log(`[Reset] Resetting onboarding for project ${projectId}...`);
+    log.info({ projectId }, 'Resetting onboarding for project');
 
     // 1. Delete Onboarding Sessions (Cascades to Documents)
     const deletedSessions = await prisma.onboardingSession.deleteMany({
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
     // Usually we want to keep them if they were manually tweaked, but for a full reset test:
     // await prisma.agentPersona.deleteMany({ where: { projectId } });
 
-    console.log(`[Reset] Deleted ${deletedSessions.count} sessions for project ${projectId}`);
+    log.info({ projectId, deletedCount: deletedSessions.count }, 'Deleted sessions for project');
 
     return NextResponse.json({
       success: true,
@@ -56,7 +59,7 @@ export async function POST(request: NextRequest) {
       deletedSessions: deletedSessions.count,
     });
   } catch (error) {
-    console.error('[Reset] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to reset onboarding');
 
     // Sprint 11.5: Handle auth errors with proper status codes
     if (error instanceof Error) {

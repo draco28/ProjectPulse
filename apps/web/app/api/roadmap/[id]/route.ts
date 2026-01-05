@@ -19,6 +19,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -57,6 +59,8 @@ async function getRoadmapWithAuth(roadmapId: string, request: Request) {
 // ============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id } = await params;
 
@@ -149,7 +153,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    console.error('[GET /api/roadmap/[id]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Get roadmap failed');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to get roadmap' } },
       { status: 500 }
@@ -162,6 +166,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // ============================================================================
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -215,7 +221,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    console.error('[PUT /api/roadmap/[id]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Update roadmap failed');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to update roadmap' } },
       { status: 500 }
@@ -231,6 +237,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { id } = await params;
 
@@ -255,7 +263,7 @@ export async function DELETE(
       );
     }
 
-    console.error('[DELETE /api/roadmap/[id]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Delete roadmap failed');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to delete roadmap' } },
       { status: 500 }

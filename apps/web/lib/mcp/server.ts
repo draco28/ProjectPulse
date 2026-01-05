@@ -19,6 +19,9 @@
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'MCP:Server' });
 
 /**
  * MCP Server Configuration
@@ -91,8 +94,8 @@ export function getMCPServer(): Server {
   );
 
   // Log server initialization
-  console.log(`[MCP Server] Initialized ${SERVER_CONFIG.name} v${SERVER_CONFIG.version}`);
-  console.log('[MCP Server] Capabilities:', Object.keys(SERVER_CAPABILITIES));
+  log.info({ name: SERVER_CONFIG.name, version: SERVER_CONFIG.version }, 'MCP Server initialized');
+  log.info({ capabilities: Object.keys(SERVER_CAPABILITIES) }, 'MCP Server capabilities');
 
   return mcpServerInstance;
 }
@@ -107,7 +110,7 @@ export function resetMCPServer(): void {
     // Note: Server class doesn't have a close() method in SDK v1.20.2
     // Just clear the reference
     mcpServerInstance = null;
-    console.log('[MCP Server] Instance reset');
+    log.info('MCP Server instance reset');
   }
 }
 

@@ -22,6 +22,9 @@
  */
 
 import { CACHE_CONFIG } from './constants';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Skills:Cache' });
 
 // ============================================================================
 // TYPES
@@ -81,7 +84,7 @@ export class LRUCache<T> {
     // Start automatic cleanup
     this.startCleanup();
 
-    console.log(`[LRUCache] Initialized with capacity=${capacity}, ttl=${ttl}ms`);
+    log.debug({ capacity, ttlMs: ttl }, 'LRUCache initialized');
   }
 
   /**
@@ -194,7 +197,7 @@ export class LRUCache<T> {
     this.hits = 0;
     this.misses = 0;
     this.evictions = 0;
-    console.log('[LRUCache] Cache cleared');
+    log.debug('LRUCache cleared');
   }
 
   /**
@@ -227,7 +230,7 @@ export class LRUCache<T> {
     if (firstKey !== undefined) {
       this.cache.delete(firstKey);
       this.evictions++;
-      console.log(`[LRUCache] Evicted LRU entry: ${firstKey}`);
+      log.debug({ key: firstKey }, 'LRUCache evicted LRU entry');
     }
   }
 
@@ -248,7 +251,7 @@ export class LRUCache<T> {
     }
 
     if (cleaned > 0) {
-      console.log(`[LRUCache] Cleaned up ${cleaned} expired entries`);
+      log.debug({ count: cleaned }, 'LRUCache cleaned up expired entries');
     }
   }
 
@@ -279,7 +282,7 @@ export class LRUCache<T> {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
-      console.log('[LRUCache] Cleanup stopped');
+      log.debug('LRUCache cleanup stopped');
     }
   }
 }
@@ -334,9 +337,7 @@ export class SkillsCache {
   constructor() {
     this.cache = new LRUCache<CachedSkill>(CACHE_CONFIG.MAX_ENTRIES, CACHE_CONFIG.TTL_MS);
 
-    console.log(
-      `[SkillsCache] Initialized singleton (TTL: ${CACHE_CONFIG.TTL_SECONDS}s, max: ${CACHE_CONFIG.MAX_ENTRIES} entries)`
-    );
+    log.info({ ttlSeconds: CACHE_CONFIG.TTL_SECONDS, maxEntries: CACHE_CONFIG.MAX_ENTRIES }, 'SkillsCache initialized');
   }
 
   /**
@@ -373,7 +374,7 @@ export class SkillsCache {
   set(projectId: number, slug: string, skill: CachedSkill): void {
     const key = this.getCacheKey(projectId, slug);
     this.cache.set(key, skill);
-    console.log(`[SkillsCache] Cached skill: ${key}`);
+    log.debug({ key }, 'SkillsCache cached skill');
   }
 
   /**
@@ -401,7 +402,7 @@ export class SkillsCache {
     const key = this.getCacheKey(projectId, slug);
     const deleted = this.cache.delete(key);
     if (deleted) {
-      console.log(`[SkillsCache] Invalidated skill: ${key}`);
+      log.debug({ key }, 'SkillsCache invalidated skill');
     }
     return deleted;
   }

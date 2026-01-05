@@ -18,6 +18,8 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-server';
 import { logAdminAction } from '@/lib/audit';
 import { verifyInternalRequest } from '@/lib/internal-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import type { Prisma } from '@prisma/client';
 
 const SETTING_KEY = 'mcp_emergency_shutdown';
@@ -34,6 +36,7 @@ const enableSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // Allow internal requests with valid HMAC signature (for MCP server)
     const isInternal = await verifyInternalRequest(request);
@@ -55,7 +58,7 @@ export async function GET(request: NextRequest) {
       enabledBy: value?.enabledBy ?? null,
     });
   } catch (error) {
-    console.error('[Admin Emergency GET] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch emergency status');
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {
@@ -71,6 +74,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const admin = await requireAdmin();
     const body = await request.json();
@@ -116,7 +120,7 @@ export async function POST(request: NextRequest) {
       enabledAt: value.enabledAt,
     });
   } catch (error) {
-    console.error('[Admin Emergency POST] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to enable emergency shutdown');
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -139,6 +143,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const admin = await requireAdmin();
 
@@ -175,7 +180,7 @@ export async function DELETE(request: NextRequest) {
       enabled: false,
     });
   } catch (error) {
-    console.error('[Admin Emergency DELETE] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to disable emergency shutdown');
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {

@@ -19,6 +19,8 @@ import {
   DuplicationError,
 } from '@/lib/knowledge/create';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/knowledge
@@ -33,6 +35,8 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
  * - limit: Items per page (default: 20, max: 50)
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const requestedProjectId = searchParams.get('projectId')
@@ -114,7 +118,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('Failed to fetch knowledge articles:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch knowledge articles');
     return NextResponse.json({ error: 'Failed to fetch knowledge articles' }, { status: 500 });
   }
 }
@@ -139,6 +143,8 @@ export async function GET(request: NextRequest) {
  * - 500: Server error
  */
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const body = await request.json();
     const requestedProjectId = body.projectId ? parseInt(body.projectId, 10) : undefined;
@@ -226,7 +232,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log unexpected errors
-    console.error('[POST /api/knowledge] Unexpected error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge item creation failed');
 
     // Return generic error
     return NextResponse.json(

@@ -11,6 +11,8 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { TicketIdParamSchema } from '@/lib/validations/ticket';
 import { failure, success } from '../../_utils';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
@@ -29,6 +31,7 @@ const ChildrenQuerySchema = z.object({
 });
 
 export async function GET(request: NextRequest, context: RouteContext) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id: rawId } = await context.params;
     const { id } = TicketIdParamSchema.parse({ id: rawId });
@@ -141,7 +144,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       });
     }
 
-    console.error('[API] GET /api/tickets/[id]/children failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch children');
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to fetch children', status: 500 });
   }
 }

@@ -17,6 +17,8 @@ import { generateEmbedding } from '@/lib/embeddings';
 import { parseDocumentSet, type RawDocumentSet } from '@/lib/traceability/parsers';
 import { analyzeTraceability, type TraceabilityMatrix } from '@/lib/traceability/analysis';
 import { generateTraceabilityMarkdown } from '@/lib/traceability/markdown';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -111,6 +113,7 @@ async function loadSession2Documents(
 }
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const payload = await request.json();
     const data = ValidateRequestSchema.parse(payload);
@@ -305,7 +308,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.error('[API] POST /api/traceability/validate-documents failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to validate document traceability');
     return failure({
       code: 'INTERNAL_ERROR',
       message: 'Failed to validate document traceability',

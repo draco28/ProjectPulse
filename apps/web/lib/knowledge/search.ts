@@ -8,6 +8,9 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { generateEmbedding } from '../embeddings';
 import { findRelatedKnowledgeItems, type RelatedKnowledgeItem } from './graph';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Knowledge:Search' });
 
 export interface SearchResult {
   id: number;
@@ -434,7 +437,7 @@ export async function hybridSearch(
           topResult.relatedItems = relatedItems;
         } catch (error) {
           // Log error but don't fail the search
-          console.warn(`Failed to fetch related items for ${topResult.id}:`, error);
+          log.warn({ error: error instanceof Error ? error.message : String(error), itemId: topResult.id }, 'Failed to fetch related items');
         }
       }
     }

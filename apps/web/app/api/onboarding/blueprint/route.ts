@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/onboarding/blueprint
@@ -27,6 +29,7 @@ const getBlueprintSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     // Parse and validate query parameters
     const { searchParams } = new URL(request.url);
@@ -108,7 +111,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(projectContext, { status: 200 });
   } catch (error: any) {
-    console.error('[Blueprint API] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Blueprint API error');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

@@ -6,6 +6,8 @@ import {
   AuthError,
   authErrorResponse,
 } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/workflows
@@ -18,6 +20,7 @@ import {
  * @returns {templates: Array<WorkflowTemplate>}
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
@@ -69,7 +72,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return authErrorResponse(error);
     }
-    console.error('Error fetching workflow templates:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error fetching workflow templates');
     return NextResponse.json(
       {
         data: null,

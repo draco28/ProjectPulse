@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { healthCheck as sessionHealthCheck } from '@/lib/mcp/session-manager';
+import { createLogger } from '@/lib/logger';
+
+// Module-level logger for health checks (no request context)
+const log = createLogger({ module: 'health' });
 
 /**
  * Health check endpoint
@@ -39,7 +43,7 @@ export async function GET() {
       templates,
     };
   } catch (err) {
-    console.error('[Health] Database health check failed:', err);
+    log.error({ error: err instanceof Error ? err.message : String(err) }, 'Database health check failed');
     database = 'error';
   }
 
@@ -47,7 +51,7 @@ export async function GET() {
   try {
     redis = await sessionHealthCheck();
   } catch (err) {
-    console.error('[Health] Session health check failed:', err);
+    log.error({ error: err instanceof Error ? err.message : String(err) }, 'Session health check failed');
     redis = { healthy: false, type: 'error' };
   }
 

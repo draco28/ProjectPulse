@@ -5,6 +5,9 @@
 
 import { prisma } from './prisma';
 import type { Prisma } from '@prisma/client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Audit' });
 
 export type AdminAction =
   | 'ACTIVATE_USER'
@@ -52,7 +55,7 @@ export async function logAdminAction(params: LogAdminActionParams): Promise<void
     });
   } catch (error) {
     // Log error but don't fail the main operation
-    console.error('[Audit] Failed to log admin action:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to log admin action');
   }
 }
 

@@ -27,6 +27,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const requestSchema = z.object({
   projectId: z.number().int().positive('Project ID must be positive'),
@@ -38,6 +40,7 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
     const validation = requestSchema.safeParse(body);
@@ -83,7 +86,7 @@ export async function POST(request: NextRequest) {
     const wordCount =
       providedWordCount || executiveSummary.split(/\s+/).filter((w) => w.length > 0).length;
 
-    console.log(`[Session 1] Storing agent-generated executive summary: ${wordCount} words`);
+    log.info({ wordCount, session: 1 }, 'Storing agent-generated executive summary');
 
     // Generate project-context.json from planning answers
     const projectContextJson = generateProjectContextJson(planningAnswers, executiveSummary);
@@ -107,7 +110,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('[Session 1] Session marked complete with agent-generated executive summary');
+    log.info({ session: 1 }, 'Session marked complete with agent-generated executive summary');
 
     return NextResponse.json({
       success: true,
@@ -116,7 +119,7 @@ export async function POST(request: NextRequest) {
       projectContextJson,
     });
   } catch (error) {
-    console.error('[POST /api/onboarding/executive-summary] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to store executive summary');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

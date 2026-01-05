@@ -12,6 +12,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * POST /api/skills/link-knowledge
@@ -42,6 +44,8 @@ import { prisma } from '@/lib/prisma';
  * Response (500): { "error": "Failed to create link" }
  */
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     // Parse request body
     const body = await request.json();
@@ -128,9 +132,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingLink) {
-      console.log(
-        `[POST /api/skills/link-knowledge] Link already exists: ${skillSlug} <-> ${knowledgeItemId}`
-      );
+      log.debug({ skillSlug, knowledgeItemId }, 'Skill-knowledge link already exists');
 
       return NextResponse.json(
         {
@@ -154,9 +156,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(
-      `[POST /api/skills/link-knowledge] Created link: ${skillSlug} <-> ${knowledgeItemId} (id: ${link.id})`
-    );
+    log.info({ skillSlug, knowledgeItemId, linkId: link.id }, 'Created skill-knowledge link');
 
     return NextResponse.json(
       {
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('[POST /api/skills/link-knowledge] Failed to create link:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create skill-knowledge link');
 
     return NextResponse.json(
       {
@@ -219,6 +219,8 @@ export async function POST(request: NextRequest) {
  * Response (500): { "error": "Failed to delete link" }
  */
 export async function DELETE(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const searchParams = request.nextUrl.searchParams;
 
@@ -307,9 +309,7 @@ export async function DELETE(request: NextRequest) {
       },
     });
 
-    console.log(
-      `[DELETE /api/skills/link-knowledge] Deleted link: ${skillSlug} <-> ${knowledgeItemId}`
-    );
+    log.info({ skillSlug, knowledgeItemId }, 'Deleted skill-knowledge link');
 
     return NextResponse.json({
       data: {
@@ -319,7 +319,7 @@ export async function DELETE(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[DELETE /api/skills/link-knowledge] Failed to delete link:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to delete skill-knowledge link');
 
     return NextResponse.json(
       {

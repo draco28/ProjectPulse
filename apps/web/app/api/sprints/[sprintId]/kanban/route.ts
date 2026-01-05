@@ -28,6 +28,8 @@ import type {
   ColumnStats,
   SprintContext,
 } from '@/types/kanban';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +42,7 @@ type RouteContext = {
 // ============================================================================
 
 export async function GET(request: NextRequest, context: RouteContext) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { sprintId } = await context.params;
 
@@ -249,7 +252,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       );
     }
 
-    console.error('[GET /api/sprints/[sprintId]/kanban] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch kanban board');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch kanban board' } },
       { status: 500 }

@@ -16,6 +16,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { verifyInternalRequest } from '@/lib/internal-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const logSchema = z.object({
   tokenId: z.number().int().positive(),
@@ -28,6 +30,8 @@ const logSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   // Verify HMAC signature for internal requests
   const isValid = await verifyInternalRequest(request);
   if (!isValid) {
@@ -66,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[MCP Log] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to log MCP tool call');
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

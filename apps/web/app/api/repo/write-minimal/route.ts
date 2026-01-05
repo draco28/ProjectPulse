@@ -13,6 +13,8 @@ import { z } from 'zod';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // CONFIGURATION
@@ -597,7 +599,8 @@ View and manage all resources:
 // ============================================================================
 
 export async function POST(request: NextRequest) {
-  console.log('[POST /api/repo/write-minimal] Writing minimal repo files...');
+  const log = createRequestLogger(getRequestId(request));
+  log.info({}, 'Writing minimal repo files');
 
   try {
     // 1. Validate request
@@ -605,7 +608,7 @@ export async function POST(request: NextRequest) {
     const validation = requestSchema.safeParse(body);
 
     if (!validation.success) {
-      console.error('[POST /api/repo/write-minimal] Validation failed:', validation.error);
+      log.warn({ error: validation.error }, 'Validation failed');
 
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
@@ -615,13 +618,7 @@ export async function POST(request: NextRequest) {
 
     const { projectId, repoPath, mcpUrl, dashboardUrl, dryRun }: WriteMinimalRequest = validation.data;
 
-    console.log('[POST /api/repo/write-minimal] Request validated', {
-      projectId,
-      repoPath,
-      mcpUrl: mcpUrl || DEFAULT_MCP_URL,
-      dashboardUrl: dashboardUrl || DEFAULT_DASHBOARD_URL,
-      dryRun,
-    });
+    log.info({ projectId, repoPath, mcpUrl: mcpUrl || DEFAULT_MCP_URL, dashboardUrl: dashboardUrl || DEFAULT_DASHBOARD_URL, dryRun }, 'Request validated');
 
     // 2. Query database for project data (Sprint 11 enhancement)
     const [project, personas, skills, sops] = await Promise.all([
@@ -656,13 +653,7 @@ export async function POST(request: NextRequest) {
       sops,
     };
 
-    console.log('[POST /api/repo/write-minimal] Fetched project data', {
-      projectId,
-      projectName: projectData.projectName,
-      personaCount: personas.length,
-      skillCount: skills.length,
-      sopCount: sops.length,
-    });
+    log.info({ projectId, projectName: projectData.projectName, personaCount: personas.length, skillCount: skills.length, sopCount: sops.length }, 'Fetched project data');
 
     // 3. Generate enhanced template content
     const claudeContent = generateClaudeMd(projectData);
@@ -672,7 +663,7 @@ export async function POST(request: NextRequest) {
     // This is the default behavior for MCP calls from Docker containers
     // which can't access host filesystem paths
     if (dryRun) {
-      console.log('[POST /api/repo/write-minimal] DryRun mode - returning content for agent to write');
+      log.info({}, 'DryRun mode - returning content for agent to write');
       return NextResponse.json({
         success: true,
         dryRun: true,
@@ -693,9 +684,9 @@ export async function POST(request: NextRequest) {
     try {
       await writeFile(join(repoPath, 'CLAUDE.md'), claudeContent, 'utf-8');
       filesWritten.push('CLAUDE.md');
-      console.log('[POST /api/repo/write-minimal] Wrote CLAUDE.md');
+      log.info({}, 'Wrote CLAUDE.md');
     } catch (error) {
-      console.error('[POST /api/repo/write-minimal] Failed to write CLAUDE.md:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write CLAUDE.md');
       throw new Error(
         `Failed to write CLAUDE.md: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -704,19 +695,15 @@ export async function POST(request: NextRequest) {
     try {
       await writeFile(join(repoPath, 'AGENTS.md'), agentsContent, 'utf-8');
       filesWritten.push('AGENTS.md');
-      console.log('[POST /api/repo/write-minimal] Wrote AGENTS.md');
+      log.info({}, 'Wrote AGENTS.md');
     } catch (error) {
-      console.error('[POST /api/repo/write-minimal] Failed to write AGENTS.md:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write AGENTS.md');
       throw new Error(
         `Failed to write AGENTS.md: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
 
-    console.log('[POST /api/repo/write-minimal] Files written successfully', {
-      projectId,
-      filesWritten,
-      repoPath,
-    });
+    log.info({ projectId, filesWritten, repoPath }, 'Files written successfully');
 
     return NextResponse.json({
       success: true,
@@ -726,7 +713,7 @@ export async function POST(request: NextRequest) {
       message: `Optional files written to repo ✅ (${filesWritten.join(', ')})`,
     });
   } catch (error) {
-    console.error('[POST /api/repo/write-minimal] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write minimal repo files');
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 

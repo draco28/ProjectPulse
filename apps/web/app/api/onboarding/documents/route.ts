@@ -12,6 +12,8 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { syncOnboardingToWiki } from '@/lib/wiki/sync-onboarding';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // POST: Store Document
@@ -30,6 +32,7 @@ const storeDocumentSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
     const validation = storeDocumentSchema.safeParse(body);
@@ -122,7 +125,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Update existing document
-      console.log(`[Session 2] Overwriting document: ${filename} (${wordCount} words)`);
+      log.info({ filename, wordCount, session: 2 }, 'Overwriting document');
       document = await prisma.document.update({
         where: { id: existingDoc.id },
         data: {
@@ -135,7 +138,7 @@ export async function POST(request: NextRequest) {
       });
     } else {
       // Create new Document record
-      console.log(`[Session 2] Storing new document: ${filename} (${wordCount} words)`);
+      log.info({ filename, wordCount, session: 2 }, 'Storing new document');
       document = await prisma.document.create({
         data: {
           onboardingSessionId: session2.id,
@@ -156,7 +159,7 @@ export async function POST(request: NextRequest) {
 
     const isComplete = documentsStored >= 15;
 
-    console.log(`[Session 2] Document stored: ${filename}, progress: ${documentsStored}/15`);
+    log.info({ filename, documentsStored, session: 2 }, 'Document stored');
 
     // Update Session 2 progress (session2 was created/fetched earlier)
     await prisma.onboardingSession.update({
@@ -173,16 +176,16 @@ export async function POST(request: NextRequest) {
     });
 
     if (isComplete) {
-      console.log('[Session 2] All 15 documents stored - Session 2 COMPLETE! ✅');
+      log.info({ session: 2 }, 'All 15 documents stored - Session 2 COMPLETE');
       // Sync to Wiki (Sprint 9 Fix)
       syncOnboardingToWiki(projectId).catch((err) =>
-        console.error('[POST /api/onboarding/documents] Failed to sync wiki:', err)
+        log.error({ error: err instanceof Error ? err.message : String(err) }, 'Failed to sync wiki')
       );
     } else if (overwrite) {
       // If overwriting, also trigger sync to update Wiki (Sprint 9 Update: allow updates after completion)
-      console.log('[Session 2] Overwriting document - Triggering Wiki Sync');
+      log.info({ session: 2 }, 'Overwriting document - Triggering Wiki Sync');
       syncOnboardingToWiki(projectId).catch((err) =>
-        console.error('[POST /api/onboarding/documents] Failed to sync wiki on overwrite:', err)
+        log.error({ error: err instanceof Error ? err.message : String(err) }, 'Failed to sync wiki on overwrite')
       );
     }
 
@@ -204,7 +207,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[POST /api/onboarding/documents] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to store document');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {
@@ -226,6 +229,7 @@ export async function POST(request: NextRequest) {
 // ============================================================================
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const searchParams = request.nextUrl.searchParams;
     const projectIdParam = searchParams.get('projectId');
@@ -287,7 +291,7 @@ export async function GET(request: NextRequest) {
       session2Id: session2.id,
     });
   } catch (error) {
-    console.error('[GET /api/onboarding/documents] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to list documents');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

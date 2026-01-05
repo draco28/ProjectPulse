@@ -14,6 +14,8 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { CreateTicketSchema, TicketFilterSchema, TicketKind } from '@/lib/validations/ticket';
 import {
   failure,
@@ -59,6 +61,7 @@ function parseArrayParam(searchParams: URLSearchParams, key: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const url = new URL(request.url);
     const rawFilters: Partial<TicketFilters> = {
@@ -147,12 +150,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.error('[API] GET /api/tickets failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch tickets');
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to fetch tickets', status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const payload = await request.json();
     const data = CreateTicketSchema.parse(payload);
@@ -398,7 +402,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.error('[API] POST /api/tickets failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create ticket');
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to create ticket', status: 500 });
   }
 }

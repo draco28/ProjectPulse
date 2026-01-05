@@ -14,6 +14,8 @@ import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const DEFAULT_ACTOR_NAME = 'Unknown Editor';
 const DEFAULT_ACTOR_TYPE: 'human' | 'agent' | 'system' = 'human';
@@ -41,6 +43,7 @@ function mapRevertError(code: RevertError) {
 }
 
 export async function POST(request: NextRequest, { params }: { params: { slug: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
     const validation = revertSchema.safeParse(body);
@@ -163,7 +166,7 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
       return mapRevertError(error as RevertError);
     }
 
-    console.error('Failed to revert wiki page:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to revert wiki page');
     return NextResponse.json({ error: 'Failed to revert wiki page' }, { status: 500 });
   }
 }

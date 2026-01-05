@@ -19,6 +19,8 @@ import { HierarchyQuerySchema, type EntityLevel } from '@/lib/validation/hierarc
 import { ApiResponse } from '@/lib/types/api';
 import type { Prisma } from '@prisma/client';
 import { requireAuth, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // Force dynamic rendering (no caching for query results)
 export const dynamic = 'force-dynamic';
@@ -73,6 +75,8 @@ function buildWhereClause(filters: {
  * - 500: Server error
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     // Authenticate request
     await requireAuth(request);
@@ -226,7 +230,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.error('[GET /api/hierarchy/query] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Hierarchy query failed');
 
     return NextResponse.json<ApiResponse<null>>(
       {

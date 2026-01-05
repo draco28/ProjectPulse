@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -32,7 +34,8 @@ const TOKEN_BUDGET_LIMIT = 200000; // 200K tokens per session
 // ============================================================================
 
 export async function POST(request: NextRequest) {
-  console.log('[POST /api/onboarding/token-budget] Checking token budget...');
+  const log = createRequestLogger(getRequestId(request));
+  log.info({}, 'Checking token budget');
 
   try {
     // 1. Validate request
@@ -40,7 +43,7 @@ export async function POST(request: NextRequest) {
     const validation = requestSchema.safeParse(body);
 
     if (!validation.success) {
-      console.error('[POST /api/onboarding/token-budget] Validation failed:', validation.error);
+      log.warn({ error: validation.error }, 'Validation failed');
 
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.errors },
@@ -50,10 +53,7 @@ export async function POST(request: NextRequest) {
 
     const { projectId, estimatedTokens }: TokenBudgetRequest = validation.data;
 
-    console.log('[POST /api/onboarding/token-budget] Request validated', {
-      projectId,
-      estimatedTokens,
-    });
+    log.info({ projectId, estimatedTokens }, 'Request validated');
 
     // Sprint 12: Require authentication (session OR bearer token)
     await requireOnboardingAuth(request, projectId);
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session) {
-      console.log('[POST /api/onboarding/token-budget] No active session found, assuming safe');
+      log.info({}, 'No active session found, assuming safe');
 
       // No active session = starting fresh, so it's safe
       return NextResponse.json({
@@ -103,15 +103,7 @@ export async function POST(request: NextRequest) {
     const remaining = TOKEN_BUDGET_LIMIT - totalEstimated;
     const safe = totalEstimated < TOKEN_BUDGET_LIMIT;
 
-    console.log('[POST /api/onboarding/token-budget] Budget check complete', {
-      projectId,
-      sessionNumber: session.sessionNumber,
-      tokensUsed,
-      estimatedTokens,
-      totalEstimated,
-      remaining,
-      safe,
-    });
+    log.info({ projectId, sessionNumber: session.sessionNumber, tokensUsed, estimatedTokens, totalEstimated, remaining, safe }, 'Budget check complete');
 
     // 5. Determine recommendation
     let recommendation: string;
@@ -129,13 +121,7 @@ export async function POST(request: NextRequest) {
 
     // 6. Log warning if unsafe
     if (!safe) {
-      console.warn('[POST /api/onboarding/token-budget] TOKEN BUDGET EXCEEDED!', {
-        projectId,
-        sessionNumber: session.sessionNumber,
-        totalEstimated,
-        budgetLimit: TOKEN_BUDGET_LIMIT,
-        excess: totalEstimated - TOKEN_BUDGET_LIMIT,
-      });
+      log.warn({ projectId, sessionNumber: session.sessionNumber, totalEstimated, budgetLimit: TOKEN_BUDGET_LIMIT, excess: totalEstimated - TOKEN_BUDGET_LIMIT }, 'TOKEN BUDGET EXCEEDED');
     }
 
     return NextResponse.json({
@@ -150,7 +136,7 @@ export async function POST(request: NextRequest) {
       recommendation,
     });
   } catch (error) {
-    console.error('[POST /api/onboarding/token-budget] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to check token budget');
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

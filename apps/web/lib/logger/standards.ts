@@ -212,6 +212,76 @@ export const LogMessages = {
 
   /** Health check failed */
   HEALTH_CHECK_FAILED: 'health.check.failed',
+
+  // ─────────────────────────────────────────────────────────────
+  // Onboarding Events (Business)
+  // ─────────────────────────────────────────────────────────────
+
+  /** Onboarding session started */
+  ONBOARDING_SESSION_START: 'onboarding.session.start',
+
+  /** Onboarding session completed */
+  ONBOARDING_SESSION_COMPLETE: 'onboarding.session.complete',
+
+  /** Onboarding document stored */
+  ONBOARDING_DOCUMENT_STORED: 'onboarding.document.stored',
+
+  /** Onboarding workflow created */
+  ONBOARDING_WORKFLOW_CREATED: 'onboarding.workflow.created',
+
+  /** Onboarding skill created */
+  ONBOARDING_SKILL_CREATED: 'onboarding.skill.created',
+
+  /** Onboarding persona created */
+  ONBOARDING_PERSONA_CREATED: 'onboarding.persona.created',
+
+  /** Onboarding SOP created */
+  ONBOARDING_SOP_CREATED: 'onboarding.sop.created',
+
+  // ─────────────────────────────────────────────────────────────
+  // Redis Events (System)
+  // ─────────────────────────────────────────────────────────────
+
+  /** Redis connection established */
+  REDIS_CONNECTED: 'redis.connected',
+
+  /** Redis connection lost */
+  REDIS_DISCONNECTED: 'redis.disconnected',
+
+  /** Redis error */
+  REDIS_ERROR: 'redis.error',
+
+  /** Redis reconnection attempt */
+  REDIS_RECONNECTING: 'redis.reconnecting',
+
+  // ─────────────────────────────────────────────────────────────
+  // Embedding Events (System)
+  // ─────────────────────────────────────────────────────────────
+
+  /** Embedding provider fallback triggered */
+  EMBEDDING_PROVIDER_FALLBACK: 'embedding.provider.fallback',
+
+  /** Embedding generation retry */
+  EMBEDDING_RETRY: 'embedding.retry',
+
+  /** Embedding generation failed */
+  EMBEDDING_FAILED: 'embedding.failed',
+
+  /** Embedding batch processed */
+  EMBEDDING_BATCH_PROCESSED: 'embedding.batch.processed',
+
+  // ─────────────────────────────────────────────────────────────
+  // Skills Events (System)
+  // ─────────────────────────────────────────────────────────────
+
+  /** Skill loaded from cache */
+  SKILL_CACHE_HIT: 'skill.cache.hit',
+
+  /** Skill cache miss */
+  SKILL_CACHE_MISS: 'skill.cache.miss',
+
+  /** Skill usage tracked */
+  SKILL_USAGE_TRACKED: 'skill.usage.tracked',
 } as const;
 
 /**

@@ -10,7 +10,10 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
 import type { TechStackInfo } from './tech-stack-detection';
+
+const log = createLogger({ module: 'Onboarding:Skills' });
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -704,12 +707,7 @@ export async function createSkills(
 ): Promise<number> {
   const skillDefs = getSkillsForTechStack(techStack);
 
-  console.log('[Session 3] Creating skills', {
-    projectId,
-    projectType,
-    techStack,
-    count: skillDefs.length,
-  });
+  log.info({ projectId, projectType, techStack, count: skillDefs.length }, 'Creating skills');
 
   let created = 0;
 
@@ -729,14 +727,14 @@ export async function createSkills(
         },
       });
       created++;
-      console.log(`[Session 3] Created skill: ${def.title}`);
+      log.info({ skillTitle: def.title }, 'Created skill');
     } catch (error) {
-      console.error(`[Session 3] Failed to create skill ${def.title}:`, error);
+      log.error({ skillTitle: def.title, error: error instanceof Error ? error.message : String(error) }, 'Failed to create skill');
       // Continue with other skills even if one fails
     }
   }
 
-  console.log(`[Session 3] Skills created: ${created}/${skillDefs.length}`);
+  log.info({ created, total: skillDefs.length }, 'Skills created');
 
   return created;
 }

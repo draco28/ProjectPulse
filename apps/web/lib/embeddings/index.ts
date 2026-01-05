@@ -22,6 +22,10 @@ import {
   OpenAIEmbeddingError,
 } from './openai';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Embedding' });
+
 // =============================================================================
 // Retry Logic for Ollama Cold Start (Ticket #56)
 // =============================================================================
@@ -52,7 +56,7 @@ async function withRetry<T>(
 
       if (attempt < config.maxRetries && isRetryable(error)) {
         const delay = Math.min(config.baseDelayMs * Math.pow(2, attempt), config.maxDelayMs);
-        console.log(`[Embedding] Retry ${attempt + 1}/${config.maxRetries} after ${delay}ms`);
+        log.info({ attempt: attempt + 1, maxRetries: config.maxRetries, delayMs: delay }, 'Retrying after delay');
         await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
@@ -192,12 +196,10 @@ export async function generateEmbedding(
     };
   } catch (ollamaError) {
     // Log Ollama failure for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(
-        '[Embedding Service] Ollama failed, trying OpenAI fallback:',
-        ollamaError instanceof Error ? ollamaError.message : 'Unknown error'
-      );
-    }
+    log.warn(
+      { error: ollamaError instanceof Error ? ollamaError.message : 'Unknown error' },
+      'Ollama failed, trying OpenAI fallback'
+    );
 
     // Try OpenAI fallback
     try {
@@ -311,12 +313,10 @@ export async function generateBatchEmbeddings(
     };
   } catch (ollamaError) {
     // Log Ollama failure for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(
-        '[Embedding Service] Ollama batch failed, trying OpenAI fallback:',
-        ollamaError instanceof Error ? ollamaError.message : 'Unknown error'
-      );
-    }
+    log.warn(
+      { error: ollamaError instanceof Error ? ollamaError.message : 'Unknown error' },
+      'Ollama batch failed, trying OpenAI fallback'
+    );
 
     // Try OpenAI fallback
     try {

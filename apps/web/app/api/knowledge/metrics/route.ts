@@ -11,6 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMetricsSummary } from '@/lib/knowledge/metrics';
 import { requireAuth, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/knowledge/metrics
@@ -37,6 +39,8 @@ import { requireAuth, AuthError } from '@/lib/auth/validateRequest';
  * ```
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     // Authenticate request (metrics are global, not project-specific)
     await requireAuth(request);
@@ -71,7 +75,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('[GET /api/knowledge/metrics] Failed to get metrics:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge metrics fetch failed');
     return NextResponse.json(
       {
         error: 'Failed to retrieve metrics',

@@ -11,6 +11,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/auth-server';
 import { generateProjectToken, listProjectTokens } from '@/lib/agent-tokens';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const createTokenSchema = z.object({
   name: z.string().min(1, 'Token name is required').max(50, 'Name too long').trim(),
@@ -29,6 +31,8 @@ const createTokenSchema = z.object({
  * List all agent tokens for a project (owner only).
  */
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(_request));
+
   try {
     const user = await requireUser();
     const projectId = parseInt(params.id, 10);
@@ -63,7 +67,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.error('GET /api/projects/[id]/tokens error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Tokens list failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -75,6 +79,8 @@ export async function GET(_request: Request, { params }: { params: { id: string 
  * Returns plaintext token ONLY ONCE.
  */
 export async function POST(request: Request, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const user = await requireUser();
     const projectId = parseInt(params.id, 10);
@@ -129,7 +135,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
 
-    console.error('POST /api/projects/[id]/tokens error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Token generation failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

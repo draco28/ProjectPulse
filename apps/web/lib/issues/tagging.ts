@@ -1,6 +1,9 @@
 import type { IssueAutoTagConfig } from '@/lib/types/issues';
 import type { IssueFileContextInput } from '@/lib/validations/issue';
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'Issues:Tagging' });
 
 let cachedConfig: IssueAutoTagConfig | null = null;
 let lastConfigFetch = 0;
@@ -36,7 +39,7 @@ export async function getAutoTagConfig(force = false): Promise<IssueAutoTagConfi
   }
 
   if (!isIssueAutoTagConfig(setting.value)) {
-    console.warn(`Setting ${SETTING_KEY} has invalid structure, skipping auto-tagging`);
+    log.warn({ settingKey: SETTING_KEY }, 'Setting has invalid structure, skipping auto-tagging');
     cachedConfig = null;
     return null;
   }
@@ -84,7 +87,7 @@ export async function deriveAutoTags(files?: IssueFileContextInput[]): Promise<A
           }
         }
       } catch (error) {
-        console.warn(`Invalid auto-tag regex (${rule.pattern}):`, error);
+        log.warn({ error: error instanceof Error ? error.message : String(error), pattern: rule.pattern }, 'Invalid auto-tag regex');
       }
     }
   }

@@ -29,8 +29,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     // Get projectId from query params (REQUIRED for security)
     const searchParams = request.nextUrl.searchParams;
@@ -97,7 +101,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
     }
 
-    console.error('[GET /api/roadmap/phases/[id]/progress] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Get phase progress failed');
     return NextResponse.json(
       {
         error: 'Failed to get phase progress',

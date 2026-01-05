@@ -32,6 +32,8 @@ import { getMCPServer } from '@/lib/mcp/server';
 import { validateSession, generateSessionId } from '@/lib/mcp/session-manager';
 import { MCPError, JSONRPC_ERROR_CODES, isMCPError } from '@/lib/mcp/types';
 import { getAuthContext } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import {
   knowledgeSearchHandler,
   knowledgeCreateHandler,
@@ -196,13 +198,14 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
  * @returns JSON-RPC 2.0 response
  */
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   const startTime = Date.now();
 
   try {
     // Step 0: Authentication required (Sprint 17 / Ticket #129)
     const auth = await getAuthContext(request);
     if (auth.type === 'none') {
-      console.warn('[POST /api/mcp] Authentication required - no valid token or session');
+      log.warn('Authentication required - no valid token or session');
       return NextResponse.json(
         {
           jsonrpc: '2.0',
@@ -216,17 +219,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(
-      `[POST /api/mcp] Authenticated: ${auth.type}${auth.type === 'agent' ? ` (project ${auth.projectId})` : ''}`
-    );
+    log.info({ authType: auth.type, projectId: auth.type === 'agent' ? auth.projectId : undefined }, 'Authenticated');
 
     // Step 1: Extract or generate session ID
     const sessionIdHeader = request.headers.get('Mcp-Session-Id');
     const sessionId = sessionIdHeader || generateSessionId();
 
-    console.log(
-      `[POST /api/mcp] ${sessionIdHeader ? 'Reusing' : 'Creating'} session: ${sessionId}`
-    );
+    log.debug({ sessionId, isNew: !sessionIdHeader }, sessionIdHeader ? 'Reusing session' : 'Creating session');
 
     // Step 2: Validate session (create if new, check expiration if existing)
     const session = await validateSession(sessionId);
@@ -236,7 +235,7 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch (parseError) {
-      console.error('[POST /api/mcp] JSON parse error:', parseError);
+      log.warn({ error: parseError instanceof Error ? parseError.message : String(parseError) }, 'JSON parse error');
 
       return NextResponse.json(
         {
@@ -253,7 +252,7 @@ export async function POST(request: NextRequest) {
 
     // Step 4: Validate JSON-RPC 2.0 format
     if (!body || typeof body !== 'object' || !('jsonrpc' in body) || body.jsonrpc !== '2.0') {
-      console.warn('[POST /api/mcp] Invalid JSON-RPC version:', body);
+      log.warn('Invalid JSON-RPC version');
 
       return NextResponse.json(
         {
@@ -291,7 +290,7 @@ export async function POST(request: NextRequest) {
       params?: Record<string, unknown>;
     };
 
-    console.log(`[POST /api/mcp] Method: ${jsonrpcRequest.method}, ID: ${jsonrpcRequest.id}`);
+    log.info({ method: jsonrpcRequest.method, id: jsonrpcRequest.id }, 'Processing MCP request');
 
     // Step 5: Get singleton MCP server
     const mcpServer = getMCPServer();
@@ -1278,7 +1277,7 @@ export async function POST(request: NextRequest) {
     // Step 7: Return JSON-RPC response
     const duration = Date.now() - startTime;
 
-    console.log(`[POST /api/mcp] Success (${duration}ms) - Session: ${sessionId}`);
+    log.info({ durationMs: duration, sessionId }, 'MCP request completed');
 
     return NextResponse.json(response, {
       status: 200,
@@ -1290,7 +1289,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error(`[POST /api/mcp] Error (${duration}ms):`, error);
+    log.error({ error: error instanceof Error ? error.message : String(error), durationMs: duration }, 'MCP request failed');
 
     // Handle MCP-specific errors
     if (isMCPError(error)) {
@@ -1341,7 +1340,8 @@ export async function POST(request: NextRequest) {
  * Note: Defer to Phase 2 (not needed for Sprint 5.5 MVP)
  */
 export async function GET(request: NextRequest) {
-  console.log('[GET /api/mcp] SSE streaming not yet implemented (Phase 2)');
+  const log = createRequestLogger(getRequestId(request));
+  log.debug('SSE streaming not yet implemented (Phase 2)');
 
   return NextResponse.json(
     {
@@ -1365,12 +1365,13 @@ export async function GET(request: NextRequest) {
  * - No origin header (CLI tools): Always allowed
  */
 export async function OPTIONS(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
   const origin = request.headers.get('origin');
   const corsHeaders = getCorsHeaders(origin);
 
   // If origin not allowed in production, return 403 Forbidden
   if (Object.keys(corsHeaders).length === 0) {
-    console.warn(`[OPTIONS /api/mcp] CORS denied for origin: ${origin}`);
+    log.warn({ origin }, 'CORS denied');
     return new NextResponse(null, { status: 403 });
   }
 

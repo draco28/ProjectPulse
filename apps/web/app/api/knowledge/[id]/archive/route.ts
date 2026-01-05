@@ -12,6 +12,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * PATCH /api/knowledge/[id]/archive
@@ -36,6 +38,8 @@ import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
  * ```
  */
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const id = parseInt(params.id, 10);
 
@@ -111,7 +115,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('[PATCH /api/knowledge/[id]/archive] Archive failed:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error), id: params.id }, 'Archive knowledge item failed');
     return NextResponse.json(
       {
         error: 'Failed to archive knowledge item',
@@ -139,6 +143,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
  * ```
  */
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const id = parseInt(params.id, 10);
 
@@ -214,7 +220,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('[DELETE /api/knowledge/[id]/archive] Unarchive failed:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error), id: params.id }, 'Unarchive knowledge item failed');
     return NextResponse.json(
       {
         error: 'Failed to unarchive knowledge item',

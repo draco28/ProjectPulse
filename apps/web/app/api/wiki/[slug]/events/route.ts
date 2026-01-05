@@ -12,6 +12,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const eventSchema = z.object({
   type: z.enum(['VIEW', 'FEEDBACK_POSITIVE', 'FEEDBACK_NEGATIVE']),
@@ -22,6 +24,7 @@ const eventSchema = z.object({
 });
 
 export async function POST(request: NextRequest, { params }: { params: { slug: string } }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
     const validated = eventSchema.safeParse(body);
@@ -73,7 +76,7 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error('Failed to record wiki event', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to record wiki event');
     return NextResponse.json({ error: 'Failed to record wiki event' }, { status: 500 });
   }
 }

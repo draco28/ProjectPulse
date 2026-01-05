@@ -15,6 +15,8 @@ import { z } from 'zod';
 import { MemoryBankType } from '@prisma/client';
 import { lookupPattern } from '@/lib/memory/memory-bank-service';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 const querySchema = z.object({
   projectId: z.string().transform((val) => parseInt(val, 10)),
@@ -22,6 +24,8 @@ const querySchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { searchParams } = new URL(request.url);
     const requestedProjectId = searchParams.get('projectId')
@@ -49,7 +53,7 @@ export async function GET(request: Request) {
       );
     }
 
-    console.error('GET /api/memory/pattern-lookup error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Memory pattern lookup failed');
     return NextResponse.json({ error: 'Failed to lookup memory bank pattern' }, { status: 500 });
   }
 }

@@ -19,6 +19,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { materializeRoadmap } from '@projectpulse/roadmap-tools';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -54,6 +56,8 @@ const createRoadmapSchema = z.object({
 // ============================================================================
 
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const projectIdParam = searchParams.get('projectId');
@@ -130,7 +134,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.error('[GET /api/roadmap] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'List roadmaps failed');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to list roadmaps' } },
       { status: 500 }
@@ -143,6 +147,8 @@ export async function GET(request: NextRequest) {
 // ============================================================================
 
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const body = await request.json();
     const validated = createRoadmapSchema.parse(body);
@@ -206,7 +212,7 @@ export async function POST(request: NextRequest) {
 
         // Check if materialization returned success: false (e.g., invalid JSON structure)
         if (!materializationResult.success) {
-          console.error('[POST /api/roadmap] Materialization failed:', materializationResult.message);
+          log.error({ details: materializationResult.message }, 'Roadmap materialization failed');
           // Rollback: delete the orphaned roadmap record
           await prisma.roadmap.delete({ where: { id: roadmap.id } });
           return NextResponse.json(
@@ -222,12 +228,12 @@ export async function POST(request: NextRequest) {
           );
         }
       } catch (matError) {
-        console.error('[POST /api/roadmap] Materialization error:', matError);
+        log.error({ error: matError instanceof Error ? matError.message : String(matError) }, 'Roadmap materialization error');
         // Rollback: delete the orphaned roadmap record
         try {
           await prisma.roadmap.delete({ where: { id: roadmap.id } });
         } catch (deleteError) {
-          console.error('[POST /api/roadmap] Failed to rollback roadmap:', deleteError);
+          log.error({ error: deleteError instanceof Error ? deleteError.message : String(deleteError) }, 'Failed to rollback roadmap');
         }
         return NextResponse.json(
           {
@@ -290,7 +296,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('[POST /api/roadmap] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Create roadmap failed');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to create roadmap' } },
       { status: 500 }

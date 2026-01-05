@@ -11,6 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 // Sprint 15: Week/Day removed - now 2-level hierarchy (Phase → Sprint)
 const EntityTypeSchema = z.enum(['phases', 'sprints']);
@@ -37,6 +39,7 @@ type RouteParams = {
 };
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<RouteParams> }) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const resolvedParams = await params;
 
@@ -138,7 +141,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       );
     }
 
-    console.error('[PATCH /api/:entity/:id] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update entity');
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Update failed' } },
       { status: 500 }

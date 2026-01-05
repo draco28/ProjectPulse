@@ -15,6 +15,8 @@ import { prisma } from '@/lib/prisma';
 import matter from 'gray-matter';
 import { skillFrontmatterSchema } from '@/lib/validations/skill';
 import { SKILL_CONSTRAINTS } from '@/lib/skills/constants';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * POST /api/skills/import
@@ -71,6 +73,8 @@ import { SKILL_CONSTRAINTS } from '@/lib/skills/constants';
  * Response (500): { "error": "Failed to import skills" }
  */
 export async function POST(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     // Parse request body
     const body = await request.json();
@@ -124,9 +128,7 @@ export async function POST(request: NextRequest) {
     const projectId = body.projectId;
     const overwriteExisting = body.overwriteExisting === true;
 
-    console.log(
-      `[POST /api/skills/import] Importing ${body.files.length} files for project ${projectId} (overwrite: ${overwriteExisting})`
-    );
+    log.info({ fileCount: body.files.length, projectId, overwriteExisting }, 'Importing skills');
 
     // Process files
     const imported: Array<{ filename: string; slug: string; id: number }> = [];
@@ -226,7 +228,7 @@ export async function POST(request: NextRequest) {
             id: updated.id,
           });
 
-          console.log(`[POST /api/skills/import] Updated skill: ${slug} (id: ${updated.id})`);
+          log.debug({ slug, id: updated.id }, 'Updated skill during import');
         } else {
           // Create new skill
           const created = await prisma.skill.create({
@@ -249,10 +251,10 @@ export async function POST(request: NextRequest) {
             id: created.id,
           });
 
-          console.log(`[POST /api/skills/import] Created skill: ${slug} (id: ${created.id})`);
+          log.debug({ slug, id: created.id }, 'Created skill during import');
         }
       } catch (error) {
-        console.error(`[POST /api/skills/import] Error processing ${filename}:`, error);
+        log.error({ error: error instanceof Error ? error.message : String(error), filename }, 'Error processing skill import file');
 
         errors.push({
           filename,
@@ -270,9 +272,7 @@ export async function POST(request: NextRequest) {
       errors: errors.length,
     };
 
-    console.log(
-      `[POST /api/skills/import] Summary: ${summary.imported} imported, ${summary.skipped} skipped, ${summary.errors} errors`
-    );
+    log.info({ imported: summary.imported, skipped: summary.skipped, errors: summary.errors }, 'Skills import completed');
 
     return NextResponse.json({
       data: {
@@ -294,7 +294,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('[POST /api/skills/import] Failed to import skills:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to import skills');
 
     return NextResponse.json(
       {

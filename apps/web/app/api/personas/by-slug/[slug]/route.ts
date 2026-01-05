@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -25,6 +27,8 @@ const querySchema = z.object({
 //=============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     const { slug } = await params;
 
@@ -40,7 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     if (!validation.success) {
-      console.error('[GET /api/personas/by-slug/[slug]] Validation failed', validation.error);
+      log.warn({ validationError: validation.error.errors }, 'Persona get by slug validation failed');
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -55,7 +59,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // 2. Authenticate and validate project access
     const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
-    console.log('[GET /api/personas/by-slug/[slug]] Getting persona', { slug, projectId });
+    log.debug({ slug, projectId }, 'Getting persona by slug');
 
     // 3. Query persona with ownership validation
     const persona = await prisma.agentPersona.findFirst({
@@ -69,11 +73,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Persona not found', slug, projectId }, { status: 404 });
     }
 
-    console.log('[GET /api/personas/by-slug/[slug]] Found persona', {
-      slug,
-      name: persona.name,
-      projectId,
-    });
+    log.debug({ slug, name: persona.name, projectId }, 'Found persona by slug');
 
     return NextResponse.json(persona);
   } catch (error) {
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    console.error('[GET /api/personas/by-slug/[slug]] Error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Persona get by slug failed');
     return NextResponse.json(
       {
         error: 'Failed to get persona',

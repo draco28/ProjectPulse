@@ -15,6 +15,9 @@
 
 import Redis from 'ioredis';
 import type { RateLimitStore, RateLimitResult } from './types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'RateLimit:RedisStore' });
 
 /**
  * Lua script for atomic sliding window rate limiting
@@ -78,7 +81,7 @@ export class RedisRateLimitStore implements RateLimitStore {
     }
 
     if (!this.redisUrl) {
-      console.warn('[RateLimitStore] REDIS_URL not configured');
+      log.warn('REDIS_URL not configured');
       return null;
     }
 
@@ -96,7 +99,7 @@ export class RedisRateLimitStore implements RateLimitStore {
       });
 
       this.redis.on('error', (err) => {
-        console.error('[RateLimitStore] Redis error:', err.message);
+        log.error({ error: err.message }, 'Redis error');
       });
 
       // Load Lua script
@@ -104,7 +107,7 @@ export class RedisRateLimitStore implements RateLimitStore {
 
       return this.redis;
     } catch (error) {
-      console.error('[RateLimitStore] Failed to connect:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to connect');
       this.redis = null;
       return null;
     } finally {
@@ -202,7 +205,7 @@ export class RedisRateLimitStore implements RateLimitStore {
         reset,
       };
     } catch (error) {
-      console.error('[RateLimitStore] Check error:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Check error');
       // Fail-open on error
       return failOpenResult;
     }
@@ -219,7 +222,7 @@ export class RedisRateLimitStore implements RateLimitStore {
     try {
       await client.del(key);
     } catch (error) {
-      console.error('[RateLimitStore] Reset error:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Reset error');
     }
   }
 

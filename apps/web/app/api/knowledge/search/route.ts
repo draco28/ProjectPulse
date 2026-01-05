@@ -13,6 +13,8 @@ import { searchKnowledgeSchema } from '@/lib/validations/knowledge';
 import { semanticSearch, fullTextSearch, hybridSearch, SearchError } from '@/lib/knowledge/search';
 import { recordQueryMetric, estimateTokenUsage, type QueryMode } from '@/lib/knowledge/metrics';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 
 /**
  * GET /api/knowledge/search
@@ -45,6 +47,8 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
  * ```
  */
 export async function GET(request: NextRequest) {
+  const log = createRequestLogger(getRequestId(request));
+
   try {
     // Parse and validate query params
     const searchParams = request.nextUrl.searchParams;
@@ -125,7 +129,7 @@ export async function GET(request: NextRequest) {
       userAgent,
     }).catch((err) => {
       // Log but don't fail the request
-      console.error('[Knowledge Search] Failed to record metrics:', err);
+      log.warn({ error: err instanceof Error ? err.message : String(err) }, 'Failed to record knowledge search metrics');
     });
 
     return NextResponse.json({
@@ -158,7 +162,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Log unexpected errors
-    console.error('[GET /api/knowledge/search] Unexpected error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge search failed');
 
     // Return generic error
     return NextResponse.json(

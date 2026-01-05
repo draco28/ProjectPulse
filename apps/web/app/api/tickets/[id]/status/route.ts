@@ -11,6 +11,8 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { createRequestLogger } from '@/lib/logger';
+import { getRequestId } from '@/lib/request-context';
 import { TicketIdParamSchema, TicketStatusUpdateSchema } from '@/lib/validations/ticket';
 import { failure, success } from '../../_utils';
 import { resolveStatusValue } from '@/lib/issues/options';
@@ -26,6 +28,7 @@ type RouteContext = {
 };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  const log = createRequestLogger(getRequestId(request));
   try {
     const { id: rawId } = await context.params;
     const { id } = TicketIdParamSchema.parse({ id: rawId });
@@ -94,7 +97,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       });
     }
 
-    console.error('[API] PATCH /api/tickets/[id]/status failed', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update ticket status');
     return failure({
       code: 'INTERNAL_ERROR',
       message: 'Failed to update ticket status',

@@ -6,6 +6,9 @@
  */
 
 import Redis from 'ioredis';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger({ module: 'RateLimit' });
 
 // Lazy-initialized Redis client (avoids connection at build time)
 let redisClient: Redis | null = null;
@@ -35,12 +38,12 @@ function getRedisClient(): Redis | null {
     });
 
     redisClient.on('error', (error) => {
-      console.error('Redis connection error:', error);
+      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Redis connection error');
     });
 
     return redisClient;
   } catch (error) {
-    console.error('Failed to create Redis client:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create Redis client');
     return null;
   }
 }
@@ -104,7 +107,7 @@ export async function rateLimit(
       reset,
     };
   } catch (error) {
-    console.error('Rate limit error:', error);
+    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Rate limit error');
     // Fail open - allow request if Redis is down
     return {
       success: true,
