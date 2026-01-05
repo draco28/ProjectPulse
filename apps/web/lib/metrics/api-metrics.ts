@@ -10,11 +10,18 @@
  * - Batch logging to prevent log spam
  * - Memory-safe with hard cap on buffer size
  *
+ * IMPORTANT: This module runs in Edge Runtime (middleware context).
+ * Cannot import Pino logger - use console methods with JSON output.
+ * Log format matches Pino for consistency with server-side logs.
+ *
  * @module lib/metrics/api-metrics
  */
 
-import { logger } from '@/lib/logger';
-import { LogMessages } from '@/lib/logger/standards';
+// Log message constants (duplicated to avoid importing from logger which pulls pino)
+const LOG_MESSAGES = {
+  API_REQUEST_SLOW: 'api.request.slow',
+  API_METRICS_BATCH: 'api.metrics.batch',
+} as const;
 
 // ─────────────────────────────────────────────────────────────
 // Constants
@@ -103,6 +110,9 @@ function shouldFlush(): boolean {
 /**
  * Perform the actual flush of metrics to logs.
  * Logs each metric as a structured JSON entry.
+ *
+ * Uses console.log with JSON for Edge Runtime compatibility.
+ * Format matches Pino output for log aggregation consistency.
  */
 function performFlush(): void {
   if (metricsBuffer.length === 0) return;
@@ -118,32 +128,22 @@ function performFlush(): void {
   const maxDuration = Math.max(...durations);
   const minDuration = Math.min(...durations);
 
-  // Log batch summary
-  logger.info(
-    {
-      metric: LogMessages.API_METRICS_BATCH,
+  // Log batch summary (JSON format for log aggregation)
+  console.log(
+    JSON.stringify({
+      level: 'info',
+      time: Date.now(),
+      msg: `API metrics batch: ${batchSize} requests (avg ${avgDuration}ms)`,
+      metric: LOG_MESSAGES.API_METRICS_BATCH,
       batchSize,
       avgDurationMs: avgDuration,
       maxDurationMs: maxDuration,
       minDurationMs: minDuration,
-    },
-    `API metrics batch: ${batchSize} requests (avg ${avgDuration}ms)`
+    })
   );
 
-  // Log individual metrics at debug level for detailed analysis
-  batch.forEach((m) => {
-    logger.debug(
-      {
-        metric: 'api_response_time',
-        requestId: m.requestId,
-        path: m.path,
-        method: m.method,
-        durationMs: m.durationMs,
-        timestamp: m.timestamp,
-      },
-      `${m.method} ${m.path}: ${m.durationMs}ms`
-    );
-  });
+  // Individual metrics are logged at batch level only to reduce log volume
+  // Debug-level logging would spam in Edge Runtime context
 
   lastFlushTime = Date.now();
 }
@@ -173,17 +173,20 @@ function performFlush(): void {
  */
 export function recordAPIMetric(metric: APIMetric): void {
   // Log slow requests immediately (don't wait for batch)
+  // Uses console.warn with JSON for Edge Runtime compatibility
   if (metric.durationMs > SLOW_REQUEST_THRESHOLD_MS) {
-    logger.warn(
-      {
-        metric: LogMessages.API_REQUEST_SLOW,
+    console.warn(
+      JSON.stringify({
+        level: 'warn',
+        time: Date.now(),
+        msg: `Slow request: ${metric.method} ${metric.path} took ${metric.durationMs}ms (threshold: ${SLOW_REQUEST_THRESHOLD_MS}ms)`,
+        metric: LOG_MESSAGES.API_REQUEST_SLOW,
         requestId: metric.requestId,
         path: metric.path,
         method: metric.method,
         durationMs: metric.durationMs,
         threshold: SLOW_REQUEST_THRESHOLD_MS,
-      },
-      `Slow request: ${metric.method} ${metric.path} took ${metric.durationMs}ms (threshold: ${SLOW_REQUEST_THRESHOLD_MS}ms)`
+      })
     );
   }
 
@@ -195,13 +198,15 @@ export function recordAPIMetric(metric: APIMetric): void {
     // Drop oldest entries to stay under cap
     const overflow = metricsBuffer.length - BUFFER_HARD_CAP;
     metricsBuffer.splice(0, overflow);
-    logger.warn(
-      {
+    console.warn(
+      JSON.stringify({
+        level: 'warn',
+        time: Date.now(),
+        msg: `API metrics buffer overflow: dropped ${overflow} oldest entries`,
         metric: 'api_metrics_overflow',
         dropped: overflow,
         bufferSize: metricsBuffer.length,
-      },
-      `API metrics buffer overflow: dropped ${overflow} oldest entries`
+      })
     );
   }
 
