@@ -155,7 +155,8 @@ export class AxeCoreScanner implements Scanner {
       await Promise.race([navigationPromise, timeoutPromise]);
 
       // Run axe-core analysis
-      const axeBuilder = new AxeBuilder({ page }).withTags([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Type assertion needed due to Playwright version mismatch
+      const axeBuilder = new AxeBuilder({ page: page as any }).withTags([
         `wcag${wcagLevel.toLowerCase()}`,
         'best-practice',
       ]);
