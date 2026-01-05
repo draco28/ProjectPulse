@@ -3,6 +3,7 @@
  * Sprint 8.9: Route protection and authentication
  * Sprint 11.5: Added admin route protection with role checking
  * Sprint 17: Added request ID correlation (Ticket #135)
+ * Sprint 18: Added API response time metrics (Ticket #136)
  *
  * Protected routes: /app, /dashboard, /issues, /wiki, etc.
  * Admin routes: /admin/* (requires ADMIN role)
@@ -13,14 +14,24 @@
  * 2. Generate UUID if missing (honors client-provided IDs)
  * 3. Inject into request headers for downstream API routes
  * 4. Include in response headers for client correlation
+ *
+ * Response Time Tracking:
+ * 1. Capture start time at middleware entry
+ * 2. Calculate duration before returning response
+ * 3. Add X-Response-Time header to all responses
+ * 4. Record metrics for API routes (batched logging)
  */
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { recordAPIMetric } from '@/lib/metrics';
 
 // Request ID header name (matches lib/request-context.ts)
 const REQUEST_ID_HEADER = 'x-request-id';
+
+// Response time header name
+const RESPONSE_TIME_HEADER = 'x-response-time';
 
 const publicPaths = ['/login', '/api/auth/signup', '/api/health'];
 const publicApiPrefixes = [
@@ -49,15 +60,18 @@ const projectRoutes = [
 ];
 
 /**
- * Create a NextResponse.next() with request ID injected.
+ * Create a NextResponse.next() with request ID and response time injected.
  *
  * Injects the request ID into both:
  * - Request headers (for downstream API routes to read)
  * - Response headers (for client correlation)
+ *
+ * Also adds X-Response-Time header for performance visibility.
  */
 function nextWithRequestId(
   request: NextRequest,
-  requestId: string
+  requestId: string,
+  durationMs: number
 ): NextResponse {
   // Clone request headers and add request ID
   const requestHeaders = new Headers(request.headers);
@@ -70,25 +84,34 @@ function nextWithRequestId(
     },
   });
 
-  // Also add to response headers for client visibility
+  // Add headers for client visibility and correlation
   response.headers.set(REQUEST_ID_HEADER, requestId);
+  response.headers.set(RESPONSE_TIME_HEADER, `${durationMs}ms`);
 
   return response;
 }
 
 /**
- * Create a NextResponse.redirect() with request ID in response headers.
+ * Create a NextResponse.redirect() with request ID and response time in headers.
  *
  * Redirects don't need request header injection (no downstream processing),
- * but include the request ID in response for client correlation.
+ * but include the request ID and response time in headers for client correlation.
  */
-function redirectWithRequestId(url: URL, requestId: string): NextResponse {
+function redirectWithRequestId(
+  url: URL,
+  requestId: string,
+  durationMs: number
+): NextResponse {
   const response = NextResponse.redirect(url);
   response.headers.set(REQUEST_ID_HEADER, requestId);
+  response.headers.set(RESPONSE_TIME_HEADER, `${durationMs}ms`);
   return response;
 }
 
 export async function middleware(request: NextRequest) {
+  // Sprint 18: Capture start time for response time metrics
+  const startTime = Date.now();
+
   const { pathname, searchParams } = request.nextUrl;
 
   // Sprint 17: Generate or preserve request ID for correlation
@@ -96,21 +119,50 @@ export async function middleware(request: NextRequest) {
   const incomingRequestId = request.headers.get(REQUEST_ID_HEADER);
   const requestId = incomingRequestId || crypto.randomUUID();
 
+  // Sprint 18: Extract client info for metrics
+  const userAgent = request.headers.get('user-agent') || undefined;
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    undefined;
+
+  /**
+   * Helper to calculate duration and record API metrics.
+   * Only records metrics for /api/* routes.
+   */
+  const getDurationAndRecordMetric = (): number => {
+    const durationMs = Date.now() - startTime;
+
+    if (pathname.startsWith('/api/')) {
+      recordAPIMetric({
+        requestId,
+        path: pathname,
+        method: request.method,
+        durationMs,
+        timestamp: Date.now(),
+        userAgent,
+        ip,
+      });
+    }
+
+    return durationMs;
+  };
+
   // Allow public paths
   if (publicPaths.includes(pathname)) {
-    return nextWithRequestId(request, requestId);
+    return nextWithRequestId(request, requestId, getDurationAndRecordMetric());
   }
 
   // Allow public API routes
   if (publicApiPrefixes.some((prefix) => pathname.startsWith(prefix))) {
-    return nextWithRequestId(request, requestId);
+    return nextWithRequestId(request, requestId, getDurationAndRecordMetric());
   }
 
   // Sprint 10: All /api/* routes handle their own authentication
   // This allows both session auth (web users) and bearer token auth (MCP agents)
   // Routes will return 401/403 if auth fails
   if (pathname.startsWith('/api/')) {
-    return nextWithRequestId(request, requestId);
+    return nextWithRequestId(request, requestId, getDurationAndRecordMetric());
   }
 
   // Check authentication for protected web routes (pages, not APIs)
@@ -123,7 +175,11 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
-    return redirectWithRequestId(loginUrl, requestId);
+    return redirectWithRequestId(
+      loginUrl,
+      requestId,
+      getDurationAndRecordMetric()
+    );
   }
 
   // Sprint 11.5: Admin route protection
@@ -132,7 +188,11 @@ export async function middleware(request: NextRequest) {
     const userRole = token.role as string | undefined;
     if (userRole !== 'ADMIN') {
       // Non-admin users get redirected to /app
-      return redirectWithRequestId(new URL('/app', request.url), requestId);
+      return redirectWithRequestId(
+        new URL('/app', request.url),
+        requestId,
+        getDurationAndRecordMetric()
+      );
     }
   }
 
@@ -150,12 +210,16 @@ export async function middleware(request: NextRequest) {
     const projectId = searchParams.get('project');
     if (!projectId) {
       // Redirect to project selector when project context is missing
-      return redirectWithRequestId(new URL('/app', request.url), requestId);
+      return redirectWithRequestId(
+        new URL('/app', request.url),
+        requestId,
+        getDurationAndRecordMetric()
+      );
     }
   }
 
   // Allow authenticated requests
-  return nextWithRequestId(request, requestId);
+  return nextWithRequestId(request, requestId, getDurationAndRecordMetric());
 }
 
 // Configure which routes to run middleware on

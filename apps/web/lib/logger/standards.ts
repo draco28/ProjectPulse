@@ -47,6 +47,12 @@ export const LogMessages = {
   /** API validation failed (4xx response) */
   API_VALIDATION_ERROR: 'api.validation.error',
 
+  /** API request exceeded slow threshold (>1s) */
+  API_REQUEST_SLOW: 'api.request.slow',
+
+  /** API metrics batch flushed */
+  API_METRICS_BATCH: 'api.metrics.batch',
+
   // ─────────────────────────────────────────────────────────────
   // Authentication Events
   // ─────────────────────────────────────────────────────────────
