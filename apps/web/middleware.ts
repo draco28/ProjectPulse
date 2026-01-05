@@ -2,15 +2,25 @@
  * Next.js Middleware
  * Sprint 8.9: Route protection and authentication
  * Sprint 11.5: Added admin route protection with role checking
+ * Sprint 17: Added request ID correlation (Ticket #135)
  *
  * Protected routes: /app, /dashboard, /issues, /wiki, etc.
  * Admin routes: /admin/* (requires ADMIN role)
  * Public routes: /login, /api/auth/*, /api/health
+ *
+ * Request ID Flow:
+ * 1. Check for incoming X-Request-ID header
+ * 2. Generate UUID if missing (honors client-provided IDs)
+ * 3. Inject into request headers for downstream API routes
+ * 4. Include in response headers for client correlation
  */
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+
+// Request ID header name (matches lib/request-context.ts)
+const REQUEST_ID_HEADER = 'x-request-id';
 
 const publicPaths = ['/login', '/api/auth/signup', '/api/health'];
 const publicApiPrefixes = [
@@ -38,24 +48,69 @@ const projectRoutes = [
   '/tickets',
 ];
 
+/**
+ * Create a NextResponse.next() with request ID injected.
+ *
+ * Injects the request ID into both:
+ * - Request headers (for downstream API routes to read)
+ * - Response headers (for client correlation)
+ */
+function nextWithRequestId(
+  request: NextRequest,
+  requestId: string
+): NextResponse {
+  // Clone request headers and add request ID
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(REQUEST_ID_HEADER, requestId);
+
+  // Create response with modified request headers
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  // Also add to response headers for client visibility
+  response.headers.set(REQUEST_ID_HEADER, requestId);
+
+  return response;
+}
+
+/**
+ * Create a NextResponse.redirect() with request ID in response headers.
+ *
+ * Redirects don't need request header injection (no downstream processing),
+ * but include the request ID in response for client correlation.
+ */
+function redirectWithRequestId(url: URL, requestId: string): NextResponse {
+  const response = NextResponse.redirect(url);
+  response.headers.set(REQUEST_ID_HEADER, requestId);
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
+  // Sprint 17: Generate or preserve request ID for correlation
+  // Honor client-provided IDs (useful for distributed tracing)
+  const incomingRequestId = request.headers.get(REQUEST_ID_HEADER);
+  const requestId = incomingRequestId || crypto.randomUUID();
+
   // Allow public paths
   if (publicPaths.includes(pathname)) {
-    return NextResponse.next();
+    return nextWithRequestId(request, requestId);
   }
 
   // Allow public API routes
   if (publicApiPrefixes.some((prefix) => pathname.startsWith(prefix))) {
-    return NextResponse.next();
+    return nextWithRequestId(request, requestId);
   }
 
   // Sprint 10: All /api/* routes handle their own authentication
   // This allows both session auth (web users) and bearer token auth (MCP agents)
   // Routes will return 401/403 if auth fails
   if (pathname.startsWith('/api/')) {
-    return NextResponse.next();
+    return nextWithRequestId(request, requestId);
   }
 
   // Check authentication for protected web routes (pages, not APIs)
@@ -68,7 +123,7 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(loginUrl);
+    return redirectWithRequestId(loginUrl, requestId);
   }
 
   // Sprint 11.5: Admin route protection
@@ -77,27 +132,30 @@ export async function middleware(request: NextRequest) {
     const userRole = token.role as string | undefined;
     if (userRole !== 'ADMIN') {
       // Non-admin users get redirected to /app
-      return NextResponse.redirect(new URL('/app', request.url));
+      return redirectWithRequestId(new URL('/app', request.url), requestId);
     }
   }
 
   // Enforce project context on project-scoped routes
-  const requiresProject = projectRoutes.some((route) => pathname.startsWith(route));
+  const requiresProject = projectRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
 
   // Exception: Wiki detail pages (e.g., /wiki/project-slug/page-slug) derive context from the URL path
   // We allow these to bypass the query param check because the page component will resolve the project
-  const isWikiDetailPage = pathname.startsWith('/wiki/') && pathname.split('/').length > 2;
+  const isWikiDetailPage =
+    pathname.startsWith('/wiki/') && pathname.split('/').length > 2;
 
   if (requiresProject && !isWikiDetailPage) {
     const projectId = searchParams.get('project');
     if (!projectId) {
       // Redirect to project selector when project context is missing
-      return NextResponse.redirect(new URL('/app', request.url));
+      return redirectWithRequestId(new URL('/app', request.url), requestId);
     }
   }
 
   // Allow authenticated requests
-  return NextResponse.next();
+  return nextWithRequestId(request, requestId);
 }
 
 // Configure which routes to run middleware on
