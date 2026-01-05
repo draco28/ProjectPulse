@@ -30,14 +30,11 @@ const nextConfig = {
   },
 
   // Image optimization
+  // Security: No remotePatterns = only local images from /public allowed
+  // This eliminates SSRF risk from the previous `hostname: '**'` wildcard
+  // @see docs/PRODUCTION-HARDENING-SPEC.md Section 1.5.2
   images: {
     formats: ['image/avif', 'image/webp'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
   },
 
   // Headers for security and performance
