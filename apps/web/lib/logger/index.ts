@@ -64,17 +64,10 @@ export const logger = pino({
     censor: '[REDACTED]',
   },
 
-  // Pretty print in development for readability
-  transport: isDev
-    ? {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'HH:MM:ss',
-          ignore: 'pid,hostname',
-        },
-      }
-    : undefined,
+  // Note: pino-pretty transport disabled due to worker thread conflicts
+  // with Next.js App Router hot reloading. JSON output is used in all
+  // environments for consistency and reliability.
+  // Use `pnpm dev 2>&1 | pino-pretty` in terminal if human-readable logs needed.
 });
 
 /**
