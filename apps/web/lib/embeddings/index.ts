@@ -23,48 +23,27 @@ import {
 } from './openai';
 
 import { createLogger } from '@/lib/logger';
+import { withRetry } from '@/lib/retry';
 
 const log = createLogger({ module: 'Embedding' });
 
 // =============================================================================
-// Retry Logic for Ollama Cold Start (Ticket #56)
+// Ollama Cold Start Retry Configuration (Ticket #56)
 // =============================================================================
 // When Ollama is idle, the first request often fails with EOF/500 error.
 // Retrying after 2-3 seconds typically succeeds once Ollama "wakes up".
 
-const RETRY_CONFIG = {
-  maxRetries: 2,
-  baseDelayMs: 2000, // Start with 2s delay (Ollama needs ~2-3s to wake)
-  maxDelayMs: 5000, // Cap at 5s
-};
-
 /**
- * Generic retry wrapper with exponential backoff
+ * Retry options optimized for Ollama cold start behavior.
+ * Uses longer initial delay (2s) because Ollama needs time to wake up.
  */
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  isRetryable: (error: unknown) => boolean,
-  config = RETRY_CONFIG
-): Promise<T> {
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
-
-      if (attempt < config.maxRetries && isRetryable(error)) {
-        const delay = Math.min(config.baseDelayMs * Math.pow(2, attempt), config.maxDelayMs);
-        log.info({ attempt: attempt + 1, maxRetries: config.maxRetries, delayMs: delay }, 'Retrying after delay');
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        continue;
-      }
-      throw error;
-    }
-  }
-  throw lastError;
-}
+const OLLAMA_RETRY_OPTIONS = {
+  maxAttempts: 3, // Initial attempt + 2 retries
+  initialDelayMs: 2000, // Start with 2s delay (Ollama needs ~2-3s to wake)
+  maxDelayMs: 5000, // Cap at 5s
+  jitter: false, // Predictable delays for Ollama cold start
+  retryableErrors: [] as string[], // Use custom predicate instead
+};
 
 /**
  * Detect Ollama cold start errors (EOF, connection reset, 500 status)
@@ -146,7 +125,7 @@ export async function generateEmbedding(
     try {
       const embedding = await withRetry(
         () => generateOllamaEmbedding(text, { baseUrl: ollamaBaseUrl, timeout }),
-        isOllamaColdStartError
+        { ...OLLAMA_RETRY_OPTIONS, isRetryable: isOllamaColdStartError }
       );
       return {
         embedding,
@@ -187,7 +166,7 @@ export async function generateEmbedding(
   try {
     const embedding = await withRetry(
       () => generateOllamaEmbedding(text, { baseUrl: ollamaBaseUrl, timeout }),
-      isOllamaColdStartError
+      { ...OLLAMA_RETRY_OPTIONS, isRetryable: isOllamaColdStartError }
     );
     return {
       embedding,
@@ -263,7 +242,7 @@ export async function generateBatchEmbeddings(
     try {
       const embeddings = await withRetry(
         () => generateOllamaBatchEmbeddings(texts, { baseUrl: ollamaBaseUrl, timeout }),
-        isOllamaColdStartError
+        { ...OLLAMA_RETRY_OPTIONS, isRetryable: isOllamaColdStartError }
       );
       return {
         embeddings,
@@ -304,7 +283,7 @@ export async function generateBatchEmbeddings(
   try {
     const embeddings = await withRetry(
       () => generateOllamaBatchEmbeddings(texts, { baseUrl: ollamaBaseUrl, timeout }),
-      isOllamaColdStartError
+      { ...OLLAMA_RETRY_OPTIONS, isRetryable: isOllamaColdStartError }
     );
     return {
       embeddings,

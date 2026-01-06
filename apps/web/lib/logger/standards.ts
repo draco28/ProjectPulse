@@ -289,6 +289,15 @@ export const LogMessages = {
 
   /** Operation timed out (warn level) */
   TIMEOUT_OCCURRED: 'resilience.timeout.occurred',
+
+  /** Retry attempt starting after failure (warn level) */
+  RETRY_ATTEMPT: 'resilience.retry.attempt',
+
+  /** Retry succeeded after previous failure (info level) */
+  RETRY_SUCCESS: 'resilience.retry.success',
+
+  /** All retry attempts exhausted (error level) */
+  RETRY_EXHAUSTED: 'resilience.retry.exhausted',
 } as const;
 
 /**
