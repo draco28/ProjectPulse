@@ -5,3 +5,4 @@
 
 export { generateInitials } from './text';
 export { formatRelativeTime, formatShortDate } from './date';
+export { withTimeout, TimeoutError } from './timeout';

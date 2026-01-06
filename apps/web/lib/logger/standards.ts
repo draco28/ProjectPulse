@@ -282,6 +282,13 @@ export const LogMessages = {
 
   /** Skill usage tracked */
   SKILL_USAGE_TRACKED: 'skill.usage.tracked',
+
+  // ─────────────────────────────────────────────────────────────
+  // Resilience Events (System)
+  // ─────────────────────────────────────────────────────────────
+
+  /** Operation timed out (warn level) */
+  TIMEOUT_OCCURRED: 'resilience.timeout.occurred',
 } as const;
 
 /**
