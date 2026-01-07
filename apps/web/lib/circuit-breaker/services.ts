@@ -8,6 +8,7 @@
  * - Embedding generation (Ollama/OpenAI)
  *
  * @module lib/circuit-breaker/services
+ * @since 2026-01-07
  */
 
 import {
