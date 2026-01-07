@@ -314,6 +314,16 @@ export const LogMessages = {
 
   /** Circuit breaker fallback executed (debug level) */
   CIRCUIT_FALLBACK: 'resilience.circuit.fallback',
+
+  // ─────────────────────────────────────────────────────────────
+  // Search Events (System)
+  // ─────────────────────────────────────────────────────────────
+
+  /** Search falling back to fulltext due to open circuit (info level) */
+  SEARCH_FALLBACK_FULLTEXT: 'search.fallback.fulltext',
+
+  /** Semantic search failed, using fulltext only (warn level) */
+  SEARCH_SEMANTIC_FAILED: 'search.semantic.failed',
 } as const;
 
 /**

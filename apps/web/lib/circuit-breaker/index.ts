@@ -304,3 +304,9 @@ export function clearBreakers(): void {
 export function getBreakerCount(): number {
   return breakers.size;
 }
+
+// =============================================================================
+// Re-export Service-Specific Breakers
+// =============================================================================
+
+export * from './services';

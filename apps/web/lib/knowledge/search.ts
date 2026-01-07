@@ -7,8 +7,13 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { generateEmbedding } from '../embeddings';
+import {
+  generateEmbeddingProtected,
+  isEmbeddingCircuitOpen,
+} from '@/lib/circuit-breaker/services';
 import { findRelatedKnowledgeItems, type RelatedKnowledgeItem } from './graph';
 import { createLogger } from '@/lib/logger';
+import { LogMessages } from '@/lib/logger/standards';
 
 const log = createLogger({ module: 'Knowledge:Search' });
 
@@ -91,8 +96,9 @@ export async function semanticSearch(
   }
 
   try {
-    // Generate query embedding (same 768 dimensions as stored embeddings)
-    const embeddingResult = await generateEmbedding(query);
+    // Generate query embedding with circuit breaker protection
+    // Uses generateEmbeddingProtected which wraps generateEmbedding with circuit breaker
+    const embeddingResult = await generateEmbeddingProtected(query);
     // Vector literal is safe - comes from our embedding service, not user input
     const queryVector = `[${embeddingResult.embedding.join(',')}]`;
 
@@ -358,14 +364,42 @@ export async function hybridSearch(
   }
 
   try {
-    // Run both searches in parallel with higher limits to get more candidates
-    const [semanticResults, fulltextResults] = await Promise.all([
+    // =========================================================================
+    // Circuit Breaker Check - Graceful Degradation (Ticket #143)
+    // =========================================================================
+    // Check if embedding circuit is open BEFORE attempting semantic search.
+    // If open, fall back to fulltext immediately to avoid wasted requests.
+    if (isEmbeddingCircuitOpen()) {
+      log.info(
+        { projectId, query: query.substring(0, 50) },
+        LogMessages.SEARCH_FALLBACK_FULLTEXT
+      );
+
+      // Return fulltext results with 'hybrid' matchType for API consistency
+      const fulltextResults = await fullTextSearch(query, {
+        ...options,
+        limit,
+        threshold: 0.05,
+      });
+
+      return fulltextResults.map((r) => ({
+        ...r,
+        matchType: 'hybrid' as const,
+      }));
+    }
+
+    // =========================================================================
+    // Hybrid Search with Graceful Partial Failures
+    // =========================================================================
+    // Use Promise.allSettled to handle partial failures gracefully.
+    // If semantic search fails but fulltext succeeds, still return results.
+    const [semanticSettled, fulltextSettled] = await Promise.allSettled([
       semanticSearch(query, {
         ...options,
         limit: limit * 2,
         threshold: 0.5,
         includeRelated: false,
-      }), // Lower threshold for merging
+      }),
       fullTextSearch(query, {
         ...options,
         limit: limit * 2,
@@ -373,6 +407,41 @@ export async function hybridSearch(
         includeRelated: false,
       }),
     ]);
+
+    // Extract results, handling partial failures
+    const semanticResults =
+      semanticSettled.status === 'fulfilled' ? semanticSettled.value : [];
+    const fulltextResults =
+      fulltextSettled.status === 'fulfilled' ? fulltextSettled.value : [];
+
+    // Log if semantic search failed (circuit may have just opened)
+    if (semanticSettled.status === 'rejected') {
+      log.warn(
+        {
+          projectId,
+          error:
+            semanticSettled.reason instanceof Error
+              ? semanticSettled.reason.message
+              : String(semanticSettled.reason),
+        },
+        LogMessages.SEARCH_SEMANTIC_FAILED
+      );
+    }
+
+    // If both failed, throw error
+    if (semanticResults.length === 0 && fulltextResults.length === 0) {
+      if (
+        semanticSettled.status === 'rejected' &&
+        fulltextSettled.status === 'rejected'
+      ) {
+        throw new SearchError(
+          'Both semantic and fulltext search failed',
+          'SEARCH_FAILED',
+          500,
+          { semantic: semanticSettled.reason, fulltext: fulltextSettled.reason }
+        );
+      }
+    }
 
     // Merge results with weighted scoring
     const SEMANTIC_WEIGHT = 0.7;
@@ -437,7 +506,13 @@ export async function hybridSearch(
           topResult.relatedItems = relatedItems;
         } catch (error) {
           // Log error but don't fail the search
-          log.warn({ error: error instanceof Error ? error.message : String(error), itemId: topResult.id }, 'Failed to fetch related items');
+          log.warn(
+            {
+              error: error instanceof Error ? error.message : String(error),
+              itemId: topResult.id,
+            },
+            'Failed to fetch related items'
+          );
         }
       }
     }
