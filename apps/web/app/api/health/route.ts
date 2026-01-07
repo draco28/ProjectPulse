@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { healthCheck as sessionHealthCheck } from '@/lib/mcp/session-manager';
 import { createLogger } from '@/lib/logger';
+import { getCircuitStatus } from '@/lib/circuit-breaker';
 
 // Module-level logger for health checks (no request context)
 const log = createLogger({ module: 'health' });
@@ -18,6 +19,7 @@ const log = createLogger({ module: 'health' });
  * @returns JSON response with status and component health
  */
 export async function GET() {
+  const startTime = Date.now();
   let database: 'connected' | 'error' = 'connected';
   let redis = { healthy: false, type: 'unknown' };
   let seedStatus = { ready: false, questions: 0, templates: 0 };
@@ -55,20 +57,38 @@ export async function GET() {
     redis = { healthy: false, type: 'error' };
   }
 
-  // Overall health: database connected, seed data ready, and session store healthy
-  const healthy = database === 'connected' && seedStatus.ready && redis.healthy;
+  // Get circuit breaker status
+  const circuits = getCircuitStatus();
+
+  // Determine if any circuit is OPEN
+  const hasOpenCircuits = Object.values(circuits).some((c) => c.state === 'OPEN');
+
+  // Status logic:
+  // - healthy: All critical services up AND all circuits closed
+  // - degraded: DB connected but some circuits open or redis unhealthy (still functional)
+  // - unhealthy: Database down or seed not ready (critical failure)
+  let status: 'healthy' | 'degraded' | 'unhealthy';
+  if (database !== 'connected' || !seedStatus.ready) {
+    status = 'unhealthy';
+  } else if (hasOpenCircuits || !redis.healthy) {
+    status = 'degraded';
+  } else {
+    status = 'healthy';
+  }
 
   return NextResponse.json(
     {
-      status: healthy ? 'healthy' : 'unhealthy',
+      status,
       timestamp: new Date().toISOString(),
       database,
       seed: seedStatus,
       redis: redis.healthy,
       sessionStore: redis.type,
+      circuits,
+      responseTimeMs: Date.now() - startTime,
     },
     {
-      status: healthy ? 200 : 503,
+      status: status === 'unhealthy' ? 503 : 200,
     }
   );
 }
