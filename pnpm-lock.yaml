@@ -248,6 +248,9 @@ importers:
       openai:
         specifier: ^6.9.1
         version: 6.9.1(zod@3.25.76)
+      opossum:
+        specifier: ^9.0.0
+        version: 9.0.0
       pino:
         specifier: ^10.1.0
         version: 10.1.0
@@ -318,6 +321,9 @@ importers:
       '@types/node':
         specifier: ^20.11.16
         version: 20.19.23
+      '@types/opossum':
+        specifier: ^8.1.9
+        version: 8.1.9
       '@types/react':
         specifier: ^18.2.55
         version: 18.3.26
@@ -3348,6 +3354,12 @@ packages:
     resolution: {integrity: sha512-yIdlVVVHXpmqRhtyovZAcSy0MiPcYWGkoO4CGe/+jpP0hmNuihm4XhHbADpK++MsiLHP5MVlv+bcgdF99kSiFQ==}
     dependencies:
       undici-types: 6.21.0
+
+  /@types/opossum@8.1.9:
+    resolution: {integrity: sha512-Jm/tYxuJFefiwRYs+/EOsUP3ktk0c8siMgAHPLnA4PXF4wKghzcjqf88dY+Xii5jId5Txw4JV0FMKTpjbd7KJA==}
+    dependencies:
+      '@types/node': 20.19.23
+    dev: true
 
   /@types/prismjs@1.26.5:
     resolution: {integrity: sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ==}
@@ -8495,6 +8507,11 @@ packages:
       lru-cache: 6.0.0
       object-hash: 2.2.0
       oidc-token-hash: 5.2.0
+    dev: false
+
+  /opossum@9.0.0:
+    resolution: {integrity: sha512-K76U0QkxOfUZamneQuzz+AP0fyfTJcCplZ2oZL93nxeupuJbN4s6uFNbmVCt4eWqqGqRnnowdFuBicJ1fLMVxw==}
+    engines: {node: ^24 || ^22 || ^20}
     dev: false
 
   /optionator@0.9.4:

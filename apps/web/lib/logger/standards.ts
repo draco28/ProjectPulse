@@ -298,6 +298,22 @@ export const LogMessages = {
 
   /** All retry attempts exhausted (error level) */
   RETRY_EXHAUSTED: 'resilience.retry.exhausted',
+
+  // ─────────────────────────────────────────────────────────────
+  // Circuit Breaker Events (System)
+  // ─────────────────────────────────────────────────────────────
+
+  /** Circuit breaker opened after failure threshold (warn level) */
+  CIRCUIT_OPENED: 'resilience.circuit.opened',
+
+  /** Circuit breaker closed after successful recovery (info level) */
+  CIRCUIT_CLOSED: 'resilience.circuit.closed',
+
+  /** Circuit breaker half-open, testing recovery (info level) */
+  CIRCUIT_HALF_OPEN: 'resilience.circuit.half_open',
+
+  /** Circuit breaker fallback executed (debug level) */
+  CIRCUIT_FALLBACK: 'resilience.circuit.fallback',
 } as const;
 
 /**
