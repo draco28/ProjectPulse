@@ -103,7 +103,21 @@ jobs:
           echo "❌ MCP Server health check failed after 12 attempts"
           docker logs projectpulse-mcp-cloud --tail 50
           exit 1
-      
+
+      - name: Cleanup Docker resources
+        if: steps.schema.outputs.schema_changed == 'false'
+        run: |
+          cd ~/projects/AI_HUB
+          echo "🧹 Cleaning up Docker resources..."
+          # -a removes ALL unused images, not just dangling (prevents 100GB+ buildup)
+          docker image prune -a -f || true
+          # Clean build cache older than 3 days (keeps recent for faster rebuilds)
+          docker builder prune -f --filter "until=72h" || true
+          # Clean dangling volumes (named volumes like postgres_data are safe)
+          docker volume prune -f || true
+          echo "📊 Docker disk usage:"
+          docker system df
+
       - name: Dev deployment summary
         if: steps.schema.outputs.schema_changed == 'false'
         run: |

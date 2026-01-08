@@ -99,16 +99,27 @@ run_smoke_tests() {
 }
 
 cleanup_old_images() {
-    header "Cleanup Old Images"
+    header "Cleanup Docker Resources"
 
     # Note: All cleanup commands use || true to prevent non-critical errors
     # from failing the deployment (e.g., stale BuildKit cache snapshots)
 
-    log_info "Pruning dangling images (old layer caches)..."
-    docker image prune -f || true
+    log_info "Pruning ALL unused images (not just dangling)..."
+    # -a flag removes ALL unused images, not just dangling ones
+    # This prevents accumulation of old image layers from previous builds
+    docker image prune -a -f || true
 
-    log_info "Pruning build cache older than 7 days..."
-    docker builder prune -f --filter "until=168h" 2>/dev/null || true
+    log_info "Pruning ALL build cache..."
+    # -a flag removes all cache, not just old entries
+    # BuildKit cache can grow to 100GB+ without this
+    docker builder prune -a -f 2>/dev/null || true
+
+    log_info "Pruning unused volumes..."
+    # Only removes dangling volumes; named volumes (postgres_data) are safe
+    docker volume prune -f || true
+
+    log_info "Pruning unused networks..."
+    docker network prune -f || true
 
     log_info "Current Docker disk usage:"
     docker system df 2>/dev/null || log_warn "Could not get disk usage (non-critical)"
@@ -171,6 +182,10 @@ full_deploy() {
     header "Step 3: Restart Containers"
     log_info "Stopping old containers..."
     docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" stop prod-nextjs prod-mcp
+
+    log_info "Removing old containers..."
+    # Remove stopped containers to prevent accumulation
+    docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" rm -f prod-nextjs prod-mcp || true
 
     log_info "Starting new containers..."
     docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d prod-nextjs prod-mcp
