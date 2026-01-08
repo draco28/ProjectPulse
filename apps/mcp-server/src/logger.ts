@@ -57,12 +57,16 @@ const pinoLogger = pino({
  *
  * Note: Pino uses (context, message) order, but our existing code
  * uses (message, context). This interface maintains the existing API.
+ *
+ * Added `fatal` for Ticket #147: Graceful shutdown logging requirements.
  */
 export interface Logger {
   debug: (message: string, context?: Record<string, unknown>) => void;
   info: (message: string, context?: Record<string, unknown>) => void;
   warn: (message: string, context?: Record<string, unknown>) => void;
   error: (message: string, context?: Record<string, unknown>) => void;
+  /** Fatal-level logging for unrecoverable errors (Ticket #147) */
+  fatal: (message: string, context?: Record<string, unknown>) => void;
 }
 
 /**
@@ -108,6 +112,14 @@ export const createLogger = (_level: LogLevel = 'info'): Logger => {
         pinoLogger.error(context, message);
       } else {
         pinoLogger.error(message);
+      }
+    },
+    // Ticket #147: Fatal-level for graceful shutdown logging
+    fatal: (message, context) => {
+      if (context) {
+        pinoLogger.fatal(context, message);
+      } else {
+        pinoLogger.fatal(message);
       }
     },
   };

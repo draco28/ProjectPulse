@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { healthCheck as sessionHealthCheck } from '@/lib/mcp/session-manager';
 import { createLogger } from '@/lib/logger';
 import { getCircuitStatus } from '@/lib/circuit-breaker';
+import { isShutdownInProgress } from '@/lib/shutdown';
 
 // Module-level logger for health checks (no request context)
 const log = createLogger({ module: 'health' });
@@ -19,6 +20,19 @@ const log = createLogger({ module: 'health' });
  * @returns JSON response with status and component health
  */
 export async function GET() {
+  // Ticket #147: Return 503 immediately when shutdown is in progress
+  // This allows load balancers to stop routing new traffic
+  if (isShutdownInProgress()) {
+    return NextResponse.json(
+      {
+        status: 'shutting_down',
+        timestamp: new Date().toISOString(),
+        message: 'Server is shutting down, not accepting new requests',
+      },
+      { status: 503 }
+    );
+  }
+
   const startTime = Date.now();
   let database: 'connected' | 'error' = 'connected';
   let redis = { healthy: false, type: 'unknown' };

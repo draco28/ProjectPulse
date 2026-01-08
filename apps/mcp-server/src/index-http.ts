@@ -14,6 +14,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
 import { randomUUID } from 'crypto';
+import type { Server as HttpServer } from 'http';
 import { config } from './config.js';
 import { createLogger } from './logger.js';
 import { createHttpClient } from './httpClient.js';
@@ -474,8 +475,11 @@ app.post('/mcp', async (req, res) => {
   }
 });
 
+// Store server reference for graceful shutdown
+let httpServer: HttpServer | null = null;
+
 // Start server
-app.listen(PORT, () => {
+httpServer = app.listen(PORT, () => {
   logger.info('ProjectPulse MCP server started (Stateful HTTP Streaming)', {
     port: PORT,
     transport: 'Streamable HTTP (Stateful)',
@@ -486,11 +490,99 @@ app.listen(PORT, () => {
   });
 });
 
-// Graceful shutdown
-const shutdown = async (signal: string) => {
-  logger.warn(`Received ${signal}, shutting down HTTP MCP server`);
-  process.exit(0);
+// ============================================================================
+// Graceful Shutdown (Ticket #147: Phase 4 Operations Excellence)
+// ============================================================================
+
+let isShuttingDown = false;
+
+/**
+ * Perform graceful shutdown of the MCP HTTP server.
+ *
+ * Sequence:
+ * 1. Stop accepting new connections
+ * 2. Close MCP server transport
+ * 3. Exit process
+ *
+ * @param signal - The signal that triggered shutdown
+ */
+const shutdown = async (signal: string): Promise<void> => {
+  // Prevent multiple shutdown attempts
+  if (isShuttingDown) {
+    logger.debug(`Shutdown already in progress, ignoring ${signal}`);
+    return;
+  }
+  isShuttingDown = true;
+
+  logger.warn('Graceful shutdown initiated for HTTP MCP server', { signal });
+
+  // Set a hard timeout to force exit (10s per ticket requirement)
+  const forceExitTimeout = setTimeout(() => {
+    logger.error('Graceful shutdown timeout exceeded, forcing exit');
+    process.exit(1);
+  }, 10_000);
+
+  try {
+    // Step 1: Stop accepting new connections
+    if (httpServer) {
+      await new Promise<void>((resolve, reject) => {
+        httpServer!.close((err) => {
+          if (err) {
+            logger.error('Error closing HTTP server', { error: err.message });
+            reject(err);
+          } else {
+            logger.info('HTTP server stopped accepting new connections');
+            resolve();
+          }
+        });
+      });
+    }
+
+    // Step 2: Close the MCP server (transport cleanup)
+    try {
+      await server.close();
+      logger.info('MCP server closed');
+    } catch (error) {
+      logger.error('Error closing MCP server', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    clearTimeout(forceExitTimeout);
+    logger.info('MCP HTTP server shutdown complete', { signal });
+    process.exit(0);
+  } catch (error) {
+    clearTimeout(forceExitTimeout);
+    logger.error('Shutdown error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    process.exit(1);
+  }
 };
 
+// Register signal handlers
 process.on('SIGINT', () => void shutdown('SIGINT'));
 process.on('SIGTERM', () => void shutdown('SIGTERM'));
+
+// Register uncaughtException handler (Ticket #147 requirement)
+process.on('uncaughtException', (error: Error) => {
+  logger.fatal('Uncaught exception in MCP server', {
+    error: error.message,
+    stack: error.stack,
+    type: 'uncaughtException',
+  });
+  void shutdown('uncaughtException');
+});
+
+// Register unhandledRejection handler (Ticket #147 requirement)
+process.on('unhandledRejection', (reason: unknown) => {
+  const message = reason instanceof Error ? reason.message : String(reason);
+  const stack = reason instanceof Error ? reason.stack : undefined;
+
+  logger.fatal('Unhandled rejection in MCP server', {
+    reason: message,
+    stack,
+    type: 'unhandledRejection',
+  });
+  void shutdown('unhandledRejection');
+});
