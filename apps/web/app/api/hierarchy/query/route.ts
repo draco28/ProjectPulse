@@ -15,7 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { HierarchyQuerySchema, type EntityLevel } from '@/lib/validation/hierarchy-query';
+import { HierarchyQuerySchema } from '@/lib/validation/hierarchy-query';
 import { ApiResponse } from '@/lib/types/api';
 import type { Prisma } from '@prisma/client';
 import { requireAuth, AuthError } from '@/lib/auth/validateRequest';
