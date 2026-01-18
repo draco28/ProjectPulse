@@ -7,6 +7,10 @@
 
 import { countWords } from './test-helpers.js';
 import { PrismaClient } from '@prisma/client';
+import { getConfig } from '@projectpulse/infra-config';
+
+// Load infrastructure config for URLs and database connection
+const infraConfig = getConfig();
 
 /**
  * Generate mock answers for onboarding questions
@@ -303,7 +307,7 @@ export function generateMockProjectPlan(): string {
  * Test constants
  */
 export const TEST_CONSTANTS = {
-  MCP_URL: process.env.MCP_URL || 'http://192.168.1.15:3001',
+  MCP_URL: infraConfig.mcpUrl,
   TEST_PROJECT_ID: parseInt(process.env.TEST_PROJECT_ID || '3', 10),
   TEST_TIMEOUT_MS: 60000, // 60 seconds
   RETRY_ATTEMPTS: 3,
@@ -337,7 +341,7 @@ export async function createTestProject(projectId?: number): Promise<{ id: numbe
   const prisma = new PrismaClient({
     datasources: {
       db: {
-        url: 'postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev',
+        url: infraConfig.databaseUrl,
       },
     },
   });
@@ -380,7 +384,7 @@ export async function cleanupProjectData(projectId: number): Promise<void> {
   const prisma = new PrismaClient({
     datasources: {
       db: {
-        url: 'postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev',
+        url: infraConfig.databaseUrl,
       },
     },
   });

@@ -1,11 +1,15 @@
 #!/bin/bash
 # Show complete Session 1 E2E test results
 
+# Source infrastructure configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../../../../scripts/lib/infra.sh"
+
 echo "=== RUNNING SESSION 1 E2E TEST WITH FULL OUTPUT ==="
 echo ""
 
 # Clean up first
-DATABASE_URL="postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev" \
+DATABASE_URL="$PROJECTPULSE_DATABASE_URL" \
   npx tsx apps/mcp-server/tests/e2e/setup/cleanup-test-data.ts
 
 echo ""
@@ -22,7 +26,7 @@ echo "=== QUERYING DATABASE FOR STORED DATA ==="
 echo ""
 
 # Query the stored data via API
-curl -s "http://192.168.1.15:3000/api/onboarding/blueprint?projectId=3" | jq -r '
+curl -s "$PROJECTPULSE_WEB_URL/api/onboarding/blueprint?projectId=3" | jq -r '
   "PROJECT: " + (.executiveSummary.metadata.projectName // "Unknown"),
   "",
   "SESSION STATUS: " + .sessionStatus,

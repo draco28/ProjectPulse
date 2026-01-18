@@ -23,6 +23,7 @@ import {
   getPrismaClient,
 } from './setup/ticket-fixtures.js';
 import { MCPTestClient } from './setup/mcp-client.js';
+import { TEST_CONSTANTS } from './setup/fixtures.js';
 
 describe('MCP Tool: projectpulse_ticket_setStatus', () => {
   let projectId: number;
@@ -34,7 +35,7 @@ describe('MCP Tool: projectpulse_ticket_setStatus', () => {
     const { token, projectId: newProjectId } = await createTestProject();
     authToken = token;
     projectId = newProjectId;
-    client = new MCPTestClient('http://192.168.1.15:3001', authToken);
+    client = new MCPTestClient(TEST_CONSTANTS.MCP_URL, authToken);
     console.log(`✓ Test setup complete for project ${projectId}`);
   });
 

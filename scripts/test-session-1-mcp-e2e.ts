@@ -23,7 +23,9 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { getConfig } from '@projectpulse/infra-config';
 
+const infraConfig = getConfig();
 const PROJECT_ID = 1;
 
 // Mock answer generator based on question content
@@ -90,7 +92,7 @@ async function runMCPE2ETest() {
     args: ['/Users/draco/projects/AI_HUB/apps/mcp-server/dist/index.js'],
     env: {
       ...process.env,
-      PROJECTPULSE_API_URL: 'http://192.168.1.15:3000',
+      PROJECTPULSE_API_URL: infraConfig.webUrl,
       NODE_ENV: 'development'
     }
   });

@@ -31,7 +31,11 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { PrismaClient } from '@prisma/client';
+import { getConfig } from '@projectpulse/infra-config';
 import { MCPTestClient } from '../setup/mcp-client.js';
+
+// Load infrastructure config for database URL
+const infraConfig = getConfig();
 import {
   generateMockAnswers,
   generateMockExecutiveSummary,
@@ -314,7 +318,7 @@ describe('Full 3-Session Onboarding Workflow (Integrated)', { concurrency: false
       const prisma = new PrismaClient({
         datasources: {
           db: {
-            url: 'postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev',
+            url: infraConfig.databaseUrl,
           },
         },
       });
@@ -561,7 +565,7 @@ describe('Full 3-Session Onboarding Workflow (Integrated)', { concurrency: false
       const prisma = new PrismaClient({
         datasources: {
           db: {
-            url: 'postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev',
+            url: infraConfig.databaseUrl,
           },
         },
       });

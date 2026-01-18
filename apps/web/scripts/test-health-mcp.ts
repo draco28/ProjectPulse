@@ -8,7 +8,7 @@
  * Demonstrates how to call all 3 health tools via curl + JSON-RPC 2.0.
  *
  * Prerequisites:
- * - Mac mini MCP server running at http://192.168.1.15:3000/api/mcp
+ * - MCP server running (default: http://localhost:3000/api/mcp)
  * - At least one project exists in database (projectId: 4)
  * - Project has source code at /Users/draco/projects/AI_HUB/apps/web
  *
@@ -19,6 +19,9 @@
  *
  * Run with: npx tsx scripts/test-health-mcp.ts
  */
+
+import { getConfig } from '@projectpulse/infra-config';
+const infraConfig = getConfig();
 
 /**
  * Generate curl command for JSON-RPC 2.0 request
@@ -44,7 +47,7 @@ function generateCurlCommand(
     },
   });
 
-  return `curl -X POST http://192.168.1.15:3000/api/mcp \\
+  return `curl -X POST ${infraConfig.webUrl}/api/mcp \\
   -H "Content-Type: application/json" \\
   -H "Mcp-Session-Id: ${sid}" \\
   -d '${requestBody}'`;

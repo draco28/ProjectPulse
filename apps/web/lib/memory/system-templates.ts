@@ -58,7 +58,7 @@ This project is currently being set up. Complete the onboarding process to gener
 - **MCP Server**: TypeScript-based Model Context Protocol server for AI agent integration
 
 ## Infrastructure
-- **Deployment**: Docker on Mac mini (192.168.1.15)
+- **Deployment**: Docker on Mac mini (localhost)
 - **Services**: Next.js (port 3000), MCP server (port 3001), PostgreSQL (port 5432)
 
 ## Key Dependencies

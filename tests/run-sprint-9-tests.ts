@@ -6,9 +6,12 @@
  * Or: node --loader ts-node/esm tests/run-sprint-9-tests.ts
  */
 
+import { getConfig } from '@projectpulse/infra-config';
+const infraConfig = getConfig();
+
 // Configuration
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://192.168.1.15:3000';
-const MCP_URL = process.env.NEXT_PUBLIC_MCP_URL || 'http://192.168.1.15:3001';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || infraConfig.webUrl;
+const MCP_URL = process.env.NEXT_PUBLIC_MCP_URL || infraConfig.mcpUrl;
 
 // Test state
 let testProjectId: number;

@@ -7,12 +7,14 @@
  *   node scripts/test-knowledge-mcp-e2e.js
  *
  * Environment variables:
- *   MCP_ENDPOINT - MCP server endpoint (default: http://192.168.1.15:3001/mcp)
+ *   MCP_ENDPOINT - MCP server endpoint (default: localhost:3001/mcp via infra-config)
  *   MCP_TOKEN_PROJECT3 - Agent token for project 3 (required)
  *   TEST_PROJECT_ID - Project ID to test (default: 3)
  */
 
-const MCP_ENDPOINT = process.env.MCP_ENDPOINT || 'http://192.168.1.15:3001/mcp';
+// Use environment variable with sensible default (localhost for dev)
+const MCP_BASE_URL = process.env.PROJECTPULSE_MCP_URL || process.env.MCP_URL || 'http://localhost:3001';
+const MCP_ENDPOINT = process.env.MCP_ENDPOINT || `${MCP_BASE_URL}/mcp`;
 const MCP_TOKEN = process.env.MCP_TOKEN_PROJECT3 || 'pk_test_project3_default_token';
 const TEST_PROJECT_ID = parseInt(process.env.TEST_PROJECT_ID || '3', 10);
 

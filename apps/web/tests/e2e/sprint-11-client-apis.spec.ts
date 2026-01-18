@@ -12,8 +12,10 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { getConfig } from '@projectpulse/infra-config';
 
-const BASE_URL = process.env.BASE_URL || 'http://192.168.1.15:3000';
+const infraConfig = getConfig();
+const BASE_URL = process.env.BASE_URL || infraConfig.webUrl;
 const TEST_PROJECT_ID = 1; // Assumes seeded project exists
 
 test.describe('Sprint 11: Client Agent Integration E2E', () => {

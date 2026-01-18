@@ -2,7 +2,12 @@
 # Manual MCP Tool Testing Script
 # Tests Session 1 tools via HTTP transport
 
-MCP_URL="http://192.168.1.15:3001/mcp"
+# Source infrastructure configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/scripts/lib/infra.sh"
+
+# Use MCP URL from infra config with /mcp endpoint
+MCP_URL="$PROJECTPULSE_MCP_URL/mcp"
 
 echo "=== Test 1: Initialize MCP Session ==="
 RESPONSE=$(curl -s -X POST "$MCP_URL" \

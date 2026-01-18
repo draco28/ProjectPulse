@@ -20,10 +20,13 @@
 import { PrismaClient } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
+import { getConfig } from '@projectpulse/infra-config';
+
+// Load infrastructure config for database URL
+const infraConfig = getConfig();
 
 const prisma = new PrismaClient({
-  datasourceUrl: process.env.DATABASE_URL ||
-    'postgresql://postgres:postgres123@localhost:5432/projectpulse_dev',
+  datasourceUrl: infraConfig.databaseUrl,
 });
 
 /**

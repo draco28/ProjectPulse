@@ -17,11 +17,13 @@ import assert from 'node:assert/strict';
 import { PrismaClient } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
+import { getConfig } from '@projectpulse/infra-config';
 
-const MCP_URL = process.env.MCP_URL || 'http://192.168.1.15:3001';
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev';
+// Load infrastructure config for URLs
+const infraConfig = getConfig();
+const MCP_URL = infraConfig.mcpUrl;
 
-const prisma = new PrismaClient({ datasourceUrl: DATABASE_URL });
+const prisma = new PrismaClient({ datasourceUrl: infraConfig.databaseUrl });
 
 let testProjectId: number;
 let testToken: string;

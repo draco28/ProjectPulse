@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+import { getConfig } from '@projectpulse/infra-config';
+
+// Load infrastructure config (respects PROJECTPULSE_ENV and overrides)
+const infraConfig = getConfig();
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -30,10 +34,10 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`.
-     * Default: Docker container on Mac mini (http://192.168.1.15:3000)
-     * Override: Set BASE_URL environment variable for CI/CD or other environments
+     * Uses @projectpulse/infra-config for environment-aware URL resolution.
+     * Override: Set PROJECTPULSE_WEB_URL or BASE_URL (legacy) environment variable
      */
-    baseURL: process.env.BASE_URL || 'http://192.168.1.15:3000',
+    baseURL: infraConfig.webUrl,
 
     /* Use saved authentication state for all tests */
     storageState: '.auth/user.json',

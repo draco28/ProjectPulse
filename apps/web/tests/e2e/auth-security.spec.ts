@@ -10,8 +10,10 @@
  */
 
 import { test, expect, request } from '@playwright/test';
+import { getConfig } from '@projectpulse/infra-config';
 
-const API_BASE = process.env.API_BASE_URL || 'http://192.168.1.15:3000';
+const infraConfig = getConfig();
+const API_BASE = process.env.API_BASE_URL || infraConfig.webUrl;
 
 // Skip global auth setup - these tests verify unauthenticated behavior
 test.use({ storageState: { cookies: [], origins: [] } });

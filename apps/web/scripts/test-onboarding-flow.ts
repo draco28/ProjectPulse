@@ -12,8 +12,10 @@
  */
 
 import db from '../lib/db';
+import { getConfig } from '@projectpulse/infra-config';
 
-const API_BASE = 'http://192.168.1.15:3000';
+const infraConfig = getConfig();
+const API_BASE = infraConfig.webUrl;
 
 async function testOnboardingFlow() {
   console.log('🧪 Testing Onboarding Flow\n');

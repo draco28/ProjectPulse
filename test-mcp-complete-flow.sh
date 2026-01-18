@@ -4,7 +4,12 @@
 
 set -e
 
-MCP_URL="http://192.168.1.15:3001"
+# Source infrastructure configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/scripts/lib/infra.sh"
+
+# Use MCP URL from infra config (defaults to localhost:3001 for dev)
+MCP_URL="$PROJECTPULSE_MCP_URL"
 PROJECT_ID=8
 
 echo "=========================================="

@@ -1,3 +1,8 @@
+import { getConfig } from '@projectpulse/infra-config';
+
+// Load infrastructure config for default URL
+const infraConfig = getConfig();
+
 /**
  * MCP Test Client
  *
@@ -6,7 +11,7 @@
  *
  * Usage:
  * ```typescript
- * const client = new MCPTestClient('http://192.168.1.15:3001', authToken);
+ * const client = new MCPTestClient(infraConfig.mcpUrl, authToken);
  * const result = await client.callTool('projectpulse_ticket_create', { projectId, title, ... });
  * ```
  */
@@ -15,7 +20,7 @@ export class MCPTestClient {
   private baseUrl: string;
   private token: string;
 
-  constructor(baseUrl: string = 'http://192.168.1.15:3000/api', token: string) {
+  constructor(baseUrl: string = infraConfig.mcpUrl, token: string) {
     this.baseUrl = baseUrl;
     this.token = token;
   }

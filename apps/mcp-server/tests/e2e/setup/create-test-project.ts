@@ -5,13 +5,17 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { getConfig } from '@projectpulse/infra-config';
+
+// Load infrastructure config for database URL
+const infraConfig = getConfig();
 
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: 'postgresql://postgres:postgres123@192.168.1.15:5432/projectpulse_dev'
-    }
-  }
+      url: infraConfig.databaseUrl,
+    },
+  },
 });
 
 async function main() {

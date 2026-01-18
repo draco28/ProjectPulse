@@ -13,6 +13,11 @@
 
 set -e
 
+# Source infrastructure configuration for prod-local environment
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PROJECTPULSE_ENV=prod-local
+source "$SCRIPT_DIR/lib/infra.sh"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -145,8 +150,8 @@ echo -e "${GREEN}✅ Database services started${NC}"
 echo ""
 echo -e "${YELLOW}📊 Running database migrations...${NC}"
 
-# Set DATABASE_URL for migration
-export DATABASE_URL="postgresql://${PROD_POSTGRES_USER:-projectpulse}:${PROD_POSTGRES_PASSWORD}@192.168.1.15:5433/${PROD_POSTGRES_DB:-projectpulse_prod}"
+# Set DATABASE_URL for migration (uses PROJECTPULSE_DATABASE_URL from infra.sh if set, otherwise construct from env vars)
+export DATABASE_URL="${PROJECTPULSE_DATABASE_URL:-postgresql://${PROD_POSTGRES_USER:-projectpulse}:${PROD_POSTGRES_PASSWORD}@localhost:5433/${PROD_POSTGRES_DB:-projectpulse_prod}}"
 
 # Run migrations
 cd apps/web
@@ -171,7 +176,7 @@ sleep 10
 
 # Wait for Next.js
 for i in {1..30}; do
-  if curl -sf http://192.168.1.15:8080/api/health &>/dev/null; then
+  if curl -sf "$PROJECTPULSE_WEB_URL/api/health" &>/dev/null; then
     echo -e "${GREEN}   ✅ Next.js is healthy${NC}"
     break
   fi
@@ -183,7 +188,7 @@ done
 
 # Wait for MCP
 for i in {1..20}; do
-  if curl -sf http://192.168.1.15:8081/health &>/dev/null; then
+  if curl -sf "$PROJECTPULSE_MCP_URL/health" &>/dev/null; then
     echo -e "${GREEN}   ✅ MCP server is healthy${NC}"
     break
   fi
@@ -205,8 +210,8 @@ docker compose -f docker-compose.prod-local.yml ps --format "table {{.Name}}\t{{
 
 echo ""
 echo -e "${BLUE}Health Checks:${NC}"
-curl -sf http://192.168.1.15:8080/api/health && echo -e "   Web API:  ${GREEN}✅ Healthy${NC}" || echo -e "   Web API:  ${RED}❌ Unhealthy${NC}"
-curl -sf http://192.168.1.15:8081/health && echo -e "   MCP API:  ${GREEN}✅ Healthy${NC}" || echo -e "   MCP API:  ${RED}❌ Unhealthy${NC}"
+curl -sf "$PROJECTPULSE_WEB_URL/api/health" && echo -e "   Web API:  ${GREEN}✅ Healthy${NC}" || echo -e "   Web API:  ${RED}❌ Unhealthy${NC}"
+curl -sf "$PROJECTPULSE_MCP_URL/health" && echo -e "   MCP API:  ${GREEN}✅ Healthy${NC}" || echo -e "   MCP API:  ${RED}❌ Unhealthy${NC}"
 
 # ============================================
 # Done!
@@ -217,8 +222,8 @@ echo "🎉 Production deployment complete!"
 echo "=================================="
 echo -e "${NC}"
 echo -e "${BLUE}Local URLs:${NC}"
-echo "   Web:  http://192.168.1.15:8080"
-echo "   MCP:  http://192.168.1.15:8081"
+echo "   Web:  $PROJECTPULSE_WEB_URL"
+echo "   MCP:  $PROJECTPULSE_MCP_URL"
 echo ""
 echo -e "${BLUE}Cloudflare Tunnel:${NC}"
 if [ -n "$CLOUDFLARE_TUNNEL_TOKEN" ] && [ "$CLOUDFLARE_TUNNEL_TOKEN" != "<your-tunnel-token>" ]; then

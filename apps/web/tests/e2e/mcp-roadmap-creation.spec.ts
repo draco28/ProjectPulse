@@ -16,6 +16,9 @@
  * @see .agent/sops/mac-mini-cloud-architecture.md
  */
 import { test, expect, Page, APIRequestContext } from '@playwright/test';
+import { getConfig } from '@projectpulse/infra-config';
+
+const infraConfig = getConfig();
 
 // Test configuration
 test.setTimeout(90000); // Extended timeout for MCP calls + UI verification
@@ -24,8 +27,8 @@ test.setTimeout(90000); // Extended timeout for MCP calls + UI verification
 test.use({ actionTimeout: 15000 });
 
 // Server URLs
-const MCP_SERVER_URL = 'http://192.168.1.15:3001';
-const API_SERVER_URL = 'http://192.168.1.15:3000';
+const MCP_SERVER_URL = infraConfig.mcpUrl;
+const API_SERVER_URL = infraConfig.webUrl;
 const TEST_PROJECT_ID = 3;
 
 // Agent token for MCP authentication (set during test setup)

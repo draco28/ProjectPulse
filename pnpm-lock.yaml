@@ -58,6 +58,9 @@ importers:
       '@prisma/client':
         specifier: ^5.9.1
         version: 5.22.0(prisma@5.22.0)
+      '@projectpulse/infra-config':
+        specifier: workspace:*
+        version: link:../../packages/infra-config
       '@projectpulse/roadmap-tools':
         specifier: workspace:*
         version: link:../../packages/roadmap-tools
@@ -131,6 +134,9 @@ importers:
       '@prisma/client':
         specifier: ^5.9.1
         version: 5.22.0(prisma@5.22.0)
+      '@projectpulse/infra-config':
+        specifier: workspace:*
+        version: link:../../packages/infra-config
       '@projectpulse/roadmap-tools':
         specifier: workspace:*
         version: link:../../packages/roadmap-tools
@@ -393,6 +399,19 @@ importers:
       undici:
         specifier: ^7.16.0
         version: 7.16.0
+
+  packages/infra-config:
+    dependencies:
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.16
+        version: 20.19.23
+      typescript:
+        specifier: ^5.4.2
+        version: 5.9.3
 
   packages/roadmap-tools:
     dependencies:

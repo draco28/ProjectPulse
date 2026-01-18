@@ -9,8 +9,11 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { getConfig } from '@projectpulse/infra-config';
 
-const MCP_URL = process.env.MCP_URL || 'http://192.168.1.15:3001';
+// Load infrastructure config for MCP URL
+const infraConfig = getConfig();
+const MCP_URL = infraConfig.mcpUrl;
 
 describe('MCP Server Authentication', () => {
   describe('Bearer Token Requirement', () => {

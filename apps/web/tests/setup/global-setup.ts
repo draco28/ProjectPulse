@@ -16,12 +16,16 @@
 
 import { chromium, FullConfig } from '@playwright/test';
 import path from 'path';
+import { getConfig } from '@projectpulse/infra-config';
+
+// Load infrastructure config for fallback URL
+const infraConfig = getConfig();
 
 async function globalSetup(config: FullConfig) {
   console.log('🔐 Global Setup: Logging in and saving authentication state...');
 
   const baseURL =
-    (config.projects?.[0]?.use as { baseURL?: string })?.baseURL || 'http://192.168.1.15:3000';
+    (config.projects?.[0]?.use as { baseURL?: string })?.baseURL || infraConfig.webUrl;
   const storageStatePath = path.join(process.cwd(), '.auth', 'user.json');
 
   // Launch browser

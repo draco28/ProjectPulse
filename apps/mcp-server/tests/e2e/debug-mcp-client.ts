@@ -4,6 +4,9 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import { getConfig } from '@projectpulse/infra-config';
+
+const infraConfig = getConfig();
 
 async function testMCPConnection() {
   console.log('🔍 Testing MCP SDK Connection...\n');
@@ -12,7 +15,7 @@ async function testMCPConnection() {
     // Step 1: Create transport
     console.log('Step 1: Creating SSEClientTransport...');
     const transport = new SSEClientTransport(
-      new URL('http://192.168.1.15:3001/mcp')
+      new URL(`${infraConfig.mcpUrl}/mcp`)
     );
     console.log('✅ Transport created\n');
 
