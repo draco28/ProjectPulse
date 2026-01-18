@@ -73,9 +73,9 @@ export async function POST(request: NextRequest) {
     const cleanPath = normalizePath(path);
     const normalizedPath = `/${cleanPath}`;
 
-    // Check if path already exists (409 Conflict per next-js-expert)
-    const existingPage = await prisma.wikiPage.findUnique({
-      where: { path: normalizedPath },
+    // Check if path already exists for this project (409 Conflict per next-js-expert)
+    const existingPage = await prisma.wikiPage.findFirst({
+      where: { path: normalizedPath, projectId },
       select: { id: true },
     });
 
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Resolve cross-links in content (US-108)
-    const crossLinkResult = await resolveCrossLinks(content, normalizedPath);
+    const crossLinkResult = await resolveCrossLinks(content, normalizedPath, projectId);
 
     // Log warnings for unresolved links
     if (crossLinkResult.unresolvedLinks.length > 0) {

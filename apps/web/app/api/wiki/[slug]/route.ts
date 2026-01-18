@@ -208,8 +208,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
           parentUpdate.parent = { disconnect: true };
         } else {
           const normalizedParentPath = parentPath.startsWith('/') ? parentPath : `/${parentPath}`;
-          const parentPage = await tx.wikiPage.findUnique({
-            where: { path: normalizedParentPath },
+          const parentPage = await tx.wikiPage.findFirst({
+            where: { path: normalizedParentPath, projectId },
             select: { id: true },
           });
 
@@ -266,7 +266,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
       // Resolve cross-links if content is being updated (US-108)
       let crossLinkResult: Awaited<ReturnType<typeof resolveCrossLinks>> | null = null;
       if (partialUpdate.content !== undefined) {
-        crossLinkResult = await resolveCrossLinks(partialUpdate.content, slugPath);
+        crossLinkResult = await resolveCrossLinks(partialUpdate.content, slugPath, projectId);
 
         // Log warnings
         if (crossLinkResult.unresolvedLinks.length > 0) {

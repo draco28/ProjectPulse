@@ -2,14 +2,31 @@
  * @jest-environment node
  *
  * Tests for GET /api/wiki covering pagination and tsvector search behaviour
+ *
+ * Ticket #132: Updated for per-project path uniqueness
+ * - Added auth mock (getAuthorizedProjectId)
+ * - findUnique → findFirst
+ * - Added projectId to where clauses
  */
+
+// Mock auth before importing the route
+jest.mock('@/lib/auth/validateRequest', () => ({
+  getAuthorizedProjectId: jest.fn().mockResolvedValue({ projectId: 6 }),
+  AuthError: class AuthError extends Error {
+    status: number;
+    constructor(message: string, status: number) {
+      super(message);
+      this.status = status;
+    }
+  },
+}));
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     wikiPage: {
       findMany: jest.fn(),
       count: jest.fn(),
-      findUnique: jest.fn(),
+      findFirst: jest.fn(),
       create: jest.fn(),
     },
     $queryRaw: jest.fn(),
@@ -49,7 +66,7 @@ describe('GET /api/wiki', () => {
     expect(response.status).toBe(200);
     expect(mockPrisma.wikiPage.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: {},
+        where: { projectId: 6 },
         take: 5,
         skip: 0,
       })
@@ -82,10 +99,10 @@ describe('GET /api/wiki', () => {
 
     expect(mockPrisma.wikiPage.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { category: 'guides' },
+        where: { projectId: 6, category: 'guides' },
       })
     );
-    expect(mockPrisma.wikiPage.count).toHaveBeenCalledWith({ where: { category: 'guides' } });
+    expect(mockPrisma.wikiPage.count).toHaveBeenCalledWith({ where: { projectId: 6, category: 'guides' } });
   });
 
   it('uses tsvector search and highlights results when search term is provided', async () => {

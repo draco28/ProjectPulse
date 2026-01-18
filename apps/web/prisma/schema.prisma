@@ -830,7 +830,8 @@ model WikiPage {
   children WikiPage[] @relation("PageHierarchy")
 
   // URL path (e.g., /rules/combat/fsm-authority)
-  path       String @unique
+  // Note: Uniqueness is per-project via @@unique([projectId, path])
+  path       String
   orderIndex Int    @default(0)
 
   // Full-text search (generated column via migration)
@@ -871,7 +872,7 @@ model WikiPage {
   updatedAt DateTime @updatedAt
 
   @@index([projectId])
-  @@index([projectId, path])
+  @@unique([projectId, path]) // Per-project uniqueness (Ticket #132)
   @@index([projectId, category])
   @@index([path])
   @@index([parentId])

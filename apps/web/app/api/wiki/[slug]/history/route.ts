@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
@@ -20,20 +20,23 @@ const MAX_HISTORY_LIMIT = 50;
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
   const log = createRequestLogger(getRequestId(request));
   try {
+    const searchParams = request.nextUrl.searchParams;
+
+    // Authenticate and get authorized projectId FIRST (Ticket #132: per-project path uniqueness)
+    const requestedProjectId = searchParams.get('project')
+      ? parseInt(searchParams.get('project')!, 10)
+      : undefined;
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
+
     const slugPath = params.slug.startsWith('/') ? params.slug : `/${params.slug}`;
-    const page = await prisma.wikiPage.findUnique({
-      where: { path: slugPath },
-      select: { id: true, projectId: true },
+    const page = await prisma.wikiPage.findFirst({
+      where: { path: slugPath, projectId },
+      select: { id: true },
     });
 
     if (!page) {
       return NextResponse.json({ error: 'Wiki page not found' }, { status: 404 });
     }
-
-    // Authenticate and validate project access
-    await requireProjectAccess(request, page.projectId);
-
-    const searchParams = request.nextUrl.searchParams;
     const limitParam = searchParams.get('limit');
     const cursorParam = searchParams.get('cursor');
 

@@ -77,7 +77,8 @@ function getCategoryIcon(category: string): string {
 
 async function getWikiPage(slug: string, projectId: number) {
   // Optimized: Single query with include for analytics + parallel prev/next
-  const page = await prisma.wikiPage.findUnique({
+  // Ticket #132: Changed findUnique to findFirst for per-project path uniqueness
+  const page = await prisma.wikiPage.findFirst({
     where: { path: `/${slug}`, projectId }, // Ensure project isolation
     select: {
       id: true,

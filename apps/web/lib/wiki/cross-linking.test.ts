@@ -7,6 +7,10 @@
  * - Circular reference detection
  * - Missing page handling
  * - PageLink CRUD operations
+ *
+ * Ticket #132: Updated for per-project path uniqueness
+ * - resolveCrossLinks now requires projectId parameter
+ * - All calls pass testProjectId for project isolation
  */
 
 import { prisma } from '@/lib/prisma';
@@ -181,7 +185,7 @@ describe('Cross-Linking Utility', () => {
   describe('resolveCrossLinks', () => {
     it('should resolve valid cross-links', async () => {
       const content = 'See @wiki/api-reference for details';
-      const result = await resolveCrossLinks(content, '/test-page');
+      const result = await resolveCrossLinks(content, '/test-page', testProjectId);
 
       expect(result.resolvedLinks).toHaveLength(1);
       expect(result.resolvedLinks[0]).toBeDefined();
@@ -196,7 +200,7 @@ describe('Cross-Linking Utility', () => {
 
     it('should resolve multiple cross-links', async () => {
       const content = 'Read @wiki/api-reference and [[getting-started]]';
-      const result = await resolveCrossLinks(content, '/test-page');
+      const result = await resolveCrossLinks(content, '/test-page', testProjectId);
 
       expect(result.resolvedLinks).toHaveLength(2);
       expect(result.content).toContain('[API Reference](/wiki/api-reference)');
@@ -205,7 +209,7 @@ describe('Cross-Linking Utility', () => {
 
     it('should handle unresolved links (missing pages)', async () => {
       const content = 'See @wiki/nonexistent-page';
-      const result = await resolveCrossLinks(content, '/test-page');
+      const result = await resolveCrossLinks(content, '/test-page', testProjectId);
 
       expect(result.unresolvedLinks).toHaveLength(1);
       expect(result.unresolvedLinks[0]).toBeDefined();
@@ -220,7 +224,7 @@ describe('Cross-Linking Utility', () => {
 
     it('should detect circular references', async () => {
       const content = 'See @wiki/api-reference';
-      const result = await resolveCrossLinks(content, '/api-reference');
+      const result = await resolveCrossLinks(content, '/api-reference', testProjectId);
 
       expect(result.circularReferences).toHaveLength(1);
       expect(result.circularReferences[0]).toBeDefined();
@@ -232,7 +236,7 @@ describe('Cross-Linking Utility', () => {
 
     it('should handle mixed resolved and unresolved links', async () => {
       const content = 'Valid: @wiki/api-reference Invalid: @wiki/missing-page';
-      const result = await resolveCrossLinks(content, '/test-page');
+      const result = await resolveCrossLinks(content, '/test-page', testProjectId);
 
       expect(result.resolvedLinks).toHaveLength(1);
       expect(result.unresolvedLinks).toHaveLength(1);
@@ -240,7 +244,7 @@ describe('Cross-Linking Utility', () => {
 
     it('should deduplicate resolved links', async () => {
       const content = 'Link 1: @wiki/api-reference Link 2: @wiki/api-reference';
-      const result = await resolveCrossLinks(content, '/test-page');
+      const result = await resolveCrossLinks(content, '/test-page', testProjectId);
 
       // Should only have one resolved link entry (deduplicated)
       expect(result.resolvedLinks).toHaveLength(1);
@@ -252,7 +256,7 @@ describe('Cross-Linking Utility', () => {
 
     it('should return unchanged content if no links found', async () => {
       const content = 'Regular markdown without cross-links';
-      const result = await resolveCrossLinks(content, '/test-page');
+      const result = await resolveCrossLinks(content, '/test-page', testProjectId);
 
       expect(result.content).toBe(content);
       expect(result.resolvedLinks).toHaveLength(0);
@@ -360,7 +364,7 @@ describe('Cross-Linking Utility', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty content', async () => {
-      const result = await resolveCrossLinks('', '/test-page');
+      const result = await resolveCrossLinks('', '/test-page', testProjectId);
 
       expect(result.content).toBe('');
       expect(result.resolvedLinks).toHaveLength(0);
@@ -368,14 +372,14 @@ describe('Cross-Linking Utility', () => {
 
     it('should handle content with only whitespace', async () => {
       const content = '   \n\n   \t\t  ';
-      const result = await resolveCrossLinks(content, '/test-page');
+      const result = await resolveCrossLinks(content, '/test-page', testProjectId);
 
       expect(result.content).toBe(content);
     });
 
     it('should preserve markdown formatting around links', async () => {
       const content = '**Bold** @wiki/api-reference *italic*';
-      const result = await resolveCrossLinks(content, '/test-page');
+      const result = await resolveCrossLinks(content, '/test-page', testProjectId);
 
       expect(result.content).toContain('**Bold**');
       expect(result.content).toContain('*italic*');

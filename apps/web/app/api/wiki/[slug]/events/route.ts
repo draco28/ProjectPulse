@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
@@ -36,18 +36,22 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
       );
     }
 
+    // Authenticate and get authorized projectId FIRST (Ticket #132: per-project path uniqueness)
+    const { searchParams } = new URL(request.url);
+    const requestedProjectId = searchParams.get('project')
+      ? parseInt(searchParams.get('project')!, 10)
+      : undefined;
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
+
     const slugPath = params.slug.startsWith('/') ? params.slug : `/${params.slug}`;
-    const page = await prisma.wikiPage.findUnique({
-      where: { path: slugPath },
-      select: { id: true, projectId: true },
+    const page = await prisma.wikiPage.findFirst({
+      where: { path: slugPath, projectId },
+      select: { id: true },
     });
 
     if (!page) {
       return NextResponse.json({ error: 'Wiki page not found' }, { status: 404 });
     }
-
-    // Authenticate and validate project access
-    await requireProjectAccess(request, page.projectId);
 
     await prisma.$transaction(async (tx) => {
       await tx.wikiPageEvent.create({

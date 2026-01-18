@@ -115,7 +115,7 @@ export function parseCrossLinks(content: string): ParsedCrossLink[] {
  * @returns Resolution result with processed content and metadata
  *
  * @example
- * await resolveCrossLinks("See @wiki/api-docs", "/getting-started")
+ * await resolveCrossLinks("See @wiki/api-docs", "/getting-started", 6)
  * // Returns: {
  * //   content: "See [API Documentation](/wiki/api-docs)",
  * //   resolvedLinks: [{ slug: "api-docs", title: "API Documentation", wikiPageId: 5 }],
@@ -126,7 +126,7 @@ export function parseCrossLinks(content: string): ParsedCrossLink[] {
 export async function resolveCrossLinks(
   content: string,
   sourcePagePath: string,
-  _projectId?: number // Reserved for future multi-tenant scoping
+  projectId: number // Required for multi-tenant scoping (Ticket #132)
 ): Promise<CrossLinkResolution> {
   // Parse all cross-links
   const parsedLinks = parseCrossLinks(content);
@@ -143,9 +143,10 @@ export async function resolveCrossLinks(
   // Extract unique slugs
   const uniqueSlugs = Array.from(new Set(parsedLinks.map((link) => link.slug)));
 
-  // Query database for wiki pages matching slugs
+  // Query database for wiki pages matching slugs (scoped to project)
   const wikiPages = await prisma.wikiPage.findMany({
     where: {
+      projectId, // Security: scope to project (Ticket #132)
       path: {
         in: uniqueSlugs.map((slug) => `/${slug}`), // Add leading slash for path matching
       },

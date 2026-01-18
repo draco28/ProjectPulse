@@ -3,13 +3,30 @@
  *
  * Wiki revision history API route tests
  * Tests pagination, cursor-based navigation, and error handling
+ *
+ * Ticket #132: Updated for per-project path uniqueness
+ * - findUnique → findFirst
+ * - Added projectId to where clauses
+ * - Mock getAuthorizedProjectId
  */
+
+// Mock auth before importing the route
+jest.mock('@/lib/auth/validateRequest', () => ({
+  getAuthorizedProjectId: jest.fn().mockResolvedValue({ projectId: 6 }),
+  AuthError: class AuthError extends Error {
+    status: number;
+    constructor(message: string, status: number) {
+      super(message);
+      this.status = status;
+    }
+  },
+}));
 
 // Mock Prisma before importing the route
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     wikiPage: {
-      findUnique: jest.fn(),
+      findFirst: jest.fn(),
     },
     wikiRevision: {
       findMany: jest.fn(),
@@ -61,7 +78,7 @@ describe('GET /api/wiki/[slug]/history', () => {
 
   describe('Success cases', () => {
     it('should return revision history for existing wiki page', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history');
@@ -78,34 +95,34 @@ describe('GET /api/wiki/[slug]/history', () => {
       });
     });
 
-    it('should normalize slug path with leading slash', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+    it('should normalize slug path with leading slash and include projectId', async () => {
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history');
       await GET(request, { params: { slug: 'getting-started' } });
 
-      expect(mockPrisma.wikiPage.findUnique).toHaveBeenCalledWith({
-        where: { path: '/getting-started' },
+      expect(mockPrisma.wikiPage.findFirst).toHaveBeenCalledWith({
+        where: { path: '/getting-started', projectId: 6 },
         select: { id: true },
       });
     });
 
     it('should accept slug with leading slash', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
       const request = new NextRequest('http://localhost/api/wiki//getting-started/history');
       await GET(request, { params: { slug: '/getting-started' } });
 
-      expect(mockPrisma.wikiPage.findUnique).toHaveBeenCalledWith({
-        where: { path: '/getting-started' },
+      expect(mockPrisma.wikiPage.findFirst).toHaveBeenCalledWith({
+        where: { path: '/getting-started', projectId: 6 },
         select: { id: true },
       });
     });
 
     it('should return revisions in descending order by version', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history');
@@ -121,7 +138,7 @@ describe('GET /api/wiki/[slug]/history', () => {
 
   describe('Pagination', () => {
     it('should use default limit of 10 when not specified', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history');
@@ -135,7 +152,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should accept custom limit parameter', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions.slice(0, 5));
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history?limit=5');
@@ -149,7 +166,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should enforce maximum limit of 50', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
       const request = new NextRequest(
@@ -165,7 +182,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should enforce minimum limit of 1', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions.slice(0, 1));
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history?limit=-5');
@@ -179,7 +196,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should handle invalid limit parameter', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
       const request = new NextRequest(
@@ -195,7 +212,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should return nextCursor when more results available', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
 
       // Return exactly 3 results when limit is 3
       const limitedRevisions = mockRevisions.slice(0, 3);
@@ -210,7 +227,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should handle cursor-based pagination', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions.slice(1));
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history?cursor=3');
@@ -230,7 +247,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should not skip when no cursor provided', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history');
@@ -247,7 +264,7 @@ describe('GET /api/wiki/[slug]/history', () => {
 
   describe('Error cases', () => {
     it('should return 404 when wiki page not found', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce(null);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce(null);
 
       const request = new NextRequest('http://localhost/api/wiki/nonexistent/history');
       const response = await GET(request, { params: { slug: 'nonexistent' } });
@@ -258,7 +275,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should return 500 when database query fails', async () => {
-      mockPrisma.wikiPage.findUnique.mockRejectedValueOnce(new Error('Database error'));
+      mockPrisma.wikiPage.findFirst.mockRejectedValueOnce(new Error('Database error'));
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history');
       const response = await GET(request, { params: { slug: 'getting-started' } });
@@ -269,7 +286,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should return 500 when revision query fails', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockRejectedValueOnce(new Error('Query error'));
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history');
@@ -283,7 +300,7 @@ describe('GET /api/wiki/[slug]/history', () => {
 
   describe('Data selection', () => {
     it('should return only required revision fields', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce(mockRevisions);
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history');
@@ -305,7 +322,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should handle revisions with null diffSummary', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce([mockRevisions[2]]); // Initial version has null diffSummary
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history');
@@ -317,7 +334,7 @@ describe('GET /api/wiki/[slug]/history', () => {
     });
 
     it('should return empty array when no revisions exist', async () => {
-      mockPrisma.wikiPage.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+      mockPrisma.wikiPage.findFirst.mockResolvedValueOnce({ id: 1 } as any);
       mockPrisma.wikiRevision.findMany.mockResolvedValueOnce([]);
 
       const request = new NextRequest('http://localhost/api/wiki/getting-started/history');

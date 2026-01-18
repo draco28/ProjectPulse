@@ -3,7 +3,24 @@
  *
  * Wiki page revert API route tests
  * Tests transactional revert logic, validation, actor metadata, and error handling
+ *
+ * Ticket #132: Updated for per-project path uniqueness
+ * - findUnique → findFirst
+ * - Added projectId to where clauses
+ * - Mock getAuthorizedProjectId
  */
+
+// Mock auth before importing the route
+jest.mock('@/lib/auth/validateRequest', () => ({
+  getAuthorizedProjectId: jest.fn().mockResolvedValue({ projectId: 6 }),
+  AuthError: class AuthError extends Error {
+    status: number;
+    constructor(message: string, status: number) {
+      super(message);
+      this.status = status;
+    }
+  },
+}));
 
 // Mock Next.js cache utilities
 jest.mock('next/cache', () => ({
@@ -61,7 +78,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         return callback({
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -98,7 +115,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -123,7 +140,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       const txCallback = (mockPrisma.$transaction as jest.Mock).mock.calls[0][0];
       const mockTx = {
         wikiPage: {
-          findUnique: jest.fn().mockResolvedValue(mockPage),
+          findFirst: jest.fn().mockResolvedValue(mockPage),
           update: jest.fn(),
         },
         wikiRevision: {
@@ -137,8 +154,8 @@ describe('POST /api/wiki/[slug]/revert', () => {
 
       await txCallback(mockTx);
 
-      expect(mockTx.wikiPage.findUnique).toHaveBeenCalledWith({
-        where: { path: '/getting-started' },
+      expect(mockTx.wikiPage.findFirst).toHaveBeenCalledWith({
+        where: { path: '/getting-started', projectId: 6 },
         select: expect.any(Object),
       });
     });
@@ -149,7 +166,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -192,7 +209,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -235,7 +252,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -272,7 +289,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         return callback({
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -304,7 +321,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -347,7 +364,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -390,7 +407,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -429,7 +446,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -529,7 +546,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         return callback({
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -578,7 +595,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(null),
+            findFirst: jest.fn().mockResolvedValue(null),
           },
         };
         await callback(mockTx as any);
@@ -600,7 +617,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
           },
           wikiRevision: {
             findUnique: jest.fn().mockResolvedValue(null),
@@ -656,7 +673,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -697,7 +714,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -735,7 +752,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {
@@ -780,7 +797,7 @@ describe('POST /api/wiki/[slug]/revert', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         const mockTx = {
           wikiPage: {
-            findUnique: jest.fn().mockResolvedValue(mockPage),
+            findFirst: jest.fn().mockResolvedValue(mockPage),
             update: jest.fn().mockResolvedValue(mockUpdatedPage),
           },
           wikiRevision: {

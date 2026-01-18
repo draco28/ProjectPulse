@@ -196,7 +196,7 @@ async function processDocumentation(
   const title = doc.fileName.replace(/\.(ts|tsx|js|jsx)$/, '');
 
   // Resolve cross-links in markdown content (US-108)
-  const crossLinkResult = await resolveCrossLinks(markdown, slug);
+  const crossLinkResult = await resolveCrossLinks(markdown, slug, projectId);
 
   // Note: Warnings for unresolved links and circular references are handled at module level
   // since this is a helper function without direct request context
@@ -204,9 +204,9 @@ async function processDocumentation(
   // Use processed content with resolved cross-links
   const processedContent = crossLinkResult.content;
 
-  // Check if page already exists
-  const existing = await prisma.wikiPage.findUnique({
-    where: { path: slug },
+  // Check if page already exists for this project
+  const existing = await prisma.wikiPage.findFirst({
+    where: { path: slug, projectId },
   });
 
   if (existing) {

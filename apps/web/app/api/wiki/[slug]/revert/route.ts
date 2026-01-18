@@ -13,7 +13,7 @@ import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
@@ -65,25 +65,28 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
 
     const slugPath = params.slug.startsWith('/') ? params.slug : `/${params.slug}`;
 
+    // Authenticate and get authorized projectId FIRST (Ticket #132: per-project path uniqueness)
+    const { searchParams } = new URL(request.url);
+    const requestedProjectId = searchParams.get('project')
+      ? parseInt(searchParams.get('project')!, 10)
+      : undefined;
+    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
+
     const revertedPage = await prisma.$transaction(async (tx) => {
-      const page = await tx.wikiPage.findUnique({
-        where: { path: slugPath },
+      const page = await tx.wikiPage.findFirst({
+        where: { path: slugPath, projectId },
         select: {
           id: true,
           title: true,
           content: true,
           excerpt: true,
           version: true,
-          projectId: true,
         },
       });
 
       if (!page) {
         throw 'NOT_FOUND';
       }
-
-      // Authenticate and validate project access
-      await requireProjectAccess(request, page.projectId);
 
       const revision = await tx.wikiRevision.findUnique({
         where: {

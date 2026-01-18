@@ -28,7 +28,8 @@ export default async function WikiEditPage({ params, searchParams }: WikiEditPag
   // Normalize path for DB lookup (add leading slash if needed)
   const dbPath = path.startsWith('/') ? path : `/${path}`;
 
-  const page = await prisma.wikiPage.findUnique({
+  // Ticket #132: Changed findUnique to findFirst for per-project path uniqueness
+  const page = await prisma.wikiPage.findFirst({
     where: { path: dbPath, projectId }, // Ensure project isolation
   });
 
