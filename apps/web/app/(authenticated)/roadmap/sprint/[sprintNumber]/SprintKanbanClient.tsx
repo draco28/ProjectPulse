@@ -21,7 +21,7 @@ interface SprintKanbanClientProps {
   initialSprint: SprintContext;
 }
 
-export default function SprintKanbanClient({ sprintId, projectId, initialSprint }: SprintKanbanClientProps) {
+export default function SprintKanbanClient({ sprintId, projectId, initialSprint: _initialSprint }: SprintKanbanClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 

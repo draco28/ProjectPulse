@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from 'react';
 import { Ban, Plus, X, Loader2, Wrench } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import '@/lib/utils';
 
 export function BlockedToolsPanel() {
   const [blockedTools, setBlockedTools] = useState<string[]>([]);

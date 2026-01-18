@@ -5,7 +5,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, AlertTriangle, Key, Wrench, TrendingUp, Clock } from 'lucide-react';
+import { Activity, AlertTriangle, Key, Wrench, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MCPStats {

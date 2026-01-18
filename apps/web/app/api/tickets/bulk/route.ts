@@ -16,7 +16,7 @@ import { prisma } from '@/lib/prisma';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 import { TicketBulkCreateSchema } from '@/lib/validations/ticket';
-import { failure, success, resolveProjectId } from '../_utils';
+import { failure, success } from '../_utils';
 import { resolveModuleValue, resolvePriorityValue, resolveStatusValue } from '@/lib/issues/options';
 import { deriveAutoTags } from '@/lib/issues/tagging';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
