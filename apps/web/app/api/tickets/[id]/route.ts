@@ -228,7 +228,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     // Handle label updates
-    let labelConnect: { id: number }[] | undefined;
+    let _labelConnect: { id: number }[] | undefined;
     let labelSet: { id: number }[] | undefined;
 
     if (data.labelIds !== undefined) {

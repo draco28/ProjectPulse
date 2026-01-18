@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
  * - Active agent personas
  */
 
-import { redirect } from 'next/navigation';
+import 'next/navigation';
 import { WelcomeBanner } from '@/components/dashboard/WelcomeBanner';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { TicketCard } from '@/components/dashboard/TicketCard';
