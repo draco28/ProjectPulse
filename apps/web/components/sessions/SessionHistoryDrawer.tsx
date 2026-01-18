@@ -284,7 +284,7 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
           </div>
 
           {/* Filter Pills */}
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-auto-hide">
             {FILTER_OPTIONS.map((option) => (
               <button
                 key={option.value}
@@ -298,7 +298,7 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto scrollbar-auto-hide">
           {sessionsQuery.isLoading ? (
             <div className="flex items-center justify-center h-48">
               <div className="animate-spin w-6 h-6 border-2 border-coral border-t-transparent rounded-full" />

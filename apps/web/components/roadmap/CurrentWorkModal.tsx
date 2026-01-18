@@ -121,7 +121,7 @@ export function CurrentWorkModal({ projectId, isOpen, onClose }: CurrentWorkModa
         </div>
 
         {/* Content */}
-        <div className="max-h-[calc(85vh-100px)] overflow-y-auto p-6">
+        <div className="max-h-[calc(85vh-100px)] overflow-y-auto scrollbar-auto-hide p-6">
           {loading && (
             <div className="py-12 text-center">
               <p className="text-slate">Loading session...</p>
