@@ -20,7 +20,6 @@ import { CreateTicketSchema, TicketFilterSchema, TicketKind } from '@/lib/valida
 import {
   failure,
   success,
-  resolveProjectId,
   buildTicketWhere,
   buildTicketOrderBy,
   ticketIncludeConfig,
