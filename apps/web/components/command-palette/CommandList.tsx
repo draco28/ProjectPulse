@@ -77,7 +77,7 @@ export function CommandList({ categories }: CommandListProps) {
     .filter((cat) => cat.commands.length > 0);
 
   return (
-    <div ref={listRef} className="max-h-96 overflow-y-auto" role="listbox">
+    <div ref={listRef} className="max-h-96 overflow-y-auto scrollbar-auto-hide" role="listbox">
       {commandsByCategory.map((category, catIndex) => (
         <div key={category.id} className={catIndex > 0 ? 'border-t border-[#1F1F1F] p-4' : 'p-4'}>
           <CommandSection icon={category.icon as string} label={category.label} />

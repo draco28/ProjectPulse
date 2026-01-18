@@ -284,7 +284,7 @@ export function LabelPicker({
           {/* Labels List */}
           <div
             ref={listRef}
-            className="max-h-48 overflow-y-auto"
+            className="max-h-48 overflow-y-auto scrollbar-auto-hide"
             role="listbox"
             aria-label="Available labels"
           >

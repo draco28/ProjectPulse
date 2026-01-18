@@ -260,7 +260,7 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
           },
         }}
       >
-        <div className="flex gap-4 overflow-x-auto p-6 pt-2 flex-1 min-h-0">
+        <div className="flex gap-4 overflow-x-auto scrollbar-auto-hide p-6 pt-2 flex-1 min-h-0">
           {TICKET_STATUS_VALUES.map((status) => (
             <KanbanColumn
               key={status}
@@ -284,7 +284,7 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
 
 function KanbanBoardSkeleton() {
   return (
-    <div className="flex gap-4 p-6 overflow-x-auto animate-pulse">
+    <div className="flex gap-4 p-6 overflow-x-auto scrollbar-auto-hide animate-pulse">
       {[...Array(5)].map((_, i) => (
         <div key={i} className="kanban-column flex flex-col">
           {/* Header skeleton */}
