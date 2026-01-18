@@ -61,6 +61,57 @@ This returns:
 
 ---
 
+## ⚠️ CRITICAL: Ticket Identification (Sprint 17)
+
+### The Problem
+
+Users see **#123** in the web UI. This is `ticketNumber` (project-scoped).
+**DO NOT** use this as `ticketId` - that's a different number (global database ID)!
+
+### Decision Rule
+
+| User Says | Parameter to Use | Example |
+|-----------|------------------|---------|
+| "#5", "ticket 5", "work on 5" | `ticketNumber` + `projectId` | `ticket_get({ ticketNumber: 5, projectId: 6 })` |
+| (from previous API response) | `ticketId` | `ticket_update({ ticketId: 42, ... })` |
+
+### Quick Decision Tree
+
+1. **Did the USER give you the number?** → Use `ticketNumber` + `projectId`
+2. **Did an API call return an ID?** → Use `ticketId`
+3. **Not sure?** → Use `ticketNumber` + `projectId` (safer default)
+
+### Examples
+
+```
+# CORRECT: User says "update ticket #5"
+projectpulse_ticket_update({
+  ticketNumber: 5,   # User's number from UI
+  projectId: 6,      # Always required with ticketNumber
+  status: "in-progress"
+})
+
+# WRONG: This gets a DIFFERENT ticket!
+projectpulse_ticket_update({
+  ticketId: 5,       # Global ID - NOT what user sees!
+  status: "in-progress"
+})
+```
+
+### Agent Session Tickets
+
+```
+# User says "work on tickets #5 and #7"
+projectpulse_agent_session_start({
+  projectId: 6,
+  activeTicketNumbers: [5, 7]  # Use this, NOT activeTicketIds!
+})
+```
+
+**See**: [.agent/sops/ticket-identification.md](.agent/sops/ticket-identification.md)
+
+---
+
 ## 🖥️ Mac Mini Cloud Architecture
 
 ### ⚠️ CRITICAL: Dev vs Prod Understanding
@@ -147,7 +198,7 @@ projectpulse_agent_session_start({
   name: "Implementing feature X",
   plan: "## Plan\n1. Do X\n2. Do Y\n...",
   todos: [{content: "Task 1", status: "pending"}, ...],
-  activeTicketIds: [25, 26]  // ONLY "todo" tickets - auto-claimed to "in-progress"
+  activeTicketNumbers: [25, 26]  // User-referenced tickets like "#25, #26" (preferred over activeTicketIds)
 })
 ```
 
@@ -155,7 +206,7 @@ projectpulse_agent_session_start({
 - Get user approval
 - Save plan and todos to MCP session (NOT to files)
 
-**Sprint 16 Auto-Claim**: When `activeTicketIds` are provided:
+**Sprint 16 Auto-Claim**: When `activeTicketNumbers` (preferred) or `activeTicketIds` are provided:
 - System validates ALL tickets are in "todo" status
 - System moves them to "in-progress" automatically
 - Sets `assignee: "Claude Code"` and links `linkedSessionId`
@@ -627,8 +678,10 @@ projectpulse_agent_session_end({ sessionId: "..." })
 → System: tickets move to in-review
 
 # User verifies and moves to done (auto-cascades progress)
+# Note: Use ticketNumber when user says "#42", ticketId when chaining from API
 projectpulse_kanban_moveTicket({
-  ticketId: 42,
+  ticketNumber: 42,  # User-referenced number (NOT ticketId!)
+  projectId: 6,
   status: "done",
   displayOrder: 0
 })

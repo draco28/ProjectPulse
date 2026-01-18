@@ -2294,6 +2294,68 @@ projectpulse.sprint.getCurrentTask({ includeHistory: true });
 
 ---
 
+## Ticket Identification (Sprint 17)
+
+All ticket tools support **dual-input**: either global `ticketId` OR project-scoped `ticketNumber` + `projectId`.
+
+### The Problem
+
+Users see **#123** in the web UI. This is `ticketNumber` (project-scoped).
+**DO NOT** use this as `ticketId` - that's a different number (global database ID)!
+
+### Decision Rule
+
+| User Says | Parameter to Use | Example |
+|-----------|------------------|---------|
+| "#5", "ticket 5", "work on 5" | `ticketNumber` + `projectId` | `ticket_get({ ticketNumber: 5, projectId: 6 })` |
+| (from previous API response) | `ticketId` | `ticket_update({ ticketId: 42, ... })` |
+
+**Rule**: If USER gave you the number, use `ticketNumber`. If API returned it, use `ticketId`.
+
+### Tools Supporting Dual-Input
+
+| Tool | ticketNumber | ticketId |
+|------|--------------|----------|
+| `ticket_get` | Yes + projectId | Yes |
+| `ticket_update` | Yes + projectId | Yes |
+| `ticket_setStatus` | Yes + projectId | Yes |
+| `ticket_addComment` | Yes + projectId | Yes |
+| `ticket_getChildren` | Yes + projectId | Yes |
+| `ticket_getHierarchy` | Yes + projectId | Yes |
+| `kanban_moveTicket` | Yes + projectId | Yes |
+| `agent_session_start` | `activeTicketNumbers[]` | `activeTicketIds[]` |
+
+### Examples
+
+```typescript
+// CORRECT: User says "update ticket #5"
+projectpulse_ticket_update({
+  ticketNumber: 5,   // User's number from UI
+  projectId: 6,      // Always required with ticketNumber
+  status: "in-progress"
+});
+
+// WRONG: This gets a DIFFERENT ticket!
+projectpulse_ticket_update({
+  ticketId: 5,       // Global ID - NOT what user sees!
+  status: "in-progress"
+});
+
+// Agent session with user-referenced tickets
+projectpulse_agent_session_start({
+  projectId: 6,
+  activeTicketNumbers: [5, 7]  // Use this, NOT activeTicketIds!
+});
+```
+
+### Quick Decision Tree
+
+1. **Did the USER give you the number?** → Use `ticketNumber` + `projectId`
+2. **Did an API call return an ID?** → Use `ticketId`
+3. **Not sure?** → Use `ticketNumber` + `projectId` (safer default)
+
+---
+
 ## Sequential Thinking
 
 **Server**: `mcp__sequential-thinking`
