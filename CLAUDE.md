@@ -268,12 +268,12 @@ This auto-syncs:
 
 Based on phase keywords, I load relevant skills:
 
-| Phase Contains                | Skills to Load                                                          |
-| ----------------------------- | ----------------------------------------------------------------------- |
-| "API", "endpoint", "route"    | [api-patterns](.claude/skills/projectpulse/api-patterns.md)             |
-| "Component", "UI", "page"     | [component-patterns](.claude/skills/projectpulse/component-patterns.md) |
-| "Database", "Prisma", "query" | [database-patterns](.claude/skills/projectpulse/database-patterns.md)   |
-| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/projectpulse/testing-patterns.md)     |
+| Phase Contains                | Skills to Load                                                    |
+| ----------------------------- | ----------------------------------------------------------------- |
+| "API", "endpoint", "route"    | [api-patterns](.claude/skills/api-patterns/SKILL.md)              |
+| "Component", "UI", "page"     | [component-patterns](.claude/skills/component-patterns/SKILL.md)  |
+| "Database", "Prisma", "query" | [database-patterns](.claude/skills/database-patterns/SKILL.md)    |
+| "Test", "testing", "coverage" | [testing-patterns](.claude/skills/testing-patterns/SKILL.md)      |
 
 ### Sub-Agent Invocations
 
