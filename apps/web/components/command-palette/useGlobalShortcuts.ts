@@ -6,7 +6,7 @@
  * Registers individual command shortcuts (⌘D, ⌘I, ⌘W, etc.)
  */
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 
@@ -15,10 +15,10 @@ export function useGlobalShortcuts() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get('project');
 
-  const buildHref = (path: string) => {
+  const buildHref = useCallback((path: string) => {
     if (!projectId) return path;
     return `${path}?project=${projectId}`;
-  };
+  }, [projectId]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -86,5 +86,5 @@ export function useGlobalShortcuts() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [router, projectId]);
+  }, [router, projectId, buildHref]);
 }

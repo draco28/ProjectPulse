@@ -52,7 +52,7 @@ export function WikiHeader({
   // Sort contributors by edit count
   const sortedContributors = [...contributors].sort((a, b) => b.editCount - a.editCount);
   const primaryContributor = sortedContributors[0];
-  const topContributors = sortedContributors.slice(0, 5);
+  const _topContributors = sortedContributors.slice(0, 5);
 
   const relativeTime = formatRelativeTime(lastEditedAt ?? updatedAt);
   const editorName = lastEditedBy ?? primaryContributor?.name;

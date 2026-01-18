@@ -66,7 +66,7 @@ function Session2Content() {
   const [isLoadingDocs, setIsLoadingDocs] = useState(true);
   const [selectedPrompt, setSelectedPrompt] = useState<DocumentPrompt | null>(null);
   const [showPromptDialog, setShowPromptDialog] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
   const [activeTab, setActiveTab] = useState<string>('all');
 
   // Fetch document prompts

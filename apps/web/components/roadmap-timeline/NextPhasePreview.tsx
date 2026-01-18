@@ -74,7 +74,7 @@ export function NextPhasePreview({ phase, onPhaseSelect }: NextPhasePreviewProps
 
         {/* Sprint thumbnails */}
         <div className="flex gap-2">
-          {phase.sprints.slice(0, 4).map((sprint, index) => (
+          {phase.sprints.slice(0, 4).map((sprint) => (
             <div
               key={sprint.id}
               className={cn(

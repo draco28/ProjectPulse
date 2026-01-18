@@ -20,7 +20,7 @@
 import { NextResponse } from 'next/server';
 import type { RateLimitStore, RateLimitTier, RateLimitKeyContext, RateLimitResult } from './types';
 import { RATE_LIMIT_TIERS, getTierForRoute } from './tiers';
-import { generateKey, getClientIp } from './key-generator';
+import { generateKey } from './key-generator';
 import { RedisRateLimitStore } from './redis-store';
 import { MemoryRateLimitStore } from './memory-store';
 import { createLogger } from '@/lib/logger';

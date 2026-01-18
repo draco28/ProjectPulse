@@ -52,7 +52,7 @@ const createPhaseSchema = z
     }
   );
 
-type CreatePhaseInput = z.infer<typeof createPhaseSchema>;
+type _CreatePhaseInput = z.infer<typeof createPhaseSchema>;
 
 // ============================================================================
 // POST HANDLER

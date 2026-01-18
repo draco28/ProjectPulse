@@ -56,7 +56,7 @@ const PLACEHOLDER_WATCHERS: PlaceholderWatcher[] = [
 // COMPONENT
 // ============================================================================
 
-export function WatchersSection({ ticketId }: WatchersSectionProps) {
+export function WatchersSection({ ticketId: _ticketId }: WatchersSectionProps) {
   const watchers = PLACEHOLDER_WATCHERS;
 
   return (

@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { parseJSDocFromProject } from '@/lib/wiki/parsers/jsdoc';
 import { generateMarkdown, generateSlug, generateExcerpt } from '@/lib/wiki/generators/markdown';
-import { generateWikiSchema, type GenerateWikiInput } from '@/lib/validations/wiki';
+import { generateWikiSchema } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
 import type { ParsedDocumentation } from '@/lib/wiki/parsers/jsdoc';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';

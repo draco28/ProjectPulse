@@ -26,7 +26,7 @@ interface SessionListCardProps {
   projectId: number;
 }
 
-export function SessionListCard({ session, projectId }: SessionListCardProps) {
+export function SessionListCard({ session, projectId: _projectId }: SessionListCardProps) {
   const [copiedId, setCopiedId] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 

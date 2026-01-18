@@ -97,8 +97,6 @@ export const KanbanColumn = memo(function KanbanColumn({
         standaloneTickets.push(ticket);
       } else {
         // Has parent - this is a child ticket, render independently
-        // Check if parent is in this column for visual grouping
-        const parentInColumn = ticketIdsInColumn.has(ticket.parentTicketId);
         // Child tickets are now rendered independently (not hidden inside parent)
         childTickets.push(ticket);
       }

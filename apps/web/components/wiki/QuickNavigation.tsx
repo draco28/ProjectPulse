@@ -52,7 +52,7 @@ export function QuickNavigation({ categories, currentCategory }: QuickNavigation
         </Link>
       );
     });
-  }, [categories, currentCategory]);
+  }, [categories, currentCategory, buildHref]);
 
   return (
     <aside className="w-64 flex-shrink-0">

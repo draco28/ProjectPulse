@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Github, Play } from 'lucide-react';
+import { ArrowRight, Github } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 

@@ -9,7 +9,7 @@
 
 import { memo } from 'react';
 import type { TicketStatus } from '@/lib/constants/status';
-import { TicketStatusSystem, TICKET_STATUSES } from '@/lib/constants/status';
+import { TICKET_STATUSES } from '@/lib/constants/status';
 import { cn } from '@/lib/utils';
 
 interface EmptyColumnStateProps {

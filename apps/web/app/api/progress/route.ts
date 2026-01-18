@@ -36,7 +36,7 @@ const updateProgressSchema = z.object({
     .max(100, 'Progress must be between 0 and 100'),
 });
 
-type UpdateProgressInput = z.infer<typeof updateProgressSchema>;
+type _UpdateProgressInput = z.infer<typeof updateProgressSchema>;
 
 // ============================================================================
 // POST HANDLER

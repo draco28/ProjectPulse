@@ -19,7 +19,7 @@
  */
 
 import type { PrismaClient, Prisma } from '@prisma/client';
-import { TICKET_STATUSES, type TicketStatus } from '@/lib/constants/status';
+import { TICKET_STATUSES } from '@/lib/constants/status';
 import { findNextSprint } from '@/lib/sprints/resolution';
 
 /**

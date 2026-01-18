@@ -15,7 +15,7 @@ import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { generateEmbedding } from '@/lib/embeddings';
 import { parseDocumentSet, type RawDocumentSet } from '@/lib/traceability/parsers';
-import { analyzeTraceability, type TraceabilityMatrix } from '@/lib/traceability/analysis';
+import { analyzeTraceability } from '@/lib/traceability/analysis';
 import { generateTraceabilityMarkdown } from '@/lib/traceability/markdown';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';

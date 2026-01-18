@@ -12,7 +12,7 @@ import { WikiRevisionTimeline } from '@/components/wiki/WikiRevisionTimeline';
 import { WikiViewTracker } from '@/components/wiki/WikiViewTracker';
 import { ProjectLayoutWrapper } from '@/components/layout';
 import { withProjectAuth } from '@/lib/project';
-import { parseContributors, parseTags, type Contributor } from '@/lib/validations/wiki';
+import { parseContributors, parseTags } from '@/lib/validations/wiki';
 import NextLink from 'next/link';
 
 interface PageProps {

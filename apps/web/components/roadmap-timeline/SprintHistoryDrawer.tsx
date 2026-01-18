@@ -60,7 +60,7 @@ function StatCard({
  * Main drawer component - renders via portal.
  */
 function DrawerContent({
-  projectId,
+  projectId: _projectId,
   sprint,
   variant,
   onClose,

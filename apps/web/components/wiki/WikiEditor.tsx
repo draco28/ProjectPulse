@@ -1,12 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useProject } from '@/lib/project';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { generateHTML } from '@tiptap/html';
+import '@tiptap/html';
 import { marked } from 'marked';
 import {
   createWikiPageSchema,
@@ -67,7 +67,7 @@ export function WikiEditor({ mode, initialData, onSave, onCancelPath }: WikiEdit
   const [previewContent, setPreviewContent] = useState('');
 
   // Form setup with react-hook-form + Zod validation
-  const schema = mode === 'create' ? createWikiPageSchema : updateWikiPageSchema;
+  const _schema = mode === 'create' ? createWikiPageSchema : updateWikiPageSchema;
   const form = useForm<CreateWikiPageInput | UpdateWikiPageInput>({
     resolver: (mode === 'create'
       ? zodResolver(createWikiPageSchema)

@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { ApiResponse } from '@/lib/types/api';
-import type { TicketFilters, TicketKind } from '@/lib/validations/ticket';
+import type { TicketFilters } from '@/lib/validations/ticket';
 import { TICKET_STATUSES } from '@/lib/constants/status';
 
 export function success<T>(data: T, status = 200) {

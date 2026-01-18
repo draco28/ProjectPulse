@@ -41,7 +41,7 @@ interface QuickActionsProps {
 // COMPONENT
 // ============================================================================
 
-export function QuickActions({ ticketId, ticketTitle }: QuickActionsProps) {
+export function QuickActions({ ticketId, ticketTitle: _ticketTitle }: QuickActionsProps) {
   const [copiedLink, setCopiedLink] = useState(false);
 
   /**

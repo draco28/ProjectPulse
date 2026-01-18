@@ -321,7 +321,7 @@ export function RoadmapWizard({ projectId, projectName }: RoadmapWizardProps) {
     } finally {
       dispatch({ type: 'SET_SUBMITTING', isSubmitting: false });
     }
-  }, [projectId, state.data, validateCurrentStep, clearDraft, router]);
+  }, [projectId, state.data, validateCurrentStep, clearDraft]);
 
   // Data update handlers
   const handleDataChange = useCallback((data: Partial<WizardData>) => {

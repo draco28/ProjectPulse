@@ -17,7 +17,7 @@ interface EmptyBoardStateProps {
 }
 
 export const EmptyBoardState = memo(function EmptyBoardState({
-  sprintId,
+  sprintId: _sprintId,
   projectId,
   className,
 }: EmptyBoardStateProps) {

@@ -180,7 +180,7 @@ function getPriorityColor(priority: string): string {
 /**
  * Copy text to clipboard
  */
-function copyToClipboard(text: string) {
+function _copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).then(
     () => {
       // TODO: Show success toast

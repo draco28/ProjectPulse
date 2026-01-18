@@ -40,7 +40,7 @@ interface DescriptionSectionProps {
 // COMPONENT
 // ============================================================================
 
-export function DescriptionSection({ ticketId, description }: DescriptionSectionProps) {
+export function DescriptionSection({ ticketId: _ticketId, description }: DescriptionSectionProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState(description || '');

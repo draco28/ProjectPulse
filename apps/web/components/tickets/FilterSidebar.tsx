@@ -108,7 +108,7 @@ export function FilterSidebar({
   onClose,
 }: FilterSidebarProps) {
   // Use custom hook for filter state management
-  const { currentFilters, isActive, updateFilter, clearAllFilters, hasActiveFilters } =
+  const { isActive, updateFilter, clearAllFilters, hasActiveFilters } =
     useFilterParams(searchParams);
 
   // Mobile drawer functionality

@@ -12,7 +12,7 @@
  * - Coral theme matching Agent Personas
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Map } from 'lucide-react';
 import { PhaseCard } from './PhaseCard';
 import { SprintCard } from './SprintCard';
@@ -30,7 +30,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
 
   // Filter helper function
-  const matchesFilters = (item: { title: string; description?: string | null; status: string }) => {
+  const matchesFilters = useCallback((item: { title: string; description?: string | null; status: string }) => {
     // Status filter
     if (filters?.status && filters.status !== 'ALL' && item.status !== filters.status) {
       return false;
@@ -47,7 +47,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
     }
 
     return true;
-  };
+  }, [filters]);
 
   // Filter phases (and recursively filter children)
   const filteredPhases = useMemo(() => {
@@ -64,7 +64,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
 
       return hasMatchingChildren;
     });
-  }, [roadmap.phases_rel, filters]);
+  }, [roadmap.phases_rel, filters, matchesFilters]);
 
   const togglePhase = (phaseId: string) => {
     setExpandedPhases((prev) => {

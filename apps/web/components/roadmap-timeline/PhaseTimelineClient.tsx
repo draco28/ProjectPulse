@@ -14,7 +14,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import type { PhaseTimelineClientProps } from '@/types/phase-timeline';
-import type { SprintOverview, PhaseOverview } from '@/types/kanban';
+import type { SprintOverview } from '@/types/kanban';
 import { PhaseSelector } from './PhaseSelector';
 import { PhaseProgressBar } from './PhaseProgressBar';
 import { SprintGrid } from './SprintGrid';

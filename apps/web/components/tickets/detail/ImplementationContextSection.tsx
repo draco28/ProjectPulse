@@ -24,7 +24,6 @@ import {
   Database,
   AlertTriangle,
   FileCode,
-  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ImplementationContextProps } from '@/types/issue';
@@ -71,7 +70,7 @@ function getFileName(filePath: string): string {
 // ============================================================================
 
 export function ImplementationContextSection({
-  ticketId,
+  ticketId: _ticketId,
   context,
 }: ImplementationContextSectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);

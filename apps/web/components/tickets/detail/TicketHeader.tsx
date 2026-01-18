@@ -118,13 +118,13 @@ function formatStatus(status: string): string {
 // ============================================================================
 
 export function TicketHeader({
-  id,
+  id: _id,
   ticketNumber,
   title,
   status,
   priority,
   module,
-  projectName,
+  projectName: _projectName,
   assignee,
   createdAt,
   updatedAt,

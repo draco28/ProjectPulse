@@ -18,7 +18,7 @@ import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { createSkillSchema } from '@/lib/validations/skill';
 import { generateSlugFromTitle } from '@/lib/skills/constants';
-import { findSkillDuplicates, SkillDuplicationError } from '@/lib/skills/deduplication';
+import { findSkillDuplicates } from '@/lib/skills/deduplication';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';

@@ -8,7 +8,7 @@
 import { Metadata } from 'next';
 import { Plus, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import 'next/navigation';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { Sidebar } from '@/components/Sidebar';
 import { TicketsPageClient } from '@/components/tickets/TicketsPageClient';

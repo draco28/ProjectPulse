@@ -4,7 +4,7 @@
  * Individual question with textarea input and validation
  */
 
-import { Card, CardContent } from '@/components/ui/card';
+import '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';

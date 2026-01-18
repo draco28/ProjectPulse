@@ -18,7 +18,7 @@
  * ```
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { DndContext, DragOverlay, closestCenter, MeasuringStrategy } from '@dnd-kit/core';
 import type { KanbanTicket, KanbanBoardResponse } from '@/types/kanban';
@@ -71,7 +71,10 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
 
   // Extract board data
   const boardData = boardQuery.data;
-  const columns = boardData?.columns ?? ({} as KanbanBoardResponse['columns']);
+  const columns = useMemo(
+    () => boardData?.columns ?? ({} as KanbanBoardResponse['columns']),
+    [boardData?.columns]
+  );
   const stats = boardData?.stats;
   const sprint = boardData?.sprint;
 

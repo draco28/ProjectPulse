@@ -36,7 +36,7 @@ const requestSchema = z.object({
   mode: z.enum(['replace', 'append']).default('replace'),
 });
 
-type UpdateRequest = z.infer<typeof requestSchema>;
+type _UpdateRequest = z.infer<typeof requestSchema>;
 
 // ============================================================================
 // Token Estimation
