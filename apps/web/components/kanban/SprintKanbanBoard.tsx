@@ -19,6 +19,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { DndContext, DragOverlay, closestCenter, MeasuringStrategy } from '@dnd-kit/core';
 import type { KanbanTicket, KanbanBoardResponse } from '@/types/kanban';
 import type { TicketStatus } from '@/lib/constants/status';
@@ -32,7 +33,6 @@ import TaskCard from './TaskCard';
 import FeatureCard from './FeatureCard';
 import { ChildCard } from './ChildCard';
 import SprintKanbanHeader from './SprintKanbanHeader';
-import BoardStatsBar from './BoardStatsBar';
 
 // ============================================================================
 // Types
@@ -54,8 +54,10 @@ interface SprintKanbanBoardProps {
 // ============================================================================
 
 export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, className }: SprintKanbanBoardProps) {
+  const router = useRouter();
+
   // Data fetching and mutations
-  const { boardQuery, moveTicket, batchMoveTickets, isMoving, refetch } = useKanbanBoard(sprintId);
+  const { boardQuery, moveTicket, batchMoveTickets, refetch } = useKanbanBoard(sprintId);
 
   // Store previous state for undo
   const [previousMove, setPreviousMove] = useState<{
@@ -72,6 +74,14 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
   const columns = boardData?.columns ?? ({} as KanbanBoardResponse['columns']);
   const stats = boardData?.stats;
   const sprint = boardData?.sprint;
+
+  // Handler for New Ticket button
+  const handleNewTicket = useCallback(() => {
+    const params = new URLSearchParams();
+    if (projectId) params.set('project', String(projectId));
+    if (sprint?.sprintNumber) params.set('sprint', String(sprint.sprintNumber));
+    router.push(`/tickets/create?${params.toString()}`);
+  }, [router, projectId, sprint?.sprintNumber]);
 
   // Handle move with undo capability
   const handleMove = useCallback(
@@ -234,7 +244,7 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
   return (
     <div className={cn('flex flex-col h-full', className)}>
       {/* Header */}
-      {sprint && <SprintKanbanHeader sprint={sprint} projectId={projectId} stats={stats} />}
+      {sprint && <SprintKanbanHeader sprint={sprint} projectId={projectId} stats={stats} onNewTicket={handleNewTicket} />}
 
       {/* Kanban Board */}
       <DndContext
@@ -264,9 +274,6 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
         {/* Drag Overlay - follows cursor during drag */}
         <DragOverlay>{renderDragOverlay()}</DragOverlay>
       </DndContext>
-
-      {/* Stats Bar */}
-      {stats && <BoardStatsBar stats={stats} isMoving={isMoving} />}
     </div>
   );
 }

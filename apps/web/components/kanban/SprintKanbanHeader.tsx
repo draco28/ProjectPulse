@@ -77,7 +77,7 @@ export const SprintKanbanHeader = memo(function SprintKanbanHeader({
         {/* Actions */}
         <div className="flex items-center gap-4">
           {/* Progress Card */}
-          <div className="neu-card px-4 py-2 flex items-center gap-4">
+          <div className="neu-flat px-4 py-2 rounded-xl flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-slate text-sm">Progress</span>
               <span className="text-coral font-bold">{Math.round(progress)}%</span>

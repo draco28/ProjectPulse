@@ -17,7 +17,6 @@ export { ChildCard, SortableChildCard } from './ChildCard';
 // Layout
 export { KanbanColumn } from './KanbanColumn';
 export { SprintKanbanHeader } from './SprintKanbanHeader';
-export { BoardStatsBar } from './BoardStatsBar';
 
 // Empty States
 export { EmptyColumnState } from './EmptyColumnState';
