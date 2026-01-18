@@ -285,7 +285,7 @@ projectpulse_ticket_create({
 
 | User Says | Parameter to Use | Example |
 |-----------|------------------|---------|
-| "#5", "ticket 5" | \`ticketNumber\` + \`projectId\` | \`ticket_get({ ticketNumber: 5, projectId: ${projectId} })\` |
+| "#5", "ticket 5" | \`ticketNumber\` + \`projectId\` | \`ticket_get({ ticketNumber: 5, projectId: 6 })\` |
 | (from API response) | \`ticketId\` | \`ticket_update({ ticketId: 42, ... })\` |
 
 **Rule**: If USER gave you the number, use \`ticketNumber\`. If API returned it, use \`ticketId\`.
