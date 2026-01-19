@@ -90,7 +90,7 @@ interface ContextLoadResponse {
 // Query Schema
 // ============================================================================
 
-const querySchema = z.object({
+const _querySchema = z.object({
   projectId: z
     .string()
     .transform((val) => parseInt(val, 10))

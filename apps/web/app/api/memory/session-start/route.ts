@@ -17,7 +17,7 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
-const querySchema = z.object({
+const _querySchema = z.object({
   projectId: z.string().transform((val) => parseInt(val, 10)),
 });
 

@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
     log.debug({ sessionId, isNew: !sessionIdHeader }, sessionIdHeader ? 'Reusing session' : 'Creating session');
 
     // Step 2: Validate session (create if new, check expiration if existing)
-    const session = await validateSession(sessionId);
+    await validateSession(sessionId);
 
     // Step 3: Parse JSON-RPC request
     let body: unknown;

@@ -14,7 +14,7 @@ import {
   Loader2,
   Activity,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+// cn utility not used in this component
 
 interface Token {
   id: number;
