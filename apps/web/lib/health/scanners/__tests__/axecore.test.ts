@@ -4,8 +4,8 @@
  * Sprint 7 Day 10 - Accessibility Scanners (Task 28)
  */
 
-import { chromium, type Browser, type Page } from '@playwright/test';
-import { AxeBuilder, type AxeResults } from '@axe-core/playwright';
+import { chromium, type Browser } from '@playwright/test';
+import { AxeBuilder } from '@axe-core/playwright';
 import { FindingCategory, FindingSeverity } from '@prisma/client';
 import { AxeCoreScanner } from '../axecore';
 import { ScannerError, ScannerTimeoutError } from '../types';
