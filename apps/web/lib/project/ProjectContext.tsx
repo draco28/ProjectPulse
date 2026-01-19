@@ -171,13 +171,18 @@ export function ProjectProvider({
   // Update search params while preserving project
   // Bug fix (Ticket #172): Read from window.location.search directly to avoid
   // stale searchParams from useSearchParams() during SSR/hydration with Suspense
+  //
+  // IMPORTANT: searchParams is intentionally NOT in the dependency array because:
+  // 1. We read params from window.location.search (fresh on every call)
+  // 2. Including searchParams causes callback recreation on every URL change
+  // 3. Which triggers SearchSortBar's useEffect and resets pagination
   const updateSearchParams = useCallback(
     (updates: Record<string, string | number | null | undefined>) => {
       // Read current params from window.location to get the freshest state
       // This fixes pagination issues where useSearchParams() returns stale data
-      const currentSearch = typeof window !== 'undefined' 
-        ? window.location.search 
-        : searchParams.toString();
+      const currentSearch = typeof window !== 'undefined'
+        ? window.location.search
+        : '';  // SSR fallback - empty params is fine, will be set on client
       const params = new URLSearchParams(currentSearch);
 
       // Ensure project is preserved
@@ -196,7 +201,8 @@ export function ProjectProvider({
 
       router.push(`${pathname}?${params.toString()}`);
     },
-    [router, pathname, searchParams, projectId]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- searchParams omitted intentionally, see comment above
+    [router, pathname, projectId]
   );
 
   // Clear all params except project

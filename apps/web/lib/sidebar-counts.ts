@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { TICKET_STATUSES } from '@/lib/constants/status';
 
 export interface SidebarCounts {
   issues?: number;
@@ -14,12 +15,20 @@ export interface SidebarCounts {
 
 export async function getSidebarCounts(projectId: number): Promise<SidebarCounts> {
   const [issuesCount, healthCount, knowledgeCount, wikiCount] = await Promise.all([
-    // Sprint 10: Use ticket model - Open + In Progress issues
+    // Sprint 10: Use ticket model - count non-completed issues/bugs
+    // Bug fix: 'open' doesn't exist in 5-status system. Use proper Kanban statuses.
     prisma.ticket.count({
       where: {
         projectId,
         kind: { in: ['issue', 'bug', 'scanner_finding'] },
-        status: { in: ['open', 'in-progress'] },
+        status: {
+          in: [
+            TICKET_STATUSES.BACKLOG,
+            TICKET_STATUSES.TODO,
+            TICKET_STATUSES.IN_PROGRESS,
+            TICKET_STATUSES.IN_REVIEW,
+          ],
+        },
       },
     }),
     // Open security findings
