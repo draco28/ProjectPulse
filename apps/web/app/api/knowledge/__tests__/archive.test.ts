@@ -16,7 +16,7 @@ jest.mock('@/lib/prisma', () => ({
 }));
 
 import { prisma } from '@/lib/prisma';
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
