@@ -120,7 +120,7 @@ describe.skip('GET /api/knowledge/metrics (TODO: implement route)', () => {
 
     const req = new NextRequest('http://localhost:3000/api/knowledge/metrics?limit=50');
     const res = await GET(req);
-    const body = await res.json();
+    await res.json(); // Parse response to complete request
 
     expect(res.status).toBe(200);
     expect(mockPrisma.knowledgeQueryMetric.findMany).toHaveBeenCalledWith(
