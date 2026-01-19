@@ -4,6 +4,7 @@
  * Centralized registry of all commands available in the palette
  */
 
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import {
   Plus,
   Lightbulb,
@@ -20,7 +21,7 @@ import {
 } from 'lucide-react';
 import { Command, CommandCategory } from './types';
 
-export function createCommands(router: any, projectId?: number): CommandCategory[] {
+export function createCommands(router: AppRouterInstance, projectId?: number): CommandCategory[] {
   const buildHref = (path: string) => {
     if (!projectId) return path;
     return `${path}?project=${projectId}`;

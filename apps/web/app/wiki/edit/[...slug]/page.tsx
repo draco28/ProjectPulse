@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { WikiEditor } from '@/components/wiki/WikiEditor';
 import { ProjectLayoutWrapper } from '@/components/layout';
 import { withProjectAuth } from '@/lib/project';
-import { UpdateWikiPageInput } from '@/lib/validations/wiki';
+import { UpdateWikiPageInput, WikiCategory } from '@/lib/validations/wiki';
 
 // Force dynamic rendering to prevent pre-render errors with useProject
 export const dynamic = 'force-dynamic';
@@ -72,7 +72,7 @@ export default async function WikiEditPage({ params, searchParams }: WikiEditPag
             title: page.title,
             path: page.path,
             content: page.content,
-            category: page.category as any,
+            category: page.category as WikiCategory,
             excerpt: page.excerpt,
           }}
           onSave={handleUpdateWikiPage}

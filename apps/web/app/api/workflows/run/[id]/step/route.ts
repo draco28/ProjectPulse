@@ -160,7 +160,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     // Move to next step
     const nextStepNumber = currentStepNumber + 1;
-    const nextTemplateStep = templateSteps[nextStepNumber - 1] as any;
+    const nextTemplateStep = templateSteps[nextStepNumber - 1] as { description?: string } | undefined;
     const nextStep = workflowRun.steps.find((s) => s.stepNumber === nextStepNumber);
 
     if (!nextStep) {

@@ -4,6 +4,11 @@
  * Type definitions for the command palette system
  */
 
+import type { LucideProps } from 'lucide-react';
+
+/** Lucide icon component or emoji string for command icons */
+export type CommandIcon = React.ComponentType<LucideProps> | string;
+
 export type CommandType = 'action' | 'navigation' | 'agent' | 'setting';
 
 export interface Command {
@@ -12,7 +17,7 @@ export interface Command {
   category: string;
   title: string;
   description?: string;
-  icon: any; // Lucide icon component or string
+  icon: CommandIcon;
   shortcut?: string;
   badge?: string;
   keywords?: string[];

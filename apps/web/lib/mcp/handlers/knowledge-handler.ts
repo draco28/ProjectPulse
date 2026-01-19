@@ -785,7 +785,7 @@ export async function knowledgeExportHandler(input: unknown): Promise<KnowledgeE
     }
 
     // Build where clause
-    const where: any = {};
+    const where: Prisma.KnowledgeItemWhereInput = {};
 
     if (params.category) {
       where.category = params.category;

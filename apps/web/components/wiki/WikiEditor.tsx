@@ -71,7 +71,8 @@ export function WikiEditor({ mode, initialData, onSave, onCancelPath }: WikiEdit
   const form = useForm<CreateWikiPageInput | UpdateWikiPageInput>({
     resolver: (mode === 'create'
       ? zodResolver(createWikiPageSchema)
-      : zodResolver(updateWikiPageSchema)) as any, // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Resolver union types require assertion
+      : zodResolver(updateWikiPageSchema)) as any,
     mode: 'onBlur', // Validate on blur for better performance
     defaultValues: {
       title: initialData?.title || '',
@@ -239,6 +240,7 @@ export function WikiEditor({ mode, initialData, onSave, onCancelPath }: WikiEdit
               )}
             />
             {'path' in errors && (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Union form types require assertion for path access
               <p className="mt-1 text-sm text-red-500">{(errors as any).path?.message}</p>
             )}
           </div>

@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     // Create step records
     await Promise.all(
-      steps.map((step: any) =>
+      steps.map((step: { stepNumber: number; name: string }) =>
         prisma.workflowStep.create({
           data: {
             runId: workflowRun.id,
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Get first step name
-    const firstStep = steps[0] as any;
+    const firstStep = steps[0] as { name?: string } | undefined;
 
     return NextResponse.json({
       data: {

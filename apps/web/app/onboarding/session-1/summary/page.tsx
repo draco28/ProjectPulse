@@ -36,13 +36,25 @@ export default function ExecutiveSummaryPage() {
   );
 }
 
+/** Executive summary prompt data structure */
+interface ExecutiveSummaryPromptData {
+  metadata: {
+    totalQuestions: number;
+    completedPhases: number;
+    userPromptCharacters: number;
+  };
+  wordCountTarget: number;
+  systemPrompt: string;
+  userPrompt: string;
+}
+
 // Content component that uses useSearchParams
 function ExecutiveSummaryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectIdParam = searchParams.get('project');
   const projectId = projectIdParam ? parseInt(projectIdParam, 10) : 1;
-  const [promptData, setPromptData] = useState<any>(null);
+  const [promptData, setPromptData] = useState<ExecutiveSummaryPromptData | null>(null);
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
   const [showPromptDialog, setShowPromptDialog] = useState(false);
   const [manualSummary, setManualSummary] = useState('');

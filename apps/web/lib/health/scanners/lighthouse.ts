@@ -138,14 +138,16 @@ export class LighthouseScanner implements Scanner {
           output: 'json',
           logLevel: 'error',
         },
-        config as any
+        config as unknown as Parameters<typeof lighthouse>[2]
       );
 
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new ScannerTimeoutError(this.scannerType, timeout)), timeout)
       );
 
-      const result = (await Promise.race([lighthousePromise, timeoutPromise])) as any;
+      const result = (await Promise.race([lighthousePromise, timeoutPromise])) as
+        | { lhr: { audits: Record<string, LighthouseAudit> } }
+        | undefined;
 
       if (!result || !result.lhr) {
         throw new Error('Lighthouse returned no results');

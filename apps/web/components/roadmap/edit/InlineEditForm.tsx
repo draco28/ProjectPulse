@@ -118,6 +118,7 @@ export function InlineEditForm({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <InputComponent
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Union ref types for dynamic input/textarea require assertion
         ref={inputRef as any}
         type="text"
         value={editValue}

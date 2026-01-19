@@ -52,6 +52,17 @@ export async function recordQueryMetric(data: QueryMetricData): Promise<void> {
 }
 
 /**
+ * Shape of knowledge search result for token estimation
+ */
+interface TokenEstimationResult {
+  title?: string;
+  excerpt?: string;
+  content?: string;
+  category?: string;
+  tags?: string[];
+}
+
+/**
  * Estimate token usage for knowledge search results
  *
  * Uses rough estimation: total_chars / 4
@@ -60,7 +71,7 @@ export async function recordQueryMetric(data: QueryMetricData): Promise<void> {
  * @param results - Search results array
  * @returns Estimated token count
  */
-export function estimateTokenUsage(results: any[]): number {
+export function estimateTokenUsage(results: TokenEstimationResult[]): number {
   const totalChars = results.reduce((sum, result) => {
     return (
       sum +
@@ -91,7 +102,7 @@ export async function getLatencyPercentile(
   try {
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    const where: any = {
+    const where: { createdAt: { gte: Date }; queryMode?: typeof queryMode } = {
       createdAt: { gte: since },
     };
 

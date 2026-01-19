@@ -20,8 +20,8 @@ export async function getCurrentUser() {
     return null;
   }
 
-  // Type assertion: we add userId in auth callbacks
-  const userId = (session.user as any).id as string;
+  // Session type extended in types/next-auth.d.ts with user.id
+  const userId = session.user.id;
 
   if (!userId) {
     return null;
