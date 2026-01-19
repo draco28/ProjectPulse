@@ -3,6 +3,31 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
+import type { Prisma } from '@prisma/client';
+
+// Type definitions for session metrics
+interface ActionMetadata {
+  tokensUsed?: number;
+  quality?: string;
+  warnings?: string[];
+  filesCreated?: string[];
+  filesModified?: string[];
+  errors?: string[];
+  [key: string]: unknown;
+}
+
+interface LogAction {
+  timestamp: string;
+  stepName: string;
+  metadata: ActionMetadata;
+}
+
+interface SessionMetrics {
+  actions?: LogAction[];
+  lastActionAt?: string;
+  totalSteps?: number;
+  [key: string]: unknown;
+}
 
 //=============================================================================
 // VALIDATION SCHEMA
@@ -64,8 +89,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Get current metrics and add new action
-    const currentMetrics = (session.metrics as any) || {};
-    const actions = currentMetrics.actions || [];
+    const currentMetrics = (session.metrics as SessionMetrics | null) || {};
+    const actions: LogAction[] = currentMetrics.actions || [];
 
     const newAction = {
       timestamp: new Date().toISOString(),
@@ -84,7 +109,7 @@ export async function POST(request: NextRequest) {
           actions,
           lastActionAt: new Date().toISOString(),
           totalSteps: actions.length,
-        },
+        } as unknown as Prisma.InputJsonValue,
       },
       select: {
         id: true,

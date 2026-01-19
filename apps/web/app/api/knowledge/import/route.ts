@@ -15,6 +15,36 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for import results and errors
+interface ImportResult {
+  index: number;
+  filename: string;
+  id: number;
+  title: string;
+  category: string;
+  tags: string[];
+  embeddingProvider?: string | null;
+  embeddingDuration?: number | null;
+}
+
+interface ImportError {
+  index: number;
+  filename: string;
+  error: string;
+  details: string;
+  code?: string;
+}
+
+interface ImportResponse {
+  summary: {
+    total: number;
+    succeeded: number;
+    failed: number;
+  };
+  imported?: ImportResult[];
+  errors?: ImportError[];
+}
+
 /**
  * POST /api/knowledge/import
  *
@@ -113,8 +143,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Process each file
-    const results: any[] = [];
-    const errors: any[] = [];
+    const results: ImportResult[] = [];
+    const errors: ImportError[] = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -203,7 +233,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate tag items are strings
-        if (tags.some((tag: any) => typeof tag !== 'string')) {
+        if (tags.some((tag: unknown) => typeof tag !== 'string')) {
           errors.push({
             index: i,
             filename,
@@ -255,21 +285,15 @@ export async function POST(request: NextRequest) {
 
     // Return results and errors
     const statusCode = results.length > 0 ? 201 : 400;
-    const response: any = {
+    const response: ImportResponse = {
       summary: {
         total: files.length,
         succeeded: results.length,
         failed: errors.length,
       },
+      ...(results.length > 0 && { imported: results }),
+      ...(errors.length > 0 && { errors: errors }),
     };
-
-    if (results.length > 0) {
-      response.imported = results;
-    }
-
-    if (errors.length > 0) {
-      response.errors = errors;
-    }
 
     return NextResponse.json(response, { status: statusCode });
   } catch (error) {

@@ -24,6 +24,18 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for session response data
+type AnswerValue = string | number | string[];
+type PhaseAnswers = Record<string, AnswerValue>;
+
+interface SessionResponse {
+  planningAnswers?: Record<string, PhaseAnswers>;
+  completedPhases?: number[];
+  currentPhase?: number;
+  lastUpdated?: string;
+  [key: string]: unknown;
+}
+
 const answerSchema = z.object({
   projectId: z.number().int().positive('Project ID must be positive'),
   phase: z.number().int().min(1, 'Phase must be 1-10').max(10, 'Phase must be 1-10'),
@@ -73,7 +85,7 @@ export async function POST(request: NextRequest) {
     });
 
     const now = new Date();
-    const existingResponse = (existingSession?.response as any) || {};
+    const existingResponse = (existingSession?.response as SessionResponse | null) || {};
     const existingPlanningAnswers = existingResponse.planningAnswers || {};
     const existingCompletedPhases = existingResponse.completedPhases || [];
 

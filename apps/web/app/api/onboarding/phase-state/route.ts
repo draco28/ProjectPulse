@@ -11,6 +11,17 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for session JSON fields
+interface SessionMetrics {
+  phasesComplete?: number;
+  tokensUsed?: number;
+  [key: string]: unknown;
+}
+
+type AnswerValue = string | number | string[];
+type PhaseAnswers = Record<string, AnswerValue>;
+type PlanningAnswers = Record<string, PhaseAnswers>;
+
 export async function GET(request: NextRequest) {
   const log = createRequestLogger(getRequestId(request));
   try {
@@ -52,8 +63,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const metrics = (session.metrics as any) || {};
-    const planningAnswers = (session.planningAnswers as any) || {};
+    const metrics = (session.metrics as SessionMetrics | null) || {};
+    const planningAnswers = (session.planningAnswers as PlanningAnswers | null) || {};
 
     // Calculate current phase based on completion
     const phasesComplete = metrics.phasesComplete || 0;

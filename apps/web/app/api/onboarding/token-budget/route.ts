@@ -12,6 +12,12 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for session metrics
+interface SessionMetrics {
+  tokensUsed?: number;
+  [key: string]: unknown;
+}
+
 // ============================================================================
 // REQUEST VALIDATION
 // ============================================================================
@@ -95,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Get current token usage from metrics
-    const metrics = (session.metrics as any) || { tokensUsed: 0 };
+    const metrics = (session.metrics as SessionMetrics | null) || { tokensUsed: 0 };
     const tokensUsed = metrics.tokensUsed || 0;
 
     // 4. Calculate total estimated usage

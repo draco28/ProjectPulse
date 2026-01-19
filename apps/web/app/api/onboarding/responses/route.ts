@@ -5,6 +5,30 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for session response data
+interface DocumentGenerated {
+  filename: string;
+  content: string;
+  wordCount?: number;
+  category?: string;
+  tags?: string[];
+}
+
+interface ResponseData {
+  projectPlanContent?: string;
+  projectPlanWordCount?: number;
+  documentsGenerated?: DocumentGenerated[];
+  projectContextJson?: Record<string, unknown>;
+}
+
+interface ParsedPhase {
+  sprints: unknown[];
+}
+
+interface ParsedRoadmap {
+  phases: ParsedPhase[];
+}
+
 /**
  * POST /api/onboarding/responses
  *
@@ -85,7 +109,7 @@ export async function POST(request: NextRequest) {
         log.info({ session: 2 }, 'Creating Document records from response');
 
         // Check if response contains any document data
-        const responseData = data as any;
+        const responseData = data as ResponseData;
 
         // Create 13-Project-Plan.md document (critical for Session 3)
         // Extract from response.projectPlanContent OR response.documentsGenerated OR response.projectContextJson
@@ -163,12 +187,12 @@ export async function POST(request: NextRequest) {
           log.info({ session: 3 }, 'Found 13-Project-Plan.md, starting materialization');
 
           // Parse markdown to extract roadmap structure
-          const parsedRoadmap = await parseProjectPlan(projectPlanDoc.id);
+          const parsedRoadmap = await parseProjectPlan(projectPlanDoc.id) as ParsedRoadmap;
           log.info({
             session: 3,
             phases: parsedRoadmap.phases.length,
             sprints: parsedRoadmap.phases.reduce(
-              (sum: number, p: any) => sum + p.sprints.length,
+              (sum: number, p: ParsedPhase) => sum + p.sprints.length,
               0
             ),
           }, 'Parsed roadmap');
@@ -177,7 +201,7 @@ export async function POST(request: NextRequest) {
           const roadmap = await prisma.roadmap.create({
             data: {
               projectId,
-              phases: parsedRoadmap as any, // JSONB field - cast for Prisma
+              phases: parsedRoadmap as unknown as import('@prisma/client').Prisma.InputJsonValue, // JSONB field - cast for Prisma
             },
           });
           log.info({ session: 3, roadmapId: roadmap.id }, 'Created Roadmap record');

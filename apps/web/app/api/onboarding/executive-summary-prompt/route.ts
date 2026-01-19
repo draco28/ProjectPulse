@@ -22,6 +22,16 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for session response data
+type AnswerValue = string | number | string[];
+type PhaseAnswers = Record<string, AnswerValue>;
+
+interface SessionResponse {
+  planningAnswers?: Record<string, PhaseAnswers>;
+  completedPhases?: number[];
+  [key: string]: unknown;
+}
+
 const PHASE_NAMES: Record<number, string> = {
   1: 'Product Manager - Foundation',
   2: 'Strategic Planning - Business & Tech',
@@ -66,9 +76,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Session 1 not found or not started' }, { status: 404 });
     }
 
-    const sessionData = session.response as any;
-    const planningAnswers = sessionData.planningAnswers || {};
-    const completedPhases = sessionData.completedPhases || [];
+    const sessionData = session.response as SessionResponse | null;
+    const planningAnswers = sessionData?.planningAnswers || {};
+    const completedPhases = sessionData?.completedPhases || [];
 
     // Check if all 10 phases complete
     if (completedPhases.length < 10) {

@@ -12,6 +12,14 @@ import { syncOnboardingToWiki } from '@/lib/wiki/sync-onboarding';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for session metrics
+interface SessionMetrics {
+  tokensUsed?: number;
+  batchesComplete?: number;
+  lastBatchAt?: string;
+  [key: string]: unknown;
+}
+
 // ============================================================================
 // REQUEST VALIDATION
 // ============================================================================
@@ -141,7 +149,7 @@ export async function POST(request: NextRequest) {
     log.info({ count: createdDocs.length, filenames: createdDocs.map((d) => d.filename) }, 'Documents created');
 
     // 5. Update metrics and mark complete if all 15 documents stored
-    const currentMetrics = (session.metrics as any) || { tokensUsed: 0, batchesComplete: 0 };
+    const currentMetrics = (session.metrics as SessionMetrics | null) || { tokensUsed: 0, batchesComplete: 0 };
     const batchesComplete = (currentMetrics.batchesComplete || 0) + 1;
     const totalDocuments = session.documents.length + documents.length;
     const progress = Math.round((totalDocuments / 15) * 100);

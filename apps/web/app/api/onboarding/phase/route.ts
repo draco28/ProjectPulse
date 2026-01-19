@@ -11,6 +11,29 @@ import { prisma } from '@/lib/prisma';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
+import type { Prisma } from '@prisma/client';
+
+// Type definitions for onboarding session JSON fields
+type AnswerValue = string | number | string[];
+type PhaseAnswers = Record<string, AnswerValue>;
+type PlanningAnswers = Record<string, PhaseAnswers>;
+
+interface ProjectContextMetadata {
+  projectName?: string;
+  techStack?: string[];
+}
+
+interface ProjectContext {
+  metadata?: ProjectContextMetadata;
+  phases?: Record<string, PhaseAnswers>;
+  [key: string]: unknown; // Allow index access for Prisma JSON compatibility
+}
+
+interface SessionMetrics {
+  tokensUsed: number;
+  phasesComplete: number;
+  lastPhaseAt?: string;
+}
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -29,11 +52,11 @@ type PhaseRequest = z.infer<typeof requestSchema>;
 // ============================================================================
 
 function mergePhaseToContext(
-  existingContext: any,
+  existingContext: ProjectContext | null,
   phase: number,
-  answers: Record<string, any>
-): any {
-  const context = existingContext || {};
+  answers: PhaseAnswers
+): ProjectContext {
+  const context: ProjectContext = existingContext || {};
 
   // Ensure nested objects exist
   if (!context.metadata) context.metadata = {};
@@ -44,13 +67,14 @@ function mergePhaseToContext(
 
   // Update metadata if phase 1 or 2 (contains key project info)
   if (phase === 1 && answers.phase1_q1) {
-    context.metadata.projectName = answers.phase1_q1;
+    context.metadata.projectName = String(answers.phase1_q1);
   }
 
   if (phase === 2 && answers.phase2_q1) {
-    context.metadata.techStack = Array.isArray(answers.phase2_q1)
-      ? answers.phase2_q1
-      : [answers.phase2_q1];
+    const value = answers.phase2_q1;
+    context.metadata.techStack = Array.isArray(value)
+      ? value.map(String)
+      : [String(value)];
   }
 
   return context;
@@ -128,17 +152,17 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Merge answers into planningAnswers
-    const currentAnswers = (session.planningAnswers as any) || {};
+    const currentAnswers = (session.planningAnswers as PlanningAnswers | null) || {};
     const updatedAnswers = {
       ...currentAnswers,
       [`phase${phase}`]: answers,
     };
 
     // 4. Merge into projectContextJson
-    const updatedContext = mergePhaseToContext(session.projectContextJson as any, phase, answers);
+    const updatedContext = mergePhaseToContext(session.projectContextJson as ProjectContext | null, phase, answers);
 
     // 5. Update metrics
-    const currentMetrics = (session.metrics as any) || { tokensUsed: 0, phasesComplete: 0 };
+    const currentMetrics = (session.metrics as SessionMetrics | null) || { tokensUsed: 0, phasesComplete: 0 };
     const updatedMetrics = {
       ...currentMetrics,
       phasesComplete: phase,
@@ -151,9 +175,9 @@ export async function POST(request: NextRequest) {
     await prisma.onboardingSession.update({
       where: { id: session.id },
       data: {
-        planningAnswers: updatedAnswers,
-        projectContextJson: updatedContext,
-        metrics: updatedMetrics,
+        planningAnswers: updatedAnswers as unknown as Prisma.InputJsonValue,
+        projectContextJson: updatedContext as unknown as Prisma.InputJsonValue,
+        metrics: updatedMetrics as unknown as Prisma.InputJsonValue,
         status: isComplete ? 'complete' : 'in_progress',
         completedAt: isComplete ? new Date() : undefined,
       },

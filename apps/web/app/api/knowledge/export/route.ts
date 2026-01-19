@@ -13,6 +13,18 @@ import { prisma } from '@/lib/prisma';
 import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
+import type { Prisma } from '@prisma/client';
+import type { Decimal } from '@prisma/client/runtime/library';
+
+// Type definitions for export
+interface KnowledgeRelationship {
+  id: number;
+  fromId: number;
+  toId: number;
+  relationType: string;
+  weight: Decimal;
+  createdAt: Date;
+}
 
 /**
  * GET /api/knowledge/export
@@ -70,7 +82,7 @@ export async function GET(request: NextRequest) {
     const limitParam = searchParams.get('limit');
 
     // Build where clause with projectId for multi-tenancy
-    const where: any = {
+    const where: Prisma.KnowledgeItemWhereInput = {
       projectId, // CRITICAL: Multi-tenancy filter
     };
 
@@ -129,7 +141,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Fetch relationships if requested
-    let relationships: any[] = [];
+    let relationships: KnowledgeRelationship[] = [];
     if (includeRelationships && items.length > 0) {
       const itemIds = items.map((item) => item.id);
       relationships = await prisma.knowledgeRelationship.findMany({

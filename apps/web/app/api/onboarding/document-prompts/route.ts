@@ -23,6 +23,27 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for session JSON fields
+interface ProjectContextMetadata {
+  projectName?: string;
+  projectType?: string;
+}
+
+interface ProjectContext {
+  metadata?: ProjectContextMetadata;
+  [key: string]: unknown;
+}
+
+interface SessionResponse {
+  projectContextJson?: ProjectContext;
+  executiveSummaryWordCount?: number;
+}
+
+interface SessionMetrics {
+  executiveSummaryWordCount?: number;
+  [key: string]: unknown;
+}
+
 export async function GET(request: NextRequest) {
   const log = createRequestLogger(getRequestId(request));
   try {
@@ -75,7 +96,7 @@ export async function GET(request: NextRequest) {
 
     // Sprint 9: Use projectContextJson directly (preferred) or fall back to response.projectContextJson
     const projectContext =
-      (session1.projectContextJson as any) || (session1.response as any)?.projectContextJson;
+      (session1.projectContextJson as ProjectContext | null) || (session1.response as SessionResponse | null)?.projectContextJson;
 
     if (!projectContext) {
       return NextResponse.json(
@@ -109,8 +130,8 @@ export async function GET(request: NextRequest) {
 
     // Get word count from metrics (preferred) or response (deprecated)
     const executiveSummaryWordCount =
-      (session1.metrics as any)?.executiveSummaryWordCount ||
-      (session1.response as any)?.executiveSummaryWordCount ||
+      (session1.metrics as SessionMetrics | null)?.executiveSummaryWordCount ||
+      (session1.response as SessionResponse | null)?.executiveSummaryWordCount ||
       0;
 
     return NextResponse.json({

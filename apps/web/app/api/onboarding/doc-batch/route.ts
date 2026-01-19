@@ -12,6 +12,14 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for project context
+interface ProjectContext {
+  executiveSummary?: string;
+  [key: string]: unknown;
+}
+
+type TemplateVariables = Record<string, string | string[] | number | boolean | Record<string, unknown>>;
+
 // ============================================================================
 // REQUEST VALIDATION
 // ============================================================================
@@ -62,7 +70,7 @@ const BATCH_CONFIGS = {
 // HELPER: Inject variables into template
 // ============================================================================
 
-function _injectVariables(template: string, variables: Record<string, any>): string {
+function _injectVariables(template: string, variables: TemplateVariables): string {
   let result = template;
 
   for (const [key, value] of Object.entries(variables)) {
@@ -130,7 +138,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const projectContext = session1.projectContextJson as any;
+    const projectContext = session1.projectContextJson as ProjectContext;
     const executiveSummary = projectContext.executiveSummary || '';
 
     log.info({}, 'Session 1 found');

@@ -12,6 +12,17 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for session JSON fields
+type AnswerValue = string | number | string[];
+type PhaseAnswers = Record<string, AnswerValue>;
+type PlanningAnswers = Record<string, PhaseAnswers>;
+type TemplateVariables = Record<string, PhaseAnswers>;
+
+interface SessionMetrics {
+  phasesComplete: number;
+  tokensUsed?: number;
+}
+
 // ============================================================================
 // REQUEST VALIDATION
 // ============================================================================
@@ -24,7 +35,7 @@ const querySchema = z.object({
 // HELPER: Inject variables into template
 // ============================================================================
 
-function injectVariables(template: string, variables: Record<string, any>): string {
+function injectVariables(template: string, variables: TemplateVariables): string {
   let result = template;
 
   for (const [key, value] of Object.entries(variables)) {
@@ -89,8 +100,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const planningAnswers = (session.planningAnswers as any) || {};
-    const metrics = (session.metrics as any) || { phasesComplete: 0 };
+    const planningAnswers = (session.planningAnswers as PlanningAnswers | null) || {};
+    const metrics = (session.metrics as SessionMetrics | null) || { phasesComplete: 0 };
 
     log.info({ phasesComplete: metrics.phasesComplete }, 'Session found');
 
@@ -124,7 +135,7 @@ export async function GET(request: NextRequest) {
     log.info({}, 'Template found');
 
     // 4. Inject all 96 Q&A pairs into userPrompt
-    const variables: Record<string, any> = {};
+    const variables: TemplateVariables = {};
 
     for (let phase = 1; phase <= 10; phase++) {
       variables[`phase${phase}Answers`] = planningAnswers[`phase${phase}`] || {};
