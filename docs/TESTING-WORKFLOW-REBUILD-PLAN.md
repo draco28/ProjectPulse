@@ -93,7 +93,7 @@ Create `docker-compose.test.yml` (new) with:
 - **Test Redis** (separate port)
 - Optional: **Test MCP** if E2E needs MCP tool flows
 
-Proposed host ports (safe, non-conflicting):
+Approved host ports (safe, non-conflicting):
 - Web: `http://localhost:3100`
 - MCP: `http://localhost:3101`
 - Postgres: `localhost:5434` (`projectpulse_test`)
@@ -105,11 +105,10 @@ Key rule: **Tests never point at 5432/5433 or 6379/6380**.
 Add hard guards so tests cannot accidentally hit prod:
 
 - **Playwright guard**: refuse to run if baseURL contains `projectpulse.dracodev.dev` unless an explicit override env var is set.
-- **DB guard**: refuse to run if `DATABASE_URL` points at:
-  - prod DB name (`projectpulse_prod`)
-  - prod-local port (`5433`)
-  - dev DB name (`projectpulse_dev`) when running integration/e2e
-- **Redis guard**: similarly prevent pointing at prod-local/dev redis ports.
+- **DB guard**: refuse to run if `DATABASE_URL` points at prod/dev; additionally require test DB (`projectpulse_test`) on port `5434` for integration/e2e.
+  - prod DB name (`projectpulse_prod`) or prod-local port (`5433`)
+  - dev DB name (`projectpulse_dev`) or dev port (`5432`) when running integration/e2e
+- **Redis guard**: similarly prevent pointing at prod-local/dev redis ports (require `6381` for integration/e2e).
 
 ## 4) Stabilization Plan by Test Layer
 
@@ -159,17 +158,19 @@ Also reduce brittle timing assertions:
 - Ensure Prisma cleanup:
   - Add a global `afterAll` for `prisma.$disconnect()` where appropriate.
 - Move integration tests to target the isolated test DB.
-- Add deterministic database reset strategy:
-  - Option A: truncate all tables between test files
-  - Option B: run each file in a transaction and rollback
-  - Option C: recreate schema between runs
-
-We’ll choose the option based on speed + reliability after a quick benchmark.
+- Add deterministic database reset strategy (approved):
+  - **Integration/E2E**: truncate tables + `RESTART IDENTITY` + `CASCADE` between test files/suites, then seed baseline data.
+  - **Unit**: unit tests should be DB-free; if a suite must touch DB, treat it as integration by default. Transaction rollback is optional for tightly-scoped DB tests that avoid parallelism.
 
 ### 4.4 MCP Server Tests (Node `--test`)
 - Keep current runner, but align environment rules:
   - MCP tests should target the same isolated test web stack.
 - Add the same “no prod URL” safety checks.
+
+### 4.5 Test data strategy (factories + script-driven seeding)
+- Use Prisma/script-driven seeding (no test-only seed API routes).
+- Extend existing `apps/web/prisma/seed-e2e.ts` and add `apps/web/prisma/seed-test.ts` for unit/integration baseline.
+- Add factories/scenarios under `apps/web/tests/fixtures/` so tests create deterministic data.
 
 ## 5) Developer Workflow (Local Commands)
 Goal: you can run these before pushing to master.
@@ -184,20 +185,22 @@ Also add explicit “stack” commands:
 - `pnpm test:stack:down`
 - `pnpm test:stack:reset`
 
-## 6) CI / Branch Protection Strategy
+## 6) CI / Branch Protection Strategy (approved hybrid policy)
 
-### 6.1 Immediate improvement
+### 6.1 Required checks for ALL PRs
 - Keep current required checks (lint/typecheck/unit/integration/build)
-- Add a **small E2E smoke suite** as required:
-  - 3–8 tests covering critical flows
-  - runtime target: 3–8 minutes
+- Add a required Playwright **smoke** suite (3–8 tests, target 3–8 minutes):
+  - Health check
+  - Login flow
+  - Create ticket
+  - Kanban move
+  - Wiki page view
 
-### 6.2 Full E2E policy (after stabilization)
-Choose one:
-- Make full E2E required for all PRs to master, OR
-- Make full E2E required only for “high risk” PRs (label-based), plus nightly full runs
-
-The correct choice depends on how long the full suite takes once fixed.
+### 6.2 Full E2E for high-risk PRs + nightly
+- Labels: `e2e-required`, `high-risk`, `breaking-change`
+  - When present, run the full Playwright suite and mark it required.
+- Nightly: run the full Playwright suite on `master` at 2 AM and alert on failure.
+- Optional hardening: auto-apply `high-risk`/`e2e-required` labels based on changed paths (auth, Prisma/migrations, `app/api`, MCP server).
 
 ### 6.3 CI artifacts
 - Upload Playwright traces/screenshots/videos on failure.
@@ -224,17 +227,17 @@ The correct choice depends on how long the full suite takes once fixed.
 
 ### Phase 4 — CI gating upgrade (1–2 days)
 - Add required E2E smoke.
-- Add full E2E policy (required or conditional).
+- Add label-based full E2E + nightly full runs.
 
 ### Phase 5 — Prod-local smoke (optional, 1 day)
 - Add explicit `smoke:prod-local` that targets `http://localhost:8080`.
 - This is never for day-to-day development; it’s for release confidence.
 
-## 8) Decisions Needed From You (Review Checklist)
-- Should we make **full E2E required** for all PRs, or only “high risk” PRs?
-- Confirm proposed **test ports** (3100/3101/5434/6381) or choose alternatives.
-- Choose the DB reset strategy (truncate vs transaction vs recreate schema).
-- Do we want a dedicated “E2E seed API route” (test-only), or seed via Prisma scripts?
+## 8) Decisions (Approved)
+- **E2E gating**: Hybrid (smoke required for all PRs; full suite required for PRs labeled `e2e-required`, `high-risk`, `breaking-change`; nightly full run on `master`).
+- **Test ports**: `3100/3101/5434/6381`.
+- **DB reset**: Truncate tables for integration/E2E; unit tests should be DB-free; transaction rollback is allowed only for tightly scoped DB tests that avoid parallelism.
+- **Seeding**: Prisma/script-driven seeding + factories (no test-only seed API route).
 
 ---
 
