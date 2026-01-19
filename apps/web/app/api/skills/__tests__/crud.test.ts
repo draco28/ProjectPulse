@@ -179,7 +179,7 @@ describe('Skills CRUD APIs', () => {
       mockPrisma.skill.count.mockResolvedValueOnce(0);
 
       const req = new NextRequest('http://localhost:3000/api/skills?limit=500');
-      const res = await GET_List(req);
+      await GET_List(req);
 
       expect(mockPrisma.skill.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
