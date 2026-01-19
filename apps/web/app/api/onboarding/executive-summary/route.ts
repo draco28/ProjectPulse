@@ -144,17 +144,17 @@ export async function POST(request: NextRequest) {
  * a complete project context object for Session 2 and Session 3 to use.
  */
 function generateProjectContextJson(planningAnswers: any, executiveSummary: string): any {
-  // Extract data from phase answers
+  // Extract data from phase answers (phases 3,5,6,7,8,10 reserved for future use)
   const phase1 = planningAnswers.phase1 || {};
   const phase2 = planningAnswers.phase2 || {};
-  const phase3 = planningAnswers.phase3 || {};
+  const _phase3 = planningAnswers.phase3 || {};
   const phase4 = planningAnswers.phase4 || {};
-  const phase5 = planningAnswers.phase5 || {};
-  const phase6 = planningAnswers.phase6 || {};
-  const phase7 = planningAnswers.phase7 || {};
-  const phase8 = planningAnswers.phase8 || {};
+  const _phase5 = planningAnswers.phase5 || {};
+  const _phase6 = planningAnswers.phase6 || {};
+  const _phase7 = planningAnswers.phase7 || {};
+  const _phase8 = planningAnswers.phase8 || {};
   const phase9 = planningAnswers.phase9 || {};
-  const phase10 = planningAnswers.phase10 || {};
+  const _phase10 = planningAnswers.phase10 || {};
 
   // Parse answers to extract structured data
   // Note: This is basic extraction - real implementation would parse text answers
