@@ -21,6 +21,8 @@ Just chat naturally with me (Claude Code):
 
 **BEFORE starting ANY coding work:**
 
+**💡 Automated Option**: Run `claude --init` to automatically check all items below!
+
 ### 1. Health Check
 
 ```bash
@@ -205,6 +207,12 @@ projectpulse_agent_session_start({
 - Create implementation plan (use EnterPlanMode if needed)
 - Get user approval
 - Save plan and todos to MCP session (NOT to files)
+
+**💡 Clear Context After Planning (New Feature)**:
+For complex features where planning uses 60K+ tokens, select "Yes, clear context and auto-accept edits" when approving the plan. This:
+- Starts fresh context with just the plan loaded (~5K tokens)
+- Prevents compaction issues during implementation
+- Plans are archived to `.agent/plans/` automatically
 
 **Sprint 16 Auto-Claim**: When `activeTicketNumbers` (preferred) or `activeTicketIds` are provided:
 - System validates ALL tickets are in "todo" status
