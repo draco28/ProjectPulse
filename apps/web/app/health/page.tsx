@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import 'next/navigation';
+// next/navigation import not used
 import { prisma } from '@/lib/prisma';
 import { TrendingUp, TrendingDown, Minus, ArrowLeft } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';

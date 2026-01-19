@@ -26,7 +26,7 @@ import { NextRequest } from 'next/server';
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 // Stub GET function for testing (TODO: replace with actual import when route exists)
-const GET = async (req: NextRequest) => {
+const GET = async (_req: NextRequest) => {
   return Response.json({ error: 'Route not implemented yet' }, { status: 500 });
 };
 
