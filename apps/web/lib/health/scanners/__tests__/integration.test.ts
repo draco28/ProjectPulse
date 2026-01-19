@@ -7,7 +7,7 @@
 
 import { SemgrepScanner } from '../semgrep';
 import { ESLintScanner } from '../eslint';
-import { FindingCategory, ScannerType } from '@prisma/client';
+import { FindingCategory } from '@prisma/client';
 import * as path from 'path';
 
 // Skip these tests in CI or when SKIP_INTEGRATION is set
