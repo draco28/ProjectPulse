@@ -12,9 +12,10 @@ import {
   Key,
   ShieldOff,
   Loader2,
+  Clock,
   Activity,
 } from 'lucide-react';
-// cn utility not used in this component
+import { cn } from '@/lib/utils';
 
 interface Token {
   id: number;
