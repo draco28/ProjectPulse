@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     // Process files
     const imported: Array<{ filename: string; slug: string; id: number }> = [];
     const skipped: Array<{ filename: string; reason: string; existingId?: number }> = [];
-    const errors: Array<{ filename: string; error: string; details?: any }> = [];
+    const errors: Array<{ filename: string; error: string; details?: string | Array<{ field: string; message: string }> }> = [];
 
     for (const file of body.files) {
       const { filename, content } = file;

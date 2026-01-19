@@ -237,7 +237,7 @@ export const REQUIRED_FRONTMATTER_FIELDS = ['title', 'slug', 'category'] as cons
  * Check if a category is a built-in category
  */
 export function isBuiltInCategory(category: string): boolean {
-  return BUILT_IN_CATEGORIES.includes(category as any);
+  return (BUILT_IN_CATEGORIES as readonly string[]).includes(category);
 }
 
 /**

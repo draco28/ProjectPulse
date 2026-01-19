@@ -10,6 +10,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 import { createLogger } from '@/lib/logger';
 import type { TechStackInfo } from './tech-stack-detection';
 
@@ -386,7 +387,7 @@ export async function createAgentPersonas(
           skills: def.skills,
           tools: def.tools,
           autoActivate: def.autoActivate,
-          activationConditions: { triggers: def.activationTriggers } as any,
+          activationConditions: { triggers: def.activationTriggers } as Prisma.InputJsonValue,
         },
       });
       created++;

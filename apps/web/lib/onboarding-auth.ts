@@ -43,7 +43,7 @@ export async function requireOnboardingAuth(
   const session = await getServerSession(authOptions);
 
   if (session?.user) {
-    const userId = (session.user as any).id as string;
+    const userId = session.user.id;
 
     if (userId) {
       // Verify project ownership

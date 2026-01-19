@@ -31,6 +31,7 @@ import {
 } from '@/lib/knowledge/graph';
 import { getMetricsSummary } from '@/lib/knowledge/metrics';
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 import matter from 'gray-matter';
 import { MCPError, JSONRPC_ERROR_CODES } from '../types';
 import { createLogger } from '@/lib/logger';
@@ -541,6 +542,33 @@ export interface KnowledgeExportInput {
 }
 
 /**
+ * Exported knowledge item format
+ */
+interface KnowledgeExportItem {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+  archivedAt: string | null;
+  embedding?: number[];
+}
+
+/**
+ * Exported relationship format (matches Prisma select output)
+ */
+interface KnowledgeRelationshipExport {
+  id: number;
+  fromId: number;
+  toId: number;
+  relationType: string;
+  weight: Prisma.Decimal;
+  createdAt: Date;
+}
+
+/**
  * Tool output for knowledge.export
  */
 export interface KnowledgeExportOutput {
@@ -557,8 +585,8 @@ export interface KnowledgeExportOutput {
       since: string | null;
     };
   };
-  items: any[];
-  relationships: any[];
+  items: KnowledgeExportItem[];
+  relationships: KnowledgeRelationshipExport[];
 }
 
 /**
@@ -792,7 +820,7 @@ export async function knowledgeExportHandler(input: unknown): Promise<KnowledgeE
 
     // Fetch relationships if requested (default true)
     const includeRelationships = params.includeRelationships !== false;
-    let relationships: any[] = [];
+    let relationships: KnowledgeRelationshipExport[] = [];
 
     if (includeRelationships && items.length > 0) {
       const itemIds = items.map((item) => item.id);
@@ -920,8 +948,8 @@ export async function knowledgeImportHandler(input: unknown): Promise<KnowledgeI
     }
 
     // Process each file
-    const results: any[] = [];
-    const errors: any[] = [];
+    const results: NonNullable<KnowledgeImportOutput['imported']> = [];
+    const errors: NonNullable<KnowledgeImportOutput['errors']> = [];
 
     for (let i = 0; i < params.files.length; i++) {
       const file = params.files[i] as { filename?: string; content?: string } | undefined;
@@ -1010,7 +1038,7 @@ export async function knowledgeImportHandler(input: unknown): Promise<KnowledgeI
         }
 
         // Validate tag items are strings
-        if (tags.some((tag: any) => typeof tag !== 'string')) {
+        if (tags.some((tag: unknown) => typeof tag !== 'string')) {
           errors.push({
             index: i,
             filename,

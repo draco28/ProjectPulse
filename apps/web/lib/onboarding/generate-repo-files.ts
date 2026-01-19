@@ -13,6 +13,19 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger({ module: 'Onboarding:RepoFiles' });
 
+/**
+ * Minimal interface for agent persona data used in repo file generation
+ */
+interface AgentPersonaForRepoFiles {
+  name: string;
+  slug: string;
+  icon: string | null;
+  description: string | null;
+  skills: string[];
+  tools: string[];
+  activationConditions: { triggers?: string[] } | null;
+}
+
 // ============================================================================
 // CLAUDE.md TEMPLATE GENERATION
 // ============================================================================
@@ -24,7 +37,7 @@ const log = createLogger({ module: 'Onboarding:RepoFiles' });
  * @param agentPersonas - Array of agent personas
  * @returns Markdown content for CLAUDE.md
  */
-export function generateCLAUDEmd(projectName: string, agentPersonas: any[]): string {
+export function generateCLAUDEmd(projectName: string, agentPersonas: AgentPersonaForRepoFiles[]): string {
   const agentsList = agentPersonas
     .map((agent) => `- **${agent.name}** (\`${agent.slug}\`) ${agent.icon} - ${agent.description}`)
     .join('\n');
@@ -281,7 +294,7 @@ Use ProjectPulse to track your development journey and leverage AI agents for ex
  * @param agentPersonas - Array of agent personas
  * @returns Markdown content for AGENTS.md
  */
-export function generateAGENTSmd(projectName: string, agentPersonas: any[]): string {
+export function generateAGENTSmd(projectName: string, agentPersonas: AgentPersonaForRepoFiles[]): string {
   const agentSections = agentPersonas
     .map(
       (agent) => `
@@ -294,7 +307,7 @@ export function generateAGENTSmd(projectName: string, agentPersonas: any[]): str
 **Tools**: ${agent.tools.join(', ')}
 
 **When to invoke**:
-${((agent.activationConditions as any)?.triggers || []).map((trigger: string) => `- ${trigger}`).join('\n')}
+${(agent.activationConditions?.triggers || []).map((trigger: string) => `- ${trigger}`).join('\n')}
 
 **How to use**:
 \`\`\`typescript
@@ -402,7 +415,7 @@ For more information, see **CLAUDE.md** in this repository.
 export async function writeRepoFiles(
   repoPath: string,
   projectName: string,
-  agentPersonas: any[]
+  agentPersonas: AgentPersonaForRepoFiles[]
 ): Promise<{ claudeMd: boolean; agentsMd: boolean }> {
   log.info({ repoPath, projectName, agentCount: agentPersonas.length }, 'Writing repo files');
 

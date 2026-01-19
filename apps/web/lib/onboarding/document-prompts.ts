@@ -10,13 +10,42 @@
  * NO server-side AI generation (privacy-first, zero-cost)
  */
 
+/**
+ * Project context data passed to document prompt templates
+ */
+export interface ProjectContext {
+  metadata?: {
+    projectName?: string;
+    projectDescription?: string;
+    targetUsers?: string;
+  };
+  executiveSummary?: string;
+  features?: unknown[];
+  techStack?: {
+    frontend?: string;
+    backend?: string;
+    database?: string;
+    hosting?: string;
+  };
+  timeline?: {
+    startDate?: string;
+    estimatedDuration?: string;
+    targetLaunch?: string;
+  };
+  teamSize?: number;
+  budget?: {
+    development?: string;
+    monthly_operating?: string;
+  };
+}
+
 export interface DocumentPrompt {
   filename: string;
   title: string;
   category: 'planning' | 'architecture' | 'implementation' | 'operations';
   wordCountTarget: number;
   systemPrompt: string;
-  userPromptTemplate: (projectContext: any) => string;
+  userPromptTemplate: (projectContext: ProjectContext) => string;
 }
 
 export const DOCUMENT_PROMPTS: DocumentPrompt[] = [
