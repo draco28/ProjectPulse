@@ -135,7 +135,7 @@ describe('Skills Search, Export, and Import APIs', () => {
       const req = new NextRequest(
         'http://localhost:3000/api/skills/search?q=testing&category=workflow'
       );
-      const res = await GET_Search(req);
+      await GET_Search(req);
 
       expect(mockPrisma.skill.findMany).toHaveBeenCalledWith(
         expect.objectContaining({

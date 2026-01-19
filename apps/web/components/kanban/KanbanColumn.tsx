@@ -85,8 +85,8 @@ export const KanbanColumn = memo(function KanbanColumn({
     const childTickets: KanbanTicket[] = [];
     const standaloneTickets: KanbanTicket[] = [];
 
-    // Build set of ticket IDs in this column for parent lookup
-    const ticketIdsInColumn = new Set(tickets.map((t) => t.id));
+    // Build set of ticket IDs in this column for parent lookup (reserved for future use)
+    const _ticketIdsInColumn = new Set(tickets.map((t) => t.id));
 
     for (const ticket of tickets) {
       if (ticket.childTickets && ticket.childTickets.length > 0) {

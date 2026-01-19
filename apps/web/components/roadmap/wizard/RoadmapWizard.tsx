@@ -173,7 +173,7 @@ const STORAGE_KEY = 'roadmap_wizard_draft';
 const STEP_LABELS = ['Project Info', 'Phases', 'Sprints', 'Preview'];
 
 export function RoadmapWizard({ projectId, projectName }: RoadmapWizardProps) {
-  const router = useRouter();
+  const _router = useRouter(); // Reserved for navigation after wizard completion
   const [state, dispatch] = useReducer(wizardReducer, initialState);
   const autoSaveRef = useRef<NodeJS.Timeout | null>(null);
 
