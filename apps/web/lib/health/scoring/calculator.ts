@@ -15,7 +15,7 @@
  * where weightedFindings = sum(finding.severity * severityPoints)
  */
 
-import { FindingCategory, FindingSeverity } from '@prisma/client';
+import { FindingCategory } from '@prisma/client';
 import type { FindingData } from '../scanners/types';
 import {
   type HealthScoreData,
