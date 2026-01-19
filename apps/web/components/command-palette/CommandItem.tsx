@@ -17,8 +17,8 @@ interface CommandItemProps {
 }
 
 export function CommandItem({ command, isSelected, onClick, onMouseEnter }: CommandItemProps) {
-  const IconComponent = command.icon;
   const isString = typeof command.icon === 'string';
+  const IconComponent = isString ? null : command.icon;
 
   return (
     <div
@@ -46,9 +46,9 @@ export function CommandItem({ command, isSelected, onClick, onMouseEnter }: Comm
         )}
       >
         {isString ? (
-          <span className="text-lg">{command.icon}</span>
+          <span className="text-lg">{command.icon as string}</span>
         ) : (
-          <IconComponent className="h-5 w-5 text-white" />
+          IconComponent && <IconComponent className="h-5 w-5 text-white" />
         )}
       </div>
 

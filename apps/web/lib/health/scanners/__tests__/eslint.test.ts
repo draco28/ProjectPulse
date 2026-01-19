@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Unit tests for ESLint Scanner
  * Tests valid parsing, severity mapping, code snippet extraction, and edge cases

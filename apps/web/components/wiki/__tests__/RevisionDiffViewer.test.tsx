@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Component tests for RevisionDiffViewer
  * Tests revert functionality, confirmation dialogs, loading states, and error handling

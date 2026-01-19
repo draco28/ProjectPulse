@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Unit tests for Semgrep Scanner
  * Tests valid parsing, error handling, severity mapping, and edge cases

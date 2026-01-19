@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Skills LRU Cache Behavior Validation Tests
  * Tests cache TTL (5 min), capacity (100 entries), eviction policy (LRU),

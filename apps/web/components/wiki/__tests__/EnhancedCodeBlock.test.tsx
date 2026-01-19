@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Component tests for EnhancedCodeBlock
  * Tests clipboard API integration, fallback behavior, and error handling

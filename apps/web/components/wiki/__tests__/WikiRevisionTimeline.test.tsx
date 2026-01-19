@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Component tests for WikiRevisionTimeline
  * Tests rendering of revision history, actor metadata display, and integration with RevisionDiffViewer
