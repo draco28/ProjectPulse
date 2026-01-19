@@ -4,7 +4,7 @@
  */
 
 import { ESLintScanner } from '../eslint';
-import { FindingSeverity, FindingCategory, ScannerType } from '@prisma/client';
+import { FindingCategory, FindingSeverity } from '@prisma/client';
 import { ScannerError } from '../types';
 import * as fs from 'fs/promises';
 import * as path from 'path';
