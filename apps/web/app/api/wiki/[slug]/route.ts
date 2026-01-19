@@ -17,7 +17,6 @@ import { updateWikiPageSchema } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
 import {
   getAuthorizedProjectId,
-  requireProjectAccess,
   AuthError,
 } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
