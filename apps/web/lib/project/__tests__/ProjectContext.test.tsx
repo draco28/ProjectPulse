@@ -14,7 +14,6 @@ import {
   ProjectProvider,
   useProject,
   useProjectOptional,
-  type ProjectContextValue,
 } from '../ProjectContext';
 
 // ============================================================================
@@ -42,12 +41,6 @@ beforeEach(() => {
 // ============================================================================
 // Test Helpers
 // ============================================================================
-
-interface WrapperProps {
-  children: React.ReactNode;
-  projectId?: number;
-  projectName?: string;
-}
 
 function createWrapper(projectId?: number, projectName?: string) {
   return function Wrapper({ children }: { children: React.ReactNode }) {

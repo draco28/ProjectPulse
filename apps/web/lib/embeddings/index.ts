@@ -19,7 +19,6 @@ import {
   generateOpenAIEmbedding,
   generateOpenAIBatchEmbeddings,
   isOpenAIAvailable,
-  OpenAIEmbeddingError,
 } from './openai';
 
 import { createLogger } from '@/lib/logger';

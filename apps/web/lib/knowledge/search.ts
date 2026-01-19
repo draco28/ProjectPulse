@@ -6,7 +6,7 @@
 
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { generateEmbedding } from '../embeddings';
+import { generateEmbedding as _generateEmbedding } from '../embeddings';
 import {
   generateEmbeddingProtected,
   isEmbeddingCircuitOpen,

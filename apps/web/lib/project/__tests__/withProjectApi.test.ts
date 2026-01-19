@@ -7,7 +7,7 @@
  * - apiError()
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
 // ============================================================================
 // Mocks - Must be defined inside factory due to Jest hoisting

@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { Activity, TrendingUp, TrendingDown, Minus, ArrowLeft } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, ArrowLeft } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { FloatingBackground } from '@/components/FloatingBackground';
 import { withProjectAuth } from '@/lib/project';

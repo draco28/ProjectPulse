@@ -6,7 +6,7 @@
  * (Semgrep, ESLint, Lighthouse, axe-core).
  */
 
-import { FindingCategory, FindingSeverity, FindingStatus, ScannerType } from '@prisma/client';
+import { FindingCategory, FindingSeverity, ScannerType } from '@prisma/client';
 
 /**
  * Raw finding data from scanner output (before database insertion)

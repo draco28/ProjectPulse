@@ -94,7 +94,8 @@ export async function listKnowledgeResources(): Promise<ResourceMetadata[]> {
     });
 
     // Fetch all categories (for category-based resource discovery)
-    const categories = await prisma.knowledgeItem.groupBy({
+    // Note: categories query result reserved for future category-based resource URIs
+    await prisma.knowledgeItem.groupBy({
       by: ['category'],
       _count: {
         category: true,

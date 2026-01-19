@@ -5,7 +5,6 @@
 import {
   analyzeTraceability,
   isValidationPassing,
-  getValidationSummary,
   meetsThresholds,
 } from '../analysis';
 import type { DocumentSet } from '../parsers';

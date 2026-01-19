@@ -25,7 +25,7 @@ const revokeSchema = z.object({
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const log = createRequestLogger(getRequestId(request));
   try {
-    const admin = await requireAdmin();
+    await requireAdmin();
     const tokenId = parseInt(params.id);
 
     if (isNaN(tokenId)) {

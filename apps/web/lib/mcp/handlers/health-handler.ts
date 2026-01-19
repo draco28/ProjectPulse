@@ -24,10 +24,10 @@
  */
 
 import { prisma } from '@/lib/prisma';
-import { getScanner, type Scanner } from '@/lib/health/scanners';
+import { getScanner } from '@/lib/health/scanners';
 import { calculateHealthScore } from '@/lib/health/scoring';
 import { MCPError, JSONRPC_ERROR_CODES } from '../types';
-import { ScannerType, FindingCategory, FindingSeverity } from '@prisma/client';
+import { ScannerType } from '@prisma/client';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger({ module: 'MCP:HealthHandler' });

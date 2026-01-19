@@ -354,7 +354,7 @@ export function createSessionEntry(
 export function aggregateIntoSprintSummary(
   summaries: SprintSummary[],
   entry: SessionEntry,
-  totalStats: TotalStats
+  _totalStats: TotalStats
 ): void {
   // Find or create "Current Sprint" summary for aggregated sessions
   let currentSprint = summaries.find((s) => s.title === DEFAULT_SPRINT_TITLE);

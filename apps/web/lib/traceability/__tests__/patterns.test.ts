@@ -10,8 +10,6 @@ import {
   extractSprintNumber,
   extractPRDSections,
   parseTraceLine,
-  extractAllMatches,
-  FR_PATTERN,
 } from '../patterns';
 
 describe('Pattern Extraction', () => {

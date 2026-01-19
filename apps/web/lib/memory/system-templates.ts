@@ -1,4 +1,4 @@
-import { PrismaClient, MemoryBankType } from '@prisma/client';
+import { MemoryBankType } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { createLogger } from '@/lib/logger';
 

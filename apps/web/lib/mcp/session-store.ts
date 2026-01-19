@@ -38,8 +38,9 @@ function toMCPSession(data: SessionData): MCPSession {
 
 /**
  * Convert MCPSession (application) to SessionData (Redis)
+ * Reserved for future use when session export is implemented
  */
-function toSessionData(session: MCPSession, projectId: number): SessionData {
+function _toSessionData(session: MCPSession, projectId: number): SessionData {
   return {
     id: session.id,
     projectId,

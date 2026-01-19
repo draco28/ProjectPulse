@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { files, generateEmbeddings = true } = body;
+    const { files, generateEmbeddings: _generateEmbeddings = true } = body;
 
     // Validate files array
     if (!Array.isArray(files) || files.length === 0) {
