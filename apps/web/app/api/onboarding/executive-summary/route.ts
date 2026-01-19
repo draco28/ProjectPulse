@@ -198,7 +198,7 @@ function generateProjectContextJson(planningAnswers: any, executiveSummary: stri
 // Helper functions to extract structured data from text answers
 function extractProjectName(phase1: any, summary: string): string {
   // Try to find project name in answers or summary
-  const coreFeatures = phase1['phase1_q1'] || phase1['phase1_q4'] || '';
+  const _coreFeatures = phase1['phase1_q1'] || phase1['phase1_q4'] || '';
   // Simple extraction - look for capitalized words
   const match = summary.match(/^([A-Z][a-zA-Z]+)/);
   return match?.[1] ?? 'MyProject';
@@ -258,7 +258,7 @@ function extractTechStack(phase: any, type: string): string {
   return 'Not specified';
 }
 
-function extractPhases(planningAnswers: any): any[] {
+function extractPhases(_planningAnswers: any): any[] {
   // Basic phase extraction - will be enhanced by Session 2
   return [
     {
@@ -280,7 +280,7 @@ function extractPhases(planningAnswers: any): any[] {
   ];
 }
 
-function extractStartDate(phase2: any): string {
+function extractStartDate(_phase2: any): string {
   // Default to today
   return new Date().toISOString().split('T')[0] ?? new Date().toISOString().slice(0, 10);
 }
@@ -293,7 +293,7 @@ function extractDuration(phase2: any): string {
   return '8-12 weeks';
 }
 
-function extractLaunchDate(phase2: any): string {
+function extractLaunchDate(_phase2: any): string {
   // Add estimated duration to start date
   const start = new Date();
   start.setDate(start.getDate() + 84); // ~12 weeks
