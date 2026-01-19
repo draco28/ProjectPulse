@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
     const requestedProjectId = body.projectId ? parseInt(body.projectId, 10) : undefined;
 
     // Authenticate and validate project access
-    const { projectId } = await getAuthorizedProjectId(request, requestedProjectId);
+    await getAuthorizedProjectId(request, requestedProjectId);
 
     const validation = createKnowledgeItemSchema.safeParse(body);
 
