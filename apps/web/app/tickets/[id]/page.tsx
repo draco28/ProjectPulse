@@ -331,6 +331,7 @@ export default async function TicketDetailPage({
               {ticket.childTickets && ticket.childTickets.length > 0 && (
                 <ChildTicketsSection
                   parentId={ticket.id}
+                  parentTicketNumber={ticket.ticketNumber}
                   childTickets={ticket.childTickets}
                   projectId={projectId}
                 />

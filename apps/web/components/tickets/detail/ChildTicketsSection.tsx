@@ -28,6 +28,7 @@ interface ChildTicket {
 
 interface ChildTicketsSectionProps {
   parentId: number;
+  parentTicketNumber: number;  // Sprint 17: Project-scoped number for display
   childTickets: ChildTicket[];
   projectId: number;
 }
@@ -61,7 +62,8 @@ const KIND_COLORS: Record<string, string> = {
 };
 
 export function ChildTicketsSection({
-  parentId,
+  parentId: _parentId,
+  parentTicketNumber,
   childTickets,
   projectId,
 }: ChildTicketsSectionProps) {
@@ -106,7 +108,8 @@ export function ChildTicketsSection({
       {/* Child tickets list */}
       <div className="space-y-2">
         {childTickets.map((child, index) => {
-          const displayId = `${parentId}.${index + 1}`;
+          // Sprint 17: Use parentTicketNumber for project-scoped hierarchical display
+          const displayId = `${parentTicketNumber}.${index + 1}`;
           const StatusIcon = STATUS_ICONS[child.status] || Circle;
           const statusColor = STATUS_COLORS[child.status] || 'text-slate';
           const priorityColor = PRIORITY_COLORS[child.priority] || PRIORITY_COLORS.low;
