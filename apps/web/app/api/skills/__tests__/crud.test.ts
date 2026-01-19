@@ -123,7 +123,7 @@ describe('Skills CRUD APIs', () => {
       mockPrisma.skill.count.mockResolvedValueOnce(0);
 
       const req = new NextRequest('http://localhost:3000/api/skills?category=testing');
-      const res = await GET_List(req);
+      await GET_List(req);
 
       expect(mockPrisma.skill.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -137,7 +137,7 @@ describe('Skills CRUD APIs', () => {
       mockPrisma.skill.count.mockResolvedValueOnce(0);
 
       const req = new NextRequest('http://localhost:3000/api/skills?search=jest');
-      const res = await GET_List(req);
+      await GET_List(req);
 
       expect(mockPrisma.skill.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
