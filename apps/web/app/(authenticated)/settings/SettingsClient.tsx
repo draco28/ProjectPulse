@@ -101,8 +101,8 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
       setShowGenerateModal(false);
       setTokenName('');
       router.refresh();
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error));
     } finally {
       setIsGenerating(false);
     }
@@ -127,8 +127,8 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
       }
 
       router.refresh();
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error));
     }
   };
 
@@ -147,8 +147,8 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
 
       router.refresh();
       alert('Settings saved successfully');
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error));
     } finally {
       setIsSavingSettings(false);
     }
@@ -170,8 +170,8 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
       const result = await response.json();
       setWikiRefreshPreview(result);
       setShowWikiRefreshModal(true);
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error));
     } finally {
       setIsRefreshingWikis(false);
     }
@@ -196,8 +196,8 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
         `Wiki refresh complete! ${result.updated.length} pages updated, ${result.skipped.length} skipped, ${result.unchanged.length} unchanged.`
       );
       router.refresh();
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error));
     } finally {
       setIsRefreshingWikis(false);
     }

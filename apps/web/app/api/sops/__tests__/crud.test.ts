@@ -38,7 +38,7 @@ describe('SOPs API - Sprint 11', () => {
     const projectSOPs = testSOPs.filter((s) => s.projectId === TEST_PROJECT_ID);
 
     it('lists all SOPs with metadata only (excludes content)', async () => {
-      const expectedSOPs = projectSOPs.map(({ content, ...rest }) => rest);
+      const expectedSOPs = projectSOPs.map(({ content: _content, ...rest }) => rest);
       mockPrisma.sOP.findMany.mockResolvedValueOnce(expectedSOPs as any);
 
       const req = new NextRequest(`http://localhost:3000/api/sops?projectId=${TEST_PROJECT_ID}`);

@@ -460,7 +460,7 @@ describe('Skills-Knowledge Linking APIs', () => {
 
       const POST_LinkKnowledge = async (skillId: string, req: NextRequest) => {
         const body = await req.json();
-        const { knowledgeId } = body;
+        const { knowledgeId: _knowledgeId } = body;
 
         const skill = await prisma.skill.findUnique({
           where: { id: parseInt(skillId) },

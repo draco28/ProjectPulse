@@ -6,7 +6,7 @@
  * including category scores, severity weights, and overall health score data.
  */
 
-import { FindingCategory, type FindingSeverity } from '@prisma/client';
+import { FindingCategory } from '@prisma/client';
 
 /**
  * Category-specific scores (0-100 scale)

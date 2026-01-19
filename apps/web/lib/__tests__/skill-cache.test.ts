@@ -451,7 +451,7 @@ describe('Skills LRU Cache Behavior', () => {
       }));
 
       // Populate cache
-      skills.forEach((skill, i) => {
+      skills.forEach((skill, _i) => {
         cache.set(`skill:${skill.id}`, skill);
       });
 

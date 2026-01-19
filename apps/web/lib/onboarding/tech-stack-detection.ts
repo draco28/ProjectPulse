@@ -7,6 +7,24 @@
  * Architecture: Pure detection logic (NO AI generation)
  */
 
+// Type definitions for project context
+type DependencyMap = Record<string, unknown>;
+
+interface TechStackConfig {
+  frontend?: string;
+  backend?: string;
+  database?: string;
+  orm?: string;
+  hosting?: string;
+}
+
+interface ProjectContext {
+  techStack?: TechStackConfig;
+  dependencies?: DependencyMap;
+  devDependencies?: DependencyMap;
+  deployment?: string;
+}
+
 export interface TechStackInfo {
   frontend: string | null; // "Next.js", "React", "Vue", "Angular", etc.
   backend: string | null; // "Node.js", "Express", "Fastify", "NestJS", etc.
@@ -23,7 +41,7 @@ export interface TechStackInfo {
  * @param projectContext - project-context.json from Session 1
  * @returns Detected tech stack info
  */
-export function detectTechStack(projectContext: any): TechStackInfo {
+export function detectTechStack(projectContext: ProjectContext): TechStackInfo {
   const techStack = projectContext.techStack || {};
   const dependencies = projectContext.dependencies || {};
   const devDependencies = projectContext.devDependencies || {};
@@ -42,7 +60,7 @@ export function detectTechStack(projectContext: any): TechStackInfo {
 /**
  * Detect frontend framework
  */
-function detectFrontend(techStack: any, dependencies: any): string | null {
+function detectFrontend(techStack: TechStackConfig, dependencies: DependencyMap): string | null {
   const frontend = techStack.frontend || '';
 
   // Check explicit tech stack declaration
@@ -85,7 +103,7 @@ function detectFrontend(techStack: any, dependencies: any): string | null {
 /**
  * Detect backend framework
  */
-function detectBackend(techStack: any, dependencies: any): string | null {
+function detectBackend(techStack: TechStackConfig, dependencies: DependencyMap): string | null {
   const backend = techStack.backend || '';
 
   // Check explicit tech stack declaration
@@ -136,7 +154,7 @@ function detectBackend(techStack: any, dependencies: any): string | null {
 /**
  * Detect database
  */
-function detectDatabase(techStack: any, dependencies: any): string | null {
+function detectDatabase(techStack: TechStackConfig, dependencies: DependencyMap): string | null {
   const database = techStack.database || '';
 
   // Check explicit tech stack declaration
@@ -182,7 +200,7 @@ function detectDatabase(techStack: any, dependencies: any): string | null {
 /**
  * Detect ORM/Database toolkit
  */
-function detectORM(techStack: any, dependencies: any): string | null {
+function detectORM(techStack: TechStackConfig, dependencies: DependencyMap): string | null {
   const orm = techStack.orm || '';
 
   // Check explicit tech stack declaration
@@ -225,7 +243,7 @@ function detectORM(techStack: any, dependencies: any): string | null {
 /**
  * Detect hosting platform
  */
-function detectHosting(techStack: any, deployment: any): string | null {
+function detectHosting(techStack: TechStackConfig, deployment: string | undefined): string | null {
   const hosting = techStack.hosting || '';
   const deploymentStr = deployment || '';
 
@@ -275,7 +293,7 @@ function detectHosting(techStack: any, deployment: any): string | null {
 /**
  * Detect testing framework
  */
-function detectTesting(devDependencies: any): string | null {
+function detectTesting(devDependencies: DependencyMap): string | null {
   if (devDependencies.jest || devDependencies['@types/jest']) {
     return 'Jest';
   }
@@ -298,7 +316,7 @@ function detectTesting(devDependencies: any): string | null {
 /**
  * Detect styling solution
  */
-function detectStyling(dependencies: any, devDependencies: any): string | null {
+function detectStyling(dependencies: DependencyMap, devDependencies: DependencyMap): string | null {
   if (dependencies.tailwindcss || devDependencies.tailwindcss) {
     return 'Tailwind CSS';
   }

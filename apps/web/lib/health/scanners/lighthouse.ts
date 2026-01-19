@@ -172,7 +172,7 @@ export class LighthouseScanner implements Scanner {
   private filterAccessibilityAudits(audits: Record<string, LighthouseAudit>): LighthouseAudit[] {
     const filtered: LighthouseAudit[] = [];
 
-    Object.entries(audits).forEach(([key, audit]) => {
+    Object.entries(audits).forEach(([_key, audit]) => {
       // Include audits that:
       // 1. Have a score (not null)
       // 2. Failed (score < 1.0)

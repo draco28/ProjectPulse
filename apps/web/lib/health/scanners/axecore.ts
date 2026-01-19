@@ -6,7 +6,7 @@
  * Maps axe-core findings to HealthFinding records with ACCESSIBILITY category.
  */
 
-import { chromium, type Browser, type Page } from '@playwright/test';
+import { chromium, type Browser } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
 import { FindingCategory, FindingSeverity, ScannerType } from '@prisma/client';
 import type { Scanner, ScanResult, ScanOptions, FindingData, SeverityMapper } from './types';

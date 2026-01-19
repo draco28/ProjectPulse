@@ -155,7 +155,7 @@ describe('Skills Search, Export, and Import APIs', () => {
       mockPrisma.skill.findMany.mockResolvedValueOnce([]);
 
       const req = new NextRequest('http://localhost:3000/api/skills/search?q=test&limit=10');
-      const res = await GET_Search(req);
+      const _res = await GET_Search(req);
 
       expect(mockPrisma.skill.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -168,7 +168,7 @@ describe('Skills Search, Export, and Import APIs', () => {
       mockPrisma.skill.findMany.mockResolvedValueOnce([]);
 
       const req = new NextRequest('http://localhost:3000/api/skills/search?q=test&limit=500');
-      const res = await GET_Search(req);
+      const _res = await GET_Search(req);
 
       expect(mockPrisma.skill.findMany).toHaveBeenCalledWith(
         expect.objectContaining({

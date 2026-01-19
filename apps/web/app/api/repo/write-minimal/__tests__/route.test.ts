@@ -424,7 +424,7 @@ describe('Template Generation API - Sprint 11', () => {
       });
 
       const res = await POST(req);
-      const body = await res.json();
+      const _body = await res.json();
 
       expect(res.status).toBe(200);
 

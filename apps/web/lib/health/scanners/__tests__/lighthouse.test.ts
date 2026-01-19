@@ -26,7 +26,7 @@ jest.mock('chrome-launcher', () => ({
 
 // Import mocked modules after jest.mock()
 import lighthouse from 'lighthouse';
-import * as chromeLauncher from 'chrome-launcher';
+import * as _chromeLauncher from 'chrome-launcher';
 
 describe('LighthouseScanner', () => {
   let scanner: LighthouseScanner;

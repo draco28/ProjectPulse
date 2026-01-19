@@ -24,7 +24,7 @@ import {
 } from '@/lib/embeddings';
 import { createLogger } from '@/lib/logger';
 
-const log = createLogger({ module: 'CircuitBreaker:Services' });
+const _log = createLogger({ module: 'CircuitBreaker:Services' });
 
 // =============================================================================
 // Embedding Service Circuit Breaker

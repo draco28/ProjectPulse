@@ -29,6 +29,77 @@ import { z } from 'zod';
 import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboarding-auth';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
+import type { Prisma } from '@prisma/client';
+
+// Type definitions for onboarding session data
+type PhaseAnswers = Record<string, string>;
+type PlanningAnswers = Record<string, PhaseAnswers>;
+
+interface ProjectContextMetadata {
+  projectName: string;
+  projectType: string;
+  domain: string;
+  targetUsers: string[];
+  valueProposition: string;
+  version: string;
+  lastUpdated: string;
+  createdBy: string;
+}
+
+interface ProjectContextTechStack {
+  frontend: string;
+  backend: string;
+  database: string;
+  auth: string;
+  hosting: string;
+  other: string[];
+}
+
+interface ProjectContextPhase {
+  id: number;
+  name: string;
+  duration: string;
+  goals: string[];
+  deliverables: string[];
+  status: string;
+}
+
+interface ProjectContextTimeline {
+  startDate: string;
+  estimatedDuration: string;
+  targetLaunch: string;
+}
+
+interface ProjectContextBudget {
+  development: string;
+  monthly_operating: string;
+}
+
+interface ProjectContextFeature {
+  id: number;
+  name: string;
+  description: string;
+  priority: string;
+  phase: number;
+  status: string;
+}
+
+interface ProjectContext {
+  metadata: ProjectContextMetadata;
+  techStack: ProjectContextTechStack;
+  phases: ProjectContextPhase[];
+  timeline: ProjectContextTimeline;
+  budget: ProjectContextBudget;
+  features: ProjectContextFeature[];
+}
+
+interface SessionMetrics {
+  tokensUsed?: number;
+  phasesComplete?: number;
+  executiveSummaryWordCount?: number;
+  executiveSummaryGeneratedAt?: string;
+  generatedBy?: string;
+}
 
 const requestSchema = z.object({
   projectId: z.number().int().positive('Project ID must be positive'),
@@ -70,6 +141,7 @@ export async function POST(request: NextRequest) {
         planningAnswers: true,
         projectContextJson: true,
         status: true,
+        metrics: true,
       },
     });
 
@@ -80,7 +152,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const planningAnswers = session.planningAnswers as any;
+    const planningAnswers = session.planningAnswers as PlanningAnswers;
 
     // Calculate word count if not provided
     const wordCount =
@@ -93,12 +165,12 @@ export async function POST(request: NextRequest) {
 
     // Update session with agent-generated executive summary (Sprint 9 Refactored)
     const now = new Date();
-    const currentMetrics = (session as any).metrics || { tokensUsed: 0, phasesComplete: 10 };
+    const currentMetrics = (session.metrics as SessionMetrics | null) || { tokensUsed: 0, phasesComplete: 10 };
 
     await prisma.onboardingSession.update({
       where: { id: session.id },
       data: {
-        projectContextJson,
+        projectContextJson: projectContextJson as unknown as Prisma.InputJsonValue,
         status: 'complete',
         completedAt: now,
         metrics: {
@@ -143,7 +215,7 @@ export async function POST(request: NextRequest) {
  * and combines it with the agent-generated executive summary to create
  * a complete project context object for Session 2 and Session 3 to use.
  */
-function generateProjectContextJson(planningAnswers: any, executiveSummary: string): any {
+function generateProjectContextJson(planningAnswers: PlanningAnswers, executiveSummary: string): ProjectContext {
   // Extract data from phase answers (phases 3,5,6,7,8,10 reserved for future use)
   const phase1 = planningAnswers.phase1 || {};
   const phase2 = planningAnswers.phase2 || {};
@@ -196,7 +268,7 @@ function generateProjectContextJson(planningAnswers: any, executiveSummary: stri
 }
 
 // Helper functions to extract structured data from text answers
-function extractProjectName(phase1: any, summary: string): string {
+function extractProjectName(phase1: PhaseAnswers, summary: string): string {
   // Try to find project name in answers or summary
   const _coreFeatures = phase1['phase1_q1'] || phase1['phase1_q4'] || '';
   // Simple extraction - look for capitalized words
@@ -204,7 +276,7 @@ function extractProjectName(phase1: any, summary: string): string {
   return match?.[1] ?? 'MyProject';
 }
 
-function extractProjectType(phase1: any, summary: string): string {
+function extractProjectType(_phase1: PhaseAnswers, summary: string): string {
   const text = summary.toLowerCase();
   if (text.includes('saas')) return 'SaaS';
   if (text.includes('e-commerce') || text.includes('ecommerce')) return 'E-Commerce';
@@ -213,7 +285,7 @@ function extractProjectType(phase1: any, summary: string): string {
   return 'Web Application';
 }
 
-function extractTargetUsers(phase1: any): string[] {
+function extractTargetUsers(phase1: PhaseAnswers): string[] {
   const usersText = phase1['phase1_q1'] || '';
   // Basic split by commas
   return usersText
@@ -223,11 +295,11 @@ function extractTargetUsers(phase1: any): string[] {
     .slice(0, 5);
 }
 
-function extractValueProp(phase1: any): string {
+function extractValueProp(phase1: PhaseAnswers): string {
   return phase1['phase1_q6'] || 'Innovative solution for modern challenges';
 }
 
-function extractTechStack(phase: any, type: string): string {
+function extractTechStack(phase: PhaseAnswers, type: string): string {
   // Extract from relevant phase answers
   const allAnswers = Object.values(phase).join(' ');
 
@@ -258,7 +330,7 @@ function extractTechStack(phase: any, type: string): string {
   return 'Not specified';
 }
 
-function extractPhases(_planningAnswers: any): any[] {
+function extractPhases(_planningAnswers: PlanningAnswers): ProjectContextPhase[] {
   // Basic phase extraction - will be enhanced by Session 2
   return [
     {
@@ -280,12 +352,12 @@ function extractPhases(_planningAnswers: any): any[] {
   ];
 }
 
-function extractStartDate(_phase2: any): string {
+function extractStartDate(_phase2: PhaseAnswers): string {
   // Default to today
   return new Date().toISOString().split('T')[0] ?? new Date().toISOString().slice(0, 10);
 }
 
-function extractDuration(phase2: any): string {
+function extractDuration(phase2: PhaseAnswers): string {
   const timelineText = phase2['phase2_q7'] || '';
   if (timelineText.includes('3 months')) return '12 weeks';
   if (timelineText.includes('6 weeks')) return '6 weeks';
@@ -293,14 +365,14 @@ function extractDuration(phase2: any): string {
   return '8-12 weeks';
 }
 
-function extractLaunchDate(_phase2: any): string {
+function extractLaunchDate(_phase2: PhaseAnswers): string {
   // Add estimated duration to start date
   const start = new Date();
   start.setDate(start.getDate() + 84); // ~12 weeks
   return start.toISOString().split('T')[0] ?? start.toISOString().slice(0, 10);
 }
 
-function extractBudget(phase2: any, type: string): string {
+function extractBudget(phase2: PhaseAnswers, type: string): string {
   const budgetText = phase2['phase2_q5'] || '';
   if (type === 'development') {
     return budgetText.includes('solo') ? '$0 (solo developer)' : 'Variable';
@@ -313,7 +385,7 @@ function extractBudget(phase2: any, type: string): string {
   return '$50-200/month';
 }
 
-function extractFeatures(phase1: any): any[] {
+function extractFeatures(phase1: PhaseAnswers): ProjectContextFeature[] {
   const featuresText = phase1['phase1_q4'] || '';
   // Split by numbered list or commas
   const features = featuresText

@@ -57,7 +57,7 @@ export function calculateCategoryScore(
   maxPossible: number = MAX_POINTS_PER_CATEGORY
 ): number {
   // Filter findings for this category
-  const categoryFindings = findings.filter((f) => {
+  const categoryFindings = findings.filter((_f) => {
     // Map finding category to our category system
     // Note: FindingData doesn't have category field, so we need to infer from scanner type
     // For now, we'll assume findings are pre-filtered or have a category property

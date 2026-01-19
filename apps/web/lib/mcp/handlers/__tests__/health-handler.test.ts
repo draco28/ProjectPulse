@@ -51,7 +51,7 @@ import { prisma as prismaMock } from '@/lib/prisma';
 
 // Mock scanner registry
 jest.mock('@/lib/health/scanners', () => ({
-  getScanner: jest.fn((type: ScannerType) => ({
+  getScanner: jest.fn((_type: ScannerType) => ({
     scan: jest.fn().mockResolvedValue({
       scannerId: 1,
       category: FindingCategory.SECURITY,
@@ -685,7 +685,7 @@ describe('healthGetHistoryHandler', () => {
   describe('Historical Data Retrieval', () => {
     it('should retrieve scores within time window', async () => {
       const now = Date.now();
-      const threeDaysAgo = new Date(now - 3 * 86400000);
+      const _threeDaysAgo = new Date(now - 3 * 86400000);
 
       prismaMock.project.findUnique.mockResolvedValue({ id: 1 } as any);
       prismaMock.healthScore.findMany.mockResolvedValue([
@@ -699,7 +699,7 @@ describe('healthGetHistoryHandler', () => {
         },
       ] as any);
 
-      const result = await healthGetHistoryHandler({
+      const _result = await healthGetHistoryHandler({
         projectId: 1,
         days: 3,
       });

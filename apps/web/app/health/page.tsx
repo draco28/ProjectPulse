@@ -216,7 +216,7 @@ export default async function HealthPage({
   // Unified auth + project resolution
   const { project, projectId } = await withProjectAuth(params.project);
 
-  const { latestScore, historicalScores, findings, scanners, vulnerabilityCounts, trend } =
+  const { latestScore, historicalScores: _historicalScores, findings, scanners, vulnerabilityCounts, trend } =
     await getHealthData(projectId);
 
   // Handle no data case (never scanned)
