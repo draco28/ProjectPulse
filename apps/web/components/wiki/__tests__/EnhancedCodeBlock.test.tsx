@@ -9,7 +9,7 @@ import { EnhancedCodeBlock } from '../EnhancedCodeBlock';
 
 // Mock the CodeBlock child component
 jest.mock('../CodeBlock', () => ({
-  CodeBlock: ({ code, language }: { code: string; language: string }) => (
+  CodeBlock: ({ code }: { code: string; language: string }) => (
     <pre data-testid="code-block">
       <code>{code}</code>
     </pre>
