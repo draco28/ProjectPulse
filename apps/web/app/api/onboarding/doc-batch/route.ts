@@ -62,7 +62,7 @@ const BATCH_CONFIGS = {
 // HELPER: Inject variables into template
 // ============================================================================
 
-function injectVariables(template: string, variables: Record<string, any>): string {
+function _injectVariables(template: string, variables: Record<string, any>): string {
   let result = template;
 
   for (const [key, value] of Object.entries(variables)) {

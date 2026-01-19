@@ -292,8 +292,8 @@ export async function POST(request: NextRequest) {
 
     log.info({ method: jsonrpcRequest.method, id: jsonrpcRequest.id }, 'Processing MCP request');
 
-    // Step 5: Get singleton MCP server
-    const mcpServer = getMCPServer();
+    // Step 5: Get singleton MCP server (ensures initialization)
+    getMCPServer();
 
     // Step 6: Route request based on method
     let result: unknown;

@@ -36,7 +36,7 @@ import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { validateAndSetParent, TicketHierarchyError } from '@/lib/tickets/hierarchy';
 import { resolveSprintByNumber } from '@/lib/sprints/resolution';
 import type { TicketFilters } from '@/lib/validations/ticket';
-import type { Prisma } from '@prisma/client';
+// Prisma type import removed - using inline types
 import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
