@@ -15,7 +15,7 @@ import {
   Clock,
   Activity,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+// cn utility imported but not currently used - kept for future use
 
 interface Token {
   id: number;
