@@ -148,7 +148,7 @@ describe('Knowledge Export/Import APIs', () => {
         }),
       });
 
-      const res = await POST_Export(req);
+      await POST_Export(req);
 
       expect(mockPrisma.knowledge.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
