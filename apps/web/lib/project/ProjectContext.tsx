@@ -169,9 +169,16 @@ export function ProjectProvider({
   );
 
   // Update search params while preserving project
+  // Bug fix (Ticket #172): Read from window.location.search directly to avoid
+  // stale searchParams from useSearchParams() during SSR/hydration with Suspense
   const updateSearchParams = useCallback(
     (updates: Record<string, string | number | null | undefined>) => {
-      const params = new URLSearchParams(searchParams.toString());
+      // Read current params from window.location to get the freshest state
+      // This fixes pagination issues where useSearchParams() returns stale data
+      const currentSearch = typeof window !== 'undefined' 
+        ? window.location.search 
+        : searchParams.toString();
+      const params = new URLSearchParams(currentSearch);
 
       // Ensure project is preserved
       if (projectId && !params.has('project')) {
