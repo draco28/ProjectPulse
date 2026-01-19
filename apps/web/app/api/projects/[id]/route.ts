@@ -83,12 +83,13 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     });
 
     return NextResponse.json({ project: updatedProject }, { status: 200 });
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Project update failed');
+    log.error({ error: errorMessage }, 'Project update failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

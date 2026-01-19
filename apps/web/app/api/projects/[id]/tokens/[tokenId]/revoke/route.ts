@@ -52,12 +52,13 @@ export async function POST(
     await revokeProjectTokenById(projectId, tokenId);
 
     return NextResponse.json({ message: 'Token revoked successfully' }, { status: 200 });
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Token revocation failed');
+    log.error({ error: errorMessage }, 'Token revocation failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

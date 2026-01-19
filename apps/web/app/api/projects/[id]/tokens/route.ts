@@ -62,12 +62,13 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     const tokens = await listProjectTokens(projectId);
 
     return NextResponse.json({ tokens }, { status: 200 });
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Tokens list failed');
+    log.error({ error: errorMessage }, 'Tokens list failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -126,16 +127,17 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const result = await generateProjectToken(projectId, name, expiresInDays);
 
     return NextResponse.json(result, { status: 201 });
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (error.message.includes('already exists')) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
+    if (errorMessage.includes('already exists')) {
+      return NextResponse.json({ error: errorMessage }, { status: 409 });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Token generation failed');
+    log.error({ error: errorMessage }, 'Token generation failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

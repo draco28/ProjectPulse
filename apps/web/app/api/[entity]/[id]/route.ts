@@ -10,9 +10,33 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
+
+// Type guard for Prisma errors with code property
+function isPrismaKnownRequestError(
+  error: unknown
+): error is Prisma.PrismaClientKnownRequestError {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    error.constructor?.name === 'PrismaClientKnownRequestError'
+  );
+}
+
+// Type for dynamic Prisma model delegate (Phase or Sprint)
+type PrismaModelDelegate = {
+  update: (args: { where: { id: string }; data: Record<string, unknown> }) => Promise<{
+    id: string;
+    title: string;
+    description: string | null;
+    status: string;
+    progress: number;
+    updatedAt: Date;
+  }>;
+};
 
 // Sprint 15: Week/Day removed - now 2-level hierarchy (Phase → Sprint)
 const EntityTypeSchema = z.enum(['phases', 'sprints']);
@@ -97,7 +121,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const modelName = entityModelMap[entity];
 
     // Perform update using dynamic model access
-    const updatedEntity = await (prisma[modelName] as any).update({
+    const modelDelegate = prisma[modelName] as unknown as PrismaModelDelegate;
+    const updatedEntity = await modelDelegate.update({
       where: { id: entityId },
       data: updateData,
     });
@@ -131,10 +156,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     // Prisma not found
-    if (
-      error?.constructor?.name === 'PrismaClientKnownRequestError' &&
-      (error as any).code === 'P2025'
-    ) {
+    if (isPrismaKnownRequestError(error) && error.code === 'P2025') {
       return NextResponse.json(
         { success: false, error: { code: 'NOT_FOUND', message: 'Entity not found' } },
         { status: 404 }

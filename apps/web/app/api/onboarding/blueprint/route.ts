@@ -5,6 +5,12 @@ import { requireOnboardingAuth, handleAuthError, AuthError } from '@/lib/onboard
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
+// Type definitions for blueprint response
+interface BlueprintResponse {
+  projectContextJson?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 /**
  * GET /api/onboarding/blueprint
  *
@@ -104,13 +110,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Parse response (should contain projectContextJson)
-    const blueprint = session.response as any;
+    const blueprint = session.response as BlueprintResponse;
 
     // Return project-context.json (defensive parsing)
     const projectContext = blueprint.projectContextJson || blueprint;
 
     return NextResponse.json(projectContext, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     log.error({ error: error instanceof Error ? error.message : String(error) }, 'Blueprint API error');
 
     // Sprint 12: Handle auth errors
@@ -118,11 +124,14 @@ export async function GET(request: NextRequest) {
       return handleAuthError(error);
     }
 
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
     return NextResponse.json(
       {
         error: 'Internal server error',
-        message: error.message || 'An unexpected error occurred',
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        message: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
       },
       { status: 500 }
     );

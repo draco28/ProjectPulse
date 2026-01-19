@@ -11,10 +11,22 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { updateProgressAndPropagate } from '@/lib/db/progress';
 import { EntityTypeSchema, UpdateProgressSchema, entityTypeMap } from '@/lib/validations/progress';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
+
+// Type guard for Prisma errors with code property
+function isPrismaKnownRequestError(
+  error: unknown
+): error is Prisma.PrismaClientKnownRequestError {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    error.constructor?.name === 'PrismaClientKnownRequestError'
+  );
+}
 
 // Force dynamic rendering (no caching for progress updates)
 export const dynamic = 'force-dynamic';
@@ -83,10 +95,7 @@ export async function PUT(request: NextRequest, { params }: { params: RouteParam
     }
 
     // Entity not found (404)
-    if (
-      error?.constructor?.name === 'PrismaClientKnownRequestError' &&
-      (error as any).code === 'P2025'
-    ) {
+    if (isPrismaKnownRequestError(error) && error.code === 'P2025') {
       return NextResponse.json(
         {
           success: false,
@@ -100,7 +109,7 @@ export async function PUT(request: NextRequest, { params }: { params: RouteParam
     }
 
     // Database errors (500)
-    if (error?.constructor?.name === 'PrismaClientKnownRequestError') {
+    if (isPrismaKnownRequestError(error)) {
       log.error({ error: error instanceof Error ? error.message : String(error) }, 'Prisma error in progress update');
       return NextResponse.json(
         {

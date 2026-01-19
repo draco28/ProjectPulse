@@ -74,12 +74,13 @@ export async function GET() {
     });
 
     return NextResponse.json({ projects: projectsWithProgress });
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Projects list failed');
+    logger.error({ error: errorMessage }, 'Projects list failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -147,12 +148,13 @@ export async function POST(request: Request) {
     await cloneMemoryBanks(project.id);
 
     return NextResponse.json({ project }, { status: 201 });
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Project creation failed');
+    logger.error({ error: errorMessage }, 'Project creation failed');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
