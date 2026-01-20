@@ -2,12 +2,12 @@
 // The main @types/react-syntax-highlighter doesn't cover these specific paths
 
 declare module 'react-syntax-highlighter/dist/esm/light' {
-  import { ComponentType } from 'react';
+  import * as React from 'react';
 
-  interface SyntaxHighlighterProps {
+  export interface SyntaxHighlighterProps {
     children: string;
     language?: string;
-    style?: Record<string, React.CSSProperties>;
+    style?: { [key: string]: React.CSSProperties };
     customStyle?: React.CSSProperties;
     codeTagProps?: React.HTMLAttributes<HTMLElement>;
     useInlineStyles?: boolean;
@@ -19,21 +19,15 @@ declare module 'react-syntax-highlighter/dist/esm/light' {
     wrapLines?: boolean;
     wrapLongLines?: boolean;
     lineProps?: React.HTMLAttributes<HTMLElement> | ((lineNumber: number) => React.HTMLAttributes<HTMLElement>);
-    renderer?: (props: {
-      rows: Array<{ tagName: string; properties: Record<string, unknown>; children: unknown[] }>;
-      stylesheet: Record<string, React.CSSProperties>;
-      useInlineStyles: boolean;
-    }) => React.ReactNode;
-    PreTag?: keyof JSX.IntrinsicElements | ComponentType<unknown>;
-    CodeTag?: keyof JSX.IntrinsicElements | ComponentType<unknown>;
-    [key: string]: unknown;
+    PreTag?: keyof JSX.IntrinsicElements | React.ComponentType<unknown>;
+    CodeTag?: keyof JSX.IntrinsicElements | React.ComponentType<unknown>;
   }
 
-  interface SyntaxHighlighterComponent extends ComponentType<SyntaxHighlighterProps> {
-    registerLanguage: (name: string, language: unknown) => void;
+  export interface LightSyntaxHighlighter extends React.FC<SyntaxHighlighterProps> {
+    registerLanguage(name: string, language: unknown): void;
   }
 
-  const SyntaxHighlighter: SyntaxHighlighterComponent;
+  const SyntaxHighlighter: LightSyntaxHighlighter;
   export default SyntaxHighlighter;
 }
 
