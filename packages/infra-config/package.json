@@ -4,17 +4,24 @@
   "private": true,
   "type": "module",
   "description": "Centralized infrastructure configuration for ProjectPulse",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "clean": "rm -rf dist"
   },
   "dependencies": {
@@ -22,6 +29,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.16",
+    "tsup": "^8.5.1",
     "typescript": "^5.4.2"
   }
 }
