@@ -8,6 +8,9 @@
       }
     ],
 
+    // Types (includes Jest for test files)
+    "types": ["jest", "node"],
+
     // Path Mapping
     "baseUrl": ".",
     "paths": {
@@ -20,5 +23,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", ".next", "dist", "build", "**/__tests__/**", "tests/**", "scripts/**", "playwright.config.ts"]
+  "exclude": ["node_modules", ".next", "dist", "build", "scripts/**", "playwright.config.ts"]
 }
