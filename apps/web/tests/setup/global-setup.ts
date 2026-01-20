@@ -16,6 +16,7 @@
 
 import { chromium, FullConfig } from '@playwright/test';
 import path from 'path';
+import fs from 'fs';
 import { getConfig } from '@projectpulse/infra-config';
 
 // Load infrastructure config for fallback URL
@@ -27,6 +28,13 @@ async function globalSetup(config: FullConfig) {
   const baseURL =
     (config.projects?.[0]?.use as { baseURL?: string })?.baseURL || infraConfig.webUrl;
   const storageStatePath = path.join(process.cwd(), '.auth', 'user.json');
+
+  // Ensure .auth directory exists (fixes first-run failures on fresh clones)
+  const authDir = path.dirname(storageStatePath);
+  if (!fs.existsSync(authDir)) {
+    fs.mkdirSync(authDir, { recursive: true });
+    console.log('📁 Created .auth directory');
+  }
 
   // Launch browser
   const browser = await chromium.launch();

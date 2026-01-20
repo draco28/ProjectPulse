@@ -32,7 +32,7 @@ test.describe('Tickets Advanced Filtering', () => {
   test('should allow selecting multiple kind filters simultaneously', async ({ page }) => {
     // Navigate with first filter
     await page.goto('/tickets?project=2&kind=feature');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Verify URL includes first filter
     await expect(page).toHaveURL(/kind=feature/);
@@ -40,7 +40,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
     // For multi-select, we would navigate to multi-filter URL
     await page.goto('/tickets?project=2&kind=feature&kind=bug');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Verify URL includes both filters (if supported)
     const url = page.url();
@@ -57,7 +57,7 @@ test.describe('Tickets Advanced Filtering', () => {
   test('should combine kind + status + priority filters with AND logic', async ({ page }) => {
     // Navigate with combined filters via URL
     await page.goto('/tickets?project=2&kind=issue&status=open&priority=high');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Verify all filters are in URL
     const url = page.url();
@@ -88,16 +88,16 @@ test.describe('Tickets Advanced Filtering', () => {
     // Navigate with filters
     const urlWithFilters = '/tickets?project=2&kind=feature';
     await page.goto(urlWithFilters);
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     console.log(`✓ URL with filters: ${urlWithFilters}`);
 
     // Navigate away
     await page.goto('/');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Navigate back using the saved URL
     await page.goto(urlWithFilters);
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Verify filters are still in URL
     await expect(page).toHaveURL(/kind=feature/);
@@ -107,7 +107,7 @@ test.describe('Tickets Advanced Filtering', () => {
   test('should display filter count indicator when filters are active', async ({ page }) => {
     // Apply filter via URL
     await page.goto('/tickets?project=2&kind=feature');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Look for filter count indicator
     const filterCount = page
@@ -127,7 +127,7 @@ test.describe('Tickets Advanced Filtering', () => {
   test('should provide clear all filters button', async ({ page }) => {
     // Apply a filter first via URL
     await page.goto('/tickets?project=2&kind=feature');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Look for clear filters button
     const clearButton = page
@@ -141,7 +141,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
       // Click to clear
       await clearButton.first().click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle');
 
       // Verify URL no longer has filter params
       const url = page.url();
@@ -161,7 +161,7 @@ test.describe('Tickets Advanced Filtering', () => {
   test('should allow filtering by multiple statuses (open + in_progress)', async ({ page }) => {
     // Navigate with multiple statuses via URL
     await page.goto('/tickets?project=2&status=open&status=in-progress');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Verify both statuses in URL
     const url = page.url();
@@ -190,7 +190,7 @@ test.describe('Tickets Advanced Filtering', () => {
       const inputFilter = page.locator('input[name="module"]');
       if ((await inputFilter.count()) > 0) {
         await inputFilter.fill('API');
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('networkidle');
 
         // Look for autocomplete suggestions
         const suggestions = page
@@ -203,7 +203,7 @@ test.describe('Tickets Advanced Filtering', () => {
         }
       }
 
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle');
 
       // Check if URL includes module filter (may not be implemented)
       const url = page.url();
@@ -242,7 +242,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
         await startDateInput.fill(thirtyDaysAgo.toISOString().split('T')[0] ?? '');
         await endDateInput.fill(today.toISOString().split('T')[0] ?? '');
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('networkidle');
 
         // Verify URL includes date filters
         const url = page.url();
@@ -265,7 +265,7 @@ test.describe('Tickets Advanced Filtering', () => {
   test('should combine search with filters', async ({ page }) => {
     // Navigate with filter and search
     await page.goto('/tickets?project=2&kind=feature&search=api');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Verify URL has both filter and search
     const url = page.url();
@@ -321,7 +321,7 @@ test.describe('Tickets Advanced Filtering', () => {
   test('should show empty state message with active filters when no results', async ({ page }) => {
     // Apply unlikely combination of filters that should return no results
     await page.goto('/tickets?project=2&kind=bug&search=xyzabc123nonexistent99999');
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
 
     // Look for empty state or no cards
     const emptyState = page
@@ -345,7 +345,7 @@ test.describe('Tickets Advanced Filtering', () => {
   test('should allow resetting individual filters', async ({ page }) => {
     // Apply multiple filters via URL
     await page.goto('/tickets?project=2&kind=feature&kind=bug');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Look for individual filter remove buttons (X icons)
     const removeFilterButton = page
@@ -355,7 +355,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
     if ((await removeFilterButton.count()) > 0) {
       await removeFilterButton.first().click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle');
 
       console.log('✓ Removed individual filter');
 
@@ -368,7 +368,7 @@ test.describe('Tickets Advanced Filtering', () => {
     } else {
       // Alternative: Navigate to URL without one filter
       await page.goto('/tickets?project=2&kind=bug');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle');
 
       const url = page.url();
       const noFeatureFilter = !url.includes('feature');
@@ -391,7 +391,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
       // Click first preset
       await presetButtons.first().click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle');
 
       // Verify filters were applied
       const url = page.url();
@@ -411,7 +411,7 @@ test.describe('Tickets Advanced Filtering', () => {
   test('should display active filters as removable badges/chips', async ({ page }) => {
     // Apply filter via URL
     await page.goto('/tickets?project=2&kind=feature');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Look for active filter badges
     const activeFilterBadges = page
@@ -442,17 +442,17 @@ test.describe('Tickets Advanced Filtering', () => {
   test.skip('should persist filter state in browser history', async ({ page }) => {
     // Apply first filter
     await page.goto('/tickets?project=2&kind=feature');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     const firstFilterUrl = page.url();
 
     // Apply second filter (navigate to new URL)
     await page.goto('/tickets?project=2&kind=feature&kind=bug');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
     const secondFilterUrl = page.url();
 
     // Use browser back
     await page.goBack();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Should be back to first filter state
     expect(page.url()).toContain('kind=feature');
@@ -460,7 +460,7 @@ test.describe('Tickets Advanced Filtering', () => {
 
     // Use browser forward
     await page.goForward();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Should be back to second filter state
     expect(page.url()).toBe(secondFilterUrl);

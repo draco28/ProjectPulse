@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+// Load test environment variables BEFORE any modules (Prisma needs DATABASE_URL at import time)
+require('dotenv').config({ path: require('path').resolve(__dirname, '.env.test') });
+
 const nextJest = require('next/jest');
 
 const createJestConfig = nextJest({

@@ -41,10 +41,21 @@ async function main() {
     },
   });
 
-  // Reset auto-increment sequences to start from 1
-  // Note: "Issue_id_seq" is the original sequence name from before rename to Ticket
+  // Reset auto-increment sequences dynamically (sequence names vary based on migration history)
   console.log('🔄 Resetting ID sequences...');
-  await prisma.$executeRaw`ALTER SEQUENCE "Issue_id_seq" RESTART WITH 1;`;
+
+  // Get actual sequence name for tickets table (may be "Issue_id_seq" or "Ticket_id_seq")
+  const ticketSeqResult = await prisma.$queryRaw<{ seqname: string | null }[]>`
+    SELECT pg_get_serial_sequence('tickets', 'id') as seqname;
+  `;
+  const ticketSeqName = ticketSeqResult[0]?.seqname;
+  if (ticketSeqName) {
+    await prisma.$executeRawUnsafe(`ALTER SEQUENCE ${ticketSeqName} RESTART WITH 1;`);
+    console.log(`  ✅ Reset ${ticketSeqName}`);
+  } else {
+    console.log('  ⚠️ Could not find tickets sequence (may be fresh DB)');
+  }
+
   await prisma.$executeRaw`ALTER SEQUENCE "Project_id_seq" RESTART WITH 1;`;
   await prisma.$executeRaw`ALTER SEQUENCE "Label_id_seq" RESTART WITH 1;`;
 

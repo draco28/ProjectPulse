@@ -22,22 +22,22 @@ test.describe('Navigation History - Browser Back/Forward', () => {
   });
 
   test('should preserve project ID when navigating back', async ({ page }) => {
-    // Navigate: Dashboard → Issues → Wiki
+    // Navigate: Dashboard → Tickets → Wiki
     await page.goto('/dashboard?project=1');
     await expect(page).toHaveURL(/project=1/);
 
-    await page.click('a:has-text("Issues")');
+    await page.click('a:has-text("Tickets")');
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     await page.click('a:has-text("Wiki")');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/wiki.*project=1/);
 
-    // Go back to Issues
+    // Go back to Tickets
     await page.goBack();
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     // Go back to Dashboard
     await page.goBack();
@@ -46,11 +46,11 @@ test.describe('Navigation History - Browser Back/Forward', () => {
   });
 
   test('should preserve project ID when navigating forward', async ({ page }) => {
-    // Navigate: Dashboard → Issues
+    // Navigate: Dashboard → Tickets
     await page.goto('/dashboard?project=1');
-    await page.click('a:has-text("Issues")');
+    await page.click('a:has-text("Tickets")');
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     // Go back
     await page.goBack();
@@ -60,15 +60,15 @@ test.describe('Navigation History - Browser Back/Forward', () => {
     // Go forward
     await page.goForward();
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
   });
 
   test('should maintain history stack through multiple back/forward operations', async ({
     page,
   }) => {
-    // Build history: Dashboard → Issues → Wiki → Knowledge
+    // Build history: Dashboard → Tickets → Wiki → Knowledge
     await page.goto('/dashboard?project=1');
-    await page.click('a:has-text("Issues")');
+    await page.click('a:has-text("Tickets")');
     await page.waitForLoadState('networkidle');
     await page.click('a:has-text("Wiki")');
     await page.waitForLoadState('networkidle');
@@ -81,10 +81,10 @@ test.describe('Navigation History - Browser Back/Forward', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/wiki.*project=1/);
 
-    // Back to Issues
+    // Back to Tickets
     await page.goBack();
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     // Forward to Wiki
     await page.goForward();
@@ -101,10 +101,10 @@ test.describe('Navigation History - Browser Back/Forward', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/wiki.*project=1/);
 
-    // Back to Issues
+    // Back to Tickets
     await page.goBack();
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     // Back to Dashboard
     await page.goBack();
@@ -125,9 +125,9 @@ test.describe('Navigation History - Browser Back/Forward', () => {
     await expect(page).toHaveURL(/\/projects\/1\/settings/);
 
     // Query param route
-    await page.click('a:has-text("Issues")');
+    await page.click('a:has-text("Tickets")');
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     // Back to Settings (path param)
     await page.goBack();
@@ -144,10 +144,10 @@ test.describe('Navigation History - Browser Back/Forward', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/projects\/1\/settings/);
 
-    // Forward to Issues (query param)
+    // Forward to Tickets (query param)
     await page.goForward();
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
   });
 });
 
@@ -183,7 +183,7 @@ test.describe('Navigation History - Page Reload', () => {
   test('should maintain history stack after reload', async ({ page }) => {
     // Build history
     await page.goto('/dashboard?project=1');
-    await page.click('a:has-text("Issues")');
+    await page.click('a:has-text("Tickets")');
     await page.waitForLoadState('networkidle');
     await page.click('a:has-text("Wiki")');
     await page.waitForLoadState('networkidle');
@@ -197,7 +197,7 @@ test.describe('Navigation History - Page Reload', () => {
     // Go back - history should still work
     await page.goBack();
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     await page.goBack();
     await page.waitForLoadState('networkidle');
@@ -227,11 +227,11 @@ test.describe('Navigation History - Direct URL Access', () => {
   });
 
   test('should handle direct URL access with project parameter', async ({ page }) => {
-    // Directly access Issues page with project parameter
-    await page.goto('/issues?project=1');
+    // Directly access Tickets page with project parameter
+    await page.goto('/tickets?project=1');
     await page.waitForLoadState('networkidle');
 
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     // Navigation should preserve project ID
     await page.click('a:has-text("Dashboard")');
@@ -257,8 +257,8 @@ test.describe('Navigation History - Direct URL Access', () => {
     await page.goto('/wiki?project=1');
     await page.waitForLoadState('networkidle');
 
-    // Navigate to Issues
-    await page.click('a:has-text("Issues")');
+    // Navigate to Tickets
+    await page.click('a:has-text("Tickets")');
     await page.waitForLoadState('networkidle');
 
     // Go back to Wiki
@@ -280,19 +280,19 @@ test.describe('Navigation History - New Tab Behavior', () => {
   test('should handle Ctrl+Click (new tab) navigation', async ({ page, context }) => {
     await page.goto('/dashboard?project=1');
 
-    // Get Issues link
-    const issuesLink = page.locator('a:has-text("Issues")');
+    // Get Tickets link
+    const ticketsLink = page.locator('a:has-text("Tickets")');
 
     // Simulate Ctrl+Click (opens in new tab)
     const [newPage] = await Promise.all([
       context.waitForEvent('page'),
-      issuesLink.click({ modifiers: ['Control'] }),
+      ticketsLink.click({ modifiers: ['Control'] }),
     ]);
 
     await newPage.waitForLoadState('networkidle');
 
     // New tab should have correct URL with project ID
-    await expect(newPage).toHaveURL(/\/issues.*project=1/);
+    await expect(newPage).toHaveURL(/\/tickets.*project=1/);
 
     // Original tab should still be on dashboard
     await expect(page).toHaveURL(/\/dashboard.*project=1/);
@@ -374,10 +374,10 @@ test.describe('Navigation History - Multiple Projects', () => {
     await page.goto('/dashboard?project=1');
     await expect(page).toHaveURL(/project=1/);
 
-    // Project 1 - Issues
-    await page.click('a:has-text("Issues")');
+    // Project 1 - Tickets
+    await page.click('a:has-text("Tickets")');
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     // Switch to Project 8 - Dashboard
     await page.goto('/dashboard?project=8');
@@ -393,10 +393,10 @@ test.describe('Navigation History - Multiple Projects', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/dashboard.*project=8/);
 
-    // Go back to Project 1 Issues
+    // Go back to Project 1 Tickets
     await page.goBack();
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     // Go back to Project 1 Dashboard
     await page.goBack();
@@ -409,7 +409,7 @@ test.describe('Navigation History - Multiple Projects', () => {
   }) => {
     // Build complex history with multiple projects
     await page.goto('/dashboard?project=1');
-    await page.goto('/issues?project=1');
+    await page.goto('/tickets?project=1');
     await page.goto('/dashboard?project=8');
     await page.goto('/wiki?project=8');
 
@@ -420,9 +420,9 @@ test.describe('Navigation History - Multiple Projects', () => {
     await page.goBack();
     await expect(page).toHaveURL(/\/dashboard.*project=8/);
 
-    // Back to Issues (Project 1)
+    // Back to Tickets (Project 1)
     await page.goBack();
-    await expect(page).toHaveURL(/\/issues.*project=1/);
+    await expect(page).toHaveURL(/\/tickets.*project=1/);
 
     // Forward to Dashboard (Project 8)
     await page.goForward();
@@ -448,7 +448,7 @@ test.describe('Navigation History - Hash and Search Params', () => {
     await expect(page).toHaveURL(/project=1#metrics/);
 
     // Navigate away
-    await page.click('a:has-text("Issues")');
+    await page.click('a:has-text("Tickets")');
     await page.waitForLoadState('networkidle');
 
     // Go back
@@ -460,7 +460,7 @@ test.describe('Navigation History - Hash and Search Params', () => {
   });
 
   test('should preserve multiple query parameters', async ({ page }) => {
-    await page.goto('/issues?project=1&status=open&priority=high');
+    await page.goto('/tickets?project=1&status=open&priority=high');
     await page.waitForLoadState('networkidle');
 
     await expect(page).toHaveURL(/project=1/);

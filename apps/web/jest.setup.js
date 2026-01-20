@@ -1,12 +1,8 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
-// Load test environment variables
-// For Mac mini integration tests that need DATABASE_URL
-import { config } from 'dotenv';
-import path from 'path';
-
-config({ path: path.resolve(__dirname, '.env.test') });
+// Note: Environment variables are loaded in jest.config.js BEFORE modules are resolved
+// This ensures DATABASE_URL is available for Prisma client initialization
 
 // ============================================================================
 // Web API polyfills for Next.js server components testing
@@ -57,6 +53,12 @@ Object.defineProperty(navigator, 'clipboard', {
 // Mock localStorage for component tests
 let localStorageStore = {};
 
+// Reset state between tests to prevent test pollution
+beforeEach(() => {
+  localStorageStore = {};
+  jest.clearAllMocks();
+});
+
 // Define mock functions that persist across test runs
 Object.defineProperty(global, 'localStorage', {
   value: {
@@ -75,4 +77,14 @@ Object.defineProperty(global, 'localStorage', {
   },
   writable: true,
   configurable: true,
+});
+
+// Ensure Prisma disconnects after all tests (prevents open handle warnings)
+afterAll(async () => {
+  try {
+    const { prisma } = await import('@/lib/prisma');
+    await prisma.$disconnect();
+  } catch {
+    // Prisma not used in this test suite, ignore
+  }
 });

@@ -70,7 +70,7 @@ test.describe('Settings Route - Correct Path Format', () => {
   test('should navigate to settings from various pages with project context', async ({ page }) => {
     const pages = [
       { route: '/dashboard?project=1', name: 'Dashboard' },
-      { route: '/issues?project=1', name: 'Issues' },
+      { route: '/tickets?project=1', name: 'Tickets' },
       { route: '/wiki?project=1', name: 'Wiki' },
       { route: '/knowledge?project=1', name: 'Knowledge' },
       { route: '/health?project=1', name: 'Health' },
@@ -268,10 +268,10 @@ test.describe('Settings Route - Mixed Routing Patterns', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/projects\/8\/settings/);
 
-    // Issues: query param (?project=8)
-    await page.click('a:has-text("Issues")');
+    // Tickets: query param (?project=8)
+    await page.click('a:has-text("Tickets")');
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/issues.*project=8/);
+    await expect(page).toHaveURL(/\/tickets.*project=8/);
 
     // Settings again: path param (/projects/8/settings)
     await page.click('a:has-text("Settings")');
