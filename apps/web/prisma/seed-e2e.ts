@@ -230,7 +230,8 @@ async function main() {
   });
 
   // Now connect the label using raw SQL (Prisma connect has constraint timing issues)
-  await prisma.$executeRaw`INSERT INTO "_LabelToTicket" ("A", "B") VALUES (${authTicket.id}, ${bugLabel.id})`;
+  // A = Label ID, B = Ticket ID (Prisma alphabetical convention: Label < Ticket)
+  await prisma.$executeRaw`INSERT INTO "_LabelToTicket" ("A", "B") VALUES (${bugLabel.id}, ${authTicket.id})`;
 
   // Create 47 knowledge items for "Knowledge Items" stat
   console.log('📚 Creating knowledge items...');
