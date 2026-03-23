@@ -122,6 +122,37 @@ services:
       retries: 3
       start_period: 40s
 
+  # Python MCP Server (Phase 8 - Tool Profile System)
+  # Runs alongside TypeScript MCP server with smart tool profiles
+  # Default: 48 core tools (vs 86 in TypeScript). Additional profiles loadable on demand.
+  mcp-server-python:
+    build:
+      context: ./apps/mcp-server-python
+      dockerfile: Dockerfile
+    container_name: projectpulse-mcp-python-cloud
+    environment:
+      - PROJECTPULSE_API_BASE_URL=http://nextjs:3000/api
+      - PROJECTPULSE_API_TOKEN=${MCP_AGENT_TOKEN:-}
+      - MCP_SERVER_PORT=3002
+      - NODE_ENV=development
+      - TOOL_PROFILES=core
+      - MCP_INTERNAL_SECRET=${MCP_INTERNAL_SECRET:-dev-mcp-secret-32-chars-minimum-ok}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
+      - LOG_LEVEL=info
+    ports:
+      - "3002:3002"
+    networks:
+      - projectpulse
+    depends_on:
+      - nextjs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
 networks:
   projectpulse:
     driver: bridge
