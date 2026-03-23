@@ -138,6 +138,46 @@ services:
           memory: 512M
 
   # ============================================
+  # Python MCP Server (Tool Profile System)
+  # ============================================
+  # Runs alongside TypeScript MCP server with smart tool profiles
+  # Default: 48 core tools (vs 86 in TypeScript). Additional profiles loadable on demand.
+  prod-mcp-python:
+    build:
+      context: ./apps/mcp-server-python
+      dockerfile: Dockerfile
+    image: projectpulse/mcp-python:latest
+    container_name: projectpulse-prod-mcp-python
+    environment:
+      PROJECTPULSE_API_BASE_URL: http://prod-nextjs:3000/api
+      PROJECTPULSE_API_TOKEN: ${PROD_MCP_AGENT_TOKEN:-}
+      MCP_SERVER_PORT: 3002
+      NODE_ENV: production
+      TOOL_PROFILES: core
+      MCP_INTERNAL_SECRET: ${PROD_MCP_INTERNAL_SECRET:-PLACEHOLDER_GENERATE_WITH_openssl_rand_hex_32}
+      ALLOWED_ORIGINS: https://projectpulse.dracodev.dev,https://projectpulsemcp-py.dracodev.dev
+      LOG_LEVEL: info
+    ports:
+      - "8082:3002"
+    networks:
+      - pp-prod
+    depends_on:
+      prod-nextjs:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ============================================
   # Cloudflare Tunnel (Secure Internet Exposure)
   # ============================================
   # Provides HTTPS access without port forwarding
@@ -154,6 +194,8 @@ services:
       prod-nextjs:
         condition: service_healthy
       prod-mcp:
+        condition: service_healthy
+      prod-mcp-python:
         condition: service_healthy
     restart: unless-stopped
     deploy:
