@@ -49,9 +49,7 @@ export const SessionDurationTimer = memo(function SessionDurationTimer({
 
   const liveTimer = useSessionDuration(startedAt, !isCompleted);
 
-  const staticDuration = isCompleted
-    ? calculateSessionDuration(startedAt, completedAt)
-    : null;
+  const staticDuration = isCompleted ? calculateSessionDuration(startedAt, completedAt) : null;
 
   const displayDuration = staticDuration || liveTimer;
   const displayValue = shortFormat ? displayDuration.durationShort : displayDuration.duration;

@@ -2,11 +2,7 @@
  * Tests for Traceability Analysis Engine
  */
 
-import {
-  analyzeTraceability,
-  isValidationPassing,
-  meetsThresholds,
-} from '../analysis';
+import { analyzeTraceability, isValidationPassing, meetsThresholds } from '../analysis';
 import type { DocumentSet } from '../parsers';
 
 describe('Traceability Analysis', () => {

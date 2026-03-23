@@ -389,11 +389,7 @@ describe('Request Context', () => {
 
     it('handles URL with hash fragment', () => {
       // Note: hash fragments typically aren't sent to server, but test parsing
-      const request = createMockRequest(
-        {},
-        'http://localhost:3000/api/docs#section1',
-        'GET'
-      );
+      const request = createMockRequest({}, 'http://localhost:3000/api/docs#section1', 'GET');
 
       const result = getRequestContext(request);
 

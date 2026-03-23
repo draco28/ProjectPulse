@@ -17,10 +17,7 @@ import { test, expect, Page } from '@playwright/test';
 const TEST_PROJECT_ID = 2; // AI Hub Development - owned by dev@projectpulse.local user (not 1 or 8!)
 
 // Helper to create a test ticket using page.request (shares auth cookies)
-async function createTestTicket(
-  page: Page,
-  overrides: { status?: string; title?: string } = {}
-) {
+async function createTestTicket(page: Page, overrides: { status?: string; title?: string } = {}) {
   const response = await page.request.post('/api/tickets', {
     data: {
       projectId: TEST_PROJECT_ID,
@@ -64,11 +61,7 @@ async function deleteSession(page: Page, sessionId: string) {
 }
 
 // Helper to start a session with tickets
-async function startSession(
-  page: Page,
-  name: string,
-  activeTicketIds: number[] = []
-) {
+async function startSession(page: Page, name: string, activeTicketIds: number[] = []) {
   const response = await page.request.post('/api/agent-sessions', {
     data: {
       projectId: TEST_PROJECT_ID,
@@ -85,12 +78,7 @@ async function updateTicket(page: Page, ticketId: number, data: Record<string, u
 }
 
 // Helper to move a ticket
-async function moveTicket(
-  page: Page,
-  ticketId: number,
-  status: string,
-  displayOrder: number
-) {
+async function moveTicket(page: Page, ticketId: number, status: string, displayOrder: number) {
   return page.request.patch(`/api/tickets/${ticketId}/move`, {
     data: { status, displayOrder },
   });

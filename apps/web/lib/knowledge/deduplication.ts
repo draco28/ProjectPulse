@@ -140,7 +140,10 @@ export async function findDuplicates(options: DeduplicationOptions): Promise<Ded
         });
       }
     } catch (error) {
-      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Semantic search failed');
+      log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Semantic search failed'
+      );
       // Continue with exact matches only
     }
   }

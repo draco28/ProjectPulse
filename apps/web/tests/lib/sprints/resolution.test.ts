@@ -241,9 +241,7 @@ async function testFindNextSprintReturnsNullForLast() {
     const nextSprint = await findNextSprint(prisma, lastSprint.id);
 
     if (nextSprint !== null) {
-      throw new Error(
-        `Expected null for last sprint, got ${JSON.stringify(nextSprint)}`
-      );
+      throw new Error(`Expected null for last sprint, got ${JSON.stringify(nextSprint)}`);
     }
 
     logSuccess(testName, {
@@ -365,9 +363,11 @@ async function main() {
 
   if (failed > 0) {
     console.log('\nFailed tests:');
-    results.filter((r) => !r.passed).forEach((r) => {
-      console.log(`  - ${r.name}: ${r.error}`);
-    });
+    results
+      .filter((r) => !r.passed)
+      .forEach((r) => {
+        console.log(`  - ${r.name}: ${r.error}`);
+      });
     process.exit(1);
   }
 

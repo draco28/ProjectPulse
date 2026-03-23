@@ -15,10 +15,7 @@ import { seedOnboardingQuestions } from './seeds/onboarding-questions';
 import bcrypt from 'bcryptjs';
 
 // Sprint 15: Import status system for consistent seeding
-import {
-  TICKET_STATUSES,
-  TicketStatusSystem,
-} from '../lib/constants/status';
+import { TICKET_STATUSES, TicketStatusSystem } from '../lib/constants/status';
 
 const prisma = new PrismaClient();
 

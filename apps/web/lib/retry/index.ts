@@ -117,10 +117,7 @@ export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
  * isRetryableError(error, ['ETIMEOUT']); // false (no match)
  * ```
  */
-export function isRetryableError(
-  error: unknown,
-  retryableErrors: string[]
-): boolean {
+export function isRetryableError(error: unknown, retryableErrors: string[]): boolean {
   if (retryableErrors.length === 0) {
     return false;
   }
@@ -142,9 +139,7 @@ export function isRetryableError(
     errorMessage = String(error);
   }
 
-  return retryableErrors.some(
-    (code) => errorCode === code || errorMessage.includes(code)
-  );
+  return retryableErrors.some((code) => errorCode === code || errorMessage.includes(code));
 }
 
 // =============================================================================
@@ -162,8 +157,7 @@ export function isRetryableError(
  * @returns Delay in milliseconds
  */
 function calculateDelay(attempt: number, options: RetryOptions): number {
-  const exponentialDelay =
-    options.initialDelayMs * Math.pow(options.backoffFactor, attempt);
+  const exponentialDelay = options.initialDelayMs * Math.pow(options.backoffFactor, attempt);
   const cappedDelay = Math.min(exponentialDelay, options.maxDelayMs);
 
   if (options.jitter) {
@@ -242,9 +236,7 @@ export async function withRetry<T>(
     throw new Error(`maxAttempts must be at least 1, got ${opts.maxAttempts}`);
   }
   if (opts.initialDelayMs < 0) {
-    throw new Error(
-      `initialDelayMs must be non-negative, got ${opts.initialDelayMs}`
-    );
+    throw new Error(`initialDelayMs must be non-negative, got ${opts.initialDelayMs}`);
   }
   if (opts.maxDelayMs < 0) {
     throw new Error(`maxDelayMs must be non-negative, got ${opts.maxDelayMs}`);
@@ -258,10 +250,7 @@ export async function withRetry<T>(
 
       // Log success if we recovered from a previous failure
       if (attempt > 1) {
-        log.info(
-          { attempt, maxAttempts: opts.maxAttempts },
-          LogMessages.RETRY_SUCCESS
-        );
+        log.info({ attempt, maxAttempts: opts.maxAttempts }, LogMessages.RETRY_SUCCESS);
       }
 
       return result;

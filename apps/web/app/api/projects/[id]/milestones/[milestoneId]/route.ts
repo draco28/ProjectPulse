@@ -87,7 +87,10 @@ export async function GET(
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Milestone get failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Milestone get failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -199,7 +202,10 @@ export async function PUT(
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Milestone update failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Milestone update failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -262,7 +268,10 @@ export async function DELETE(
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Milestone delete failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Milestone delete failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

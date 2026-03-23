@@ -114,7 +114,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch users');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch users'
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

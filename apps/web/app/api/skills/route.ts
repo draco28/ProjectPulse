@@ -215,7 +215,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to list skills');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to list skills'
+    );
     return NextResponse.json(
       {
         error: 'Failed to list skills',
@@ -378,7 +381,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create skill');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to create skill'
+    );
 
     return NextResponse.json(
       {

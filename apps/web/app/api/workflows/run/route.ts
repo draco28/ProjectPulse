@@ -132,7 +132,10 @@ export async function POST(request: NextRequest) {
       error: null,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error starting workflow run');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Error starting workflow run'
+    );
     return NextResponse.json(
       {
         data: null,

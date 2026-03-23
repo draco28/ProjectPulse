@@ -31,10 +31,7 @@ function formatDateRange(startDate?: string, endDate?: string): string {
   return `${start} - ${end}`;
 }
 
-export function PhaseProgressBar({
-  phase,
-  currentGlobalSprintNumber,
-}: PhaseProgressBarProps) {
+export function PhaseProgressBar({ phase, currentGlobalSprintNumber }: PhaseProgressBarProps) {
   const { sprints, progress, startDate, endDate } = phase;
 
   // Calculate sprint positions as percentages
@@ -66,22 +63,22 @@ export function PhaseProgressBar({
   });
 
   return (
-    <div className="neu-card p-4 mb-6">
+    <div className="neu-card mb-6 p-4">
       {/* Header row */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-slate-light font-medium">{phase.title} Progress</span>
+          <span className="font-medium text-slate-light">{phase.title} Progress</span>
           {/* suppressHydrationWarning: Date formatting may differ between server/client timezones */}
           <span
-            className="text-xs text-slate bg-dark-pressed px-2 py-1 rounded"
+            className="rounded bg-dark-pressed px-2 py-1 text-xs text-slate"
             suppressHydrationWarning
           >
             {formatDateRange(startDate, endDate)}
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-coral font-bold text-lg">{progress}%</span>
-          <span className="text-slate text-sm">
+          <span className="text-lg font-bold text-coral">{progress}%</span>
+          <span className="text-sm text-slate">
             {phase.sprints.reduce((sum, s) => sum + s.ticketCounts.done, 0)}/
             {phase.sprints.reduce((sum, s) => sum + s.ticketCounts.total, 0)} tickets
           </span>
@@ -89,7 +86,7 @@ export function PhaseProgressBar({
       </div>
 
       {/* Progress bar with sprint markers */}
-      <div className="relative h-3 bg-dark-pressed rounded-full overflow-hidden">
+      <div className="relative h-3 overflow-hidden rounded-full bg-dark-pressed">
         {/* Progress fill with gradient */}
         <div
           className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
@@ -103,26 +100,25 @@ export function PhaseProgressBar({
         {sprintMarkers.map((marker) => (
           <div
             key={marker.id}
-            className="absolute top-0 bottom-0 w-0.5 bg-white/30"
+            className="absolute bottom-0 top-0 w-0.5 bg-white/30"
             style={{ left: `${marker.position}%` }}
           />
         ))}
       </div>
 
       {/* Sprint labels row */}
-      <div className="flex justify-between mt-2 text-xs">
+      <div className="mt-2 flex justify-between text-xs">
         {sprintLabels.map((sprint) => (
           <span
             key={sprint.id}
             className={cn(
               'transition-colors',
               sprint.isCompleted && 'text-accent-green',
-              sprint.isCurrent && 'text-coral font-medium',
+              sprint.isCurrent && 'font-medium text-coral',
               !sprint.isCompleted && !sprint.isCurrent && 'text-slate'
             )}
           >
-            {sprint.label}{' '}
-            <span className="opacity-60">({sprint.progress}%)</span>
+            {sprint.label} <span className="opacity-60">({sprint.progress}%)</span>
           </span>
         ))}
       </div>

@@ -51,7 +51,7 @@ function KindBadge({ kind }: { kind: string }) {
   const colorClass = kindColors[kind?.toLowerCase()] || kindColors.task;
 
   return (
-    <span className={cn('px-1.5 py-0.5 text-[10px] rounded font-bold uppercase', colorClass)}>
+    <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-bold uppercase', colorClass)}>
       {kind?.replace('_', ' ').slice(0, 4) || 'TASK'}
     </span>
   );
@@ -67,7 +67,7 @@ function PriorityIndicator({ priority }: { priority: string }) {
 
   const colorClass = priorityColors[priority?.toLowerCase()] || priorityColors.medium;
 
-  return <div className={cn('absolute left-0 top-0 bottom-0 w-0.5 rounded-l', colorClass)} />;
+  return <div className={cn('absolute bottom-0 left-0 top-0 w-0.5 rounded-l', colorClass)} />;
 }
 
 function UnassignedTicketCard({
@@ -81,7 +81,7 @@ function UnassignedTicketCard({
     <button
       onClick={() => onClick?.(ticket)}
       className={cn(
-        'relative flex-shrink-0 w-64 p-3 rounded-lg text-left transition-all',
+        'relative w-64 flex-shrink-0 rounded-lg p-3 text-left transition-all',
         'bg-white/[0.02] hover:bg-white/[0.05]',
         'border border-white/5 hover:border-white/10',
         'border-l-2'
@@ -90,17 +90,17 @@ function UnassignedTicketCard({
       <PriorityIndicator priority={ticket.priority} />
 
       {/* Header */}
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-xs font-mono text-slate">#{ticket.id}</span>
+      <div className="mb-1.5 flex items-center gap-2">
+        <span className="font-mono text-xs text-slate">#{ticket.id}</span>
         <KindBadge kind={ticket.kind} />
       </div>
 
       {/* Title */}
-      <p className="text-sm text-white line-clamp-2 leading-snug">{ticket.title}</p>
+      <p className="line-clamp-2 text-sm leading-snug text-white">{ticket.title}</p>
 
       {/* Sprint info */}
       {ticket.sprintNumber && (
-        <p className="text-xs text-slate/60 mt-2">Sprint {ticket.sprintNumber}</p>
+        <p className="mt-2 text-xs text-slate/60">Sprint {ticket.sprintNumber}</p>
       )}
     </button>
   );
@@ -120,7 +120,7 @@ export const UnassignedTicketsRow = memo(function UnassignedTicketsRow({
     queryFn: async () => {
       const params = new URLSearchParams({
         status: 'backlog,todo',
-        assignee: '',  // Empty = unassigned
+        assignee: '', // Empty = unassigned
         pageSize: '20',
       });
 
@@ -147,7 +147,7 @@ export const UnassignedTicketsRow = memo(function UnassignedTicketsRow({
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-slate uppercase tracking-wide">
+        <h3 className="text-sm font-medium uppercase tracking-wide text-slate">
           Unassigned Tickets
         </h3>
         <span className="text-xs text-slate/60">
@@ -157,17 +157,18 @@ export const UnassignedTicketsRow = memo(function UnassignedTicketsRow({
 
       {/* Scrollable Row */}
       <div className="relative">
-        <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 custom-scrollbar">
-          {ticketsQuery.isLoading ? (
-            // Loading skeletons
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-64 h-24 rounded-lg bg-white/[0.02] animate-pulse" />
-            ))
-          ) : (
-            tickets.map((ticket) => (
-              <UnassignedTicketCard key={ticket.id} ticket={ticket} onClick={onTicketClick} />
-            ))
-          )}
+        <div className="custom-scrollbar -mx-2 flex gap-3 overflow-x-auto px-2 pb-2">
+          {ticketsQuery.isLoading
+            ? // Loading skeletons
+              Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-24 w-64 flex-shrink-0 animate-pulse rounded-lg bg-white/[0.02]"
+                />
+              ))
+            : tickets.map((ticket) => (
+                <UnassignedTicketCard key={ticket.id} ticket={ticket} onClick={onTicketClick} />
+              ))}
         </div>
 
         {/* Fade edges */}

@@ -40,7 +40,10 @@ export async function POST(request: NextRequest) {
       errors: result.errors.length > 0 ? result.errors : undefined,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to run MCP cleanup job');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to run MCP cleanup job'
+    );
 
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

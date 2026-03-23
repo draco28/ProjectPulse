@@ -174,7 +174,10 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to reorder tickets');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to reorder tickets'
+    );
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to reorder tickets' } },
       { status: 500 }

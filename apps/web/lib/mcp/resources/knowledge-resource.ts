@@ -132,7 +132,10 @@ export async function listKnowledgeResources(): Promise<ResourceMetadata[]> {
 
     return resources;
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Database error listing resources');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Database error listing resources'
+    );
     throw new MCPError(
       'Failed to list knowledge resources: ' +
         (error instanceof Error ? error.message : 'Unknown error'),
@@ -214,7 +217,10 @@ export async function readKnowledgeResource(uri: string): Promise<ResourceConten
     }
 
     // Wrap unexpected errors
-    log.error({ uri, error: error instanceof Error ? error.message : String(error) }, 'Unexpected error reading resource');
+    log.error(
+      { uri, error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error reading resource'
+    );
     throw new MCPError(
       'Failed to read resource: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,

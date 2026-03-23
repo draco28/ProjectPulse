@@ -293,9 +293,10 @@ export function RoadmapWizard({ projectId, projectName }: RoadmapWizardProps) {
         // Show toast for immediate visibility
         toast.error(fullMessage, {
           duration: 5000,
-          description: result.error?.code === 'MATERIALIZATION_FAILED'
-            ? 'The roadmap structure could not be created. Please check your phases and sprints.'
-            : undefined,
+          description:
+            result.error?.code === 'MATERIALIZATION_FAILED'
+              ? 'The roadmap structure could not be created. Please check your phases and sprints.'
+              : undefined,
         });
 
         dispatch({

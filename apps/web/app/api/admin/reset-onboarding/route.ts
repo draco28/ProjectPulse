@@ -59,7 +59,10 @@ export async function POST(request: NextRequest) {
       deletedSessions: deletedSessions.count,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to reset onboarding');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to reset onboarding'
+    );
 
     // Sprint 11.5: Handle auth errors with proper status codes
     if (error instanceof Error) {

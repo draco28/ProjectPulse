@@ -53,7 +53,10 @@ export async function GET(request: Request) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Memory pattern lookup failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Memory pattern lookup failed'
+    );
     return NextResponse.json({ error: 'Failed to lookup memory bank pattern' }, { status: 500 });
   }
 }

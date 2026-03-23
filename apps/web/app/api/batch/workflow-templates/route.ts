@@ -105,7 +105,10 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    log.info({ projectId, created: createdWorkflows.length, duplicates: duplicates.length }, 'Workflow templates created');
+    log.info(
+      { projectId, created: createdWorkflows.length, duplicates: duplicates.length },
+      'Workflow templates created'
+    );
 
     return NextResponse.json({
       success: true,
@@ -117,7 +120,10 @@ export async function POST(request: NextRequest) {
       message: `Created ${createdWorkflows.length}/${workflows.length} workflow templates. ${duplicates.length} duplicates skipped.`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create workflow template batch');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to create workflow template batch'
+    );
     return NextResponse.json(
       {
         error: 'Failed to create workflow template batch',

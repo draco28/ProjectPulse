@@ -197,7 +197,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge export failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Knowledge export failed'
+    );
     return NextResponse.json(
       {
         error: 'Failed to export knowledge graph',

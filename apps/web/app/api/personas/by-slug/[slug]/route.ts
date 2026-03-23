@@ -44,7 +44,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     if (!validation.success) {
-      log.warn({ validationError: validation.error.errors }, 'Persona get by slug validation failed');
+      log.warn(
+        { validationError: validation.error.errors },
+        'Persona get by slug validation failed'
+      );
       return NextResponse.json(
         {
           error: 'Validation failed',
@@ -84,7 +87,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Persona get by slug failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Persona get by slug failed'
+    );
     return NextResponse.json(
       {
         error: 'Failed to get persona',

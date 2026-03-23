@@ -83,7 +83,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Get skill by ID failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Get skill by ID failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

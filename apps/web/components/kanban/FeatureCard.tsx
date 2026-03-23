@@ -70,7 +70,7 @@ export const FeatureCard = memo(
           isAgentWorking && 'active-work',
           // Sprint 16: Session linkage styling
           isLinkedToSession && 'ring-2 ring-emerald-500/50',
-          isDragging && 'opacity-50 rotate-2',
+          isDragging && 'rotate-2 opacity-50',
           isOverlay && 'shadow-2xl ring-2 ring-coral/50'
         )}
         onClick={onClick}
@@ -86,13 +86,13 @@ export const FeatureCard = memo(
       >
         {/* Header */}
         <div className="p-4">
-          <div className="flex items-start justify-between mb-2">
+          <div className="mb-2 flex items-start justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-mono text-slate">#{ticket.ticketNumber}</span>
+              <span className="font-mono text-xs text-slate">#{ticket.ticketNumber}</span>
               {/* Sprint 16: Session linkage indicator */}
               {isLinkedToSession && (
                 <div
-                  className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[7px] flex items-center justify-center font-bold animate-pulse"
+                  className="flex h-4 w-4 animate-pulse items-center justify-center rounded-full bg-emerald-500 text-[7px] font-bold text-white"
                   title={`Linked to session: ${ticket.linkedSessionId?.slice(0, 8)}...`}
                 >
                   ⚡
@@ -101,7 +101,7 @@ export const FeatureCard = memo(
             </div>
             <span
               className={cn(
-                'px-2 py-0.5 text-[10px] rounded font-bold',
+                'rounded px-2 py-0.5 text-[10px] font-bold',
                 isAgentWorking ? 'bg-coral/20 text-coral' : 'bg-emerald-500/20 text-emerald-400'
               )}
             >
@@ -110,14 +110,14 @@ export const FeatureCard = memo(
           </div>
 
           {/* Title */}
-          <p className="font-semibold text-sm mb-3">{ticket.title}</p>
+          <p className="mb-3 text-sm font-semibold">{ticket.title}</p>
 
           {/* Progress */}
           {hasChildren && (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate">{childCount} tasks</span>
-                <div className="w-16 h-1 bg-dark rounded-full overflow-hidden">
+                <div className="h-1 w-16 overflow-hidden rounded-full bg-dark">
                   <div className={cn('h-full', progressColor)} style={{ width: `${progress}%` }} />
                 </div>
               </div>

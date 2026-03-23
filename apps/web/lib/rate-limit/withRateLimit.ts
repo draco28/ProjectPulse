@@ -67,11 +67,11 @@ function extractKeyContext(request: NextRequest): RateLimitKeyContext {
  * @param options - Optional configuration
  * @returns Wrapped handler with rate limiting
  */
-export function withRateLimit(
-  handler: RouteHandler,
-  options?: WithRateLimitOptions
-): RouteHandler {
-  return async (request: NextRequest, routeContext?: { params?: Record<string, string | string[]> }) => {
+export function withRateLimit(handler: RouteHandler, options?: WithRateLimitOptions): RouteHandler {
+  return async (
+    request: NextRequest,
+    routeContext?: { params?: Record<string, string | string[]> }
+  ) => {
     // Skip if rate limiting disabled
     if (!isRateLimitEnabled()) {
       return handler(request, routeContext);
@@ -161,11 +161,7 @@ export async function checkRequestRateLimit(
  * Currently not used but available for class-based handlers
  */
 export function RateLimit(tierOrOptions?: RateLimitTier | WithRateLimitOptions) {
-  return function (
-    _target: unknown,
-    _propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (_target: unknown, _propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const options: WithRateLimitOptions =
       typeof tierOrOptions === 'string' ? { tier: tierOrOptions } : tierOrOptions || {};

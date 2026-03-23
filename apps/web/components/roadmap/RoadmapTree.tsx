@@ -30,24 +30,27 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
 
   // Filter helper function
-  const matchesFilters = useCallback((item: { title: string; description?: string | null; status: string }) => {
-    // Status filter
-    if (filters?.status && filters.status !== 'ALL' && item.status !== filters.status) {
-      return false;
-    }
-
-    // Search filter
-    if (filters?.searchQuery) {
-      const query = filters.searchQuery.toLowerCase();
-      const titleMatch = item.title.toLowerCase().includes(query);
-      const descMatch = item.description?.toLowerCase().includes(query);
-      if (!titleMatch && !descMatch) {
+  const matchesFilters = useCallback(
+    (item: { title: string; description?: string | null; status: string }) => {
+      // Status filter
+      if (filters?.status && filters.status !== 'ALL' && item.status !== filters.status) {
         return false;
       }
-    }
 
-    return true;
-  }, [filters]);
+      // Search filter
+      if (filters?.searchQuery) {
+        const query = filters.searchQuery.toLowerCase();
+        const titleMatch = item.title.toLowerCase().includes(query);
+        const descMatch = item.description?.toLowerCase().includes(query);
+        if (!titleMatch && !descMatch) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+    [filters]
+  );
 
   // Filter phases (and recursively filter children)
   const filteredPhases = useMemo(() => {
@@ -85,9 +88,7 @@ export function RoadmapTree({ roadmap, filters }: RoadmapTreeProps) {
           <Map className="h-8 w-8 text-white" />
         </div>
         <p className="mb-2 text-lg font-semibold text-white">No roadmap data available</p>
-        <p className="text-sm text-slate">
-          Run materialization to create Phase/Sprint records
-        </p>
+        <p className="text-sm text-slate">Run materialization to create Phase/Sprint records</p>
       </div>
     );
   }

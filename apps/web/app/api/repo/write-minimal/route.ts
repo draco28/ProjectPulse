@@ -63,10 +63,7 @@ function generateClaudeMd(data: ProjectData): string {
   const personaSection =
     data.personas.length > 0
       ? data.personas
-          .map(
-            (p) =>
-              `| ${p.name} | \`${p.slug}\` | ${p.expertise?.join(', ') || 'General'} |`
-          )
+          .map((p) => `| ${p.name} | \`${p.slug}\` | ${p.expertise?.join(', ') || 'General'} |`)
           .join('\n')
       : '| *(No personas configured yet)* | | |';
 
@@ -628,9 +625,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { projectId, repoPath, mcpUrl, dashboardUrl, dryRun }: WriteMinimalRequest = validation.data;
+    const { projectId, repoPath, mcpUrl, dashboardUrl, dryRun }: WriteMinimalRequest =
+      validation.data;
 
-    log.info({ projectId, repoPath, mcpUrl: mcpUrl || DEFAULT_MCP_URL, dashboardUrl: dashboardUrl || DEFAULT_DASHBOARD_URL, dryRun }, 'Request validated');
+    log.info(
+      {
+        projectId,
+        repoPath,
+        mcpUrl: mcpUrl || DEFAULT_MCP_URL,
+        dashboardUrl: dashboardUrl || DEFAULT_DASHBOARD_URL,
+        dryRun,
+      },
+      'Request validated'
+    );
 
     // 2. Query database for project data (Sprint 11 enhancement)
     const [project, personas, skills, sops] = await Promise.all([
@@ -665,7 +672,16 @@ export async function POST(request: NextRequest) {
       sops,
     };
 
-    log.info({ projectId, projectName: projectData.projectName, personaCount: personas.length, skillCount: skills.length, sopCount: sops.length }, 'Fetched project data');
+    log.info(
+      {
+        projectId,
+        projectName: projectData.projectName,
+        personaCount: personas.length,
+        skillCount: skills.length,
+        sopCount: sops.length,
+      },
+      'Fetched project data'
+    );
 
     // 3. Generate enhanced template content
     const claudeContent = generateClaudeMd(projectData);
@@ -681,7 +697,8 @@ export async function POST(request: NextRequest) {
         dryRun: true,
         projectId,
         repoPath,
-        message: 'Generated CLAUDE.md and AGENTS.md content. Use your file writing tools to save them.',
+        message:
+          'Generated CLAUDE.md and AGENTS.md content. Use your file writing tools to save them.',
         files: [
           { filename: 'CLAUDE.md', path: join(repoPath, 'CLAUDE.md'), content: claudeContent },
           { filename: 'AGENTS.md', path: join(repoPath, 'AGENTS.md'), content: agentsContent },
@@ -698,7 +715,10 @@ export async function POST(request: NextRequest) {
       filesWritten.push('CLAUDE.md');
       log.info({}, 'Wrote CLAUDE.md');
     } catch (error) {
-      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write CLAUDE.md');
+      log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to write CLAUDE.md'
+      );
       throw new Error(
         `Failed to write CLAUDE.md: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -709,7 +729,10 @@ export async function POST(request: NextRequest) {
       filesWritten.push('AGENTS.md');
       log.info({}, 'Wrote AGENTS.md');
     } catch (error) {
-      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write AGENTS.md');
+      log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to write AGENTS.md'
+      );
       throw new Error(
         `Failed to write AGENTS.md: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -725,7 +748,10 @@ export async function POST(request: NextRequest) {
       message: `Optional files written to repo ✅ (${filesWritten.join(', ')})`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write minimal repo files');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to write minimal repo files'
+    );
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 

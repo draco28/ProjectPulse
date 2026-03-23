@@ -179,13 +179,19 @@ export async function POST(request: NextRequest) {
       log.info({ session: 2 }, 'All 15 documents stored - Session 2 COMPLETE');
       // Sync to Wiki (Sprint 9 Fix)
       syncOnboardingToWiki(projectId).catch((err) =>
-        log.error({ error: err instanceof Error ? err.message : String(err) }, 'Failed to sync wiki')
+        log.error(
+          { error: err instanceof Error ? err.message : String(err) },
+          'Failed to sync wiki'
+        )
       );
     } else if (overwrite) {
       // If overwriting, also trigger sync to update Wiki (Sprint 9 Update: allow updates after completion)
       log.info({ session: 2 }, 'Overwriting document - Triggering Wiki Sync');
       syncOnboardingToWiki(projectId).catch((err) =>
-        log.error({ error: err instanceof Error ? err.message : String(err) }, 'Failed to sync wiki on overwrite')
+        log.error(
+          { error: err instanceof Error ? err.message : String(err) },
+          'Failed to sync wiki on overwrite'
+        )
       );
     }
 
@@ -207,7 +213,10 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to store document');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to store document'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {
@@ -291,7 +300,10 @@ export async function GET(request: NextRequest) {
       session2Id: session2.id,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to list documents');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to list documents'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

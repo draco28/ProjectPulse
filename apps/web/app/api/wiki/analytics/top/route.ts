@@ -44,7 +44,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to load wiki analytics summary');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to load wiki analytics summary'
+    );
     return NextResponse.json({ error: 'Failed to load analytics summary' }, { status: 500 });
   }
 }

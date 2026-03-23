@@ -150,7 +150,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch ticket');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch ticket'
+    );
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to fetch ticket', status: 500 });
   }
 }
@@ -270,7 +273,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     // Sprint 15: Resolve sprintId from sprintNumber when sprintNumber changes
     let resolvedSprintId: string | null | undefined = undefined; // undefined = no change
     const newSprintNumber = data.sprintNumber;
-    const sprintNumberChanged = newSprintNumber !== undefined && newSprintNumber !== existing.sprintNumber;
+    const sprintNumberChanged =
+      newSprintNumber !== undefined && newSprintNumber !== existing.sprintNumber;
 
     if (sprintNumberChanged) {
       if (newSprintNumber === null) {
@@ -279,11 +283,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       } else if (!data.sprintId) {
         // sprintNumber set/changed → resolve sprintId from roadmap hierarchy
         // Ticket #91: Use helper with deterministic ordering (global numbering)
-        resolvedSprintId = await resolveSprintByNumber(
-          prisma,
-          existing.projectId,
-          newSprintNumber
-        );
+        resolvedSprintId = await resolveSprintByNumber(prisma, existing.projectId, newSprintNumber);
       }
     }
 
@@ -293,8 +293,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     // Sprint 15: Determine if closing ticket using status constant
-    const isClosing =
-      status && status !== existing.status && status === TICKET_STATUSES.DONE;
+    const isClosing = status && status !== existing.status && status === TICKET_STATUSES.DONE;
 
     // Sprint 15: Detect status changes for progress cascade
     const statusChanged = status && status !== existing.status;
@@ -390,7 +389,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update ticket');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to update ticket'
+    );
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to update ticket', status: 500 });
   }
 }
@@ -440,7 +442,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to delete ticket');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to delete ticket'
+    );
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to delete ticket', status: 500 });
   }
 }

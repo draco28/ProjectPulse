@@ -49,9 +49,9 @@ function StatCard({
   colorClass?: string;
 }) {
   return (
-    <div className="bg-dark-pressed rounded-lg p-3 text-center">
+    <div className="rounded-lg bg-dark-pressed p-3 text-center">
       <div className={cn('text-2xl font-bold', colorClass)}>{value}</div>
-      <div className="text-xs text-slate uppercase tracking-wide mt-1">{label}</div>
+      <div className="mt-1 text-xs uppercase tracking-wide text-slate">{label}</div>
     </div>
   );
 }
@@ -123,22 +123,21 @@ function DrawerContent({
   }, [handleKeyDown]);
 
   const { ticketCounts } = sprint;
-  const completionRate = ticketCounts.total > 0
-    ? Math.round((ticketCounts.done / ticketCounts.total) * 100)
-    : 0;
+  const completionRate =
+    ticketCounts.total > 0 ? Math.round((ticketCounts.done / ticketCounts.total) * 100) : 0;
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"
+        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
         className={cn(
-          'fixed top-0 right-0 h-full w-full max-w-md z-50',
+          'fixed right-0 top-0 z-50 h-full w-full max-w-md',
           'bg-gradient-to-br from-dark-card to-dark-lighter',
           'border-l border-white/10',
           'shadow-2xl',
@@ -147,74 +146,63 @@ function DrawerContent({
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-white/10">
+        <div className="flex items-center justify-between border-b border-white/10 p-5">
           <div className="flex items-center gap-3">
-            <div className={cn(
-              'w-3 h-3 rounded-full',
-              isCompleted ? 'bg-accent-green' : 'bg-slate'
-            )} />
+            <div
+              className={cn('h-3 w-3 rounded-full', isCompleted ? 'bg-accent-green' : 'bg-slate')}
+            />
             <h2 className="text-xl font-bold">Sprint {sprint.globalSprintNumber}</h2>
-            <span className={cn(
-              'text-xs px-2 py-0.5 rounded font-medium',
-              isCompleted
-                ? 'bg-accent-green/15 text-accent-green'
-                : 'bg-slate/15 text-slate'
-            )}>
+            <span
+              className={cn(
+                'rounded px-2 py-0.5 text-xs font-medium',
+                isCompleted ? 'bg-accent-green/15 text-accent-green' : 'bg-slate/15 text-slate'
+              )}
+            >
               {isCompleted ? 'Complete' : 'Not Started'}
             </span>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-dark-pressed rounded-lg transition"
+            className="rounded-lg p-2 transition hover:bg-dark-pressed"
             aria-label="Close drawer"
           >
-            <X className="w-5 h-5 text-slate" />
+            <X className="h-5 w-5 text-slate" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-5 overflow-y-auto h-[calc(100%-80px)]">
+        <div className="h-[calc(100%-80px)] overflow-y-auto p-5">
           {/* Date range */}
-          <div className="flex items-center gap-2 text-sm text-slate mb-6">
-            <Calendar className="w-4 h-4" />
+          <div className="mb-6 flex items-center gap-2 text-sm text-slate">
+            <Calendar className="h-4 w-4" />
             <span suppressHydrationWarning>
               {formatDateRange(sprint.startDate, sprint.endDate)}
             </span>
           </div>
 
           {/* Stats grid */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            <StatCard
-              label="Completed"
-              value={ticketCounts.done}
-              colorClass="text-accent-green"
-            />
-            <StatCard
-              label="Total"
-              value={ticketCounts.total}
-              colorClass="text-slate-light"
-            />
-            <StatCard
-              label="Rate"
-              value={`${completionRate}%`}
-              colorClass="text-coral"
-            />
+          <div className="mb-6 grid grid-cols-3 gap-3">
+            <StatCard label="Completed" value={ticketCounts.done} colorClass="text-accent-green" />
+            <StatCard label="Total" value={ticketCounts.total} colorClass="text-slate-light" />
+            <StatCard label="Rate" value={`${completionRate}%`} colorClass="text-coral" />
           </div>
 
           {/* Completion indicator */}
-          <div className="neu-card p-4 mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-slate-light font-medium">
+          <div className="neu-card mb-6 p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-light">
                 {isCompleted ? 'Sprint Completion' : 'Sprint Progress'}
               </span>
-              <span className={cn(
-                'text-sm font-bold',
-                isCompleted ? 'text-accent-green' : 'text-slate'
-              )}>
+              <span
+                className={cn(
+                  'text-sm font-bold',
+                  isCompleted ? 'text-accent-green' : 'text-slate'
+                )}
+              >
                 {isCompleted ? `${completionRate}%` : '0%'}
               </span>
             </div>
-            <div className="h-2 bg-dark-pressed rounded-full overflow-hidden">
+            <div className="h-2 overflow-hidden rounded-full bg-dark-pressed">
               <div
                 className={cn(
                   'h-full rounded-full transition-all duration-500',
@@ -226,56 +214,46 @@ function DrawerContent({
           </div>
 
           {/* Ticket breakdown */}
-          <div className="space-y-3 mb-6">
-            <h3 className="text-sm font-medium text-slate-light">
-              Ticket Breakdown
-            </h3>
+          <div className="mb-6 space-y-3">
+            <h3 className="text-sm font-medium text-slate-light">Ticket Breakdown</h3>
             <div className="grid grid-cols-2 gap-2">
-              <div className="flex items-center justify-between p-3 bg-dark-pressed rounded-lg">
+              <div className="flex items-center justify-between rounded-lg bg-dark-pressed p-3">
                 <span className="text-xs text-slate">Done</span>
-                <span className="text-sm font-bold text-accent-green">
-                  {ticketCounts.done}
-                </span>
+                <span className="text-sm font-bold text-accent-green">{ticketCounts.done}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-dark-pressed rounded-lg">
+              <div className="flex items-center justify-between rounded-lg bg-dark-pressed p-3">
                 <span className="text-xs text-slate">In Progress</span>
                 <span className="text-sm font-bold text-accent-yellow">
                   {ticketCounts.inProgress}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-dark-pressed rounded-lg">
+              <div className="flex items-center justify-between rounded-lg bg-dark-pressed p-3">
                 <span className="text-xs text-slate">In Review</span>
                 <span className="text-sm font-bold text-accent-purple">
                   {ticketCounts.inReview}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-dark-pressed rounded-lg">
+              <div className="flex items-center justify-between rounded-lg bg-dark-pressed p-3">
                 <span className="text-xs text-slate">Backlog</span>
-                <span className="text-sm font-bold text-slate">
-                  {ticketCounts.backlog}
-                </span>
+                <span className="text-sm font-bold text-slate">{ticketCounts.backlog}</span>
               </div>
             </div>
           </div>
 
           {/* Success indicator - only for completed sprints with >= 80% completion */}
           {isCompleted && completionRate >= 80 && (
-            <div className="flex items-center gap-3 p-4 bg-accent-green/10 rounded-lg mb-6">
-              <CheckCircle2 className="w-6 h-6 text-accent-green" />
+            <div className="mb-6 flex items-center gap-3 rounded-lg bg-accent-green/10 p-4">
+              <CheckCircle2 className="h-6 w-6 text-accent-green" />
               <div>
-                <div className="text-sm font-medium text-accent-green">
-                  Sprint Successful!
-                </div>
-                <div className="text-xs text-slate">
-                  {completionRate}% completion rate achieved
-                </div>
+                <div className="text-sm font-medium text-accent-green">Sprint Successful!</div>
+                <div className="text-xs text-slate">{completionRate}% completion rate achieved</div>
               </div>
             </div>
           )}
 
           {/* Velocity indicator */}
-          <div className="flex items-center gap-3 p-4 bg-dark-pressed rounded-lg">
-            <TrendingUp className={cn('w-5 h-5', isCompleted ? 'text-coral' : 'text-slate')} />
+          <div className="flex items-center gap-3 rounded-lg bg-dark-pressed p-4">
+            <TrendingUp className={cn('h-5 w-5', isCompleted ? 'text-coral' : 'text-slate')} />
             <div>
               <div className="text-sm font-medium text-slate-light">
                 {isCompleted
@@ -290,22 +268,22 @@ function DrawerContent({
         </div>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-5 border-t border-white/10 bg-dark-card">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-dark-card p-5">
           <div className="flex gap-3">
             {/* View Full Board */}
             <button
               onClick={() => navigateTo(`/roadmap/sprint/${sprint.globalSprintNumber}`)}
               className={cn(
-                'flex-1 py-3 px-4 rounded-lg',
+                'flex-1 rounded-lg px-4 py-3',
                 'flex items-center justify-center gap-2',
                 'transition-colors',
                 isPlanned
-                  ? 'bg-dark-pressed hover:bg-dark-lighter text-slate-light'
-                  : 'bg-coral hover:bg-coral/90 text-white font-medium'
+                  ? 'bg-dark-pressed text-slate-light hover:bg-dark-lighter'
+                  : 'bg-coral font-medium text-white hover:bg-coral/90'
               )}
             >
               View Full Board
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="h-4 w-4" />
             </button>
 
             {/* Set as Current - Only for planned sprints */}
@@ -314,22 +292,22 @@ function DrawerContent({
                 onClick={handleSetCurrent}
                 disabled={isSettingCurrent}
                 className={cn(
-                  'flex-1 py-3 px-4 rounded-lg',
+                  'flex-1 rounded-lg px-4 py-3',
                   'bg-coral hover:bg-coral/90',
-                  'text-white font-medium',
+                  'font-medium text-white',
                   'flex items-center justify-center gap-2',
                   'transition-colors',
-                  'disabled:opacity-50 disabled:cursor-not-allowed'
+                  'disabled:cursor-not-allowed disabled:opacity-50'
                 )}
               >
                 {isSettingCurrent ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Setting...
                   </>
                 ) : (
                   <>
-                    <Play className="w-4 h-4" />
+                    <Play className="h-4 w-4" />
                     Set as Current
                   </>
                 )}

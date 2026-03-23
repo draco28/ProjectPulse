@@ -129,7 +129,10 @@ export async function POST(request: NextRequest) {
       message: `Step "${stepName}" logged. Total: ${actions.length} steps.`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to log step');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to log step'
+    );
     return NextResponse.json(
       {
         error: 'Failed to log step',

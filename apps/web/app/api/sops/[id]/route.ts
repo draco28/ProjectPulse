@@ -73,7 +73,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json(sop);
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to get SOP by ID');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to get SOP by ID'
+    );
     return NextResponse.json(
       {
         error: 'Failed to get SOP',

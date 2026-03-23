@@ -169,7 +169,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update ticket labels');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to update ticket labels'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

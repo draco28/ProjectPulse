@@ -97,11 +97,7 @@ function nextWithRequestId(
  * Redirects don't need request header injection (no downstream processing),
  * but include the request ID and response time in headers for client correlation.
  */
-function redirectWithRequestId(
-  url: URL,
-  requestId: string,
-  durationMs: number
-): NextResponse {
+function redirectWithRequestId(url: URL, requestId: string, durationMs: number): NextResponse {
   const response = NextResponse.redirect(url);
   response.headers.set(REQUEST_ID_HEADER, requestId);
   response.headers.set(RESPONSE_TIME_HEADER, `${durationMs}ms`);
@@ -175,11 +171,7 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
-    return redirectWithRequestId(
-      loginUrl,
-      requestId,
-      getDurationAndRecordMetric()
-    );
+    return redirectWithRequestId(loginUrl, requestId, getDurationAndRecordMetric());
   }
 
   // Sprint 11.5: Admin route protection
@@ -197,14 +189,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // Enforce project context on project-scoped routes
-  const requiresProject = projectRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  const requiresProject = projectRoutes.some((route) => pathname.startsWith(route));
 
   // Exception: Wiki detail pages (e.g., /wiki/project-slug/page-slug) derive context from the URL path
   // We allow these to bypass the query param check because the page component will resolve the project
-  const isWikiDetailPage =
-    pathname.startsWith('/wiki/') && pathname.split('/').length > 2;
+  const isWikiDetailPage = pathname.startsWith('/wiki/') && pathname.split('/').length > 2;
 
   if (requiresProject && !isWikiDetailPage) {
     const projectId = searchParams.get('project');

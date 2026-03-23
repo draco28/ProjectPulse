@@ -51,10 +51,26 @@ async function main() {
 
   // Phase and sprint metadata (defined first for roadmap JSON construction)
   const phaseData = [
-    { title: 'Phase 1: Foundation & Infrastructure', description: 'Set up project structure and core infrastructure', weekOffset: 0 },
-    { title: 'Phase 2: Core Features', description: 'Build main application features', weekOffset: 6 },
-    { title: 'Phase 3: Advanced Features', description: 'Add advanced functionality and integrations', weekOffset: 12 },
-    { title: 'Phase 4: Polish & Launch', description: 'Testing, performance, and deployment', weekOffset: 18 },
+    {
+      title: 'Phase 1: Foundation & Infrastructure',
+      description: 'Set up project structure and core infrastructure',
+      weekOffset: 0,
+    },
+    {
+      title: 'Phase 2: Core Features',
+      description: 'Build main application features',
+      weekOffset: 6,
+    },
+    {
+      title: 'Phase 3: Advanced Features',
+      description: 'Add advanced functionality and integrations',
+      weekOffset: 12,
+    },
+    {
+      title: 'Phase 4: Polish & Launch',
+      description: 'Testing, performance, and deployment',
+      weekOffset: 18,
+    },
   ];
 
   const sprintTitles = [
@@ -132,7 +148,8 @@ async function main() {
           startDate: sprintStart,
           endDate: sprintEnd,
           progress: p === 0 && s < 2 ? (s === 0 ? 100 : 50) : 0,
-          status: p === 0 && s === 0 ? 'COMPLETED' : p === 0 && s === 1 ? 'IN_PROGRESS' : 'NOT_STARTED',
+          status:
+            p === 0 && s === 0 ? 'COMPLETED' : p === 0 && s === 1 ? 'IN_PROGRESS' : 'NOT_STARTED',
         },
       });
       sprints.push(sprint);
@@ -147,39 +164,218 @@ async function main() {
 
   const ticketData = [
     // Features (5)
-    { title: 'User authentication system', kind: 'feature', status: 'in-progress', priority: 'critical', module: 'Auth', sprintNumber: 2, assignee: 'Claude Code' },
-    { title: 'Dashboard analytics widgets', kind: 'feature', status: 'todo', priority: 'high', module: 'UI', sprintNumber: 2 },
-    { title: 'Real-time notifications', kind: 'feature', status: 'backlog', priority: 'medium', module: 'Core', sprintNumber: 3 },
-    { title: 'Export to PDF/CSV', kind: 'feature', status: 'backlog', priority: 'low', module: 'Reports', sprintNumber: 4 },
-    { title: 'Dark mode theme', kind: 'feature', status: 'done', priority: 'medium', module: 'UI', sprintNumber: 1 },
+    {
+      title: 'User authentication system',
+      kind: 'feature',
+      status: 'in-progress',
+      priority: 'critical',
+      module: 'Auth',
+      sprintNumber: 2,
+      assignee: 'Claude Code',
+    },
+    {
+      title: 'Dashboard analytics widgets',
+      kind: 'feature',
+      status: 'todo',
+      priority: 'high',
+      module: 'UI',
+      sprintNumber: 2,
+    },
+    {
+      title: 'Real-time notifications',
+      kind: 'feature',
+      status: 'backlog',
+      priority: 'medium',
+      module: 'Core',
+      sprintNumber: 3,
+    },
+    {
+      title: 'Export to PDF/CSV',
+      kind: 'feature',
+      status: 'backlog',
+      priority: 'low',
+      module: 'Reports',
+      sprintNumber: 4,
+    },
+    {
+      title: 'Dark mode theme',
+      kind: 'feature',
+      status: 'done',
+      priority: 'medium',
+      module: 'UI',
+      sprintNumber: 1,
+    },
 
     // Tasks (8)
-    { title: 'Set up CI/CD pipeline', kind: 'task', status: 'done', priority: 'high', module: 'DevOps', sprintNumber: 1 },
-    { title: 'Configure Docker environment', kind: 'task', status: 'done', priority: 'high', module: 'DevOps', sprintNumber: 1 },
-    { title: 'Design database schema', kind: 'task', status: 'in-progress', priority: 'critical', module: 'Database', sprintNumber: 2, assignee: 'Claude Code' },
-    { title: 'Write API documentation', kind: 'task', status: 'todo', priority: 'medium', module: 'Docs', sprintNumber: 2 },
-    { title: 'Create seed data scripts', kind: 'task', status: 'review', priority: 'medium', module: 'Database', sprintNumber: 2 },
-    { title: 'Set up monitoring', kind: 'task', status: 'backlog', priority: 'low', module: 'DevOps', sprintNumber: 3 },
-    { title: 'Configure Redis caching', kind: 'task', status: 'backlog', priority: 'medium', module: 'Performance', sprintNumber: 3 },
-    { title: 'Add unit test coverage', kind: 'task', status: 'todo', priority: 'high', module: 'Testing', sprintNumber: 2 },
+    {
+      title: 'Set up CI/CD pipeline',
+      kind: 'task',
+      status: 'done',
+      priority: 'high',
+      module: 'DevOps',
+      sprintNumber: 1,
+    },
+    {
+      title: 'Configure Docker environment',
+      kind: 'task',
+      status: 'done',
+      priority: 'high',
+      module: 'DevOps',
+      sprintNumber: 1,
+    },
+    {
+      title: 'Design database schema',
+      kind: 'task',
+      status: 'in-progress',
+      priority: 'critical',
+      module: 'Database',
+      sprintNumber: 2,
+      assignee: 'Claude Code',
+    },
+    {
+      title: 'Write API documentation',
+      kind: 'task',
+      status: 'todo',
+      priority: 'medium',
+      module: 'Docs',
+      sprintNumber: 2,
+    },
+    {
+      title: 'Create seed data scripts',
+      kind: 'task',
+      status: 'review',
+      priority: 'medium',
+      module: 'Database',
+      sprintNumber: 2,
+    },
+    {
+      title: 'Set up monitoring',
+      kind: 'task',
+      status: 'backlog',
+      priority: 'low',
+      module: 'DevOps',
+      sprintNumber: 3,
+    },
+    {
+      title: 'Configure Redis caching',
+      kind: 'task',
+      status: 'backlog',
+      priority: 'medium',
+      module: 'Performance',
+      sprintNumber: 3,
+    },
+    {
+      title: 'Add unit test coverage',
+      kind: 'task',
+      status: 'todo',
+      priority: 'high',
+      module: 'Testing',
+      sprintNumber: 2,
+    },
 
     // Bugs (5)
-    { title: 'Login fails on Safari', kind: 'bug', status: 'in-progress', priority: 'critical', module: 'Auth', sprintNumber: 2, assignee: 'Claude Code' },
-    { title: 'Memory leak in dashboard', kind: 'bug', status: 'todo', priority: 'high', module: 'Performance', sprintNumber: 2 },
-    { title: 'CSS overflow on mobile', kind: 'bug', status: 'review', priority: 'medium', module: 'UI', sprintNumber: 2 },
-    { title: 'Timezone display incorrect', kind: 'bug', status: 'backlog', priority: 'low', module: 'Core', sprintNumber: 3 },
-    { title: 'Form validation not working', kind: 'bug', status: 'done', priority: 'high', module: 'UI', sprintNumber: 1 },
+    {
+      title: 'Login fails on Safari',
+      kind: 'bug',
+      status: 'in-progress',
+      priority: 'critical',
+      module: 'Auth',
+      sprintNumber: 2,
+      assignee: 'Claude Code',
+    },
+    {
+      title: 'Memory leak in dashboard',
+      kind: 'bug',
+      status: 'todo',
+      priority: 'high',
+      module: 'Performance',
+      sprintNumber: 2,
+    },
+    {
+      title: 'CSS overflow on mobile',
+      kind: 'bug',
+      status: 'review',
+      priority: 'medium',
+      module: 'UI',
+      sprintNumber: 2,
+    },
+    {
+      title: 'Timezone display incorrect',
+      kind: 'bug',
+      status: 'backlog',
+      priority: 'low',
+      module: 'Core',
+      sprintNumber: 3,
+    },
+    {
+      title: 'Form validation not working',
+      kind: 'bug',
+      status: 'done',
+      priority: 'high',
+      module: 'UI',
+      sprintNumber: 1,
+    },
 
     // Tech Debt (4)
-    { title: 'Refactor auth middleware', kind: 'tech_debt', status: 'todo', priority: 'medium', module: 'Auth', sprintNumber: 2 },
-    { title: 'Clean up deprecated APIs', kind: 'tech_debt', status: 'backlog', priority: 'low', module: 'API', sprintNumber: 3 },
-    { title: 'Upgrade React to v19', kind: 'tech_debt', status: 'backlog', priority: 'medium', module: 'Core', sprintNumber: 4 },
-    { title: 'Remove unused dependencies', kind: 'tech_debt', status: 'done', priority: 'low', module: 'Core', sprintNumber: 1 },
+    {
+      title: 'Refactor auth middleware',
+      kind: 'tech_debt',
+      status: 'todo',
+      priority: 'medium',
+      module: 'Auth',
+      sprintNumber: 2,
+    },
+    {
+      title: 'Clean up deprecated APIs',
+      kind: 'tech_debt',
+      status: 'backlog',
+      priority: 'low',
+      module: 'API',
+      sprintNumber: 3,
+    },
+    {
+      title: 'Upgrade React to v19',
+      kind: 'tech_debt',
+      status: 'backlog',
+      priority: 'medium',
+      module: 'Core',
+      sprintNumber: 4,
+    },
+    {
+      title: 'Remove unused dependencies',
+      kind: 'tech_debt',
+      status: 'done',
+      priority: 'low',
+      module: 'Core',
+      sprintNumber: 1,
+    },
 
     // Issues (3)
-    { title: 'Performance degradation reported', kind: 'issue', status: 'todo', priority: 'high', module: 'Performance', sprintNumber: 2 },
-    { title: 'User feedback: confusing UX', kind: 'issue', status: 'backlog', priority: 'medium', module: 'UI', sprintNumber: 3 },
-    { title: 'Security audit findings', kind: 'issue', status: 'in-progress', priority: 'critical', module: 'Security', sprintNumber: 2, assignee: 'Claude Code' },
+    {
+      title: 'Performance degradation reported',
+      kind: 'issue',
+      status: 'todo',
+      priority: 'high',
+      module: 'Performance',
+      sprintNumber: 2,
+    },
+    {
+      title: 'User feedback: confusing UX',
+      kind: 'issue',
+      status: 'backlog',
+      priority: 'medium',
+      module: 'UI',
+      sprintNumber: 3,
+    },
+    {
+      title: 'Security audit findings',
+      kind: 'issue',
+      status: 'in-progress',
+      priority: 'critical',
+      module: 'Security',
+      sprintNumber: 2,
+      assignee: 'Claude Code',
+    },
   ];
 
   // Find sprint IDs for linking tickets
@@ -217,7 +413,9 @@ async function main() {
   console.log('🤖 Creating agent sessions...');
 
   // Get tickets assigned to Claude Code for sessions
-  const assignedTickets = createdTickets.filter((t) => ticketData[createdTickets.indexOf(t)]?.assignee === 'Claude Code');
+  const assignedTickets = createdTickets.filter(
+    (t) => ticketData[createdTickets.indexOf(t)]?.assignee === 'Claude Code'
+  );
 
   // Session 1: Active (IN_PROGRESS) - working on auth and schema
   const session1 = await prisma.agentSession.create({

@@ -137,7 +137,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch tokens');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch tokens'
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

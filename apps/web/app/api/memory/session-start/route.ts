@@ -48,7 +48,10 @@ export async function GET(request: Request) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Memory session start failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Memory session start failed'
+    );
     return NextResponse.json(
       { error: 'Failed to load session start memory banks' },
       { status: 500 }

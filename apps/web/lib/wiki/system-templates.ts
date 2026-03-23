@@ -895,7 +895,10 @@ export async function cloneWikiTemplates(targetProjectId: number, targetProjectN
 
     log.info({ targetProjectId }, 'Wiki cloning complete');
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error), targetProjectId }, 'Wiki cloning failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error), targetProjectId },
+      'Wiki cloning failed'
+    );
     // We do NOT throw here. Project creation should succeed even if wiki seeding fails.
   }
 }

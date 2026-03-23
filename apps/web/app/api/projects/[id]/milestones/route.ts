@@ -79,7 +79,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Milestones list failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Milestones list failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -164,7 +167,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Milestone creation failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Milestone creation failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

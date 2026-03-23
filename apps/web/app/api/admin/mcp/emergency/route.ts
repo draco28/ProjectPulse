@@ -58,7 +58,10 @@ export async function GET(request: NextRequest) {
       enabledBy: value?.enabledBy ?? null,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch emergency status');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch emergency status'
+    );
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {
@@ -120,7 +123,10 @@ export async function POST(request: NextRequest) {
       enabledAt: value.enabledAt,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to enable emergency shutdown');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to enable emergency shutdown'
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -180,7 +186,10 @@ export async function DELETE(request: NextRequest) {
       enabled: false,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to disable emergency shutdown');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to disable emergency shutdown'
+    );
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {

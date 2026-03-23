@@ -72,7 +72,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ user });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch user');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch user'
+    );
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {
@@ -183,7 +186,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ user: updatedUser });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update user');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to update user'
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

@@ -22,10 +22,7 @@ import { NextPhasePreview } from './NextPhasePreview';
 import { PhaseStatsBar } from './PhaseStatsBar';
 import { SprintHistoryDrawer } from './SprintHistoryDrawer';
 
-export function PhaseTimelineClient({
-  projectId,
-  initialData,
-}: PhaseTimelineClientProps) {
+export function PhaseTimelineClient({ projectId, initialData }: PhaseTimelineClientProps) {
   const router = useRouter();
   const { phases, currentPhaseId, currentGlobalSprintNumber } = initialData;
 
@@ -58,11 +55,14 @@ export function PhaseTimelineClient({
     setSelectedPhaseId(phaseId);
   }, []);
 
-  const handleSprintDrawerOpen = useCallback((sprint: SprintOverview, variant: 'completed' | 'planned') => {
-    setDrawerSprint(sprint);
-    setDrawerVariant(variant);
-    setIsDrawerOpen(true);
-  }, []);
+  const handleSprintDrawerOpen = useCallback(
+    (sprint: SprintOverview, variant: 'completed' | 'planned') => {
+      setDrawerSprint(sprint);
+      setDrawerVariant(variant);
+      setIsDrawerOpen(true);
+    },
+    []
+  );
 
   const handleDrawerClose = useCallback(() => {
     setIsDrawerOpen(false);
@@ -78,7 +78,7 @@ export function PhaseTimelineClient({
   // Guard against no phases
   if (!selectedPhase) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <p className="text-slate">No phases found. Create a roadmap to get started.</p>
       </div>
     );
@@ -87,7 +87,7 @@ export function PhaseTimelineClient({
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold text-text-primary">Roadmap</h1>
           <PhaseSelector
@@ -99,13 +99,13 @@ export function PhaseTimelineClient({
 
         {/* New Ticket Button */}
         <button
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-coral hover:bg-coral/90 text-white font-medium transition-colors"
+          className="flex items-center gap-2 rounded-xl bg-coral px-4 py-2.5 font-medium text-white transition-colors hover:bg-coral/90"
           onClick={() => {
             // Navigate to ticket creation with project context and current global sprint
             window.location.href = `/tickets/new?project=${projectId}&sprintNumber=${currentGlobalSprintNumber ?? 1}`;
           }}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
           New Ticket
         </button>
       </div>
@@ -125,12 +125,7 @@ export function PhaseTimelineClient({
       />
 
       {/* Next Phase Preview (if not on last phase) */}
-      {nextPhase && (
-        <NextPhasePreview
-          phase={nextPhase}
-          onPhaseSelect={handlePhaseChange}
-        />
-      )}
+      {nextPhase && <NextPhasePreview phase={nextPhase} onPhaseSelect={handlePhaseChange} />}
 
       {/* Phase Stats Bar */}
       <PhaseStatsBar phase={selectedPhase} />

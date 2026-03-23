@@ -7,7 +7,10 @@ const footerLinks = {
   product: [
     { label: 'Features', href: '#features' },
     { label: 'Documentation', href: '/docs' },
-    { label: 'Changelog', href: 'https://github.com/ProjectPulse/ProjectPulse/blob/master/CHANGELOG.md' },
+    {
+      label: 'Changelog',
+      href: 'https://github.com/ProjectPulse/ProjectPulse/blob/master/CHANGELOG.md',
+    },
     { label: 'Roadmap', href: 'https://github.com/ProjectPulse/ProjectPulse/projects' },
   ],
   resources: [
@@ -20,27 +23,39 @@ const footerLinks = {
     { label: 'GitHub', href: 'https://github.com/ProjectPulse/ProjectPulse' },
     { label: 'Discussions', href: 'https://github.com/ProjectPulse/ProjectPulse/discussions' },
     { label: 'Issues', href: 'https://github.com/ProjectPulse/ProjectPulse/issues' },
-    { label: 'Contributing', href: 'https://github.com/ProjectPulse/ProjectPulse/blob/master/CONTRIBUTING.md' },
+    {
+      label: 'Contributing',
+      href: 'https://github.com/ProjectPulse/ProjectPulse/blob/master/CONTRIBUTING.md',
+    },
   ],
   legal: [
-    { label: 'MIT License', href: 'https://github.com/ProjectPulse/ProjectPulse/blob/master/LICENSE' },
-    { label: 'Security', href: 'https://github.com/ProjectPulse/ProjectPulse/blob/master/SECURITY.md' },
-    { label: 'Code of Conduct', href: 'https://github.com/ProjectPulse/ProjectPulse/blob/master/CODE_OF_CONDUCT.md' },
+    {
+      label: 'MIT License',
+      href: 'https://github.com/ProjectPulse/ProjectPulse/blob/master/LICENSE',
+    },
+    {
+      label: 'Security',
+      href: 'https://github.com/ProjectPulse/ProjectPulse/blob/master/SECURITY.md',
+    },
+    {
+      label: 'Code of Conduct',
+      href: 'https://github.com/ProjectPulse/ProjectPulse/blob/master/CODE_OF_CONDUCT.md',
+    },
   ],
 };
 
 export function Footer() {
   return (
-    <footer className="bg-[#1A1A1A] border-t border-[#2A2A2A]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <footer className="border-t border-[#2A2A2A] bg-[#1A1A1A]">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
         {/* Main footer content */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
+        <div className="mb-12 grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2 md:col-span-4 lg:col-span-1">
-            <Link href="/" className="inline-block mb-4">
+            <Link href="/" className="mb-4 inline-block">
               <span className="text-2xl font-bold text-[#FF8B6A]">ProjectPulse</span>
             </Link>
-            <p className="text-gray-500 text-sm mb-4">
+            <p className="mb-4 text-sm text-gray-500">
               The project management platform built for AI agents.
             </p>
             <div className="flex items-center gap-4">
@@ -48,30 +63,30 @@ export function Footer() {
                 href="https://github.com/ProjectPulse/ProjectPulse"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-gray-500 transition-colors hover:text-white"
               >
-                <Github className="w-5 h-5" />
+                <Github className="h-5 w-5" />
               </a>
               <a
                 href="https://twitter.com/projectpulse"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-gray-500 transition-colors hover:text-white"
               >
-                <Twitter className="w-5 h-5" />
+                <Twitter className="h-5 w-5" />
               </a>
             </div>
           </div>
 
           {/* Product */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Product</h4>
+            <h4 className="mb-4 font-semibold text-white">Product</h4>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="text-gray-500 hover:text-white text-sm transition-colors"
+                    className="text-sm text-gray-500 transition-colors hover:text-white"
                   >
                     {link.label}
                   </a>
@@ -82,13 +97,13 @@ export function Footer() {
 
           {/* Resources */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Resources</h4>
+            <h4 className="mb-4 font-semibold text-white">Resources</h4>
             <ul className="space-y-3">
               {footerLinks.resources.map((link) => (
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="text-gray-500 hover:text-white text-sm transition-colors"
+                    className="text-sm text-gray-500 transition-colors hover:text-white"
                   >
                     {link.label}
                   </a>
@@ -99,7 +114,7 @@ export function Footer() {
 
           {/* Community */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Community</h4>
+            <h4 className="mb-4 font-semibold text-white">Community</h4>
             <ul className="space-y-3">
               {footerLinks.community.map((link) => (
                 <li key={link.label}>
@@ -107,7 +122,7 @@ export function Footer() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-white text-sm transition-colors"
+                    className="text-sm text-gray-500 transition-colors hover:text-white"
                   >
                     {link.label}
                   </a>
@@ -118,7 +133,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Legal</h4>
+            <h4 className="mb-4 font-semibold text-white">Legal</h4>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.label}>
@@ -126,7 +141,7 @@ export function Footer() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-white text-sm transition-colors"
+                    className="text-sm text-gray-500 transition-colors hover:text-white"
                   >
                     {link.label}
                   </a>
@@ -137,12 +152,13 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-8 border-t border-[#2A2A2A] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-gray-500 text-sm">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-[#2A2A2A] pt-8 sm:flex-row">
+          <p className="text-sm text-gray-500">
             © {new Date().getFullYear()} ProjectPulse. Open source under MIT License.
           </p>
-          <p className="text-gray-500 text-sm flex items-center gap-1">
-            Made with <Heart className="w-4 h-4 text-[#FF8B6A]" /> for the AI-assisted development community
+          <p className="flex items-center gap-1 text-sm text-gray-500">
+            Made with <Heart className="h-4 w-4 text-[#FF8B6A]" /> for the AI-assisted development
+            community
           </p>
         </div>
       </div>

@@ -130,7 +130,10 @@ export async function GET(request: NextRequest) {
     const systemPrompt =
       'You are a product strategist and technical writer. Generate a concise executive summary (~500 words) synthesizing all planning answers into a cohesive project vision. Focus on clarity, actionability, and strategic alignment.';
 
-    log.info({ projectId, userPromptLength: userPrompt.length, questionsIncluded: allQuestions.length }, 'Prompt generated');
+    log.info(
+      { projectId, userPromptLength: userPrompt.length, questionsIncluded: allQuestions.length },
+      'Prompt generated'
+    );
 
     return NextResponse.json({
       systemPrompt,
@@ -155,7 +158,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to generate prompt template');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to generate prompt template'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

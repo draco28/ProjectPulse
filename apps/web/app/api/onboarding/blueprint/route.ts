@@ -117,7 +117,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(projectContext, { status: 200 });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Blueprint API error');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Blueprint API error'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

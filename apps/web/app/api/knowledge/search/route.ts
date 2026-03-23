@@ -129,7 +129,10 @@ export async function GET(request: NextRequest) {
       userAgent,
     }).catch((err) => {
       // Log but don't fail the request
-      log.warn({ error: err instanceof Error ? err.message : String(err) }, 'Failed to record knowledge search metrics');
+      log.warn(
+        { error: err instanceof Error ? err.message : String(err) },
+        'Failed to record knowledge search metrics'
+      );
     });
 
     return NextResponse.json({
@@ -162,7 +165,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Log unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge search failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Knowledge search failed'
+    );
 
     // Return generic error
     return NextResponse.json(

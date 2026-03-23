@@ -105,7 +105,10 @@ export async function verifyInternalRequest(request: Request): Promise<boolean> 
 
     const age = Math.abs(Date.now() - requestTime);
     if (age > REPLAY_WINDOW_MS) {
-      log.warn({ ageSeconds: Math.round(age / 1000), maxAgeSeconds: REPLAY_WINDOW_MS / 1000 }, 'Request timestamp expired');
+      log.warn(
+        { ageSeconds: Math.round(age / 1000), maxAgeSeconds: REPLAY_WINDOW_MS / 1000 },
+        'Request timestamp expired'
+      );
       return false;
     }
 
@@ -124,7 +127,10 @@ export async function verifyInternalRequest(request: Request): Promise<boolean> 
 
     return crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Verification error');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Verification error'
+    );
     return false;
   }
 }

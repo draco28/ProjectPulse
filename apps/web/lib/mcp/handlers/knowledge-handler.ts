@@ -249,7 +249,10 @@ export async function knowledgeSearchHandler(input: unknown): Promise<KnowledgeS
     }
 
     // Wrap unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error in knowledge.search');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error in knowledge.search'
+    );
     throw new MCPError(
       'Search failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
@@ -396,7 +399,10 @@ export async function knowledgeCreateHandler(input: unknown): Promise<KnowledgeC
     }
 
     // Wrap unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error in knowledge.create');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error in knowledge.create'
+    );
     throw new MCPError(
       'Creation failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
@@ -520,7 +526,10 @@ export async function knowledgeRelatedHandler(input: unknown): Promise<Knowledge
     }
 
     // Wrap unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error in knowledge.related');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error in knowledge.related'
+    );
     throw new MCPError(
       'Graph traversal failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
@@ -722,7 +731,10 @@ export async function knowledgeGetMetricsHandler(
     }
 
     // Wrap unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error in knowledge.getMetrics');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error in knowledge.getMetrics'
+    );
     throw new MCPError(
       'Failed to retrieve metrics: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
@@ -878,7 +890,10 @@ export async function knowledgeExportHandler(input: unknown): Promise<KnowledgeE
     }
 
     // Wrap unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error in knowledge.export');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error in knowledge.export'
+    );
     throw new MCPError(
       'Export failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
@@ -1113,7 +1128,10 @@ export async function knowledgeImportHandler(input: unknown): Promise<KnowledgeI
     }
 
     // Wrap unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error in knowledge.import');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error in knowledge.import'
+    );
     throw new MCPError(
       'Import failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,
@@ -1223,7 +1241,10 @@ export async function knowledgeArchiveHandler(input: unknown): Promise<Knowledge
     }
 
     // Wrap unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error in knowledge.archive');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error in knowledge.archive'
+    );
     throw new MCPError(
       'Archive operation failed: ' + (error instanceof Error ? error.message : 'Unknown error'),
       JSONRPC_ERROR_CODES.INTERNAL_ERROR,

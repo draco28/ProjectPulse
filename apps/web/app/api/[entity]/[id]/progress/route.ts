@@ -18,9 +18,7 @@ import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
 // Type guard for Prisma errors with code property
-function isPrismaKnownRequestError(
-  error: unknown
-): error is Prisma.PrismaClientKnownRequestError {
+function isPrismaKnownRequestError(error: unknown): error is Prisma.PrismaClientKnownRequestError {
   return (
     error !== null &&
     typeof error === 'object' &&
@@ -110,7 +108,10 @@ export async function PUT(request: NextRequest, { params }: { params: RouteParam
 
     // Database errors (500)
     if (isPrismaKnownRequestError(error)) {
-      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Prisma error in progress update');
+      log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Prisma error in progress update'
+      );
       return NextResponse.json(
         {
           success: false,
@@ -124,7 +125,10 @@ export async function PUT(request: NextRequest, { params }: { params: RouteParam
     }
 
     // Unknown errors (500)
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error in progress update');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error in progress update'
+    );
     return NextResponse.json(
       {
         success: false,

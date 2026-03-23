@@ -152,11 +152,17 @@ export async function POST(request: NextRequest) {
               });
             }
 
-            log.info({ session: 2, count: responseData.documentsGenerated.length }, 'Documents created');
+            log.info(
+              { session: 2, count: responseData.documentsGenerated.length },
+              'Documents created'
+            );
           }
         }
       } catch (docError) {
-        log.error({ session: 2, error: docError instanceof Error ? docError.message : String(docError) }, 'Document creation failed');
+        log.error(
+          { session: 2, error: docError instanceof Error ? docError.message : String(docError) },
+          'Document creation failed'
+        );
         // Non-blocking: Continue even if document creation fails
         // Session 3 will use fallback logic
       }
@@ -187,15 +193,18 @@ export async function POST(request: NextRequest) {
           log.info({ session: 3 }, 'Found 13-Project-Plan.md, starting materialization');
 
           // Parse markdown to extract roadmap structure
-          const parsedRoadmap = await parseProjectPlan(projectPlanDoc.id) as ParsedRoadmap;
-          log.info({
-            session: 3,
-            phases: parsedRoadmap.phases.length,
-            sprints: parsedRoadmap.phases.reduce(
-              (sum: number, p: ParsedPhase) => sum + p.sprints.length,
-              0
-            ),
-          }, 'Parsed roadmap');
+          const parsedRoadmap = (await parseProjectPlan(projectPlanDoc.id)) as ParsedRoadmap;
+          log.info(
+            {
+              session: 3,
+              phases: parsedRoadmap.phases.length,
+              sprints: parsedRoadmap.phases.reduce(
+                (sum: number, p: ParsedPhase) => sum + p.sprints.length,
+                0
+              ),
+            },
+            'Parsed roadmap'
+          );
 
           // Create Roadmap record with phases JSON
           const roadmap = await prisma.roadmap.create({
@@ -208,7 +217,10 @@ export async function POST(request: NextRequest) {
 
           // Materialize JSON → Phase/Sprint/Week/Day records
           const materializationResult = await materializeRoadmap(roadmap.id);
-          log.info({ session: 3, counts: materializationResult.counts }, 'Materialization complete');
+          log.info(
+            { session: 3, counts: materializationResult.counts },
+            'Materialization complete'
+          );
 
           // Update session response with roadmap data
           await prisma.onboardingSession.update({
@@ -230,7 +242,10 @@ export async function POST(request: NextRequest) {
         }
       } catch (error) {
         // Log error but don't fail the request
-        log.error({ session: 3, error: error instanceof Error ? error.message : String(error) }, 'Materialization failed');
+        log.error(
+          { session: 3, error: error instanceof Error ? error.message : String(error) },
+          'Materialization failed'
+        );
         log.warn({ session: 3 }, 'Continuing without roadmap materialization');
       }
     }
@@ -265,7 +280,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: statusCode });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to submit onboarding response');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to submit onboarding response'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

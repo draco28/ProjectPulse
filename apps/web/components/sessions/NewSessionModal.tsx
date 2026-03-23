@@ -87,49 +87,55 @@ export const NewSessionModal = memo(function NewSessionModal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
         className={cn(
-          'w-full max-w-lg bg-dark-card rounded-2xl border border-white/10',
-          'shadow-2xl animate-slide-in-up'
+          'w-full max-w-lg rounded-2xl border border-white/10 bg-dark-card',
+          'animate-slide-in-up shadow-2xl'
         )}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-white/10">
+        <div className="flex items-center justify-between border-b border-white/10 p-5">
           <h2 id="modal-title" className="text-lg font-semibold text-white">
             Start New Session
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/5 text-slate hover:text-white transition"
+            className="rounded-lg p-1.5 text-slate transition hover:bg-white/5 hover:text-white"
             aria-label="Close modal"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-5 space-y-4">
-          <p className="text-sm text-slate leading-relaxed">
-            Agent sessions are started via Claude Code using MCP tools. Use the following command in your Claude Code conversation:
+        <div className="space-y-4 p-5">
+          <p className="text-sm leading-relaxed text-slate">
+            Agent sessions are started via Claude Code using MCP tools. Use the following command in
+            your Claude Code conversation:
           </p>
 
           {/* Code Snippet */}
           <div className="relative">
-            <pre className="neu-inset p-4 rounded-lg text-xs font-mono text-green-400 overflow-x-auto whitespace-pre">
+            <pre className="neu-inset overflow-x-auto whitespace-pre rounded-lg p-4 font-mono text-xs text-green-400">
               {codeSnippet}
             </pre>
             <button
               onClick={handleCopy}
               className={cn(
-                'absolute top-2 right-2 px-2.5 py-1 rounded text-xs font-medium transition',
+                'absolute right-2 top-2 rounded px-2.5 py-1 text-xs font-medium transition',
                 copied
                   ? 'bg-green-500/20 text-green-400'
                   : 'bg-white/5 text-slate hover:bg-white/10 hover:text-white'
@@ -142,19 +148,27 @@ export const NewSessionModal = memo(function NewSessionModal({
           {/* Tips */}
           <div className="space-y-2 text-sm text-slate">
             <p className="font-medium text-white">Tips:</p>
-            <ul className="list-disc list-inside space-y-1 text-slate/80">
-              <li>Link tickets using <code className="text-coral">activeTicketIds</code> for automatic progress tracking</li>
-              <li>Add a <code className="text-coral">plan</code> to preserve context across compactions</li>
-              <li>Use <code className="text-coral">todos</code> to break work into trackable steps</li>
+            <ul className="list-inside list-disc space-y-1 text-slate/80">
+              <li>
+                Link tickets using <code className="text-coral">activeTicketIds</code> for automatic
+                progress tracking
+              </li>
+              <li>
+                Add a <code className="text-coral">plan</code> to preserve context across
+                compactions
+              </li>
+              <li>
+                Use <code className="text-coral">todos</code> to break work into trackable steps
+              </li>
             </ul>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-5 border-t border-white/10 bg-white/[0.02] rounded-b-2xl">
+        <div className="flex items-center justify-between rounded-b-2xl border-t border-white/10 bg-white/[0.02] p-5">
           <a
             href="/docs/mcp-tools-guide"
-            className="text-sm text-coral hover:text-coral-light transition"
+            className="text-sm text-coral transition hover:text-coral-light"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -162,7 +176,7 @@ export const NewSessionModal = memo(function NewSessionModal({
           </a>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-white/5 hover:bg-white/10 text-white transition"
+            className="rounded-lg bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
           >
             Close
           </button>

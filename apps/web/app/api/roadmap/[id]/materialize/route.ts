@@ -134,7 +134,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Materialize roadmap failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Materialize roadmap failed'
+    );
     return NextResponse.json(
       {
         success: false,

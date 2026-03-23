@@ -165,7 +165,10 @@ export async function GET(request: NextRequest) {
       guidance: 'Generate the summary now with your AI provider, then call storeExecutiveSummary.',
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch executive summary prompt');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch executive summary prompt'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

@@ -153,7 +153,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Get roadmap failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Get roadmap failed'
+    );
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to get roadmap' } },
       { status: 500 }
@@ -221,7 +224,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Update roadmap failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Update roadmap failed'
+    );
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to update roadmap' } },
       { status: 500 }
@@ -263,7 +269,10 @@ export async function DELETE(
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Delete roadmap failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Delete roadmap failed'
+    );
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to delete roadmap' } },
       { status: 500 }

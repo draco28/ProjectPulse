@@ -82,7 +82,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Get SOP by ID failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Get SOP by ID failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

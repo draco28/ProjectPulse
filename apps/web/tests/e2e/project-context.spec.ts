@@ -36,15 +36,10 @@ async function clickSidebarLink(page: import('@playwright/test').Page, label: st
 
   // Build URL pattern - glob patterns treat ? as wildcard, so use regex instead
   // Escape special regex characters to match the URL literally
-  const urlPattern = href
-    ? new RegExp(href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    : /./;
+  const urlPattern = href ? new RegExp(href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) : /./;
 
   // Click with force and wait for URL change
-  await Promise.all([
-    page.waitForURL(urlPattern, { timeout: 10000 }),
-    link.click({ force: true }),
-  ]);
+  await Promise.all([page.waitForURL(urlPattern, { timeout: 10000 }), link.click({ force: true })]);
 }
 
 test.describe('Project Context - Query Parameter Persistence', () => {
@@ -186,9 +181,7 @@ test.describe('Project Context - Settings Route Special Case', () => {
     await expect(page).toHaveURL(/\/settings.*project=2/, { timeout: 10000 });
   });
 
-  test('settings route WITHOUT project ID should redirect to /app', async ({
-    page,
-  }) => {
+  test('settings route WITHOUT project ID should redirect to /app', async ({ page }) => {
     // Access dashboard without project parameter - withProjectAuth should redirect to /app
     await page.goto('/dashboard');
 
@@ -297,9 +290,7 @@ test.describe('Project Context - No Project ID Behavior', () => {
     }
   });
 
-  test('sidebar links should preserve project context', async ({
-    page,
-  }) => {
+  test('sidebar links should preserve project context', async ({ page }) => {
     // Start with a project context
     await page.goto('/dashboard?project=2');
     await page.waitForLoadState('domcontentloaded');

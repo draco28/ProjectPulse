@@ -12,12 +12,7 @@
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import {
-  withRetry,
-  isRetryableError,
-  DEFAULT_RETRY_OPTIONS,
-  type RetryOptions,
-} from '../index';
+import { withRetry, isRetryableError, DEFAULT_RETRY_OPTIONS, type RetryOptions } from '../index';
 
 // ─────────────────────────────────────────────────────────────
 // Test Utilities
@@ -102,9 +97,7 @@ describe('isRetryableError', () => {
   it('matches any code in the list', () => {
     const error = createErrorWithCode('ETIMEDOUT');
 
-    expect(
-      isRetryableError(error, ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED'])
-    ).toBe(true);
+    expect(isRetryableError(error, ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED'])).toBe(true);
   });
 
   it('handles non-Error objects gracefully', () => {
@@ -209,11 +202,7 @@ describe('withRetry', () => {
 
   describe('retry success cases', () => {
     it('retries once and succeeds', async () => {
-      const fn = createFailThenSucceed(
-        1,
-        'recovered',
-        () => createErrorWithCode('ECONNRESET')
-      );
+      const fn = createFailThenSucceed(1, 'recovered', () => createErrorWithCode('ECONNRESET'));
 
       const result = await withRetry(fn, TEST_OPTIONS);
 
@@ -222,11 +211,7 @@ describe('withRetry', () => {
     });
 
     it('succeeds after multiple retries', async () => {
-      const fn = createFailThenSucceed(
-        2,
-        'recovered',
-        () => createErrorWithCode('ETIMEDOUT')
-      );
+      const fn = createFailThenSucceed(2, 'recovered', () => createErrorWithCode('ETIMEDOUT'));
 
       const result = await withRetry(fn, {
         ...TEST_OPTIONS,
@@ -261,9 +246,9 @@ describe('withRetry', () => {
         createErrorWithCode('ECONNRESET', 'Persistent connection error')
       );
 
-      await expect(
-        withRetry(fn, { ...TEST_OPTIONS, maxAttempts: 3 })
-      ).rejects.toThrow('Persistent connection error');
+      await expect(withRetry(fn, { ...TEST_OPTIONS, maxAttempts: 3 })).rejects.toThrow(
+        'Persistent connection error'
+      );
 
       expect(fn).toHaveBeenCalledTimes(3);
     });
@@ -275,9 +260,9 @@ describe('withRetry', () => {
         throw createErrorWithCode('ECONNRESET', `Error on attempt ${attempt}`);
       });
 
-      await expect(
-        withRetry(fn, { ...TEST_OPTIONS, maxAttempts: 2 })
-      ).rejects.toThrow('Error on attempt 2');
+      await expect(withRetry(fn, { ...TEST_OPTIONS, maxAttempts: 2 })).rejects.toThrow(
+        'Error on attempt 2'
+      );
     });
   });
 
@@ -300,9 +285,7 @@ describe('withRetry', () => {
     });
 
     it('fails immediately on non-retryable error code', async () => {
-      const fn = createAlwaysFail(() =>
-        createErrorWithCode('VALIDATION_ERROR')
-      );
+      const fn = createAlwaysFail(() => createErrorWithCode('VALIDATION_ERROR'));
 
       await expect(
         withRetry(fn, {
@@ -335,11 +318,7 @@ describe('withRetry', () => {
         return error instanceof OllamaError && error.statusCode === 500;
       };
 
-      const fn = createFailThenSucceed(
-        1,
-        'recovered',
-        () => new OllamaError('Server error', 500)
-      );
+      const fn = createFailThenSucceed(1, 'recovered', () => new OllamaError('Server error', 500));
 
       const result = await withRetry(fn, {
         ...TEST_OPTIONS,
@@ -369,11 +348,7 @@ describe('withRetry', () => {
 
     it('retries if EITHER predicate OR retryableErrors match (OR logic)', async () => {
       // Error matches retryableErrors but predicate returns false
-      const fn = createFailThenSucceed(
-        1,
-        'recovered',
-        () => createErrorWithCode('ECONNRESET')
-      );
+      const fn = createFailThenSucceed(1, 'recovered', () => createErrorWithCode('ECONNRESET'));
 
       const result = await withRetry(fn, {
         ...TEST_OPTIONS,
@@ -521,11 +496,7 @@ describe('withRetry', () => {
     });
 
     it('respects custom retryableErrors', async () => {
-      const fn = createFailThenSucceed(
-        1,
-        'recovered',
-        () => createErrorWithCode('CUSTOM_ERROR')
-      );
+      const fn = createFailThenSucceed(1, 'recovered', () => createErrorWithCode('CUSTOM_ERROR'));
 
       const result = await withRetry(fn, {
         ...TEST_OPTIONS,
@@ -565,15 +536,15 @@ describe('withRetry', () => {
 
   describe('validation', () => {
     it('throws on maxAttempts less than 1', async () => {
-      await expect(
-        withRetry(() => Promise.resolve('test'), { maxAttempts: 0 })
-      ).rejects.toThrow('maxAttempts must be at least 1');
+      await expect(withRetry(() => Promise.resolve('test'), { maxAttempts: 0 })).rejects.toThrow(
+        'maxAttempts must be at least 1'
+      );
     });
 
     it('throws on negative maxAttempts', async () => {
-      await expect(
-        withRetry(() => Promise.resolve('test'), { maxAttempts: -1 })
-      ).rejects.toThrow('maxAttempts must be at least 1');
+      await expect(withRetry(() => Promise.resolve('test'), { maxAttempts: -1 })).rejects.toThrow(
+        'maxAttempts must be at least 1'
+      );
     });
 
     it('throws on negative initialDelayMs', async () => {
@@ -583,17 +554,13 @@ describe('withRetry', () => {
     });
 
     it('throws on negative maxDelayMs', async () => {
-      await expect(
-        withRetry(() => Promise.resolve('test'), { maxDelayMs: -1 })
-      ).rejects.toThrow('maxDelayMs must be non-negative');
+      await expect(withRetry(() => Promise.resolve('test'), { maxDelayMs: -1 })).rejects.toThrow(
+        'maxDelayMs must be non-negative'
+      );
     });
 
     it('allows zero initialDelayMs', async () => {
-      const fn = createFailThenSucceed(
-        1,
-        'success',
-        () => createErrorWithCode('ECONNRESET')
-      );
+      const fn = createFailThenSucceed(1, 'success', () => createErrorWithCode('ECONNRESET'));
 
       const result = await withRetry(fn, { initialDelayMs: 0 });
 
@@ -636,9 +603,9 @@ describe('withRetry', () => {
         throw createErrorWithCode('ECONNRESET', 'Async rejection');
       });
 
-      await expect(
-        withRetry(fn, { ...TEST_OPTIONS, maxAttempts: 2 })
-      ).rejects.toThrow('Async rejection');
+      await expect(withRetry(fn, { ...TEST_OPTIONS, maxAttempts: 2 })).rejects.toThrow(
+        'Async rejection'
+      );
 
       expect(fn).toHaveBeenCalledTimes(2);
     });
@@ -689,11 +656,7 @@ describe('withRetry', () => {
     });
 
     it('merges custom options with defaults', async () => {
-      const fn = createFailThenSucceed(
-        1,
-        'success',
-        () => createErrorWithCode('ECONNRESET')
-      );
+      const fn = createFailThenSucceed(1, 'success', () => createErrorWithCode('ECONNRESET'));
 
       // Only override maxAttempts, should use default retryableErrors
       const result = await withRetry(fn, {
@@ -714,11 +677,7 @@ describe('withRetry', () => {
     it('logs retry attempts (visible in test output)', async () => {
       // This test verifies logging happens by checking the retry behavior
       // Actual log output is visible in console during test runs
-      const fn = createFailThenSucceed(
-        2,
-        'success',
-        () => createErrorWithCode('ETIMEDOUT')
-      );
+      const fn = createFailThenSucceed(2, 'success', () => createErrorWithCode('ETIMEDOUT'));
 
       const result = await withRetry(fn, {
         ...TEST_OPTIONS,

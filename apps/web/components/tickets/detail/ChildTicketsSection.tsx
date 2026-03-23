@@ -28,7 +28,7 @@ interface ChildTicket {
 
 interface ChildTicketsSectionProps {
   parentId: number;
-  parentTicketNumber: number;  // Sprint 17: Project-scoped number for display
+  parentTicketNumber: number; // Sprint 17: Project-scoped number for display
   childTickets: ChildTicket[];
   projectId: number;
 }
@@ -72,9 +72,7 @@ export function ChildTicketsSection({
   }
 
   // Calculate progress (Sprint 15: use status constant)
-  const completedCount = childTickets.filter(
-    (t) => t.status === TICKET_STATUSES.DONE
-  ).length;
+  const completedCount = childTickets.filter((t) => t.status === TICKET_STATUSES.DONE).length;
   const progressPercent = Math.round((completedCount / childTickets.length) * 100);
 
   return (

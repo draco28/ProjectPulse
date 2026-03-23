@@ -37,7 +37,13 @@ export async function POST(request: NextRequest) {
 
     const results: Array<{
       success: boolean;
-      ticket?: { id: number; ticketNumber: number; title: string; kind: string; reference?: string };
+      ticket?: {
+        id: number;
+        ticketNumber: number;
+        title: string;
+        kind: string;
+        reference?: string;
+      };
       error?: string;
       reference?: string;
     }> = [];
@@ -229,7 +235,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to bulk create tickets');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to bulk create tickets'
+    );
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to create tickets', status: 500 });
   }
 }

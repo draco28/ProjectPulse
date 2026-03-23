@@ -104,7 +104,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch agent sessions');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch agent sessions'
+    );
     return NextResponse.json({ error: 'Failed to fetch agent sessions' }, { status: 500 });
   }
 }
@@ -276,7 +279,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create agent session');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to create agent session'
+    );
     return NextResponse.json({ error: 'Failed to create agent session' }, { status: 500 });
   }
 }

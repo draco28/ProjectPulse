@@ -24,7 +24,10 @@ interface ProjectContext {
   [key: string]: unknown;
 }
 
-type TemplateVariables = Record<string, string | string[] | number | boolean | Record<string, unknown>>;
+type TemplateVariables = Record<
+  string,
+  string | string[] | number | boolean | Record<string, unknown>
+>;
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -125,7 +128,10 @@ export async function GET(request: NextRequest) {
     const projectContext = (session1?.projectContextJson as ProjectContext | null) || {};
     const techStack = projectContext.metadata?.techStack || projectContext.techStack || [];
 
-    log.info({ techStackCount: Array.isArray(techStack) ? techStack.length : 0 }, 'Tech stack extracted');
+    log.info(
+      { techStackCount: Array.isArray(techStack) ? techStack.length : 0 },
+      'Tech stack extracted'
+    );
 
     // 4. Fetch bootstrap prompt template
     const template = await prisma.onboardingPromptTemplate.findFirst({
@@ -205,7 +211,10 @@ export async function GET(request: NextRequest) {
         'Parse the project plan, then use the JSON to call roadmap.createHierarchy() and batch create tools',
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch bootstrap prompt');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch bootstrap prompt'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

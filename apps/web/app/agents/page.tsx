@@ -115,7 +115,7 @@ export default async function AgentsPage({
   searchParams: Promise<{ project?: string }>;
 }) {
   const params = await searchParams;
-  
+
   // Unified auth + project resolution
   const { project, projectId } = await withProjectAuth(params.project);
 

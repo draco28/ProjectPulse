@@ -40,7 +40,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ logs });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch audit logs');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch audit logs'
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

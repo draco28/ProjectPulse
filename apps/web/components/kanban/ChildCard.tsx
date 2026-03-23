@@ -61,7 +61,7 @@ function KindBadge({ kind }: { kind: string }) {
   const displayName = kind.replace('_', ' ');
 
   return (
-    <span className={cn('px-1.5 py-0.5 text-[10px] rounded capitalize', colorClass)}>
+    <span className={cn('rounded px-1.5 py-0.5 text-[10px] capitalize', colorClass)}>
       {displayName}
     </span>
   );
@@ -80,9 +80,7 @@ function PriorityDot({ priority }: { priority: string }) {
 
   const colorClass = priorityColors[priority.toLowerCase()] || priorityColors.medium;
 
-  return (
-    <div className={cn('w-2 h-2 rounded-full', colorClass)} title={`Priority: ${priority}`} />
-  );
+  return <div className={cn('h-2 w-2 rounded-full', colorClass)} title={`Priority: ${priority}`} />;
 }
 
 // ============================================================================
@@ -108,16 +106,14 @@ export const ChildCard = memo(
         onClick={onClick}
         className={cn(
           // Indentation and child-specific styling
-          'child-ticket-card ml-6 p-3 cursor-pointer',
+          'child-ticket-card ml-6 cursor-pointer p-3',
           'bg-gradient-to-br from-dark-card to-dark-lighter',
           'rounded-lg border-l-2',
           // Sprint 16: Session linkage styling
-          isLinkedToSession
-            ? 'border-emerald-500 ring-1 ring-emerald-500/30'
-            : 'border-slate/40',
-          'hover:border-coral/60 hover:translate-x-1 transition-all',
+          isLinkedToSession ? 'border-emerald-500 ring-1 ring-emerald-500/30' : 'border-slate/40',
+          'transition-all hover:translate-x-1 hover:border-coral/60',
           // Dragging states
-          isDragging && 'opacity-50 rotate-1 scale-105',
+          isDragging && 'rotate-1 scale-105 opacity-50',
           isOverlay && 'shadow-2xl ring-2 ring-coral/50',
           className
         )}
@@ -132,9 +128,9 @@ export const ChildCard = memo(
         aria-label={`Child ticket ${ticket.id}: ${ticket.title}`}
       >
         {/* Header: ID + Parent Ref + Priority */}
-        <div className="flex items-center justify-between mb-1.5">
+        <div className="mb-1.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono text-slate">#{ticket.ticketNumber}</span>
+            <span className="font-mono text-[10px] text-slate">#{ticket.ticketNumber}</span>
             {ticket.parentTicket && (
               <span className="text-[9px] text-slate/60">
                 ↳ #{ticket.parentTicket.ticketNumber}
@@ -146,7 +142,7 @@ export const ChildCard = memo(
             {/* Sprint 16: Session linkage indicator */}
             {isLinkedToSession && (
               <div
-                className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[7px] flex items-center justify-center font-bold animate-pulse"
+                className="flex h-4 w-4 animate-pulse items-center justify-center rounded-full bg-emerald-500 text-[7px] font-bold text-white"
                 title={`Linked to session: ${ticket.linkedSessionId?.slice(0, 8)}...`}
               >
                 ⚡
@@ -154,7 +150,7 @@ export const ChildCard = memo(
             )}
             {isAgentAssigned && !isLinkedToSession && (
               <div
-                className="w-4 h-4 rounded-full bg-coral text-white text-[7px] flex items-center justify-center font-bold"
+                className="flex h-4 w-4 items-center justify-center rounded-full bg-coral text-[7px] font-bold text-white"
                 title="Agent assigned"
               >
                 AI
@@ -164,7 +160,7 @@ export const ChildCard = memo(
         </div>
 
         {/* Title */}
-        <p className="text-xs font-medium mb-1.5 line-clamp-2">{ticket.title}</p>
+        <p className="mb-1.5 line-clamp-2 text-xs font-medium">{ticket.title}</p>
 
         {/* Kind Badge */}
         <div className="flex items-center gap-1">

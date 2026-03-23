@@ -15,10 +15,7 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { updateWikiPageSchema } from '@/lib/validations/wiki';
 import { resolveCrossLinks, createPageLinks, deletePageLinks } from '@/lib/wiki/cross-linking';
-import {
-  getAuthorizedProjectId,
-  AuthError,
-} from '@/lib/auth/validateRequest';
+import { getAuthorizedProjectId, AuthError } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
@@ -103,7 +100,10 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch wiki page');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch wiki page'
+    );
     return NextResponse.json({ error: 'Failed to fetch wiki page' }, { status: 500 });
   }
 }
@@ -321,7 +321,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
       return mapUpdateError(error as WikiUpdateError);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update wiki page');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to update wiki page'
+    );
     return NextResponse.json({ error: 'Failed to update wiki page' }, { status: 500 });
   }
 }

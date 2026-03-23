@@ -180,10 +180,7 @@ async function performShutdown(signal: string): Promise<void> {
 
     // Set a hard timeout to force exit if cleanup hangs
     const forceExitTimeout = setTimeout(() => {
-      log.error(
-        { timeoutMs: config.cleanupTimeoutMs },
-        'Cleanup timeout exceeded, forcing exit'
-      );
+      log.error({ timeoutMs: config.cleanupTimeoutMs }, 'Cleanup timeout exceeded, forcing exit');
       process.exit(1);
     }, config.cleanupTimeoutMs);
 

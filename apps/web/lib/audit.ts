@@ -55,7 +55,10 @@ export async function logAdminAction(params: LogAdminActionParams): Promise<void
     });
   } catch (error) {
     // Log error but don't fail the main operation
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to log admin action');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to log admin action'
+    );
   }
 }
 

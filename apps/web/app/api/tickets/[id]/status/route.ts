@@ -97,7 +97,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update ticket status');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to update ticket status'
+    );
     return failure({
       code: 'INTERNAL_ERROR',
       message: 'Failed to update ticket status',

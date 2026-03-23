@@ -16,9 +16,7 @@ import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
 // Type guard for Prisma errors with code property
-function isPrismaKnownRequestError(
-  error: unknown
-): error is Prisma.PrismaClientKnownRequestError {
+function isPrismaKnownRequestError(error: unknown): error is Prisma.PrismaClientKnownRequestError {
   return (
     error !== null &&
     typeof error === 'object' &&
@@ -163,7 +161,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update entity');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to update entity'
+    );
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Update failed' } },
       { status: 500 }

@@ -44,7 +44,7 @@ import {
 
 interface TicketHeaderProps {
   id: number;
-  ticketNumber: number;  // Sprint 17: Project-scoped number for display
+  ticketNumber: number; // Sprint 17: Project-scoped number for display
   title: string;
   status: TicketStatus; // Sprint 15: Uses centralized TicketStatus type
   priority: 'critical' | 'high' | 'medium' | 'low';

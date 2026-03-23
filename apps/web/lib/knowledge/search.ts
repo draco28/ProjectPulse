@@ -7,10 +7,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { generateEmbedding as _generateEmbedding } from '../embeddings';
-import {
-  generateEmbeddingProtected,
-  isEmbeddingCircuitOpen,
-} from '@/lib/circuit-breaker/services';
+import { generateEmbeddingProtected, isEmbeddingCircuitOpen } from '@/lib/circuit-breaker/services';
 import { findRelatedKnowledgeItems, type RelatedKnowledgeItem } from './graph';
 import { createLogger } from '@/lib/logger';
 import { LogMessages } from '@/lib/logger/standards';
@@ -103,9 +100,7 @@ export async function semanticSearch(
     const queryVector = `[${embeddingResult.embedding.join(',')}]`;
 
     // SECURITY FIX: Use Prisma.sql for parameterized category filter
-    const categoryFilter = category
-      ? Prisma.sql`AND category = ${category}`
-      : Prisma.empty;
+    const categoryFilter = category ? Prisma.sql`AND category = ${category}` : Prisma.empty;
 
     // pgvector uses <=> operator for cosine distance (0 = identical, 2 = opposite)
     // We convert to similarity: 1 - (distance / 2)
@@ -244,9 +239,7 @@ export async function fullTextSearch(
 
   try {
     // SECURITY FIX: Use Prisma.sql for parameterized category filter
-    const categoryFilter = category
-      ? Prisma.sql`AND category = ${category}`
-      : Prisma.empty;
+    const categoryFilter = category ? Prisma.sql`AND category = ${category}` : Prisma.empty;
 
     // Build SQL query with optional category filter
     // Use ts_rank_cd for ranking (considers word frequency and document length)
@@ -370,10 +363,7 @@ export async function hybridSearch(
     // Check if embedding circuit is open BEFORE attempting semantic search.
     // If open, fall back to fulltext immediately to avoid wasted requests.
     if (isEmbeddingCircuitOpen()) {
-      log.info(
-        { projectId, query: query.substring(0, 50) },
-        LogMessages.SEARCH_FALLBACK_FULLTEXT
-      );
+      log.info({ projectId, query: query.substring(0, 50) }, LogMessages.SEARCH_FALLBACK_FULLTEXT);
 
       // Return fulltext results with 'hybrid' matchType for API consistency
       const fulltextResults = await fullTextSearch(query, {
@@ -409,10 +399,8 @@ export async function hybridSearch(
     ]);
 
     // Extract results, handling partial failures
-    const semanticResults =
-      semanticSettled.status === 'fulfilled' ? semanticSettled.value : [];
-    const fulltextResults =
-      fulltextSettled.status === 'fulfilled' ? fulltextSettled.value : [];
+    const semanticResults = semanticSettled.status === 'fulfilled' ? semanticSettled.value : [];
+    const fulltextResults = fulltextSettled.status === 'fulfilled' ? fulltextSettled.value : [];
 
     // Log if semantic search failed (circuit may have just opened)
     if (semanticSettled.status === 'rejected') {
@@ -430,16 +418,11 @@ export async function hybridSearch(
 
     // If both failed, throw error
     if (semanticResults.length === 0 && fulltextResults.length === 0) {
-      if (
-        semanticSettled.status === 'rejected' &&
-        fulltextSettled.status === 'rejected'
-      ) {
-        throw new SearchError(
-          'Both semantic and fulltext search failed',
-          'SEARCH_FAILED',
-          500,
-          { semantic: semanticSettled.reason, fulltext: fulltextSettled.reason }
-        );
+      if (semanticSettled.status === 'rejected' && fulltextSettled.status === 'rejected') {
+        throw new SearchError('Both semantic and fulltext search failed', 'SEARCH_FAILED', 500, {
+          semantic: semanticSettled.reason,
+          fulltext: fulltextSettled.reason,
+        });
       }
     }
 

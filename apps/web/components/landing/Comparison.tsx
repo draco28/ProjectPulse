@@ -79,35 +79,33 @@ const comparisons: ComparisonRow[] = [
 function StatusIcon({ value }: { value: boolean | 'partial' }) {
   if (value === true) {
     return (
-      <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
-        <Check className="w-4 h-4 text-green-400" />
+      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/20">
+        <Check className="h-4 w-4 text-green-400" />
       </div>
     );
   }
   if (value === 'partial') {
     return (
-      <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center">
-        <Minus className="w-4 h-4 text-yellow-400" />
+      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-yellow-500/20">
+        <Minus className="h-4 w-4 text-yellow-400" />
       </div>
     );
   }
   return (
-    <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
-      <X className="w-4 h-4 text-red-400" />
+    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500/20">
+      <X className="h-4 w-4 text-red-400" />
     </div>
   );
 }
 
 export function Comparison() {
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#1F1F1F]">
-      <div className="max-w-6xl mx-auto">
+    <section className="bg-[#1F1F1F] px-4 py-24 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
         {/* Section header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Why ProjectPulse?
-          </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+        <div className="mb-16 text-center">
+          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">Why ProjectPulse?</h2>
+          <p className="mx-auto max-w-2xl text-lg text-gray-400">
             Built from the ground up for AI-assisted development
           </p>
         </div>
@@ -117,13 +115,13 @@ export function Comparison() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#3A3A3A]">
-                <th className="text-left py-4 px-4 text-gray-400 font-medium">Feature</th>
-                <th className="text-center py-4 px-4">
-                  <span className="text-[#FF8B6A] font-bold">ProjectPulse</span>
+                <th className="px-4 py-4 text-left font-medium text-gray-400">Feature</th>
+                <th className="px-4 py-4 text-center">
+                  <span className="font-bold text-[#FF8B6A]">ProjectPulse</span>
                 </th>
-                <th className="text-center py-4 px-4 text-gray-400">JIRA</th>
-                <th className="text-center py-4 px-4 text-gray-400">GitHub Issues</th>
-                <th className="text-center py-4 px-4 text-gray-400">Notion</th>
+                <th className="px-4 py-4 text-center text-gray-400">JIRA</th>
+                <th className="px-4 py-4 text-center text-gray-400">GitHub Issues</th>
+                <th className="px-4 py-4 text-center text-gray-400">Notion</th>
               </tr>
             </thead>
             <tbody>
@@ -134,26 +132,26 @@ export function Comparison() {
                     index % 2 === 0 ? 'bg-[#2A2A2A]/30' : ''
                   }`}
                 >
-                  <td className="py-4 px-4 text-white font-medium">{row.feature}</td>
-                  <td className="py-4 px-4">
+                  <td className="px-4 py-4 font-medium text-white">{row.feature}</td>
+                  <td className="px-4 py-4">
                     <div className="flex flex-col items-center gap-1">
                       <StatusIcon value={row.projectpulse.value} />
                       <span className="text-xs text-gray-500">{row.projectpulse.note}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="px-4 py-4">
                     <div className="flex flex-col items-center gap-1">
                       <StatusIcon value={row.jira.value} />
                       <span className="text-xs text-gray-500">{row.jira.note}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="px-4 py-4">
                     <div className="flex flex-col items-center gap-1">
                       <StatusIcon value={row.github.value} />
                       <span className="text-xs text-gray-500">{row.github.note}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="px-4 py-4">
                     <div className="flex flex-col items-center gap-1">
                       <StatusIcon value={row.notion.value} />
                       <span className="text-xs text-gray-500">{row.notion.note}</span>

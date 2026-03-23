@@ -53,7 +53,12 @@ interface SprintKanbanBoardProps {
 // Component
 // ============================================================================
 
-export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, className }: SprintKanbanBoardProps) {
+export function SprintKanbanBoard({
+  sprintId,
+  projectId,
+  onTicketClick,
+  className,
+}: SprintKanbanBoardProps) {
   const router = useRouter();
 
   // Data fetching and mutations
@@ -207,11 +212,11 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
   // Error state
   if (boardQuery.isError) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 text-center">
-        <p className="text-accent-red mb-4">Failed to load kanban board</p>
+      <div className="flex h-96 flex-col items-center justify-center text-center">
+        <p className="mb-4 text-accent-red">Failed to load kanban board</p>
         <button
           onClick={() => refetch()}
-          className="px-4 py-2 bg-coral text-white rounded-lg hover:bg-coral-dark transition"
+          className="rounded-lg bg-coral px-4 py-2 text-white transition hover:bg-coral-dark"
         >
           Try Again
         </button>
@@ -245,9 +250,16 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
   };
 
   return (
-    <div className={cn('flex flex-col h-full', className)}>
+    <div className={cn('flex h-full flex-col', className)}>
       {/* Header */}
-      {sprint && <SprintKanbanHeader sprint={sprint} projectId={projectId} stats={stats} onNewTicket={handleNewTicket} />}
+      {sprint && (
+        <SprintKanbanHeader
+          sprint={sprint}
+          projectId={projectId}
+          stats={stats}
+          onNewTicket={handleNewTicket}
+        />
+      )}
 
       {/* Kanban Board */}
       <DndContext
@@ -263,7 +275,7 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
           },
         }}
       >
-        <div className="flex gap-4 overflow-x-auto scrollbar-auto-hide p-6 pt-2 flex-1 min-h-0">
+        <div className="scrollbar-auto-hide flex min-h-0 flex-1 gap-4 overflow-x-auto p-6 pt-2">
           {TICKET_STATUS_VALUES.map((status) => (
             <KanbanColumn
               key={status}
@@ -287,23 +299,23 @@ export function SprintKanbanBoard({ sprintId, projectId, onTicketClick, classNam
 
 function KanbanBoardSkeleton() {
   return (
-    <div className="flex gap-4 p-6 overflow-x-auto scrollbar-auto-hide animate-pulse">
+    <div className="scrollbar-auto-hide flex animate-pulse gap-4 overflow-x-auto p-6">
       {[...Array(5)].map((_, i) => (
         <div key={i} className="kanban-column flex flex-col">
           {/* Header skeleton */}
           <div className="column-header">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-slate/30" />
-                <div className="h-4 w-20 bg-slate/20 rounded" />
+                <div className="h-2.5 w-2.5 rounded-full bg-slate/30" />
+                <div className="h-4 w-20 rounded bg-slate/20" />
               </div>
-              <div className="h-5 w-8 bg-slate/20 rounded" />
+              <div className="h-5 w-8 rounded bg-slate/20" />
             </div>
           </div>
           {/* Content skeleton */}
           <div className="column-content flex-1 space-y-3">
             {[...Array(3)].map((_, j) => (
-              <div key={j} className="h-24 bg-dark-card/50 rounded-lg" />
+              <div key={j} className="h-24 rounded-lg bg-dark-card/50" />
             ))}
           </div>
         </div>

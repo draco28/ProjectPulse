@@ -62,7 +62,10 @@ export async function POST(request: NextRequest) {
 
     const { projectId, documents }: BatchDocumentsRequest = validation.data;
 
-    log.info({ projectId, documentCount: documents.length, filenames: documents.map((d) => d.filename) }, 'Request validated');
+    log.info(
+      { projectId, documentCount: documents.length, filenames: documents.map((d) => d.filename) },
+      'Request validated'
+    );
 
     // 2. Get or create Session 2
     let session = await prisma.onboardingSession.findUnique({
@@ -146,10 +149,16 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    log.info({ count: createdDocs.length, filenames: createdDocs.map((d) => d.filename) }, 'Documents created');
+    log.info(
+      { count: createdDocs.length, filenames: createdDocs.map((d) => d.filename) },
+      'Documents created'
+    );
 
     // 5. Update metrics and mark complete if all 15 documents stored
-    const currentMetrics = (session.metrics as SessionMetrics | null) || { tokensUsed: 0, batchesComplete: 0 };
+    const currentMetrics = (session.metrics as SessionMetrics | null) || {
+      tokensUsed: 0,
+      batchesComplete: 0,
+    };
     const batchesComplete = (currentMetrics.batchesComplete || 0) + 1;
     const totalDocuments = session.documents.length + documents.length;
     const progress = Math.round((totalDocuments / 15) * 100);
@@ -174,13 +183,19 @@ export async function POST(request: NextRequest) {
       // Sync documents to Wiki (Sprint 9 Fix)
       // Fire and forget to avoid blocking response
       syncOnboardingToWiki(projectId).catch((err) =>
-        log.error({ error: err instanceof Error ? err.message : String(err) }, 'Failed to sync wiki')
+        log.error(
+          { error: err instanceof Error ? err.message : String(err) },
+          'Failed to sync wiki'
+        )
       );
     }
 
     // 6. Calculate progress
 
-    log.info({ projectId, created: documents.length, batchesComplete, totalDocuments, progress }, 'Batch stored successfully');
+    log.info(
+      { projectId, created: documents.length, batchesComplete, totalDocuments, progress },
+      'Batch stored successfully'
+    );
 
     return NextResponse.json({
       success: true,
@@ -192,7 +207,10 @@ export async function POST(request: NextRequest) {
       message: `Batch ${batchesComplete} stored ✅. ${totalDocuments}/15 documents complete.${batchesComplete === 4 ? ' Session 2 complete!' : ` Proceed to batch ${batchesComplete + 1}.`}`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to store document batch');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to store document batch'
+    );
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 

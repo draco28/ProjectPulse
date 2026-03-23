@@ -29,31 +29,23 @@ function formatDate(dateStr?: string): string {
 }
 
 export function NextPhasePreview({ phase, onPhaseSelect }: NextPhasePreviewProps) {
-  const totalTickets = phase.sprints.reduce(
-    (sum, sprint) => sum + sprint.ticketCounts.total,
-    0
-  );
+  const totalTickets = phase.sprints.reduce((sum, sprint) => sum + sprint.ticketCounts.total, 0);
 
   return (
-    <div className="neu-card p-5 mt-6">
+    <div className="neu-card mt-6 p-5">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-lg font-bold text-slate-light">Coming Up Next</span>
-          <span
-            className={cn(
-              'text-xs px-2 py-0.5 rounded font-medium',
-              'bg-slate/15 text-slate'
-            )}
-          >
+          <span className={cn('rounded px-2 py-0.5 text-xs font-medium', 'bg-slate/15 text-slate')}>
             Up Next
           </span>
         </div>
         <button
           onClick={() => onPhaseSelect(phase.id)}
-          className="text-coral hover:underline text-sm font-medium flex items-center gap-1 transition"
+          className="flex items-center gap-1 text-sm font-medium text-coral transition hover:underline"
         >
-          View Phase <ArrowRight className="w-4 h-4" />
+          View Phase <ArrowRight className="h-4 w-4" />
         </button>
       </div>
 
@@ -61,10 +53,10 @@ export function NextPhasePreview({ phase, onPhaseSelect }: NextPhasePreviewProps
       <div className="flex items-center gap-6">
         {/* Phase title */}
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-text-primary mb-1">{phase.title}</h3>
+          <h3 className="mb-1 text-xl font-bold text-text-primary">{phase.title}</h3>
           <div className="flex items-center gap-4 text-sm text-slate">
             <span className="flex items-center gap-1.5" suppressHydrationWarning>
-              <Calendar className="w-4 h-4" />
+              <Calendar className="h-4 w-4" />
               Starts {formatDate(phase.startDate)}
             </span>
             <span>{phase.sprints.length} sprints planned</span>
@@ -78,7 +70,7 @@ export function NextPhasePreview({ phase, onPhaseSelect }: NextPhasePreviewProps
             <div
               key={sprint.id}
               className={cn(
-                'w-12 h-12 rounded-lg bg-dark-pressed/50 flex items-center justify-center',
+                'flex h-12 w-12 items-center justify-center rounded-lg bg-dark-pressed/50',
                 'text-xs font-medium text-slate',
                 'border border-white/5'
               )}
@@ -89,7 +81,7 @@ export function NextPhasePreview({ phase, onPhaseSelect }: NextPhasePreviewProps
           {phase.sprints.length > 4 && (
             <div
               className={cn(
-                'w-12 h-12 rounded-lg bg-dark-pressed/50 flex items-center justify-center',
+                'flex h-12 w-12 items-center justify-center rounded-lg bg-dark-pressed/50',
                 'text-xs font-medium text-slate',
                 'border border-white/5'
               )}

@@ -118,7 +118,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch knowledge articles');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch knowledge articles'
+    );
     return NextResponse.json({ error: 'Failed to fetch knowledge articles' }, { status: 500 });
   }
 }
@@ -232,7 +235,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Log unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge item creation failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Knowledge item creation failed'
+    );
 
     // Return generic error
     return NextResponse.json(

@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import 'zod';
-import {
-  getAuthorizedProjectId,
-  AuthError,
-  authErrorResponse,
-} from '@/lib/auth/validateRequest';
+import { getAuthorizedProjectId, AuthError, authErrorResponse } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 
@@ -72,7 +68,10 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return authErrorResponse(error);
     }
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error fetching workflow templates');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Error fetching workflow templates'
+    );
     return NextResponse.json(
       {
         data: null,

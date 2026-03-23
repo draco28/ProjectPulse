@@ -108,7 +108,12 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
               lastLoadedAt: new Date(),
             },
           })
-          .catch((err) => log.error({ error: err instanceof Error ? err.message : String(err), slug }, 'Failed to update skill usage'));
+          .catch((err) =>
+            log.error(
+              { error: err instanceof Error ? err.message : String(err), slug },
+              'Failed to update skill usage'
+            )
+          );
 
         // Update cached value
         cached.usageCount += 1;
@@ -156,7 +161,10 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     // US-094: Store in cache (auto-unload after 5 minutes)
     skillsCache.set(projectId, slug, skill);
 
-    log.debug({ slug, id: skill.id, usageCount: skill.usageCount }, 'Loaded skill from DB and cached');
+    log.debug(
+      { slug, id: skill.id, usageCount: skill.usageCount },
+      'Loaded skill from DB and cached'
+    );
 
     return NextResponse.json({
       data: skill,
@@ -169,7 +177,10 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to load skill');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to load skill'
+    );
     return NextResponse.json(
       {
         error: 'Failed to load skill',
@@ -317,7 +328,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update skill');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to update skill'
+    );
     return NextResponse.json(
       {
         error: 'Failed to update skill',
@@ -426,7 +440,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { slug:
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to delete skill');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to delete skill'
+    );
     return NextResponse.json(
       {
         error: 'Failed to delete skill',

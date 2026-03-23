@@ -104,7 +104,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       recentActivity: token.toolLogs,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch token details');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch token details'
+    );
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {
@@ -175,7 +178,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       message: `Token "${token.name}" has been revoked`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to revoke token');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to revoke token'
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

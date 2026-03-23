@@ -300,7 +300,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to generate traceability matrix');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to generate traceability matrix'
+    );
     return failure({
       code: 'INTERNAL_ERROR',
       message: 'Failed to generate traceability matrix',

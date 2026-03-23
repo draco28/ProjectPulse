@@ -66,10 +66,7 @@ describe('RedisSessionStore', () => {
       );
 
       // Verify sadd was called for project Set
-      expect(mockRedis.sadd).toHaveBeenCalledWith(
-        'project:6:sessions',
-        session.id
-      );
+      expect(mockRedis.sadd).toHaveBeenCalledWith('project:6:sessions', session.id);
     });
 
     it('should NOT use redis.keys() for session creation', async () => {
@@ -94,10 +91,7 @@ describe('RedisSessionStore', () => {
       );
 
       // Verify sadd was called for project Set
-      expect(mockRedis.sadd).toHaveBeenCalledWith(
-        'project:7:sessions',
-        sessionId
-      );
+      expect(mockRedis.sadd).toHaveBeenCalledWith('project:7:sessions', sessionId);
     });
   });
 
@@ -120,10 +114,7 @@ describe('RedisSessionStore', () => {
       expect(mockRedis.get).toHaveBeenCalledWith(`session:${sessionId}`);
 
       // Should remove from project Set
-      expect(mockRedis.srem).toHaveBeenCalledWith(
-        'project:6:sessions',
-        sessionId
-      );
+      expect(mockRedis.srem).toHaveBeenCalledWith('project:6:sessions', sessionId);
 
       // Should delete session key
       expect(mockRedis.del).toHaveBeenCalledWith(`session:${sessionId}`);
@@ -238,10 +229,7 @@ describe('RedisSessionStore', () => {
       expect(sessions[0].id).toBe('session-2');
 
       // Should cleanup invalid entry
-      expect(mockRedis.srem).toHaveBeenCalledWith(
-        `project:${projectId}:sessions`,
-        'session-1'
-      );
+      expect(mockRedis.srem).toHaveBeenCalledWith(`project:${projectId}:sessions`, 'session-1');
     });
   });
 

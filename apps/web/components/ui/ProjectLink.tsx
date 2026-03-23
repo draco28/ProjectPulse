@@ -60,23 +60,21 @@ interface ProjectLinkProps extends NextLinkProps {
  * <ProjectLink href="/login" skipProject>Login</ProjectLink>
  * // Renders: <a href="/login">Login</a>
  */
-export const ProjectLink = forwardRef<HTMLAnchorElement, ProjectLinkProps>(
-  function ProjectLink(
-    { href, params = {}, skipProject = false, children, ...props },
-    ref
-  ) {
-    const { buildHref } = useProject();
+export const ProjectLink = forwardRef<HTMLAnchorElement, ProjectLinkProps>(function ProjectLink(
+  { href, params = {}, skipProject = false, children, ...props },
+  ref
+) {
+  const { buildHref } = useProject();
 
-    // Build the full href with project context
-    const fullHref = skipProject ? href : buildHref(href, params);
+  // Build the full href with project context
+  const fullHref = skipProject ? href : buildHref(href, params);
 
-    return (
-      <Link ref={ref} href={fullHref} {...props}>
-        {children}
-      </Link>
-    );
-  }
-);
+  return (
+    <Link ref={ref} href={fullHref} {...props}>
+      {children}
+    </Link>
+  );
+});
 
 // ============================================================================
 // ProjectButton Component
@@ -118,8 +116,7 @@ export function ProjectButton({
 
   const variantStyles = {
     default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-    outline:
-      'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+    outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
     ghost: 'hover:bg-accent hover:text-accent-foreground',
   };
 

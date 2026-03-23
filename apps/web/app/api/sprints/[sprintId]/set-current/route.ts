@@ -75,7 +75,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (!sprint.phase?.roadmap?.projectId) {
       return NextResponse.json(
-        { success: false, error: { code: 'ORPHAN_SPRINT', message: 'Sprint has no associated project' } },
+        {
+          success: false,
+          error: { code: 'ORPHAN_SPRINT', message: 'Sprint has no associated project' },
+        },
         { status: 400 }
       );
     }
@@ -165,9 +168,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to set current sprint');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to set current sprint'
+    );
     return NextResponse.json(
-      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to set current sprint' } },
+      {
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message: 'Failed to set current sprint' },
+      },
       { status: 500 }
     );
   }

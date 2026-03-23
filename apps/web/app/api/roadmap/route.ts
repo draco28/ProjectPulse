@@ -134,7 +134,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'List roadmaps failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'List roadmaps failed'
+    );
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to list roadmaps' } },
       { status: 500 }
@@ -228,19 +231,26 @@ export async function POST(request: NextRequest) {
           );
         }
       } catch (matError) {
-        log.error({ error: matError instanceof Error ? matError.message : String(matError) }, 'Roadmap materialization error');
+        log.error(
+          { error: matError instanceof Error ? matError.message : String(matError) },
+          'Roadmap materialization error'
+        );
         // Rollback: delete the orphaned roadmap record
         try {
           await prisma.roadmap.delete({ where: { id: roadmap.id } });
         } catch (deleteError) {
-          log.error({ error: deleteError instanceof Error ? deleteError.message : String(deleteError) }, 'Failed to rollback roadmap');
+          log.error(
+            { error: deleteError instanceof Error ? deleteError.message : String(deleteError) },
+            'Failed to rollback roadmap'
+          );
         }
         return NextResponse.json(
           {
             success: false,
             error: {
               code: 'MATERIALIZATION_FAILED',
-              message: matError instanceof Error ? matError.message : 'Failed to create roadmap phases',
+              message:
+                matError instanceof Error ? matError.message : 'Failed to create roadmap phases',
             },
           },
           { status: 422 }
@@ -296,7 +306,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Create roadmap failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Create roadmap failed'
+    );
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to create roadmap' } },
       { status: 500 }

@@ -219,7 +219,11 @@ async function testCalculateSprintProgress() {
       throw new Error(`Invalid progress value: ${result.progress}`);
     }
 
-    logSuccess(testName, { sprintId: fixtures.sprintId, progress: result.progress, total: result.total });
+    logSuccess(testName, {
+      sprintId: fixtures.sprintId,
+      progress: result.progress,
+      total: result.total,
+    });
   } catch (error) {
     logFailure(testName, error instanceof Error ? error.message : String(error));
   }
@@ -459,7 +463,10 @@ async function testBulkReorderEndpoint() {
 
     logSuccess(testName, {
       updated: result.updated,
-      tickets: result.tickets.map((t: { id: number; status: string }) => ({ id: t.id, status: t.status })),
+      tickets: result.tickets.map((t: { id: number; status: string }) => ({
+        id: t.id,
+        status: t.status,
+      })),
     });
 
     // Reset tickets to original state
@@ -707,7 +714,9 @@ async function main() {
 
   const passed = results.filter((r) => r.passed).length;
   const failed = results.filter((r) => !r.passed).length;
-  const skipped = results.filter((r) => r.passed && r.data && typeof r.data === 'object' && 'skipped' in r.data).length;
+  const skipped = results.filter(
+    (r) => r.passed && r.data && typeof r.data === 'object' && 'skipped' in r.data
+  ).length;
 
   console.log(`  Total:   ${results.length}`);
   console.log(`  Passed:  ${passed - skipped} ✅`);

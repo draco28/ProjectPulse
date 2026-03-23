@@ -102,10 +102,7 @@ async function fetchSessionsByStatus(
  * @param ticketIds - Array of ticket IDs to fetch
  * @param projectId - Project ID for authorization (defense-in-depth)
  */
-async function fetchTicketsByIds(
-  ticketIds: number[],
-  projectId: number
-): Promise<KanbanTicket[]> {
+async function fetchTicketsByIds(ticketIds: number[], projectId: number): Promise<KanbanTicket[]> {
   if (ticketIds.length === 0) return [];
 
   // Use ticket search with IDs filter

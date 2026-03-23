@@ -86,7 +86,10 @@ export async function GET(request: NextRequest) {
       status: session.status,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch phase state');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch phase state'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

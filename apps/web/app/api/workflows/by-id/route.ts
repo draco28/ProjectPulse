@@ -24,7 +24,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(workflow);
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error fetching workflow');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Error fetching workflow'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

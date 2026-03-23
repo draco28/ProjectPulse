@@ -33,7 +33,7 @@ function StatItem({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <Icon className={cn('w-4 h-4', colorClass)} />
+      <Icon className={cn('h-4 w-4', colorClass)} />
       <span className="text-xs text-slate">{label}</span>
       <span className={cn('text-sm font-bold', colorClass)}>{value}</span>
     </div>
@@ -52,20 +52,15 @@ export function PhaseStatsBar({ phase }: PhaseStatsBarProps) {
     { total: 0, done: 0, inProgress: 0, inReview: 0 }
   );
 
-  const completedSprints = phase.sprints.filter(
-    (s) => s.status === 'COMPLETED'
-  ).length;
+  const completedSprints = phase.sprints.filter((s) => s.status === 'COMPLETED').length;
 
   const activeTickets = totals.inProgress + totals.inReview;
 
   // Calculate velocity (tickets completed per sprint)
-  const velocity =
-    completedSprints > 0
-      ? Math.round(totals.done / completedSprints)
-      : 0;
+  const velocity = completedSprints > 0 ? Math.round(totals.done / completedSprints) : 0;
 
   return (
-    <div className="neu-card p-4 mt-6">
+    <div className="neu-card mt-6 p-4">
       <div className="flex items-center justify-between">
         {/* Left: Key metrics */}
         <div className="flex items-center gap-8">
@@ -102,14 +97,14 @@ export function PhaseStatsBar({ phase }: PhaseStatsBarProps) {
             <span className="text-sm font-bold text-slate-light">
               {completedSprints}/{phase.sprints.length}
             </span>
-            <div className="flex gap-1 ml-2">
+            <div className="ml-2 flex gap-1">
               {phase.sprints.map((sprint) => (
                 <div
                   key={sprint.id}
                   className={cn(
-                    'w-2 h-2 rounded-full',
+                    'h-2 w-2 rounded-full',
                     sprint.status === 'COMPLETED' && 'bg-accent-green',
-                    sprint.status === 'IN_PROGRESS' && 'bg-coral animate-pulse',
+                    sprint.status === 'IN_PROGRESS' && 'animate-pulse bg-coral',
                     sprint.status === 'NOT_STARTED' && 'bg-slate/30'
                   )}
                 />

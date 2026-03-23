@@ -72,9 +72,7 @@ function mergePhaseToContext(
 
   if (phase === 2 && answers.phase2_q1) {
     const value = answers.phase2_q1;
-    context.metadata.techStack = Array.isArray(value)
-      ? value.map(String)
-      : [String(value)];
+    context.metadata.techStack = Array.isArray(value) ? value.map(String) : [String(value)];
   }
 
   return context;
@@ -159,10 +157,17 @@ export async function POST(request: NextRequest) {
     };
 
     // 4. Merge into projectContextJson
-    const updatedContext = mergePhaseToContext(session.projectContextJson as ProjectContext | null, phase, answers);
+    const updatedContext = mergePhaseToContext(
+      session.projectContextJson as ProjectContext | null,
+      phase,
+      answers
+    );
 
     // 5. Update metrics
-    const currentMetrics = (session.metrics as SessionMetrics | null) || { tokensUsed: 0, phasesComplete: 0 };
+    const currentMetrics = (session.metrics as SessionMetrics | null) || {
+      tokensUsed: 0,
+      phasesComplete: 0,
+    };
     const updatedMetrics = {
       ...currentMetrics,
       phasesComplete: phase,
@@ -201,7 +206,10 @@ export async function POST(request: NextRequest) {
       message: `Phase ${phase} saved ✅. ${nextPhase ? `Proceed to Phase ${nextPhase}.` : 'All phases complete! Call finalizeSummary.'}`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to save phase answers');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to save phase answers'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

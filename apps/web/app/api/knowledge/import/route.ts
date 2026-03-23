@@ -312,7 +312,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge import failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Knowledge import failed'
+    );
     return NextResponse.json(
       {
         error: 'Import failed',

@@ -33,7 +33,8 @@ export function QuickNavigation({ categories, currentCategory }: QuickNavigation
   const categoryLinks = useMemo(() => {
     return categories.map((category) => {
       const isActive = category.slug === currentCategory;
-      const IconComponent = (Icons as unknown as Record<string, typeof FileText>)[category.icon] || FileText;
+      const IconComponent =
+        (Icons as unknown as Record<string, typeof FileText>)[category.icon] || FileText;
 
       return (
         <Link

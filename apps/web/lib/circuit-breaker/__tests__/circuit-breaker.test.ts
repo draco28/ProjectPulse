@@ -10,14 +10,7 @@
  * @module lib/circuit-breaker/__tests__/circuit-breaker.test.ts
  */
 
-import {
-  describe,
-  it,
-  expect,
-  jest,
-  beforeEach,
-  afterEach,
-} from '@jest/globals';
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import {
   getCircuitBreaker,
   getCircuitStatus,
@@ -42,9 +35,7 @@ function createAlwaysSucceed<T>(value: T): jest.Mock<() => Promise<T>> {
 /**
  * Create a function that always fails.
  */
-function createAlwaysFail(
-  error = new Error('Always fails')
-): jest.Mock<() => Promise<never>> {
+function createAlwaysFail(error = new Error('Always fails')): jest.Mock<() => Promise<never>> {
   return jest.fn(async () => {
     throw error;
   });
@@ -499,9 +490,7 @@ describe('Circuit Breaker', () => {
     });
 
     it('handles multiple arguments correctly', async () => {
-      const fn = jest.fn(
-        async (a: number, b: string, c: boolean) => `${a}-${b}-${c}`
-      );
+      const fn = jest.fn(async (a: number, b: string, c: boolean) => `${a}-${b}-${c}`);
       const breaker = getCircuitBreaker('multi-args', fn, TEST_OPTIONS);
 
       const result = await breaker.fire(1, 'two', true);
@@ -539,11 +528,7 @@ describe('Circuit Breaker', () => {
         volumeThreshold: 1,
         errorThresholdPercentage: 1,
       });
-      const succeedingBreaker = getCircuitBreaker(
-        'succeeding',
-        succeedingFn,
-        TEST_OPTIONS
-      );
+      const succeedingBreaker = getCircuitBreaker('succeeding', succeedingFn, TEST_OPTIONS);
 
       // Trip the failing breaker
       await expect(failingBreaker.fire()).rejects.toThrow();

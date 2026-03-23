@@ -272,84 +272,84 @@ export default async function DashboardPage({
   return (
     <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <div className="space-y-4">
-      {/* Back to Projects Link */}
-      <Link
-        href="/app"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Projects
-      </Link>
+        {/* Back to Projects Link */}
+        <Link
+          href="/app"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Projects
+        </Link>
 
-      {/* Welcome Banner */}
-      <WelcomeBanner projectName={project.name} projectId={projectId} />
+        {/* Welcome Banner */}
+        <WelcomeBanner projectName={project.name} projectId={projectId} />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Open Tickets"
-          value={data.stats.openIssues}
-          icon={ListTodo}
-          trend={{ value: data.trends.openIssues, label: trendLabel }}
-        />
-        <StatCard
-          title="Knowledge Items"
-          value={data.stats.knowledgeItems}
-          icon={Lightbulb}
-          trend={{ value: data.trends.knowledgeItems, label: trendLabel }}
-        />
-        <StatCard
-          title="Security Findings"
-          value={data.stats.securityFindings}
-          icon={Shield}
-          trend={{ value: data.trends.securityFindings, label: trendLabel }}
-          iconClassName="icon-slate"
-        />
-        <StatCard
-          title="Completed"
-          value={data.stats.completed}
-          icon={CheckCircle2}
-          trend={{ value: data.trends.completed, label: trendLabel }}
-          iconClassName="icon-slate"
-        />
-      </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            title="Open Tickets"
+            value={data.stats.openIssues}
+            icon={ListTodo}
+            trend={{ value: data.trends.openIssues, label: trendLabel }}
+          />
+          <StatCard
+            title="Knowledge Items"
+            value={data.stats.knowledgeItems}
+            icon={Lightbulb}
+            trend={{ value: data.trends.knowledgeItems, label: trendLabel }}
+          />
+          <StatCard
+            title="Security Findings"
+            value={data.stats.securityFindings}
+            icon={Shield}
+            trend={{ value: data.trends.securityFindings, label: trendLabel }}
+            iconClassName="icon-slate"
+          />
+          <StatCard
+            title="Completed"
+            value={data.stats.completed}
+            icon={CheckCircle2}
+            trend={{ value: data.trends.completed, label: trendLabel }}
+            iconClassName="icon-slate"
+          />
+        </div>
 
-      {/* Two-Column Layout */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Left Column - Recent Tickets (2/3) */}
-        <div className="lg:col-span-2">
-          <div className="neu-raised smooth-transition rounded-3xl">
-            <div className="border-b border-white/5 p-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white">Recent Tickets</h3>
-                <Link
-                  href={`/tickets?project=${projectId}`}
-                  className="hover:text-coralLight smooth-transition text-sm font-semibold text-coral"
-                >
-                  View all →
-                </Link>
+        {/* Two-Column Layout */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {/* Left Column - Recent Tickets (2/3) */}
+          <div className="lg:col-span-2">
+            <div className="neu-raised smooth-transition rounded-3xl">
+              <div className="border-b border-white/5 p-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-white">Recent Tickets</h3>
+                  <Link
+                    href={`/tickets?project=${projectId}`}
+                    className="hover:text-coralLight smooth-transition text-sm font-semibold text-coral"
+                  >
+                    View all →
+                  </Link>
+                </div>
+              </div>
+              <div className="space-y-4 p-6">
+                {data.recentIssues.map((issue) => (
+                  <TicketCard key={issue.id} issue={issue} projectId={projectId} />
+                ))}
               </div>
             </div>
-            <div className="space-y-4 p-6">
-              {data.recentIssues.map((issue) => (
-                <TicketCard key={issue.id} issue={issue} projectId={projectId} />
-              ))}
-            </div>
+          </div>
+
+          {/* Right Column - Widgets (1/3) */}
+          <div className="space-y-4">
+            {/* Quick Actions - with onboarding status */}
+            <QuickActionsWidget onboardingStatus={data.onboarding} projectId={projectId} />
+
+            {/* Active Agent Sessions (Sprint 14) */}
+            <ActiveSessionsWidget sessions={data.sessions} projectId={projectId} />
+
+            {/* Agent Personas */}
+            <AgentPersonasWidget agents={data.agents} />
           </div>
         </div>
-
-        {/* Right Column - Widgets (1/3) */}
-        <div className="space-y-4">
-          {/* Quick Actions - with onboarding status */}
-          <QuickActionsWidget onboardingStatus={data.onboarding} projectId={projectId} />
-
-          {/* Active Agent Sessions (Sprint 14) */}
-          <ActiveSessionsWidget sessions={data.sessions} projectId={projectId} />
-
-          {/* Agent Personas */}
-          <AgentPersonasWidget agents={data.agents} />
-        </div>
-      </div>
       </div>
     </ProjectLayoutWrapper>
   );

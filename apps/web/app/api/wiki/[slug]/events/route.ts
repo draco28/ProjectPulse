@@ -80,7 +80,10 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to record wiki event');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to record wiki event'
+    );
     return NextResponse.json({ error: 'Failed to record wiki event' }, { status: 500 });
   }
 }

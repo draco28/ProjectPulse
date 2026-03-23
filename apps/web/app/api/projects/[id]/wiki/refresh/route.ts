@@ -186,7 +186,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     return NextResponse.json(result);
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Wiki refresh failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Wiki refresh failed'
+    );
     return NextResponse.json({ error: 'Failed to refresh wikis' }, { status: 500 });
   }
 }

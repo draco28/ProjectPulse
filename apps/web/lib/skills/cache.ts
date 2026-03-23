@@ -337,7 +337,10 @@ export class SkillsCache {
   constructor() {
     this.cache = new LRUCache<CachedSkill>(CACHE_CONFIG.MAX_ENTRIES, CACHE_CONFIG.TTL_MS);
 
-    log.info({ ttlSeconds: CACHE_CONFIG.TTL_SECONDS, maxEntries: CACHE_CONFIG.MAX_ENTRIES }, 'SkillsCache initialized');
+    log.info(
+      { ttlSeconds: CACHE_CONFIG.TTL_SECONDS, maxEntries: CACHE_CONFIG.MAX_ENTRIES },
+      'SkillsCache initialized'
+    );
   }
 
   /**

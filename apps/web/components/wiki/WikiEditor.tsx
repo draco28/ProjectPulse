@@ -71,8 +71,8 @@ export function WikiEditor({ mode, initialData, onSave, onCancelPath }: WikiEdit
   const form = useForm<CreateWikiPageInput | UpdateWikiPageInput>({
     resolver: (mode === 'create'
       ? zodResolver(createWikiPageSchema)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Resolver union types require assertion
-      : zodResolver(updateWikiPageSchema)) as any,
+      : // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Resolver union types require assertion
+        zodResolver(updateWikiPageSchema)) as any,
     mode: 'onBlur', // Validate on blur for better performance
     defaultValues: {
       title: initialData?.title || '',

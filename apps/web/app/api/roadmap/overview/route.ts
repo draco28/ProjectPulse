@@ -19,11 +19,7 @@ import { RoadmapOverviewQuerySchema } from '@/lib/validations/kanban';
 import { TICKET_STATUSES } from '@/lib/constants/status';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
-import type {
-  RoadmapOverviewResponse,
-  PhaseOverview,
-  SprintOverview,
-} from '@/types/kanban';
+import type { RoadmapOverviewResponse, PhaseOverview, SprintOverview } from '@/types/kanban';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,7 +90,10 @@ export async function GET(request: NextRequest) {
 
     if (!roadmap) {
       return NextResponse.json(
-        { success: false, error: { code: 'NOT_FOUND', message: 'Roadmap not found for this project' } },
+        {
+          success: false,
+          error: { code: 'NOT_FOUND', message: 'Roadmap not found for this project' },
+        },
         { status: 404 }
       );
     }
@@ -165,10 +164,12 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    const overallProgress = totalTickets > 0 ? Math.round((completedTickets / totalTickets) * 100) : 0;
+    const overallProgress =
+      totalTickets > 0 ? Math.round((completedTickets / totalTickets) * 100) : 0;
 
     // Determine current phase (first IN_PROGRESS, or first NOT_STARTED, or first)
-    const currentPhase = phases.find((p) => p.status === 'IN_PROGRESS') ??
+    const currentPhase =
+      phases.find((p) => p.status === 'IN_PROGRESS') ??
       phases.find((p) => p.status === 'NOT_STARTED') ??
       phases[0];
 
@@ -215,9 +216,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Fetch roadmap overview failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Fetch roadmap overview failed'
+    );
     return NextResponse.json(
-      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch roadmap overview' } },
+      {
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch roadmap overview' },
+      },
       { status: 500 }
     );
   }

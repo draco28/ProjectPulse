@@ -37,7 +37,10 @@ interface AgentPersonaForRepoFiles {
  * @param agentPersonas - Array of agent personas
  * @returns Markdown content for CLAUDE.md
  */
-export function generateCLAUDEmd(projectName: string, agentPersonas: AgentPersonaForRepoFiles[]): string {
+export function generateCLAUDEmd(
+  projectName: string,
+  agentPersonas: AgentPersonaForRepoFiles[]
+): string {
   const agentsList = agentPersonas
     .map((agent) => `- **${agent.name}** (\`${agent.slug}\`) ${agent.icon} - ${agent.description}`)
     .join('\n');
@@ -294,7 +297,10 @@ Use ProjectPulse to track your development journey and leverage AI agents for ex
  * @param agentPersonas - Array of agent personas
  * @returns Markdown content for AGENTS.md
  */
-export function generateAGENTSmd(projectName: string, agentPersonas: AgentPersonaForRepoFiles[]): string {
+export function generateAGENTSmd(
+  projectName: string,
+  agentPersonas: AgentPersonaForRepoFiles[]
+): string {
   const agentSections = agentPersonas
     .map(
       (agent) => `
@@ -436,7 +442,10 @@ export async function writeRepoFiles(
       results.claudeMd = true;
       log.info({ path: claudePath }, 'CLAUDE.md written successfully');
     } catch (error) {
-      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write CLAUDE.md');
+      log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to write CLAUDE.md'
+      );
     }
 
     // Write AGENTS.md
@@ -446,13 +455,19 @@ export async function writeRepoFiles(
       results.agentsMd = true;
       log.info({ path: agentsPath }, 'AGENTS.md written successfully');
     } catch (error) {
-      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write AGENTS.md');
+      log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to write AGENTS.md'
+      );
     }
 
     log.info({ results }, 'Repo files written');
     return results;
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to write repo files');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to write repo files'
+    );
     return results;
   }
 }

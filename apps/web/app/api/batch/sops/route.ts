@@ -97,7 +97,10 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    log.info({ projectId, created: createdSOPs.length, duplicates: duplicates.length }, 'SOPs created');
+    log.info(
+      { projectId, created: createdSOPs.length, duplicates: duplicates.length },
+      'SOPs created'
+    );
 
     return NextResponse.json({
       success: true,
@@ -109,7 +112,10 @@ export async function POST(request: NextRequest) {
       message: `Created ${createdSOPs.length}/${sops.length} SOPs. ${duplicates.length} duplicates skipped.`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create SOP batch');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to create SOP batch'
+    );
     return NextResponse.json(
       {
         error: 'Failed to create SOP batch',

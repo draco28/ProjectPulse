@@ -59,7 +59,10 @@ export async function GET() {
       templates,
     };
   } catch (err) {
-    log.error({ error: err instanceof Error ? err.message : String(err) }, 'Database health check failed');
+    log.error(
+      { error: err instanceof Error ? err.message : String(err) },
+      'Database health check failed'
+    );
     database = 'error';
   }
 
@@ -67,7 +70,10 @@ export async function GET() {
   try {
     redis = await sessionHealthCheck();
   } catch (err) {
-    log.error({ error: err instanceof Error ? err.message : String(err) }, 'Session health check failed');
+    log.error(
+      { error: err instanceof Error ? err.message : String(err) },
+      'Session health check failed'
+    );
     redis = { healthy: false, type: 'error' };
   }
 

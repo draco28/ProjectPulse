@@ -107,7 +107,10 @@ export class RedisRateLimitStore implements RateLimitStore {
 
       return this.redis;
     } catch (error) {
-      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to connect');
+      log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Failed to connect'
+      );
       this.redis = null;
       return null;
     } finally {

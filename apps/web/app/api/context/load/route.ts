@@ -442,7 +442,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to load context');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to load context'
+    );
     return NextResponse.json({ error: 'Failed to load context' }, { status: 500 });
   }
 }

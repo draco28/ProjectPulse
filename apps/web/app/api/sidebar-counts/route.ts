@@ -41,7 +41,10 @@ export async function GET(request: NextRequest) {
     // Return counts + project name for Sidebar display
     return NextResponse.json({ ...counts, projectName: project.name });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Sidebar counts error');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Sidebar counts error'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

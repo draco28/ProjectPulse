@@ -169,7 +169,10 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
       return mapRevertError(error as RevertError);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to revert wiki page');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to revert wiki page'
+    );
     return NextResponse.json({ error: 'Failed to revert wiki page' }, { status: 500 });
   }
 }

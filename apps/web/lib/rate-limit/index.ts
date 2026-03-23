@@ -28,7 +28,12 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger({ module: 'RateLimit' });
 
 // Re-export types and utilities
-export type { RateLimitTier, RateLimitKeyContext, RateLimitResult, WithRateLimitOptions } from './types';
+export type {
+  RateLimitTier,
+  RateLimitKeyContext,
+  RateLimitResult,
+  WithRateLimitOptions,
+} from './types';
 export { RATE_LIMIT_TIERS, getTierForRoute } from './tiers';
 export { generateKey, getClientIp } from './key-generator';
 

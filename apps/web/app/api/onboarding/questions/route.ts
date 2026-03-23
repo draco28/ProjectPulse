@@ -123,7 +123,10 @@ export async function GET(request: NextRequest) {
       totalQuestions: questions.length,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch questions');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch questions'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

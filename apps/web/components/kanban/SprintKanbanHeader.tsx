@@ -37,14 +37,14 @@ export const SprintKanbanHeader = memo(function SprintKanbanHeader({
   return (
     <div className="p-6 pb-0">
       {/* Top Row: Navigation + Actions */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           {/* Back to Phase Timeline */}
           <Link
             href={backHref}
-            className="p-2 rounded-lg hover:bg-white/5 text-slate transition flex items-center gap-2"
+            className="flex items-center gap-2 rounded-lg p-2 text-slate transition hover:bg-white/5"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -61,13 +61,15 @@ export const SprintKanbanHeader = memo(function SprintKanbanHeader({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                'w-2.5 h-2.5 rounded-full',
-                isCurrentSprint ? 'bg-coral animate-pulse' : 'bg-slate'
+                'h-2.5 w-2.5 rounded-full',
+                isCurrentSprint ? 'animate-pulse bg-coral' : 'bg-slate'
               )}
             />
-            <h1 className="text-2xl font-bold">{sprint.title || `Sprint ${sprint.sprintNumber}`}</h1>
+            <h1 className="text-2xl font-bold">
+              {sprint.title || `Sprint ${sprint.sprintNumber}`}
+            </h1>
             {isCurrentSprint && (
-              <span className="text-xs text-coral bg-coral/15 px-2.5 py-1 rounded font-bold uppercase tracking-wide">
+              <span className="rounded bg-coral/15 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-coral">
                 Current
               </span>
             )}
@@ -77,14 +79,14 @@ export const SprintKanbanHeader = memo(function SprintKanbanHeader({
         {/* Actions */}
         <div className="flex items-center gap-4">
           {/* Progress Card */}
-          <div className="neu-flat px-4 py-2 rounded-xl flex items-center gap-4">
+          <div className="neu-flat flex items-center gap-4 rounded-xl px-4 py-2">
             <div className="flex items-center gap-2">
-              <span className="text-slate text-sm">Progress</span>
-              <span className="text-coral font-bold">{Math.round(progress)}%</span>
+              <span className="text-sm text-slate">Progress</span>
+              <span className="font-bold text-coral">{Math.round(progress)}%</span>
             </div>
-            <div className="w-32 h-2 bg-dark-pressed rounded-full overflow-hidden">
+            <div className="h-2 w-32 overflow-hidden rounded-full bg-dark-pressed">
               <div
-                className="h-full bg-gradient-to-r from-coral to-coral-dark rounded-full transition-all duration-300"
+                className="h-full rounded-full bg-gradient-to-r from-coral to-coral-dark transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -93,9 +95,9 @@ export const SprintKanbanHeader = memo(function SprintKanbanHeader({
           {/* New Ticket */}
           <button
             onClick={onNewTicket}
-            className="btn-coral px-4 py-2 rounded-xl font-medium flex items-center gap-2"
+            className="btn-coral flex items-center gap-2 rounded-xl px-4 py-2 font-medium"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -110,7 +112,7 @@ export const SprintKanbanHeader = memo(function SprintKanbanHeader({
 
       {/* Info Bar */}
       {stats && (
-        <div className="flex items-center gap-6 text-sm text-slate mb-4">
+        <div className="mb-4 flex items-center gap-6 text-sm text-slate">
           <span>
             {stats.done}/{stats.total} tickets done
           </span>

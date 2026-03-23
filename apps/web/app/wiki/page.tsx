@@ -294,7 +294,7 @@ async function getCategoryStats(projectId: number) {
 
 export default async function WikiPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
-  
+
   // Unified auth + project resolution
   const { project, projectId } = await withProjectAuth(params.project);
 

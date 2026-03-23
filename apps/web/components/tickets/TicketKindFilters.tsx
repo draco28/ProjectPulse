@@ -63,7 +63,11 @@ interface TicketKindFiltersProps {
   totalCount: number;
 }
 
-export function TicketKindFilters({ projectId: _projectId, counts, totalCount }: TicketKindFiltersProps) {
+export function TicketKindFilters({
+  projectId: _projectId,
+  counts,
+  totalCount,
+}: TicketKindFiltersProps) {
   const { updateSearchParams, clearSearchParams } = useProject();
   const searchParams = useSearchParams();
 

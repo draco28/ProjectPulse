@@ -39,7 +39,7 @@ interface Label {
 
 interface ChildTicket {
   id: number;
-  ticketNumber: number;  // Sprint 17: Project-scoped number for display
+  ticketNumber: number; // Sprint 17: Project-scoped number for display
   title: string;
   status: string;
   priority: string;
@@ -55,13 +55,13 @@ interface ChildTicket {
 
 interface ParentTicket {
   id: number;
-  ticketNumber: number;  // Sprint 17: Project-scoped number for display
+  ticketNumber: number; // Sprint 17: Project-scoped number for display
   title: string;
 }
 
 export interface HierarchyTicket {
   id: number;
-  ticketNumber: number;  // Sprint 17: Project-scoped number for display
+  ticketNumber: number; // Sprint 17: Project-scoped number for display
   title: string;
   description: string | null;
   priority: string;
@@ -101,7 +101,11 @@ const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
 };
 
 // Sprint 17: Compute displayId using project-scoped ticketNumber
-function getDisplayId(ticket: { ticketNumber: number }, parentTicketNumber?: number, childIndex?: number): string {
+function getDisplayId(
+  ticket: { ticketNumber: number },
+  parentTicketNumber?: number,
+  childIndex?: number
+): string {
   if (parentTicketNumber !== undefined && childIndex !== undefined) {
     return `${parentTicketNumber}.${childIndex + 1}`;
   }
@@ -111,7 +115,7 @@ function getDisplayId(ticket: { ticketNumber: number }, parentTicketNumber?: num
 interface TicketCardProps {
   ticket: {
     id: number;
-    ticketNumber: number;  // Sprint 17: Project-scoped number for display
+    ticketNumber: number; // Sprint 17: Project-scoped number for display
     title: string;
     description: string | null;
     priority: string;

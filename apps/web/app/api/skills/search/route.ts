@@ -249,7 +249,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to search skills');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to search skills'
+    );
     return NextResponse.json(
       {
         error: 'Failed to search skills',

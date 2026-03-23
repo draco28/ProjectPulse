@@ -230,7 +230,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Hierarchy query failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Hierarchy query failed'
+    );
 
     return NextResponse.json<ApiResponse<null>>(
       {

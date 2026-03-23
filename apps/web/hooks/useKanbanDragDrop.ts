@@ -248,7 +248,8 @@ export function useKanbanDragDrop({
    */
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
-      const ticketId = typeof event.active.id === 'string' ? parseInt(event.active.id, 10) : event.active.id;
+      const ticketId =
+        typeof event.active.id === 'string' ? parseInt(event.active.id, 10) : event.active.id;
       const ticket = findTicketById(columns, ticketId as number);
 
       if (ticket) {

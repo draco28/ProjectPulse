@@ -61,7 +61,10 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error fetching filter options');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Error fetching filter options'
+    );
     return NextResponse.json({ error: 'Failed to fetch filter options' }, { status: 500 });
   }
 }

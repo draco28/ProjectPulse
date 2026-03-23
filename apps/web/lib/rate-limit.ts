@@ -38,12 +38,18 @@ function getRedisClient(): Redis | null {
     });
 
     redisClient.on('error', (error) => {
-      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Redis connection error');
+      log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Redis connection error'
+      );
     });
 
     return redisClient;
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create Redis client');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to create Redis client'
+    );
     return null;
   }
 }
@@ -107,7 +113,10 @@ export async function rateLimit(
       reset,
     };
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Rate limit error');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Rate limit error'
+    );
     // Fail open - allow request if Redis is down
     return {
       success: true,

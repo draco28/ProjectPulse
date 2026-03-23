@@ -145,7 +145,10 @@ export class JSDocParser {
           results.push(doc);
         }
       } catch (error) {
-        log.warn({ error: error instanceof Error ? error.message : String(error), filePath }, 'Failed to parse file');
+        log.warn(
+          { error: error instanceof Error ? error.message : String(error), filePath },
+          'Failed to parse file'
+        );
         // Continue parsing other files
       }
     }
@@ -208,7 +211,10 @@ export class JSDocParser {
           exports.push(parsedExport);
         }
       } catch (error) {
-        log.warn({ error: error instanceof Error ? error.message : String(error), exportName, filePath }, 'Failed to parse JSDoc');
+        log.warn(
+          { error: error instanceof Error ? error.message : String(error), exportName, filePath },
+          'Failed to parse JSDoc'
+        );
       }
     }
 
@@ -284,24 +290,26 @@ export class JSDocParser {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TSDoc library nodes are dynamically typed
   private extractTextFromNodes(nodes: readonly any[]): string {
-    return nodes
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TSDoc node types vary by kind
-      .map((node: any) => {
-        if (node.kind === 'Paragraph') {
-          return this.extractTextFromNodes(node.getChildNodes());
-        } else if (node.kind === 'PlainText') {
-          return node.text || '';
-        } else if (node.kind === 'CodeSpan') {
-          return `\`${node.code || ''}\``;
-        } else if (node.kind === 'SoftBreak') {
-          return ' ';
-        } else if (node.getChildNodes) {
-          return this.extractTextFromNodes(node.getChildNodes());
-        }
-        return '';
-      })
-      .join('')
-      .trim();
+    return (
+      nodes
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TSDoc node types vary by kind
+        .map((node: any) => {
+          if (node.kind === 'Paragraph') {
+            return this.extractTextFromNodes(node.getChildNodes());
+          } else if (node.kind === 'PlainText') {
+            return node.text || '';
+          } else if (node.kind === 'CodeSpan') {
+            return `\`${node.code || ''}\``;
+          } else if (node.kind === 'SoftBreak') {
+            return ' ';
+          } else if (node.getChildNodes) {
+            return this.extractTextFromNodes(node.getChildNodes());
+          }
+          return '';
+        })
+        .join('')
+        .trim()
+    );
   }
 
   /**

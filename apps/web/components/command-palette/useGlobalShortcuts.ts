@@ -15,10 +15,13 @@ export function useGlobalShortcuts() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get('project');
 
-  const buildHref = useCallback((path: string) => {
-    if (!projectId) return path;
-    return `${path}?project=${projectId}`;
-  }, [projectId]);
+  const buildHref = useCallback(
+    (path: string) => {
+      if (!projectId) return path;
+      return `${path}?project=${projectId}`;
+    },
+    [projectId]
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

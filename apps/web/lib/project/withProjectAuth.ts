@@ -66,10 +66,7 @@ export async function withProjectAuth(
   }
 
   // Step 3: Resolve project with ownership validation
-  const { project, projectId } = await getActiveProjectForUser(
-    user.id,
-    searchParamsProject
-  );
+  const { project, projectId } = await getActiveProjectForUser(user.id, searchParamsProject);
 
   return {
     user: {

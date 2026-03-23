@@ -396,7 +396,9 @@
   /* Base sprint block card - neumorphic styling */
   .sprint-block {
     background: linear-gradient(145deg, var(--dark-card), var(--dark-lighter));
-    box-shadow: 6px 6px 12px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+    box-shadow:
+      6px 6px 12px var(--shadow-dark),
+      -4px -4px 10px var(--shadow-light);
     border-radius: 16px;
     border: 1px solid var(--border-subtle);
     transition: all 0.3s ease;
@@ -405,17 +407,23 @@
 
   .sprint-block:hover {
     border-color: var(--border-medium);
-    box-shadow: 8px 8px 20px var(--shadow-dark), -6px -6px 16px var(--shadow-light);
+    box-shadow:
+      8px 8px 20px var(--shadow-dark),
+      -6px -6px 16px var(--shadow-light);
   }
 
   /* Current sprint variant - coral glow effect */
   .sprint-block.current {
     border-color: var(--coral);
-    box-shadow: 0 0 30px var(--shadow-coral-soft), 6px 6px 12px var(--shadow-dark);
+    box-shadow:
+      0 0 30px var(--shadow-coral-soft),
+      6px 6px 12px var(--shadow-dark);
   }
 
   .sprint-block.current:hover {
-    box-shadow: 0 0 40px var(--shadow-coral-medium), 8px 8px 20px var(--shadow-dark);
+    box-shadow:
+      0 0 40px var(--shadow-coral-medium),
+      8px 8px 20px var(--shadow-dark);
   }
 
   /* ============================================================================
@@ -1417,7 +1425,7 @@
   .scrollbar-thin {
     scrollbar-width: none !important;
   }
-  
+
   .scrollbar-auto-hide::-webkit-scrollbar,
   .custom-scrollbar::-webkit-scrollbar,
   .scrollbar-thin::-webkit-scrollbar {

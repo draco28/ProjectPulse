@@ -80,7 +80,10 @@ const categorySchema = z
     (cat) => {
       // Allow any string, but warn if not built-in
       if (!isBuiltInCategory(cat)) {
-        log.warn({ category: cat, builtInCategories: Object.values(SKILL_CATEGORIES) }, 'Custom category detected');
+        log.warn(
+          { category: cat, builtInCategories: Object.values(SKILL_CATEGORIES) },
+          'Custom category detected'
+        );
       }
       return true;
     },

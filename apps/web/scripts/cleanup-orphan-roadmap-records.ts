@@ -58,7 +58,9 @@ async function main() {
   if (orphanedPhases.length > 0) {
     console.log('');
     console.log('   ID                        | Title                          | Sprints | Status');
-    console.log('   --------------------------+--------------------------------+---------+----------');
+    console.log(
+      '   --------------------------+--------------------------------+---------+----------'
+    );
     for (const phase of orphanedPhases) {
       const id = phase.id.padEnd(25);
       const title = phase.title.substring(0, 30).padEnd(30);

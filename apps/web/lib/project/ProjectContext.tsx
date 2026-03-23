@@ -20,13 +20,7 @@
  * const { projectId, buildHref, navigateTo } = useProject();
  */
 
-import {
-  createContext,
-  useContext,
-  useCallback,
-  useMemo,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useCallback, useMemo, type ReactNode } from 'react';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
 // ============================================================================
@@ -51,10 +45,7 @@ export interface ProjectContextValue {
    * buildHref('/wiki') // => '/wiki?project=1'
    * buildHref('/tickets', { status: 'open' }) // => '/tickets?project=1&status=open'
    */
-  buildHref: (
-    path: string,
-    params?: Record<string, string | number | undefined>
-  ) => string;
+  buildHref: (path: string, params?: Record<string, string | number | undefined>) => string;
 
   /**
    * Navigate to a path while preserving project context.
@@ -66,10 +57,7 @@ export interface ProjectContextValue {
    * navigateTo('/wiki');
    * navigateTo('/tickets', { status: 'open' });
    */
-  navigateTo: (
-    path: string,
-    params?: Record<string, string | number | undefined>
-  ) => void;
+  navigateTo: (path: string, params?: Record<string, string | number | undefined>) => void;
 
   /**
    * Update search params on current page without losing project context.
@@ -81,9 +69,7 @@ export interface ProjectContextValue {
    * updateSearchParams({ q: 'search term', page: '2' });
    * updateSearchParams({ q: null }); // Removes q param
    */
-  updateSearchParams: (
-    updates: Record<string, string | number | null | undefined>
-  ) => void;
+  updateSearchParams: (updates: Record<string, string | number | null | undefined>) => void;
 
   /**
    * Clear all search params except project and navigate to current path.
@@ -133,10 +119,7 @@ export function ProjectProvider({
 
   // Build href with project context
   const buildHref = useCallback(
-    (
-      path: string,
-      params: Record<string, string | number | undefined> = {}
-    ) => {
+    (path: string, params: Record<string, string | number | undefined> = {}) => {
       const urlParams = new URLSearchParams();
 
       // ALWAYS include project if we have one
@@ -159,10 +142,7 @@ export function ProjectProvider({
 
   // Navigate with project context
   const navigateTo = useCallback(
-    (
-      path: string,
-      params: Record<string, string | number | undefined> = {}
-    ) => {
+    (path: string, params: Record<string, string | number | undefined> = {}) => {
       router.push(buildHref(path, params));
     },
     [router, buildHref]
@@ -180,9 +160,7 @@ export function ProjectProvider({
     (updates: Record<string, string | number | null | undefined>) => {
       // Read current params from window.location to get the freshest state
       // This fixes pagination issues where useSearchParams() returns stale data
-      const currentSearch = typeof window !== 'undefined'
-        ? window.location.search
-        : '';  // SSR fallback - empty params is fine, will be set on client
+      const currentSearch = typeof window !== 'undefined' ? window.location.search : ''; // SSR fallback - empty params is fine, will be set on client
       const params = new URLSearchParams(currentSearch);
 
       // Ensure project is preserved
@@ -223,19 +201,10 @@ export function ProjectProvider({
       updateSearchParams,
       clearSearchParams,
     }),
-    [
-      projectId,
-      projectName,
-      buildHref,
-      navigateTo,
-      updateSearchParams,
-      clearSearchParams,
-    ]
+    [projectId, projectName, buildHref, navigateTo, updateSearchParams, clearSearchParams]
   );
 
-  return (
-    <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>
-  );
+  return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
 }
 
 // ============================================================================

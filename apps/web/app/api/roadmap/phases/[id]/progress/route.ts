@@ -98,10 +98,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   } catch (error) {
     // Sprint 10: Handle auth errors first
     if (error instanceof AuthError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Get phase progress failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Get phase progress failed'
+    );
     return NextResponse.json(
       {
         error: 'Failed to get phase progress',

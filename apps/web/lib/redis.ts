@@ -89,7 +89,10 @@ export function getRedisClient(): Redis | null {
 
     return redisClient;
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to initialize client');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to initialize client'
+    );
     return null;
   }
 }

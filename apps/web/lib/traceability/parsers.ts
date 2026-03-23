@@ -313,10 +313,7 @@ export function parseBacklog(content: string): ParsedBacklog {
  * @param content - Project Plan markdown content
  * @param backlogItems - Optional parsed backlog items for fallback aggregation
  */
-export function parseProjectPlan(
-  content: string,
-  backlogItems?: BacklogItem[]
-): ParsedProjectPlan {
+export function parseProjectPlan(content: string, backlogItems?: BacklogItem[]): ParsedProjectPlan {
   const sprints: SprintScope[] = [];
 
   // Split by sprint headers
@@ -387,9 +384,7 @@ export function parseProjectPlan(
 
     // Sprint 15: FALLBACK - Aggregate from BacklogItem records by sprintNumber
     if (backlogItemsFound.length === 0 && backlogItems && backlogItems.length > 0) {
-      const itemsInSprint = backlogItems.filter(
-        (item) => item.sprintNumber === header.number
-      );
+      const itemsInSprint = backlogItems.filter((item) => item.sprintNumber === header.number);
 
       if (itemsInSprint.length > 0) {
         backlogItemsFound = itemsInSprint.map((item) => item.id);
@@ -475,8 +470,6 @@ export function parseDocumentSet(docs: RawDocumentSet): DocumentSet {
     srs: docs.srs ? parseSRS(docs.srs) : null,
     backlog,
     // Sprint 15: Pass backlog items for fallback aggregation by sprint number
-    projectPlan: docs.projectPlan
-      ? parseProjectPlan(docs.projectPlan, backlog?.items)
-      : null,
+    projectPlan: docs.projectPlan ? parseProjectPlan(docs.projectPlan, backlog?.items) : null,
   };
 }

@@ -25,7 +25,9 @@ const MAX_MOVES_PER_REQUEST = 100; // Reasonable limit for bulk operations
  * Valid ticket status values for kanban columns.
  * Uses the status constants as the source of truth.
  */
-export const KanbanStatusSchema = z.enum(TICKET_STATUS_VALUES as [string, ...string[]]) as z.ZodType<TicketStatus>;
+export const KanbanStatusSchema = z.enum(
+  TICKET_STATUS_VALUES as [string, ...string[]]
+) as z.ZodType<TicketStatus>;
 
 // ============================================================================
 // MOVE TICKET SCHEMAS
@@ -60,10 +62,7 @@ export type MoveTicketInput = z.infer<typeof MoveTicketSchema>;
  * Schema for a single move operation in bulk reorder.
  */
 export const BulkMoveItemSchema = z.object({
-  ticketId: z
-    .number()
-    .int('Ticket ID must be an integer')
-    .positive('Ticket ID must be positive'),
+  ticketId: z.number().int('Ticket ID must be an integer').positive('Ticket ID must be positive'),
   status: KanbanStatusSchema,
   displayOrder: z
     .number()
@@ -109,16 +108,12 @@ export const KanbanBoardQuerySchema = z.object({
   /**
    * Filter by ticket kind (feature, task, bug, etc.)
    */
-  kind: z
-    .string()
-    .optional(),
+  kind: z.string().optional(),
 
   /**
    * Filter by assignee
    */
-  assignee: z
-    .string()
-    .optional(),
+  assignee: z.string().optional(),
 });
 
 export type KanbanBoardQueryInput = z.infer<typeof KanbanBoardQuerySchema>;

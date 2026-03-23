@@ -181,7 +181,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch hierarchy');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch hierarchy'
+    );
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to fetch hierarchy', status: 500 });
   }
 }

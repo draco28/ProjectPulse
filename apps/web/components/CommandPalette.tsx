@@ -307,7 +307,7 @@ export function CommandPalette() {
           </div>
 
           {/* Results */}
-          <div className="max-h-96 overflow-y-auto scrollbar-auto-hide">
+          <div className="scrollbar-auto-hide max-h-96 overflow-y-auto">
             {state.results.length > 0 ? (
               <div className="p-2">
                 {state.results.map((result, index) => {

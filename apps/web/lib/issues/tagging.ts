@@ -87,7 +87,10 @@ export async function deriveAutoTags(files?: IssueFileContextInput[]): Promise<A
           }
         }
       } catch (error) {
-        log.warn({ error: error instanceof Error ? error.message : String(error), pattern: rule.pattern }, 'Invalid auto-tag regex');
+        log.warn(
+          { error: error instanceof Error ? error.message : String(error), pattern: rule.pattern },
+          'Invalid auto-tag regex'
+        );
       }
     }
   }

@@ -84,7 +84,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       error: null,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error fetching workflow run');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Error fetching workflow run'
+    );
     return NextResponse.json(
       {
         data: null,

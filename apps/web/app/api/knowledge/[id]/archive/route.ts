@@ -115,7 +115,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error), id: params.id }, 'Archive knowledge item failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error), id: params.id },
+      'Archive knowledge item failed'
+    );
     return NextResponse.json(
       {
         error: 'Failed to archive knowledge item',
@@ -220,7 +223,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error), id: params.id }, 'Unarchive knowledge item failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error), id: params.id },
+      'Unarchive knowledge item failed'
+    );
     return NextResponse.json(
       {
         error: 'Failed to unarchive knowledge item',

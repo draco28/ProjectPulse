@@ -65,7 +65,7 @@ export async function generateMetadata({
 
   const ticket = await prisma.ticket.findUnique({
     where: { id: ticketId },
-    select: { title: true, id: true, ticketNumber: true, kind: true },  // Sprint 17
+    select: { title: true, id: true, ticketNumber: true, kind: true }, // Sprint 17
   });
 
   if (!ticket) {
@@ -474,8 +474,7 @@ export default async function TicketDetailPage({
                     </p>
                     {ticket.sprint.phase && (
                       <p className="text-xs">
-                        Phase:{' '}
-                        <span className="text-white">{ticket.sprint.phase.title}</span>
+                        Phase: <span className="text-white">{ticket.sprint.phase.title}</span>
                       </p>
                     )}
                   </div>

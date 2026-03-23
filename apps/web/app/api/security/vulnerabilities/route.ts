@@ -87,7 +87,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch vulnerabilities');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch vulnerabilities'
+    );
     return NextResponse.json({ error: 'Failed to fetch vulnerabilities' }, { status: 500 });
   }
 }

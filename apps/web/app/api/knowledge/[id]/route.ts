@@ -71,7 +71,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error), id: params.id }, 'Knowledge item get failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error), id: params.id },
+      'Knowledge item get failed'
+    );
     return NextResponse.json(
       { error: 'Failed to retrieve knowledge item', code: 'GET_ERROR' },
       { status: 500 }

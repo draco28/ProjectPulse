@@ -113,9 +113,5 @@ function getClientIp(request: Request): string | null {
   }
 
   // Fallback to other common headers
-  return (
-    request.headers.get('x-real-ip') ||
-    request.headers.get('cf-connecting-ip') ||
-    null
-  );
+  return request.headers.get('x-real-ip') || request.headers.get('cf-connecting-ip') || null;
 }

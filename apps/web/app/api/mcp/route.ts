@@ -219,13 +219,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    log.info({ authType: auth.type, projectId: auth.type === 'agent' ? auth.projectId : undefined }, 'Authenticated');
+    log.info(
+      { authType: auth.type, projectId: auth.type === 'agent' ? auth.projectId : undefined },
+      'Authenticated'
+    );
 
     // Step 1: Extract or generate session ID
     const sessionIdHeader = request.headers.get('Mcp-Session-Id');
     const sessionId = sessionIdHeader || generateSessionId();
 
-    log.debug({ sessionId, isNew: !sessionIdHeader }, sessionIdHeader ? 'Reusing session' : 'Creating session');
+    log.debug(
+      { sessionId, isNew: !sessionIdHeader },
+      sessionIdHeader ? 'Reusing session' : 'Creating session'
+    );
 
     // Step 2: Validate session (create if new, check expiration if existing)
     await validateSession(sessionId);
@@ -235,7 +241,10 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch (parseError) {
-      log.warn({ error: parseError instanceof Error ? parseError.message : String(parseError) }, 'JSON parse error');
+      log.warn(
+        { error: parseError instanceof Error ? parseError.message : String(parseError) },
+        'JSON parse error'
+      );
 
       return NextResponse.json(
         {
@@ -1289,7 +1298,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const duration = Date.now() - startTime;
-    log.error({ error: error instanceof Error ? error.message : String(error), durationMs: duration }, 'MCP request failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error), durationMs: duration },
+      'MCP request failed'
+    );
 
     // Handle MCP-specific errors
     if (isMCPError(error)) {

@@ -73,19 +73,19 @@ export const SessionHistoryEntry = memo(function SessionHistoryEntry({
       {/* Collapsed Header - Always Visible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-3 p-3 hover:bg-white/[0.02] transition text-left"
+        className="flex w-full items-center gap-3 p-3 text-left transition hover:bg-white/[0.02]"
       >
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500/60 to-green-600/60 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-500/60 to-green-600/60 text-xs font-bold text-white">
           ✓
         </div>
 
         {/* Info */}
-        <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-white truncate">
+        <div className="min-w-0 flex-1">
+          <h4 className="truncate text-sm font-medium text-white">
             {session.name || 'Unnamed Session'}
           </h4>
-          <div className="flex items-center gap-2 text-xs text-slate mt-0.5">
+          <div className="mt-0.5 flex items-center gap-2 text-xs text-slate">
             <span>{completedTodos} tasks</span>
             <span className="text-slate/30">•</span>
             <span>{duration.durationShort}</span>
@@ -101,7 +101,7 @@ export const SessionHistoryEntry = memo(function SessionHistoryEntry({
         {/* Chevron */}
         <svg
           className={cn(
-            'w-4 h-4 text-slate transition-transform duration-200',
+            'h-4 w-4 text-slate transition-transform duration-200',
             isExpanded && 'rotate-90'
           )}
           fill="none"
@@ -114,9 +114,9 @@ export const SessionHistoryEntry = memo(function SessionHistoryEntry({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="px-3 pb-3 space-y-3 animate-fade-in">
+        <div className="animate-fade-in space-y-3 px-3 pb-3">
           {/* Timestamps */}
-          <div className="bg-white/[0.02] rounded-lg p-3 space-y-1.5">
+          <div className="space-y-1.5 rounded-lg bg-white/[0.02] p-3">
             <div className="flex justify-between text-xs">
               <span className="text-slate">Started</span>
               <span className="text-white">{formatDateTime(session.startedAt)}</span>
@@ -136,7 +136,7 @@ export const SessionHistoryEntry = memo(function SessionHistoryEntry({
           {/* Tickets */}
           {ticketIds.length > 0 && (
             <div>
-              <p className="text-xs text-slate uppercase tracking-wide mb-2">Tickets Worked</p>
+              <p className="mb-2 text-xs uppercase tracking-wide text-slate">Tickets Worked</p>
               <div className="flex flex-wrap gap-1.5">
                 {ticketIds.map((id) => (
                   <button
@@ -145,7 +145,7 @@ export const SessionHistoryEntry = memo(function SessionHistoryEntry({
                       e.stopPropagation();
                       onTicketClick?.(id);
                     }}
-                    className="px-2 py-1 rounded text-xs font-mono bg-white/[0.03] hover:bg-white/[0.06] text-coral hover:text-coral-light transition"
+                    className="rounded bg-white/[0.03] px-2 py-1 font-mono text-xs text-coral transition hover:bg-white/[0.06] hover:text-coral-light"
                   >
                     #{id}
                   </button>
@@ -157,21 +157,31 @@ export const SessionHistoryEntry = memo(function SessionHistoryEntry({
           {/* Todos Summary */}
           {session.todos && session.todos.length > 0 && (
             <div>
-              <p className="text-xs text-slate uppercase tracking-wide mb-2">Completed Todos</p>
+              <p className="mb-2 text-xs uppercase tracking-wide text-slate">Completed Todos</p>
               <ul className="space-y-1">
                 {session.todos
                   .filter((t) => t.status === 'completed')
                   .slice(0, 5)
                   .map((todo, idx) => (
                     <li key={idx} className="flex items-center gap-2 text-xs text-slate/80">
-                      <svg className="w-3 h-3 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      <svg
+                        className="h-3 w-3 flex-shrink-0 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                       <span className="truncate">{todo.content}</span>
                     </li>
                   ))}
                 {session.todos.filter((t) => t.status === 'completed').length > 5 && (
-                  <li className="text-xs text-slate/50 italic">
+                  <li className="text-xs italic text-slate/50">
                     +{session.todos.filter((t) => t.status === 'completed').length - 5} more
                   </li>
                 )}

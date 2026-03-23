@@ -93,7 +93,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to list SOPs');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to list SOPs'
+    );
     return NextResponse.json(
       {
         error: 'Failed to list SOPs',

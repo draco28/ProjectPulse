@@ -73,7 +73,10 @@ export async function GET(
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch ticket by number');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch ticket by number'
+    );
     return failure({
       code: 'INTERNAL_ERROR',
       message: 'Failed to fetch ticket',

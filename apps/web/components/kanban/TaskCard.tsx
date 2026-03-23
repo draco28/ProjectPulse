@@ -51,7 +51,7 @@ interface TaskCardProps {
 function AIBadge() {
   return (
     <div
-      className="w-5 h-5 rounded-full bg-coral text-white text-[8px] flex items-center justify-center font-bold"
+      className="flex h-5 w-5 items-center justify-center rounded-full bg-coral text-[8px] font-bold text-white"
       title="Agent assigned"
     >
       AI
@@ -73,7 +73,7 @@ function PriorityBadge({ priority }: { priority: string }) {
   const colorClass = priorityColors[priority.toLowerCase()] || priorityColors.medium;
 
   return (
-    <span className={cn('px-2 py-0.5 text-[10px] rounded font-bold uppercase', colorClass)}>
+    <span className={cn('rounded px-2 py-0.5 text-[10px] font-bold uppercase', colorClass)}>
       {priority}
     </span>
   );
@@ -96,7 +96,9 @@ function KindBadge({ kind }: { kind: string }) {
   const displayName = kind.replace('_', ' ').toUpperCase();
 
   return (
-    <span className={cn('px-2 py-0.5 text-[10px] rounded font-bold', colorClass)}>{displayName}</span>
+    <span className={cn('rounded px-2 py-0.5 text-[10px] font-bold', colorClass)}>
+      {displayName}
+    </span>
   );
 }
 
@@ -121,11 +123,11 @@ export const TaskCard = memo(
         onClick={onClick}
         className={cn(
           // Base styles
-          'standalone-ticket p-3 cursor-pointer',
+          'standalone-ticket cursor-pointer p-3',
           // Critical priority gets left border
           isCritical && 'border-l-4 border-accent-red',
           // Dragging states
-          isDragging && 'opacity-50 rotate-2 scale-105',
+          isDragging && 'rotate-2 scale-105 opacity-50',
           isOverlay && 'shadow-2xl ring-2 ring-coral/50',
           className
         )}
@@ -140,25 +142,27 @@ export const TaskCard = memo(
         aria-label={`Ticket ${ticket.id}: ${ticket.title}`}
       >
         {/* Header: ID + Priority */}
-        <div className="flex items-start justify-between mb-2">
-          <span className="text-xs font-mono text-slate">#{ticket.ticketNumber}</span>
+        <div className="mb-2 flex items-start justify-between">
+          <span className="font-mono text-xs text-slate">#{ticket.ticketNumber}</span>
           <PriorityBadge priority={ticket.priority} />
         </div>
 
         {/* Title */}
-        <p className="text-sm font-medium mb-2 line-clamp-2">{ticket.title}</p>
+        <p className="mb-2 line-clamp-2 text-sm font-medium">{ticket.title}</p>
 
         {/* Tags Row: Kind + Module */}
-        <div className="flex items-center gap-2 flex-wrap mb-2">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
           <KindBadge kind={ticket.kind} />
           {ticket.epicRef && (
-            <span className="px-2 py-0.5 bg-dark-pressed text-slate text-xs rounded">{ticket.epicRef}</span>
+            <span className="rounded bg-dark-pressed px-2 py-0.5 text-xs text-slate">
+              {ticket.epicRef}
+            </span>
           )}
         </div>
 
         {/* Footer: Estimate + AI Badge */}
         {isAgentAssigned && (
-          <div className="flex items-center justify-end mt-2">
+          <div className="mt-2 flex items-center justify-end">
             <AIBadge />
           </div>
         )}

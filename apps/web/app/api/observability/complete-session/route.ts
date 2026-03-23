@@ -31,7 +31,10 @@ export async function POST(request: NextRequest) {
   const log = createRequestLogger(getRequestId(request));
   try {
     const body = await request.json();
-    log.debug({ sessionId: body.sessionId, hasValidationReport: !!body.validationReport }, 'Request received');
+    log.debug(
+      { sessionId: body.sessionId, hasValidationReport: !!body.validationReport },
+      'Request received'
+    );
 
     // 1. Validate request
     const validation = requestSchema.safeParse(body);
@@ -79,7 +82,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    log.info({ sessionId, sessionNumber: updatedSession.sessionNumber, status: updatedSession.status }, 'Session completed');
+    log.info(
+      { sessionId, sessionNumber: updatedSession.sessionNumber, status: updatedSession.status },
+      'Session completed'
+    );
 
     return NextResponse.json({
       success: true,
@@ -91,7 +97,10 @@ export async function POST(request: NextRequest) {
       message: `Session ${updatedSession.sessionNumber} marked as completed.`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to complete session');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to complete session'
+    );
     return NextResponse.json(
       {
         error: 'Failed to complete session',

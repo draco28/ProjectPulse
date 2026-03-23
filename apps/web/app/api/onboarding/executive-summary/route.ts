@@ -165,7 +165,10 @@ export async function POST(request: NextRequest) {
 
     // Update session with agent-generated executive summary (Sprint 9 Refactored)
     const now = new Date();
-    const currentMetrics = (session.metrics as SessionMetrics | null) || { tokensUsed: 0, phasesComplete: 10 };
+    const currentMetrics = (session.metrics as SessionMetrics | null) || {
+      tokensUsed: 0,
+      phasesComplete: 10,
+    };
 
     await prisma.onboardingSession.update({
       where: { id: session.id },
@@ -191,7 +194,10 @@ export async function POST(request: NextRequest) {
       projectContextJson,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to store executive summary');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to store executive summary'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {
@@ -215,7 +221,10 @@ export async function POST(request: NextRequest) {
  * and combines it with the agent-generated executive summary to create
  * a complete project context object for Session 2 and Session 3 to use.
  */
-function generateProjectContextJson(planningAnswers: PlanningAnswers, executiveSummary: string): ProjectContext {
+function generateProjectContextJson(
+  planningAnswers: PlanningAnswers,
+  executiveSummary: string
+): ProjectContext {
   // Extract data from phase answers (phases 3,5,6,7,8,10 reserved for future use)
   const phase1 = planningAnswers.phase1 || {};
   const phase2 = planningAnswers.phase2 || {};

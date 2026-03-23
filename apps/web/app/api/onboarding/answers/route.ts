@@ -149,7 +149,10 @@ export async function POST(request: NextRequest) {
       return handleAuthError(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to save answers');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to save answers'
+    );
     return NextResponse.json(
       {
         error: 'Failed to save answers',

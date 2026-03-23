@@ -138,7 +138,10 @@ export async function POST(request: NextRequest) {
 
     // Prisma database errors (500)
     if (error?.constructor?.name === 'PrismaClientKnownRequestError') {
-      log.error({ error: error instanceof Error ? error.message : String(error) }, 'Prisma error creating phase');
+      log.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Prisma error creating phase'
+      );
       return NextResponse.json(
         {
           success: false,
@@ -152,7 +155,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Unknown errors (500)
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error creating phase');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error creating phase'
+    );
     return NextResponse.json(
       {
         success: false,

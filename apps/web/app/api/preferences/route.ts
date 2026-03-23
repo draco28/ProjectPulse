@@ -41,7 +41,10 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Database error or other errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Preferences PATCH API error');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Preferences PATCH API error'
+    );
     return NextResponse.json({ data: null, error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -66,7 +69,10 @@ export async function GET(request: NextRequest) {
       error: null,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Preferences GET API error');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Preferences GET API error'
+    );
     return NextResponse.json({ data: null, error: 'Internal server error' }, { status: 500 });
   }
 }

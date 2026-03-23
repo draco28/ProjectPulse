@@ -50,13 +50,13 @@ interface TicketDetailDrawerProps {
 function StatusBadge({ status }: { status: string }) {
   // Validate status is a valid TicketStatus, fallback to backlog
   const validStatus = TicketStatusSystem.isValid(status)
-    ? (status as typeof TICKET_STATUSES[keyof typeof TICKET_STATUSES])
+    ? (status as (typeof TICKET_STATUSES)[keyof typeof TICKET_STATUSES])
     : TICKET_STATUSES.BACKLOG;
   const label = TicketStatusSystem.getLabel(validStatus);
   const colorClass = TicketStatusSystem.getColorClass(validStatus);
 
   return (
-    <span className={cn('px-3 py-1 rounded-lg text-sm font-medium', colorClass)}>{label}</span>
+    <span className={cn('rounded-lg px-3 py-1 text-sm font-medium', colorClass)}>{label}</span>
   );
 }
 
@@ -70,7 +70,9 @@ function PriorityBadge({ priority }: { priority: string }) {
 
   const colorClass = priorityColors[priority?.toLowerCase()] || priorityColors.medium;
 
-  return <span className={cn('px-3 py-1 rounded-lg text-sm font-medium', colorClass)}>{priority}</span>;
+  return (
+    <span className={cn('rounded-lg px-3 py-1 text-sm font-medium', colorClass)}>{priority}</span>
+  );
 }
 
 function KindBadge({ kind }: { kind: string }) {
@@ -87,7 +89,7 @@ function KindBadge({ kind }: { kind: string }) {
   const displayName = kind?.replace('_', ' ').toUpperCase() || 'TASK';
 
   return (
-    <span className={cn('px-2 py-0.5 text-xs rounded font-bold uppercase', colorClass)}>
+    <span className={cn('rounded px-2 py-0.5 text-xs font-bold uppercase', colorClass)}>
       {displayName}
     </span>
   );
@@ -95,9 +97,9 @@ function KindBadge({ kind }: { kind: string }) {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-white/5">
-      <span className="text-slate text-sm">{label}</span>
-      <span className="text-white text-sm">{value || '-'}</span>
+    <div className="flex items-center justify-between border-b border-white/5 py-2">
+      <span className="text-sm text-slate">{label}</span>
+      <span className="text-sm text-white">{value || '-'}</span>
     </div>
   );
 }
@@ -154,18 +156,18 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
         {ticket ? (
           <>
             {/* Header */}
-            <div className="sticky top-0 bg-dark-card border-b border-white/10 p-4 z-10">
-              <div className="flex items-center justify-between mb-4">
+            <div className="sticky top-0 z-10 border-b border-white/10 bg-dark-card p-4">
+              <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-lg font-mono text-slate">#{ticket.ticketNumber}</span>
+                  <span className="font-mono text-lg text-slate">#{ticket.ticketNumber}</span>
                   <KindBadge kind={ticket.kind} />
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-lg hover:bg-white/5 text-slate hover:text-white transition"
+                  className="rounded-lg p-2 text-slate transition hover:bg-white/5 hover:text-white"
                   aria-label="Close drawer"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -177,7 +179,7 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
               </div>
 
               {/* Title */}
-              <h2 id="drawer-title" className="text-xl font-semibold mb-4">
+              <h2 id="drawer-title" className="mb-4 text-xl font-semibold">
                 {ticket.title}
               </h2>
 
@@ -186,8 +188,8 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
                 <StatusBadge status={ticket.status} />
                 <PriorityBadge priority={ticket.priority} />
                 {ticket.assigneeType === 'agent_persona' && (
-                  <span className="px-2 py-1 rounded-lg text-xs font-bold bg-coral/20 text-coral flex items-center gap-1">
-                    <span className="w-4 h-4 rounded-full bg-coral text-white text-[8px] flex items-center justify-center">
+                  <span className="flex items-center gap-1 rounded-lg bg-coral/20 px-2 py-1 text-xs font-bold text-coral">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-coral text-[8px] text-white">
                       AI
                     </span>
                     Agent Assigned
@@ -197,22 +199,20 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
             </div>
 
             {/* Body */}
-            <div className="p-4 space-y-6">
+            <div className="space-y-6 p-4">
               {/* Session Context (if ticket is being worked on) */}
               {sessionContext && (
-                <div className="neu-raised p-4 rounded-lg bg-coral/5 border border-coral/20">
+                <div className="neu-raised rounded-lg border border-coral/20 bg-coral/5 p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {/* Agent Avatar */}
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-coral to-coral-dark flex items-center justify-center text-white text-sm font-bold pulse-ring">
+                        <div className="pulse-ring flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-coral to-coral-dark text-sm font-bold text-white">
                           AI
                         </div>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-white">
-                          {sessionContext.agentName}
-                        </p>
+                        <p className="text-sm font-medium text-white">{sessionContext.agentName}</p>
                         <p className="text-xs text-coral">
                           Working for {sessionContext.workingDuration}
                         </p>
@@ -221,24 +221,22 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
                     {onViewSession && (
                       <button
                         onClick={() => onViewSession(sessionContext.sessionId)}
-                        className="text-sm text-coral hover:text-coral-light transition"
+                        className="text-sm text-coral transition hover:text-coral-light"
                       >
                         View Session →
                       </button>
                     )}
                   </div>
-                  <p className="text-xs text-slate mt-2">
-                    Session: {sessionContext.sessionName}
-                  </p>
+                  <p className="mt-2 text-xs text-slate">Session: {sessionContext.sessionName}</p>
                 </div>
               )}
 
               {/* Parent Feature (if applicable) */}
               {ticket.parentTicket && (
-                <div className="neu-inset p-4 rounded-lg">
-                  <p className="text-xs text-slate uppercase tracking-wide mb-2">Parent Feature</p>
+                <div className="neu-inset rounded-lg p-4">
+                  <p className="mb-2 text-xs uppercase tracking-wide text-slate">Parent Feature</p>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-mono text-slate">#{ticket.parentTicket.id}</span>
+                    <span className="font-mono text-sm text-slate">#{ticket.parentTicket.id}</span>
                     <span className="text-sm font-medium">{ticket.parentTicket.title}</span>
                   </div>
                   <div className="mt-2">
@@ -249,17 +247,17 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
 
               {/* Child Progress (if feature with children) */}
               {ticket.childTickets && ticket.childTickets.length > 0 && (
-                <div className="neu-inset p-4 rounded-lg">
-                  <p className="text-xs text-slate uppercase tracking-wide mb-2">Child Tasks</p>
-                  <div className="flex items-center justify-between mb-2">
+                <div className="neu-inset rounded-lg p-4">
+                  <p className="mb-2 text-xs uppercase tracking-wide text-slate">Child Tasks</p>
+                  <div className="mb-2 flex items-center justify-between">
                     <span className="text-sm">{ticket.childTickets.length} tasks</span>
                     <span className="text-sm font-bold text-coral">
                       {ticket.childProgress ?? 0}% complete
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-dark rounded-full overflow-hidden">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-dark">
                     <div
-                      className="h-full bg-gradient-to-r from-coral to-coral-dark rounded-full transition-all"
+                      className="h-full rounded-full bg-gradient-to-r from-coral to-coral-dark transition-all"
                       style={{ width: `${ticket.childProgress ?? 0}%` }}
                     />
                   </div>
@@ -268,10 +266,13 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
 
               {/* Details Grid */}
               <div>
-                <p className="text-xs text-slate uppercase tracking-wide mb-3">Details</p>
-                <div className="neu-inset p-4 rounded-lg">
+                <p className="mb-3 text-xs uppercase tracking-wide text-slate">Details</p>
+                <div className="neu-inset rounded-lg p-4">
                   <DetailRow label="Assignee" value={ticket.assignee || 'Unassigned'} />
-                  <DetailRow label="Sprint" value={ticket.sprintNumber ? `Sprint ${ticket.sprintNumber}` : '-'} />
+                  <DetailRow
+                    label="Sprint"
+                    value={ticket.sprintNumber ? `Sprint ${ticket.sprintNumber}` : '-'}
+                  />
                   <DetailRow label="Epic" value={ticket.epicRef} />
                   <DetailRow
                     label="Created"
@@ -286,13 +287,13 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
 
               {/* Actions */}
               <div>
-                <p className="text-xs text-slate uppercase tracking-wide mb-3">Actions</p>
+                <p className="mb-3 text-xs uppercase tracking-wide text-slate">Actions</p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => onEdit?.(ticket)}
-                    className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium transition flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-lg bg-white/5 px-4 py-2 text-sm font-medium transition hover:bg-white/10"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -302,8 +303,8 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
                     </svg>
                     Edit
                   </button>
-                  <button className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium transition flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <button className="flex items-center gap-2 rounded-lg bg-white/5 px-4 py-2 text-sm font-medium transition hover:bg-white/10">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -313,8 +314,8 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
                     </svg>
                     Move
                   </button>
-                  <button className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium transition flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <button className="flex items-center gap-2 rounded-lg bg-white/5 px-4 py-2 text-sm font-medium transition hover:bg-white/10">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -329,15 +330,15 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
             </div>
 
             {/* Footer Actions */}
-            <div className="sticky bottom-0 bg-dark-card border-t border-white/10 p-4">
+            <div className="sticky bottom-0 border-t border-white/10 bg-dark-card p-4">
               <div className="flex items-center justify-between">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-slate hover:text-white transition"
+                  className="rounded-lg px-4 py-2 text-slate transition hover:text-white"
                 >
                   Close
                 </button>
-                <button className="btn-coral px-6 py-2 rounded-lg font-medium">
+                <button className="btn-coral rounded-lg px-6 py-2 font-medium">
                   View Full Details
                 </button>
               </div>
@@ -345,8 +346,8 @@ export const TicketDetailDrawer = memo(function TicketDetailDrawer({
           </>
         ) : (
           // Loading state
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin w-8 h-8 border-2 border-coral border-t-transparent rounded-full" />
+          <div className="flex h-full items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-coral border-t-transparent" />
           </div>
         )}
       </div>

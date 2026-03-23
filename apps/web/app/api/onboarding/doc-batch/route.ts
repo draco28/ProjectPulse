@@ -18,7 +18,10 @@ interface ProjectContext {
   [key: string]: unknown;
 }
 
-type TemplateVariables = Record<string, string | string[] | number | boolean | Record<string, unknown>>;
+type TemplateVariables = Record<
+  string,
+  string | string[] | number | boolean | Record<string, unknown>
+>;
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -111,7 +114,10 @@ export async function GET(request: NextRequest) {
     const { projectId, batch } = validation.data;
     const batchConfig = BATCH_CONFIGS[batch as keyof typeof BATCH_CONFIGS];
 
-    log.info({ projectId, batch, batchName: batchConfig.name, docCount: batchConfig.docs.length }, 'Request validated');
+    log.info(
+      { projectId, batch, batchName: batchConfig.name, docCount: batchConfig.docs.length },
+      'Request validated'
+    );
 
     // Sprint 12: Require authentication (session OR bearer token)
     await requireOnboardingAuth(request, projectId);
@@ -184,7 +190,15 @@ export async function GET(request: NextRequest) {
       dependencies: batch === 1 && index === 0 ? ['executive-summary'] : [],
     }));
 
-    log.info({ projectId, batch, documentCount: documents.length, estimatedTotalTokens: batchConfig.estimatedTokens }, 'Batch prompt ready');
+    log.info(
+      {
+        projectId,
+        batch,
+        documentCount: documents.length,
+        estimatedTotalTokens: batchConfig.estimatedTokens,
+      },
+      'Batch prompt ready'
+    );
 
     return NextResponse.json({
       projectId,
@@ -203,7 +217,10 @@ Use sharedContext to inject {executiveSummary} and {projectContextJson} into eac
 Maintain consistency and traceability across documents.`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch doc batch prompt');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch doc batch prompt'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

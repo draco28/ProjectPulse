@@ -51,7 +51,10 @@ export async function GET(request: NextRequest) {
       blockedTools,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch blocked tools');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch blocked tools'
+    );
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {
@@ -118,7 +121,10 @@ export async function POST(request: NextRequest) {
       blockedTools: newList,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to block tool');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to block tool'
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -184,7 +190,10 @@ export async function DELETE(request: NextRequest) {
       blockedTools: newList,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to unblock tool');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to unblock tool'
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

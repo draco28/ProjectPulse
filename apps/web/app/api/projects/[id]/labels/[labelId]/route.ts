@@ -83,7 +83,10 @@ export async function GET(request: Request, { params }: RouteParams) {
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Label get failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Label get failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -197,7 +200,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Label update failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Label update failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -265,7 +271,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Label delete failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Label delete failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

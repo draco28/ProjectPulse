@@ -103,7 +103,9 @@ describe('GET /api/wiki', () => {
         where: { projectId: 6, category: 'guides' },
       })
     );
-    expect(mockPrisma.wikiPage.count).toHaveBeenCalledWith({ where: { projectId: 6, category: 'guides' } });
+    expect(mockPrisma.wikiPage.count).toHaveBeenCalledWith({
+      where: { projectId: 6, category: 'guides' },
+    });
   });
 
   it('uses tsvector search and highlights results when search term is provided', async () => {

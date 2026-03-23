@@ -38,11 +38,7 @@ function formatDateRange(startDate?: string, endDate?: string): string {
 /**
  * Compact card for completed/planned sprints.
  */
-function CompactSprintCard({
-  sprint,
-  variant,
-  onClick,
-}: Omit<SprintCardProps, 'showMiniKanban'>) {
+function CompactSprintCard({ sprint, variant, onClick }: Omit<SprintCardProps, 'showMiniKanban'>) {
   const isCompleted = variant === 'completed';
 
   return (
@@ -56,18 +52,18 @@ function CompactSprintCard({
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isCompleted && (
-            <span className="text-accent-green text-lg">
-              <Check className="w-5 h-5" />
+            <span className="text-lg text-accent-green">
+              <Check className="h-5 w-5" />
             </span>
           )}
           <h3 className="font-bold">Sprint {sprint.globalSprintNumber}</h3>
         </div>
         <span
           className={cn(
-            'text-xs px-2 py-0.5 rounded font-medium',
+            'rounded px-2 py-0.5 text-xs font-medium',
             isCompleted && 'bg-accent-green/15 text-accent-green',
             !isCompleted && 'bg-dark-pressed text-slate'
           )}
@@ -77,40 +73,33 @@ function CompactSprintCard({
       </div>
 
       {/* Date range */}
-      <div className="text-xs text-slate mb-4" suppressHydrationWarning>
+      <div className="mb-4 text-xs text-slate" suppressHydrationWarning>
         {formatDateRange(sprint.startDate, sprint.endDate)}
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="bg-dark-pressed rounded-lg p-2.5 text-center">
+      <div className="mb-4 grid grid-cols-2 gap-2">
+        <div className="rounded-lg bg-dark-pressed p-2.5 text-center">
           <div
-            className={cn(
-              'text-xl font-bold',
-              isCompleted ? 'text-accent-green' : 'text-slate'
-            )}
+            className={cn('text-xl font-bold', isCompleted ? 'text-accent-green' : 'text-slate')}
           >
             {sprint.ticketCounts.done}
           </div>
-          <div className="text-[10px] text-slate uppercase tracking-wide">
-            Done
-          </div>
+          <div className="text-[10px] uppercase tracking-wide text-slate">Done</div>
         </div>
-        <div className="bg-dark-pressed rounded-lg p-2.5 text-center">
+        <div className="rounded-lg bg-dark-pressed p-2.5 text-center">
           <div className="text-xl font-bold text-slate">
             {sprint.ticketCounts.total - sprint.ticketCounts.done}
           </div>
-          <div className="text-[10px] text-slate uppercase tracking-wide">
-            Open
-          </div>
+          <div className="text-[10px] uppercase tracking-wide text-slate">Open</div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="mt-4 pt-3 border-t border-white/5 text-center">
-        <span className="text-xs text-slate hover:text-coral transition flex items-center justify-center gap-1">
+      <div className="mt-4 border-t border-white/5 pt-3 text-center">
+        <span className="flex items-center justify-center gap-1 text-xs text-slate transition hover:text-coral">
           {isCompleted ? 'View Details' : `${sprint.ticketCounts.total} tickets planned`}
-          <ArrowRight className="w-3 h-3" />
+          <ArrowRight className="h-3 w-3" />
         </span>
       </div>
     </button>
@@ -120,27 +109,23 @@ function CompactSprintCard({
 /**
  * Expanded card for current sprint with mini-kanban preview.
  */
-function CurrentSprintCard({
-  sprint,
-  onClick,
-  showMiniKanban,
-}: Omit<SprintCardProps, 'variant'>) {
+function CurrentSprintCard({ sprint, onClick, showMiniKanban }: Omit<SprintCardProps, 'variant'>) {
   return (
     <button
       onClick={onClick}
       className={cn(
-        'sprint-block current p-5 col-span-2 text-left',
+        'sprint-block current col-span-2 p-5 text-left',
         'border-coral transition-all duration-300',
         'hover:translate-y-[-2px]'
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Pulsing coral dot */}
-          <div className="w-2.5 h-2.5 rounded-full bg-coral animate-pulse" />
-          <h3 className="font-bold text-xl">Sprint {sprint.globalSprintNumber}</h3>
-          <span className="text-xs px-2.5 py-1 rounded font-bold uppercase tracking-wide bg-coral/15 text-coral">
+          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-coral" />
+          <h3 className="text-xl font-bold">Sprint {sprint.globalSprintNumber}</h3>
+          <span className="rounded bg-coral/15 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-coral">
             Current
           </span>
         </div>
@@ -149,7 +134,7 @@ function CurrentSprintCard({
             {formatDateRange(sprint.startDate, sprint.endDate)}
           </span>
           <div className="flex items-center gap-2">
-            <span className="text-coral font-bold text-lg">{sprint.progress}%</span>
+            <span className="text-lg font-bold text-coral">{sprint.progress}%</span>
             <span className="text-xs text-slate">
               {sprint.ticketCounts.done}/{sprint.ticketCounts.total} tickets
             </span>
@@ -161,34 +146,30 @@ function CurrentSprintCard({
       {showMiniKanban && <MiniKanbanPreview sprintId={sprint.id} />}
 
       {/* Footer with feature progress and CTA */}
-      <div className="flex gap-6 text-xs border-t border-white/10 pt-4 mt-4">
+      <div className="mt-4 flex gap-6 border-t border-white/10 pt-4 text-xs">
         {/* Quick stats */}
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded bg-accent-yellow" />
+          <div className="h-2 w-2 rounded bg-accent-yellow" />
           <span className="text-slate-light">In Progress</span>
-          <span className="text-accent-yellow font-bold">
-            {sprint.ticketCounts.inProgress}
-          </span>
+          <span className="font-bold text-accent-yellow">{sprint.ticketCounts.inProgress}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded bg-accent-purple" />
+          <div className="h-2 w-2 rounded bg-accent-purple" />
           <span className="text-slate-light">In Review</span>
-          <span className="text-accent-purple font-bold">
-            {sprint.ticketCounts.inReview}
-          </span>
+          <span className="font-bold text-accent-purple">{sprint.ticketCounts.inReview}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded bg-slate" />
+          <div className="h-2 w-2 rounded bg-slate" />
           <span className="text-slate-light">Backlog</span>
-          <span className="text-slate font-bold">
+          <span className="font-bold text-slate">
             {sprint.ticketCounts.backlog + sprint.ticketCounts.todo}
           </span>
         </div>
 
         {/* CTA */}
         <div className="ml-auto">
-          <span className="text-coral hover:underline font-medium flex items-center gap-1">
-            View Full Board <ArrowRight className="w-4 h-4" />
+          <span className="flex items-center gap-1 font-medium text-coral hover:underline">
+            View Full Board <ArrowRight className="h-4 w-4" />
           </span>
         </div>
       </div>
@@ -199,27 +180,10 @@ function CurrentSprintCard({
 /**
  * Main SprintCard component that renders the appropriate variant.
  */
-export function SprintCard({
-  sprint,
-  variant,
-  onClick,
-  showMiniKanban = false,
-}: SprintCardProps) {
+export function SprintCard({ sprint, variant, onClick, showMiniKanban = false }: SprintCardProps) {
   if (variant === 'current') {
-    return (
-      <CurrentSprintCard
-        sprint={sprint}
-        onClick={onClick}
-        showMiniKanban={showMiniKanban}
-      />
-    );
+    return <CurrentSprintCard sprint={sprint} onClick={onClick} showMiniKanban={showMiniKanban} />;
   }
 
-  return (
-    <CompactSprintCard
-      sprint={sprint}
-      variant={variant}
-      onClick={onClick}
-    />
-  );
+  return <CompactSprintCard sprint={sprint} variant={variant} onClick={onClick} />;
 }

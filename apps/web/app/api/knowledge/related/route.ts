@@ -109,7 +109,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Log unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Knowledge related items fetch failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Knowledge related items fetch failed'
+    );
 
     // Return generic error
     return NextResponse.json(

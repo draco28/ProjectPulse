@@ -18,7 +18,7 @@ import type { TicketStatus } from '@/lib/constants/status';
  */
 export interface KanbanTicket {
   id: number;
-  ticketNumber: number;  // Sprint 17: Project-scoped ticket number for display
+  ticketNumber: number; // Sprint 17: Project-scoped ticket number for display
   title: string;
   status: TicketStatus;
   priority: string;
@@ -29,7 +29,7 @@ export interface KanbanTicket {
   parentTicketId: number | null;
   parentTicket?: {
     id: number;
-    ticketNumber: number;  // Sprint 17
+    ticketNumber: number; // Sprint 17
     title: string;
     status: TicketStatus;
   } | null;
@@ -37,7 +37,7 @@ export interface KanbanTicket {
   // Child ticket summary (for features)
   childTickets?: Array<{
     id: number;
-    ticketNumber: number;  // Sprint 17
+    ticketNumber: number; // Sprint 17
     status: TicketStatus;
     title: string;
     kind: string;
@@ -72,7 +72,7 @@ export interface KanbanTicket {
 export interface GhostCard {
   /** The actual ticket ID this ghost represents */
   ticketId: number;
-  ticketNumber: number;  // Sprint 17: Project-scoped ticket number
+  ticketNumber: number; // Sprint 17: Project-scoped ticket number
   title: string;
   kind: string;
 

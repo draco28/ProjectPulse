@@ -149,7 +149,10 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch tickets');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch tickets'
+    );
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to fetch tickets', status: 500 });
   }
 }
@@ -401,7 +404,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create ticket');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to create ticket'
+    );
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to create ticket', status: 500 });
   }
 }

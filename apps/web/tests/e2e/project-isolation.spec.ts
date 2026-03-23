@@ -175,9 +175,7 @@ test.describe('Project Authorization', () => {
 
     // URL-based check is more reliable than content check during navigation
     const handledGracefully =
-      url.includes('/app') ||
-      url.includes('/login') ||
-      url.includes('/wiki'); // Stayed on wiki with error is also acceptable
+      url.includes('/app') || url.includes('/login') || url.includes('/wiki'); // Stayed on wiki with error is also acceptable
 
     expect(handledGracefully).toBe(true);
   });
@@ -199,9 +197,7 @@ test.describe('Project Authorization', () => {
     // Should handle gracefully (redirect to project selector or stay on wiki)
     const url = page.url();
     const handledGracefully =
-      url.includes('/app') ||
-      url.includes('/login') ||
-      url.includes('/wiki');
+      url.includes('/app') || url.includes('/login') || url.includes('/wiki');
 
     expect(handledGracefully).toBe(true);
   });
@@ -222,9 +218,7 @@ test.describe('Project Authorization', () => {
     // Should handle gracefully (redirect to project selector or show error page)
     const url = page.url();
     const handledGracefully =
-      url.includes('/app') ||
-      url.includes('/login') ||
-      url.includes('/wiki'); // Stayed on wiki is also acceptable
+      url.includes('/app') || url.includes('/login') || url.includes('/wiki'); // Stayed on wiki is also acceptable
 
     expect(handledGracefully).toBe(true);
   });
@@ -285,9 +279,7 @@ test.describe('Cross-Project Navigation', () => {
     // Filter out known non-critical errors
     const criticalErrors = consoleErrors.filter(
       (err) =>
-        !err.includes('favicon') &&
-        !err.includes('404') &&
-        !err.includes('Failed to load resource')
+        !err.includes('favicon') && !err.includes('404') && !err.includes('Failed to load resource')
     );
 
     expect(criticalErrors).toHaveLength(0);

@@ -71,7 +71,7 @@ export default async function SettingsPage({
   searchParams: Promise<{ project?: string }>;
 }) {
   const params = await searchParams;
-  
+
   // Unified auth + project resolution
   const { user, project, projectId } = await withProjectAuth(params.project);
 
@@ -84,15 +84,14 @@ export default async function SettingsPage({
   const { project: projectSettings, tokens, labels } = data;
 
   // MCP endpoint (configurable via env, fallback to production URL)
-  const mcpEndpoint =
-    process.env.NEXT_PUBLIC_MCP_URL || 'https://projectpulsemcp.dracodev.dev/mcp';
+  const mcpEndpoint = process.env.NEXT_PUBLIC_MCP_URL || 'https://projectpulsemcp.dracodev.dev/mcp';
 
   return (
     <ProjectLayoutWrapper projectId={projectId} projectName={project.name}>
       <SettingsClient
-      project={projectSettings}
-      tokens={tokens}
-      labels={labels}
+        project={projectSettings}
+        tokens={tokens}
+        labels={labels}
         mcpEndpoint={mcpEndpoint}
       />
     </ProjectLayoutWrapper>

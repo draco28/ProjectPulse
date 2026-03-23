@@ -40,7 +40,14 @@ describe('Personas API - Sprint 11', () => {
 
     it('lists all personas with metadata only (excludes systemPrompt)', async () => {
       const expectedPersonas = activePersonas.map(
-        ({ systemPrompt: _systemPrompt, skills: _skills, tools: _tools, rules: _rules, personality: _personality, ...rest }) => rest
+        ({
+          systemPrompt: _systemPrompt,
+          skills: _skills,
+          tools: _tools,
+          rules: _rules,
+          personality: _personality,
+          ...rest
+        }) => rest
       );
       mockPrisma.agentPersona.findMany.mockResolvedValueOnce(expectedPersonas as any);
 

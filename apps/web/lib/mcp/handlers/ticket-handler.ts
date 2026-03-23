@@ -992,8 +992,7 @@ export async function ticketSetStatusHandler(input: unknown): Promise<TicketSetS
       completed: TICKET_STATUSES.DONE,
       cancelled: TICKET_STATUSES.DONE,
     };
-    const normalizedStatus =
-      statusBackwardsCompat[params.status.toLowerCase()] || params.status;
+    const normalizedStatus = statusBackwardsCompat[params.status.toLowerCase()] || params.status;
 
     // Validate the normalized status
     if (!TicketStatusSystem.isValid(normalizedStatus)) {

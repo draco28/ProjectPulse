@@ -60,7 +60,7 @@ export default async function SessionsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  
+
   // Unified auth + project resolution
   const { project, projectId } = await withProjectAuth(params.project);
 
@@ -77,10 +77,10 @@ export default async function SessionsPage({
         {/* Main Content */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Header */}
-          <header className="flex-shrink-0 px-6 pt-6 pb-4">
+          <header className="flex-shrink-0 px-6 pb-4 pt-6">
             <Link
               href={`/dashboard?project=${projectId}`}
-              className="inline-flex items-center gap-2 text-sm text-coral transition-colors hover:text-coral-light mb-4"
+              className="mb-4 inline-flex items-center gap-2 text-sm text-coral transition-colors hover:text-coral-light"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
@@ -91,8 +91,8 @@ export default async function SessionsPage({
           <main className="flex-1 overflow-auto">
             <Suspense
               fallback={
-                <div className="flex items-center justify-center h-64">
-                  <div className="animate-spin w-8 h-8 border-2 border-coral border-t-transparent rounded-full" />
+                <div className="flex h-64 items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-coral border-t-transparent" />
                 </div>
               }
             >

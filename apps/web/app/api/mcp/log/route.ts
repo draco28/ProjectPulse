@@ -70,7 +70,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to log MCP tool call');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to log MCP tool call'
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

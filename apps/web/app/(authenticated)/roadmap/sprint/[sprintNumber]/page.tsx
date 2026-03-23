@@ -99,10 +99,7 @@ async function getSprintByGlobalNumber(globalSprintNumber: number, projectId?: n
         },
       },
     },
-    orderBy: [
-      { phase: { startDate: 'asc' } },
-      { sprintNumber: 'asc' },
-    ],
+    orderBy: [{ phase: { startDate: 'asc' } }, { sprintNumber: 'asc' }],
   });
 
   // Calculate global sprint number and find the matching sprint

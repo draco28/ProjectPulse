@@ -92,7 +92,7 @@ export const CompletedSessionCard = memo(function CompletedSessionCard({
     <button
       onClick={() => onClick?.(session)}
       className={cn(
-        'w-full text-left p-4 rounded-xl transition-all',
+        'w-full rounded-xl p-4 text-left transition-all',
         'bg-white/[0.02] hover:bg-white/[0.04]',
         'border border-white/5 hover:border-white/10',
         'opacity-70 hover:opacity-100'
@@ -100,26 +100,26 @@ export const CompletedSessionCard = memo(function CompletedSessionCard({
     >
       <div className="flex items-start gap-3">
         {/* Checkmark Icon */}
-        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-          <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M5 13l4 4L19 7"
-            />
+        <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-green-500/20">
+          <svg
+            className="h-4 w-4 text-green-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           {/* Session Name */}
-          <h4 className="text-sm font-medium text-white truncate">
+          <h4 className="truncate text-sm font-medium text-white">
             {session.name || 'Unnamed Session'}
           </h4>
 
           {/* Completion Time + Copy ID */}
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="mt-0.5 flex items-center gap-2">
             <p className="text-xs text-slate">{completedTime}</p>
             {/* Copy ID Button */}
             <button
@@ -127,7 +127,7 @@ export const CompletedSessionCard = memo(function CompletedSessionCard({
                 e.stopPropagation();
                 copyToClipboard();
               }}
-              className="flex items-center gap-1 rounded px-1 py-0.5 text-xs text-slate/70 hover:bg-white/10 hover:text-slate transition-colors"
+              className="flex items-center gap-1 rounded px-1 py-0.5 text-xs text-slate/70 transition-colors hover:bg-white/10 hover:text-slate"
               title="Copy session ID"
             >
               {copiedId ? (
@@ -135,12 +135,14 @@ export const CompletedSessionCard = memo(function CompletedSessionCard({
               ) : (
                 <Copy className="h-2.5 w-2.5" />
               )}
-              <span className="font-mono text-[10px]">{copiedId ? 'Copied!' : session.id.slice(-6)}</span>
+              <span className="font-mono text-[10px]">
+                {copiedId ? 'Copied!' : session.id.slice(-6)}
+              </span>
             </button>
           </div>
 
           {/* Stats */}
-          <div className="flex items-center gap-2 text-xs text-slate/70 mt-2">
+          <div className="mt-2 flex items-center gap-2 text-xs text-slate/70">
             <span>{completedTodos} tasks</span>
             <span className="text-slate/30">•</span>
             <span>{duration.durationShort}</span>
@@ -154,7 +156,12 @@ export const CompletedSessionCard = memo(function CompletedSessionCard({
         </div>
 
         {/* Chevron */}
-        <svg className="w-4 h-4 text-slate flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="h-4 w-4 flex-shrink-0 text-slate"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
         </svg>
       </div>

@@ -330,7 +330,11 @@ export default async function WikiPage({ params, searchParams }: PageProps) {
               />
 
               {/* Footer Navigation */}
-              <WikiFooterNav prevPage={page.prevPage} nextPage={page.nextPage} projectId={projectId} />
+              <WikiFooterNav
+                prevPage={page.prevPage}
+                nextPage={page.nextPage}
+                projectId={projectId}
+              />
             </div>
           </main>
 

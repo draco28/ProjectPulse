@@ -144,7 +144,10 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch backlog items');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch backlog items'
+    );
     return failure({
       code: 'INTERNAL_ERROR',
       message: 'Failed to fetch backlog items',

@@ -34,16 +34,16 @@ export const EmptyColumnState = memo(function EmptyColumnState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center py-12 px-4',
+        'flex flex-col items-center justify-center px-4 py-12',
         'text-center text-slate/40',
-        'border-2 border-dashed border-slate/10 rounded-lg',
+        'rounded-lg border-2 border-dashed border-slate/10',
         'transition-colors',
         className
       )}
     >
       {/* Icon */}
       <svg
-        className="w-8 h-8 mb-2 opacity-30"
+        className="mb-2 h-8 w-8 opacity-30"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -60,7 +60,7 @@ export const EmptyColumnState = memo(function EmptyColumnState({
       <p className="text-xs">{message}</p>
 
       {/* Hint for drag-drop */}
-      <p className="text-[10px] mt-1 opacity-50">Drag tickets here</p>
+      <p className="mt-1 text-[10px] opacity-50">Drag tickets here</p>
     </div>
   );
 });

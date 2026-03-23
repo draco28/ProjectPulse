@@ -915,7 +915,10 @@ export async function createWorkflowsAndSOPs(
       workflowsCreated++;
       log.info({ workflowName: def.name }, 'Created workflow');
     } catch (error) {
-      log.error({ workflowName: def.name, error: error instanceof Error ? error.message : String(error) }, 'Failed to create workflow');
+      log.error(
+        { workflowName: def.name, error: error instanceof Error ? error.message : String(error) },
+        'Failed to create workflow'
+      );
     }
   }
 
@@ -946,7 +949,10 @@ export async function createWorkflowsAndSOPs(
       sopsCreated++;
       log.info({ sopTitle: def.title }, 'Created SOP');
     } catch (error) {
-      log.error({ sopTitle: def.title, error: error instanceof Error ? error.message : String(error) }, 'Failed to create SOP');
+      log.error(
+        { sopTitle: def.title, error: error instanceof Error ? error.message : String(error) },
+        'Failed to create SOP'
+      );
     }
   }
 

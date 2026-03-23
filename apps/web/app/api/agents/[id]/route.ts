@@ -77,7 +77,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       workflows,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch agent');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch agent'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

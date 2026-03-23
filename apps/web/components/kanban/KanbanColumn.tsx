@@ -54,8 +54,15 @@ interface KanbanColumnProps {
 const STATUS_COLORS: Record<TicketStatus, { dot: string; border: string; pulse?: boolean }> = {
   [TICKET_STATUSES.BACKLOG]: { dot: 'bg-slate', border: '' },
   [TICKET_STATUSES.TODO]: { dot: 'bg-coral', border: 'border-l-4 border-coral' },
-  [TICKET_STATUSES.IN_PROGRESS]: { dot: 'bg-accent-yellow', border: 'border-l-4 border-accent-yellow', pulse: true },
-  [TICKET_STATUSES.IN_REVIEW]: { dot: 'bg-accent-purple', border: 'border-l-4 border-accent-purple' },
+  [TICKET_STATUSES.IN_PROGRESS]: {
+    dot: 'bg-accent-yellow',
+    border: 'border-l-4 border-accent-yellow',
+    pulse: true,
+  },
+  [TICKET_STATUSES.IN_REVIEW]: {
+    dot: 'bg-accent-purple',
+    border: 'border-l-4 border-accent-purple',
+  },
   [TICKET_STATUSES.DONE]: { dot: 'bg-accent-green', border: 'border-l-4 border-accent-green' },
 };
 
@@ -118,11 +125,15 @@ export const KanbanColumn = memo(function KanbanColumn({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div
-              className={cn('w-2.5 h-2.5 rounded-full', colors.dot, colors.pulse && 'animate-pulse')}
+              className={cn(
+                'h-2.5 w-2.5 rounded-full',
+                colors.dot,
+                colors.pulse && 'animate-pulse'
+              )}
             />
             <h3 className="font-semibold">{label}</h3>
           </div>
-          <span className="text-slate text-sm bg-dark-pressed px-2 py-0.5 rounded">
+          <span className="rounded bg-dark-pressed px-2 py-0.5 text-sm text-slate">
             {tickets.length}
           </span>
         </div>
@@ -132,8 +143,8 @@ export const KanbanColumn = memo(function KanbanColumn({
       <div
         ref={setNodeRef}
         className={cn(
-          'column-content flex-1 overflow-y-auto scrollbar-thin space-y-3',
-          isOver && 'bg-coral/5 ring-2 ring-coral/20 ring-inset'
+          'column-content scrollbar-thin flex-1 space-y-3 overflow-y-auto',
+          isOver && 'bg-coral/5 ring-2 ring-inset ring-coral/20'
         )}
       >
         <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>

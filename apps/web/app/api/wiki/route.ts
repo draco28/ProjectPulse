@@ -129,7 +129,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error creating wiki page');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Error creating wiki page'
+    );
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -280,7 +283,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error fetching wiki pages');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Error fetching wiki pages'
+    );
     return NextResponse.json(
       {
         error: 'Internal server error',

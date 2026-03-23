@@ -89,10 +89,10 @@ export function useUndoToast(): UseUndoToastReturn {
     // Show toast with custom render for countdown
     toast.custom(
       (t) => (
-        <div className="flex items-center gap-3 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-lg border border-slate-700 min-w-[300px]">
+        <div className="flex min-w-[300px] items-center gap-3 rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white shadow-lg">
           {/* Progress ring - shows countdown visually */}
-          <div className="relative w-8 h-8 flex-shrink-0">
-            <svg className="w-8 h-8 transform -rotate-90">
+          <div className="relative h-8 w-8 flex-shrink-0">
+            <svg className="h-8 w-8 -rotate-90 transform">
               <circle
                 cx="16"
                 cy="16"
@@ -115,7 +115,7 @@ export function useUndoToast(): UseUndoToastReturn {
                 strokeLinecap="round"
               />
             </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-xs font-mono">
+            <span className="absolute inset-0 flex items-center justify-center font-mono text-xs">
               {Math.ceil(timeRemaining / 1000)}
             </span>
           </div>
@@ -126,7 +126,7 @@ export function useUndoToast(): UseUndoToastReturn {
           {/* Undo button */}
           <button
             onClick={handleUndo}
-            className="px-3 py-1 text-sm font-medium text-coral hover:text-coral/80 hover:bg-coral/10 rounded transition-colors"
+            className="rounded px-3 py-1 text-sm font-medium text-coral transition-colors hover:bg-coral/10 hover:text-coral/80"
           >
             Undo
           </button>

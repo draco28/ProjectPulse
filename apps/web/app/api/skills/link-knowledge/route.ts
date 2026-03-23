@@ -182,7 +182,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create skill-knowledge link');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to create skill-knowledge link'
+    );
 
     return NextResponse.json(
       {
@@ -319,7 +322,10 @@ export async function DELETE(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to delete skill-knowledge link');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to delete skill-knowledge link'
+    );
 
     return NextResponse.json(
       {

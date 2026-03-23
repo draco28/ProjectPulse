@@ -257,7 +257,12 @@ export function recordSkillLoadMetric(metric: SkillLoadMetric): void {
   // TODO: Implement database storage (Phase 5 or future sprint)
   // For now, just log
   log.info(
-    { slug: metric.slug, source: metric.loadSource, tokenCount: metric.tokenCount, latencyMs: metric.latencyMs },
+    {
+      slug: metric.slug,
+      source: metric.loadSource,
+      tokenCount: metric.tokenCount,
+      latencyMs: metric.latencyMs,
+    },
     'Skill load recorded'
   );
 

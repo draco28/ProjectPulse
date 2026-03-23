@@ -31,23 +31,23 @@ const metrics = [
 
 export function Metrics() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#1A1A1A]">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+    <section className="bg-[#1A1A1A] px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid grid-cols-2 gap-6 lg:grid-cols-4 lg:gap-8">
           {metrics.map((metric) => (
             <div
               key={metric.label}
-              className="relative group p-6 rounded-2xl bg-[#2A2A2A] border border-[#3A3A3A] hover:border-[#FF8B6A]/50 transition-all duration-300"
+              className="group relative rounded-2xl border border-[#3A3A3A] bg-[#2A2A2A] p-6 transition-all duration-300 hover:border-[#FF8B6A]/50"
             >
               {/* Glow effect on hover */}
-              <div className="absolute inset-0 rounded-2xl bg-[#FF8B6A]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 rounded-2xl bg-[#FF8B6A]/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
               <div className="relative">
-                <div className="w-12 h-12 rounded-xl bg-[#FF8B6A]/10 flex items-center justify-center mb-4">
-                  <metric.icon className="w-6 h-6 text-[#FF8B6A]" />
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FF8B6A]/10">
+                  <metric.icon className="h-6 w-6 text-[#FF8B6A]" />
                 </div>
-                <div className="text-4xl font-bold text-white mb-1">{metric.value}</div>
-                <div className="text-lg font-semibold text-white mb-1">{metric.label}</div>
+                <div className="mb-1 text-4xl font-bold text-white">{metric.value}</div>
+                <div className="mb-1 text-lg font-semibold text-white">{metric.label}</div>
                 <div className="text-sm text-gray-500">{metric.description}</div>
               </div>
             </div>

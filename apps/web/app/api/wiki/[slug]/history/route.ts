@@ -82,7 +82,10 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch wiki history');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch wiki history'
+    );
     return NextResponse.json({ error: 'Failed to fetch wiki history' }, { status: 500 });
   }
 }

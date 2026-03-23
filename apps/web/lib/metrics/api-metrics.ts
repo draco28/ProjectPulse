@@ -122,9 +122,7 @@ function performFlush(): void {
 
   // Calculate batch statistics
   const durations = batch.map((m) => m.durationMs);
-  const avgDuration = Math.round(
-    durations.reduce((a, b) => a + b, 0) / batchSize
-  );
+  const avgDuration = Math.round(durations.reduce((a, b) => a + b, 0) / batchSize);
   const maxDuration = Math.max(...durations);
   const minDuration = Math.min(...durations);
 

@@ -76,7 +76,7 @@ describe('API Metrics', () => {
     originalDateNow = Date.now;
 
     // Import fresh module
-    apiMetrics = await import('../api-metrics') as APIMetricsModule;
+    apiMetrics = (await import('../api-metrics')) as APIMetricsModule;
   });
 
   afterEach(() => {
@@ -277,7 +277,7 @@ describe('API Metrics', () => {
       jest.resetModules();
       consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
       consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      apiMetrics = await import('../api-metrics') as APIMetricsModule;
+      apiMetrics = (await import('../api-metrics')) as APIMetricsModule;
 
       // Add 350 entries - expect flushes at 100, 200, 300
       for (let i = 0; i < 350; i++) {
@@ -303,7 +303,7 @@ describe('API Metrics', () => {
       jest.resetModules();
       consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
       consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      apiMetrics = await import('../api-metrics') as APIMetricsModule;
+      apiMetrics = (await import('../api-metrics')) as APIMetricsModule;
 
       // Add many entries - buffer count after each call should be < 100
       // (flush happens synchronously when count hits 100)
@@ -424,7 +424,7 @@ describe('API Metrics', () => {
       Date.now = jest.fn(() => baseTime);
 
       // Import fresh module with mocked time
-      apiMetrics = await import('../api-metrics') as APIMetricsModule;
+      apiMetrics = (await import('../api-metrics')) as APIMetricsModule;
 
       // Add some metrics (less than flush threshold)
       for (let i = 0; i < 10; i++) {
@@ -451,7 +451,7 @@ describe('API Metrics', () => {
       const baseTime = 1700000000000;
       Date.now = jest.fn(() => baseTime);
 
-      apiMetrics = await import('../api-metrics') as APIMetricsModule;
+      apiMetrics = (await import('../api-metrics')) as APIMetricsModule;
 
       // Add some metrics
       for (let i = 0; i < 10; i++) {

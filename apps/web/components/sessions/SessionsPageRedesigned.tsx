@@ -149,24 +149,18 @@ export function SessionsPageRedesigned({
     [resumeSession]
   );
 
-  const handleHistoryTicketClick = useCallback(
-    (ticketId: number) => {
-      // Create a minimal ticket object to open drawer
-      // In production, we'd fetch the full ticket
-      setSelectedTicket({ id: ticketId } as KanbanTicket);
-      setIsTicketDrawerOpen(true);
-    },
-    []
-  );
+  const handleHistoryTicketClick = useCallback((ticketId: number) => {
+    // Create a minimal ticket object to open drawer
+    // In production, we'd fetch the full ticket
+    setSelectedTicket({ id: ticketId } as KanbanTicket);
+    setIsTicketDrawerOpen(true);
+  }, []);
 
-  const handleViewSessionFromTicket = useCallback(
-    (_sessionId: string) => {
-      // Close ticket drawer and scroll to session
-      setIsTicketDrawerOpen(false);
-      // For now, just close - we could scroll to the session
-    },
-    []
-  );
+  const handleViewSessionFromTicket = useCallback((_sessionId: string) => {
+    // Close ticket drawer and scroll to session
+    setIsTicketDrawerOpen(false);
+    // For now, just close - we could scroll to the session
+  }, []);
 
   const handleCompletedSessionClick = useCallback(
     (_session: AgentSession) => {
@@ -177,12 +171,12 @@ export function SessionsPageRedesigned({
   );
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-[1800px] mx-auto">
+    <div className="mx-auto flex max-w-[1800px] flex-col gap-6 p-6">
       {/* Header */}
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Agent Sessions</h1>
-          <p className="text-sm text-slate mt-1">{projectName}</p>
+          <p className="mt-1 text-sm text-slate">{projectName}</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -190,20 +184,30 @@ export function SessionsPageRedesigned({
 
           <button
             onClick={handleOpenHistory}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-white/5 hover:bg-white/10 text-white transition flex items-center gap-2"
+            className="flex items-center gap-2 rounded-lg bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             History
           </button>
 
           <button
             onClick={() => setIsNewSessionModalOpen(true)}
-            className="btn-coral px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
+            className="btn-coral flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             New Session
           </button>
@@ -213,7 +217,7 @@ export function SessionsPageRedesigned({
       {/* Active Sessions */}
       {activeSessions.length > 0 && (
         <section>
-          <h2 className="text-xs font-medium text-slate uppercase tracking-wide mb-3">
+          <h2 className="mb-3 text-xs font-medium uppercase tracking-wide text-slate">
             Active Sessions
           </h2>
           <div className="space-y-4">
@@ -232,10 +236,10 @@ export function SessionsPageRedesigned({
       {/* Paused Sessions */}
       {pausedSessions.length > 0 && (
         <section>
-          <h2 className="text-xs font-medium text-slate uppercase tracking-wide mb-3">
+          <h2 className="mb-3 text-xs font-medium uppercase tracking-wide text-slate">
             Paused Sessions
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {pausedSessions.map((session) => (
               <PausedSessionCard
                 key={session.id}
@@ -250,18 +254,18 @@ export function SessionsPageRedesigned({
       {/* Recently Completed */}
       {completedSessions.length > 0 && (
         <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-medium text-slate uppercase tracking-wide">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-xs font-medium uppercase tracking-wide text-slate">
               Recently Completed
             </h2>
             <button
               onClick={handleOpenHistory}
-              className="text-xs text-coral hover:text-coral-light transition"
+              className="text-xs text-coral transition hover:text-coral-light"
             >
               View All →
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {completedSessions.slice(0, 6).map((session) => (
               <CompletedSessionCard
                 key={session.id}
@@ -279,25 +283,39 @@ export function SessionsPageRedesigned({
       </section>
 
       {/* Empty State */}
-      {!isLoading && activeSessions.length === 0 && pausedSessions.length === 0 && completedSessions.length === 0 && (
-        <div className="neu-raised rounded-2xl p-12 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
-            <svg className="w-8 h-8 text-slate" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+      {!isLoading &&
+        activeSessions.length === 0 &&
+        pausedSessions.length === 0 &&
+        completedSessions.length === 0 && (
+          <div className="neu-raised rounded-2xl p-12 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
+              <svg
+                className="h-8 w-8 text-slate"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <h3 className="mb-2 text-lg font-semibold text-white">No Agent Sessions Yet</h3>
+            <p className="mx-auto mb-6 max-w-md text-sm text-slate">
+              Sessions track Claude Code work periods. Start a session using MCP tools to see your
+              AI work here.
+            </p>
+            <button
+              onClick={() => setIsNewSessionModalOpen(true)}
+              className="btn-coral rounded-lg px-6 py-2.5 font-medium"
+            >
+              Learn How to Start a Session
+            </button>
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">No Agent Sessions Yet</h3>
-          <p className="text-sm text-slate mb-6 max-w-md mx-auto">
-            Sessions track Claude Code work periods. Start a session using MCP tools to see your AI work here.
-          </p>
-          <button
-            onClick={() => setIsNewSessionModalOpen(true)}
-            className="btn-coral px-6 py-2.5 rounded-lg font-medium"
-          >
-            Learn How to Start a Session
-          </button>
-        </div>
-      )}
+        )}
 
       {/* Modals & Drawers */}
       <NewSessionModal

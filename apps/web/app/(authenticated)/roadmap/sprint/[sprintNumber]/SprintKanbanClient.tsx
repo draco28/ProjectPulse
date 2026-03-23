@@ -21,7 +21,11 @@ interface SprintKanbanClientProps {
   initialSprint: SprintContext;
 }
 
-export default function SprintKanbanClient({ sprintId, projectId, initialSprint: _initialSprint }: SprintKanbanClientProps) {
+export default function SprintKanbanClient({
+  sprintId,
+  projectId,
+  initialSprint: _initialSprint,
+}: SprintKanbanClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -79,13 +83,13 @@ export default function SprintKanbanClient({ sprintId, projectId, initialSprint:
   }, [isDrawerOpen, handleCloseDrawer]);
 
   return (
-    <div className="h-screen flex flex-col bg-dark">
+    <div className="flex h-screen flex-col bg-dark">
       {/* Main Kanban Board */}
       <SprintKanbanBoard
         sprintId={sprintId}
         projectId={projectId}
         onTicketClick={handleTicketClick}
-        className="flex-1 min-h-0"
+        className="min-h-0 flex-1"
       />
 
       {/* Ticket Detail Drawer */}

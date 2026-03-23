@@ -99,7 +99,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Personas list failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Personas list failed'
+    );
     return NextResponse.json(
       {
         error: 'Failed to list personas',

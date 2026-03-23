@@ -205,9 +205,7 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       sessions = sessions.filter(
-        (s) =>
-          s.name?.toLowerCase().includes(query) ||
-          s.progress?.toLowerCase().includes(query)
+        (s) => s.name?.toLowerCase().includes(query) || s.progress?.toLowerCase().includes(query)
       );
     }
 
@@ -242,7 +240,7 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
     >
       <div className="drawer-panel">
         {/* Header */}
-        <div className="sticky top-0 bg-dark-card border-b border-white/10 p-4 z-10 space-y-4">
+        <div className="sticky top-0 z-10 space-y-4 border-b border-white/10 bg-dark-card p-4">
           {/* Title + Close */}
           <div className="flex items-center justify-between">
             <h2 id="drawer-title" className="text-lg font-semibold text-white">
@@ -250,11 +248,16 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/5 text-slate hover:text-white transition"
+              className="rounded-lg p-2 text-slate transition hover:bg-white/5 hover:text-white"
               aria-label="Close drawer"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -262,8 +265,18 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
           {/* Search */}
           <div className="neu-inset rounded-lg">
             <div className="flex items-center gap-2 px-3 py-2">
-              <svg className="w-4 h-4 text-slate flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="h-4 w-4 flex-shrink-0 text-slate"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
               <input
                 type="text"
@@ -275,10 +288,15 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="p-1 rounded hover:bg-white/5 text-slate hover:text-white"
+                  className="rounded p-1 text-slate hover:bg-white/5 hover:text-white"
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               )}
@@ -286,7 +304,7 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
           </div>
 
           {/* Filter Pills */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-auto-hide">
+          <div className="scrollbar-auto-hide flex gap-2 overflow-x-auto pb-1">
             {FILTER_OPTIONS.map((option) => (
               <button
                 key={option.value}
@@ -300,17 +318,27 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto scrollbar-auto-hide">
+        <div className="scrollbar-auto-hide flex-1 overflow-y-auto">
           {sessionsQuery.isLoading ? (
-            <div className="flex items-center justify-center h-48">
-              <div className="animate-spin w-6 h-6 border-2 border-coral border-t-transparent rounded-full" />
+            <div className="flex h-48 items-center justify-center">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-coral border-t-transparent" />
             </div>
           ) : groupedSessions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 text-center px-4">
-              <svg className="w-12 h-12 text-slate/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div className="flex h-48 flex-col items-center justify-center px-4 text-center">
+              <svg
+                className="mb-3 h-12 w-12 text-slate/30"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
-              <p className="text-slate text-sm">
+              <p className="text-sm text-slate">
                 {searchQuery ? 'No sessions match your search' : 'No completed sessions yet'}
               </p>
             </div>
@@ -318,8 +346,8 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
             groupedSessions.map((group) => (
               <div key={group.label}>
                 {/* Date Group Header */}
-                <div className="sticky top-0 px-4 py-2 bg-dark/90 backdrop-blur-sm border-b border-white/5">
-                  <p className="text-xs font-medium text-slate uppercase tracking-wide">
+                <div className="sticky top-0 border-b border-white/5 bg-dark/90 px-4 py-2 backdrop-blur-sm">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate">
                     {group.label}
                   </p>
                 </div>
@@ -338,7 +366,7 @@ export const SessionHistoryDrawer = memo(function SessionHistoryDrawer({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-dark-card border-t border-white/10 p-4">
+        <div className="sticky bottom-0 border-t border-white/10 bg-dark-card p-4">
           <div className="flex items-center justify-between text-xs text-slate">
             <span>{totals.count} total sessions</span>
             <span>{(totals.tokens / 1000).toFixed(1)}k tokens this month</span>

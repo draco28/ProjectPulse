@@ -47,3 +47,6 @@ yarn.lock
 # Docker
 postgres_data/
 uploads/
+
+# Python MCP Server
+apps/mcp-server-python/

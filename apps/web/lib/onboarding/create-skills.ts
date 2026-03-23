@@ -729,7 +729,10 @@ export async function createSkills(
       created++;
       log.info({ skillTitle: def.title }, 'Created skill');
     } catch (error) {
-      log.error({ skillTitle: def.title, error: error instanceof Error ? error.message : String(error) }, 'Failed to create skill');
+      log.error(
+        { skillTitle: def.title, error: error instanceof Error ? error.message : String(error) },
+        'Failed to create skill'
+      );
       // Continue with other skills even if one fails
     }
   }

@@ -308,7 +308,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to validate document traceability');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to validate document traceability'
+    );
     return failure({
       code: 'INTERNAL_ERROR',
       message: 'Failed to validate document traceability',

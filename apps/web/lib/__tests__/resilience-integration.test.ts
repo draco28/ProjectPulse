@@ -15,14 +15,7 @@
  * @module lib/__tests__/resilience-integration.test.ts
  */
 
-import {
-  describe,
-  it,
-  expect,
-  jest,
-  beforeEach,
-  afterEach,
-} from '@jest/globals';
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { withTimeout, TimeoutError } from '../utils/timeout';
 import { withRetry, type RetryOptions } from '../retry';
 import {
@@ -150,14 +143,11 @@ describe('Resilience Integration Tests', () => {
         return 'success';
       };
 
-      const result = await withRetry(
-        () => withTimeout(slowThenFast(), 50, 'test-slow-then-fast'),
-        {
-          ...TEST_RETRY_OPTIONS,
-          maxAttempts: 3,
-          retryableErrors: ['timed out'], // TimeoutError message contains 'timed out'
-        }
-      );
+      const result = await withRetry(() => withTimeout(slowThenFast(), 50, 'test-slow-then-fast'), {
+        ...TEST_RETRY_OPTIONS,
+        maxAttempts: 3,
+        retryableErrors: ['timed out'], // TimeoutError message contains 'timed out'
+      });
 
       expect(result).toBe('success');
       expect(attempts).toBe(2);
@@ -167,14 +157,11 @@ describe('Resilience Integration Tests', () => {
       const alwaysSlow = createSlowFunction(100, 'never');
 
       await expect(
-        withRetry(
-          () => withTimeout(alwaysSlow(), 20, 'test-persistent-slow'),
-          {
-            ...TEST_RETRY_OPTIONS,
-            maxAttempts: 2,
-            retryableErrors: ['timed out'],
-          }
-        )
+        withRetry(() => withTimeout(alwaysSlow(), 20, 'test-persistent-slow'), {
+          ...TEST_RETRY_OPTIONS,
+          maxAttempts: 2,
+          retryableErrors: ['timed out'],
+        })
       ).rejects.toThrow(TimeoutError);
     });
 
@@ -218,14 +205,10 @@ describe('Resilience Integration Tests', () => {
     it('should open circuit after threshold failures (CLOSED -> OPEN)', async () => {
       const failingFn = createAlwaysFail(() => new Error('Service down'));
       // Use volumeThreshold: 3 so circuit stays CLOSED until 3rd failure
-      const breaker = getCircuitBreaker(
-        'transition-test-closed-open',
-        failingFn,
-        {
-          ...TEST_CIRCUIT_OPTIONS,
-          volumeThreshold: 3, // Need 3 requests before calculating percentage
-        }
-      );
+      const breaker = getCircuitBreaker('transition-test-closed-open', failingFn, {
+        ...TEST_CIRCUIT_OPTIONS,
+        volumeThreshold: 3, // Need 3 requests before calculating percentage
+      });
 
       // First failure - circuit stays CLOSED (volumeThreshold not met)
       await expect(breaker.fire()).rejects.toThrow('Service down');
@@ -252,11 +235,7 @@ describe('Resilience Integration Tests', () => {
         errorThresholdPercentage: 1,
       };
 
-      const breaker = getCircuitBreaker(
-        'transition-test-half-open',
-        failingFn,
-        shortResetOptions
-      );
+      const breaker = getCircuitBreaker('transition-test-half-open', failingFn, shortResetOptions);
 
       // Trip the circuit
       await expect(breaker.fire()).rejects.toThrow();
@@ -280,9 +259,7 @@ describe('Resilience Integration Tests', () => {
       // The circuit should have attempted half-open
       status = getCircuitStatus();
       // After failed half-open test, circuit goes back to OPEN
-      expect(['HALF_OPEN', 'OPEN']).toContain(
-        status['transition-test-half-open'].state
-      );
+      expect(['HALF_OPEN', 'OPEN']).toContain(status['transition-test-half-open'].state);
     });
 
     it('should close circuit after successful HALF_OPEN request', async () => {
@@ -329,21 +306,9 @@ describe('Resilience Integration Tests', () => {
     });
 
     it('should return correct status for multiple breakers', () => {
-      getCircuitBreaker(
-        'multi-test-a',
-        createAlwaysSucceed('a'),
-        TEST_CIRCUIT_OPTIONS
-      );
-      getCircuitBreaker(
-        'multi-test-b',
-        createAlwaysSucceed('b'),
-        TEST_CIRCUIT_OPTIONS
-      );
-      getCircuitBreaker(
-        'multi-test-c',
-        createAlwaysSucceed('c'),
-        TEST_CIRCUIT_OPTIONS
-      );
+      getCircuitBreaker('multi-test-a', createAlwaysSucceed('a'), TEST_CIRCUIT_OPTIONS);
+      getCircuitBreaker('multi-test-b', createAlwaysSucceed('b'), TEST_CIRCUIT_OPTIONS);
+      getCircuitBreaker('multi-test-c', createAlwaysSucceed('c'), TEST_CIRCUIT_OPTIONS);
 
       const status = getCircuitStatus();
       expect(Object.keys(status)).toHaveLength(3);
@@ -464,16 +429,12 @@ describe('Resilience Integration Tests', () => {
       };
 
       // Create circuit breaker wrapping the function
-      const breaker = getCircuitBreaker(
-        'defense-in-depth-test',
-        unreliableFn,
-        {
-          timeout: 50, // Circuit breaker's internal timeout
-          volumeThreshold: 5, // High threshold to not trip during retries
-          errorThresholdPercentage: 80,
-          resetTimeout: 1000,
-        }
-      );
+      const breaker = getCircuitBreaker('defense-in-depth-test', unreliableFn, {
+        timeout: 50, // Circuit breaker's internal timeout
+        volumeThreshold: 5, // High threshold to not trip during retries
+        errorThresholdPercentage: 80,
+        resetTimeout: 1000,
+      });
 
       // Wrap with retry and timeout
       const result = await withRetry(
@@ -506,15 +467,11 @@ describe('Resilience Integration Tests', () => {
         successFn,
         TEST_CIRCUIT_OPTIONS
       );
-      const failBreaker = getCircuitBreaker(
-        'independent-fail',
-        failFn,
-        {
-          ...TEST_CIRCUIT_OPTIONS,
-          volumeThreshold: 1,
-          errorThresholdPercentage: 1,
-        }
-      );
+      const failBreaker = getCircuitBreaker('independent-fail', failFn, {
+        ...TEST_CIRCUIT_OPTIONS,
+        volumeThreshold: 1,
+        errorThresholdPercentage: 1,
+      });
 
       // Make successful calls
       await successBreaker.fire();
@@ -562,11 +519,7 @@ describe('Resilience Integration Tests', () => {
         // Do something without returning
       });
 
-      const breaker = getCircuitBreaker(
-        'void-test',
-        voidFn,
-        TEST_CIRCUIT_OPTIONS
-      );
+      const breaker = getCircuitBreaker('void-test', voidFn, TEST_CIRCUIT_OPTIONS);
 
       const result = await breaker.fire();
       expect(result).toBeUndefined();

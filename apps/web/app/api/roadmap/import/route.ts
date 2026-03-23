@@ -191,7 +191,10 @@ export async function POST(request: NextRequest) {
       try {
         materializationResult = await materializeRoadmap(roadmap.id);
       } catch (matError) {
-        log.error({ error: matError instanceof Error ? matError.message : String(matError) }, 'Roadmap import materialization error');
+        log.error(
+          { error: matError instanceof Error ? matError.message : String(matError) },
+          'Roadmap import materialization error'
+        );
         warnings.push(
           `Materialization failed: ${matError instanceof Error ? matError.message : 'Unknown error'}`
         );
@@ -267,7 +270,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Import roadmap failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Import roadmap failed'
+    );
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to import roadmap' } },
       { status: 500 }

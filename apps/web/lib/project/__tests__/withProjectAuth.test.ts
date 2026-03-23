@@ -97,9 +97,9 @@ describe('withProjectAuth()', () => {
     it('should redirect to /app when requireAdmin=true and user is not admin', async () => {
       mockGetCurrentUser.mockResolvedValue(mockUser); // Regular user
 
-      await expect(
-        withProjectAuth(undefined, { requireAdmin: true })
-      ).rejects.toThrow('NEXT_REDIRECT:/app');
+      await expect(withProjectAuth(undefined, { requireAdmin: true })).rejects.toThrow(
+        'NEXT_REDIRECT:/app'
+      );
 
       expect(mockRedirect).toHaveBeenCalledWith('/app');
     });

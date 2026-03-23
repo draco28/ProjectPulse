@@ -109,7 +109,18 @@ export async function POST(request: NextRequest) {
     const remaining = TOKEN_BUDGET_LIMIT - totalEstimated;
     const safe = totalEstimated < TOKEN_BUDGET_LIMIT;
 
-    log.info({ projectId, sessionNumber: session.sessionNumber, tokensUsed, estimatedTokens, totalEstimated, remaining, safe }, 'Budget check complete');
+    log.info(
+      {
+        projectId,
+        sessionNumber: session.sessionNumber,
+        tokensUsed,
+        estimatedTokens,
+        totalEstimated,
+        remaining,
+        safe,
+      },
+      'Budget check complete'
+    );
 
     // 5. Determine recommendation
     let recommendation: string;
@@ -127,7 +138,16 @@ export async function POST(request: NextRequest) {
 
     // 6. Log warning if unsafe
     if (!safe) {
-      log.warn({ projectId, sessionNumber: session.sessionNumber, totalEstimated, budgetLimit: TOKEN_BUDGET_LIMIT, excess: totalEstimated - TOKEN_BUDGET_LIMIT }, 'TOKEN BUDGET EXCEEDED');
+      log.warn(
+        {
+          projectId,
+          sessionNumber: session.sessionNumber,
+          totalEstimated,
+          budgetLimit: TOKEN_BUDGET_LIMIT,
+          excess: totalEstimated - TOKEN_BUDGET_LIMIT,
+        },
+        'TOKEN BUDGET EXCEEDED'
+      );
     }
 
     return NextResponse.json({
@@ -142,7 +162,10 @@ export async function POST(request: NextRequest) {
       recommendation,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to check token budget');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to check token budget'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

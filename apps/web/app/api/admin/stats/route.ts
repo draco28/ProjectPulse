@@ -66,7 +66,10 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch stats');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch stats'
+    );
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {

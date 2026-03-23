@@ -151,7 +151,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<WikiGener
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Wiki generation error');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Wiki generation error'
+    );
 
     return NextResponse.json(
       {

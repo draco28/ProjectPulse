@@ -31,9 +31,7 @@ jest.mock('@/lib/logger', () => ({
 
 import { generateEmbedding } from '@/lib/embeddings';
 
-const mockGenerateEmbedding = generateEmbedding as jest.MockedFunction<
-  typeof generateEmbedding
->;
+const mockGenerateEmbedding = generateEmbedding as jest.MockedFunction<typeof generateEmbedding>;
 
 // Helper to create a mock embedding result
 function createMockEmbeddingResult(provider: 'ollama' | 'openai' = 'ollama') {

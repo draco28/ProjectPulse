@@ -146,7 +146,7 @@ async function getTickets(projectId: number, searchParams: SearchParams) {
         childTickets: {
           select: {
             id: true,
-            ticketNumber: true,  // Sprint 17
+            ticketNumber: true, // Sprint 17
             title: true,
             status: true,
             priority: true,
@@ -212,7 +212,7 @@ export default async function TicketsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  
+
   // Unified auth + project resolution
   const { project, projectId } = await withProjectAuth(params.project);
 

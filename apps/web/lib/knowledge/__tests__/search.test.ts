@@ -228,9 +228,7 @@ describe('Knowledge Search Service Layer', () => {
         },
       ];
 
-      mockPrisma.$queryRaw
-        .mockResolvedValueOnce(mockResult)
-        .mockResolvedValueOnce(mockResult);
+      mockPrisma.$queryRaw.mockResolvedValueOnce(mockResult).mockResolvedValueOnce(mockResult);
 
       mockFindRelated.mockResolvedValue([]);
 
@@ -266,9 +264,7 @@ describe('Knowledge Search Service Layer', () => {
         },
       ];
 
-      mockPrisma.$queryRaw
-        .mockResolvedValueOnce(mockResult)
-        .mockResolvedValueOnce(mockResult);
+      mockPrisma.$queryRaw.mockResolvedValueOnce(mockResult).mockResolvedValueOnce(mockResult);
 
       await hybridSearch('test query', {
         projectId: 3,
@@ -293,9 +289,7 @@ describe('Knowledge Search Service Layer', () => {
         },
       ];
 
-      mockPrisma.$queryRaw
-        .mockResolvedValueOnce(mockResult)
-        .mockResolvedValueOnce(mockResult);
+      mockPrisma.$queryRaw.mockResolvedValueOnce(mockResult).mockResolvedValueOnce(mockResult);
 
       const results = await hybridSearch('test query', {
         projectId: 3,
@@ -377,7 +371,7 @@ describe('Knowledge Search Service Layer', () => {
       // Unicode homoglyph attack - some systems might parse this incorrectly
       await semanticSearch('test', {
         projectId: 1,
-        category: "test\u0027 OR \u00271\u0027=\u00271", // Unicode quotes
+        category: 'test\u0027 OR \u00271\u0027=\u00271', // Unicode quotes
       });
 
       expect(mockPrisma.$queryRaw).toHaveBeenCalled();

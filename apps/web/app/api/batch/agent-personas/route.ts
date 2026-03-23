@@ -110,7 +110,10 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    log.info({ projectId, created: createdPersonas.length, duplicates: duplicates.length }, 'Personas created');
+    log.info(
+      { projectId, created: createdPersonas.length, duplicates: duplicates.length },
+      'Personas created'
+    );
 
     return NextResponse.json({
       success: true,
@@ -122,7 +125,10 @@ export async function POST(request: NextRequest) {
       message: `Created ${createdPersonas.length}/${personas.length} personas. ${duplicates.length} duplicates skipped.`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create agent persona batch');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to create agent persona batch'
+    );
     return NextResponse.json(
       {
         error: 'Failed to create agent persona batch',

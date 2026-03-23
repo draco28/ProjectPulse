@@ -95,7 +95,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch agent session');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch agent session'
+    );
     return NextResponse.json({ error: 'Failed to fetch agent session' }, { status: 500 });
   }
 }
@@ -129,7 +132,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Agent session not found' }, { status: 404 });
     }
 
-    const { name, plan, todos, progress, appendProgress, activeTicketIds, status, tokenCount } = validation.data;
+    const { name, plan, todos, progress, appendProgress, activeTicketIds, status, tokenCount } =
+      validation.data;
 
     // Build update data - using Prisma InputJsonValue for JSON fields
     const updateData: Record<string, unknown> = {};
@@ -286,7 +290,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update agent session');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to update agent session'
+    );
     return NextResponse.json({ error: 'Failed to update agent session' }, { status: 500 });
   }
 }
@@ -325,7 +332,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to delete agent session');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to delete agent session'
+    );
     return NextResponse.json({ error: 'Failed to delete agent session' }, { status: 500 });
   }
 }

@@ -96,7 +96,8 @@ export async function GET(request: NextRequest) {
 
     // Sprint 9: Use projectContextJson directly (preferred) or fall back to response.projectContextJson
     const projectContext =
-      (session1.projectContextJson as ProjectContext | null) || (session1.response as SessionResponse | null)?.projectContextJson;
+      (session1.projectContextJson as ProjectContext | null) ||
+      (session1.response as SessionResponse | null)?.projectContextJson;
 
     if (!projectContext) {
       return NextResponse.json(
@@ -108,7 +109,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    log.info({ projectId, projectName: projectContext.metadata?.projectName, totalPrompts: DOCUMENT_PROMPTS.length }, 'Generating prompts');
+    log.info(
+      {
+        projectId,
+        projectName: projectContext.metadata?.projectName,
+        totalPrompts: DOCUMENT_PROMPTS.length,
+      },
+      'Generating prompts'
+    );
 
     // Generate all 15 prompts with project context injected
     const documentPrompts = DOCUMENT_PROMPTS.map((promptDef) => {
@@ -126,7 +134,14 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    log.info({ projectId, totalDocuments: documentPrompts.length, estimatedWords: getTotalEstimatedWords() }, 'Prompts generated successfully');
+    log.info(
+      {
+        projectId,
+        totalDocuments: documentPrompts.length,
+        estimatedWords: getTotalEstimatedWords(),
+      },
+      'Prompts generated successfully'
+    );
 
     // Get word count from metrics (preferred) or response (deprecated)
     const executiveSummaryWordCount =
@@ -147,7 +162,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to generate document prompts');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to generate document prompts'
+    );
 
     // Sprint 12: Handle auth errors
     if (error instanceof AuthError) {

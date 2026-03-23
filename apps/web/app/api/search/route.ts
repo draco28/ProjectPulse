@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import {
-  getAuthorizedProjectId,
-  AuthError,
-  authErrorResponse,
-} from '@/lib/auth/validateRequest';
+import { getAuthorizedProjectId, AuthError, authErrorResponse } from '@/lib/auth/validateRequest';
 import { createRequestLogger } from '@/lib/logger';
 import { getRequestId } from '@/lib/request-context';
 

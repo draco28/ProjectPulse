@@ -155,7 +155,10 @@ export async function GET(request: NextRequest) {
     let archiveError: Error | null = null;
     archive.on('error', (err) => {
       archiveError = err;
-      log.error({ error: err instanceof Error ? err.message : String(err) }, 'Skills export archive error');
+      log.error(
+        { error: err instanceof Error ? err.message : String(err) },
+        'Skills export archive error'
+      );
     });
 
     // Convert skills to markdown files
@@ -186,7 +189,10 @@ export async function GET(request: NextRequest) {
     const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const filename = `skills-export-${date}.zip`;
 
-    log.info({ filename, bytes: zipBuffer.length, fileCount: skills.length }, 'Created skills export archive');
+    log.info(
+      { filename, bytes: zipBuffer.length, fileCount: skills.length },
+      'Created skills export archive'
+    );
 
     // Return ZIP file
     return new NextResponse(zipBuffer, {
@@ -198,7 +204,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to export skills');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to export skills'
+    );
     return NextResponse.json(
       {
         error: 'Failed to export skills',

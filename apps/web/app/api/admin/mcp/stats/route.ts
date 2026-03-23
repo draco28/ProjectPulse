@@ -129,7 +129,10 @@ export async function GET(request: NextRequest) {
       blockedTools: blockedToolsValue ?? [],
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch MCP statistics');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch MCP statistics'
+    );
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {

@@ -106,12 +106,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         if (newStatus === TICKET_STATUSES.IN_PROGRESS) {
           message = `To move ticket #${ticketId} to in-progress, command your agent: "Start a session with ticket ${ticketId}"`;
           hint = 'Only agent sessions can claim tickets and move them to in-progress.';
-        } else if (oldStatus === TICKET_STATUSES.IN_PROGRESS && newStatus === TICKET_STATUSES.IN_REVIEW) {
+        } else if (
+          oldStatus === TICKET_STATUSES.IN_PROGRESS &&
+          newStatus === TICKET_STATUSES.IN_REVIEW
+        ) {
           message = `To move ticket #${ticketId} to in-review, command your agent: "End the current session"`;
           hint = 'Session end automatically moves linked tickets to in-review for verification.';
         } else if (oldStatus === TICKET_STATUSES.IN_PROGRESS) {
           message = `Ticket #${ticketId} is being worked on by an agent session. Cannot move manually.`;
-          hint = 'Wait for the agent session to complete or command the agent to release this ticket.';
+          hint =
+            'Wait for the agent session to complete or command the agent to release this ticket.';
         } else if (oldStatus === TICKET_STATUSES.TODO && newStatus !== TICKET_STATUSES.BACKLOG) {
           message = `To work on ticket #${ticketId}, command your agent: "Start a session with ticket ${ticketId}"`;
           hint = 'Tickets move from todo to in-progress via agent session start.';
@@ -207,7 +211,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         // Sprint 17: Include ticketNumber for project-scoped display
         select: {
           id: true,
-          ticketNumber: true,  // Sprint 17
+          ticketNumber: true, // Sprint 17
           title: true,
           status: true,
           priority: true,
@@ -217,7 +221,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           parentTicket: {
             select: {
               id: true,
-              ticketNumber: true,  // Sprint 17
+              ticketNumber: true, // Sprint 17
               title: true,
               status: true,
             },
@@ -225,7 +229,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           childTickets: {
             select: {
               id: true,
-              ticketNumber: true,  // Sprint 17
+              ticketNumber: true, // Sprint 17
               status: true,
               title: true,
               kind: true,
@@ -265,7 +269,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     // Transform to KanbanTicket - Sprint 17: Include ticketNumber
     const kanbanTicket: KanbanTicket = {
       id: updatedTicket.id,
-      ticketNumber: updatedTicket.ticketNumber,  // Sprint 17
+      ticketNumber: updatedTicket.ticketNumber, // Sprint 17
       title: updatedTicket.title,
       status: updatedTicket.status as TicketStatus,
       priority: updatedTicket.priority,
@@ -275,14 +279,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       parentTicket: updatedTicket.parentTicket
         ? {
             id: updatedTicket.parentTicket.id,
-            ticketNumber: updatedTicket.parentTicket.ticketNumber,  // Sprint 17
+            ticketNumber: updatedTicket.parentTicket.ticketNumber, // Sprint 17
             title: updatedTicket.parentTicket.title,
             status: updatedTicket.parentTicket.status as TicketStatus,
           }
         : null,
       childTickets: updatedTicket.childTickets?.map((c) => ({
         id: c.id,
-        ticketNumber: c.ticketNumber,  // Sprint 17
+        ticketNumber: c.ticketNumber, // Sprint 17
         status: c.status as TicketStatus,
         title: c.title,
         kind: c.kind,
@@ -327,7 +331,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to move ticket');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to move ticket'
+    );
     return NextResponse.json(
       { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to move ticket' } },
       { status: 500 }

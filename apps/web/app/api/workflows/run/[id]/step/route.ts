@@ -160,7 +160,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     // Move to next step
     const nextStepNumber = currentStepNumber + 1;
-    const nextTemplateStep = templateSteps[nextStepNumber - 1] as { description?: string } | undefined;
+    const nextTemplateStep = templateSteps[nextStepNumber - 1] as
+      | { description?: string }
+      | undefined;
     const nextStep = workflowRun.steps.find((s) => s.stepNumber === nextStepNumber);
 
     if (!nextStep) {
@@ -206,7 +208,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       error: null,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Error executing workflow step');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Error executing workflow step'
+    );
     return NextResponse.json(
       {
         data: null,

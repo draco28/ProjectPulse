@@ -316,7 +316,11 @@ export async function calculateAndCascadeProgress(
     if (ticket.sprintId) {
       const sprintSummary = await calculateSprintProgress(tx, ticket.sprintId);
       result.sprintProgress = sprintSummary.progress;
-      result.autoCompletedSprint = await updateSprintProgress(tx, ticket.sprintId, sprintSummary.progress);
+      result.autoCompletedSprint = await updateSprintProgress(
+        tx,
+        ticket.sprintId,
+        sprintSummary.progress
+      );
 
       // Sprint 15: Auto-activate next sprint when current completes
       if (result.autoCompletedSprint) {

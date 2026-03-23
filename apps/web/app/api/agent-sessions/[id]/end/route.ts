@@ -270,7 +270,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to end agent session');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to end agent session'
+    );
     return NextResponse.json({ error: 'Failed to end agent session' }, { status: 500 });
   }
 }

@@ -18,7 +18,9 @@ declare module 'react-syntax-highlighter/dist/esm/light' {
     lineNumberStyle?: React.CSSProperties | ((lineNumber: number) => React.CSSProperties);
     wrapLines?: boolean;
     wrapLongLines?: boolean;
-    lineProps?: React.HTMLAttributes<HTMLElement> | ((lineNumber: number) => React.HTMLAttributes<HTMLElement>);
+    lineProps?:
+      | React.HTMLAttributes<HTMLElement>
+      | ((lineNumber: number) => React.HTMLAttributes<HTMLElement>);
     PreTag?: keyof JSX.IntrinsicElements | React.ComponentType<unknown>;
     CodeTag?: keyof JSX.IntrinsicElements | React.ComponentType<unknown>;
   }

@@ -32,9 +32,7 @@ import type { RoadmapOverviewResponse } from '@/types/kanban';
  * CRITICAL: Must forward cookies for server-side auth to work.
  * Server-side fetch doesn't automatically include cookies.
  */
-async function getRoadmapOverview(
-  projectId: number
-): Promise<RoadmapOverviewResponse | null> {
+async function getRoadmapOverview(projectId: number): Promise<RoadmapOverviewResponse | null> {
   try {
     // Get cookies from incoming request to forward to internal API
     // CRITICAL: cookies().toString() returns "[object Object]", not the cookie string!
@@ -45,17 +43,14 @@ async function getRoadmapOverview(
 
     // Internal API call - use absolute URL for server-side fetch
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const response = await fetch(
-      `${baseUrl}/api/roadmap/overview?projectId=${projectId}`,
-      {
-        cache: 'no-store', // Always fresh data for roadmap
-        headers: {
-          'Content-Type': 'application/json',
-          // Forward cookies for authentication
-          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-        },
-      }
-    );
+    const response = await fetch(`${baseUrl}/api/roadmap/overview?projectId=${projectId}`, {
+      cache: 'no-store', // Always fresh data for roadmap
+      headers: {
+        'Content-Type': 'application/json',
+        // Forward cookies for authentication
+        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      },
+    });
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -69,7 +64,12 @@ async function getRoadmapOverview(
 
     // API returns { success, data } - extract the data property
     const result = await response.json();
-    console.log('[getRoadmapOverview] Response success:', result.success, 'hasData:', !!result.data);
+    console.log(
+      '[getRoadmapOverview] Response success:',
+      result.success,
+      'hasData:',
+      !!result.data
+    );
     if (!result.success || !result.data) {
       console.error('[getRoadmapOverview] Invalid response:', result);
       return null;
@@ -90,7 +90,7 @@ export default async function RoadmapPage({
   searchParams: Promise<{ project?: string }>;
 }) {
   const params = await searchParams;
-  
+
   // Unified auth + project resolution
   const { project, projectId } = await withProjectAuth(params.project);
 

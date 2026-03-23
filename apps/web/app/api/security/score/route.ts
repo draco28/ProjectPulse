@@ -49,7 +49,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to calculate security score');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to calculate security score'
+    );
     return NextResponse.json({ error: 'Failed to calculate security score' }, { status: 500 });
   }
 }

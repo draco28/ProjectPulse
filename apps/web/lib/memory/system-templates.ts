@@ -213,7 +213,10 @@ export async function cloneMemoryBanks(targetProjectId: number) {
 
     log.info({ targetProjectId }, 'Memory Bank cloning complete');
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error), targetProjectId }, 'Memory Bank cloning failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error), targetProjectId },
+      'Memory Bank cloning failed'
+    );
     // Do NOT throw - project creation should succeed even if Memory Bank seeding fails
   }
 }

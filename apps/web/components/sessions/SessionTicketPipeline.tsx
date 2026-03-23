@@ -52,18 +52,18 @@ function PipelineColumn({
   onTicketClick,
 }: PipelineColumnProps) {
   return (
-    <div className={cn('flex-1 min-w-[200px]', isWorkingColumn && 'flex-[1.5]')}>
+    <div className={cn('min-w-[200px] flex-1', isWorkingColumn && 'flex-[1.5]')}>
       {/* Column Header */}
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/5">
-        <span className={cn('w-2.5 h-2.5 rounded-full', statusColor)} />
-        <span className="text-xs font-medium text-slate uppercase tracking-wide">{title}</span>
-        <span className="text-xs text-slate/60 ml-auto">{tickets.length}</span>
+      <div className="mb-3 flex items-center gap-2 border-b border-white/5 pb-2">
+        <span className={cn('h-2.5 w-2.5 rounded-full', statusColor)} />
+        <span className="text-xs font-medium uppercase tracking-wide text-slate">{title}</span>
+        <span className="ml-auto text-xs text-slate/60">{tickets.length}</span>
       </div>
 
       {/* Tickets */}
-      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+      <div className="custom-scrollbar max-h-[300px] space-y-2 overflow-y-auto pr-1">
         {tickets.length === 0 ? (
-          <p className="text-xs text-slate/40 text-center py-4 italic">No tickets</p>
+          <p className="py-4 text-center text-xs italic text-slate/40">No tickets</p>
         ) : (
           tickets.map((ticket) => (
             <SessionTicketCard

@@ -45,7 +45,7 @@ function KindBadge({ kind }: { kind: string }) {
   const displayName = kind?.replace('_', ' ').slice(0, 3).toUpperCase() || 'TSK';
 
   return (
-    <span className={cn('px-1.5 py-0.5 text-[10px] rounded font-bold uppercase', colorClass)}>
+    <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-bold uppercase', colorClass)}>
       {displayName}
     </span>
   );
@@ -63,7 +63,7 @@ function PriorityDot({ priority }: { priority: string }) {
 
   return (
     <span
-      className={cn('w-2 h-2 rounded-full flex-shrink-0', colorClass)}
+      className={cn('h-2 w-2 flex-shrink-0 rounded-full', colorClass)}
       title={`Priority: ${priority}`}
     />
   );
@@ -82,28 +82,28 @@ export const SessionTicketCard = memo(function SessionTicketCard({
     <button
       onClick={() => onClick?.(ticket)}
       className={cn(
-        'w-full text-left p-3 rounded-lg transition-all',
+        'w-full rounded-lg p-3 text-left transition-all',
         'bg-white/[0.03] hover:bg-white/[0.06]',
         'border border-white/5 hover:border-white/10',
-        isWorking && 'ring-2 ring-coral/50 border-coral/30 bg-coral/5'
+        isWorking && 'border-coral/30 bg-coral/5 ring-2 ring-coral/50'
       )}
     >
       {/* Header: ID + Kind + Priority */}
-      <div className="flex items-center justify-between mb-1.5">
+      <div className="mb-1.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-slate">#{ticket.id}</span>
+          <span className="font-mono text-xs text-slate">#{ticket.id}</span>
           <KindBadge kind={ticket.kind} />
         </div>
         <PriorityDot priority={ticket.priority} />
       </div>
 
       {/* Title */}
-      <p className="text-sm text-white line-clamp-2 leading-snug">{ticket.title}</p>
+      <p className="line-clamp-2 text-sm leading-snug text-white">{ticket.title}</p>
 
       {/* Working indicator - animated progress bar */}
       {isWorking && (
-        <div className="mt-2 h-1 bg-dark rounded-full overflow-hidden">
-          <div className="h-full bg-coral/60 rounded-full animate-pulse w-3/4" />
+        <div className="mt-2 h-1 overflow-hidden rounded-full bg-dark">
+          <div className="h-full w-3/4 animate-pulse rounded-full bg-coral/60" />
         </div>
       )}
     </button>

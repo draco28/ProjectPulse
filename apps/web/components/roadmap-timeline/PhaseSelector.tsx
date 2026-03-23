@@ -13,11 +13,7 @@ import { ChevronDown } from 'lucide-react';
 import type { PhaseSelectorProps } from '@/types/phase-timeline';
 import { cn } from '@/lib/utils';
 
-export function PhaseSelector({
-  phases,
-  selectedPhaseId,
-  onPhaseChange,
-}: PhaseSelectorProps) {
+export function PhaseSelector({ phases, selectedPhaseId, onPhaseChange }: PhaseSelectorProps) {
   const selectedPhase = phases.find((p) => p.id === selectedPhaseId);
 
   return (
@@ -26,15 +22,15 @@ export function PhaseSelector({
         value={selectedPhaseId}
         onChange={(e) => onPhaseChange(e.target.value)}
         className={cn(
-          'appearance-none cursor-pointer',
+          'cursor-pointer appearance-none',
           'px-4 py-2.5 pr-10',
           'rounded-xl',
           // Neumorphic styling
           'bg-gradient-to-br from-dark-card to-dark-lighter',
           'border border-white/5',
-          'text-text-primary font-medium',
+          'font-medium text-text-primary',
           // Focus state with coral accent
-          'focus:outline-none focus:border-coral focus:ring-2 focus:ring-coral/30',
+          'focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/30',
           // Transition
           'transition-all duration-200'
         )}
@@ -56,7 +52,7 @@ export function PhaseSelector({
         <div className="pointer-events-none absolute inset-y-0 right-8 flex items-center">
           <span
             className={cn(
-              'text-xs font-medium px-1.5 py-0.5 rounded',
+              'rounded px-1.5 py-0.5 text-xs font-medium',
               selectedPhase.status === 'COMPLETED' && 'bg-accent-green/15 text-accent-green',
               selectedPhase.status === 'IN_PROGRESS' && 'bg-coral/15 text-coral',
               selectedPhase.status === 'NOT_STARTED' && 'bg-slate/15 text-slate'

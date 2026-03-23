@@ -130,7 +130,10 @@ export async function POST(request: NextRequest) {
       return handleAuthError(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to sync Session 3');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to sync Session 3'
+    );
     return NextResponse.json(
       {
         error: 'Failed to sync Session 3',

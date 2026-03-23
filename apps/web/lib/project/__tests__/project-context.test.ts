@@ -95,9 +95,7 @@ describe('getActiveProjectForUser()', () => {
     });
 
     it('should redirect to /app for empty string project ID', async () => {
-      await expect(getActiveProjectForUser(mockUser1Id, '')).rejects.toThrow(
-        'NEXT_REDIRECT:/app'
-      );
+      await expect(getActiveProjectForUser(mockUser1Id, '')).rejects.toThrow('NEXT_REDIRECT:/app');
 
       expect(mockRedirect).toHaveBeenCalledWith('/app');
     });
@@ -140,9 +138,7 @@ describe('getActiveProjectForUser()', () => {
     it('should redirect to /app for zero project ID "0"', async () => {
       mockPrismaProjectFindUnique.mockResolvedValue(null);
 
-      await expect(getActiveProjectForUser(mockUser1Id, '0')).rejects.toThrow(
-        'NEXT_REDIRECT:/app'
-      );
+      await expect(getActiveProjectForUser(mockUser1Id, '0')).rejects.toThrow('NEXT_REDIRECT:/app');
     });
   });
 
@@ -164,9 +160,9 @@ describe('getActiveProjectForUser()', () => {
     it('should redirect to /app for very large project ID', async () => {
       mockPrismaProjectFindUnique.mockResolvedValue(null);
 
-      await expect(
-        getActiveProjectForUser(mockUser1Id, '9999999999')
-      ).rejects.toThrow('NEXT_REDIRECT:/app');
+      await expect(getActiveProjectForUser(mockUser1Id, '9999999999')).rejects.toThrow(
+        'NEXT_REDIRECT:/app'
+      );
     });
   });
 
@@ -175,9 +171,7 @@ describe('getActiveProjectForUser()', () => {
       // Project exists but is owned by a different user
       mockPrismaProjectFindUnique.mockResolvedValue(mockProject2);
 
-      await expect(getActiveProjectForUser(mockUser1Id, '5')).rejects.toThrow(
-        'NEXT_REDIRECT:/app'
-      );
+      await expect(getActiveProjectForUser(mockUser1Id, '5')).rejects.toThrow('NEXT_REDIRECT:/app');
 
       expect(mockPrismaProjectFindUnique).toHaveBeenCalledWith({
         where: { id: 5 },

@@ -164,7 +164,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to update memory bank');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to update memory bank'
+    );
     return NextResponse.json({ error: 'Failed to update memory bank' }, { status: 500 });
   }
 }

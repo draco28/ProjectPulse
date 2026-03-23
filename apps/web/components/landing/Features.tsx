@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  Bot,
-  Brain,
-  Kanban,
-  Search,
-  Ticket,
-  Workflow,
-  LucideIcon,
-} from 'lucide-react';
+import { Bot, Brain, Kanban, Search, Ticket, Workflow, LucideIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 
@@ -82,49 +74,43 @@ export function Features() {
   const [activeFeature, setActiveFeature] = useState<Feature>(features[0]!);
 
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#1A1A1A]">
-      <div className="max-w-6xl mx-auto">
+    <section className="bg-[#1A1A1A] px-4 py-24 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
         {/* Section header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Everything You Need
-          </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+        <div className="mb-16 text-center">
+          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">Everything You Need</h2>
+          <p className="mx-auto max-w-2xl text-lg text-gray-400">
             A complete platform for AI-assisted development
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+        <div className="grid items-start gap-12 lg:grid-cols-2">
           {/* Feature list */}
           <div className="space-y-4">
             {features.map((feature) => (
               <button
                 key={feature.id}
                 onClick={() => setActiveFeature(feature)}
-                className={`w-full text-left p-5 rounded-xl border transition-all duration-300 ${
+                className={`w-full rounded-xl border p-5 text-left transition-all duration-300 ${
                   activeFeature.id === feature.id
-                    ? 'bg-[#2A2A2A] border-[#FF8B6A]/50 shadow-lg shadow-[#FF8B6A]/10'
-                    : 'bg-[#2A2A2A]/50 border-[#3A3A3A] hover:bg-[#2A2A2A] hover:border-[#4A4A4A]'
+                    ? 'border-[#FF8B6A]/50 bg-[#2A2A2A] shadow-lg shadow-[#FF8B6A]/10'
+                    : 'border-[#3A3A3A] bg-[#2A2A2A]/50 hover:border-[#4A4A4A] hover:bg-[#2A2A2A]'
                 }`}
               >
                 <div className="flex items-start gap-4">
                   <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      activeFeature.id === feature.id
-                        ? 'bg-[#FF8B6A]/20'
-                        : 'bg-[#3A3A3A]'
+                    className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${
+                      activeFeature.id === feature.id ? 'bg-[#FF8B6A]/20' : 'bg-[#3A3A3A]'
                     }`}
                   >
                     <feature.icon
-                      className={`w-5 h-5 ${
-                        activeFeature.id === feature.id
-                          ? 'text-[#FF8B6A]'
-                          : 'text-gray-400'
+                      className={`h-5 w-5 ${
+                        activeFeature.id === feature.id ? 'text-[#FF8B6A]' : 'text-gray-400'
                       }`}
                     />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white mb-1">{feature.title}</h3>
+                    <h3 className="mb-1 font-semibold text-white">{feature.title}</h3>
                     <p className="text-sm text-gray-400">{feature.shortDesc}</p>
                   </div>
                 </div>
@@ -134,16 +120,16 @@ export function Features() {
 
           {/* Feature preview */}
           <div className="lg:sticky lg:top-8">
-            <div className="p-6 rounded-2xl bg-[#2A2A2A] border border-[#3A3A3A]">
-              <h3 className="text-xl font-bold text-white mb-3">{activeFeature.title}</h3>
-              <p className="text-gray-400 mb-6">{activeFeature.description}</p>
-              <div className="rounded-xl overflow-hidden border border-[#3A3A3A]">
+            <div className="rounded-2xl border border-[#3A3A3A] bg-[#2A2A2A] p-6">
+              <h3 className="mb-3 text-xl font-bold text-white">{activeFeature.title}</h3>
+              <p className="mb-6 text-gray-400">{activeFeature.description}</p>
+              <div className="overflow-hidden rounded-xl border border-[#3A3A3A]">
                 <Image
                   src={activeFeature.image}
                   alt={activeFeature.title}
                   width={700}
                   height={450}
-                  className="w-full h-auto"
+                  className="h-auto w-full"
                 />
               </div>
             </div>

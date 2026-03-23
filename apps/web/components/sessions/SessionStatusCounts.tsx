@@ -34,13 +34,13 @@ export const SessionStatusCounts = memo(function SessionStatusCounts({
   isLoading = false,
 }: SessionStatusCountsProps) {
   return (
-    <div className="neu-raised px-4 py-2.5 rounded-xl inline-flex items-center gap-4">
+    <div className="neu-raised inline-flex items-center gap-4 rounded-xl px-4 py-2.5">
       {/* Active Count */}
       <div className="flex items-center gap-2">
         <span
           className={cn(
-            'w-2 h-2 rounded-full bg-green-500',
-            counts.active > 0 && 'animate-pulse pulse-green'
+            'h-2 w-2 rounded-full bg-green-500',
+            counts.active > 0 && 'pulse-green animate-pulse'
           )}
         />
         <span className="text-sm font-medium text-white">
@@ -49,25 +49,23 @@ export const SessionStatusCounts = memo(function SessionStatusCounts({
       </div>
 
       {/* Divider */}
-      <div className="w-px h-4 bg-white/10" />
+      <div className="h-4 w-px bg-white/10" />
 
       {/* Paused Count */}
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-yellow-500" />
+        <span className="h-2 w-2 rounded-full bg-yellow-500" />
         <span className="text-sm font-medium text-slate">
           {isLoading ? '—' : counts.paused} Paused
         </span>
       </div>
 
       {/* Divider */}
-      <div className="w-px h-4 bg-white/10" />
+      <div className="h-4 w-px bg-white/10" />
 
       {/* Completed Count (today) */}
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-slate/50" />
-        <span className="text-sm text-slate">
-          {isLoading ? '—' : counts.completed} Completed
-        </span>
+        <span className="h-2 w-2 rounded-full bg-slate/50" />
+        <span className="text-sm text-slate">{isLoading ? '—' : counts.completed} Completed</span>
       </div>
     </div>
   );

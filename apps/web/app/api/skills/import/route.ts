@@ -133,7 +133,11 @@ export async function POST(request: NextRequest) {
     // Process files
     const imported: Array<{ filename: string; slug: string; id: number }> = [];
     const skipped: Array<{ filename: string; reason: string; existingId?: number }> = [];
-    const errors: Array<{ filename: string; error: string; details?: string | Array<{ field: string; message: string }> }> = [];
+    const errors: Array<{
+      filename: string;
+      error: string;
+      details?: string | Array<{ field: string; message: string }>;
+    }> = [];
 
     for (const file of body.files) {
       const { filename, content } = file;
@@ -254,7 +258,10 @@ export async function POST(request: NextRequest) {
           log.debug({ slug, id: created.id }, 'Created skill during import');
         }
       } catch (error) {
-        log.error({ error: error instanceof Error ? error.message : String(error), filename }, 'Error processing skill import file');
+        log.error(
+          { error: error instanceof Error ? error.message : String(error), filename },
+          'Error processing skill import file'
+        );
 
         errors.push({
           filename,
@@ -272,7 +279,10 @@ export async function POST(request: NextRequest) {
       errors: errors.length,
     };
 
-    log.info({ imported: summary.imported, skipped: summary.skipped, errors: summary.errors }, 'Skills import completed');
+    log.info(
+      { imported: summary.imported, skipped: summary.skipped, errors: summary.errors },
+      'Skills import completed'
+    );
 
     return NextResponse.json({
       data: {
@@ -294,7 +304,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to import skills');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to import skills'
+    );
 
     return NextResponse.json(
       {

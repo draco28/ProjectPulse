@@ -80,11 +80,7 @@ export async function withProjectApi<T>(
   handler: ApiHandler<T>,
   options: WithProjectApiOptions = {}
 ): Promise<NextResponse> {
-  const {
-    fromQuery = true,
-    paramName = 'projectId',
-    allowDefault = true,
-  } = options;
+  const { fromQuery = true, paramName = 'projectId', allowDefault = true } = options;
 
   try {
     // Extract projectId from request
@@ -104,17 +100,11 @@ export async function withProjectApi<T>(
     }
 
     // Validate auth and project access
-    const { auth, projectId } = await getAuthorizedProjectId(
-      request,
-      requestedProjectId
-    );
+    const { auth, projectId } = await getAuthorizedProjectId(request, requestedProjectId);
 
     // If no projectId and not allowed to default, error
     if (!projectId && !allowDefault) {
-      return NextResponse.json(
-        { error: `${paramName} is required` },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: `${paramName} is required` }, { status: 400 });
     }
 
     // Execute handler with validated context
@@ -129,7 +119,10 @@ export async function withProjectApi<T>(
     }
 
     // Log unexpected errors
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Unexpected error');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Unexpected error'
+    );
 
     // Return generic error
     return NextResponse.json(
@@ -152,13 +145,6 @@ export function apiSuccess<T>(data: T, status: number = 200): NextResponse {
 /**
  * Helper to create a standardized error response
  */
-export function apiError(
-  message: string,
-  status: number = 400,
-  code?: string
-): NextResponse {
-  return NextResponse.json(
-    { error: message, ...(code && { code }) },
-    { status }
-  );
+export function apiError(message: string, status: number = 400, code?: string): NextResponse {
+  return NextResponse.json({ error: message, ...(code && { code }) }, { status });
 }

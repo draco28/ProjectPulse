@@ -298,7 +298,9 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
                     <th className="px-4 py-3 text-left text-sm font-medium text-slate">Name</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-slate">Created</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-slate">Expires</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-slate">Last Used</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-slate">
+                      Last Used
+                    </th>
                     <th className="px-4 py-3 text-right text-sm font-medium text-slate">Actions</th>
                   </tr>
                 </thead>
@@ -309,11 +311,15 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
                       className="border-b border-white/5 transition-colors hover:bg-white/5"
                     >
                       <td className="px-4 py-3 font-medium text-white">{token.name}</td>
-                      <td className="px-4 py-3 text-sm text-slate">{formatDate(token.createdAt)}</td>
+                      <td className="px-4 py-3 text-sm text-slate">
+                        {formatDate(token.createdAt)}
+                      </td>
                       <td className="px-4 py-3 text-sm text-slate">
                         {token.expiresAt ? formatDate(token.expiresAt) : 'Never'}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate">{formatDate(token.lastUsedAt)}</td>
+                      <td className="px-4 py-3 text-sm text-slate">
+                        {formatDate(token.lastUsedAt)}
+                      </td>
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => handleRevokeToken(token.id, token.name)}
@@ -356,7 +362,9 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
                   {revokedTokens.map((token) => (
                     <tr key={token.id} className="border-b border-white/5 opacity-60">
                       <td className="px-4 py-2 text-sm text-slate line-through">{token.name}</td>
-                      <td className="px-4 py-2 text-sm text-slate">{formatDate(token.createdAt)}</td>
+                      <td className="px-4 py-2 text-sm text-slate">
+                        {formatDate(token.createdAt)}
+                      </td>
                       <td className="px-4 py-2 text-sm text-red-400">Revoked</td>
                     </tr>
                   ))}
@@ -382,8 +390,9 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
             <div className="flex-1">
               <h3 className="mb-1 font-medium text-white">Allow MCP to Write Helper Files</h3>
               <p className="text-sm text-slate">
-                When enabled, agents can write <code className="text-accent-primary">CLAUDE.md</code>{' '}
-                and <code className="text-accent-primary">AGENTS.md</code> files to your repository
+                When enabled, agents can write{' '}
+                <code className="text-accent-primary">CLAUDE.md</code> and{' '}
+                <code className="text-accent-primary">AGENTS.md</code> files to your repository
                 during onboarding and bootstrap.
               </p>
             </div>
@@ -653,10 +662,12 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
                   value={tokenName}
                   onChange={(e) => setTokenName(e.target.value)}
                   placeholder="e.g., Frontend Claude"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-slate focus:border-accent-primary focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                  className="focus:border-accent-primary focus:ring-accent-primary w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-slate focus:outline-none focus:ring-1"
                   maxLength={50}
                 />
-                <p className="mt-1 text-xs text-slate">Choose a descriptive name (unique per project)</p>
+                <p className="mt-1 text-xs text-slate">
+                  Choose a descriptive name (unique per project)
+                </p>
               </div>
 
               <div>
@@ -664,7 +675,7 @@ export function SettingsClient({ project, tokens, labels, mcpEndpoint }: Setting
                 <select
                   value={expiryDays}
                   onChange={(e) => setExpiryDays(parseInt(e.target.value, 10))}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-accent-primary focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                  className="focus:border-accent-primary focus:ring-accent-primary w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white focus:outline-none focus:ring-1"
                 >
                   <option value={7}>7 days</option>
                   <option value={30}>30 days</option>

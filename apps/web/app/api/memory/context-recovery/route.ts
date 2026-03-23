@@ -48,7 +48,10 @@ export async function GET(request: Request) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Memory context recovery failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Memory context recovery failed'
+    );
     return NextResponse.json({ error: 'Failed to recover memory bank context' }, { status: 500 });
   }
 }

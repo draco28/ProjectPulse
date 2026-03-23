@@ -111,7 +111,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       });
     }
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to reset password');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to reset password'
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

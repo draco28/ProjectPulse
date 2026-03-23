@@ -114,7 +114,10 @@ export async function syncOnboardingToWiki(projectId: number) {
       }
       syncedCount++;
     } catch (error) {
-      log.error({ error: error instanceof Error ? error.message : String(error), filename: doc.filename }, 'Failed to sync document');
+      log.error(
+        { error: error instanceof Error ? error.message : String(error), filename: doc.filename },
+        'Failed to sync document'
+      );
     }
   }
 

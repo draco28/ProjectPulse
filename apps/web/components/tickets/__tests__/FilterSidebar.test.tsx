@@ -300,12 +300,12 @@ describe('FilterSidebar', () => {
       );
 
       const backlogLabel = screen.getByText('Backlog').closest('label');
-      const backlogCheckbox = backlogLabel?.querySelector('input[type="checkbox"]') as HTMLInputElement;
-
-      const doneLabel = screen.getByText('Done').closest('label');
-      const doneCheckbox = doneLabel?.querySelector(
+      const backlogCheckbox = backlogLabel?.querySelector(
         'input[type="checkbox"]'
       ) as HTMLInputElement;
+
+      const doneLabel = screen.getByText('Done').closest('label');
+      const doneCheckbox = doneLabel?.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
       expect(backlogCheckbox.checked).toBe(true);
       expect(doneCheckbox.checked).toBe(false);

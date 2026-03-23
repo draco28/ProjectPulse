@@ -80,7 +80,10 @@ function moveTicketInColumns(
     if (index !== -1) {
       const original = newColumns[status][index];
       movedTicket = { ...original } as KanbanTicket;
-      newColumns[status] = [...newColumns[status].slice(0, index), ...newColumns[status].slice(index + 1)];
+      newColumns[status] = [
+        ...newColumns[status].slice(0, index),
+        ...newColumns[status].slice(index + 1),
+      ];
       break;
     }
   }
@@ -123,7 +126,9 @@ export function useKanbanBoard(sprintId: string): UseKanbanBoardReturn {
     queryFn: async () => {
       const res = await fetch(`/api/sprints/${sprintId}/kanban`);
       if (!res.ok) {
-        const error = await res.json().catch(() => ({ error: { message: 'Failed to fetch board' } }));
+        const error = await res
+          .json()
+          .catch(() => ({ error: { message: 'Failed to fetch board' } }));
         throw new Error(error.error?.message || 'Failed to fetch kanban board');
       }
       const data = await res.json();
@@ -169,7 +174,12 @@ export function useKanbanBoard(sprintId: string): UseKanbanBoardReturn {
 
       // Optimistically update
       if (previousData) {
-        const newColumns = moveTicketInColumns(previousData.columns, ticketId, status, displayOrder);
+        const newColumns = moveTicketInColumns(
+          previousData.columns,
+          ticketId,
+          status,
+          displayOrder
+        );
         queryClient.setQueryData<KanbanBoardResponse>(queryKey, {
           ...previousData,
           columns: newColumns,
@@ -226,7 +236,12 @@ export function useKanbanBoard(sprintId: string): UseKanbanBoardReturn {
       if (previousData) {
         let newColumns = { ...previousData.columns };
         for (const move of moves) {
-          newColumns = moveTicketInColumns(newColumns, move.ticketId, move.status, move.displayOrder);
+          newColumns = moveTicketInColumns(
+            newColumns,
+            move.ticketId,
+            move.status,
+            move.displayOrder
+          );
         }
         queryClient.setQueryData<KanbanBoardResponse>(queryKey, {
           ...previousData,

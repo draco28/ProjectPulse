@@ -85,7 +85,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Labels list failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Labels list failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -182,7 +185,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return authErrorResponse(error);
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Label creation failed');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Label creation failed'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -79,7 +79,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch comments');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch comments'
+    );
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to fetch comments', status: 500 });
   }
 }
@@ -142,7 +145,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       });
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to add comment');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to add comment'
+    );
     return failure({ code: 'INTERNAL_ERROR', message: 'Failed to add comment', status: 500 });
   }
 }

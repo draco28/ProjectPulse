@@ -393,7 +393,10 @@ export async function createAgentPersonas(
       created++;
       log.info({ personaName: def.name }, 'Created persona');
     } catch (error) {
-      log.error({ personaName: def.name, error: error instanceof Error ? error.message : String(error) }, 'Failed to create persona');
+      log.error(
+        { personaName: def.name, error: error instanceof Error ? error.message : String(error) },
+        'Failed to create persona'
+      );
       // Continue with other personas even if one fails
     }
   }

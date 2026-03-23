@@ -10,11 +10,7 @@
 
 import React from 'react';
 import { renderHook, act } from '@testing-library/react';
-import {
-  ProjectProvider,
-  useProject,
-  useProjectOptional,
-} from '../ProjectContext';
+import { ProjectProvider, useProject, useProjectOptional } from '../ProjectContext';
 
 // ============================================================================
 // Mocks

@@ -19,7 +19,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireProjectAccess, AuthError } from '@/lib/auth/validateRequest';
-import { TICKET_STATUSES, TICKET_STATUS_VALUES, TicketStatusSystem, type TicketStatus } from '@/lib/constants/status';
+import {
+  TICKET_STATUSES,
+  TICKET_STATUS_VALUES,
+  TicketStatusSystem,
+  type TicketStatus,
+} from '@/lib/constants/status';
 import { getSprintProgressStats } from '@/lib/tickets/progress-calculator';
 import type {
   KanbanBoardResponse,
@@ -85,7 +90,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     if (!sprint.phase?.roadmap?.projectId) {
       return NextResponse.json(
-        { success: false, error: { code: 'ORPHAN_SPRINT', message: 'Sprint has no associated project' } },
+        {
+          success: false,
+          error: { code: 'ORPHAN_SPRINT', message: 'Sprint has no associated project' },
+        },
         { status: 400 }
       );
     }
@@ -100,7 +108,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       where: { sprintId },
       select: {
         id: true,
-        ticketNumber: true,  // Sprint 17
+        ticketNumber: true, // Sprint 17
         title: true,
         status: true,
         priority: true,
@@ -110,7 +118,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         parentTicket: {
           select: {
             id: true,
-            ticketNumber: true,  // Sprint 17
+            ticketNumber: true, // Sprint 17
             title: true,
             status: true,
           },
@@ -118,7 +126,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         childTickets: {
           select: {
             id: true,
-            ticketNumber: true,  // Sprint 17
+            ticketNumber: true, // Sprint 17
             status: true,
             title: true,
             kind: true,
@@ -147,7 +155,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
       return {
         id: t.id,
-        ticketNumber: t.ticketNumber,  // Sprint 17
+        ticketNumber: t.ticketNumber, // Sprint 17
         title: t.title,
         status: t.status as TicketStatus,
         priority: t.priority,
@@ -157,14 +165,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
         parentTicket: t.parentTicket
           ? {
               id: t.parentTicket.id,
-              ticketNumber: t.parentTicket.ticketNumber,  // Sprint 17
+              ticketNumber: t.parentTicket.ticketNumber, // Sprint 17
               title: t.parentTicket.title,
               status: t.parentTicket.status as TicketStatus,
             }
           : null,
         childTickets: t.childTickets?.map((c) => ({
           id: c.id,
-          ticketNumber: c.ticketNumber,  // Sprint 17
+          ticketNumber: c.ticketNumber, // Sprint 17
           status: c.status as TicketStatus,
           title: c.title,
           kind: c.kind,
@@ -252,9 +260,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
       );
     }
 
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch kanban board');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to fetch kanban board'
+    );
     return NextResponse.json(
-      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch kanban board' } },
+      {
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch kanban board' },
+      },
       { status: 500 }
     );
   }

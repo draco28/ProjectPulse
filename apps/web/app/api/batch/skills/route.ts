@@ -98,7 +98,10 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    log.info({ projectId, created: createdSkills.length, duplicates: duplicates.length }, 'Skills created');
+    log.info(
+      { projectId, created: createdSkills.length, duplicates: duplicates.length },
+      'Skills created'
+    );
 
     return NextResponse.json({
       success: true,
@@ -110,7 +113,10 @@ export async function POST(request: NextRequest) {
       message: `Created ${createdSkills.length}/${skills.length} skills. ${duplicates.length} duplicates skipped.`,
     });
   } catch (error) {
-    log.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to create skill batch');
+    log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Failed to create skill batch'
+    );
     return NextResponse.json(
       {
         error: 'Failed to create skill batch',
