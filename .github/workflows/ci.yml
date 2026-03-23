@@ -33,7 +33,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build workspace packages
-        run: pnpm --filter @projectpulse/roadmap-tools build
+        run: pnpm --filter "@projectpulse/infra-config" --filter "@projectpulse/roadmap-tools" build
 
       - name: Generate Prisma Client
         working-directory: apps/web
@@ -89,7 +89,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build workspace packages
-        run: pnpm --filter @projectpulse/roadmap-tools build
+        run: pnpm --filter "@projectpulse/infra-config" --filter "@projectpulse/roadmap-tools" build
 
       - name: Generate Prisma Client
         working-directory: apps/web
@@ -160,7 +160,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build workspace packages
-        run: pnpm --filter @projectpulse/roadmap-tools build
+        run: pnpm --filter "@projectpulse/infra-config" --filter "@projectpulse/roadmap-tools" build
 
       - name: Install Playwright browsers
         working-directory: apps/web
