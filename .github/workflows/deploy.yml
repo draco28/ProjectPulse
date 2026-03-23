@@ -66,10 +66,10 @@ jobs:
           # Stop and remove MCP to force fresh build
           docker compose -f docker-compose.cloud.yml stop mcp-server || true
           docker compose -f docker-compose.cloud.yml rm -f mcp-server || true
-          # Rebuild nextjs (has Dockerfile) and recreate mcp-server
-          docker compose -f docker-compose.cloud.yml build --no-cache nextjs
+          # Rebuild nextjs (has Dockerfile) and mcp-server-python, recreate mcp-server
+          docker compose -f docker-compose.cloud.yml build --no-cache nextjs mcp-server-python
           echo "🚀 Starting dev containers..."
-          docker compose -f docker-compose.cloud.yml up -d nextjs mcp-server
+          docker compose -f docker-compose.cloud.yml up -d nextjs mcp-server mcp-server-python
       
       - name: Wait for services to start
         if: steps.schema.outputs.schema_changed == 'false'
@@ -104,6 +104,22 @@ jobs:
           docker logs projectpulse-mcp-cloud --tail 50
           exit 1
 
+      - name: Health check - Python MCP Server
+        if: steps.schema.outputs.schema_changed == 'false'
+        run: |
+          echo "🏥 Checking Python MCP health..."
+          for i in {1..6}; do
+            if curl -sf http://localhost:3002/health > /dev/null 2>&1; then
+              echo "✅ Python MCP Server healthy (attempt $i)"
+              exit 0
+            fi
+            echo "⏳ Waiting for Python MCP server... (attempt $i/6)"
+            sleep 10
+          done
+          echo "❌ Python MCP Server health check failed after 6 attempts"
+          docker logs projectpulse-mcp-python-cloud --tail 50
+          exit 1
+
       - name: Cleanup Docker resources
         if: steps.schema.outputs.schema_changed == 'false'
         run: |
@@ -125,8 +141,9 @@ jobs:
           echo "============================================"
           echo "✅ DEV DEPLOYMENT COMPLETE"
           echo "============================================"
-          echo "  Web:  http://localhost:3000"
-          echo "  MCP:  http://localhost:3001"
+          echo "  Web:       http://localhost:3000"
+          echo "  MCP (TS):  http://localhost:3001"
+          echo "  MCP (Py):  http://localhost:3002"
           echo "============================================"
 
   # ==========================================================================
