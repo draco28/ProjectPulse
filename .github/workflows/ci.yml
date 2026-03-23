@@ -32,12 +32,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build workspace packages
-        run: pnpm --filter "@projectpulse/infra-config" --filter "@projectpulse/roadmap-tools" build
+      - name: Build infra-config package
+        run: pnpm --filter "@projectpulse/infra-config" build
 
       - name: Generate Prisma Client
         working-directory: apps/web
         run: npx prisma generate
+
+      - name: Build roadmap-tools package
+        run: pnpm --filter "@projectpulse/roadmap-tools" build
 
       - name: Run ESLint
         run: pnpm --filter web lint
@@ -88,12 +91,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build workspace packages
-        run: pnpm --filter "@projectpulse/infra-config" --filter "@projectpulse/roadmap-tools" build
+      - name: Build infra-config package
+        run: pnpm --filter "@projectpulse/infra-config" build
 
       - name: Generate Prisma Client
         working-directory: apps/web
         run: npx prisma generate
+
+      - name: Build roadmap-tools package
+        run: pnpm --filter "@projectpulse/roadmap-tools" build
 
       - name: Run database migrations
         working-directory: apps/web
@@ -159,8 +165,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build workspace packages
-        run: pnpm --filter "@projectpulse/infra-config" --filter "@projectpulse/roadmap-tools" build
+      - name: Build infra-config package
+        run: pnpm --filter "@projectpulse/infra-config" build
 
       - name: Install Playwright browsers
         working-directory: apps/web
@@ -169,6 +175,9 @@ jobs:
       - name: Generate Prisma Client
         working-directory: apps/web
         run: npx prisma generate
+
+      - name: Build roadmap-tools package
+        run: pnpm --filter "@projectpulse/roadmap-tools" build
 
       - name: Run database migrations
         working-directory: apps/web
@@ -229,6 +238,9 @@ jobs:
       - name: Generate Prisma Client
         working-directory: apps/web
         run: npx prisma generate
+
+      - name: Build roadmap-tools package
+        run: pnpm --filter "@projectpulse/roadmap-tools" build
 
       - name: Build Next.js app
         working-directory: apps/web
