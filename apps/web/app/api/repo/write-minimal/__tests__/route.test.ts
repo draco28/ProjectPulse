@@ -381,7 +381,11 @@ describe('Template Generation API - Sprint 11', () => {
 
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: '/nonexistent/path/xyz', dryRun: false }),
+        body: JSON.stringify({
+          projectId: TEST_PROJECT_ID,
+          repoPath: '/nonexistent/path/xyz',
+          dryRun: false,
+        }),
       });
 
       const res = await POST(req);

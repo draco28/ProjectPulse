@@ -41,7 +41,12 @@ jest.mock('next/navigation', () => ({
 // Mock next-auth to avoid jose ESM import issues in Node test environment.
 // jose@4.x ships ESM-only browser builds that Jest/jsdom can't transform.
 // The mock provides the default export (NextAuth function) and named exports.
-const mockNextAuth = jest.fn(() => ({ handlers: {}, auth: jest.fn(), signIn: jest.fn(), signOut: jest.fn() }));
+const mockNextAuth = jest.fn(() => ({
+  handlers: {},
+  auth: jest.fn(),
+  signIn: jest.fn(),
+  signOut: jest.fn(),
+}));
 mockNextAuth.getServerSession = jest.fn(() => Promise.resolve(null));
 jest.mock('next-auth', () => ({
   __esModule: true,

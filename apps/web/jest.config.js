@@ -53,7 +53,6 @@ const customJestConfig = {
     '/lib/wiki/cross-linking\\.test\\.ts$',
   ],
 
-
   // Transform
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': [

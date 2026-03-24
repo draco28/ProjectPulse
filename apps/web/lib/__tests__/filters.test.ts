@@ -289,9 +289,15 @@ describe('getFilterCounts', () => {
     expect(prisma.ticket.count).toHaveBeenCalledTimes(10);
 
     // Verify where clauses include parentTicketId: null (top-level filter)
-    expect(prisma.ticket.count).toHaveBeenCalledWith({ where: { parentTicketId: null, status: 'open' } });
-    expect(prisma.ticket.count).toHaveBeenCalledWith({ where: { parentTicketId: null, priority: 'high' } });
-    expect(prisma.ticket.count).toHaveBeenCalledWith({ where: { parentTicketId: null, module: 'combat' } });
+    expect(prisma.ticket.count).toHaveBeenCalledWith({
+      where: { parentTicketId: null, status: 'open' },
+    });
+    expect(prisma.ticket.count).toHaveBeenCalledWith({
+      where: { parentTicketId: null, priority: 'high' },
+    });
+    expect(prisma.ticket.count).toHaveBeenCalledWith({
+      where: { parentTicketId: null, module: 'combat' },
+    });
   });
 
   it('should handle zero counts correctly', async () => {
