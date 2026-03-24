@@ -199,6 +199,8 @@ jobs:
         working-directory: apps/web
         env:
           DATABASE_URL: postgresql://postgres:postgres123@localhost:5432/projectpulse_e2e
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-test-secret-at-least-32-chars-long
         run: |
           pnpm start &
           # Wait for server to be ready
@@ -214,6 +216,8 @@ jobs:
         working-directory: apps/web
         env:
           DATABASE_URL: postgresql://postgres:postgres123@localhost:5432/projectpulse_e2e
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-test-secret-at-least-32-chars-long
           CI: true
         run: pnpm test:e2e
 
