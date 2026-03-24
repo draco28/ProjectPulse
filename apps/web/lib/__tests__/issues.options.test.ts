@@ -9,15 +9,15 @@ import { prisma } from '@/lib/prisma';
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    issueStatusOption: { findMany: jest.fn() },
-    issuePriorityOption: { findMany: jest.fn() },
-    issueModuleOption: { findMany: jest.fn() },
+    ticketStatusOption: { findMany: jest.fn() },
+    ticketPriorityOption: { findMany: jest.fn() },
+    ticketModuleOption: { findMany: jest.fn() },
   },
 }));
 
-const mockStatusFind = prisma.issueStatusOption.findMany as unknown as jest.Mock;
-const mockPriorityFind = prisma.issuePriorityOption.findMany as unknown as jest.Mock;
-const mockModuleFind = prisma.issueModuleOption.findMany as unknown as jest.Mock;
+const mockStatusFind = prisma.ticketStatusOption.findMany as unknown as jest.Mock;
+const mockPriorityFind = prisma.ticketPriorityOption.findMany as unknown as jest.Mock;
+const mockModuleFind = prisma.ticketModuleOption.findMany as unknown as jest.Mock;
 
 describe('issues/options', () => {
   beforeEach(() => {

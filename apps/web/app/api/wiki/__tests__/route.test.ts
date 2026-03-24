@@ -34,6 +34,18 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+// Mock @prisma/client to provide Prisma.sql tagged template and PrismaClient
+jest.mock('@prisma/client', () => ({
+  PrismaClient: jest.fn().mockImplementation(() => ({
+    wikiPage: { findMany: jest.fn(), findFirst: jest.fn() },
+    pageLink: { createMany: jest.fn(), deleteMany: jest.fn(), findMany: jest.fn() },
+    $disconnect: jest.fn(),
+  })),
+  Prisma: {
+    sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({ strings, values }),
+  },
+}));
+
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { GET } from '../route';

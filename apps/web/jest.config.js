@@ -39,8 +39,20 @@ const customJestConfig = {
   // Test patterns
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
 
-  // Exclude E2E tests (run separately with Playwright)
-  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/tests/e2e/'],
+  // Exclude E2E tests, test fixtures, scanner integration tests, and integration tests
+  // that require a real database connection (run via `npx tsx` instead of Jest)
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.next/',
+    '/tests/e2e/',
+    '/__tests__/fixtures/',
+    '/health/scanners/__tests__/',
+    '/tests/api/sprint-12-features\\.test\\.ts$',
+    '/tests/api/sprint-15-kanban\\.test\\.ts$',
+    '/tests/lib/sprints/resolution\\.test\\.ts$',
+    '/lib/wiki/cross-linking\\.test\\.ts$',
+  ],
+
 
   // Transform
   transform: {

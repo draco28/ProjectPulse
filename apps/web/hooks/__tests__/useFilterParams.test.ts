@@ -24,6 +24,7 @@ jest.mock('next/navigation', () => ({
     push: mockPush,
   }),
   useSearchParams: () => mockUseSearchParams(),
+  usePathname: () => '/issues',
 }));
 
 describe('useFilterParams', () => {
@@ -38,9 +39,11 @@ describe('useFilterParams', () => {
       const { result } = renderHook(() => useFilterParams(searchParams));
 
       expect(result.current.currentFilters).toEqual({
+        kind: [],
         status: [],
         priority: [],
         module: [],
+        label: [],
       });
     });
 
@@ -54,9 +57,11 @@ describe('useFilterParams', () => {
       const { result } = renderHook(() => useFilterParams(searchParams));
 
       expect(result.current.currentFilters).toEqual({
+        kind: [],
         status: ['open'],
         priority: ['high'],
         module: ['combat'],
+        label: [],
       });
     });
 
@@ -70,9 +75,11 @@ describe('useFilterParams', () => {
       const { result } = renderHook(() => useFilterParams(searchParams));
 
       expect(result.current.currentFilters).toEqual({
+        kind: [],
         status: ['open', 'in_progress'],
         priority: ['critical', 'high', 'medium'],
         module: ['combat', 'animation'],
+        label: [],
       });
     });
 
@@ -98,9 +105,11 @@ describe('useFilterParams', () => {
       const { result } = renderHook(() => useFilterParams(searchParams));
 
       expect(result.current.currentFilters).toEqual({
+        kind: [],
         status: [],
         priority: [],
         module: [],
+        label: [],
       });
     });
   });

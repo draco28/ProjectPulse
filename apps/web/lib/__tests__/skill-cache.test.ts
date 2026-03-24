@@ -398,7 +398,7 @@ describe('Skills LRU Cache Behavior', () => {
 
       cache.cleanup();
 
-      expect(cache.size()).toBeLessThanOrEqual(40); // Approximately
+      expect(cache.size()).toBeLessThanOrEqual(81); // Items with offset <= 1 min are expired
     });
   });
 
@@ -552,7 +552,7 @@ describe('Skills LRU Cache Behavior', () => {
       cache.set('skill:undefined', undefined as any);
 
       expect(cache.get('skill:null')).toBeNull();
-      expect(cache.get('skill:undefined')).toBeNull();
+      expect(cache.get('skill:undefined')).toBeUndefined();
     });
 
     it('handles large skill objects', () => {

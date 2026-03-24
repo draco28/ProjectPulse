@@ -81,7 +81,7 @@ describe('Template Generation API - Sprint 11', () => {
     it('writes CLAUDE.md with correct structure', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       const res = await POST(req);
@@ -93,13 +93,13 @@ describe('Template Generation API - Sprint 11', () => {
 
       // Verify file was created
       const claudeContent = await fs.readFile(path.join(tempDir, 'CLAUDE.md'), 'utf-8');
-      expect(claudeContent).toContain('# CLAUDE.md');
+      expect(claudeContent).toContain('# Test Project - AI Workflow Guide');
     });
 
     it('writes AGENTS.md with correct structure', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       const res = await POST(req);
@@ -109,13 +109,13 @@ describe('Template Generation API - Sprint 11', () => {
 
       // Verify file was created
       const agentsContent = await fs.readFile(path.join(tempDir, 'AGENTS.md'), 'utf-8');
-      expect(agentsContent).toContain('# AGENTS.md');
+      expect(agentsContent).toContain('# Test Project - AI Agent Resources');
     });
 
     it('queries DB for personas/skills/SOPs', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       await POST(req);
@@ -144,7 +144,7 @@ describe('Template Generation API - Sprint 11', () => {
     it('returns filesWritten array', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       const res = await POST(req);
@@ -175,21 +175,21 @@ describe('Template Generation API - Sprint 11', () => {
     it('contains MCP connection JSON config', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       await POST(req);
 
       const content = await fs.readFile(path.join(tempDir, 'CLAUDE.md'), 'utf-8');
-      expect(content).toContain('mcpServers');
+      expect(content).toContain('MCP Server');
       expect(content).toContain('projectpulse');
-      expect(content).toContain('192.168.1.15:3001');
+      expect(content).toContain('projectpulsemcp.dracodev.dev');
     });
 
     it('lists tool categories', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       await POST(req);
@@ -206,7 +206,7 @@ describe('Template Generation API - Sprint 11', () => {
     it('includes project-specific personas from DB', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       await POST(req);
@@ -219,20 +219,20 @@ describe('Template Generation API - Sprint 11', () => {
     it('contains example usage patterns', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       await POST(req);
 
       const content = await fs.readFile(path.join(tempDir, 'CLAUDE.md'), 'utf-8');
-      expect(content).toContain('Example Usage');
-      expect(content).toContain('projectpulse_sprint_getCurrentTask');
+      expect(content).toContain('Quick Start');
+      expect(content).toContain('projectpulse_sprint_getCurrentPosition');
     });
 
     it('uses correct projectId in examples', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       await POST(req);
@@ -263,13 +263,13 @@ describe('Template Generation API - Sprint 11', () => {
     it('groups personas with expertise areas', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       await POST(req);
 
       const content = await fs.readFile(path.join(tempDir, 'AGENTS.md'), 'utf-8');
-      expect(content).toContain('Agent Personas');
+      expect(content).toContain('Available Personas');
       expect(content).toContain('React Expert');
       expect(content).toContain('Expertise');
     });
@@ -277,13 +277,13 @@ describe('Template Generation API - Sprint 11', () => {
     it('groups skills by category', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       await POST(req);
 
       const content = await fs.readFile(path.join(tempDir, 'AGENTS.md'), 'utf-8');
-      expect(content).toContain('Skills Library');
+      expect(content).toContain('Available Skills');
       expect(content).toContain('framework');
       expect(content).toContain('API Design Patterns');
     });
@@ -291,7 +291,7 @@ describe('Template Generation API - Sprint 11', () => {
     it('groups SOPs by category', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       await POST(req);
@@ -305,7 +305,7 @@ describe('Template Generation API - Sprint 11', () => {
     it('includes tool usage examples', async () => {
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       await POST(req);
@@ -381,7 +381,7 @@ describe('Template Generation API - Sprint 11', () => {
 
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: '/nonexistent/path/xyz' }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: '/nonexistent/path/xyz', dryRun: false }),
       });
 
       const res = await POST(req);
@@ -399,7 +399,7 @@ describe('Template Generation API - Sprint 11', () => {
 
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: 99999, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: 99999, repoPath: tempDir, dryRun: false }),
       });
 
       const res = await POST(req);
@@ -421,7 +421,7 @@ describe('Template Generation API - Sprint 11', () => {
 
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       const res = await POST(req);
@@ -448,7 +448,7 @@ describe('Template Generation API - Sprint 11', () => {
 
       const req = new NextRequest('http://localhost:3000/api/repo/write-minimal', {
         method: 'POST',
-        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir }),
+        body: JSON.stringify({ projectId: TEST_PROJECT_ID, repoPath: tempDir, dryRun: false }),
       });
 
       const res = await POST(req);

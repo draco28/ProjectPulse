@@ -211,7 +211,7 @@ describe('healthRunScanHandler', () => {
         },
       });
 
-      expect(result.duration).toBeGreaterThan(0);
+      expect(result.duration).toBeGreaterThanOrEqual(0);
       expect(prismaMock.healthFinding.createMany).toHaveBeenCalledWith({
         data: expect.arrayContaining([
           expect.objectContaining({

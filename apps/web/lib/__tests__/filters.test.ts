@@ -15,19 +15,19 @@ import type { FiltersDTO } from '@/types/filters';
 // Mock Prisma client
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    issueStatusOption: {
+    ticketStatusOption: {
       findMany: jest.fn(),
     },
-    issuePriorityOption: {
+    ticketPriorityOption: {
       findMany: jest.fn(),
     },
-    issueModuleOption: {
+    ticketModuleOption: {
       findMany: jest.fn(),
     },
     label: {
       findMany: jest.fn(),
     },
-    issue: {
+    ticket: {
       count: jest.fn(),
     },
   },
@@ -80,9 +80,9 @@ describe('getFilterOptions', () => {
     ];
 
     // Setup mocks
-    (prisma.issueStatusOption.findMany as jest.Mock).mockResolvedValue(mockStatusOptions);
-    (prisma.issuePriorityOption.findMany as jest.Mock).mockResolvedValue(mockPriorityOptions);
-    (prisma.issueModuleOption.findMany as jest.Mock).mockResolvedValue(mockModuleOptions);
+    (prisma.ticketStatusOption.findMany as jest.Mock).mockResolvedValue(mockStatusOptions);
+    (prisma.ticketPriorityOption.findMany as jest.Mock).mockResolvedValue(mockPriorityOptions);
+    (prisma.ticketModuleOption.findMany as jest.Mock).mockResolvedValue(mockModuleOptions);
     (prisma.label.findMany as jest.Mock).mockResolvedValue(mockLabels);
 
     // Execute
@@ -129,15 +129,15 @@ describe('getFilterOptions', () => {
 
   it('should call Prisma with correct orderBy clauses', async () => {
     // Mock responses (minimal)
-    (prisma.issueStatusOption.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.issuePriorityOption.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.issueModuleOption.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.ticketStatusOption.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.ticketPriorityOption.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.ticketModuleOption.findMany as jest.Mock).mockResolvedValue([]);
     (prisma.label.findMany as jest.Mock).mockResolvedValue([]);
 
     await getFilterOptions();
 
     // Verify status options ordered by 'order' field
-    expect(prisma.issueStatusOption.findMany).toHaveBeenCalledWith({
+    expect(prisma.ticketStatusOption.findMany).toHaveBeenCalledWith({
       orderBy: { order: 'asc' },
       select: {
         value: true,
@@ -147,7 +147,7 @@ describe('getFilterOptions', () => {
     });
 
     // Verify priority options ordered by 'order' field
-    expect(prisma.issuePriorityOption.findMany).toHaveBeenCalledWith({
+    expect(prisma.ticketPriorityOption.findMany).toHaveBeenCalledWith({
       orderBy: { order: 'asc' },
       select: {
         value: true,
@@ -158,7 +158,7 @@ describe('getFilterOptions', () => {
     });
 
     // Verify module options ordered by 'order' field
-    expect(prisma.issueModuleOption.findMany).toHaveBeenCalledWith({
+    expect(prisma.ticketModuleOption.findMany).toHaveBeenCalledWith({
       orderBy: { order: 'asc' },
       select: {
         value: true,
@@ -183,9 +183,9 @@ describe('getFilterOptions', () => {
       { value: 'draft', label: 'Draft', order: 3, colorClass: null },
     ];
 
-    (prisma.issueStatusOption.findMany as jest.Mock).mockResolvedValue(mockStatusWithNullColor);
-    (prisma.issuePriorityOption.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.issueModuleOption.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.ticketStatusOption.findMany as jest.Mock).mockResolvedValue(mockStatusWithNullColor);
+    (prisma.ticketPriorityOption.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.ticketModuleOption.findMany as jest.Mock).mockResolvedValue([]);
     (prisma.label.findMany as jest.Mock).mockResolvedValue([]);
 
     const result = await getFilterOptions();
@@ -197,7 +197,7 @@ describe('getFilterOptions', () => {
 
   it('should throw error if database query fails', async () => {
     // Mock database error
-    (prisma.issueStatusOption.findMany as jest.Mock).mockRejectedValue(
+    (prisma.ticketStatusOption.findMany as jest.Mock).mockRejectedValue(
       new Error('Database connection failed')
     );
 
@@ -230,15 +230,15 @@ describe('getFilterCounts', () => {
       labels: [],
     };
 
-    (prisma.issueStatusOption.findMany as jest.Mock).mockResolvedValue(mockOptions.status);
-    (prisma.issuePriorityOption.findMany as jest.Mock).mockResolvedValue(mockOptions.priority);
-    (prisma.issueModuleOption.findMany as jest.Mock).mockResolvedValue(mockOptions.modules);
+    (prisma.ticketStatusOption.findMany as jest.Mock).mockResolvedValue(mockOptions.status);
+    (prisma.ticketPriorityOption.findMany as jest.Mock).mockResolvedValue(mockOptions.priority);
+    (prisma.ticketModuleOption.findMany as jest.Mock).mockResolvedValue(mockOptions.modules);
     (prisma.label.findMany as jest.Mock).mockResolvedValue([]);
 
-    // Mock issue counts
+    // Mock ticket counts: 3 status + 2 priority + 2 module + 7 kinds = 14 total
     let callCount = 0;
-    (prisma.issue.count as jest.Mock).mockImplementation(() => {
-      const counts = [5, 3, 2, 1, 4, 2, 3]; // 7 counts total
+    (prisma.ticket.count as jest.Mock).mockImplementation(() => {
+      const counts = [5, 3, 2, 1, 4, 2, 3, 0, 0, 0, 0, 0, 0, 0];
       return Promise.resolve(counts[callCount++]);
     });
 
@@ -269,7 +269,7 @@ describe('getFilterCounts', () => {
     });
   });
 
-  it('should call prisma.issue.count with correct where clauses', async () => {
+  it('should call prisma.ticket.count with correct where clauses', async () => {
     const mockOptions: FiltersDTO = {
       status: [{ value: 'open', label: 'Open' }],
       priority: [{ value: 'high', label: 'High' }],
@@ -277,21 +277,21 @@ describe('getFilterCounts', () => {
       labels: [],
     };
 
-    (prisma.issueStatusOption.findMany as jest.Mock).mockResolvedValue(mockOptions.status);
-    (prisma.issuePriorityOption.findMany as jest.Mock).mockResolvedValue(mockOptions.priority);
-    (prisma.issueModuleOption.findMany as jest.Mock).mockResolvedValue(mockOptions.modules);
+    (prisma.ticketStatusOption.findMany as jest.Mock).mockResolvedValue(mockOptions.status);
+    (prisma.ticketPriorityOption.findMany as jest.Mock).mockResolvedValue(mockOptions.priority);
+    (prisma.ticketModuleOption.findMany as jest.Mock).mockResolvedValue(mockOptions.modules);
     (prisma.label.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.issue.count as jest.Mock).mockResolvedValue(0);
+    (prisma.ticket.count as jest.Mock).mockResolvedValue(0);
 
     await getFilterCounts();
 
-    // Should be called 3 times (1 status + 1 priority + 1 module)
-    expect(prisma.issue.count).toHaveBeenCalledTimes(3);
+    // Should be called 10 times (1 status + 1 priority + 1 module + 7 kinds)
+    expect(prisma.ticket.count).toHaveBeenCalledTimes(10);
 
-    // Verify where clauses
-    expect(prisma.issue.count).toHaveBeenCalledWith({ where: { status: 'open' } });
-    expect(prisma.issue.count).toHaveBeenCalledWith({ where: { priority: 'high' } });
-    expect(prisma.issue.count).toHaveBeenCalledWith({ where: { module: 'combat' } });
+    // Verify where clauses include parentTicketId: null (top-level filter)
+    expect(prisma.ticket.count).toHaveBeenCalledWith({ where: { parentTicketId: null, status: 'open' } });
+    expect(prisma.ticket.count).toHaveBeenCalledWith({ where: { parentTicketId: null, priority: 'high' } });
+    expect(prisma.ticket.count).toHaveBeenCalledWith({ where: { parentTicketId: null, module: 'combat' } });
   });
 
   it('should handle zero counts correctly', async () => {
@@ -302,11 +302,11 @@ describe('getFilterCounts', () => {
       labels: [],
     };
 
-    (prisma.issueStatusOption.findMany as jest.Mock).mockResolvedValue(mockOptions.status);
-    (prisma.issuePriorityOption.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.issueModuleOption.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.ticketStatusOption.findMany as jest.Mock).mockResolvedValue(mockOptions.status);
+    (prisma.ticketPriorityOption.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.ticketModuleOption.findMany as jest.Mock).mockResolvedValue([]);
     (prisma.label.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.issue.count as jest.Mock).mockResolvedValue(0);
+    (prisma.ticket.count as jest.Mock).mockResolvedValue(0);
 
     const result = await getFilterCounts();
 
@@ -321,14 +321,14 @@ describe('getFilterCounts', () => {
       labels: [],
     };
 
-    (prisma.issueStatusOption.findMany as jest.Mock).mockResolvedValue(mockOptions.status);
-    (prisma.issuePriorityOption.findMany as jest.Mock).mockResolvedValue(mockOptions.priority);
-    (prisma.issueModuleOption.findMany as jest.Mock).mockResolvedValue(mockOptions.modules);
+    (prisma.ticketStatusOption.findMany as jest.Mock).mockResolvedValue(mockOptions.status);
+    (prisma.ticketPriorityOption.findMany as jest.Mock).mockResolvedValue(mockOptions.priority);
+    (prisma.ticketModuleOption.findMany as jest.Mock).mockResolvedValue(mockOptions.modules);
     (prisma.label.findMany as jest.Mock).mockResolvedValue([]);
 
     // Track timing of count calls
     const callTimestamps: number[] = [];
-    (prisma.issue.count as jest.Mock).mockImplementation(() => {
+    (prisma.ticket.count as jest.Mock).mockImplementation(() => {
       callTimestamps.push(Date.now());
       return Promise.resolve(0);
     });
@@ -337,7 +337,8 @@ describe('getFilterCounts', () => {
 
     // All count calls should happen nearly simultaneously (< 50ms apart)
     // This verifies they're executed in parallel via Promise.all
-    expect(callTimestamps).toHaveLength(3);
+    // 3 filter counts + 7 kind counts = 10 total
+    expect(callTimestamps).toHaveLength(10);
     const maxTimeDiff = Math.max(...callTimestamps) - Math.min(...callTimestamps);
     expect(maxTimeDiff).toBeLessThan(50);
   });

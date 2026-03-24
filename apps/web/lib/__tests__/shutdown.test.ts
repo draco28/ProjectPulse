@@ -98,11 +98,24 @@ describe('Graceful Shutdown Manager', () => {
       const originalEnv = process.env.DISABLE_GRACEFUL_SHUTDOWN;
       process.env.DISABLE_GRACEFUL_SHUTDOWN = 'true';
 
+      // Clear the captured calls right before testing
+      processOnCalls.length = 0;
       const { setupGracefulShutdown } = await import('../shutdown');
+      // Record calls that happened during module import (not from setupGracefulShutdown)
+      const callsFromImport = processOnCalls.length;
       setupGracefulShutdown();
 
-      // No handlers should be registered
-      expect(processOnCalls.length).toBe(0);
+      // setupGracefulShutdown should NOT register any additional handlers
+      // when DISABLE_GRACEFUL_SHUTDOWN is set
+      expect(processOnCalls.length).toBe(callsFromImport);
+
+      // Specifically: no SIGTERM/SIGINT/uncaughtException/unhandledRejection handlers
+      const shutdownEvents = processOnCalls
+        .slice(callsFromImport)
+        .filter((c) =>
+          ['SIGTERM', 'SIGINT', 'uncaughtException', 'unhandledRejection'].includes(c.event)
+        );
+      expect(shutdownEvents).toHaveLength(0);
 
       process.env.DISABLE_GRACEFUL_SHUTDOWN = originalEnv;
     });
