@@ -1,11 +1,29 @@
 name: CI Pipeline (Automated Testing)
 
-# Triggers: Every push to any branch, every PR to master
+# Triggers: Push/PR only when web-related files change
+# Rust code (apps/api/, Cargo.toml, .cargo/) does NOT trigger this pipeline
 on:
   push:
-    branches: ['**']  # All branches
+    branches: ['**']
+    paths:
+      - 'apps/web/**'
+      - 'apps/mcp-server/**'
+      - 'apps/mcp-server-python/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [master]
+    paths:
+      - 'apps/web/**'
+      - 'apps/mcp-server/**'
+      - 'apps/mcp-server-python/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
 
 jobs:
   # ============================================================================

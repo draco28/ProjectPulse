@@ -1,9 +1,18 @@
 name: Deploy to Mac Mini
 
-# Triggers: Push to master OR manual trigger
+# Triggers: Push to master when web-related files change, OR manual trigger
+# Rust code (apps/api/, Cargo.toml, .cargo/) does NOT trigger deployment
 on:
   push:
     branches: [master]
+    paths:
+      - 'apps/web/**'
+      - 'apps/mcp-server/**'
+      - 'apps/mcp-server-python/**'
+      - 'packages/**'
+      - 'docker-compose.cloud.yml'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:  # Manual trigger (useful after schema changes)
 
 jobs:

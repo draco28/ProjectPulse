@@ -1,0 +1,37 @@
+[workspace]
+members = ["apps/api"]
+resolver = "2"
+
+[workspace.dependencies]
+# Web framework
+axum = "0.7"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+tower = "0.5"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-native-tls", "postgres", "uuid", "chrono"] }
+
+# PulseDB - Embedded agentic database (v0.4 - PulseVision-ready)
+pulsehive-db = { version = "0.4", features = ["builtin-embeddings"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Auth
+jsonwebtoken = "9"
+
+# Utilities
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }

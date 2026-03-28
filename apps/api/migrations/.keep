@@ -1,0 +1,3 @@
+# sqlx migrations directory
+# Initially empty — Prisma owns DDL for now.
+# sqlx will own migrations starting Phase 5 cutover.

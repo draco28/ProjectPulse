@@ -1,0 +1,13 @@
+# Local development overrides
+# Patch crates-io dependencies with local source for PulseDB and PulseHive
+# This enables development against latest local changes before publishing
+
+[patch.crates-io]
+pulsehive-db = { path = "/Users/draco/projects/PulseDB" }
+
+# PulseHive crates (not actively used in Sprint 1, but available for Phase 2+)
+# pulsehive = { path = "/Users/draco/projects/PulseHive/pulsehive" }
+# pulsehive-core = { path = "/Users/draco/projects/PulseHive/pulsehive-core" }
+# pulsehive-runtime = { path = "/Users/draco/projects/PulseHive/pulsehive-runtime" }
+# pulsehive-openai = { path = "/Users/draco/projects/PulseHive/pulsehive-openai" }
+# pulsehive-anthropic = { path = "/Users/draco/projects/PulseHive/pulsehive-anthropic" }
