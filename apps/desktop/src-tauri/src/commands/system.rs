@@ -15,14 +15,11 @@ pub struct AppInfo {
 /// Returns basic application info.
 ///
 /// Called from the frontend via `invoke('get_app_info')`.
-/// Tauri auto-converts snake_case command names to camelCase on the JS side.
+/// Note: Tauri v2 does NOT auto-convert command names — the JS invoke string
+/// must match the exact Rust function name (snake_case).
 #[tauri::command]
 pub fn get_app_info(state: State<'_, AppState>) -> Result<AppInfo, AppError> {
-    Ok(AppInfo {
-        version: env!("CARGO_PKG_VERSION").to_string(),
-        platform: std::env::consts::OS.to_string(),
-        app_name: state.app_name.clone(),
-    })
+    get_app_info_impl(&state)
 }
 
 /// Testable version of get_app_info that doesn't require Tauri runtime.
