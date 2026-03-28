@@ -1,0 +1,10 @@
+{
+  "identifier": "main-capability",
+  "description": "Main window capabilities for ProjectPulse Desktop",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:default",
+    "core:window:allow-set-title"
+  ]
+}

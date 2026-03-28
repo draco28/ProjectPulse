@@ -5,6 +5,9 @@ packages:
   # Main Next.js web application
   - 'apps/web'
 
+  # Tauri Desktop Application
+  - 'apps/desktop'
+
   # MCP Server for DevHub tools (issue management, search, etc.)
   - 'apps/mcp-server'
 
