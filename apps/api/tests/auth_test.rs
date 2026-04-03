@@ -32,10 +32,7 @@ async fn test_invalid_token_returns_401() {
     let (server, _dir) = test_server().await;
     let response = server
         .get("/api/v1/me")
-        .add_header(
-            axum::http::header::AUTHORIZATION,
-            bearer("invalid_garbage"),
-        )
+        .add_header(axum::http::header::AUTHORIZATION, bearer("invalid_garbage"))
         .await;
     response.assert_status_unauthorized();
 }
