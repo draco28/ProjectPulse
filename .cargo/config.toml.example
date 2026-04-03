@@ -1,0 +1,14 @@
+# Local development overrides
+# Copy this file to config.toml and update paths for your system:
+#   cp .cargo/config.toml.example .cargo/config.toml
+#
+# This file is gitignored — each developer maintains their own copy.
+
+[patch.crates-io]
+# Point to your local PulseDB checkout for development
+# pulsehive-db = { path = "/path/to/your/PulseDB" }
+
+# PulseHive crates (uncomment when needed for Phase 2+)
+# pulsehive = { path = "/path/to/your/PulseHive/pulsehive" }
+# pulsehive-core = { path = "/path/to/your/PulseHive/pulsehive-core" }
+# pulsehive-runtime = { path = "/path/to/your/PulseHive/pulsehive-runtime" }

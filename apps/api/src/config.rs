@@ -2,7 +2,7 @@ use std::env;
 
 /// Application configuration loaded from environment variables.
 ///
-/// Required: DATABASE_URL
+/// Required: DATABASE_URL, NEXTAUTH_SECRET
 /// All other fields have sensible defaults for development.
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -11,6 +11,8 @@ pub struct Config {
     pub host: String,
     pub port: u16,
     pub allowed_origins: Vec<String>,
+    pub nextauth_secret: String,
+    pub mcp_internal_secret: Option<String>,
 }
 
 impl Config {
@@ -18,6 +20,10 @@ impl Config {
     /// Panics on missing required vars (fail-fast at startup).
     pub fn from_env() -> Self {
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+        let nextauth_secret = env::var("NEXTAUTH_SECRET").expect("NEXTAUTH_SECRET must be set");
+
+        let mcp_internal_secret = env::var("MCP_INTERNAL_SECRET").ok();
 
         let pulsedb_path =
             env::var("PULSEDB_PATH").unwrap_or_else(|_| "./data/projectpulse.pulsedb".to_string());
@@ -41,6 +47,8 @@ impl Config {
             host,
             port,
             allowed_origins,
+            nextauth_secret,
+            mcp_internal_secret,
         }
     }
 

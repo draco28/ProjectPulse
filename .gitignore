@@ -30,6 +30,9 @@
 # ============================================================================
 target/
 
+# Cargo config (contains absolute local paths for dev overrides)
+.cargo/config.toml
+
 # Tauri generated files
 apps/desktop/src-tauri/gen/
 

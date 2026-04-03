@@ -1,0 +1,75 @@
+version: '3.8'
+
+# ProjectPulse v3.0 Production Stack
+# Axum API + PostgreSQL + Redis (separate from existing docker-compose.cloud.yml)
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: projectpulse-v3-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+      POSTGRES_DB: projectpulse_dev
+    ports:
+      - "5434:5432"
+    volumes:
+      - v3_postgres_data:/var/lib/postgresql/data
+    networks:
+      - projectpulse-v3
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: projectpulse-v3-redis
+    command: sh -c "redis-server --requirepass $${REDIS_PASSWORD:-devredis123}"
+    ports:
+      - "6381:6379"
+    volumes:
+      - v3_redis_data:/data
+    networks:
+      - projectpulse-v3
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD:-devredis123} ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  axum-api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: projectpulse-v3-api
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-postgres123}@postgres:5432/projectpulse_dev
+      - PULSEDB_PATH=/data/projectpulse.pulsedb
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - MCP_INTERNAL_SECRET=${MCP_INTERNAL_SECRET:-}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+    ports:
+      - "3003:3003"
+    volumes:
+      - v3_pulsedb_data:/data
+    networks:
+      - projectpulse-v3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  projectpulse-v3:
+    driver: bridge
+
+volumes:
+  v3_postgres_data:
+  v3_redis_data:
+  v3_pulsedb_data:

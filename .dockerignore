@@ -1,0 +1,13 @@
+# Docker build context exclusions
+target/
+node_modules/
+.git/
+.agent/
+.claude/
+apps/web/
+apps/mcp-server/
+apps/mcp-docker/
+apps/desktop/src-tauri/target/
+*.md
+.env*
+!.env.example

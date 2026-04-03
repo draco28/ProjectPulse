@@ -31,6 +31,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 
 # Auth
 jsonwebtoken = "9"
+bcrypt = "0.16"
 
 # Utilities
 uuid = { version = "1", features = ["v4", "serde"] }

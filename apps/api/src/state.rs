@@ -34,15 +34,23 @@ impl AppState {
         tracing::info!("connected to PostgreSQL");
 
         // PulseDB embedded database (builtin ONNX embeddings, 384d all-MiniLM-L6-v2)
-        let pulsedb_config = pulsedb::Config::with_builtin_embeddings();
-        let pulsedb = PulseDB::open(&config.pulsedb_path, pulsedb_config)?;
+        // Wrapped in spawn_blocking because PulseDB uses sync I/O (redb)
+        let pulsedb_path = config.pulsedb_path.clone();
+        let pulsedb = tokio::task::spawn_blocking(move || -> anyhow::Result<PulseDB> {
+            let pulsedb_config = pulsedb::Config::with_builtin_embeddings();
+            let db = PulseDB::open(&pulsedb_path, pulsedb_config)?;
 
-        // Ensure a default collective exists for this project
-        let collectives = pulsedb.list_collectives()?;
-        let _collective = match collectives.iter().find(|c| c.name == "projectpulse") {
-            Some(c) => c.id,
-            None => pulsedb.create_collective("projectpulse")?,
-        };
+            // Ensure a default collective exists for this project
+            let collectives = db.list_collectives()?;
+            if !collectives.iter().any(|c| c.name == "projectpulse") {
+                db.create_collective("projectpulse")?;
+            }
+
+            Ok(db)
+        })
+        .await
+        .map_err(|e| anyhow::anyhow!("PulseDB task join error: {e}"))??;
+
         tracing::info!(path = %config.pulsedb_path, "PulseDB opened");
 
         Ok(Self {
