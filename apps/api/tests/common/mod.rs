@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use projectpulse_api::config::Config;
 use projectpulse_api::state::AppState;
 use tempfile::TempDir;
