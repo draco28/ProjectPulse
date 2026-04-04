@@ -2,6 +2,7 @@ name: Rust CI Pipeline
 
 # Triggers: Only when Rust-related files change
 on:
+  workflow_dispatch:
   push:
     branches: ['**']
     paths:
