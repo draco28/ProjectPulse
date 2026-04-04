@@ -51,8 +51,8 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
-      - name: Run clippy
-        run: cargo clippy --workspace -- -D warnings
+      - name: Run clippy (API only — desktop requires macOS/GTK)
+        run: cargo clippy -p projectpulse-api -- -D warnings
 
   # ==========================================================================
   # JOB 2: Tests (with PostgreSQL)
@@ -91,11 +91,11 @@ jobs:
           key: rust-test-${{ hashFiles('Cargo.lock') }}
           restore-keys: rust-test-
 
-      - name: Run tests
+      - name: Run tests (API only — desktop requires macOS/GTK)
         env:
           DATABASE_URL: postgresql://postgres:postgres123@localhost:5432/projectpulse_test
           NEXTAUTH_SECRET: ci-test-secret-at-least-32-chars-long
-        run: cargo test --workspace
+        run: cargo test -p projectpulse-api
 
   # ==========================================================================
   # JOB 3: Build Release
