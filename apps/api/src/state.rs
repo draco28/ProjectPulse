@@ -6,16 +6,23 @@ use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::PgPool;
 
 use crate::config::Config;
+use crate::services::embeddings::EmbeddingService;
+use crate::services::rag_search::RagService;
 
 /// Shared application state, available to all Axum handlers via `State<AppState>`.
 ///
 /// Wraps database connections behind Arc for cheap cloning (Axum requirement).
 /// Both PgPool (sqlx) and PulseDB are thread-safe and can be shared across tasks.
+///
+/// Sprint 4 adds: `rag` (RagService trait) and `embeddings` (Ollama HTTP client).
+/// Sprint 5 will add: `hive` (PulseHive HiveMind).
 #[derive(Clone)]
 pub struct AppState {
     pub config: Arc<Config>,
     pub db: PgPool,
     pub pulsedb: Arc<PulseDB>,
+    pub rag: Arc<dyn RagService>,
+    pub embeddings: Arc<EmbeddingService>,
 }
 
 impl AppState {
@@ -53,10 +60,20 @@ impl AppState {
 
         tracing::info!(path = %config.pulsedb_path, "PulseDB opened");
 
+        // Embedding service (Ollama HTTP)
+        let embeddings = Arc::new(EmbeddingService::from_env());
+        tracing::info!("EmbeddingService initialized");
+
+        // RAG service (stub — replaced by PgVectorRagService after migration)
+        let rag: Arc<dyn RagService> =
+            Arc::new(crate::services::rag_search::StubRagService);
+
         Ok(Self {
             config: Arc::new(config),
             db,
             pulsedb: Arc::new(pulsedb),
+            rag,
+            embeddings,
         })
     }
 }
