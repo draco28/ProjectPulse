@@ -29,6 +29,31 @@ pub enum ChunkType {
     Full,
 }
 
+/// Split text on sentence boundaries (period, exclamation, question + space).
+fn split_sentences(text: &str) -> Vec<&str> {
+    let mut sentences = Vec::new();
+    let mut start = 0;
+
+    for (i, _) in text.match_indices(". ") {
+        let end = i + 2; // include the ". "
+        if end > start {
+            sentences.push(&text[start..end]);
+            start = end;
+        }
+    }
+
+    // Remaining text
+    if start < text.len() {
+        sentences.push(&text[start..]);
+    }
+
+    if sentences.is_empty() {
+        sentences.push(text);
+    }
+
+    sentences
+}
+
 /// Approximate token count using whitespace heuristic (~4 chars/token).
 fn approx_tokens(text: &str) -> usize {
     // Split on whitespace for a rough count. More accurate than char/4
@@ -70,14 +95,36 @@ pub fn chunk_paragraphs(text: &str, max_tokens: usize) -> Vec<Chunk> {
             current_tokens = 0;
         }
 
-        // If a single paragraph exceeds max_tokens, it becomes its own chunk
+        // If a single paragraph exceeds max_tokens, split on sentence boundaries
         if para_tokens > max_tokens && current.is_empty() {
-            chunks.push(Chunk {
-                content: para.to_string(),
-                index: chunks.len(),
-                section_title: None,
-                chunk_type: ChunkType::Prose,
-            });
+            let sentences = split_sentences(para);
+            let mut sentence_buf = String::new();
+            let mut sentence_tokens = 0;
+
+            for sentence in &sentences {
+                let s_tokens = approx_tokens(sentence);
+                if sentence_tokens + s_tokens > max_tokens && !sentence_buf.is_empty() {
+                    chunks.push(Chunk {
+                        content: sentence_buf.trim().to_string(),
+                        index: chunks.len(),
+                        section_title: None,
+                        chunk_type: ChunkType::Prose,
+                    });
+                    sentence_buf = String::new();
+                    sentence_tokens = 0;
+                }
+                sentence_buf.push_str(sentence);
+                sentence_buf.push(' ');
+                sentence_tokens += s_tokens;
+            }
+            if !sentence_buf.trim().is_empty() {
+                chunks.push(Chunk {
+                    content: sentence_buf.trim().to_string(),
+                    index: chunks.len(),
+                    section_title: None,
+                    chunk_type: ChunkType::Prose,
+                });
+            }
             continue;
         }
 
@@ -195,6 +242,44 @@ pub fn chunk_sections(markdown: &str) -> Vec<Chunk> {
     }
 
     chunks
+}
+
+/// Smart chunking: section-based first, then split oversized sections via paragraphs.
+///
+/// Combines `chunk_sections` + `chunk_paragraphs` — sections provide semantic
+/// boundaries, paragraphs handle sections that exceed `max_tokens`.
+pub fn chunk_smart(markdown: &str, max_tokens: usize) -> Vec<Chunk> {
+    let sections = chunk_sections(markdown);
+    let mut result = Vec::new();
+
+    for section in sections {
+        let token_count = approx_tokens(&section.content);
+        if token_count <= max_tokens + max_tokens / 4 {
+            // Section fits within budget (with 25% overflow tolerance)
+            result.push(Chunk {
+                index: result.len(),
+                ..section
+            });
+        } else {
+            // Section too large — split into paragraphs
+            let sub_chunks = chunk_paragraphs(&section.content, max_tokens);
+            for sub in sub_chunks {
+                result.push(Chunk {
+                    content: sub.content,
+                    index: result.len(),
+                    section_title: section.section_title.clone(),
+                    chunk_type: ChunkType::Prose,
+                });
+            }
+        }
+    }
+
+    // Re-index
+    for (i, chunk) in result.iter_mut().enumerate() {
+        chunk.index = i;
+    }
+
+    result
 }
 
 /// Extract fenced code blocks as separate chunks, with surrounding prose.

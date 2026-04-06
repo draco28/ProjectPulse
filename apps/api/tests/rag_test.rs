@@ -76,12 +76,12 @@ async fn test_chunking_text_512_tokens() {
         results.len()
     );
 
-    // Each chunk content should be < ~600 tokens (~3000 chars with overflow)
+    // Each chunk should be < ~640 tokens (512 + 25% overflow ≈ 4000 chars)
     for result in results {
         let content = result["content"].as_str().unwrap_or("");
         assert!(
-            content.len() < 3000,
-            "chunk should be < ~600 tokens (~3000 chars), got {} chars",
+            content.len() < 4500,
+            "chunk should be < ~640 tokens (~4500 chars), got {} chars",
             content.len()
         );
     }
@@ -369,10 +369,17 @@ async fn test_search_includes_graph_relations() {
 async fn test_search_empty_query_returns_recent() {
     let (server, _dir) = test_server().await;
 
+    // Use inline content (synchronous) so data is available for search
     server
         .post("/api/v1/rag/ingest")
         .add_header(AUTHORIZATION, bearer_auth())
-        .json(&json!({ "sourceType": "wiki", "projectId": 6 }))
+        .json(&json!({
+            "sourceType": "wiki",
+            "projectId": 6,
+            "content": "# Recent Doc\n\nThis is a recently created wiki page for testing the empty query fallback.",
+            "title": "Recent Test Page",
+            "sourceId": 9990
+        }))
         .await;
 
     let response = server

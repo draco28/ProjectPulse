@@ -61,7 +61,7 @@ async fn insert_chunk(db: &PgPool, params: InsertChunkParams<'_>) -> Result<bool
         ) VALUES (
             $1, $2, $3, $4, $5,
             $6, $7, $8, $9::vector,
-            ''::tsvector,
+            to_tsvector('english', COALESCE($8, '') || ' ' || $6),
             $10, '{}'::jsonb
         )
         ON CONFLICT (project_id, content_hash) DO NOTHING
@@ -93,7 +93,7 @@ pub struct IngestParams<'a> {
     pub chunks: Vec<Chunk>,
 }
 
-/// Chunk, embed, and store content into rag_chunks.
+/// Chunk, embed, and store content into rag_chunks. (internal)
 async fn ingest_content(
     db: &PgPool,
     embeddings: &EmbeddingService,
@@ -170,7 +170,7 @@ pub async fn ingest_wiki(
         ];
         // Prepend title to content so chunks carry document context
         let titled_content = format!("# {}\n\n{}", title, content);
-        let chunks = chunking::chunk_sections(&titled_content);
+        let chunks = chunking::chunk_smart(&titled_content, 512);
 
         match ingest_content(
             db, embeddings, IngestParams {
@@ -261,7 +261,7 @@ pub async fn ingest_sops(
 
     for (id, _title, content, category) in &rows {
         let domain_tags = vec!["sop".to_string(), category.clone()];
-        let chunks = chunking::chunk_sections(content);
+        let chunks = chunking::chunk_smart(content, 512);
 
         match ingest_content(
             db, embeddings, IngestParams {
@@ -357,7 +357,7 @@ pub async fn ingest_documents(
             category.clone().unwrap_or_default(),
         ];
         let titled_content = format!("# {}\n\n{}", filename, content);
-        let chunks = chunking::chunk_sections(&titled_content);
+        let chunks = chunking::chunk_smart(&titled_content, 512);
 
         // Document IDs are CUIDs (strings) — hash to stable i32 for source_id
         let id_hash = Sha256::digest(id.as_bytes());
@@ -422,4 +422,13 @@ pub async fn ingest_knowledge(
     }
 
     Ok(result)
+}
+
+/// Public entry point for inline content ingestion (called from route handler).
+pub async fn ingest_content_public(
+    db: &PgPool,
+    embeddings: &EmbeddingService,
+    params: IngestParams<'_>,
+) -> Result<(usize, usize)> {
+    ingest_content(db, embeddings, params).await
 }
