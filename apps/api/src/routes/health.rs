@@ -1,13 +1,12 @@
 use axum::extract::State;
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::Json;
+use axum::response::Response;
 use serde::Serialize;
 
+use crate::response;
 use crate::state::AppState;
 
 #[derive(Serialize)]
-pub struct HealthResponse {
+pub struct HealthData {
     pub status: String,
     pub database: String,
     pub pulsedb: String,
@@ -16,15 +15,14 @@ pub struct HealthResponse {
 
 /// GET /health — checks PostgreSQL and PulseDB connectivity.
 ///
-/// Returns 200 with `{"status":"healthy","database":"connected","pulsedb":"connected"}`
-/// Returns 503 if either database check fails.
-pub async fn health(State(state): State<AppState>) -> impl IntoResponse {
+/// Returns `{ "data": { "status": "healthy", ... }, "error": null }`
+pub async fn health(State(state): State<AppState>) -> Response {
     let db_status = check_postgres(&state).await;
     let pulsedb_status = check_pulsedb(&state).await;
 
     let all_healthy = db_status.is_ok() && pulsedb_status.is_ok();
 
-    let response = HealthResponse {
+    let data = HealthData {
         status: if all_healthy { "healthy" } else { "unhealthy" }.to_string(),
         database: if db_status.is_ok() {
             "connected"
@@ -41,13 +39,15 @@ pub async fn health(State(state): State<AppState>) -> impl IntoResponse {
         version: env!("CARGO_PKG_VERSION").to_string(),
     };
 
-    let status_code = if all_healthy {
-        StatusCode::OK
+    if all_healthy {
+        response::success(data)
     } else {
-        StatusCode::SERVICE_UNAVAILABLE
-    };
-
-    (status_code, Json(response))
+        response::failure(
+            axum::http::StatusCode::SERVICE_UNAVAILABLE,
+            "UNHEALTHY",
+            "one or more services unavailable",
+        )
+    }
 }
 
 async fn check_postgres(state: &AppState) -> Result<(), sqlx::Error> {
@@ -56,8 +56,6 @@ async fn check_postgres(state: &AppState) -> Result<(), sqlx::Error> {
 }
 
 async fn check_pulsedb(state: &AppState) -> Result<(), String> {
-    // Verify PulseDB is accessible via HiveMind's substrate
-    // HiveMind owns PulseDB exclusively — check by listing collectives
     state
         .hive
         .substrate()
