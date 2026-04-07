@@ -115,6 +115,10 @@ def build_registry() -> dict[str, list[ToolDef]]:
         projectpulse_observability_logStep, projectpulse_observability_completeSession,
     )
     from src.tools.repo import projectpulse_repo_writeMinimal
+    from src.tools.rag import (
+        projectpulse_rag_search, projectpulse_rag_context,
+        projectpulse_rag_ingest, projectpulse_rag_ingest_status,
+    )
 
     return {
         "core": [
@@ -340,6 +344,26 @@ def build_registry() -> dict[str, list[ToolDef]]:
                     description="List all backlog items. Filter by epicRef."),
             ToolDef(fn=projectpulse_backlog_getBySprint, name="projectpulse_backlog_getBySprint",
                     description="Get backlog items for a specific sprint with traceability."),
+            # --- Phase 2 Sprint 4: RAG tools (core) ---
+            ToolDef(
+                fn=projectpulse_rag_search,
+                name="projectpulse_rag_search",
+                description=(
+                    "[QUERY] Unified RAG search across ALL content types (wiki, tickets, SOPs, skills, knowledge). "
+                    "Returns ranked CHUNKS (not full documents) using hybrid search (pgvector + tsvector + RRF). "
+                    "For cross-content search, prefer this over knowledge_search. "
+                    "Empty query returns recent chunks."
+                ),
+            ),
+            ToolDef(
+                fn=projectpulse_rag_context,
+                name="projectpulse_rag_context",
+                description=(
+                    "[QUERY] Assemble optimized context for a task within a token budget. "
+                    "Performs multi-query RAG search + graph expansion + formatting. "
+                    "Use instead of manually calling wiki_get + knowledge_search + ticket_get."
+                ),
+            ),
         ],
         "onboarding": [
             ToolDef(fn=projectpulse_onboarding_getPrompt, name="projectpulse_onboarding_getPrompt",
@@ -398,6 +422,11 @@ def build_registry() -> dict[str, list[ToolDef]]:
                     description="Bulk create 1-10 workflow templates atomically."),
             ToolDef(fn=projectpulse_batch_createSOPs, name="projectpulse_batch_createSOPs",
                     description="Bulk create 1-10 SOPs atomically."),
+            # RAG admin tools (Phase 2 Sprint 4)
+            ToolDef(fn=projectpulse_rag_ingest, name="projectpulse_rag_ingest",
+                    description="Trigger content ingestion into RAG index. Bulk (reads from DB) or inline (content in request)."),
+            ToolDef(fn=projectpulse_rag_ingest_status, name="projectpulse_rag_ingest_status",
+                    description="Check ingestion job progress: processed count, total, errors."),
         ],
         "utility": [
             ToolDef(fn=projectpulse_wiki_generate, name="projectpulse_wiki_generate",
