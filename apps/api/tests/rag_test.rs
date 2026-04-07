@@ -67,7 +67,7 @@ async fn test_chunking_text_512_tokens() {
         .await;
 
     let body: Value = search_response.json();
-    let results = body["results"].as_array().expect("results should be an array");
+    let results = body["data"]["results"].as_array().expect("results should be an array");
 
     // Long text (~2000 tokens) should produce multiple chunks (~4 at 512 tokens)
     assert!(
@@ -126,7 +126,7 @@ Sessions are stored in PostgreSQL with automatic expiry after 4 hours of inactiv
         .await;
 
     let body: Value = search_response.json();
-    let results = body["results"].as_array().expect("results should be an array");
+    let results = body["data"]["results"].as_array().expect("results should be an array");
 
     assert!(!results.is_empty(), "should find results for JWT query");
 
@@ -173,7 +173,7 @@ async fn test_ingest_wiki_creates_experiences() {
 
     let body: Value = response.json();
     assert!(
-        body["jobId"].is_string() || body["job_id"].is_string(),
+        body["data"]["jobId"].is_string() || body["data"]["job_id"].is_string(),
         "response should contain a job ID"
     );
 
@@ -187,7 +187,7 @@ async fn test_ingest_wiki_creates_experiences() {
         .await;
 
     let search_body: Value = search_response.json();
-    let results = search_body["results"]
+    let results = search_body["data"]["results"]
         .as_array()
         .expect("results should be an array");
 
@@ -224,7 +224,7 @@ async fn test_ingest_ticket_creates_experience() {
 
     let body: Value = response.json();
     assert!(
-        body["jobId"].is_string() || body["job_id"].is_string(),
+        body["data"]["jobId"].is_string() || body["data"]["job_id"].is_string(),
         "response should contain a job ID"
     );
 }
@@ -268,7 +268,7 @@ Errors return structured JSON with an error message and HTTP status code.
         .await;
 
     let body: Value = search_response.json();
-    let results = body["results"].as_array().expect("results should be an array");
+    let results = body["data"]["results"].as_array().expect("results should be an array");
 
     assert!(!results.is_empty(), "should find results");
 
@@ -310,7 +310,7 @@ async fn test_search_returns_ranked_results() {
     response.assert_status_ok();
 
     let body: Value = response.json();
-    let results = body["results"].as_array().expect("results should be an array");
+    let results = body["data"]["results"].as_array().expect("results should be an array");
 
     // Results sorted by score descending
     let scores: Vec<f64> = results
@@ -327,8 +327,8 @@ async fn test_search_returns_ranked_results() {
         );
     }
 
-    assert!(body["metadata"]["strategy"].is_string(), "strategy required");
-    assert!(body["metadata"]["search_time_ms"].is_number(), "search_time_ms required");
+    assert!(body["data"]["metadata"]["strategy"].is_string(), "strategy required");
+    assert!(body["data"]["metadata"]["search_time_ms"].is_number(), "search_time_ms required");
 }
 
 /// Search with include_relations should return related chunks.
@@ -354,7 +354,7 @@ async fn test_search_includes_graph_relations() {
     response.assert_status_ok();
 
     let body: Value = response.json();
-    let results = body["results"].as_array().expect("results should be an array");
+    let results = body["data"]["results"].as_array().expect("results should be an array");
 
     for result in results {
         assert!(result["related"].is_array(), "each result needs 'related' array");
@@ -393,14 +393,14 @@ async fn test_search_empty_query_returns_recent() {
     response.assert_status_ok();
 
     let body: Value = response.json();
-    let results = body["results"].as_array().expect("results should be an array");
+    let results = body["data"]["results"].as_array().expect("results should be an array");
 
     assert!(
         !results.is_empty(),
         "empty query should return recent chunks as fallback"
     );
 
-    let strategy = body["metadata"]["strategy"].as_str().unwrap_or("");
+    let strategy = body["data"]["metadata"]["strategy"].as_str().unwrap_or("");
     assert!(
         strategy == "recent" || strategy == "hybrid",
         "empty query strategy should be 'recent' or 'hybrid', got '{}'",

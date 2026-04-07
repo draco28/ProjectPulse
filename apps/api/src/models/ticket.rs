@@ -108,6 +108,7 @@ pub struct UpdateTicketRequest {
     pub module: Option<String>,
     pub assignee: Option<String>,
     pub assignee_type: Option<String>,
+    pub assignee_id: Option<String>,
     pub sprint_number: Option<i32>,
     pub parent_ticket_id: Option<i32>,
     pub epic_ref: Option<String>,
@@ -129,7 +130,7 @@ pub struct MoveTicketRequest {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SetStatusRequest {
-    pub status: String,
+    pub status: KanbanStatus,
 }
 
 /// POST /api/v1/tickets/:id/comments — add comment.
