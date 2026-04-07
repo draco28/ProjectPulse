@@ -432,3 +432,45 @@ impl RagService for StubRagService {
         })
     }
 }
+
+// ============================================================================
+// AdaptiveRAG Query Router (Sprint 5 #261)
+// ============================================================================
+
+/// Query complexity classification for AdaptiveRAG routing.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum QueryComplexity {
+    /// Short keyword lookup → PgVectorRagService (RRF hybrid, <50ms)
+    Simple,
+    /// Semantic search with some context → PgVectorRagService + graph expansion (<100ms)
+    Moderate,
+    /// Multi-hop reasoning, temporal, comparative → RAGRetriever agent via HiveMind (<2s)
+    Complex,
+}
+
+/// Classify query complexity for AdaptiveRAG routing.
+/// Heuristic-only (no LLM call, <1ms).
+pub fn classify_complexity(query: &str) -> QueryComplexity {
+    let words: Vec<&str> = query.split_whitespace().collect();
+    let word_count = words.len();
+
+    let has_temporal = words.iter().any(|w| {
+        ["between", "changed", "history", "when", "before", "after", "since"].contains(w)
+    });
+    let has_comparison = words.iter().any(|w| {
+        ["vs", "compare", "difference", "versus", "better", "instead"].contains(w)
+    });
+    let has_reasoning = words.iter().any(|w| {
+        ["why", "how", "explain", "because", "reason", "cause"].contains(w)
+    });
+    let has_multi_entity = query.matches('#').count() >= 2;
+
+    if word_count <= 4 && !has_temporal && !has_comparison && !has_reasoning {
+        QueryComplexity::Simple
+    } else if has_temporal || has_comparison || has_multi_entity || (has_reasoning && word_count > 8)
+    {
+        QueryComplexity::Complex
+    } else {
+        QueryComplexity::Moderate
+    }
+}

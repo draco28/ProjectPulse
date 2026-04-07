@@ -28,6 +28,12 @@ chrono = { workspace = true }
 reqwest = { version = "0.12", features = ["json"] }
 async-trait = "0.1"
 sha2 = "0.10"
+futures = "0.3"
+# PulseHive agent orchestration (Sprint 5)
+pulsehive = { workspace = true }
+pulsehive-core = { workspace = true }
+pulsehive-runtime = { workspace = true }
+pulsehive-openai = { workspace = true }
 
 [dev-dependencies]
 axum-test = "16"

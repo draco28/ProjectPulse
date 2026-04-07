@@ -20,7 +20,7 @@ pub struct HealthResponse {
 /// Returns 503 if either database check fails.
 pub async fn health(State(state): State<AppState>) -> impl IntoResponse {
     let db_status = check_postgres(&state).await;
-    let pulsedb_status = check_pulsedb(&state);
+    let pulsedb_status = check_pulsedb(&state).await;
 
     let all_healthy = db_status.is_ok() && pulsedb_status.is_ok();
 
@@ -55,8 +55,14 @@ async fn check_postgres(state: &AppState) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
-fn check_pulsedb(state: &AppState) -> Result<(), pulsedb::PulseDBError> {
-    // Verify PulseDB is accessible by listing collectives
-    let _ = state.pulsedb.list_collectives()?;
+async fn check_pulsedb(state: &AppState) -> Result<(), String> {
+    // Verify PulseDB is accessible via HiveMind's substrate
+    // HiveMind owns PulseDB exclusively — check by listing collectives
+    state
+        .hive
+        .substrate()
+        .list_collectives()
+        .await
+        .map_err(|e| format!("PulseDB check failed: {e}"))?;
     Ok(())
 }

@@ -13,6 +13,10 @@ pub struct Config {
     pub allowed_origins: Vec<String>,
     pub nextauth_secret: String,
     pub mcp_internal_secret: Option<String>,
+    // LLM provider for PulseHive agents (Sprint 5)
+    pub llm_base_url: String,
+    pub llm_api_key: Option<String>,
+    pub llm_model: String,
 }
 
 impl Config {
@@ -41,6 +45,12 @@ impl Config {
             .map(|s| s.trim().to_string())
             .collect();
 
+        let llm_base_url = env::var("LLM_BASE_URL")
+            .unwrap_or_else(|_| "https://ollama.com/v1".to_string());
+        let llm_api_key = env::var("LLM_API_KEY").ok();
+        let llm_model = env::var("LLM_MODEL")
+            .unwrap_or_else(|_| "glm-5:cloud".to_string());
+
         Self {
             database_url,
             pulsedb_path,
@@ -49,6 +59,9 @@ impl Config {
             allowed_origins,
             nextauth_secret,
             mcp_internal_secret,
+            llm_base_url,
+            llm_api_key,
+            llm_model,
         }
     }
 
