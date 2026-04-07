@@ -26,6 +26,7 @@ class AppConfig(BaseSettings):
 
     # API connection
     projectpulse_api_base_url: str = "http://localhost:3000/api"
+    projectpulse_axum_api_base_url: str = "http://localhost:3003"
     projectpulse_api_token: str = ""
     mcp_server_port: int = 3002
     node_env: Literal["development", "production", "test"] = "development"
@@ -52,8 +53,13 @@ class AppConfig(BaseSettings):
 
     @property
     def api_base_url(self) -> str:
-        """Normalized API base URL (no trailing slash)."""
+        """Normalized Next.js API base URL (no trailing slash)."""
         return self.projectpulse_api_base_url.rstrip("/")
+
+    @property
+    def axum_api_base_url(self) -> str:
+        """Normalized Axum API base URL for RAG endpoints (no trailing slash)."""
+        return self.projectpulse_axum_api_base_url.rstrip("/")
 
     @property
     def is_production(self) -> bool:

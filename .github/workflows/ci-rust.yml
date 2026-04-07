@@ -91,6 +91,15 @@ jobs:
           key: rust-test-${{ hashFiles('Cargo.lock') }}
           restore-keys: rust-test-
 
+      - name: Run RAG migrations
+        env:
+          PGPASSWORD: postgres123
+        run: |
+          for f in apps/api/migrations/*.sql; do
+            echo "Running migration: $f"
+            psql -h localhost -U postgres -d projectpulse_test -f "$f"
+          done
+
       - name: Run tests (API only — desktop requires macOS/GTK)
         env:
           DATABASE_URL: postgresql://postgres:postgres123@localhost:5432/projectpulse_test
