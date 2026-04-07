@@ -1,6 +1,7 @@
 pub mod health;
 pub mod me;
 pub mod rag;
+pub mod tickets;
 
 use axum::routing::{get, post};
 use axum::Router;
@@ -21,4 +22,12 @@ pub fn protected_routes() -> Router<AppState> {
         .route("/api/v1/rag/ingest", post(rag::ingest))
         .route("/api/v1/rag/ingest/status", get(rag::ingest_status))
         .route("/api/v1/rag/search", get(rag::search))
+        // Ticket CRUD (Sprint 6)
+        .route("/api/v1/tickets", post(tickets::create_ticket).get(tickets::list_tickets))
+        .route(
+            "/api/v1/tickets/:id",
+            get(tickets::get_ticket)
+                .patch(tickets::update_ticket)
+                .delete(tickets::delete_ticket),
+        )
 }

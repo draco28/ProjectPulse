@@ -42,6 +42,25 @@ pub async fn test_state() -> (AppState, TempDir) {
         .await
         .expect("failed to create test AppState — is PostgreSQL running?");
 
+    // Ensure test user + project exist (FK constraints require them for ticket creation)
+    sqlx::query(
+        r#"INSERT INTO users (id, email, name, "passwordHash", role, "createdAt", "updatedAt")
+           VALUES ('test-user-1', 'test@example.com', 'Test User', '$2b$10$placeholder', 'ADMIN'::"UserRole", NOW(), NOW())
+           ON CONFLICT (id) DO NOTHING"#,
+    )
+    .execute(&state.db)
+    .await
+    .ok();
+
+    sqlx::query(
+        r#"INSERT INTO "Project" (id, name, "ownerId", "createdAt", "updatedAt")
+           VALUES (6, 'Test Project', 'test-user-1', NOW(), NOW())
+           ON CONFLICT (id) DO NOTHING"#,
+    )
+    .execute(&state.db)
+    .await
+    .ok();
+
     (state, temp_dir)
 }
 
