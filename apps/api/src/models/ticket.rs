@@ -281,6 +281,22 @@ pub struct ProgressUpdate {
     pub phase_progress: String,
 }
 
+/// Query params for children endpoint.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChildrenParams {
+    pub page: Option<i32>,
+    pub page_size: Option<i32>,
+    pub status: Option<String>,
+}
+
+/// Request for updating labels.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateLabelsRequest {
+    pub label_ids: Vec<i32>,
+}
+
 /// Ticket hierarchy response.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -607,3 +607,433 @@ async fn get_project_id(db: &sqlx::PgPool, ticket_id: i32) -> Result<i32, AppErr
         .map_err(|_| AppError::NotFound(format!("ticket {} not found", ticket_id)))?;
     Ok(row.0)
 }
+
+// ============================================================================
+// POST /api/v1/tickets/bulk — Bulk create 1-50 tickets
+// ============================================================================
+
+pub async fn bulk_create_tickets(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Json(req): Json<BulkCreateRequest>,
+) -> Result<Response, AppError> {
+    require_project_access(&auth, req.project_id)?;
+
+    if req.tickets.is_empty() || req.tickets.len() > 50 {
+        return Err(AppError::Validation("tickets array must have 1-50 items".into()));
+    }
+
+    let mut created_tickets = Vec::new();
+    let mut failed = 0;
+
+    for ticket_req in &req.tickets {
+        let kind_str = serde_json::to_value(&ticket_req.kind)
+            .ok()
+            .and_then(|v| v.as_str().map(str::to_string))
+            .unwrap_or_else(|| "task".into());
+        let source_str = serde_json::to_value(&ticket_req.source)
+            .ok()
+            .and_then(|v| v.as_str().map(str::to_string))
+            .unwrap_or_else(|| "agent".into());
+        let status = ticket_req.status.as_deref().unwrap_or("backlog");
+        let priority = ticket_req.priority.as_deref().unwrap_or("medium");
+        let backlog_refs = ticket_req.backlog_refs.clone().unwrap_or_default();
+
+        let result: Result<(i32, i32, String), _> = sqlx::query_as(
+            r#"
+            INSERT INTO tickets (
+                title, description, kind, source, status, priority, module,
+                "projectId", ticket_number, "displayOrder",
+                "parentTicketId", "epicRef", "backlogRefs",
+                "sprintNumber", "estimatedDays",
+                "createdAt", "updatedAt"
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7,
+                $8,
+                (SELECT COALESCE(MAX(ticket_number), 0) + 1 FROM tickets WHERE "projectId" = $8),
+                $9,
+                $10, $11, $12,
+                $13, $14,
+                NOW(), NOW()
+            )
+            RETURNING id, ticket_number, "createdAt"::text
+            "#,
+        )
+        .bind(&ticket_req.title)
+        .bind(&ticket_req.description)
+        .bind(&kind_str)
+        .bind(&source_str)
+        .bind(status)
+        .bind(priority)
+        .bind(&ticket_req.module)
+        .bind(req.project_id)
+        .bind(ticket_req.display_order.unwrap_or(0))
+        .bind(ticket_req.parent_ticket_id)
+        .bind(&ticket_req.epic_ref)
+        .bind(&backlog_refs)
+        .bind(ticket_req.sprint_number)
+        .bind(ticket_req.estimated_days)
+        .fetch_one(&state.db)
+        .await;
+
+        match result {
+            Ok((id, ticket_number, _)) => {
+                created_tickets.push(BulkTicketRef {
+                    ticket_number,
+                    id,
+                    title: ticket_req.title.clone(),
+                    kind: kind_str,
+                });
+            }
+            Err(_) => failed += 1,
+        }
+    }
+
+    Ok(response::created(BulkCreateResponse {
+        created: created_tickets.len(),
+        failed,
+        total: req.tickets.len(),
+        tickets: created_tickets,
+    }))
+}
+
+// ============================================================================
+// GET /api/v1/tickets/by-number/:projectId/:ticketNumber — Lookup by display number
+// ============================================================================
+
+pub async fn get_by_number(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Path((project_id, ticket_number)): Path<(i32, i32)>,
+) -> Result<Response, AppError> {
+    require_project_access(&auth, project_id)?;
+
+    let row: Option<(i32,)> = sqlx::query_as(
+        r#"SELECT id FROM tickets WHERE "projectId" = $1 AND ticket_number = $2"#,
+    )
+    .bind(project_id)
+    .bind(ticket_number)
+    .fetch_optional(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    match row {
+        Some((id,)) => get_ticket(State(state), Extension(auth), Path(id)).await,
+        None => Err(AppError::NotFound(format!(
+            "ticket #{} not found in project {}",
+            ticket_number, project_id
+        ))),
+    }
+}
+
+// ============================================================================
+// GET /api/v1/tickets/:id/children — Paginated children
+// ============================================================================
+
+pub async fn get_children(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Path(id): Path<i32>,
+    Query(params): Query<ChildrenParams>,
+) -> Result<Response, AppError> {
+    let project_id = get_project_id(&state.db, id).await?;
+    require_project_access(&auth, project_id)?;
+
+    let page = params.page.unwrap_or(1).max(1);
+    let page_size = params.page_size.unwrap_or(20).clamp(1, 100);
+    let offset = (page - 1) * page_size;
+
+    let (rows, total): (Vec<TicketRow>, (i64,)) = tokio::try_join!(
+        sqlx::query_as::<_, TicketRow>(
+            r#"
+            SELECT id, ticket_number, title, description, kind, source, status,
+                   priority, module, assignee, "assigneeType",
+                   "sprintNumber", "parentTicketId", "epicRef", "backlogRefs",
+                   "estimatedDays", "displayOrder", "customFields",
+                   "closedAt"::text, "createdAt"::text, "updatedAt"::text
+            FROM tickets WHERE "parentTicketId" = $1
+            ORDER BY "displayOrder" ASC, "createdAt" DESC
+            LIMIT $2 OFFSET $3
+            "#,
+        )
+        .bind(id)
+        .bind(page_size as i64)
+        .bind(offset as i64)
+        .fetch_all(&state.db),
+        sqlx::query_as::<_, (i64,)>(
+            r#"SELECT COUNT(*) FROM tickets WHERE "parentTicketId" = $1"#,
+        )
+        .bind(id)
+        .fetch_one(&state.db),
+    )
+    .map_err(AppError::Database)?;
+
+    let tickets: Vec<TicketResponse> = rows
+        .into_iter()
+        .map(|r| r.into_response(project_id))
+        .collect();
+
+    Ok(response::success(TicketListResponse {
+        tickets,
+        total: total.0,
+        page,
+        page_size,
+        total_pages: ((total.0 as f64) / (page_size as f64)).ceil() as i32,
+    }))
+}
+
+// ============================================================================
+// GET /api/v1/tickets/:id/hierarchy — Full hierarchy context
+// ============================================================================
+
+pub async fn get_hierarchy(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Path(id): Path<i32>,
+) -> Result<Response, AppError> {
+    let project_id = get_project_id(&state.db, id).await?;
+    require_project_access(&auth, project_id)?;
+
+    // Fetch the ticket itself
+    let ticket_row: TicketRow = sqlx::query_as(
+        r#"
+        SELECT id, ticket_number, title, description, kind, source, status,
+               priority, module, assignee, "assigneeType",
+               "sprintNumber", "parentTicketId", "epicRef", "backlogRefs",
+               "estimatedDays", "displayOrder", "customFields",
+               "closedAt"::text, "createdAt"::text, "updatedAt"::text
+        FROM tickets WHERE id = $1
+        "#,
+    )
+    .bind(id)
+    .fetch_one(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    let mut ticket = ticket_row.into_response(project_id);
+    ticket.children_count = ticket_service::count_children(&state.db, id)
+        .await
+        .unwrap_or(0);
+
+    // Fetch parent if exists
+    let parent = if let Some(pid) = ticket.parent_ticket_id {
+        let p: Option<TicketRow> = sqlx::query_as(
+            r#"
+            SELECT id, ticket_number, title, description, kind, source, status,
+                   priority, module, assignee, "assigneeType",
+                   "sprintNumber", "parentTicketId", "epicRef", "backlogRefs",
+                   "estimatedDays", "displayOrder", "customFields",
+                   "closedAt"::text, "createdAt"::text, "updatedAt"::text
+            FROM tickets WHERE id = $1
+            "#,
+        )
+        .bind(pid)
+        .fetch_optional(&state.db)
+        .await
+        .ok()
+        .flatten();
+        p.map(|r| r.into_response(project_id))
+    } else {
+        None
+    };
+
+    // Fetch children
+    let children_rows: Vec<TicketRow> = sqlx::query_as(
+        r#"
+        SELECT id, ticket_number, title, description, kind, source, status,
+               priority, module, assignee, "assigneeType",
+               "sprintNumber", "parentTicketId", "epicRef", "backlogRefs",
+               "estimatedDays", "displayOrder", "customFields",
+               "closedAt"::text, "createdAt"::text, "updatedAt"::text
+        FROM tickets WHERE "parentTicketId" = $1
+        ORDER BY "displayOrder" ASC
+        "#,
+    )
+    .bind(id)
+    .fetch_all(&state.db)
+    .await
+    .unwrap_or_default();
+
+    let children: Vec<TicketResponse> = children_rows
+        .into_iter()
+        .map(|r| r.into_response(project_id))
+        .collect();
+
+    // Fetch siblings (same parent, excluding self)
+    let siblings = if let Some(pid) = ticket.parent_ticket_id {
+        let sib_rows: Vec<TicketRow> = sqlx::query_as(
+            r#"
+            SELECT id, ticket_number, title, description, kind, source, status,
+                   priority, module, assignee, "assigneeType",
+                   "sprintNumber", "parentTicketId", "epicRef", "backlogRefs",
+                   "estimatedDays", "displayOrder", "customFields",
+                   "closedAt"::text, "createdAt"::text, "updatedAt"::text
+            FROM tickets WHERE "parentTicketId" = $1 AND id != $2
+            ORDER BY "displayOrder" ASC
+            "#,
+        )
+        .bind(pid)
+        .bind(id)
+        .fetch_all(&state.db)
+        .await
+        .unwrap_or_default();
+        sib_rows.into_iter().map(|r| r.into_response(project_id)).collect()
+    } else {
+        Vec::new()
+    };
+
+    Ok(response::success(HierarchyResponse {
+        ticket,
+        parent,
+        children,
+        siblings,
+    }))
+}
+
+// ============================================================================
+// POST /api/v1/tickets/:id/comments — Add comment
+// ============================================================================
+
+pub async fn add_comment(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Path(id): Path<i32>,
+    Json(req): Json<AddCommentRequest>,
+) -> Result<Response, AppError> {
+    let project_id = get_project_id(&state.db, id).await?;
+    require_project_access(&auth, project_id)?;
+
+    if req.content.trim().is_empty() {
+        return Err(AppError::Validation("comment content is required".into()));
+    }
+
+    let author = req.author.as_deref().unwrap_or("Anonymous");
+
+    let row: (i32, String) = sqlx::query_as(
+        r#"
+        INSERT INTO ticket_comments (content, author, "ticketId", "createdAt", "updatedAt")
+        VALUES ($1, $2, $3, NOW(), NOW())
+        RETURNING id, "createdAt"::text
+        "#,
+    )
+    .bind(&req.content)
+    .bind(author)
+    .bind(id)
+    .fetch_one(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    Ok(response::created(CommentResponse {
+        id: row.0,
+        content: req.content,
+        author: author.to_string(),
+        created_at: row.1,
+    }))
+}
+
+// ============================================================================
+// GET /api/v1/tickets/:id/comments — List comments
+// ============================================================================
+
+pub async fn list_comments(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Path(id): Path<i32>,
+) -> Result<Response, AppError> {
+    let project_id = get_project_id(&state.db, id).await?;
+    require_project_access(&auth, project_id)?;
+
+    let rows: Vec<(i32, String, Option<String>, String)> = sqlx::query_as(
+        r#"
+        SELECT id, content, author, "createdAt"::text
+        FROM ticket_comments
+        WHERE "ticketId" = $1
+        ORDER BY "createdAt" DESC
+        "#,
+    )
+    .bind(id)
+    .fetch_all(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    let comments: Vec<CommentResponse> = rows
+        .into_iter()
+        .map(|(cid, content, author, created_at)| CommentResponse {
+            id: cid,
+            content,
+            author: author.unwrap_or_else(|| "Anonymous".to_string()),
+            created_at,
+        })
+        .collect();
+
+    Ok(response::success(comments))
+}
+
+// ============================================================================
+// PATCH /api/v1/tickets/:id/labels — Update labels
+// ============================================================================
+
+pub async fn update_labels(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Path(id): Path<i32>,
+    Json(req): Json<UpdateLabelsRequest>,
+) -> Result<Response, AppError> {
+    let project_id = get_project_id(&state.db, id).await?;
+    require_project_access(&auth, project_id)?;
+
+    // Validate all label IDs exist in this project
+    if !req.label_ids.is_empty() {
+        let valid_count: (i64,) = sqlx::query_as(
+            r#"SELECT COUNT(*) FROM "Label" WHERE id = ANY($1) AND "projectId" = $2"#,
+        )
+        .bind(&req.label_ids)
+        .bind(project_id)
+        .fetch_one(&state.db)
+        .await
+        .map_err(AppError::Database)?;
+
+        if valid_count.0 != req.label_ids.len() as i64 {
+            return Err(AppError::Validation(
+                "one or more label IDs are invalid for this project".into(),
+            ));
+        }
+    }
+
+    // Clear existing labels
+    sqlx::query(r#"DELETE FROM "_LabelToTicket" WHERE "B" = $1"#)
+        .bind(id)
+        .execute(&state.db)
+        .await
+        .map_err(AppError::Database)?;
+
+    // Insert new labels
+    for label_id in &req.label_ids {
+        sqlx::query(r#"INSERT INTO "_LabelToTicket" ("A", "B") VALUES ($1, $2)"#)
+            .bind(label_id)
+            .bind(id)
+            .execute(&state.db)
+            .await
+            .map_err(AppError::Database)?;
+    }
+
+    // Return current labels
+    let labels: Vec<(i32, String)> = sqlx::query_as(
+        r#"
+        SELECT l.id, l.name FROM "Label" l
+        JOIN "_LabelToTicket" lt ON lt."A" = l.id
+        WHERE lt."B" = $1
+        "#,
+    )
+    .bind(id)
+    .fetch_all(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    let label_responses: Vec<LabelResponse> = labels
+        .into_iter()
+        .map(|(lid, name)| LabelResponse { id: lid, name })
+        .collect();
+
+    Ok(response::success(label_responses))
+}

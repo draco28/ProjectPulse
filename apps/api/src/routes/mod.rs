@@ -30,4 +30,17 @@ pub fn protected_routes() -> Router<AppState> {
                 .patch(tickets::update_ticket)
                 .delete(tickets::delete_ticket),
         )
+        // Ticket extensions (Sprint 6 Batch 3)
+        .route("/api/v1/tickets/bulk", post(tickets::bulk_create_tickets))
+        .route(
+            "/api/v1/tickets/by-number/:projectId/:ticketNumber",
+            get(tickets::get_by_number),
+        )
+        .route("/api/v1/tickets/:id/children", get(tickets::get_children))
+        .route("/api/v1/tickets/:id/hierarchy", get(tickets::get_hierarchy))
+        .route(
+            "/api/v1/tickets/:id/comments",
+            post(tickets::add_comment).get(tickets::list_comments),
+        )
+        .route("/api/v1/tickets/:id/labels", axum::routing::patch(tickets::update_labels))
 }
