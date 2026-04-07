@@ -1,9 +1,16 @@
 use std::collections::HashMap;
+use std::pin::Pin;
+use std::sync::Arc;
 
 use anyhow::{Context as _, Result};
 use async_trait::async_trait;
+use futures::StreamExt;
+use pulsehive::agent::AgentOutcome;
+use pulsehive::event::HiveEvent;
+use pulsehive::{HiveMind, Task};
 use sqlx::PgPool;
 
+use crate::agents::rag_retriever::rag_retriever_agent;
 use crate::models::rag::{
     RagContext, RagResult, RagSource, RelatedChunk, SearchOptions,
 };
@@ -430,5 +437,232 @@ impl RagService for StubRagService {
             sources: Vec::new(),
             token_count: 0,
         })
+    }
+}
+
+// ============================================================================
+// AdaptiveRAG Query Router (Sprint 5 #261)
+// ============================================================================
+
+/// Query complexity classification for AdaptiveRAG routing.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum QueryComplexity {
+    /// Short keyword lookup → PgVectorRagService (RRF hybrid, <50ms)
+    Simple,
+    /// Semantic search with some context → PgVectorRagService + graph expansion (<100ms)
+    Moderate,
+    /// Multi-hop reasoning, temporal, comparative → RAGRetriever agent via HiveMind (<2s)
+    Complex,
+}
+
+/// Classify query complexity for AdaptiveRAG routing.
+/// Heuristic-only (no LLM call, <1ms).
+pub fn classify_complexity(query: &str) -> QueryComplexity {
+    let words: Vec<&str> = query.split_whitespace().collect();
+    let word_count = words.len();
+
+    let has_temporal = words.iter().any(|w| {
+        ["between", "changed", "history", "when", "before", "after", "since"].contains(w)
+    });
+    let has_comparison = words.iter().any(|w| {
+        ["vs", "compare", "difference", "versus", "better", "instead"].contains(w)
+    });
+    let has_reasoning = words.iter().any(|w| {
+        ["why", "how", "explain", "because", "reason", "cause"].contains(w)
+    });
+    let has_multi_entity = query.matches('#').count() >= 2;
+
+    if word_count <= 4 && !has_temporal && !has_comparison && !has_reasoning {
+        QueryComplexity::Simple
+    } else if has_temporal || has_comparison || has_multi_entity || (has_reasoning && word_count > 8)
+    {
+        QueryComplexity::Complex
+    } else {
+        QueryComplexity::Moderate
+    }
+}
+
+// ============================================================================
+// AgenticRagService — Sprint 5 #263
+// Wraps PgVectorRagService (fast) + HiveMind RAGRetriever (complex)
+// ============================================================================
+
+/// Agent-powered RAG service using AdaptiveRAG routing.
+///
+/// Simple/Moderate queries → PgVectorRagService (pgvector + tsvector, <100ms)
+/// Complex queries → RAGRetriever agent via HiveMind (<2s)
+pub struct AgenticRagService {
+    simple: PgVectorRagService,
+    hive: Arc<HiveMind>,
+    db: PgPool,
+    llm_provider: String,
+    llm_model: String,
+}
+
+impl AgenticRagService {
+    pub fn new(
+        simple: PgVectorRagService,
+        hive: Arc<HiveMind>,
+        db: PgPool,
+        llm_provider: String,
+        llm_model: String,
+    ) -> Self {
+        Self {
+            simple,
+            hive,
+            db,
+            llm_provider,
+            llm_model,
+        }
+    }
+
+    /// Deploy RAGRetriever agent for complex multi-step search.
+    async fn agent_search(&self, query: &str, options: SearchOptions) -> Result<Vec<RagResult>> {
+        let agent = rag_retriever_agent(
+            self.db.clone(),
+            &self.llm_provider,
+            &self.llm_model,
+        );
+        let task = Task::new(format!("Search for: {}", query));
+
+        let mut stream: Pin<Box<dyn futures::Stream<Item = HiveEvent> + Send>> = self
+            .hive
+            .deploy(vec![agent], vec![task])
+            .await
+            .context("failed to deploy RAGRetriever agent")?;
+
+        // Collect agent response from event stream
+        let mut agent_response = String::new();
+        while let Some(event) = stream.next().await {
+            match event {
+                HiveEvent::AgentCompleted { outcome, .. } => {
+                    match outcome {
+                        AgentOutcome::Complete { response } => {
+                            agent_response = response;
+                        }
+                        AgentOutcome::Error { error } => {
+                            tracing::warn!(error = %error, "RAGRetriever agent failed, falling back to simple search");
+                            return self.simple.search(query, options).await;
+                        }
+                        AgentOutcome::MaxIterationsReached => {
+                            tracing::warn!("RAGRetriever hit max iterations, falling back");
+                            return self.simple.search(query, options).await;
+                        }
+                    }
+                    break;
+                }
+                HiveEvent::ToolCallCompleted {
+                    agent_id,
+                    tool_name,
+                    ..
+                } => {
+                    tracing::debug!(agent = %agent_id, tool = %tool_name, "agent tool call completed");
+                }
+                _ => {} // Skip other events
+            }
+        }
+
+        // Parse agent response into RagResults
+        if agent_response.is_empty() {
+            tracing::warn!("RAGRetriever returned empty response, falling back");
+            return self.simple.search(query, options).await;
+        }
+
+        // Try parsing as JSON array of results
+        let results = parse_agent_response(&agent_response, options.limit);
+
+        // If parsing fails or returns nothing, fall back to simple search
+        if results.is_empty() {
+            tracing::debug!("agent response didn't parse into results, falling back");
+            return self.simple.search(query, options).await;
+        }
+
+        Ok(results)
+    }
+}
+
+#[async_trait]
+impl RagService for AgenticRagService {
+    async fn search(&self, query: &str, options: SearchOptions) -> Result<Vec<RagResult>> {
+        let complexity = classify_complexity(query);
+        tracing::debug!(query = %query, complexity = ?complexity, "AdaptiveRAG routing");
+
+        match complexity {
+            QueryComplexity::Simple | QueryComplexity::Moderate => {
+                self.simple.search(query, options).await
+            }
+            QueryComplexity::Complex => {
+                self.agent_search(query, options).await
+            }
+        }
+    }
+
+    async fn get_context(
+        &self,
+        task: &str,
+        project_id: i32,
+        budget: usize,
+    ) -> Result<RagContext> {
+        // Context assembly always uses the simple path (deterministic, fast)
+        self.simple.get_context(task, project_id, budget).await
+    }
+}
+
+/// Parse the RAGRetriever agent's text response into RagResults.
+///
+/// The agent is instructed to return JSON array of objects with:
+/// content, source_type, source_id, relevance_reason
+fn parse_agent_response(response: &str, limit: usize) -> Vec<RagResult> {
+    // Try to find JSON array in the response
+    let json_start = response.find('[');
+    let json_end = response.rfind(']');
+
+    if let (Some(start), Some(end)) = (json_start, json_end) {
+        if let Ok(items) = serde_json::from_str::<Vec<serde_json::Value>>(&response[start..=end]) {
+            return items
+                .into_iter()
+                .take(limit)
+                .enumerate()
+                .map(|(i, item)| RagResult {
+                    content: item["content"]
+                        .as_str()
+                        .unwrap_or("")
+                        .to_string(),
+                    score: 1.0 / (1.0 + i as f64), // Rank-based score
+                    source: RagSource {
+                        source_type: item["source_type"]
+                            .as_str()
+                            .unwrap_or("unknown")
+                            .to_string(),
+                        id: item["source_id"].as_i64().unwrap_or(0) as i32,
+                        title: item["relevance_reason"]
+                            .as_str()
+                            .unwrap_or("")
+                            .to_string(),
+                        section: None,
+                        domain_tags: Vec::new(),
+                    },
+                    related: Vec::new(),
+                })
+                .collect();
+        }
+    }
+
+    // If JSON parsing fails, return the whole response as a single result
+    if !response.trim().is_empty() {
+        vec![RagResult {
+            content: response.to_string(),
+            score: 1.0,
+            source: RagSource {
+                source_type: "agent".to_string(),
+                id: 0,
+                title: "RAGRetriever synthesis".to_string(),
+                section: None,
+                domain_tags: Vec::new(),
+            },
+            related: Vec::new(),
+        }]
+    } else {
+        Vec::new()
     }
 }

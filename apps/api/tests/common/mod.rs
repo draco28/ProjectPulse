@@ -31,6 +31,11 @@ pub async fn test_state() -> (AppState, TempDir) {
         allowed_origins: vec!["http://localhost:3000".to_string()],
         nextauth_secret: TEST_SECRET.to_string(),
         mcp_internal_secret: None,
+        llm_base_url: std::env::var("LLM_BASE_URL")
+            .unwrap_or_else(|_| "https://ollama.com/v1".to_string()),
+        llm_api_key: std::env::var("LLM_API_KEY").ok(),
+        llm_model: std::env::var("LLM_MODEL")
+            .unwrap_or_else(|_| "glm-5:cloud".to_string()),
     };
 
     let state = AppState::new(config)
