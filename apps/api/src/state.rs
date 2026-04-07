@@ -49,17 +49,24 @@ impl AppState {
         tracing::info!("connected to PostgreSQL");
 
         // HiveMind owns PulseDB exclusively (opens via substrate_path)
-        let hive = agents::build_hivemind(&config)?;
+        let hive = agents::build_hivemind(&config).await?;
         tracing::info!("HiveMind initialized (PulseDB owned)");
 
         let embeddings = Arc::new(EmbeddingService::from_env());
         tracing::info!("EmbeddingService initialized");
 
-        // RAG service — pgvector hybrid search with RRF
+        // RAG service — AgenticRagService wraps PgVector (fast) + HiveMind (complex)
+        let simple_rag = crate::services::rag_search::PgVectorRagService::new(
+            db.clone(),
+            (*embeddings).clone(),
+        );
         let rag: Arc<dyn RagService> = Arc::new(
-            crate::services::rag_search::PgVectorRagService::new(
+            crate::services::rag_search::AgenticRagService::new(
+                simple_rag,
+                hive.clone(),
                 db.clone(),
-                (*embeddings).clone(),
+                "ollama-cloud".to_string(),
+                config.llm_model.clone(),
             ),
         );
 

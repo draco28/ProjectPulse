@@ -10,7 +10,6 @@ use pulsedb::{AgentId, ExperienceType, NewExperience};
 async fn test_postgres_connection() {
     let (state, _dir) = common::test_state().await;
 
-    // Simple query to verify PostgreSQL is accessible
     let result: (i32,) = sqlx::query_as("SELECT 1")
         .fetch_one(&state.db)
         .await
@@ -23,9 +22,12 @@ async fn test_postgres_connection() {
 async fn test_pulsedb_collective_exists() {
     let (state, _dir) = common::test_state().await;
 
+    // Access PulseDB via HiveMind substrate (async SubstrateProvider)
     let collectives = state
-        .pulsedb
+        .hive
+        .substrate()
         .list_collectives()
+        .await
         .expect("failed to list collectives");
 
     assert!(
@@ -38,14 +40,14 @@ async fn test_pulsedb_collective_exists() {
 async fn test_pulsedb_store_and_retrieve_experience() {
     let (state, _dir) = common::test_state().await;
 
-    // Find the projectpulse collective
-    let collectives = state.pulsedb.list_collectives().unwrap();
+    let substrate = state.hive.substrate();
+
+    let collectives = substrate.list_collectives().await.unwrap();
     let collective = collectives
         .iter()
         .find(|c| c.name == "projectpulse")
         .expect("projectpulse collective not found");
 
-    // Store an experience
     let experience = NewExperience {
         collective_id: collective.id,
         content: "Test experience from integration test".to_string(),
@@ -62,15 +64,14 @@ async fn test_pulsedb_store_and_retrieve_experience() {
         related_files: vec![],
     };
 
-    let exp_id = state
-        .pulsedb
-        .record_experience(experience)
+    let exp_id = substrate
+        .store_experience(experience)
+        .await
         .expect("failed to store experience");
 
-    // Retrieve it
-    let retrieved = state
-        .pulsedb
+    let retrieved = substrate
         .get_experience(exp_id)
+        .await
         .expect("failed to get experience")
         .expect("experience should exist");
 
@@ -82,13 +83,14 @@ async fn test_pulsedb_store_and_retrieve_experience() {
 async fn test_pulsedb_list_experiences() {
     let (state, _dir) = common::test_state().await;
 
-    let collectives = state.pulsedb.list_collectives().unwrap();
+    let substrate = state.hive.substrate();
+
+    let collectives = substrate.list_collectives().await.unwrap();
     let collective = collectives
         .iter()
         .find(|c| c.name == "projectpulse")
         .unwrap();
 
-    // Store an experience first
     let experience = NewExperience {
         collective_id: collective.id,
         content: "Listable test experience".to_string(),
@@ -101,12 +103,11 @@ async fn test_pulsedb_list_experiences() {
         embedding: None,
         related_files: vec![],
     };
-    state.pulsedb.record_experience(experience).unwrap();
+    substrate.store_experience(experience).await.unwrap();
 
-    // Use PulseDB 0.4 paginated list API
-    let experiences = state
-        .pulsedb
+    let experiences = substrate
         .list_experiences(collective.id, 10, 0)
+        .await
         .expect("list_experiences failed");
 
     assert!(

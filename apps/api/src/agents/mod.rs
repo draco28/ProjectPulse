@@ -13,7 +13,7 @@ use crate::config::Config;
 ///
 /// HiveMind owns PulseDB exclusively (opens via substrate_path).
 /// LLM provider configured via Ollama Cloud Pro (configurable model).
-pub fn build_hivemind(config: &Config) -> Result<Arc<HiveMind>> {
+pub async fn build_hivemind(config: &Config) -> Result<Arc<HiveMind>> {
     let mut builder = HiveMind::builder()
         .substrate_path(&config.pulsedb_path);
 
@@ -28,10 +28,17 @@ pub fn build_hivemind(config: &Config) -> Result<Arc<HiveMind>> {
     }
 
     let hive = builder.build()?;
+
+    // Ensure default collective exists (was previously done by standalone PulseDB code)
+    let _ = hive
+        .substrate()
+        .get_or_create_collective("projectpulse")
+        .await;
+
     tracing::info!(
         model = %config.llm_model,
         base_url = %config.llm_base_url,
-        "HiveMind initialized (PulseDB owned)"
+        "HiveMind initialized (PulseDB owned, projectpulse collective ready)"
     );
 
     Ok(Arc::new(hive))
