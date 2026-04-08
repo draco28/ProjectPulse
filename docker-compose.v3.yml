@@ -55,6 +55,9 @@ services:
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - EMBEDDING_MODEL=${EMBEDDING_MODEL:-nomic-embed-text}
       - EMBEDDING_DIMENSIONS=${EMBEDDING_DIMENSIONS:-768}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://ollama.com/v1}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-glm-5:cloud}
     ports:
       - "3003:3003"
     volumes:
