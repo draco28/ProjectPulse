@@ -1,5 +1,5 @@
 use axum::extract::{Query, State};
-use axum::http::StatusCode;
+use axum::response::Response;
 use axum::{Extension, Json};
 use std::time::Instant;
 use uuid::Uuid;
@@ -10,6 +10,7 @@ use crate::models::rag::{
     IngestRequest, IngestResponse, IngestStatusResponse, SearchMetadata, SearchParams,
     SearchResponse, SourceType,
 };
+use crate::response;
 use crate::services::ingestion;
 use crate::services::relations;
 use crate::state::AppState;
@@ -22,7 +23,7 @@ pub async fn ingest(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthContext>,
     Json(request): Json<IngestRequest>,
-) -> Result<(StatusCode, Json<IngestResponse>), AppError> {
+) -> Result<Response, AppError> {
     require_project_access(&auth, request.project_id)?;
 
     let job_id = Uuid::new_v4().to_string();
@@ -73,15 +74,12 @@ pub async fn ingest(
         // Build relations for this project
         let _ = relations::build_all_relations(&state.db, project_id).await;
 
-        return Ok((
-            StatusCode::CREATED,
-            Json(IngestResponse {
-                job_id,
-                status: "complete".to_string(),
-                source_type: request.source_type,
-                project_id,
-            }),
-        ));
+        return Ok(response::created(IngestResponse {
+            job_id,
+            status: "complete".to_string(),
+            source_type: request.source_type,
+            project_id,
+        }));
     }
 
     // Bulk ingestion: register job THEN spawn background task (ordering prevents race)
@@ -114,15 +112,12 @@ pub async fn ingest(
         }
     });
 
-    Ok((
-        StatusCode::ACCEPTED,
-        Json(IngestResponse {
-            job_id,
-            status: "accepted".to_string(),
-            source_type: request.source_type,
-            project_id,
-        }),
-    ))
+    Ok(response::created(IngestResponse {
+        job_id,
+        status: "accepted".to_string(),
+        source_type: request.source_type,
+        project_id,
+    }))
 }
 
 /// Run the actual ingestion for a source type.
@@ -179,13 +174,13 @@ async fn run_ingestion(
 pub async fn ingest_status(
     State(state): State<AppState>,
     Query(params): Query<IngestStatusQuery>,
-) -> Result<Json<IngestStatusResponse>, AppError> {
+) -> Result<Response, AppError> {
     let job_id = params.job_id.unwrap_or_default();
 
     // Use write lock to allow cleanup of terminal jobs (prevents memory leak)
     let mut tracker = state.jobs.write().await;
     if let Some(job) = tracker.get(&job_id) {
-        let response = IngestStatusResponse {
+        let response_data = IngestStatusResponse {
             job_id: job_id.clone(),
             status: job.status.clone(),
             processed: job.processed,
@@ -196,9 +191,9 @@ pub async fn ingest_status(
         if job.status == "complete" || job.status == "failed" {
             tracker.remove(&job_id);
         }
-        Ok(Json(response))
+        Ok(response::success(response_data))
     } else {
-        Ok(Json(IngestStatusResponse {
+        Ok(response::success(IngestStatusResponse {
             job_id,
             status: "unknown".to_string(),
             processed: 0,
@@ -218,7 +213,7 @@ pub async fn search(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthContext>,
     Query(params): Query<SearchParams>,
-) -> Result<Json<SearchResponse>, AppError> {
+) -> Result<Response, AppError> {
     require_project_access(&auth, params.project_id)?;
 
     let start = Instant::now();
@@ -237,7 +232,7 @@ pub async fn search(
         "hybrid"
     };
 
-    Ok(Json(SearchResponse {
+    Ok(response::success(SearchResponse {
         results,
         metadata: SearchMetadata {
             strategy: strategy.to_string(),
