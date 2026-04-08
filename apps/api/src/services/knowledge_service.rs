@@ -107,8 +107,9 @@ pub async fn list_items(
 
     if category.is_some() {
         conditions.push(format!("ki.category = ${}", param_idx));
-        let _ = param_idx; // suppress unused warning; param_idx tracks bind order
+        param_idx += 1; // keep counter consistent for future filters
     }
+    let _ = param_idx; // last filter — suppress unused warning
 
     let where_clause = conditions.join(" AND ");
     let order = match sort.unwrap_or("newest") {
@@ -158,11 +159,7 @@ pub async fn list_items(
     let items = rows
         .into_iter()
         .map(|r| {
-            let excerpt = if r.2.len() > 150 {
-                format!("{}...", &r.2[..150])
-            } else {
-                r.2
-            };
+            let excerpt = truncate_with_ellipsis(&r.2, 150);
             KnowledgeListItem {
                 id: r.0,
                 title: r.1,
@@ -418,19 +415,26 @@ fn to_search_result(
     row: (i32, String, String, String, Vec<String>, f64),
     match_type: &str,
 ) -> KnowledgeSearchResult {
-    let excerpt = if row.2.len() > 200 {
-        format!("{}...", &row.2[..200])
-    } else {
-        row.2
-    };
     KnowledgeSearchResult {
         id: row.0,
         title: row.1,
-        excerpt,
+        excerpt: truncate_with_ellipsis(&row.2, 200),
         category: row.3,
         tags: row.4,
         score: row.5,
         match_type: match_type.to_string(),
+    }
+}
+
+/// Truncate a string to `max_chars` characters (not bytes) and append "..." if truncated.
+/// Safe for multi-byte UTF-8 content.
+fn truncate_with_ellipsis(s: &str, max_chars: usize) -> String {
+    let char_count = s.chars().count();
+    if char_count > max_chars {
+        let truncated: String = s.chars().take(max_chars).collect();
+        format!("{}...", truncated)
+    } else {
+        s.to_string()
     }
 }
 

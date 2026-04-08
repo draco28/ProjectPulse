@@ -124,6 +124,13 @@ pub async fn wildcard_patch(
     Query(params): Query<WikiPathParams>,
     Json(req): Json<UpdateWikiPageRequest>,
 ) -> Result<Response, AppError> {
+    // Reject reserved suffixes — these are not page paths
+    if raw_path.ends_with("/history") || raw_path.ends_with("/revert") {
+        return Err(AppError::BadRequest(format!(
+            "cannot PATCH wiki path '{}' — use the appropriate GET or POST endpoint",
+            raw_path
+        )));
+    }
     let project_id = extract_project_id(&auth, params.project_id)?;
     require_project_access(&auth, project_id)?;
     let result = wiki_service::update_page(&state.db, &raw_path, project_id, req).await?;

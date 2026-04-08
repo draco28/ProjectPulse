@@ -267,36 +267,26 @@ async fn claim_tickets(
         return Ok(());
     }
 
-    // Validate all tickets are in 'todo' status and belong to this project
-    let valid_count: (i64,) = sqlx::query_as(
-        r#"SELECT COUNT(*) FROM tickets
-           WHERE id = ANY($1) AND "projectId" = $2 AND status = 'todo'"#,
-    )
-    .bind(ticket_ids)
-    .bind(project_id)
-    .fetch_one(&mut **tx)
-    .await
-    .map_err(AppError::Database)?;
-
-    if valid_count.0 != ticket_ids.len() as i64 {
-        return Err(AppError::BadRequest(format!(
-            "expected {} tickets in 'todo' status, found {}",
-            ticket_ids.len(),
-            valid_count.0
-        )));
-    }
-
-    // Move all to 'in-progress' and set assignee
-    sqlx::query(
+    // Atomic claim: UPDATE + validate in one statement to prevent TOCTOU race.
+    // Two concurrent sessions with overlapping ticket sets: only one will claim each ticket.
+    let result = sqlx::query(
         r#"UPDATE tickets
            SET status = 'in-progress', assignee = 'Claude Code', "updatedAt" = NOW()
-           WHERE id = ANY($1) AND "projectId" = $2"#,
+           WHERE id = ANY($1) AND "projectId" = $2 AND status = 'todo'"#,
     )
     .bind(ticket_ids)
     .bind(project_id)
     .execute(&mut **tx)
     .await
     .map_err(AppError::Database)?;
+
+    if result.rows_affected() != ticket_ids.len() as u64 {
+        return Err(AppError::BadRequest(format!(
+            "expected {} tickets in 'todo' status, but only {} were claimable (others may be already claimed or not found)",
+            ticket_ids.len(),
+            result.rows_affected()
+        )));
+    }
 
     Ok(())
 }
@@ -350,11 +340,10 @@ async fn sync_progress_bank(
     // Append to PROGRESS bank
     sqlx::query(
         r#"UPDATE memory_banks
-           SET content = content || $3, "updatedAt" = NOW()
+           SET content = content || $2, "updatedAt" = NOW()
            WHERE "projectId" = $1 AND type = 'PROGRESS'"#,
     )
     .bind(project_id)
-    .bind("PROGRESS")
     .bind(&entry)
     .execute(&mut **tx)
     .await

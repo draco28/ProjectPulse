@@ -78,9 +78,9 @@ pub async fn archive(
     Path(id): Path<i32>,
     Json(req): Json<ArchiveRequest>,
 ) -> Result<Response, AppError> {
-    // We need project_id — fetch the item first to check ownership
-    let item = knowledge_service::toggle_archive(&state.db, id, get_project_from_item(&state.db, id).await?, req.archive).await?;
-    require_project_access(&auth, item.project_id)?;
+    let project_id = get_project_from_item(&state.db, id).await?;
+    require_project_access(&auth, project_id)?;
+    let item = knowledge_service::toggle_archive(&state.db, id, project_id, req.archive).await?;
     Ok(response::success(item))
 }
 
