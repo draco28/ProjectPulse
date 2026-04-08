@@ -89,14 +89,24 @@ pub async fn cascade_progress(db: &PgPool, ticket_id: i32) -> Result<Option<Prog
         }
     };
 
-    // 6. Average all sprint progresses in this phase
+    // 6. Calculate phase progress from ticket-level done/total count across all sprints in this phase
     let phase_avg: (Option<f64>,) = sqlx::query_as(
-        r#"SELECT AVG(progress)::float8 FROM sprints WHERE "phaseId" = $1"#,
+        r#"
+        SELECT
+            COALESCE(
+                COUNT(*) FILTER (WHERE t.status = 'done')::float8
+                    / NULLIF(COUNT(*), 0) * 100,
+                0
+            )
+        FROM tickets t
+        JOIN sprints s ON t."sprintId" = s.id
+        WHERE s."phaseId" = $1
+        "#,
     )
     .bind(&phase_id)
     .fetch_one(db)
     .await
-    .context("cascade: failed to average phase progress")?;
+    .context("cascade: failed to calculate phase progress")?;
 
     let phase_progress = phase_avg.0.unwrap_or(0.0).round() as i32;
 

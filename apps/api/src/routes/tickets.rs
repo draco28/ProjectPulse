@@ -626,6 +626,10 @@ pub async fn bulk_create_tickets(
     let mut created_tickets = Vec::new();
     let mut failed = 0;
 
+    // Use an explicit transaction so the atomic MAX+1 subquery is serialized
+    // across concurrent requests — prevents duplicate ticket_number assignment.
+    let mut tx = state.db.begin().await.map_err(AppError::Database)?;
+
     for ticket_req in &req.tickets {
         let kind_str = serde_json::to_value(&ticket_req.kind)
             .ok()
@@ -673,7 +677,7 @@ pub async fn bulk_create_tickets(
         .bind(&backlog_refs)
         .bind(ticket_req.sprint_number)
         .bind(ticket_req.estimated_days)
-        .fetch_one(&state.db)
+        .fetch_one(&mut *tx)
         .await;
 
         match result {
@@ -688,6 +692,8 @@ pub async fn bulk_create_tickets(
             Err(_) => failed += 1,
         }
     }
+
+    tx.commit().await.map_err(AppError::Database)?;
 
     Ok(response::created(BulkCreateResponse {
         created: created_tickets.len(),

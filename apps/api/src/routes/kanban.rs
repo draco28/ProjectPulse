@@ -25,11 +25,14 @@ pub async fn move_ticket(
 
     let new_status = req.status.as_str();
 
-    // Update ticket status + displayOrder
+    // Update ticket status + displayOrder + closedAt atomically
     sqlx::query(
         r#"
         UPDATE tickets
-        SET status = $1, "displayOrder" = $2, "updatedAt" = NOW()
+        SET status = $1,
+            "displayOrder" = $2,
+            "closedAt" = CASE WHEN $1 = 'done' THEN NOW() ELSE NULL END,
+            "updatedAt" = NOW()
         WHERE id = $3
         "#,
     )
@@ -39,11 +42,6 @@ pub async fn move_ticket(
     .execute(&state.db)
     .await
     .map_err(AppError::Database)?;
-
-    // Set/clear closedAt
-    progress::update_closed_at(&state.db, id, new_status)
-        .await
-        .ok();
 
     // Cascade progress (sprint → phase)
     let progress_updates = progress::cascade_progress(&state.db, id)
@@ -74,19 +72,21 @@ pub async fn set_status(
 
     let new_status = req.status.as_str();
 
+    // Update status + closedAt atomically
     sqlx::query(
-        r#"UPDATE tickets SET status = $1, "updatedAt" = NOW() WHERE id = $2"#,
+        r#"
+        UPDATE tickets
+        SET status = $1,
+            "closedAt" = CASE WHEN $1 = 'done' THEN NOW() ELSE NULL END,
+            "updatedAt" = NOW()
+        WHERE id = $2
+        "#,
     )
     .bind(new_status)
     .bind(id)
     .execute(&state.db)
     .await
     .map_err(AppError::Database)?;
-
-    // Set/clear closedAt
-    progress::update_closed_at(&state.db, id, new_status)
-        .await
-        .ok();
 
     // CASCADE PROGRESS — this is the #268 fix!
     // Previously, setStatus did NOT cascade. Now it does.
@@ -121,11 +121,17 @@ pub struct ReorderMove {
 
 pub async fn reorder_tickets(
     State(state): State<AppState>,
-    Extension(_auth): Extension<AuthContext>,
+    Extension(auth): Extension<AuthContext>,
     Json(req): Json<ReorderRequest>,
 ) -> Result<Response, AppError> {
     if req.moves.len() > 100 {
         return Err(AppError::Validation("max 100 moves per batch".into()));
+    }
+
+    // Resolve project_id from the first ticket and enforce access
+    if let Some(first) = req.moves.first() {
+        let project_id = get_project_id(&state.db, first.ticket_id).await?;
+        require_project_access(&auth, project_id)?;
     }
 
     for m in &req.moves {
@@ -200,9 +206,29 @@ pub struct KanbanStats {
 
 pub async fn get_board(
     State(state): State<AppState>,
-    Extension(_auth): Extension<AuthContext>,
+    Extension(auth): Extension<AuthContext>,
     Path(sprint_id): Path<String>,
 ) -> Result<Response, AppError> {
+    // Resolve project_id from sprint → phase → roadmap and enforce access
+    let project_row: Option<(i32,)> = sqlx::query_as(
+        r#"
+        SELECT r."projectId"
+        FROM sprints s
+        JOIN phases p ON s."phaseId" = p.id
+        JOIN roadmaps r ON p."roadmapId" = r.id
+        WHERE s.id = $1
+        "#,
+    )
+    .bind(&sprint_id)
+    .fetch_optional(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    let project_id = project_row
+        .ok_or_else(|| AppError::NotFound(format!("sprint {} not found", sprint_id)))?
+        .0;
+    require_project_access(&auth, project_id)?;
+
     // Fetch sprint info
     let sprint: Option<(String, String, i32, i32, String)> = sqlx::query_as(
         r#"SELECT id, title, "sprintNumber", progress, status::text FROM sprints WHERE id = $1"#,
