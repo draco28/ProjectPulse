@@ -1,12 +1,15 @@
 pub mod chunking;
 pub mod content_events;
+pub mod context_service;
 pub mod embeddings;
 pub mod ingestion;
 pub mod knowledge_service;
 pub mod pagination;
-pub mod resource_service;
 pub mod progress;
 pub mod rag_search;
 pub mod relations;
+pub mod resource_service;
+pub mod session_service;
 pub mod ticket_service;
 pub mod validation;
+pub mod wiki_service;

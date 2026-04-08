@@ -1,6 +1,9 @@
+pub mod context;
 pub mod knowledge;
 pub mod persona;
 pub mod rag;
+pub mod session;
 pub mod skill;
 pub mod sop;
 pub mod ticket;
+pub mod wiki;

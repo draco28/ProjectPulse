@@ -1,13 +1,16 @@
+pub mod context;
 pub mod health;
 pub mod kanban;
 pub mod knowledge;
 pub mod me;
 pub mod personas;
 pub mod rag;
+pub mod sessions;
 pub mod skills;
 pub mod sops;
 pub mod sprints;
 pub mod tickets;
+pub mod wiki;
 
 use axum::routing::{get, post};
 use axum::Router;
@@ -81,4 +84,23 @@ pub fn protected_routes() -> Router<AppState> {
         .route("/api/v1/personas", post(personas::create).get(personas::list))
         .route("/api/v1/personas/by-slug/:slug", get(personas::get_by_slug))
         .route("/api/v1/personas/:id", get(personas::get_by_id).patch(personas::update))
+        // Sessions (Sprint 7 Batch 4)
+        .route("/api/v1/agent-sessions", post(sessions::create))
+        .route("/api/v1/agent-sessions/:id", get(sessions::get).patch(sessions::update))
+        .route("/api/v1/agent-sessions/:id/end", post(sessions::end))
+        .route("/api/v1/agent-sessions/:id/resume", post(sessions::resume))
+        // Context/Memory (Sprint 7 Batch 4)
+        .route("/api/v1/context/load", get(context::load))
+        .route("/api/v1/context/update", axum::routing::put(context::update))
+        .route("/api/v1/memory/session-start", get(context::session_start))
+        .route("/api/v1/memory/pattern-lookup", get(context::pattern_lookup))
+        .route("/api/v1/memory/context-recovery", get(context::context_recovery))
+        // Wiki (Sprint 7 Batch 3) — static routes first, wildcard last
+        .route("/api/v1/wiki", post(wiki::create).get(wiki::list))
+        .route("/api/v1/wiki/generate", post(wiki::generate))
+        .route("/api/v1/wiki/analytics/summary", get(wiki::analytics_summary))
+        .route("/api/v1/wiki/*path", get(wiki::wildcard_get)
+            .patch(wiki::wildcard_patch)
+            .delete(wiki::wildcard_delete)
+            .post(wiki::wildcard_post))
 }
