@@ -1,7 +1,11 @@
 pub mod health;
 pub mod kanban;
+pub mod knowledge;
 pub mod me;
+pub mod personas;
 pub mod rag;
+pub mod skills;
+pub mod sops;
 pub mod sprints;
 pub mod tickets;
 
@@ -56,4 +60,25 @@ pub fn protected_routes() -> Router<AppState> {
         .route("/api/v1/roadmap/overview", get(sprints::get_overview))
         .route("/api/v1/roadmap/phases/:id/progress", get(sprints::get_phase_progress))
         .route("/api/v1/hierarchy/query", get(sprints::query_hierarchy))
+        // Knowledge (Sprint 7 Batch 1)
+        .route("/api/v1/knowledge", post(knowledge::create).get(knowledge::list))
+        .route("/api/v1/knowledge/search", get(knowledge::search))
+        .route("/api/v1/knowledge/metrics", get(knowledge::metrics))
+        .route("/api/v1/knowledge/related", get(knowledge::related))
+        .route("/api/v1/knowledge/export", get(knowledge::export))
+        .route("/api/v1/knowledge/import", post(knowledge::import))
+        .route("/api/v1/knowledge/:id", get(knowledge::get_by_id))
+        .route("/api/v1/knowledge/:id/archive", post(knowledge::archive))
+        // Skills (Sprint 7 Batch 2)
+        .route("/api/v1/skills", post(skills::create).get(skills::list))
+        .route("/api/v1/skills/search", get(skills::search))
+        .route("/api/v1/skills/:slug", get(skills::get_by_slug).patch(skills::update))
+        // SOPs (Sprint 7 Batch 2)
+        .route("/api/v1/sops", post(sops::create).get(sops::list))
+        .route("/api/v1/sops/by-slug/:slug", get(sops::get_by_slug))
+        .route("/api/v1/sops/:id", get(sops::get_by_id).patch(sops::update))
+        // Personas (Sprint 7 Batch 2)
+        .route("/api/v1/personas", post(personas::create).get(personas::list))
+        .route("/api/v1/personas/by-slug/:slug", get(personas::get_by_slug))
+        .route("/api/v1/personas/:id", get(personas::get_by_id).patch(personas::update))
 }
