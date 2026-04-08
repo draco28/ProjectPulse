@@ -58,8 +58,13 @@ class AppConfig(BaseSettings):
 
     @property
     def axum_api_base_url(self) -> str:
-        """Normalized Axum API base URL for RAG endpoints (no trailing slash)."""
+        """Normalized Axum API base URL (no trailing slash)."""
         return self.projectpulse_axum_api_base_url.rstrip("/")
+
+    @property
+    def axum_api_v1_url(self) -> str:
+        """Full Axum API v1 URL for MCP client (Sprint 7)."""
+        return self.axum_api_base_url + "/api/v1"
 
     @property
     def is_production(self) -> bool:

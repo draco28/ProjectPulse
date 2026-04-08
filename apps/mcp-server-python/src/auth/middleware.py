@@ -136,7 +136,7 @@ class BearerAuthMiddleware:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(
-                    f"{self.config.api_base_url}/agent-auth/validate",
+                    f"{self.config.axum_api_v1_url}/agent-auth/validate",
                     json={"token": raw_token},
                     headers={"Content-Type": "application/json"},
                 )
