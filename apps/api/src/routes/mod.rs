@@ -1,4 +1,5 @@
 pub mod health;
+pub mod kanban;
 pub mod me;
 pub mod rag;
 pub mod tickets;
@@ -43,4 +44,9 @@ pub fn protected_routes() -> Router<AppState> {
             post(tickets::add_comment).get(tickets::list_comments),
         )
         .route("/api/v1/tickets/:id/labels", axum::routing::patch(tickets::update_labels))
+        // Kanban (Sprint 6 Batch 4)
+        .route("/api/v1/tickets/:id/move", axum::routing::patch(kanban::move_ticket))
+        .route("/api/v1/tickets/:id/status", axum::routing::patch(kanban::set_status))
+        .route("/api/v1/tickets/reorder", axum::routing::patch(kanban::reorder_tickets))
+        .route("/api/v1/sprints/:sprintId/kanban", get(kanban::get_board))
 }
