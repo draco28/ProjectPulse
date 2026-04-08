@@ -1,9 +1,13 @@
+pub mod auth_validate;
+pub mod batch;
 pub mod context;
 pub mod health;
 pub mod kanban;
 pub mod knowledge;
 pub mod me;
+pub mod observability;
 pub mod personas;
+pub mod proxy;
 pub mod rag;
 pub mod sessions;
 pub mod skills;
@@ -11,6 +15,7 @@ pub mod sops;
 pub mod sprints;
 pub mod tickets;
 pub mod wiki;
+pub mod workflows;
 
 use axum::routing::{get, post};
 use axum::Router;
@@ -19,7 +24,10 @@ use crate::state::AppState;
 
 /// Public routes — no authentication required.
 pub fn public_routes() -> Router<AppState> {
-    Router::new().route("/health", get(health::health))
+    Router::new()
+        .route("/health", get(health::health))
+        // Agent auth validation is public — it IS the auth check (Sprint 7 Batch 5)
+        .route("/api/v1/agent-auth/validate", post(auth_validate::validate))
 }
 
 /// Protected routes — require valid auth (JWT or bearer token).
@@ -103,4 +111,22 @@ pub fn protected_routes() -> Router<AppState> {
             .patch(wiki::wildcard_patch)
             .delete(wiki::wildcard_delete)
             .post(wiki::wildcard_post))
+        // Workflows (Sprint 7 Batch 5)
+        .route("/api/v1/workflows", get(workflows::list))
+        .route("/api/v1/workflows/run", post(workflows::start))
+        .route("/api/v1/workflows/run/:id", get(workflows::get_status))
+        .route("/api/v1/workflows/run/:id/execute", post(workflows::execute_step))
+        .route("/api/v1/workflows/run/:id/pause", post(workflows::pause))
+        .route("/api/v1/workflows/run/:id/resume", post(workflows::resume))
+        .route("/api/v1/workflows/run/:id/complete", post(workflows::complete))
+        // Batch creates (Sprint 7 Batch 5)
+        .route("/api/v1/batch/agent-personas", post(batch::batch_personas))
+        .route("/api/v1/batch/skills", post(batch::batch_skills))
+        .route("/api/v1/batch/sops", post(batch::batch_sops))
+        .route("/api/v1/batch/workflow-templates", post(batch::batch_workflows))
+        // Observability (Sprint 7 Batch 5)
+        .route("/api/v1/observability/log-step", post(observability::log_step))
+        .route("/api/v1/observability/complete-session", post(observability::complete_session))
+        // Reverse proxy fallback — MUST be last (Sprint 7 Batch 5)
+        .fallback(proxy::forward_to_nextjs)
 }
