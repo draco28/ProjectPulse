@@ -27,6 +27,16 @@ pub struct ValidateResponse {
     pub allowed_tools: Vec<String>,
 }
 
+#[derive(Debug, sqlx::FromRow)]
+struct TokenRow {
+    id: i32,
+    project_id: i32,
+    name: String,
+    token_hash: String,
+    blocked_tools: Vec<String>,
+    allowed_tools: Vec<String>,
+}
+
 pub async fn validate(
     State(state): State<AppState>,
     Json(req): Json<ValidateRequest>,
@@ -35,24 +45,35 @@ pub async fn validate(
         return Err(AppError::Validation("token is required".into()));
     }
 
-    // Look up the token by comparing bcrypt hashes
-    let tokens = sqlx::query_as::<_, (i32, i32, String, String, Vec<String>, Vec<String>, bool)>(
-        r#"SELECT id, "projectId", name, "tokenHash", "blockedTools", "allowedTools", revoked
+    // Query non-revoked, non-expired tokens (matches auth middleware pattern)
+    let tokens = sqlx::query_as::<_, TokenRow>(
+        r#"SELECT id, project_id, name, token_hash, blocked_tools, allowed_tools
            FROM project_tokens
-           WHERE revoked = false"#,
+           WHERE is_revoked = false
+           AND (expires_at IS NULL OR expires_at > NOW())"#,
     )
     .fetch_all(&state.db)
     .await
     .map_err(AppError::Database)?;
 
-    for (id, project_id, name, hash, blocked, allowed, _revoked) in tokens {
-        if bcrypt::verify(&req.token, &hash).unwrap_or(false) {
+    for row in tokens {
+        if bcrypt::verify(&req.token, &row.token_hash).unwrap_or(false) {
+            // Update last_used_at (fire-and-forget)
+            let db = state.db.clone();
+            let token_id = row.id;
+            tokio::spawn(async move {
+                let _ = sqlx::query("UPDATE project_tokens SET last_used_at = NOW() WHERE id = $1")
+                    .bind(token_id)
+                    .execute(&db)
+                    .await;
+            });
+
             return Ok(response::success(ValidateResponse {
-                project_id,
-                token_id: id,
-                name,
-                blocked_tools: blocked,
-                allowed_tools: allowed,
+                project_id: row.project_id,
+                token_id: row.id,
+                name: row.name,
+                blocked_tools: row.blocked_tools,
+                allowed_tools: row.allowed_tools,
             }));
         }
     }

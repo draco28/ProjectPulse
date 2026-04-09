@@ -41,7 +41,7 @@ pub async fn log_step(
 ) -> Result<Response, AppError> {
     let project_id = extract_project_id(&auth, req.project_id)?;
 
-    sqlx::query(
+    let result = sqlx::query(
         r#"UPDATE "OnboardingSession"
            SET "planningAnswers" = COALESCE("planningAnswers", '[]'::jsonb) || $3::jsonb,
                "updatedAt" = NOW()
@@ -58,6 +58,13 @@ pub async fn log_step(
     .execute(&state.db)
     .await
     .map_err(AppError::Database)?;
+
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound(format!(
+            "onboarding session {} not found",
+            req.session_number
+        )));
+    }
 
     Ok(response::success(serde_json::json!({ "logged": true })))
 }

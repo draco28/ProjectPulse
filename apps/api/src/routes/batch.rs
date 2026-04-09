@@ -249,7 +249,7 @@ pub async fn batch_workflows(
             r#"INSERT INTO "WorkflowTemplate" ("projectId", name, description, category,
                                                 steps, "isActive", "createdAt", "updatedAt")
                VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-               ON CONFLICT DO NOTHING"#,
+               ON CONFLICT ("projectId", name) DO NOTHING"#,
         )
         .bind(req.project_id).bind(&w.name).bind(&w.description)
         .bind(&w.category).bind(&w.steps).bind(w.is_active)

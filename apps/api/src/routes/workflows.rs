@@ -136,6 +136,23 @@ pub async fn start(
 ) -> Result<Response, AppError> {
     require_project_access(&auth, req.project_id)?;
 
+    // Verify template belongs to this project
+    let template_exists: Option<(i32,)> = sqlx::query_as(
+        r#"SELECT id FROM "WorkflowTemplate" WHERE id = $1 AND "projectId" = $2"#,
+    )
+    .bind(req.template_id)
+    .bind(req.project_id)
+    .fetch_optional(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    if template_exists.is_none() {
+        return Err(AppError::NotFound(format!(
+            "workflow template {} not found in project {}",
+            req.template_id, req.project_id
+        )));
+    }
+
     let row: (i32, String, String) = sqlx::query_as(
         r#"INSERT INTO "WorkflowRun" ("templateId", "projectId", status, "currentStep",
                                        context, "createdAt", "updatedAt")
@@ -161,10 +178,11 @@ pub async fn start(
 
 pub async fn execute_step(
     State(state): State<AppState>,
-    Extension(_auth): Extension<AuthContext>,
+    Extension(auth): Extension<AuthContext>,
     Path(id): Path<i32>,
     Json(req): Json<ExecuteStepRequest>,
 ) -> Result<Response, AppError> {
+    verify_run_access(&state.db, &auth, id).await?;
     let row: (i32, String, String) = sqlx::query_as(
         r#"UPDATE "WorkflowRun"
            SET "currentStep" = "currentStep" + 1, context = COALESCE($2, context),
@@ -189,9 +207,10 @@ pub async fn execute_step(
 
 pub async fn get_status(
     State(state): State<AppState>,
-    Extension(_auth): Extension<AuthContext>,
+    Extension(auth): Extension<AuthContext>,
     Path(id): Path<i32>,
 ) -> Result<Response, AppError> {
+    verify_run_access(&state.db, &auth, id).await?;
     let row: Option<(i32, i32, String, i32, Option<Value>, String, String)> = sqlx::query_as(
         r#"SELECT id, "templateId", status, "currentStep", context,
                   "createdAt"::text, "updatedAt"::text
@@ -217,10 +236,11 @@ pub async fn get_status(
 
 pub async fn pause(
     State(state): State<AppState>,
-    Extension(_auth): Extension<AuthContext>,
+    Extension(auth): Extension<AuthContext>,
     Path(id): Path<i32>,
     Json(_req): Json<PauseRequest>,
 ) -> Result<Response, AppError> {
+    verify_run_access(&state.db, &auth, id).await?;
     let result = sqlx::query(
         r#"UPDATE "WorkflowRun" SET status = 'PAUSED', "updatedAt" = NOW()
            WHERE id = $1 AND status = 'IN_PROGRESS'"#,
@@ -242,9 +262,10 @@ pub async fn pause(
 
 pub async fn resume(
     State(state): State<AppState>,
-    Extension(_auth): Extension<AuthContext>,
+    Extension(auth): Extension<AuthContext>,
     Path(id): Path<i32>,
 ) -> Result<Response, AppError> {
+    verify_run_access(&state.db, &auth, id).await?;
     let result = sqlx::query(
         r#"UPDATE "WorkflowRun" SET status = 'IN_PROGRESS', "updatedAt" = NOW()
            WHERE id = $1 AND status = 'PAUSED'"#,
@@ -266,10 +287,11 @@ pub async fn resume(
 
 pub async fn complete(
     State(state): State<AppState>,
-    Extension(_auth): Extension<AuthContext>,
+    Extension(auth): Extension<AuthContext>,
     Path(id): Path<i32>,
     Json(_req): Json<CompleteRequest>,
 ) -> Result<Response, AppError> {
+    verify_run_access(&state.db, &auth, id).await?;
     let result = sqlx::query(
         r#"UPDATE "WorkflowRun" SET status = 'COMPLETED', "completedAt" = NOW(), "updatedAt" = NOW()
            WHERE id = $1 AND status IN ('IN_PROGRESS', 'PAUSED')"#,
@@ -283,4 +305,28 @@ pub async fn complete(
         return Err(AppError::NotFound(format!("workflow run {} not found or already completed", id)));
     }
     Ok(response::success(serde_json::json!({ "status": "completed", "runId": id })))
+}
+
+// ============================================================================
+// Helper: verify caller has access to a workflow run's project
+// ============================================================================
+
+async fn verify_run_access(
+    db: &sqlx::PgPool,
+    auth: &AuthContext,
+    run_id: i32,
+) -> Result<(), AppError> {
+    let row: Option<(i32,)> = sqlx::query_as(
+        r#"SELECT "projectId" FROM "WorkflowRun" WHERE id = $1"#,
+    )
+    .bind(run_id)
+    .fetch_optional(db)
+    .await
+    .map_err(AppError::Database)?;
+
+    let project_id = row
+        .ok_or_else(|| AppError::NotFound(format!("workflow run {} not found", run_id)))?
+        .0;
+
+    require_project_access(auth, project_id)
 }
