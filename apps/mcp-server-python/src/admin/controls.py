@@ -70,7 +70,7 @@ async def check_emergency_shutdown() -> EmergencyStatus:
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.get(
-                f"{config.api_base_url}/admin/mcp/emergency",
+                f"{config.axum_api_v1_url}/admin/mcp/emergency",
                 headers={
                     "Content-Type": "application/json",
                     **create_signed_headers(),
@@ -108,7 +108,7 @@ async def check_blocked_tool(tool_name: str) -> bool:
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.get(
-                f"{config.api_base_url}/admin/mcp/blocked-tools",
+                f"{config.axum_api_v1_url}/admin/mcp/blocked-tools",
                 headers={
                     "Content-Type": "application/json",
                     **create_signed_headers(),
@@ -150,7 +150,7 @@ async def log_tool_call(
 
         async with httpx.AsyncClient(timeout=5.0) as client:
             await client.post(
-                f"{config.api_base_url}/mcp/log",
+                f"{config.axum_api_v1_url}/mcp/log",
                 json=body,
                 headers={
                     "Content-Type": "application/json",

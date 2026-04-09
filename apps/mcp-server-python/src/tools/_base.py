@@ -17,10 +17,14 @@ _client: ProjectPulseClient | None = None
 
 
 def get_client() -> ProjectPulseClient:
-    """Get the singleton HTTP client for API calls."""
+    """Get the singleton HTTP client for API calls.
+
+    Sprint 7: Switched from Next.js (localhost:3000/api) to Axum (localhost:3003/api/v1).
+    All MCP tool paths are relative to this base URL.
+    """
     global _client
     if _client is None:
-        _client = ProjectPulseClient(config.api_base_url)
+        _client = ProjectPulseClient(config.axum_api_v1_url)
     return _client
 
 

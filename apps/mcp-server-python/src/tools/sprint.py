@@ -33,7 +33,7 @@ async def projectpulse_sprint_queryHierarchy(
         params: dict[str, str] = {"level": level, "projectId": str(pid)}
         if status:
             params["status"] = ",".join(status)
-        data = await client.get("/hierarchy", params=params)
+        data = await client.get("/hierarchy/query", params=params)
         if "error" in data:
             return build_error(data.get("message", data["error"]))
         return build_success(data)

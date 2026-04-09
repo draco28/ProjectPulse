@@ -21,7 +21,7 @@ async def projectpulse_health_check() -> dict:
 
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{config.api_base_url}/health")
+            response = await client.get(f"{config.axum_api_base_url}/health")
             api_reachable = response.is_success
             if api_reachable:
                 data = response.json()
