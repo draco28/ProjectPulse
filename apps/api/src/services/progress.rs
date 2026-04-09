@@ -144,6 +144,11 @@ pub async fn cascade_progress(db: &PgPool, ticket_id: i32) -> Result<Option<Prog
     }))
 }
 
+/// Public entry point for auto-advancing sprints from route handlers.
+pub async fn auto_advance_sprint_by_id(db: &PgPool, completed_sprint_id: &str, phase_id: &str) -> Result<()> {
+    auto_advance_sprint(db, completed_sprint_id, phase_id).await
+}
+
 /// When a sprint reaches 100%, find and activate the next sprint in the same phase.
 async fn auto_advance_sprint(db: &PgPool, completed_sprint_id: &str, phase_id: &str) -> Result<()> {
     // Find the completed sprint's number

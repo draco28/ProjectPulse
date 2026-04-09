@@ -313,12 +313,17 @@ pub async fn get_phase_progress(
     .await
     .map_err(AppError::Database)?;
 
-    // Fetch sprints with ticket counts
-    let sprints: Vec<(String, String, i32, i32, String)> = sqlx::query_as(
+    // Fetch sprints with ticket counts in a single query (avoids N+1)
+    let sprints: Vec<(String, String, i32, i32, String, i64, i64)> = sqlx::query_as(
         r#"
-        SELECT id, title, "sprintNumber", progress, status::text
-        FROM sprints WHERE "phaseId" = $1
-        ORDER BY "sprintNumber" ASC
+        SELECT s.id, s.title, s."sprintNumber", s.progress, s.status::text,
+               COUNT(t.id) AS ticket_count,
+               COUNT(t.id) FILTER (WHERE t.status = 'done') AS done_count
+        FROM sprints s
+        LEFT JOIN tickets t ON t."sprintId" = s.id
+        WHERE s."phaseId" = $1
+        GROUP BY s.id, s.title, s."sprintNumber", s.progress, s.status
+        ORDER BY s."sprintNumber" ASC
         "#,
     )
     .bind(&phase_id)
@@ -326,29 +331,12 @@ pub async fn get_phase_progress(
     .await
     .map_err(AppError::Database)?;
 
-    let mut sprint_details = Vec::new();
-    for (sid, stitle, snum, sprogress, sstatus) in sprints {
-        let counts: (i64, i64) = sqlx::query_as(
-            r#"
-            SELECT COUNT(*), COUNT(*) FILTER (WHERE status = 'done')
-            FROM tickets WHERE "sprintId" = $1
-            "#,
-        )
-        .bind(&sid)
-        .fetch_one(&state.db)
-        .await
-        .map_err(AppError::Database)?;
-
-        sprint_details.push(SprintProgress {
-            id: sid,
-            title: stitle,
-            sprint_number: snum,
-            progress: sprogress,
-            status: sstatus,
-            ticket_count: counts.0,
-            done_count: counts.1,
-        });
-    }
+    let sprint_details: Vec<SprintProgress> = sprints
+        .into_iter()
+        .map(|(id, title, sprint_number, progress, status, ticket_count, done_count)| {
+            SprintProgress { id, title, sprint_number, progress, status, ticket_count, done_count }
+        })
+        .collect();
 
     Ok(response::success(serde_json::json!({
         "phase": {
@@ -452,4 +440,296 @@ pub async fn query_hierarchy(
 
         Ok(response::success(serde_json::json!({ "results": results, "level": "sprint" })))
     }
+}
+
+// ============================================================================
+// POST /api/v1/phases — Create a new phase
+// ============================================================================
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreatePhaseRequest {
+    pub roadmap_id: String,
+    pub title: String,
+    pub description: Option<String>,
+}
+
+pub async fn create_phase(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Json(req): Json<CreatePhaseRequest>,
+) -> Result<Response, AppError> {
+    // Resolve projectId from roadmap
+    let roadmap: Option<(i32,)> = sqlx::query_as(
+        r#"SELECT "projectId" FROM roadmaps WHERE id = $1"#,
+    )
+    .bind(&req.roadmap_id)
+    .fetch_optional(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    let project_id = roadmap
+        .ok_or_else(|| AppError::NotFound(format!("roadmap {} not found", req.roadmap_id)))?
+        .0;
+    require_project_access(&auth, project_id)?;
+
+    let id = cuid2::create_id();
+
+    let row: (String, String) = sqlx::query_as(
+        r#"
+        INSERT INTO phases (id, title, description, status, progress, "startDate", "roadmapId", "createdAt", "updatedAt")
+        VALUES ($1, $2, $3, 'NOT_STARTED'::"Status", 0, NOW(), $4, NOW(), NOW())
+        RETURNING id, "createdAt"::text
+        "#,
+    )
+    .bind(&id)
+    .bind(&req.title)
+    .bind(&req.description)
+    .bind(&req.roadmap_id)
+    .fetch_one(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    Ok(response::created(serde_json::json!({
+        "id": row.0,
+        "title": req.title,
+        "description": req.description,
+        "status": "NOT_STARTED",
+        "progress": 0,
+        "roadmapId": req.roadmap_id,
+        "createdAt": row.1,
+    })))
+}
+
+// ============================================================================
+// GET /api/v1/phases/:id — Get phase by ID
+// ============================================================================
+
+pub async fn get_phase(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Path(phase_id): Path<String>,
+) -> Result<Response, AppError> {
+    // Resolve project from phase → roadmap
+    let project_row: Option<(i32,)> = sqlx::query_as(
+        r#"
+        SELECT r."projectId" FROM phases p
+        JOIN roadmaps r ON p."roadmapId" = r.id
+        WHERE p.id = $1
+        "#,
+    )
+    .bind(&phase_id)
+    .fetch_optional(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    let project_id = project_row
+        .ok_or_else(|| AppError::NotFound(format!("phase {} not found", phase_id)))?
+        .0;
+    require_project_access(&auth, project_id)?;
+
+    let phase: (String, String, Option<String>, String, i32, String, Option<String>, String) = sqlx::query_as(
+        r#"
+        SELECT id, title, description, status::text, progress,
+               "roadmapId", "startDate"::text, "createdAt"::text
+        FROM phases WHERE id = $1
+        "#,
+    )
+    .bind(&phase_id)
+    .fetch_one(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    Ok(response::success(serde_json::json!({
+        "id": phase.0,
+        "title": phase.1,
+        "description": phase.2,
+        "status": phase.3,
+        "progress": phase.4,
+        "roadmapId": phase.5,
+        "startDate": phase.6,
+        "createdAt": phase.7,
+    })))
+}
+
+// ============================================================================
+// PUT /api/v1/phases/:id/progress — Update phase progress
+// ============================================================================
+
+#[derive(Deserialize)]
+pub struct UpdateProgressRequest {
+    pub progress: i32,
+}
+
+pub async fn update_phase_progress(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Path(phase_id): Path<String>,
+    Json(req): Json<UpdateProgressRequest>,
+) -> Result<Response, AppError> {
+    if req.progress < 0 || req.progress > 100 {
+        return Err(AppError::Validation("progress must be 0-100".to_string()));
+    }
+
+    // Auth check
+    let project_row: Option<(i32,)> = sqlx::query_as(
+        r#"
+        SELECT r."projectId" FROM phases p
+        JOIN roadmaps r ON p."roadmapId" = r.id
+        WHERE p.id = $1
+        "#,
+    )
+    .bind(&phase_id)
+    .fetch_optional(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    let project_id = project_row
+        .ok_or_else(|| AppError::NotFound(format!("phase {} not found", phase_id)))?
+        .0;
+    require_project_access(&auth, project_id)?;
+
+    let status = if req.progress >= 100 {
+        "COMPLETED"
+    } else if req.progress > 0 {
+        "IN_PROGRESS"
+    } else {
+        "NOT_STARTED"
+    };
+
+    sqlx::query(
+        r#"
+        UPDATE phases
+        SET progress = $1, status = $2::"Status", "updatedAt" = NOW()
+        WHERE id = $3
+        "#,
+    )
+    .bind(req.progress)
+    .bind(status)
+    .bind(&phase_id)
+    .execute(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    Ok(response::success(serde_json::json!({
+        "id": phase_id,
+        "progress": req.progress,
+        "status": status,
+    })))
+}
+
+// ============================================================================
+// PUT /api/v1/sprints/:id/progress — Update sprint progress (with cascade)
+// ============================================================================
+
+pub async fn update_sprint_progress(
+    State(state): State<AppState>,
+    Extension(auth): Extension<AuthContext>,
+    Path(sprint_id): Path<String>,
+    Json(req): Json<UpdateProgressRequest>,
+) -> Result<Response, AppError> {
+    if req.progress < 0 || req.progress > 100 {
+        return Err(AppError::Validation("progress must be 0-100".to_string()));
+    }
+
+    // Auth: resolve project from sprint → phase → roadmap
+    let project_row: Option<(i32, String)> = sqlx::query_as(
+        r#"
+        SELECT r."projectId", s."phaseId"
+        FROM sprints s
+        JOIN phases p ON s."phaseId" = p.id
+        JOIN roadmaps r ON p."roadmapId" = r.id
+        WHERE s.id = $1
+        "#,
+    )
+    .bind(&sprint_id)
+    .fetch_optional(&state.db)
+    .await
+    .map_err(AppError::Database)?;
+
+    let (project_id, phase_id) = project_row
+        .ok_or_else(|| AppError::NotFound(format!("sprint {} not found", sprint_id)))?;
+    require_project_access(&auth, project_id)?;
+
+    let sprint_status = if req.progress >= 100 {
+        "COMPLETED"
+    } else if req.progress > 0 {
+        "IN_PROGRESS"
+    } else {
+        "NOT_STARTED"
+    };
+
+    // Wrap sprint + phase updates in a transaction for atomicity
+    let mut tx = state.db.begin().await.map_err(AppError::Database)?;
+
+    // Update sprint
+    sqlx::query(
+        r#"
+        UPDATE sprints
+        SET progress = $1, status = $2::"Status", "updatedAt" = NOW()
+        WHERE id = $3
+        "#,
+    )
+    .bind(req.progress)
+    .bind(sprint_status)
+    .bind(&sprint_id)
+    .execute(&mut *tx)
+    .await
+    .map_err(AppError::Database)?;
+
+    // Recalculate parent phase progress from all sprints
+    let phase_avg: (Option<f64>,) = sqlx::query_as(
+        r#"
+        SELECT AVG(progress)::float8
+        FROM sprints WHERE "phaseId" = $1
+        "#,
+    )
+    .bind(&phase_id)
+    .fetch_one(&mut *tx)
+    .await
+    .map_err(AppError::Database)?;
+
+    let phase_progress = phase_avg.0.unwrap_or(0.0).round() as i32;
+    let phase_status = if phase_progress >= 100 {
+        "COMPLETED"
+    } else if phase_progress > 0 {
+        "IN_PROGRESS"
+    } else {
+        "NOT_STARTED"
+    };
+
+    sqlx::query(
+        r#"
+        UPDATE phases
+        SET progress = $1, status = $2::"Status", "updatedAt" = NOW()
+        WHERE id = $3
+        "#,
+    )
+    .bind(phase_progress)
+    .bind(phase_status)
+    .bind(&phase_id)
+    .execute(&mut *tx)
+    .await
+    .map_err(AppError::Database)?;
+
+    tx.commit().await.map_err(AppError::Database)?;
+
+    // Auto-advance next sprint if this one completed (outside tx — non-critical)
+    if sprint_status == "COMPLETED" {
+        use crate::services::progress;
+        let _ = progress::auto_advance_sprint_by_id(&state.db, &sprint_id, &phase_id).await;
+    }
+
+    Ok(response::success(serde_json::json!({
+        "sprint": {
+            "id": sprint_id,
+            "progress": req.progress,
+            "status": sprint_status,
+        },
+        "phase": {
+            "id": phase_id,
+            "progress": phase_progress,
+            "status": phase_status,
+        },
+    })))
 }
