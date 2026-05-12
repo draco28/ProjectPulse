@@ -36,14 +36,14 @@ pub async fn create_page(
     let parent_id = resolve_parent(db, req.parent_path.as_deref(), req.project_id).await?;
     let tags = req.tags.unwrap_or_default();
 
-    // Insert page with tsvector
+    // Insert page. content_tsv is a GENERATED ALWAYS column — auto-populated
+    // by PostgreSQL from title + excerpt + content, do NOT include in INSERT.
     let row: (i32, i32, String, String) = sqlx::query_as(
         r#"
         INSERT INTO "WikiPage" ("projectId", title, content, path, category, excerpt, "parentId",
                                 version, revisions, tags, "lastEditedBy", "lastEditedAt",
-                                content_tsv, "createdAt", "updatedAt")
-        VALUES ($1, $2, $3, $4, $5, $6, $7, 1, 1, $8, 'system', NOW(),
-                to_tsvector('english', $2 || ' ' || $3), NOW(), NOW())
+                                "createdAt", "updatedAt")
+        VALUES ($1, $2, $3, $4, $5, $6, $7, 1, 1, $8, 'system', NOW(), NOW(), NOW())
         RETURNING id, version, "createdAt"::text, "updatedAt"::text
         "#,
     )
@@ -299,13 +299,12 @@ pub async fn update_page(
     .await
     .map_err(AppError::Database)?;
 
-    // 3. Update page
+    // 3. Update page. content_tsv is GENERATED ALWAYS — do NOT write to it.
     let row: (i32, String, String) = sqlx::query_as(
         r#"UPDATE "WikiPage"
            SET title = $3, content = $4, category = $5, excerpt = $6, tags = $7,
                version = version + 1, revisions = revisions + 1,
                "lastEditedBy" = 'system', "lastEditedAt" = NOW(),
-               content_tsv = to_tsvector('english', $3 || ' ' || $4),
                "updatedAt" = NOW()
            WHERE id = $1 AND "projectId" = $2
            RETURNING version, "createdAt"::text, "updatedAt"::text"#,

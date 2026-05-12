@@ -18,6 +18,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::system::get_app_info,
             commands::api_proxy::api_fetch,
+            commands::chat::start_chat,
+            commands::chat::send_message,
+            commands::chat::get_history,
+            commands::chat::list_conversations,
         ])
         .run(tauri::generate_context!())
         .expect("error running tauri application");

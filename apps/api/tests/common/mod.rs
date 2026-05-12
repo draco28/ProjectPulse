@@ -64,6 +64,110 @@ pub async fn test_state() -> (AppState, TempDir) {
     (state, temp_dir)
 }
 
+/// Sprint hierarchy created for testing kanban/progress cascade.
+pub struct TestSprintHierarchy {
+    pub roadmap_id: String,
+    pub phase_id: String,
+    pub sprint_id: String,
+    /// Sprint number (project-scoped, 1-indexed within phase).
+    pub sprint_number: i32,
+}
+
+/// Create a phase → sprint hierarchy under the existing project 6 roadmap.
+/// Reuses (or creates) a single roadmap for project 6, then creates a UNIQUE
+/// phase + sprint per call so tests can run in parallel without conflicts.
+pub async fn create_test_sprint(db: &sqlx::PgPool) -> TestSprintHierarchy {
+    // Get or create the roadmap for project 6 (unique constraint on projectId)
+    let roadmap_id: String = match sqlx::query_as::<_, (String,)>(
+        r#"SELECT id FROM roadmaps WHERE "projectId" = 6"#,
+    )
+    .fetch_optional(db)
+    .await
+    .expect("failed to query roadmap")
+    {
+        Some((id,)) => id,
+        None => {
+            let new_id = cuid2::create_id();
+            sqlx::query(
+                r#"INSERT INTO roadmaps (id, "projectId", phases, "createdAt", "updatedAt")
+                   VALUES ($1, 6, '{}'::jsonb, NOW(), NOW())
+                   ON CONFLICT ("projectId") DO NOTHING"#,
+            )
+            .bind(&new_id)
+            .execute(db)
+            .await
+            .expect("failed to insert roadmap");
+            // Re-fetch in case of concurrent insert
+            sqlx::query_as::<_, (String,)>(r#"SELECT id FROM roadmaps WHERE "projectId" = 6"#)
+                .fetch_one(db)
+                .await
+                .expect("failed to re-fetch roadmap")
+                .0
+        }
+    };
+
+    let phase_id = cuid2::create_id();
+    let sprint_id = cuid2::create_id();
+
+    // Insert phase (always new)
+    sqlx::query(
+        r#"INSERT INTO phases (id, title, description, status, progress, "startDate", "roadmapId", "createdAt", "updatedAt")
+           VALUES ($1, 'Test Phase', NULL, 'NOT_STARTED'::"Status", 0, NOW(), $2, NOW(), NOW())"#,
+    )
+    .bind(&phase_id)
+    .bind(&roadmap_id)
+    .execute(db)
+    .await
+    .expect("failed to insert phase");
+
+    // Insert sprint (sprint_number = 1 within this new phase)
+    sqlx::query(
+        r#"INSERT INTO sprints (id, title, description, status, progress, "sprintNumber", "startDate", "phaseId", "createdAt", "updatedAt")
+           VALUES ($1, 'Test Sprint', NULL, 'NOT_STARTED'::"Status", 0, 1, NOW(), $2, NOW(), NOW())"#,
+    )
+    .bind(&sprint_id)
+    .bind(&phase_id)
+    .execute(db)
+    .await
+    .expect("failed to insert sprint");
+
+    TestSprintHierarchy {
+        roadmap_id,
+        phase_id,
+        sprint_id,
+        sprint_number: 1,
+    }
+}
+
+/// Insert a ticket directly into the DB, assigned to the given sprint.
+/// Returns the ticket id. Bypasses API for setup speed.
+pub async fn insert_test_ticket(
+    db: &sqlx::PgPool,
+    project_id: i32,
+    title: &str,
+    status: &str,
+    sprint_id: Option<&str>,
+) -> i32 {
+    let row: (i32,) = sqlx::query_as(
+        r#"INSERT INTO tickets
+            (title, kind, source, status, priority, "projectId", ticket_number,
+             "displayOrder", "sprintId", "createdAt", "updatedAt")
+           VALUES ($1, 'task', 'agent', $2, 'medium',
+                   $3,
+                   (SELECT COALESCE(MAX(ticket_number), 0) + 1 FROM tickets WHERE "projectId" = $3),
+                   0, $4, NOW(), NOW())
+           RETURNING id"#,
+    )
+    .bind(title)
+    .bind(status)
+    .bind(project_id)
+    .bind(sprint_id)
+    .fetch_one(db)
+    .await
+    .expect("failed to insert test ticket");
+    row.0
+}
+
 /// Create a test JWT token signed with TEST_SECRET.
 pub fn create_test_jwt(user_id: &str, email: &str, role: &str) -> String {
     use jsonwebtoken::{encode, EncodingKey, Header};

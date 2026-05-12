@@ -3,6 +3,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use pulsehive::HiveMind;
+use pulsehive_core::llm::LlmProvider;
+use pulsehive_openai::{OpenAICompatibleProvider, OpenAIConfig};
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::PgPool;
 use tokio::sync::RwLock;
@@ -32,6 +34,9 @@ pub struct AppState {
     pub rag: Arc<dyn RagService>,
     pub embeddings: Arc<EmbeddingService>,
     pub jobs: Arc<RwLock<HashMap<String, IngestJobStatus>>>,
+    /// Direct LLM provider handle for chat streaming (Sprint 9).
+    /// `None` if `LLM_API_KEY` is unset — chat endpoints return a clear error.
+    pub llm: Option<Arc<dyn LlmProvider>>,
 }
 
 impl AppState {
@@ -70,6 +75,18 @@ impl AppState {
             ),
         );
 
+        // Sprint 9: Direct LLM provider for chat streaming (bypasses HiveMind agent loop).
+        // Only constructed if API key is configured — chat endpoints surface a clear
+        // error if `LLM_API_KEY` is unset.
+        let llm: Option<Arc<dyn LlmProvider>> = config.llm_api_key.as_ref().map(|key| {
+            let provider = OpenAICompatibleProvider::new(
+                OpenAIConfig::new(key, &config.llm_model)
+                    .with_base_url(&config.llm_base_url)
+                    .with_timeout(120),
+            );
+            Arc::new(provider) as Arc<dyn LlmProvider>
+        });
+
         Ok(Self {
             config: Arc::new(config),
             db,
@@ -77,6 +94,7 @@ impl AppState {
             rag,
             embeddings,
             jobs: Arc::new(RwLock::new(HashMap::new())),
+            llm,
         })
     }
 

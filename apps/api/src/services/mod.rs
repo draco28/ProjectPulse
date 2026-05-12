@@ -1,7 +1,9 @@
+pub mod chat_service;
 pub mod chunking;
 pub mod content_events;
 pub mod context_service;
 pub mod embeddings;
+pub mod hybrid_search;
 pub mod ingestion;
 pub mod knowledge_service;
 pub mod pagination;

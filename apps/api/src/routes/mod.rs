@@ -1,5 +1,6 @@
 pub mod auth_validate;
 pub mod batch;
+pub mod chat;
 pub mod context;
 pub mod health;
 pub mod kanban;
@@ -131,6 +132,11 @@ pub fn protected_routes() -> Router<AppState> {
         // Observability (Sprint 7 Batch 5)
         .route("/api/v1/observability/log-step", post(observability::log_step))
         .route("/api/v1/observability/complete-session", post(observability::complete_session))
+        // Chat (Sprint 9)
+        .route("/api/v1/chat/conversations",
+            post(chat::create_conversation).get(chat::list_conversations))
+        .route("/api/v1/chat/conversations/:id/messages",
+            post(chat::send_message).get(chat::get_messages))
         // Reverse proxy fallback — MUST be last (Sprint 7 Batch 5)
         .fallback(proxy::forward_to_nextjs)
 }

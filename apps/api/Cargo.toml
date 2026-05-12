@@ -30,6 +30,7 @@ async-trait = "0.1"
 sha2 = "0.10"
 cuid2 = "0.1"
 futures = "0.3"
+async-stream = "0.3"
 # PulseHive agent orchestration (Sprint 5)
 pulsehive = { workspace = true }
 pulsehive-core = { workspace = true }

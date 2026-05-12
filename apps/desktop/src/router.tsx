@@ -9,6 +9,7 @@ const Tickets = lazy(() => import('./pages/Tickets'));
 const TicketDetail = lazy(() => import('./pages/TicketDetail'));
 const Sprints = lazy(() => import('./pages/Sprints'));
 const Search = lazy(() => import('./pages/Search'));
+const Chat = lazy(() => import('./pages/Chat'));
 
 function PageLoader() {
   return (
@@ -47,6 +48,10 @@ export const router = createBrowserRouter([
       {
         path: 'search',
         element: <SuspenseWrapper><Search /></SuspenseWrapper>,
+      },
+      {
+        path: 'chat',
+        element: <SuspenseWrapper><Chat /></SuspenseWrapper>,
       },
     ],
   },

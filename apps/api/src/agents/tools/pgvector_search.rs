@@ -5,10 +5,18 @@ use sqlx::PgPool;
 
 use pulsehive_core::tool::{Tool, ToolContext, ToolResult};
 
+use crate::services::embeddings::EmbeddingService;
+use crate::services::hybrid_search;
+
 /// Hybrid pgvector + tsvector search over rag_chunks table.
-/// Reuses the same RRF logic as PgVectorRagService.
+///
+/// Sprint 9: Now uses the shared `services::hybrid_search` module so it gets
+/// real RRF hybrid search instead of the previous "ORDER BY created_at DESC"
+/// placeholder. Same implementation as the production /rag/search endpoint.
 pub struct PgVectorSearchTool {
     pub db: PgPool,
+    pub embeddings: EmbeddingService,
+    pub project_id: i32,
 }
 
 #[async_trait]
@@ -44,33 +52,34 @@ impl Tool for PgVectorSearchTool {
 
     async fn execute(&self, params: Value, _ctx: &ToolContext) -> Result<ToolResult> {
         let query = params["query"].as_str().unwrap_or("");
-        let limit = params["limit"].as_i64().unwrap_or(10);
+        let limit = params["limit"].as_u64().unwrap_or(10) as usize;
+        let source_types: Option<Vec<String>> = params["source_types"]
+            .as_str()
+            .map(|s| s.split(',').map(|t| t.trim().to_string()).collect());
 
-        // TODO: Extract RRF search logic into a shared function (currently in PgVectorRagService)
-        // For now, run a simple pgvector cosine search
-        let rows = sqlx::query_as::<_, (i32, String, String, i32, Option<String>)>(
-            r#"
-            SELECT id, content, source_type, source_id, section_title
-            FROM rag_chunks
-            WHERE project_id = 6
-            ORDER BY created_at DESC
-            LIMIT $1
-            "#,
+        let scored = hybrid_search::hybrid_search(
+            &self.db,
+            &self.embeddings,
+            query,
+            self.project_id,
+            limit,
+            source_types.as_deref(),
         )
-        .bind(limit)
-        .fetch_all(&self.db)
         .await
-        .map_err(|e| PulseHiveError::tool(format!("pgvector query failed: {e}")))?;
+        .map_err(|e| PulseHiveError::tool(format!("hybrid search failed: {e}")))?;
 
-        let results: Vec<Value> = rows
-            .iter()
-            .map(|(id, content, source_type, source_id, section)| {
+        let results: Vec<Value> = scored
+            .into_iter()
+            .map(|chunk| {
+                let preview_len = chunk.content.len().min(500);
                 json!({
-                    "id": id,
-                    "content": &content[..content.len().min(500)],
-                    "source_type": source_type,
-                    "source_id": source_id,
-                    "section": section,
+                    "id": chunk.id,
+                    "content": &chunk.content[..preview_len],
+                    "source_type": chunk.source_type,
+                    "source_id": chunk.source_id,
+                    "section": chunk.section_title,
+                    "domain_tags": chunk.domain_tags,
+                    "score": chunk.rrf_score,
                 })
             })
             .collect();

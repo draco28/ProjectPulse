@@ -1,3 +1,4 @@
+pub mod chat;
 pub mod context;
 pub mod knowledge;
 pub mod persona;

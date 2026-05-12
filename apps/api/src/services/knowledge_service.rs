@@ -347,10 +347,11 @@ async fn search_fulltext(
     category: Option<&str>,
 ) -> Result<Vec<KnowledgeSearchResult>, AppError> {
     let category_filter = if category.is_some() { "AND ki.category = $4" } else { "" };
+    // Cast ts_rank_cd to float8 (PostgreSQL returns real/f32 by default)
     let sql = format!(
         r#"
         SELECT ki.id, ki.title, ki.content, ki.category, ki.tags,
-               ts_rank_cd(ki."contentTsvector", plainto_tsquery('english', $1)) AS score
+               ts_rank_cd(ki."contentTsvector", plainto_tsquery('english', $1))::float8 AS score
         FROM knowledge_items ki
         WHERE ki."projectId" = $2 AND ki."archivedAt" IS NULL
               AND ki."contentTsvector" @@ plainto_tsquery('english', $1) {}
@@ -469,19 +470,19 @@ pub async fn get_related(
         return Err(AppError::NotFound(format!("knowledge item {} not found", item_id)));
     }
 
-    // 1-hop: direct relationships
+    // 1-hop: direct relationships (Sprint 9 fix: columns are toId/fromId/weight, not toItemId/fromItemId/strength)
     let mut related: Vec<RelatedItem> = sqlx::query_as::<_, (i32, String, String, String, f64)>(
         r#"
-        SELECT ki.id, ki.title, ki.category, kr."relationType", kr.strength
+        SELECT ki.id, ki.title, ki.category, kr."relationType", kr.weight::float8
         FROM knowledge_relationships kr
-        JOIN knowledge_items ki ON ki.id = kr."toItemId"
-        WHERE kr."fromItemId" = $1 AND kr.strength >= $2
+        JOIN knowledge_items ki ON ki.id = kr."toId"
+        WHERE kr."fromId" = $1 AND kr.weight::float8 >= $2
         UNION
-        SELECT ki.id, ki.title, ki.category, kr."relationType", kr.strength
+        SELECT ki.id, ki.title, ki.category, kr."relationType", kr.weight::float8
         FROM knowledge_relationships kr
-        JOIN knowledge_items ki ON ki.id = kr."fromItemId"
-        WHERE kr."toItemId" = $1 AND kr.strength >= $2
-        ORDER BY strength DESC
+        JOIN knowledge_items ki ON ki.id = kr."fromId"
+        WHERE kr."toId" = $1 AND kr.weight::float8 >= $2
+        ORDER BY 5 DESC
         LIMIT $3
         "#,
     )
@@ -509,17 +510,17 @@ pub async fn get_related(
             let remaining = (limit as usize).saturating_sub(related.len());
             let hop2_rows = sqlx::query_as::<_, (i32, String, String, String, f64)>(
                 r#"
-                SELECT DISTINCT ki.id, ki.title, ki.category, kr."relationType", kr.strength
+                SELECT DISTINCT ki.id, ki.title, ki.category, kr."relationType", kr.weight::float8
                 FROM knowledge_relationships kr
                 JOIN knowledge_items ki ON ki.id = CASE
-                    WHEN kr."fromItemId" = ANY($1) THEN kr."toItemId"
-                    ELSE kr."fromItemId"
+                    WHEN kr."fromId" = ANY($1) THEN kr."toId"
+                    ELSE kr."fromId"
                 END
-                WHERE (kr."fromItemId" = ANY($1) OR kr."toItemId" = ANY($1))
+                WHERE (kr."fromId" = ANY($1) OR kr."toId" = ANY($1))
                   AND ki.id != $2
                   AND ki.id != ALL($1)
-                  AND kr.strength >= $3
-                ORDER BY kr.strength DESC
+                  AND kr.weight::float8 >= $3
+                ORDER BY kr.weight::float8 DESC
                 LIMIT $4
                 "#,
             )

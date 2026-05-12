@@ -10,6 +10,7 @@ use crate::agents::tools::graph_traversal::GraphTraversalTool;
 use crate::agents::tools::pgvector_search::PgVectorSearchTool;
 use crate::agents::tools::pulsedb_insights::PulseDBInsightsTool;
 use crate::agents::tools::ticket_lookup::TicketLookupTool;
+use crate::services::embeddings::EmbeddingService;
 
 /// Build the RAGRetriever agent definition.
 ///
@@ -19,7 +20,13 @@ use crate::agents::tools::ticket_lookup::TicketLookupTool;
 /// 3. Looks up structured ticket data when referenced
 /// 4. Checks PulseDB for past agent insights on the topic
 /// 5. Synthesizes findings into a ranked response
-pub fn rag_retriever_agent(db: PgPool, llm_provider: &str, llm_model: &str) -> AgentDefinition {
+pub fn rag_retriever_agent(
+    db: PgPool,
+    embeddings: EmbeddingService,
+    project_id: i32,
+    llm_provider: &str,
+    llm_model: &str,
+) -> AgentDefinition {
     let mut lens = Lens::new(["retrieval", "search", "knowledge"]);
     lens.attention_budget = 30;
 
@@ -44,7 +51,11 @@ pub fn rag_retriever_agent(db: PgPool, llm_provider: &str, llm_model: &str) -> A
             )
             .into(),
             tools: vec![
-                Arc::new(PgVectorSearchTool { db: db.clone() }) as Arc<dyn Tool>,
+                Arc::new(PgVectorSearchTool {
+                    db: db.clone(),
+                    embeddings,
+                    project_id,
+                }) as Arc<dyn Tool>,
                 Arc::new(GraphTraversalTool { db: db.clone() }),
                 Arc::new(TicketLookupTool { db }),
                 Arc::new(PulseDBInsightsTool),

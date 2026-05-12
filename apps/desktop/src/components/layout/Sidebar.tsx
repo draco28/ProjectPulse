@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutGrid, ListTodo, Milestone, Search } from 'lucide-react';
+import { LayoutGrid, ListTodo, Milestone, Search, MessageSquare } from 'lucide-react';
 
 const navItems = [
+  { to: '/chat', label: 'AI Chat', icon: MessageSquare },
   { to: '/kanban', label: 'Kanban', icon: LayoutGrid },
   { to: '/tickets', label: 'Tickets', icon: ListTodo },
   { to: '/sprints', label: 'Sprints', icon: Milestone },
